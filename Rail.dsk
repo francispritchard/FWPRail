@@ -1,0 +1,1020 @@
+﻿[Closed Files]
+File_0=TSourceModule,'C:\Doc\Google Drive\RAD Studio\Projects\Rail\Edit.pas',0,1,206,20,239,0,0,,
+File_1=TSourceModule,'C:\Doc\Google Drive\RAD Studio\Projects\Rail\Rail.vrc',0,1,1,101,43,0,0,,
+File_2=TSourceModule,'C:\Doc\Google Drive\RAD Studio\Projects\Rail\Help.pas',0,1,209,18,242,0,0,,
+File_3=TSourceModule,'C:\Doc\Google Drive\RAD Studio\Projects\Rail\TestUnit.pas',0,1,509,12,542,0,0,,
+File_4=TSourceModule,'C:\Doc\Google Drive\RAD Studio\Projects\Rail\Splash.pas',0,1,1,58,27,0,0,,
+File_5=TSourceModule,'C:\Doc\Google Drive\RAD Studio\Projects\Rail - Copy\Lenz.pas',0,1,1323,31,1020,0,0,,
+File_6=TSourceModule,'C:\Doc\Google Drive\RAD Studio\Projects\Rail\Replay.pas',0,1,40,1,73,0,0,,
+File_7=TSourceModule,'C:\Doc\Google Drive\RAD Studio\Projects\Rail\Options.pas',0,1,1439,30,1472,0,0,,
+File_8=TSourceModule,'C:\Doc\Google Drive\RAD Studio\Projects\Rail\StationMonitors.pas',0,1,1,1,1,0,0,,
+File_9=TSourceModule,'C:\Doc\Google Drive\RAD Studio\Projects\Rail\FWPShowMessageUnit.pas',0,1,1,1,1,0,0,,
+File_10=TSourceModule,'C:\Doc\Google Drive\RAD Studio\Projects\Rail\StationTimetable.pas',0,1,1,32,5,0,0,,
+File_11=TSourceModule,'C:\Doc\Google Drive\RAD Studio\Projects\Rail\RDC.pas',0,1,1,1,1,0,0,,
+File_12=TSourceModule,'C:\Doc\Google Drive\RAD Studio\Projects\Rail\ProgressBar.pas',0,1,1,1,1,0,0,,
+File_13=TSourceModule,'C:\Doc\Google Drive\RAD Studio\Projects\Rail\umain.pas',0,1,1,1,1,0,0,,
+File_14=TSourceModule,'C:\Program Files (x86)\MarshallSoft\2011\APPS\Mess_PGM_FWP.PAS',0,1,1,1,1,0,0,,
+
+[Modules]
+Module0=C:\Doc\Google Drive\RAD Studio\Projects\Rail\Lenz.pas
+Module1=C:\Doc\Google Drive\RAD Studio\Projects\Rail\TCPIP.pas
+Module2=C:\Doc\Google Drive\RAD Studio\Projects\Rail\Input.pas
+Module3=C:\Doc\Google Drive\RAD Studio\Projects\Rail\MiscUtils.pas
+Module4=C:\Doc\Google Drive\RAD Studio\Projects\Rail\Raildraw.pas
+Module5=C:\Doc\Google Drive\RAD Studio\Projects\Rail\Startup.pas
+Module6=C:\Doc\Google Drive\RAD Studio\Projects\Rail\InitVars.pas
+Module7=C:\Doc\Google Drive\RAD Studio\Projects\Rail\LocationData.pas
+Module8=C:\Doc\Google Drive\RAD Studio\Projects\Rail\CreateRoute.pas
+Module9=C:\Doc\Google Drive\RAD Studio\Projects\Rail\LocoUtils.pas
+Module10=C:\Doc\Google Drive\RAD Studio\Projects\Rail\Locks.pas
+Module11=C:\Doc\Google Drive\RAD Studio\Projects\Rail\Diagrams.pas
+Module12=C:\Doc\Google Drive\RAD Studio\Projects\Rail\Movement.pas
+Module13=C:\Doc\Google Drive\RAD Studio\Projects\Rail\Feedback.pas
+Module14=C:\Doc\Google Drive\RAD Studio\Projects\Rail\GetTime.pas
+Module15=C:\Doc\Google Drive\RAD Studio\Projects\Rail\NewWorkingTimetable.pas
+Module16=C:\Doc\Google Drive\RAD Studio\Projects\Rail\Route.pas
+Module17=C:\Doc\Google Drive\RAD Studio\Projects\Rail\Cuneo.pas
+Module18=C:\Doc\Google Drive\RAD Studio\Projects\Rail\LocoDialogue.pas
+Module19=C:\Doc\Google Drive\RAD Studio\Projects\Rail\WorkingTimetable.pas
+Count=20
+EditWindowCount=1
+
+[C:\Doc\Google Drive\RAD Studio\Projects\Rail\Lenz.pas]
+ModuleType=TSourceModule
+FormState=1
+FormOnTop=0
+
+[C:\Doc\Google Drive\RAD Studio\Projects\Rail\TCPIP.pas]
+ModuleType=TSourceModule
+FormState=1
+FormOnTop=0
+
+[C:\Doc\Google Drive\RAD Studio\Projects\Rail\Input.pas]
+ModuleType=TSourceModule
+FormState=1
+FormOnTop=0
+
+[C:\Doc\Google Drive\RAD Studio\Projects\Rail\MiscUtils.pas]
+ModuleType=TSourceModule
+FormState=1
+FormOnTop=0
+
+[C:\Doc\Google Drive\RAD Studio\Projects\Rail\Raildraw.pas]
+ModuleType=TSourceModule
+FormState=1
+FormOnTop=0
+
+[C:\Doc\Google Drive\RAD Studio\Projects\Rail\Startup.pas]
+ModuleType=TSourceModule
+FormState=1
+FormOnTop=0
+
+[C:\Doc\Google Drive\RAD Studio\Projects\Rail\InitVars.pas]
+ModuleType=TSourceModule
+FormState=1
+FormOnTop=0
+
+[C:\Doc\Google Drive\RAD Studio\Projects\Rail\LocationData.pas]
+ModuleType=TSourceModule
+FormState=1
+FormOnTop=0
+
+[C:\Doc\Google Drive\RAD Studio\Projects\Rail\CreateRoute.pas]
+ModuleType=TSourceModule
+FormState=1
+FormOnTop=0
+
+[C:\Doc\Google Drive\RAD Studio\Projects\Rail\LocoUtils.pas]
+ModuleType=TSourceModule
+FormState=1
+FormOnTop=0
+
+[C:\Doc\Google Drive\RAD Studio\Projects\Rail\Locks.pas]
+ModuleType=TSourceModule
+FormState=1
+FormOnTop=0
+
+[C:\Doc\Google Drive\RAD Studio\Projects\Rail\Diagrams.pas]
+ModuleType=TSourceModule
+FormState=1
+FormOnTop=0
+
+[C:\Doc\Google Drive\RAD Studio\Projects\Rail\Movement.pas]
+ModuleType=TSourceModule
+FormState=1
+FormOnTop=0
+
+[C:\Doc\Google Drive\RAD Studio\Projects\Rail\Feedback.pas]
+ModuleType=TSourceModule
+FormState=1
+FormOnTop=0
+
+[C:\Doc\Google Drive\RAD Studio\Projects\Rail\GetTime.pas]
+ModuleType=TSourceModule
+FormState=1
+FormOnTop=0
+
+[C:\Doc\Google Drive\RAD Studio\Projects\Rail\NewWorkingTimetable.pas]
+ModuleType=TSourceModule
+FormState=1
+FormOnTop=0
+
+[C:\Doc\Google Drive\RAD Studio\Projects\Rail\Route.pas]
+ModuleType=TSourceModule
+FormState=1
+FormOnTop=0
+
+[C:\Doc\Google Drive\RAD Studio\Projects\Rail\Cuneo.pas]
+ModuleType=TSourceModule
+FormState=1
+FormOnTop=0
+
+[C:\Doc\Google Drive\RAD Studio\Projects\Rail\LocoDialogue.pas]
+ModuleType=TSourceModule
+FormState=1
+FormOnTop=0
+
+[C:\Doc\Google Drive\RAD Studio\Projects\Rail\WorkingTimetable.pas]
+ModuleType=TSourceModule
+FormState=1
+FormOnTop=0
+
+[EditWindow0]
+ViewCount=20
+CurrentEditView=C:\Doc\Google Drive\RAD Studio\Projects\Rail\Lenz.pas
+View0=0
+View1=1
+View2=2
+View3=3
+View4=4
+View5=5
+View6=6
+View7=7
+View8=8
+View9=9
+View10=10
+View11=11
+View12=12
+View13=13
+View14=14
+View15=15
+View16=16
+View17=17
+View18=18
+View19=19
+PercentageSizes=1
+Create=1
+Visible=1
+Docked=1
+State=0
+Left=0
+Top=0
+Width=10000
+Height=9573
+MaxLeft=-1
+MaxTop=-1
+ClientWidth=10000
+ClientHeight=9573
+DockedToMainForm=1
+BorlandEditorCodeExplorer=BorlandEditorCodeExplorer@EditWindow0
+TopPanelSize=0
+LeftPanelSize=0
+LeftPanelClients=LocalVarsWindow
+LeftPanelData=000008000101010000000F0000004C6F63616C5661727357696E646F77FF14000000000000010000000000000000FFFFFFFF
+RightPanelSize=0
+RightPanelClients=DockSite2
+RightPanelData=0000080001000100000009000000446F636B5369746532800C00000000000000011D000000000000FFFFFFFF
+BottomPanelSize=1525
+BottomPanelClients=DockSite1
+BottomPanelData=00000800010200000000153400000000000002F50500000000000001000000001534000009000000446F636B5369746531FFFFFFFF
+BottomMiddlePanelSize=0
+BottomMiddlePanelClients=DockSite0
+BottomMiddelPanelData=0000080001020100000009000000446F636B5369746530521C000000000000029905000000000000FFFFFFFF
+
+[View0]
+CustomEditViewType=TEditView
+Module=C:\Doc\Google Drive\RAD Studio\Projects\Rail\CreateRoute.pas
+CursorX=62
+CursorY=117
+TopLine=84
+LeftCol=1
+Elisions=
+Bookmarks=
+EditViewName=C:\Doc\Google Drive\RAD Studio\Projects\Rail\CreateRoute.pas
+
+[View1]
+CustomEditViewType=TEditView
+Module=C:\Doc\Google Drive\RAD Studio\Projects\Rail\Cuneo.pas
+CursorX=1
+CursorY=1
+TopLine=1
+LeftCol=1
+Elisions=
+Bookmarks=
+EditViewName=C:\Doc\Google Drive\RAD Studio\Projects\Rail\Cuneo.pas
+
+[View2]
+CustomEditViewType=TEditView
+Module=C:\Doc\Google Drive\RAD Studio\Projects\Rail\Diagrams.pas
+CursorX=16
+CursorY=3415
+TopLine=3382
+LeftCol=1
+Elisions=
+Bookmarks=
+EditViewName=C:\Doc\Google Drive\RAD Studio\Projects\Rail\Diagrams.pas
+
+[View3]
+CustomEditViewType=TEditView
+Module=C:\Doc\Google Drive\RAD Studio\Projects\Rail\Feedback.pas
+CursorX=24
+CursorY=531
+TopLine=445
+LeftCol=1
+Elisions=
+Bookmarks=
+EditViewName=C:\Doc\Google Drive\RAD Studio\Projects\Rail\Feedback.pas
+
+[View4]
+CustomEditViewType=TEditView
+Module=C:\Doc\Google Drive\RAD Studio\Projects\Rail\GetTime.pas
+CursorX=1
+CursorY=69
+TopLine=35
+LeftCol=1
+Elisions=
+Bookmarks=
+EditViewName=C:\Doc\Google Drive\RAD Studio\Projects\Rail\GetTime.pas
+
+[View5]
+CustomEditViewType=TEditView
+Module=C:\Doc\Google Drive\RAD Studio\Projects\Rail\InitVars.pas
+CursorX=64
+CursorY=4042
+TopLine=4009
+LeftCol=1
+Elisions=
+Bookmarks=
+EditViewName=C:\Doc\Google Drive\RAD Studio\Projects\Rail\InitVars.pas
+
+[View6]
+CustomEditViewType=TEditView
+Module=C:\Doc\Google Drive\RAD Studio\Projects\Rail\Input.pas
+CursorX=67
+CursorY=3344
+TopLine=3304
+LeftCol=1
+Elisions=
+Bookmarks={1,3340,24}
+EditViewName=C:\Doc\Google Drive\RAD Studio\Projects\Rail\Input.pas
+
+[View7]
+CustomEditViewType=TEditView
+Module=C:\Doc\Google Drive\RAD Studio\Projects\Rail\Lenz.pas
+CursorX=7
+CursorY=3338
+TopLine=3301
+LeftCol=1
+Elisions=
+Bookmarks={0,675,1}{1,682,1}{2,819,25}{3,1357,60}{9,821,7}
+EditViewName=C:\Doc\Google Drive\RAD Studio\Projects\Rail\Lenz.pas
+
+[View8]
+CustomEditViewType=TEditView
+Module=C:\Doc\Google Drive\RAD Studio\Projects\Rail\TCPIP.pas
+CursorX=13
+CursorY=409
+TopLine=369
+LeftCol=1
+Elisions=
+Bookmarks=
+EditViewName=C:\Doc\Google Drive\RAD Studio\Projects\Rail\TCPIP.pas
+
+[View9]
+CustomEditViewType=TEditView
+Module=C:\Doc\Google Drive\RAD Studio\Projects\Rail\Locks.pas
+CursorX=28
+CursorY=1627
+TopLine=1594
+LeftCol=1
+Elisions=
+Bookmarks=
+EditViewName=C:\Doc\Google Drive\RAD Studio\Projects\Rail\Locks.pas
+
+[View10]
+CustomEditViewType=TEditView
+Module=C:\Doc\Google Drive\RAD Studio\Projects\Rail\LocationData.pas
+CursorX=93
+CursorY=2662
+TopLine=2626
+LeftCol=1
+Elisions=
+Bookmarks=
+EditViewName=C:\Doc\Google Drive\RAD Studio\Projects\Rail\LocationData.pas
+
+[View11]
+CustomEditViewType=TEditView
+Module=C:\Doc\Google Drive\RAD Studio\Projects\Rail\LocoDialogue.pas
+CursorX=1
+CursorY=1
+TopLine=1
+LeftCol=1
+Elisions=
+Bookmarks=
+EditViewName=C:\Doc\Google Drive\RAD Studio\Projects\Rail\LocoDialogue.pas
+
+[View12]
+CustomEditViewType=TEditView
+Module=C:\Doc\Google Drive\RAD Studio\Projects\Rail\LocoUtils.pas
+CursorX=1
+CursorY=751
+TopLine=727
+LeftCol=1
+Elisions=
+Bookmarks={1,305,1}
+EditViewName=C:\Doc\Google Drive\RAD Studio\Projects\Rail\LocoUtils.pas
+
+[View13]
+CustomEditViewType=TEditView
+Module=C:\Doc\Google Drive\RAD Studio\Projects\Rail\MiscUtils.pas
+CursorX=1
+CursorY=399
+TopLine=365
+LeftCol=1
+Elisions=
+Bookmarks=
+EditViewName=C:\Doc\Google Drive\RAD Studio\Projects\Rail\MiscUtils.pas
+
+[View14]
+CustomEditViewType=TEditView
+Module=C:\Doc\Google Drive\RAD Studio\Projects\Rail\Movement.pas
+CursorX=96
+CursorY=1932
+TopLine=1896
+LeftCol=1
+Elisions=
+Bookmarks=
+EditViewName=C:\Doc\Google Drive\RAD Studio\Projects\Rail\Movement.pas
+
+[View15]
+CustomEditViewType=TEditView
+Module=C:\Doc\Google Drive\RAD Studio\Projects\Rail\Raildraw.pas
+CursorX=41
+CursorY=4410
+TopLine=4345
+LeftCol=1
+Elisions=
+Bookmarks=
+EditViewName=C:\Doc\Google Drive\RAD Studio\Projects\Rail\Raildraw.pas
+
+[View16]
+CustomEditViewType=TEditView
+Module=C:\Doc\Google Drive\RAD Studio\Projects\Rail\Route.pas
+CursorX=29
+CursorY=379
+TopLine=344
+LeftCol=1
+Elisions=
+Bookmarks=
+EditViewName=C:\Doc\Google Drive\RAD Studio\Projects\Rail\Route.pas
+
+[View17]
+CustomEditViewType=TEditView
+Module=C:\Doc\Google Drive\RAD Studio\Projects\Rail\Startup.pas
+CursorX=72
+CursorY=349
+TopLine=238
+LeftCol=1
+Elisions=
+Bookmarks=
+EditViewName=C:\Doc\Google Drive\RAD Studio\Projects\Rail\Startup.pas
+
+[View18]
+CustomEditViewType=TEditView
+Module=C:\Doc\Google Drive\RAD Studio\Projects\Rail\WorkingTimetable.pas
+CursorX=48
+CursorY=1
+TopLine=1
+LeftCol=1
+Elisions=
+Bookmarks=
+EditViewName=C:\Doc\Google Drive\RAD Studio\Projects\Rail\WorkingTimetable.pas
+
+[View19]
+CustomEditViewType=TEditView
+Module=C:\Doc\Google Drive\RAD Studio\Projects\Rail\NewWorkingTimetable.pas
+CursorX=104
+CursorY=2
+TopLine=1
+LeftCol=1
+Elisions=
+Bookmarks=
+EditViewName=C:\Doc\Google Drive\RAD Studio\Projects\Rail\NewWorkingTimetable.pas
+
+[Watches]
+Count=2
+Watch0='StrToInt(''$'' + Copy(RequestAndRepliesData, I, 2))',256,0,18,1,1,'Watches',1
+Watch1='Copy(RequestAndRepliesData, I, 2)',256,0,18,1,1,'Watches',1
+
+[WatchWindow]
+WatchColumnWidth=120
+WatchShowColumnHeaders=1
+PercentageSizes=1
+Create=1
+Visible=1
+Docked=1
+State=0
+Left=0
+Top=0
+Width=10000
+Height=1154
+MaxLeft=-1
+MaxTop=-1
+ClientWidth=10000
+ClientHeight=1154
+TBDockHeight=2043
+LRDockWidth=1894
+Dockable=1
+StayOnTop=0
+
+[Breakpoints]
+Count=1
+Breakpoint0='C:\Doc\Google Drive\RAD Studio\Projects\Rail\Raildraw.pas',4397,'',0,1,'',1,0,0,'',1,'','','',0,''
+
+[EmbarcaderoWin32Debugger_AddressBreakpoints]
+Count=0
+
+[EmbarcaderoWin64Debugger_AddressBreakpoints]
+Count=0
+
+[EmbarcaderoOSXDebugger_AddressBreakpoints]
+Count=0
+
+[EmbarcaderoIOSDeviceDebugger_AddressBreakpoints]
+Count=0
+
+[EmbarcaderoAndroidDebugger_AddressBreakpoints]
+Count=0
+
+[Main Window]
+PercentageSizes=1
+Create=1
+Visible=1
+Docked=0
+State=2
+Left=138
+Top=265
+Width=8925
+Height=8521
+MaxLeft=-6
+MaxTop=-9
+MaxWidth=8925
+MaxHeight=8521
+ClientWidth=10000
+ClientHeight=9803
+BottomPanelSize=9333
+BottomPanelClients=EditWindow0
+BottomPanelData=0000080000000000000000000000000000000000000000000000000100000000000000000C0000004564697457696E646F775F30FFFFFFFF
+
+[ProjectManager]
+PercentageSizes=1
+Create=1
+Visible=1
+Docked=1
+State=0
+Left=0
+Top=0
+Width=2000
+Height=1419
+MaxLeft=-1
+MaxTop=-1
+ClientWidth=2000
+ClientHeight=1419
+TBDockHeight=7154
+LRDockWidth=1775
+Dockable=1
+StayOnTop=0
+
+[MessageView]
+PercentageSizes=1
+Create=1
+Visible=1
+Docked=1
+State=0
+Left=0
+Top=0
+Width=10000
+Height=1154
+MaxLeft=-1
+MaxTop=-1
+ClientWidth=10000
+ClientHeight=1154
+TBDockHeight=1017
+LRDockWidth=2769
+Dockable=1
+StayOnTop=0
+
+[ConfigurationManager]
+PercentageSizes=1
+Create=1
+Visible=0
+Docked=0
+State=0
+Left=3238
+Top=3171
+Width=3519
+Height=3650
+MaxLeft=-6
+MaxTop=-9
+ClientWidth=3419
+ClientHeight=3316
+TBDockHeight=3650
+LRDockWidth=3519
+Dockable=1
+StayOnTop=0
+
+[TConfigMgrDlg]
+Column0=120
+Column1=120
+Column2=120
+Column3=100
+Column4=140
+
+[ToolForm]
+PercentageSizes=1
+Create=1
+Visible=0
+Docked=0
+State=0
+Left=8494
+Top=4342
+Width=2081
+Height=5607
+MaxLeft=-6
+MaxTop=-9
+ClientWidth=1981
+ClientHeight=5274
+TBDockHeight=7154
+LRDockWidth=1688
+Dockable=1
+StayOnTop=0
+
+[PropertyInspector]
+PercentageSizes=1
+Create=1
+Visible=0
+Docked=0
+State=0
+Left=612
+Top=4325
+Width=2031
+Height=5376
+MaxLeft=-6
+MaxTop=-9
+ClientWidth=1931
+ClientHeight=5043
+TBDockHeight=2043
+LRDockWidth=2600
+Dockable=1
+StayOnTop=0
+SplitPos=77
+
+[TFileExplorerForm]
+PercentageSizes=1
+Create=1
+Visible=0
+Docked=0
+State=0
+Left=612
+Top=846
+Width=2006
+Height=3077
+MaxLeft=-6
+MaxTop=-9
+ClientWidth=1906
+ClientHeight=2744
+TBDockHeight=6205
+LRDockWidth=2844
+Dockable=1
+StayOnTop=0
+
+[TemplateView]
+PercentageSizes=1
+Create=1
+Visible=0
+Docked=0
+State=0
+Left=0
+Top=3547
+Width=1831
+Height=8402
+MaxLeft=-6
+MaxTop=-9
+ClientWidth=1731
+ClientHeight=8068
+TBDockHeight=368
+LRDockWidth=275
+Dockable=1
+StayOnTop=0
+Name=120
+Description=334
+filter=1
+
+[DebugLogView]
+PercentageSizes=1
+Create=1
+Visible=0
+Docked=1
+State=0
+Left=0
+Top=-1010
+Width=3625
+Height=3359
+MaxLeft=-1
+MaxTop=-1
+ClientWidth=3625
+ClientHeight=3359
+TBDockHeight=3359
+LRDockWidth=3625
+Dockable=1
+StayOnTop=0
+
+[ThreadStatusWindow]
+PercentageSizes=1
+Create=1
+Visible=0
+Docked=1
+State=0
+Left=0
+Top=-1010
+Width=5419
+Height=778
+MaxLeft=-1
+MaxTop=-1
+ClientWidth=5419
+ClientHeight=778
+TBDockHeight=778
+LRDockWidth=5419
+Dockable=1
+StayOnTop=0
+Column0Width=145
+Column1Width=100
+Column2Width=115
+Column3Width=250
+
+[LocalVarsWindow]
+PercentageSizes=1
+Create=1
+Visible=0
+Docked=1
+State=0
+Left=0
+Top=0
+Width=1894
+Height=8855
+MaxLeft=-1
+MaxTop=-1
+ClientWidth=1894
+ClientHeight=8855
+TBDockHeight=8855
+LRDockWidth=1894
+Dockable=1
+StayOnTop=0
+
+[CallStackWindow]
+PercentageSizes=1
+Create=1
+Visible=1
+Docked=1
+State=0
+Left=0
+Top=0
+Width=10000
+Height=1154
+MaxLeft=-1
+MaxTop=-1
+ClientWidth=10000
+ClientHeight=1154
+TBDockHeight=786
+LRDockWidth=1894
+Dockable=1
+StayOnTop=0
+
+[FindReferencsForm]
+PercentageSizes=1
+Create=1
+Visible=1
+Docked=1
+State=0
+Left=0
+Top=0
+Width=2338
+Height=1026
+MaxLeft=-1
+MaxTop=-1
+ClientWidth=2338
+ClientHeight=1026
+TBDockHeight=2932
+LRDockWidth=3394
+Dockable=1
+StayOnTop=0
+
+[RefactoringForm]
+PercentageSizes=1
+Create=1
+Visible=1
+Docked=1
+State=0
+Left=0
+Top=0
+Width=2338
+Height=1026
+MaxLeft=-1
+MaxTop=-1
+ClientWidth=2338
+ClientHeight=1026
+TBDockHeight=1735
+LRDockWidth=3394
+Dockable=1
+StayOnTop=0
+
+[ToDo List]
+PercentageSizes=1
+Create=1
+Visible=1
+Docked=1
+State=0
+Left=0
+Top=0
+Width=2338
+Height=1026
+MaxLeft=-1
+MaxTop=-1
+ClientWidth=2338
+ClientHeight=1026
+TBDockHeight=1726
+LRDockWidth=3669
+Dockable=1
+StayOnTop=0
+Column0Width=327
+Column1Width=29
+Column2Width=157
+Column3Width=146
+Column4Width=141
+SortOrder=4
+ShowHints=1
+ShowChecked=1
+
+[DataExplorerContainer]
+PercentageSizes=1
+Create=1
+Visible=0
+Docked=1
+State=0
+Left=-1600
+Top=-79
+Width=7150
+Height=4880
+MaxLeft=-1
+MaxTop=-1
+ClientWidth=7150
+ClientHeight=4880
+TBDockHeight=4880
+LRDockWidth=7150
+Dockable=1
+StayOnTop=0
+
+[ModelViewTool]
+PercentageSizes=1
+Create=1
+Visible=0
+Docked=1
+State=0
+Left=-1600
+Top=-79
+Width=5300
+Height=4872
+MaxLeft=-1
+MaxTop=-1
+ClientWidth=5300
+ClientHeight=4872
+TBDockHeight=4872
+LRDockWidth=5300
+Dockable=1
+StayOnTop=0
+
+[ClassBrowserTool]
+PercentageSizes=1
+Create=1
+Visible=0
+Docked=0
+State=0
+Left=0
+Top=0
+Width=1894
+Height=3274
+MaxLeft=-6
+MaxTop=-9
+ClientWidth=1794
+ClientHeight=2940
+TBDockHeight=3145
+LRDockWidth=1844
+Dockable=1
+StayOnTop=0
+
+[MetricsView]
+PercentageSizes=1
+Create=1
+Visible=0
+Docked=1
+State=0
+Left=0
+Top=-984
+Width=3562
+Height=4829
+MaxLeft=-1
+MaxTop=-1
+ClientWidth=3562
+ClientHeight=4829
+TBDockHeight=4829
+LRDockWidth=3562
+Dockable=1
+StayOnTop=0
+
+[QAView]
+PercentageSizes=1
+Create=1
+Visible=0
+Docked=1
+State=0
+Left=0
+Top=-984
+Width=3562
+Height=4829
+MaxLeft=-1
+MaxTop=-1
+ClientWidth=3562
+ClientHeight=4829
+TBDockHeight=4829
+LRDockWidth=3562
+Dockable=1
+StayOnTop=0
+
+[GraphDrawingModel]
+PercentageSizes=1
+Create=1
+Visible=0
+Docked=0
+State=0
+Left=1912
+Top=8009
+Width=2856
+Height=3214
+MaxLeft=-6
+MaxTop=-9
+ClientWidth=2756
+ClientHeight=2880
+TBDockHeight=3214
+LRDockWidth=2856
+Dockable=1
+StayOnTop=0
+
+[BreakpointWindow]
+PercentageSizes=1
+Create=1
+Visible=1
+Docked=1
+State=0
+Left=0
+Top=0
+Width=10000
+Height=1154
+MaxLeft=-1
+MaxTop=-1
+ClientWidth=10000
+ClientHeight=1154
+TBDockHeight=2085
+LRDockWidth=6394
+Dockable=1
+StayOnTop=0
+Column0Width=200
+Column1Width=75
+Column2Width=200
+Column3Width=200
+Column4Width=200
+Column5Width=75
+Column6Width=75
+
+[StructureView]
+PercentageSizes=1
+Create=1
+Visible=0
+Docked=0
+State=0
+Left=619
+Top=675
+Width=2019
+Height=3632
+MaxLeft=-6
+MaxTop=-9
+ClientWidth=1919
+ClientHeight=3299
+TBDockHeight=3675
+LRDockWidth=1906
+Dockable=1
+StayOnTop=0
+
+[BorlandEditorCodeExplorer@EditWindow0]
+PercentageSizes=1
+Create=1
+Visible=0
+Docked=0
+State=0
+Left=0
+Top=0
+Width=1238
+Height=3803
+MaxLeft=-6
+MaxTop=-9
+ClientWidth=1138
+ClientHeight=3470
+TBDockHeight=3803
+LRDockWidth=1238
+Dockable=1
+StayOnTop=0
+
+[DockHosts]
+DockHostCount=3
+
+[DockSite0]
+HostDockSite=DockBottomCenterPanel
+DockSiteType=1
+PercentageSizes=1
+Create=1
+Visible=0
+Docked=1
+State=0
+Left=0
+Top=0
+Width=2338
+Height=1239
+MaxLeft=-1
+MaxTop=-1
+ClientWidth=2338
+ClientHeight=1239
+TBDockHeight=1239
+LRDockWidth=2338
+Dockable=1
+StayOnTop=0
+TabPosition=1
+ActiveTabID=ToDo List
+TabDockClients=RefactoringForm,FindReferencsForm,ToDo List,QAView,MetricsView
+
+[DockSite1]
+HostDockSite=DockBottomPanel
+DockSiteType=1
+PercentageSizes=1
+Create=1
+Visible=1
+Docked=1
+State=0
+Left=0
+Top=23
+Width=10000
+Height=1368
+MaxLeft=-1
+MaxTop=-1
+ClientWidth=10000
+ClientHeight=1368
+TBDockHeight=1368
+LRDockWidth=2450
+Dockable=1
+StayOnTop=0
+TabPosition=1
+ActiveTabID=MessageView
+TabDockClients=BreakpointWindow,CallStackWindow,WatchWindow,MessageView,DebugLogView,ThreadStatusWindow
+
+[DockSite2]
+HostDockSite=DockRightPanel
+DockSiteType=1
+PercentageSizes=1
+Create=1
+Visible=0
+Docked=1
+State=0
+Left=0
+Top=0
+Width=2000
+Height=1419
+MaxLeft=-1
+MaxTop=-1
+ClientWidth=2000
+ClientHeight=1419
+TBDockHeight=1419
+LRDockWidth=2000
+Dockable=1
+StayOnTop=0
+TabPosition=1
+ActiveTabID=ProjectManager
+TabDockClients=ProjectManager,DataExplorerContainer,ModelViewTool
+

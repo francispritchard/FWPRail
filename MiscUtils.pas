@@ -1,0 +1,8813 @@
+﻿UNIT MiscUtils;
+
+INTERFACE
+
+USES
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, InitVars, Input, Menus, ComCtrls, System.UITypes, TLHelp32;
+
+TYPE
+  TDebugWindow = CLASS(TForm)
+    DebugRichEdit: TRichEdit;
+    DebugRichEditColourDialogue: TColorDialog;
+    DebugRichEditPopupMenu: TPopupMenu;
+    PopupDebugWindowResetSizeAndPosition: TMenuItem;
+    PopupDebugWindowCopy: TMenuItem;
+    PROCEDURE DebugRichEditKeyDown(Sender: TObject; VAR Key: Word; ShiftState: TShiftState);
+    PROCEDURE DebugRichEditMouseDown(Sender: TObject; Button: TMouseButton; ShiftState: TShiftState; X, Y: Integer);
+    PROCEDURE DebugRichEditMouseMove(Sender: TObject; ShiftState: TShiftState; X, Y: Integer);
+    PROCEDURE DebugRichEditPopupMenuOnPopup(Sender: TObject);
+    PROCEDURE DebugWindowClose(Sender: TObject; VAR Action: TCloseAction);
+    PROCEDURE DebugWindowCreate(Sender: TObject);
+    PROCEDURE DebugWindowHide(Sender: TObject);
+    PROCEDURE DebugWindowResize(Sender: TObject);
+    PROCEDURE DebugWindowShow(Sender: TObject);
+    PROCEDURE PopupDebugWindowCopyClick(Sender: TObject);
+    PROCEDURE PopupDebugWindowResetSizeAndPositionClick(Sender: TObject);
+  PRIVATE
+    { Private declarations }
+  PUBLIC
+    { Public declarations }
+  END;
+
+VAR
+  DebugWindow: TDebugWindow;
+
+PROCEDURE AddLightsToLightsToBeSwitchedOnArray(T : Train; DesiredDirection1, DesiredDirection2 : DirectionType; MinSeconds, MaxSeconds : Integer; LightsOnTime : TDateTime);
+{ Set up a train's lights to switch on at a random time ahead }
+
+PROCEDURE AddRichLine(RichEdit: TRichEdit; StrToAdd: String);
+{ Taken from Delpi Pages (http://www.delphipages.com/tips/thread.cfm?ID=186) - by Slavikn, WebPage: http://www.organizermp3.com }
+
+FUNCTION AddSeparatorToTimeString(Str : String) : String;
+{ Add a separator to a string so that, e.g., 0630 becomes 06:30 }
+
+FUNCTION AllJourneysComplete(T : Train) : Boolean;
+{ Returns true if all a train's journeys are complete }
+
+PROCEDURE AppendIntegerArray2ToIntegerArray1(VAR IntegerArray1 : IntegerArrayType; IntegerArray2 : IntegerArrayType);
+{ Join two integer arrays together }
+
+PROCEDURE AppendStringArray2ToStringArray1(VAR StringArray1 : StringArrayType; StringArray2 : StringArrayType);
+{ Join two string arrays together }
+
+PROCEDURE AppendToAreaArray(VAR AreaArray : IntegerArrayType; NewElement : Integer);
+{ Appends an area to the array }
+
+PROCEDURE AppendToBooleanArray(VAR BooleanArray : BooleanArrayType; NewElement : Boolean);
+{ Appends a boolean value to the array }
+
+PROCEDURE AppendToDateTimeArray(VAR DateTimeArray : DateTimeArrayType; NewElement : TDateTime);
+{ Appends a TDateTime value to the array }
+
+PROCEDURE AppendToDirectionArray(VAR DirectionArray : DirectionArrayType; NewElement : DirectionType);
+{ Appends a direction value to the array }
+
+PROCEDURE AppendToIntegerArray(VAR IntegerArray : IntegerArrayType; NewElement : Integer);
+{ Appends an integer value to the array }
+
+PROCEDURE AppendToLineArray(VAR LineArray : LineArrayType; NewElement : Integer);
+{ Appends a line to the array }
+
+PROCEDURE AppendToLocationArray(VAR LocationArray : IntegerArrayType; NewElement : Integer);
+{ Appends a location to the array }
+
+PROCEDURE AppendToStringArray(VAR StringArray : StringArrayType; NewElement : String);
+{ Appends a string value to the array }
+
+PROCEDURE AppendToTrainArray(VAR TrainArray : TrainArrayType; NewElement : Train);
+{ Appends a train value to the array }
+
+PROCEDURE AppendToTrainTypeArray(VAR TrainTypes : TrainTypeArray; NewElement : TypeOfTrainType);
+{ Appends a TrainType value to the array }
+
+FUNCTION AreaArrayToStr(AreaArray : IntegerArrayType) : String;
+{ Return an area array as a string }
+
+FUNCTION AreaToStr{1}(Area : Integer) : String; Overload;
+{ Return an area as a long string }
+
+FUNCTION AreaToStr{2}(Area : Integer; LongOrShortString : StringType) : String; Overload;
+{ Return an area as either a short or a long string }
+
+FUNCTION AspectToStr{1}(Aspect : AspectType) : String; Overload;
+{ Return the signal aspect as a long string }
+
+FUNCTION AspectToStr{2}(Aspect : AspectType; LongOrShortString : StringType) : String; Overload;
+{ Return the signal aspect as either a short or a long string }
+
+FUNCTION ATS(Area : Integer) : String;
+{ Return an area as a string - routine designed only for use in debugging }
+
+FUNCTION ATSA(AreaArray : IntegerArrayType) : String;
+{ Return an area array as a string - routine designed for use in debugging }
+
+FUNCTION CabLightsAreOn(LocoChip : Integer) : Boolean;
+{ Returns true if cab lights are on. Assumes that the cab lights are operated by function one }
+
+FUNCTION CardinalMulDiv(A, B, C : Cardinal) : Cardinal;
+{ Returns (A * B) / C; intermediate result is held double-length to avoid overflow. FWP version }
+
+PROCEDURE ChangeTrainStatus(T : Train; NewStatus : TrainStatusType);
+{ Change out the current train status and record it }
+
+PROCEDURE CloseOutputFile(VAR OutputFile : Text; Filename : String);
+{ Close an output file, capturing the error message if any }
+
+FUNCTION ColourToStr(Colour : TColour) : String;
+{ UK English version of Delphi subroutine }
+
+FUNCTION ColourToStrForUser(Colour : TColour) : String;
+{ Checks if it's a Delphi colour or an FWP one, and removes the "cl" or "clFWP" }
+
+PROCEDURE CompareTwoPointDatabases(Point1DataFilename, Point1DataFilenameSuffix, Point2DataFilename, Point2DataFilenameSuffix : String);
+{ Compare two point databases - used for testing }
+
+PROCEDURE CompareTwoSignalDatabases(Signal1DataFilename, Signal1DataFilenameSuffix, Signal2DataFilename, Signal2DataFilenameSuffix : String);
+{ Compare two signal databases - used for testing }
+
+FUNCTION CountSubRoutes(RouteArray : StringArrayType) : Integer;
+{ Return how many subroutes there are in a given route array }
+
+FUNCTION DayOfTheWeekToStr{1}(DayOfTheWeek : DayOfTheWeekType) : String;
+{ Return a string with the given day of the week }
+
+FUNCTION DaysOfTheWeekSetToStr(DaysOfTheWeek : DaysOfTheWeekSetType) : String; Overload;
+{ Return a string with given days of the week }
+
+FUNCTION DaysOfTheWeekSetToStr(DaysOfTheWeek : DaysOfTheWeekSetType; LongOrShortString : StringType) : String;  Overload;
+{ Return a string with given days of the week }
+
+PROCEDURE Debug{1}; Overload;
+{ Does nothing - use it to set breakpoints on }
+
+PROCEDURE Debug{2}(Str : String); Overload;
+{ Write out debug text to the Debug Window }
+
+PROCEDURE Debug{3}(Str : String; DoNotWriteToStatusBarPanel : Boolean); Overload;
+{ Write out debug text to the Debug Window }
+
+PROCEDURE DeleteElementFromDateTimeArray(VAR DateTimeArray : DateTimeArrayType; Position : Integer);
+{ Removes the selected element from a TDateTime array }
+
+PROCEDURE DeleteElementFromBooleanArray(VAR BooleanArray : BooleanArrayType; Position : Integer);
+{ Removes the selected element from a boolean array }
+
+PROCEDURE DeleteElementFromIntegerArray(VAR IntegerArray : IntegerArrayType; Position : Integer);
+{ Removes the selected element from an integer array }
+
+PROCEDURE DeleteElementFromLightsToBeSwitchedOnArray(Position : Integer);
+{ Removes the selected element from the lights to be switched on array }
+
+PROCEDURE DeleteElementFromLocationArray(VAR LocationArray : IntegerArrayType; Position : Integer);
+{ Removes the selected element from a location array }
+
+PROCEDURE DeleteElementFromStringArray(VAR StringArray : StringArrayType; Position : Integer);
+{ Removes the selected element from a string array }
+
+FUNCTION DescribeDiagramsList(WTE : DiagramsEntryType; Sort : SortOrder) : String;
+{ Write out the contents of the diagrams list }
+
+FUNCTION DescribeIntegerArray(IntegerArray : IntegerArrayType) : String;
+{ Return the contents of an integer array as a string }
+
+FUNCTION DescribeJourneyAndRoute(Args: ARRAY OF Integer) : String;
+{ Return a description of the route (and subroute if requested) }
+
+FUNCTION DescribeLineNamesForTrackCircuit(TC : Integer) : String;
+{ Return the line names for a trackcircuit }
+
+FUNCTION DescribeSubRoute(Route, SubRoute : Integer) : String;
+{ Return a description of the subroute }
+
+FUNCTION DescribeStartAndEndOfRoute(Route : Integer) : String;
+{ Return the signal at the start of the route, and the signal or buffer stop that ends it }
+
+FUNCTION DisplayJourneyNumber(Journey : Integer) : String;
+{ Return the supplied journey number with an indent in a form that makes the debug output easier to read }
+
+FUNCTION DisplayJourneyNumbers(T : Train; FirstJourney, SecondJourney : Integer) : String;
+{ Return the supplied journey numbers with an indent in a form that makes the debug output easier to read }
+
+FUNCTION DisplayTrackCircuitsForLocation(Location : Integer) : String;
+{ Write out which trackcircuits the given location contains }
+
+FUNCTION DescribeTrainList{1} : String; Overload;
+{ Return the contents of the train list }
+
+FUNCTION DescribeTrainList{2}(Sort : SortOrder; DescribeFullTrainList : Boolean) : String; Overload;
+{ Return the contents of the train list, the full list of locos and trains if DescribeFullTrainList is set }
+
+FUNCTION DirectionToStr{1}(Dir : DirectionType) : String; Overload;
+{ Return the long name of a direction }
+
+FUNCTION DirectionToStr{2}(Dir : DirectionType; LongOrShortString : StringType) : String; Overload;
+{ Return the either the short or the long name of a direction }
+
+FUNCTION DirectionWillChangeAfterGivenJourney(T : Train; CurrentJourney : Integer) : Boolean;
+{ Returns true if the direction will change on the journey after the given journey }
+
+FUNCTION DirectionArrayToStr(DirectionsArray : DirectionArrayType) : String;
+{ List the contents of an array }
+
+PROCEDURE DrawLineInLogFile(LocoChip : Integer; LogFileCh : Char; LineStr : String; OriginatingUnitRef : String);
+{ Draw a line of a given character in the log file }
+
+FUNCTION EndOfLineToStr(E : EndOfLineType) : String;
+{ Return the end of line type as a string }
+
+FUNCTION ExtractBufferStopFromString(Str : String): Integer;
+{ Extract a signal post number from a string }
+
+FUNCTION ExtractLineFromString(Str : String): Integer;
+{ Returns a line from a given string }
+
+FUNCTION ExtractNumbersFromString(L : String) : String;
+{ Returns a string with just the numbers }
+
+FUNCTION ExtractJourneyFromString(Str : String): Integer;
+{ Returns a journey number from a given string }
+
+FUNCTION ExtractPointFromString(Str : String): Integer;
+{ Returns a point number from a given string }
+
+FUNCTION ExtractPointStateFromString(Str : String) : PointStateType;
+{ Returns a point state from a given array element }
+
+FUNCTION ExtractRouteFromString(Str : String): Integer;
+{ Returns a route number from a given string }
+
+FUNCTION ExtractSignalFromString(Str : String): Integer;
+{ Extract a signal number from a string }
+
+FUNCTION ExtractSignalStateFromString(Str : String) : SignalStateType;
+{ Returns a signal state from a given array element }
+
+FUNCTION ExtractSubRouteFromString(Str : String): Integer;
+{ Returns a subroute number from a given array element }
+
+PROCEDURE ExtractSubStringsFromString(Str : String; DelimiterCh : Char; OUT StrArray : StringArrayType);
+{ Goes through a given string, extracting substrings delimited by the given delimiter character }
+
+FUNCTION ExtractTrackCircuitFromString(Str : String): Integer;
+{ Returns a trackcircuit number from a given string }
+
+FUNCTION FeedbackUnitTypeToStr(FeedbackType : TypeOfFeedBackType) : String;
+{ Convert a feedback unit type to a string }
+
+FUNCTION FinalJourney(T : Train; CurrentJourney : Integer) : Boolean;
+{ Returns true if the current journey is the final one }
+
+FUNCTION FindButton(CONST Dlg: TForm; CONST ModalResult: Integer): TButton;
+{ FindButton finds a button in a Message Dialog that has been created with the Dialogs.CreateMessageDialog function, based on its ModalResult. The function returns the
+  button, or NIL, if the button has not been found [from uDialogsExt from Borland website]
+}
+FUNCTION GetBuildInfoAsString : String;
+{ Return the program's build number - this is auto incremented on each build }
+
+FUNCTION GetComputerNetName : String;
+{ Return the local computer name (by Zarko Gajic, About.com) }
+
+FUNCTION GetFollowingChars(Line: String; Str : String; EndStr : String) : String;
+{ Return the characters after the given characters up to the delimiter supplied (or "CRLF" if it's at a line end) }
+
+FUNCTION GetIntegerColour(T : TypeOfLine) : TColour;
+{ Return the colour for a specific line type }
+
+FUNCTION GetLinesForTrackCircuit(TC : Integer) : LineArrayType;
+{ Return all the lines on a given trackcircuit }
+
+FUNCTION GetLocationFromTrackCircuit(TC : Integer) : Integer;
+{ Return a location given a trackcircuit number }
+
+FUNCTION GetMidPos(I1, I2 : Integer) : Integer;
+{ Return the mid position between two given values }
+
+FUNCTION GetNextDayOfTheWeek(DayOfTheWeek : DayOfTheWeekType) : DayOfTheWeekType;
+{ Return the next day of the week to the one given }
+
+FUNCTION GetOrdinalFromCardinal(Ordinal : Integer) : String;
+{ Return the ordinal version of a cardinal number }
+
+FUNCTION GetSignalAdjacentLine(S : Integer) : Integer;
+{ Return the line adjacent to the given signal }
+
+FUNCTION GetSignalAspect(S : Integer) : AspectType;
+{ Return the state of a signal }
+
+FUNCTION GetTrackCircuitsForLocation(Location : Integer) : IntegerArrayType;
+{ Return all the trackcircuits for a given location }
+
+FUNCTION GetTrackCircuitStateColour(TC : Integer) : TColour;
+{ Return whether and how the trackcircuit is occupied }
+
+FUNCTION GetTrackCircuitState(TC : Integer) : TrackCircuitStateType;
+{ Return whether and how the trackcircuit is occupied }
+
+FUNCTION GetTrainRecord{1}(LocoChip : Integer) : Train; Overload;
+{ Look for a matching train record given a locochip }
+
+FUNCTION GetTrainRecord{2}(LocoChip : Integer; AllLocos : Boolean) : Train; Overload;
+{ Look for a matching train record given a locochip; include non-active locos }
+
+FUNCTION GetTrainTypeFromLocoChip(LocoChip : Integer) : TypeOfTrainType;
+{ Returns the train type given the loco number }
+
+FUNCTION GetUserFromWindows : String;
+{ Return the local user name (by Zarko Gajic, About.com) }
+
+FUNCTION GetVersionInfoAsString : String;
+{ Return the program's version number }
+
+FUNCTION GradientToStr(Gradient : GradientType) : String;
+{ Return the gradient status of the line as a string }
+
+PROCEDURE HideMenus;
+{ Make all the menus invisible }
+
+FUNCTION IfThenTime{1}(Test : Boolean; Time1, Time2 : TDateTime) : TDateTime; Overload;
+{ Returns the first supplied time if the test is true, the second time if not. (The system IfThen routine doesn't work with TDateTime values) }
+
+FUNCTION IfThenTime{2}(Test : Boolean; Time : TDateTime) : TDateTime; Overload;
+{ Returns the supplied time if the test is true. (The system IfThen routine doesn't work with TDateTime values) }
+
+FUNCTION IndicatorToStr(I : IndicatorType; LongOrShortString : StringType) : String;
+{ Return the type a route indicator is }
+
+FUNCTION IndicatorStateToStr(I : IndicatorStateType) : String;
+{ Return the state of a route indicator }
+
+PROCEDURE InsertElementInIntegerArray(VAR IntegerArray : IntegerArrayType; Position : Integer; NewElement : Integer);
+{ Adds an element to an integer array }
+
+PROCEDURE InsertElementInStringArray(VAR StringArray : StringArrayType; Position : Integer; NewElement : String);
+{ Adds an element to a string array }
+
+PROCEDURE InsertElementInBooleanArray(VAR BooleanArray : BooleanArrayType; Position : Integer; NewElement : Boolean);
+{ Adds an element to a boolean array }
+
+PROCEDURE InsertElementInDateTimeArray(VAR DateTimeArray : DateTimeArrayType; Position : Integer; NewElement : TDateTime);
+{ Adds an element to a TDateTime array }
+
+PROCEDURE InsertElementInTrainJourneyRecArray(VAR JourneyRecArray : TrainJourneyRecArrayType; Position : Integer; NewElement : TrainJourneyRec);
+{ Adds an element to a TrainJourneyRec array }
+
+PROCEDURE InsertElementInDiagramsArray(VAR DiagramsArray : DiagramsArrayType; Position : Integer; NewElement : DiagramsRec);
+{ Adds an element to a diagram array }
+
+PROCEDURE InsertEntryInWorkingTimetable(VAR WorkingTimetableRecArray : WorkingTimetableRecArrayType; Position : Integer);
+{ Adds an entry to the working timetable }
+
+FUNCTION IntegerArrayToStr(IntegerArray : IntegerArrayType) : String;
+{ Return the contents of an integer array }
+
+FUNCTION IntToMPH(Speed : Integer) : MPHType;
+{ Returns the given integer as an MPH value }
+
+FUNCTION IOError(Filename : String; SaveIOResult : Integer; OUT ErrorMsg : String) : Boolean;
+{ Returns the IO error message }
+
+FUNCTION IsElementIndicator(StringArray : StringArrayType; StringArrayPos : Word) : Boolean;
+{ Returns whether the given array element is a route indicator }
+
+FUNCTION IsElementInIntegerArray{1}(IntegerArray : IntegerArrayType; Element : Integer) : Boolean; Overload;
+{ Returns whether the given array element is found in an integer array }
+
+FUNCTION IsElementInIntegerArray{2}(IntegerArray : IntegerArrayType; Element : Integer; OUT ElementPos : Integer) : Boolean; Overload;
+{ Returns whether the given array element is found in an integer array and where it is in the array }
+
+FUNCTION IsElementInLineArray(LineArray : LineArrayType; Element : Integer) : Boolean;
+{ Returns whether the given array element is in a line array }
+
+FUNCTION IsElementInLocationArray(LocationArray : IntegerArrayType; Element : Integer; OUT ElementPos : Integer) : Boolean;
+{ Returns whether the given array element is in a location array }
+
+FUNCTION IsElementInStringArray{1}(StringArray : StringArrayType; Element : String) : Boolean; Overload;
+{ Returns whether the given array element is in a string array }
+
+FUNCTION IsElementInStringArray{2}(StringArray : StringArrayType; Element : String; OUT ElementPos : Integer) : Boolean; Overload;
+{ Returns where the given array element is in a string array }
+
+FUNCTION IsElementSubRouteMarker(StringArray : StringArrayType; StringArrayPos : Word) : Boolean;
+{ Returns whether the given array element is a subroute marker }
+
+FUNCTION IsPointInStringArray(StringArray : StringArrayType; Point : Integer) : Boolean;
+{ Returns whether the given point is found in a string array }
+
+FUNCTION IsProgramRunning(ProgramName : String) : Boolean;
+{ Checks to see if a given program is running }
+
+FUNCTION IsSignalInStringArray(StringArray : StringArrayType; Signal : Integer) : Boolean;
+{ Returns whether the given signal is found in a string array }
+
+FUNCTION IsTrackCircuitInStringArray(StringArray : StringArrayType; TC : Integer; OUT Pos : Integer) : Boolean;
+{ Returns whether and where the given track circuit is found in a string array }
+
+FUNCTION JunctionIndicatorLit(S : Integer) : Boolean;
+{ Return true if a junction indicator is lit }
+
+FUNCTION JunctionIndicatorTypeToStr(J : JunctionIndicatorType) : String;
+{ Returns a junction indicator type as a string }
+
+FUNCTION LightsTypeToStr(TypeOfLights : LightsType) : String;
+{ Return the type of lights the train has }
+
+FUNCTION LineToStr(L : Integer) : String;
+{ Return a line's name as a string }
+
+FUNCTION LinesAreAdjacent(L1, L2 : Integer; ErrorMsg : String) : Boolean;
+{ Returns true if the two given lines are adjacent }
+
+FUNCTION ListSort_SortDiagramsList(XDiagramsList : DiagramsEntryType; Sort : SortOrder) : DiagramsEntryType;
+{ Sorts the diagrams list into specified order; indent is to track the recursion for debugging purposes }
+
+FUNCTION ListSort_SortTrainList(XTrainList : Train; Sort : SortOrder; Indent : Boolean) : Train;
+{ Sorts the trainlist into loco order; indent is to track the recursion for debugging purposes }
+
+FUNCTION ListLocoChipsInIntegerArray(IntegerArray : IntegerArrayType) : String;
+{ Lists loco chips from an integer array }
+
+FUNCTION LocationOccupationStateToStr(OccupationState : LocationOccupationStateType) : String;
+{ Return the state of the Location Occupation as a string }
+
+FUNCTION LocationOccupied(Location : Integer) : Boolean;
+{ Returns true if the given location has a feedback occupation }
+
+FUNCTION LocationOutOfUse(Location : Integer; OUT OutOfUseTC : Integer; OUT OutOfUseStr : String) : Boolean;
+{ Returns true if the given location is out of use because of an out-of-use trackcircuit occupation }
+
+FUNCTION LocationToStr{1}(Location : Integer) : String; Overload;
+{ Return a location as a long string }
+
+FUNCTION LocationToStr{2}(Location : Integer; LongOrShortString : StringType) : String; Overload;
+{ Return a location as a either a short or a long string }
+
+FUNCTION LocoChipToStr(LocoChip : Integer) : String;
+{ Return the locomotive number as a string - if LocoChip less then 1000, add appropriate number of leading zeroes }
+
+FUNCTION LTS(L : Integer) : String;
+{ Return a line as a string - routine designed only for use in debugging }
+
+FUNCTION LocTS(Location : Integer) : String;
+{ Return a location as a long string - routine designed only for use in debugging }
+
+FUNCTION LTSA(LArray : IntegerArrayType) : String;
+{ Return lines as a string - routine designed for use in debugging }
+
+FUNCTION LocTSA(LocationArray : IntegerArrayType) : String;
+{ Return locations as long strings - routine designed for use in debugging }
+
+PROCEDURE MakeSound(SoundNum : Integer);
+{ Make a warning sound }
+
+FUNCTION MessageDialogueWithDefault{1}(DialogueText: String; StopTimer : Boolean; DlgType : TMsgDlgType; Buttons : TMsgDlgButtons; DefaultButton : TMsgDlgBtn) : Word;
+                                       Overload;
+{ Adapted from the Borland Delphi web site example - uses procedures from their uDialogsExt Unit. This version has a default button. }
+
+FUNCTION MessageDialogueWithDefault{2}(DialogueText: String; StopTimer : Boolean; DlgType : TMsgDlgType; Buttons : TMsgDlgButtons; ButtonText : ARRAY OF String;
+                                       DefaultButton : TMsgDlgBtn) : Word; Overload;
+{ Adapted from the Borland Delphi web site example - uses procedures from their uDialogsExt Unit. This version has replacemnt button text as well as a default button }
+
+FUNCTION MPHToInt(MPH : MPHType) : Integer;
+{ Returns the given MPH as a integer }
+
+FUNCTION MPHToStr(MPH : MPHType) : String;
+{ Returns the given MPH as a string }
+
+FUNCTION MulDiv(A, B, C : Integer) : Integer;
+{ Returns (A * B) / C; intermediate result is held double-length to avoid overflow }
+
+FUNCTION NewMinutesBetween(CONST AThen, ANow: TDateTime): Int64;
+{ A replacement for the system routine which is buggy - from http://qc.codegear.com/wc/qcmain.aspx?d=56957 and
+  http://objectmix.com/delphi/401781-proposed-fix-dateutils-date-time-compare-functions.html
+}
+FUNCTION NewSecondsBetween(CONST AThen, ANow: TDateTime): Integer;
+{ A replacement for the system routine which is buggy - from http://qc.codegear.com/wc/qcmain.aspx?d=56957 and
+  http://objectmix.com/delphi/401781-proposed-fix-dateutils-date-time-compare-functions.html
+}
+FUNCTION NewMilliSecondsBetween(CONST AThen, ANow: TDateTime): Integer;
+{ A replacement for the system routine which is buggy - from http://qc.codegear.com/wc/qcmain.aspx?d=56957 and
+  http://objectmix.com/delphi/401781-proposed-fix-dateutils-date-time-compare-functions.html
+}
+FUNCTION NextButton{1}(CONST Dlg: TForm; VAR Context: Integer): TButton; Overload;
+{ The NextButton can be used to traverse the buttons in a Message Dialogue that has been created with the Dialogs.CreateMessageDialogue function. Initialize the Context
+  variable to 0 to get the first button. The routine updates the Context variable to cause the next call to NextButton to return the next button. If there are no (more)
+  buttons, the function returns NIL [from uDialogsExt from Borland website]
+}
+FUNCTION NextButton{2}(CONST Dlg: TForm; VAR Context: Integer; OUT Button: TButton): Boolean; Overload;
+{ This variant of NextButton returns the button in the Button variable. The function result indicates whether a button has been found [from uDialogsExt from Borland
+  website]
+}
+FUNCTION NextLineRouteingToStr(NextLineRouteing : NextLineRouteingType) : String;
+{ Return a description of the next line routeing type }
+
+FUNCTION OpenInputFileOK(VAR InputFilename : Text; Filename : String; OUT ErrorMsg : String) : Boolean;
+{ Open a existing file to read from }
+
+FUNCTION OpenOutputFileOK(VAR OutputFilename : Text; Filename : String; OUT ErrorMsg : String; AppendToFile : Boolean) : Boolean;
+{ Open (and create if necessary) a file }
+
+FUNCTION OppositeDirection(Dir : DirectionType) : DirectionType;
+{ Return the direction opposite to the one given }
+
+PROCEDURE Pause(MilliSeconds : Cardinal; ProcessMessages : Boolean);
+{ Pause for a given number of milliseconds }
+
+FUNCTION PenStyleToStr(PenStyle : TPenStyle) : String;
+{ Describes pen styles }
+
+FUNCTION PointIsCatchPoint(P : Integer) : Boolean;
+{ Returns whether a given point is a catch point }
+
+FUNCTION PointStateToStr(PointState : PointStateType) : String;
+{ Return the point state as a string }
+
+FUNCTION PointTypeToStr(PType : TypeOfPoint) : String;
+{ Return the point type }
+
+PROCEDURE ReadOut(SoundStr : String);
+{ Uses system API sndPlaySound to read out the given text, by playing a .wav file. text is held in the system resource file, itself compiled by using "brcc32 -v rail.rc"
+  from the command prompt. The file "rail.rc" is the resource script file.
+}
+FUNCTION RealToStr(Num : Real; Decimals : Integer) : String; Overload;
+{ Converts a floating point number to a string as a function not a procedure, Decimals is the number of decimals after the decimal point }
+
+FUNCTION RemoveAllSpacesFromAString(Str : String) : String;
+{ Removes all spaces from a given string. Not in use. }
+
+PROCEDURE RemoveDuplicateElementsFromIntegerArray(VAR IntegerArray : IntegerArrayType);
+{ Removes duplicate elements }
+
+PROCEDURE RemoveDuplicateElementsFromStringArray{1}(VAR StringArray : StringArrayType); Overload;
+{ Removes duplicate elements }
+
+PROCEDURE RemoveDuplicateElementsFromStringArray{2}(VAR StringArray : StringArrayType; SubRouteCount : Integer); Overload
+{ Removes duplicate elements - if SubRouteCount <> 0 do it for individual subroutes, not the whole array }
+
+PROCEDURE RenameEarlierFiles(VAR SuppliedFileType : TextFile; SuppliedFileName, SuppliedFilenamePrefix : String);
+{ Renames any existing earlier files, to give three consecutive backups }
+
+PROCEDURE RenameLaterFiles(VAR SuppliedFileType : TextFile; SuppliedFileName, SuppliedFilenamePrefix : String);
+{ This is used when a current log is thrown away: the older log file names revert to their previous names }
+
+FUNCTION ReturnFixedLengthStr(Str : String; FixedLength : Integer) : String;
+{ Return a short string of a fixed length }
+
+PROCEDURE ReturnTrainFromMissing(T : Train);
+{ Set a train as being no longer missing }
+
+FUNCTION RoundTimeToNextWholeMinute(Time : TDateTime) : TDateTime;
+{ Round the time to the next whole minute, i.e. 06:30:00 becomes 0G:31:00, but 06:30:20 becomes 06:32:00 }
+
+FUNCTION SameTimeInHoursAndMinutesOnly(Time1, Time2 : TDateTime) : Boolean;
+{ Compares two given times and returns true if they are the same in terms of hours and minutes (the system routine SameTime compares times down to the millisecond level,
+  and comparing two times by means of Time1 = Time2 also fails if there is a franction of a difference between them).
+}
+FUNCTION SetDefaultButton(CONST Dlg: TForm; CONST ModalResult: Integer): Boolean;
+{ SetDefaultButton sets the default button in a Message Dialogue that has been created with the Dialogs.CreateMessageDialogue function. The result is a success indicator.
+  The function only fails, if the specified button is not present in the dialogue [from uDialogsExt from Borland website]
+}
+PROCEDURE SetSystemOffline(OfflineMsg : String);
+{ Change the caption and the icons to show we're offline }
+
+PROCEDURE SetSystemOnline;
+{ Change the caption and the icons }
+
+PROCEDURE SetTrainControlledByProgram(T : Train; ControlledByProgram : Boolean);
+{ Mark a given train as controlled either by the software or by the LH100 }
+
+PROCEDURE SetTwoLightingChips(LocoChip : Integer; LightsAtUp, LightsAtDown : DirectionType; LightsOn : Boolean);
+{ When appropriate switch two lighting chips }
+
+PROCEDURE ShowMenus;
+{ Make all the menus visible }
+
+PROCEDURE ShutDownProgram(UnitRef : String; SubroutineStr : String);
+{ Shut down the program neatly }
+
+FUNCTION SignalHasLeftJunctionIndicator(S : Integer; OUT Indicator : JunctionIndicatorType) : Boolean;
+{ Returns true if the signal has a left junction indicator }
+
+FUNCTION SignalHasRightJunctionIndicator(S : Integer; OUT Indicator : JunctionIndicatorType) : Boolean;
+{ Returns true if the signal has a right junction indicator }
+
+FUNCTION SignalQuadrantToStr(Q : QuadrantType) : String;
+{ Return a string with the supplied signal quadrant details }
+
+FUNCTION SignalTypeToStr(ST : TypeOfSignal; LongOrShortString : StringType) : String;
+{ Return the type of a signal in words }
+
+PROCEDURE StartLocos(Restart : Boolean);
+{ Restart all the locos that were running before the enforced stop }
+
+PROCEDURE StopLocos(Msg : String);
+{ Stop all the locos currently in the diagram list. This is a better approach than the brute force approach which is to send a "StopAllLocomotives" command, which produces
+  an "emergency off" situation.
+}
+FUNCTION StringArraysCompareOK(FirstArray, SecondArray : StringArrayType; OUT ErrorMsg : String) : Boolean;
+{ Does an element by element comparison of two string arrays }
+
+FUNCTION StringArrayToStr(StringArray : StringArrayType) : String;
+{ List the contents of an array }
+
+FUNCTION StrToArea(Str : String) : Integer;
+{ Convert a string to an area }
+
+FUNCTION StrToAspect(Str : String) : AspectType;
+{ Return the signal aspect string as an aspect type }
+
+FUNCTION StrToColour(Str : String) : TColour;
+{ Checks if it's a Delphi colour or an FWP one }
+
+FUNCTION StrToDayOfTheWeek(Str : String) : DayOfTheWeekType;
+{ Return a day of the week from a given string }
+
+FUNCTION StrToDirectionType(Str : String) : DirectionType;
+{ Convert a string to a direction }
+
+FUNCTION StrToEndOfLine(Str : String) : EndOfLineType;
+{ Convert a string to an end of line }
+
+FUNCTION StrToFeedbackUnitType(Str : String) : TypeOfFeedBackType;
+{ Convert a string to a feedback unit type }
+
+FUNCTION StrToGradient(Str : String) : GradientType;
+{ Convert a string to a gradient }
+
+FUNCTION StrToIndicatorType(Str : String) : IndicatorType;
+{ Return the type a route indicator is }
+
+FUNCTION StrToLine(Str : String) : Integer;
+{ Convert a string to a line name }
+
+FUNCTION StrToLocation(Str : String) : Integer;
+{ Convert a string to a location }
+
+FUNCTION StrToMPH(Str : String) : MPHType;
+{ Returns the given string as a MPH }
+
+FUNCTION StrToPenStyle(Str : String) : TPenStyle;
+{ Converts strings to pen styles }
+
+FUNCTION StrToPlatformNumberPosition(Str : String) : PlatformNumberPositionType;
+{ Return the given platform number position value as a string }
+
+FUNCTION StrToPointState(Str : String) : PointStateType;
+{ Convert a string to a point state }
+
+FUNCTION StrToPointType(Str : String) : TypeOfPoint;
+{ Convert a string to a point state }
+
+FUNCTION StrToSignalType(Str : String) : TypeOfSignal;
+{ Return the type of a signal }
+
+FUNCTION StrToThroughLocationState(Str : String) : ThroughLocationStateType;
+{ Return the through state from a given string }
+
+FUNCTION StrToTrainTypeNum(Str : String) : Integer;
+{ Returns the train type as a number; an up-to-date list as of 5/10/05 }
+
+FUNCTION StrToTypeOfLine(Str : String) : TypeOfLine;
+{ Convert a string to a line type }
+
+FUNCTION SubRouteStateToStr(SubRouteState : SubRouteStateType) : String;
+{ Return the state of the subroute as a string }
+
+FUNCTION TestCount : Integer;
+{ Returns a number which is incremented each time the routine is called - used for debugging }
+
+FUNCTION TestCountStr : String;
+{ Returns as a string a number which is incremented each time the routine is called - used for debugging }
+
+FUNCTION ThroughLocationStateToStr(ThroughLocationState : ThroughLocationStateType) : String;
+{ Return the through state of the location as a string }
+
+FUNCTION TimeIsValid(TimeStr : String) : Boolean;
+{ Checking a given time string - an hour/min separator is permissible. Also ignore a trailing asterisk }
+
+FUNCTION TimeToHMStr(Time : TDateTime) : String;
+{ Return a time string as hh:mm }
+
+FUNCTION TimeToHMSStr(Time : TDateTime) : String;
+{ Return a time string as hh:mm:ss }
+
+FUNCTION TimeToHMSZStr(Time : TDateTime) : String;
+{ Return a time string as hh:mm:ss:zzz }
+
+FUNCTION TrackCircuitStateIsPermanentlyOccupied(State : TrackCircuitStateType) : Boolean;
+{ Returns true if a given trackcircuit state is not set as permanently occupied }
+
+FUNCTION TrackCircuitStateIsTemporarilyOccupied(State : TrackCircuitStateType) : Boolean;
+{ Returns true if a given trackcircuit state is set as temporarily occupied }
+
+FUNCTION TrackCircuitStateToStr(State : TrackCircuitStateType) : String;
+{ Describe the current state of a given trackcircuit }
+
+FUNCTION TrainLightsAreOn(LocoChip : Integer) : Boolean;
+{ Returns true if a train's lights are on, i.e. if function zero is on }
+
+FUNCTION TrainSpeedInMPHToLenzSpeed(T : Train; Speed : MPHType) : Integer;
+{ Return the appropriate Lenz speed number for the given loco }
+
+FUNCTION TrainStatusToStr(Status : TrainStatusType) : String;
+{ Return the given train status as a string }
+
+FUNCTION TrainTypeNumToStr(TrainTypeNum : Integer) : String;
+{ Returns the train type number as a string; an up-to-date list as of 5/10/05 }
+
+FUNCTION TrainTypeToTrainTypeNum(TrainType : TypeOfTrainType) : Integer;
+{ Returns the number for the kind of train it is; an up-to-date list as of 5/10/05 }
+
+FUNCTION TrainTypeNumToTrainType(TrainTypeNum : Integer) : TypeOfTrainType;
+{ Returns the train type; an up-to-date list as of 5/10/05 }
+
+FUNCTION TrimRemoveSpacesAndMakeUpperCase(Str : String) : String;
+{ Tidy up a string to make comparisons more accurate }
+
+FUNCTION TTS(Time : TDateTime) : String;
+{ Return a time string as hh:mm - abbreviated form of TimeToHMStr above with format 'hh:mm' for debugging }
+
+FUNCTION TTSS(Time : TDateTime) : String;
+{ Return a time string as hh:mm:ss - abbreviated form of TimeToHMSStr for debugging }
+
+FUNCTION TTSZ(Time : TDateTime) : String;
+{ Return a time string as hh:mm:ss:zzz - abbreviated form of TimeToHMSZStr for debugging }
+
+FUNCTION TTSA(TimesArray : DateTimeArrayType) : String;
+{ Return time strings as hh:mm - abbreviated form of TimeToHMStr above with format 'hh:mm' for debugging }
+
+PROCEDURE TurnCabLightsOn(LocoChip : Integer);
+{ Turns cab lights on. Assumes that the cab lights are operated by function one }
+
+PROCEDURE TurnCabLightsOff(LocoChip : Integer);
+{ Turns cab lights off. Assumes that the cab lights are operated by function one }
+
+PROCEDURE TurnHeadLightsOff(LocoChip : Integer; UserDriving, UserRequiresInstruction : Boolean);
+{ Turn off a loco's headlights }
+
+PROCEDURE TurnHeadLightsOn(LocoChip : Integer; Direction : DirectionType; UserDriving, UserRequiresInstruction : Boolean);
+{ Turn on a loco's headlights, and tail light if they are connected }
+
+PROCEDURE TurnTailLightsOnAtOneEnd(LocoChip : Integer; Direction : DirectionType; UserDriving, UserRequiresInstruction : Boolean);
+{ Turn on a loco's tail lights at one particular end }
+
+PROCEDURE TurnTailLightsOnAtBothEnds(LocoChip : Integer; UserDriving, UserRequiresInstruction : Boolean);
+{ Turn on a loco's tail lights at both ends - used for stationary locos }
+
+PROCEDURE TurnLightsOff(LocoChip : Integer);
+{ Turns the lights off by changing functions on the loco chip and optional second chip }
+
+PROCEDURE TurnLightsOn(LocoChip : Integer; OUT OK : Boolean);
+{ Turns the lights on by changing functions on the loco chip and optional second chip }
+
+FUNCTION TypeOfLineToStr(T : TypeOfLine) : String;
+{ Describe a line type }
+
+FUNCTION WorkingTimetableStatusToStr(Status : WorkingTimetableStatusType) : String;
+{ Return the given working timetable status as a string }
+
+PROCEDURE WriteNextLineDetailToDebugWindow(L : Integer; HelpRequired : Boolean);
+{ Indicate what the next line status is for the given line }
+
+PROCEDURE WriteStringArrayToLog{1}(LocoChip : Integer; TypeOfLogChar : Char; StringArray : StringArrayType;
+                                   Indent, WrapNum : Integer); Overload;
+{ Write the contents of an array to the replay file, wrapping it at Wrapnum and indenting it by Indent: this version is not preceded by an explanatory string. }
+
+PROCEDURE WriteStringArrayToLog{2}(LocoChip : Integer; TypeOfLogChar : Char; Str: String; StringArray : StringArrayType; Indent, WrapNum : Integer); Overload;
+{ Write the contents of an array to the replay file, wrapping it at Wrapnum and indenting it by Indent: this version is preceded by an explanatory string. }
+
+PROCEDURE WriteStringArrayToLog{3}(LocoChip : Integer; TypeOfLogChar : Char; Str: String; StringArray : StringArrayType; Indent, WrapNum : Integer; BreakOnStr : String);
+                                   Overload;
+{ Write the contents of an array to the replay file, wrapping it at Wrapnum and indenting it by Indent: this version is preceded by an explanatory string }
+
+PROCEDURE WriteStringArrayToLog{4}(LocoChip : Integer; TypeOfLogChar : Char; StringArray : StringArrayType; Indent, WrapNum : Integer; BreakOnStr : String); Overload;
+{ Write the contents of an array to the replay file, wrapping it at Wrapnum and indenting it by Indent: this version is not preceded by an explanatory string. If the
+  BreakOnStr string appears in the text, start a new line before it.
+}
+PROCEDURE WriteStringArrayToLog{5}(LocoChip : Integer; TypeOfLogChar : Char; StringArray : StringArrayType); Overload;
+{ Write the contents of an array to the replay file, wrapping it by default at 88 and indenting it by two - this version is not preceded by an explanatory string. }
+
+PROCEDURE WriteStringArrayToLog{6}(LocoChip : Integer; TypeOfLogChar : Char; Str: String; StringArray : StringArrayType); Overload;
+{ Write the contents of an array to the replay file, wrapping it by default at 88 and indenting it by two - this version is preceded by an explanatory string. }
+
+PROCEDURE WriteStringArrayToLog{7}(LocoChip : Integer; TypeOfLogChar : Char; Str : String; StringArray : StringArrayType; NumberElements : Boolean); Overload;
+{ Write the contents of an array to the replay file, wrapping it by default at 88 and indenting it by two - this version is preceded by an explanatory string. If
+  NumberElements is true, add number in array to each element.
+}
+PROCEDURE WriteStringArrayToLog{8}(LocoChip : Integer; TypeOfLogChar : Char; Str : String; StringArray : StringArrayType; NumberElements : Boolean; BreakOnStr : String);
+                                   Overload;
+{ Write the contents of an array to the replay file, wrapping it by default at 150 and indenting it by two - this version is preceded by an explanatory string. If
+  NumberElements is true, add number in array to each element. If the BreakOnStr string appears in the text, start a new line before it.
+}
+PROCEDURE WriteTimeToLog(Num : Integer);
+{ A debugging procedure whereby the current time is written to the log, together with the elapsed time since the previous call to the routine }
+
+PROCEDURE WriteToLogFile(LogStr : String);
+{ Write the data to the log file, adding the LocoChip and UnitRef, and wrapping and indenting if required. If a tilde is to appear in the string other than as a delimiter,
+  it should appear twice.
+}
+
+PROCEDURE GetProjectVersionInfo(AVersionList: TStrings; AFileName: String= '');
+FUNCTION GetBuildInfo(VAR V1, V2, V3, V4: Word; AFileName: String= ''): Boolean;
+
+IMPLEMENTATION
+
+{$R *.dfm}
+
+USES GetTime, Lenz, Diagrams, RailDraw, Types, LocoUtils, Math {sic}, IDGlobal, StrUtils, Feedback, RDC, CreateRoute, IniFiles, DateUtils, Startup, Cuneo, Movement,
+     LocoDialogue, FWPShowMessageUnit, Options, Registry, Help, MMSystem, ADODB;
+
+CONST
+  UnitRef = 'MiscUtils';
+
+TYPE
+  PTransBuffer = ^TTransBuffer;
+  TTransBuffer = ARRAY [1..13] OF SmallInt;
+
+CONST
+  CInfoStr : ARRAY [1..13] OF String =
+    ('FileVersion',
+     'CompanyName',
+     'FileDescription',
+     'InternalName',
+     'LegalCopyright',
+     'LegalTradeMarks',
+     'OriginalFileName',
+     'ProductName',
+     'ProductVersion',
+     'Comments',
+     'CurrentProgramVersion',
+     'CurrentDatabaseVersion',
+     'VersionDetails');
+
+  DebugWindowCaption = '&Debug Window';
+  UnknownColourStr = 'Unknown Colour';
+  MaxSaveLogStrs = 10;
+  RichEditChars = True;
+
+VAR
+  DrawLineInLogFileAfter : Boolean = False;
+  DrawLineInLogFileBefore : Boolean = False;
+  DrawLineInLogFileOnly : Boolean = False;
+  IdenticalLineMsgWritten : Boolean = False;
+  InitialisationCount : Integer;
+  LastLogLine : String = '';
+  LineAfterJustDrawn : Boolean = False;
+  LogArray : StringArrayType;
+  OldDebugStr : String = '';
+  PreviousLogTime : TDateTime = 0;
+  SaveLogStrArray : ARRAY [1..MaxSaveLogStrs] OF String;
+  SaveMainWindowStatusBarState : StatusBarStateType = Visible;
+  UserDebugText : String = '';
+  TestCounter : Integer = 0; { used to test iterations in debugging }
+  TempSaveLogStr : String = '';
+
+PROCEDURE WriteToLogFile(LogStr : String); Overload;
+{ Write the data to the log file, adding the LocoChip and UnitRef, and wrapping and indenting if required. The syntax is: LocoChip, TypeOfLog, LogString, and parameters
+  such as Indent=n Wrap=n Unit=UnitRef.
+}
+  PROCEDURE WriteOutError(ErrorStr : String);
+  { Highlight any errors found in the syntax of Log requests }
+  BEGIN
+    Debug('*** ' + ErrorStr);
+    IF LogFileOpen THEN BEGIN
+      WriteLn(LargeLogFile, '*************** Error in log entry: ' + ErrorStr + ' [' + UnitRef + ']');
+      Flush(LargeLogFile);
+    END;
+  END; { WriteOutError }
+
+CONST
+  EllipsisStr = '...';
+
+VAR
+  BlankLineBefore : Boolean;
+  Count : Integer;
+  DrawLineChar : String;
+  I, J : Integer;
+  IdenticalLinesFound : Boolean;
+  Indent : Integer;
+  IndentStr : String;
+  LocoChip : Integer;
+  LocoChipStr : String;
+  LogArrayCount : Integer;
+  NoUnitRef : Boolean;
+  PossibleEllipsisStr : String;
+  TempInt : Integer;
+  TempStr : string;
+  TypeOfLog : String;
+  UnitRef : String;
+  WrapNum : Integer;
+  WrapNumStr : String;
+
+  PROCEDURE WriteToEachLogFile(TypeOfLog : Char; LogStr : String);
+  { Write to the various log files depending on the type of log }
+  BEGIN
+    IF NOT LogFileOpen THEN
+      { Store the log until the file is opened }
+      AppendToStringArray(LogArray, LogStr)
+    ELSE BEGIN
+      { See if a completely blank line is required }
+      IF Pos('<Blank Line>', LogStr) > 0 THEN
+        LogStr := '';
+
+      { And now specific happenings }
+      CASE TypeOfLog OF
+        ' ':
+          { ignore - this is for messages that we may at some stage want to log }
+          ;
+        'G', 'g', '$':
+          { general happenings of relevance to all logs - includes '$' for quick debugging as it is easy to find in the logs }
+          BEGIN
+            WriteLn(LargeLogFile, LogStr);
+            IF MultipleLogFilesRequired THEN BEGIN
+              WriteLn(LocoLogFile, LogStr);
+              WriteLn(RouteLogFile, LogStr);
+              WriteLn(SignalPointAndTCLogFile, LogStr);
+              WriteLn(DiagramsLogFile, LogStr);
+              WriteLn(WorkingTimetableLogFile, LogStr);
+            END;
+          END;
+        'P', 'p', 'S', 's', 'T', 't':
+          BEGIN
+            WriteLn(LargeLogFile, LogStr);
+            IF MultipleLogFilesRequired THEN
+              WriteLn(SignalPointAndTCLogFile, LogStr);
+          END;
+        'D', 'd':
+          BEGIN
+            WriteLn(LargeLogFile, LogStr);
+            IF MultipleLogFilesRequired THEN
+              WriteLn(DiagramsLogFile, LogStr);
+          END;
+        'W', 'w':
+          BEGIN
+            WriteLn(LargeLogFile, LogStr);
+            WriteLn(TestLogFile, LogStr);
+            IF MultipleLogFilesRequired THEN
+              WriteLn(WorkingTimetableLogFile, LogStr);
+          END;
+        'L', 'l':
+          BEGIN
+            WriteLn(LargeLogFile, LogStr);
+            IF MultipleLogFilesRequired THEN
+              WriteLn(LocoLogFile, LogStr);
+          END;
+        'R', 'r':
+          BEGIN
+            WriteLn(LargeLogFile, LogStr);
+            IF MultipleLogFilesRequired THEN
+              WriteLn(RouteLogFile, LogStr);
+          END;
+        '*':
+          BEGIN
+            WriteLn(LargeLogFile, LogStr);
+            WriteLn(TestLogFile, LogStr);
+          END;
+        '+':
+          { Only write to the test log file }
+          WriteLn(TestLogFile, LogStr);
+        'E', 'e', 'X', 'x': { unusual happenings of relevance to all the log files }
+          BEGIN
+            WriteLn(LargeLogFile, LogStr);
+            IF MultipleLogFilesRequired THEN BEGIN
+              WriteLn(LocoLogFile, LogStr);
+              WriteLn(RouteLogFile, LogStr);
+              WriteLn(SignalPointAndTCLogFile, LogStr);
+              WriteLn(DiagramsLogFile, LogStr);
+              WriteLn(ErrorLogFile, LogStr);
+            END;
+          END;
+      ELSE {CASE}
+        BEGIN
+          { a type of log we don't know about! }
+          Debug('Unusual log type ''' + TypeOfLog + ''' found in line ''' + LogStr + '''');
+          WriteLn(LargeLogFile, 'Unusual log type ''' + TypeOfLog + ''' found in line ''' + LogStr + '''');
+        END;
+      END; {CASE}
+
+      IF WriteToLogFileAndTestFile THEN
+        WriteLn(TestLogFile, LogStr);
+    END;
+  END; { WriteToEachLogFile }
+
+  PROCEDURE RemoveRichEditInstructionsFromLogStr(VAR LogStr : String);
+  { Removes any instructions from the log string and process them }
+  VAR
+    TempStr : String;
+
+  BEGIN
+    IF Pos('<B>', UpperCase(LogStr)) > 0 THEN
+      LogStr := StringReplace(LogStr, '<B>', '', [rfIgnoreCase]);
+
+    IF Pos('<COLOR=', UpperCase(LogStr)) > 0 THEN BEGIN
+      TempStr := GetFollowingChars(LogStr, '<COLOR=', '>');
+      LogStr := StringReplace(LogStr, '<COLOR=' + TempStr + '>', '', [rfIgnoreCase]);
+    END;
+
+//    IF LogStr <> '' THEN BEGIN
+//      Debug('Unknown parameter "' + LogStr + '" found in log string "' + SaveLogStr + '"');
+//      IF LogFileOpen THEN
+//        WriteLn(LargeLogFile, 'Unknown parameter "' + LogStr + '" found in log string "' + SaveLogStr + '"');
+//    END;
+//
+    { Finally remove any sundry spaces left, from, for example, between angle brackets }
+    LogStr := StringReplace(LogStr, '  ', ' ', [rfIgnoreCase]);
+    LogStr := StringReplace(LogStr, '  ', ' ', [rfIgnoreCase]);
+  END; { RemoveRichEditInstructionsFromLogStr }
+
+  PROCEDURE RemoveGeneralInstructionsFromLogStr(VAR LogStr : String);
+  { Removes any instructions from the log string and process them }
+  VAR
+    TempStr : String;
+
+  BEGIN
+    DrawLineInLogFileBefore := False;
+    DrawLineInLogFileOnly := False;
+    DrawLineInLogFileAfter := False;
+    NumberLines := False;
+    BlankLineBefore := False;
+
+    { Now interpret the miscellaneous commands - first wrapping }
+    IF Pos('<WRAP=', UpperCase(LogStr)) > 0 THEN BEGIN
+      { Look for a space or a line end following }
+      IF Pos('<WRAP=SCREENWIDTH>', UpperCase(LogStr)) > 0 THEN BEGIN
+        { we want the maximum screen width }
+        WrapNum := LogFileMaxWidthInChars;
+
+        LogStr := StringReplace(LogStr, '<WRAP=SCREENWIDTH>', '', [rfIgnoreCase]);
+      END ELSE BEGIN
+        WrapNumStr := GetFollowingChars(LogStr, '<WRAP=', '>');
+        IF NOT TryStrToInt(WrapNumStr, WrapNum) THEN BEGIN
+          Debug('Log file error: WRAP= must be followed  by "ScreenWidth" or a number (Log string="' + LogStr + '")');
+          WriteLn(LargeLogFile, 'Log file error in "' + LogStr + '" WRAP= must be followed by "ScreenWidth" or a number' + ' (Log string="' + LogStr + '")');
+        END;
+
+        LogStr := StringReplace(LogStr, '<WRAP=' + WrapNumStr + '>', '', [rfIgnoreCase]);
+      END;
+    END;
+
+    IF Pos('<BLANKLINEBEFORE>', UpperCase(LogStr)) > 0 THEN BEGIN
+      BlankLineBefore := True;
+      LogStr := StringReplace(LogStr, '<BLANKLINEBEFORE>', '', [rfIgnoreCase]);
+    END ELSE BEGIN
+      IF Pos('<LINE>', UpperCase(LogStr)) > 0 THEN BEGIN
+        DrawLineInLogFileOnly := False;
+        DrawLineChar := '-';
+
+        { draw the default line drawing character }
+        IF NOT LineAfterJustDrawn THEN
+          DrawLineInLogFileOnly := True;
+
+        LogStr := StringReplace(LogStr, '<LINE>', '', [rfIgnoreCase]);
+      END;
+
+      { Drawing lines in the log file. First see if there is a drawn 'line after' immediately succeeding a 'line before' - avoid too many lines in the log }
+      IF Pos('<LINE=', UpperCase(LogStr)) > 0 THEN BEGIN
+        TempStr := GetFollowingChars(LogStr, '<LINE=', '>');
+        IF (UpperCase(TempStr) = 'BEFORE>')
+        AND NOT LineAfterJustDrawn
+        THEN BEGIN
+          DrawLineInLogFileBefore := True;
+          LogStr := StringReplace(LogStr, '<LINE=BEFORE>', '', [rfIgnoreCase]);
+        END ELSE
+          IF (UpperCase(TempStr) = 'BEFORE>')
+          AND LineAfterJustDrawn
+          THEN BEGIN
+            DrawLineInLogFileBefore := False;
+            LogStr := StringReplace(LogStr, '<LINE=BEFORE>', '', [rfIgnoreCase]);
+          END ELSE
+            IF UpperCase(TempStr) = 'AFTER>' THEN BEGIN
+              DrawLineInLogFileAfter := True;
+              LogStr := StringReplace(LogStr, '<LINE=AFTER>', '', [rfIgnoreCase]);
+            END ELSE
+              IF UpperCase(TempStr) = 'BEFOREANDAFTER>' THEN BEGIN
+                DrawLineInLogFileAfter := True;
+                IF NOT LineAfterJustDrawn THEN
+                  DrawLineInLogFileBefore := True;
+                LogStr := StringReplace(LogStr, '<LINE=BEFOREANDAFTER>', '', [rfIgnoreCase]);
+              END ELSE
+                IF Length(TempStr) = 1 THEN BEGIN
+                  DrawLineChar := TempStr;
+                  DrawLineInLogFileOnly := True;
+
+                  LogStr := StringReplace(LogStr, '<LINE=' + TempStr + '>', '', [rfIgnoreCase]);
+                END ELSE BEGIN
+                  Debug('Log file error: Line= must be followed  by a single character or "BEFORE", "AFTER" OR "BEFOREANDAFTER" (Log string="' + LogStr + '")');
+                  WriteLn(LargeLogFile, 'Log file error in "' + LogStr
+                                        + '" Line= must be followed by a single character or "BEFORE", "AFTER" OR "BEFOREANDAFTER" (Log string="' + LogStr + '")');
+                END;
+      END;
+    END;
+
+    IF Pos('<NUMBER>', UpperCase(LogStr)) > 0 THEN BEGIN
+      NumberLines := True;
+      LogStr := StringReplace(LogStr, '<NUMBER>', '', [rfIgnoreCase]);
+    END;
+
+    { Indents }
+    IF Pos('<INDENT=', UpperCase(LogStr)) > 0 THEN BEGIN
+      IndentStr := GetFollowingChars(LogStr, '<INDENT=', '>');
+      IF NOT TryStrToInt(IndentStr, Indent) THEN BEGIN
+        Debug('Log file error: INDENT= must be followed by a number (Log string="' + LogStr + ')"');
+        WriteLn(LargeLogFile, 'Log file error in "' + LogStr + '": INDENT= must be followed by a number' + ' (Log string="' + LogStr + '")');
+      END;
+
+      LogStr := StringReplace(LogStr, '<INDENT=' + IndentStr + '>', '', [rfIgnoreCase]);
+    END;
+
+    { The calling unit name - but do not add the default if a substitute is specified. (This is used by the DrawLineInLogFile procedure to show where the line drawing
+      originates from).
+    }
+    IF Pos('<UNIT=', UpperCase(LogStr)) > 0 THEN BEGIN
+      UnitRef := GetFollowingChars(LogStr, '<UNIT=', '>');
+      LogStr := StringReplace(LogStr, '<UNIT=' + UnitRef + '>', '', [rfIgnoreCase]);
+    END;
+
+    { See if we need to replace the unit with another - used, for instance, where a procedure to draw a line in the log is called, and would otherwise have the wrong
+      unit, that is the unit where the line drawing procedure is located, recorded.
+    }
+    IF Pos('<UNITSUBSTITUTE=', UpperCase(LogStr)) > 0 THEN BEGIN
+      UnitRef := GetFollowingChars(LogStr, '<UNITSUBSTITUTE=', '>');
+      LogStr := StringReplace(LogStr, '<UNITSUBSTITUTE=' + UnitRef + '>', '', [rfIgnoreCase]);
+    END;
+
+    { Unit name not wanted }
+    IF Pos('<NOUNITREF>', UpperCase(LogStr)) > 0 THEN BEGIN
+      NoUnitRef := True;
+      LogStr := StringReplace(LogStr, '<NOUNITREF>', '', [rfIgnoreCase]);
+    END;
+
+    { Finally remove any sundry spaces left, from, for example, between angle brackets }
+    LogStr := StringReplace(LogStr, '  ', ' ', [rfIgnoreCase]);
+    LogStr := StringReplace(LogStr, '  ', ' ', [rfIgnoreCase]);
+  END; { RemoveGeneralInstructionsFromLogStr }
+
+BEGIN { WriteToLogFile }
+  IF LogsCurrentlyKept THEN BEGIN
+    { write out anything previous stored when the log file was not open }
+    IF LogFileOpen
+    AND (Length(LogArray) <> 0)
+    THEN BEGIN
+      WriteLn(LargeLogFile, '--------------------------------------------------');
+      WriteLn(LargeLogFile, 'Log strings stored before the log file was opened:');
+      WriteLn(LargeLogFile, '');
+      LogArrayCount := 0;
+      WHILE LogArrayCount <> Length(LogArray) DO BEGIN
+        WriteLn(LargeLogFile, LogArray[LogArrayCount]);
+        Inc(LogArrayCount);
+      END; {WHILE}
+      WriteLn(LargeLogFile, '--------------------------------------------------');
+      SetLength(LogArray, 0);
+    END;
+
+    IdenticalLinesFound := False;
+
+    TypeOfLog := ' ';
+    Indent := 0;
+    WrapNum := 0;
+    LocoChipStr := '';
+    NoUnitRef := False;
+
+    { See how the arguments are constituted }
+    IF NOT ReplayMode THEN BEGIN
+      { First look for locochip number }
+      IF TryStrToInt(Copy(LogStr, 1, 4), TempInt) THEN BEGIN
+        IF Copy(LogStr, 5, 1) <> ' ' THEN BEGIN
+          WriteOutError('No space after loco number in "' + LogStr + '"');
+          Exit;
+        END ELSE BEGIN
+          LocoChipStr := Copy(LogStr, 1, 4);
+          LogStr := Copy(LogStr, 6);
+        END;
+      END;
+
+      { look for log character after locochip number }
+      IF Copy(LogStr, 1, 1) = ' ' THEN BEGIN
+        { there isn't one - write out the whole line in case it's an error message }
+        WriteOutError('Illegal space at position 1 in "' + LogStr + '"');
+        Exit;
+      END ELSE BEGIN
+        CASE LogStr[1] OF
+          'G', 'g', '$',
+          'P', 'p', 'S', 's', 'T', 't',
+          'L', 'l',
+          'R', 'r',
+          'D', 'd',
+          'W', 'w',
+          '*', '+',
+          'E', 'e', 'X', 'x':
+            BEGIN
+              { extract the log character }
+              TypeOfLog := Copy(LogStr, 1, 1);
+              IF Copy(LogStr, 2, 1) = ' ' THEN BEGIN
+                LogStr := Copy(LogStr, 3);
+                RemoveGeneralInstructionsFromLogStr(LogStr);
+              END ELSE BEGIN
+                { we've found a debug character }
+                TempStr := LogStr[2];
+                CASE TempStr[1] OF
+                  'G':
+                    BEGIN
+                      LogStr := Copy(LogStr, 4);
+                      RemoveGeneralInstructionsFromLogStr(LogStr);
+                      Debug(LogStr);
+                      RemoveRichEditInstructionsFromLogStr(LogStr);
+                    END;
+                  '!', '+', '=': { bold; italics; or bold and italics }
+                    BEGIN
+                      LogStr := Copy(LogStr, 4);
+                      RemoveGeneralInstructionsFromLogStr(LogStr);
+                      Debug(TempStr + LogStr);
+                      RemoveRichEditInstructionsFromLogStr(LogStr);
+                    END;
+                ELSE {CASE}
+                  BEGIN
+                    { there isn't one - write out the whole line in case it's an error message }
+                    WriteOutError('Illegal debug character "' + LogStr[2] + '" at position 2 in "' + LogStr + '"');
+                    Exit;
+                  END;
+                END; {CASE}
+              END;
+            END;
+        ELSE
+          { not a character we recognise }
+          BEGIN
+            WriteOutError('Illegal log character "' + LogStr[1] + '" at position 1 in "' + LogStr + '"');
+            Exit;
+          END;
+        END; {CASE}
+      END;
+
+      IF BlankLineBefore THEN BEGIN
+        { a blank line is required }
+        WriteLn(LargeLogFile, CurrentRailwayTimeStr + ' ' + TypeOfLog);
+        IF TestingMode THEN
+          Flush(LargeLogFile);
+        IF WriteToLogFileAndTestFile THEN
+          WriteLn(TestLogFile, '');
+      END;
+
+      { Check whether we're writing the same thing over and over - complain after three repeats }
+      IF CheckForIdenticalLinesInLog THEN BEGIN
+        IdenticalLinesFound := False;
+        J := 1;
+        I := 1;
+        WHILE (I <= MaxSaveLogStrs)
+        AND NOT IdenticalLinesFound
+        DO BEGIN
+          IF LogStr <> SaveLogStrArray[I] THEN
+            { reset the threshold }
+            J := 1
+          ELSE BEGIN
+            Inc(J);
+            IF J > 1 THEN BEGIN
+              IdenticalLinesFound := True;
+              IF NOT IdenticalLineMsgWritten THEN BEGIN
+                IdenticalLineMsgWritten := True;
+                WriteToEachLogFile(TypeOfLog[1], CurrentRailwayTimeStr + ' ' + TypeOfLog[1] + StringOfChar(' ', 6) + '[' + IntToStr(J) + ' identical lines found]');
+              END;
+            END;
+          END;
+          Inc(I);
+        END; {WHILE}
+      END;
+
+      SaveLogStrArray[1] := SaveLogStrArray[2];
+      SaveLogStrArray[2] := SaveLogStrArray[3];
+      SaveLogStrArray[3] := SaveLogStrArray[4];
+      SaveLogStrArray[4] := SaveLogStrArray[5];
+      SaveLogStrArray[5] := SaveLogStrArray[6];
+      SaveLogStrArray[6] := SaveLogStrArray[7];
+      SaveLogStrArray[7] := SaveLogStrArray[8];
+      SaveLogStrArray[8] := SaveLogStrArray[9];
+      SaveLogStrArray[9] := SaveLogStrArray[10];
+      SaveLogStrArray[10] := LogStr;
+
+      LastLogLine := LogStr;
+      TryStrToInt(LocoChipStr, LocoChip);
+      LineAfterJustDrawn := False;
+
+      IF NOT IdenticalLinesFound OR NOT CheckForIdenticalLinesInLog THEN BEGIN
+        { See if we want to draw a line either on its own or before the given output }
+        IF DrawLineInLogFileBefore OR DrawLineInLogFileOnly THEN BEGIN
+          WriteToEachLogFile(TypeOfLog[1],
+                             IfThen(LogCurrentTimeMode,
+                                    TimeToHMSZStr(Time) + ' ')
+                             + CurrentRailwayTimeStr
+                             + ' ' + TypeOfLog);
+          TempStr := '';
+          FOR I := 0 TO 70 DO
+            TempStr := TempStr + DrawLineChar + ' ';
+          { Truncate the string just in case }
+          Delete(TempStr, 140, Length(TempStr) - 140); { these shouldn't be magic numbers **** }
+
+          WriteToEachLogFile(TypeOfLog[1],
+                             IfThen(LogCurrentTimeMode,
+                                    TimeToHMSZStr(Time) + ' ')
+                             + CurrentRailwayTimeStr
+                             + ' ' + TypeOfLog
+                             + StringOfChar(' ', 6)
+                             + TempStr
+                             + '[' + UnitRef + ']');
+
+          WriteToEachLogFile(TypeOfLog[1],
+                             IfThen(LogCurrentTimeMode,
+                                    TimeToHMSZStr(Time) + ' ')
+                             + CurrentRailwayTimeStr
+                             + ' ' + TypeOfLog);
+
+          IF DrawLineInLogFileOnly THEN
+            LineAfterJustDrawn := True;
+        END;
+
+        IF NOT DrawLineInLogFileOnly
+        AND (LogStr <> ' ')
+        THEN BEGIN
+          IdenticalLineMsgWritten := False;
+
+          { Add LocoChip, if any, or else spaces }
+          IF Length(LocoChipStr) < 4 THEN
+            LocoChipStr := LocoChipStr + StringOfChar(' ', 4 - Length(LocoChipStr))
+          ELSE
+            IF LocoChipStr = '0000' THEN
+              LocoChipStr := StringOfChar(' ', 4);
+
+          IF (Indent = 0)
+          AND (WrapNum = 0)
+          THEN BEGIN
+            { Add the time, and a UnitRef if supplied }
+            IF CurrentRailwayTimeStr = '' THEN
+              CurrentRailwayTimeStr := TimeToHMSStr(CurrentRailwayTime);
+            IF (UnitRef = '') OR NoUnitRef THEN
+              LogStr := CurrentRailwayTimeStr + ' ' + TypeOfLog + ' ' + LocoChipStr + ' ' + Trim(LogStr)
+            ELSE
+              LogStr := CurrentRailwayTimeStr + ' ' + TypeOfLog + ' ' + LocoChipStr + ' ' + Trim(LogStr) + ' [' + UnitRef + ']';
+
+            IF LogCurrentTimeMode THEN
+              LogStr := TimeToHMSZStr(Time) + ' ' + LogStr;
+
+            WriteToEachLogFile(TypeOfLog[1], LogStr);
+          END ELSE BEGIN
+            { Do the indenting and line wrapping - it is assumed that the line wrapping happens at the given number regardless of the indent }
+            IF WrapNum <> 0 THEN BEGIN
+              IF WrapNum > 16 THEN
+                WrapNum := WrapNum - 16;
+
+              IF LogCurrentTimeMode THEN
+                IF WrapNum > 13 THEN
+                  WrapNum := WrapNum - 13;
+
+              IF WrapNum > Indent THEN
+                WrapNum := WrapNum - Indent - 4;
+
+              { Insert CRLF at or near WrapNum }
+              LogStr := WrapText(LogStr, WrapNum);
+            END;
+
+            Count := 1;
+
+            PossibleEllipsisStr := '';
+            IF Length(LogStr) > 1 THEN BEGIN
+              I := 1;
+              WHILE I < Length(LogStr) DO BEGIN
+                IF (LogStr[I] = #13)
+                AND (LogStr[I + 1] = #10)
+                THEN BEGIN
+                  WriteToEachLogFile(TypeOfLog[1],
+                                     IfThen(LogCurrentTimeMode,
+                                            TimeToHMSZStr(Time) + ' ')
+                                     + CurrentRailwayTimeStr
+                                     + ' ' + TypeOfLog
+                                     + ' ' + LocoChipStr
+                                     + ' '
+                                     + IfThen(Indent > 0,
+                                              StringOfChar(' ', Indent))
+                                     + IfThen(NumberLines,
+                                              IntToStr(Count) + ': ')
+                                     + IfThen(Count > 1,
+                                              EllipsisStr + ' ')
+                                     + LeftStr(LogStr, I - 1)
+                                     + EllipsisStr);
+                  Inc(Count);
+                  LogStr := Copy(LogStr, I + 2);
+                  I := 0;
+                  PossibleEllipsisStr := '... ';
+                END;
+                Inc(I);
+              END;
+              { Now write out the last bit }
+              WriteToEachLogFile(TypeOfLog[1],
+                                 IfThen(LogCurrentTimeMode,
+                                        TimeToHMSZStr(Time) + ' ')
+                                 + CurrentRailwayTimeStr
+                                 + ' ' + TypeOfLog
+                                 + ' ' + LocoChipStr
+                                 + ' '
+                                 + IfThen(Indent > 0,
+                                          StringOfChar(' ', Indent))
+                                 + IfThen(NumberLines,
+                                          IntToStr(Count) + ': ')
+                                 + PossibleEllipsisStr
+                                 + LogStr);
+            END;
+          END;
+
+          { See if we want to draw a line after the given output }
+          IF DrawLineInLogFileAfter THEN BEGIN
+            WriteToEachLogFile(TypeOfLog[1], CurrentRailwayTimeStr + ' ' + TypeOfLog);
+            TempStr := '';
+            FOR I := 0 TO 70 DO
+              TempStr := TempStr + DrawLineChar + ' ';
+            WriteToEachLogFile(TypeOfLog[1], CurrentRailwayTimeStr + ' ' + TypeOfLog + StringOfChar(' ', 6) + TempStr + '[' + UnitRef + ']');
+            WriteToEachLogFile(TypeOfLog[1], CurrentRailwayTimeStr + ' ' + TypeOfLog);
+
+            LineAfterJustDrawn := True;
+          END;
+        END;
+
+        { If we're in TestingMode, write things out immediately so they can be checked }
+        IF TestingMode
+        AND LogFileOpen
+        THEN BEGIN
+          IF TypeOfLog <> ' ' THEN
+            Flush(LargeLogFile);
+          CASE TypeOfLog[1] OF
+            ' ':
+              { ignore - this is for messages that we may at some stage want to log }
+              ;
+            'G', 'g', '$':
+              { general happenings of relevance to all logs - includes '$' for quick debugging as it is easy to find in the log }
+              IF MultipleLogFilesRequired THEN BEGIN
+                Flush(LocoLogFile);
+                Flush(RouteLogFile);
+                Flush(SignalPointAndTCLogFile);
+                Flush(DiagramsLogFile);
+                Flush(WorkingTimetableLogFile);
+              END;
+            'P', 'p', 'S', 's', 'T', 't' :
+              IF MultipleLogFilesRequired THEN
+                Flush(SignalPointAndTCLogFile);
+            'L', 'l':
+              IF MultipleLogFilesRequired THEN
+                Flush(LocoLogFile);
+            'R', 'r':
+              IF MultipleLogFilesRequired THEN
+                Flush(RouteLogFile);
+            'D', 'd':
+              IF MultipleLogFilesRequired THEN
+                Flush(DiagramsLogFile);
+            'W', 'w':
+              begin Flush(TestLogFile);
+                IF MultipleLogFilesRequired THEN
+                  Flush(WorkingTimetableLogFile);
+              end;
+            '*', '+':
+              Flush(TestLogFile);
+            'E', 'e', 'X', 'x': { unusual happenings of relevance to all the log files }
+              IF MultipleLogFilesRequired THEN BEGIN
+                Flush(LocoLogFile);
+                Flush(RouteLogFile);
+                Flush(SignalPointAndTCLogFile);
+                Flush(DiagramsLogFile);
+                Flush(ErrorLogFile);
+                Flush(WorkingTimetableLogFile);
+              END;
+          END; {CASE}
+        END;
+      END;
+    END;
+  END;
+//  Finalize(Args);
+END; { WriteToLogFile }
+
+PROCEDURE Log(Str : String);
+{ For ease of debugging, adds the unit name }
+BEGIN
+  WriteToLogFile(Str + ' <Unit=' + UnitRef + '>');
+END; { Log }
+
+PROCEDURE WriteStringArrayToLogMainProcedure(LocoChip : Integer; TypeOfLogChar : Char; InitStr : String; StringArray : StringArrayType; Indent, WrapNum : Integer;
+                                             NumberEachElement : Boolean; BreakOnStr : String);
+{ Write the contents of an array to the log file, wrapping it at Wrapnum and indenting it by Indent }
+VAR
+  BreakFound : Boolean;
+  DebugStr : String;
+  I : Integer;
+  SaveBreak : Boolean;
+
+BEGIN
+  WrapNum := WrapNum - 25; { 20 is the amount of space taken up by the time and loco chip, etc. }
+
+  { if there's an introductory string, write it first }
+ IF InitStr <> '' THEN
+    Log(LocoChipToStr(LocoChip) + ' ' + TypeOfLogChar + ' ' + InitStr);
+
+  DebugStr := '';
+  BreakFound := False;
+  SaveBreak := False;
+  FOR I := 0 TO High(StringArray) DO BEGIN
+    IF Pos(BreakOnStr, StringArray[I]) > 0 THEN BEGIN
+      { when a break is found, write out the previous line - indenting it if there was not a previous break }
+      BreakFound := True;
+      IF DebugStr <> '' THEN BEGIN
+        IF NOT SaveBreak THEN
+          Log(LocoChipToStr(LocoChip) + ' ' + TypeOfLogChar + StringOfChar(' ', Indent + 1) + ': ' + DebugStr + ' <NoUnitRef>')
+        ELSE BEGIN
+          Log(LocoChipToStr(LocoChip) + ' ' + TypeOfLogChar + StringOfChar(' ', Indent + 1) + ': ' + StringOfChar(' ', 5) + DebugStr
+                                                                                                                     + ' <NoUnitRef>');
+          SaveBreak := False;
+        END;
+        DebugStr := '';
+      END;
+    END;
+
+    IF (DebugStr <> '')
+    AND (Length(DebugStr) > WrapNum)
+    THEN BEGIN
+      IF NOT BreakFound THEN
+        Log(LocoChipToStr(LocoChip) + ' ' + TypeOfLogChar + StringOfChar(' ', Indent + 1) + ': ' + StringOfChar(' ', 5) + DebugStr
+                                                                                                                      + ' <NoUnitRef>')
+      ELSE BEGIN
+        Log(LocoChipToStr(LocoChip) + ' ' + TypeOfLogChar + StringOfChar(' ', Indent + 1) + ': ' + DebugStr + ' <NoUnitRef>');
+        SaveBreak := True;
+        BreakFound := False;
+      END;
+      DebugStr := '';
+    END;
+
+    DebugStr := DebugStr + StringArray[I] + ' ';
+
+  END; {FOR}
+
+  { and tidy up }
+  IF DebugStr <> '' THEN BEGIN
+    IF NOT BreakFound THEN
+      Log(LocoChipToStr(LocoChip) + ' ' + TypeOfLogChar + StringOfChar(' ', Indent + 1) + ': ' + StringOfChar(' ', 5) + DebugStr
+                                                                                                                      + ' <NoUnitRef>')
+    ELSE
+      Log(LocoChipToStr(LocoChip) + ' ' + TypeOfLogChar + StringOfChar(' ', Indent + 1) + ': ' + DebugStr + ' <NoUnitRef>');
+  END;
+END; { WriteStringArrayToLogMainProcedure }
+
+PROCEDURE WriteStringArrayToLog{1}(LocoChip : Integer; TypeOfLogChar : Char; StringArray : StringArrayType; Indent, WrapNum : Integer); Overload;
+{ Write the contents of an array to the replay file, wrapping it at Wrapnum and indenting it by Indent: this version isn't preceded by an explanatory string }
+CONST
+  NoBreakOnStr = '';
+  NumberElements = True;
+
+BEGIN
+  WriteStringArrayToLogMainProcedure(LocoChip, TypeOfLogChar, '', StringArray, Indent, WrapNum, NOT NumberElements, NoBreakOnStr);
+END; { WriteStringArrayToLogFile - 1}
+
+PROCEDURE WriteStringArrayToLog{2}(LocoChip : Integer; TypeOfLogChar : Char; Str: String; StringArray : StringArrayType; Indent, WrapNum : Integer); Overload;
+{ Write the contents of an array to the replay file, wrapping it at Wrapnum and indenting it by Indent: this version is preceded by an explanatory string }
+CONST
+  NoBreakOnStr = '';
+  NumberElements = True;
+
+BEGIN
+  WriteStringArrayToLogMainProcedure(LocoChip, TypeOfLogChar, Str, StringArray, Indent, WrapNum, NOT NumberElements, NoBreakOnStr);
+END; { WriteStringArrayToLogFile - 2}
+
+PROCEDURE WriteStringArrayToLog{3}(LocoChip : Integer; TypeOfLogChar : Char; Str: String; StringArray : StringArrayType; Indent, WrapNum : Integer; BreakOnStr : String);
+                                   Overload;
+{ Write the contents of an array to the replay file, wrapping it at Wrapnum and indenting it by Indent: this version is preceded by an explanatory string }
+CONST
+  NumberElements = True;
+
+BEGIN
+  WriteStringArrayToLogMainProcedure(LocoChip, TypeOfLogChar, Str, StringArray, Indent, WrapNum, NOT NumberElements, BreakOnStr);
+END; { WriteStringArrayToLogFile - 3}
+
+PROCEDURE WriteStringArrayToLog{4}(LocoChip : Integer; TypeOfLogChar : Char; StringArray : StringArrayType; Indent, WrapNum : Integer; BreakOnStr : String); Overload;
+{ Write the contents of an array to the replay file, wrapping it at Wrapnum and indenting it by Indent: this version is not preceded by an explanatory string. If the
+  BreakOnStr string appears in the text, start a new line before it.
+}
+CONST
+  NumberElements = True;
+
+BEGIN
+  WriteStringArrayToLogMainProcedure(LocoChip, TypeOfLogChar, '', StringArray, Indent, WrapNum, NOT NumberElements, BreakOnStr);
+END; { WriteStringArrayToLogFile - 4}
+
+PROCEDURE WriteStringArrayToLog{5}(LocoChip : Integer; TypeOfLogChar : Char; StringArray : StringArrayType); Overload;
+{ Write the contents of an array to the replay file, wrapping it at WrapNum and indenting it by two - this version is not preceded by an explanatory string }
+CONST
+  NoBreakOnStr = '';
+  NumberElements = True;
+  WrapNum = 190;
+
+BEGIN
+  WriteStringArrayToLogMainProcedure(LocoChip, TypeOfLogChar, '', StringArray, 2, WrapNum, NOT NumberElements, NoBreakOnStr);
+END; { WriteStringArrayToLogFile - 5}
+
+PROCEDURE WriteStringArrayToLog{6}(LocoChip : Integer; TypeOfLogChar : Char; Str: String; StringArray : StringArrayType); Overload;
+{ Write the contents of an array to the replay file, wrapping it by default at 140 and indenting it by two - this version is preceded by an explanatory string }
+CONST
+  NoBreakOnStr = '';
+  NumberElements = True;
+  WrapNum = 190;
+
+BEGIN
+  WriteStringArrayToLogMainProcedure(LocoChip, TypeOfLogChar, Str, StringArray, 2, WrapNum, NOT NumberElements, NoBreakOnStr);
+END; { WriteStringArrayToLogFile - 6}
+
+PROCEDURE WriteStringArrayToLog{7}(LocoChip : Integer; TypeOfLogChar : Char; Str : String; StringArray : StringArrayType;  NumberElements : Boolean); Overload;
+{ Write the contents of an array to the replay file, wrapping it at 140 and indenting it by two - this version is preceded by an explanatory string. If NumberElements is
+  true, add number in array to each element
+}
+CONST
+  NoBreakOnStr = '';
+  WrapNum = 190;
+
+BEGIN
+  WriteStringArrayToLogMainProcedure(LocoChip, TypeOfLogChar, Str, StringArray, 2, WrapNum, NumberElements, NoBreakOnStr);
+END; { WriteStringArrayToLogFile - 7}
+
+PROCEDURE WriteStringArrayToLog{8}(LocoChip : Integer; TypeOfLogChar : Char; Str : String; StringArray : StringArrayType; NumberElements : Boolean; BreakOnStr : String);
+                                   Overload;
+{ Write the contents of an array to the replay file, wrapping it at 140 and indenting it by two - this version is preceded by an explanatory string. If NumberElements is
+  true, add number in array to each element. If the BreakOnStr string appears in the text, start a new line before it.
+}
+CONST
+  WrapNum = 190;
+
+BEGIN
+  WriteStringArrayToLogMainProcedure(LocoChip, TypeOfLogChar, Str, StringArray, 2, WrapNum, NumberElements, BreakOnStr);
+END; { WriteStringArrayToLogFile - 8}
+
+PROCEDURE WriteTimeToLog(Num : Integer);
+{ A debugging procedure whereby the current time is written to the log, together with the elapsed time since the previous call to the routine }
+BEGIN
+  IF PreviousLogTime = 0 THEN
+    Log('#' + IntToStr(Num) + ': ' + TimeToHMSZStr(Time))
+  ELSE
+    Log('#' + IntToStr(Num) + ': ' + TimeToHMSZStr(Time) + ' (' + IntToStr(MilliSecondsBetween(Time, PreviousLogTime)) + 'ms)');
+  PreviousLogTime := Time;
+END; { WriteTimeToLog }
+
+FUNCTION AllJourneysComplete(T : Train) : Boolean;
+{ Returns true if all a train's journeys are complete }
+VAR
+  JourneyCount : Integer;
+
+BEGIN
+  Result := True;
+  JourneyCount := 0;
+  WHILE JourneyCount <= High(T^.Train_JourneysArray) DO BEGIN
+    IF NOT T^.Train_JourneysArray[JourneyCount].TrainJourney_Cleared THEN
+      Result := False;
+    Inc(JourneyCount);
+  END; {WHILE}
+END; { AllJourneysComplete }
+
+PROCEDURE AddLightsToLightsToBeSwitchedOnArray(T : Train; DesiredDirection1, DesiredDirection2 : DirectionType; MinSeconds, MaxSeconds : Integer; LightsOnTime : TDateTime);
+{ Set up a train's lights to switch on at a random time ahead }
+VAR
+  DebugStr : String;
+  Seconds : Integer;
+  SwitchOnTime : TDateTime;
+
+BEGIN
+  SetLength(LightsToBeSwitchedOnArray, Length(LightsToBeSwitchedOnArray) + 1);
+  WITH LightsToBeSwitchedOnArray[High(LightsToBeSwitchedOnArray)] DO BEGIN
+    LightsToBeSwitchedOn_Direction1 := DesiredDirection1;
+    LightsToBeSwitchedOn_Direction2 := DesiredDirection2;
+    IF DesiredDirection2 = UnknownDirection THEN
+      DebugStr := 'L Switch on time for ' + DirectionToStr(DesiredDirection1) + ' lights'
+    ELSE BEGIN
+      IF DesiredDirection1 = Up THEN
+        LightsToBeSwitchedOn_ColourStr1 := 'white'
+      ELSE
+        LightsToBeSwitchedOn_ColourStr1 := 'red';
+      IF DesiredDirection2 = Up THEN
+        LightsToBeSwitchedOn_ColourStr2 := 'red'
+      ELSE
+        LightsToBeSwitchedOn_ColourStr2 := 'white';
+
+      DebugStr := 'L Switch on time for ' + LightsToBeSwitchedOn_ColourStr1 + ' lights at up' + ' and ' + LightsToBeSwitchedOn_ColourStr2 + ' lights at down';
+    END;
+
+    Seconds := MaxSeconds - MinSeconds;
+    Seconds := Random(Seconds);
+    Seconds := Seconds + MinSeconds;
+
+    SwitchOnTime := IncSecond(LightsOnTime, Seconds);
+    DebugStr := DebugStr + ' set to ' + TimeToHMSStr(SwitchOnTime) + ' (' + IntToStr(Seconds) + ' = between ' + IntToStr(MinSeconds)
+                + ' and ' + IntToStr(MaxSeconds) + ' seconds of ' + TimeToHMSStr(LightsOnTime) + ')';
+    Log(T^.Train_LocoChipStr + ' X ' + DebugStr);
+
+    LightsToBeSwitchedOn_SwitchOnTime := SwitchOnTime;
+    LightsToBeSwitchedOn_Train := T;
+  END; {WITH}
+END; { AddLightsToLightsToBeSwitchedOnArray }
+
+PROCEDURE AddRichLine(RichEdit: TRichEdit; StrToAdd: String);
+{ Taken from Delpi Pages (http://www.delphipages.com/tips/thread.cfm?ID=186) - by Slavikn, WebPage: http://www.organizermp3.com }
+VAR
+  RichTextFound : Boolean;
+  StrLeft: String;
+  TempStyle: TFontStyles;
+  TempStr: String;
+
+  FUNCTION FromLeftUntilStr(VAR OriginalStr : String; CONST UntilStr : String; CONST ToEndIfNotFound, Trim : Boolean): String;
+  VAR
+    TempPos: Integer;
+
+  BEGIN
+    TempPos := Pos(UntilStr, OriginalStr);
+    IF TempPos > 0 THEN BEGIN
+      Result := Copy(OriginalStr, 1, TempPos - 1);
+      IF Trim THEN
+        Delete(OriginalStr, 1, TempPos - 1);
+    END ELSE BEGIN
+      IF ToEndIfNotFound THEN BEGIN
+        Result := OriginalStr;
+        IF Trim THEN
+          OriginalStr := '';
+      END ELSE
+        Result := '';
+    END;
+  END;
+
+  FUNCTION StrStartsWith(VAR OriginalStr : String; CONST StartsWith : String; CONST IgnoreCase, Trim : Boolean): Boolean;
+  VAR
+    PartOfOriginalStr: String;
+    NewStartsWith: String;
+
+  BEGIN
+    PartOfOriginalStr := Copy(OriginalStr, 1, Length(StartsWith));
+    NewStartsWith := StartsWith;
+
+    IF IgnoreCase THEN BEGIN
+      PartOfOriginalStr := LowerCase(PartOfOriginalStr);
+      NewStartsWith := LowerCase(NewStartsWith);
+    END;
+
+    Result := PartOfOriginalStr = NewStartsWith;
+
+    IF (Result = True) And (Trim = True) THEN
+      Delete(OriginalStr, 1, Length(NewStartsWith));
+  END;
+
+  PROCEDURE AddToStyle(VAR Style: TFontStyles; AStyle: TFontStyle);
+  BEGIN
+    IF Not (AStyle In Style) THEN
+      Style := Style + [AStyle];
+  END;
+
+  PROCEDURE RemoveFromStyle(VAR Style: TFontStyles; AStyle: TFontStyle);
+  BEGIN
+    IF AStyle In Style THEN
+      Style := Style - [AStyle];
+  END;
+
+BEGIN
+  RichTextFound := False; { need to use this to allow lines with single < (not yet implemented) ***** }
+  IF Pos('{R}', StrToAdd) > 0 THEN
+    StrToAdd := Copy(StrToAdd, 4);
+  TempStyle := RichEdit.Font.Style;
+  StrLeft := StrToAdd;
+  RichEdit.SelStart := Length(RichEdit.Text);
+  WHILE StrLeft <> '' DO BEGIN
+    IF StrStartsWith(StrLeft, '<', True, False) THEN BEGIN
+
+      { Bold }
+      IF StrStartsWith(StrLeft, '<b>', True, True) THEN BEGIN
+        RichTextFound := True;
+        AddToStyle(TempStyle, fsBold);
+      END;
+      IF StrStartsWith(StrLeft, '</b>', True, True) THEN BEGIN
+        RichTextFound := True;
+        RemoveFromStyle(TempStyle, fsBold);
+      END;
+
+      { Italics }
+      IF StrStartsWith(StrLeft, '<i>', True, True) THEN  BEGIN
+        RichTextFound := True;
+        AddToStyle(TempStyle, fsItalic);
+      END;
+      IF StrStartsWith(StrLeft, '</i>', True, True) THEN BEGIN
+        RichTextFound := True;
+        RemoveFromStyle(TempStyle, fsItalic);
+      END;
+
+      { Underline }
+      IF StrStartsWith(StrLeft, '<u>', True, True) THEN BEGIN
+        RichTextFound := True;
+        AddToStyle(TempStyle, fsUnderLine);
+      END;
+      IF StrStartsWith(StrLeft, '</u>', True, True) THEN BEGIN
+        RichTextFound := True;
+        RemoveFromStyle(TempStyle, fsUnderLine);
+      END;
+
+      { Colour [Note: the background colour can only be set by changing the colour of the RichEdit control] }
+      IF (StrStartsWith(StrLeft, '</color>', True, True)) OR (StrStartsWith(StrLeft, '</colour>', True, True)) THEN BEGIN
+        RichTextFound := True;
+        RichEdit.SelAttributes.Color := RichEdit.Font.Color;
+      END;
+      IF (StrStartsWith(StrLeft, '<color=', True, True)) OR (StrStartsWith(StrLeft, '<colour=', True, True)) THEN BEGIN
+        RichTextFound := True;
+        TempStr := FromLeftUntilStr(StrLeft, '>', False, True);
+        TRY
+          RichEdit.SelAttributes.Color := StrToColour(TempStr);
+        EXCEPT
+          RichEdit.SelAttributes.Color := RichEdit.Font.Color;
+        END; {TRY}
+        Delete(StrLeft, 1, 1);
+      END;
+
+      IF RichTextFound THEN
+        RichTextFound := False
+      ELSE
+        Delete(StrLeft, 1, 1);
+    END ELSE BEGIN
+      RichEdit.SelAttributes.Style := TempStyle;
+      RichEdit.SelText := FromLeftUntilStr(StrLeft, '<', True, True);
+    END;
+
+    RichEdit.SelStart := Length(RichEdit.Text);
+  END;
+  RichEdit.SelText := #13#10;
+END; { AddRichLine }
+
+PROCEDURE AppendIntegerArray2ToIntegerArray1(VAR IntegerArray1 : IntegerArrayType; IntegerArray2 : IntegerArrayType);
+{ Join two integer arrays together }
+VAR
+  I : Integer;
+
+BEGIN
+  FOR I := 0 TO High(IntegerArray2) DO
+    AppendToIntegerArray(IntegerArray1, IntegerArray2[I]);
+END; { AppendIntegerArray2ToIntegerArray1 }
+
+PROCEDURE AppendStringArray2ToStringArray1(VAR StringArray1 : StringArrayType; StringArray2 : StringArrayType);
+{ Join two string arrays together }
+VAR
+  I : Integer;
+
+BEGIN
+  FOR I := 0 TO High(StringArray2) DO
+    AppendToStringArray(StringArray1, StringArray2[I]);
+END; { AppendStringArray2ToStringArray1 }
+
+PROCEDURE AppendToAreaArray(VAR AreaArray : IntegerArrayType; NewElement : Integer);
+{ Appends an area to the array }
+BEGIN
+  SetLength(AreaArray, Length(AreaArray) + 1);
+  AreaArray[High(AreaArray)] := NewElement;
+END; { AppendToAreaArray }
+
+PROCEDURE AppendToBooleanArray(VAR BooleanArray : BooleanArrayType; NewElement : Boolean);
+{ Appends a boolean value to the array }
+BEGIN
+  SetLength(BooleanArray, Length(BooleanArray) + 1);
+  BooleanArray[High(BooleanArray)] := NewElement;
+END; { AppendToBooleanArray }
+
+PROCEDURE AppendToDateTimeArray(VAR DateTimeArray : DateTimeArrayType; NewElement : TDateTime);
+{ Appends a TDateTime value to the array }
+BEGIN
+  { Append to the end of the array }
+  SetLength(DateTimeArray, Length(DateTimeArray) + 1);
+  DateTimeArray[High(DateTimeArray)] := NewElement;
+END; { AppendToTDateTimeArray }
+
+PROCEDURE AppendToDirectionArray(VAR DirectionArray : DirectionArrayType; NewElement : DirectionType);
+{ Appends a direction value to the array }
+BEGIN
+  SetLength(DirectionArray, Length(DirectionArray) + 1);
+  DirectionArray[High(DirectionArray)] := NewElement;
+END; { AppendToDirectionArray }
+
+PROCEDURE AppendToIntegerArray(VAR IntegerArray : IntegerArrayType; NewElement : Integer);
+{ Appends an integer value to the array }
+BEGIN
+  SetLength(IntegerArray, Length(IntegerArray) + 1);
+  IntegerArray[High(IntegerArray)] := NewElement;
+END; { AppendToIntegerArray }
+
+PROCEDURE AppendToLineArray(VAR LineArray : LineArrayType; NewElement : Integer);
+{ Appends a line name to the array }
+BEGIN
+  SetLength(LineArray, Length(LineArray) + 1);
+  LineArray[High(LineArray)] := NewElement;
+END; { AppendToLineArray }
+
+PROCEDURE AppendToLocationArray(VAR LocationArray : IntegerArrayType; NewElement : Integer);
+{ Appends a location to the array }
+BEGIN
+  SetLength(LocationArray, Length(LocationArray) + 1);
+  LocationArray[High(LocationArray)] := NewElement;
+END; { AppendToLocationArray }
+
+PROCEDURE AppendToStringArray(VAR StringArray : StringArrayType; NewElement : String);
+{ Appends a string value to the array }
+BEGIN
+  { Append to the end of the array }
+  SetLength(StringArray, Length(StringArray) + 1);
+  StringArray[High(StringArray)] := NewElement;
+END; { AppendToStringArray }
+
+PROCEDURE AppendToTrainArray(VAR TrainArray : TrainArrayType; NewElement : Train);
+{ Appends a given train array value to the array }
+BEGIN
+  SetLength(TrainArray, Length(TrainArray) + 1);
+  TrainArray[High(TrainArray)] := NewElement;
+END; { AppendToTrainArray }
+
+PROCEDURE AppendToTrainTypeArray(VAR TrainTypes : TrainTypeArray; NewElement : TypeOfTrainType);
+{ Appends a TrainType value to the array }
+BEGIN
+  SetLength(TrainTypes, Length(TrainTypes) + 1);
+  TrainTypes[High(TrainTypes)] := NewElement;
+END; { AppendToTrainTypeArray }
+
+FUNCTION AspectToStr{1}(Aspect : AspectType): String; Overload;
+{ Return the signal aspect as a long string }
+BEGIN
+  CASE Aspect OF
+    FlashingDoubleYellowAspect:
+      Result := 'flashing double yellow';
+    FlashingSingleYellowAspect:
+      Result := 'flashing single yellow';
+    DoubleYellowAspect:
+      Result := 'double yellow';
+    SingleYellowAspect:
+      Result := 'single yellow';
+    GreenAspect:
+      Result := 'green';
+    RedAspect:
+      Result := 'red';
+    NoAspect:
+      Result := 'no aspect';
+  END; {CASE}
+END; { AspectToStr-1 }
+
+FUNCTION AspectToStr{2}(Aspect : AspectType; LongOrShortString : StringType) : String; Overload;
+{ Return the signal aspect as either a short or a long string }
+BEGIN
+  IF LongOrShortString = LongStringType THEN BEGIN
+    CASE Aspect OF
+      FlashingDoubleYellowAspect:
+        Result := 'flashing double yellow';
+      FlashingSingleYellowAspect:
+        Result := 'flashing single yellow';
+      DoubleYellowAspect:
+        Result := 'double yellow';
+      SingleYellowAspect:
+        Result := 'single yellow';
+      GreenAspect:
+        Result := 'green';
+      RedAspect:
+        Result := 'red';
+      NoAspect:
+        Result := 'no aspect';
+    END; {CASE}
+  END ELSE BEGIN
+    CASE Aspect OF
+      FlashingDoubleYellowAspect:
+        Result := 'YY*';
+      FlashingSingleYellowAspect:
+        Result := 'Y*';
+      DoubleYellowAspect:
+        Result := 'YY';
+      SingleYellowAspect:
+        Result := 'Y';
+      GreenAspect:
+        Result := 'G';
+      RedAspect:
+        Result := 'R';
+      NoAspect:
+        Result := 'N';
+    END; { CASE }
+  END;
+END; { AspectToStr-2 }
+
+FUNCTION CabLightsAreOn(LocoChip : Integer) : Boolean;
+{ Returns true if cab lights are on. Assumes that the cab lights are operated by function one }
+CONST
+  ForceRead = True;
+
+VAR
+  OK : Boolean;
+
+BEGIN
+  IF SingleLocoFunctionIsOn(LocoChip, Function1, NOT ForceRead, OK) THEN
+    Result := True
+  ELSE
+    Result := False;
+END; { CabLightsAreOn }
+
+FUNCTION CardinalMulDiv(A, B, C : Cardinal) : Cardinal;
+{ Returns (A * B) / C; intermediate result is held double-length to avoid overflow }
+VAR
+  X : Cardinal;
+
+BEGIN
+  X := (A * B);
+  Result := X DIV C;
+END; { CardinalMulDiv }
+
+FUNCTION ColourToStr(Colour : TColour) : String;
+{ Checks if it's a Delphi colour or an FWP one }
+BEGIN
+  IF NOT ColorToIdent(Colour, Result) THEN BEGIN
+    CASE Colour OF
+      $0802040:
+        Result := 'clFWPDkBlue';
+      $000080FF:
+        Result := 'clFWPOrange';
+      $004080FF:
+        Result := 'clFWPLtBrown';
+      $00004080:
+        Result := 'clFWPDkBrown';
+      $008080FF:
+        Result := 'clFWPPink';
+      2368548:
+        Result := 'clFWPDkGrey';
+      $3355443:
+        Result := 'clFWPVeryDkGrey';
+      $0038ABB1:
+        Result := 'clFWPPlatformColour';
+    ELSE
+      Result := UnknownColourStr + ': ' + IntToStr(Colour);
+    END; {CASE}
+  END;
+END; { ColourToStr }
+
+FUNCTION ColourToStrForUser(Colour : TColour) : String;
+{ Checks if it's a Delphi colour or an FWP one, and removes the "cl" or "clFWP" }
+BEGIN
+  Result := ColourToStr(Colour);
+  IF Copy(Result, 1, 5) = 'clFWP' THEN
+    Result := Copy(Result, 6)
+  ELSE
+    IF Copy(Result, 1, 2) = 'cl' THEN
+      Result := Copy(Result, 3);
+  Result := LowerCase(Result);
+END; { ColourToStrForUser }
+
+FUNCTION CountSubRoutes(RouteArray : StringArrayType) : Integer;
+{ Return how many subroutes there are in a given route array }
+VAR
+  I : Integer;
+
+BEGIN
+  Result := 0;
+  FOR I := 0 TO High(RouteArray) DO BEGIN
+    IF Pos('SR=', RouteArray[I]) > 0 THEN
+      Inc(Result);
+  END; {FOR}
+END; { CountSubRoutes }
+
+FUNCTION DayOfTheWeekToStr{1}(DayOfTheWeek : DayOfTheWeekType) : String; Overload;
+{ Return a long string with the given day of the week }
+BEGIN
+  CASE DayOfTheWeek OF
+    Monday:
+      Result := 'Monday';
+    Tuesday:
+      Result := 'Tuesday';
+    Wednesday:
+      Result := 'Wednesday';
+    Thursday:
+      Result := 'Thursday';
+    Friday:
+      Result := 'Friday';
+    Saturday:
+      Result := 'Saturday';
+    Sunday:
+      Result := 'Sunday';
+    UnknownDayofTheWeek:
+      Result := 'Unknown Day of the Week';
+  END; {CASE}
+END; { DayOfTheWeekToStr-1 }
+
+FUNCTION DayOfTheWeekToStr{2}(DayOfTheWeek : DayOfTheWeekType; LongOrShortString : StringType) : String; Overload;
+{ Return a long or short string with the given day of the week }
+BEGIN
+  CASE DayOfTheWeek OF
+    Monday:
+      IF LongOrShortString = ShortStringType THEN
+        Result := 'Mo'
+      ELSE
+        Result := 'Monday';
+    Tuesday:
+      IF LongOrShortString = ShortStringType THEN
+        Result := 'Tu'
+      ELSE
+        Result := 'Tuesday';
+    Wednesday:
+      IF LongOrShortString = ShortStringType THEN
+        Result := 'We'
+      ELSE
+        Result := 'Wednesday';
+    Thursday:
+      IF LongOrShortString = ShortStringType THEN
+        Result := 'Th'
+      ELSE
+        Result := 'Thursday';
+    Friday:
+      IF LongOrShortString = ShortStringType THEN
+        Result := 'Fr'
+      ELSE
+        Result := 'Friday';
+    Saturday:
+      IF LongOrShortString = ShortStringType THEN
+        Result := 'Sa'
+      ELSE
+        Result := 'Saturday';
+    Sunday:
+      IF LongOrShortString = ShortStringType THEN
+        Result := 'Su'
+      ELSE
+        Result := 'Sunday';
+    UnknownDayofTheWeek:
+      IF LongOrShortString = ShortStringType THEN
+        Result := '?'
+      ELSE
+        Result := 'Unknown Day';
+  END; {CASE}
+END; { DayOfTheWeekToStr-2 }
+
+FUNCTION DaysOfTheWeekSetToStr(DaysOfTheWeek : DaysOfTheWeekSetType) : String; Overload;
+{ Return a string with given days of the week }
+BEGIN
+  Result := '';
+  IF Monday IN DaysOfTheWeek THEN
+    Result := Result + DayOfTheWeekToStr(Monday, ShortStringType);
+  IF Tuesday IN DaysOfTheWeek THEN
+    Result := Result + DayOfTheWeekToStr(Tuesday, ShortStringType);
+  IF Wednesday IN DaysOfTheWeek THEN
+    Result := Result + DayOfTheWeekToStr(Wednesday, ShortStringType);
+  IF Thursday IN DaysOfTheWeek THEN
+    Result := Result + DayOfTheWeekToStr(Thursday, ShortStringType);
+  IF Friday IN DaysOfTheWeek THEN
+    Result := Result + DayOfTheWeekToStr(Friday, ShortStringType);
+  IF Saturday IN DaysOfTheWeek THEN
+    Result := Result + DayOfTheWeekToStr(Saturday, ShortStringType);
+  IF Sunday IN DaysOfTheWeek THEN
+    Result := Result + DayOfTheWeekToStr(Sunday, ShortStringType);
+END; { DaysOfTheWeekSetToStr }
+
+FUNCTION DaysOfTheWeekSetToStr(DaysOfTheWeek : DaysOfTheWeekSetType; LongOrShortString : StringType) : String; Overload;
+{ Return a string with given days of the week }
+BEGIN
+  Result := '';
+  IF Monday IN DaysOfTheWeek THEN BEGIN
+    IF LongOrShortString = ShortStringType THEN
+      Result := Result + DayOfTheWeekToStr(Monday)
+    ELSE
+      Result := Result + DayOfTheWeekToStr(Monday, LongStringType);
+  END;
+
+  IF Tuesday IN DaysOfTheWeek THEN BEGIN
+    IF LongOrShortString = ShortStringType THEN
+      Result := Result + DayOfTheWeekToStr(Tuesday)
+    ELSE
+      Result := Result + DayOfTheWeekToStr(Tuesday, LongStringType);
+  END;
+
+  IF Wednesday IN DaysOfTheWeek THEN BEGIN
+    IF LongOrShortString = ShortStringType THEN
+      Result := Result + DayOfTheWeekToStr(Wednesday)
+    ELSE
+      Result := Result + DayOfTheWeekToStr(Wednesday, LongStringType);
+  END;
+
+  IF Thursday IN DaysOfTheWeek THEN BEGIN
+    IF LongOrShortString = ShortStringType THEN
+      Result := Result + DayOfTheWeekToStr(Thursday)
+    ELSE
+      Result := Result + DayOfTheWeekToStr(Thursday, LongStringType);
+  END;
+
+  IF Friday IN DaysOfTheWeek THEN BEGIN
+    IF LongOrShortString = ShortStringType THEN
+      Result := Result + DayOfTheWeekToStr(Friday)
+    ELSE
+      Result := Result + DayOfTheWeekToStr(Friday, LongStringType);
+  END;
+
+  IF Saturday IN DaysOfTheWeek THEN BEGIN
+    IF LongOrShortString = ShortStringType THEN
+      Result := Result + DayOfTheWeekToStr(Saturday)
+    ELSE
+      Result := Result + DayOfTheWeekToStr(Saturday, LongStringType);
+  END;
+
+  IF Sunday IN DaysOfTheWeek THEN BEGIN
+    IF LongOrShortString = ShortStringType THEN
+      Result := Result + DayOfTheWeekToStr(Sunday)
+    ELSE
+      Result := Result + DayOfTheWeekToStr(sunday, LongStringType);
+  END;
+END; { DaysOfTheWeekSetToStr }
+
+PROCEDURE Debug{1}; Overload;
+{ Does nothing - used only as a placeholder to set breakpoints on }
+VAR
+  OK : Boolean;
+
+BEGIN
+  IF StopAllLocomotivesWhenDebugCalled THEN
+    StopAllLocomotives(OK);
+END; { Debug-1 }
+
+PROCEDURE Debug{2}(Str : String); Overload;
+{ Write out debug text to the Debug Window }
+VAR
+  SaveStyle : TFontStyles;
+  TempStr : String;
+
+BEGIN
+  { Need to throw away earlier lines? **** }
+  IF MainWindow <> NIL THEN BEGIN
+    { remove prefixes }
+    IF (Copy(Str, 1, 1) = '!') OR (Copy(Str, 1, 1) = '+') THEN
+      TempStr := Copy(Str, 2);
+  END;
+
+  { Needs this to avoid filling the window with identical lines of text }
+  IF (Str <> OldDebugStr) OR (Str = '!***') THEN BEGIN
+    IF DebugWindow = NIL THEN BEGIN
+      { store any messages written before the Debug Window is initialised, to be written out when it is }
+      SetLength(DebugWindowLines, Length(DebugWindowLines) + 1);
+      DebugWindowLines[High(DebugWindowLines)] := Str;
+    END ELSE BEGIN
+      { Note: without the following statement, the RichEdit window doesn't initially scroll unless it's focused }
+      DebugWindow.DebugRichEdit.Perform(EM_SCROLLCARET, 0, 0);
+
+      SaveStyle := DebugWindow.DebugRichEdit.SelAttributes.Style;
+      IF (Copy(Str, 1, 1) = '!')
+      AND NOT (Copy(Str, 1, 2) = '!!')
+      THEN BEGIN
+        { urgent error messages }
+        AddRichLine(DebugWindow.DebugRichEdit, '{R}<color=clRed><b>' + Copy(Str, 2) + '</b>');
+        IF MakeSoundWhenDebugWindowBoldTextAppears THEN
+          MakeSound(1)
+      END ELSE
+        IF (Copy(Str, 1, 1) = '+')
+        AND NOT (Copy(Str, 1, 2) = '++')
+        THEN BEGIN
+          { warning messages }
+          AddRichLine(DebugWindow.DebugRichEdit, '{R}<i>' + Copy(Str, 2) + '</i>');
+          IF MakeSoundWhenDebugWindowBoldTextAppears THEN
+            MakeSound(5);
+        END ELSE
+          IF (Copy(Str, 1, 1) = '=')
+          AND NOT (Copy(Str, 1, 2) = '==')
+          THEN BEGIN
+            { instructions to the user }
+            AddRichLine(DebugWindow.DebugRichEdit, '{R}<b><i>' + Copy(Str, 2) + '</i></b>');
+            IF MakeSoundWhenDebugWindowBoldTextAppears THEN
+              MakeSound(3);
+          END ELSE
+            IF (Pos('<', Str) > 0)
+            AND ((Pos('>', Str) > 0)
+                 AND ((Pos('>', Str) > Pos('<', Str))))
+            THEN
+              AddRichLine(DebugWindow.DebugRichEdit, Str)
+            ELSE BEGIN
+              { no fancy text, though we may have to convert two !!s to one !, as otherwise '!' at the start of a line indicates we wish to highlight the line }
+              IF Copy(Str, 1, 2) = '!!' THEN
+                Str := Copy(Str, 2);
+              DebugWindow.DebugRichEdit.Lines.Add(Str);
+            END;
+
+      OldDebugStr := Str;
+      DebugWindow.DebugRichEdit.SelAttributes.Style := SaveStyle;
+    END;
+  END;
+END; { Debug-2 }
+
+PROCEDURE Debug{3}(Str : String; DoNotWriteToStatusBarPanel : Boolean); Overload;
+{ Write out debug text to the Debug Window, but don't write it to the Status Panel too. (Is this ever called? ****) }
+BEGIN
+  IF Str <> OldDebugStr THEN BEGIN
+    { needs this to avoid filling the window with identical lines of text }
+    IF DebugWindow = NIL THEN BEGIN
+      { store any messages written before the Debug Window is initialised, to be written out when it is }
+      SetLength(DebugWindowLines, Length(DebugWindowLines) + 1);
+      DebugWindowLines[High(DebugWindowLines)] := Str;
+    END ELSE BEGIN
+      DebugWindow.DebugRichEdit.Lines.Add(Str);
+      OldDebugStr := Str;
+    END;
+  END;
+END; { Debug-3 }
+
+PROCEDURE DeleteElementFromBooleanArray(VAR BooleanArray : BooleanArrayType; Position : Integer);
+{ Removes the selected element from a boolean array }
+VAR
+  I : Integer;
+
+BEGIN
+  { Move all existing elements down one }
+  FOR I := Position TO (Length(BooleanArray) - 2) DO
+    BooleanArray[I] := BooleanArray[I + 1];
+  SetLength(BooleanArray, Length(BooleanArray) - 1);
+END; { DeleteElementFromBooleanArray }
+
+PROCEDURE DeleteElementFromDateTimeArray(VAR DateTimeArray : DateTimeArrayType; Position : Integer);
+{ Removes the selected element from a TDateTime array }
+VAR
+  I : Integer;
+
+BEGIN
+  { Move all existing elements down one }
+  FOR I := Position TO (Length(DateTimeArray) - 2) DO
+    DateTimeArray[I] := DateTimeArray[I + 1];
+  SetLength(DateTimeArray, Length(DateTimeArray) - 1);
+END; { DeleteElementFromDateTimeArray }
+
+PROCEDURE DeleteElementFromIntegerArray(VAR IntegerArray : IntegerArrayType; Position : Integer);
+{ Removes the selected element from an integer array }
+VAR
+  I : Integer;
+
+BEGIN
+  { Move all existing elements down one }
+  FOR I := Position TO (Length(IntegerArray) - 2) DO
+    IntegerArray[I] := IntegerArray[I + 1];
+  SetLength(IntegerArray, Length(IntegerArray) - 1);
+END; { DeleteElementFromIntegerArray }
+
+PROCEDURE DeleteElementFromLightsToBeSwitchedOnArray(Position : Integer);
+{ Removes the given element from the lighting array }
+VAR
+  I : Integer;
+
+BEGIN
+  WITH LightsToBeSwitchedOnArray[Position] DO
+    Log(LightsToBeSwitchedOn_Train^.Train_LocoChipStr + ' L Lighting record removed from LightsToBeSwitchedOnArray');
+
+  { Move all existing elements down one }
+  FOR I := Position TO (Length(LightsToBeSwitchedOnArray) - 2) DO
+    LightsToBeSwitchedOnArray[I] := LightsToBeSwitchedOnArray[I + 1];
+  SetLength(LightsToBeSwitchedOnArray, Length(LightsToBeSwitchedOnArray) - 1);
+END; { DeleteElementFromLightsToBeSwitchedOnArray }
+
+PROCEDURE DeleteElementFromLocationArray(VAR LocationArray : IntegerArrayType; Position : Integer);
+{ Removes the selected element from an array }
+VAR
+  I : Integer;
+
+BEGIN
+  { Move all existing elements down one }
+  FOR I := Position TO (Length(LocationArray) - 2) DO
+    LocationArray[I] := LocationArray[I + 1];
+  SetLength(LocationArray, Length(LocationArray) - 1);
+END; { DeleteElementFromLocationArray }
+
+PROCEDURE DeleteElementFromStringArray(VAR StringArray : StringArrayType; Position : Integer);
+{ Removes the selected element from an array }
+VAR
+  I : Integer;
+
+BEGIN
+  { Move all existing elements down one }
+  FOR I := Position TO (Length(StringArray) - 2) DO
+    StringArray[I] := StringArray[I + 1];
+  SetLength(StringArray, Length(StringArray) - 1);
+END; { DeleteElementFromStringArray }
+
+FUNCTION DescribeIntegerArray(IntegerArray : IntegerArrayType) : String;
+{ Return the contents of an integer array as a string }
+VAR
+  I : Integer;
+
+BEGIN
+  Result := '';
+  FOR I := 0 TO High(IntegerArray) DO
+    Result := Result + IntToStr(IntegerArray[I]) + ' ';
+END; { DescribeIntegerArray }
+
+FUNCTION DescribeLineNamesForTrackCircuit(TC : Integer) : String;
+{ Return the line names for a trackcircuit }
+VAR
+  L : Integer;
+
+BEGIN
+  Result := '';
+  FOR L := 0 TO High(Lines) DO
+    IF (TC <> UnknownTC)
+    AND (TC = Lines[L].Line_TC)
+    THEN
+      Result := Result + LineToStr(L) + ', ';
+  IF RightStr(Result, 2) = ', ' THEN
+    Result := Copy(Result, 1, Length(Result) - 2);
+END; { DescribeLineNamesForTrackCircuit }
+
+FUNCTION DescribeStartAndEndOfRoute(Route : Integer) : String;
+{ Return the signal at the start of the route, and the signal or buffer stop that ends it }
+BEGIN
+  { Ended by a signal }
+  IF Routes_EndSignals[Route] <> UnknownSignal THEN
+    Result := '(S' + IntToStr(Routes_StartSignals[Route])
+              + ' to S' + IntToStr(Routes_EndSignals[Route])
+              + ', ' + LineToStr(Routes_StartLines[Route])
+              + ' to ' + LineToStr(Routes_EndLines[Route])
+              + ', TC=' + IntToStr(Lines[Routes_StartLines[Route]].Line_TC)
+              + ' to TC=' + IntToStr(Lines[Routes_EndLines[Route]].Line_TC)
+              + ')'
+
+  ELSE
+    IF Routes_EndBufferStops[Route] <> UnknownBufferStop THEN
+      { or ended by a buffer stop }
+     Result := '(S' + IntToStr(Routes_StartSignals[Route])
+               + ' to BS' + IntToStr(Routes_EndBufferStops[Route])
+               + ', ' + LineToStr(Routes_StartLines[Route])
+               + ' to ' + LineToStr(Routes_EndLines[Route])
+               + ', TC=' + IntToStr(Lines[Routes_StartLines[Route]].Line_TC)
+               + ' to TC=' + IntToStr(Lines[Routes_EndLines[Route]].Line_TC)
+               + ')'
+    ELSE
+      Result := '';
+END; { DescribeStartAndEndOfRoute }
+
+FUNCTION DescribeSubRoute(Route, SubRoute : Integer) : String;
+{ Return a description of the subroute }
+VAR
+  EndSignalOrBufferStopStr : String;
+
+BEGIN
+  TRY
+    IF SubRoute < (Routes_TotalSubRoutes[Route] - 1) THEN
+      EndSignalOrBufferStopStr := 'S=' + IntToStr(Routes_SubRouteStartSignals[Route, SubRoute + 1])
+    ELSE
+      IF Routes_EndSignals[Route] <> UnknownSignal THEN
+        EndSignalOrBufferStopStr := 'S=' + IntToStr(Routes_EndSignals[Route])
+      ELSE
+        EndSignalOrBufferStopStr := 'BS=' + IntToStr(Routes_EndBufferStops[Route]);
+
+    Result := '(' + LineToStr(Routes_SubRouteStartLines[Route, SubRoute])
+               + ' to ' + LineToStr(Routes_SubRouteEndLines[Route, SubRoute])
+               + ')'
+               + '[S=' + IntToStr(Routes_SubRouteStartSignals[Route, SubRoute])
+               + ' to ' + EndSignalOrBufferStopStr
+               + ']';
+  EXCEPT
+    ON E : Exception DO
+      Log('EG DescribeSubRoute: ' + E.ClassName +' error raised, with message: ' + E.Message);
+  END; {TRY}
+END; { DescribeSubRoute }
+
+FUNCTION DescribeJourneyAndRoute(Args : ARRAY OF Integer) : String;
+{ Return a description of the route (and subroute if requested) }
+VAR
+  Route, SubRoute : Integer;
+
+BEGIN
+  Route := Args[0];
+  IF High(Args) = 0 THEN
+    { 1 argument - just route }
+    Result := IfThen(Routes_Journeys[Route] <> UnknownJourney,
+                     'J=' + IntToStr(Routes_Journeys[Route]) + ' ')
+              + 'R=' + IntToStr(Route) + ' ' + DescribeStartAndEndOfRoute(Route)
+  ELSE BEGIN
+    { 2 arguments - route and subroute }
+    SubRoute := Args[1];
+    Result := IfThen(Routes_Journeys[Route] <> UnknownJourney,
+                     'J=' + IntToStr(Routes_Journeys[Route]) + ' ')
+              + 'R=' + IntToStr(Route) + '/' + IntToStr(SubRoute) + ' ' + DescribeStartAndEndOfRoute(Route)
+              + ': ' + DescribeSubRoute(Route, SubRoute);
+  END;
+END; { DescribeJourneyAndRoute }
+
+FUNCTION DirectionWillChangeAfterGivenJourney(T : Train; CurrentJourney : Integer) : Boolean;
+{ Returns true if the direction will change on the journey after the current journey }
+BEGIN
+  WITH T^ DO BEGIN
+    IF FinalJourney(T, CurrentJourney) THEN
+      Result := False
+    ELSE
+      Result := Train_JourneysArray[CurrentJourney].TrainJourney_Direction <> Train_JourneysArray[CurrentJourney + 1].TrainJourney_Direction;
+  END; {WITH}
+END; { DirectionWillChangeAfterGivenJourney }
+
+FUNCTION DirectionArrayToStr(DirectionsArray : DirectionArrayType) : String;
+{ List the contents of an array }
+VAR
+  I : Integer;
+
+BEGIN
+  Result := '';
+
+  IF Length(DirectionsArray) = 0 THEN
+    Exit
+  ELSE BEGIN
+    FOR I := 0 TO High(DirectionsArray) - 1 DO
+      Result := Result + DirectionToStr(DirectionsArray[I]) + ', ';
+    Result := Result + DirectionToStr(DirectionsArray[High(DirectionsArray)]);
+  END;
+END; { DirectionArrayToStr }
+
+FUNCTION DisplayJourneyNumber(Journey : Integer) : String;
+{ Return the supplied journey number with an indent in a form that makes the debug output easier to read }
+BEGIN
+  IF Journey = UnknownJourney THEN
+    Result := 'J-'
+  ELSE
+    Result := 'J=' + IntToStr(Journey);
+  Result := Result + StringOfChar(' ', 8 - Length(Result)) + ': ';
+END; { DisplayJourneyNumber }
+
+FUNCTION DisplayJourneyNumbers(T : Train; FirstJourney, SecondJourney : Integer) : String; Overload;
+{ Return the supplied journey numbers with an indent in a form that makes the debug output easier to read }
+BEGIN
+  IF FirstJourney = UnknownJourney THEN
+    Result := 'J=-'
+  ELSE
+    IF FirstJourney = SecondJourney THEN BEGIN
+      IF FirstJourney = UnknownJourney THEN
+        Result := 'J=- J=-'
+      ELSE
+        Result := 'J=' + IntToStr(FirstJourney)
+    END ELSE
+      IF (SecondJourney > High(T^.Train_JourneysArray)) OR (SecondJourney = UnknownJourney) THEN
+        Result := 'J=' + IntToStr(FirstJourney)
+      ELSE
+        Result := 'J=' + IntToStr(FirstJourney) + '/' + IntToStr(SecondJourney);
+    Result := Result + StringOfChar(' ', 8 - Length(Result)) + ': ';
+END; { DisplayJourneyNumbers }
+
+FUNCTION DisplayTrackCircuitsForLocation(Location : Integer) : String;
+{ Write out which trackcircuits the given location contains }
+VAR
+  I : Integer;
+  TrackCircuitArray : IntegerArrayType;
+
+BEGIN
+  Result := '';
+  TrackCircuitArray := GetTrackCircuitsForLocation(Location);
+  IF Length(TrackCircuitArray) > 0 THEN BEGIN
+    FOR I := 0 TO High(TrackCircuitArray) - 1 DO
+      Result := Result + IntToStr(TrackCircuitArray[I]) + ', ';
+
+    Result := Result + IntToStr(TrackCircuitArray[High(TrackCircuitArray)]);
+  END;
+END; { DisplayTrackCircuitsForLocation }
+
+PROCEDURE DrawLineInLogFile(LocoChip : Integer; LogFileCh : Char; LineStr : String; OriginatingUnitRef : String);
+{ Draw a line of a given character in the log file }
+BEGIN
+  IF LineStr = '-' THEN
+    Log(LocoChipToStr(LocoChip) + ' ' + LogFileCh + ' ' + ' <Line> <UnitSubstitute=' + OriginatingUnitRef + '>')
+  ELSE
+    Log(LocoChipToStr(LocoChip) + ' ' + LogFileCh + ' ' + ' <Line=' + LineStr + '> <UnitSubstitute=' + OriginatingUnitRef + '>');
+END; { DrawLineInLogFile }
+
+FUNCTION ExtractBufferStopFromString(Str : String): Integer;
+{ Returns a buffer stop number from a given string }
+BEGIN
+  IF Pos('BS=', Str) = 0 THEN
+    Result := UnknownBufferStop
+  ELSE
+    Result := StrToInt(Copy(Str, 4, 255));
+END; { ExtractBufferStopFromString }
+
+FUNCTION ExtractJourneyFromString(Str : String): Integer;
+{ Returns a journey number from a given string }
+BEGIN
+  IF Pos('J=', Str) > 0 THEN
+    Result := StrToInt(Copy(Str, 3, 255))
+  ELSE
+    Result := UnknownJourney;
+END; { ExtractJourneyFromString }
+
+FUNCTION ExtractLineFromString(Str : String): Integer;
+{ Returns a linename from a given string }
+BEGIN
+  IF Pos('L=', Str) > 0 THEN BEGIN
+    IF Pos('+', Str) > 0 THEN
+      { remove any trailing "+" signs }
+      Result := StrToLine(Copy(Str, 3, Length(Str) - 3))
+    ELSE
+      Result := StrToLine(Copy(Str, 3, 255))
+  END ELSE
+    Result := UnknownLine;
+END; { ExtractLineFromString }
+
+FUNCTION ExtractNumbersFromString(L : String) : String;
+{ Returns a string with just the numbers }
+VAR
+  I : Integer;
+
+BEGIN
+  Result := '';
+  FOR I := 1 TO Length(L) DO
+    IF IsNumeric(L[I]) THEN
+      Result := Result + L[I];
+  IF Result = '' THEN
+    { if it does not contain a number, just return the first letter (e.g. "M" for Main) }
+    Result := Copy(L, 1, 1);
+END; { ExtractNumbersFromString }
+
+FUNCTION ExtractPointFromString(Str : String): Integer;
+{ Returns a point number from a given array element }
+VAR
+  Str2 : String;
+
+BEGIN
+  IF (Pos('FP=', Str) > 0)
+  OR (Pos('TP=', Str) > 0)
+  OR (Pos('XP=', Str) > 0)
+ THEN BEGIN
+    Str2 := Copy(Str, 4, 255);
+    { remove the trailing point direction if there }
+    IF (Copy(Str2, Length(Str2), 1) = '/') OR (Copy(Str2, Length(Str2), 1) = '-') THEN
+      Str2 := Copy(Str2, 1, Length(Str2) - 1);
+    Result := StrToInt(Str2);
+  END ELSE
+    Result := UnknownPoint;
+END; { ExtractPointFromString }
+
+FUNCTION ExtractPointStateFromString(Str : String) : PointStateType;
+{ Returns a point state from a given array element }
+BEGIN
+  IF Pos('-', Str) = Length(Str) THEN
+    Result := Straight
+  ELSE
+    Result := Diverging;
+END; { ExtractPointStateFromString }
+
+FUNCTION ExtractRouteFromString(Str : String): Integer;
+{ Returns a route number from a given string }
+BEGIN
+  IF Pos('R=', Str) > 0 THEN
+    Result := StrToInt(Copy(Str, 3, 255))
+  ELSE
+    Result := UnknownRoute;
+END; { ExtractRouteFromString }
+
+FUNCTION ExtractSignalFromString(Str : String): Integer;
+{ Extract a signal number from a string }
+VAR
+  JunctionIndicatorStrPos : Integer;
+
+BEGIN
+  Result := UnknownSignal;
+  TRY
+    { First remove any junction indicator abbreviations }
+    JunctionIndicatorStrPos := Pos('UL', Str);
+    IF JunctionIndicatorStrPos > 0 THEN
+      Delete(Str, JunctionIndicatorStrPos, 2);
+    JunctionIndicatorStrPos := Pos('ML', Str);
+    IF JunctionIndicatorStrPos > 0 THEN
+      Delete(Str, JunctionIndicatorStrPos, 2);
+    JunctionIndicatorStrPos := Pos('LL', Str);
+    IF JunctionIndicatorStrPos > 0 THEN
+      Delete(Str, JunctionIndicatorStrPos, 2);
+    JunctionIndicatorStrPos := Pos('UR', Str);
+    IF JunctionIndicatorStrPos > 0 THEN
+      Delete(Str, JunctionIndicatorStrPos, 2);
+    JunctionIndicatorStrPos := Pos('MR', Str);
+    IF JunctionIndicatorStrPos > 0 THEN
+      Delete(Str, JunctionIndicatorStrPos, 2);
+    JunctionIndicatorStrPos := Pos('LR', Str);
+    IF JunctionIndicatorStrPos > 0 THEN
+      Delete(Str, JunctionIndicatorStrPos, 2);
+
+    IF (Pos('FS=', Str) = 0)
+    AND (Pos('FR=', Str) = 0)
+    AND (Pos('TS=', Str) = 0)
+    AND (Pos('SS=', Str) = 0)
+    THEN BEGIN
+      IF Copy(Str, 1, 2) = 'S=' THEN
+        Result := StrToInt(Copy(Str, 3, 255));
+    END ELSE
+      IF (Pos('\', Str) > 0)
+      OR (Pos('|', Str) > 0)
+      OR (Pos('.', Str) > 0)
+      OR (Copy(Str, Length(Str), 1) = '=')
+      THEN
+        Result := StrToInt(Copy(Str, 4, Length(Str) - 4))
+      ELSE
+        IF (Pos('>', Str) > 0) THEN
+          Result := StrToInt(Copy(Str, 4, Pos('>', Str) - 4))
+        ELSE
+          Result := StrToInt(Copy(Str, 4, 255));
+  EXCEPT
+    ON E : Exception DO
+      Log('EG ExtractSignalFromString: ' + E.ClassName +' error raised, with message: ' + E.Message);
+  END; {TRY}
+END; { ExtractSignalFromString }
+
+FUNCTION ExtractSignalStateFromString(Str : String) : SignalStateType;
+{ Returns a signal state from a given array element }
+BEGIN
+  IF Pos('\', Str) > 0 THEN
+    Result := SignalOff
+  ELSE
+    IF Pos('=', Str) > 0 THEN
+      Result := SignalOn
+    ELSE
+      Result := UnknownSignalState;
+END; { ExtractSignalStateFromString }
+
+FUNCTION ExtractSubRouteFromString(Str : String): Integer;
+{ Returns a subroute number from a given array element }
+BEGIN
+  IF Pos('SR=', Str) > 0 THEN
+    Result := StrToInt(Copy(Str, 4, 255))
+  ELSE
+    Result := UnknownSubRoute;
+END; { ExtractSubRouteFromString }
+
+PROCEDURE ExtractSubStringsFromString(Str : String; DelimiterCh : Char; OUT StrArray : StringArrayType);
+{ Goes through a given string, extracting substrings delimited by the given delimiter character }
+VAR
+  I : Integer;
+
+BEGIN
+  SetLength(StrArray, 0);
+
+  I := 1;
+  WHILE I <= Length(Str) DO BEGIN
+    IF (Length(Str) > 0)
+    AND (Str[I] = DelimiterCh)
+    THEN BEGIN
+      AppendToStringArray(StrArray, Copy(Str, 1, I - 1));
+      StrArray[High(StrArray)] := Trim(StrArray[High(StrArray)]);
+      Delete(Str, 1, I);
+      I := 0;
+    END ELSE
+      IF I = Length(Str) THEN BEGIN
+        AppendToStringArray(StrArray, Copy(Str, 1, I));
+        StrArray[High(StrArray)] := Trim(StrArray[High(StrArray)]);
+      END;
+    Inc(I);
+  END; {WHILE}
+END; { ExtractSubStringsFromString }
+
+FUNCTION ExtractTrackCircuitFromString(Str : String): Integer;
+{ Returns a trackcircuit number from a given string }
+VAR
+  Str2 : String;
+
+BEGIN
+  IF Pos('TC=', Str) > 0 THEN BEGIN
+    Str2 := Copy(Str, 4, 255);
+    { remove the trailing '*' if there }
+    IF (Copy(Str2, Length(Str2), 1) = '*') THEN
+      Str2 := Copy(Str2, 1, Length(Str2) - 1);
+    Result := StrToInt(Str2);
+  END ELSE
+    Result := UnknownTC;
+END; { ExtractTrackCircuitFromString }
+
+FUNCTION ExtractSubRouteFromStringArray(StringArray : StringArrayType; SubRoute : Integer): StringArrayType;
+{ Returns a given subroute }
+VAR
+  NewStringArray : StringArrayType;
+  StringArrayPos : Integer;
+  SubRouteEndFound : Boolean;
+  SubRouteStartFound : Boolean;
+
+BEGIN
+  SetLength(NewStringArray, 0);
+  StringArrayPos := 0;
+  SubRouteStartFound := False;
+  SubRouteEndFound := False;
+  WHILE (StringArrayPos <= High(StringArray))
+  AND NOT SubRouteEndFound
+  DO BEGIN
+    IF IsElementSubRouteMarker(StringArray, StringArrayPos) THEN BEGIN
+      IF ExtractSubRouteFromString(StringArray[StringArrayPos]) = (SubRoute - 1) THEN
+        { we've found the one we want }
+        SubRouteStartFound := True;
+    END;
+    IF SubRouteStartFound THEN BEGIN
+      { but work out when we reach the end of it }
+      IF StringArrayPos = High(StringArray) THEN
+        SubRouteEndFound := True
+      ELSE
+        { is the next element a marker? }
+        IF IsElementSubRouteMarker(StringArray, StringArrayPos + 1) THEN
+          SubRouteEndFound := True;
+      AppendToStringArray(NewStringArray, StringArray[StringArrayPos]);
+    END;
+
+    Inc(StringArrayPos);
+  END; {WHILE}
+  Result := NewStringArray;
+END; { ExtractSubRouteFromStringArray }
+
+FUNCTION EndOfLineToStr(E : EndOfLineType) : String;
+{ Return the end of line type as a string }
+
+BEGIN
+  CASE E OF
+    BufferStopAtUp:
+      Result := 'Buffer Stop At Up';
+    BufferStopAtDown:
+      Result := 'Buffer Stop At Down';
+    ProjectedLineAtUp:
+      Result := 'Projected Line At up';
+    ProjectedLineAtDown:
+      Result := 'Projected Line At down';
+    NotEndOfLine:
+      Result := 'Not End Of Line';
+  END; {CASE}
+END; { EndOfLineToStr }
+
+FUNCTION FinalJourney(T : Train; CurrentJourney : Integer) : Boolean;
+{ Returns true if the current journey is the final one }
+BEGIN
+  WITH T^ DO BEGIN
+    IF CurrentJourney = High(Train_JourneysArray) THEN
+      Result := True
+    ELSE
+      Result := False;
+  END; {WITH}
+END; { FinalJourney }
+
+PROCEDURE GetProjectVersionInfo(AVersionList: TStrings; AFileName: String = '');
+{ This procedure returns ALL of the version information as separate string entries of a TString list. Each element can then be accessed by indexing the TString list thus:
+  AVersionList[0], AVersionList[1] etc..
+}
+VAR
+  I: Integer;
+  InfoSize: DWORD;
+  pTrans: PTransBuffer;
+  TransStr: String;
+  TypeStr: String;
+  Value: PChar;
+  VerBuf: pointer;
+  VerSize: DWORD;
+  Wnd: DWORD;
+
+BEGIN
+  InfoSize := 0;
+  AVersionList.Clear;
+  AFileName := ParamStr(0);
+  IF AFileName = '' THEN
+    InfoSize := GetFileVersionInfoSize(PChar(AFileName), Wnd);
+
+  IF (InfoSize <> 0) THEN BEGIN
+    GetMem(VerBuf, InfoSize);
+    TRY
+      IF GetFileVersionInfo(PChar(AFileName), Wnd, InfoSize, VerBuf) THEN BEGIN
+        VerQueryValue(VerBuf, PChar('\VarFileInfo\Translation'), Pointer(pTrans), VerSize);
+
+        TransStr := IntToHex(pTrans^[1], 4) + IntToHex(pTrans^[2], 4);
+
+        FOR I := Low(CInfoStr) to High(CInfoStr) DO BEGIN
+          TypeStr := 'StringFileInfo\' + TransStr + '\' + CInfoStr[I];
+
+          IF VerQueryvalue(VerBuf, PChar(TypeStr), Pointer(Value), VerSize) THEN
+            AVersionList.Add(CInfoStr[I] + '=' + Value);
+        END; {FOR}
+      END;
+    FINALLY
+      FreeMem(VerBuf);
+    END; {TRY}
+  END;
+END; { GetProjectVersionInfo }
+
+FUNCTION GetBuildInfo(VAR V1, V2, V3, V4: Word; AFileName: String = ''): Boolean;
+{ This procedure returns the individual Major/Minor/Release/Build values of the version information }
+VAR
+  VerInfoSize: DWORD;
+  VerInfo: Pointer;
+  VerValueSize: DWORD;
+  VerValue: PVSFixedFileInfo;
+  Dummy: DWORD;
+
+BEGIN
+  Result := True;
+  IF AFileName = '' THEN
+    AFileName := ParamStr(0);
+  VerInfoSize := GetFileVersionInfoSize(PChar(AFileName), Dummy);
+  IF VerInfoSize = 0 THEN BEGIN
+    Result := False;
+    Exit;
+  END;
+  GetMem(VerInfo, VerInfoSize);
+  TRY
+    GetFileVersionInfo(PChar(AFileName), 0, VerInfoSize, VerInfo);
+    VerQueryValue(VerInfo, '\', Pointer(VerValue), VerValueSize);
+
+    WITH VerValue^ DO BEGIN
+      V1 := dwFileVersionMS SHR 16;
+      V2 := dwFileVersionMS AND $FFFF;
+      V3 := dwFileVersionLS SHR 16;
+      V4 := dwFileVersionLS AND $FFFF;
+    END; {WITH}
+  FINALLY
+    FreeMem(VerInfo, VerInfoSize);
+  END; {TRY}
+end; { GetBuildInfo }
+
+FUNCTION GetVersionInfoAsString : String;
+{ Return the program's version number }
+VAR
+  V1: Word;
+  V2: Word;
+  V3: Word;
+  V4: Word;
+
+BEGIN
+  IF GetBuildInfo(V1, V2, V3, V4) THEN
+    Result := Format('%d.%d.%d', [V1, V2, V3])
+  ELSE
+    Result := '';
+END; { GetVersionInfoAsString }
+
+FUNCTION GetBuildInfoAsString : String;
+{ Return the program's build number - this is auto incremented on each build }
+VAR
+  V1: Word;
+  V2: Word;
+  V3: Word;
+  V4: Word;
+
+BEGIN
+  IF GetBuildInfo(V1, V2, V3, V4) THEN
+    Result := Format('%d', [V4])
+  ELSE
+    Result := '';
+END; { GetBuildInfoAsString }
+
+FUNCTION GetComputerNetName : String;
+{ Return the local computer name (by Zarko Gajic, About.com) }
+VAR
+  Buffer: ARRAY[0..255] OF Char;
+  Size: DWord;
+
+BEGIN
+  Size := 256;
+  IF GetComputerName(Buffer, Size) THEN
+    Result := Buffer
+  ELSE
+    Result := '';
+END; { GetComputerNetName }
+
+FUNCTION GetUserFromWindows : String;
+{ Return the local user name (by Zarko Gajic, About.com) }
+VAR
+  UserName : String;
+  UserNameLen : DWord;
+
+BEGIN
+  UserNameLen := 255;
+  SetLength(UserName, UserNameLen);
+  IF GetUserName(PChar(UserName), UserNameLen) THEN
+    Result := Copy(UserName, 1, UserNameLen - 1)
+  ELSE
+    Result := 'Unknown';
+END;
+
+FUNCTION GetIntegerColour(T : TypeOfLine) : TColour;
+{ Return the colour for a specific line type }
+BEGIN
+  CASE T OF
+    MainLine:
+      Result := clRed;
+    MainOrGoods:
+      Result := clFWPOrange;
+    GoodsLine:
+      Result := clLime;
+    SidingLine:
+      Result := clAqua;
+    SidingsApproach:
+      Result := clFuchsia;
+    BranchLineSingle, BranchLineDouble:
+      Result := clCream;
+    IslandStationLine:
+      Result := clSkyBlue;
+    MainStationLine:
+      Result := clTeal;
+    BranchStationLine:
+      Result := clFWPPink;
+    WindowStationLine:
+      Result := clFWPOrange;
+    FiddleyardLine:
+      Result := clYellow;
+    StationAvoiding:
+      Result := clGreen;
+    ProjectedLine:
+      Result := clLtGray;
+  ELSE
+    Result := clDkGray;
+  END; {CASE}
+END; { GetIntegerColour }
+
+FUNCTION GetLinesForTrackCircuit(TC : Integer) : LineArrayType;
+{ Return all the lines on a given trackcircuit }
+VAR
+  L : Integer;
+
+BEGIN
+  SetLength(Result, 0);
+
+  FOR L := 0 TO High(Lines) DO
+    IF (TC <> UnknownTC)
+    AND (TC = Lines[L].Line_TC)
+    THEN
+      AppendToLineArray(Result, L);
+END; { GetLinesForTrackCircuit }
+
+FUNCTION GetFollowingChars(Line : String; Str : String; EndStr : String) : String;
+{ Return the characters after the given characters up to the delimiter supplied (or "CRLF" if it's at a line end - to force a search for a line end use '' as the second
+  parameter). Do the test in upper case to avoid case errors. }
+VAR
+  EndStrPos : Integer;
+  TestPos : Integer;
+
+BEGIN
+  TestPos := Pos(UpperCase(Str), UpperCase(Line));
+  IF TestPos = 0 THEN
+    Result := ''
+  ELSE BEGIN
+    EndStrPos := Pos(EndStr, Copy(Line, TestPos + Length(Str)));
+    IF EndStrPos = 0 THEN
+      EndStrPos := Length(Line) - 1;
+
+    Result := Copy(Line, TestPos + Length(Str), EndStrPos - 1);
+  END;
+END; { GetFollowingChars }
+
+FUNCTION GetLastLogLine : String;
+{ Returns the last line written to the log }
+BEGIN
+  Result := LastLogLine;
+END; { GetLastLogLine }
+
+FUNCTION GetLocationFromTrackCircuit(TC : Integer) : Integer;
+{ Return a location given a trackcircuit number }
+VAR
+  L : Integer;
+  LocationFound : Boolean;
+
+BEGIN
+  L := 0;
+  Result := UnknownLocation;
+
+  LocationFound := False;
+  WHILE (L <= High(Lines))
+  AND NOT LocationFound
+  DO BEGIN
+    IF Lines[L].Line_TC = TC THEN BEGIN
+      IF Lines[L].Line_Location <> UnknownLocation THEN BEGIN
+        LocationFound := True;
+        Result := Lines[L].Line_Location;
+      END;
+    END;
+    Inc(L);
+  END; {WHILE}
+END; { GetLocationFromTrackCircuit }
+
+FUNCTION GetNextDayOfTheWeek(DayOfTheWeek : DayOfTheWeekType) : DayOfTheWeekType;
+{ Return the next day of the week to the one given }
+BEGIN
+  Result := UnknownDayOfTheWeek;
+
+  CASE CurrentRailwayDayOfTheWeek OF
+    Monday:
+      Result := Tuesday;
+    Tuesday:
+      Result := Wednesday;
+    Wednesday:
+      Result := Thursday;
+    Thursday:
+      Result := Friday;
+    Friday:
+      Result := Saturday;
+    Saturday:
+      Result := Sunday;
+    Sunday:
+      Result := Monday;
+  END; {CASE}
+END; { GetNextDayOfTheWeek }
+
+FUNCTION GetSignalAdjacentLine(S : Integer) : Integer;
+{ Return the line adjacent to the given signal }
+BEGIN
+  IF S <> UnknownSignal THEN
+    Result := Signals[S].Signal_AdjacentLine
+  ELSE
+    Result := UnknownLine;
+END; { GetSignalAdjacentLine }
+
+FUNCTION GetSignalAspect(S : Integer) : AspectType;
+{ Return the state of a signal }
+BEGIN
+  IF S <> UnknownSignal THEN
+    Result := Signals[S].Signal_Aspect
+  ELSE BEGIN
+    ShowMessage('Signal is zero');
+    Result := NoAspect;
+  END;
+END; { GetSignalAspect }
+
+FUNCTION GetTrackCircuitsForLocation(Location : Integer) : IntegerArrayType;
+{ Return all the trackcircuits for a given location }
+VAR
+  L : Integer;
+
+BEGIN
+  SetLength(Result, 0);
+  IF Location <> UnknownLocation THEN BEGIN
+    FOR L := 0 TO High(Lines) DO BEGIN
+      { only append a new TC if it's not there already }
+      IF Lines[L].Line_Location = Location THEN BEGIN
+        IF (Length(Result) = 0) OR (Result[High(Result)] <> Lines[L].Line_TC) THEN
+          IF Lines[L].Line_TC <> UnknownTC THEN
+            AppendToIntegerArray(Result, Lines[L].Line_TC)
+      END;
+    END;
+  END;
+END; { GetTrackCircuitsForLocation }
+
+FUNCTION GetTrackCircuitStateColour(TC : Integer) : TColour;
+{ Return whether and how the trackcircuit is occupied }
+BEGIN
+  IF TC = UnknownTC THEN
+    GetTrackCircuitStateColour := TCUnoccupiedColour
+  ELSE
+    CASE GetTrackCircuitState(TC) OF
+      TCFeedbackOccupation:
+        Result := TCFeedbackOccupationColour;
+      TCFeedbackOccupationButOutOfUse:
+        Result := TCFeedbackOccupationButOutOfUseColour;
+      TCLocoOutOfPlaceOccupation:
+        Result := TCLocoOutOfPlaceOccupationColour;
+      TCMissingOccupation:
+        Result := TCMissingOccupationColour;
+      TCOutOfUseSetByUser:
+        Result := TCOutOfUseSetByUserColour;
+      TCOutOfUseAsNoFeedbackReceived:
+        Result := TCOutOfUseAsNoFeedbackReceivedColour;
+      TCPermanentFeedbackOccupation:
+        Result := TCPermanentFeedbackOccupationColour;
+      TCPermanentOccupationSetByUser:
+        Result := TCPermanentOccupationSetByUserColour;
+      TCPermanentSystemOccupation:
+        Result := TCPermanentSystemOccupationColour;
+      TCSystemOccupation:
+        Result := TCSystemOccupationColour;
+      TCUnoccupied:
+        Result := TCUnoccupiedColour;
+    ELSE
+      Result := TCUnoccupiedColour;
+    END; {CASE}
+END; { GetTrackCircuitStateColour }
+
+FUNCTION GetTrackCircuitState(TC : Integer) : TrackCircuitStateType;
+{ Return whether and how the trackcircuit is occupied }
+BEGIN
+  IF TC = UnknownTC THEN
+    Result := TCUnoccupied
+  ELSE BEGIN
+    Result := TrackCircuits[TC].TC_OccupationState;
+    IF DisplayFlashingTrackCircuits
+    AND (TrackCircuits[TC].TC_Headcode = '?')
+    THEN
+      { only mystery occupation flashes }
+      TrackCircuits[TC].TC_Flashing := True
+    ELSE BEGIN
+      TrackCircuits[TC].TC_Flashing := False;
+      { and, in case it had been flashing, mark it as being in the lit-up state up so it will continue to be drawn }
+      TrackCircuits[TC].TC_LitUp := True;
+    END;
+  END;
+END; { GetTrackCircuitState }
+
+PROCEDURE HideMenus;
+{ Make all the menus invisible }
+BEGIN
+  WITH MainWindow DO BEGIN
+    MenusVisible := False;
+
+    MainClockMenu.Visible := False;
+    MainDisplayMenu.Visible := False;
+    MainFileMenu.Visible := False;
+    MainHelpMenu.Visible := False;
+    MainOperationsMenu.Visible := False;
+    MainRunMenu.Visible := False;
+
+    { this is a bit daft, as if the menus aren't visible, one is never going to see the tick, but I've no doubt that it is part of the AMS standard! }
+    IF MainDisplayMenu.Visible THEN
+      MainDisplayMenuShow.Checked := False;
+  END; {WITH}
+END; { HideMenus }
+
+FUNCTION GetOrdinalFromCardinal(Ordinal : Integer) : String;
+{ Return the ordinal version of a cardinal number }
+BEGIN
+  CASE Ordinal OF
+    1:
+      Result := IntToStr(Ordinal) + 'st';
+    2:
+      Result := IntToStr(Ordinal) + 'nd';
+    3:
+      Result := IntToStr(Ordinal) + 'rd';
+    4..9:
+      Result := IntToStr(Ordinal) + 'th';
+  END; {CASE}
+END; { GetOrdinalFromCardinal }
+
+FUNCTION IndicatorToStr(I : IndicatorType; LongOrShortString : StringType) : String;
+{ Return the type a route indicator is }
+BEGIN
+  IF LongOrShortString = LongStringType THEN BEGIN
+    CASE I OF
+      NoIndicator:
+        Result := 'No Indicator';
+      JunctionIndicator:
+        Result := 'Junction Indicator';
+      TheatreIndicator:
+        Result := 'Theatre Indicator';
+      QueryIndicator:
+        Result := 'Query Indicator';
+    END; {CASE}
+  END ELSE BEGIN
+    CASE I OF
+      NoIndicator:
+        Result := '';
+      JunctionIndicator:
+        Result := 'Junction';
+      TheatreIndicator:
+        Result := 'Theatre';
+      QueryIndicator:
+        Result := 'Query';
+    END; {CASE}
+  END;
+END; { IndicatorToStr }
+
+FUNCTION IndicatorStateToStr(I : IndicatorStateType) : String;
+{ Return the state of a route indicator }
+BEGIN
+  CASE I OF
+    NoIndicatorLit:
+      Result := 'N';
+    LeftIndicatorLit:
+      Result := 'L';
+    UpperLeftIndicatorLit:
+      Result := 'UL';
+    MiddleLeftIndicatorLit:
+      Result := 'ML';
+    LowerLeftIndicatorLit:
+      Result := 'LL';
+    RightIndicatorLit:
+      Result := 'R';
+    UpperRightIndicatorLit:
+      Result := 'UL';
+    MiddleRightIndicatorLit:
+      Result := 'ML';
+    LowerRightIndicatorLit:
+      Result := 'LL';
+    TheatreIndicatorLit:
+      Result := 'Theatre';
+    QueryIndicatorLit:
+      Result := '?';
+  END; { CASE }
+END; { IndicatorStateToStr }
+
+FUNCTION IsProgramRunning(ProgramName : String) : Boolean;
+{ Checks to see if a given program is running }
+VAR
+  ProcHandle : THandle;
+  AProcEntry : TProcessEntry32;
+  TempStr : String;
+
+BEGIN
+  Result := False;
+
+  TRY
+    TempStr := '';
+    ProcHandle := CreateToolHelp32SnapShot(TH32CS_SNAPPROCESS,0);
+    IF ProcHandle = INVALID_HANDLE_VALUE THEN
+      Exit;
+
+    AprocEntry.dwSize :=SizeOf(TProcessEntry32);
+    IF Process32First(ProcHandle, AProcEntry) THEN BEGIN
+      TempStr := TempStr + (AProcEntry.szExeFile);
+
+      WHILE Process32Next(ProcHandle,AProcEntry) DO
+        TempStr := TempStr + (AProcEntry.szExeFile);
+    END;
+
+    IF Pos(UpperCase(ProgramName), UpperCase(TempStr)) > 0 THEN
+      Result := True;
+
+    CloseHandle(ProcHandle);
+  EXCEPT
+    ON E : Exception DO
+      ShowMessage('IsProgramRunning: ' + E.ClassName +' error raised, with message: ' + E.Message);
+  END; {TRY}
+END; { IsProgramRunning }
+
+FUNCTION JunctionIndicatorLit(S : Integer) : Boolean;
+{ Return true if a junction indicator is lit }
+BEGIN
+  Result := False;
+
+  WITH Signals[S] DO BEGIN
+    CASE Signals[S].Signal_IndicatorState OF
+      UpperLeftIndicatorLit:
+        Result := True;
+      MiddleLeftIndicatorLit:
+        Result := True;
+      LowerLeftIndicatorLit:
+        Result := True;
+      UpperRightIndicatorLit:
+        Result := True;
+      MiddleRightIndicatorLit:
+        Result := True;
+      LowerRightIndicatorLit:
+        Result := True;
+    END; { CASE }
+  END; {WITH}
+END; { JunctionIndicatorLit }
+
+FUNCTION JunctionIndicatorTypeToStr(J : JunctionIndicatorType) : String;
+{ Returns a junction indicator type as a string }
+BEGIN
+  CASE J OF
+    UpperLeftIndicator:
+      Result := 'upper left indicator';
+    MiddleLeftIndicator:
+      Result := 'middle left indicator';
+    LowerLeftIndicator:
+      Result := 'lower left indicator';
+    UpperRightIndicator:
+      Result := 'upper right indicator';
+    MiddleRightIndicator:
+      Result := 'middle right indicator';
+    LowerRightIndicator:
+      Result := 'lower right indicator';
+  END; {CASE}
+END; { JunctionIndicatorTypeToStr }
+
+FUNCTION IfThenTime{1}(Test : Boolean; Time1, Time2 : TDateTime) : TDateTime; Overload;
+{ Returns the first supplied time if the test is true, the second time if not. (The system IfThen routine doesn't work with TDateTime values) }
+BEGIN
+  IF Test THEN
+    Result := Time1
+  ELSE
+    Result := Time2;
+END; { IfThenTime-1 }
+
+FUNCTION IfThenTime{2}(Test : Boolean; Time : TDateTime) : TDateTime; Overload;
+{ Returns the supplied time if the test is true. (The system IfThen routine doesn't work with TDateTime values) }
+BEGIN
+  IF Test THEN
+    Result := Time
+  ELSE
+    Result := 0;
+END; { IfThenTime-2 }
+
+FUNCTION IntegerArrayToStr(IntegerArray : IntegerArrayType) : String;
+{ Return the contents of an integer array }
+VAR
+  I : Integer;
+
+BEGIN
+  Result := '';
+
+  FOR I := 0 TO High(IntegerArray) DO
+    Result := Result + IntToStr(IntegerArray[I]) + ' ';
+  Result := Trim(Result);
+END; { IntegerArrayToStr }
+
+FUNCTION IsElementInIntegerArray{1}(IntegerArray : IntegerArrayType; Element : Integer) : Boolean; Overload;
+{ Returns whether the given array element is found in an integer array }
+VAR
+  I : Integer;
+
+BEGIN
+  I := 0;
+  Result := False;
+  WHILE (I <= High(IntegerArray))
+  AND (Result = False)
+  DO BEGIN
+    IF Element <> IntegerArray[I] THEN
+      Inc(I)
+    ELSE
+      Result := True;
+  END; {WHILE}
+END; { IsElementInIntegerArray-1 }
+
+FUNCTION IsElementInIntegerArray{2}(IntegerArray : IntegerArrayType; Element : Integer; OUT ElementPos : Integer) : Boolean; Overload;
+{ Returns whether the given array element is found in an integer array and where it is in the array }
+VAR
+  I : Integer;
+
+BEGIN
+  I := 0;
+  Result := False;
+  WHILE (I <= High(IntegerArray))
+  AND (Result = False)
+  DO BEGIN
+    IF Element <> IntegerArray[I] THEN
+      Inc(I)
+    ELSE BEGIN
+      Result := True;
+      ElementPos := I;
+    END;
+  END; {WHILE}
+END; { IsElementInIntegerArray-2 }
+
+FUNCTION IsElementInLineArray(LineArray : LineArrayType; Element : Integer) : Boolean;
+{ Returns whether the given array element is in a line array }
+VAR
+  I : Integer;
+
+BEGIN
+  I := 0;
+  Result := False;
+  WHILE (I <= High(LineArray))
+  AND (Result = False)
+  DO BEGIN
+    IF Element = LineArray[I] THEN
+      Result := True
+    ELSE
+      Inc(I);
+  END; {WHILE}
+END; { IsElementInLineArray }
+
+FUNCTION IsElementInLocationArray(LocationArray : IntegerArrayType; Element : Integer; OUT ElementPos : Integer) : Boolean;
+{ Returns whether the given array element is in an location array }
+VAR
+  I : Integer;
+
+BEGIN
+  I := 0;
+  Result := False;
+  WHILE (I <= High(LocationArray))
+  AND (Result = False)
+  DO BEGIN
+    IF Element <> LocationArray[I] THEN
+      Inc(I)
+    ELSE BEGIN
+      Result := True;
+      ElementPos := I;
+    END;
+  END; {WHILE}
+END; { IsElementInLocationArray }
+
+FUNCTION IsElementInStringArray{1}(StringArray : StringArrayType; Element : String) : Boolean; Overload;
+{ Returns whether the given array element is in a string array }
+VAR
+  I : Integer;
+
+BEGIN
+  Result := False;
+
+  I := 0;
+  WHILE (I <= High(StringArray))
+  AND (Result = False)
+  DO BEGIN
+    IF Element = StringArray[I] THEN
+      Result := True
+    ELSE
+      Inc(I);
+  END; {WHILE}
+END; { IsElementInStringArray-1 }
+
+FUNCTION IsElementInStringArray{2}(StringArray : StringArrayType; Element : String; OUT ElementPos : Integer) : Boolean;  Overload;
+{ Returns where the given array element is in a string array }
+VAR
+  I : Integer;
+
+BEGIN
+  ElementPos := -1;
+  Result := False;
+
+  I := 0;
+  WHILE (I <= High(StringArray))
+  AND (Result = False)
+  DO BEGIN
+    IF Element = StringArray[I] THEN BEGIN
+      Result := True;
+      ElementPos := I;
+    END ELSE
+      Inc(I);
+  END; {WHILE}
+END; { IsElementInStringArray-2 }
+
+FUNCTION IsSignalInStringArray(StringArray : StringArrayType; Signal : Integer) : Boolean;
+{ Returns whether the given signal is found in a string array }
+VAR
+  I : Integer;
+
+BEGIN
+  I := 0;
+  Result := False;
+  WHILE (I <= High(StringArray))
+  AND (Result = False)
+  DO BEGIN
+    IF (Signal <> UnknownSignal)
+    AND (Signal = ExtractSignalFromString(StringArray[I]))
+    THEN
+      Result := True
+    ELSE
+      Inc(I);
+  END; {WHILE}
+END; { IsSignalInStringArray }
+
+FUNCTION IsPointInStringArray(StringArray : StringArrayType; Point : Integer) : Boolean;
+{ Returns whether the given point is found in a string array }
+VAR
+  I : Integer;
+
+BEGIN
+  I := 0;
+  Result := False;
+  WHILE (I <= High(StringArray))
+  AND (Result = False)
+  DO BEGIN
+    IF (Point <> UnknownPoint)
+    AND (Point = ExtractPointFromString(StringArray[I]))
+    THEN
+      Result := True
+    ELSE
+      Inc(I);
+  END; {WHILE}
+END; { IsPointInStringArray }
+
+FUNCTION IsTrackCircuitInStringArray(StringArray : StringArrayType; TC : Integer; OUT Pos : Integer) : Boolean;
+{ Returns whether and where the given track circuit is found in a string array }
+BEGIN
+  Pos := 0;
+  Result := False;
+  WHILE (Pos <= High(StringArray))
+  AND (Result = False)
+  DO BEGIN
+    IF (TC <> UnknownTC)
+    AND (TC = ExtractTrackCircuitFromString(StringArray[Pos]))
+    THEN
+      Result := True
+    ELSE
+      Inc(Pos);
+  END; {WHILE}
+END; { IsTrackCircuitInStringArray }
+
+FUNCTION IsElementSubRouteMarker(StringArray : StringArrayType; StringArrayPos : Word) : Boolean;
+{ Returns whether the given array element is a subroute marker }
+BEGIN
+  Result := False;
+  IF Pos('SR=', StringArray[StringArrayPos]) > 0 THEN
+    Result := True;
+END; { IsElementSubRouteMarker }
+
+FUNCTION IsElementIndicator(StringArray : StringArrayType; StringArrayPos : Word) : Boolean;
+{ Returns whether the given array element is a route indicator }
+BEGIN
+  Result := False;
+  IF (Pos('|', StringArray[StringArrayPos]) > 0)
+  OR (Pos('.', StringArray[StringArrayPos]) > 0)
+  OR (Pos('>', StringArray[StringArrayPos]) > 0)
+  THEN
+    Result := True;
+END; { IsElementIndicator }
+
+FUNCTION LightsTypeToStr(TypeOfLights : LightsType) : String;
+{ Return the type of lights the train has }
+BEGIN
+  CASE TypeOfLights OF
+    NoLights:
+      Result := 'No Lights';
+    HeadlightsAndTailLightsConnected:
+      Result := 'Headlights and tail lights connected';
+    HeadlightsAndTailLightsSeparatelySwitched:
+      Result := 'Headlights and tail lights separately switched';
+    ExpressModelsSeparateHeadlights:
+      Result := 'Express Models separate headlights';
+    LightsOperatedByTwoChips:
+      Result := 'Lights operated by two chips';
+    LightsShouldBeDimmed:
+      Result := 'Lights should be dimmed';
+    CustomLightingKit:
+      Result := 'Custom lighting kit';
+  ELSE
+    Result := 'Unknown lights type';
+  END; {CASE}
+END; { LightsTypeToStr }
+
+FUNCTION LocationOccupied(Location : Integer) : Boolean;
+{ Returns true if the given location has a feedback occupation }
+VAR
+  I : Integer;
+  LocationTCs : IntegerArrayType;
+
+BEGIN
+  LocationTCs := GetTrackCircuitsForLocation(Location);
+  Result := False;
+  I := 0;
+  WHILE (I <= High(LocationTCs))
+  AND (Result <> True)
+  DO BEGIN
+    IF TrackCircuits[LocationTCs[I]].TC_OccupationState = TCFeedbackOccupation THEN
+      Result := True
+    ELSE
+      Inc(I);
+  END; {WHILE}
+END; { LocationOccupied }
+
+FUNCTION LinesAreAdjacent(L1, L2 : Integer; ErrorMsg : String) : Boolean;
+{ Returns true if the two given lines are adjacent }
+BEGIN
+  Result := False;
+  ErrorMsg := '';
+
+  IF Lines[L1].Line_NextUpLine = L2 THEN BEGIN
+    Result := True;
+    ErrorMsg := 'Next line up to ' + LineToStr(L1) + ' is ' + LineToStr(L2);
+  END ELSE
+    IF Lines[L1].Line_NextDownLine = L2 THEN BEGIN
+      Result := True;
+      ErrorMsg := 'Next line down to ' + LineToStr(L1) + ' is ' + LineToStr(L2);
+    END ELSE
+      IF Lines[L2].Line_NextUpLine = L1 THEN BEGIN
+        Result := True;
+        ErrorMsg := 'Next line up to ' + LineToStr(L2) + ' is ' + LineToStr(L1);
+      END ELSE
+        IF Lines[L2].Line_NextDownLine = L1 THEN BEGIN
+          Result := True;
+          ErrorMsg := 'Next line down to ' + LineToStr(L2) + ' is ' + LineToStr(L1);
+        END;
+END; { LinesAreAdjacent }
+
+FUNCTION MulDiv(A, B, C : Integer) : Integer;
+{ Returns (A * B) / C; intermediate result is held double-length to avoid overflow }
+VAR
+  X : Integer;
+
+BEGIN
+  X := (A * B);
+  Result := X DIV C;
+END; { MulDiv }
+
+FUNCTION LocationOutOfUse(Location : Integer; OUT OutOfUseTC : Integer; OUT OutOfUseStr : String) : Boolean;
+{ Returns true if the given location is out of use because of an out-of-use or similar trackcircuit occupation }
+VAR
+  I : Integer;
+  LocationTCs : IntegerArrayType;
+
+BEGIN
+  LocationTCs := GetTrackCircuitsForLocation(Location);
+  Result := False;
+  I := 0;
+  WHILE (I <= High(LocationTCs))
+  AND (Result <> True)
+  DO BEGIN
+    IF TrackCircuitStateIsPermanentlyOccupied(TrackCircuits[LocationTCs[I]].TC_OccupationState) THEN BEGIN
+      Result := True;
+      { note one of the out of use track circuits for diagnostic purposes }
+      OutOfUseTC := LocationTCs[I];
+      OutOfUseStr := TrackCircuitStateToStr(TrackCircuits[LocationTCs[I]].TC_OccupationState);
+    END ELSE
+      Inc(I);
+  END; {WHILE}
+END; { LocationOutOfUse }
+
+FUNCTION GetTrainRecord{1}(LocoChip : Integer) : Train; Overload;
+{ Look for a matching train record given a locochip }
+VAR
+  T : Train;
+  TrainFound : Boolean;
+
+BEGIN
+  Result := NIL;
+  T := TrainList;
+  TrainFound := False;
+  WHILE (T <> NIL)
+  AND NOT TrainFound
+  DO BEGIN
+    { run through the train list, to find our train }
+    IF T^.Train_LocoChip = LocoChip THEN BEGIN
+      TrainFound := True;
+      Result := T;
+    END ELSE
+      T := T^.Train_NextRecord;
+  END; {WHILE}
+END; { GetTrainRecord-1 }
+
+FUNCTION GetTrainRecord{2}(LocoChip : Integer; AllLocos : Boolean) : Train; Overload;
+{ Look for a matching train record given a locochip; include non-active locos }
+VAR
+  T : Train;
+  TrainFound : Boolean;
+
+BEGIN                                                                        
+  Result := NIL;
+  T := TrainList;
+  TrainFound := False;
+  WHILE (T <> NIL)
+  AND NOT TrainFound
+  DO BEGIN
+    { run through the train list, to find our train }
+    IF AllLocos OR T^.Train_Active THEN BEGIN
+
+      IF T^.Train_LocoChip = LocoChip THEN BEGIN
+        TrainFound := True;
+        Result := T;
+      END ELSE
+        T := T^.Train_NextRecord;
+    END;
+  END; {WHILE}
+END; { GetTrainRecord-2 }
+
+FUNCTION IntToMPH(Speed : Integer) : MPHType;
+{ Returns the given integer as an MPH value }
+BEGIN
+  CASE Speed OF
+    0:
+      Result := MPH0;
+    10:
+      Result := MPH10;
+    20:
+      Result := MPH20;
+    30:
+      Result := MPH30;
+    40:
+      Result := MPH40;
+    50:
+      Result := MPH50;
+    60:
+      Result := MPH60;
+    70:
+      Result := MPH70;
+    80:
+      Result := MPH80;
+    90:
+      Result := MPH90;
+    100:
+      Result := MPH100;
+    110:
+      Result := MPH110;
+    120:
+      Result := MPH120;
+  ELSE
+    Result := NoSpecifiedSpeed;
+  END; {CASE}
+END; { IntToMPH }
+
+FUNCTION IOError(Filename : String; SaveIOResult : Integer; OUT ErrorMsg : String) : Boolean;
+{ Returns the IO error message }
+BEGIN
+  IF SaveIOResult = 0 THEN BEGIN
+    Result := False;
+    ErrorMsg := '';
+  END ELSE BEGIN
+    Result := True;
+    CASE SaveIOResult OF
+      2:
+        ErrorMsg := 'File: ' + Filename + ' not found';
+      3:
+        ErrorMsg := 'Path not found';
+      5:
+        ErrorMsg := 'File access denied - file ' + Filename + ' is a directory, or is read-only';
+      13:
+        ErrorMsg := 'Permission denied';
+      20:
+        ErrorMsg := 'is not a directory';
+      21:
+        ErrorMsg := 'is a directory';
+      32:
+        ErrorMsg := 'Sharing violation';
+      100:
+        ErrorMsg := 'Disk read error';
+      101:
+        ErrorMsg := 'Disk write error - is disk full?';
+      102:
+        ErrorMsg := 'File not assigned';
+      103:
+        ErrorMsg := 'File not open';
+      104:
+        ErrorMsg := 'File not open for input';
+      105:
+        ErrorMsg := 'File not open for output';
+    ELSE
+      ErrorMsg := 'I/O Error no.' + IntToStr(SaveIOResult);
+    END; { CASE}
+  END;
+END; { IOError }
+
+FUNCTION GetTrainTypeFromLocoChip(LocoChip : Integer) : TypeOfTrainType;
+{ Returns the train type given the loco number }
+VAR
+  LocoChipFound : Boolean;
+  T : Train;
+
+BEGIN
+  Result := UnknownTrainType;
+  T := TrainList;
+  LocoChipFound := False;
+  WHILE (T <> NIL)
+  AND NOT LocoChipFound
+  DO BEGIN
+    IF T^.Train_LocoChip = LocoChip THEN BEGIN
+      LocoChipFound := True;
+      Result := T^.Train_Type;
+    END;
+    T := T^.Train_NextRecord;
+  END; {WHILE}
+END; { GetTrainTypeFromLocoChip }
+
+PROCEDURE ReadOut(SoundStr : String);
+{ Uses system API SndPlaySound to read out the given text, by playing a .wav file. text is held in the system resource file, itself compiled by using "brcc32 -v rail.rc"
+  from the command prompt. The file "rail.rc" is the resource script file.
+}
+  PROCEDURE ProcessSound(SoundStr : String);
+  { Send the sound to the speaker }
+  VAR
+    hFind, hRes: THandle;
+    SoundPChar : PChar;
+    SoundPWideChar : PWideChar;
+
+  BEGIN
+    SoundPWideChar := StringToOleStr(SoundStr);
+
+    hFind := FindResource(HInstance, SoundPWideChar, 'WAV');
+    IF hFind = 0 THEN
+      Log('X Unknown wave file ''' + SoundStr + ''' passed to ReadOut')
+    ELSE BEGIN
+      hRes := LoadResource(HInstance, hFind);
+      IF hRes <> 0 THEN BEGIN
+        SoundPChar := LockResource(hRes);
+        IF Assigned(SoundPChar) THEN
+          SndPlaySound(SoundPChar, snd_NoStop OR Snd_Memory);
+        UnlockResource(hRes);
+      END;
+      FreeResource(hFind);
+    END;
+  END; { ProcessSound }
+
+BEGIN
+  TRY
+    { just some text }
+    IF UpperCase(SoundStr) = 'SHORTCIRCUIT' THEN
+      ProcessSound(SoundStr)
+    ELSE
+      IF UpperCase(SoundStr) = 'OFF' THEN
+        ProcessSound(SoundStr)
+      ELSE
+        IF UpperCase(SoundStr) = 'OK' THEN
+          ProcessSound(SoundStr)
+        ELSE BEGIN
+          IF Length(SoundStr) = 3 THEN BEGIN
+            CASE SoundStr[1] OF
+              '1':
+                ProcessSound('Sound100');
+              '2':
+                ProcessSound('Sound200');
+              '3':
+                ProcessSound('Sound300');
+              '4':
+                ProcessSound('Sound400');
+              '5':
+                ProcessSound('Sound500');
+              '6':
+                ProcessSound('Sound600');
+              '7':
+                ProcessSound('Sound700');
+              '8':
+                ProcessSound('Sound800');
+              '9':
+                ProcessSound('Sound900');
+            ELSE {CASE}
+              BEGIN
+                { an unknown word to read out }
+                Debug('Unknown word to read out: ' + SoundStr);
+                ProcessSound('IsThisCorrect');
+              END;
+            END; {CASE}
+            { Remove the hundreds }
+            SoundStr := Copy(SoundStr, 2);
+            IF SoundStr = '00' THEN
+              Exit;
+          END;
+
+          IF Length(SoundStr) = 2 THEN BEGIN
+            IF (SoundStr[1] = '0')
+            AND (SoundStr[2] <> '0')
+            THEN BEGIN
+              { avoid the problem of, e.g., "09" }
+              SoundStr := Copy(SoundStr, 2);
+            END;
+          END;
+
+          IF Length(SoundStr) = 2 THEN BEGIN
+            CASE SoundStr[1] OF
+              '1':
+                BEGIN
+                  CASE SoundStr[2] OF
+                    '0':
+                      ProcessSound('Sound10');
+                    '1':
+                      ProcessSound('Sound11');
+                    '2':
+                      ProcessSound('Sound12');
+                    '3':
+                      ProcessSound('Sound13');
+                    '4':
+                      ProcessSound('Sound14');
+                    '5':
+                      ProcessSound('Sound15');
+                    '6':
+                      ProcessSound('Sound16');
+                    '7':
+                      ProcessSound('Sound17');
+                    '8':
+                      ProcessSound('Sound18');
+                    '9':
+                      ProcessSound('Sound19');
+                  END; {CASE}
+                  Exit;
+                END;
+              '2':
+                ProcessSound('Sound20');
+              '3':
+                ProcessSound('Sound30');
+              '4':
+                ProcessSound('Sound40');
+              '5':
+                ProcessSound('Sound50');
+              '6':
+                ProcessSound('Sound60');
+              '7':
+                ProcessSound('Sound70');
+              '8':
+                ProcessSound('Sound80');
+              '9':
+                ProcessSound('Sound90');
+            ELSE {CASE}
+              BEGIN
+                { an unknown word to read out }
+                Debug('Unknown word to read out: ' + SoundStr);
+                ProcessSound('IsThisCorrect');
+              END;
+            END; {CASE}
+            { Remove the tens }
+            SoundStr := Copy(SoundStr, 2);
+            IF SoundStr = '0' THEN
+              Exit;
+          END;
+
+          { the length is 1 }
+          CASE SoundStr[Length(SoundStr)] OF
+            '0':
+              ProcessSound('Sound0');
+            '1':
+              ProcessSound('Sound1');
+            '2':
+              ProcessSound('Sound2');
+            '3':
+              ProcessSound('Sound3');
+            '4':
+              ProcessSound('Sound4');
+            '5':
+              ProcessSound('Sound5');
+            '6':
+              ProcessSound('Sound6');
+            '7':
+              ProcessSound('Sound7');
+            '8':
+              ProcessSound('Sound8');
+            '9':
+              ProcessSound('Sound9');
+          ELSE {CASE}
+            BEGIN
+              { an unknown word to read out }
+              Debug('Unknown word to read out: ' + SoundStr);
+              ProcessSound('IsThisCorrect');
+            END;
+          END; {CASE }
+        END;
+  EXCEPT
+    ON E : Exception DO
+      Log('EG NewReadOut: ' + E.ClassName +' error raised, with message: ' + E.Message);
+  END; {TRY}
+END; { ReadOut }
+
+FUNCTION LocationOccupationStateToStr(OccupationState : LocationOccupationStateType) : String;
+{ Return the state of the Location Occupation as a string }
+BEGIN
+  CASE OccupationState OF
+    LocationOutOfUseOccupation:
+      Result := 'out of use';
+    LocationEndOfDayOccupation:
+      Result := 'end of day';
+    LocationPermanentOccupationWithFeedback:
+      Result := 'permanent with feedback';
+    LocationPermanentOccupationSetByUser:
+      Result := 'permanent set by user';
+    LocationPermanentOccupationSetBySystem:
+      Result := 'permanent set by system';
+    LocationStartOfDayOccupation:
+      Result := 'start of day';
+    LocationTemporaryOccupation:
+      Result := 'temporary';
+    LocationUnoccupied:
+      Result := 'no occupation';
+    LocationUnknownOccupation:
+      Result := 'unknown occupation';
+  ELSE
+    Result := 'Error in LocationOccupationStateToStr routine: invalid occupation state';
+  END; {CASE}
+END; { LocationOccupationStateToStr }
+
+PROCEDURE RenameLaterFiles(VAR SuppliedFileType : TextFile; SuppliedFileName, SuppliedFilenamePrefix : String);
+{ This is used when a current log is thrown away: the older log file names revert to their previous names }
+VAR
+  BackupFileName, BackupFileName0, BackupFileName1, BackupFileName2, BackupFileName3, BackupFileName4, BackupFileName5, BackupFileName6, BackupFileName7, BackupFileName8,
+    BackupFileName9 : String;
+  DirInfo : TSearchRec;
+
+BEGIN
+  TRY
+    IF SuppliedFilename = '' THEN
+      ShowMessage('No filename passed to RenameLaterFiles routine')
+    ELSE BEGIN
+      BackupFileName := SuppliedFileName + '.' + SuppliedFilenamePrefix;
+      BackupFileName0 := SuppliedFileName + '.0.' + SuppliedFilenamePrefix;
+      BackupFileName1 := SuppliedFileName + '.1.' + SuppliedFilenamePrefix;
+      BackupFileName2 := SuppliedFileName + '.2.' + SuppliedFilenamePrefix;
+      BackupFileName3 := SuppliedFileName + '.3.' + SuppliedFilenamePrefix;
+      BackupFileName4 := SuppliedFileName + '.4.' + SuppliedFilenamePrefix;
+      BackupFileName5 := SuppliedFileName + '.5.' + SuppliedFilenamePrefix;
+      BackupFileName6 := SuppliedFileName + '.6.' + SuppliedFilenamePrefix;
+      BackupFileName7 := SuppliedFileName + '.7.' + SuppliedFilenamePrefix;
+      BackupFileName8 := SuppliedFileName + '.8.' + SuppliedFilenamePrefix;
+      BackupFileName9 := SuppliedFileName + '.9.' + SuppliedFilenamePrefix;
+
+      IF FindFirst(BackupFileName, faAnyFile, DirInfo) = 0 THEN BEGIN
+        AssignFile(SuppliedFileType, BackupFilename);
+        Erase(SuppliedFileType);
+        FindClose(DirInfo);
+      END;
+      IF FindFirst(BackupFileName0, faAnyFile, DirInfo) = 0 THEN BEGIN
+        AssignFile(SuppliedFileType, BackupFilename0);
+        Rename(SuppliedFileType, BackupFilename);
+        FindClose(DirInfo);
+      END;
+      IF FindFirst(BackupFileName1, faAnyFile, DirInfo) = 0 THEN BEGIN
+        AssignFile(SuppliedFileType, BackupFilename1);
+        Rename(SuppliedFileType, BackupFilename0);
+        FindClose(DirInfo);
+      END;
+      IF FindFirst(BackupFileName2, faAnyFile, DirInfo) = 0 THEN BEGIN
+        AssignFile(SuppliedFileType, BackupFilename2);
+        Rename(SuppliedFileType, BackupFilename1);
+        FindClose(DirInfo);
+      END;
+      IF FindFirst(BackupFileName3, faAnyFile, DirInfo) = 0 THEN BEGIN
+        AssignFile(SuppliedFileType, BackupFilename3);
+        Rename(SuppliedFileType, BackupFilename2);
+        FindClose(DirInfo);
+      END;
+      IF FindFirst(BackupFileName4, faAnyFile, DirInfo) = 0 THEN BEGIN
+        AssignFile(SuppliedFileType, BackupFilename4);
+        Rename(SuppliedFileType, BackupFilename3);
+        FindClose(DirInfo);
+      END;
+      IF FindFirst(BackupFileName5, faAnyFile, DirInfo) = 0 THEN BEGIN
+        AssignFile(SuppliedFileType, BackupFilename5);
+        Rename(SuppliedFileType, BackupFilename4);
+        FindClose(DirInfo);
+      END;
+      IF FindFirst(BackupFileName6, faAnyFile, DirInfo) = 0 THEN BEGIN
+        AssignFile(SuppliedFileType, BackupFilename6);
+        Rename(SuppliedFileType, BackupFilename5);
+        FindClose(DirInfo);
+      END;
+      IF FindFirst(BackupFileName7, faAnyFile, DirInfo) = 0 THEN BEGIN
+        AssignFile(SuppliedFileType, BackupFilename7);
+        Rename(SuppliedFileType, BackupFilename6);
+        FindClose(DirInfo);
+      END;
+      IF FindFirst(BackupFileName8, faAnyFile, DirInfo) = 0 THEN BEGIN
+        AssignFile(SuppliedFileType, BackupFilename8);
+        Rename(SuppliedFileType, BackupFilename7);
+        FindClose(DirInfo);
+      END;
+      IF FindFirst(BackupFileName9, faAnyFile, DirInfo) = 0 THEN BEGIN
+        AssignFile(SuppliedFileType, BackupFilename9);
+        Rename(SuppliedFileType, BackupFilename8);
+        FindClose(DirInfo);
+      END;
+    END;
+  EXCEPT
+    ON E : Exception DO
+      Log('EG RenameLaterFiles: ' + E.ClassName +' error raised, with message: ' + E.Message);
+  END; {TRY}
+END; { RenameLaterFiles }
+
+PROCEDURE RenameEarlierFiles(VAR SuppliedFileType : TextFile; SuppliedFileName, SuppliedFilenamePrefix : String);
+{ Renames any existing earlier files, to give three consecutive backups }
+VAR
+  BackupFileName0, BackupFileName1, BackupFileName2, BackupFileName3, BackupFileName4, BackupFileName5, BackupFileName6, BackupFileName7, BackupFileName8,
+    BackupFileName9 : String;
+  DirInfo : TSearchRec;
+  ErrorMsg : String;
+
+BEGIN
+  IF SuppliedFilename = '' THEN
+    ShowMessage('No filename passed to RenameEarlierFiles routine')
+  ELSE BEGIN
+    BackupFileName0 := SuppliedFileName + '.0.' + SuppliedFilenamePrefix;
+    BackupFileName1 := SuppliedFileName + '.1.' + SuppliedFilenamePrefix;
+    BackupFileName2 := SuppliedFileName + '.2.' + SuppliedFilenamePrefix;
+    BackupFileName3 := SuppliedFileName + '.3.' + SuppliedFilenamePrefix;
+    BackupFileName4 := SuppliedFileName + '.4.' + SuppliedFilenamePrefix;
+    BackupFileName5 := SuppliedFileName + '.5.' + SuppliedFilenamePrefix;
+    BackupFileName6 := SuppliedFileName + '.6.' + SuppliedFilenamePrefix;
+    BackupFileName7 := SuppliedFileName + '.7.' + SuppliedFilenamePrefix;
+    BackupFileName8 := SuppliedFileName + '.8.' + SuppliedFilenamePrefix;
+    BackupFileName9 := SuppliedFileName + '.9.' + SuppliedFilenamePrefix;
+
+    IF FindFirst(BackupFileName9, faAnyFile, DirInfo) = 0 THEN BEGIN
+      AssignFile(SuppliedFileType, BackupFilename9);
+      Erase(SuppliedFileType);
+      FindClose(DirInfo);
+    END;
+    IF FindFirst(BackupFileName8, faAnyFile, DirInfo) = 0 THEN BEGIN
+      AssignFile(SuppliedFileType, BackupFilename8);
+      Rename(SuppliedFileType, BackupFilename9);
+      FindClose(DirInfo);
+    END;
+    IF FindFirst(BackupFileName7, faAnyFile, DirInfo) = 0 THEN BEGIN
+      AssignFile(SuppliedFileType, BackupFilename7);
+      Rename(SuppliedFileType, BackupFilename8);
+      FindClose(DirInfo);
+    END;
+    IF FindFirst(BackupFileName6, faAnyFile, DirInfo) = 0 THEN BEGIN
+      AssignFile(SuppliedFileType, BackupFilename6);
+      Rename(SuppliedFileType, BackupFilename7);
+      FindClose(DirInfo);
+    END;
+    IF FindFirst(BackupFileName5, faAnyFile, DirInfo) = 0 THEN BEGIN
+      AssignFile(SuppliedFileType, BackupFilename5);
+      Rename(SuppliedFileType, BackupFilename6);
+      FindClose(DirInfo);
+    END;
+    IF FindFirst(BackupFileName4, faAnyFile, DirInfo) = 0 THEN BEGIN
+      AssignFile(SuppliedFileType, BackupFilename4);
+      Rename(SuppliedFileType, BackupFilename5);
+      FindClose(DirInfo);
+    END;
+    IF FindFirst(BackupFileName3, faAnyFile, DirInfo) = 0 THEN BEGIN
+      AssignFile(SuppliedFileType, BackupFilename3);
+      Rename(SuppliedFileType, BackupFilename4);
+      FindClose(DirInfo);
+    END;
+    IF FindFirst(BackupFileName2, faAnyFile, DirInfo) = 0 THEN BEGIN
+      AssignFile(SuppliedFileType, BackupFilename2);
+      Rename(SuppliedFileType, BackupFilename3);
+      FindClose(DirInfo);
+    END;
+    IF FindFirst(BackupFileName1, faAnyFile, DirInfo) = 0 THEN BEGIN
+      AssignFile(SuppliedFileType, BackupFilename1);
+      Rename(SuppliedFileType, BackupFilename2);
+      FindClose(DirInfo);
+    END;
+    IF FindFirst(BackupFileName0, faAnyFile, DirInfo) = 0 THEN BEGIN
+      AssignFile(SuppliedFileType, BackupFilename0);
+      Rename(SuppliedFileType, BackupFilename1);
+      FindClose(DirInfo);
+    END;
+
+    { needs more checking - if LocoLocations file is open when we start up, for instance, or when we exit **** }
+    IF FindFirst(SuppliedFileName + '.' + SuppliedFilenamePrefix, faAnyFile, DirInfo) = 0 THEN BEGIN
+      AssignFile(SuppliedFileType, SuppliedFilename + '.' + SuppliedFilenamePrefix);
+      {$I-}
+      Rename(SuppliedFileType, BackupFilename0);
+      {$I-}
+      IF IOError(SuppliedFileName + '.' + SuppliedFilenamePrefix, IOResult, ErrorMsg) THEN BEGIN
+        Log('EG *** Warning: unable to rename "' + SuppliedFileName + '.' + SuppliedFilenamePrefix + '": ' + ErrorMsg + '***');
+        ShowMessage('Warning: unable to rename "' + SuppliedFileName + '.' + SuppliedFilenamePrefix + '": ' + ErrorMsg);
+      END;
+      FindClose(DirInfo);
+    END;
+    AssignFile(SuppliedFileType, SuppliedFilename + '.' + SuppliedFilenamePrefix);
+  END;
+END; { RenameEarlierFiles }
+
+PROCEDURE MakeSound(SoundNum : Integer);
+{ Make a warning sound }
+VAR
+  mb: DWord;
+  TempStr : String;
+
+BEGIN
+  { Set up a breakpoint if required - sometimes cannot tell why sounds are being produced }
+  IF BreakPointRequiredInMakeSoundRoutine THEN BEGIN
+    BreakPointRequiredInMakeSoundRoutine := False;
+    Log('X Breakpoint in MakeSound routine reached');
+    ASM
+      Int 3
+    END; {ASM}
+  END;
+
+  { Suppress it if it's a succession of beeps - one can tell from looking in the Log (it's a hack which works) }
+  TempStr := GetLastLogLine;
+  IF Pos('[Beep]', TempStr) = 0 THEN BEGIN
+    CASE SoundNum of
+      1:
+        BEGIN
+          mb := MB_ICONASTERISK; //SystemAsterisk
+          Log('X [Beep] (asterisk)');
+        END;
+      2:
+        BEGIN
+          mb := MB_ICONEXCLAMATION; //SystemExclamation
+          Log('X [Beep] (exclamation)');
+        END;
+      3:
+        BEGIN
+          mb := MB_ICONHAND; //SystemHand
+          Log('X [Beep] (hand)');
+        END;
+      4:
+        BEGIN
+          mb := MB_ICONQUESTION; //SystemQuestion
+          Log('X [Beep] (question)');
+        END;
+      5:
+        BEGIN
+          mb := MB_OK; //SystemDefault
+          Log('X [Beep] (default)');
+        END;
+    ELSE
+      BEGIN
+        mb:= $0FFFFFFFF; //Standard beep using the computer speaker
+        Log('X [Beep]');
+      END;
+    END; {CASE}
+    MessageBeep(mb);
+  END;
+END; { MakeSound }
+
+FUNCTION LocoChipToStr(LocoChip : Integer) : String;
+{ Return the locomotive number as a string - if LocoChip less then 1000, add appropriate number of leading zeros }
+BEGIN
+  IF LocoChip = UnknownLocoChip THEN
+    Result := '0000'
+  ELSE
+    IF LocoChip < 10 THEN
+      Result := '000' + IntToStr(LocoChip)
+    ELSE
+      IF LocoChip < 100 THEN
+        Result := '00' + IntToStr(LocoChip)
+      ELSE
+        IF LocoChip < 1000 THEN
+          Result := '0' + IntToStr(LocoChip)
+        ELSE
+          Result := IntToStr(LocoChip);
+END; { LocoChipToStr }
+
+FUNCTION AddSeparatorToTimeString(Str : String) : String;
+{ Add a separator to a string so that, e.g., 0630 becomes 06:30 }
+BEGIN
+  Result := LeftStr(Str, 2) + ':' + Copy(Str, 3, 2);
+END; { AddSeparatorTimeToString }
+
+FUNCTION GetMidPos(I1, I2 : Integer) : Integer;
+{ Return the mid position between two given values }
+BEGIN
+  IF I1 < I2 THEN
+    Result := I1 + ((I2 - I1) DIV 2)
+  ELSE
+    Result := I2 + ((I1 - I2) DIV 2);
+END; { GetMidPos }
+
+FUNCTION LineToStr(L : Integer) : String;
+{ Return a line's name as a string }
+BEGIN
+  IF (L <> UnknownLine)
+  AND (Length(Lines) > 0)
+  THEN
+    Result := Lines[L].Line_Str
+  ELSE
+    Result := UnknownLineStr;
+END; { LineToStr }
+
+FUNCTION AreaArrayToStr(AreaArray : IntegerArrayType) : String;
+{ Return an area array as a string }
+VAR
+  I : Integer;
+
+BEGIN
+  Result := '';
+  IF Length(AreaArray) > 0 THEN BEGIN
+    FOR I := 0 TO High(AreaArray) DO BEGIN
+      IF I = 0 THEN
+        Result := AreaToStr(AreaArray[I])
+      ELSE
+        Result := Result + ', ' + AreaToStr(AreaArray[I]);
+    END;
+  END;
+END; { AreaArrayToStr }
+
+FUNCTION AreaToStr{1}(Area : Integer) : String; Overload;
+{ Return an area as a long string }
+VAR
+  FoundArea : Boolean;
+  SearchArea : Integer;
+
+BEGIN
+  Result := UnknownAreaStr;
+  SearchArea := 0;
+  FoundArea := False;
+  WHILE (SearchArea <= High(Areas))
+  AND NOT FoundArea
+  DO BEGIN
+    IF Area = SearchArea THEN BEGIN
+      FoundArea := True;
+      Result := Areas[Area].Area_LongStr
+    END ELSE
+      Inc(SearchArea);
+  END; {WHILE}
+END; { AreaToStr-1 }
+
+FUNCTION AreaToStr{2}(Area : Integer; LongOrShortString : StringType) : String; Overload;
+{ Return an area as either a short or a long string }
+VAR
+  FoundArea : Boolean;
+  SearchArea : Integer;
+
+BEGIN
+  Result := UnknownAreaStr;
+  SearchArea := 0;
+  FoundArea := False;
+  WHILE (SearchArea <= High(Areas))
+  AND NOT FoundArea
+  DO BEGIN
+    IF Area = SearchArea THEN BEGIN
+      FoundArea := True;
+      IF LongOrShortString = LongStringType THEN
+        Result := Areas[Area].Area_LongStr
+      ELSE
+        Result := Areas[Area].Area_ShortStr;
+    END ELSE
+      Inc(SearchArea);
+  END; {WHILE}
+END; { AreaToStr-2 }
+
+FUNCTION ATS(Area : Integer) : String;
+{ Return an area as a string - routine designed only for use in debugging }
+BEGIN
+  Result := AreaToStr(Area);
+END; { ATS }
+
+FUNCTION ATSA(AreaArray : IntegerArrayType) : String;
+{ Return an area array as a string - routine designed for use in debugging }
+VAR
+  I : Integer;
+
+BEGIN
+  Result := '';
+  IF Length(AreaArray) > 0 THEN BEGIN
+    FOR I := 0 TO High(AreaArray) DO BEGIN
+      IF I = 0 THEN
+        Result := AreaToStr(AreaArray[I])
+      ELSE
+        Result := Result + ', ' + AreaToStr(AreaArray[I]);
+    END;
+  END;
+END; { ATSA }
+
+FUNCTION RemoveAllSpacesFromAString(Str : String) : String;
+{ Removes all spaces from a given string }
+VAR
+  I : Integer;
+
+BEGIN
+  I := 1;
+  WHILE I <= Length(Str) DO BEGIN
+    IF (Length(Str) > 0)
+    AND (Str[I] = ' ')
+    THEN BEGIN
+      { note: Delete may need "System" as because of a "WITH" statement it could become a DataSet command }
+      System.Delete(Str, I, 1);
+      I := I - 1;
+    END;
+    Inc(I);
+  END; {WHILE}
+  Result := Str;
+END; { RemoveAllSpacesFromAString }
+
+FUNCTION LTS(L : Integer) : String;
+{ Return a line as a string - routine designed for use in debugging }
+BEGIN
+  IF (Length(Lines) = 0) OR (L = UnknownLine) THEN
+    Result := 'Unknown Line'
+  ELSE
+    Result := Lines[L].Line_Str;
+END; { LTS }
+
+FUNCTION LTSA(LArray : IntegerArrayType) : String;
+{ Return lines as a string - routine designed for use in debugging }
+VAR
+  I : Integer;
+
+BEGIN
+  Result := '';
+  IF Length(LArray) > 0 THEN BEGIN
+    FOR I := 0 TO High(LArray) DO BEGIN
+      IF I = 0 THEN
+        Result := LineToStr(LArray[I])
+      ELSE
+        Result := Result + ', ' + LineToStr(LArray[I]);
+    END;
+  END;
+END; { LTSA }
+
+FUNCTION LocationToStrMainProcedure(Location : Integer; LongOrShortString : StringType) : String;
+{ Return a location as a string }
+VAR
+  FoundLocation : Boolean;
+  SearchLocation : Integer;
+
+BEGIN
+  Result := UnknownLocationStr;
+  IF Length(Locations) > 0 THEN BEGIN
+    SearchLocation := 0;
+    FoundLocation := False;
+    WHILE (SearchLocation <= High(Locations))
+    AND NOT FoundLocation
+    DO BEGIN
+      IF Location = SearchLocation THEN BEGIN
+        FoundLocation := True;
+        IF LongOrShortString = LongStringType THEN
+          Result := Locations[Location].Location_LongStr
+        ELSE
+          Result := Locations[Location].Location_ShortStr;
+      END ELSE
+        Inc(SearchLocation);
+    END; {WHILE}
+  END;
+END; { LocationToStrMainProcedure }
+
+FUNCTION LocTS(Location : Integer) : String;
+{ Return a location as a string - routine designed for use in debugging }
+CONST
+  LongOrShortString = LongStringType;
+
+BEGIN
+  IF (Length(Locations) = 0) OR (Location = UnknownLocation) THEN
+    Result := 'Unknown Location'
+  ELSE
+    Result := LocationToStrMainProcedure(Location, LongOrShortString);
+END; { LocTS }
+
+FUNCTION LocTSA(LocationArray : IntegerArrayType) : String;
+{ Return locations as a string - routine designed for use in debugging }
+CONST
+  LongOrShortString = LongStringType;
+
+VAR
+  I : Integer;
+
+BEGIN
+  Result := '';
+  IF Length(LocationArray) > 0 THEN BEGIN
+    FOR I := 0 TO High(LocationArray) DO BEGIN
+      IF I = 0 THEN
+        Result := LocationToStrMainProcedure(LocationArray[I], LongOrShortString)
+      ELSE
+        Result := Result + ', ' + LocationToStrMainProcedure(LocationArray[I], LongOrShortString);
+    END;
+  END;
+END; { LocTSA }
+
+FUNCTION LocationToStr{1}(Location : Integer) : String; Overload;
+{ Return a location as a long string }
+CONST
+  LongOrShortString = LongStringType;
+
+BEGIN
+  Result := LocationToStrMainProcedure(Location, LongOrShortString);
+END; { LocationToStr-1 }
+
+FUNCTION LocationToStr{2}(Location : Integer; LongOrShortString : StringType) : String; Overload;
+{ Return a location as a string }
+BEGIN
+  Result := LocationToStrMainProcedure(Location, LongOrShortString);
+END; { LocationToStr-2 }
+
+FUNCTION MPHToInt(MPH : MPHType) : Integer;
+{ Returns the given MPH as an integer }
+BEGIN
+  CASE MPH OF
+    MPH0:
+      Result := 0;
+    MPH10:
+      Result := 10;
+    MPH20:
+      Result := 20;
+    MPH30:
+      Result := 30;
+    MPH40:
+      Result := 40;
+    MPH50:
+      Result := 50;
+    MPH60:
+      Result := 60;
+    MPH70:
+      Result := 70;
+    MPH80:
+      Result := 80;
+    MPH90:
+      Result := 90;
+    MPH100:
+      Result := 100;
+    MPH110:
+      Result := 110;
+    MPH120:
+      Result := 120;
+  ELSE
+    Result := 0;
+  END; {CASE}
+END; { MPHToInt }
+
+FUNCTION MPHToStr(MPH : MPHType) : String;
+{ Returns the given MPH as a string }
+BEGIN
+  CASE MPH OF
+    MPH0:
+      Result := '0';
+    MPH10:
+      Result := '10';
+    MPH20:
+      Result := '20';
+    MPH30:
+      Result := '30';
+    MPH40:
+      Result := '40';
+    MPH50:
+      Result := '50';
+    MPH60:
+      Result := '60';
+    MPH70:
+      Result := '70';
+    MPH80:
+      Result := '80';
+    MPH90:
+      Result := '90';
+    MPH100:
+      Result := '100';
+    MPH110:
+      Result := '110';
+    MPH120:
+      Result := '120';
+    UnknownMPH:
+      Result := '?';
+    NoSpecifiedSpeed:
+      Result := '';
+  ELSE
+    Result := '?';
+  END; {CASE}
+END; { MPHToStr }
+
+FUNCTION StrToMPH(Str : String) : MPHType;
+{ Returns the given string as a MPH }
+BEGIN
+  IF Str = '0' THEN
+    Result := MPH0
+  ELSE
+    IF Str = '10' THEN
+      Result := MPH10
+    ELSE
+      IF Str = '20' THEN
+        Result := MPH20
+      ELSE
+        IF Str = '30' THEN
+          Result := MPH30
+        ELSE
+          IF Str = '40' THEN
+            Result := MPH40
+          ELSE
+            IF Str = '50' THEN
+              Result := MPH50
+            ELSE
+              IF Str = '60' THEN
+                Result := MPH60
+              ELSE
+                IF Str = '70' THEN
+                  Result := MPH70
+                ELSE
+                  IF Str = '80' THEN
+                    Result := MPH80
+                  ELSE
+                    IF Str = '90' THEN
+                      Result := MPH90
+                    ELSE
+                      IF Str = '100' THEN
+                        Result := MPH100
+                      ELSE
+                        IF Str = '110' THEN
+                          Result := MPH110
+                        ELSE
+                          IF Str = '120' THEN
+                            Result := MPH120
+                          ELSE
+                            Result := NospecifiedSpeed;
+END; { MPHToStr }
+
+FUNCTION OpenInputFileOK(VAR InputFilename : Text; Filename : String; OUT ErrorMsg : String) : Boolean;
+{ Open a existing file to read from }
+BEGIN
+  AssignFile(InputFilename, Filename);
+  {$I-}
+  Reset(InputFilename);
+  {$I+}
+  Result := NOT IOError(Filename, IOResult, ErrorMsg);
+
+  IF Result = False THEN BEGIN
+   Log('EG *** Unable to open file: ' + Filename + ' for reading: ' + ErrorMsg + ' ***');
+   ShowMessage('Warning! Unable to open file "' + Filename + '" for reading: ' + ErrorMsg);
+  END;
+END; { OpenInputFileOK }
+
+{$O-}
+FUNCTION OpenOutputFileOK(VAR OutputFilename : Text; Filename : String; OUT ErrorMsg : String; AppendToFile : Boolean) : Boolean;
+{ Open (and create if necessary) a file }
+BEGIN
+  Result := False;
+
+  { If file exists, append to it, else create it }
+  {$I-}
+  AssignFile(OutputFilename, Filename);
+  IF AppendToFile THEN BEGIN
+    Append(OutputFilename);
+    {$I+}
+    IF NOT IOError(Filename, IOResult, ErrorMsg) THEN
+      Result := True;
+  END;
+
+  IF NOT AppendToFile OR (Result = False) THEN BEGIN
+    {$I-}
+    Rewrite(OutputFileName);
+    {$I+}
+    Result := NOT IOError(Filename, IOResult, ErrorMsg);
+  END;
+
+  IF Result = False THEN BEGIN
+   Log('EG *** Unable to open file: ' + Filename + ' for writing: ' + ErrorMsg + ' ***');
+   ShowMessage('Warning! Unable to open file "' + Filename + '" for writing: ' + ErrorMsg);
+  END;
+END; { OpenOutputFileOK }
+
+PROCEDURE CloseOutputFile(VAR OutputFile : Text; Filename : String);
+{ Close an output file, capturing the error message if any }
+VAR
+  ErrorMsg : String;
+
+BEGIN
+  {$I-}
+  CloseFile(OutputFile);
+  {$I+}
+  IF IOError(Filename, IOResult, ErrorMsg) THEN
+    Log('GG Error in closing file ' + Filename + ': ' + ErrorMsg);
+END; { CloseOutputFile }
+
+FUNCTION DirectionToStr{1}(Dir : DirectionType) : String; Overload;
+{ Return the long name of a direction }
+BEGIN
+  CASE Dir OF
+    Up:
+      Result := 'Up';
+    Down:
+      Result := 'Down';
+    Bidirectional:
+      Result := 'Bidirectional';
+    UnknownDirection:
+      Result := '?';
+  ELSE
+    Result := '?';
+  END; {CASE}
+END; { DirectionToStr-1 }
+
+FUNCTION DirectionToStr{2}(Dir : DirectionType; LongOrShortString : StringType) : String; Overload;
+{ Return the name of a direction }
+BEGIN
+  CASE Dir OF
+    Up:
+      CASE LongOrShortString OF
+        LongStringType, ShortStringType:
+          Result := 'Up';
+        VeryShortStringType:
+          Result := 'U';
+      END; {CASE}
+    Down:
+      CASE LongOrShortString OF
+        LongStringType:
+          Result := 'Down';
+        ShortStringType:
+          Result := 'Dn';
+        VeryShortStringType:
+          Result := 'D';
+      END; {CASE}
+    Bidirectional:
+      CASE LongOrShortString OF
+        LongStringType:
+          Result := 'Bidirectional';
+        ShortStringType, VeryShortStringType:
+          Result := 'B';
+      END; {CASE}
+    UnknownDirection:
+      Result := '-';
+  ELSE
+    Result := '?';
+  END; {CASE}
+END; { DirectionToStr-2 }
+
+FUNCTION OppositeDirection(Dir : DirectionType) : DirectionType;
+{ Return the direction opposite to the one given }
+BEGIN
+  CASE Dir OF
+    Up:
+     Result := Down;
+    Down:
+      Result := Up;
+    Bidirectional:
+      Result := Bidirectional;
+  ELSE
+    Result := UnknownDirection;
+  END; {CASE}
+END; { OppositeDirection }
+
+FUNCTION RealToStr(Num : Real; Decimals : Integer) : String;
+{ Converts a floating point number to a string as a function not a procedure, Decimals is the number of decimals after the decimal point }
+VAR
+  Stg : String;
+
+BEGIN
+  Str(Num:1:Decimals, Stg); { format is width then decimals }
+  Result := Stg;
+END; { RealToStr }
+
+PROCEDURE DrawDebugWindow;
+BEGIN
+  DebugWindow.Height := DebugWindowHeight;
+  DebugWindow.Width := DebugWindowWidth;
+  DebugWindow.Top := DebugWindowTop;
+  DebugWindow.Left := DebugWindowLeft;
+
+  DebugWindow.Visible := True;
+  DebugWindow.Invalidate;
+END; { DrawDebugWindow }
+
+PROCEDURE InsertElementInStringArray(VAR StringArray : StringArrayType; Position : Integer; NewElement : String);
+{ Adds an element to a string array }
+VAR
+  I : Integer;
+
+BEGIN
+  SetLength(StringArray, Length(StringArray) + 1);
+  { Move all existing elements up one }
+  IF Length(StringArray) = 1 THEN
+    StringArray[0] := NewElement
+  ELSE BEGIN
+    FOR I := (Length(StringArray) - 1) DOWNTO (Position + 1) DO
+      StringArray[I] := StringArray[I - 1];
+    { and insert the new element }
+    StringArray[Position] := NewElement;
+  END;
+END; { InsertElementInStringArray }
+
+PROCEDURE InsertElementInBooleanArray(VAR BooleanArray : BooleanArrayType; Position : Integer; NewElement : Boolean);
+{ Adds an element to a boolean array }
+VAR
+  I : Integer;
+
+BEGIN
+  SetLength(BooleanArray, Length(BooleanArray) + 1);
+  { Move all existing elements up one }
+  IF Length(BooleanArray) = 1 THEN
+    BooleanArray[0] := NewElement
+  ELSE BEGIN
+    FOR I := (Length(BooleanArray) - 1) DOWNTO (Position + 1) DO
+      BooleanArray[I] := BooleanArray[I - 1];
+    { and insert the new element }
+    BooleanArray[Position] := NewElement;
+  END;
+END; { InsertElementInBooleanArray }
+
+PROCEDURE InsertElementInDateTimeArray(VAR DateTimeArray : DateTimeArrayType; Position : Integer; NewElement : TDateTime);
+{ Adds an element to a TDateTime array }
+VAR
+  I : Integer;
+
+BEGIN
+  SetLength(DateTimeArray, Length(DateTimeArray) + 1);
+  { Move all existing elements up one }
+  IF Length(DateTimeArray) = 1 THEN
+    DateTimeArray[0] := NewElement
+  ELSE BEGIN
+    FOR I := (Length(DateTimeArray) - 1) DOWNTO (Position + 1) DO
+      DateTimeArray[I] := DateTimeArray[I - 1];
+    { and insert the new element }
+    DateTimeArray[Position] := NewElement;
+  END;
+END; { InsertElementInDateTimeArray }
+
+PROCEDURE InsertElementInTrainJourneyRecArray(VAR JourneyRecArray : TrainJourneyRecArrayType; Position : Integer;
+                                              NewElement : TrainJourneyRec);
+{ Adds an element to a TrainJourneyRec array }
+VAR
+  I : Integer;
+
+BEGIN
+  SetLength(JourneyRecArray, Length(JourneyRecArray) + 1);
+  { Move all existing elements up one }
+  IF Length(JourneyRecArray) = 1 THEN
+    JourneyRecArray[0] := NewElement
+  ELSE BEGIN
+    FOR I := (Length(JourneyRecArray) - 1) DOWNTO (Position + 1) DO
+      JourneyRecArray[I] := JourneyRecArray[I - 1];
+    { and insert the new element }
+    JourneyRecArray[Position] := NewElement;
+  END;
+END; { InsertElementInTrainJourneyRecArray }
+
+PROCEDURE InsertElementInIntegerArray(VAR IntegerArray : IntegerArrayType; Position : Integer; NewElement : Integer);
+{ Adds an element to an integer array }
+VAR
+  I : Integer;
+
+BEGIN
+  SetLength(IntegerArray, Length(IntegerArray) + 1);
+  { Move all existing elements up one }
+  IF Length(IntegerArray) = 1 THEN
+    IntegerArray[0] := NewElement
+  ELSE BEGIN
+    FOR I := (Length(IntegerArray) - 1) DOWNTO (Position + 1) DO
+      IntegerArray[I] := IntegerArray[I - 1];
+    { and insert the new element }
+    IntegerArray[Position] := NewElement;
+  END;
+END; { InsertElementInIntegerArray }
+
+PROCEDURE InsertElementInDiagramsArray(VAR DiagramsArray : DiagramsArrayType; Position : Integer; NewElement : DiagramsRec);
+{ Adds an element to a diagram array }
+VAR
+  I : Integer;
+
+BEGIN
+  IF Position < 0 THEN
+    Log('XG Problem in InsertElementInDiagramsArray - Position < 0')
+  ELSE BEGIN
+    SetLength(DiagramsArray, Length(DiagramsArray) + 1);
+    IF Length(DiagramsArray) = 1 THEN
+      DiagramsArray[0] := NewElement
+    ELSE BEGIN
+      { Move all existing elements up one }
+      IF Position >= High(DiagramsArray) THEN
+        Position := High(DiagramsArray)
+      ELSE
+        FOR I := High(DiagramsArray) - 1 DOWNTO Position DO
+          DiagramsArray[I + 1] := DiagramsArray[I];
+      { and insert the new element }
+      DiagramsArray[Position] := NewElement;
+    END;
+  END;
+END; { InsertElementInDiagramsArray }
+
+PROCEDURE InsertEntryInWorkingTimetable(VAR WorkingTimetableRecArray : WorkingTimetableRecArrayType; Position : Integer);
+{ Adds a blank entry to the working timetable }
+VAR
+  I : Integer;
+  NewEntry : WorkingTimetableRecType;
+
+BEGIN
+  SetLength(WorkingTimetableRecArray, Length(WorkingTimetableRecArray) + 1);
+  { Move all existing elements up one }
+  IF Length(WorkingTimetableRecArray) = 1 THEN
+    WorkingTimetableRecArray[0] := NewEntry
+  ELSE BEGIN
+    FOR I := (Length(WorkingTimetableRecArray) - 1) DOWNTO (Position + 1) DO
+      WorkingTimetableRecArray[I] := WorkingTimetableRecArray[I - 1];
+    { and insert the new element }
+    WorkingTimetableRecArray[Position] := NewEntry;
+  END;
+END; { InsertEntryInWorkingTimetable }
+
+PROCEDURE RemoveDuplicateElementsFromStringArrayMainProcedure(VAR StringArray : StringArrayType);
+{ Removes duplicate elements - the main procedure }
+VAR
+  I, J : Integer;
+  TestElement1, TestElement2 : String;
+  DuplicateElements : StringArrayType;
+  SaveStringArray : StringArrayType;
+
+BEGIN
+  { note: copy is used here without parameters to copy the whole of a dynamic array }
+  SaveStringArray := Copy(StringArray);
+  SetLength(DuplicateElements, 0);
+
+  { We do not want it if it's there already }
+  I := 0;
+  WHILE I < High(StringArray) DO BEGIN
+    J := High(StringArray);
+    WHILE J > 0 DO BEGIN
+      IF I <> J THEN BEGIN
+        TestElement1 := StringArray[I];
+        TestElement2 := StringArray[J];
+
+        { If it's a point, change FP=, TP= and XP== to P= or the comparison doesn't work properly }
+        IF Copy(TestElement1, 1, 3) = 'FP=' THEN
+          TestElement1 := Copy(TestElement1, 2, 255);
+        IF Copy(TestElement1, 1, 3) = 'TP=' THEN
+          TestElement1 := Copy(TestElement1, 2, 255);
+        IF Copy(TestElement1, 1, 3) = 'XP=' THEN
+          TestElement1 := Copy(TestElement1, 2, 255);
+
+        IF Copy(TestElement2, 1, 3) = 'FP=' THEN
+          TestElement2 := Copy(TestElement2, 2, 255);
+        IF Copy(TestElement2, 1, 3) = 'TP=' THEN
+          TestElement2 := Copy(TestElement2, 2, 255);
+        IF Copy(TestElement2, 1, 3) = 'XP=' THEN
+          TestElement2 := Copy(TestElement2, 2, 255);
+
+        { Remove the suffix if it's a point }
+        IF (Copy(TestElement1, Length(TestElement1), 1) = '/')
+        OR (Copy(TestElement1, Length(TestElement1), 1) = '-')
+        THEN
+          TestElement1 := Copy(TestElement1, 1, Length(TestElement1) - 1);
+
+        { Remove the suffix if it's a point }
+        IF (Copy(TestElement2, Length(TestElement2), 1) = '/')
+        OR (Copy(TestElement2, Length(TestElement2), 1) = '-')
+        THEN
+          TestElement2 := Copy(TestElement2, 1, Length(TestElement2) - 1);
+
+        IF TestElement1 = TestElement2 THEN BEGIN
+          { Only remove the second (and subsequent) occurrences }
+          AppendToStringArray(DuplicateElements, TestElement1);
+          DeleteElementFromStringArray(StringArray, J);
+        END;
+      END;
+      Dec(J);
+    END; {WHILE}
+    Inc(I);
+  END; {WHILE}
+
+  IF DebuggingMode
+  AND (Length(DuplicateElements) > 0)
+  THEN BEGIN
+    Log('X Have removed the following duplicate elements');
+    WriteStringArrayToLog(NoLocoChip, 'X', DuplicateElements);
+    Log('X from the following string array');
+    WriteStringArrayToLog(NoLocoChip, 'X', SaveStringArray);
+    Log('X so it is now:');
+    WriteStringArrayToLog(NoLocoChip, 'X', StringArray);
+  END;
+END; { RemoveDuplicateElementsFromStringArrayMainProcedure }
+
+PROCEDURE RemoveDuplicateElementsFromIntegerArray(VAR IntegerArray : IntegerArrayType);
+{ Removes duplicate elements }
+VAR
+  I, J : Integer;
+  TestElement1, TestElement2 : Integer;
+  DuplicateElements : IntegerArrayType;
+  SaveIntegerArray : IntegerArrayType;
+
+BEGIN
+  { note: copy is used here without parameters to copy the whole of a dynamic array }
+  SaveIntegerArray := Copy(IntegerArray);
+  SetLength(DuplicateElements, 0);
+
+  { We do not want it if it's there already }
+  I := 0;
+  WHILE I < High(IntegerArray) DO BEGIN
+    J := High(IntegerArray);
+    WHILE J > 0 DO BEGIN
+      IF I <> J THEN BEGIN
+        TestElement1 := IntegerArray[I];
+        TestElement2 := IntegerArray[J];
+
+        IF TestElement1 = TestElement2 THEN BEGIN
+          { Only remove the second (and subsequent) occurrences }
+          AppendToIntegerArray(DuplicateElements, TestElement1);
+          DeleteElementFromIntegerArray(IntegerArray, J);
+        END;
+      END;
+      Dec(J);
+    END; {WHILE}
+    Inc(I);
+  END; {WHILE}
+
+  IF DebuggingMode
+  AND (Length(DuplicateElements) > 0)
+  THEN BEGIN
+    Debug('Have removed the following duplicate elements');
+    Debug(DescribeIntegerArray(DuplicateElements));
+    Debug('from the following Integer array');
+    Debug(DescribeIntegerArray(SaveIntegerArray));
+    Debug('so it is now:');
+    Debug(DescribeIntegerArray(IntegerArray));
+  END;
+END; { RemoveDuplicateElementsFromIntegerArray }
+
+PROCEDURE RemoveDuplicateElementsFromStringArray{1}(VAR StringArray : StringArrayType); Overload
+{ Removes duplicate elements }
+BEGIN
+  RemoveDuplicateElementsFromStringArrayMainProcedure(StringArray);
+END; { RemoveDuplicateElementsFromStringArray-1 }
+
+PROCEDURE RemoveDuplicateElementsFromStringArray{2}(VAR StringArray : StringArrayType; SubRouteCount : Integer); Overload
+{ Removes duplicate elements - if SubRouteCount <> 0 do it for individual subroutes, not the whole array }
+VAR
+  I : Integer;
+  NewStringArray : StringArrayType;
+  SubRouteArray : StringArrayType;
+
+BEGIN
+  { Work through the supplied array, extracting and fixing each subroute in turn }
+  FOR I := 1 TO SubRouteCount DO BEGIN
+    SubRouteArray := ExtractSubRouteFromStringArray(StringArray, I);
+    RemoveDuplicateElementsFromStringArray(SubRouteArray);
+    AppendStringArray2ToStringArray1(NewStringArray, SubRouteArray);
+  END;
+  StringArray := NewStringArray;
+END; { RemoveDuplicateElementsFromStringArray-2 }
+
+FUNCTION DateTimeToMilliseconds(DateTime: TDateTime): Int64;
+{ Converts a TDateTime variable to Int64 milliseconds from 0001-01-01 }
+VAR
+  TimeStamp : SysUtils.TTimeStamp;
+
+BEGIN
+  { Call DateTimeToTimeStamp to convert DateTime to TimeStamp }
+  TimeStamp := SysUtils.DateTimeToTimeStamp(DateTime);
+
+  { Multiply and add to complete the conversion }
+  Result := Int64(TimeStamp.Date) * MSecsPerDay + TimeStamp.Time;
+END; { DateTimeToMilliseconds }
+
+FUNCTION MillisecondsToDateTime(Milliseconds: Int64): TDateTime;
+{ Converts an Int64 milliseconds from 0001-01-01 to TDateTime variable }
+VAR
+  TimeStamp : SysUtils.TTimeStamp;
+
+BEGIN
+  { Divide and mod the milliseconds into the TimeStamp record }
+  TimeStamp.Date := Milliseconds DIV MSecsPerDay;
+  TimeStamp.Time := Milliseconds MOD MSecsPerDay;
+
+  { Call TimeStampToDateTime to complete the conversion }
+  Result := SysUtils.TimeStampToDateTime(TimeStamp);
+END; { MillisecondsToDateTime }
+
+FUNCTION NewMinutesBetween(CONST AThen, ANow: TDateTime): Int64;
+{ A replacement for the system routine which is buggy - from http://qc.codegear.com/wc/qcmain.aspx?d=56957 and
+  http://objectmix.com/delphi/401781-proposed-fix-dateutils-date-time-compare-functions.html
+}
+VAR
+  nnNow, nnThen: Int64;
+
+  FUNCTION TruncDateTimeToMinutes(DateTime: TDateTime): LongInt;
+  { Truncates a DateTime to minutes from 0001-01-01 }
+  VAR
+    ms: Int64;
+
+  BEGIN
+    ms := DateTimeToMilliseconds(DateTime);
+    Result := ms div (60*1000);
+  END; { TruncDateTimeToMinutes }
+
+BEGIN
+  { Substitutes DateTimeToTimeStamp and TimeStampToMilliseconds, TruncDateTimeToMinutes for use of Trunc function. }
+  nnNow := TruncDateTimeToMinutes(ANow);
+  nnThen := TruncDateTimeToMinutes(AThen);
+  Result := nnNow - nnThen;
+END; { NewMinutesBetween }
+
+FUNCTION NewSecondsBetween(CONST AThen, ANow: TDateTime): Integer;
+{ A replacement for the system routine which is buggy - from http://qc.codegear.com/wc/qcmain.aspx?d=56957 and
+  http://objectmix.com/delphi/401781-proposed-fix-dateutils-date-time-compare-functions.html
+}
+VAR
+  nnNow, nnThen: Int64;
+
+  FUNCTION TruncDateTimeToSeconds(DateTime: TDateTime): Int64;
+  { Truncates a DateTime to seconds from 0001-01-01 }
+  VAR
+    ms: Int64;
+
+  BEGIN
+    ms := DateTimeToMilliseconds(DateTime);
+    Result := ms div 1000;
+  END; { TruncDateTimeToSeconds }
+
+BEGIN
+  { Substitutes DateTimeToTimeStamp and TimeStampToMilliseconds, TruncDateTimeToMinutes for use of Trunc function. }
+  nnNow := TruncDateTimeToSeconds(ANow);
+  nnThen := TruncDateTimeToSeconds(AThen);
+  Result := nnNow - nnThen;
+END; { NewSecondsBetween }
+
+FUNCTION NewMilliSecondsBetween(CONST AThen, ANow: TDateTime): Integer;
+{ A replacement for the system routine which is buggy - from http://qc.codegear.com/wc/qcmain.aspx?d=56957 and
+  http://objectmix.com/delphi/401781-proposed-fix-dateutils-date-time-compare-functions.html
+}
+VAR
+  nnNow, nnThen: Int64;
+
+  FUNCTION TruncDateTimeToMilliSeconds(DateTime: TDateTime): Int64;
+  { Truncates a DateTime to seconds from 0001-01-01 }
+  BEGIN
+    Result := DateTimeToMilliseconds(DateTime);
+  END; { TruncDateTimeToSeconds }
+
+BEGIN
+  { Substitutes DateTimeToTimeStamp and TimeStampToMilliseconds, TruncDateTimeToMinutes for use of Trunc function. }
+  nnNow := TruncDateTimeToMilliSeconds(ANow);
+  nnThen := TruncDateTimeToMilliSeconds(AThen);
+  Result := nnNow - nnThen;
+END; { NewMilliSecondsBetween }
+
+FUNCTION PointIsCatchPoint(P : Integer) : Boolean;
+{ Returns whether a given point is a catch point }
+BEGIN
+  IF (Points[P].Point_Type = CatchPointUp) OR (Points[P].Point_Type = CatchPointDown) THEN
+    Result := True
+  ELSE
+    Result := False;
+END; { PointIsCatchPoint }
+
+FUNCTION PointStateToStr(PointState : PointStateType) : String;
+{ Return the point state as a string }
+BEGIN
+  IF PointState = Straight THEN
+    Result := 'straight'
+  ELSE
+    IF PointState = Diverging THEN
+      Result := 'diverging'
+    ELSE
+      IF PointState = PointStateUnknown THEN
+        Result := 'unknown'
+      ELSE
+        IF PointState = PointOutOfAction THEN
+          Result := 'out of action';
+END; { PointStateToStr }
+
+FUNCTION PointTypeToStr(PType : TypeOfPoint) : String;
+{ Return the point type }
+BEGIN
+  CASE PType OF
+    OrdinaryPoint:
+      Result := 'Ordinary Point';
+    CrossOverPoint:
+      Result := 'Cross Over Point';
+    ThreeWayPointA:
+      Result := 'Three Way Point A';
+    ThreeWayPointB:
+      Result := 'Three Way Point B';
+    SingleSlip:
+      Result := 'Single Slip';
+    DoubleSlip:
+      Result := 'Double Slip';
+    ProtectedPoint:
+      Result := 'Protected Point';
+    CatchPointUp:
+      Result := 'Catch Point Up';
+    CatchPointDown:
+      Result := 'Catch Point Down';
+  ELSE
+    Result := 'Unknown Point Type';
+  END; {CASE}
+END; { PointTypeToStr }
+
+FUNCTION NextLineRouteingToStr(NextLineRouteing : NextLineRouteingType) : String;
+{ Return a description of the next line routeing type }
+BEGIN
+  CASE NextLineRouteing OF
+    EndOfLineIsNext:
+      Result := 'End of line is next';
+    LineIsNext:
+      Result := 'Line is next';
+    PointIsNext:
+      Result := 'Point is next';
+    UnknownNextLineRouteingType:
+      Result := 'Unknown next line routeing type';
+  ELSE
+    Result := 'Unknown next line routeing type';
+  END; {CASE}
+END; { NextLineRouteingToStr }
+
+FUNCTION GradientToStr(Gradient : GradientType) : String;
+{ Return the gradient status of the line as a string }
+BEGIN
+  CASE Gradient OF
+    Level:
+      Result := LevelStr;
+    RisingIfUp:
+      Result := RisingIfUpStr;
+    RisingIfDown:
+      Result := RisingIfDownStr;
+  ELSE
+    Result := 'Error in DescribeGradientType routine: invalid gradient type';
+  END; {CASE}
+END; { GradientToStr }
+
+FUNCTION FeedbackUnitTypeToStr(FeedbackType : TypeOfFeedBackType) : String;
+{ Convert a feedback unit type to a string }
+BEGIN
+  CASE FeedbackType OF
+    TrackCircuitFeedbackDetector:
+      Result := TrackCircuitFeedbackDetectorStr;
+    TRSPlungerFeedbackDetector:
+      Result := TRSPlungerFeedbackDetectorStr;
+    PointFeedbackDetector:
+      Result := PointFeedbackDetectorStr;
+    LineFeedbackDetector:
+      Result := LineFeedbackDetectorStr;
+    MixedFeedbackDetectors:
+      Result := MixedFeedbackDetectorStr;
+    FeedbackDetectorOutOfUse:
+      Result := FeedbackDetectorOutOfUseStr;
+  ELSE
+    Result := UnknownFeedbackDetectorStr;
+  END; {CASE}
+END; { FeedbackUnitTypeToStr }
+
+FUNCTION NextButton{1}(CONST Dlg: TForm; VAR Context: Integer): TButton;
+{ The NextButton can be used to traverse the buttons in a Message Dialogue that has been created with the Dialogs.CreateMessageDialogue function. Initialize the Context
+  variable to 0 to get the first button. The routine updates the Context variable to cause the next call to NextButton to return the next button. If there are no (more)
+  buttons, the function returns NIL [from uDialogsExt from Borland website]
+}
+VAR
+  Comp: TControl;
+
+BEGIN
+  WHILE Context < Dlg.ControlCount DO BEGIN
+    Comp := Dlg.Controls[Context];
+    Inc(Context);
+    IF Comp IS TButton THEN BEGIN
+      Result := TButton(Comp);
+      Exit;
+    END;
+  END; {WHILE}
+  Result := NIL;
+END; { NextButton-1 }
+
+FUNCTION NextButton{2}(CONST Dlg: TForm; VAR Context: Integer; OUT Button: TButton): Boolean;
+{ This variant of NextButton returns the button in the Button variable. The function result indicates whether a button has been found [from uDialogsExt from Borland
+  website]
+}
+BEGIN
+  Button := NextButton(Dlg, Context);
+  Result := Assigned(Button);
+END; { NextButton-2 }
+
+FUNCTION FindButton(CONST Dlg: TForm; CONST ModalResult: Integer): TButton;
+VAR
+  I: Integer;
+
+BEGIN
+  I := 0;
+  WHILE NextButton(Dlg, I, Result) DO
+    IF Result.ModalResult = ModalResult THEN
+      Exit;
+END; { FindButton }
+
+PROCEDURE OutOfActionPointDialogue(DialogueText : String; VAR OK : Boolean);
+{ Adapted from the Borland Delphi web site example - uses their uDialogsExt Unit }
+VAR
+  Dialog : TForm;
+
+BEGIN
+  Dialog := CreateMessageDialog(DialogueText, mtInformation, [mbYes, mbCancel]);
+  TRY
+    SetDefaultButton(Dialog, mrCancel);
+
+    { change the button text }
+    FindButton(Dialog, mrYes).Caption := 'Point set';
+
+    { show the dialog }
+    IF Dialog.ShowModal = mrCancel THEN
+      OK := False
+    ELSE
+      OK := True;
+  FINALLY
+    Dialog.Free;
+  END;
+END; { OutOfActionPointDialogue }
+
+FUNCTION MessageDialogueWithDefault{1}(DialogueText: String; StopTimer : Boolean; DlgType : TMsgDlgType; Buttons : TMsgDlgButtons; DefaultButton : TMsgDlgBtn) : Word;
+                                       Overload;
+{ Adapted from the Borland Delphi web site example - uses procedures from their uDialogsExt Unit. This version has a default button. }
+VAR
+  Dialogue : TForm;
+  DefaultButtonModalResult : TModalResult;
+  DebugStr : String;
+
+BEGIN
+  IF StopTimer THEN
+    MainWindow.MainTimer.Enabled := False;
+
+  Dialogue := CreateMessageDialog(DialogueText, DlgType, Buttons);
+
+  DefaultButtonModalResult := mrAbort;
+
+  { Set up the default button }
+  CASE DefaultButton OF
+    mbYes:
+      DefaultButtonModalResult := mrYes;
+    mbNo:
+      DefaultButtonModalResult := mrNo;
+    mbOK:
+      DefaultButtonModalResult := mrOK;
+    mbCancel:
+      DefaultButtonModalResult := mrCancel;
+    mbAbort:
+      DefaultButtonModalResult := mrAbort;
+    mbRetry:
+      DefaultButtonModalResult := mrRetry;
+    mbIgnore:
+      DefaultButtonModalResult := mrIgnore;
+    mbAll:
+      DefaultButtonModalResult := mrAll;
+    mbNoToAll:
+      DefaultButtonModalResult := mrNoToAll;
+    mbYesToAll:
+      DefaultButtonModalResult := mrYesToAll;
+    mbHelp:
+      BEGIN
+        { to be implemented ***
+        DefaultButtonModalResult := mrHelp;}
+      END;
+  END; {CASE}
+  SetDefaultButton(Dialogue, DefaultButtonModalResult);
+
+  { Log the text of the dialogue, converting CRLFs before we write out the string }
+  DebugStr := 'MessageDialogueWithDefault: "' + DialogueText + '"';
+  Log('G MessageDialogueWithDefault: "' + DebugStr + '"' + '<Indent=0> <Wrap=ScreenWidth>');
+
+  { show the dialogue and obtain the result }
+  Result := Dialogue.ShowModal;
+
+  DebugStr := 'MessageDialogueWithDefault: user pressed the ';
+  CASE Dialogue.ModalResult OF
+    idOK:
+      DebugStr := DebugStr + 'OK button';
+    idCancel:
+      DebugStr := DebugStr + 'Cancel button';
+    idAbort:
+      DebugStr := DebugStr + 'Abort button';
+    idRetry:
+      DebugStr := DebugStr + 'Retry button';
+    idIgnore:
+      DebugStr := DebugStr + 'Ignore button';
+    idYes:
+      DebugStr := DebugStr + 'Yes button';
+    idNo:
+      DebugStr := DebugStr + 'No button';
+    mrNo + 1:
+      DebugStr := DebugStr + 'All button';
+    mrAll + 1:
+      DebugStr := DebugStr + 'No to All button';
+    mrNoToAll + 1:
+      DebugStr := DebugStr + 'Yes to All button';
+  END; {CASE}
+  Log('G ' + DebugStr + ' [' + IntToStr(Dialogue.ModalResult) + ']');
+  Dialogue.Free;
+
+  IF StopTimer THEN
+    MainWindow.MainTimer.Enabled := True;
+
+  { and redraw the screen, or we are left with a dialogue-sized hole }
+  InvalidateScreen(UnitRef, 'MessageDialogueWithDefault');
+END; { MessageDialogueWithDefault-1 }
+
+FUNCTION MessageDialogueWithDefault{2}(DialogueText: String; StopTimer : Boolean; DlgType : TMsgDlgType; Buttons : TMsgDlgButtons; ButtonText : ARRAY OF String;
+                                       DefaultButton : TMsgDlgBtn) : Word; Overload;
+{ Adapted from the Borland Delphi web site example - uses procedures from their uDialogsExt Unit. This version has replacemnt button text as well as a default button }
+VAR
+  ButtonCount : Integer;
+  Dialogue : TForm;
+  DefaultButtonModalResult : TModalResult;
+  DebugStr : String;
+  TestButtonElement : TMsgDlgBtn;
+
+BEGIN
+  IF StopTimer THEN
+    MainWindow.MainTimer.Enabled := False;
+
+  Dialogue := CreateMessageDialog(DialogueText, DlgType, Buttons);
+
+  { Check that each button has button text supplied, and add it }
+  ButtonCount := 0;
+  FOR TestButtonElement := Low(TMsgDlgBtn) TO High(TMsgDlgBtn) DO BEGIN
+    IF TestButtonElement IN Buttons THEN BEGIN
+      CASE TestButtonElement OF
+        mbYes:
+          FindButton(Dialogue, mrYes).Caption := ButtonText[ButtonCount];
+        mbNo:
+          FindButton(Dialogue, mrNo).Caption := ButtonText[ButtonCount];
+        mbOK:
+          FindButton(Dialogue, mrOK).Caption := ButtonText[ButtonCount];
+        mbCancel:
+          FindButton(Dialogue, mrCancel).Caption := ButtonText[ButtonCount];
+        mbAbort:
+          FindButton(Dialogue, mrAbort).Caption := ButtonText[ButtonCount];
+        mbRetry:
+          FindButton(Dialogue, mrRetry).Caption := ButtonText[ButtonCount];
+        mbIgnore:
+          FindButton(Dialogue, mrIgnore).Caption := ButtonText[ButtonCount];
+        mbAll:
+          FindButton(Dialogue, mrAll).Caption := ButtonText[ButtonCount];
+        mbNoToAll:
+          FindButton(Dialogue, mrNoToAll).Caption := ButtonText[ButtonCount];
+        mbYesToAll:
+          FindButton(Dialogue, mrYesToAll).Caption := ButtonText[ButtonCount];
+      END; {CASE}
+
+      Inc(ButtonCount);
+    END;
+  END; {FOR}
+
+  IF ButtonCount <> Length(ButtonText) THEN
+    Log('G! ' + IntToStr(ButtonCount) + ' buttons are declared but there is text for ' + IntToStr(Length(ButtonText)) + ' buttons');
+
+  DefaultButtonModalResult := mrAbort;
+
+  { Set up the default button }
+  CASE DefaultButton OF
+    mbYes:
+      DefaultButtonModalResult := mrYes;
+    mbNo:
+      DefaultButtonModalResult := mrNo;
+    mbOK:
+      DefaultButtonModalResult := mrOK;
+    mbCancel:
+      DefaultButtonModalResult := mrCancel;
+    mbAbort:
+      DefaultButtonModalResult := mrAbort;
+    mbRetry:
+      DefaultButtonModalResult := mrRetry;
+    mbIgnore:
+      DefaultButtonModalResult := mrIgnore;
+    mbAll:
+      DefaultButtonModalResult := mrAll;
+    mbNoToAll:
+      DefaultButtonModalResult := mrNoToAll;
+    mbYesToAll:
+      DefaultButtonModalResult := mrYesToAll;
+    mbHelp:
+      BEGIN
+        { to be implemented ***
+        DefaultButtonModalResult := mrHelp;}
+      END;
+  END; {CASE}
+  SetDefaultButton(Dialogue, DefaultButtonModalResult);
+
+  { Log the text of the dialogue, converting CRLFs before we write out the string }
+  DebugStr := 'MessageDialogueWithDefault: "' + DialogueText + '"';
+  Log('G MessageDialogueWithDefault: "' + DebugStr + '"' + '<Indent=0> <Wrap=ScreenWidth>');
+
+  { show the dialogue and obtain the result }
+  Result := Dialogue.ShowModal;
+
+  DebugStr := 'MessageDialogueWithDefault: user pressed the ';
+  CASE Dialogue.ModalResult OF
+    idOK:
+      DebugStr := DebugStr + 'OK button';
+    idCancel:
+      DebugStr := DebugStr + 'Cancel button';
+    idAbort:
+      DebugStr := DebugStr + 'Abort button';
+    idRetry:
+      DebugStr := DebugStr + 'Retry button';
+    idIgnore:
+      DebugStr := DebugStr + 'Ignore button';
+    idYes:
+      DebugStr := DebugStr + 'Yes button';
+    idNo:
+      DebugStr := DebugStr + 'No button';
+    mrNo + 1:
+      DebugStr := DebugStr + 'All button';
+    mrAll + 1:
+      DebugStr := DebugStr + 'No to All button';
+    mrNoToAll + 1:
+      DebugStr := DebugStr + 'Yes to All button';
+  END; {CASE}
+  Log('G ' + DebugStr + ' [' + IntToStr(Dialogue.ModalResult) + ']');
+  Dialogue.Free;
+
+  IF StopTimer THEN
+    MainWindow.MainTimer.Enabled := True;
+
+  { and redraw the screen, or we are left with a dialogue-sized hole }
+  InvalidateScreen(UnitRef, 'MessageDialogueWithDefault');
+END; { MessageDialogueWithDefault-2 }
+
+FUNCTION PenStyleToStr(PenStyle : TPenStyle) : String;
+{ Describes pen styles }
+BEGIN
+  CASE PenStyle OF
+    psSolid:
+      Result := 'Solid';
+    psDash:
+      Result := 'Dash';
+    psDot:
+      Result := 'Dot';
+    psDashDot:
+      Result := 'DashDot';
+    psDashDotDot:
+      Result := 'DashDotDot';
+    psClear:
+      Result := 'Clear';
+    psInsideFrame:
+      Result := 'InsideFrame';
+  ELSE {CASE}
+    Result := 'Unknown pen style';
+  END; {CASE}
+END; { PenStyleToStr }
+
+FUNCTION RoundTimeToNextWholeMinute(Time : TDateTime) : TDateTime;
+{ Round the time to the next whole minute, i.e. 06:30:00 becomes 06:31:00, but 06:30:20 becomes 06:32:00 }
+VAR
+  Hour, Min, Sec, MSec: Word;
+
+BEGIN
+  DecodeTime(Time, Hour, Min, Sec, MSec);
+  IF Sec = 0 THEN BEGIN
+    Time := IncMinute(Time, 1);
+    DecodeTime(Time, Hour, Min, Sec, MSec);
+    MSec := 0;
+  END ELSE BEGIN
+    Time := IncMinute(Time, 2);
+    DecodeTime(Time, Hour, Min, Sec, MSec);
+    Sec := 0;
+    MSec := 0;
+  END;
+
+  Result := EncodeTime(Hour, Min, Sec, MSec);
+END; { RoundTimeToNextWholeMinute }
+
+PROCEDURE ChangeTrainStatus(T : Train; NewStatus : TrainStatusType);
+{ Change out the current train status and record it }
+VAR
+  DebugStr : String;
+
+BEGIN
+  DebugStr := '';
+
+  WITH T^ DO BEGIN
+    IF (Train_CurrentStatus = Missing) OR (Train_CurrentStatus = MissingAndSuspended) THEN
+      DebugStr := ' (immediate previous status was ' + TrainStatusToStr(Train_CurrentStatus) + ')'
+    ELSE
+      Train_PreviousStatus := Train_CurrentStatus;
+
+    Train_CurrentStatus := NewStatus;
+    Log(Train_LocoChipStr + ' L Current status: ' + TrainStatusToStr(T^.Train_CurrentStatus)
+                          + '; previous status: ' + TrainStatusToStr(T^.Train_PreviousStatus) + DebugStr);
+    { update the diagrams window }
+    DrawDiagramsStatusCell(T, Normalstyle);
+  END; {WITH}
+END; { ChangeTrainStatus }
+
+FUNCTION DescribeTrainList{1} : String; Overload;
+{ Describe the contents of the train list, the full list of locos and trains if DescribeFullTrainList is set }
+VAR
+  T : Train;
+
+BEGIN
+  Result := '';
+
+  T := TrainList;
+  WHILE T <> NIL DO BEGIN
+    WITH T^ DO BEGIN
+      Result := Result + IntToStr(Train_LocoChip) + ', ' ;
+      T := T^.Train_NextRecord;
+    END; {WITH}
+  END; {WHILE}
+END; { DescribeTrainList-1 }
+
+FUNCTION DescribeTrainList{2}(Sort : SortOrder; DescribeFullTrainList : Boolean) : String; Overload;
+{ Describe the contents of the train list, the full list of locos and trains if DescribeFullTrainList is set }
+VAR
+  T : Train;
+
+BEGIN
+  Result := '';
+
+  T := TrainList;
+  WHILE T <> NIL DO BEGIN
+    WITH T^ DO BEGIN
+      IF DescribeFullTrainList OR Train_DiagramFound THEN BEGIN
+        CASE Sort OF
+          Unsorted, LocoChipSort, ReverseLocoChipSort:
+            Result := Result + IntToStr(Train_LocoChip) + ', ' ;
+          TrainTypeSort:
+            Result := Result + IntToStr(Train_LocoChip) + ' ' + IntToStr(Train_TypeNum) + ', ';
+          LocoChipAndDepartureTimeSort:
+            BEGIN
+              IF Length(Train_JourneysArray) = 0 THEN
+                Result := Result + IntToStr(Train_LocoChip) + ', '
+              ELSE
+                Result := Result + IntToStr(Train_LocoChip) + ' ' + TimeToHMStr(Train_JourneysArray[0].TrainJourney_CurrentDepartureTime) + ', ';
+            END;
+          DepartureTimeAndTrainTypeSort:
+            BEGIN
+              IF Length(Train_JourneysArray) = 0 THEN
+                Result := Result + IntToStr(Train_TypeNum) + ', '
+              ELSE
+                Result := Result + TimeToHMStr(Train_JourneysArray[0].TrainJourney_CurrentDepartureTime) + ' ' + IntToStr(Train_TypeNum) + ', ';
+            END;
+        ELSE {CASE}
+          Result := 'Unknown sort type';
+        END; {CASE}
+      END;
+      T := T^.Train_NextRecord;
+    END; {WITH}
+  END; {WHILE}
+
+  IF Result <> '' THEN BEGIN
+    CASE Sort OF
+      Unsorted:
+        Result := 'TrainList unsorted = ' + Result;
+      LocoChipSort:
+        Result := 'TrainList sorted in LocoChip order = ' + Result;
+      ReverseLocoChipSort:
+        Result := 'TrainList reverse-sorted in LocoChip order = ' + Result;
+      TrainTypeSort:
+        Result := 'TrainList sorted in TrainType order = ' + Result;
+      LocoChipAndDepartureTimeSort:
+        Result := 'TrainList sorted in LocoChip and Departure Time order = ' + Result;
+      DepartureTimeAndTrainTypeSort:
+        Result := 'TrainList sorted in Departure Time and Train Type order = ' + Result;
+    ELSE {CASE}
+      Result := 'Unknown sort type';
+    END; {CASE}
+  END;
+END; { DescribeTrainList-2 }
+
+FUNCTION ListSort_SortTrainList(XTrainList : Train; Sort : SortOrder; Indent : Boolean) : Train;
+{ Sorts the TrainList into specified order; indent is to track the recursion for debugging purposes }
+CONST
+  MustIndent = True;
+
+  FUNCTION MergeTrainLists(XTrainList1, XTrainList2 : Train; Sort : SortOrder) : Train;
+  { Merge the two lists }
+  VAR
+    TakeFromList2 : Boolean;
+    TempNewList, NewList1, NewList2 : Train;
+
+  BEGIN
+    NewList1 := NIL;
+    NewList2 := NIL;
+    TakeFromList2 := False;
+
+    WHILE (XTrainList1 <> NIL) OR (XTrainList2 <> NIL) DO BEGIN
+      { something in both lists - now need to merge them }
+      IF XTrainList1 = NIL THEN
+        TakeFromList2 := True
+      ELSE
+        IF XTrainList2 = NIL THEN
+          TakeFromList2 := False
+        ELSE
+          CASE Sort OF
+            LocoChipAndDepartureTimeSort:
+              BEGIN
+                IF XTrainList1^.Train_LocoChip = XTrainList2^.Train_LocoChip THEN BEGIN
+                  IF (Length(XTrainList1^.Train_JourneysArray) > 0)
+                  AND (Length(XTrainList2^.Train_JourneysArray) > 0)
+                  AND (XTrainList1^.Train_JourneysArray[0].TrainJourney_CurrentDepartureTime > XTrainList2^.Train_JourneysArray[0].TrainJourney_CurrentDepartureTime)
+                  THEN
+                    TakeFromList2 := True
+                  ELSE
+                    TakeFromList2 := False;
+                END ELSE BEGIN
+                  IF (XTrainList1^.Train_LocoChip > XTrainList2^.Train_LocoChip) THEN
+                    TakeFromList2 := True
+                  ELSE
+                    TakeFromList2 := False;
+                END;
+              END;
+            LocoChipSort:
+              BEGIN
+                IF XTrainList1^.Train_LocoChip = XTrainList2^.Train_LocoChip THEN BEGIN
+                  IF XTrainList1^.Train_JourneysArray[0].TrainJourney_CurrentDepartureTime > XTrainList2^.Train_JourneysArray[0].TrainJourney_CurrentDepartureTime THEN
+                    TakeFromList2 := True
+                  ELSE
+                    TakeFromList2 := False;
+                END ELSE BEGIN
+                  IF (XTrainList1^.Train_LocoChip > XTrainList2^.Train_LocoChip) THEN
+                    TakeFromList2 := True
+                  ELSE
+                    TakeFromList2 := False;
+                END;
+              END;
+            ReverseLocoChipSort:
+              BEGIN
+                IF XTrainList1^.Train_LocoChip < XTrainList2^.Train_LocoChip THEN
+                  TakeFromList2 := True
+                ELSE
+                  TakeFromList2 := False;
+              END;
+            TrainTypeSort:
+              BEGIN
+                IF XTrainList1^.Train_Type > XTrainList2^.Train_Type THEN
+                  TakeFromList2 := True
+                ELSE
+                  TakeFromList2 := False;
+              END;
+          ELSE {CASE}
+            Debug('Unknown sort type');
+          END; {CASE}
+
+      IF TakeFromList2 THEN BEGIN
+        { remove item from XTrainList2 }
+        TempNewList := XTrainList2;
+        XTrainList2 := TempNewList^.Train_NextRecord;
+        { and add it to NewList }
+        TempNewList^.Train_NextRecord := NewList1;
+        NewList1 := TempNewList;
+      END ELSE BEGIN
+        { remove item from TrainList1 }
+        TempNewList := XTrainList1;
+        XTrainList1 := TempNewList^.Train_NextRecord;
+        { and add it to NewList }
+        TempNewList^.Train_NextRecord := NewList1;
+        NewList1 := TempNewList;
+      END;
+    END; {WHILE}
+
+    { Now reverse sort the list }
+    WHILE NewList1 <> NIL DO BEGIN
+      { remove item from NewList }
+      TempNewList := NewList1;
+      NewList1 := TempNewList^.Train_NextRecord;
+      { and add it to NewList2 }
+      TempNewList^.Train_NextRecord := NewList2;
+      NewList2 := TempNewList;
+    END; {WHILE}
+
+    Result := NewList2;
+  END; { MergeLists }
+
+  PROCEDURE SplitTrainLists(OldList : Train; VAR XTrainList1, XTrainList2 : Train);
+  { Split the train list in two }
+  VAR
+    Count : Word;
+    OldNext : Train;
+
+  BEGIN
+    Count := 0;
+    XTrainList1 := NIL;
+    XTrainList2 := NIL;
+    WHILE OldList <> NIL DO BEGIN
+      Inc(Count);
+      { store where original list points }
+      OldNext := OldList^.Train_NextRecord;
+      IF Odd(Count) THEN BEGIN
+        { make it point to new item instead }
+        OldList^.Train_NextRecord := XTrainList1;
+        { and make the new item the start of the original list }
+        XTrainList1 := OldList;
+      END ELSE BEGIN
+        { make it point to new item instead }
+        OldList^.Train_NextRecord := XTrainList2;
+        { and make the new item the start of the original list }
+        XTrainList2 := OldList;
+      END;
+      OldList := OldNext;
+    END; {WHILE}
+  END; { SplitLists }
+
+VAR
+  SplitList1, SplitList2, MergedList : Train;
+
+BEGIN
+  IF XTrainList = NIL THEN
+    { if list empty }
+    Result := NIL
+  ELSE
+    IF XTrainList^.Train_NextRecord = NIL THEN
+      { if list has just one item }
+      Result := XTrainList
+    ELSE BEGIN
+      SplitTrainLists(XTrainList, SplitList1, SplitList2);
+      SplitList1 := ListSort_SortTrainList(SplitList1, Sort, MustIndent);
+      SplitList2 := ListSort_SortTrainList(SplitList2, Sort, MustIndent);
+      MergedList := MergeTrainLists(SplitList1, SplitList2, Sort);
+      Result := MergedList;
+    END;
+END; { ListSort_SortTrainList }
+
+FUNCTION ListLocoChipsInIntegerArray(IntegerArray : IntegerArrayType) : String;
+{ Lists loco chips from an integer array }
+VAR
+  I : Integer;
+
+BEGIN
+  Result := '';
+
+  IF Length(IntegerArray) > 0 THEN BEGIN
+    FOR I := 0 TO High(IntegerArray) - 1 DO
+      Result := Result + LocoChipToStr(IntegerArray[I]) + ', ';
+    Result := Result + LocoChipToStr(IntegerArray[High(IntegerArray)]);
+  END;
+END; { ListLocoChipsInIntegerArray }
+
+FUNCTION DescribeDiagramsList(WTE : DiagramsEntryType; Sort : SortOrder) : String;
+{ Write out the contents of the diagrams list }
+BEGIN
+  CASE Sort OF
+    Unsorted:
+      Result := 'Trains unsorted = ';
+    LocoChipSort:
+      Result := 'Trains sorted in LocoChip order = ';
+    ReverseLocoChipSort:
+      Result := 'Trains reverse-sorted in LocoChip order = ';
+    TrainTypeSort:
+      Result := 'Trains sorted in TrainType order = ';
+    LocoChipAndDepartureTimeSort:
+      Result := 'Trains sorted in LocoChip and Departure Time order = ';
+    DepartureTimeAndTrainTypeSort:
+      Result := 'Trains sorted in Departure Time and Train Type order = ';
+  ELSE {CASE}
+    Result := 'Unknown sort order';
+  END; {CASE}
+
+  WHILE WTE <> NIL DO BEGIN
+    CASE Sort OF
+      Unsorted:
+        Result := Result + IntToStr(WTE^.TrainPtr^.Train_LocoChip) + ', ';
+      LocoChipSort, ReverseLocoChipSort:
+        Result := Result + IntToStr(WTE^.TrainPtr^.Train_LocoChip) + ', ' ;
+      TrainTypeSort:
+        Result := Result + IntToStr(WTE^.TrainPtr^.Train_LocoChip) + ' ' + IntToStr(WTE^.TrainPtr^.Train_TypeNum) + ', ';
+      LocoChipAndDepartureTimeSort:
+        Result := Result + IntToStr(WTE^.TrainPtr^.Train_LocoChip) + ' ' + TimeToHMStr(WTE^.TrainPtr^.Train_JourneysArray[0].TrainJourney_CurrentDepartureTime) + ', ';
+      DepartureTimeAndTrainTypeSort:
+        Result := Result + IntToStr(WTE^.TrainPtr^.Train_LocoChip) + ' ' + TimeToHMStr(WTE^.TrainPtr^.Train_JourneysArray[0].TrainJourney_CurrentDepartureTime)
+                                                                                                                      + ' ' + IntToStr(WTE^.TrainPtr^.Train_TypeNum) + ', ';
+    ELSE {CASE}
+      Result := '';
+    END; {CASE}
+    WTE := WTE^.NextDiagramsRecord;
+  END; {WHILE}
+END; { DescribeDiagramsList }
+
+FUNCTION ListSort_MergeDiagramsLists(XDiagramsList1, XDiagramsList2 : DiagramsEntryType; Sort : SortOrder) : DiagramsEntryType;
+{ Merge the two diagrams lists }
+VAR
+  TempNewList, NewList1, NewList2 : DiagramsEntryType;
+  TakeFromList2 : Boolean;
+
+BEGIN
+  NewList1 := NIL;
+  NewList2 := NIL;
+  TakeFromList2 := False;
+
+  WHILE (XDiagramsList1 <> NIL) OR (XDiagramsList2 <> NIL) DO BEGIN
+    { something in both lists - now need to merge them }
+    IF XDiagramsList1 = NIL THEN
+      TakeFromList2 := True
+    ELSE
+      IF XDiagramsList2 = NIL THEN
+        TakeFromList2 := False
+      ELSE
+        CASE Sort OF
+          DepartureTimeAndTrainTypeSort:
+            BEGIN
+              { first check if there's a departure time }
+              IF (Length(XDiagramsList1^.TrainPtr^.Train_JourneysArray) = 0)
+              OR (Length(XDiagramsList2^.TrainPtr^.Train_JourneysArray) = 0)
+              THEN BEGIN
+                { if not, compare loco chip numbers }
+                IF XDiagramsList1^.TrainPtr^.Train_LocoChip > XDiagramsList2^.TrainPtr^.Train_LocoChip THEN
+                  TakeFromList2 := True
+                ELSE
+                  TakeFromList2 := False;
+              END ELSE BEGIN
+                { ideally compare departure times }
+                IF XDiagramsList1^.TrainPtr^.Train_JourneysArray[0].TrainJourney_CurrentDepartureTime =
+                                                                                          XDiagramsList2^.TrainPtr^.Train_JourneysArray[0].TrainJourney_CurrentDepartureTime
+                THEN BEGIN
+                  IF XDiagramsList1^.TrainPtr^.Train_TypeNum > XDiagramsList2^.TrainPtr^.Train_TypeNum THEN
+                    TakeFromList2 := True
+                  ELSE
+                    TakeFromList2 := False;
+                END ELSE BEGIN
+                  IF XDiagramsList1^.TrainPtr^.Train_JourneysArray[0].TrainJourney_CurrentDepartureTime >
+                                                                                          XDiagramsList2^.TrainPtr^.Train_JourneysArray[0].TrainJourney_CurrentDepartureTime
+                  THEN
+                    TakeFromList2 := True
+                  ELSE
+                    TakeFromList2 := False;
+                END;
+              END;
+            END;
+          LocoChipSort:
+            BEGIN
+              IF XDiagramsList1^.TrainPtr^.Train_LocoChip = XDiagramsList2^.TrainPtr^.Train_LocoChip THEN BEGIN
+                IF (XDiagramsList1^.TrainPtr^.Train_JourneysArray[0].TrainJourney_CurrentDepartureTime >
+                                                                                         XDiagramsList2^.TrainPtr^.Train_JourneysArray[0].TrainJourney_CurrentDepartureTime)
+                THEN
+                  TakeFromList2 := True
+                ELSE
+                  TakeFromList2 := False;
+              END ELSE BEGIN
+                IF (XDiagramsList1^.TrainPtr^.Train_LocoChip > XDiagramsList2^.TrainPtr^.Train_LocoChip) THEN
+                  TakeFromList2 := True
+                ELSE
+                  TakeFromList2 := False;
+              END;
+            END;
+          ReverseLocoChipSort:
+            BEGIN
+              IF XDiagramsList1^.TrainPtr^.Train_LocoChip < XDiagramsList2^.TrainPtr^.Train_LocoChip THEN
+                TakeFromList2 := True
+              ELSE
+                TakeFromList2 := False;
+            END;
+          TrainTypeSort:
+            BEGIN
+              IF XDiagramsList1^.TrainPtr^.Train_Type > XDiagramsList2^.TrainPtr^.Train_Type THEN
+                TakeFromList2 := True
+              ELSE
+                TakeFromList2 := False;
+            END;
+          LocoChipAndDepartureTimeSort:
+            BEGIN
+              IF XDiagramsList1^.TrainPtr^.Train_LocoChip = XDiagramsList2^.TrainPtr^.Train_LocoChip THEN BEGIN
+                IF (Length(XDiagramsList1^.TrainPtr^.Train_JourneysArray) > 0)
+                AND (Length(XDiagramsList2^.TrainPtr^.Train_JourneysArray) > 0)
+                AND (XDiagramsList1^.TrainPtr^.Train_JourneysArray[0].TrainJourney_CurrentDepartureTime >
+                                                                                         XDiagramsList2^.TrainPtr^.Train_JourneysArray[0].TrainJourney_CurrentDepartureTime)
+                THEN
+                  TakeFromList2 := True
+                ELSE
+                  TakeFromList2 := False;
+              END ELSE BEGIN
+                IF (XDiagramsList1^.TrainPtr^.Train_LocoChip > XDiagramsList2^.TrainPtr^.Train_LocoChip) THEN
+                  TakeFromList2 := True
+                ELSE
+                  TakeFromList2 := False;
+              END;
+            END;
+          ELSE {CASE}
+            Debug('Unknown sort type');
+          END; {CASE}
+
+    IF TakeFromList2 THEN BEGIN
+      { remove item from XDiagramsList2 }
+      TempNewList := XDiagramsList2;
+      XDiagramsList2 := TempNewList^.NextDiagramsRecord;
+      { and add it to NewList }
+      TempNewList^.NextDiagramsRecord := NewList1;
+      NewList1 := TempNewList;
+    END ELSE BEGIN
+      { remove item from DiagramsList1 }
+      TempNewList := XDiagramsList1;
+      XDiagramsList1 := TempNewList^.NextDiagramsRecord;
+      { and add it to NewList }
+      TempNewList^.NextDiagramsRecord := NewList1;
+      NewList1 := TempNewList;
+    END;
+  END; {WHILE}
+
+  { Now reverse sort the list }
+  WHILE NewList1 <> NIL DO BEGIN
+    { remove item from NewList }
+    TempNewList := NewList1;
+    NewList1 := TempNewList^.NextDiagramsRecord;
+    { and add it to NewList2 }
+    TempNewList^.NextDiagramsRecord := NewList2;
+    NewList2 := TempNewList;
+  END; {WHILE}
+
+  Result := NewList2;
+END; { ListSort_MergeDiagramsLists }
+
+PROCEDURE ListSort_SplitDiagramsLists(OldList : DiagramsEntryType; VAR XDiagramsList1, XDiagramsList2 : DiagramsEntryType);
+{ Split the Diagrams list in two }
+VAR
+  Count : Word;
+  OldNext : DiagramsEntryType;
+
+BEGIN
+  Count := 0;
+  XDiagramsList1 := NIL;
+  XDiagramsList2 := NIL;
+  WHILE OldList <> NIL DO BEGIN
+    Inc(Count);
+    { store where original list points }
+    OldNext := OldList^.NextDiagramsRecord;
+    IF Odd(Count) THEN BEGIN
+      { make it point to new item instead }
+      OldList^.NextDiagramsRecord := XDiagramsList1;
+      { and make the new item the start of the original list }
+      XDiagramsList1 := OldList;
+    END ELSE BEGIN
+      { make it point to new item instead }
+      OldList^.NextDiagramsRecord := XDiagramsList2;
+      { and make the new item the start of the original list }
+      XDiagramsList2 := OldList;
+    END;
+    OldList := OldNext;
+  END; {WHILE}
+END; { ListSort_SplitDiagramsLists }
+
+FUNCTION ListSort_SortDiagramsList(XDiagramsList : DiagramsEntryType; Sort : SortOrder) : DiagramsEntryType;
+{ Sorts the diagrams list into specified order; indent is to track the recursion for debugging purposes }
+VAR
+  SplitList1, SplitList2, MergedList : DiagramsEntryType;
+
+BEGIN
+  IF XDiagramsList = NIL THEN
+    { if list empty }
+    Result := NIL
+  ELSE
+    IF XDiagramsList^.NextDiagramsRecord = NIL THEN
+      { if list has just one item }
+      Result := XDiagramsList
+    ELSE BEGIN
+      ListSort_SplitDiagramsLists(XDiagramsList, SplitList1, SplitList2);
+      SplitList1 := ListSort_SortDiagramsList(SplitList1, Sort);
+      SplitList2 := ListSort_SortDiagramsList(SplitList2, Sort);
+      MergedList := ListSort_MergeDiagramsLists(SplitList1, SplitList2, Sort);
+      Result := MergedList;
+    END;
+END; { ListSort_SortDiagramsList }
+
+PROCEDURE Pause(MilliSeconds : Cardinal; ProcessMessages : Boolean);
+{ Pause for a given number of milliseconds }
+VAR
+  Start : Cardinal;
+
+BEGIN
+  Start := GetTickCount;
+  { Debug('Pausing...'); }
+  WHILE GetTickCount - Start < MilliSeconds DO BEGIN
+    IF ProcessMessages THEN
+      Application.ProcessMessages;
+
+    IF InAutoMode THEN BEGIN
+      DoCheckForUnexpectedData(UnitRef, 'Pause');
+      MoveAllTrains;
+    END;
+  END;
+END; { Pause }
+
+PROCEDURE ReadInLocationData;
+{ Read in data from the Excel data file - works but is not needed - kept as an example of reading from Excel files }
+//VAR
+//  FieldCount : Integer;
+//  I : Integer;
+//  LocationDataOK : Boolean;
+//  TableList : TStrings;
+
+BEGIN
+//  TRY
+//    WITH LocationDataWindow DO BEGIN
+//      TableList := TStringList.Create;
+//      LocationDataOK := True;
+//
+//      LocationDataADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0;Data Source='
+//                                                    + PathToRailDataFiles + LocationDataFilename + '.' + LocationDataFilenameSuffix
+//                                                    + ';Extended Properties=Excel 8.0;';
+//                                                 // + ';Extended Properties="Excel 8.0;IMEX=1"';
+//
+//      LocationDataADOConnection.Connected := True;
+//
+//      LocationDataADOConnection.GetTableNames(TableList, False);
+//      LocationDataADOTable.TableName := '[Locations$]';
+//
+//      for I := 0 to (TableList.Count - 1) do begin
+//        debug(Tablelist[I]);
+//      end;
+//
+//
+//      Log('D LocationData table and connection opened to initialise the location data');
+//
+//  //    LocationDataADOTable.Sort := 'LocoChip ASC, DepartureTime0 ASC';
+//
+//      LocationDataADOTable.Open;
+//      LocationDataADOTable.First;
+//
+//      Debug('fieldcount=' + IntToStr(LocationDataADOTable.FieldCount));
+//      FieldCount := LocationDataADOTable.FieldCount;
+//
+//      WHILE LocationDataOK
+//      AND NOT LocationDataADOTable.EOF
+//      DO BEGIN
+//        Debug('0: ' + LocationDataADOTable.Fields[0].asString);
+//        FOR I := 0 TO FieldCount - 1 DO
+//          Debug(IntToStr(I) + ': ' + LocationDataADOTable.Fields[I].asString);
+//
+//
+//        LocationDataADOTable.Next;
+//      END; {WHILE}
+//
+//      { Tidy up the database }
+//      TableList.Free;
+//      LocationDataADOTable.Close;
+//      LocationDataADOConnection.Connected := False;
+//      Log('D LocationData table and connection closed');
+//    END; {WITH}
+//  EXCEPT {TRY}
+//    ON E : Exception DO BEGIN
+//      Debug('LoadLocationData: ' + E.ClassName +' error raised, with message: '+ E.Message);
+//      Log(NoLocoChip, 'E LoadLocationData: ' + E.ClassName +' error raised, with message: '+ E.Message);
+//    END;
+//  END; {TRY}
+END; { ReadInLocationData }
+
+FUNCTION ReturnFixedLengthStr(Str : String; FixedLength : Integer) : String;
+{ Return a short string of a fixed length }
+BEGIN
+  Result := Str + StringOfChar(' ', 4 - Length(Str))
+END; { ReturnFixedLengthStr }
+
+PROCEDURE ReturnTrainFromMissing(T : Train);
+{ Set a train as being no longer missing }
+VAR
+  TC : Integer;
+
+BEGIN
+  WITH T^ DO BEGIN
+    IF Train_CurrentStatus = MissingAndSuspended THEN
+      ChangeTrainStatus(T, Suspended)
+    ELSE
+      IF Train_CurrentStatus = Missing THEN
+        ChangeTrainStatus(T, Train_PreviousStatus);
+
+    Train_MissingMessage := False;
+    Train_LastMissingTC := Train_CurrentTC;
+    Dec(MissingTrainCounter);
+
+    FOR TC := 0 TO High(TrackCircuits) DO BEGIN
+      IF (TrackCircuits[TC].TC_LocoChip = T^.Train_LocoChip)
+      AND (TrackCircuits[TC].TC_OccupationState = TCMissingOccupation)
+      THEN BEGIN
+        TrackCircuits[TC].TC_MissingTrainNoted := False;
+        SetTrackCircuitState(T^.Train_LocoChip, TC, TCFeedbackOccupation);
+      END;
+    END;
+
+    Log(Train_LocoChipStr + ' LG Train has been restarted');
+    DrawDiagramsStatusCell(T, NormalStyle);
+  END; {WITH}
+END; { ReturnTrainFromMissing }
+
+FUNCTION SameTimeInHoursAndMinutesOnly(Time1, Time2 : TDateTime) : Boolean;
+{ Compares two given times and returns true if they are the same in terms of hours and minutes (the system routine SameTime compares times down to the millisecond level,
+  and comparing two times by means of Time1 = Time2 also fails if there is a fraction of a difference between them).
+}
+VAR
+  Hour1, Min1, Sec1, MSec1: Word;
+  Hour2, Min2, Sec2, MSec2: Word;
+
+BEGIN
+  Result := False;
+
+  DecodeTime(Time1, Hour1, Min1, Sec1, MSec1);
+  DecodeTime(Time2, Hour2, Min2, Sec2, MSec2);
+
+  IF Hour1 = Hour2 THEN
+    IF Min1 = Min2 THEN
+      Result := True;
+END; { SameTimeInHoursAndMinutesOnly }
+
+FUNCTION SetDefaultButton(CONST Dlg: TForm; CONST ModalResult: Integer): Boolean;
+{ Sets the button to be the Active Control on the dialogue form - so gets the focus and is the default }
+VAR
+  Btn: TButton;
+  DefButton: TButton;
+  I: Integer;
+
+BEGIN
+  DefButton := NIL;
+  I := 0;
+  WHILE NextButton(Dlg, I, Btn) DO BEGIN
+    Btn.Default := (Btn.ModalResult = ModalResult);
+    IF Btn.Default
+    AND NOT Assigned(DefButton)
+    THEN
+      DefButton := Btn;
+  END; {WHILE}
+  Result := Assigned(DefButton);
+  IF Result THEN
+    Dlg.ActiveControl := DefButton;
+END; { SetDefaultButton }
+
+PROCEDURE SetSystemOffline(OfflineMsg : String);
+{ Change the caption and the icons to show we're offline }
+BEGIN
+  SystemOnline := False;
+  SetCaption(MainWindow, 'OFFLINE');
+  Application.Icon := OffLineIcon;
+  IF OfflineMsg <> '' THEN BEGIN
+    IF FeedbackWindow <> NIL THEN BEGIN
+      WriteDataToFeedbackWindow(OfflineMsg);
+      FeedbackWindow.FeedbackWindowTimer.Enabled := True;
+    END;
+    Log('X! ' + OfflineMsg);
+  END;
+END; { SetSystemOffline }
+
+PROCEDURE SetSystemOnline;
+{ Change the caption and the icons to show we're online }
+BEGIN
+  SystemOnline := True;
+  SetCaption(MainWindow, '');
+  Application.Icon := OnlineIcon;
+END; { SetSystemOnline }
+
+PROCEDURE SetTrainControlledByProgram(T : Train; ControlledByProgram : Boolean);
+{ Mark a given train as controlled either by the software or by the LH100 }
+BEGIN
+  WITH T^ DO BEGIN
+    Train_PreviouslyControlledByProgram := Train_ControlledByProgram;
+    Train_ControlledByProgram := ControlledByProgram;
+
+    { Also mark the additional lighting chips if any as controlled. Note: the address of the additional chip may be NIL if it's the same as the loco chip }
+    IF Train_LightingChipUp <> UnknownLocoChip THEN
+      IF Train_LightingChipUpAddress <> NIL THEN
+        Train_LightingChipUpAddress^.Train_ControlledByProgram := ControlledByProgram;
+
+    IF Train_LightingChipDown <> UnknownLocoChip THEN
+      IF Train_LightingChipDownAddress <> NIL THEN
+        Train_LightingChipDownAddress^.Train_ControlledByProgram := ControlledByProgram;
+  END;
+END; { SetTrainControlledByProgram }
+
+PROCEDURE SetTwoLightingChips(LocoChip : Integer; LightsAtUp, LightsAtDown : DirectionType; LightsOn : Boolean);
+{ When appropriate switch two lighting chips }
+VAR
+  DebugStr : String;
+  OK : Boolean;
+  T : Train;
+
+BEGIN
+  IF LocoChip <> UnknownLocoChip THEN BEGIN
+    T := GetTrainRecord(LocoChip);
+    IF T <> NIL THEN BEGIN
+      WITH T^ DO BEGIN
+        IF NOT LightsOn THEN BEGIN
+          TurnLightsOff(Train_LocoChip);
+          Log(Train_LocoChipStr + ' L Up and down lights turned off');
+        END ELSE BEGIN
+          IF NOT Train_LightsOn THEN    { ************* }
+            TurnLightsOn(Train_LocoChip, OK);
+
+            IF Train_LightingChipUp = T^.Train_LocoChip THEN BEGIN
+              IF Train_CurrentDirection <> LightsAtUp THEN
+                SetTrainDirection(T, LightsAtUp, NOT ForceAWrite, OK)
+            END ELSE
+              IF Train_LightingChipUpAddress <> NIL THEN BEGIN
+                IF Train_LightingChipUpAddress^.Train_CurrentDirection <> LightsAtUp THEN
+                  SetTrainDirection(Train_LightingChipUpAddress, LightsAtUp, NOT ForceAWrite, OK);
+              END;
+            IF Train_LightingChipDown = T^.Train_LocoChip THEN BEGIN
+              IF Train_CurrentDirection <> LightsAtDown THEN
+                SetTrainDirection(T, LightsAtDown, NOT ForceAWrite, OK)
+            END ELSE
+              IF Train_LightingChipDownAddress <> NIL THEN
+                IF Train_LightingChipDownAddress^.Train_CurrentDirection <> LightsAtDown THEN
+                  SetTrainDirection(T^.Train_LightingChipDownAddress, LightsAtDown, NOT ForceAWrite, OK);
+
+          DebugStr := 'Lights at Up set to ' + IfThen(LightsAtUp = Up,
+                                                      'White',
+                                                      'Red') + '; '
+                      + 'Lights at Down set to ' + IfThen(LightsAtDown = Down,
+                                                         'White',
+                                                         'Red');
+          IF DebugStr <> T^.Train_LightsMsg THEN BEGIN
+            Log(Train_LocoChipStr + ' L ' + DebugStr);
+            T^.Train_LightsMsg := DebugStr;
+          END;
+        END;
+      END; {WITH}
+    END;
+  END;
+END; { SetTwoLightingChips }
+
+PROCEDURE ShowMenus;
+{ Make all the menus visible }
+BEGIN
+  WITH MainWindow DO BEGIN
+    MenusVisible := True;
+
+    MainClockMenu.Visible := True;
+    MainDisplayMenu.Visible := True;
+    MainFileMenu.Visible := True;
+    MainHelpMenu.Visible := True;
+    MainOperationsMenu.Visible := True;
+    MainRunMenu.Visible := True;
+
+    { this is a bit daft, as if the menus aren't visible, one is never going to see the tick, but I've no doubt that it is part of the AMS standard! }
+    IF MainDisplayMenu.Visible THEN
+      MainDisplayMenuShow.Checked := True;
+  END; {WITH}
+END; { ShowMenus }
+
+PROCEDURE ShutDownProgram(UnitRef : String; SubroutineStr : String);
+{ Shut down the program neatly }
+
+CONST
+  Init = True;
+  TrainListOnly = True;
+
+VAR
+  ErrorMsg : String;
+  T : Train;
+  WindowsTaskBar : HWND;
+
+BEGIN { ShutDownProgram }
+  TRY
+    { Write out the locations of the locos so we know where they are when we start up next time (locations are the last known location, added when a loco moves, or is
+      purged)
+    }
+    Log('G Shut down initiated');
+
+    { Restore the Windows taskbar if we're in full screen mode and it's been disabled }
+    IF WindowsTaskbarDisabled THEN BEGIN
+      { Find handle of TASKBAR }
+      WindowsTaskBar := FindWindow('Shell_TrayWnd', NIL);
+      { Enable the taskbar }
+      EnableWindow(WindowsTaskBar, True);
+      { Show the taskbar }
+      ShowWindow(WindowsTaskbar, SW_SHOW);
+
+      WindowsTaskbarDisabled := False;
+    END;
+
+    IF MainWindowInitialised THEN BEGIN
+      WriteOutLineDataToDatabase;
+      WriteOutLocationDataToDatabase;
+      WriteOutPointDataToDatabase;
+      WriteOutSignalDataToDatabase;
+
+      IF SystemOnline THEN BEGIN
+        WriteOutLocoDataToDatabase;
+      END;
+
+      { Stop any trains that are currently moving - better than leaving them running }
+      IF StopAllLocosAtShutDown THEN
+        StopLocos('shutdown');
+
+      IF NOT AllSignalsSwitchedOff THEN
+        SetAllSignalsToDanger;
+
+      IF SwitchActiveLocoLightsOffAtShutDown THEN BEGIN
+        T := TrainList;
+        WHILE T <> NIL DO BEGIN
+          WITH T^ DO BEGIN
+            IF TrainFoundInDiagrams(Train_LocoChip) <> NIL THEN BEGIN
+              IF Train_LightsType <> NoLights THEN BEGIN
+                TurnLightsOff(Train_LocoChip);
+                IF Train_HasCabLights
+                AND CabLightsAreOn(Train_LocoChip)
+                THEN
+                  TurnCabLightsOff(Train_LocoChip);
+              END;
+            END;
+          END; {WITH}
+          T := T^.Train_NextRecord;
+        END; {WHILE}
+      END;
+
+      { Write then close the log file }
+      WriteToLogFileAndTestFile := True;
+      IF RDCMode
+      AND RailDriverInitialised
+      THEN BEGIN
+        WriteToRailDriverLEDs('');
+        CloseRailDriver;
+      END;
+
+      MainWindow.MainTimer.Enabled := False;
+
+      { Write things back to the .ini file }
+      IF NOT ReplayMode
+      AND MainWindowInitialised
+      THEN BEGIN
+        Log('G Writing .ini file');
+        MainWindowInitialised := True;
+        WriteIniFile;
+      END;
+    END;
+
+    Log('G Shut down initiated in ' + UnitRef + ' unit, ' + SubroutineStr + ' subroutine' + ' is now complete (' + DescribeActualDateAndTime + ')');
+    IF LogsCurrentlyKept THEN BEGIN
+      CloseFile(TestLogFile);
+      CloseFile(LargeLogFile);
+      IF MultipleLogFilesRequired THEN BEGIN
+        CloseFile(ErrorLogFile);
+        CloseFile(LocoLogFile);
+        CloseFile(RouteLogFile);
+        CloseFile(SignalPointAndTCLogFile);
+        CloseFile(DiagramsLogFile);
+        CloseFile(WorkingTimetableLogFile);
+      END;
+    END;
+
+    IF RestoreLogsToPreviousState THEN BEGIN
+      { Erase the newly created log file (if we're only doing a replay, not running a proper sequence, or else logging is off and rename the previous ones if they exist }
+      RenameLaterFiles(LargeLogFile, PathToLogFiles + LogFileName, LogFileNameSuffix);
+      RenameLaterFiles(TestLogFile, PathToLogFiles + LogFileName + '-Test', LogFileNameSuffix);
+      IF MultipleLogFilesRequired THEN BEGIN
+        RenameLaterFiles(ErrorLogFile, PathToLogFiles + LogFileName + '-Error', LogFileNameSuffix);
+        RenameLaterFiles(LocoLogFile, PathToLogFiles + LogFileName + '-Loco', LogFileNameSuffix);
+        RenameLaterFiles(RouteLogFile, PathToLogFiles + LogFileName + '-Route', LogFileNameSuffix);
+        RenameLaterFiles(SignalPointAndTCLogFile, PathToLogFiles + LogFileName + '-SignalPointAndTC', LogFileNameSuffix);
+        RenameLaterFiles(DiagramsLogFile, PathToLogFiles + LogFileName + '-Diagrams', LogFileNameSuffix);
+        RenameLaterFiles(WorkingTimetableLogFile, PathToLogFiles + LogFileName + '-WorkingTimetable', LogFileNameSuffix);
+      END;
+    END;
+
+    IF WritingStationMonitorsDisplayToFile THEN BEGIN
+      StationMonitorsOutputFileName := StationMonitorsDataFilename + '.' + StationMonitorsDataFilenameSuffix;
+      OpenOutputFileOK(StationMonitorsOutputFile, StationMonitorsOutputFileName, ErrorMsg, NOT AppendToFile);
+      {$I-}
+      Rewrite(StationMonitorsOutputFile);
+      {$I+}
+      IF IOError(StationMonitorsOutputFilename, IOResult, ErrorMsg) THEN
+        Debug('Cannot open ' + StationMonitorsOutputFilename + ': ' + ErrorMsg);
+
+      WriteLn(StationMonitorsOutputFile, 'Game Over!');
+      Close(StationMonitorsOutputFile);
+    END;
+
+    { and stop }
+    IF NOT ReplayMode
+    AND NOT RestartProgram
+    THEN BEGIN
+      Application.Terminate;
+      IF NOT Application.Terminated THEN
+        Halt(12);
+    END;
+  EXCEPT
+    ON E : Exception DO
+      Log('EG ShutDownProgram: ' + E.ClassName +' error raised, with message: ' + E.Message);
+  END; {TRY}
+END; { ShutDownProgram }
+
+FUNCTION SignalHasLeftJunctionIndicator(S : Integer; OUT Indicator : JunctionIndicatorType) : Boolean;
+{ Returns true if the signal has a left junction indicator }
+BEGIN
+  Result := False;
+
+  WITH Signals[S] DO BEGIN
+    IF Signal_Indicator = JunctionIndicator THEN BEGIN
+      Indicator := UnknownJunctionIndicator;
+      IF Signal_JunctionIndicators[UpperLeftIndicator].JunctionIndicator_Exists THEN
+        Indicator := UpperLeftIndicator
+      ELSE
+        IF Signal_JunctionIndicators[MiddleLeftIndicator].JunctionIndicator_Exists THEN
+          Indicator := MiddleLeftIndicator
+        ELSE
+          IF Signal_JunctionIndicators[LowerLeftIndicator].JunctionIndicator_Exists THEN
+            Indicator := LowerLeftIndicator;
+
+      IF Indicator <> UnknownJunctionIndicator THEN
+        Result := True;
+    END; {WITH}
+  END;
+END; { SignalHasLeftJunctionIndicator }
+
+FUNCTION SignalHasRightJunctionIndicator(S : Integer; OUT Indicator : JunctionIndicatorType) : Boolean;
+{ Returns true if the signal has a right junction indicator }
+BEGIN
+  Result := False;
+
+  WITH Signals[S] DO BEGIN
+    IF Signal_Indicator = JunctionIndicator THEN BEGIN
+      Indicator := UnknownJunctionIndicator;
+      IF Signal_JunctionIndicators[UpperRightIndicator].JunctionIndicator_Exists THEN
+        Indicator := UpperRightIndicator
+      ELSE
+        IF Signal_JunctionIndicators[MiddleRightIndicator].JunctionIndicator_Exists THEN
+          Indicator := MiddleRightIndicator
+        ELSE
+          IF Signal_JunctionIndicators[LowerRightIndicator].JunctionIndicator_Exists THEN
+            Indicator := LowerRightIndicator;
+
+      IF Indicator <> UnknownJunctionIndicator THEN
+        Result := True;
+    END; {WITH}
+  END;
+END; { SignalHasRightJunctionIndicator }
+
+FUNCTION SignalQuadrantToStr(Q : QuadrantType) : String;
+{ Return a string with the supplied signal quadrant details }
+BEGIN
+  CASE Q OF
+    LowerQuadrant:
+      Result := 'Lower';
+    UpperQuadrant:
+      Result := 'Upper';
+    NoQuadrant:
+      Result := 'None';
+  END; {CASE}
+END; { SignalQuadrantToStr }
+
+FUNCTION SignalTypeToStr(ST : TypeOfSignal; LongOrShortString : StringType) : String;
+{ Return the type of a signal in words }
+BEGIN
+  IF LongOrShortString = LongStringType THEN BEGIN
+    CASE ST OF
+      CallingOn:
+        Result := 'Calling On';
+      TwoAspect:
+        Result := '2 Aspect';
+      ThreeAspect:
+        Result := '3 Aspect';
+      FourAspect:
+        Result := '4 Aspect';
+      SemaphoreHome:
+        Result := 'Semaphore Home';
+      SemaphoreDistant:
+        Result := 'Semaphore Distant';
+    END; {CASE}
+  END ELSE BEGIN
+    CASE ST OF
+      CallingOn:
+        Result := 'C';
+      TwoAspect:
+        Result := '2';
+      ThreeAspect:
+        Result := '3';
+      FourAspect:
+        Result := '4';
+      SemaphoreHome:
+        Result := 'H';
+      SemaphoreDistant:
+        Result := 'D';
+    END; {CASE}
+  END;
+END; { SignalTypeToStr }
+
+{$O-}
+PROCEDURE StartLocos(Restart : Boolean);
+{ Restart all the locos that were running before the enforced stop }
+CONST
+  ForceDraw = True;
+  GoingForward = True;
+  LightsOn = True;
+
+VAR
+  T : Train;
+  OK : Boolean;
+  TrainsRestarted : Boolean;
+
+BEGIN
+  TrainsRestarted := False;
+  T := TrainList;
+  WHILE T <> NIL DO BEGIN
+    WITH T^ DO BEGIN
+      IF (Train_LocoChip <> UnknownLocoChip)
+      AND Train_DiagramFound
+      AND (Train_CurrentStatus <> Suspended)
+      AND (Train_CurrentStatus <> MissingAndSuspended)
+      AND (Train_CurrentStatus <> Cancelled)
+      THEN BEGIN
+        IF SystemOnline THEN BEGIN
+          IF Train_CurrentDirection = Up THEN BEGIN
+            { may want to read in saved data before setting direction - ******* }
+            IF NOT Train_UserDriving THEN BEGIN
+              SetTrainDirection(T, Up, NOT ForceAWrite, OK);
+              SetTwoLightingChips(Train_LocoChip, Up, Up, LightsOn);
+            END ELSE BEGIN
+              IF Train_UserRequiresInstructions THEN
+                Log(Train_LocoChipStr + ' L= User instructed to set direction to Up');
+            END;
+          END ELSE
+            IF Train_CurrentDirection = Down THEN BEGIN
+              IF NOT Train_UserDriving THEN BEGIN
+                SetTrainDirection(T, Down, NOT ForceAWrite, OK);
+                SetTwoLightingChips(Train_LocoChip, Down, Down, LightsOn);
+              END ELSE BEGIN
+                IF Train_UserRequiresInstructions THEN
+                  Log(Train_LocoChipStr + ' L= User instructed to set direction to Down');
+              END;
+            END;
+        END;
+        Train_Accelerating := True;
+        Train_AccelerationTimeInSeconds := 5.0;
+        Train_AccelerationStartTime := 0;
+
+        Train_Decelerating := False;
+        Train_DesiredLenzSpeed := Train_SaveDesiredLenzSpeed;
+        Train_SaveDesiredLenzSpeed := 0;
+        Train_CurrentLenzSpeed := 0;
+
+        SetDesiredTrainSpeed(T);
+        TrainsRestarted := True;
+      END; {WITH}
+    END;
+    T := T^.Train_NextRecord;
+  END; {WHILE}
+
+  IF Restart
+  AND TrainsRestarted
+  THEN
+    Log('GG All locos restarted')
+  ELSE
+    IF Restart THEN
+      Log('GG No locos to restart');
+END; { StartLocos }
+
+PROCEDURE StopLocos(Msg : String);
+{ Stop all the locos currently in the diagram list. This is a better approach than the brute force approach which is to send a "StopAllLocomotives" command, which produces
+  an "emergency off" situation.
+}
+VAR
+  OK : Boolean;
+  T : Train;
+
+BEGIN
+  Log('GG Stopping any locos - initiated by ' + Msg);
+
+  T := TrainList;
+  WHILE T <> NIL DO BEGIN
+    WITH T^ DO BEGIN
+      IF (Train_LocoChip <> UnknownLocoChip)
+      AND Train_DiagramFound
+      AND (Train_CurrentStatus <> Cancelled)
+      AND (Train_LocoChip <> UnknownLocoChip)
+      THEN BEGIN
+        IF SystemOnline THEN BEGIN
+          StopAParticularLocomotive(Train_LocoChip, OK);
+          IF Train_DoubleHeaderLocoChip <> UnknownLocoChip THEN
+            StopAParticularLocomotive(Train_DoubleHeaderLocoChip, OK);
+        END;
+        LocosStopped := True;
+        DrawDiagramsSpeedCell(T);
+      END;
+    END; {WITH}
+    T := T^.Train_NextRecord;
+  END; {WHILE}
+
+  IF LocosStopped THEN
+    Log('GG All locos stopped')
+  ELSE
+    Log('GG No locos to stop');
+END; { StopLocos }
+
+FUNCTION StringArraysCompareOK(FirstArray, SecondArray : StringArrayType; OUT ErrorMsg : String) : Boolean;
+{ Does an element by element comparison of two string arrays }
+VAR
+  DifferenceFound : Boolean;
+  I : Word;
+  MaxArrayLen : Integer;
+
+BEGIN
+  Result := False;
+
+  DifferenceFound := False;
+
+  IF (Length(FirstArray) = 0)
+  AND (Length(SecondArray) = 0)
+  THEN
+    ErrorMsg := 'Both arrays are empty'
+  ELSE
+    IF Length(FirstArray) = 0 THEN BEGIN
+      DifferenceFound := True;
+      ErrorMsg := 'First array is empty';
+    END ELSE
+      IF Length(SecondArray) = 0 THEN BEGIN
+        DifferenceFound := True;
+        ErrorMsg := 'Second array is empty';
+      END;
+
+  IF (Length(FirstArray) = Length(SecondArray)) OR (Length(FirstArray) < Length(SecondArray)) THEN
+    MaxArrayLen := Length(FirstArray)
+  ELSE
+    MaxArrayLen := Length(SecondArray);
+
+  IF NOT DifferenceFound THEN BEGIN
+    I := 0;
+    WHILE (I <= High(FirstArray))
+    AND (I < MaxArrayLen) AND NOT DifferenceFound
+    DO BEGIN
+      IF FirstArray[I] <> SecondArray[I] THEN BEGIN
+        DifferenceFound := True;
+        ErrorMsg := 'First array differs from second array at position ' + IntToStr(I)
+                    + ' (' + FirstArray[I] + ', ' + SecondArray[I] + ')';
+      END;
+      Inc(I);
+    END; {WHILE}
+  END;
+
+  IF NOT DifferenceFound
+  AND (Length(FirstArray) = Length(SecondArray))
+  THEN BEGIN
+    Result := True;
+    ErrorMsg := 'Arrays compare ok';
+  END ELSE
+    IF Length(FirstArray) < Length(SecondArray) THEN BEGIN
+      IF DifferenceFound THEN
+        ErrorMsg := ErrorMsg + '. Also the first array is shorter.'
+      ELSE
+        ErrorMsg := 'Arrays compare ok, but the first array is shorter';
+    END ELSE BEGIN
+      { Length(FirstArray) > Length(SecondArray) }
+      IF DifferenceFound THEN
+        ErrorMsg := ErrorMsg + '. Also the first array is longer.'
+      ELSE
+        ErrorMsg := 'Arrays compare ok, but the first array is longer';
+    END;
+END; { StringArraysCompareOK }
+
+FUNCTION StringArrayToStr(StringArray : StringArrayType) : String;
+{ List the contents of an array }
+VAR
+  I : Integer;
+
+BEGIN
+  Result := '';
+
+  IF Length(StringArray) = 0 THEN
+    Exit
+  ELSE BEGIN
+    FOR I := 0 TO High(StringArray) - 1 DO
+      Result := Result + StringArray[I] + ', ';
+    Result := Result + StringArray[High(StringArray)];
+  END;
+END; { StringArrayToStr }
+
+FUNCTION StrToArea(Str : String) : Integer;
+{ Convert a string to an area }
+VAR
+  Area : Integer;
+
+BEGIN
+  Str := TrimRemoveSpacesAndMakeUpperCase(Str);
+
+  Result := UnknownArea;
+  Area := 0;
+  WHILE (Area <= High(Areas))
+  AND (Result = UnknownArea)
+  DO BEGIN
+    IF (Str = Trim(Areas[Area].Area_ShortStr))
+    OR (Str = RemoveAllSpacesFromAString(Trim(UpperCase(Areas[Area].Area_LongStr))))
+    OR (Str = RemoveAllSpacesFromAString(Trim(UpperCase(Areas[Area].Area_LongStr) + 'AREA')))
+    OR (Str + 'AREA' = RemoveAllSpacesFromAString(Trim(UpperCase(Areas[Area].Area_LongStr))))
+    OR (Str + 'AREA' = RemoveAllSpacesFromAString(Trim(UpperCase(Areas[Area].Area_LongStr) + 'AREA')))
+    THEN
+      Result := Area
+    ELSE
+      Inc(Area);
+  END; {WHILE}
+END; { StrToArea }
+
+FUNCTION StrToAspect(Str : String) : AspectType;
+{ Return the signal aspect string as an aspect type }
+BEGIN
+  Str := TrimRemoveSpacesAndMakeUpperCase(Str);
+
+  IF (Str = 'FLASHINGDOUBLEYELLOW') OR (Str = 'YY*') THEN
+    Result := FlashingDoubleYellowAspect
+  ELSE
+    IF (Str = 'FLASHINGSINGLEYELLOW') OR (Str = 'Y*') THEN
+      Result := FlashingSingleYellowAspect
+    ELSE
+      IF (Str = 'DOUBLEYELLOW') OR (Str = 'YY') THEN
+        Result := DoubleYellowAspect
+      ELSE
+        IF (Str = 'SINGLEYELLOW') OR (Str = 'Y') THEN
+          Result := SingleYellowAspect
+        ELSE
+          IF (Str = 'GREEN') OR (Str = 'G') THEN
+            Result := GreenAspect
+          ELSE
+            IF (Str = 'RED') OR (Str = 'R') THEN
+              Result := RedAspect
+            ELSE
+              IF (Str = 'NOASPECT') OR (Str = 'N') THEN
+                Result := NoAspect
+              ELSE
+                Result := UnknownAspectType;
+END; { StrToAspect }
+
+FUNCTION StrToColour(Str : String) : TColour;
+{ Checks if it's a Delphi colour or an FWP one }
+BEGIN
+  Str := TrimRemoveSpacesAndMakeUpperCase(Str);
+
+  IF Pos(TrimRemoveSpacesAndMakeUpperCase(UnknownColourStr), Str) > 0 THEN
+    Result := StringToColor(Copy(Str, Length(TrimRemoveSpacesAndMakeUpperCase(UnknownColourStr)) + 2))
+  ELSE
+    IF Str = 'CLFWPDKBLUE' THEN
+      Result := $0802040
+    ELSE
+      IF Str = 'CLFWPORANGE' THEN
+        Result := $000080FF
+      ELSE
+        IF Str = 'CLFWPLTBROWN' THEN
+          Result := $004080FF
+        ELSE
+          IF Str = 'CLFWPDKBROWN' THEN
+            Result := $00004080
+          ELSE
+            IF Str = 'CLFWPPINK' THEN
+              Result := $008080FF
+            ELSE
+              IF Str = 'CLFWPDKGREY' THEN
+                Result := 2368548
+              ELSE
+                IF Str = 'CLFWPVERYDKGREY' THEN
+                  Result := $3355443
+                ELSE
+                  IF Str = 'CLFWPPLATFORMCOLOUR' THEN
+                    Result := $0038ABB1
+                  ELSE
+                    Result := StringToColor(Str);
+END; { StrToColour }
+
+FUNCTION StrToDayOfTheWeek(Str : String) : DayOfTheWeekType;
+{ Return a day of the week from a given string }
+BEGIN
+  Str := UpperCase(Str);
+  IF (Str = 'MONDAY') OR (Str = 'MON') THEN
+    Result := Monday
+  ELSE
+    IF (Str = 'TUESDAY') OR (Str = 'TUE') THEN
+      Result := Tuesday
+    ELSE
+      IF (Str = 'WEDNESDAY') OR (Str = 'WED') THEN
+        Result := Wednesday
+      ELSE
+        IF (Str = 'THURSDAY') OR (Str = 'THU') THEN
+          Result := Thursday
+        ELSE
+          IF (Str = 'FRIDAY') OR (Str = 'FRI') THEN
+            Result := Friday
+          ELSE
+            IF (STR = 'SATURDAY') OR (STR = 'SAT') THEN
+              Result := SATURDAY
+            ELSE
+              IF (STR = 'SUNDAY') OR (STR = 'SUN') THEN
+                Result := SUNDAY
+              ELSE
+                Result := UnknownDayOfTheWeek;
+END; { StrToDayOfTheWeek }
+
+FUNCTION StrToDirectionType(Str : String) : DirectionType;
+{ Convert a string to a direction }
+BEGIN
+  Str := TrimRemoveSpacesAndMakeUpperCase(Str);
+
+  IF (Str = 'U') OR (Str = 'UP') THEN
+    Result := Up
+  ELSE
+    IF (Str = 'D') OR (Str = 'DN') OR (Str = 'DOWN') THEN
+      Result := Down
+    ELSE
+      IF (Str = 'B') OR (Str = 'BIDIRECTIONAL') THEN
+        Result := Bidirectional
+      ELSE
+        Result := UnknownDirection;
+END; { StrToDirectionType }
+
+FUNCTION StrToEndOfLine(Str : String) : EndOfLineType;
+{ Convert a string to an end of line }
+BEGIN
+  Str := TrimRemoveSpacesAndMakeUpperCase(Str);
+
+  IF Str = TrimRemoveSpacesAndMakeUpperCase('Buffer Stop At Up') THEN
+    Result := BufferStopAtUp
+  ELSE
+    IF Str = TrimRemoveSpacesAndMakeUpperCase('Buffer Stop At Down') THEN
+      Result := BufferStopAtDown
+    ELSE
+      IF Str = TrimRemoveSpacesAndMakeUpperCase('Projected Line At up') THEN
+        Result := ProjectedLineAtUp
+      ELSE
+        IF Str = TrimRemoveSpacesAndMakeUpperCase('Projected Line At down') THEN
+          Result := ProjectedLineAtDown
+        ELSE
+          IF Str = TrimRemoveSpacesAndMakeUpperCase('Not End Of Line') THEN
+            Result := NotEndOfLine
+          ELSE
+            Result := UnknownEndOfLine;
+END; { StrToEndOfLine }
+
+FUNCTION StrToFeedbackUnitType(Str : String) : TypeOfFeedBackType;
+{ Convert a string to a feedback unit type }
+BEGIN
+  Str := TrimRemoveSpacesAndMakeUpperCase(Str);
+
+  IF Str = TrimRemoveSpacesAndMakeUpperCase(TrackCircuitFeedbackDetectorStr) THEN
+    Result := TrackCircuitFeedbackDetector
+  ELSE
+    IF Str = TrimRemoveSpacesAndMakeUpperCase(TRSPlungerFeedbackDetectorStr) THEN
+      Result := TRSPlungerFeedbackDetector
+    ELSE
+      IF Str = TrimRemoveSpacesAndMakeUpperCase(PointFeedbackDetectorStr) THEN
+        Result := PointFeedbackDetector
+    ELSE
+      IF Str = TrimRemoveSpacesAndMakeUpperCase(LineFeedbackDetectorStr) THEN
+        Result := LineFeedbackDetector
+      ELSE
+        IF Str = TrimRemoveSpacesAndMakeUpperCase(MixedFeedbackDetectorStr) THEN
+          Result := MixedFeedbackDetectors
+        ELSE
+          IF Str = TrimRemoveSpacesAndMakeUpperCase(FeedbackDetectorOutOfUseStr) THEN
+            Result := FeedbackDetectorOutOfUse
+          ELSE
+             Result := UnknownFeedbackDetectorType;
+END; { StrToFeedbackUnitType }
+
+FUNCTION StrToGradient(Str : String) : GradientType;
+{ Convert a string to a gradient }
+BEGIN
+  Str := TrimRemoveSpacesAndMakeUpperCase(Str);
+
+  IF Str = TrimRemoveSpacesAndMakeUpperCase(LevelStr) THEN
+    Result := Level
+  ELSE
+    IF Str = TrimRemoveSpacesAndMakeUpperCase(RisingIfUpStr) THEN
+      Result := RisingIfUp
+    ELSE
+      IF Str = TrimRemoveSpacesAndMakeUpperCase(RisingIfDownStr) THEN
+        Result := RisingIfDown
+      ELSE
+        Result := UnknownGradientType;
+END; { StrToGradient }
+
+FUNCTION StrToIndicatorType(Str : String) : IndicatorType;
+{ Return the type a route indicator is }
+BEGIN
+  Str := TrimRemoveSpacesAndMakeUpperCase(Str);
+
+  IF Str = 'NOINDICATOR' THEN
+    Result := NoIndicator
+  ELSE
+    IF Str = 'JUNCTIONINDICATOR' THEN
+      Result := JunctionIndicator
+    ELSE
+      IF Str = 'THEATREINDICATOR' THEN
+        Result := TheatreIndicator
+      ELSE
+        IF Str = 'QUERYINDICATOR' THEN
+          Result := QueryIndicator
+        ELSE
+          Result := UnknownIndicator;
+END; { StrToIndicatorType }
+
+FUNCTION StrToLine(Str : String) : Integer;
+{ Convert a string to a line name }
+VAR
+  L : Integer;
+  LineNameFound : Boolean;
+
+BEGIN
+  Str := TrimRemoveSpacesAndMakeUpperCase(Str);
+  Result := UnknownLine;
+
+  LineNameFound := False;
+  L := 0;
+  WHILE (L <= High(Lines))
+  AND NOT LineNameFound And (Str <> '')
+  DO BEGIN
+    IF Str = UpperCase(LineToStr(L)) THEN BEGIN
+      LineNameFound := True;
+      Result := L;
+    END ELSE
+      Inc(L);
+  END; {WHILE}
+  IF NOT LineNameFound THEN BEGIN
+    { ShowMessage('LineName not found');
+    RunError(1);}
+  END;
+END; { StrToLine }
+
+FUNCTION StrToLocation(Str : String) : Integer;
+{ Convert a string to a location }
+VAR
+  Location : Integer;
+  SaveStr : String;
+  TestStr1 : String;
+  TestStr2 : String;
+
+BEGIN
+  SaveStr := Str;
+
+  Str := TrimRemoveSpacesAndMakeUpperCase(Str);
+
+  Result := UnknownLocation;
+  Location := 0;
+  WHILE (Location <= High(Locations))
+  AND (Result = UnknownLocation)
+  DO BEGIN
+    TestStr1 := UpperCase(Locations[Location].Location_ShortStr);
+    TestStr2 := UpperCase(Locations[Location].Location_LongStr);
+    TestStr2 := RemoveAllSpacesFromAString(TestStr2);
+
+    IF (Str = TestStr1) OR (Str = TestStr2) THEN
+      Result := Location
+    ELSE
+      Inc(Location);
+  END; {WHILE}
+//  IF Result = UnknownLocation THEN
+//    Log('X Unknown location ' + SaveStr + ' in StrToLocation')
+END; { StrToLocation }
+
+FUNCTION StrToPenStyle(Str : String) : TPenStyle;
+{ Converts strings to pen styles }
+BEGIN
+  Str := TrimRemoveSpacesAndMakeUpperCase(Str);
+
+  IF Str = 'SOLID' THEN
+    Result := psSolid
+  ELSE
+    IF Str = 'DASH' THEN
+      Result := psDash
+    ELSE
+      IF Str = 'DOT' THEN
+        Result := psDot
+      ELSE
+        IF Str = 'DASHDOT' THEN
+          Result := psDashDot
+        ELSE
+          IF Str = 'DASHDOTDOT' THEN
+            Result := psDashDotDot
+          ELSE
+            IF Str = 'CLEAR' THEN
+              Result := psClear
+            ELSE
+              IF Str = 'INSIDEFRAME' THEN
+                Result := psInsideFrame
+              ELSE
+                Result := psSolid; { the default }
+END; { StrToPenStyle }
+
+FUNCTION StrToPlatformNumberPosition(Str : String) : PlatformNumberPositionType;
+{ Return the given platform number position value as a string }
+BEGIN
+  Str := TrimRemoveSpacesAndMakeUpperCase(Str);
+
+  IF Str = 'LEFTTOP' THEN
+    Result := LeftTop
+  ELSE
+    IF Str = 'RIGHTTOP' THEN
+      Result := RightTop
+    ELSE
+      IF Str = 'CENTRETOP' THEN
+        Result := CentreTop
+      ELSE
+        IF Str = 'LEFTBOTTOM' THEN
+          Result := LeftBottom
+        ELSE
+          IF Str = 'RIGHTBOTTOM' THEN
+            Result := RightBottom
+          ELSE
+            IF Str = 'CENTREBOTTOM' THEN
+              Result := CentreBottom
+            ELSE
+              Result := UnknownPlatformNumberPosition;
+END; { StrToPlatformNumberPosition }
+
+FUNCTION StrToPointState(Str : String) : PointStateType;
+{ Convert a string to a point state }
+BEGIN
+  Result := PointStateUnknown;
+
+  TRY
+    Str := TrimRemoveSpacesAndMakeUpperCase(Str);
+
+    IF Str = TrimRemoveSpacesAndMakeUpperCase(StraightStr) THEN
+      Result := Straight
+    ELSE
+      IF Str = TrimRemoveSpacesAndMakeUpperCase(DivergingStr) THEN
+        Result := Diverging
+      ELSE
+        IF Str = TrimRemoveSpacesAndMakeUpperCase(OutOfActionStr) THEN
+          Result := PointOutOfAction;
+  EXCEPT
+    ON E : Exception DO
+      Log('EG StrToPointState: ' + E.ClassName +' error raised, with message: ' + E.Message);
+  END; {TRY}
+END; { StrToPointState }
+
+FUNCTION StrToPointType(Str : String) : TypeOfPoint;
+{ Convert a string to a point state }
+BEGIN
+  Str := TrimRemoveSpacesAndMakeUpperCase(Str);
+
+  IF Str = 'ORDINARYPOINT' THEN
+    Result := OrdinaryPoint
+  ELSE
+    IF Str = 'CROSSOVERPOINT' THEN
+      Result := CrossOverPoint
+    ELSE
+      IF Str = 'THREEWAYPOINTA' THEN
+        Result := ThreeWayPointA
+      ELSE
+        IF Str = 'THREEWAYPOINTB' THEN
+          Result := ThreeWayPointB
+        ELSE
+          IF Str = 'SINGLESLIP' THEN
+            Result := SingleSlip
+          ELSE
+            IF Str = 'DOUBLESLIP' THEN
+              Result := DoubleSlip
+            ELSE
+              IF Str = 'PROTECTEDPOINT' THEN
+                Result := ProtectedPoint
+              ELSE
+                IF Str = 'CATCHPOINTUP' THEN
+                  Result := CatchPointUp
+                ELSE
+                  IF Str = 'CATCHPOINTDOWN' THEN
+                    Result := CatchPointDown
+                  ELSE
+                    Result := PointTypeUnknown;
+END; { StrToPointType }
+
+FUNCTION StrToSignalType(Str : String) : TypeOfSignal;
+{ Return the type of a signal }
+BEGIN
+  Str := TrimRemoveSpacesAndMakeUpperCase(Str);
+
+  IF Str = 'CALLINGON' THEN
+    Result := CallingOn
+  ELSE
+    IF Str = '2ASPECT' THEN
+      Result := TwoAspect
+    ELSE
+      IF Str = '3ASPECT' THEN
+        Result := ThreeAspect
+      ELSE
+        IF Str = '4ASPECT' THEN
+          Result := FourAspect
+        ELSE
+          IF Str = 'SEMAPHOREHOME' THEN
+            Result := SemaphoreHome
+          ELSE
+            IF Str = 'SEMAPHOREDISTANT' THEN
+              Result := SemaphoreDistant
+            ELSE
+              Result := UnknownSignalType;
+END; { StrToSignalType }
+
+FUNCTION StrToTypeOfLine(Str : String) : TypeOfLine;
+{ Convert a string to a line type }
+BEGIN
+  Str := TrimRemoveSpacesAndMakeUpperCase(Str);
+
+  IF Str = 'MAINORGOODSLINE' THEN
+    Result := MainOrGoods
+  ELSE
+    IF Str ='MAINLINE' THEN
+      Result := MainLine
+    ELSE
+      IF Str ='GOODSLINE' THEN
+        Result := GoodsLine
+      ELSE
+        IF Str ='BRANCHLINEDOUBLE' THEN
+          Result := BranchLineDouble
+        ELSE
+          IF Str ='BRANCHLINESINGLE' THEN
+            Result := BranchLineSingle
+          ELSE
+            IF Str ='ISLANDSTATIONLINE' THEN
+              Result := IslandStationLine
+            ELSE
+              IF Str ='MAINSTATIONLINE' THEN
+                Result := MainStationLine
+              ELSE
+                IF Str ='BRANCHSTATIONLINE' THEN
+                  Result := BranchStationLine
+                ELSE
+                  IF Str ='WINDOWSTATIONLINE' THEN
+                    Result := WindowStationLine
+                  ELSE
+                    IF Str ='SIDINGLINE' THEN
+                      Result := SidingLine
+                    ELSE
+                      IF Str ='FIDDLEYARDLINE' THEN
+                        Result := FiddleyardLine
+                      ELSE
+                        IF Str ='SIDINGSAPPROACHLINE' THEN
+                          Result := SidingsApproach
+                          ELSE
+                            IF Str ='STATIONAVOIDINGLINE' THEN
+                              Result := StationAvoiding
+                            ELSE
+                              IF Str ='PROJECTEDLINE' THEN
+                                Result := ProjectedLine
+                              ELSE
+                                Result := UnknownTypeOfLine;
+END; { StrToTypeOfLine }
+
+FUNCTION StrToThroughLocationState(Str : String) : ThroughLocationStateType;
+{ Return the through state from a given string }
+BEGIN
+  Str := TrimRemoveSpacesAndMakeUpperCase(Str);
+
+  IF Str = TrimRemoveSpacesAndMakeUpperCase(ThroughLocationStr) THEN
+    Result := ThroughLocation
+  ELSE
+    IF Str = TrimRemoveSpacesAndMakeUpperCase(NonThroughLocationStr) THEN
+      Result := NonThroughLocation
+    ELSE
+      Result := UnknownThroughLocationState;
+END; { StrToThroughLocationState }
+
+FUNCTION StrToTrainTypeNum(Str : String) : Integer;
+{ Returns the train type as a number; an up-to-date list as of 5/10/05 }
+BEGIN
+  Str := TrimRemoveSpacesAndMakeUpperCase(Str);
+
+  IF Str = 'LIGHTLOCO' THEN
+    Result := 0
+  ELSE
+    IF Str = 'EXPRESSPASSENGER' THEN
+      Result := 1
+    ELSE
+      IF Str = 'ORDINARYPASSENGER' THEN
+        Result := 2
+      ELSE
+        IF Str = 'EXPRESSFREIGHT' THEN
+          Result := 3
+        ELSE
+          IF Str = '75MPHFREIGHT' THEN
+            Result := 4
+          ELSE
+            IF Str = 'EMPTYCOACHINGSTOCK' THEN
+              Result := 5
+            ELSE
+              IF Str = '60MPHFREIGHT' THEN
+                Result := 6
+              ELSE
+                IF Str = '45MPHFREIGHT' THEN
+                  Result := 7
+                ELSE
+                  IF Str = '35MPHFREIGHT' THEN
+                    Result := 8
+                  ELSE
+                    IF Str = 'INTERNATIONAL' THEN
+                      Result := 9
+                    ELSE
+                      Result := UnknownTrainTypeNum;
+END; { StrToTrainTypeNum }
+
+FUNCTION SubRouteStateToStr(SubRouteState : SubRouteStateType) : String;
+{ Return the state of the subroute as a string }
+BEGIN
+  CASE SubRouteState OF
+    SubRouteNotYetSetUp:
+      Result := 'not yet set up';
+    SubRouteSettingUpInProgress:
+      Result := 'setting up in progress';
+    SubRouteSettingUpStalled:
+      Result := 'stalled';
+    SubRouteSettingUpFailed:
+      Result := 'setting up failed';
+    SubRouteSetUp:
+      Result := 'set up';
+    SubRouteSettingUpCancelled:
+      Result := 'setting up cancelled';
+    SubRouteSettingUpHeld:
+      Result := 'setting up held';
+    SubRouteSettingUpHeldByStationSupervisor:
+      Result := 'setting up held by station supervisor';
+    SubRouteCleared:
+      Result := 'cleared';
+    SubRouteToBeCleared:
+      Result := 'to be cleared';
+  ELSE
+    Result := 'Error in DescribeSubRouteState routine: invalid subroute state';
+  END; {CASE}
+END; { SubRouteStateToStr }
+
+FUNCTION TestCount : Integer;
+{ Returns a number which is incremented each time the routine is called - used for debugging }
+BEGIN
+  Inc(TestCounter);
+  Result := TestCounter;
+END; { TestCount }
+
+FUNCTION TestCountStr : String;
+{ Returns as a string a number which is incremented each time the routine is called - used for debugging }
+BEGIN
+  Inc(TestCounter);
+  Result := 'Test=' + IntToStr(TestCounter);
+END; { TestCount }
+
+FUNCTION ThroughLocationStateToStr(ThroughLocationState : ThroughLocationStateType) : String;
+{ Return the through state of the location as a string }
+BEGIN
+  CASE ThroughLocationState OF
+    ThroughLocation:
+      Result := ThroughLocationStr;
+    NonThroughLocation:
+      Result := NonThroughLocationStr;
+  ELSE
+    Result := 'Error in DescribeThroughLocationState routine: invalid through Location state';
+  END; {CASE}
+END; { ThroughLocationStateToStr }
+
+FUNCTION TimeToHMStr(Time : TDateTime) : String;
+{ Return a time string as hh:mm }
+BEGIN
+  TRY
+    FormatSettings.LongTimeFormat := 'hh:mm';
+    Result := TimeToStr(Time);
+  EXCEPT
+    ON E : Exception DO
+      Log('EG TimeToHM_Str: ' + E.ClassName +' error raised, with message: ' + E.Message);
+  END; {TRY}
+END; { TimeToHMStr }
+
+FUNCTION TimeToHMSStr(Time : TDateTime) : String;
+{ Return a time string as hh:mm:ss }
+BEGIN
+  TRY
+    FormatSettings.LongTimeFormat := 'hh:mm:ss';
+    Result := TimeToStr(Time);
+  EXCEPT
+    ON E : Exception DO
+      Log('EG TimeToHMSStr: ' + E.ClassName +' error raised, with message: ' + E.Message);
+  END; {TRY}
+END; { TimeToHMSStr }
+
+FUNCTION TimeToHMSZStr(Time : TDateTime) : String;
+{ Return a time string as hh:mm:ss:zzz }
+BEGIN
+  TRY
+    FormatSettings.LongTimeFormat := 'hh:mm:ss:zzz';
+    Result := TimeToStr(Time);
+  EXCEPT
+    ON E : Exception DO
+      Log('EG TimeToHMSZStr: ' + E.ClassName +' error raised, with message: ' + E.Message);
+  END; {TRY}
+END; { TimeToHMSZStr }
+
+FUNCTION TrackCircuitStateIsPermanentlyOccupied(State : TrackCircuitStateType) : Boolean;
+{ Returns true if a given trackcircuit state is not set as permanently occupied }
+BEGIN
+  CASE State OF
+    TCOutOfUseSetByUser, TCOutOfUseAsNoFeedbackReceived, TCLocoOutOfPlaceOccupation, TCPermanentFeedbackOccupation, TCPermanentOccupationSetByUser,
+    TCPermanentSystemOccupation:
+      Result := True;
+  ELSE
+    { all other occupation types }
+    Result := False;
+  END; {CASE}
+END; { TrackCircuitStateIsPermanentlyOccupied }
+
+FUNCTION TrackCircuitStateIsTemporarilyOccupied(State : TrackCircuitStateType) : Boolean;
+{ Returns true if a given trackcircuit state is set as temporarily occupied }
+
+BEGIN
+  CASE State OF
+    TCFeedbackOccupation, TCFeedbackOccupationButOutOfUse, TCSystemOccupation:
+      Result := True;
+  ELSE
+    { all other occupation types }
+    Result := False;
+  END; {CASE}
+END; { TrackCircuitStateIsTemporarilyOccupied }
+
+FUNCTION TrackCircuitStateToStr(State : TrackCircuitStateType) : String;
+{ Describe the current state of a given trackcircuit }
+BEGIN
+  CASE State OF
+    TCFeedbackOccupation:
+      Result := 'feedback occupation';
+    TCFeedbackOccupationButOutOfUse:
+      Result := 'feedback occupation by out of use';
+    TCLocoOutOfPlaceOccupation:
+      Result := 'loco out of place';
+    TCMissingOccupation:
+      Result := 'missing occupation';
+    TCOutOfUseSetByUser:
+      Result := 'out of use set by user';
+    TCOutOfUseAsNoFeedbackReceived:
+      Result := 'out of use as no feedback received';
+    TCPermanentFeedbackOccupation:
+      Result := 'permanent feedback occupation';
+    TCPermanentOccupationSetByUser:
+      Result := 'permanent occupation set by user';
+    TCPermanentSystemOccupation:
+      Result := 'permanent system occupation';
+    TCSystemOccupation:
+      Result := 'system occupation';
+    TCUnoccupied:
+      Result := 'unoccupied';
+  ELSE
+    Result := 'unknown state'
+  END; {CASE}
+END; { TrackCircuitStateToStr }
+
+FUNCTION TrainSpeedInMPHToLenzSpeed(T : Train; Speed : MPHType) : Integer;
+{ Return the appropriate Lenz speed for the given loco as an MPH string }
+BEGIN
+  IF T = NIL THEN BEGIN
+    Log('X! Cannot return speed in MPH for non-existent train');
+    Result := 0;
+  END ELSE BEGIN
+    WITH T^ DO BEGIN
+      CASE Speed OF
+        MPH0:
+          Result := 0;
+        MPH10:
+          Result := Train_Speed10;
+        MPH20:
+          Result := Train_Speed20;
+        MPH30:
+          Result := Train_Speed30;
+        MPH40:
+          Result := Train_Speed40;
+        MPH50:
+          Result := Train_Speed50;
+        MPH60:
+          Result := Train_Speed60;
+        MPH70:
+          Result := Train_Speed70;
+        MPH80:
+          Result := Train_Speed80;
+        MPH90:
+          Result := Train_Speed90;
+        MPH100:
+          Result := Train_Speed100;
+        MPH110:
+          Result := Train_Speed110;
+        MPH120:
+          Result := Train_Speed120;
+      ELSE
+        BEGIN
+          Result := 0;
+          Log('XG Unknown speed type found in GetLenzSpeed');
+        END;
+      END; {CASE}
+    END; {WITH}
+  END;
+END; { TrainSpeedInMPHToLenzSpeed }
+
+FUNCTION TrainStatusToStr(Status : TrainStatusType) : String;
+{ Return the given train status as a string }
+BEGIN
+  CASE Status OF
+    Cancelled:
+      Result := 'cancelled';
+    CommencedRouteing:
+      Result := 'commenced routeing';
+    Departed:
+      Result := 'departed';
+    InLightsOnTime:
+      Result := 'in lights-on time';
+    Missing:
+      Result := 'missing';
+    MissingAndSuspended:
+      Result := 'missing and suspended';
+    NonMoving:
+      Result := 'non-moving';
+    ReadyForCreation:
+      Result := 'ready for creation';
+    ReadyForRemovalFromDiagrams:
+      Result := 'ready for removal from diagrams';
+    ReadyForRouteing:
+      Result := 'ready for routeing';
+    ReadyToDepart:
+      Result := 'ready to depart';
+    RemovedFromDiagrams:
+      Result := 'removed from diagrams';
+    RouteCompleted:
+      Result := 'route completed';
+    RouteingWhileDeparted:
+      Result := 'routeing while departed';
+    Suspended:
+      Result := 'suspended';
+    UnknownTrainStatus:
+      Result := UnknownTrainStatusStr;
+    WaitingForLightsOn:
+      Result := 'waiting for lights on';
+    WaitingForRemovalFromDiagrams:
+      Result := 'waiting for removal from diagrams';
+    WaitingForRouteing:
+      Result := 'waiting for routeing';
+    WaitingForSignalHiddenAspectToClear:
+      Result := 'waiting for signal hidden aspect to clear';
+  ELSE
+    Result := UnknownTrainStatusStr;
+  END; {CASE}
+END; { TrainStatusToStr }
+
+FUNCTION TrainTypeNumToStr(TrainTypeNum : Integer) : String;
+{ Returns the train type number as a string; an up-to-date list as of 5/10/05 }
+BEGIN
+  CASE TrainTypeNum OF
+    0:
+      Result := 'Light Loco';
+    1:
+      Result := 'Express Passenger';
+    2:
+      Result := 'Ordinary Passenger';
+    3:
+      Result := 'Express Freight';
+    4:
+      Result := '75mph Freight';
+    5:
+      Result := 'Empty Coaching Stock';
+    6:
+      Result := '60mph Freight';
+    7:
+      Result := '45mph Freight';
+    8:
+      Result := '35mph Freight';
+    9:
+      Result := 'International';
+  ELSE
+    Result := UnknownTrainTypeStr;
+  END; {CASE}
+END; { TrainTypeNumToStr }
+
+FUNCTION TrainTypeToTrainTypeNum(TrainType : TypeOfTrainType) : Integer;
+{ Returns the number for the kind of train it is; an up-to-date list as of 5/10/05 }
+BEGIN
+  CASE TrainType OF
+    LightLoco:
+      Result := 0;
+    ExpressPassenger:
+      Result := 1;
+    OrdinaryPassenger:
+      Result := 2;
+    ExpressFreight:
+      Result := 3;
+    Freight75mph:
+      Result := 4;
+    EmptyCoachingStock:
+      Result := 5;
+    Freight60mph:
+      Result := 6;
+    Freight45mph:
+      Result := 7;
+    Freight35mph:
+      Result := 8;
+    International:
+      Result := 9;
+  ELSE
+    Result := -1;
+  END; {CASE}
+END; { TrainTypeToTrainTypeNum }
+
+FUNCTION TrainTypeNumToTrainType(TrainTypeNum : Integer) : TypeOfTrainType;
+{ Returns the train type; an up-to-date list as of 5/10/05 }
+BEGIN
+  CASE TrainTypeNum OF
+    0: { can also be supplied as 10 }
+      Result := LightLoco;
+    1:
+      Result := ExpressPassenger;
+    2:
+      Result := OrdinaryPassenger;
+    3:
+      Result := ExpressFreight;
+    4:
+      Result := Freight75mph;
+    5:
+      Result := EmptyCoachingStock;
+    6:
+      Result := Freight60mph;
+    7:
+      Result := Freight45mph;
+    8:
+      Result := Freight35mph;
+    9:
+      Result := International;
+  ELSE
+    Result := UnknownTrainType;
+  END; {CASE}
+END; { TrainTypeNumToTrainType }
+
+FUNCTION TrimRemoveSpacesAndMakeUpperCase(Str : String) : String;
+{ Tidy up a string to make comparisons more accurate }
+BEGIN
+  Result := Trim(Str);
+  Result := RemoveAllSpacesFromAString(Result);
+  Result := UpperCase(Result);
+END; { TrimRemoveSpacesAndMakeUpperCase }
+
+FUNCTION TTS(Time : TDateTime) : String;
+{ Return a time string as hh:mm - abbreviated form of TimeToHMStr above with format 'hh:mm' for debugging }
+BEGIN
+  TRY
+    FormatSettings.LongTimeFormat := 'hh:mm';
+    Result := TimeToStr(Time);
+  EXCEPT
+    ON E : Exception DO
+      Log('EG TTS: ' + E.ClassName +' error raised, with message: '+ E.Message);
+  END; {TRY}
+END; { TTS }
+
+FUNCTION TTSS(Time : TDateTime) : String;
+{ Return a time string as hh:mm:ss - abbreviated form of TimeToHMSStr for debugging }
+BEGIN
+  TRY
+    FormatSettings.LongTimeFormat := 'hh:mm:ss';
+    Result := TimeToStr(Time);
+  EXCEPT
+    ON E : Exception DO
+      Log('EG TTSS: ' + E.ClassName +' error raised, with message: '+ E.Message);
+  END; {TRY}
+END; { TTSS }
+
+FUNCTION TTSA(TimesArray : DateTimeArrayType) : String;
+{ Return time strings as hh:mm - abbreviated form of TimeToHMStr above with format 'hh:mm' for debugging }
+VAR
+  I : Integer;
+
+BEGIN
+  TRY
+    Result := '';
+    FormatSettings.LongTimeFormat := 'hh:mm';
+    IF Length(TimesArray) > 0 THEN BEGIN
+      FOR I := 0 TO High(TimesArray) DO BEGIN
+        IF I = 0 THEN
+          Result := TimeToStr(TimesArray[I])
+        ELSE
+          Result := Result + ', ' + TimeToStr(TimesArray[I]);
+      END;
+    END;
+  EXCEPT
+    ON E : Exception DO
+      Log('EG TTSA: ' + E.ClassName +' error raised, with message: '+ E.Message);
+  END; {TRY}
+END; { TTSA }
+
+FUNCTION TTSZ(Time : TDateTime) : String;
+{ Return a time string as hh:mm:ss:zzz }
+BEGIN
+  TRY
+    FormatSettings.LongTimeFormat := 'hh:mm:ss:zzz';
+    Result := TimeToStr(Time);
+  EXCEPT
+    ON E : Exception DO
+      Log('EG TimeToHMSZStr: ' + E.ClassName +' error raised, with message: ' + E.Message);
+  END; {TRY}
+END; { TimeToHMSZStr }
+
+FUNCTION TrainLightsAreOn(LocoChip : Integer) : Boolean;
+{ Returns true if a train's lights are on, i.e. if function zero is on }
+CONST
+  ForceRead = True;
+
+VAR
+  OK : Boolean;
+  T : Train;
+
+BEGIN
+//  LightsType = (NoLights, HeadlightsAndTailLightsConnected, HeadlightsAndTailLightsSeparatelySwitched, ExpressModelsSeparateHeadlights, LightsOperatedByTwoChips,
+//  LightsShouldBeDimmed, CustomLightingKit);
+  Result := False;
+
+  T := GetTrainRecord(LocoChip);
+  CASE T^.Train_LightsType OF
+    NoLights:
+      Debug(LocoChipToStr(LocoChip) + ' does not have lights');
+    HeadlightsAndTailLightsConnected:
+      BEGIN
+        IF SingleLocoFunctionIsOn(LocoChip, Function0, ForceRead, OK) THEN
+          Result := True;
+      END;
+  END; {CASE}
+
+
+END; { TrainLightsAreOn }
+
+PROCEDURE TurnHeadLightsOff(LocoChip : Integer; UserDriving, UserRequiresInstruction : Boolean);
+{ Turn off a loco's headlight }
+CONST
+  LightsOff = False;
+
+VAR
+  OK : Boolean;
+
+BEGIN
+  IF UserDriving
+  AND UserRequiresInstruction
+  THEN
+    Log(LocoChipToStr(LocoChip) + ' L= User instructed to turn lights on by means of function 0')
+  ELSE BEGIN
+    Log(LocoChipToStr(LocoChip) + ' L Turning lights off');
+    SetSingleLocoFunction(LocoChip, Function0, LightsOff, OK);
+  END;
+END; { TurnHeadLightsOff }
+
+PROCEDURE TurnHeadLightsOn(LocoChip : Integer; Direction : DirectionType; UserDriving, UserRequiresInstruction : Boolean);
+{ Turn on a loco's headlight, and tail light if they are connected }
+CONST
+  ForceRead = True;
+  LightsOn = True;
+  LightsOff = False;
+
+VAR
+  DebugStr : String;
+  OK : Boolean;
+
+BEGIN
+  IF UserDriving
+  AND UserRequiresInstruction
+  THEN BEGIN
+    Debug('=User: turn loco ' + LocoChipToStr(LocoChip) + '''s lights on - direction ' + DirectionToStr(Direction)
+           + ' - by means of function 0');
+    Log(LocoChipToStr(LocoChip) + ' L= User instructed to turn lights on - direction ' + DirectionToStr(Direction)
+                                + ' - by means of function 0');
+    OK := True;
+  END ELSE BEGIN
+    DebugStr := 'Turning lights on';
+    IF SingleLocoFunctionISOn(LocoChip, Function0, NOT ForceRead, OK) THEN
+      DebugStr := DebugStr + ' is not necessary as lights are already on'
+    ELSE BEGIN
+      SetSingleLocoFunction(LocoChip, Function0, LightsOn, OK);
+      DebugStr := DebugStr + ' - direction ' + DirectionToStr(Direction);
+    END;
+    Log(LocoChipToStr(LocoChip) + ' L ' + DebugStr);
+  END;
+END; { TurnHeadLightsOn }
+
+PROCEDURE TurnTailLightsOnAtOneEnd(LocoChip : Integer; Direction : DirectionType; UserDriving, UserRequiresInstruction : Boolean);
+{ Turn on a loco's tail lights at one particular end }
+CONST
+  ForceRead = True;
+  LightsOn = True;
+  LightsOff = False;
+
+VAR
+  LocoChipStr : String;
+  OK : Boolean;
+
+BEGIN
+  LocoChipStr := LocoChipToStr(LocoChip);
+
+  IF UserDriving
+  AND UserRequiresInstruction
+  THEN BEGIN
+    IF Direction = Up THEN
+      Log(LocoChipStr + ' L= User instructed to turn up tail lights on by setting function 1 on and function 2 off')
+    ELSE
+      Log(LocoChipStr + ' L= User instructed to turn down tail lights on by setting function 1 off and function 2 on');
+  END ELSE BEGIN
+    IF Direction = Up THEN BEGIN
+      Log(LocoChipStr + ' L Turning up tail lights on');
+      SetSingleLocoFunction(LocoChip, Function1, LightsOn, OK);
+      SetSingleLocoFunction(LocoChip, Function2, LightsOff, OK);
+    END ELSE BEGIN
+      Log(LocoChipStr + ' L Turning down tail lights on');
+      SetSingleLocoFunction(LocoChip, Function1, LightsOff, OK);
+      SetSingleLocoFunction(LocoChip, Function2, LightsOn, OK);
+    END;
+  END;
+END; { TurnTailLightsOnAtOneEnd }
+
+PROCEDURE TurnTailLightsOnAtBothEnds(LocoChip : Integer; UserDriving, UserRequiresInstruction : Boolean);
+{ Turn on a loco's tail lights at both ends - used for stationary locos }
+CONST
+  ForceRead = True;
+  LightsOn = True;
+  LightsOff = False;
+
+VAR
+  OK : Boolean;
+
+BEGIN
+  IF UserDriving
+  AND UserRequiresInstruction
+  THEN
+    Log(LocoChipToStr(LocoChip) + ' L= User instructed to turn tail lights on at both ends by setting functions 1 and 2 on')
+  ELSE BEGIN
+    Log(LocoChipToStr(LocoChip) + ' L Turning tail lights on at both ends');
+    SetSingleLocoFunction(LocoChip, Function1, LightsOn, OK);
+    SetSingleLocoFunction(LocoChip, Function2, LightsOn, OK);
+  END;
+END; { TurnTailLightsOnAtBothEnds }
+
+PROCEDURE TurnLightsOn(LocoChip : Integer; OUT OK : Boolean);
+{ Turns the lights on by changing functions on the loco chip and optional second chip }
+CONST
+  ForceRead = True;
+  LightsOn = True;
+  LightsOff = False;
+
+VAR
+  T : Train;
+
+  PROCEDURE TurnExpressModelsHeadlightsOn(LocoChip : Integer; Direction : DirectionType; UserDriving, UserRequiresInstruction : Boolean; OUT OK : Boolean);
+  { Turn on a loco's head lights in day and night mode }
+  VAR
+    LocoChipStr : String;
+
+  BEGIN
+    LocoChipStr := LocoChipToStr(LocoChip);
+
+    IF Direction = Up THEN BEGIN
+      { Is it daytime or night time? }
+      IF DayTime THEN BEGIN
+        IF UserDriving
+        AND UserRequiresInstruction
+        THEN
+          Log(LocoChipStr + ' L= User instructed to turn day-time up lights on by setting function 6 off and 7 on')
+        ELSE BEGIN
+          Log(LocoChipStr + ' L Turning day-time up lights on');
+          SetSingleLocoFunction(LocoChip, Function6, LightsOff, OK);
+          SetSingleLocoFunction(LocoChip, Function7, LightsOn, OK);
+        END;
+      END ELSE BEGIN
+        IF UserDriving
+        AND UserRequiresInstruction
+        THEN
+          Log(LocoChipStr + ' L= User instructed to turn night-time up lights on by setting function 6 on and 7 off')
+        ELSE BEGIN
+          Log(LocoChipStr + ' L Turning night-time up lights on');
+          SetSingleLocoFunction(LocoChip, Function6, LightsOn, OK);
+          SetSingleLocoFunction(LocoChip, Function7, LightsOff, OK);
+        END;
+      END;
+    END ELSE BEGIN
+      { Direction = Down }
+      { Is it daytime or night time? }
+      IF DayTime THEN BEGIN
+        IF UserDriving
+        AND UserRequiresInstruction
+        THEN
+          Log(LocoChipStr + ' L= User instructed to turn day-time down lights on by setting function 4 off and 5 on')
+        ELSE BEGIN
+          Log(LocoChipStr + ' L Turning day-time down lights on');
+          SetSingleLocoFunction(LocoChip, Function4, LightsOff, OK);
+          SetSingleLocoFunction(LocoChip, Function5, LightsOn, OK);
+        END;
+      END ELSE BEGIN
+        IF UserDriving
+        AND UserRequiresInstruction
+        THEN
+          Log(LocoChipStr + ' L User instructed to turn night-time down lights on by setting function 4 on and 5 off')
+        ELSE BEGIN
+          Log(LocoChipStr + ' L Turning night-time down lights on');
+          SetSingleLocoFunction(LocoChip, Function4, LightsOn, OK);
+          SetSingleLocoFunction(LocoChip, Function5, LightsOff, OK);
+        END;
+      END;
+    END;
+  END; { TurnExpressModelsHeadlightsOn }
+
+BEGIN
+  OK := False;
+  IF SystemOnline THEN BEGIN
+    IF LocoChip <> UnknownLocoChip THEN BEGIN
+      T := GetTrainRecord(LocoChip);
+      IF T <> NIL THEN BEGIN
+        WITH T^ DO BEGIN
+          IF T^.Train_LightsType <> NoLights THEN BEGIN
+            IF Train_CurrentStatus = NonMoving THEN BEGIN
+              IF Train_LightsType = HeadlightsAndTailLightsConnected THEN
+                TurnHeadLightsOn(Train_LocoChip, Train_CurrentDirection, Train_UserDriving, Train_UserRequiresInstructions)
+              ELSE
+                IF Train_LightsType = LightsOperatedByTwoChips THEN BEGIN
+                  TurnHeadLightsOn(Train_LightingChipUp, Down, Train_UserDriving, Train_UserRequiresInstructions);
+                  TurnHeadLightsOn(Train_LightingChipDown, Up, Train_UserDriving, Train_UserRequiresInstructions);
+                END ELSE
+                  IF Train_TypeNum = 0 THEN
+                    { If train isn't moving, and is a light loco, needs red lights at both ends }
+                    TurnTailLightsOnAtBothEnds(Train_LocoChip, Train_UserDriving, Train_UserRequiresInstructions)
+                  ELSE BEGIN
+                    { If train isn't moving, and is not a light loco, needs a red light at the front }
+                    IF Train_CurrentDirection = Up THEN
+                      TurnTailLightsOnAtOneEnd(Train_LocoChip, Up, Train_UserDriving, Train_UserRequiresInstructions)
+                    ELSE
+                      TurnTailLightsOnAtOneEnd(Train_LocoChip, Down, Train_UserDriving, Train_UserRequiresInstructions);
+                  END;
+            END ELSE BEGIN
+              { a moving train }
+              IF (Train_LightsType = HeadlightsAndTailLightsConnected) THEN
+                TurnHeadLightsOn(Train_LocoChip, Train_CurrentDirection, Train_UserDriving, Train_UserRequiresInstructions)
+              ELSE
+                IF Train_LightsType = HeadlightsAndTailLightsSeparatelySwitched THEN BEGIN
+                  TurnHeadLightsOn(Train_LocoChip, Train_CurrentDirection, Train_UserDriving, Train_UserRequiresInstructions);
+                  { If train is a light loco, needs a red light at the rear }
+                  IF Train_TypeNum = 0 THEN BEGIN
+                    IF Train_CurrentDirection = Up THEN
+                      TurnTailLightsOnAtOneEnd(Train_LocoChip, Down, Train_UserDriving, Train_UserRequiresInstructions)
+                    ELSE
+                      TurnTailLightsOnAtOneEnd(Train_LocoChip, Up, Train_UserDriving, Train_UserRequiresInstructions)
+                  END;
+                END ELSE
+                  IF Train_LightsType = ExpressModelsSeparateHeadlights THEN
+                    TurnExpressModelsHeadlightsOn(Train_LocoChip, Train_CurrentDirection, Train_UserDriving, Train_UserRequiresInstructions, OK)
+                  ELSE
+                    IF Train_LightsType = LightsOperatedByTwoChips THEN BEGIN
+                      TurnHeadLightsOn(Train_LightingChipUp, Train_CurrentDirection, Train_UserDriving, Train_UserRequiresInstructions);
+                      TurnHeadLightsOn(Train_LightingChipDown, Train_CurrentDirection, Train_UserDriving, Train_UserRequiresInstructions);
+                    END ELSE
+                      IF Train_LightsType = CustomLightingKit THEN BEGIN
+                       { **** }
+                      END;
+            END;
+            IF Train_UserDriving THEN
+              Train_LightsOn := True
+            ELSE
+              IF OK THEN BEGIN
+                Train_LightsOn := True;
+                Log(Train_LocoChipStr + ' L Lights turned on');
+              END ELSE
+                Log(Train_LocoChipStr + ' L Lights did not turn on');
+          END;
+        END;
+      END;
+    END; {WITH}
+  END;
+END; { TurnLightsOn }
+
+PROCEDURE TurnTailLightsOff(LocoChip : Integer; UserDriving, UserRequiresInstruction : Boolean; OUT OK : Boolean);
+{ Turn off a loco's tail lights }
+CONST
+  LightsOff = True;
+
+BEGIN
+  IF UserDriving
+  AND UserRequiresInstruction
+  THEN
+    Log(LocoChipToStr(LocoChip) + ' L= User instructed to turn up tail lights off by setting functions 1 and 2 off')
+  ELSE BEGIN
+    Log(LocoChipToStr(LocoChip) + ' L Turning up and down tail lights off');
+    SetSingleLocoFunction(LocoChip, Function1, LightsOff, OK);
+    SetSingleLocoFunction(LocoChip, Function2, LightsOff, OK);
+  END;
+END; { TurnTailLightsOff }
+
+PROCEDURE TurnLightsOff(LocoChip : Integer);
+{ Turns the lights off by changing functions on the loco chip and optional second chip }
+CONST
+  LightsOn = True;
+  LightsOff = True;
+
+VAR
+  OK : Boolean;
+  T : Train;
+
+  PROCEDURE TurnExpressModelsHeadlightsOff(LocoChip : Integer; UserDriving, UserRequiresInstruction : Boolean);
+  { Turn off a loco's head lights in day and night mode }
+  BEGIN
+    IF UserDriving
+    AND UserRequiresInstruction
+    THEN
+      Log(LocoChipToStr(LocoChip) + ' L= User instructed to turn day-time and night-time lights off by setting functions 4-7 off')
+    ELSE BEGIN
+      Log(LocoChipToStr(LocoChip) + ' L Turning day-time and night-time down and up lights off');
+      SetSingleLocoFunction(LocoChip, Function4, LightsOff, OK);
+      SetSingleLocoFunction(LocoChip, Function5, LightsOff, OK);
+      SetSingleLocoFunction(LocoChip, Function6, LightsOff, OK);
+      SetSingleLocoFunction(LocoChip, Function7, LightsOff, OK);
+    END;
+  END; { TurnExpressModelsHeadlightsOff }
+
+BEGIN
+  IF SystemOnline THEN BEGIN
+    IF LocoChip <> UnknownLocoChip THEN BEGIN
+      T := GetTrainRecord(LocoChip);
+      IF T <> NIL THEN BEGIN
+        WITH T^ DO BEGIN
+          IF T^.Train_LightsType <> NoLights THEN BEGIN
+            IF Train_LightsType = HeadlightsAndTailLightsConnected THEN
+              TurnHeadLightsOff(Train_LocoChip, Train_UserDriving, Train_UserRequiresInstructions)
+            ELSE
+              IF Train_LightsType = HeadlightsAndTailLightsSeparatelySwitched THEN BEGIN
+                TurnHeadLightsOff(Train_LocoChip, Train_UserDriving, Train_UserRequiresInstructions);
+                TurnTailLightsOff(Train_LocoChip, Train_UserDriving, Train_UserRequiresInstructions, OK);
+              END ELSE
+                IF Train_LightsType = ExpressModelsSeparateHeadlights THEN BEGIN
+                  TurnHeadLightsOff(Train_LocoChip, Train_UserDriving, Train_UserRequiresInstructions);
+                  TurnTailLightsOff(Train_LocoChip, Train_UserDriving, Train_UserRequiresInstructions, OK);
+                  TurnExpressModelsHeadlightsOff(Train_LocoChip, Train_UserDriving, Train_UserRequiresInstructions);
+                END ELSE
+                  IF Train_LightsType = LightsOperatedByTwoChips THEN BEGIN
+                    TurnHeadLightsOff(Train_LightingChipUp, Train_UserDriving, Train_UserRequiresInstructions);
+                    TurnHeadLightsOff(Train_LightingChipDown, Train_UserDriving, Train_UserRequiresInstructions);
+                  END ELSE
+                    IF Train_LightsType = CustomLightingKit THEN BEGIN
+                    END;
+
+            IF OK THEN BEGIN
+              Train_LightsOn := False;
+              Log(Train_LocoChipStr + ' L Lights turned off');
+            END ELSE
+              Log(Train_LocoChipStr + ' L Lights did not turn off');
+          END;
+        END; {WITH}
+      END;
+    END;
+  END;
+END; { TurnLightsOff }
+
+PROCEDURE TurnCabLightsOn(LocoChip : Integer);
+{ Turns cab lights on or off. Assumes that the cab lights are operated by function one }
+CONST
+  LightsOn = True;
+
+VAR
+  OK : Boolean;
+
+BEGIN
+  SetSingleLocoFunction(LocoChip, Function1, LightsOn, OK);
+  Log(LocoChipToStr(LocoChip) + ' L Cab lights turned on');
+END; { TurnCabLightsOn }
+
+PROCEDURE TurnCabLightsOff(LocoChip : Integer);
+{ Turns cab lights off. Assumes that the cab lights are operated by function one }
+CONST
+  LightsOn = True;
+
+VAR
+  OK : Boolean;
+
+BEGIN
+  SetSingleLocoFunction(LocoChip, Function1, NOT LightsOn, OK);
+  Log(LocoChipToStr(LocoChip) + ' L Cab lights turned off');
+END; { TurnCabLightsOff }
+
+FUNCTION TypeOfLineToStr(T : TypeOfLine) : String;
+{ Describe a line type }
+BEGIN
+  CASE T OF
+    MainOrGoods:
+      Result := 'Main or Goods Line';
+    MainLine:
+      Result := 'Main Line';
+    GoodsLine:
+      Result := 'Goods Line';
+    BranchLineDouble:
+      Result := 'Branch Line Double';
+    BranchLineSingle:
+      Result := 'Branch Line Single';
+    IslandStationLine:
+      Result := 'Island Station Line';
+    MainStationLine:
+      Result := 'Main Station Line';
+    BranchStationLine:
+      Result := 'Branch Station Line';
+    WindowStationLine:
+      Result := 'Window Station Line';
+    SidingLine:
+      Result := 'Siding Line';
+    FiddleyardLine:
+      Result := 'Fiddleyard Line';
+    SidingsApproach:
+      Result := 'Sidings Approach Line';
+    StationAvoiding:
+      Result := 'Station Avoiding Line';
+    ProjectedLine:
+      Result := 'Projected Line';
+  ELSE {CASE}
+    Result := 'Unknown Line Type';
+  END; {CASE}
+END; { TypeOfLineToStr }
+
+FUNCTION WorkingTimetableStatusToStr(Status : WorkingTimetableStatusType) : String;
+{ Return the given working timetable status as a string }
+BEGIN
+  CASE Status OF
+    EntryCreatedFromWorkingTimetable:
+      Result := 'Entry Created From Working Timetable';
+    AdditionalEntryCreated:
+      Result := 'Additional Entry Created';
+    EntryCancelled:
+      Result := 'Entry Cancelled';
+    UnknownEntryStatus:
+      Result := 'Unknown Entry Status';
+  ELSE
+    Result := 'Unknown Entry Status';
+  END; {CASE}
+END; { TrainStatusToStr }
+
+PROCEDURE WriteNextLineDetailToDebugWindow(L : Integer; HelpRequired : Boolean);
+{ Indicate what the next line status is for the given line }
+BEGIN
+  IF HelpRequired THEN BEGIN
+    AddRichLine(HelpWindow.HelpRichEdit, '');
+    AddRichLine(HelpWindow.HelpRichEdit, '<B>Debugging</B>');
+    AddRichLine(HelpWindow.HelpRichEdit, '  <B>Shift + Right Mouse over Line</B> - write line detail to the Debug Window');
+  END ELSE BEGIN
+    WITH Lines[L] DO BEGIN
+      Debug('L=' + LineToStr(L));
+      Debug('NextUpType=' + NextLineRouteingToStr(Line_NextUpType));
+      Debug('NextDownType=' + NextLineRouteingToStr(Line_NextDownType));
+      Debug('NextUpIsEndOfLine=' + EndOfLineToStr(Line_NextUpIsEndOfLine));
+      Debug('NextDownIsEndOfLine=' + EndOfLineToStr(Line_NextDownIsEndOfLine));
+      Debug('EndOfLineMarker=' + EndOfLineToStr(Line_EndOfLineMarker));
+      Debug('NextUpLine=' + IntToStr(Line_NextUpLine));
+      Debug('NextDownLine=' + IntToStr(Line_NextDownLine));
+      Debug('NextUpPoint=' + IntToStr(Line_NextUpPoint));
+      Debug('NextDownPoint=' + IntToStr(Line_NextDownPoint));
+    END; {WITH}
+  END;
+END; { WriteNextLineDetailToDebugWindow }
+
+(*
+PROCEDURE TfrmMain.WMQueryEndSession(var Message :
+                                 TWMQueryEndSession);
+begin
+
+ // Let the inherited message handler respond first
+ inherited;
+
+ if DataHasChanged then begin
+    MessageMakeSound(1)(MB_ICONQUESTION);
+    CASE MessageDlg('The current Windows
+           session is ending.  Save league changes?',
+           mtConfirmation, [mbYes,mbNo,mbCancel],0)
+    OF
+      mrYes : begin
+                //Your data-saving code or method
+                //call goes here
+                Message.Result := 1;
+               end;
+      mrNo : Message.Result := 1;
+      mrCancel : Message.Result := 0;
+    end; {case}
+  end else
+      Message.Result := 1;
+end;
+*)
+
+(*
+Borland Developer Support
+
+
+Different colored characters in a string grid - by Borland Developer Support Staff
+
+Ratings: be the first! Not Rated Rate It
+
+ Technical Information Database
+
+TI1045D.txt  Different colored characters in a string grid
+Category :General Programming
+Platform :All
+Product :Delphi All
+
+Description:
+This unit will show how to have text in a string grid where the
+characters are different colors.
+
+unit Strgr;
+
+interface
+
+uses
+  SysUtils, WinTypes, WinProcs, Messages, Classes, Graphics, Controls,
+  Forms, Dialogs, Grids, StdCtrls, DB;
+
+type
+  TForm1 = class(TForm)
+    StringGrid1: TStringGrid;
+    PROCEDURE StringGrid1DrawCell(Sender: TObject; Col, Row: Longint;
+      Rect: TRect; State: TGridDrawState);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  Form1: TForm1;
+
+implementation
+
+{$R *.DFM}
+
+PROCEDURE TForm1.StringGrid1DrawCell(Sender: TObject; Col, Row: Longint;
+  Rect: TRect; State: TGridDrawState);
+const
+  CharOffset = 3;
+begin
+  with StringGrid1.canvas do
+  begin
+    font.color := clMaroon;
+    textout(rect.left + CharOffset, rect.top + CharOffset, 'L');
+      font.color := clNavy;
+    textout(rect.left + CharOffset + TextWidth('L'),
+      rect.top + CharOffset, 'loyd');
+  end;
+*)
+(*
+Text Alignment in StringGrid
+
+ USES
+    Classes;    // TAlignment
+
+// Use half-width of 'X' as left margin
+FUNCTION XLeft (rect: TRect; canvas: TCanvas; s: String) : INTEGER;
+BEGIN
+  RESULT := rect.Left + canvas.TextWidth('X') DIV 2
+END {XRight};
+
+FUNCTION XCenter (rect: TRect; canvas: TCanvas; s: String) : INTEGER;
+BEGIN
+  RESULT := ((rect.Left + rect.Right) - canvas.TextWidth(s)) DIV 2
+END {XCenter};
+
+// Use half-width of 'X' as right margin
+FUNCTION XRight (rect: TRect; canvas: TCanvas; s: String) : INTEGER;
+BEGIN
+  RESULT := rect.Right - canvas.TextWidth(s) - canvas.TextWidth('X') DIV 2
+END {XRight};
+
+// Top of text is its origin, so adjust by half-height of text to center
+FUNCTION YCenter (rect: TRect; canvas: TCanvas; s: String) : INTEGER;
+BEGIN
+  RESULT := ((rect.Top + rect.Bottom) - canvas.TextHeight(s)) DIV 2
+END { YCenter };
+
+PROCEDURE AlignText(CONST Canvas: TCanvas; CONST Rect: TRect;
+                    CONST alignment: TAlignment; CONST s: String);
+BEGIN
+  CASE alignment OF
+    taLeftJustify: Canvas.TextRect(Rect,
+                                   XLeft(Rect, Canvas, s),
+                                   YCenter(Rect, Canvas, s),
+                                   s);
+    taCenter: Canvas.TextRect(Rect,
+                              XCenter(Rect, Canvas, s),
+                              YCenter(Rect, Canvas, s),
+                              s);
+
+    taRightJustify: Canvas.TextRect(Rect,
+                                    XRight(Rect, Canvas, s),
+                                    YCenter(Rect, Canvas, s),
+                                    s);
+  END;
+END { AlignText };
+
+...
+
+CONST
+  ColumnAlignment: ARRAY [0..7] OF TAlignment =
+    (taLeftJustify, taLeftJustify, taLeftJustify, taLeftJustify,
+     taLeftJustify, taCenter, taCenter, taCenter);
+
+...
+
+procedure TFormList.StringGridListDrawCell(Sender: TObject;
+  Col, Row: Longint; Rect: TRect; State: TGridDrawState);
+
+  VAR
+    s : String;
+begin
+  s := StringGridList.Cells[Col, Row];
+
+  StringGridList.Canvas.Font.Color := clBlack;
+
+  IF Col < StringGridList.FixedCols
+  THEN StringGridList.Canvas.Brush.Color := clBtnFace
+  ELSE
+    IF Row < StringGridList.FixedRows
+    THEN StringGridPatientList.Canvas.Brush.Color := clBtnFace
+    ELSE
+      IF (Row >= StringGridList.Selection.Top) AND
+         (Row <= StringGridList.Selection.Bottom)
+      THEN StringGridList.Canvas.Brush.Color := clYellow
+      ELSE StringGridList.Canvas.Brush.Color := clWindow;
+
+  StringGridList.Canvas.FillRect(Rect);
+
+  IF Row = 0
+  THEN AlignText(StringGridList.Canvas, Rect, taCenter, s)
+  ELSE AlignText(StringGridList.Canvas, Rect, ColumnAlignment[Col], s)
+end;
+*)
+(*
+var
+myArray: TStringArray;
+...//delete fifth element
+DeleteArrayItem(myArray, 5);
+
+---------------------------
+type
+   TStringArray = array of String;
+
+PROCEDURE DeleteArrayItem(var X: TStringArray; const Index: Integer);
+begin
+   if Index > High(X) then Exit;
+   if Index < Low(X) then Exit;
+   if Index = High(X) then
+   begin
+     SetLength(X, Length(X) - 1);
+     Exit;
+   end;
+   Finalize(X[Index]);
+   System.Move(X[Index +1], X[Index],(Length(X) - Index -1) * SizeOf(String) + 1);
+   SetLength(X, Length(X) - 1);
+end;
+*)
+PROCEDURE TDebugWindow.DebugWindowHide(Sender: TObject);
+{ Un-check the window menu item }
+BEGIN
+  MainWindow.MainOperationsMenuDebugOptions.Checked := False;
+END; { DebugWindowHide }
+
+PROCEDURE TDebugWindow.DebugWindowShow(Sender: TObject);
+{ Check the window menu item }
+BEGIN
+  MainWindow.MainOperationsMenuDebugOptions.Checked := True;
+END; { TDebugWindow }
+
+FUNCTION TimeIsValid(TimeStr : String) : Boolean;
+{ Checking a given time string - an hour/min separator is permissible. Also ignore a trailing asterisk }
+VAR
+  ErrorCode : Integer;
+  Hour, Min, Sec, MSec : Word;
+  OK : Boolean;
+
+BEGIN
+  OK := True;
+
+  Hour := 0;
+  Min := 0;
+  Sec := 0;
+  MSec := 0;
+
+  { Remove any trailing asterisks - there to advise that time string is system created }
+  IF RightStr(TimeStr, 1) = '*' THEN
+    TimeStr := Copy(TimeStr, 1, Length(TimeStr) - 1);
+
+  IF (Length(TimeStr) <> 5)
+  AND (Length(TimeStr) <> 8)
+  THEN
+    OK := False;
+
+  IF OK THEN BEGIN
+    Val(Copy(TimeStr, 1, 2), Hour, ErrorCode);
+    IF ErrorCode <> 0 THEN
+      OK := False;
+  END;
+
+  IF OK THEN BEGIN
+    Val(Copy(TimeStr, 4, 2), Min, ErrorCode);
+    IF ErrorCode <> 0 THEN
+      OK := False;
+  END;
+
+  IF OK THEN BEGIN
+    IF Length(TimeStr) = 8 THEN BEGIN
+      Val(Copy(TimeStr, 7, 2), Sec, ErrorCode);
+      IF ErrorCode <> 0 THEN
+        OK := False;
+    END;
+  END;
+
+  IF OK THEN
+    OK := IsValidTime(Hour, Min, Sec, MSec);
+
+  IF NOT OK THEN
+    Debug('Time string "' + TimeStr + '" invalid');
+
+  Result := OK;
+END; { TimeIsValid }
+
+PROCEDURE TDebugWindow.DebugWindowCreate(Sender: TObject);
+VAR
+  I : Integer;
+
+BEGIN
+  { Now see if there are any messages waiting for the window to be created before they can be written on it }
+  IF Length(DebugWindowLines) > 0 THEN
+    FOR I := 0 TO High(DebugWindowLines) DO
+      Debug(DebugWindowLines[I]);
+
+  DrawDebugWindow;
+END; { DebugWindowCreate }
+
+PROCEDURE TDebugWindow.DebugWindowClose(Sender: TObject; VAR Action: TCloseAction);
+{ Hides but does not close the window }
+BEGIN
+  Action := caHide;
+END; { DebugWindowClose }
+
+PROCEDURE TDebugWindow.PopupDebugWindowCopyClick(Sender: TObject);
+BEGIN
+  DebugRichEdit.CopyToClipboard;
+
+  { and hide the selection }
+  DebugRichEdit.SelStart := 0;
+END; { PopupDebugWindowCopyClick }
+
+PROCEDURE TDebugWindow.PopupDebugWindowResetSizeAndPositionClick(Sender: TObject);
+BEGIN
+  DebugWindowHeight := DefaultDebugWindowHeight;
+  DebugWindowWidth := DefaultDebugWindowWidth;
+  DebugWindowTop := DefaultDebugWindowTop;
+  DebugWindowLeft := DefaultDebugWindowLeft;
+
+  DrawDebugWindow;
+END; { ResetDebugWindowSizeClick }
+
+PROCEDURE TDebugWindow.DebugWindowResize(Sender: TObject);
+BEGIN
+  { Enable or disable the popup menu item allowing us to return the window to its default size }
+  IF (DebugWindow.Height <> DefaultDebugWindowHeight)
+  OR (DebugWindow.Width <> DefaultDebugWindowWidth)
+  OR (DebugWindow.Top <> DefaultDebugWindowTop)
+  OR (DebugWindow.Left <> DefaultDebugWindowLeft)
+  THEN
+    PopupDebugWindowResetSizeAndPosition.Enabled := True
+  ELSE
+    PopupDebugWindowResetSizeAndPosition.Enabled := False;
+END; { DebugWindowResize }
+
+PROCEDURE TDebugWindow.DebugRichEditKeyDown(Sender: TObject; VAR Key: Word; ShiftState: TShiftState);
+BEGIN
+  CASE Key OF
+    { Exclude most non-alphanumeric keys }
+    vk_Shift, vk_Control, vk_Menu { Alt }, vk_Pause, vk_SnapShot { PrtSc }, vk_LWin, vk_RWin, vk_Apps { Windows Applications }, vk_Numlock, vk_Scroll,
+    vk_Cancel { Ctrl-Break}, vk_Capital { Caps Lock }, vk_Back { Backspace }:
+      { do nothing };
+  ELSE
+    IF (Key = Ord('C'))
+    AND (ssCtrl IN ShiftState)
+    THEN BEGIN
+      DebugRichEdit.CopyToClipboard;
+
+      { and hide the selection }
+      DebugRichEdit.SelStart := 0;
+    END ELSE
+      KeyPressedDown(Key, ShiftState);
+  END; {CASE}
+END; { DebugRichEditKeyDown }
+
+PROCEDURE TDebugWindow.DebugRichEditMouseDown(Sender: TObject; Button: TMouseButton; ShiftState: TShiftState; X, Y: Integer);
+{ Used to change the memo's colours }
+BEGIN
+  IF LocoDialogueWindow.Visible
+  AND (GetLocoDialogueSelectedLocoSpeed > 0) AND (Button = mbRight)
+  THEN BEGIN
+    CheckEmergencyStop(Button, ShiftState);
+    Exit;
+  END ELSE
+    IF (Button = mbRight)
+    AND (ssShift IN ShiftState)
+    THEN BEGIN
+      { Show the default }
+      DebugRichEditColourDialogue.Color := DebugRichEdit.Color;
+      { Allow the user to change it }
+      IF DebugRichEditColourDialogue.Execute THEN
+        DebugRichEdit.Color := DebugRichEditColourDialogue.Color;
+    END;
+END; { DebugRichEditMouseDown }
+
+PROCEDURE TDebugWindow.DebugRichEditMouseMove(Sender: TObject; ShiftState: TShiftState; X, Y: Integer);
+{ If the mouse moves into the debug window, move the focus there }
+BEGIN
+  IF AutomaticallySetFocusWhenInDebugWindow
+  AND NOT KeyboardAndMouseLocked AND (DebugWindow <> NIL)
+  THEN BEGIN
+    IF NOT DebugWindow.Active THEN BEGIN
+      DebugWindow.SetFocus;
+      ChangeCursor(crIBeam);
+    END;
+  END;
+END; { DebugRichEditMouseMove }
+
+PROCEDURE TDebugWindow.DebugRichEditPopupMenuOnPopup(Sender: TObject);
+BEGIN
+  IF DebugWindow.Top <> DefaultDebugWindowTop THEN
+    PopupDebugWindowResetSizeAndPosition.Enabled := True
+  ELSE
+    PopupDebugWindowResetSizeAndPosition.Enabled := False;
+END; { DebugRichEditPopupMenuOnPopup }
+
+PROCEDURE DummyProc;
+{ Here just to be copied elsewhere }
+VAR
+  T : Train;
+
+BEGIN
+  T := TrainList;
+  WHILE T <> NIL DO BEGIN
+    WITH T^ DO BEGIN
+      IF T^.Train_DiagramFound THEN BEGIN
+
+      END;
+    END;
+    T := T^.Train_NextRecord;
+  END; {WHILE}
+END; { DummyProc }
+
+PROCEDURE CompareTwoPointDatabases(Point1DataFilename, Point1DataFilenameSuffix, Point2DataFilename, Point2DataFilenameSuffix : String);
+{ Compare two point databases - used for testing }
+CONST
+  ApproachControlled = True;
+  InUse = True;
+  PermitRouteTo = True;
+  StopTimer = True;
+
+VAR
+  ErrorFound : Boolean;
+  P : Integer;
+
+  PROCEDURE CheckString(FieldName : String; Table2, Table1 : TADOTable; VAR ErrorFound : Boolean);
+  BEGIN
+    IF UpperCase(Table1.FieldByName(FieldName).AsString) <> UpperCase(Table2.FieldByName(FieldName).AsString) THEN BEGIN
+      IF NOT ErrorFound THEN BEGIN
+        Log('XG Comparison error found in point databases '
+                + '"' + Point2DataFilename + '.' + Point2DataFilenameSuffix + '" and "' + Point1DataFilename + '.' + Point1DataFilenameSuffix + '"');
+        ErrorFound := True;
+      END;
+      Log('XG P=' + IntToStr(P) + ' ' + FieldName + ': "' + Table1.FieldByName(FieldName).AsString + '" to "' + Table2.FieldByName(FieldName).AsString + '"');
+    END;
+  END; { CheckString }
+
+  PROCEDURE CheckBoolean(FieldName : String; Table2, Table1 : TADOTable; VAR ErrorFound : Boolean);
+  BEGIN
+    IF Table1.FieldByName(FieldName).AsBoolean <> Table2.FieldByName(FieldName).AsBoolean THEN BEGIN
+      IF NOT ErrorFound THEN BEGIN
+        Log('XG Comparison error found in point databases '
+                + '"' + Point2DataFilename + '.' + Point2DataFilenameSuffix + '" and "' + Point1DataFilename + '.' + Point1DataFilenameSuffix + '"');
+        ErrorFound := True;
+      END;
+      Log('XG P=' + IntToStr(P) + ' ' + FieldName
+              + ': "' + BoolToStr(Table1.FieldByName(FieldName).AsBoolean, True) + '" to "' + BoolToStr(Table2.FieldByName(FieldName).AsBoolean, True) + '"');
+    END;
+  END; { CheckBoolean }
+
+BEGIN
+  TRY
+    Log('G INITIALISING Points <BlankLineBefore>');
+
+    WITH InitVarsWindow DO BEGIN
+      PointsADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
+                                               + PathToRailDataFiles + Point1DataFilename + '.' + Point1DataFilenameSuffix
+                                               + ';Persist Security Info=False';
+      TRY
+        PointsADOConnection.Connected := True;
+      EXCEPT
+        ON E:Exception DO
+          Log('EG InitialisePoints 1: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      END; {TRY}
+
+      PointsADOTable.Open;
+
+      PointsADOConnection2.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
+                                               + PathToRailDataFiles + Point2DataFilename + '.' + Point2DataFilenameSuffix
+                                               + ';Persist Security Info=False';
+      TRY
+        PointsADOConnection2.Connected := True;
+      EXCEPT
+        ON E:Exception DO
+          Log('EG InitialisePoints 2: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      END; {TRY}
+
+      PointsADOTable2.Open;
+
+      Log('S Point data table and connection opened to initialise the Point 1 data');
+      Log('S Point data table 2 and connection 2 opened to initialise the Point 2 data');
+
+      ErrorFound := False;
+      P := -1;
+      PointsADOTable.Sort := '[PointNum] ASC';
+      PointsADOTable.First;
+      PointsADOTable2.Sort := '[PointNum] ASC';
+      PointsADOTable2.First;
+
+      REPEAT
+        Inc(P);
+
+        IF P > High(Points) THEN BEGIN
+          IF NOT PointsADOTable.EOF THEN
+            Log('XG Last declared Point (S=' + IntToStr(P - 1) + ') processed but point database ' + '"' + Point1DataFilename + '.' + Point1DataFilenameSuffix
+                    + ' has not yet reached end of file')
+          ELSE
+          IF NOT PointsADOTable2.EOF THEN
+            Log('XG Last declared Point (S=' + IntToStr(P - 1) + ') processed but point database ' + '"' + Point2DataFilename + '.' + Point2DataFilenameSuffix
+                    + ' has not yet reached end of file');
+        END ELSE BEGIN
+          WITH Points[P] DO BEGIN
+            CheckString(Point_DivergingLineFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
+            CheckString(Point_HeelLineFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
+            CheckString(Point_StraightLineFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
+            CheckString(Point_LenzNumFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
+            CheckString(Point_LenzUnitFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
+            CheckString(Point_LenzUnitTypeFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
+            CheckBoolean(Point_ManualOperationFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
+            CheckString(Point_FeedbackUnitFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
+            CheckString(Point_FeedbackInputFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
+            CheckBoolean(Point_FeedbackOnIsStraightFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
+            CheckBoolean(Point_WiringReversedFlagFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
+            CheckString(Point_TypeFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
+            CheckString(Point_OtherPointFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
+            CheckString(Point_DefaultStateFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
+            CheckBoolean(Point_LockedIfHeelTCOccupiedFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
+            CheckBoolean(Point_OutOfUseFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
+            CheckBoolean(Point_LockedIfNonHeelTCsOccupiedFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
+            CheckString(Point_NotesFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
+            CheckString(Point_ManualStateAsReadInFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
+          END; {WITH}
+        END;
+
+        IF PointsADOTable.EOF AND NOT PointsADOTable2.EOF THEN BEGIN
+          Log('XG Point database ' + '"' + Point1DataFilename + '.' + Point1DataFilenameSuffix
+                  + '" is shorter than "' + Point2DataFilename + '.' + Point2DataFilenameSuffix + '"');
+          Log('XG A later entry in point database ' + '"' + Point1DataFilename + '.' + Point1DataFilenameSuffix + '" is S=' + IntToStr(P));
+        END ELSE
+          IF NOT PointsADOTable.EOF AND PointsADOTable2.EOF THEN BEGIN
+            Log('XG Point database ' + '"' + Point2DataFilename + '.' + Point2DataFilenameSuffix
+                    + '" is shorter than "' + Point1DataFilename + '.' + Point1DataFilenameSuffix + '"');
+            Log('XG A later entry in point database ' + '"' + Point2DataFilename + '.' + Point2DataFilenameSuffix + '" is S=' + IntToStr(P));
+          END;
+
+        PointsADOTable2.Next;
+        PointsADOTable.Next;
+      UNTIL PointsADOTable.EOF AND PointsADOTable2.EOF;
+
+      IF NOT ErrorFound THEN
+        Log('XG No comparison errors found in ooint databases '
+                + '"' + Point1DataFilename + '.' + Point1DataFilenameSuffix + '" and "' + Point2DataFilename + '.' + Point2DataFilenameSuffix + '"');
+
+      { Tidy up the database }
+      PointsADOTable.Close;
+      PointsADOConnection.Connected := False;
+      Log('S Point Data 1 table and connection closed');
+      PointsADOTable2.Close;
+      PointsADOConnection.Connected := False;
+      Log('S Point Data 2 table and connection closed');
+    END; {WITH}
+  EXCEPT {TRY}
+    ON E : Exception DO
+      Log('EG InitialisePoints: ' + E.ClassName +'error raised, with message: '+ E.Message);
+  END; {TRY}
+END; { CompareTwoSignalDatabases }
+
+PROCEDURE CompareTwoSignalDatabases(Signal1DataFilename, Signal1DataFilenameSuffix, Signal2DataFilename, Signal2DataFilenameSuffix : String);
+{ Compare two signal databases - used for testing }
+CONST
+  ApproachControlled = True;
+  InUse = True;
+  PermitRouteTo = True;
+  StopTimer = True;
+
+VAR
+  ErrorFound : Boolean;
+  S : Integer;
+
+  PROCEDURE CheckString(FieldName : String; Table2, Table1 : TADOTable; VAR ErrorFound : Boolean);
+  BEGIN
+    IF UpperCase(Table1.FieldByName(FieldName).AsString) <> UpperCase(Table2.FieldByName(FieldName).AsString) THEN BEGIN
+      IF NOT ErrorFound THEN BEGIN
+        Log('XG Comparison error found in signal databases '
+                + '"' + Signal2DataFilename + '.' + Signal2DataFilenameSuffix + '" and "' + Signal1DataFilename + '.' + Signal1DataFilenameSuffix + '"');
+        ErrorFound := True;
+      END;
+      Log('XG S=' + IntToStr(S) + ' ' + FieldName + ': "' + Table1.FieldByName(FieldName).AsString + '" to "' + Table2.FieldByName(FieldName).AsString + '"');
+    END;
+  END; { CheckString }
+
+  PROCEDURE CheckBoolean(FieldName : String; Table2, Table1 : TADOTable; VAR ErrorFound : Boolean);
+  BEGIN
+    IF Table1.FieldByName(FieldName).AsBoolean <> Table2.FieldByName(FieldName).AsBoolean THEN BEGIN
+      IF NOT ErrorFound THEN BEGIN
+        Log('XG Comparison error found in signal databases '
+                + '"' + Signal2DataFilename + '.' + Signal2DataFilenameSuffix + '" and "' + Signal1DataFilename + '.' + Signal1DataFilenameSuffix + '"');
+        ErrorFound := True;
+      END;
+      Log('XG S=' + IntToStr(S) + ' ' + FieldName
+              + ': "' + BoolToStr(Table1.FieldByName(FieldName).AsBoolean, True) + '" to "' + BoolToStr(Table2.FieldByName(FieldName).AsBoolean, True) + '"');
+    END;
+  END; { CheckBoolean }
+
+BEGIN
+  TRY
+    Log('G INITIALISING SIGNALS <BlankLineBefore>');
+
+    WITH InitVarsWindow DO BEGIN
+      SignalsADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
+                                               + PathToRailDataFiles + Signal1DataFilename + '.' + Signal1DataFilenameSuffix
+                                               + ';Persist Security Info=False';
+      TRY
+        SignalsADOConnection.Connected := True;
+      EXCEPT
+        ON E:Exception DO
+          Log('EG InitialiseSignals 1: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      END; {TRY}
+
+      SignalsADOTable.Open;
+
+      SignalsADOConnection2.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
+                                               + PathToRailDataFiles + Signal2DataFilename + '.' + Signal2DataFilenameSuffix
+                                               + ';Persist Security Info=False';
+      TRY
+        SignalsADOConnection2.Connected := True;
+      EXCEPT
+        ON E:Exception DO
+          Log('EG InitialiseSignals 2: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      END; {TRY}
+
+      SignalsADOTable2.Open;
+
+      Log('S Signal data table and connection opened to initialise the signal 1 data');
+      Log('S Signal data table 2 and connection 2 opened to initialise the signal 2 data');
+
+      ErrorFound := False;
+      S := -1;
+      SignalsADOTable.Sort := '[Signal Number] ASC';
+      SignalsADOTable.First;
+      SignalsADOTable2.Sort := '[Signal Number] ASC';
+      SignalsADOTable2.First;
+
+      REPEAT
+        Inc(S);
+
+        IF S > High(Signals) THEN BEGIN
+          IF NOT SignalsADOTable.EOF THEN
+            Log('XG Last declared signal (S=' + IntToStr(S - 1) + ') processed but signal database ' + '"' + Signal1DataFilename + '.' + Signal1DataFilenameSuffix
+                    + ' has not yet reached end of file')
+          ELSE
+          IF NOT SignalsADOTable2.EOF THEN
+            Log('XG Last declared signal (S=' + IntToStr(S - 1) + ') processed but signal database ' + '"' + Signal2DataFilename + '.' + Signal2DataFilenameSuffix
+                    + ' has not yet reached end of file');
+        END ELSE BEGIN
+          WITH Signals[S] DO BEGIN
+            CheckString(Signal_AdjacentLineFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CheckString(Signal_ApproachControlAspectFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CheckString(Signal_AsTheatreDestinationFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CheckString(Signal_IndicatorFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CheckString(Signal_UpperLeftIndicatorTargetFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CheckString(Signal_MiddleLeftIndicatorTargetFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CheckString(Signal_LowerLeftIndicatorTargetFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CheckString(Signal_UpperRightIndicatorTargetFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CheckString(Signal_MiddleRightIndicatorTargetFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CheckString(Signal_LowerRightIndicatorTargetFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CheckString(Signal_IndicatorDecoderFunctionNumFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CheckString(Signal_IndicatorDecoderNumFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CheckString(Signal_IndicatorSpeedRestrictionFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CheckString(Signal_LocationsToMonitorFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CheckString(Signal_NextSignalIfNoIndicatorFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CheckString(Signal_NotUsedForRouteingFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CheckString(Signal_NotesFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CheckString(Signal_OppositePassingLoopSignalFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CheckBoolean(Signal_OutOfUseFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CheckBoolean(Signal_PossibleRouteHoldFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CheckBoolean(Signal_PossibleStationStartRouteHoldFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CheckString(Signal_AccessoryAddressFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CheckString(Signal_DecoderNumFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CheckString(Signal_TypeFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CheckString(Signal_DirectionFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CheckString(Signal_XAdjustmentFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
+          END; {WITH}
+        END;
+
+        IF SignalsADOTable.EOF AND NOT SignalsADOTable2.EOF THEN BEGIN
+          Log('XG Signal database ' + '"' + Signal1DataFilename + '.' + Signal1DataFilenameSuffix
+                  + '" is shorter than "' + Signal2DataFilename + '.' + Signal2DataFilenameSuffix + '"');
+          Log('XG A later entry in signal database ' + '"' + Signal1DataFilename + '.' + Signal1DataFilenameSuffix + '" is S=' + IntToStr(S));
+        END ELSE
+          IF NOT SignalsADOTable.EOF AND SignalsADOTable2.EOF THEN BEGIN
+            Log('XG Signal database ' + '"' + Signal2DataFilename + '.' + Signal2DataFilenameSuffix
+                    + '" is shorter than "' + Signal1DataFilename + '.' + Signal1DataFilenameSuffix + '"');
+            Log('XG A later entry in signal database ' + '"' + Signal2DataFilename + '.' + Signal2DataFilenameSuffix + '" is S=' + IntToStr(S));
+          END;
+
+        SignalsADOTable2.Next;
+        SignalsADOTable.Next;
+      UNTIL SignalsADOTable.EOF AND SignalsADOTable2.EOF;
+
+      IF NOT ErrorFound THEN
+        Log('XG No comparison errors found in signal databases '
+                + '"' + Signal1DataFilename + '.' + Signal1DataFilenameSuffix + '" and "' + Signal2DataFilename + '.' + Signal2DataFilenameSuffix + '"');
+
+      { Tidy up the database }
+      SignalsADOTable.Close;
+      SignalsADOConnection.Connected := False;
+      Log('S Signal Data 1 table and connection closed');
+      SignalsADOTable2.Close;
+      PointsADOConnection.Connected := False;
+      Log('S Signal Data 2 table and connection closed');
+    END; {WITH}
+  EXCEPT {TRY}
+    ON E : Exception DO
+      Log('EG InitialiseSignals: ' + E.ClassName +'error raised, with message: '+ E.Message);
+  END; {TRY}
+END; { CompareTwoSignalDatabases }
+
+VAR
+  TempIntegerArray : IntegerArrayType;
+  TempTimeArray : DateTimeArrayType;
+
+INITIALIZATION
+
+  FOR InitialisationCount := 1 TO MaxSaveLogStrs DO
+    SaveLogStrArray[InitialisationCount] := '';
+  SetLength(LogArray, 0);
+
+  { These are here to stop the linker eliminating these functions, which I usually only use when debugging using Watches }
+  TTS(Time);
+  TTSS(Time);
+  TTSZ(Time);
+  ATS(1);
+  LTS(1);
+  LocTS(1);
+
+  AppendToIntegerArray(TempIntegerArray, 1);
+  ATSA(TempIntegerArray);
+  LTSA(TempIntegerArray);
+  LocTSA(TempIntegerArray);
+
+  AppendToDateTimeArray(TempTimeArray, StrToTime('08:00'));
+  TTSA(TempTimeArray);
+END { MiscUtils }.

@@ -1,0 +1,1007 @@
+UNIT TestUnit;
+{ Used for testing stuff }
+
+INTERFACE
+
+USES Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls;
+
+TYPE
+  TTestUnitForm = CLASS(TForm)
+    TestUnitFormFontDialogue: TFontDialog;
+    Button1: TButton;
+    ListBox1: TListBox;
+    procedure FormCreate(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
+  PRIVATE
+    { Private declarations }
+  PUBLIC
+    { Public declarations }
+  END;
+
+VAR
+  TestUnitForm: TTestUnitForm;
+
+PROCEDURE TestProc(OUT KeyOK : Boolean);
+{ Used to call whatever routine we are testing. Set KeyOK to false if not in use. }
+
+IMPLEMENTATION
+
+{$R *.dfm}
+
+USES InitVars, RailDraw, MiscUtils, Feedback, DateUtils, StrUtils, Diagrams, Lenz, StationMonitors, CreateRoute, GetTime, MMSystem,
+     Registry, LocationData, Types, Locks, Options, Grids, FWPShowMessageUnit, Math {sic}, Cuneo;
+
+CONST
+  UnitName = 'TestUnit';
+
+VAR
+  ByteBuffer : PAnsiChar;
+  COMBufferArray : ARRAY[0..254] OF Byte;
+  NumberOfBytesRead : Integer;
+  RepeatCount : integer = 0;
+  SaveReadArray : ARRAY OF Byte;
+
+PROCEDURE Log{1}(Str : String); Overload;
+{ For ease of debugging, adds the unit name }
+BEGIN
+  WriteToLogFile(Str + ' ~Unit=' + UnitName);
+END; { Log-1 }
+
+PROCEDURE Log{2}(Str, Params : String); Overload;
+{ For ease of debugging, adds the unit name }
+BEGIN
+  WriteToLogFile(Str + ' ~' + Params + ' Unit=' + UnitName);
+END; { Log-2 }
+
+PROCEDURE Log{3}(LocoChip : Integer; Str : String); Overload;
+{ For ease of debugging, adds the unit name }
+BEGIN
+  WriteToLogFile(LocoChipToStr(LocoChip) + ' ' + Str + ' ~Unit=' + UnitName);
+END; { Log-3 }
+
+PROCEDURE Log{4}(LocoChip : Integer; Str, Params : String); Overload;
+{ For ease of debugging, adds the unit name }
+BEGIN
+  WriteToLogFile(LocoChipToStr(LocoChip) + ' ' + Str + ' ~' + Params + ' Unit=' + UnitName);
+END; { Log-4 }
+
+PROCEDURE InputBoxes;
+{ Box test procedure
+
+  Use the InputBox function when there is a default value that should be used when the user chooses the Cancel button (or
+  presses Esc) to exit the dialog. If the application needs to know whether the user chooses OK or Cancel, use the
+  InputQuery function instead
+
+  InputBox('Caption', 'Prompt', 'DefaultText');
+
+  InputQuery returns true if the user chooses OK, and false if the user chooses Cancel or presses the Esc key; if a default
+  value should be used when the user cancels out of the dialog, use InputBox instead
+  InputQuery('Caption', 'Prompt', 'StartingAndReturnedValue');
+}
+VAR
+  Str : String;
+  TC : Integer;
+  AdjacentTrackCircuitUp, AdjacentTrackCircuitDown : Integer;
+
+BEGIN
+  Str := InputBox('Caption', 'Prompt', 'DefaultText');
+  IF NOT TryStrToInt(Str, TC) THEN
+    ShowMessage('"' + Str + '" is not a valid integer')
+  ELSE BEGIN
+    FindAdjoiningTrackCircuits(TC, AdjacentTrackCircuitUp, AdjacentTrackCircuitDown);
+    Debug('adj tc up=' + IntToStr(AdjacentTrackCircuitUp) + ' adj tc down=' + IntToStr(AdjacentTrackCircuitDown));
+  END;
+END; { InputBoxes }
+
+
+(* ******************************************************************** *)
+
+{ Syntax Check stuff: }
+VAR
+  InputFile, OutputFile : Text;
+
+PROCEDURE OpenFiles(InputFileName, OutputFileName : String);
+VAR
+  ErrorMsg : String;
+
+BEGIN
+  OpenInputFileOK(InputFile, InputFileName, ErrorMsg);
+  Reset(InputFile);
+  AssignFile(OutputFile, OutputFileName);
+  IF FileExists(OutputFileName) THEN
+    Erase(OutputFile);
+  { create it so we can write to it when we exit }
+  Rewrite(OutputFile);
+END; { OpenFiles }
+
+PROCEDURE CloseFiles;
+BEGIN
+  Close(InputFile);
+  Close(OutputFile);
+END; { CloseFiles }
+
+PROCEDURE WriteStuff;
+{ Test procedure that writes stuff out }
+CONST
+  AppendToFile = True;
+
+VAR
+  ErrorMsg : String;
+  Stuff : String;
+  TempFile : Text;
+  TempFilename : String;
+
+BEGIN
+  TempFilename := 'c:\railtempfile.csv'; { add to .ini **** }
+  OpenOutputFileOk(TempFile, TempFilename, ErrorMsg, NOT AppendToFile);
+  WriteLn(TempFile, Stuff);
+  CloseFile(TempFile);
+END; { WriteStuff }
+
+PROCEDURE CheckIndents;
+VAR
+  FirstNonSpacePos : Integer;
+  Found : Boolean;
+  IndentPos : Integer;
+  Line : String;
+  LineNum : Integer;
+  TestStarted1, TestStarted2 : Boolean;
+
+BEGIN
+  IndentPos := 1;
+  LineNum := 0;
+  TestStarted1 := False;
+  TestStarted2 := False;
+
+  OpenFiles('c:\program files\borland\bds\3.0\projects\rail\startup.pas', 'c:\program files\borland\bds\3.0\projects\rail\Test.new.pas');
+
+  REPEAT
+    ReadLn(InputFile, Line);
+    Line := UpperCase(Line);
+    Inc(LineNum);
+
+    { Start up when a Uses statement follows an Implementation statement }
+    IF NOT TestStarted2 THEN BEGIN
+      IF Pos('IMPLEMENTATION', Line) > 0 THEN
+        TestStarted1 := True;
+      IF TestStarted1 THEN
+        IF Pos('USES', Line) > 0 THEN
+          TestStarted2 := True;
+    END;
+
+    IF TestStarted2 THEN BEGIN
+      { Find first non-space character and hence the indent }
+      Found := False;
+      FirstNonSpacePos := 1;
+      WHILE (FirstNonSpacePos <= Length(Line)) AND NOT Found DO BEGIN
+        IF Line[FirstNonSpacePos] <> ' ' THEN BEGIN
+          Found := True;
+          IF FirstNonSpacePos <> IndentPos THEN
+            Line[FirstNonSpacePos] := '*';
+        END;
+        Inc(FirstNonSpacePos);
+      END; {WHILE}
+
+      IF Copy(Line, Length(Line) - 5, 5) = 'BEGIN' THEN
+        IndentPos := IndentPos + 2;
+
+//      IF Copy(Line, Length(Line) - 3, 3) = 'END' THEN
+//        IF IndentPos >  3 THEN
+//          IndentPos := IndentPos - 2;
+
+
+      Debug(IntToStr(LineNum) + ': ' + Line);
+    END;
+  UNTIL EOF(InputFile);
+  CloseFiles;
+END; { CheckIndents }
+
+(* ******************************************************************** *)
+
+PROCEDURE Test3;
+//VAR
+BEGIN
+  CheckIndents;
+END; { Test3 }
+
+PROCEDURE WriteOutFeedbackToAccessDatabase;
+CONST
+  AppendToFile = True;
+
+VAR
+  DebugStr : String;
+  ErrorMsg : String;
+  FeedbackData : FeedbackRec;
+  FeedbackNum : Integer;
+  FeedbackPort : PortType;
+  FeedbackType : TypeOfFeedBackType;
+  I, J : Integer;
+  TCAboveFeedbackUnit : Integer;
+  TempFile : Text;
+  TempFilename : String;
+
+BEGIN
+  Debug('F8 does nothing');
+{-------------------------------------}
+  TempFilename := 'c:\railtempfile.csv'; { add to .ini **** }
+  OpenOutputFileOk(TempFile, TempFilename, ErrorMsg, NOT AppendToFile);
+  FOR I := FirstFeedbackUnit TO LastFeedbackUnit DO BEGIN
+    DebugStr := IntToStr(I);
+    FOR J := 1 TO 8 DO BEGIN
+      FeedbackData.Feedback_Unit := I;
+      FeedbackData.Feedback_Input := J;
+      ExtractDataFromFeedback(FeedbackData, FeedbackPort, TCAboveFeedbackUnit, FeedbackType, FeedbackNum);
+
+      CASE FeedbackType OF
+        TrackCircuitFeedbackDetector:
+          DebugStr := DebugStr + ','+ IntToStr(FeedbackNum);
+        TRSPlungerFeedbackDetector:
+          DebugStr := DebugStr + ',TRS';
+        PointFeedbackDetector:
+          DebugStr := DebugStr + ',P';
+      END; {CASE}
+    END;
+    WriteLn(TempFile, DebugStr);
+  END;
+
+//    WITH FeedbackData DO
+//      WriteLn(TempFile, IntToStr(I) + ',' + IntToStr(Feedback_Input)
+
+  CloseFile(TempFile);
+END; { WriteOutFeedbackToAccessDatabase }
+
+PROCEDURE WriteOutNamesForUCUExcelSpeadsheet;
+CONST
+  AppendToFile = True;
+
+VAR
+  I : Integer;
+  Line, NewLine : String;
+
+BEGIN
+  OpenFiles('c:\UCUSpreadsheet.in', 'c:\UCUSpreadsheet.out');
+  REPEAT
+    ReadLn(InputFile, Line);
+    I := Pos(',', Line);
+    IF I > 0 THEN
+      NewLine := Copy(Line, I + 2) + ' ' + Copy(Line, 1, I - 1)
+    ELSE
+      NewLine := Line;
+
+    WriteLn(outputFile, NewLine);
+  UNTIL EoF(InputFile);
+  CloseFiles;
+
+  OpenFiles('c:\UCUSpreadsheet.in', 'c:\UCUSpreadsheet.out2');
+  REPEAT
+    ReadLn(InputFile, Line);
+    I := Pos(',', Line);
+    IF I > 0 THEN
+      NewLine := Line
+    ELSE BEGIN
+      I := LastDelimiter(' ', Line);
+      NewLine := Copy(Line, I + 1) + ', ' + Copy(Line, 1, I - 1);
+    END;
+
+    WriteLn(outputFile, NewLine);
+  UNTIL EoF(InputFile);
+  CloseFiles;
+END; { WriteOutNamesForUCUExcelSpeadsheet }
+
+PROCEDURE RegionTest;
+BEGIN
+if testregion then begin
+  testregion := false;
+  debug('tr=off');
+end else begin
+  testregion := true;
+  debug('tr=on');
+end;
+  Region := CreateRectRgn(50, 50, 250, 250);
+  SelectClipRgn(MainWindow.Canvas.Handle, Region);
+  MainWindow.Canvas.Brush.Color := clFWPPink;
+  MainWindow.Canvas.FillRect(MainWindow.Canvas.ClipRect);
+  MainWindow.Canvas.MoveTo(100, 100);
+  MainWindow.Canvas.LineTo(600, 600);
+
+//  Region := CreateRectRgn(50, 50, 250, 250);
+//  SelectClipRgn(MainWindow.Canvas.Handle, Region);
+  MainWindow.Canvas.Pen.Color := clAqua;
+//  MainWindow.Canvas.FillRect(Rect(100, 500, 100, 500));
+  MainWindow.Canvas.MoveTo(50, 100);
+  MainWindow.Canvas.LineTo(600, 650);
+END; { RegionTest }
+
+PROCEDURE TestSort;
+{ Test procedure }
+VAR
+  I : Integer;
+  OldArray : IntegerArrayType;
+  NewArray : IntegerArrayType;
+
+  PROCEDURE Sort(OldArray : IntegerArrayType; OUT NewArray : IntegerArrayType);
+  VAR
+    I, J, K : Integer;
+    MaxNumStr : Integer;
+    TempOldArray : IntegerArrayType;
+    TempPos : Integer;
+
+  BEGIN
+    { Copy the old array across or can't alter the length of it }
+    SetLength(TempOldArray, Length(OldArray));
+    FOR I := 0 TO High(OldArray) DO
+      TempOldArray[I] := OldArray[I];
+    SetLength(NewArray, 0);
+
+    { Now do the sort }
+    FOR I := 0 TO High(TempOldArray) DO BEGIN
+      TempPos := -1;
+      MaxNumStr := 999;
+      FOR J := 0 TO High(TempOldArray) DO BEGIN
+        IF TempOldArray[J] < MaxNumStr THEN BEGIN
+          MaxNumStr := TempOldArray[J];
+          TempPos := J;
+        END;
+      END; {FOR}
+      SetLength(NewArray, Length(NewArray) + 1);
+      NewArray[High(NewArray)] := TempOldArray[TempPos];
+
+      { and remove the element from the original array }
+      FOR K := TempPos TO (Length(TempOldArray) - 2) DO
+        TempOldArray[K] := TempOldArray[K + 1];
+      SetLength(TempOldArray, Length(TempOldArray) -1);
+    END; {FOR}
+  END;{ Sort }
+
+BEGIN
+  SetLength(OldArray, 12);
+  OldArray[0] := 99;
+  OldArray[1] := 55;
+  OldArray[2] := 31;
+  OldArray[3] := 98;
+  OldArray[4] := 55;
+  OldArray[5] := 21;
+  OldArray[6] := 39;
+  OldArray[7] := 85;
+  OldArray[8] := 51;
+  OldArray[9] := 69;
+  OldArray[10] := 35;
+  OldArray[11] := 21;
+
+  FOR I := 0 TO High(OldArray) DO
+    Debug(IntToStr(I) + ': ' + IntToStr(OldArray[I]));
+
+  Sort(OldArray, NewArray);
+  FOR I := 0 TO High(NewArray) DO
+    Debug(IntToStr(I) + ': ' + IntToStr(NewArray[I]));
+END; { TestSort }
+
+PROCEDURE ExceptionTest;
+{ Test procedure }
+var
+ I : Integer;
+ A : Array[0..1] OF Integer;
+
+BEGIN
+  I := 5;
+  TRY
+    Debug('1:' + TimeToHMStr(0.19999));
+    A[I] := 8;
+    Debug('2:' + TimeToHMStr(1.19999));
+  EXCEPT
+    ON E : Exception DO BEGIN
+      Log(NoLocoChip, 'E : ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Debug(': ' + E.ClassName +' error raised, with message: '+ E.Message);
+    END;
+  END; {TRY}
+END; { ExceptionTest }
+
+procedure TTestUnitForm.Button1Click(Sender: TObject) ;
+var
+   soundAlias : string;
+begin
+   if ListBox1.ItemIndex = -1 then
+   begin
+     ShowMessage('Select a sound alias from the list...') ;
+     Exit;
+   end;
+
+   soundAlias := ListBox1.Items[ListBox1.ItemIndex];
+
+//   PlaySound(PAnsiChar(soundAlias), 0, SND_ALIAS or SND_ASYNC); Doesn't work in Delphi XE 31/3/11
+end;
+
+//SystemSoundPlayerForm ... OnCreate
+procedure TTestUnitForm.FormCreate(Sender: TObject) ;
+var
+   reg : TRegistry;
+begin
+   reg := TRegistry.Create;
+   try
+     reg.RootKey := HKEY_CURRENT_USER;
+reg.OpenKeyReadOnly('\AppEvents\EventLabels') ;
+     reg.GetKeyNames(ListBox1.Items) ;
+   finally
+     reg.Free;
+   end;
+end;
+
+PROCEDURE MakeNoise;
+{ Used to call whatever routine we are testing. Set KeyOK to false if not in use. }
+VAR
+  Sound : Cardinal;
+//  SoundStr : PAnsiChar;
+
+  PROCEDURE Wait;
+  VAR
+    I : Integer;
+
+  BEGIN
+
+    FOR I := 0 TO 1000000000 DO ;
+  END; { Wait }
+
+BEGIN
+  Debug('DeviceFail');
+  PlaySound('DeviceFail', 0, SND_ALIAS or SND_ASYNC);
+  Wait;
+//
+//  Debug('CriticalBatteryAlarm');
+//  PlaySound('CriticalBatteryAlarm' {"dum dum"}, 0, SND_ALIAS or SND_ASYNC);
+//  Wait;
+//
+//  Debug('LowBatteryAlarm');
+//  PlaySound('LowBatteryAlarm' {"dum"}, 0, SND_ALIAS or SND_ASYNC);
+//  Wait;
+//
+//  Debug('SystemAsterisk');
+//  PlaySound('SystemAsterisk' {"beep dum"}, 0, SND_ALIAS or SND_ASYNC);
+//  Wait;
+//
+//  Debug('SystemExclamation');
+//  PlaySound('SystemExclamation' {"beep beep"}, 0, SND_ALIAS or SND_ASYNC);
+//  Wait;
+//
+//  Debug('SystemHand');
+//  PlaySound('SystemHand' {deep "dum"}, 0, SND_ALIAS or SND_ASYNC);
+//  Wait;
+//
+//  Debug('SystemStart');
+//  PlaySound('SystemStart', 0, SND_ALIAS or SND_ASYNC);
+//  Wait;
+//
+//  Debug('SystemExit');
+//  PlaySound('SystemExit', 0, SND_ALIAS or SND_ASYNC);
+//  Wait;
+//
+//  Debug('SystemDefault');
+//  PlaySound('SystemDefault', 0, SND_ALIAS or SND_ASYNC);
+//  Wait;
+//
+//  SoundStr := 'PrintComplete';
+//  Debug(SoundStr);
+//  PlaySound(SoundStr, {deep "dum"} 0, SND_ALIAS or SND_ASYNC);
+//  Wait;
+//
+//  SoundStr := 'Reminder';
+//  Debug(SoundStr);
+//  PlaySound(SoundStr, 0, SND_ALIAS or SND_ASYNC);
+//  Wait;
+//
+//  SoundStr := 'CallWaiting';
+//  Debug(SoundStr);
+//  PlaySound(SoundStr, 0, SND_ALIAS or SND_ASYNC);
+//  Wait;
+//
+//  SoundStr := 'BusyTone';
+//  Debug(SoundStr);
+//  PlaySound(SoundStr, 0, SND_ALIAS or SND_ASYNC);
+//  Wait;
+
+  Sound := 1024;
+  Debug(IntToStr(Sound));
+  MessageBeep(Sound);
+  Wait;
+
+  Sound := 512;
+  Debug(IntToStr(Sound));
+  MessageBeep(Sound);
+  Wait;
+
+  Sound := 256;
+  Debug(IntToStr(Sound));
+  MessageBeep(Sound);
+  Wait;
+
+  Sound := 128;
+  Debug(IntToStr(Sound));
+  MessageBeep(Sound);
+  Wait;
+
+  Sound := MB_ICONASTERISK;
+  Debug(IntToStr(Sound));
+  MessageBeep(Sound);
+  Wait;
+
+  Sound := MB_ICONQUESTION;
+  Debug(IntToStr(Sound));
+  MessageBeep(Sound);
+  Wait;
+
+  Sound := MB_OK;
+  Debug(IntToStr(Sound));
+  MessageBeep(Sound);
+  Wait;
+
+END; { MakeNoise }
+
+PROCEDURE GetFollowingCharsTest;
+{ Test procedure }
+VAR
+  Line : String;
+  Str : String;
+
+  FUNCTION GetFollowingChars(Line: String; Str : String; EndStr : String) : String;
+  { Return the characters after the given characters up to the delimiter supplied (or "CRLF" if it's at a line end) }
+  VAR
+    EndStrPos : Integer;
+    TestPos : Integer;
+
+  BEGIN
+    TestPos := Pos(Str, Line);
+    IF TestPos = 0 THEN
+      Result := ''
+    ELSE BEGIN
+      EndStrPos := Pos(EndStr, Copy(Line, TestPos + Length(Str)));
+      IF EndStrPos = 0 THEN
+        EndStrPos := Length(Line) - 1;
+
+      Result := Copy(Line, TestPos + Length(Str), EndStrPos - 1);
+    END;
+  END; { GetFollowingChars }
+
+BEGIN
+  Line := 'Setting S=111 Feed';
+  Str := GetFollowingChars(Line, 'S=', ' ');
+  Debug(Str);
+
+  Line := 'Setting= 22 ';
+  Str := GetFollowingChars(Line, 'Setting= ', ' ');
+  Debug(Str);
+
+  Line := 'Setting S=3 Feed';
+  Str := GetFollowingChars(Line, 'S=', '');
+  Debug(Str);
+
+  Line := 'Setting S=444Feed';
+  Str := GetFollowingChars(Line, 'S=', 'Feed');
+  Debug(Str);
+
+  Line := 'S=55 Feed';
+  Str := GetFollowingChars(Line, 'S=', ' ');
+  Debug(Str);
+
+  Line := 'S=6';
+  Str := GetFollowingChars(Line, 'S=', ']');
+  Debug(Str);
+
+  Line := 'S=7';
+  Str := GetFollowingChars(Line, 'S=', ' ');
+  Debug(Str);
+
+  Line := '';
+  Str := GetFollowingChars(Line, 'S=', ' ');
+  Debug(Str);
+END; { GetFollowingCharsTest }
+
+//      FOR I := 0 TO High(WorkingTimetable_PossibleLocoClasses) DO BEGIN
+//        { For each class select available locos }
+//        T := TrainList;
+//        WHILE T <> NIL DO BEGIN
+//          IF WorkingTimetable_PossibleLocoClasses[I] = T^.Train_LocoClassStr THEN BEGIN
+//            AppendToIntegerArray(TempArray1, T^.Train_LocoChip);
+//            AppendToIntegerArray(TempArray2, T^.Train_LocoChip);
+//          END;
+//          T := T^.Train_NextRecord;
+//        END; {WHILE}
+//
+//        { Make the list of locos for each supplied class random, or otherwise the same train will always be selected first }
+//        REPEAT
+//          TempLocoChip := RandomFrom(TempArray1);
+//          { remove the element from the temporary array so we aren't given it again, or the list would never shrink }
+//          IsElementInIntegerArray(TempArray1, TempLocoChip, ElementPos);
+//          DeleteElementFromIntegerArray(TempArray1, ElementPos);
+//          AppendToIntegerArray(AllSuitableTrainsByClass, TempLocoChip);
+//        UNTIL Length(TempArray1) = 0;
+//      END; {FOR}
+//
+//      { List suitable trains (but not in random order or it makes comparison between different log files difficult) ... }
+//      DebugStr := '';
+//      IF Length(TempArray2) > 0 THEN BEGIN
+//        FOR I := 0 TO High(TempArray2) - 1 DO
+//          DebugStr := DebugStr + LocoChipToStr(TempArray2[I]) + ', ';
+//        DebugStr := DebugStr + LocoChipToStr(TempArray2[High(TempArray2)]);
+//      END;
+//
+//      { ...and possible loco classes }
+//      DebugStr := DebugStr + ' [class ';
+//      FOR I := 0 TO High(WorkingTimetable_PossibleLocoClasses) - 1 DO
+//        DebugStr := DebugStr + WorkingTimetable_PossibleLocoClasses[I] + ' ';
+//      DebugStr := DebugStr + WorkingTimetable_PossibleLocoClasses[High(WorkingTimetable_PossibleLocoClasses)];
+//      DebugStr := DebugStr + ']';
+//      Log('W W=' + EntryNumStr + ':    '
+//             + 'trains in the specified class(es) are: ' + DebugStr);
+
+FUNCTION GetCommandLen(LengthByte : Byte) : Integer;
+{ Find out the length of the command array from bits 3-0 of first byte; add one to include the check byte }
+BEGIN
+  Result := (LengthByte AND NOT $F0) + 1; { 240 - 11110000 }
+END; { GetCommandLen }
+
+FUNCTION GetBytes : Integer;
+
+BEGIN
+  Inc(RepeatCount);
+  CASE RepeatCount OF
+    1:
+      BEGIN
+        ByteBuffer[0] := Chr(98);
+        Result := 1;
+      END;
+    2:
+      BEGIN
+        ByteBuffer[0] := Chr(34);
+        ByteBuffer[1] := Chr(0);
+        Result := 2;
+      END;
+    3:
+      BEGIN
+        ByteBuffer[0] := Chr(64);
+        Result := 1;
+      END;
+    4:
+      BEGIN
+        ByteBuffer[0] := Chr(99);
+        ByteBuffer[1] := Chr(33);
+        ByteBuffer[2] := Chr(53);
+        ByteBuffer[3] := Chr(0);
+        Result := 4;
+      END;
+    5:
+      BEGIN
+        ByteBuffer[0] := Chr(119);
+        Result := 1;
+      END;
+    6:
+      BEGIN
+        ByteBuffer[0] := Chr(66);
+        ByteBuffer[1] := Chr(65);
+        ByteBuffer[2] := Chr(71);
+        Result := 3;
+      END;
+    7:
+      BEGIN
+        ByteBuffer[0] := Chr(68);
+        ByteBuffer[1] := Chr(66);
+        ByteBuffer[2] := Chr(67);
+        Result := 3;
+      END;
+    8:
+      BEGIN
+        ByteBuffer[0] := Chr(64);
+        ByteBuffer[1] := Chr(65);
+        ByteBuffer[2] := Chr(98);
+        ByteBuffer[3] := Chr(52);
+        ByteBuffer[4] := Chr(53);
+        Result := 5;
+      END;
+    10:
+      BEGIN
+        ByteBuffer[0] := Chr(60);
+        ByteBuffer[1] := Chr(98);
+        ByteBuffer[2] := Chr(62);
+        Result := 3;
+      END;
+    11:
+      BEGIN
+        ByteBuffer[0] := Chr(63);
+        ByteBuffer[1] := Chr(70);
+        ByteBuffer[2] := Chr(98);
+        ByteBuffer[3] := Chr(72);
+        ByteBuffer[4] := Chr(73);
+        ByteBuffer[5] := Chr(80);
+        ByteBuffer[6] := Chr(98);
+        ByteBuffer[7] := Chr(82);
+        ByteBuffer[8] := Chr(83);
+        ByteBuffer[9] := Chr(90);
+        ByteBuffer[10] := Chr(98);
+        ByteBuffer[11] := Chr(92);
+        ByteBuffer[12] := Chr(93);
+        ByteBuffer[13] := Chr(100);
+        ByteBuffer[14] := Chr(33);
+        ByteBuffer[15] := Chr(102);
+        ByteBuffer[16] := Chr(103);
+        Result := 17;
+      END;
+  END; {CASE}
+END; { GetBytes }
+
+PROCEDURE TestProc3;
+{ Used to call whatever routine we are testing. Set KeyOK to false if not in use. }
+
+{ If data arrives, process it. This routine is called either when data is known to have arrived, or when we know it is about to, because
+  we've issued a command that produces a known response. NB: it is possible for unexpected data to turn up before the expected response
+  so the routine has to cater for that eventuality.
+}
+TYPE
+  ResponseOrBroadcastType = (Response, Broadcast, NoResponse);
+
+CONST
+  WarnUser = True;
+
+VAR
+  ByteStr : String;
+//  COMBufferArray : ARRAY[0..254] OF Byte;
+  CommandLen : Integer;
+  CommandReadyForProcessing : Boolean;
+  DebugStr, UnknownReplyString : String;
+  ErrorCount : Integer;
+  ErrorFound : Boolean;
+  ErrorMsg : String;
+  I : Integer;
+  LocoChip : Integer;
+  OK, TimedOut : Boolean;
+  NumberOfBytesRead : Integer;
+  PortStr : String;
+  ResponseOrBroadcast : ResponseOrBroadcastType;
+  SavedSIOGetCValue, TempSavedSIOGetCValue : Integer;
+  StartOfCommand : Boolean;
+  StartTimer : Cardinal;
+  T : Train;
+  TempByte : Byte;
+  TempSavedSIOGetCValueChar : AnsiChar;
+  TickCount : Cardinal;
+  TypeOfLogChar : Char;
+tempcvalue : Integer;
+  USBBufferArray : ARRAY[0..254] OF Byte;
+
+  Code : Integer;
+  S : AnsiString;
+  AnsiCharCount : Integer;
+  TempReadArray : ARRAY [0..127] OF Byte;
+
+  StoredCommandFound : Boolean;
+  ReadArray, WriteArray : ARRAY [0..15] OF Byte;
+
+BEGIN
+      { If data found, read in first byte returned, to get the length. Read it in as an integer to see if it's -1, then save it as a
+        byte (AMS 10/8/00)
+      }
+TimedOut := False;
+REPEAT
+      IF NOT TimedOut THEN BEGIN
+        OK := True;
+
+FOR I := 0 TO High(ReadArray) DO
+  ReadArray[I] := 0;
+FOR I := 0 TO High(COMBufferArray) DO
+  COMBufferArray[I] := 0;
+
+//        IF (PortNum = USBPortNum) AND NOT TimedOut THEN BEGIN
+//          REPEAT
+//            NumberOfBytesRead := SioGetS(USBPortNum, ByteBuffer, 1024);
+//            IF NumberOfBytesRead > 0 THEN BEGIN
+//              { convert to a long string }
+//              ByteBuffer[NumberOfBytesRead] := AnsiChar(0);
+//              ByteStr := StrPas(ByteBuffer);
+//            END;
+//          UNTIL NumberOfBytesRead <> 0;
+//
+//          Debug('USB ByteStr = ' + ByteStr);
+//          FOR I := 0 TO NumberOfBytesRead DO
+//            USBBufferArray[I] := Ord(ByteBuffer[I]);
+//
+//          IF USBBufferArray[0] <> $FF THEN BEGIN
+//            Log('X First byte to be read in is ' + IntToStr(USBBufferArray[0]) + ' - $' + IntToHex(USBBufferArray[0], 2)
+//                   + ' (and is not $FF) even though USB mode is on');
+//            OK := False;
+//          END ELSE BEGIN
+//            FirstByteErrorMsgWritten := True;
+//            IF USBBufferArray[1] = $FD THEN
+//              ResponseOrBroadcast := Broadcast
+//            ELSE
+//              IF USBBufferArray[1] = $FE THEN
+//                ResponseOrBroadcast := Response
+//              ELSE BEGIN
+//                Log('X Second byte to be read in is ' + IntToStr(USBBufferArray[0]) + ' - $' + IntToHex(USBBufferArray[0], 2)
+//                       + ' (and is not $FD or $FE) even though USB mode is on');
+//                OK := False;
+//              END;
+//          END;
+//
+//          IF OK THEN BEGIN
+//            ReadArray[0] := USBBufferArray[2];
+//            CommandLen := GetCommandLen(ReadArray[0]);
+//            FOR I := 1 TO CommandLen DO
+//              ReadArray[I] := USBBufferArray[I + 2];
+//          END;
+//        END;
+
+//        IF (PortNum = COMPortNum) AND NOT TimedOut THEN BEGIN
+          { Dealing with COM Port }
+          StartOfCommand := True;
+          StoredCommandFound := False;
+// this may need to be elsewhere:
+          CommandReadyForProcessing := False;
+
+          { see if there's already enough data in SaveReadArray to constitute a command }
+          IF Length(SaveReadArray) > 0 THEN BEGIN
+//            CommandLen := 4;
+            CommandLen := GetCommandLen(SaveReadArray[0]);
+            NumberOfBytesRead := Length(SaveReadArray);
+            IF NumberOfBytesRead >= CommandLen THEN
+              StoredCommandFound := True;
+
+            FOR I := 0 TO NumberOfBytesRead - 1DO
+              COMBufferArray[I] := SaveReadArray[I];
+
+            SetLength(SaveReadArray, 0);
+Inc(RepeatCount);
+          END;
+
+          REPEAT
+            IF StoredCommandFound THEN
+              StoredCommandFound := False
+            ELSE BEGIN
+              REPEAT
+                NumberOfBytesRead := GetBytes;
+//                NumberOfBytesRead := SioGetS(COMPortNum, ByteBuffer, 1024);
+                IF NumberOfBytesRead > 0 THEN BEGIN
+                  { convert to a long string }
+                  ByteBuffer[NumberOfBytesRead] := AnsiChar(0);
+                  ByteStr := StrPas(ByteBuffer);
+                END;
+              UNTIL NumberOfBytesRead <> 0;
+
+              FOR I := 0 TO NumberOfBytesRead DO
+                COMBufferArray[I] := Ord(ByteBuffer[I]);
+            END;
+
+            { See if the command is complete }
+            IF StartOfCommand THEN BEGIN
+              StartOfCommand := False;
+
+//              CommandLen := 4;
+              CommandLen := GetCommandLen(COMBufferArray[0]);
+              IF NumberOfBytesRead = CommandLen THEN BEGIN
+                { We've got a complete command, so submit it for processing }
+                FOR I := 0 TO CommandLen DO BEGIN
+                  ReadArray[I] := Ord(COMBufferArray[I]);
+                  CommandReadyForProcessing := True;
+                END; {FOR}
+              END ELSE
+                { we've got the whole command so no need for further data acquisition - just hand it over for processing }
+                IF NumberOfBytesRead < CommandLen THEN BEGIN
+                  { store the command until we've read in enough bytes }
+                  FOR I := 0 TO NumberOfBytesRead - 1 DO BEGIN
+                    SetLength(SaveReadArray, Length(SaveReadArray) + 1);
+                    SaveReadArray[High(SaveReadArray)] := Ord(COMBufferArray[I]);
+                  END; {FOR}
+                END ELSE
+                  IF NumberOfBytesRead > CommandLen THEN BEGIN
+                    { extract the command we've found, then store the excess data }
+                    SetLength(SaveReadArray, 0);
+                    FOR I := 0 TO NumberOfBytesRead - 1 DO BEGIN
+                      SetLength(SaveReadArray, Length(SaveReadArray) + 1);
+                      SaveReadArray[High(SaveReadArray)] := Ord(COMBufferArray[I]);
+                    END; {FOR}
+
+                    FOR I := 0 TO CommandLen - 1 DO
+                      ReadArray[I] := SaveReadArray[I];
+
+                    CommandReadyForProcessing := True;
+
+                    FOR I := 0 TO Length(SaveReadArray) - CommandLen - 1 DO
+                      SaveReadArray[I] := SaveReadArray[I + CommandLen];
+                  END;
+            END ELSE
+              IF NOT StartOfCommand THEN BEGIN
+                IF CommandLen = (NumberOfBytesRead + Length(SaveReadArray)) THEN BEGIN
+                  { the additional data gives us a complete command }
+                  FOR I := 0 TO NumberOfBytesRead - 1 DO BEGIN
+                    SetLength(SaveReadArray, Length(SaveReadArray) + 1);
+                    SaveReadArray[High(SaveReadArray)] := Ord(COMBufferArray[I]);
+                  END; {FOR}
+
+                  FOR I := 0 TO CommandLen - 1 DO
+                    ReadArray[I] := SaveReadArray[I];
+
+                  SetLength(SaveReadArray, 0);
+                  CommandReadyForProcessing := True;
+                END ELSE
+                  IF CommandLen > (NumberOfBytesRead + Length(SaveReadArray)) THEN BEGIN
+                    { the additional data still gives us less than a complete command }
+                    FOR I := 0 TO NumberOfBytesRead - 1 DO BEGIN
+                      SetLength(SaveReadArray, Length(SaveReadArray) + 1);
+                      SaveReadArray[High(SaveReadArray)] := Ord(COMBufferArray[I]);
+                    END; {FOR}
+                  END ELSE
+                    IF CommandLen < (NumberOfBytesRead + Length(SaveReadArray)) THEN BEGIN
+                      { store all the data, then process the command we'e found, keeping the excess data for the next time round }
+                      FOR I := 0 TO NumberOfBytesRead - 1 DO BEGIN
+                        SetLength(SaveReadArray, Length(SaveReadArray) + 1);
+                        SaveReadArray[High(SaveReadArray)] := Ord(COMBufferArray[I]);
+                      END; {FOR}
+
+                      FOR I := 0 TO CommandLen - 1 DO
+                        ReadArray[I] := SaveReadArray[I];
+
+                      FOR I := 0 TO Length(SaveReadArray) - CommandLen - 1 DO
+                        SaveReadArray[I] := SaveReadArray[I + CommandLen];
+
+                      SetLength(SaveReadArray, Length(SaveReadArray) - CommandLen);
+                      CommandReadyForProcessing := True;
+                    END;
+              END;
+
+debug;
+
+IF Length(SaveReadArray) = 0 THEN
+  Debug('SaveReadArray is empty')
+ELSE BEGIN
+  DebugStr := 'SaveReadArray = ';
+  FOR I := 0 TO High(SaveReadArray) - 1 DO
+    DebugStr := DebugStr + IntToStr(SaveReadArray[I]) + '-';
+  DebugStr := DebugStr + IntToStr(SaveReadArray[High(SaveReadArray)]);
+  Debug(DebugStr);
+END;
+
+          UNTIL CommandReadyForProcessing;
+
+
+IF CommandReadyForProcessing THEN BEGIN
+  DebugStr := 'Final ReadArray = ';
+  FOR I := 0 TO High(ReadArray) - 1 DO
+    DebugStr := DebugStr + IntToStr(ReadArray[I]) + '-';
+  Debug(DebugStr);
+  CommandReadyForProcessing := False;
+  FOR I := 0 TO High(ReadArray)  DO
+    ReadArray[I] := 0;
+END;
+
+
+
+//        END;
+      END;
+UNTIL RepeatCount = 15;
+
+
+END; { TestProc3 }
+
+PROCEDURE TestProc2;
+{ Used to call whatever routine we are testing. Set KeyOK to false if not in use. }
+VAR
+  I : integer;
+
+BEGIN
+END; { TestProc2 }
+
+PROCEDURE TestProc(OUT KeyOK : Boolean);
+{ Used to call whatever routine we are testing. Set KeyOK to false if not in use. }
+VAR
+  I : Integer;
+
+BEGIN
+  KeyOK := True;
+  TestProc3;
+END; { TestProc }
+
+INITIALIZATION
+  SetLength(SaveReadArray, 0);
+  GetMem(ByteBuffer, 1024);
+
+FINALIZATION
+
+  FreeMem(ByteBuffer);
+
+END { TestUnit }.

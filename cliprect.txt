@@ -1,0 +1,22 @@
+Question:
+When I resize my form, the paint area is clipped, but I need to
+repaint the whole area. The form's ClipRect is read only. 
+How can I get around this?
+
+
+Answer:
+During the resize event, make a call to the Windows API function
+InvalidateRect(). Passing nil as the second parameter will cause
+the clipping rect of the form to include the entire client area 
+of the form. The third parameter denotes if the background of 
+the form should be erased and repainted. Simply calling the 
+invalidate method of the form may result in a clipping region 
+and possibly the background getting erased.
+
+Example:
+
+procedure TForm1.FormResize(Sender: TObject);
+begin
+  InvalidateRect(Form1.Handle, nil, false);
+end;
+
