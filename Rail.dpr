@@ -8,7 +8,7 @@ PROGRAM Rail;
   v7.0  16/01/14 Now using XE5
 }
 
-// {$R rail.res} // {$R rail.res} should be to the left of this comment - this has the extra two icons in it }
+{$R rail.res} // {$R rail.res} should be to the left of this comment - this has the extra two icons in it }
 
 USES
   Forms,
