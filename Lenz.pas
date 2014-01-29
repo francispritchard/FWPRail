@@ -3327,6 +3327,8 @@ BEGIN
 //  SystemInitiallySetOffline := True; // ************************************************
 
   { For initial data flow check }
+  OK := False;
+
   IF SystemInitiallySetOffline THEN
     SystemOnline := False
   ELSE BEGIN
@@ -3337,9 +3339,10 @@ BEGIN
     END;
 
     { First see if the Lenz server program is running - this doesn't mean, of course, that the server itself is running }
-    IF IsProgramRunning('LI-Server') THEN
-      Log('XG LI-Server.exe is already running')
-    ELSE BEGIN
+    IF IsProgramRunning('LI-Server') THEN BEGIN
+      Log('XG LI-Server.exe is already running');
+      OK := True;
+    END ELSE BEGIN
       StartLANUSBServer;
       IF IsProgramRunning('LI-Server') THEN BEGIN
         OK := True;
