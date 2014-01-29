@@ -1380,13 +1380,11 @@ CONST
 VAR
   CommandLen : Integer;
   DebugStr : String;
-  ErrorCode : Integer;
   I : Integer;
   S : String;
 
 BEGIN
   TimeOut := False;
-  ErrorCode := 0;
 
   { Send any output waiting to the LI101 - check first that it can be accepted }
   IF WriteArray[0] <> 0 THEN BEGIN
@@ -3354,7 +3352,7 @@ BEGIN
 
     IF OK THEN BEGIN
       TCPIPForm.TCPIPFormShow(LenzWindow);
-      TCPIPForm.CreateTCPClients(OK);
+      TCPIPForm.CreateTCPClients;
     END;
 
     IF OK AND (TCPIPConnected = True) THEN

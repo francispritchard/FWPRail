@@ -34,7 +34,7 @@ TYPE
   PRIVATE
 
   PUBLIC
-    PROCEDURE CreateTCPClients(OK : Boolean);
+    PROCEDURE CreateTCPClients;
     PROCEDURE DestroyTCPClients;
 
     PROCEDURE ResponsesTCPClientConnect(Sender: TObject; Socket1 : TCustomWinSocket);
@@ -102,7 +102,7 @@ VAR
 
 BEGIN
   IF TCPSocket1 = NIL THEN
-    CreateTCPClients(OK)
+    CreateTCPClients
   ELSE
     DestroyTCPClients;
 END; { TCPConnectButtonClick }
@@ -136,7 +136,7 @@ BEGIN
   END;
 END; { SendButtonClick }
 
-PROCEDURE TTCPIPForm.CreateTCPClients(OK : Boolean);
+PROCEDURE TTCPIPForm.CreateTCPClients;
 { Set the TCPIP clients up }
 VAR
   I : Integer;
@@ -167,7 +167,6 @@ BEGIN
     FreeAndNIL(ResponsesTCPClient);
     MSGMemo.Lines.Add('*** Unable to Connect to Client 1');
     Log('G *** Unable to Connect to Client 1');
-    OK := False;
   END;
 
   IF BroadcastsTCPClient = NIL THEN BEGIN
@@ -195,7 +194,6 @@ BEGIN
     FreeAndNIL(BroadcastsTCPClient);
     MSGMemo.Lines.Add('*** Unable to Connect to Client 2');
     Log('G *** Unable to Connect to Client 2');
-    OK := False;
   END;
 END; { CreateTCPClients }
 
@@ -399,16 +397,8 @@ END; { ClearButtonClick }
 
 PROCEDURE StartLANUSBServer;
 { Start the server programatically }
-VAR
-  ShellStr : WideString;
-  ShellStrPtr : PWideChar;
-  SS : Word;
-  StartTime : TDateTime;
-
 BEGIN
   TRY
-    ShellStr := ' ';
-    ShellStrPtr := Addr(ShellStr[1]);
     ShellExecute(TCPIPForm.Handle,
                  'open',
                  '"C:\Program Files (x86)\LI-USB\LI-Server\LI-Server.exe"',
