@@ -370,6 +370,7 @@ PROCEDURE TTCPIPForm.ResponsesTCPSendText(S : String);
 BEGIN
   IF TCPSocket1 <> NIL THEN BEGIN
     TCPSocket1.SendText(S + CRLF);
+//    SysUtils.sleep(10);
     Log('+ OUT1 *** ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + ' ' + S);
   END;
 END; { ResponsesTCPSendText }

@@ -1288,8 +1288,7 @@ VAR
       Log('R ' + LineToStr(CurrentLine) + ': ' + LineToStr(CurrentLine) + ': ' + StopStr);
   END; { LineAvailable }
 
-  PROCEDURE DoRouteSearch(VAR CurrentLine, PreviousLine, PreviousLineButOne : Integer; Next : NextLineRouteingType;
-                          OUT ExitFunctionNum : Integer);
+  PROCEDURE DoRouteSearch(VAR CurrentLine, PreviousLine, PreviousLineButOne : Integer; Next : NextLineRouteingType; OUT ExitFunctionNum : Integer);
   { Tracing the route line to line, point to point, etc. }
   VAR
     FoundASignalOrBufferStop : String;

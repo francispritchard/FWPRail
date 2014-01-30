@@ -603,7 +603,7 @@ VAR
       B := FeedbackArray[UnitNum, Nibble] XOR NewData;
 
       IF B = 0 THEN
-//        Log('G', 'Feedback unit ' + IntToStr(UnitNum + 1) + ': no change') { caused by lots of *78*s }
+        // Log('G Feedback unit ' + IntToStr(UnitNum + 1) + ': no change') { caused by lots of *78*s }
       ELSE BEGIN
         { There is a change - cycle through the four inputs }
         FOR I := 1 TO 4 DO BEGIN
