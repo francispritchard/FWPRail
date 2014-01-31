@@ -646,7 +646,8 @@ END; { GetFeedbackReply }
 {$O-}
 PROCEDURE ReadInDataMainProcedure(VAR ReadArray : ARRAY OF Byte; ExpectedReply : ReplyType; VAR CheckTimeOut : Boolean; OUT ExpectedDataReceived : Boolean);
 { If data arrives, process it. This routine is called either when data is known to have arrived, or when we know it is about to, because we've issued a command that
-  produces a known response. NB: it is possible for unexpected data to turn up before the expected response so the routine has to cater for that eventuality. }
+  produces a known response. NB: it is possible for unexpected data to turn up before the expected response so the routine has to cater for that eventuality.
+}
 TYPE
   ResponseOrBroadcastType = (Response, Broadcast, NoResponse);
 
@@ -670,8 +671,6 @@ VAR
   TempInt : Integer;
   TickCount : Cardinal;
   TypeOfLogChar : Char;
-tempcvalue : Integer;
-  objectvar : tobject;
 
 BEGIN
   TRY
@@ -704,6 +703,7 @@ BEGIN
 
     REPEAT
       { Initialisations }
+      DebugStr := '';
       ExpectedDataReceived := False;
       UnrequestedDataFound := False;
       { Clears read array in case data left behind is processed a second time }
@@ -1371,7 +1371,754 @@ BEGIN
   ReadInDataMainProcedure(ReadArray, ExpectedReply, CheckTimeOut, ExpectedDataReceived);
 END; { ReadInData-3 }
 
-PROCEDURE WriteOutData(TypeOfLogChar : Char; VAR WriteArray : ARRAY OF Byte; VAR TimeOut : Boolean);
+{$O-}
+PROCEDURE DataIOMainProcedure(TypeOfLogChar : Char; VAR WriteArray, ReadArray : ARRAY OF Byte; ExpectedReply : ReplyType; VAR CheckTimeOut : Boolean;
+                              WriteRead : WriteReadType; OUT ExpectedDataReceived : Boolean);
+{ Write out supplied data, then wait for a reply. Also process data that has been broadcast without being requested. NB: it is possible for unexpected data to turn up
+  before the expected response so the routine has to cater for that eventuality.
+}
+TYPE
+  ResponseOrBroadcastType = (Response, Broadcast, NoResponse);
+
+CONST
+  ExitProgram = True;
+  WarnUser = True;
+
+VAR
+  CommandLen : Integer;
+  DebugStr, UnknownReplyString : String;
+  ErrorFound : Boolean;
+  ErrorMsg : String;
+  I : Integer;
+  LocoChip : Integer;
+  OK, TimedOut : Boolean;
+  PortStr : String;
+  ResponseOrBroadcast : ResponseOrBroadcastType;
+  S : String;
+  StartTimer : Cardinal;
+  T : Train;
+  TempByte : Byte;
+  TempStr : String;
+  TempInt : Integer;
+  TickCount : Cardinal;
+
+BEGIN
+  TRY
+    ResponseOrBroadcast := NoResponse;
+
+    { Writes out data first, unless unrequested data has been received }
+    IF (WriteRead = WriteThenRead) OR (WriteRead = WriteOnly) THEN BEGIN
+      { Send any output waiting to the LI101 - check first that it can be accepted }
+      IF WriteArray[0] <> 0 THEN BEGIN
+        { get the length first from bits 3-0, and add the checkbyte }
+        WriteArray[GetCommandLen(WriteArray[0]) + 1] := CheckSum(WriteArray);
+        { and write it out }
+        S := '';
+        FOR I := 0 TO GetCommandLen(WriteArray[0]) + 1 DO
+          S := S + IntToHex(WriteArray[I], 2);
+        TCPIPForm.ResponsesTCPSendText(S);
+      END;
+
+      { Now compose the "From PC" string }
+      DebugStr := StringOfChar(' ', 104) + 'PC request: '; { 104 shouldn't be a magic number *** }
+
+      CommandLen := GetCommandLen(WriteArray[0]);
+
+      FOR I := 0 TO CommandLen DO
+        DebugStr := DebugStr + IntToStr(WriteArray[I]) + '-';
+      DebugStr := DebugStr + IntToStr(WriteArray[CommandLen + 1]);
+
+      { now the hex }
+      DebugStr := DebugStr + ' [';
+      FOR I := 0 TO CommandLen DO
+        DebugStr := DebugStr + IntToHex(WriteArray[I], 2) + '-';
+      DebugStr := DebugStr + IntToHex(WriteArray[CommandLen + 1], 2);
+      DebugStr := DebugStr + ']';
+
+      Log(TypeOfLogChar + ' ' + DebugStr); {+ ' byte 2= ' + DoBitPattern(WriteArray[2]) + ' byte 4= ' + DoBitPattern(WriteArray[4]));}
+
+      { Loop if the received data is not what's expected - aim to read in what's expected second, maybe third, time around }
+      ErrorFound := False;
+      TimedOut := False;
+      ResponseOrBroadcast := NoResponse;
+    END;
+
+    IF (WriteRead = WriteThenRead) OR (WriteRead = ReadOnly) THEN BEGIN
+      REPEAT
+        { Initialisations }
+        DebugStr := '';
+        ExpectedDataReceived := False;
+        UnrequestedDataFound := False;
+        { Clears read array in case data left behind is processed a second time }
+        FOR I := 0 TO (ReadArrayLen - 1) DO
+          ReadArray[I] := 0;
+
+
+
+  //      { Time out stuff }
+  //      IF (ExpectedReply <> NoReplyExpected)
+  //      AND (ExpectedReply <> TrackPowerOffReply)
+  //      THEN BEGIN
+  //        { something is expected, so wait for it }
+  //        StartTimer := GetTickCount();
+          TimedOut := False;
+  //        REPEAT
+  //          TickCount := (GetTickCount - StartTimer);
+  //          IF TickCount > (10000) THEN BEGIN
+  //            TimedOut := True;
+  //
+  //            DebugStr := 'timed out in wait for ExpectedReply of ';
+  //            CASE ExpectedReply OF
+  //               Acknowledgment:
+  //                 DebugStr := DebugStr + '''Acknowledgment''';
+  //               CommandStationSoftwareReply:
+  //                 DebugStr := DebugStr + '''Command Station Software Reply''';
+  //               ComputerInterfaceSoftwareReply:
+  //                 DebugStr := DebugStr + '''Computer InterfaceS oftware Reply''';
+  //               EmergencyStopReply:
+  //                 DebugStr := DebugStr + '''Emergency Stop Reply''';
+  //               EverythingTurnedOnReply:
+  //                 DebugStr := DebugStr + '''Everything Turned On Reply''';
+  //               FeedbackReply:
+  //                 DebugStr := DebugStr + '''Feedback Reply''';
+  //               LocoAcknowledgment:
+  //                 DebugStr := DebugStr + '''Loco Acknowledgment''';
+  //               LocoReply:
+  //                 DebugStr := DebugStr + '''Loco Reply''';
+  //               LocoTakenoverReply:
+  //                 DebugStr := DebugStr + '''Loco Taken Over Reply''';
+  //               PointAcknowledgment:
+  //                 DebugStr := DebugStr + '''Point Acknowledgment''';
+  //               PointReply:
+  //                 DebugStr := DebugStr + '''Point Reply''';
+  //               ProgrammingModeReply:
+  //                 DebugStr := DebugStr + '''Programmimg Mode Reply''';
+  //               SignalAcknowledgment:
+  //                 DebugStr := DebugStr + '''Signal Acknowledgment''';
+  //               SystemStatusReply:
+  //                 DebugStr := DebugStr + '''System Status Reply''';
+  //               { The following two won't ever be reached, but are here for completeness }
+  //               NoReplyExpected:
+  //                 DebugStr := DebugStr + '''No Reply Expected''';
+  //               TrackPowerOffReply:
+  //                 DebugStr := DebugStr + '''Track Power Off Reply''';
+  //            END; {CASE}
+  //            Log('X ' + DebugStr);
+  //          END;
+  //
+  //          Application.ProcessMessages;
+  //        UNTIL RequestAndRepliesDataReceived;
+  //
+  //        IF TimedOut THEN
+  //          Log('X **** Timed Out');
+  //
+  //        IF CheckTimeOut THEN
+  //          Exit;
+  //      END;
+
+        { If data found, read in first byte returned, to get the length. Read it in as an integer to see if it's -1, then save it as a byte (AMS 10/8/00) }
+
+        FirstByteErrorMsgWritten := False;
+
+        TempStr := ReadDataFromList;
+        IF TempStr = '' THEN BEGIN
+          IF ExpectedReply = NoReplyExpected THEN
+            Exit;
+          MainWindow.MainTimer.Enabled := False;
+          Application.ProcessMessages;
+          MainWindow.MainTimer.Enabled := True;
+          Continue;
+        END;
+
+        IF Pos('R ', TempStr) > 0 THEN BEGIN
+          ResponseOrBroadcast := Response;
+          TempStr := Copy(TempStr, 3);
+        END ELSE
+          IF Pos('B ', TempStr) > 0 THEN BEGIN
+            ResponseOrBroadcast := Broadcast;
+            TempStr := Copy(TempStr, 3);
+          END ELSE BEGIN
+            Log('X Invalid character in data from TCPIP unit: ' + TempStr);
+            Exit;
+          END;
+
+        I := 0;
+        REPEAT
+          IF NOT TryStrToInt('$' + Copy(TempStr, 1, 2), TempInt) THEN
+            debug
+          ELSE BEGIN
+            ReadArray[I] := TempInt;
+            Inc(I);
+            TempStr:= Copy(TempStr, 3);
+          END;
+        UNTIL TempStr= '';
+
+        CommandLen := GetCommandLen(ReadArray[0]);
+
+        { See if last byte is valid before returning it }
+        OK := (CheckSum(ReadArray) = ReadArray[CommandLen + 1]);
+
+        IF NOT OK THEN BEGIN
+          TRY
+            OK := False;
+            DebugStr := 'Checksum failure: ';
+            ASM
+              Int 3;
+            END; {ASM}
+            { need to recover from this by doing the read again? **** 6/11/06 }
+
+            { write out the string }
+            FOR I := 0 TO CommandLen + 1 DO
+              DebugStr := DebugStr + IntToStr(ReadArray[I]) + '=';
+            Log('G ' + DebugStr);
+          EXCEPT
+            ON E : Exception DO
+              Log('EG ReadInDataMainProcedure: ' + E.ClassName +' error raised, with message: ' + E.Message);
+          END; {TRY}
+        END;
+
+        IF OK THEN BEGIN
+          { Examine the first byte returned to identify it, and see if it is what was expected }
+          CASE ReadArray[0] OF
+            1:
+              { Maybe an acknowledgment or an error - depends what follows the '1' }
+               CASE ReadArray[1] OF
+                1:
+                  BEGIN
+                    ErrorMsg := 'Error between interface and PC';
+                    Log('XG ' + ErrorMsg);
+                  END;
+                2:
+                  BEGIN
+                    ErrorMsg := 'Error between interface and command station';
+                    Log('XG ' + ErrorMsg);
+                  END;
+                3:
+                  BEGIN
+                    ErrorMsg := 'Error: Command unknown';
+                    Log('XG ' + ErrorMsg);
+                  END;
+                4:
+                  IF (ExpectedReply = Acknowledgment)
+                  OR (ExpectedReply = LocoAcknowledgment)
+                  OR (ExpectedReply = PointAcknowledgment)
+                  OR (ExpectedReply = SignalAcknowledgment)
+                  THEN
+                    ExpectedDataReceived := True;
+                5:
+                  BEGIN
+                    ErrorMsg := 'Error: Command station does not respond';
+                    Log('XG ' + ErrorMsg);
+                  END;
+              END;
+            2:
+              { software version of computer interface (LI100F and LI101F) }
+              BEGIN
+                DebugStr := 'Computer interface software version reply:';
+                IF ExpectedReply = ComputerInterfaceSoftwareReply THEN BEGIN
+                  ExpectedDataReceived := True;
+                  { answer is in BCD, 4 upper bits the tens, four lower the units }
+                  TempByte := ReadArray[1] SHR 4;
+                  DebugStr := DebugStr + ' hardware version=' + IntToStr(TempByte);
+                  TempByte := ReadArray[2] AND NOT $F0;
+                  DebugStr := DebugStr + ', software version=' + IntToStr(TempByte);
+                END;
+                Log('G ' + DebugStr);
+              END;
+            66: { $42 }
+              BEGIN
+                IF (ExpectedReply = NoReplyExpected)
+                AND (WhatSortOfDecoderIsIt(ReadArray[1], ReadArray[2]) = AccessoryDecoderWithoutFeedbackStr)
+                THEN BEGIN
+                  { see if it's point data, as that seems to be an acknowledgment }
+                  ExpectedDataReceived := True;
+                  Log('T Feedback broadcast for point selection has arrived');
+                END ELSE
+                  { see if we've asked for the data (during startup, for instance) }
+                  IF (ExpectedReply = FeedbackReply)
+                  AND (ExpectedFeedbackAddress = ReadArray[1])
+                  THEN BEGIN
+                    ExpectedDataReceived := True;
+                    Log('T Requested feedback for unit ' + IntToStr(ReadArray[1] + 1) + ' has arrived');
+                  END ELSE BEGIN
+                    UnrequestedDataFound := True;
+                    Log('T Unrequested feedback has arrived <BlankLineBefore>');
+                    { see who it's from, etc. }
+                  END;
+                  GetFeedbackReply(ReadArray);
+              END;
+            68: { $44 }
+              BEGIN
+                IF (ExpectedReply = FeedbackReply) THEN
+                  ExpectedDataReceived := True
+                ELSE BEGIN
+                  UnrequestedDataFound := True;
+                  Log('T Unrequested feedback has arrived <BlankLineBefore>');
+                END;
+                { see who it's from, etc. }
+                GetFeedbackReply(ReadArray);
+              END;
+            70: { $46 }
+              BEGIN
+                IF (ExpectedReply = FeedbackReply) THEN
+                  ExpectedDataReceived := True
+                ELSE BEGIN
+                  UnrequestedDataFound := True;
+                  Log('T Unrequested feedback has arrived <BlankLineBefore>');
+                END;
+                GetFeedbackReply(ReadArray);
+              END;
+            72: { $48 }
+              BEGIN
+                IF (ExpectedReply = FeedbackReply) THEN
+                  ExpectedDataReceived := True
+                ELSE BEGIN
+                  UnrequestedDataFound := True;
+                  Log('T Unrequested feedback has arrived <BlankLineBefore>');
+                  Log('TG -72-');
+                  WriteDataToFeedbackWindow('*72*');
+                END;
+                GetFeedbackReply(ReadArray);
+              END;
+            74: { $4A }
+              BEGIN
+                IF (ExpectedReply = FeedbackReply) THEN
+                  ExpectedDataReceived := True
+                ELSE BEGIN
+                  UnrequestedDataFound := True;
+                  Log('T Unrequested feedback has arrived <BlankLineBefore>');
+                  Log('TG -74-');
+                  WriteDataToFeedbackWindow('*74*');
+                END;
+                GetFeedbackReply(ReadArray);
+             END;
+            76: { $4C }
+              BEGIN
+                IF (ExpectedReply = FeedbackReply) THEN
+                  ExpectedDataReceived := True
+                ELSE BEGIN
+                  UnrequestedDataFound := True;
+                  Log('T Unrequested feedback has arrived <BlankLineBefore>');
+                  Log('TG -76-');
+                  WriteDataToFeedbackWindow('*76*');
+                END;
+                GetFeedbackReply(ReadArray);
+              END;
+            78: { $4E }
+              BEGIN
+                IF (ExpectedReply = FeedbackReply) THEN
+                  ExpectedDataReceived := True
+                ELSE BEGIN
+                  UnrequestedDataFound := True;
+                  Log('T Unrequested feedback has arrived <BlankLineBefore>');
+                  Log('TG -78-');
+                  WriteDataToFeedbackWindow('*78*');
+                END;
+                GetFeedbackReply(ReadArray);
+              END;
+            97: { $61 }
+              { Some 97 unrequested msgs will arrive four times - just note }
+              CASE ReadArray[1] OF
+                0:
+                  IF ExpectedReply = TrackPowerOffReply THEN
+                    ExpectedDataReceived := True
+                  ELSE BEGIN
+                    UnrequestedDataFound := True;
+                    IF NOT SystemStatus.EmergencyOff THEN
+                      ReadOut('ShortCircuit');
+                    SystemStatus.EmergencyOff := True;
+                    ErrorMsg := '*** power off ***';
+                    Log('EG '+ ErrorMsg + ' <BlankLineBefore>');
+                    WriteDataToFeedbackWindow(ErrorMsg);
+                  END;
+                1:
+                  IF ExpectedReply = EverythingTurnedOnReply THEN
+                    ExpectedDataReceived := True { when would this happen? }
+                  ELSE BEGIN
+                    UnrequestedDataFound := True;
+                    SystemStatus.EmergencyOff := False;
+                    SystemStatus.EmergencyStop := False;
+                    ErrorMsg := '*** power on ***';
+                    Log('EG '+ ErrorMsg + ' <BlankLineBefore>');
+                    WriteDataToFeedbackWindow(ErrorMsg);
+                  END;
+                2:
+                  BEGIN
+                    Log('EG Programming (Service) Mode');
+                    ErrorFound := True;
+                  END;
+                17: { $11 }
+                  BEGIN
+                    ErrorMsg := 'Command station ready [Command not yet implemented]';
+                    Log('EG ' + ErrorMsg);
+                    ErrorFound := True;
+                  END;
+                18: { $12 }
+                  BEGIN
+                    ErrorMsg := 'Error during programming - short circuit';
+                    Log('EG ' + ErrorMsg);
+                    ErrorFound := True;
+                  END;
+                19: { $13 }
+                  BEGIN
+                    ErrorMsg := 'Error during programming - data byte not found';
+                    Log('EG ' + ErrorMsg);
+                    { *** programming should be broken off or tried again *** }
+                    ErrorFound := True;
+                  END;
+                31: { $1F }
+                  BEGIN
+                    ErrorMsg := 'Command station busy [Command not yet implemented]';
+                    Log('EG ' + ErrorMsg);
+                    ErrorFound := True;
+                  END;
+                128: { $80 }
+                  BEGIN
+                    ErrorMsg := 'Transfer error (XOR not correct)';
+                    Log('EG ' + ErrorMsg);
+                    ErrorFound := True;
+                    { should retransmit command **** }
+                  END;
+                129: { $81 }
+                  BEGIN
+                    ErrorMsg := 'Command station busy';
+                    Log('EG ' + ErrorMsg);
+                    ErrorFound := True;
+    //                MakeSound(1);
+                    { should retransmit command **** }
+                  END;
+                130: { $82 }
+                  BEGIN
+                    ErrorMsg := 'Instruction not supported by command station';
+                    Log('EG ' + ErrorMsg);
+                    ErrorFound := True;
+                  END;
+                131: { $83 }
+                  BEGIN
+                    ErrorMsg := 'Error with double header - no operation command';
+                    Log('EG ' + ErrorMsg);
+                    ErrorFound := True;
+                  END;
+                132: { $84 }
+                  BEGIN
+                    ErrorMsg := 'Error with double header - double header occupied';
+                    Log('EG ' + ErrorMsg);
+                    ErrorFound := True;
+                  END;
+                133: { $85 }
+                  BEGIN
+                    ErrorMsg := 'Error with double header - loco already in double header';
+                    Log('EG ' + ErrorMsg);
+                    ErrorFound := True;
+                  END;
+                134: { $86 }
+                  BEGIN
+                    ErrorMsg := 'Error with double header - locomotive still moving';
+                    Log('EG ' + ErrorMsg);
+                    ErrorFound := True;
+                  END;
+              END; {CASE}
+            98: { $62 }
+              CASE ReadArray[1] OF
+                34: { $22 }
+                  BEGIN
+                    IF ExpectedReply = SystemStatusReply THEN BEGIN
+                      ExpectedDataReceived := True;
+                      SystemStatusStr := '';
+                      { answer tells us what is currently happening }
+                      IF (ReadArray[2] AND $80) = $80 THEN { 1000 0000 }
+                        { bit 7 set }
+                        SystemStatusStr := 'RAM check error in command station';
+                      IF (ReadArray[2] AND $40) = $40 THEN { 0100 0000 }
+                        { bit 6 set }
+                        SystemStatusStr := 'command station powering up';
+                      IF (ReadArray[2] AND $08) = $08 THEN { 0000 1000 }
+                        { bit 3 set }
+                        SystemStatusStr := 'in programming (service) mode';
+                      IF (ReadArray[2] AND $02) = $02 THEN { 0000 0010 }
+                        { bit 1 set }
+                        SystemStatusStr := 'emergency stop is on';
+                      IF (ReadArray[2] AND $01) = $01 THEN { 0000 0001 }
+                        { bit 0 set }
+                        SystemStatusStr := 'emergency off is on';
+
+                      IF (ReadArray[2] AND $04) <> $04 THEN { 0000 0100 }
+                        { bit 2 not set - this one is logged, but not written to the screen on start up }
+                        Log('G Returning system status for ' + PortStr +': start mode=manual')
+                      ELSE
+                        SystemStatusStr := 'start mode=auto - may need to send start-mode command (see s.2.1.4 of LI101F manual)';
+
+                      IF SystemStatusStr <> '' THEN
+                        Log('G Returning system status for ' + PortStr + ': ' + SystemStatusStr);
+                    END;
+                  END;
+              END; {CASE}
+            99: { $63 }
+              CASE ReadArray[1] OF
+                16:  { $10 }
+                  { Programming (service) mode response for Register and Page mode }
+                  BEGIN
+                    ErrorMsg := 'Programming service) mode response for Register & Page mode ';
+                    Log('EG ' + ErrorMsg);
+                    { Needs more code if to be used }
+                    ErrorFound := True;
+                  END;
+                20: { $14 }
+                  { Programming (service) mode response for Direct CV mode }
+                  BEGIN
+                    ErrorMsg := 'Programming (service mode) response for Direct CV mode ';
+                    Log('EG ' + ErrorMsg);
+                    { Needs more code if to be used }
+                    ErrorFound := True;
+                  END;
+                33: { $21 }
+                  { software version of command station (v.3) }
+                  BEGIN
+                    DebugStr := 'Command Station software version reply:';
+                    IF ExpectedReply = CommandStationSoftwareReply THEN BEGIN
+                      ExpectedDataReceived := True;
+                      { answer is in BCD, 4 upper bits the tens, four lower the units }
+                      TempByte := ReadArray[2] shr 4;
+                      DebugStr := DebugStr + ' version=' + IntToStr(TempByte);
+                      TempByte := ReadArray[2] and not $F0;
+                      DebugStr := DebugStr + '.' + IntToStr(TempByte);
+                      { could use following info to see if certain commands work }
+                      CASE ReadArray[3] OF
+                        0:
+                          DebugStr := DebugStr + ' - LZ100';
+                        1:
+                          DebugStr := DebugStr + ' - LH200';
+                        2:
+                          DebugStr := DebugStr + ' - DPC';
+                      END; {CASE}
+                    END;
+                    Log('G ' + DebugStr);
+                  END;
+              END; {CASE}
+            129: { $81 }{ Emergency stop - msg will arrive four times }
+              IF ExpectedReply = EmergencyStopReply THEN
+                ExpectedDataReceived := True
+              ELSE IF (ReadArray[1] = 0) THEN BEGIN
+                UnrequestedDataFound := True;
+                SystemStatus.EmergencyStop := True;
+                ErrorMsg := '*** emergency stop ***';
+                Log('EG ' + ErrorMsg + ' <BlankLineBefore>');
+              END;
+            198: { $C6 } { [undocumented] Information returned from double-headed locos }
+              IF ExpectedReply = LocoReply THEN
+                ExpectedDataReceived := True;
+            225: { $E1 }
+              BEGIN
+                CASE ReadArray[1] OF
+                  129: { $81 }
+                    BEGIN
+                      ErrorMsg := 'Dbl-hdr error: one loco not operated by LI101F or loco 0';
+                      Log('EG ' + ErrorMsg);
+                    END;
+                  130: { $82 }
+                    BEGIN
+                      ErrorMsg := 'Dbl-hdr error: one loco operated by another device';
+                      Log('EG ' + ErrorMsg);
+                    END;
+                  131: { $83 }
+                    BEGIN
+                      ErrorMsg := 'Dbl-hdr error: loco already in dbl-hdr or m/u';
+                      Log('EG ' + ErrorMsg);
+                    END;
+                  132: { $84 }
+                    BEGIN
+                      ErrorMsg := 'Dbl-hdr error: speed of one loco not zero';
+                      Log('EG ' + ErrorMsg);
+                    END;
+                  133: { $85 }
+                    BEGIN
+                      ErrorMsg := 'Multi-Unit error: loco not in a multi-unit';
+                      Log('EG ' + ErrorMsg);
+                    END;
+                  134: { $86 }
+                    BEGIN
+                      ErrorMsg := 'Multi-Unit error: loco address not a m/u base address';
+                      Log('EG ' + ErrorMsg);
+                    END;
+                  135: { $87 }
+                    BEGIN
+                      ErrorMsg := 'Dbl-Hdr/Multi-Unit error: not possible to delete loco';
+                      Log('EG ' + ErrorMsg);
+                    END;
+                  136: { $88 }
+                    BEGIN
+                      ErrorMsg := 'Dbl-Hdr/Multi-Unit error: command station stack full';
+                      Log('EG ' + ErrorMsg);
+                    END;
+                END; {CASE}
+              END;
+            226: { $E2 } { information returned from a multi-unit address }
+              IF ExpectedReply = LocoReply THEN
+                ExpectedDataReceived := True;
+            227: { $E3 }
+              CASE ReadArray[1] OF
+                48..52: { $30-$34 }
+                  { response to an address search } { *** }
+                  BEGIN
+                  END;
+                64: { $40 }
+                  BEGIN
+                    { arrives unrequested if the LH100 takes over control }
+                    LocoChip := GetLocoChipFromTwoBytes(ReadArray[2], ReadArray[3]);
+
+                    { and record it }
+                    Log(LocoChipToStr(LocoChip) + ' L taken over');
+                    T := GetTrainRecord(LocoChip);
+                    IF T <> NIL THEN BEGIN
+                      T^.Train_PreviouslyControlledByProgram := True;
+                      SetTrainControlledByProgram(T, False);
+                    END;
+                  END;
+                80: { $50 }
+                  { Function status response }
+                  BEGIN
+                    { need to write **** }
+                  END;
+              END; {CASE}
+            228: { $E4 } { information returned from a loco under our control }
+              IF ExpectedReply = LocoReply THEN
+                ExpectedDataReceived := True;
+            229: { $E5 } { information returned from a loco in a multi-unit }
+              IF ExpectedReply = LocoReply THEN
+                ExpectedDataReceived := True;
+            230: { $E6 } { information returned from locos in a double header }
+              IF ExpectedReply = LocoReply THEN
+                ExpectedDataReceived := True;
+          ELSE {CASE}
+            BEGIN
+              { write it out }
+              UnknownReplyString := '';
+              FOR I := 0 TO (CommandLen + 1) DO
+                UnknownReplyString := UnknownReplyString + IntToStr(ReadArray[I])+ ' +';
+              Log('XG **** Unknown reply: ' + UnknownReplyString);
+            END;
+          END; {CASE}
+
+          CheckTimeOut := False;
+
+          { Write out the debugging string and translate it into hex }
+          DebugStr := DebugStr + ' ';
+          FOR I := 0 TO CommandLen DO
+            DebugStr := DebugStr + IntToStr(ReadArray[I]) + '-';
+          DebugStr := DebugStr + IntToStr(ReadArray[CommandLen + 1]);
+
+          { Now the hex }
+          DebugStr := DebugStr + ' [';
+          FOR I := 0 TO CommandLen DO
+            DebugStr := DebugStr + IntToHex(ReadArray[I], 2) + '-';
+          DebugStr := DebugStr + IntToHex(ReadArray[CommandLen + 1], 2);
+          DebugStr := DebugStr + ']';
+
+          { Add the appropriate Type Of Log char }
+          CASE ReadArray[0] OF
+            1..2:
+              CASE ExpectedReply OF
+                LocoAcknowledgment:
+                  TypeOfLogChar := 'L';
+                PointAcknowledgment:
+                  TypeOfLogChar := 'P';
+                SignalAcknowledgment:
+                  TypeOfLogChar := 'S';
+              ELSE
+                TypeOfLogChar := 'G';
+              END; {CASE}
+            66..78:
+              TypeOfLogChar := 'T'; { trackcircuit }
+            198..230:
+              TypeOfLogChar := 'L'; { loco }
+          ELSE
+            TypeOfLogChar := 'G'; { general }
+          END; {CASE}
+
+          IF ResponseOrBroadcast = Response THEN
+            Log(TypeOfLogChar + ' ' + StringOfChar(' ', 104) + 'Lenz response: ' + DebugStr)
+          ELSE
+            IF ResponseOrBroadcast = Broadcast THEN
+              Log('G ' + StringOfChar(' ', 104) + 'Lenz broadcast: ' + DebugStr);
+
+          { Write out bytes as bits if run-time parameter Y is set }
+          IF ShowByteParam <> '' THEN BEGIN
+            IF ShowByteParam = 'ALL' THEN BEGIN
+              { Write all the bytes as bits }
+              DebugStr := '';
+              FOR I := 1 TO (CommandLen + 1) DO
+                DebugStr := DebugStr + '[' + DoBitPattern(ReadArray[I]) + '] ';
+              Log('G ' + StringOfChar(' ', 64) + 'All bytes: ' + DebugStr); { 64 shouldn't be a magic number *** }
+            END ELSE
+              IF (StrToInt(ShowByteParam) >= 0)
+              AND (StrToInt(ShowByteParam) <= 14)
+              THEN BEGIN
+                { Write a single byte as bits }
+                IF StrToInt(ShowByteParam) > (CommandLen + 1) THEN
+                  DebugStr := '---- ----'
+                ELSE
+                  DebugStr := DoBitPattern(ReadArray[StrToInt(ShowByteParam)]);
+
+                IF ResponseOrBroadcast = Response THEN
+                  Log('G *** Response ***' + StringOfChar(' ', 48) + 'Byte ' + ShowByteParam + ': [' + DebugStr + ']')
+                ELSE
+                  IF ResponseOrBroadcast = Broadcast THEN
+                    Log('G *** Broadcast ***' + StringOfChar(' ', 47) + 'Byte ' + ShowByteParam + ': [' + DebugStr + ']');
+              END;
+          END;
+
+          { loop if necessary - not needed if no reply was awaited, or if the reply received was the one that was expected }
+        END;
+      UNTIL (ExpectedReply = NoReplyExpected) OR ExpectedDataReceived OR TimedOut OR ErrorFound;
+
+      IF UnRequestedDataFound THEN BEGIN
+  //    Debug('UnRequestedDataFound');
+        IF TestingMode THEN
+          DebugWindow.Caption := DebugWindow.Caption + '.';
+        IF NOT SystemOnline THEN
+          SetSystemOnline;
+      END;
+    END;
+  EXCEPT {TRY}
+    ON E : Exception DO
+      Log('EG : ' + E.ClassName +' error raised, with message: ' + E.Message);
+  END; {TRY}
+END; { DataIOMainProcedure }
+{$O+}
+
+PROCEDURE DataIO{1}(WriteRead : WriteReadType); Overload
+{ This is called by the regular check for broadcasts }
+VAR
+  CheckTimeOut : Boolean;
+  ExpectedDataReceived : Boolean;
+  ExpectedReply : ReplyType;
+  ReadArray : ARRAY[0..15] OF Byte;
+  WriteArray : ARRAY[0..15] OF Byte;
+
+BEGIN
+  CheckTimeOut := False;
+  DataIOMainProcedure('G', WriteArray, ReadArray, NoReplyExpected, CheckTimeOut, WriteRead, ExpectedDataReceived);
+END; { DataIO-1 }
+
+PROCEDURE DataIO{2}(WriteArray : ARRAY OF Byte; ExpectedReply : ReplyType; WriteRead : WriteReadType; OUT ExpectedDataReceived : Boolean); Overload;
+VAR
+  CheckTimeOut : Boolean;
+  ReadArray : ARRAY[0..15] OF Byte;
+
+BEGIN
+  CheckTimeOut := False;
+  DataIOMainProcedure('G', WriteArray, ReadArray, ExpectedReply, CheckTimeOut, WriteThenRead, ExpectedDataReceived);
+END; { DataIO -2 }
+
+PROCEDURE DataIO{3}(TypeOfLogChar : Char; VAR WriteArray, ReadArray : ARRAY OF Byte; ExpectedReply : ReplyType; OUT ExpectedDataReceived : Boolean); Overload;
+VAR
+  CheckTimeOut : Boolean;
+
+BEGIN
+  DataIOMainProcedure(TypeOfLogChar, WriteArray, ReadArray, ExpectedReply, CheckTimeOut, WriteThenRead, ExpectedDataReceived);
+END; { DataIO-3 }
+
+PROCEDURE XWriteOutData(TypeOfLogChar : Char; VAR WriteArray : ARRAY OF Byte; VAR TimeOut : Boolean);
 { Writes out data }
 CONST
   ExitProgram = True;
@@ -1418,15 +2165,9 @@ END; { WriteOutData }
 
 PROCEDURE DoCheckForUnexpectedData(UnitRef : String; CallingStr : String);
 { See if any data has arrived }
-VAR
-  OK : Boolean;
-
 BEGIN
-  IF SystemOnline THEN BEGIN
-//    ReadInData;
-    ReadInData(ReadArray, NoReplyExpected, OK);
-//    SaveTimeLastDataReceived := TimeLastDataReceived;
-  END;
+  IF SystemOnline THEN
+    DataIO(ReadOnly);
 END; { DoCheckForUnexpectedData }
 
 PROCEDURE ProgramOnTheMain(LocoChip : Integer; ProgramOnTheMainRequest : ProgramOnTheMainType; NewValue : Integer);
@@ -1482,7 +2223,7 @@ BEGIN
         END;
     END; {CASE}
 
-    WriteOutData('L', WriteArray, TimeOut);
+    DataIO('L', WriteArray);
   END;
 END; { ProgramOnTheMain }
 
@@ -1565,16 +2306,15 @@ BEGIN
   T := GetTrainRecord(LocoChip);
   IF T <> NIL THEN BEGIN
     WITH T^ DO BEGIN
+      Log(LocoChipToStr(LocoChip) + ' L Requesting loco details <BlankLineBefore>');
+
       WriteArray[0] := 227;
       WriteArray[1] := 0;
-      Log(LocoChipToStr(LocoChip) + ' L Requesting loco details <BlankLineBefore>');
       WriteArray[2] := GetLocoChipHighByte(LocoChip);
       WriteArray[3] := GetLocoChipLowByte(LocoChip);
 
-      WriteOutData('L', WriteArray, TimeOut);
+      DataIO('L', WriteArray, ReadArray, LocoReply, OK);
 
-      { and read in the answer }
-      ReadInData(ReadArray, LocoReply, OK);
       IF OK THEN BEGIN
         DebugStr := 'Received loco details:';
 
@@ -1731,11 +2471,9 @@ BEGIN
   WriteArray[1] := 0;
   WriteArray[2] := GetLocoChipHighByte(DecoderNum);
   WriteArray[3] := GetLocoChipLowByte(DecoderNum);
-  WriteOutData('X', WriteArray, TimeOut);
 
-  { *** should the next bit be here or elsewhere? **** }
-  { and read in the answer }
-  ReadInData(ReadArray, LocoReply, OK);
+  DataIO('X', WriteArray, ReadArray, LocoReply, OK);
+
   IF OK THEN BEGIN
     DebugStr := 'Received decoder details: ';
 
@@ -1838,10 +2576,10 @@ BEGIN
     WriteArray[2] := GetLocoChipHighByte(LocoChip);
     WriteArray[3] := GetLocoChipLowByte(LocoChip);
     WriteArray[4] := TempSpeedByte;
-    WriteOutData('L', WriteArray, TimeOut);
 
     { Now read details in - look for acknowledgment }
-    ReadInData(ReadArray, LocoAcknowledgment, OK);
+    DataIO('L', WriteArray, ReadArray, LocoAcknowledgment, OK);
+
     IF NOT OK THEN
       Log(LocoChipToStr(LocoChip) + ' L Data not acknowledged')
     ELSE BEGIN
@@ -1854,27 +2592,19 @@ END; { WriteLocoSpeedOrDirection }
 
 PROCEDURE ReadComputerInterfaceSoftwareVersion(VAR OK : Boolean);
 { Ask the LI101 its own software version }
-VAR
-  TimeOut : Boolean;
-
 BEGIN
   Log('G Requesting computer interface software version <BlankLineBefore>');
   WriteArray[0] := 240;
-  WriteOutData('G', WriteArray, TimeOut);
-  ReadInData(ReadArray, ComputerInterfaceSoftwareReply, OK);
+  DataIO(WriteArray, ComputerInterfaceSoftwareReply, WriteThenRead, OK);
 END; { ReadComputerInterfaceSoftwareVersion }
 
 PROCEDURE ReadCommandStationSoftwareVersion(VAR OK : Boolean);
 { Ask the LI101 for the software version of the command station }
-VAR
-  TimeOut : Boolean;
-
 BEGIN
   Log('G Requesting command station software version <BlankLineBefore>');
   WriteArray[0] := 33;
   WriteArray[1] := 33;
-  WriteOutData('G', WriteArray, TimeOut);
-  ReadInData(ReadArray, CommandStationSoftwareReply, OK);
+  DataIO(WriteArray, CommandStationSoftwareReply, WriteThenRead, OK);
 END; { ReadCommandStationSoftwareVersion }
 
 FUNCTION RequestProgrammingModeCV(CV : Integer) : String;      { half written 1/2/13 }
@@ -1894,16 +2624,15 @@ BEGIN
     WriteArray[0] := 34;
     WriteArray[1] := 21;
     WriteArray[2] := CV;
-    WriteOutData('G', WriteArray, TimeOut);
-    ReadInData(ReadArray, NoReplyExpected, OK);
+
+    DataIO(WriteOnly);
 
     Log('G Finalising request for CV from loco on programming track - requesting result from programming mode <BlankLineBefore>');
     WriteArray[0] := 33;
     WriteArray[1] := 16;
     WriteArray[2] := 49;
-    WriteOutData('G', WriteArray, TimeOut);
-    ReadInData(ReadArray, ProgrammingModeReply, OK);
-    null;
+
+    DataIO('G', WriteArray, ReadArray, ProgrammingModeReply, OK);
 
     ResumeOperations(OK);
   END;
@@ -2429,9 +3158,9 @@ BEGIN
           WriteArray[2] := GetLocoChipHighByte(LocoChip);
           WriteArray[3] := GetLocoChipLowByte(LocoChip);
           WriteArray[4] := TestByte2;
-          WriteOutData('L', WriteArray, TimeOut);
-          { Now read details in - look for acknowledgment }
-          ReadInData(ReadArray, LocoAcknowledgment, OK);
+
+          DataIO('G', WriteArray, ReadArray, LocoAcknowledgment, OK);
+
           IF OK THEN BEGIN
             SetTrainControlledByProgram(T, True);
             CASE FunctionNum OF
@@ -2475,10 +3204,9 @@ BEGIN
   WriteArray[2] := GetLocoChipHighByte(DecoderNum);
   WriteArray[3] := GetLocoChipLowByte(DecoderNum);
   WriteArray[4] := DataByte;
-  WriteOutData('S', WriteArray, TimeOut);
 
-  { Now read details in - look for acknowledgment }
-  ReadInData(ReadArray, SignalAcknowledgment, OK);
+  DataIO('S', WriteArray, ReadArray, SignalAcknowledgment, OK);
+
   DebugStr := 'S=' + IntToStr(SignalNum) + ' (' + DecoderNumString + '): ' + AspectString;
   IF OK THEN BEGIN
     FunctionDecoderBytes[DecoderNum] := DataByte;
@@ -3051,8 +3779,9 @@ BEGIN
   WriteArray[3] := GetLocoChipLowByte(LocoChip);
   WriteArray[4] := 0;
   WriteArray[5] := 0;
-  WriteOutData('L', WriteArray, TimeOut);
-  ReadInData(ReadArray, Acknowledgment, OK);
+
+  DataIO('L', WriteArray, ReadArray, Acknowledgment, OK);
+
   IF OK THEN
     Log(LocoChipToStr(LocoChip) + ' L Double header (including loco ' + IntToStr(LocoChip) + ') dissolved')
   ELSE
@@ -3071,8 +3800,8 @@ BEGIN
   Log('E Requesting stop operations <BlankLineBefore>');
   WriteArray[0] := 33;
   WriteArray[1] := 128;
-  WriteOutData('G', WriteArray, TimeOut);
-  ReadInData(ReadArray, TrackPowerOffReply, OK);
+
+  DataIO('G', WriteArray, ReadArray, TrackPowerOffReply, OK);
 END; { StopOperations }
 
 PROCEDURE ResumeOperations(OUT OK : Boolean);
@@ -3085,33 +3814,29 @@ BEGIN
   WriteArray[0] := 33;
   WriteArray[1] := 129;
   WriteOutData('G', WriteArray, TimeOut);
-  ReadInData(ReadArray, EverythingTurnedOnReply, OK);
+
+  DataIO('G', WriteArray, ReadArray, EverythingTurnedOnReply, OK);
 END; { ResumeOperations }
 
 PROCEDURE StopAllLocomotives(VAR OK : Boolean);
 { Emergency stops all trains, but leaves the power on }
-VAR
-  TimeOut : Boolean;
-
 BEGIN
   Log('E Requesting stop all locomotives <BlankLineBefore>');
   WriteArray[0] := 128;
-  WriteOutData('L', WriteArray, TimeOut);
-  ReadInData(ReadArray, EmergencyStopReply, OK);
+
+  DataIO('L', WriteArray, ReadArray, EmergencyStopReply, OK);
 END; { StopAllLocomotives }
 
 PROCEDURE StopAParticularLocomotive(LocoChip : Integer; VAR OK : Boolean);
 { Stops a particular loco }
-VAR
-  TimeOut : Boolean;
-
 BEGIN
   Log('E Requesting stop loco ' + LocoChipToStr(LocoChip) + ' <BlankLineBefore>');
   WriteArray[0] := 146;
   WriteArray[1] := GetLocoChipHighByte(LocoChip);
   WriteArray[2] := GetLocoChipLowByte(LocoChip);
   WriteOutData('L', WriteArray, TimeOut);
-  ReadInData(ReadArray, Acknowledgment, OK);
+
+  DataIO('L', WriteArray, ReadArray, Acknowledgment, OK);
   IF OK THEN
     LocoHasBeenTakenOverByProgram(LocoChip);
 END; { StopAParticularLocomotive }
@@ -3196,8 +3921,8 @@ VAR
         Exit
       ELSE BEGIN
         REPEAT
-          WriteOutData('T', WriteArray, TimeOut);
-          ReadInData(ReadArray, FeedbackReply, OK);
+          DataIO('T', WriteArray, ReadArray, FeedbackReply, OK);
+
           { Check it's for the unit we specified, in case some unrequested feedback data comes in while we're starting up }
           IF OK
           AND (ReadArray[1] <> FeedbackAddress)
@@ -3318,7 +4043,6 @@ CONST
   WarnUser = True;
 
 VAR
-  H : HWND;
   I, J : Word;
   OK : Boolean;
   TimedOut : Boolean;
@@ -3338,10 +4062,11 @@ BEGIN
       TCPIPForm.Update;
     END;
 
-    { First see if the Lenz server program is running - this doesn't mean, of course, that the server itself is running }
+    { First see if the Lenz server program is running }
     IF IsProgramRunning('LI-Server') THEN BEGIN
-      Log('XG LI-Server.exe is already running');
-      OK := True;
+      ShowMessage('The LI-Server.exe program is already running - make sure the server itself is running and then press OK');
+      Log('X The LI-Server.exe program is already running - make sure the server itself is running and then press OK');
+      OK := True;                                 // ************ this doesn't mean, of course, that the server itself is running }
     END ELSE BEGIN
       StartLANUSBServer;
       IF IsProgramRunning('LI-Server') THEN BEGIN

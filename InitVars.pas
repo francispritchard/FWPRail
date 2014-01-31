@@ -590,6 +590,8 @@ TYPE
     Signal_XAdjustment : Integer;
   END;
 
+  WriteReadType = (ReadOnly, WriteOnly, WriteThenRead);
+
 CONST
   Signal_NumberFieldName : String = 'Signal Number';
 
