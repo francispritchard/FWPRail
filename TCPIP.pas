@@ -97,9 +97,6 @@ BEGIN
 END; { TCPIPFormClose }
 
 PROCEDURE TTCPIPForm.TCPConnectButtonClick(Sender: TObject);
-VAR
-  OK : Boolean;
-
 BEGIN
   IF TCPSocket1 = NIL THEN
     CreateTCPClients
