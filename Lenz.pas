@@ -2100,17 +2100,17 @@ BEGIN
   DataIOMainProcedure('G', WriteArray, ReadArray, NoReplyExpected, CheckTimeOut, WriteRead, ExpectedDataReceived);
 END; { DataIO-1 }
 
-PROCEDURE DataIO{2}(WriteArray : ARRAY OF Byte; ExpectedReply : ReplyType; WriteRead : WriteReadType; OUT ExpectedDataReceived : Boolean); Overload;
+PROCEDURE DataIO{2}(TypeOfLogChar : Char; WriteArray : ARRAY OF Byte; ExpectedReply : ReplyType; WriteRead : WriteReadType; OUT ExpectedDataReceived : Boolean); Overload;
 VAR
   CheckTimeOut : Boolean;
   ReadArray : ARRAY[0..15] OF Byte;
 
 BEGIN
   CheckTimeOut := False;
-  DataIOMainProcedure('G', WriteArray, ReadArray, ExpectedReply, CheckTimeOut, WriteThenRead, ExpectedDataReceived);
+  DataIOMainProcedure(TypeOfLogChar, WriteArray, ReadArray, ExpectedReply, CheckTimeOut, WriteThenRead, ExpectedDataReceived);
 END; { DataIO -2 }
 
-PROCEDURE DataIO{3}(TypeOfLogChar : Char; VAR WriteArray, ReadArray : ARRAY OF Byte; ExpectedReply : ReplyType; OUT ExpectedDataReceived : Boolean); Overload;
+PROCEDURE DataIO{3}(TypeOfLogChar : Char; WriteArray : ARRAY OF Byte; VAR ReadArray : ARRAY OF Byte; ExpectedReply : ReplyType; OUT ExpectedDataReceived : Boolean); Overload;
 VAR
   CheckTimeOut : Boolean;
 
@@ -2173,6 +2173,7 @@ END; { DoCheckForUnexpectedData }
 PROCEDURE ProgramOnTheMain(LocoChip : Integer; ProgramOnTheMainRequest : ProgramOnTheMainType; NewValue : Integer);
 { Program a loco anywhere on the layout (i.e. not on the programming track) }
 VAR
+  OK : Boolean;
   T : Train;
   TimeOut : Boolean;
 
@@ -2223,7 +2224,7 @@ BEGIN
         END;
     END; {CASE}
 
-    DataIO('L', WriteArray);
+    DataIO('L', WriteArray, ComputerInterfaceSoftwareReply, WriteOnly, OK);
   END;
 END; { ProgramOnTheMain }
 
@@ -2466,13 +2467,13 @@ VAR
 BEGIN
   { Ask for details }
   DecoderNumString := LocoChipToStr(DecoderNum);
-  Log('S S=' + DecoderNumString + ': requesting function decoder details <BlankLineBefore>');
+  Log('L L=' + DecoderNumString + ': requesting function decoder details <BlankLineBefore>');
   WriteArray[0] := 227;
   WriteArray[1] := 0;
   WriteArray[2] := GetLocoChipHighByte(DecoderNum);
   WriteArray[3] := GetLocoChipLowByte(DecoderNum);
 
-  DataIO('X', WriteArray, ReadArray, LocoReply, OK);
+  DataIO('L', WriteArray, ReadArray, LocoReply, OK);
 
   IF OK THEN BEGIN
     DebugStr := 'Received decoder details: ';
@@ -2595,7 +2596,7 @@ PROCEDURE ReadComputerInterfaceSoftwareVersion(VAR OK : Boolean);
 BEGIN
   Log('G Requesting computer interface software version <BlankLineBefore>');
   WriteArray[0] := 240;
-  DataIO(WriteArray, ComputerInterfaceSoftwareReply, WriteThenRead, OK);
+  DataIO('G', WriteArray, ComputerInterfaceSoftwareReply, WriteThenRead, OK);
 END; { ReadComputerInterfaceSoftwareVersion }
 
 PROCEDURE ReadCommandStationSoftwareVersion(VAR OK : Boolean);
@@ -2604,7 +2605,7 @@ BEGIN
   Log('G Requesting command station software version <BlankLineBefore>');
   WriteArray[0] := 33;
   WriteArray[1] := 33;
-  DataIO(WriteArray, CommandStationSoftwareReply, WriteThenRead, OK);
+  DataIO('G', WriteArray, CommandStationSoftwareReply, WriteThenRead, OK);
 END; { ReadCommandStationSoftwareVersion }
 
 FUNCTION RequestProgrammingModeCV(CV : Integer) : String;      { half written 1/2/13 }
@@ -3159,7 +3160,7 @@ BEGIN
           WriteArray[3] := GetLocoChipLowByte(LocoChip);
           WriteArray[4] := TestByte2;
 
-          DataIO('G', WriteArray, ReadArray, LocoAcknowledgment, OK);
+          DataIO('L', WriteArray, ReadArray, LocoAcknowledgment, OK);
 
           IF OK THEN BEGIN
             SetTrainControlledByProgram(T, True);
@@ -3225,65 +3226,62 @@ BEGIN
   Log('G Requesting system status <BlankLineBefore>');
   WriteArray[0] := 33;
   WriteArray[1] := 36;
-  WriteOutData('G', WriteArray, TimeOut);
-  IF NOT TimeOut THEN BEGIN
-    ReadInData(ReadArray, SystemStatusReply, TimeOut, OK);
+  DataIO('G', WriteArray, SystemStatusReply, WriteThenRead, OK);
 
-    WITH SystemStatus DO BEGIN
-      IF (ReadArray[2] AND 8) = 8 THEN BEGIN
-        ProgrammingMode := True;
-        Log('XG Initial system status in programming (service) mode');
+  WITH SystemStatus DO BEGIN
+    IF (ReadArray[2] AND 8) = 8 THEN BEGIN
+      ProgrammingMode := True;
+      Log('XG Initial system status in programming (service) mode');
+      MakeSound(1);
+    END ELSE
+      ProgrammingMode := False;
+
+    IF (ReadArray[2] AND 4) = 4 THEN
+      StartMode := True
+    ELSE
+      StartMode := False;
+
+    IF (ReadArray[2] AND 2) = 2 THEN BEGIN
+      EmergencyOff := True;
+      Log('XG Initial system status emergency off');
+      IF NOT ShowEmergencyOffMessageVisible THEN BEGIN
         MakeSound(1);
-      END ELSE
-        ProgrammingMode := False;
-
-      IF (ReadArray[2] AND 4) = 4 THEN
-        StartMode := True
-      ELSE
-        StartMode := False;
-
-      IF (ReadArray[2] AND 2) = 2 THEN BEGIN
-        EmergencyOff := True;
-        Log('XG Initial system status emergency off');
-        IF NOT ShowEmergencyOffMessageVisible THEN BEGIN
-          MakeSound(1);
-          ShowEmergencyOffMessageVisible := True;
-          IF MessageDialogueWithDefault('Initial system status: emergency off - do you wish to try to reset it?',
-                                        StartStopTimer, mtError, [mbYes, mbNo], mbNo) = mrYes
-          THEN BEGIN
-            ResumeOperations(OK);
-            IF OK THEN
-              Log('GG Operations resumed')
-            ELSE
-              Log('GG Operations not resumed');
-          END;
+        ShowEmergencyOffMessageVisible := True;
+        IF MessageDialogueWithDefault('Initial system status: emergency off - do you wish to try to reset it?',
+                                      StartStopTimer, mtError, [mbYes, mbNo], mbNo) = mrYes
+        THEN BEGIN
+          ResumeOperations(OK);
+          IF OK THEN
+            Log('GG Operations resumed')
+          ELSE
+            Log('GG Operations not resumed');
         END;
-      END ELSE BEGIN
-        EmergencyOff := False;
-        ShowEmergencyOffMessageVisible := False;
       END;
+    END ELSE BEGIN
+      EmergencyOff := False;
+      ShowEmergencyOffMessageVisible := False;
+    END;
 
-      IF (ReadArray[2] AND 1) = 1 THEN BEGIN
-        EmergencyStop := True;
-        Log('X+ Initial system status: emergency stop');
+    IF (ReadArray[2] AND 1) = 1 THEN BEGIN
+      EmergencyStop := True;
+      Log('X+ Initial system status: emergency stop');
 
-        IF NOT ShowEmergencyStopMessageVisible THEN BEGIN
-          MakeSound(1);
-          ShowEmergencyStopMessageVisible := True;
-          IF MessageDialogueWithDefault('Initial system status: emergency stop - do you wish to try to reset it?',
-                                        StartStopTimer, mtError, [mbYes, mbNo], mbNo) = mrYes
-          THEN BEGIN
-            ResumeOperations(OK);
-            IF OK THEN
-              Log('GG Operations resumed')
-            ELSE
-              Log('GG Operations not resumed');
-          END;
+      IF NOT ShowEmergencyStopMessageVisible THEN BEGIN
+        MakeSound(1);
+        ShowEmergencyStopMessageVisible := True;
+        IF MessageDialogueWithDefault('Initial system status: emergency stop - do you wish to try to reset it?',
+                                      StartStopTimer, mtError, [mbYes, mbNo], mbNo) = mrYes
+        THEN BEGIN
+          ResumeOperations(OK);
+          IF OK THEN
+            Log('GG Operations resumed')
+          ELSE
+            Log('GG Operations not resumed');
         END;
-      END ELSE
-        EmergencyStop := False;
-    END; {WITH}
-  END;
+      END;
+    END ELSE
+      EmergencyStop := False;
+  END; {WITH}
 END; { ObtainSystemStatus }
 
 PROCEDURE TLenzWindow.OnLenzOneMilliSecondTimerInterval(Sender: TObject);
@@ -3459,8 +3457,7 @@ BEGIN
     { set bit 3 off to deselect }
     WriteArray[2] := 128; {1000 0000}
     Log('E Writing out data to EMERGENCY DESELECT ' + 'P=' + IntToStr(P) + ' [Lenz=' + IntToStr(Points[P].Point_LenzNum - 1) + '] <BlankLineBefore>');
-    WriteOutData('P', WriteArray, TimeOut);
-    ReadInData(ReadArray, Acknowledgment, OK);
+    DataIO('P', WriteArray, Acknowledgment, WriteThenRead, OK);
   END; {WITH}
 END; { EmergencyDeselectPoint }
 
@@ -3480,8 +3477,7 @@ BEGIN
     { set bit 3 off to deselect }
     WriteArray[2] := 128; {1000 0000}
     Log('E Writing out data to EMERGENCY DESELECT ' + 'S=' + IntToStr(S) + ' [accessoryaddress=' + IntToStr(Signals[S].Signal_AccessoryAddress - 1) + '] <BlankLineBefore>');
-    WriteOutData('S', WriteArray, TimeOut);
-    ReadInData(ReadArray, Acknowledgment, OK);
+    DataIO('E', WriteArray, Acknowledgment, WriteThenRead, OK);
   END; {WITH}
 END; { EmergencyDeselectPoint }
 
@@ -3543,8 +3539,7 @@ VAR
     DebugStr := DebugStr + ' at ' + TimeToHMSZStr(Time);
     Log(LocoChipToStr(LocoChip) + ' S ' + DebugStr);
 
-    WriteOutData('S', WriteArray, TimeOut);
-    ReadInData(ReadArray, Acknowledgment, OK);
+    DataIO('S', WriteArray, Acknowledgment, WriteThenRead, OK);
   END; { ActivateSignal}
 
   PROCEDURE DeactivateSignal;
@@ -3559,9 +3554,7 @@ VAR
     WriteArray[2] := 128; {1000 0000}
     Log('S Writing out data to deselect semaphore S=' + IntToStr(S)
            + ' (accessory address ' + IntToStr(AccessoryAddress) + '] at ' + TimeToHMSZStr(Time) + '  <BlankLineBefore>');
-    WriteOutData('S', WriteArray, TimeOut);
-
-    ReadInData(ReadArray, PointAcknowledgment, OK);
+    DataIO('S', WriteArray, Acknowledgment, WriteThenRead, OK);
 
     { Now turn off the burn-out checking }
     IF OK THEN
@@ -3597,9 +3590,8 @@ BEGIN
   { set bit 3 off to deselect }
   WriteArray[2] := 128; {1000 0000}
   Log('P Writing out data to deselect P=' + IntToStr(P) + ' [Lenz' + IntToStr(Points[P].Point_LenzNum) + '] at ' + TimeToHMSZStr(Time) + ' <BlankLineBefore>');
-  WriteOutData('P', WriteArray, TimeOut);
+  DataIO('P', WriteArray, PointAcknowledgment, WriteThenRead, OK);
 
-  ReadInData(ReadArray, PointAcknowledgment, OK);
   { Now turn off the burn-out checking }
   IF OK THEN
     Points[P].Point_Energised := False;
@@ -3674,8 +3666,7 @@ VAR
     DebugStr := DebugStr + ' at ' + TimeToHMSZStr(Time);
     Log(LocoChipToStr(LocoChip) + ' P ' + DebugStr);
 
-    WriteOutData('P', WriteArray, TimeOut);
-    ReadInData(ReadArray, Acknowledgment, OK);
+    DataIO('P', WriteArray, PointAcknowledgment, WriteThenRead, OK);
   END; { TurnPointOn }
 
   PROCEDURE TurnPointOff(LocoChip : Integer; VAR OK : Boolean);
@@ -3687,9 +3678,8 @@ VAR
     WriteArray[2] := 128; {1000 0000}
     Log(LocoChipToStr(LocoChip) + ' P Writing out data (' + IntToStr(Count) + ') to deselect P=' + IntToStr(P)
                                 + ' [Lenz=' + IntToStr(Points[P].Point_LenzNum) + '] at ' + TimeToHMSZStr(Time) + ' <BlankLineBefore>');
-    WriteOutData('P', WriteArray, TimeOut);
+    DataIO('P', WriteArray, PointAcknowledgment, WriteThenRead, OK);
 
-    ReadInData(ReadArray, PointAcknowledgment, OK);
     { Now turn off the burn-out checking }
     IF OK THEN
       Points[P].Point_Energised := False;
@@ -3748,8 +3738,8 @@ BEGIN
   WriteArray[3] := GetLocoChipLowByte(LocoChip1);
   WriteArray[4] := GetLocoChipHighByte(LocoChip2);
   WriteArray[5] := GetLocoChipLowByte(LocoChip2);
-  WriteOutData('L', WriteArray, TimeOut);
-  ReadInData(ReadArray, Acknowledgment, OK);
+
+  DataIO('L', WriteArray, ReadArray, Acknowledgment, OK);
   IF OK THEN BEGIN
     T1 := GetTrainRecord(LocoChip1);
     T2 := GetTrainRecord(LocoChip2);
@@ -3801,7 +3791,7 @@ BEGIN
   WriteArray[0] := 33;
   WriteArray[1] := 128;
 
-  DataIO('G', WriteArray, ReadArray, TrackPowerOffReply, OK);
+  DataIO('E', WriteArray, ReadArray, TrackPowerOffReply, OK);
 END; { StopOperations }
 
 PROCEDURE ResumeOperations(OUT OK : Boolean);
@@ -3813,15 +3803,14 @@ BEGIN
   Log('E Requesting resume operations  <BlankLineBefore>');
   WriteArray[0] := 33;
   WriteArray[1] := 129;
-  WriteOutData('G', WriteArray, TimeOut);
 
-  DataIO('G', WriteArray, ReadArray, EverythingTurnedOnReply, OK);
+  DataIO('E', WriteArray, ReadArray, EverythingTurnedOnReply, OK);
 END; { ResumeOperations }
 
 PROCEDURE StopAllLocomotives(VAR OK : Boolean);
 { Emergency stops all trains, but leaves the power on }
 BEGIN
-  Log('E Requesting stop all locomotives <BlankLineBefore>');
+  Log('L Requesting stop all locomotives <BlankLineBefore>');
   WriteArray[0] := 128;
 
   DataIO('L', WriteArray, ReadArray, EmergencyStopReply, OK);
@@ -3830,11 +3819,10 @@ END; { StopAllLocomotives }
 PROCEDURE StopAParticularLocomotive(LocoChip : Integer; VAR OK : Boolean);
 { Stops a particular loco }
 BEGIN
-  Log('E Requesting stop loco ' + LocoChipToStr(LocoChip) + ' <BlankLineBefore>');
+  Log('L Requesting stop loco ' + LocoChipToStr(LocoChip) + ' <BlankLineBefore>');
   WriteArray[0] := 146;
   WriteArray[1] := GetLocoChipHighByte(LocoChip);
   WriteArray[2] := GetLocoChipLowByte(LocoChip);
-  WriteOutData('L', WriteArray, TimeOut);
 
   DataIO('L', WriteArray, ReadArray, Acknowledgment, OK);
   IF OK THEN
