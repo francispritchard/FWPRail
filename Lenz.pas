@@ -641,6 +641,46 @@ BEGIN
     WhichFeedbackInputsHaveChanged(ReadArray[(I * 2) - 1], ReadArray[I * 2]);
 END; { GetFeedbackReply }
 
+FUNCTION ExpectedReplyToStr(ExpectedReply : ReplyType) : String;
+{ Returns a string with the expected reply type }
+BEGIN
+  CASE ExpectedReply OF
+     Acknowledgment:
+       Result := 'Acknowledgment';
+     CommandStationSoftwareReply:
+       Result := 'Command Station Software Reply';
+     ComputerInterfaceSoftwareReply:
+       Result := 'Computer InterfaceS oftware Reply';
+     EmergencyStopReply:
+       Result := 'Emergency Stop Reply';
+     EverythingTurnedOnReply:
+       Result := 'Everything Turned On Reply';
+     FeedbackReply:
+       Result := 'Feedback Reply';
+     LocoAcknowledgment:
+       Result := 'Loco Acknowledgment';
+     LocoReply:
+       Result := 'Loco Reply';
+     LocoTakenoverReply:
+       Result := 'Loco Taken Over Reply';
+     PointAcknowledgment:
+       Result := 'Point Acknowledgment';
+     PointReply:
+       Result := 'Point Reply';
+     ProgrammingModeReply:
+       Result := 'Programmimg Mode Reply';
+     SignalAcknowledgment:
+       Result := 'Signal Acknowledgment';
+     SystemStatusReply:
+       Result := 'System Status Reply';
+     { The following two won't ever be reached, but are here for completeness }
+     NoReplyExpected:
+       Result := 'No Reply Expected';
+     TrackPowerOffReply:
+       Result := 'Track Power Off Reply';
+  END; {CASE}
+END; { ExpectedReplyToStr }
+
 {$O-}
 PROCEDURE DataIOMainProcedure(TypeOfLogChar : Char; VAR WriteArray, ReadArray : ARRAY OF Byte; ExpectedReply : ReplyType; VAR CheckTimeOut : Boolean;
                               WriteRead : WriteReadType; OUT ExpectedDataReceived : Boolean);
