@@ -2447,9 +2447,6 @@ BEGIN
         THEN
           Log(LocoChipToStr(LocoChip) + ' S S=' + IntToStr(S) + ' successfully set to ' + AspectToStr(Signals[S].Signal_Aspect));
 
-        IF NOT ProgramStartup THEN
-          InvalidateScreen(UnitRef, 'SetSignal');
-
         IF SystemOnline
         AND NOT ResizeMap
         THEN
@@ -2465,6 +2462,9 @@ BEGIN
                 MakeSemaphoreSignalChange(LocoChip, S, Signal_AccessoryAddress, SignalOff)
               ELSE
                 MakeSemaphoreSignalChange(LocoChip, S, Signal_AccessoryAddress, SignalOn);
+
+        IF NOT ProgramStartup THEN
+          InvalidateScreen(UnitRef, 'SetSignal');
       END;
     END; {WITH}
   EXCEPT
