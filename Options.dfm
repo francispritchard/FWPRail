@@ -15,7 +15,6 @@ object OptionsWindow: TOptionsWindow
   OldCreateOrder = False
   Position = poDefault
   OnCreate = OptionsWindowCreate
-  OnHide = OptionsWindowHide
   OnShow = OptionsWindowShow
   PixelsPerInch = 96
   TextHeight = 13
@@ -25,19 +24,17 @@ object OptionsWindow: TOptionsWindow
     Width = 488
     Height = 824
     Align = alClient
-    Color = clCaptionText
-    Strings.Strings = (
-      '=')
     TabOrder = 0
-    TitleCaptions.Strings = (
-      'Option'
-      'Value')
     OnDrawCell = OptionsValueListEditorDrawCell
     OnKeyDown = OptionsValueListEditorKeyDown
     OnValidate = OptionsValueListEditorValidate
+    ExplicitLeft = 174
+    ExplicitTop = 208
+    ExplicitWidth = 306
+    ExplicitHeight = 300
     ColWidths = (
-      285
-      197)
+      150
+      332)
   end
   object OptionsWindowFindDialog: TFindDialog
     OnClose = OptionsWindowFindDialogClose
