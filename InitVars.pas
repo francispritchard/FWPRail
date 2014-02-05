@@ -5724,7 +5724,7 @@ BEGIN
             END;
 
             IF ErrorMsg = '' THEN
-              Log('T Reading in data for feedback unit ' + IntToStr(Feedback_Unit))
+              Log('T Reading in data for feedback unit ' + IntToStr(Feedback_Unit) + ' from database')
             ELSE BEGIN
               IF MessageDialogueWithDefault('Error in creating Feedback Detector=' + IntToStr(Feedback_Unit) + ': '
                                             + '[' + ErrorMsg + ']:'
