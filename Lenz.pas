@@ -650,7 +650,7 @@ BEGIN
      CommandStationSoftwareReply:
        Result := 'Command Station Software Reply';
      ComputerInterfaceSoftwareReply:
-       Result := 'Computer InterfaceS oftware Reply';
+       Result := 'Computer Interface Software Reply';
      EmergencyStopReply:
        Result := 'Emergency Stop Reply';
      EverythingTurnedOnReply:
