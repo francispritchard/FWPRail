@@ -50,7 +50,7 @@ TYPE
     PROCEDURE ResponsesTCPSendText(S : String);
   END;
 
-FUNCTION ReadDataFromList : String;
+FUNCTION ReadDataFromTCPIPList : String;
 { Return string from data read in list }
 
 PROCEDURE StartLANUSBServer;
@@ -260,7 +260,7 @@ BEGIN
   END;
 END; { BroadcastsTCPClientDisconnect }
 
-FUNCTION ReadDataFromList : String;
+FUNCTION ReadDataFromTCPIPList : String;
 { Return string from data-read-in list }
 BEGIN
   IF DataReadInList.Count < 1 THEN
@@ -269,7 +269,7 @@ BEGIN
     Result := DataReadInList[0];
     DataReadInList.Delete(0);
   END;
-END; { ReadDataFromList }
+END; { ReadDataFromTCPIPList }
 
 PROCEDURE TTCPIPForm.ResponsesTCPClientRead(Sender: TObject; Socket1 : TCustomWinSocket);
 VAR

@@ -853,6 +853,8 @@ BEGIN
             Exit;
           END;
 
+          TempStr := ReadDataFromTCPIPList;
+          IF TempStr = '' THEN BEGIN
         I := 0;
         REPEAT
           IF NOT TryStrToInt('$' + Copy(TempStr, 1, 2), TempInt) THEN
