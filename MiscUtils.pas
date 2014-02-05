@@ -549,6 +549,9 @@ PROCEDURE RenameEarlierFiles(VAR SuppliedFileType : TextFile; SuppliedFileName, 
 PROCEDURE RenameLaterFiles(VAR SuppliedFileType : TextFile; SuppliedFileName, SuppliedFilenamePrefix : String);
 { This is used when a current log is thrown away: the older log file names revert to their previous names }
 
+PROCEDURE ResetTestCount;
+{ Resets the number which is incremented each time the TestCount or TestCountStr routines are called - used for debugging }
+
 FUNCTION ReturnFixedLengthStr(Str : String; FixedLength : Integer) : String;
 { Return a short string of a fixed length }
 
@@ -7278,6 +7281,13 @@ BEGIN
     Result := 'Error in DescribeSubRouteState routine: invalid subroute state';
   END; {CASE}
 END; { SubRouteStateToStr }
+
+PROCEDURE ResetTestCount;
+{ Resets the number which is incremented each time the TestCount or TestCountStr routines are called - used for debugging }
+BEGIN
+  TestCounter := 0;
+  Debug('TestCounter has been reset to zero');
+END; { ResetTestCount }
 
 FUNCTION TestCount : Integer;
 { Returns a number which is incremented each time the routine is called - used for debugging }
