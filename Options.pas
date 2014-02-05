@@ -13,8 +13,8 @@ USES
 
 TYPE
   TOptionsWindow = CLASS(TForm)
-    OptionsValueListEditor: TValueListEditor;
     OptionsWindowFindDialog: TFindDialog;
+    OptionsValueListEditor: TValueListEditor;
     PROCEDURE OptionsValueListEditorDrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
     PROCEDURE OptionsValueListEditorKeyDown(Sender: TObject; VAR Key: Word; Shift: TShiftState);
     PROCEDURE OptionsValueListEditorValidate(Sender: TObject; ACol, ARow: Integer; CONST KeyName, KeyValue: String);
@@ -23,7 +23,6 @@ TYPE
     PROCEDURE OptionsWindowFindDialogClose(Sender: TObject);
     PROCEDURE OptionsWindowFindDialogFind(Sender: TObject);
     PROCEDURE OptionsWindowShow(Sender: TObject);
-    procedure OptionsWindowHide(Sender: TObject);
   PRIVATE
     { Private declarations }
   PUBLIC
@@ -2710,11 +2709,6 @@ PROCEDURE TOptionsWindow.OptionsValueListEditorValidate(Sender: TObject; ACol, A
 BEGIN
   SaveOptionFromValueList(KeyName, KeyValue);
 END; { OptionsValueListEditorValidate }
-
-PROCEDURE TOptionsWindow.OptionsWindowHide(Sender: TObject);
-BEGIN
-
-END; { OptionsWindowHide }
 
 PROCEDURE TOptionsWindow.OptionsValueListEditorDrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
 VAR
