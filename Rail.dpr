@@ -4,11 +4,11 @@ PROGRAM Rail;
   Copyright © F.W. Pritchard & A.M. Stokes 1998-2014. All Rights Reserved.
 
   v5.0  10/04/09 Now using Turbo Delphi (free version of Borland Developer Studio 2006)
-  V6.0  27/03/11 And now using Emarcadero Delphi XE Professional
+  V6.0  27/03/11 And now using Embarcadero Delphi XE Professional
   v7.0  16/01/14 Now using XE5
 }
 
-{$R rail.res} // {$R rail.res} should be to the left of this comment - this has the extra two icons in it }
+{$R RailResource.res} // {$R RailResource.res} should be to the left of this comment - this has the extra two icons in it }
 
 USES
   Forms,
