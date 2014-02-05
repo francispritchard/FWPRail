@@ -5527,22 +5527,22 @@ END; { PenStyleToStr }
 FUNCTION RoundTimeToNextWholeMinute(Time : TDateTime) : TDateTime;
 { Round the time to the next whole minute, i.e. 06:30:00 becomes 06:31:00, but 06:30:20 becomes 06:32:00 }
 VAR
-  Hour, Min, Sec, MSec: Word;
+  Hour, Min, Sec, mSec: Word;
 
 BEGIN
-  DecodeTime(Time, Hour, Min, Sec, MSec);
+  DecodeTime(Time, Hour, Min, Sec, mSec);
   IF Sec = 0 THEN BEGIN
     Time := IncMinute(Time, 1);
-    DecodeTime(Time, Hour, Min, Sec, MSec);
-    MSec := 0;
+    DecodeTime(Time, Hour, Min, Sec, mSec);
+    mSec := 0;
   END ELSE BEGIN
     Time := IncMinute(Time, 2);
-    DecodeTime(Time, Hour, Min, Sec, MSec);
+    DecodeTime(Time, Hour, Min, Sec, mSec);
     Sec := 0;
-    MSec := 0;
+    mSec := 0;
   END;
 
-  Result := EncodeTime(Hour, Min, Sec, MSec);
+  Result := EncodeTime(Hour, Min, Sec, mSec);
 END; { RoundTimeToNextWholeMinute }
 
 PROCEDURE ChangeTrainStatus(T : Train; NewStatus : TrainStatusType);
