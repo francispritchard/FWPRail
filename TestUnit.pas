@@ -132,7 +132,7 @@ BEGIN
   TestStarted1 := False;
   TestStarted2 := False;
 
-  OpenFiles('c:\program files\borland\bds\3.0\projects\rail\startup.pas', 'c:\program files\borland\bds\3.0\projects\rail\Test.new.pas');
+//  OpenFiles('c:\program files\borland\bds\3.0\projects\rail\startup.pas', 'c:\program files\borland\bds\3.0\projects\rail\Test.new.pas');
 
   REPEAT
     ReadLn(InputFile, Line);
