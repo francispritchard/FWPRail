@@ -256,7 +256,7 @@ BEGIN
     TCPConnectButton.Caption := 'TCP 2 Connect';
     TCPSocket2 := NIL;
 
-    SystemOnline := False;
+    SetSystemOffline('TCP Client has disconnected');
   END;
 END; { BroadcastsTCPClientDisconnect }
 

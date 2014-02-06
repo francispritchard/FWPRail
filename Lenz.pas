@@ -3257,13 +3257,11 @@ VAR
   OK : Boolean;
 
 BEGIN
-//  SystemInitiallySetOffline := True; // ************************************************
-
   { For initial data flow check }
   OK := False;
 
   IF SystemInitiallySetOffline THEN
-    SystemOnline := False
+    SetSystemOffline('System initially set offline by command-line parameter')
   ELSE BEGIN
     { Create the TCPIP form here so we know it is available before we start using it }
     IF TCPIPForm = NIL THEN BEGIN
