@@ -572,7 +572,7 @@ FUNCTION SetDefaultButton(CONST Dlg: TForm; CONST ModalResult: Integer): Boolean
 PROCEDURE SetSystemOffline(OfflineMsg : String);
 { Change the caption and the icons to show we're offline }
 
-PROCEDURE SetSystemOnline;
+PROCEDURE SetSystemOnline(OnlineMsg : String);
 { Change the caption and the icons }
 
 PROCEDURE SetTrainControlledByProgram(T : Train; ControlledByProgram : Boolean);
@@ -6213,12 +6213,13 @@ BEGIN
   END;
 END; { SetSystemOffline }
 
-PROCEDURE SetSystemOnline;
-{ Change the caption and the icons to show we're online }
+PROCEDURE SetSystemOnline(OnlineMsg : String);
+{ Change the caption and the icons to show we're online - needs a test to see if we are, actually, online *************** 6/2/14 }
 BEGIN
   SystemOnline := True;
   SetCaption(MainWindow, '');
   Application.Icon := OnlineIcon;
+  Log('XG ' + OnlineMsg);
 END; { SetSystemOnline }
 
 PROCEDURE SetTrainControlledByProgram(T : Train; ControlledByProgram : Boolean);

@@ -1352,7 +1352,7 @@ BEGIN
           IF TestingMode THEN
             DebugWindow.Caption := DebugWindow.Caption + '.';
           IF NOT SystemOnline THEN
-            SetSystemOnline;
+            SetSystemOnline(''); // **************** ?????? 6/2/14
         END;
       END;
 
@@ -3252,6 +3252,7 @@ CONST
   WarnUser = True;
 
 VAR
+  AppHandle : THandle;
   I, J : Word;
   OK : Boolean;
 
@@ -3272,17 +3273,19 @@ BEGIN
 
     { First see if the Lenz server program is running }
     IF IsProgramRunning('LI-Server') THEN BEGIN
-      { The LI-Server.exe program is already running - make sure the server itself is running }
+      { The LI-Server.exe program is already running - better kill it, as we can't programmaticaly start the server itself }
+      AppHandle := FindWindow(NIL, 'LI-Server'); //AppName);
+      IF AppHandle <> 0 THEN
+        OK := PostMessage(AppHandle, WM_QUIT, 0, 0);
+    END;
+
+    StartLANUSBServer;
+    IF IsProgramRunning('LI-Server') THEN BEGIN
       OK := True;
+      Log('XG LI-Server.exe is running');
     END ELSE BEGIN
-      StartLANUSBServer;
-      IF IsProgramRunning('LI-Server') THEN BEGIN
-        OK := True;
-        Log('XG LI-Server.exe is now running');
-      END ELSE BEGIN
-        OK := False;
-        Log('XG LI-Server.exe is still not running');
-      END;
+      OK := False;
+      SetSystemOffline('System offline as LI-Server.exe is not running');
     END;
 
     IF OK THEN BEGIN
@@ -3290,13 +3293,10 @@ BEGIN
       TCPIPForm.CreateTCPClients;
     END;
 
-    IF OK AND (TCPIPConnected = True) THEN BEGIN
-//      ReadCommandStationSoftwareVersion(OK);
-      SetSystemOnline;
-    END ELSE BEGIN
-      SetSystemOffline('System offline');
-      Log('G System offline (1)');
-    END;
+    IF OK AND (TCPIPConnected = True) THEN
+      SetSystemOnline('System online as TCPIP Server is running')
+    ELSE
+      SetSystemOffline('System offline as TCPIP Server not running');
 
       { provisionally... }
 

@@ -333,8 +333,6 @@ BEGIN
     Log('G *** Server has disconnected/shutdown.');
     ErrorCode := 0;
     TCPIPConnected := False;
-
-    SystemOnline := False;
   END;
 END; { ResponsesTCPClientError }
 
@@ -353,8 +351,6 @@ BEGIN
     Log('G *** Server has disconnected/shutdown.');
     ErrorCode := 0;
     TCPIPConnected := False;
-
-    SystemOnline := False;
   END;
 
  EXCEPT

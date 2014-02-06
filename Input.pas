@@ -48,7 +48,6 @@ VAR
   OldScrollbarXPos : Integer;
   OldScrollbarYPos : Integer;
   PreviouslyDisplayedInputDialogueBox : InputDialogueBoxType;
-  SaveSystemOnlineState : Boolean;
 
 IMPLEMENTATION
 

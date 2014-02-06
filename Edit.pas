@@ -78,6 +78,7 @@ VAR
 
   SaveSignalFoundNum : Integer = UnknownSignal;
   CreateNewSignalRecord : Boolean = False;
+  SaveSystemOnlineState : Boolean;
 
   SaveSignalAccessoryAddress : Integer;
   SaveSignalAdjacentLine : Integer;
@@ -213,7 +214,9 @@ BEGIN
     Edit.EditWindow.Visible := True;
 
     SaveSystemOnlineState := SystemOnline;
-    SystemOnline := False;
+    IF SystemOnline THEN
+      SetSystemOffline('System offline as edit mode starting');
+
     SetCaption(MainWindow, 'EDITING...');
     EditWindow.EditWindowLabel.caption := '';
     Application.Icon := EditIcon;
@@ -234,11 +237,8 @@ BEGIN
       SetCaption(MainWindow, '');
       EditWindow.EditValueListEditor.Strings.Clear;
 
-      SystemOnline := SaveSystemOnlineState;
-      IF SystemOnline THEN
-        Application.Icon := OnLineIcon
-      ELSE
-        Application.Icon := OffLineIcon;
+      IF SaveSystemOnlineState THEN
+        SetSystemOnline('Edit mode off so system now online again');
 
       WITH EditWindow DO BEGIN
         UndoChangesButton.Enabled := False;
