@@ -390,7 +390,7 @@ BEGIN
 END; { ClearButtonClick }
 
 PROCEDURE StartLANUSBServer;
-{ Start the server programatically }
+{ Start the server programatically - but start it minimised or its window sits in front of the railway program window }
 BEGIN
   TRY
     ShellExecute(TCPIPForm.Handle,
@@ -398,7 +398,7 @@ BEGIN
                  '"C:\Program Files (x86)\LI-USB\LI-Server\LI-Server.exe"',
                  nil,
                  nil,
-                 SW_SHOWNORMAL);
+                 SW_SHOWMINIMIZED);
     REPEAT
       Application.ProcessMessages;
     UNTIL IsProgramRunning('LI-Server');
