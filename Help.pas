@@ -42,7 +42,7 @@ CONST
   UnitRef = 'Help';
 
 VAR
-  PreviousFoundPos : Integer;
+  PreviousFoundPos : Integer = 0;
 
 PROCEDURE Log(Str : String);
 { For ease of debugging, adds the unit name }
