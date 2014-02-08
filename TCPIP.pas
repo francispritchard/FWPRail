@@ -56,6 +56,9 @@ FUNCTION ReadDataFromTCPIPList : String;
 PROCEDURE StartLANUSBServer;
 { Start the server programatically }
 
+PROCEDURE StopLANUSBServer;
+{ Stop the server programatically }
+
 VAR
   BroadcastsTCPClient : TClientSocket = NIL;
   ConnectTS : Int64;
@@ -396,15 +399,18 @@ BEGIN
     ShellExecute(TCPIPForm.Handle,
                  'open',
                  '"C:\Program Files (x86)\LI-USB\LI-Server\LI-Server.exe"',
-                 nil,
-                 nil,
+                 NIL,
+                 NIL,
                  SW_SHOWMINIMIZED);
     REPEAT
       Application.ProcessMessages;
     UNTIL IsProgramRunning('LI-Server');
   EXCEPT
     ON E : Exception DO
-      ShowMessage('PrepareFiles: ' + E.ClassName +' error raised, with message: ' + E.Message);
+      ShowMessage('StartLANUSBServer: ' + E.ClassName +' error raised, with message: ' + E.Message);
+  END; {TRY}
+END;
+
 PROCEDURE StopLANUSBServer;
 { Stop the server programatically }
 VAR
