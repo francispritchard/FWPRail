@@ -817,7 +817,7 @@ IMPLEMENTATION
 {$R *.dfm}
 
 USES GetTime, Lenz, Diagrams, RailDraw, Types, LocoUtils, Math {sic}, IDGlobal, StrUtils, Feedback, RDC, CreateRoute, IniFiles, DateUtils, Startup, Cuneo, Movement,
-     LocoDialogue, FWPShowMessageUnit, Options, Registry, Help, MMSystem, ADODB;
+     LocoDialogue, FWPShowMessageUnit, Options, Registry, Help, MMSystem, ADODB, TCPIP;
 
 CONST
   UnitRef = 'MiscUtils';
@@ -6396,6 +6396,8 @@ BEGIN { ShutDownProgram }
         WriteIniFile;
       END;
     END;
+
+    StopLANUSBServer;
 
     Log('G Shut down initiated in ' + UnitRef + ' unit, ' + SubroutineStr + ' subroutine' + ' is now complete (' + DescribeActualDateAndTime + ')');
     IF LogsCurrentlyKept THEN BEGIN

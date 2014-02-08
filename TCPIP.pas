@@ -405,6 +405,25 @@ BEGIN
   EXCEPT
     ON E : Exception DO
       ShowMessage('PrepareFiles: ' + E.ClassName +' error raised, with message: ' + E.Message);
+PROCEDURE StopLANUSBServer;
+{ Stop the server programatically }
+VAR
+  AppHandle : THandle;
+  OK : Boolean;
+
+BEGIN
+  TRY
+    AppHandle := FindWindow(NIL, 'LI-Server'); //AppName);
+    IF AppHandle <> 0 THEN
+      OK := PostMessage(AppHandle, WM_QUIT, 0, 0);
+
+    IF OK THEN
+      Log('G Lan-USB Server stopped programmatically')
+    ELSE
+      Log('G Lan-USB Server failed to stop programmatically');
+  EXCEPT
+    ON E : Exception DO
+      ShowMessage('StopLANUSBServer: ' + E.ClassName +' error raised, with message: ' + E.Message);
   END; {TRY}
 END;
 

@@ -3270,12 +3270,9 @@ BEGIN
     END;
 
     { First see if the Lenz server program is running }
-    IF IsProgramRunning('LI-Server') THEN BEGIN
+    IF IsProgramRunning('LI-Server') THEN
       { The LI-Server.exe program is already running - better kill it, as we can't programmaticaly start the server itself }
-      AppHandle := FindWindow(NIL, 'LI-Server'); //AppName);
-      IF AppHandle <> 0 THEN
-        OK := PostMessage(AppHandle, WM_QUIT, 0, 0);
-    END;
+      StopLANUSBServer;
 
     StartLANUSBServer;
     IF IsProgramRunning('LI-Server') THEN BEGIN
