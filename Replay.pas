@@ -71,6 +71,9 @@ BEGIN
     OK := True;
     RecordLineDrawingMode := False;
 
+    LenzWindow.LenzOneMilliSecondTimerIntervalTimer.Enabled := False;
+    LenzWindow.LenzWatchdogTimer.Enabled := False;
+
     { all track occupations off }
     FOR TC := 0 TO High(TrackCircuits) DO
       SetTrackCircuitState(TC, TCUnoccupied);

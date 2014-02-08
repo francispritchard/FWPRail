@@ -1152,6 +1152,7 @@ VAR
   TrackCircuits : ARRAY OF TrackCircuitRec;
   TrackCircuitsInitialised : Boolean = False;
   UpLineY, DownLineY : Word;
+  WatchdogTimerCount : Integer = 0;
   WindowPenWidth : Integer = 1;
   WorkingTimetableRecArray : WorkingTimetableRecArrayType;
   Zooming : Boolean = False;

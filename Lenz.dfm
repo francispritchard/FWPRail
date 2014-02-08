@@ -14,4 +14,15 @@ object LenzWindow: TLenzWindow
   OldCreateOrder = False
   PixelsPerInch = 96
   TextHeight = 13
+  object LenzWatchdogTimer: TTimer
+    Interval = 60000
+    OnTimer = OnLenzWatchdogTimerInterval
+    Left = 80
+    Top = 48
+  end
+  object LenzOneMilliSecondTimerIntervalTimer: TTimer
+    OnTimer = OnLenzOneMilliSecondTimerInterval
+    Left = 264
+    Top = 48
+  end
 end

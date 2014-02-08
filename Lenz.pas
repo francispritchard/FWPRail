@@ -37,7 +37,10 @@ USES Initvars, Forms, ExtCtrls, Windows, Messages, SysUtils, Variants, Classes, 
 
 TYPE
   TLenzWindow = CLASS(TForm)
+    LenzWatchdogTimer: TTimer;
+    LenzOneMilliSecondTimerIntervalTimer: TTimer;
     PROCEDURE OnLenzOneMilliSecondTimerInterval(Sender: TObject);
+    PROCEDURE OnLenzWatchdogTimerInterval(Sender: TObject);
   PRIVATE
     { Private declarations }
   PUBLIC
@@ -2450,16 +2453,21 @@ BEGIN
   Log(LocoChipToStr(LocoChip) + ' S  ' + DebugStr);
 END; { WriteSignalData }
 
-PROCEDURE ObtainSystemStatus(VAR SystemStatus : SystemRec; VAR Timeout : Boolean; StartStopTimer : Boolean);
+PROCEDURE ObtainSystemStatus(VAR SystemStatus : SystemRec; OUT TimedOut : Boolean; StartStopTimer : Boolean);
 { Read in the present system status }
+CONST
+  CheckTimeOuts = True;
+
 VAR
   OK : Boolean;
+  ReadArray : ARRAY [0..ReadArrayLen] OF Byte;
+  WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
 
 BEGIN
   Log('G Requesting system status <BlankLineBefore>');
   WriteArray[0] := 33;
   WriteArray[1] := 36;
-  DataIO('G', WriteArray, SystemStatusReply, WriteThenRead, OK);
+  DataIO('G', WriteArray, ReadArray, SystemStatusReply, CheckTimeOuts, TimedOut, OK);
 
   WITH SystemStatus DO BEGIN
     IF (ReadArray[2] AND 8) = 8 THEN BEGIN
@@ -2476,7 +2484,7 @@ BEGIN
 
     IF (ReadArray[2] AND 2) = 2 THEN BEGIN
       EmergencyOff := True;
-      Log('XG Initial system status emergency off');
+      Log('XG Initial system: status emergency off');
       IF NOT ShowEmergencyOffMessageVisible THEN BEGIN
         MakeSound(1);
         ShowEmergencyOffMessageVisible := True;
@@ -2516,6 +2524,29 @@ BEGIN
       EmergencyStop := False;
   END; {WITH}
 END; { ObtainSystemStatus }
+
+PROCEDURE TLenzWindow.OnLenzWatchdogTimerInterval(Sender: TObject);
+CONST
+  StopTimer = True;
+  WarnUser = True;
+
+VAR
+  TimedOut : Boolean;
+
+BEGIN
+  IF SystemOnline THEN BEGIN
+    Log('G Watchdog timer: requesting system status at ' + DescribeActualDateAndTime + ' <BLANKLINEBEFORE>');
+    ObtainSystemStatus(SystemStatus, Timedout, NOT StopTimer);
+    IF Timedout THEN
+      Log('X Watchdog timer failed to obtain a response at ' + DescribeActualDateAndTime);
+
+    Inc(WatchdogTimerCount);
+
+    IF WatchdogTimerCount > 5 THEN
+      { five minutes of inaction - only check every ten minutes now }
+      LenzWatchDogTimer.Interval := 600000;
+  END;
+END; { OnLenzWatchdogTimerInterval }
 
 PROCEDURE TLenzWindow.OnLenzOneMilliSecondTimerInterval(Sender: TObject);
 { This is used to stop point motors burning out }
@@ -2678,6 +2709,7 @@ PROCEDURE EmergencyDeselectPoint(P : Integer; VAR OK : Boolean);
 { for use in emergency, when a point remains energised }
 VAR
   DecoderUnitNum : Byte;
+  WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
 
 BEGIN
   WITH Points[P] DO BEGIN
@@ -2689,7 +2721,7 @@ BEGIN
     { set bit 3 off to deselect }
     WriteArray[2] := 128; {1000 0000}
     Log('E Writing out data to EMERGENCY DESELECT ' + 'P=' + IntToStr(P) + ' [Lenz=' + IntToStr(Points[P].Point_LenzNum - 1) + '] <BlankLineBefore>');
-    DataIO('P', WriteArray, Acknowledgment, WriteThenRead, OK);
+    DataIO('P', WriteArray, Acknowledgment, OK);
   END; {WITH}
 END; { EmergencyDeselectPoint }
 
