@@ -201,7 +201,7 @@ VAR
   ExpectedFeedbackAddress : Byte = 0;
   FeedbackArray : ARRAY [0..127, 0..1] OF Byte; { needs to store upper and lower nibble of data }
   FeedbackDataArray : ARRAY [1..LastFeedbackUnit + 1, Input1..Input8] OF Boolean;
-  ReadArray, WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
+//  ReadArray, WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
   SaveTimeCTSLastFoundSet : Cardinal = 0;
   SaveTimeLastDataReceived : Cardinal = 0;
   ShowEmergencyOffMessageVisible : Boolean = False;
@@ -684,8 +684,8 @@ BEGIN
 END; { ExpectedReplyToStr }
 
 {$O-}
-PROCEDURE DataIOMainProcedure(TypeOfLogChar : Char; VAR WriteArray, ReadArray : ARRAY OF Byte; ExpectedReply : ReplyType; VAR CheckTimeOut : Boolean;
-                              WriteRead : WriteReadType; OUT ExpectedDataReceived : Boolean);
+PROCEDURE DataIOMainProcedure(TypeOfLogChar : Char; WriteReadVar : WriteReadType; VAR WriteArray, ReadArray : ARRAY OF Byte; ExpectedReply : ReplyType;
+                              CheckTimeOut : Boolean; OUT TimedOut : Boolean; OUT ExpectedDataReceived : Boolean);
 { Write out supplied data, then wait for a reply. Also process data that has been broadcast without being requested. NB: it is possible for unexpected data to turn up
   before the expected response so the routine has to cater for that eventuality.
 }
@@ -715,7 +715,6 @@ VAR
   TempStr : String;
   TempInt : Integer;
   TickCount : Cardinal;
-  TimedOut : Boolean;
 
 BEGIN
   TRY
@@ -727,7 +726,7 @@ BEGIN
       RetryFlag := False;
 
       { Writes out data first, unless unrequested data has been received }
-      IF (WriteRead = WriteThenRead) OR (WriteRead = WriteOnly) THEN BEGIN
+      IF (WriteReadVar = WriteThenRead) OR (WriteReadVar = WriteOnly) THEN BEGIN
         { Send any output waiting to the LI101 - check first that it can be accepted }
         IF WriteArray[0] <> 0 THEN BEGIN
           { get the length first from bits 3-0, and add the checkbyte }
@@ -765,7 +764,7 @@ BEGIN
       TimedOut := False;
       StartTimer := GetTickCount();
 
-      IF (WriteRead = WriteThenRead) OR (WriteRead = ReadOnly) THEN BEGIN
+      IF (WriteReadVar = WriteThenRead) OR (WriteReadVar = ReadOnly) THEN BEGIN
         REPEAT
           { Initialisations }
           DebugStr := '';
@@ -856,6 +855,19 @@ BEGIN
           END;
 
           IF OK THEN BEGIN
+            { Reset the watchdog timer and the timer interval, as some data has arrived - ignore system status messages, as we use those to get a result from Lenz system }
+            IF (LenzWindow <> NIL)
+            AND (ReadArray[0] <> 98)
+            THEN BEGIN
+              WatchdogTimerCount := 0;
+
+              { this seems to reset the timer, though it's undocumented }
+              LenzWindow.LenzWatchDogTimer.Enabled := False;
+              LenzWindow.LenzWatchDogTimer.Enabled := True;
+
+              LenzWindow.LenzWatchDogTimer.Interval := 60000; { default is one minute }
+            END;
+
             { Examine the first byte returned to identify it, and see if it is what was expected }
             CASE ReadArray[0] OF
               1:
@@ -1374,43 +1386,84 @@ BEGIN
 END; { DataIOMainProcedure }
 {$O+}
 
-PROCEDURE DataIO{1}(WriteRead : WriteReadType); Overload
-{ This is called by the regular check for broadcasts }
+PROCEDURE DataIO{1}; Overload
+{ This is called by the regular check for broadcasts, and is therefore read only }
+CONST
+  CheckTimeOuts = True;
+
 VAR
-  CheckTimeOut : Boolean;
+  TimedOut : Boolean;
   ExpectedDataReceived : Boolean;
   ReadArray : ARRAY[0..15] OF Byte;
   WriteArray : ARRAY[0..15] OF Byte;
+  WriteReadVar : WriteReadType;
 
 BEGIN
-  CheckTimeOut := False;
-  DataIOMainProcedure('G', WriteArray, ReadArray, NoReplyExpected, CheckTimeOut, WriteRead, ExpectedDataReceived);
+  WriteReadVar := ReadOnly;
+  DataIOMainProcedure('G', WriteReadVar, WriteArray, ReadArray, NoReplyExpected, NOT CheckTimeOuts, TimedOut, ExpectedDataReceived);
 END; { DataIO-1 }
 
-PROCEDURE DataIO{2}(TypeOfLogChar : Char; WriteArray : ARRAY OF Byte; ExpectedReply : ReplyType; WriteRead : WriteReadType; OUT ExpectedDataReceived : Boolean); Overload;
+PROCEDURE DataIO{2}(WriteArray : ARRAY OF Byte); Overload
+{ This is just called to write data with no reply anticipated }
+CONST
+  CheckTimeOuts = True;
+
 VAR
-  CheckTimeOut : Boolean;
+  TimedOut : Boolean;
+  ExpectedDataReceived : Boolean;
   ReadArray : ARRAY[0..15] OF Byte;
+  WriteReadVar : WriteReadType;
 
 BEGIN
-  CheckTimeOut := False;
-  DataIOMainProcedure(TypeOfLogChar, WriteArray, ReadArray, ExpectedReply, CheckTimeOut, WriteThenRead, ExpectedDataReceived);
+  WriteReadVar := WriteOnly;
+  DataIOMainProcedure('G', WriteReadVar, WriteArray, ReadArray, NoReplyExpected, NOT CheckTimeOuts, TimedOut, ExpectedDataReceived);
 END; { DataIO-2 }
 
-PROCEDURE DataIO{3}(TypeOfLogChar : Char; WriteArray : ARRAY OF Byte; VAR ReadArray : ARRAY OF Byte; ExpectedReply : ReplyType; OUT ExpectedDataReceived : Boolean); Overload;
+PROCEDURE DataIO{3}(TypeOfLogChar : Char; WriteArray : ARRAY OF Byte; ExpectedReply : ReplyType; OUT ExpectedDataReceived : Boolean); Overload;
+{ If there's an expected reply then this must be a WriteThenRead type }
+CONST
+  CheckTimeOuts = True;
+
 VAR
-  CheckTimeOut : Boolean;
+  TimedOut : Boolean;
+  ReadArray : ARRAY[0..15] OF Byte;
+  WriteReadVar : WriteReadType;
 
 BEGIN
-  CheckTimeOut := False;
-  DataIOMainProcedure(TypeOfLogChar, WriteArray, ReadArray, ExpectedReply, CheckTimeOut, WriteThenRead, ExpectedDataReceived);
+  WriteReadVar := WriteThenRead;
+  DataIOMainProcedure(TypeOfLogChar, WriteReadVar, WriteArray, ReadArray, ExpectedReply, NOT CheckTimeOuts, TimedOut, ExpectedDataReceived);
 END; { DataIO-3 }
+
+PROCEDURE DataIO{4}(TypeOfLogChar : Char; WriteArray : ARRAY OF Byte; VAR ReadArray : ARRAY OF Byte; ExpectedReply : ReplyType; OUT ExpectedDataReceived : Boolean); Overload;
+{ If there's an expected reply then this must be a WriteThenRead type }
+CONST
+  CheckTimeOuts = True;
+
+VAR
+  TimedOut : Boolean;
+  WriteReadVar : WriteReadType;
+
+BEGIN
+  WriteReadVar := WriteThenRead;
+  DataIOMainProcedure(TypeOfLogChar, WriteReadVar, WriteArray, ReadArray, ExpectedReply, NOT CheckTimeOuts, TimedOut, ExpectedDataReceived);
+END; { DataIO-4 }
+
+PROCEDURE DataIO{5}(TypeOfLogChar : Char; WriteArray : ARRAY OF Byte; VAR ReadArray : ARRAY OF Byte; ExpectedReply : ReplyType; CheckTimeOutsVar : Boolean;
+                    OUT TimedOut : Boolean; OUT ExpectedDataReceived : Boolean); Overload;
+{ If there's an expected reply then this must be a WriteThenRead type }
+VAR
+  WriteReadVar : WriteReadType;
+
+BEGIN
+  WriteReadVar := WriteThenRead;
+  DataIOMainProcedure(TypeOfLogChar, WriteReadVar, WriteArray, ReadArray, ExpectedReply, CheckTimeOutsVar, TimedOut, ExpectedDataReceived);
+END; { DataIO-5 }
 
 PROCEDURE DoCheckForUnexpectedData(UnitRef : String; CallingStr : String);
 { See if any data has arrived }
 BEGIN
   IF SystemOnline THEN
-    DataIO(ReadOnly);
+    DataIO;
 END; { DoCheckForUnexpectedData }
 
 PROCEDURE ProgramOnTheMain(LocoChip : Integer; ProgramOnTheMainRequest : ProgramOnTheMainType; NewValue : Integer);
@@ -1418,6 +1471,7 @@ PROCEDURE ProgramOnTheMain(LocoChip : Integer; ProgramOnTheMainRequest : Program
 VAR
   OK : Boolean;
   T : Train;
+  WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
 
 BEGIN
   T := GetTrainRecord(LocoChip);
@@ -1466,7 +1520,7 @@ BEGIN
         END;
     END; {CASE}
 
-    DataIO('L', WriteArray, ComputerInterfaceSoftwareReply, WriteOnly, OK);
+    DataIO('L', WriteArray, ComputerInterfaceSoftwareReply, OK);
   END;
 END; { ProgramOnTheMain }
 
@@ -1802,6 +1856,7 @@ PROCEDURE WriteLocoSpeedOrDirection(LocoChip : Integer; TempSpeedByte : Byte; VA
 { Write out the speed or direction of a given locomotive }
 VAR
   T : Train;
+  WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
 
 BEGIN
   T := GetTrainRecord(LocoChip);
@@ -1818,7 +1873,7 @@ BEGIN
     WriteArray[4] := TempSpeedByte;
 
     { Now read details in - look for acknowledgment }
-    DataIO('L', WriteArray, ReadArray, LocoAcknowledgment, OK);
+    DataIO('L', WriteArray, LocoAcknowledgment, OK);
 
     IF NOT OK THEN
       Log(LocoChipToStr(LocoChip) + ' L Data not acknowledged')
@@ -1832,25 +1887,32 @@ END; { WriteLocoSpeedOrDirection }
 
 PROCEDURE ReadComputerInterfaceSoftwareVersion(VAR OK : Boolean);
 { Ask the LI101 its own software version }
+VAR
+  WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
+
 BEGIN
   Log('G Requesting computer interface software version <BlankLineBefore>');
   WriteArray[0] := 240;
-  DataIO('G', WriteArray, ComputerInterfaceSoftwareReply, WriteThenRead, OK);
+  DataIO('G', WriteArray, ComputerInterfaceSoftwareReply, OK);
 END; { ReadComputerInterfaceSoftwareVersion }
 
 PROCEDURE ReadCommandStationSoftwareVersion(VAR OK : Boolean);
 { Ask the LI101 for the software version of the command station }
+VAR
+  WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
+
 BEGIN
   Log('G Requesting command station software version <BlankLineBefore>');
   WriteArray[0] := 33;
   WriteArray[1] := 33;
-  DataIO('G', WriteArray, CommandStationSoftwareReply, WriteThenRead, OK);
+  DataIO('G', WriteArray, CommandStationSoftwareReply, OK);
 END; { ReadCommandStationSoftwareVersion }
 
 FUNCTION RequestProgrammingModeCV(CV : Integer) : String;      { half written 1/2/13 }
 { Ask for programming mode (aka service mode) data }
 VAR
   OK : Boolean;
+  WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
 
 BEGIN
   IF (CV < 1) OR (CV > 256) THEN
@@ -1864,14 +1926,14 @@ BEGIN
     WriteArray[1] := 21;
     WriteArray[2] := CV;
 
-    DataIO(WriteOnly);
+    DataIO(WriteArray);
 
     Log('G Finalising request for CV from loco on programming track - requesting result from programming mode <BlankLineBefore>');
     WriteArray[0] := 33;
     WriteArray[1] := 16;
     WriteArray[2] := 49;
 
-    DataIO('G', WriteArray, ReadArray, ProgrammingModeReply, OK);
+    DataIO('G', WriteArray, ProgrammingModeReply, OK);
 
     ResumeOperations(OK);
   END;
@@ -2309,6 +2371,7 @@ VAR
   T : Train;
   TestByte1, TestByte2 : Byte;
   TurnOff : Boolean;
+  WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
 
 BEGIN
   TestByte1 := 0;
@@ -2397,7 +2460,7 @@ BEGIN
           WriteArray[3] := GetLocoChipLowByte(LocoChip);
           WriteArray[4] := TestByte2;
 
-          DataIO('L', WriteArray, ReadArray, LocoAcknowledgment, OK);
+          DataIO('L', WriteArray, LocoAcknowledgment, OK);
 
           IF OK THEN BEGIN
             SetTrainControlledByProgram(T, True);
@@ -2431,6 +2494,7 @@ PROCEDURE WriteSignalData(LocoChip, SignalNum : Integer; DecoderNum : Integer; D
 VAR
   DebugStr : String;
   IDByte : Byte;
+  WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
 
 BEGIN
   IDByte := 33; { for functions 5 - 8 }
@@ -2442,7 +2506,7 @@ BEGIN
   WriteArray[3] := GetLocoChipLowByte(DecoderNum);
   WriteArray[4] := DataByte;
 
-  DataIO('S', WriteArray, ReadArray, SignalAcknowledgment, OK);
+  DataIO('S', WriteArray, SignalAcknowledgment, OK);
 
   DebugStr := 'S=' + IntToStr(SignalNum) + ' (' + DecoderNumString + '): ' + AspectString;
   IF OK THEN BEGIN
@@ -2729,6 +2793,7 @@ PROCEDURE EmergencyDeselectSignal(S : Integer; VAR OK : Boolean);
 { for use in emergency, when a signal remains energised }
 VAR
   DecoderUnitNum : Byte;
+  WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
 
 BEGIN
   WITH Signals[S] DO BEGIN
@@ -2740,7 +2805,7 @@ BEGIN
     { set bit 3 off to deselect }
     WriteArray[2] := 128; {1000 0000}
     Log('E Writing out data to EMERGENCY DESELECT ' + 'S=' + IntToStr(S) + ' [accessoryaddress=' + IntToStr(Signals[S].Signal_AccessoryAddress - 1) + '] <BlankLineBefore>');
-    DataIO('E', WriteArray, Acknowledgment, WriteThenRead, OK);
+    DataIO('E', WriteArray, Acknowledgment, OK);
   END; {WITH}
 END; { EmergencyDeselectPoint }
 
@@ -2754,6 +2819,7 @@ VAR
   DebugStr : String;
   DecoderUnitNum, DecoderOutputNum : Byte;
   OK : Boolean;
+  WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
 
   PROCEDURE ActivateSignal;
   BEGIN
@@ -2801,7 +2867,7 @@ VAR
     DebugStr := DebugStr + ' at ' + TimeToHMSZStr(Time);
     Log(LocoChipToStr(LocoChip) + ' S ' + DebugStr);
 
-    DataIO('S', WriteArray, Acknowledgment, WriteThenRead, OK);
+    DataIO('S', WriteArray, Acknowledgment, OK);
   END; { ActivateSignal}
 
   PROCEDURE DeactivateSignal;
@@ -2816,7 +2882,7 @@ VAR
     WriteArray[2] := 128; {1000 0000}
     Log('S Writing out data to deselect semaphore S=' + IntToStr(S)
            + ' (accessory address ' + IntToStr(AccessoryAddress) + '] at ' + TimeToHMSZStr(Time) + '  <BlankLineBefore>');
-    DataIO('S', WriteArray, Acknowledgment, WriteThenRead, OK);
+    DataIO('S', WriteArray, Acknowledgment, OK);
 
     { Now turn off the burn-out checking }
     IF OK THEN
@@ -2840,6 +2906,7 @@ PROCEDURE TurnPointOff(P : Integer; VAR OK : Boolean);
 VAR
   DecoderUnitNum : Byte;
   InterfaceLenzPoint : Integer;
+  WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
 
 BEGIN
   InterfaceLenzPoint := Points[P].Point_LenzNum - 1;
@@ -2851,7 +2918,7 @@ BEGIN
   { set bit 3 off to deselect }
   WriteArray[2] := 128; {1000 0000}
   Log('P Writing out data to deselect P=' + IntToStr(P) + ' [Lenz' + IntToStr(Points[P].Point_LenzNum) + '] at ' + TimeToHMSZStr(Time) + ' <BlankLineBefore>');
-  DataIO('P', WriteArray, PointAcknowledgment, WriteThenRead, OK);
+  DataIO('P', WriteArray, PointAcknowledgment, OK);
 
   { Now turn off the burn-out checking }
   IF OK THEN
@@ -2870,6 +2937,7 @@ VAR
   DecoderUnitNum, DecoderOutputNum : Byte;
   InterfaceLenzPoint : Integer;
   OK : Boolean;
+  WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
 
   PROCEDURE TurnPointOn(LocoChip : Integer; VAR OK : Boolean);
   BEGIN
@@ -2926,7 +2994,7 @@ VAR
     DebugStr := DebugStr + ' at ' + TimeToHMSZStr(Time);
     Log(LocoChipToStr(LocoChip) + ' P ' + DebugStr);
 
-    DataIO('P', WriteArray, PointAcknowledgment, WriteThenRead, OK);
+    DataIO('P', WriteArray, PointAcknowledgment, OK);
   END; { TurnPointOn }
 
   PROCEDURE TurnPointOff(LocoChip : Integer; VAR OK : Boolean);
@@ -2938,7 +3006,7 @@ VAR
     WriteArray[2] := 128; {1000 0000}
     Log(LocoChipToStr(LocoChip) + ' P Writing out data (' + IntToStr(Count) + ') to deselect P=' + IntToStr(P)
                                 + ' [Lenz=' + IntToStr(Points[P].Point_LenzNum) + '] at ' + TimeToHMSZStr(Time) + ' <BlankLineBefore>');
-    DataIO('P', WriteArray, PointAcknowledgment, WriteThenRead, OK);
+    DataIO('P', WriteArray, PointAcknowledgment, OK);
 
     { Now turn off the burn-out checking }
     IF OK THEN
@@ -2988,6 +3056,7 @@ PROCEDURE SetUpDoubleHeader(LocoChip1, LocoChip2 : Word; VAR OK : Boolean);
 }
 VAR
   T1, T2 : Train;
+  WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
 
 BEGIN
   Log(LocoChipToStr(LocoChip1) + ' L Requesting double header for locos ' + IntToStr(LocoChip1) + ' +' + IntToStr(LocoChip2) + ' <BlankLineBefore>');
@@ -2998,7 +3067,7 @@ BEGIN
   WriteArray[4] := GetLocoChipHighByte(LocoChip2);
   WriteArray[5] := GetLocoChipLowByte(LocoChip2);
 
-  DataIO('L', WriteArray, ReadArray, Acknowledgment, OK);
+  DataIO('L', WriteArray, Acknowledgment, OK);
   IF OK THEN BEGIN
     T1 := GetTrainRecord(LocoChip1);
     T2 := GetTrainRecord(LocoChip2);
@@ -3017,6 +3086,9 @@ PROCEDURE DissolveDoubleHeader(LocoChip : Integer; VAR OK : Boolean);
 { Dissolves a double header - needs both locos standing still. This procedure is not used by the rail program as the program deals with double heading by sending the speed
   commands to both named locos.
 }
+VAR
+  WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
+
 BEGIN
   Log(LocoChipToStr(LocoChip) + ' L Requesting double header for ' + IntToStr(LocoChip) + ' be dissolved <BlankLineBefore>');
   WriteArray[0] := 229;
@@ -3026,7 +3098,7 @@ BEGIN
   WriteArray[4] := 0;
   WriteArray[5] := 0;
 
-  DataIO('L', WriteArray, ReadArray, Acknowledgment, OK);
+  DataIO('L', WriteArray, Acknowledgment, OK);
 
   IF OK THEN
     Log(LocoChipToStr(LocoChip) + ' L Double header (including loco ' + IntToStr(LocoChip) + ') dissolved')
@@ -3040,43 +3112,53 @@ PROCEDURE StopOperations;
 { Turns the power off to the track and to I/O devices; it tells the system to stop sending DCC packets to the track and to switch off the DCC track power. }
 VAR
   OK : Boolean;
+  WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
 
 BEGIN
   Log('E Requesting stop operations <BlankLineBefore>');
   WriteArray[0] := 33;
   WriteArray[1] := 128;
 
-  DataIO('E', WriteArray, ReadArray, TrackPowerOffReply, OK);
+  DataIO('E', WriteArray, TrackPowerOffReply, OK);
 END; { StopOperations }
 
 PROCEDURE ResumeOperations(OUT OK : Boolean);
 { Turns the power back on }
+VAR
+  WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
+
 BEGIN
   Log('E Requesting resume operations  <BlankLineBefore>');
   WriteArray[0] := 33;
   WriteArray[1] := 129;
 
-  DataIO('E', WriteArray, ReadArray, EverythingTurnedOnReply, OK);
+  DataIO('E', WriteArray, EverythingTurnedOnReply, OK);
 END; { ResumeOperations }
 
 PROCEDURE StopAllLocomotives(VAR OK : Boolean);
 { Emergency stops all trains, but leaves the power on }
+VAR
+  WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
+
 BEGIN
   Log('L Requesting stop all locomotives <BlankLineBefore>');
   WriteArray[0] := 128;
 
-  DataIO('L', WriteArray, ReadArray, EmergencyStopReply, OK);
+  DataIO('L', WriteArray, EmergencyStopReply, OK);
 END; { StopAllLocomotives }
 
 PROCEDURE StopAParticularLocomotive(LocoChip : Integer; VAR OK : Boolean);
 { Stops a particular loco }
+VAR
+  WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
+
 BEGIN
   Log('L Requesting stop loco ' + LocoChipToStr(LocoChip) + ' <BlankLineBefore>');
   WriteArray[0] := 146;
   WriteArray[1] := GetLocoChipHighByte(LocoChip);
   WriteArray[2] := GetLocoChipLowByte(LocoChip);
 
-  DataIO('L', WriteArray, ReadArray, Acknowledgment, OK);
+  DataIO('L', WriteArray, Acknowledgment, OK);
   IF OK THEN
     LocoHasBeenTakenOverByProgram(LocoChip);
 END; { StopAParticularLocomotive }
@@ -3139,6 +3221,8 @@ VAR
 //  TCAboveFeedbackUnit : Integer;
 //  TempFeedbackNum : Integer;
   UnitNum : Integer;
+  ReadArray : ARRAY [0..ReadArrayLen] OF Byte;
+  WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
 
   PROCEDURE ReadInFeedbackData(FeedbackAddress : Byte; OUT OK : Boolean);
   { Ask for feedback on specified device and store it. Usually only called on startup.
@@ -3284,7 +3368,6 @@ CONST
   WarnUser = True;
 
 VAR
-  AppHandle : THandle;
   I, J : Word;
   OK : Boolean;
 
@@ -3325,10 +3408,10 @@ BEGIN
     ELSE
       SetSystemOffline('System offline as TCPIP Server not running');
 
-      { provisionally... }
-
-      { but now check the true state of affairs }
-//      ObtainSystemStatus(USBPortNum, SystemStatus, Timedout, StopTimer);
+//      { provisionally... }
+//
+//      { but now check the true state of affairs }
+//      ObtainSystemStatus(SystemStatus, StopTimer);
 //
 //      IF SystemOnline THEN BEGIN
 //        IF SystemStatus.MainPortEmergencyOff
@@ -3362,10 +3445,10 @@ BEGIN
   IF SystemOnline THEN
     ReadComputerInterfaceSoftwareVersion(OK);
 
-  FOR I := 0 TO (ReadArrayLen - 1) DO BEGIN
-    ReadArray[I] := 0;
-    WriteArray[I] := 0;
-  END;
+//  FOR I := 0 TO (ReadArrayLen - 1) DO BEGIN
+//    ReadArray[I] := 0;
+//    WriteArray[I] := 0;
+//  END;
 END; { InitialiseLenzUnit }
 
 INITIALIZATION
