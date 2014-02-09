@@ -2878,6 +2878,7 @@ VAR
   VerValueSize: DWORD;
   VerValue: PVSFixedFileInfo;
   Dummy: DWORD;
+  iLastError: Integer;
 
 BEGIN
   Result := True;
@@ -2885,9 +2886,11 @@ BEGIN
     AFileName := ParamStr(0);
   VerInfoSize := GetFileVersionInfoSize(PChar(AFileName), Dummy);
   IF VerInfoSize = 0 THEN BEGIN
-    Result := False;
+   iLastError := GetLastError;
+    Log('G ' + Format('GetFileVersionInfo failed: (%d) %s', [iLastError, SysErrorMessage(iLastError)]));
     Exit;
   END;
+
   GetMem(VerInfo, VerInfoSize);
   TRY
     GetFileVersionInfo(PChar(AFileName), 0, VerInfoSize, VerInfo);
