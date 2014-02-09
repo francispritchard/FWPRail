@@ -2849,7 +2849,11 @@ BEGIN
   IF AFileName = '' THEN
     InfoSize := GetFileVersionInfoSize(PChar(AFileName), Wnd);
 
-  IF (InfoSize <> 0) THEN BEGIN
+  IF (InfoSize = 0) THEN BEGIN
+    LastError := GetLastError;
+    Log('G ' + Format('GetFileVersionInfo failed: (%d) %s', [LastError, SysErrorMessage(LastError)]));
+    Exit;
+  END ELSE BEGIN
     GetMem(VerBuf, InfoSize);
     TRY
       IF GetFileVersionInfo(PChar(AFileName), Wnd, InfoSize, VerBuf) THEN BEGIN
@@ -2873,21 +2877,22 @@ END; { GetProjectVersionInfo }
 FUNCTION GetBuildInfo(VAR V1, V2, V3, V4: Word; AFileName: String = ''): Boolean;
 { This procedure returns the individual Major/Minor/Release/Build values of the version information }
 VAR
+  Dummy: DWORD;
   VerInfoSize: DWORD;
   VerInfo: Pointer;
   VerValueSize: DWORD;
   VerValue: PVSFixedFileInfo;
-  Dummy: DWORD;
-  iLastError: Integer;
+  LastError: Integer;
 
 BEGIN
   Result := True;
   IF AFileName = '' THEN
     AFileName := ParamStr(0);
+
   VerInfoSize := GetFileVersionInfoSize(PChar(AFileName), Dummy);
   IF VerInfoSize = 0 THEN BEGIN
-   iLastError := GetLastError;
-    Log('G ' + Format('GetFileVersionInfo failed: (%d) %s', [iLastError, SysErrorMessage(iLastError)]));
+    LastError := GetLastError;
+    Log('G ' + Format('GetFileVersionInfo failed: (%d) %s', [LastError, SysErrorMessage(LastError)]));
     Exit;
   END;
 
