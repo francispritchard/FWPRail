@@ -8,7 +8,8 @@ PROGRAM Rail;
   v7.0  16/01/14 Now using XE5
 }
 
-{$R RailResource.res} // {$R RailResource.res} should be to the left of this comment - this has the extra two icons in it }
+{$R RailResource.res} // {$R RailResource.res} should be to the left of this comment - this has the extra two icons in it - but sometimes Delphi removes it }
+{$R Rail.res}         // {$R Rail.res} should be to the left of this comment - it has the version numbers in it - but sometimes Delphi removes it too }
 
 USES
   Forms,
