@@ -2209,7 +2209,7 @@ BEGIN
 END; { DaysOfTheWeekSetToStr }
 
 PROCEDURE Debug{1}; Overload;
-{ Does nothing - used only as a placeholder to set breakpoints on }
+{ Does nothing except stop locomotives if required by user - otherwise used only as a placeholder to set breakpoints on }
 VAR
   OK : Boolean;
 
@@ -2834,6 +2834,7 @@ PROCEDURE GetProjectVersionInfo(AVersionList: TStrings; AFileName: String = '');
 VAR
   I: Integer;
   InfoSize: DWORD;
+  LastError: Integer;
   pTrans: PTransBuffer;
   TransStr: String;
   TypeStr: String;
@@ -7923,6 +7924,7 @@ BEGIN
                        { **** }
                       END;
             END;
+
             IF Train_UserDriving THEN
               Train_LightsOn := True
             ELSE
