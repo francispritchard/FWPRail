@@ -6225,7 +6225,7 @@ BEGIN
       WriteDataToFeedbackWindow(OfflineMsg);
       FeedbackWindow.FeedbackWindowTimer.Enabled := True;
     END;
-    Log('X! ' + OfflineMsg);
+    Log('X! System set offline: ' + OfflineMsg);
   END;
 END; { SetSystemOffline }
 
@@ -6235,7 +6235,7 @@ BEGIN
   SystemOnline := True;
   SetCaption(MainWindow, '');
   Application.Icon := OnlineIcon;
-  Log('XG ' + OnlineMsg);
+  Log('XG System set online: ' + OnlineMsg);
 END; { SetSystemOnline }
 
 PROCEDURE SetTrainControlledByProgram(T : Train; ControlledByProgram : Boolean);
