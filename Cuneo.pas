@@ -818,7 +818,7 @@ VAR
             IF ssShift IN ShiftState THEN BEGIN
               { Force the signal to move even if it's locked }
               LockingMode := False;
-              Log('SG Locking mode suspended by user when changing S=' + IntToStr(S));
+              Log('SG Locking mode suspended by user when changing S=' + IntToStr(S) + ' {BLANKLINEBEFORE}');
               PullSignal(NoLocoChip, S, NoIndicatorLit, NoRoute, NoSubRoute, UnknownLine, UnknownTrainType, ByUser, OK);
             END ELSE
               IF ssAlt IN ShiftState THEN BEGIN
@@ -882,7 +882,7 @@ VAR
           SaveLockingMode := LockingMode;
           IF ssShift IN ShiftState THEN BEGIN
             LockingMode := False;
-            Log('S Locking mode suspended when changing signal indicator ' + IntToStr(S));
+            Log('S Locking mode suspended when changing signal indicator ' + IntToStr(S) + ' {BLANKLINEBEFORE}');
           END;
 
           IF Routes_RouteSettingByHand THEN
@@ -977,7 +977,7 @@ VAR
                 { Force the point to move even if it's locked }
                 SaveLockingMode := LockingMode;
                 LockingMode := False;
-                Log('P Locking mode suspended when changing point ' + IntToStr(P));
+                Log('P Locking mode suspended when changing point ' + IntToStr(P) + ' {BLANKLINEBEFORE}');
                 PullPoint(P, NoLocoChip, NoRoute, NoSubRoute, ForcePoint, ByUser, ErrorMessageRequired, PointResultPending, 
                           DebugStr, OK);
                 LockingMode := SaveLockingMode;
