@@ -1141,6 +1141,12 @@ VAR
       LogStr := StringReplace(LogStr, '{NOUNITREF}', '', [rfIgnoreCase]);
     END;
 
+    { If there is anything alese between angle brackets, there's presumably a typo somewhere }
+    OpenAnglePos := Pos('{', LogStr);
+    CloseAnglePos := Pos('}', LogStr);
+    IF (OpenAnglePos > 0) AND (CloseAnglePos > 0) THEN BEGIN
+      Debug('Log file error: invalid command "' + Copy(LogStr, OpenAnglePos, CloseAnglePos - OpenAnglePos + 1) + '" found');
+      WriteLn(LargeLogFile, 'Log file error: invalid command "' + Copy(LogStr, OpenAnglePos, CloseAnglePos - OpenAnglePos + 1) + '" found');
     END;
 
     { Finally remove any sundry spaces left, from, for example, between angle brackets }
