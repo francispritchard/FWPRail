@@ -214,7 +214,7 @@ VAR
 PROCEDURE Log(Str : String);
 { For ease of debugging, adds the unit name }
 BEGIN
-  WriteToLogFile(Str + ' <Unit=' + UnitRef + '>');
+  WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
 
 FUNCTION TrainFoundInDiagrams(LocoChip : Integer) : DiagramsEntryType;
@@ -1731,7 +1731,7 @@ BEGIN
 
         { Copy it to the log file }
         IF DebugStr <> '' THEN BEGIN
-          Log('D ' + DebugStr + ' <NoUnitRef>');
+          Log('D ' + DebugStr + ' {NOUNITREF}');
           DebugStr := '';
         END;
         DiagramsEntry := DiagramsEntry^.NextDiagramsRecord;
@@ -3019,7 +3019,7 @@ BEGIN
                                     + 'Start Location = ' + LocationToStr(SaveStartLocation) + ' to ' + 'End location = ' + LocationToStr(SaveEndLocation));
             END ELSE BEGIN
               Log(Train_LocoChipStr + ' D J=' + IntToStr(Journey) + ': journey created, rebuilding the route array: '
-                                    + DescribeJourney(T, Journey) + ' <Wrap=ScreenWidth>');
+                                    + DescribeJourney(T, Journey) + ' {WRAP=SCREENWIDTH}');
 
               SetLength(JourneyRouteArray, 0);
 
@@ -3412,39 +3412,39 @@ BEGIN
   WITH T^ DO BEGIN
     FOR I := 0 TO High(Train_JourneysArray) DO BEGIN
       WITH Train_JourneysArray[I] DO BEGIN
-        Log(' <NoUnitRef>');
-        Log(LocoChipToStr(Train_LocoChip) + ' <NoUnitRef>');
-        Log('TrainJourney=' + IntToStr(I) + ' <NoUnitRef>');
+        Log(' {NOUNITREF}');
+        Log(LocoChipToStr(Train_LocoChip) + ' {NOUNITREF}');
+        Log('TrainJourney=' + IntToStr(I) + ' {NOUNITREF}');
         WriteStringArrayToLog(NoLocoChip, '*', 'TrainJourney_RouteArray', TrainJourney_RouteArray);
         WriteStringArrayToLog(NoLocoChip, '*', 'TrainJourney_LockingArray', TrainJourney_LockingArray);
 
         IF FullRecord THEN BEGIN
-          Log('TrainJourney_Cleared=' + BoolToStr(TrainJourney_Cleared, True)+ ' <NoUnitRef>');
-          Log('TrainJourney_Created=' + BoolToStr(TrainJourney_Created, True) + ' <NoUnitRef>');
-          Log('TrainJourney_Direction=' + DirectionToStr(TrainJourney_Direction) + ' <NoUnitRef>');
-          Log('TrainJourney_EndLine=' + Lines[TrainJourney_EndLine].Line_Str + ' <NoUnitRef>');
-          Log('TrainJourney_EndSignal=' + IntToStr(TrainJourney_EndSignal) + ' <NoUnitRef>');
-          Log('TrainJourney_FirstTC=' + IntToStr(TrainJourney_FirstTC) + ' <NoUnitRef>');
-          Log('TrainJourney_LengthInInches=' + FloatToStr(TrainJourney_LengthInInches) + ' <NoUnitRef>');
-          Log('TrainJourney_LocationsPending=' + BoolToStr(TrainJourney_LocationsPending, True) + ' <NoUnitRef>');
-          Log('TrainJourney_NotForPublicUse=' + BoolToStr(TrainJourney_NotForPublicUse, True) + ' <NoUnitRef>');
-          Log('TrainJourney_Route=' + IntToStr(TrainJourney_Route) + ' <NoUnitRef>');
-          Log('TrainJourney_SetUp=' + BoolToStr(TrainJourney_SetUp, True) + ' <NoUnitRef>');
-          Log('TrainJourney_StartLine=' + Lines[TrainJourney_StartLine].Line_Str + ' <NoUnitRef>');
-          Log('TrainJourney_StartOfRepeatJourney=' + BoolToStr(TrainJourney_StartOfRepeatJourney, True) + ' <NoUnitRef>');
-          Log('TrainJourney_StoppingOnArrival=' + BoolToStr(TrainJourney_StoppingOnArrival, True) + ' <NoUnitRef>');
+          Log('TrainJourney_Cleared=' + BoolToStr(TrainJourney_Cleared, True)+ ' {NOUNITREF}');
+          Log('TrainJourney_Created=' + BoolToStr(TrainJourney_Created, True) + ' {NOUNITREF}');
+          Log('TrainJourney_Direction=' + DirectionToStr(TrainJourney_Direction) + ' {NOUNITREF}');
+          Log('TrainJourney_EndLine=' + Lines[TrainJourney_EndLine].Line_Str + ' {NOUNITREF}');
+          Log('TrainJourney_EndSignal=' + IntToStr(TrainJourney_EndSignal) + ' {NOUNITREF}');
+          Log('TrainJourney_FirstTC=' + IntToStr(TrainJourney_FirstTC) + ' {NOUNITREF}');
+          Log('TrainJourney_LengthInInches=' + FloatToStr(TrainJourney_LengthInInches) + ' {NOUNITREF}');
+          Log('TrainJourney_LocationsPending=' + BoolToStr(TrainJourney_LocationsPending, True) + ' {NOUNITREF}');
+          Log('TrainJourney_NotForPublicUse=' + BoolToStr(TrainJourney_NotForPublicUse, True) + ' {NOUNITREF}');
+          Log('TrainJourney_Route=' + IntToStr(TrainJourney_Route) + ' {NOUNITREF}');
+          Log('TrainJourney_SetUp=' + BoolToStr(TrainJourney_SetUp, True) + ' {NOUNITREF}');
+          Log('TrainJourney_StartLine=' + Lines[TrainJourney_StartLine].Line_Str + ' {NOUNITREF}');
+          Log('TrainJourney_StartOfRepeatJourney=' + BoolToStr(TrainJourney_StartOfRepeatJourney, True) + ' {NOUNITREF}');
+          Log('TrainJourney_StoppingOnArrival=' + BoolToStr(TrainJourney_StoppingOnArrival, True) + ' {NOUNITREF}');
         END;
 
-        Log('TrainJourney_StartArea=' + AreaToStr(TrainJourney_StartArea) + ' <NoUnitRef>');
-        Log('TrainJourney_StartLocation=' + LocationToStr(TrainJourney_StartLocation) + ' <NoUnitRef>');
-        Log('TrainJourney_CurrentDepartureTime=' + TimeToHMSStr(TrainJourney_CurrentDepartureTime) + ' <NoUnitRef>');
-        Log('TrainJourney_DiagrammedDepartureTime=' + TimeToHMSStr(TrainJourney_DiagrammedDepartureTime) + ' <NoUnitRef>');
-        Log('TrainJourney_ActualDepartureTime=' + TimeToHMSStr(TrainJourney_ActualDepartureTime) + ' <NoUnitRef>');
-        Log('---------------' + ' <NoUnitRef>');
-        Log('TrainJourney_EndArea=' + AreaToStr(TrainJourney_EndArea) + ' <NoUnitRef>');
-        Log('TrainJourney_EndLocation=' + LocationToStr(TrainJourney_EndLocation) + ' <NoUnitRef>');
-        Log('TrainJourney_CurrentArrivalTime=' + TimeToHMSStr(TrainJourney_CurrentArrivalTime) + ' <NoUnitRef>');
-        Log('TrainJourney_ActualArrivalTime=' + TimeToHMSStr(TrainJourney_ActualArrivalTime) + ' <NoUnitRef>');
+        Log('TrainJourney_StartArea=' + AreaToStr(TrainJourney_StartArea) + ' {NOUNITREF}');
+        Log('TrainJourney_StartLocation=' + LocationToStr(TrainJourney_StartLocation) + ' {NOUNITREF}');
+        Log('TrainJourney_CurrentDepartureTime=' + TimeToHMSStr(TrainJourney_CurrentDepartureTime) + ' {NOUNITREF}');
+        Log('TrainJourney_DiagrammedDepartureTime=' + TimeToHMSStr(TrainJourney_DiagrammedDepartureTime) + ' {NOUNITREF}');
+        Log('TrainJourney_ActualDepartureTime=' + TimeToHMSStr(TrainJourney_ActualDepartureTime) + ' {NOUNITREF}');
+        Log('---------------' + ' {NOUNITREF}');
+        Log('TrainJourney_EndArea=' + AreaToStr(TrainJourney_EndArea) + ' {NOUNITREF}');
+        Log('TrainJourney_EndLocation=' + LocationToStr(TrainJourney_EndLocation) + ' {NOUNITREF}');
+        Log('TrainJourney_CurrentArrivalTime=' + TimeToHMSStr(TrainJourney_CurrentArrivalTime) + ' {NOUNITREF}');
+        Log('TrainJourney_ActualArrivalTime=' + TimeToHMSStr(TrainJourney_ActualArrivalTime) + ' {NOUNITREF}');
       END; {WITH}
     END; {FOR}
   END; {WITH}
@@ -3651,43 +3651,43 @@ VAR
 
 BEGIN
   Log(LocoChipToStr(LocoChip) + ' D CREATING DIAGRAMS RECORD');
-  Log('D DoubleHeaderLocoChip=' + IntToStr(DoubleHeaderLocoChip) + ' <Indent=2> <NoUnitRef>');
-  Log('D JourneyCount=' + IntToStr(JourneyCount) + ' <Indent=2> <NoUnitRef>');
+  Log('D DoubleHeaderLocoChip=' + IntToStr(DoubleHeaderLocoChip) + ' {INDENT=2} {NOUNITREF}');
+  Log('D JourneyCount=' + IntToStr(JourneyCount) + ' {INDENT=2} {NOUNITREF}');
 
-  Log('D StartLocationStr=' + StartLocationStr + ' <Indent=2> <NoUnitRef>');
+  Log('D StartLocationStr=' + StartLocationStr + ' {INDENT=2} {NOUNITREF}');
   FOR I := 0 TO High(EndLocationsStrArray) DO
     DebugStr := DebugStr + EndLocationsStrArray[I] + ';';
-  Log('D EndLocationsStrArray=' + DebugStr + ' <Indent=2> <NoUnitRef>');
+  Log('D EndLocationsStrArray=' + DebugStr + ' {INDENT=2} {NOUNITREF}');
 
   DebugStr := '';
   FOR I := 0 TO High(UserSpecifiedDepartureTimesArray) DO
     DebugStr := DebugStr + TimeToHMStr(UserSpecifiedDepartureTimesArray[I]) + ';';
-  Log('D UserSpecifiedDepartureTimesArray=' + DebugStr + ' <Indent=2> <NoUnitRef>');
+  Log('D UserSpecifiedDepartureTimesArray=' + DebugStr + ' {INDENT=2} {NOUNITREF}');
 
   DebugStr := '';
   FOR I := 0 TO High(DirectionsArray) DO
     DebugStr := DebugStr + DirectionToStr(DirectionsArray[I]) + ';';
-  Log('D DirectionsArray=' + DebugStr + ' <Indent=2> <NoUnitRef>');
+  Log('D DirectionsArray=' + DebugStr + ' {INDENT=2} {NOUNITREF}');
 
   DebugStr := '';
   FOR I := 0 TO High(StoppingArray) DO
     DebugStr := DebugStr + BoolToStr(StoppingArray[I], True) + ';';
-  Log('D StoppingArray=' + DebugStr + ' <Indent=2> <NoUnitRef>');
+  Log('D StoppingArray=' + DebugStr + ' {INDENT=2} {NOUNITREF}');
 
-  Log('D LengthOfTrainInCarriages=' + IntToStr(LengthOfTrainInCarriages) + ' <Indent=2> <NoUnitRef>');
-  Log('D LightsOnTime=' + TimeToHMStr(LightsOnTime) + ' <Indent=2> <NoUnitRef>');
-  Log('D LightsRemainOn=' + BoolToStr(LightsRemainOn, True) + ' <Indent=2> <NoUnitRef>');
+  Log('D LengthOfTrainInCarriages=' + IntToStr(LengthOfTrainInCarriages) + ' {INDENT=2} {NOUNITREF}');
+  Log('D LightsOnTime=' + TimeToHMStr(LightsOnTime) + ' {INDENT=2} {NOUNITREF}');
+  Log('D LightsRemainOn=' + BoolToStr(LightsRemainOn, True) + ' {INDENT=2} {NOUNITREF}');
 
   DebugStr := '';
   FOR I := 0 TO High(NotForPublicUseArray) DO
     DebugStr := DebugStr + BoolToStr(NotForPublicUseArray[I], True) + ';';
-  Log('D NotForPublicUseArray=' + DebugStr + ' <Indent=2> <NoUnitRef>');
+  Log('D NotForPublicUseArray=' + DebugStr + ' {INDENT=2} {NOUNITREF}');
 
-  Log('D StartOfRepeatJourney=' + BoolToStr(StartOfRepeatJourney, True) + ' <Indent=2> <NoUnitRef>');
-  Log('D TrainNonMoving=' + BoolToStr(TrainNonMoving, True) + ' <Indent=2> <NoUnitRef>');
-  Log('D TypeOfTrainNum=' + IntToStr(TypeOfTrainNum) + ' <Indent=2> <NoUnitRef>');
-  Log('D UserDriving=' + BoolToStr(UserDriving, True) + ' <Indent=2> <NoUnitRef>');
-  Log('D UserRequiresInstruction=' + BoolToStr(UserRequiresInstructions, True) + ' <Indent=2> <NoUnitRef>');
+  Log('D StartOfRepeatJourney=' + BoolToStr(StartOfRepeatJourney, True) + ' {INDENT=2} {NOUNITREF}');
+  Log('D TrainNonMoving=' + BoolToStr(TrainNonMoving, True) + ' {INDENT=2} {NOUNITREF}');
+  Log('D TypeOfTrainNum=' + IntToStr(TypeOfTrainNum) + ' {INDENT=2} {NOUNITREF}');
+  Log('D UserDriving=' + BoolToStr(UserDriving, True) + ' {INDENT=2} {NOUNITREF}');
+  Log('D UserRequiresInstruction=' + BoolToStr(UserRequiresInstructions, True) + ' {INDENT=2} {NOUNITREF}');
 
   FirstTrainInstance := True;
   TrainFound := False;
@@ -5239,9 +5239,9 @@ BEGIN
       IF Train_FirstStationSpecifiedStartTime <> 0 THEN BEGIN
         DrawLineInLogFile(Train_LocoChip, 'D', '-', UnitRef);
 
-        Log(Train_LocoChipStr + ' D List of journeys including journey 0 which has had new a start time applied:' + ' <Line=Before>');
+        Log(Train_LocoChipStr + ' D List of journeys including journey 0 which has had new a start time applied:' + ' {LINE=BEFORE}');
         FOR JourneyCount:= 0 TO High(Train_JourneysArray) DO
-          Log(Train_LocoChipStr + ' D    J=' + IntToStr(JourneyCount) + ': ' + DescribeJourney(T, JourneyCount) + ' <NoUnitRef>');
+          Log(Train_LocoChipStr + ' D    J=' + IntToStr(JourneyCount) + ': ' + DescribeJourney(T, JourneyCount) + ' {NOUNITREF}');
 
         DrawLineInLogFile(Train_LocoChip, 'D', '-', UnitRef);
       END;
@@ -5342,7 +5342,7 @@ BEGIN
           LogStr := DisplayJourneyNumber(JourneyCount) + 'actual departure time from ' + FirstStartLocationStr + ' is ' + TimeToHMSStr(DepartureTime);
           { avoid writing the same departure time out twice }
           IF Pos(LogStr, SaveLogStr) = 0 THEN
-            Log(Train_LocoChipStr + ' D ' + LogStr + ' <NoUnitRef>');
+            Log(Train_LocoChipStr + ' D ' + LogStr + ' {NOUNITREF}');
         END ELSE BEGIN
           IF TrainJourney_CurrentDepartureTime = 0 THEN
             TrainJourney_CurrentDepartureTime := TrainJourney_DiagrammedDepartureTime
@@ -5353,7 +5353,7 @@ BEGIN
           LogStr := DisplayJourneyNumber(JourneyCount) + 'current departure time from ' + FirstStartLocationStr + ' is ' + TimeToHMSStr(DepartureTime);
           { avoid writing the same departure time out twice }
           IF Pos(LogStr, SaveLogStr) = 0 THEN
-            Log(Train_LocoChipStr + ' D ' + LogStr + ' <NoUnitRef>');
+            Log(Train_LocoChipStr + ' D ' + LogStr + ' {NOUNITREF}');
         END;
         TrainJourney_CurrentDepartureTime := DepartureTime;
         EndLocationStr := LocationToStr(TrainJourney_EndLocation);
@@ -5363,13 +5363,13 @@ BEGIN
           LogStr := DisplayJourneyNumber(JourneyCount) + 'actual arrival time at ' + EndLocationStr + ' is ' + TimeToHMSStr(ArrivalTime);
           { avoid writing the same arrival time out twice }
           IF Pos(LogStr, SaveLogStr) = 0 THEN
-            Log(Train_LocoChipStr + ' D ' + LogStr + ' <NoUnitRef>');
+            Log(Train_LocoChipStr + ' D ' + LogStr + ' {NOUNITREF}');
         END ELSE BEGIN
           ArrivalTime := IncMinute(DepartureTime, TrainJourney_DurationInMinutes);
           LogStr := DisplayJourneyNumber(JourneyCount) + 'current arrival time at ' + EndLocationStr + ' is ' + TimeToHMSStr(ArrivalTime);
           { avoid writing the same arrival time out twice }
           IF Pos(LogStr, SaveLogStr) = 0 THEN
-            Log(Train_LocoChipStr + ' D ' + LogStr + ' <NoUnitRef>');
+            Log(Train_LocoChipStr + ' D ' + LogStr + ' {NOUNITREF}');
         END;
         TrainJourney_CurrentArrivalTime := ArrivalTime;
 
@@ -5381,7 +5381,7 @@ BEGIN
                           + 'current departure time from ' + NextStartLocationStr + ' is '
                           + TimeToHMSStr(Train_JourneysArray[JourneyCount + 1].TrainJourney_CurrentDepartureTime)
                           + ' as train does not stop at the end of the previous journey';
-            Log(Train_LocoChipStr + ' D ' + SaveLogStr + ' <NoUnitRef>');
+            Log(Train_LocoChipStr + ' D ' + SaveLogStr + ' {NOUNITREF}');
           END;
         END ELSE BEGIN
           { The train is stopping on arrival }
@@ -5396,12 +5396,12 @@ BEGIN
                                       + ' after arrival at ' + TimeToHMSStr(ArrivalTime) + ' '
                                       + 'as train would leave either before or at the same time as the diagrammed departure time of '
                                       + TimeToHMSStr(Train_JourneysArray[JourneyCount + 1].TrainJourney_DiagrammedDepartureTime)
-                                      + ' <NoUnitRef>');
+                                      + ' {NOUNITREF}');
                 Log(Train_LocoChipStr + ' D ' + DisplayJourneyNumber(JourneyCount + 1)
                                       + 'setting departure time to be the diagrammed departure time of '
                                       + TimeToHMSStr(Train_JourneysArray[JourneyCount + 1].TrainJourney_DiagrammedDepartureTime)
                                       + ' instead'
-                                      + ' <NoUnitRef>');
+                                      + ' {NOUNITREF}');
                 Train_JourneysArray[JourneyCount + 1].TrainJourney_CurrentDepartureTime := Train_JourneysArray[JourneyCount + 1].TrainJourney_DiagrammedDepartureTime;
               END ELSE BEGIN
                 TotalWaitingMinutes := StationSameDirectionExitMinimumWaitTimeInMinutes + TrainJourney_AdditionalRequiredStationWaitInMinutes;
@@ -5425,7 +5425,7 @@ BEGIN
                               + ' as train stops but does not change direction after the previous journey'
                               + IfThen(EndOfDayWaitingMinutes <> 0,
                                        ' (including ' + IntToStr(EndOfDayWaitingMinutes) + ' mins end of day wait time)');
-                Log(Train_LocoChipStr + ' D ' + SaveLogStr + ' <NoUnitRef>');
+                Log(Train_LocoChipStr + ' D ' + SaveLogStr + ' {NOUNITREF}');
               END;
             END ELSE BEGIN
               IF CompareTime(IncMinute(ArrivalTime, StationOppositeDirectionExitMinimumWaitTimeInMinutes),
@@ -5437,12 +5437,12 @@ BEGIN
                                       + ' after arrival at ' + TimeToHMSStr(ArrivalTime)
                                       + ' as the train would leave earlier than the diagrammed departure time of '
                                       + TimeToHMSStr(Train_JourneysArray[JourneyCount + 1].TrainJourney_DiagrammedDepartureTime)
-                                      + ' <NoUnitRef>');
+                                      + ' {NOUNITREF}');
                 Log(Train_LocoChipStr + ' D ' + DisplayJourneyNumber(JourneyCount + 1)
                                       + 'setting departure time to be the diagrammed departure time of '
                                       + TimeToHMSStr(Train_JourneysArray[JourneyCount + 1].TrainJourney_DiagrammedDepartureTime)
                                       + ' instead'
-                                      + ' <NoUnitRef>');
+                                      + ' {NOUNITREF}');
                 Train_JourneysArray[JourneyCount + 1].TrainJourney_CurrentDepartureTime := Train_JourneysArray[JourneyCount + 1].TrainJourney_DiagrammedDepartureTime;
               END ELSE BEGIN
                 TotalWaitingMinutes := StationOppositeDirectionExitMinimumWaitTimeInMinutes + TrainJourney_AdditionalRequiredStationWaitInMinutes;
@@ -5467,7 +5467,7 @@ BEGIN
                               + ' as train stops and changes direction after the previous journey'
                               + IfThen(EndOfDayWaitingMinutes <> 0,
                                        ' (including ' + IntToStr(EndOfDayWaitingMinutes) + ' mins end of day wait time)');
-                Log(Train_LocoChipStr + ' D ' + SaveLogStr + ' <NoUnitRef>');
+                Log(Train_LocoChipStr + ' D ' + SaveLogStr + ' {NOUNITREF}');
               END;
             END;
 
@@ -5528,7 +5528,7 @@ BEGIN
 
         Log(Train_LocoChipStr + ' D List of fully revised journeys, timetable and station names:');
         FOR JourneyCount:= 0 TO High(Train_JourneysArray) DO
-          Log(Train_LocoChipStr + ' D    J=' + IntToStr(JourneyCount) + ': ' + DescribeJourney(T, JourneyCount) + ' <NoUnitRef>');
+          Log(Train_LocoChipStr + ' D    J=' + IntToStr(JourneyCount) + ': ' + DescribeJourney(T, JourneyCount) + ' {NOUNITREF}');
 
         DrawLineInLogFile(Train_LocoChip, 'D', '-', UnitRef);
       END; {WITH}
@@ -5708,7 +5708,7 @@ BEGIN
                                   IF JourneyCount < (High(Train_JourneysArray) - 1) THEN BEGIN
                                     Log(Train_LocoChipStr + ' D List of journeys being revised:');
                                     FOR J := 0 TO High(Train_JourneysArray) DO
-                                      Log('D J=' + IntToStr(J) + ': ' + DescribeJourney(T, J) + ' <NoUnitRef>');
+                                      Log('D J=' + IntToStr(J) + ': ' + DescribeJourney(T, J) + ' {NOUNITREF}');
                                   END;
                                   Inc(JourneyCount);
 
@@ -5746,7 +5746,7 @@ BEGIN
                                     IF JourneyCount < (High(Train_JourneysArray) - 1) THEN BEGIN
                                       Log(Train_LocoChipStr + ' D List of journeys being revised:');
                                       FOR J := 0 TO High(Train_JourneysArray) DO
-                                        Log('D J=' + IntToStr(J) + ': ' + DescribeJourney(T, J) + ' <NoUnitRef>');
+                                        Log('D J=' + IntToStr(J) + ': ' + DescribeJourney(T, J) + ' {NOUNITREF}');
                                     END;
                                     Inc(JourneyCount);
 
@@ -5774,7 +5774,7 @@ BEGIN
 
           Log(Train_LocoChipStr + ' D List of fully revised journeys:');
           FOR J := 0 TO High(Train_JourneysArray) DO
-            Log(Train_LocoChipStr + ' D    J=' + IntToStr(J) + ': ' + DescribeJourney(T, J) + ' <NoUnitRef>');
+            Log(Train_LocoChipStr + ' D    J=' + IntToStr(J) + ': ' + DescribeJourney(T, J) + ' {NOUNITREF}');
 
           DrawLineInLogFile(Train_LocoChip, 'D', '-', UnitRef);
         END;
@@ -5984,7 +5984,7 @@ BEGIN
 
           Log(Train_LocoChipStr + ' D List of partly revised journeys and diagrams:');
           FOR JourneyCount := 0 TO High(Train_JourneysArray) DO
-            Log(Train_LocoChipStr + ' D    J=' + IntToStr(JourneyCount) + ': ' + DescribeJourney(T, JourneyCount) + ' <NoUnitRef>');
+            Log(Train_LocoChipStr + ' D    J=' + IntToStr(JourneyCount) + ': ' + DescribeJourney(T, JourneyCount) + ' {NOUNITREF}');
 
           DrawLineInLogFile(Train_LocoChip, 'D', '-', UnitRef);
         END;
@@ -6080,7 +6080,7 @@ BEGIN
 
           Log(Train_LocoChipStr + ' D List of fully revised journeys and timetable:');
           FOR JourneyCount := 0 TO High(Train_JourneysArray) DO
-            Log(Train_LocoChipStr + ' D    J=' + IntToStr(JourneyCount) + ': ' + DescribeJourney(T, JourneyCount) + ' <NoUnitRef>');
+            Log(Train_LocoChipStr + ' D    J=' + IntToStr(JourneyCount) + ': ' + DescribeJourney(T, JourneyCount) + ' {NOUNITREF}');
 
           DrawLineInLogFile(Train_LocoChip, 'D', '-', UnitRef);
         END;

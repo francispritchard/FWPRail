@@ -47,7 +47,7 @@ VAR
 PROCEDURE Log(Str : String);
 { For ease of debugging, adds the unit name }
 BEGIN
-  WriteToLogFile(Str + ' <Unit=' + UnitRef + '>');
+  WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
 
 PROCEDURE THelpWindow.HelpMemoKeyDown(Sender: TObject; VAR Key: Word; ShiftState: TShiftState);

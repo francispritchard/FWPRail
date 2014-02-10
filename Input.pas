@@ -84,7 +84,7 @@ VAR
 PROCEDURE Log(Str : String);
 { For ease of debugging, adds the unit name }
 BEGIN
-  WriteToLogFile(Str + ' <Unit=' + UnitRef + '>');
+  WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
 
 PROCEDURE TInputDialogueBox.InputDialogueCancelButtonClick(Sender: TObject);
@@ -4401,7 +4401,7 @@ BEGIN { KeyPressedDown }
                     IF EscKeyStored THEN BEGIN
                       IF ScreenColoursSetForPrinting THEN
                         ResetScreenColours;
-                      Log('G Shutdown requested by user pressing Escape twice <BlankLineBefore>');
+                      Log('G Shutdown requested by user pressing Escape twice {BLANKLINEBEFORE}');
                       ShutDownProgram(UnitRef, 'KeyPressedDown');
                     END ELSE BEGIN
                       EscKeyStored := True;
@@ -5022,7 +5022,7 @@ BEGIN { KeyPressedDown }
                 IF NOT HelpRequired THEN BEGIN
                   { close the program after two consecutive escapes }
                   MainWindow.MainWindowClose(NIL, CloseAction);
-                  Log('G Shutdown requested by user pressing Alt F4 <BlankLineBefore>');
+                  Log('G Shutdown requested by user pressing Alt F4 {BLANKLINEBEFORE}');
                 END;
               END;
           END; {CASE}

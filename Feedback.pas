@@ -64,7 +64,7 @@ VAR
 PROCEDURE Log(Str : String);
 { For ease of debugging, adds the unit name }
 BEGIN
-  WriteToLogFile(Str + ' <Unit=' + UnitRef + '>');
+  WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
 
 PROCEDURE ExtractDataFromFeedback(Data : FeedbackRec; OUT TCAboveFeedbackUnit : Integer; OUT FeedbackType : TypeOfFeedBackType; OUT Num : Integer);
@@ -461,7 +461,7 @@ VAR
                               + IntToStr(MilliSecondsBetween(LocoTimingStopTime, LocoTimingStartTime)) + 'ms, '
                               + RealToStr(TempMPHSpeed, 1) + ' mph, speed='
                               + IntToStr(LocoTimingLenzSpeed)
-                              + ' <NoUnitRef>');
+                              + ' {NOUNITREF}');
 
               { Now reduce the speed for the next run }
               Dec(LocoTimingLenzSpeed);

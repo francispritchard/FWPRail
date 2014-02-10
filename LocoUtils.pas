@@ -69,7 +69,7 @@ VAR
 PROCEDURE Log(Str : String);
 { For ease of debugging, adds the unit name }
 BEGIN
-  WriteToLogFile(Str + ' <Unit=' + UnitRef + '>');
+  WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
 
 PROCEDURE ReadInLocoData(VAR OK : Boolean);
@@ -286,7 +286,7 @@ VAR
 BEGIN
   TRY
     WITH LocoUtilsWindow DO BEGIN
-      Log('L INITIALISING LOCO DATA <BlankLineBefore>');
+      Log('L INITIALISING LOCO DATA {BLANKLINEBEFORE}');
       SetLength(TempLocations, 0);
       SetLength(TempLocationsLocoChips, 0);
       SetLength(TempTCsLocoChips, 0);
@@ -690,7 +690,7 @@ BEGIN
       Log('L Loco Data table and connection closed');
 
       { and write out the list }
-      Log('L ' + DescribeTrainList(LocoChipAndDepartureTimeSort, DescribeFullTrainList) + ' <Wrap=ScreenWidth> <Number>');
+      Log('L ' + DescribeTrainList(LocoChipAndDepartureTimeSort, DescribeFullTrainList) + ' {WRAP=SCREENWIDTH} {NUMBER}');
       OK := True;
     END; {WITH}
   EXCEPT {TRY}
@@ -743,7 +743,7 @@ BEGIN
               IF NOT TrainFound THEN BEGIN
                 Log('XG Error in TrainList: no locochip data for '
                        + LocoChipToStr(FieldByName('LocoChip').AsInteger) + ' in the train list');
-                Log('X ' + DescribeTrainList(Unsorted, True) + '<Indent=0> <Wrap=ScreenWidth>');
+                Log('X ' + DescribeTrainList(Unsorted, True) + '{INDENT=0} {WRAP=SCREENWIDTH}');
               END ELSE BEGIN
                 WITH T^ DO BEGIN
 

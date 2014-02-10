@@ -95,7 +95,7 @@ VAR
 PROCEDURE Log(Str : String);
 { For ease of debugging, adds the unit name }
 BEGIN
-  WriteToLogFile(Str + ' <Unit=' + UnitRef + '>');
+  WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
 
 PROCEDURE TWorkingTimetableWindow.WorkingTimetableWindowGridDrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
@@ -1612,7 +1612,7 @@ BEGIN { FindAdditionalTrains }
         END; {WHILE}
       END ELSE BEGIN
         Log('W W=' + EntryNumStr + 'A: '
-               + 'No accessible areas' + ' <Line=After>');
+               + 'No accessible areas' + ' {LINE=AFTER}');
 
         { No accessible areas in one move, so try two moves }
         Log('W W=' + EntryNumStr + 'B: '
@@ -1851,7 +1851,7 @@ BEGIN { FindAdditionalTrains }
               END; {WHILE}
             END ELSE BEGIN
               Log('W W=' + EntryNumStr + 'B: '
-                     + 'No accessible areas' + ' <Line=After>');
+                     + 'No accessible AREAS' + ' {LINE=AFTER}');
 
               { No accessible areas in two moves, so try three moves }
               Log('W W=' + EntryNumStr + 'C: '
@@ -2478,7 +2478,7 @@ BEGIN { ProcessWorkingTimetable }
     WHILE WorkingTimetableCount <= High(WorkingTimetableRecArray) DO BEGIN
       WITH WorkingTimetableRecArray[WorkingTimetableCount] DO BEGIN
         Log('W W=' + WorkingTimetable_EntryNumStr + ':'
-               + ' Setting up train diagrams record:' + ' <Line=Before>');
+               + ' Setting up train diagrams record:' + ' {LINE=BEFORE}');
 
         IF WorkingTimetable_Status = IncorrectDayOfTheWeekForEntry THEN
           Log('W W=' + WorkingTimetable_EntryNumStr + ': Incorrect day of the week'

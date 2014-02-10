@@ -40,7 +40,7 @@ VAR
 PROCEDURE Log(Str : String);
 { For ease of debugging, adds the unit name }
 BEGIN
-  WriteToLogFile(Str + ' <Unit=' + UnitRef + '>');
+  WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
 
 PROCEDURE TStationMonitorsWindow.StationMonitorsWindowKeyDown(Sender: TObject; VAR Key: Word; ShiftState: TShiftState);
@@ -326,7 +326,7 @@ VAR
             YPos := YPos + TextHeight('06:00');
 
             IF RecordingMonitorScreens THEN
-              Log('T ' + DebugStr + ' <NoUnitRef>');
+              Log('T ' + DebugStr + ' {NOUNITREF}');
           END;
         END; {WITH}
         Inc(I);
@@ -352,7 +352,7 @@ VAR
         FillRect(Rect(0, YPos, MaxX, MaxY));
 
         IF RecordingMonitorScreens THEN
-          Log('T Arrivals' + ' <NoUnitRef>');
+          Log('T Arrivals' + ' {NOUNITREF}');
         WriteOutStationMonitorsData(TimetabledTimePos, YPos, 'Arrives', Font.Style, Font.Height, Font.Color);
         IF IncludeLocoChipInStationMonitors THEN
           WriteOutStationMonitorsData(LocoChipPos, YPos, 'Loco', Font.Style, Font.Height, Font.Color);
@@ -479,7 +479,7 @@ VAR
       FillRect(Rect(0, YPos, MaxX, MaxY));
 
       IF RecordingMonitorScreens THEN
-        Log('T Departures' + ' <NoUnitRef>');
+        Log('T Departures' + ' {NOUNITREF}');
       WriteOutStationMonitorsData(TimetabledTimePos, YPos, 'Departs', Font.Style, Font.Height, Font.Color);
       IF IncludeLocoChipInStationMonitors THEN
         WriteOutStationMonitorsData(LocoChipPos, YPos, 'Loco', Font.Style, Font.Height, Font.Color);
@@ -630,7 +630,7 @@ BEGIN
 
       IF RecordingMonitorScreens THEN BEGIN
         DrawLineinLogFile(NoLocoChip, 'D', 'T', UnitRef);
-        Log('T ' + GetStationNameFromArea(StationMonitorsCurrentArea) + ' <NoUnitRef>');
+        Log('T ' + GetStationNameFromArea(StationMonitorsCurrentArea) + ' {NOUNITREF}');
       END;
 
       CurrentTimeStr := TimeToHMStr(CurrentRailwayTime);

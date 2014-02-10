@@ -667,7 +667,7 @@ VAR
 PROCEDURE Log(Str : String);
 { For ease of debugging, adds the unit name }
 BEGIN
-  WriteToLogFile(Str + ' <Unit=' + UnitRef + '>');
+  WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
 
 PROCEDURE DrawRedLampAndVerticalLine(X, Y1, Y2 : Integer; Colour : TCOlour);
@@ -4618,7 +4618,7 @@ BEGIN
       Action := caFree;
       ShutDownProgram(UnitRef, 'MainWindowClose');
     END ELSE BEGIN
-      Log('G Shutdown request cancelled by user <BlankLineBefore>');
+      Log('G Shutdown request cancelled by user {BLANKLINEBEFORE}');
       Action := caNone;
     END;
   EXCEPT
@@ -8031,7 +8031,7 @@ BEGIN { Main drawing procedure }
           ReadInSignalDataFromDatabase(NOT NewSignalData);
           ReadInRouteingExceptionsFromDatabase;
           IF NOT LocationLinesInitialised THEN BEGIN
-            Log('G INITIALISING LOCATION LINES <BlankLineBefore>');
+            Log('G INITIALISING LOCATION LINES {BLANKLINEBEFORE}');
             InitialiseLocationLines;
             LocationLinesInitialised := True;
           END;

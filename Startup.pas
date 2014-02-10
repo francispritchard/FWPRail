@@ -61,7 +61,7 @@ USES LocoUtils, MiscUtils, Input, RailDraw, RDC, DateUtils, Feedback, CreateRout
 PROCEDURE Log(Str : String);
 { For ease of debugging, adds the unit name }
 BEGIN
-  WriteToLogFile(Str + ' <Unit=' + UnitRef + '>');
+  WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
 
 PROCEDURE GetWord(VAR Str : String; VAR Word : String);
@@ -387,76 +387,76 @@ BEGIN
   Log('G Startup Detail:');
 
   IF AllRouteDebuggingMode THEN
-    Log('GG All Route Debugging Mode ON' + '<Indent=2>');
+    Log('GG All Route Debugging Mode ON' + '{INDENT=2}');
 
   IF NOT AnonymousOccupationMode THEN
-    Log('GG Anonymous Occupation Mode OFF' + '<Indent=2>');
+    Log('GG Anonymous Occupation Mode OFF' + '{INDENT=2}');
 
   IF DebuggingMode THEN
-    Log('GG Debugging Mode ON' + '<Indent=2>');
+    Log('GG Debugging Mode ON' + '{INDENT=2}');
 
   IF FeedbackDebuggingMode THEN
-    Log('GG Feedback Debugging Mode ON' + '<Indent=2>');
+    Log('GG Feedback Debugging Mode ON' + '{INDENT=2}');
 
   IF LineDebuggingMode THEN
-    Log('GG Line Debugging Mode ON' + '<Indent=2>');
+    Log('GG Line Debugging Mode ON' + '{INDENT=2}');
 
   IF LockDebuggingMode THEN
-    Log('GG Lock Debugging Mode ON' + '<Indent=2>');
+    Log('GG Lock Debugging Mode ON' + '{INDENT=2}');
 
   IF NOT LockingMode THEN
-    Log('GG Locking State OFF' + '<Indent=2>');
+    Log('GG Locking State OFF' + '{INDENT=2}');
 
   IF LocoSpeedTimingMode THEN
-    Log('GG Loco Speed Timing ON' + '<Indent=2>');
+    Log('GG Loco Speed Timing ON' + '{INDENT=2}');
 
   IF NOT LogsCurrentlyKept THEN
-    Log('GG LogsCurrentlyKept is OFF' + '<Indent=2>');
+    Log('GG LogsCurrentlyKept is OFF' + '{INDENT=2}');
 
   IF LogCurrentTimeMode THEN
-    Log('GG LogCurrentTimeMode is ON' + '<Indent=2>');
+    Log('GG LogCurrentTimeMode is ON' + '{INDENT=2}');
 
   IF NOT MakeSoundWhenDebugWindowBoldTextAppears THEN
-    Log('GG Make Sound When Debug Window Bold Text Appears OFF' + '<Indent=2>');
+    Log('GG Make Sound When Debug Window Bold Text Appears OFF' + '{INDENT=2}');
 
   IF RDCMode THEN
-    Log('GG RDC Mode ON' + '<Indent=2>');
+    Log('GG RDC Mode ON' + '{INDENT=2}');
 
   IF ReadOutTCInFull THEN
-    Log('GG Read Out TC In Full ON' + '<Indent=2>')
+    Log('GG Read Out TC In Full ON' + '{INDENT=2}')
   ELSE
     IF ReadOutTCOnce THEN
-      Log('GG Read Out TC Once ON' + '<Indent=2>')
+      Log('GG Read Out TC Once ON' + '{INDENT=2}')
     ELSE
       IF ReadOutDecoderNumber THEN
-        Log('GG Read Out Decoder Number OFF' + '<Indent=2>')
+        Log('GG Read Out Decoder Number OFF' + '{INDENT=2}')
       ELSE
         IF ReadOutAdjacentSignalNumber THEN
-          Log('GG Read Out Adjacent Signal Number OFF' + '<Indent=2>');
+          Log('GG Read Out Adjacent Signal Number OFF' + '{INDENT=2}');
 
   IF RecordingMonitorScreens THEN
-    Log('GG Recording Monitor Screens is ON' + '<Indent=2>');
+    Log('GG Recording Monitor Screens is ON' + '{INDENT=2}');
 
   IF NOT RecordLineDrawingMode THEN
-    Log('GG Record Line Drawing Mode OFF' + '<Indent=2>');
+    Log('GG Record Line Drawing Mode OFF' + '{INDENT=2}');
 
   IF RouteBacktrackDebuggingMode THEN
-    Log('GG Route Backtrack Debugging Mode ON' + '<Indent=2>');
+    Log('GG Route Backtrack Debugging Mode ON' + '{INDENT=2}');
 
   IF RouteDebuggingMode THEN
-    Log('GG Route Debugging Mode ON' + '<Indent=2>');
+    Log('GG Route Debugging Mode ON' + '{INDENT=2}');
 
   IF RouteDrawingMode THEN
-    Log('GG Route Drawing Mode ON' + '<Indent=2>');
+    Log('GG Route Drawing Mode ON' + '{INDENT=2}');
 
   IF StationStartMode THEN
-    Log('GG Station Start Mode ON' + '<Indent=2>');
+    Log('GG Station Start Mode ON' + '{INDENT=2}');
 
   IF SystemInitiallySetOffline THEN
-    Log('GG System Initially Offline ON' + '<Indent=2>');
+    Log('GG System Initially Offline ON' + '{INDENT=2}');
 
   IF TestingMode THEN
-    Log('GG Testing Mode ON' + '<Indent=2>');
+    Log('GG Testing Mode ON' + '{INDENT=2}');
 
   { Let the user know if the system is offline or in some other odd state at startup }
   IF SystemStatusStr <> '' THEN BEGIN

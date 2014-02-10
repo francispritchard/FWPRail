@@ -96,7 +96,7 @@ VAR
 PROCEDURE Log(Str : String);
 { For ease of debugging, adds the unit name }
 BEGIN
-  WriteToLogFile(Str + ' <Unit=' + UnitRef + '>');
+  WriteToLogFile(Str + ' {Unit=' + UnitRef + '}');
 END; { Log }
 
 PROCEDURE TWorkingTimetableWindow.WorkingTimetableWindowGridDrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect;

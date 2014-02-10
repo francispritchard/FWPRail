@@ -909,7 +909,7 @@ VAR
       AppendToStringArray(LogArray, LogStr)
     ELSE BEGIN
       { See if a completely blank line is required }
-      IF Pos('<Blank Line>', LogStr) > 0 THEN
+      IF Pos('{Blank Line}', LogStr) > 0 THEN
         LogStr := '';
 
       { And now specific happenings }
@@ -1018,8 +1018,10 @@ VAR
   END; { RemoveRichEditInstructionsFromLogStr }
 
   PROCEDURE RemoveGeneralInstructionsFromLogStr(VAR LogStr : String);
-  { Removes any instructions from the log string and process them }
+  { Removes any instructions (in curly brackets) from the log string and process them }
   VAR
+    CloseAnglePos : Integer;
+    OpenAnglePos : Integer;
     TempStr : String;
 
   BEGIN
@@ -1030,29 +1032,29 @@ VAR
     BlankLineBefore := False;
 
     { Now interpret the miscellaneous commands - first wrapping }
-    IF Pos('<WRAP=', UpperCase(LogStr)) > 0 THEN BEGIN
+    IF Pos('{WRAP=', UpperCase(LogStr)) > 0 THEN BEGIN
       { Look for a space or a line end following }
-      IF Pos('<WRAP=SCREENWIDTH>', UpperCase(LogStr)) > 0 THEN BEGIN
+      IF Pos('{WRAP=SCREENWIDTH}', UpperCase(LogStr)) > 0 THEN BEGIN
         { we want the maximum screen width }
         WrapNum := LogFileMaxWidthInChars;
 
-        LogStr := StringReplace(LogStr, '<WRAP=SCREENWIDTH>', '', [rfIgnoreCase]);
+        LogStr := StringReplace(LogStr, '{WRAP=SCREENWIDTH}', '', [rfIgnoreCase]);
       END ELSE BEGIN
-        WrapNumStr := GetFollowingChars(LogStr, '<WRAP=', '>');
+        WrapNumStr := GetFollowingChars(LogStr, '{WRAP=', '}');
         IF NOT TryStrToInt(WrapNumStr, WrapNum) THEN BEGIN
           Debug('Log file error: WRAP= must be followed  by "ScreenWidth" or a number (Log string="' + LogStr + '")');
           WriteLn(LargeLogFile, 'Log file error in "' + LogStr + '" WRAP= must be followed by "ScreenWidth" or a number' + ' (Log string="' + LogStr + '")');
         END;
 
-        LogStr := StringReplace(LogStr, '<WRAP=' + WrapNumStr + '>', '', [rfIgnoreCase]);
+        LogStr := StringReplace(LogStr, '{WRAP=' + WrapNumStr + '}', '', [rfIgnoreCase]);
       END;
     END;
 
-    IF Pos('<BLANKLINEBEFORE>', UpperCase(LogStr)) > 0 THEN BEGIN
+    IF Pos('{BLANKLINEBEFORE}', UpperCase(LogStr)) > 0 THEN BEGIN
       BlankLineBefore := True;
-      LogStr := StringReplace(LogStr, '<BLANKLINEBEFORE>', '', [rfIgnoreCase]);
+      LogStr := StringReplace(LogStr, '{BLANKLINEBEFORE}', '', [rfIgnoreCase]);
     END ELSE BEGIN
-      IF Pos('<LINE>', UpperCase(LogStr)) > 0 THEN BEGIN
+      IF Pos('{LINE}', UpperCase(LogStr)) > 0 THEN BEGIN
         DrawLineInLogFileOnly := False;
         DrawLineChar := '-';
 
@@ -1060,39 +1062,39 @@ VAR
         IF NOT LineAfterJustDrawn THEN
           DrawLineInLogFileOnly := True;
 
-        LogStr := StringReplace(LogStr, '<LINE>', '', [rfIgnoreCase]);
+        LogStr := StringReplace(LogStr, '{LINE}', '', [rfIgnoreCase]);
       END;
 
       { Drawing lines in the log file. First see if there is a drawn 'line after' immediately succeeding a 'line before' - avoid too many lines in the log }
-      IF Pos('<LINE=', UpperCase(LogStr)) > 0 THEN BEGIN
-        TempStr := GetFollowingChars(LogStr, '<LINE=', '>');
-        IF (UpperCase(TempStr) = 'BEFORE>')
+      IF Pos('{LINE=', UpperCase(LogStr)) > 0 THEN BEGIN
+        TempStr := GetFollowingChars(LogStr, '{LINE=', '}');
+        IF (UpperCase(TempStr) = 'BEFORE}')
         AND NOT LineAfterJustDrawn
         THEN BEGIN
           DrawLineInLogFileBefore := True;
-          LogStr := StringReplace(LogStr, '<LINE=BEFORE>', '', [rfIgnoreCase]);
+          LogStr := StringReplace(LogStr, '{LINE=BEFORE}', '', [rfIgnoreCase]);
         END ELSE
-          IF (UpperCase(TempStr) = 'BEFORE>')
+          IF (UpperCase(TempStr) = 'BEFORE}')
           AND LineAfterJustDrawn
           THEN BEGIN
             DrawLineInLogFileBefore := False;
-            LogStr := StringReplace(LogStr, '<LINE=BEFORE>', '', [rfIgnoreCase]);
+            LogStr := StringReplace(LogStr, '{LINE=BEFORE}', '', [rfIgnoreCase]);
           END ELSE
-            IF UpperCase(TempStr) = 'AFTER>' THEN BEGIN
+            IF UpperCase(TempStr) = 'AFTER}' THEN BEGIN
               DrawLineInLogFileAfter := True;
-              LogStr := StringReplace(LogStr, '<LINE=AFTER>', '', [rfIgnoreCase]);
+              LogStr := StringReplace(LogStr, '{LINE=AFTER}', '', [rfIgnoreCase]);
             END ELSE
-              IF UpperCase(TempStr) = 'BEFOREANDAFTER>' THEN BEGIN
+              IF UpperCase(TempStr) = 'BEFOREANDAFTER}' THEN BEGIN
                 DrawLineInLogFileAfter := True;
                 IF NOT LineAfterJustDrawn THEN
                   DrawLineInLogFileBefore := True;
-                LogStr := StringReplace(LogStr, '<LINE=BEFOREANDAFTER>', '', [rfIgnoreCase]);
+                LogStr := StringReplace(LogStr, '{LINE=BEFOREANDAFTER}', '', [rfIgnoreCase]);
               END ELSE
                 IF Length(TempStr) = 1 THEN BEGIN
                   DrawLineChar := TempStr;
                   DrawLineInLogFileOnly := True;
 
-                  LogStr := StringReplace(LogStr, '<LINE=' + TempStr + '>', '', [rfIgnoreCase]);
+                  LogStr := StringReplace(LogStr, '{LINE=' + TempStr + '}', '', [rfIgnoreCase]);
                 END ELSE BEGIN
                   Debug('Log file error: Line= must be followed  by a single character or "BEFORE", "AFTER" OR "BEFOREANDAFTER" (Log string="' + LogStr + '")');
                   WriteLn(LargeLogFile, 'Log file error in "' + LogStr
@@ -1101,42 +1103,44 @@ VAR
       END;
     END;
 
-    IF Pos('<NUMBER>', UpperCase(LogStr)) > 0 THEN BEGIN
+    IF Pos('{NUMBER}', UpperCase(LogStr)) > 0 THEN BEGIN
       NumberLines := True;
-      LogStr := StringReplace(LogStr, '<NUMBER>', '', [rfIgnoreCase]);
+      LogStr := StringReplace(LogStr, '{NUMBER}', '', [rfIgnoreCase]);
     END;
 
     { Indents }
-    IF Pos('<INDENT=', UpperCase(LogStr)) > 0 THEN BEGIN
-      IndentStr := GetFollowingChars(LogStr, '<INDENT=', '>');
+    IF Pos('{INDENT=', UpperCase(LogStr)) > 0 THEN BEGIN
+      IndentStr := GetFollowingChars(LogStr, '{INDENT=', '}');
       IF NOT TryStrToInt(IndentStr, Indent) THEN BEGIN
         Debug('Log file error: INDENT= must be followed by a number (Log string="' + LogStr + ')"');
         WriteLn(LargeLogFile, 'Log file error in "' + LogStr + '": INDENT= must be followed by a number' + ' (Log string="' + LogStr + '")');
       END;
 
-      LogStr := StringReplace(LogStr, '<INDENT=' + IndentStr + '>', '', [rfIgnoreCase]);
+      LogStr := StringReplace(LogStr, '{INDENT=' + IndentStr + '}', '', [rfIgnoreCase]);
     END;
 
     { The calling unit name - but do not add the default if a substitute is specified. (This is used by the DrawLineInLogFile procedure to show where the line drawing
       originates from).
     }
-    IF Pos('<UNIT=', UpperCase(LogStr)) > 0 THEN BEGIN
-      UnitRef := GetFollowingChars(LogStr, '<UNIT=', '>');
-      LogStr := StringReplace(LogStr, '<UNIT=' + UnitRef + '>', '', [rfIgnoreCase]);
+    IF Pos('{UNIT=', UpperCase(LogStr)) > 0 THEN BEGIN
+      UnitRef := GetFollowingChars(LogStr, '{UNIT=', '}');
+      LogStr := StringReplace(LogStr, '{UNIT=' + UnitRef + '}', '', [rfIgnoreCase]);
     END;
 
     { See if we need to replace the unit with another - used, for instance, where a procedure to draw a line in the log is called, and would otherwise have the wrong
       unit, that is the unit where the line drawing procedure is located, recorded.
     }
-    IF Pos('<UNITSUBSTITUTE=', UpperCase(LogStr)) > 0 THEN BEGIN
-      UnitRef := GetFollowingChars(LogStr, '<UNITSUBSTITUTE=', '>');
-      LogStr := StringReplace(LogStr, '<UNITSUBSTITUTE=' + UnitRef + '>', '', [rfIgnoreCase]);
+    IF Pos('{UNITSUBSTITUTE=', UpperCase(LogStr)) > 0 THEN BEGIN
+      UnitRef := GetFollowingChars(LogStr, '{UNITSUBSTITUTE=', '}');
+      LogStr := StringReplace(LogStr, '{UNITSUBSTITUTE=' + UnitRef + '}', '', [rfIgnoreCase]);
     END;
 
     { Unit name not wanted }
-    IF Pos('<NOUNITREF>', UpperCase(LogStr)) > 0 THEN BEGIN
+    IF Pos('{NOUNITREF}', UpperCase(LogStr)) > 0 THEN BEGIN
       NoUnitRef := True;
-      LogStr := StringReplace(LogStr, '<NOUNITREF>', '', [rfIgnoreCase]);
+      LogStr := StringReplace(LogStr, '{NOUNITREF}', '', [rfIgnoreCase]);
+    END;
+
     END;
 
     { Finally remove any sundry spaces left, from, for example, between angle brackets }
@@ -1485,7 +1489,7 @@ END; { WriteToLogFile }
 PROCEDURE Log(Str : String);
 { For ease of debugging, adds the unit name }
 BEGIN
-  WriteToLogFile(Str + ' <Unit=' + UnitRef + '>');
+  WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
 
 PROCEDURE WriteStringArrayToLogMainProcedure(LocoChip : Integer; TypeOfLogChar : Char; InitStr : String; StringArray : StringArrayType; Indent, WrapNum : Integer;
@@ -1513,10 +1517,9 @@ BEGIN
       BreakFound := True;
       IF DebugStr <> '' THEN BEGIN
         IF NOT SaveBreak THEN
-          Log(LocoChipToStr(LocoChip) + ' ' + TypeOfLogChar + StringOfChar(' ', Indent + 1) + ': ' + DebugStr + ' <NoUnitRef>')
+          Log(LocoChipToStr(LocoChip) + ' ' + TypeOfLogChar + StringOfChar(' ', Indent + 1) + ': ' + DebugStr + ' {NOUNITREF}')
         ELSE BEGIN
-          Log(LocoChipToStr(LocoChip) + ' ' + TypeOfLogChar + StringOfChar(' ', Indent + 1) + ': ' + StringOfChar(' ', 5) + DebugStr
-                                                                                                                     + ' <NoUnitRef>');
+          Log(LocoChipToStr(LocoChip) + ' ' + TypeOfLogChar + StringOfChar(' ', Indent + 1) + ': ' + StringOfChar(' ', 5) + DebugStr + ' {NOUNITREF}');
           SaveBreak := False;
         END;
         DebugStr := '';
@@ -1527,10 +1530,9 @@ BEGIN
     AND (Length(DebugStr) > WrapNum)
     THEN BEGIN
       IF NOT BreakFound THEN
-        Log(LocoChipToStr(LocoChip) + ' ' + TypeOfLogChar + StringOfChar(' ', Indent + 1) + ': ' + StringOfChar(' ', 5) + DebugStr
-                                                                                                                      + ' <NoUnitRef>')
+        Log(LocoChipToStr(LocoChip) + ' ' + TypeOfLogChar + StringOfChar(' ', Indent + 1) + ': ' + StringOfChar(' ', 5) + DebugStr + ' {NOUNITREF}')
       ELSE BEGIN
-        Log(LocoChipToStr(LocoChip) + ' ' + TypeOfLogChar + StringOfChar(' ', Indent + 1) + ': ' + DebugStr + ' <NoUnitRef>');
+        Log(LocoChipToStr(LocoChip) + ' ' + TypeOfLogChar + StringOfChar(' ', Indent + 1) + ': ' + DebugStr + ' {NOUNITREF}');
         SaveBreak := True;
         BreakFound := False;
       END;
@@ -1544,10 +1546,9 @@ BEGIN
   { and tidy up }
   IF DebugStr <> '' THEN BEGIN
     IF NOT BreakFound THEN
-      Log(LocoChipToStr(LocoChip) + ' ' + TypeOfLogChar + StringOfChar(' ', Indent + 1) + ': ' + StringOfChar(' ', 5) + DebugStr
-                                                                                                                      + ' <NoUnitRef>')
+      Log(LocoChipToStr(LocoChip) + ' ' + TypeOfLogChar + StringOfChar(' ', Indent + 1) + ': ' + StringOfChar(' ', 5) + DebugStr + ' {NOUNITREF}')
     ELSE
-      Log(LocoChipToStr(LocoChip) + ' ' + TypeOfLogChar + StringOfChar(' ', Indent + 1) + ': ' + DebugStr + ' <NoUnitRef>');
+      Log(LocoChipToStr(LocoChip) + ' ' + TypeOfLogChar + StringOfChar(' ', Indent + 1) + ': ' + DebugStr + ' {NOUNITREF}');
   END;
 END; { WriteStringArrayToLogMainProcedure }
 
@@ -2557,9 +2558,9 @@ PROCEDURE DrawLineInLogFile(LocoChip : Integer; LogFileCh : Char; LineStr : Stri
 { Draw a line of a given character in the log file }
 BEGIN
   IF LineStr = '-' THEN
-    Log(LocoChipToStr(LocoChip) + ' ' + LogFileCh + ' ' + ' <Line> <UnitSubstitute=' + OriginatingUnitRef + '>')
+    Log(LocoChipToStr(LocoChip) + ' ' + LogFileCh + ' ' + ' {LINE} {UNITSUBSTITUTE=' + OriginatingUnitRef + '}')
   ELSE
-    Log(LocoChipToStr(LocoChip) + ' ' + LogFileCh + ' ' + ' <Line=' + LineStr + '> <UnitSubstitute=' + OriginatingUnitRef + '>');
+    Log(LocoChipToStr(LocoChip) + ' ' + LogFileCh + ' ' + ' {LINE=' + LineStr + '} {UNITSUBSTITUTE=' + OriginatingUnitRef + '}');
 END; { DrawLineInLogFile }
 
 FUNCTION ExtractBufferStopFromString(Str : String): Integer;
@@ -5353,7 +5354,7 @@ BEGIN
 
   { Log the text of the dialogue, converting CRLFs before we write out the string }
   DebugStr := 'MessageDialogueWithDefault: "' + DialogueText + '"';
-  Log('G MessageDialogueWithDefault: "' + DebugStr + '"' + '<Indent=0> <Wrap=ScreenWidth>');
+  Log('G MessageDialogueWithDefault: "' + DebugStr + '"' + '{INDENT=0} {WRAP=SCREENWIDTH}');
 
   { show the dialogue and obtain the result }
   Result := Dialogue.ShowModal;
@@ -5475,7 +5476,7 @@ BEGIN
 
   { Log the text of the dialogue, converting CRLFs before we write out the string }
   DebugStr := 'MessageDialogueWithDefault: "' + DialogueText + '"';
-  Log('G MessageDialogueWithDefault: "' + DebugStr + '"' + '<Indent=0> <Wrap=ScreenWidth>');
+  Log('G MessageDialogueWithDefault: "' + DebugStr + '"' + '{INDENT=0} {WRAP=SCREENWIDTH}');
 
   { show the dialogue and obtain the result }
   Result := Dialogue.ShowModal;
@@ -8552,7 +8553,7 @@ VAR
 
 BEGIN
   TRY
-    Log('G INITIALISING Points <BlankLineBefore>');
+    Log('G INITIALISING Points {BlankLineBefore}');
 
     WITH InitVarsWindow DO BEGIN
       PointsADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
@@ -8696,7 +8697,7 @@ VAR
 
 BEGIN
   TRY
-    Log('G INITIALISING SIGNALS <BlankLineBefore>');
+    Log('G INITIALISING SIGNALS {BlankLineBefore}');
 
     WITH InitVarsWindow DO BEGIN
       SignalsADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='

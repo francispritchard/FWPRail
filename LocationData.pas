@@ -76,7 +76,7 @@ VAR
 PROCEDURE Log(Str : String);
 { For ease of debugging, adds the unit name }
 BEGIN
-  WriteToLogFile(Str + ' <Unit=' + UnitRef + '>');
+  WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
 
 PROCEDURE TLocationDataWindow.LocationDataWindowGridKeyDown(Sender: TObject; VAR Key: Word; Shift: TShiftState);
@@ -943,7 +943,7 @@ BEGIN
                                  ' (' + DisplayTrackCircuitsForLocation(Location) + ')')
                         + ' not inserted: '
                         + ErrorMsg;
-            Log('EG ' + ErrorMsg + ' <Indent=0> <Wrap=ScreenWidth>');
+            Log('EG ' + ErrorMsg + ' {INDENT=0} {WRAP=SCREENWIDTH}');
           END ELSE BEGIN
             ErrorMsg := 'Loco ' + LocoChipToStr(T^.Train_LocoChip)
                         + ', start journey ' + IntToStr(JourneyA) + ': '
@@ -954,7 +954,7 @@ BEGIN
                                  ' (' + DisplayTrackCircuitsForLocation(Location) + ')')
                         + ' not inserted: '
                         + ErrorMsg;
-            Log(T^.Train_LocoChipStr + ' EG ' + ErrorMsg + ' <Indent=0> <Wrap=ScreenWidth>');
+            Log(T^.Train_LocoChipStr + ' EG ' + ErrorMsg + ' {INDENT=0} {WRAP=SCREENWIDTH}');
           END;
         END ELSE BEGIN
           IF T = NIL THEN BEGIN
@@ -2198,7 +2198,7 @@ BEGIN
                 DebugStr := DebugStr + IntToStr(PossibleLocationsArray[PossibleLocationsCount].PossibleLocation_Weighting)
                             + '=' + LocationToStr(PossibleLocationsArray[PossibleLocationsCount].PossibleLocation_PlatformOrFiddleyardLocation, ShortStringType) + ' ';
 
-            Log(Train_LocoChipStr + ' D ' + DisplayJourneyNumber(Journey) + DebugStr + ' <Wrap=ScreenWidth>');
+            Log(Train_LocoChipStr + ' D ' + DisplayJourneyNumber(Journey) + DebugStr + ' {WRAP=SCREENWIDTH}');
           END;
 
           { Now other tests }
@@ -2232,7 +2232,7 @@ BEGIN
                   IF NOT OK THEN
                     Log(Train_LocoChipStr + ' D ' + DisplayJourneyNumber(Journey)
                                           + 'CheckJourney failed even with emergency routeing: ' + ErrorMsg);
-                    Log(Train_LocoChipStr + ' D ' + LinesNotAvailableStr + ' <Indent=9> <Wrap=ScreenWidth>');
+                    Log(Train_LocoChipStr + ' D ' + LinesNotAvailableStr + ' {INDENT=9} {WRAP=SCREENWIDTH}');
                 END;
 
                 IF OK THEN BEGIN
@@ -2656,10 +2656,10 @@ VAR
 BEGIN
   DoCheckForUnexpectedData(UnitRef, 'SetUpAllLocationOccupationsAbInitio 1');
   ClearAllLocationOccupations;
-  Log('D ADDING STATIONARY OCCUPATIONS TO LOCATION OCCUPATIONS ARRAY  <BlankLineBefore>');
+  Log('D ADDING STATIONARY OCCUPATIONS TO LOCATION OCCUPATIONS ARRAY {BLANKLINEBEFORE}');
   AddStationaryOccupationsToLocationOccupations(OK);
   IF OK THEN BEGIN
-    Log('D ADDING NON-STATIONARY OCCUPATIONS TO LOCATION OCCUPATIONS ARRAY <BlankLineBefore>');
+    Log('D ADDING NON-STATIONARY OCCUPATIONS TO LOCATION OCCUPATIONS ARRAY {BLANKLINEBEFORE}');
     T := TrainList;
     WHILE T <> NIL DO BEGIN
       WITH T^ DO
@@ -2708,7 +2708,7 @@ VAR
   TempTime : TDateTime;
 
 BEGIN
-  Log('D FINDING PENDING LOCATIONS:  <BlankLineBefore>');
+  Log('D FINDING PENDING LOCATIONS: {BLANKLINEBEFORE}');
   T := TrainList;
   WHILE T <> NIL DO BEGIN
     WITH T^ DO BEGIN

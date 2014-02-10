@@ -166,7 +166,7 @@ VAR
 PROCEDURE Log(Str : String);
 { For ease of debugging, adds the unit name }
 BEGIN
-  WriteToLogFile(Str + ' <Unit=' + UnitRef + '>');
+  WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
 
 PROCEDURE Forbid;
@@ -1476,7 +1476,7 @@ BEGIN
                 { No signal or buffer stop found - should only reach here if the line is out of use ahead }
                 IF NOT Signals[S].Signal_FindNextSignalBufferStopMsgWritten THEN BEGIN
                   Log(LocoChipStr + ' SG Find next signal/bufferstop to S=' + IntToStr(S) + ' failed:');
-                  Log(LocoChipStr + ' S ' + LinesNotAvailableStr + ' <Wrap=ScreenWidth>');
+                  Log(LocoChipStr + ' S ' + LinesNotAvailableStr + ' {WRAP=SCREENWIDTH}');
                   Signals[S].Signal_FindNextSignalBufferStopMsgWritten := True;
                 END;
                 OK := False;

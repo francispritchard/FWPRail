@@ -53,7 +53,7 @@ VAR
 PROCEDURE Log(Str : String);
 { For ease of debugging, adds the unit name }
 BEGIN
-  WriteToLogFile(Str + ' <Unit=' + UnitRef + '>');
+  WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
 
 PROCEDURE WriteRouteInfoToLog(LocoChip : Integer; TypeOfLogChar : Char; Str1, Str2 : String);
@@ -66,9 +66,7 @@ BEGIN
     Log(LocoChipToStr(LocoChip) + ' ' + TypeOfLogChar + ' ' + Str1);
     SaveRouteInfoStr := Str1;
   END;
-  { Calls WriteToLogFile directly to avoid having the unit name at the end of the log string }
-//  WriteToLogFile(NoUnitRef, [0, TypeOfLogChar, StringOfChar(' ', 2) + Str2]);
-  Log(TypeOfLogChar + ' ' +  StringOfChar(' ', 2) + Str2 + ' <NoUnitRef>');
+  Log(TypeOfLogChar + ' ' +  StringOfChar(' ', 2) + Str2 + ' {NOUNITREF}');
 END; { WriteRouteInfoToLog }
 
 PROCEDURE ProcessApproachLockedSignals(Route : Integer);
@@ -297,7 +295,7 @@ BEGIN
                                              + ' [' + DescribeJourneyAndRoute([R, SubRouteCount]) + ']'
                                              + IfThen(Routes_SubRouteStates[R, SubRouteCount] = SubRouteSettingUpStalled,
                                                       Routes_RoutesSettingUpStalledMsgArray[R])
-                                             + ' <NoUnitRef>');
+                                             + ' {NOUNITREF}');
     END; {FOR}
   END; {FOR}
 END; { DescribeRouteingStatus }
@@ -792,7 +790,7 @@ BEGIN
       IF OK THEN BEGIN
         { Success - the subroute is set up - but note how far we've got }
         Log(LocoChipStr + ' R Successfully set up ' + DescribeJourneyAndRoute([Route, SettingSubRoute]));
-        Log(LocoChipStr + ' R ' + TCDebugStr + ' <Wrap=190>');
+        Log(LocoChipStr + ' R ' + TCDebugStr + ' {WRAP=190}');
 
         Routes_SubRouteStates[Route, SettingSubRoute] := SubRouteSetUp;
 

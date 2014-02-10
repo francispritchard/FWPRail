@@ -95,7 +95,7 @@ VAR
 PROCEDURE Log(Str : String);
 { For ease of debugging, adds the unit name }
 BEGIN
-  WriteToLogFile(Str + ' <Unit=' + UnitRef + '>');
+  WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
 
 PROCEDURE ReadInRouteingExceptionsFromDatabase;
@@ -114,7 +114,7 @@ VAR
 
 BEGIN
   TRY
-    Log('G INITIALISING ROUTEING EXCEPTIONS <BlankLineBefore>');
+    Log('G INITIALISING ROUTEING EXCEPTIONS {BLANKLINEBEFORE}');
     
     WITH CreateRouteDisplayColoursWindow DO BEGIN
       RouteingExceptionDataADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='

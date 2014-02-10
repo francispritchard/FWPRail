@@ -65,7 +65,7 @@ VAR
 PROCEDURE Log(Str : String);
 { For ease of debugging, adds the unit name }
 BEGIN
-  WriteToLogFile(Str + ' <Unit=' + UnitRef + '>');
+  WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
 
 PROCEDURE LookOutForStrayingTrains;
@@ -103,7 +103,7 @@ VAR
                    + ' is marked as being occupied by TC=' + IntToStr(TC) + '''s'
                    + ' previous loco ' + LocoChipToStr(TrackCircuits[AdjoiningTCUp].TC_LocoChip)
                    + ' which is travelling in the up direction'
-                   + ' <Wrap=ScreenWidth>');
+                   + ' {WRAP=SCREENWIDTH}');
           END;
         END;
       END;
@@ -122,7 +122,7 @@ VAR
                      + ' but for the fact that adjoining up TC=' + IntToStr(AdjoiningTCUp)
                      + ' is marked as being an initial track circuit of loco '
                      + LocoChipToStr(TrackCircuits[AdjoiningTCUp].TC_LocoChip)
-                     + ' <Wrap=ScreenWidth>');
+                     + ' {WRAP=SCREENWIDTH}');
             END ELSE
               IF (TrackCircuits[AdjoiningTCUp].TC_OccupationState = TCPermanentFeedbackOccupation)
               OR (TrackCircuits[AdjoiningTCUp].TC_OccupationState = TCPermanentSystemOccupation)
@@ -134,7 +134,7 @@ VAR
                 Log('X TC=' + IntToStr(TC) + ' would have been considered anonymously occupied for ' + IntToStr(TCOccupationTimeInMilliSeconds) + ' ms'
                        + ' but for the fact that adjoining up TC=' + IntToStr(AdjoiningTCUp) + ' is marked as being permanently occupied by loco '
                        + LocoChipToStr(TrackCircuits[AdjoiningTCUp].TC_LocoChip)
-                       + ' <Wrap=ScreenWidth>');
+                       + ' {WRAP=SCREENWIDTH}');
               END;
             Inc(I);
           END;
@@ -155,7 +155,7 @@ VAR
               Log('X TC=' + IntToStr(TC) + ' would have been considered anonymously occupied for ' + IntToStr(TCOccupationTimeInMilliSeconds) + ' ms'
                      + ' except that adjoining down TC=' + IntToStr(AdjoiningTCDown) + ' is marked as being occupied by TC=' + IntToStr(TC) + '''s'
                      + ' previous loco ' + LocoChipToStr(TrackCircuits[AdjoiningTCDown].TC_LocoChip) + ' which is travelling in the down direction'
-                     + ' <Wrap=ScreenWidth>');
+                     + ' {WRAP=SCREENWIDTH}');
             END;
           END;
         END;
@@ -172,7 +172,7 @@ VAR
                 Log('X TC=' + IntToStr(TC) + ' would have been considered anonymously occupied for ' + IntToStr(TCOccupationTimeInMilliSeconds) + ' ms'
                        + ' but for the fact that adjoining down TC=' + IntToStr(AdjoiningTCDown) + ' is marked as being an initial track circuit of loco '
                        + LocoChipToStr(TrackCircuits[AdjoiningTCDown].TC_LocoChip)
-                       + ' <Wrap=ScreenWidth>');
+                       + ' {WRAP=SCREENWIDTH}');
               END ELSE
                 IF (TrackCircuits[AdjoiningTCDown].TC_OccupationState = TCPermanentFeedbackOccupation)
                 OR (TrackCircuits[AdjoiningTCDown].TC_OccupationState = TCPermanentSystemOccupation)
@@ -184,7 +184,7 @@ VAR
                   Log('X TC=' + IntToStr(TC) + ' would have been considered anonymously occupied for ' + IntToStr(TCOccupationTimeInMilliSeconds) + ' ms'
                          + ' but for the fact that adjoining down TC=' + IntToStr(AdjoiningTCDown) + ' is marked as being permanently occupied by loco '
                          + LocoChipToStr(TrackCircuits[AdjoiningTCDown].TC_LocoChip)
-                         + ' <Wrap=ScreenWidth>');
+                         + ' {WRAP=SCREENWIDTH}');
                 END;
               Inc(I);
             END;
@@ -420,7 +420,7 @@ BEGIN
           END;
         END;
         IF DebugStr <> '' THEN
-          Log(Train_LocoChipStr + ' T Track circuits released=' + Trim(DebugStr) + ' <Indent=0> <Wrap=ScreenWidth>');
+          Log(Train_LocoChipStr + ' T Track circuits released=' + Trim(DebugStr) + ' {INDENT=0} {WRAP=SCREENWIDTH}');
       END;
     END;
   END; {WITH}
@@ -1288,7 +1288,7 @@ BEGIN
 
         { and write out the data in a comprehensible way }
         IF Train_SpeedString <> DebugStr THEN BEGIN
-          Log(Train_LocoChipStr + ' L ' + DebugStr + ' <Indent=0> <Wrap=ScreenWidth>');
+          Log(Train_LocoChipStr + ' L ' + DebugStr + ' {INDENT=0} {WRAP=SCREENWIDTH}');
           Train_SpeedString := DebugStr;
           IF StopStr <> '' THEN
             Log(Train_LocoChipStr + ' L ' + StopStr);

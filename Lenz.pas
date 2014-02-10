@@ -214,7 +214,7 @@ VAR
 PROCEDURE Log(Str : String);
 { For ease of debugging, adds the unit name }
 BEGIN
-  WriteToLogFile(Str + ' <Unit=' + UnitRef + '>');
+  WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
 
 FUNCTION GetLocoChipHighByte(LocoChip : Word) : Byte;
@@ -1602,7 +1602,7 @@ BEGIN
   T := GetTrainRecord(LocoChip);
   IF T <> NIL THEN BEGIN
     WITH T^ DO BEGIN
-      Log(LocoChipToStr(LocoChip) + ' L Requesting loco details <BlankLineBefore>');
+      Log(LocoChipToStr(LocoChip) + ' L Requesting loco details {BLANKLINEBEFORE}');
 
       WriteArray[0] := 227;
       WriteArray[1] := 0;
@@ -1761,7 +1761,7 @@ VAR
 BEGIN
   { Ask for details }
   DecoderNumString := LocoChipToStr(DecoderNum);
-  Log('L L=' + DecoderNumString + ': requesting function decoder details <BlankLineBefore>');
+  Log('L L=' + DecoderNumString + ': requesting function decoder details {BLANKLINEBEFORE}');
   WriteArray[0] := 227;
   WriteArray[1] := 0;
   WriteArray[2] := GetLocoChipHighByte(DecoderNum);
@@ -1891,7 +1891,7 @@ VAR
   WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
 
 BEGIN
-  Log('G Requesting computer interface software version <BlankLineBefore>');
+  Log('G Requesting computer interface software version {BLANKLINEBEFORE}');
   WriteArray[0] := 240;
   DataIO('G', WriteArray, ComputerInterfaceSoftwareReply, OK);
 END; { ReadComputerInterfaceSoftwareVersion }
@@ -1902,7 +1902,7 @@ VAR
   WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
 
 BEGIN
-  Log('G Requesting command station software version <BlankLineBefore>');
+  Log('G Requesting command station software version {BLANKLINEBEFORE}');
   WriteArray[0] := 33;
   WriteArray[1] := 33;
   DataIO('G', WriteArray, CommandStationSoftwareReply, OK);
@@ -1921,14 +1921,14 @@ BEGIN
     IF CV = 256 THEN
       CV := 0;
 
-    Log('G Initialising request for CV from loco on programming track - direct mode CV read request <BlankLineBefore>');
+    Log('G Initialising request for CV from loco on programming track - direct mode CV read request {BLANKLINEBEFORE}');
     WriteArray[0] := 34;
     WriteArray[1] := 21;
     WriteArray[2] := CV;
 
     DataIO(WriteArray);
 
-    Log('G Finalising request for CV from loco on programming track - requesting result from programming mode <BlankLineBefore>');
+    Log('G Finalising request for CV from loco on programming track - requesting result from programming mode {BLANKLINEBEFORE}');
     WriteArray[0] := 33;
     WriteArray[1] := 16;
     WriteArray[2] := 49;
@@ -2356,7 +2356,7 @@ BEGIN
 
         DebugStr := DebugStr + ' [force read]';
 
-        Log(LocoChipToStr(LocoChip) + ' L ' + DebugStr + '  <BlankLineBefore>');
+        Log(LocoChipToStr(LocoChip) + ' L ' + DebugStr + '  {BLANKLINEBEFORE}');
       END;
     END;
   END;
@@ -2484,7 +2484,7 @@ BEGIN
               DebugStr := DebugStr + ' off';
           END;
         END;
-      Log(LocoChipToStr(LocoChip) + ' L ' + DebugStr + ' <BlankLineBefore>');
+      Log(LocoChipToStr(LocoChip) + ' L ' + DebugStr + ' {BLANKLINEBEFORE}');
     END;
   END;
 END; { SetSingleLocoFunction }
@@ -2498,7 +2498,7 @@ VAR
 
 BEGIN
   IDByte := 33; { for functions 5 - 8 }
-  Log(LocoChipToStr(LocoChip) + ' S  Setting S=' + IntToStr(SignalNum) + ' (' + DecoderNumString + ')' + ' to ' + AspectString + ' <BlankLineBefore>');
+  Log(LocoChipToStr(LocoChip) + ' S  Setting S=' + IntToStr(SignalNum) + ' (' + DecoderNumString + ')' + ' to ' + AspectString + ' {BLANKLINEBEFORE}');
   { Now write the data out }
   WriteArray[0] := 228;
   WriteArray[1] := IDByte;
@@ -2528,7 +2528,7 @@ VAR
   WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
 
 BEGIN
-  Log('G Requesting system status <BlankLineBefore>');
+  Log('G Requesting system status');
   WriteArray[0] := 33;
   WriteArray[1] := 36;
   DataIO('G', WriteArray, ReadArray, SystemStatusReply, CheckTimeOuts, TimedOut, OK);
@@ -2599,7 +2599,7 @@ VAR
 
 BEGIN
   IF SystemOnline THEN BEGIN
-    Log('G Watchdog timer: requesting system status at ' + DescribeActualDateAndTime + ' <BLANKLINEBEFORE>');
+    Log('G Watchdog timer: requesting system status at ' + DescribeActualDateAndTime + ' {BLANKLINEBEFORE}');
     ObtainSystemStatus(SystemStatus, Timedout, NOT StopTimer);
     IF Timedout THEN
       Log('X Watchdog timer failed to obtain a response at ' + DescribeActualDateAndTime);
@@ -2784,7 +2784,7 @@ BEGIN
 
     { set bit 3 off to deselect }
     WriteArray[2] := 128; {1000 0000}
-    Log('E Writing out data to EMERGENCY DESELECT ' + 'P=' + IntToStr(P) + ' [Lenz=' + IntToStr(Points[P].Point_LenzNum - 1) + '] <BlankLineBefore>');
+    Log('E Writing out data to EMERGENCY DESELECT ' + 'P=' + IntToStr(P) + ' [Lenz=' + IntToStr(Points[P].Point_LenzNum - 1) + '] {BLANKLINEBEFORE}');
     DataIO('P', WriteArray, Acknowledgment, OK);
   END; {WITH}
 END; { EmergencyDeselectPoint }
@@ -2804,7 +2804,7 @@ BEGIN
 
     { set bit 3 off to deselect }
     WriteArray[2] := 128; {1000 0000}
-    Log('E Writing out data to EMERGENCY DESELECT ' + 'S=' + IntToStr(S) + ' [accessoryaddress=' + IntToStr(Signals[S].Signal_AccessoryAddress - 1) + '] <BlankLineBefore>');
+    Log('E Writing out data to EMERGENCY DESELECT ' + 'S=' + IntToStr(S) + ' [accessoryaddress=' + IntToStr(Signals[S].Signal_AccessoryAddress - 1) + '] {BLANKLINEBEFORE}');
     DataIO('E', WriteArray, Acknowledgment, OK);
   END; {WITH}
 END; { EmergencyDeselectPoint }
@@ -2850,7 +2850,7 @@ VAR
       DebugStr := DebugStr + 'on'
     ELSE
       DebugStr := DebugStr + 'off';
-    DebugStr := DebugStr +  ' <BlankLineBefore>';
+    DebugStr := DebugStr +  ' {BLANKLINEBEFORE}';
 
     { Bit 0 is the direction }
     IF OnOrOff = SignalOff THEN
@@ -2881,7 +2881,7 @@ VAR
     { set bit 3 off to deselect }
     WriteArray[2] := 128; {1000 0000}
     Log('S Writing out data to deselect semaphore S=' + IntToStr(S)
-           + ' (accessory address ' + IntToStr(AccessoryAddress) + '] at ' + TimeToHMSZStr(Time) + '  <BlankLineBefore>');
+           + ' (accessory address ' + IntToStr(AccessoryAddress) + '] at ' + TimeToHMSZStr(Time) + '  {BLANKLINEBEFORE}');
     DataIO('S', WriteArray, Acknowledgment, OK);
 
     { Now turn off the burn-out checking }
@@ -2917,7 +2917,7 @@ BEGIN
 
   { set bit 3 off to deselect }
   WriteArray[2] := 128; {1000 0000}
-  Log('P Writing out data to deselect P=' + IntToStr(P) + ' [Lenz' + IntToStr(Points[P].Point_LenzNum) + '] at ' + TimeToHMSZStr(Time) + ' <BlankLineBefore>');
+  Log('P Writing out data to deselect P=' + IntToStr(P) + ' [Lenz' + IntToStr(Points[P].Point_LenzNum) + '] at ' + TimeToHMSZStr(Time) + ' {BLANKLINEBEFORE}');
   DataIO('P', WriteArray, PointAcknowledgment, OK);
 
   { Now turn off the burn-out checking }
@@ -2964,7 +2964,7 @@ VAR
       DebugStr := DebugStr + 'straight'
     ELSE
       DebugStr := DebugStr + 'diverging';
-    DebugStr := DebugStr + ' <BlankLineBefore>';
+    DebugStr := DebugStr + ' {BLANKLINEBEFORE}';
 
     { If the wiring is reversed, the point is switching the opposite way to the way we think it is }
     IF Points[P].Point_WiringReversedFlag THEN BEGIN
@@ -3005,7 +3005,7 @@ VAR
     { set bit 3 off to deselect }
     WriteArray[2] := 128; {1000 0000}
     Log(LocoChipToStr(LocoChip) + ' P Writing out data (' + IntToStr(Count) + ') to deselect P=' + IntToStr(P)
-                                + ' [Lenz=' + IntToStr(Points[P].Point_LenzNum) + '] at ' + TimeToHMSZStr(Time) + ' <BlankLineBefore>');
+                                + ' [Lenz=' + IntToStr(Points[P].Point_LenzNum) + '] at ' + TimeToHMSZStr(Time) + ' {BLANKLINEBEFORE}');
     DataIO('P', WriteArray, PointAcknowledgment, OK);
 
     { Now turn off the burn-out checking }
@@ -3059,7 +3059,7 @@ VAR
   WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
 
 BEGIN
-  Log(LocoChipToStr(LocoChip1) + ' L Requesting double header for locos ' + IntToStr(LocoChip1) + ' +' + IntToStr(LocoChip2) + ' <BlankLineBefore>');
+  Log(LocoChipToStr(LocoChip1) + ' L Requesting double header for locos ' + IntToStr(LocoChip1) + ' +' + IntToStr(LocoChip2) + ' {BLANKLINEBEFORE}');
   WriteArray[0] := 229;
   WriteArray[1] := 67;
   WriteArray[2] := GetLocoChipHighByte(LocoChip1);
@@ -3090,7 +3090,7 @@ VAR
   WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
 
 BEGIN
-  Log(LocoChipToStr(LocoChip) + ' L Requesting double header for ' + IntToStr(LocoChip) + ' be dissolved <BlankLineBefore>');
+  Log(LocoChipToStr(LocoChip) + ' L Requesting double header for ' + IntToStr(LocoChip) + ' be dissolved {BLANKLINEBEFORE}');
   WriteArray[0] := 229;
   WriteArray[1] := 67;
   WriteArray[2] := GetLocoChipHighByte(LocoChip);
@@ -3115,7 +3115,7 @@ VAR
   WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
 
 BEGIN
-  Log('E Requesting stop operations <BlankLineBefore>');
+  Log('E Requesting stop operations {BLANKLINEBEFORE}');
   WriteArray[0] := 33;
   WriteArray[1] := 128;
 
@@ -3128,7 +3128,7 @@ VAR
   WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
 
 BEGIN
-  Log('E Requesting resume operations  <BlankLineBefore>');
+  Log('E Requesting resume operations  {BLANKLINEBEFORE}');
   WriteArray[0] := 33;
   WriteArray[1] := 129;
 
@@ -3141,7 +3141,7 @@ VAR
   WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
 
 BEGIN
-  Log('L Requesting stop all locomotives <BlankLineBefore>');
+  Log('L Requesting stop all locomotives {BLANKLINEBEFORE}');
   WriteArray[0] := 128;
 
   DataIO('L', WriteArray, EmergencyStopReply, OK);
@@ -3153,7 +3153,7 @@ VAR
   WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
 
 BEGIN
-  Log('L Requesting stop loco ' + LocoChipToStr(LocoChip) + ' <BlankLineBefore>');
+  Log('L Requesting stop loco ' + LocoChipToStr(LocoChip) + ' {BLANKLINEBEFORE}');
   WriteArray[0] := 146;
   WriteArray[1] := GetLocoChipHighByte(LocoChip);
   WriteArray[2] := GetLocoChipLowByte(LocoChip);
@@ -3281,10 +3281,10 @@ VAR
 BEGIN
   IF SystemOnline THEN BEGIN
     FOR UnitNum := FirstFeedbackUnit TO LastFeedbackUnit DO BEGIN
-      Log('T Requesting feedback data for unit ' + IntToStr(UnitNum + 1) + ' <BlankLineBefore>');
+      Log('T Requesting feedback data for unit ' + IntToStr(UnitNum + 1) + ' {BLANKLINEBEFORE}');
       ReadInFeedbackData(UnitNum, OK);
       IF NOT OK THEN BEGIN
-        Log('T Re-requesting feedback data for unit ' + IntToStr(UnitNum + 1) + ' <BlankLineBefore>');
+        Log('T Re-requesting feedback data for unit ' + IntToStr(UnitNum + 1) + ' {BLANKLINEBEFORE}');
         ReadInFeedbackData(UnitNum, OK);
         IF NOT OK THEN BEGIN
           Log('T No feedback from unit ' + IntToStr(UnitNum + 1));

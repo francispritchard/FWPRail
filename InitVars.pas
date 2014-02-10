@@ -1507,7 +1507,7 @@ CONST
 PROCEDURE Log(Str : String);
 { For ease of debugging, adds the unit name }
 BEGIN
-  WriteToLogFile(Str + ' <Unit=' + UnitRef + '>');
+  WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
 
 FUNCTION DescribeActualDateAndTime : String;
@@ -1575,7 +1575,7 @@ VAR
 
 BEGIN
   TRY
-    Log('G INITIALISING TRACK CIRCUITS <BlankLineBefore>');
+    Log('G INITIALISING TRACK CIRCUITS {BLANKLINEBEFORE}');
 
     WITH InitVarsWindow DO BEGIN
       TrackCircuitDataADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
@@ -1753,7 +1753,7 @@ VAR
 
 BEGIN
   TRY
-    Log('G INITIALISING AREAS <BlankLineBefore>');
+    Log('G INITIALISING AREAS {BLANKLINEBEFORE}');
 
     WITH InitVarsWindow DO BEGIN
       AreasADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
@@ -2000,7 +2000,7 @@ VAR
 
 BEGIN
   TRY
-    Log('G INITIALISING LOCATIONS <BlankLineBefore>');
+    Log('G INITIALISING LOCATIONS {BLANKLINEBEFORE}');
 
     WITH InitVarsWindow DO BEGIN
       LocationsADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
@@ -2840,7 +2840,7 @@ VAR
 
 BEGIN
   TRY
-    Log('G INITIALISING LINES <BlankLineBefore>');
+    Log('G INITIALISING LINES {BLANKLINEBEFORE}');
 
     WITH InitVarsWindow DO BEGIN
       LineDataADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
@@ -4042,7 +4042,7 @@ VAR
 
 BEGIN
   TRY
-    Log('G READ IN SIGNAL DATA FROM DATABASE  <BlankLineBefore>');
+    Log('G READ IN SIGNAL DATA FROM DATABASE  {BLANKLINEBEFORE}');
 
     WITH InitVarsWindow DO BEGIN
       SetLength(Signals, 0);
@@ -5088,7 +5088,7 @@ VAR
 
 BEGIN
   TRY
-    Log('G INITIALISING POINTS <BlankLineBefore>');
+    Log('G INITIALISING POINTS {BLANKLINEBEFORE}');
 
     WITH InitVarsWindow DO BEGIN
       PointsADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
@@ -5411,7 +5411,7 @@ VAR
 
 BEGIN
   TRY
-    Log('G INITIALISING PLATFORMS <BlankLineBefore>');
+    Log('G INITIALISING PLATFORMS {BLANKLINEBEFORE}');
 
     WITH InitVarsWindow DO BEGIN
       PlatformDataADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
@@ -5663,7 +5663,7 @@ VAR
 
 BEGIN
   TRY
-    Log('G INITIALISING FEEDBACK UNIT DATA <BlankLineBefore>');
+    Log('G INITIALISING FEEDBACK UNIT DATA {BLANKLINEBEFORE}');
 
     WITH InitVarsWindow DO BEGIN
       FeedbackUnitDataADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
