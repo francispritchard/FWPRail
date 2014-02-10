@@ -868,6 +868,72 @@ BEGIN
               LenzWindow.LenzWatchDogTimer.Interval := 60000; { default is one minute }
             END;
 
+            { Write out the debugging string and translate it into hex }
+            DebugStr := DebugStr + ' ';
+            FOR I := 0 TO CommandLen DO
+              DebugStr := DebugStr + IntToStr(ReadArray[I]) + '-';
+            DebugStr := DebugStr + IntToStr(ReadArray[CommandLen + 1]);
+
+            { Now the hex }
+            DebugStr := DebugStr + ' [';
+            FOR I := 0 TO CommandLen DO
+              DebugStr := DebugStr + IntToHex(ReadArray[I], 2) + '-';
+            DebugStr := DebugStr + IntToHex(ReadArray[CommandLen + 1], 2);
+            DebugStr := DebugStr + ']';
+
+            { Add the appropriate Type Of Log char }
+            CASE ReadArray[0] OF
+              1..2:
+                CASE ExpectedReply OF
+                  LocoAcknowledgment:
+                    TypeOfLogChar := 'L';
+                  PointAcknowledgment:
+                    TypeOfLogChar := 'P';
+                  SignalAcknowledgment:
+                    TypeOfLogChar := 'S';
+                ELSE
+                  TypeOfLogChar := 'G';
+                END; {CASE}
+              66..78:
+                TypeOfLogChar := 'T'; { trackcircuit }
+              198..230:
+                TypeOfLogChar := 'L'; { loco }
+            ELSE
+              TypeOfLogChar := 'G'; { general }
+            END; {CASE}
+
+            IF ResponseOrBroadcast = Response THEN
+              Log(TypeOfLogChar + ' ' + StringOfChar(' ', 104) + 'Lenz response: ' + DebugStr)
+            ELSE
+              IF ResponseOrBroadcast = Broadcast THEN
+                Log('G ' + StringOfChar(' ', 104) + 'Lenz broadcast: ' + DebugStr + ' {BLANKLINEBEFORE}');
+
+            { Write out bytes as bits if run-time parameter Y is set }
+            IF ShowByteParam <> '' THEN BEGIN
+              IF ShowByteParam = 'ALL' THEN BEGIN
+                { Write all the bytes as bits }
+                DebugStr := '';
+                FOR I := 1 TO (CommandLen + 1) DO
+                  DebugStr := DebugStr + '[' + DoBitPattern(ReadArray[I]) + '] ';
+                Log('G ' + StringOfChar(' ', 64) + 'All bytes: ' + DebugStr); { 64 shouldn't be a magic number *** }
+              END ELSE
+                IF (StrToInt(ShowByteParam) >= 0)
+                AND (StrToInt(ShowByteParam) <= 14)
+                THEN BEGIN
+                  { Write a single byte as bits }
+                  IF StrToInt(ShowByteParam) > (CommandLen + 1) THEN
+                    DebugStr := '---- ----'
+                  ELSE
+                    DebugStr := DoBitPattern(ReadArray[StrToInt(ShowByteParam)]);
+
+                  IF ResponseOrBroadcast = Response THEN
+                    Log('G *** Response ***' + StringOfChar(' ', 48) + 'Byte ' + ShowByteParam + ': [' + DebugStr + ']')
+                  ELSE
+                    IF ResponseOrBroadcast = Broadcast THEN
+                      Log('G *** Broadcast ***' + StringOfChar(' ', 47) + 'Byte ' + ShowByteParam + ': [' + DebugStr + ']');
+                END;
+            END;
+
             { Examine the first byte returned to identify it, and see if it is what was expected }
             CASE ReadArray[0] OF
               1:
@@ -933,7 +999,7 @@ BEGIN
                       Log('T Requested feedback for unit ' + IntToStr(ReadArray[1] + 1) + ' has arrived');
                     END ELSE BEGIN
                       UnrequestedDataFound := True;
-                      Log('T Unrequested feedback has arrived <BlankLineBefore>');
+                      Log('T Unrequested feedback has arrived');
                       { see who it's from, etc. }
                     END;
                     GetFeedbackReply(ReadArray);
@@ -944,7 +1010,7 @@ BEGIN
                     ExpectedDataReceived := True
                   ELSE BEGIN
                     UnrequestedDataFound := True;
-                    Log('T Unrequested feedback has arrived <BlankLineBefore>');
+                    Log('T Unrequested feedback has arrived');
                   END;
                   { see who it's from, etc. }
                   GetFeedbackReply(ReadArray);
@@ -955,7 +1021,7 @@ BEGIN
                     ExpectedDataReceived := True
                   ELSE BEGIN
                     UnrequestedDataFound := True;
-                    Log('T Unrequested feedback has arrived <BlankLineBefore>');
+                    Log('T Unrequested feedback has arrived');
                   END;
                   GetFeedbackReply(ReadArray);
                 END;
@@ -965,7 +1031,7 @@ BEGIN
                     ExpectedDataReceived := True
                   ELSE BEGIN
                     UnrequestedDataFound := True;
-                    Log('T Unrequested feedback has arrived <BlankLineBefore>');
+                    Log('T Unrequested feedback has arrived');
                     Log('TG -72-');
                     WriteDataToFeedbackWindow('*72*');
                   END;
@@ -977,7 +1043,7 @@ BEGIN
                     ExpectedDataReceived := True
                   ELSE BEGIN
                     UnrequestedDataFound := True;
-                    Log('T Unrequested feedback has arrived <BlankLineBefore>');
+                    Log('T Unrequested feedback has arrived');
                     Log('TG -74-');
                     WriteDataToFeedbackWindow('*74*');
                   END;
@@ -989,7 +1055,7 @@ BEGIN
                     ExpectedDataReceived := True
                   ELSE BEGIN
                     UnrequestedDataFound := True;
-                    Log('T Unrequested feedback has arrived <BlankLineBefore>');
+                    Log('T Unrequested feedback has arrived');
                     Log('TG -76-');
                     WriteDataToFeedbackWindow('*76*');
                   END;
@@ -1001,7 +1067,7 @@ BEGIN
                     ExpectedDataReceived := True
                   ELSE BEGIN
                     UnrequestedDataFound := True;
-                    Log('T Unrequested feedback has arrived <BlankLineBefore>');
+                    Log('T Unrequested feedback has arrived');
                     Log('TG -78-');
                     WriteDataToFeedbackWindow('*78*');
                   END;
@@ -1019,7 +1085,7 @@ BEGIN
                         ReadOut('ShortCircuit');
                       SystemStatus.EmergencyOff := True;
                       ErrorMsg := '*** power off ***';
-                      Log('EG '+ ErrorMsg + ' <BlankLineBefore>');
+                      Log('EG '+ ErrorMsg + ' {BLANKLINEBEFORE}');
                       WriteDataToFeedbackWindow(ErrorMsg);
                     END;
                   1:
@@ -1030,7 +1096,7 @@ BEGIN
                       SystemStatus.EmergencyOff := False;
                       SystemStatus.EmergencyStop := False;
                       ErrorMsg := '*** power on ***';
-                      Log('EG '+ ErrorMsg + ' <BlankLineBefore>');
+                      Log('EG '+ ErrorMsg + ' {BLANKLINEBEFORE}');
                       WriteDataToFeedbackWindow(ErrorMsg);
                     END;
                   2:
@@ -1193,7 +1259,7 @@ BEGIN
                   UnrequestedDataFound := True;
                   SystemStatus.EmergencyStop := True;
                   ErrorMsg := '*** emergency stop ***';
-                  Log('EG ' + ErrorMsg + ' <BlankLineBefore>');
+                  Log('EG ' + ErrorMsg + ' {BLANKLINEBEFORE}');
                 END;
               198: { $C6 } { [undocumented] Information returned from double-headed locos }
                 IF ExpectedReply = LocoReply THEN
@@ -1292,71 +1358,6 @@ BEGIN
 
             CheckTimeOut := False;
 
-            { Write out the debugging string and translate it into hex }
-            DebugStr := DebugStr + ' ';
-            FOR I := 0 TO CommandLen DO
-              DebugStr := DebugStr + IntToStr(ReadArray[I]) + '-';
-            DebugStr := DebugStr + IntToStr(ReadArray[CommandLen + 1]);
-
-            { Now the hex }
-            DebugStr := DebugStr + ' [';
-            FOR I := 0 TO CommandLen DO
-              DebugStr := DebugStr + IntToHex(ReadArray[I], 2) + '-';
-            DebugStr := DebugStr + IntToHex(ReadArray[CommandLen + 1], 2);
-            DebugStr := DebugStr + ']';
-
-            { Add the appropriate Type Of Log char }
-            CASE ReadArray[0] OF
-              1..2:
-                CASE ExpectedReply OF
-                  LocoAcknowledgment:
-                    TypeOfLogChar := 'L';
-                  PointAcknowledgment:
-                    TypeOfLogChar := 'P';
-                  SignalAcknowledgment:
-                    TypeOfLogChar := 'S';
-                ELSE
-                  TypeOfLogChar := 'G';
-                END; {CASE}
-              66..78:
-                TypeOfLogChar := 'T'; { trackcircuit }
-              198..230:
-                TypeOfLogChar := 'L'; { loco }
-            ELSE
-              TypeOfLogChar := 'G'; { general }
-            END; {CASE}
-
-            IF ResponseOrBroadcast = Response THEN
-              Log(TypeOfLogChar + ' ' + StringOfChar(' ', 104) + 'Lenz response: ' + DebugStr)
-            ELSE
-              IF ResponseOrBroadcast = Broadcast THEN
-                Log('G ' + StringOfChar(' ', 104) + 'Lenz broadcast: ' + DebugStr);
-
-            { Write out bytes as bits if run-time parameter Y is set }
-            IF ShowByteParam <> '' THEN BEGIN
-              IF ShowByteParam = 'ALL' THEN BEGIN
-                { Write all the bytes as bits }
-                DebugStr := '';
-                FOR I := 1 TO (CommandLen + 1) DO
-                  DebugStr := DebugStr + '[' + DoBitPattern(ReadArray[I]) + '] ';
-                Log('G ' + StringOfChar(' ', 64) + 'All bytes: ' + DebugStr); { 64 shouldn't be a magic number *** }
-              END ELSE
-                IF (StrToInt(ShowByteParam) >= 0)
-                AND (StrToInt(ShowByteParam) <= 14)
-                THEN BEGIN
-                  { Write a single byte as bits }
-                  IF StrToInt(ShowByteParam) > (CommandLen + 1) THEN
-                    DebugStr := '---- ----'
-                  ELSE
-                    DebugStr := DoBitPattern(ReadArray[StrToInt(ShowByteParam)]);
-
-                  IF ResponseOrBroadcast = Response THEN
-                    Log('G *** Response ***' + StringOfChar(' ', 48) + 'Byte ' + ShowByteParam + ': [' + DebugStr + ']')
-                  ELSE
-                    IF ResponseOrBroadcast = Broadcast THEN
-                      Log('G *** Broadcast ***' + StringOfChar(' ', 47) + 'Byte ' + ShowByteParam + ': [' + DebugStr + ']');
-                END;
-            END;
 
             { loop if necessary - not needed if no reply was awaited, or if the reply received was the one that was expected }
           END;
