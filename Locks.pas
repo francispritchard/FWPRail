@@ -1425,7 +1425,8 @@ BEGIN
               Log(LocoChipStr + ' S ' + DebugStr);
             DebugStr := '';
 
-            IF (Signals[S].Signal_IndicatorState = NoIndicatorLit)
+            IF (Signals[S].Signal_Indicator <> NoIndicator)
+            AND (Signals[S].Signal_IndicatorState = NoIndicatorLit)
             { need to see if a signal is approach locked here - if it is, the indicator will not (yet) be set }
             AND NOT Signals[S].Signal_ApproachLocked
             THEN BEGIN
@@ -1480,7 +1481,9 @@ BEGIN
                 OK := False;
               END;
             END ELSE
-              IF Signals[S].Signal_IndicatorState = QueryIndicatorLit THEN BEGIN
+              IF (Signals[S].Signal_Indicator <> NoIndicator)
+              AND (Signals[S].Signal_IndicatorState = QueryIndicatorLit)
+              THEN BEGIN
                 { we need to set a specific route up, not just look for the next signal }
                 IF NOT Signals[S].Signal_FailMsgWritten THEN
                   Log(LocoChipStr + ' S Finding a route for theatre indicator for S=' + IntToStr(S));
@@ -1659,16 +1662,20 @@ BEGIN
                                                               Routes_ApproachControlSignalsWaitingToBeSet[Route]);
         END ELSE BEGIN
           { Either deal with route and theatre setting ... }
-          IF NewIndicatorState <> NoIndicatorLit THEN BEGIN
+          IF (Signals[S].Signal_Indicator <> NoIndicator)
+          AND (NewIndicatorState <> NoIndicatorLit)
+          THEN BEGIN
             IF IndicatorToBeSet THEN
               SetIndicator(LocoChip, S, NewIndicatorState, TempTheatreIndicatorString, Route, user)
             ELSE
               SetIndicator(LocoChip, S, NoIndicatorLit, '', Route, User);
           { ... or with query theatre indicator setting ... }
           END ELSE
-            IF (Signals[S].Signal_IndicatorState = QueryIndicatorLit) THEN BEGIN
+            IF (Signals[S].Signal_Indicator <> NoIndicator)
+            AND (Signals[S].Signal_IndicatorState = QueryIndicatorLit)
+            THEN
               SetIndicator(LocoChip, S, NewIndicatorState, TempTheatreIndicatorString, Route, user)
-            END ELSE BEGIN
+            ELSE BEGIN
               { ... or with signal setting - if no particular aspect selected already, these are the defaults }
               IF Signals[S].Signal_Aspect = RedAspect THEN BEGIN
                 IF (Signals[S].Signal_Type = TwoAspect)
