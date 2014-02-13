@@ -3405,9 +3405,9 @@ BEGIN
     END;
 
     IF OK AND (TCPIPConnected = True) THEN
-      SetSystemOnline('System online as TCPIP Server is running')
+      SetSystemOnline('TCPIP Server is running')
     ELSE
-      SetSystemOffline('System offline as TCPIP Server not running');
+      SetSystemOffline('TCPIP Server not running');
 
 //      { provisionally... }
 //
