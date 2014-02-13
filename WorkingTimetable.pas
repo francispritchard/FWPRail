@@ -100,7 +100,7 @@ END; { Log }
 
 PROCEDURE TWorkingTimetableWindow.WorkingTimetableWindowGridDrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
 { We identify which items we want to be highlighted or marked as invalid by prefixing them with a marker; this is necessary as this routine just draws the data it's given
-  without knowing where that data has come from).
+  without knowing where that data has come from.
 }
 CONST
   CharOffset = 3;
