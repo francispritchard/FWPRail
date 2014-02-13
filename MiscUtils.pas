@@ -993,8 +993,10 @@ VAR
   END; { WriteToEachLogFile }
 
   PROCEDURE RemoveRichEditInstructionsFromLogStr(VAR LogStr : String);
-  { Removes any instructions from the log string and process them }
+  { Removes any instructions in angle brackets from the log string }
   VAR
+    CloseAnglePos : Integer;
+    OpenAnglePos : Integer;
     TempStr : String;
 
   BEGIN
@@ -1006,31 +1008,27 @@ VAR
       LogStr := StringReplace(LogStr, '<COLOR=' + TempStr + '>', '', [rfIgnoreCase]);
     END;
 
-//    IF LogStr <> '' THEN BEGIN
-//      Debug('Unknown parameter "' + LogStr + '" found in log string "' + SaveLogStr + '"');
-//      IF LogFileOpen THEN
-//        WriteLn(LargeLogFile, 'Unknown parameter "' + LogStr + '" found in log string "' + SaveLogStr + '"');
-//    END;
-//
+    { If there is anything else between curly brackets, there's presumably a typo somewhere }
+    OpenAnglePos := Pos('<', LogStr);
+    CloseAnglePos := Pos('>', LogStr);
+    IF (OpenAnglePos > 0) AND (CloseAnglePos > 0) THEN BEGIN
+      Debug('Log file error: invalid command "' + Copy(LogStr, OpenAnglePos, CloseAnglePos - OpenAnglePos + 1) + '" found');
+      WriteLn(LargeLogFile, 'Log file error: invalid command "' + Copy(LogStr, OpenAnglePos, CloseAnglePos - OpenAnglePos + 1) + '" found');
+    END;
+
     { Finally remove any sundry spaces left, from, for example, between angle brackets }
     LogStr := StringReplace(LogStr, '  ', ' ', [rfIgnoreCase]);
     LogStr := StringReplace(LogStr, '  ', ' ', [rfIgnoreCase]);
   END; { RemoveRichEditInstructionsFromLogStr }
 
   PROCEDURE RemoveGeneralInstructionsFromLogStr(VAR LogStr : String);
-  { Removes any instructions (in curly brackets) from the log string and process them }
+  { Removes any instructions in curly brackets from the log string and process them }
   VAR
-    CloseAnglePos : Integer;
-    OpenAnglePos : Integer;
+    CloseCurlyPos : Integer;
+    OpenCurlyPos : Integer;
     TempStr : String;
 
   BEGIN
-    DrawLineInLogFileBefore := False;
-    DrawLineInLogFileOnly := False;
-    DrawLineInLogFileAfter := False;
-    NumberLines := False;
-    BlankLineBefore := False;
-
     { Now interpret the miscellaneous commands - first wrapping }
     IF Pos('{WRAP=', UpperCase(LogStr)) > 0 THEN BEGIN
       { Look for a space or a line end following }
@@ -1050,15 +1048,19 @@ VAR
       END;
     END;
 
+    BlankLineBefore := False;
     IF Pos('{BLANKLINEBEFORE}', UpperCase(LogStr)) > 0 THEN BEGIN
       BlankLineBefore := True;
       LogStr := StringReplace(LogStr, '{BLANKLINEBEFORE}', '', [rfIgnoreCase]);
     END ELSE BEGIN
+      DrawLineInLogFileBefore := False;
+      DrawLineInLogFileOnly := False;
+      DrawLineInLogFileAfter := False;
+
       IF Pos('{LINE}', UpperCase(LogStr)) > 0 THEN BEGIN
-        DrawLineInLogFileOnly := False;
         DrawLineChar := '-';
 
-        { draw the default line drawing character }
+        { Draw the default line drawing character }
         IF NOT LineAfterJustDrawn THEN
           DrawLineInLogFileOnly := True;
 
@@ -1103,6 +1105,7 @@ VAR
       END;
     END;
 
+    NumberLines := False;
     IF Pos('{NUMBER}', UpperCase(LogStr)) > 0 THEN BEGIN
       NumberLines := True;
       LogStr := StringReplace(LogStr, '{NUMBER}', '', [rfIgnoreCase]);
@@ -1141,15 +1144,15 @@ VAR
       LogStr := StringReplace(LogStr, '{NOUNITREF}', '', [rfIgnoreCase]);
     END;
 
-    { If there is anything alese between angle brackets, there's presumably a typo somewhere }
-    OpenAnglePos := Pos('{', LogStr);
-    CloseAnglePos := Pos('}', LogStr);
-    IF (OpenAnglePos > 0) AND (CloseAnglePos > 0) THEN BEGIN
-      Debug('Log file error: invalid command "' + Copy(LogStr, OpenAnglePos, CloseAnglePos - OpenAnglePos + 1) + '" found');
-      WriteLn(LargeLogFile, 'Log file error: invalid command "' + Copy(LogStr, OpenAnglePos, CloseAnglePos - OpenAnglePos + 1) + '" found');
+    { If there is anything else between curly brackets, there's presumably a typo somewhere }
+    OpenCurlyPos := Pos('{', LogStr);
+    CloseCurlyPos := Pos('}', LogStr);
+    IF (OpenCurlyPos > 0) AND (CloseCurlyPos > 0) THEN BEGIN
+      Debug('Log file error: invalid command "' + Copy(LogStr, OpenCurlyPos, CloseCurlyPos - OpenCurlyPos + 1) + '" found');
+      WriteLn(LargeLogFile, 'Log file error: invalid command "' + Copy(LogStr, OpenCurlyPos, CloseCurlyPos - OpenCurlyPos + 1) + '" found');
     END;
 
-    { Finally remove any sundry spaces left, from, for example, between angle brackets }
+    { Finally remove any sundry spaces left, from, for example, between curly brackets }
     LogStr := StringReplace(LogStr, '  ', ' ', [rfIgnoreCase]);
     LogStr := StringReplace(LogStr, '  ', ' ', [rfIgnoreCase]);
   END; { RemoveGeneralInstructionsFromLogStr }
