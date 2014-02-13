@@ -3406,8 +3406,10 @@ BEGIN
 
     IF OK AND (TCPIPConnected = True) THEN
       SetSystemOnline('TCPIP Server is running')
-    ELSE
+    ELSE BEGIN
       SetSystemOffline('TCPIP Server not running');
+      StopLANUSBServer;
+    END;
 
 //      { provisionally... }
 //
