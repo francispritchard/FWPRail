@@ -1369,11 +1369,9 @@ BEGIN
             IF SignalIsLockedByAnyRoute(S, RouteLockingArray) THEN BEGIN
               IF NOT IsElementInIntegerArray(RouteLockingArray, TrackCircuits[ResetTC].TC_LockedForRoute) THEN BEGIN
                 IF NOT User THEN
-                  DebugStr := 'Cannot set S=' + IntToStr(S) + ' ' + SignalPutativeStateStr + ' by TC=' + IntToStr(ResetTC)
-                              + ' as S=' + IntToStr(S) + ' is locked by'
+                  DebugStr := 'Cannot set S=' + IntToStr(S) + ' ' + SignalPutativeStateStr + ' by TC=' + IntToStr(ResetTC) + ' as S=' + IntToStr(S) + ' is locked by'
                 ELSE
-                  DebugStr := 'User cannot set S=' + IntToStr(S) + ' ' + SignalPutativeStateStr + ' by TC=' + IntToStr(ResetTC)
-                              + ' as S=' + IntToStr(S) + ' is locked by';
+                  DebugStr := 'User cannot set S=' + IntToStr(S) + ' ' + SignalPutativeStateStr + ' by TC=' + IntToStr(ResetTC) + ' as S=' + IntToStr(S) + ' is locked by';
                 FOR I := 0 TO High(RouteLockingArray) DO
                   DebugStr := DebugStr + ' R=' + IntToStr(RouteLockingArray[I]);
                 IF TrackCircuits[ResetTC].TC_LockedForRoute <> unknownRoute THEN
