@@ -118,8 +118,7 @@ BEGIN
   END;
 END; { WriteOutSeparatorLine }
 
-PROCEDURE WriteOutStationMonitorsData(XPos, YPos : Integer; Text : String; FontStyle : TFontStyles; FontSize : Integer;
-                                      FontColour : TColour);
+PROCEDURE WriteOutStationMonitorsData(XPos, YPos : Integer; Text : String; FontStyle : TFontStyles; FontSize : Integer; FontColour : TColour);
 { Write out data for the station monitors to the screen and to file to be read in by another program }
 VAR
   Str : String;
