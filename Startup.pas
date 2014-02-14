@@ -226,7 +226,7 @@ BEGIN
              ELSE
                OK := False;
       'O':
-         BEGIN
+         IF Copy(ParamString, 1, 7) = 'OFFLINE' THEN BEGIN
            SystemInitiallySetOffline := True;
            SetSystemOffline('System now offline');
          END;
