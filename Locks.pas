@@ -1286,6 +1286,7 @@ BEGIN
 
   { See whether we've pulling the signal off or not }
   IF Signals[S].Signal_Aspect = RedAspect THEN
+    { this includes semaphore distants that are on }
     SignalPutativeStateStr := 'off';
 
   IF Signals[S].Signal_OutOfUse THEN BEGIN
@@ -1320,15 +1321,12 @@ BEGIN
           Log(LocoChipStr + ' R ' + DebugStr);
         END ELSE BEGIN
           IF NOT User THEN
-            Log(LocoChipStr + ' RG Cannot set S=' + IntToStr(S) + ' ' + SignalPutativeStateStr
-                            + ' as it is locked by R=' + IntToStr(Route)
-                            + IfThen(SubRoute <> NoSubRoute,
-                                     IntToStr(SubRoute)))
+            Log(LocoChipStr + ' RG Cannot set S=' + IntToStr(S) + ' ' + SignalPutativeStateStr + ' as it is locked by R=' + IntToStr(Route) + IfThen(SubRoute <> NoSubRoute,
+                                                                                                                                                     IntToStr(SubRoute)))
           ELSE
-            Log(LocoChipStr + ' RG User cannot set S=' + IntToStr(S) + ' ' + SignalPutativeStateStr
-                            + ' as it is locked by R=' + IntToStr(Route)
-                            + IfThen(SubRoute <> NoSubRoute,
-                                     IntToStr(SubRoute)));
+            Log(LocoChipStr + ' RG User cannot set S=' + IntToStr(S) + ' ' + SignalPutativeStateStr + ' as it is locked by R=' + IntToStr(Route)
+                                                                                                    + IfThen(SubRoute <> NoSubRoute,
+                                                                                                             IntToStr(SubRoute)));
         END;
         Signals[S].Signal_FailMsgWritten := True;
       END;
@@ -1340,15 +1338,13 @@ BEGIN
         OK := False;
         IF NOT Signals[S].Signal_FailMsgWritten THEN BEGIN
           IF NOT User THEN
-            Log(LocoChipStr + ' S Cannot set S=' + IntToStr(S) + ' ' + SignalPutativeStateStr
-                            + ' as it is locked by opposite passing loop signal S=' + IntToStr(Others))
+            Log(LocoChipStr + ' S Cannot set S=' + IntToStr(S) + ' ' + SignalPutativeStateStr + ' as it is locked by opposite passing loop signal S=' + IntToStr(OtherS))
           ELSE
-            Log(LocoChipStr + ' S User cannot set S=' + IntToStr(S) + ' ' + SignalPutativeStateStr
-                            + ' as it is locked by opposite passing loop signal S=' + IntToStr(Others));
+            Log(LocoChipStr + ' S User cannot set S=' + IntToStr(S) + ' ' + SignalPutativeStateStr + ' as it is locked by opposite passing loop signal S=' + IntToStr(OtherS));
           Signals[S].Signal_FailMsgWritten := True;
           Forbid;
         END;
-      END ELSE
+      END ELSE BEGIN
         IF LockingMode
         AND SignalIsLockedByUser(S)
         AND (Route <> UnknownRoute)
@@ -1374,7 +1370,7 @@ BEGIN
                   DebugStr := 'User cannot set S=' + IntToStr(S) + ' ' + SignalPutativeStateStr + ' by TC=' + IntToStr(ResetTC) + ' as S=' + IntToStr(S) + ' is locked by';
                 FOR I := 0 TO High(RouteLockingArray) DO
                   DebugStr := DebugStr + ' R=' + IntToStr(RouteLockingArray[I]);
-                IF TrackCircuits[ResetTC].TC_LockedForRoute <> unknownRoute THEN
+                IF TrackCircuits[ResetTC].TC_LockedForRoute <> UnknownRoute THEN
                   DebugStr := DebugStr + ' and TC=' + IntToStr(ResetTC) + ' is locked by R=' + IntToStr(TrackCircuits[ResetTC].TC_LockedForRoute);
                 Log(LocoChipStr + ' R ' + DebugStr);
               END;
@@ -1385,7 +1381,9 @@ BEGIN
             { Pull signal off }
             DebugStr := 'Putatively setting S=' + IntToStr(S) + ' ';
 
-            IF NewIndicatorState <> NoIndicatorLit THEN BEGIN
+            IF (Signals[S].Signal_Indicator <> NoIndicator)
+            AND (NewIndicatorState <> NoIndicatorLit)
+            THEN BEGIN
               CASE NewIndicatorState OF
                 LeftIndicatorLit:
                   DebugStr := DebugStr + 'left indicator ';
@@ -1420,7 +1418,6 @@ BEGIN
             IF Route <> NoRoute THEN
               DebugStr := DebugStr + ' for R=' + IntToStr(Route) + IfThen(SubRoute <> NoSubRoute,
                                                                           '/' + IntToStr(SubRoute));
-                          
             IF NOT Signals[S].Signal_FailMsgWritten THEN
               Log(LocoChipStr + ' S ' + DebugStr);
             DebugStr := '';
@@ -1443,7 +1440,7 @@ BEGIN
                     NextBufferStop := Signals[S].Signal_JunctionIndicators[MiddleLeftIndicator].JunctionIndicator_TargetBufferStop;
                 LowerLeftIndicatorLit:
                   IF Signals[S].Signal_JunctionIndicators[LowerLeftIndicator].JunctionIndicator_TargetSignal <> UnknownSignal THEN
-                     NextSignal := Signals[S].Signal_JunctionIndicators[LowerLeftIndicator].JunctionIndicator_TargetSignal
+                    NextSignal := Signals[S].Signal_JunctionIndicators[LowerLeftIndicator].JunctionIndicator_TargetSignal
                   ELSE
                     NextBufferStop := Signals[S].Signal_JunctionIndicators[LowerLeftIndicator].JunctionIndicator_TargetBufferStop;
                 UpperRightIndicatorLit:
@@ -1458,7 +1455,7 @@ BEGIN
                     NextBufferStop := Signals[S].Signal_JunctionIndicators[MiddleRightIndicator].JunctionIndicator_TargetBufferStop;
                 LowerRightIndicatorLit:
                   IF Signals[S].Signal_JunctionIndicators[LowerRightIndicator].JunctionIndicator_TargetSignal <> UnknownSignal THEN
-                     NextSignal := Signals[S].Signal_JunctionIndicators[LowerRightIndicator].JunctionIndicator_TargetSignal
+                    NextSignal := Signals[S].Signal_JunctionIndicators[LowerRightIndicator].JunctionIndicator_TargetSignal
                   ELSE
                     NextBufferStop := Signals[S].Signal_JunctionIndicators[LowerRightIndicator].JunctionIndicator_TargetBufferStop;
               ELSE {CASE}
@@ -1481,6 +1478,7 @@ BEGIN
                 OK := False;
               END;
             END ELSE
+              { Deal with 'Query' Indicators }
               IF (Signals[S].Signal_Indicator <> NoIndicator)
               AND (Signals[S].Signal_IndicatorState = QueryIndicatorLit)
               THEN BEGIN
@@ -1530,196 +1528,192 @@ BEGIN
                   END ELSE BEGIN
                     IF ExtractBufferStopFromString(TempDestination) <> UnknownBufferStop THEN
                       TempTheatreIndicatorString := BufferStops[ExtractBufferStopFromString(TempDestination)].BufferStop_AsTheatreDestination;
-                      Log(LocoChipStr + ' R S=' + IntToStr(S) + ' theatre indicator ''' + TempTheatreIndicatorString
-                                      + ''' set from BufferStop_AsTheatreDestination field in buffer stop record for BS='
-                                      + IntToStr(ExtractBufferStopFromString(TempDestination)));
+                    Log(LocoChipStr + ' R S=' + IntToStr(S) + ' theatre indicator ''' + TempTheatreIndicatorString
+                                    + ''' set from BufferStop_AsTheatreDestination field in buffer stop record for BS='
+                                    + IntToStr(ExtractBufferStopFromString(TempDestination)));
                   END;
                 END;
               END ELSE
                 FindARouteFailMsgWritten := False;
-            END ELSE BEGIN
-              { Aspect <> RedAspect : push signal on }
-              IF NOT Signals[S].Signal_FailMsgWritten THEN BEGIN
-                IF NOT User THEN
-                  DebugStr := 'Setting S=' + IntToStr(S) + ' on'
-                ELSE
-                  DebugStr := 'User setting S=' + IntToStr(S) + ' on';
-                IF Route <> NoRoute THEN
-                  DebugStr := DebugStr + ' for R=' + IntToStr(Route);
-                Log(LocoChipStr + ' S ' + DebugStr);
-              END;
-
-              { make sure the preceding signal is not off - if it is, we can't set the current one on }
-              IF Signals[S].Signal_PreviousSignal1 <> UnknownSignal THEN BEGIN
-                SetLength(Signals[S].Signal_RouteLockingNeededArray, 1);
-                Signals[S].Signal_RouteLockingNeededArray[0] := 'FS=' + IntToStr(Signals[S].Signal_PreviousSignal1) + '=';
-              END ELSE BEGIN
-                { it's ok }
-                SetLength(Signals[S].Signal_RouteLockingNeededArray, 0);
-                Signals[S].Signal_TheatreIndicatorString := '';
-              END;
-            END;
-
-            IF OK
-            AND LockingMode
-            THEN BEGIN
-              { If there's nothing in the locking array, it's ok, otherwise test the locking }
-              OK := SignalLockingOK(LocoChip, S, Signals[S].Signal_RouteLockingNeededArray, ShowError);
-              IF OK
-              AND (Signals[S].Signal_Aspect = RedAspect)
-              THEN BEGIN
-                Signals[S].Signal_StateChanged := True;
-                IF Route = UnknownRoute THEN
-                  LockSignalByUser(S)
-                ELSE
-                  LockSignalByRoute(LocoChip, S, Route, NOT WriteMessage);
-              END;
-            END;
-
-      { Check that the previous signal is not a theatre in the process of being set up - a bit esoteric, this check, but necessary, as the previous signal could not
-        otherwise be completely pulled off
-      }
-      IF OK
-      AND LockingMode
-      THEN BEGIN
-        IF (Signals[S].Signal_PreviousSignal1 <> UnknownSignal)
-        AND (Signals[Signals[S].Signal_PreviousSignal1].Signal_Aspect = RedAspect)
-        AND (Signals[Signals[S].Signal_PreviousSignal1].Signal_Indicator = TheatreIndicator)
-        AND (Signals[Signals[S].Signal_PreviousSignal1].Signal_IndicatorState = TheatreIndicatorLit)
-        AND (Signals[Signals[S].Signal_PreviousSignal1].Signal_TheatreIndicatorString = Signals[S].Signal_AsTheatreDestination)
-        THEN BEGIN
-          IF NOT Signals[S].Signal_FailMsgWritten THEN BEGIN
-            IF NOT User THEN
-              Log(LocoChipStr + ' S Cannot set S=' + IntToStr(S) + ' as previous signal ' + IntToStr(Signals[S].Signal_PreviousSignal1)
-                              + '''s theatre indicator is on but the signal is not yet off')
-            ELSE
-              Log(LocoChipStr + ' S User cannot set S=' + IntToStr(S) + ' as previous signal ' + IntToStr(Signals[S].Signal_PreviousSignal1)
-                              + '''s theatre indicator is on but the signal is not yet off');
-          END;
-          OK := False;
-          DrawFailure(Signals[S].Signal_PreviousSignal1, 'T');
-        END;
-      END;
-
-      IF NOT OK OR (Signals[S].Signal_Aspect <> RedAspect) THEN BEGIN
-        { if the theatre indicator was set to query, set it back on }
-        IF (Signals[S].Signal_IndicatorState = QueryIndicatorLit) THEN BEGIN
-          SetIndicator(LocoChip, S, NoIndicatorLit, '', Route, User);
-          IF NOT Signals[S].Signal_FailMsgWritten THEN BEGIN
-            IF NOT User THEN
-              Log(LocoChipStr + ' S Turning off theatre query indication for S=' + IntToStr(S))
-            ELSE
-              Log(LocoChipStr + ' S User turning off theatre query indication for S=' + IntToStr(S));
-          END;
-        END;
-
-        { and unlock any points we previously locked, either because the signal setting has failed, or because we're unsetting it }
-        IF NOT OK
-        AND NOT Signals[S].Signal_FailMsgWritten
-        THEN BEGIN
-          Signals[S].Signal_FailMsgWritten := True;
-          IF Signals[S].Signal_Aspect <> RedASpect THEN BEGIN
-            IF NOT User THEN
-              DebugStr := 'Setting S=' + IntToStr(S) + ' on failed'
-            ELSE
-              DebugStr := 'User setting S=' + IntToStr(S) + ' on failed'
           END ELSE BEGIN
-            IF NOT User THEN
-              DebugStr := 'Setting S=' + IntToStr(S) + ' off failed'
-            ELSE
-              DebugStr := 'User setting S=' + IntToStr(S) + ' off failed';
-          END;
-          IF Route <> NoRoute THEN
-            DebugStr := DebugStr + ' for R=' + IntToStr(Route);
-          Log(LocoChipStr + ' S ' + DebugStr)
-        END;
-
-        UnlockPointsLockedBySignal(S);
-        UnlockSignalLockedByUser(S);
-      END;
-
-      IF NOT OK
-      AND LockingMode
-      THEN BEGIN
-        SetLength(Signals[S].Signal_RouteLockingNeededArray, 0);
-        IF (Route <> UnknownRoute)
-        AND Routes_RouteSettingsInProgress[Route]
-        THEN BEGIN
-          Signals[S].Signal_StateChanged := False;
-          Forbid;
-        END;
-      END ELSE BEGIN
-        { If we're route-setting, and approach control mode has been set, store the signals and don't set them yet }
-        IF (Route <> UnknownRoute)
-        AND Routes_RouteSettingsInProgress[Route]
-        AND Routes_ApproachControlsSet[Route]
-        THEN BEGIN
-          Log(LocoChipStr + ' R ' + SettingString + ' added to approach setting signals list for R=' + IntToStr(Route) + ' and not yet set off');
-          AppendToStringArray(Routes_ApproachControlSignalsWaitingToBeSet[Route], SettingString);
-          Signals[S].Signal_ApproachLocked := True;
-          DrawSignalPost(S);
-          WriteStringArrayToLog(Routes_LocoChips[Route], 'R', 'Signals held by approach control for R=' + IntToStr(Route) + ':',
-                                                              Routes_ApproachControlSignalsWaitingToBeSet[Route]);
-        END ELSE BEGIN
-          { Either deal with route and theatre setting ... }
-          IF (Signals[S].Signal_Indicator <> NoIndicator)
-          AND (NewIndicatorState <> NoIndicatorLit)
-          THEN BEGIN
-            IF IndicatorToBeSet THEN
-              SetIndicator(LocoChip, S, NewIndicatorState, TempTheatreIndicatorString, Route, user)
-            ELSE
-              SetIndicator(LocoChip, S, NoIndicatorLit, '', Route, User);
-          { ... or with query theatre indicator setting ... }
-          END ELSE
-            IF (Signals[S].Signal_Indicator <> NoIndicator)
-            AND (Signals[S].Signal_IndicatorState = QueryIndicatorLit)
-            THEN
-              SetIndicator(LocoChip, S, NewIndicatorState, TempTheatreIndicatorString, Route, user)
-            ELSE BEGIN
-              { ... or with signal setting - if no particular aspect selected already, these are the defaults }
-              IF Signals[S].Signal_Aspect = RedAspect THEN BEGIN
-                IF (Signals[S].Signal_Type = TwoAspect)
-//                OR (Signals[S].Signal_Type = SemaphoreHome)
-//                OR (Signals[S].Signal_Type = SemaphoreDistant)
-                THEN
-                  NewAspect := GreenAspect
-                ELSE
-                  NewAspect := SingleYellowAspect;
-              END ELSE
-                NewAspect := RedAspect;
-
-              SetSignal(LocoChip, S, NewAspect, NoLog);
+            { Aspect <> RedAspect : push signal on }
+            IF NOT Signals[S].Signal_FailMsgWritten THEN BEGIN
               IF NOT User THEN
-                DebugStr := 'S=' + IntToStr(S) + ' successfully set to ' + AspectToStr(Signals[S].Signal_Aspect)
+                DebugStr := 'Setting S=' + IntToStr(S) + ' on'
               ELSE
-                DebugStr := 'S=' + IntToStr(S) + ' User successfully set to ' + AspectToStr(Signals[S].Signal_Aspect);
+                DebugStr := 'User setting S=' + IntToStr(S) + ' on';
               IF Route <> NoRoute THEN
                 DebugStr := DebugStr + ' for R=' + IntToStr(Route);
               Log(LocoChipStr + ' S ' + DebugStr);
+            END;
 
-              { reset several things }
-              Signals[S].Signal_FailMsgWritten := False;
+            { make sure the preceding signal is not off - if it is, we can't set the current one on }
+            IF Signals[S].Signal_PreviousSignal1 <> UnknownSignal THEN BEGIN
+              SetLength(Signals[S].Signal_RouteLockingNeededArray, 1);
+              Signals[S].Signal_RouteLockingNeededArray[0] :=
+                'FS=' + IntToStr(Signals[S].Signal_PreviousSignal1) + '=';
+            END ELSE BEGIN
+              { it's ok }
               SetLength(Signals[S].Signal_RouteLockingNeededArray, 0);
+              Signals[S].Signal_TheatreIndicatorString := '';
+            END;
+          END;
 
-              IF Signals[S].Signal_PreviousSignal1 <> UnknownSignal THEN
-                SetPreviousSignals(LocoChip, S);
+          IF OK AND LockingMode THEN BEGIN
+            { If there's nothing in the locking array, it's ok, otherwise test the locking }
+            OK := SignalLockingOK(LocoChip, S,
+              Signals[S].Signal_RouteLockingNeededArray, ShowError);
+            IF OK AND (Signals[S].Signal_Aspect = RedAspect) THEN BEGIN
+              Signals[S].Signal_StateChanged := True;
+              IF Route = UnknownRoute THEN
+                LockSignalByUser(S)
+              ELSE
+                LockSignalByRoute(LocoChip, S, Route, NOT WriteMessage);
+            END;
+          END;
 
-              { If the signal is being reset to on, reset the other data too }
-              IF NewAspect = RedAspect THEN BEGIN
-                IF Signals[S].Signal_IndicatorState <> NoIndicatorLit THEN
-                  SetIndicator(LocoChip, S, NoIndicatorLit, '', Route, user);
-                Signals[S].Signal_PreviousSignal1 := UnknownSignal;
-                Signals[S].Signal_PreviousSignal2 := UnknownSignal;
+          { Check that the previous signal is not a theatre in the process of being set up - a bit esoteric, this check, but necessary, as the previous signal could not
+            otherwise be completely pulled off
+          }
+          IF OK AND LockingMode THEN
+          BEGIN
+            IF (Signals[S].Signal_PreviousSignal1 <> UnknownSignal)
+            AND (Signals[Signals[S].Signal_PreviousSignal1].Signal_Aspect = RedAspect)
+            AND (Signals[Signals[S].Signal_PreviousSignal1].Signal_Indicator = TheatreIndicator)
+            AND (Signals[Signals[S].Signal_PreviousSignal1].Signal_IndicatorState = TheatreIndicatorLit)
+            AND (Signals[Signals[S].Signal_PreviousSignal1].Signal_TheatreIndicatorString = Signals[S].Signal_AsTheatreDestination)
+            THEN BEGIN
+              IF NOT Signals[S].Signal_FailMsgWritten THEN BEGIN
+                IF NOT User THEN
+                  Log(LocoChipStr + ' S Cannot set S=' + IntToStr(S) + ' as previous signal ' + IntToStr(Signals[S].Signal_PreviousSignal1)
+                                  + '''s theatre indicator is on but the signal is not yet off')
+                ELSE
+                  Log(LocoChipStr + ' S User cannot set S=' + IntToStr(S) + ' as previous signal ' + IntToStr(Signals[S].Signal_PreviousSignal1)
+                                  + '''s theatre indicator is on but the signal is not yet off');
+              END;
+              OK := False;
+              DrawFailure(Signals[S].Signal_PreviousSignal1, 'T');
+            END;
+          END;
 
-                { and see if it affects any other signal's previous signals - otherwise, a previous signal may be reset, then be set to off for a different route, and our
-                  signal would treat the previous signal as still being off, and wouldn't reset.
-                }
-                FOR TempS := 0 TO High(Signals) DO BEGIN
-                  IF Signals[TempS].Signal_PreviousSignal1 = S THEN
-                    Signals[TempS].Signal_PreviousSignal1 := UnknownSignal;
-                  IF Signals[TempS].Signal_PreviousSignal2 = S THEN
-                    Signals[TempS].Signal_PreviousSignal2 := UnknownSignal;
-                END; {FOR}
+          IF NOT OK OR (Signals[S].Signal_Aspect <> RedAspect) THEN BEGIN
+            { if the theatre indicator was set to query, set it back on }
+            IF (Signals[S].Signal_IndicatorState = QueryIndicatorLit) THEN BEGIN
+              SetIndicator(LocoChip, S, NoIndicatorLit, '', Route, User);
+              IF NOT Signals[S].Signal_FailMsgWritten THEN BEGIN
+                IF NOT User THEN
+                  Log(LocoChipStr +
+                    ' S Turning off theatre query indication for S=' + IntToStr(S))
+                ELSE
+                  Log(LocoChipStr +
+                    ' S User turning off theatre query indication for S=' + IntToStr(S));
+              END;
+            END;
+
+            { and unlock any points we previously locked, either because the signal setting has failed, or because we're unsetting it }
+            IF NOT OK AND NOT Signals[S].Signal_FailMsgWritten THEN BEGIN
+              Signals[S].Signal_FailMsgWritten := True;
+              IF Signals[S].Signal_Aspect <> RedAspect THEN BEGIN
+                IF NOT User THEN
+                  DebugStr := 'Setting S=' + IntToStr(S) + ' on failed'
+                ELSE
+                  DebugStr := 'User setting S=' + IntToStr(S) + ' on failed'
+              END ELSE BEGIN
+                IF NOT User THEN
+                  DebugStr := 'Setting S=' + IntToStr(S) + ' off failed'
+                ELSE
+                  DebugStr := 'User setting S=' + IntToStr(S) + ' off failed';
+              END;
+              IF Route <> NoRoute THEN
+                DebugStr := DebugStr + ' for R=' + IntToStr(Route);
+              Log(LocoChipStr + ' S ' + DebugStr)
+            END;
+
+            UnlockPointsLockedBySignal(S);
+            UnlockSignalLockedByUser(S);
+          END;
+
+          IF NOT OK AND LockingMode THEN BEGIN
+            SetLength(Signals[S].Signal_RouteLockingNeededArray, 0);
+            IF (Route <> UnknownRoute) AND Routes_RouteSettingsInProgress[Route] THEN BEGIN
+              Signals[S].Signal_StateChanged := False;
+              Forbid;
+            END;
+          END ELSE BEGIN
+            { If we're route-setting, and approach control mode has been set, store the signals and don't set them yet }
+            IF (Route <> UnknownRoute)
+            AND Routes_RouteSettingsInProgress[Route]
+            AND Routes_ApproachControlsSet[Route]
+            THEN BEGIN
+              Log(LocoChipStr + ' R ' + SettingString + ' added to approach setting signals list for R=' + IntToStr(Route) + ' and not yet set off');
+              AppendToStringArray(Routes_ApproachControlSignalsWaitingToBeSet[Route], SettingString);
+              Signals[S].Signal_ApproachLocked := True;
+              DrawSignalPost(S);
+              WriteStringArrayToLog(Routes_LocoChips[Route], 'R', 'Signals held by approach control for R=' + IntToStr(Route)
+                                                                   + ':', Routes_ApproachControlSignalsWaitingToBeSet[Route]);
+            END ELSE BEGIN
+              { Either deal with route and theatre setting ... }
+              IF (Signals[S].Signal_Indicator <> NoIndicator)
+              AND (NewIndicatorState <> NoIndicatorLit)
+              THEN BEGIN
+                IF IndicatorToBeSet THEN
+                  SetIndicator(LocoChip, S, NewIndicatorState, TempTheatreIndicatorString, Route, User)
+                ELSE
+                  SetIndicator(LocoChip, S, NoIndicatorLit, '', Route, User);
+                { ... or with query theatre indicator setting ... }
+              END ELSE BEGIN
+                IF (Signals[S].Signal_Indicator <> NoIndicator)
+                AND (Signals[S].Signal_IndicatorState = QueryIndicatorLit) THEN
+                  SetIndicator(LocoChip, S, NewIndicatorState, TempTheatreIndicatorString, Route, User)
+                ELSE BEGIN
+                  { ... or with signal setting - if no particular aspect selected already, these are the defaults }
+                  IF Signals[S].Signal_Aspect = RedAspect THEN BEGIN
+                    IF (Signals[S].Signal_Type = TwoAspect)
+                    // OR (Signals[S].Signal_Type = SemaphoreHome)
+                    // OR (Signals[S].Signal_Type = SemaphoreDistant)
+                    THEN
+                      NewAspect := GreenAspect
+                    ELSE
+                      NewAspect := SingleYellowAspect;
+                  END ELSE
+                    NewAspect := RedAspect;
+
+                  SetSignal(LocoChip, S, NewAspect, NoLog);
+                  IF NOT User THEN
+                    DebugStr := 'S=' + IntToStr(S) + ' successfully set to ' +
+                      AspectToStr(Signals[S].Signal_Aspect)
+                  ELSE
+                    DebugStr := 'S=' + IntToStr(S) + ' User successfully set to '
+                      + AspectToStr(Signals[S].Signal_Aspect);
+                  IF Route <> NoRoute THEN
+                    DebugStr := DebugStr + ' for R=' + IntToStr(Route);
+                  Log(LocoChipStr + ' S ' + DebugStr);
+
+                  { reset several things }
+                  Signals[S].Signal_FailMsgWritten := False;
+                  SetLength(Signals[S].Signal_RouteLockingNeededArray, 0);
+
+                  IF Signals[S].Signal_PreviousSignal1 <> UnknownSignal THEN
+                    SetPreviousSignals(LocoChip, S);
+
+                  { If the signal is being reset to on, reset the other data too }
+                  IF NewAspect = RedAspect THEN BEGIN
+                    IF Signals[S].Signal_IndicatorState <> NoIndicatorLit THEN
+                      SetIndicator(LocoChip, S, NoIndicatorLit, '', Route, User);
+                    Signals[S].Signal_PreviousSignal1 := UnknownSignal;
+                    Signals[S].Signal_PreviousSignal2 := UnknownSignal;
+
+                    { and see if it affects any other signal's previous signals - otherwise, a previous signal may be reset, then be set to off for a different route, and our
+                      signal would treat the previous signal as still being off, and wouldn't reset.
+                    }
+                    FOR TempS := 0 TO High(Signals) DO BEGIN
+                      IF Signals[TempS].Signal_PreviousSignal1 = S THEN
+                        Signals[TempS].Signal_PreviousSignal1 := UnknownSignal;
+                      IF Signals[TempS].Signal_PreviousSignal2 = S THEN
+                        Signals[TempS].Signal_PreviousSignal2 := UnknownSignal;
+                    END; { FOR }
+                  END;
+                END;
               END;
             END;
           END;
