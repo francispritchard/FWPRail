@@ -531,6 +531,7 @@ TYPE
     Signal_DataChanged : Boolean;
     Signal_DecoderNum : Integer;
     Signal_Direction : DirectionType;
+    Signal_DistantHomesArray : IntegerArrayType; { needed to tell a semaphore distant which sempahore homes lock it }
     Signal_Energised : Boolean;
     Signal_EnergisedTime : TDateTime;
     Signal_FailedToResetFlag : Boolean;
@@ -602,6 +603,7 @@ CONST
   Signal_AutomaticFieldName : String = 'Signal Automatic'; { not in use }
   Signal_DirectionFieldName : String = 'Signal Direction';
   Signal_DecoderNumFieldName : String = 'Signal Decoder Num';
+  Signal_DistantHomesArrayFieldName : String = 'Signal Distant Homes';
   Signal_IndicatorDecoderFunctionNumFieldName : String = 'Signal Indicator Decoder Function Num';
   Signal_IndicatorDecoderNumFieldName : String = 'Signal Indicator Decoder Num';
   Signal_IndicatorSpeedRestrictionFieldName : String = 'Signal Indicator Speed Restriction';
@@ -3874,8 +3876,7 @@ BEGIN
         IF TempLocation = UnknownLocation THEN BEGIN
           PlatformDataOK := False;
           ErrorMsg := 'ValidateSignalLocationsToMonitorArray: unknown location "' + TempLocationsToMonitorStrArray[I] + '" in Signal Locations To Monitor';
-        END
-        ELSE
+        END ELSE
           AppendToLocationArray(Result, TempLocation);
         Inc(I);
       END; { WHILE }
@@ -4025,6 +4026,42 @@ BEGIN
   END; { WITH }
 END; { ValidateIndicatorDestinations }
 
+FUNCTION ValidateSignalDistantHomesArray(Str : String; OUT ErrorMsg : String) : IntegerArrayType;
+{ Validates the signal numbers supplied }
+VAR
+  I : Integer;
+  SignalDataOK : Boolean;
+  TempSignal : Integer;
+  TempSignalsStrArray : StringArrayType;
+
+BEGIN
+  ErrorMsg := '';
+  SetLength(Result, 0);
+
+  IF Str <> '' THEN BEGIN
+    ExtractSubStringsFromString(Str, ',', TempSignalsStrArray);
+    I := 0;
+    SignalDataOK := True;
+    WHILE (I <= High(TempSignalsStrArray)) AND SignalDataOK DO BEGIN
+      IF Copy(TempSignalsStrArray[I], 1, 1) <> 'S' THEN
+        ErrorMsg := 'ValidateSignalDistantHomesArray: signal "' + TempSignalsStrArray[I] + '" not preceded by ''S'''
+      ELSE BEGIN
+        TempSignalsStrArray[I] := Copy(TempSignalsStrArray[I], 2);
+        IF NOT TryStrToInt(Trim(TempSignalsStrArray[I]), TempSignal) THEN
+          ErrorMsg := 'ValidateSignalDistantHomesArray: invalid signal integer string "' + TempSignalsStrArray[I] + '"'
+        ELSE BEGIN
+          IF ValidateSignalNum(TempSignal) = '' THEN BEGIN
+            SignalDataOK := False;
+            ErrorMsg := 'ValidateSignalDistantHomesArray: unknown signal "' + TempSignalsStrArray[I];
+          END ELSE
+            AppendToLocationArray(Result, TempSignal);
+        END;
+      END;
+      Inc(I);
+    END; { WHILE }
+  END;
+END; { ValidateSignalDistantHomesArray }
+
 PROCEDURE ReadInSignalDataFromDatabase(NewSignalData : Boolean);
 { Create entries for the signals }
 CONST
@@ -4101,6 +4138,7 @@ BEGIN
 
             Signal_Automatic := False; { not yet implemented }
             Signal_DataChanged := False;
+            SetLength(Signal_DistantHomesArray, 0);
             Signal_Energised := False;
             Signal_EnergisedTime := 0;
             Signal_FailedToResetFlag := False;
@@ -4132,6 +4170,9 @@ BEGIN
 
           IF ErrorMsg = '' THEN
             Signal_Quadrant := ValidateSignalQuadrant(SignalsADOTable.FieldByName(Signal_QuadrantFieldName).AsString, ErrorMsg);
+
+          IF ErrorMsg = '' THEN
+            Signal_DistantHomesArray := ValidateSignalDistantHomesArray(SignalsADOTable.FieldByName(Signal_DistantHomesArrayFieldName).AsString, ErrorMsg);
 
           IF ErrorMsg = '' THEN BEGIN
             IF SignalsADOTable.FieldByName(Signal_TypeFieldName).AsString = '' THEN
