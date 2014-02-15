@@ -8650,7 +8650,7 @@ BEGIN
       UNTIL PointsADOTable.EOF AND PointsADOTable2.EOF;
 
       IF NOT ErrorFound THEN
-        Log('XG No comparison errors found in ooint databases '
+        Log('XG No comparison errors found in point databases '
                 + '"' + Point1DataFilename + '.' + Point1DataFilenameSuffix + '" and "' + Point2DataFilename + '.' + Point2DataFilenameSuffix + '"');
 
       { Tidy up the database }
