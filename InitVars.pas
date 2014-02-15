@@ -4172,6 +4172,7 @@ BEGIN
             Signal_Quadrant := ValidateSignalQuadrant(SignalsADOTable.FieldByName(Signal_QuadrantFieldName).AsString, ErrorMsg);
 
           IF ErrorMsg = '' THEN
+            { this is to indicate which semaphore homes control the distant }
             Signal_DistantHomesArray := ValidateSignalDistantHomesArray(SignalsADOTable.FieldByName(Signal_DistantHomesArrayFieldName).AsString, ErrorMsg);
 
           IF ErrorMsg = '' THEN BEGIN
