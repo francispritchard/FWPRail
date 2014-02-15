@@ -236,7 +236,7 @@ BEGIN
   IF LocoChip < 100 THEN
     Result := LocoChip
   ELSE
-    { and AMS' way of getting the low byte }
+    { and AMS's way of getting the low byte }
     Result := LocoChip AND 255;
 END; { GetLocoChipLowByte }
 
