@@ -2054,6 +2054,8 @@ BEGIN
             Pen.Color := BackgroundColour;
             Rectangle(Rect(TheatreIndicatorX1, TheatreIndicatorY1, TheatreIndicatorX2, TheatreIndicatorY2));
 
+            Font.Height := -MulDiv(MainWindow.ClientHeight, LineFontHeight, ZoomScalefactor);
+            Font.Color := clWhite;
             IF Signal_IndicatorState = NoIndicatorLit THEN
               { Now the outline of the theatre indicator box }
               DrawRectangularOutline(Rect(TheatreIndicatorX1,
