@@ -1577,7 +1577,7 @@ BEGIN { KeyPressedDown }
               END;
             NoShiftKeys, Ctrl, Alt, Shift: { the '+' sign on the numeric keypad }
               BEGIN
-                { cycle forwards through the various station monitorss }
+                { cycle forwards through the various station monitors }
                 HelpMsg := 'cycle timetable displays forwards';
                 IF NOT HelpRequired THEN BEGIN
                   { If we are returning to the station monitors after a short gap, we probably want to return to the same one we left }
