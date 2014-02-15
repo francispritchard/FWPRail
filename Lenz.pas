@@ -1364,11 +1364,8 @@ BEGIN
         UNTIL (ExpectedReply = NoReplyExpected) OR ExpectedDataReceived OR TimedOut OR ErrorFound OR (RetryFlag = True);
 
         IF UnRequestedDataFound THEN BEGIN
-    //    Debug('UnRequestedDataFound');
           IF TestingMode THEN
             DebugWindow.Caption := DebugWindow.Caption + '.';
-          IF NOT SystemOnline THEN
-            SetSystemOnline(''); // **************** ?????? 6/2/14
         END;
       END;
 
@@ -3379,37 +3376,11 @@ BEGIN
   IF SystemInitiallySetOffline THEN
     SetSystemOffline('System initially set offline by command-line parameter')
   ELSE BEGIN
-    { Create the TCPIP form here so we know it is available before we start using it }
-    IF TCPIPForm = NIL THEN BEGIN
-      TCPIPForm := TTCPIPForm.Create(Application);
-      TCPIPForm.Update;
-    END;
-
-    { First see if the Lenz server program is running }
-    IF IsProgramRunning('LI-Server') THEN
-      { The LI-Server.exe program is already running - better kill it, as we can't programmaticaly start the server itself }
-      StopLANUSBServer;
-
-    StartLANUSBServer;
-    IF IsProgramRunning('LI-Server') THEN BEGIN
-      OK := True;
-      Log('XG LI-Server.exe is running');
-    END ELSE BEGIN
-      OK := False;
-      SetSystemOffline('System offline as LI-Server.exe is not running');
-    END;
-
-    IF OK THEN BEGIN
-      TCPIPForm.TCPIPFormShow(LenzWindow);
-      TCPIPForm.CreateTCPClients;
-    END;
-
-    IF OK AND (TCPIPConnected = True) THEN
-      SetSystemOnline('TCPIP Server is running')
-    ELSE BEGIN
+    SetSystemOnline(OK);
+    IF OK THEN
+      Log('GG TCPIP Server is running')
+    ELSE
       SetSystemOffline('TCPIP Server not running');
-      StopLANUSBServer;
-    END;
 
 //      { provisionally... }
 //

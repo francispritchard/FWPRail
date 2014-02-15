@@ -422,7 +422,9 @@ BEGIN
     OK := False;
     AppHandle := FindWindow(NIL, 'LI-Server'); //AppName);
     IF AppHandle <> 0 THEN
-      OK := PostMessage(AppHandle, WM_QUIT, 0, 0);
+      OK := PostMessage(AppHandle, WM_QUIT, 0, 0)
+    ELSE
+      Exit;
 
     IF OK THEN
       Log('G Lan-USB Server stopped programmatically')

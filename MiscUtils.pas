@@ -572,8 +572,8 @@ FUNCTION SetDefaultButton(CONST Dlg: TForm; CONST ModalResult: Integer): Boolean
 PROCEDURE SetSystemOffline(OfflineMsg : String);
 { Change the caption and the icons to show we're offline }
 
-PROCEDURE SetSystemOnline(OnlineMsg : String);
-{ Change the caption and the icons }
+PROCEDURE SetSystemOnline(OUT OK : Boolean);
+{ Change the caption and the icons to show we're online - needs a test to see if we are, actually, online *************** 6/2/14 }
 
 PROCEDURE SetTrainControlledByProgram(T : Train; ControlledByProgram : Boolean);
 { Mark a given train as controlled either by the software or by the LH100 }
@@ -6230,15 +6230,49 @@ BEGIN
     END;
     Log('X! System set offline: ' + OfflineMsg);
   END;
+
+  StopLANUSBServer;
 END; { SetSystemOffline }
 
-PROCEDURE SetSystemOnline(OnlineMsg : String);
+PROCEDURE SetSystemOnline(OUT OK : Boolean);
 { Change the caption and the icons to show we're online - needs a test to see if we are, actually, online *************** 6/2/14 }
 BEGIN
-  SystemOnline := True;
-  SetCaption(MainWindow, '');
-  Application.Icon := OnlineIcon;
-  Log('XG System set online: ' + OnlineMsg);
+  OK := False;
+
+  { Create the TCPIP form here so we know it is available before we start using it }
+  IF TCPIPForm = NIL THEN BEGIN
+    TCPIPForm := TTCPIPForm.Create(Application);
+    TCPIPForm.Update;
+  END;
+
+  { First see if the Lenz server program is running }
+  IF IsProgramRunning('LI-Server') THEN
+    { The LI-Server.exe program is already running - better kill it, as we can't programmaticaly start the server itself }
+    StopLANUSBServer;
+
+  StartLANUSBServer;
+  IF IsProgramRunning('LI-Server') THEN BEGIN
+    OK := True;
+    Log('XG LI-Server.exe is running');
+  END ELSE BEGIN
+    OK := False;
+    SetSystemOffline('System offline as LI-Server.exe is not running');
+  END;
+
+  IF OK THEN BEGIN
+    TCPIPForm.TCPIPFormShow(LenzWindow);
+    TCPIPForm.CreateTCPClients;
+    IF NOT TCPIPConnected THEN BEGIN
+      OK := False;
+      StopLANUSBServer;
+    END;
+  END;
+
+  IF OK THEN BEGIN
+    SystemOnline := True;
+    SetCaption(MainWindow, '');
+    Application.Icon := OnlineIcon;
+  END;
 END; { SetSystemOnline }
 
 PROCEDURE SetTrainControlledByProgram(T : Train; ControlledByProgram : Boolean);

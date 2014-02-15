@@ -224,7 +224,10 @@ BEGIN
 END; { TurnEditModeOn }
 
 PROCEDURE TurnEditModeOff;
-{ Turn edit Mode off }
+{ Turn edit mode off }
+VAR
+  OK : Boolean;
+
 BEGIN
   TRY
     IF EditMode THEN BEGIN
@@ -237,8 +240,13 @@ BEGIN
       SetCaption(MainWindow, '');
       EditWindow.EditValueListEditor.Strings.Clear;
 
-      IF SaveSystemOnlineState THEN
-        SetSystemOnline('Edit mode off so system now online again');
+      IF SaveSystemOnlineState THEN BEGIN
+        SetSystemOnline(OK);    { what should we do with OK? ************* }
+        IF OK THEN
+          Log('G Edit mode off so system now online again')
+        ELSE
+          Log('G Edit mode off but system failed to go online');
+      END;
 
       WITH EditWindow DO BEGIN
         UndoChangesButton.Enabled := False;
