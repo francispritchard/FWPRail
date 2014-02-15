@@ -2667,7 +2667,7 @@ BEGIN
               + ' A=' + AreaToStr(TrainJourney_StartArea, ShortStringType)
               + ' ' + DirectionToStr(TrainJourney_Direction, ShortStringType)
               + IfThen(TrainJourney_StartStationName <> '',
-                       ' {' + TrainJourney_StartStationName + '}')
+                       ' [' + TrainJourney_StartStationName + ']')
               + ' curr ' + TimeToHMStr(TrainJourney_CurrentDepartureTime)
               + ' [tt ' + TimeToHMStr(TrainJourney_DiagrammedDepartureTime) + ']'
               + ' to '
@@ -2688,13 +2688,13 @@ BEGIN
                               ' BS=' + IntToStr(TrainJourney_EndBufferStop),
                               ' no S/BS'))
               + IfThen(TrainJourney_EndStationName <> '',
-                       ' {' + TrainJourney_EndStationName + '}')
+                       ' [' + TrainJourney_EndStationName + ']')
               + ' curr ' + TimeToHMStr(TrainJourney_CurrentArrivalTime)
               + ' [tt ' + TimeToHMStr(TrainJourney_DiagrammedArrivalTime) + ']'
               + IfThen(TrainJourney_UserToDrive,
-                       ' {U}')
+                       ' [U]')
               + IfThen(TrainJourney_StoppingOnArrival,
-                       ' {SOA}');
+                       ' [SOA]');
     IF T^.Train_CurrentRoute <> UnknownRoute THEN
       Result := Result + ' R=' + IntToStr(T^.Train_CurrentRoute);
     IF NOT TrainJourney_Created THEN
