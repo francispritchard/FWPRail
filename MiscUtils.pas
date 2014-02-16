@@ -6075,7 +6075,7 @@ BEGIN
   END;
 END; { Pause }
 
-PROCEDURE ReadInLocationData;
+PROCEDURE ReadInDataFromExcelFile;
 { Read in data from the Excel data file - works but is not needed - kept as an example of reading from Excel files }
 //VAR
 //  FieldCount : Integer;
@@ -6137,7 +6137,7 @@ BEGIN
 //      Log(NoLocoChip, 'E LoadLocationData: ' + E.ClassName +' error raised, with message: '+ E.Message);
 //    END;
 //  END; {TRY}
-END; { ReadInLocationData }
+END; { ReadInDataFromExcelFile }
 
 FUNCTION ReturnFixedLengthStr(Str : String; FixedLength : Integer) : String;
 { Return a short string of a fixed length }
@@ -8599,6 +8599,18 @@ BEGIN
     Log('G INITIALISING Points {BlankLineBefore}');
 
     WITH InitVarsWindow DO BEGIN
+      IF NOT FileExists(PathToRailDataFiles + Point1DataFilename + '.' + Point1DataFilenameSuffix) THEN BEGIN
+        IF MessageDialogueWithDefault('Point database file "' + PathToRailDataFiles + Point1DataFilename + '.' + Point1DataFilenameSuffix + '"'
+                                      + ' cannot be located'
+                                      + CRLF
+                                      + 'Do you wish to continue?',
+                                      StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
+        THEN
+          ShutDownProgram(UnitRef, 'CompareTwoPointDatabases')
+        ELSE
+          Exit;
+      END;
+
       PointsADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
                                                + PathToRailDataFiles + Point1DataFilename + '.' + Point1DataFilenameSuffix
                                                + ';Persist Security Info=False';
@@ -8743,6 +8755,18 @@ BEGIN
     Log('G INITIALISING SIGNALS {BlankLineBefore}');
 
     WITH InitVarsWindow DO BEGIN
+      IF NOT FileExists(PathToRailDataFiles + Signal1DataFilename + '.' + Signal1DataFilenameSuffix) THEN BEGIN
+        IF MessageDialogueWithDefault('Signal database file "' + PathToRailDataFiles + Signal1DataFilename + '.' + Signal1DataFilenameSuffix + '"'
+                                      + ' cannot be located'
+                                      + CRLF
+                                      + 'Do you wish to continue?',
+                                      StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
+        THEN
+          ShutDownProgram(UnitRef, 'CompareTwoSignalDatabases')
+        ELSE
+          Exit;
+      END;
+
       SignalsADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
                                                + PathToRailDataFiles + Signal1DataFilename + '.' + Signal1DataFilenameSuffix
                                                + ';Persist Security Info=False';

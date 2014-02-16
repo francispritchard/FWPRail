@@ -134,7 +134,7 @@ PROCEDURE InitialiseDiagramsUnit;
 PROCEDURE ProcessDiagrams(OUT ErrorMsg : String; OUT DiagramsOK : Boolean);
 { Once read in, process the diagrams }
 
-PROCEDURE ReadInDiagramsFromAccessDatabase(OUT ErrorMsg : String; OUT DiagramsMissing, DiagramsOK : Boolean);
+PROCEDURE ReadInDiagramsFromDatabase(OUT ErrorMsg : String; OUT DiagramsMissing, DiagramsOK : Boolean);
 { Read the diagrams in from the supplied database }
 
 PROCEDURE RecalculateJourneyTimes(T : Train; ExplanatoryStr : String);
@@ -4625,7 +4625,7 @@ BEGIN
   Result := T;
 END; { CreateTrainDiagramsRecord }
 
-PROCEDURE ReadInDiagramsFromAccessDatabase(OUT ErrorMsg : String; OUT DiagramsMissing, DiagramsOK : Boolean);
+PROCEDURE ReadInDiagramsFromDatabase(OUT ErrorMsg : String; OUT DiagramsMissing, DiagramsOK : Boolean);
 { Read the diagrams in from the supplied database }
 CONST
   EmergencyRouteing = True;
@@ -4697,6 +4697,18 @@ BEGIN
         DiagramsOK := False;
         DiagramsMissing := True;
         Exit;
+      END;
+
+      IF NOT FileExists(PathToRailDataFiles + DiagramsFilename + '.' + DiagramsFilenameSuffix) THEN BEGIN
+        IF MessageDialogueWithDefault('Diagrams database file "' + PathToRailDataFiles + DiagramsFilename + '.' + DiagramsFilenameSuffix + '"'
+                                      + ' cannot be located'
+                                      + CRLF
+                                      + 'Do you wish to continue?',
+                                      StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
+        THEN
+          ShutDownProgram(UnitRef, 'ReadInDiagramsFromDatabase')
+        ELSE
+          Exit;
       END;
 
       DiagramsADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
@@ -5034,15 +5046,27 @@ BEGIN
 
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG ReadInDiagramsFromAccessDatabase: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG ReadInDiagramsFromDatabase: ' + E.ClassName +' error raised, with message: '+ E.Message);
   END; {TRY}
-END; { ReadInDiagramsFromAccessDatabase }
+END; { ReadInDiagramsFromDatabase }
 
-PROCEDURE ClearDiagramsFromAccessDatabase;
+PROCEDURE ClearDiagramsFromDatabase;
 { Empty the diagrams database before writing new records }
 BEGIN
   TRY
     WITH DiagramsWindow DO BEGIN
+      IF NOT FileExists(PathToRailDataFiles + DiagramsFilename + '.' + DiagramsFilenameSuffix) THEN BEGIN
+        IF MessageDialogueWithDefault('Diagrams database file "' + PathToRailDataFiles + DiagramsFilename + '.' + DiagramsFilenameSuffix + '"'
+                                      + ' cannot be located'
+                                      + CRLF
+                                      + 'Do you wish to continue?',
+                                      StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
+        THEN
+          ShutDownProgram(UnitRef, 'ClearDiagramsFromDatabase')
+        ELSE
+          Exit;
+      END;
+
       DiagramsADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
                                                  + PathToRailDataFiles + DiagramsFilename + '.' + DiagramsFilenameSuffix
                                                  + ';Persist Security Info=False';
@@ -5062,11 +5086,11 @@ BEGIN
     END; {WITH}
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG ClearDiagramsFromAccessDatabase: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG ClearDiagramsFromDatabase: ' + E.ClassName +' error raised, with message: '+ E.Message);
   END; {TRY}
-END; { ClearDiagramsFromAccessDatabase }
+END; { ClearDiagramsFromDatabase }
 
-PROCEDURE WriteOutDiagramsToAccessDatabase(LocoChip, DoubleHeaderLocoChip, JourneyCount : Integer; UserSpecifiedDepartureTimesArray : DateTimeArrayType;
+PROCEDURE WriteOutDiagramsToDatabase(LocoChip, DoubleHeaderLocoChip, JourneyCount : Integer; UserSpecifiedDepartureTimesArray : DateTimeArrayType;
                                            LightsOnTime : TDateTime; EndLocationsStrArray : StringArrayType; DirectionsArray : DirectionArrayType; LightsRemainOn : Boolean;
                                            TrainNonMoving : Boolean; NotForPublicUseArray : BooleanArrayType; StartLocationStr : String; StoppingArray : BooleanArrayType;
                                            LengthOfTrainInCarriages : Integer; TypeOfTrainNum : Integer;
@@ -5081,6 +5105,18 @@ VAR
 BEGIN
   TRY
     WITH DiagramsWindow DO BEGIN
+      IF NOT FileExists(PathToRailDataFiles + DiagramsFilename + '.' + DiagramsFilenameSuffix) THEN BEGIN
+        IF MessageDialogueWithDefault('Diagrams database file "' + PathToRailDataFiles + DiagramsFilename + '.' + DiagramsFilenameSuffix + '"'
+                                      + ' cannot be located'
+                                      + CRLF
+                                      + 'Do you wish to continue?',
+                                      StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
+        THEN
+          ShutDownProgram(UnitRef, 'WriteOutDiagramsToDatabase')
+        ELSE
+          Exit;
+      END;
+
       DiagramsADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
                                                  + PathToRailDataFiles + DiagramsFilename + '.' + DiagramsFilenameSuffix
                                                  + ';Persist Security Info=False';
@@ -5187,9 +5223,9 @@ BEGIN
     END; {WITH}
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG WriteOutDiagramsToAccessDatabase: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG WriteOutDiagramsToDatabase: ' + E.ClassName +' error raised, with message: '+ E.Message);
   END; {TRY}
-END; { WriteOutDiagramsToAccessDatabase }
+END; { WriteOutDiagramsToDatabase }
 
 PROCEDURE CalculatePublicJourneyStartTimes;
 { Calculate the first journey's starting time where it is is marked "not for public use" and there's a supplied departure time for the second journey }
@@ -5821,7 +5857,7 @@ BEGIN
   IF WorkingTimetableMode THEN BEGIN
     Log('W Write out to '+ DiagramsFilename + '.' + DiagramsFilenameSuffix + ' diagrams created from the working timetable');
 
-    ClearDiagramsFromAccessDatabase;
+    ClearDiagramsFromDatabase;
 
     T := TrainList;
     WHILE T <> NIL DO BEGIN
@@ -5864,7 +5900,7 @@ BEGIN
               THEN BEGIN
                 Log('X ' + Locochiptostr(T^.Train_Locochip) + ' J=' + inttostr(journeycount) + ' ' + StartLocationStr);
 
-                WriteOutDiagramsToAccessDatabase(T^.Train_LocoChip, T^.Train_DoubleHeaderLocoChip, JourneyCount, DepartureTimeArray, LightsOnTime, EndLocationsStrArray,
+                WriteOutDiagramsToDatabase(T^.Train_LocoChip, T^.Train_DoubleHeaderLocoChip, JourneyCount, DepartureTimeArray, LightsOnTime, EndLocationsStrArray,
                                                  DirectionsArray, LightsRemainOn, TrainNonMoving, NotForPublicUseArray, StartLocationStr, StoppingArray,
                                                  LengthOfTrainInCarriages, TypeOfTrainNum, NOT UserDriving, NOT UserRequiresInstructions, NOT StartOfRepeatJourney);
 

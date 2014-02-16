@@ -8018,7 +8018,7 @@ BEGIN { Main drawing procedure }
           ReadInAreasDataFromDatabase; { ************ problem for all file loading if registry entry empty - no prompt to find directory they're in - 21/1/14 }
           ReadInLocationDataFromDatabase;
           SetLength(LocationOccupations, Length(Locations));
-          ReadInLocoData(LocoDataTableOK);
+          ReadInLocoDataFromDatabase(LocoDataTableOK);
           SetUpLineDrawingVars(1000);
           ReadInLineDataFromDatabase;
           ReadInFeedbackDataFromDatabase;
@@ -8078,9 +8078,9 @@ BEGIN { Main drawing procedure }
           WorkingTimetableOK := False;
           DiagramsOK := False;
           IF NOT WorkingTimetableMode THEN
-            Log('GG Starting without the working timetable - WorkingTimetableMode is not set')
+            Log('GG Starting without the working timetable - WorkingTimetableMode is not set {BLANKLINEBEFORE}')
           ELSE BEGIN
-            LoadWorkingTimetable(WorkingTimetableMissing, WorkingTimetableOK);
+            LoadWorkingTimetableFromDatabase(WorkingTimetableMissing, WorkingTimetableOK);
             IF NOT WorkingTimetableMissing
             AND WorkingTimetableOK
             THEN BEGIN
@@ -8090,14 +8090,14 @@ BEGIN { Main drawing procedure }
           END;
 
           IF WorkingTimetableOK THEN
-            Log('GG Working timetable loaded - so starting without loading the diagrams from disc')
+            Log('GG Working timetable loaded - so starting without loading the diagrams from disc {BLANKLINEBEFORE}')
           ELSE
             IF NOT StartWithDiagrams THEN BEGIN
-              Log('GG Starting without the diagrams loaded - StartWithDiagrams is not set');
+              Log('GG Starting without the diagrams loaded - StartWithDiagrams is not set {BLANKLINEBEFORE}');
               CheckOccupiedLinesAndDiagrams;
             END ELSE BEGIN
               InitialiseDiagramsUnit;
-              ReadInDiagramsFromAccessDatabase(ErrorMsg, DiagramsMissing, DiagramsOK);
+              ReadInDiagramsFromDatabase(ErrorMsg, DiagramsMissing, DiagramsOK);
               IF DiagramsOK
               AND NOT DiagramsMissing
               THEN

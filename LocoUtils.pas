@@ -36,7 +36,7 @@ TYPE
 PROCEDURE ListLocosByChip;
 { Create a list by loco chip }
 
-PROCEDURE ReadInLocoData(VAR OK : Boolean);
+PROCEDURE ReadInLocoDataFromDatabase(VAR OK : Boolean);
 { Read in the loco table data from the MSAccess file - the data is not read in loco chip order, but that does not matter }
 
 PROCEDURE WriteOutLocoDataToDatabase;
@@ -72,7 +72,7 @@ BEGIN
   WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
 
-PROCEDURE ReadInLocoData(VAR OK : Boolean);
+PROCEDURE ReadInLocoDataFromDatabase(VAR OK : Boolean);
 { Read in the loco table data from the MSAccess file - the data is not read in loco chip order, but that does not matter }
 CONST
   DescribeFullTrainList = True;
@@ -290,6 +290,18 @@ BEGIN
       SetLength(TempLocations, 0);
       SetLength(TempLocationsLocoChips, 0);
       SetLength(TempTCsLocoChips, 0);
+
+      IF NOT FileExists(PathToRailDataFiles + LocoDataFilename + '.' + LocoDataFilenameSuffix) THEN BEGIN
+        IF MessageDialogueWithDefault('Loco database file "' + PathToRailDataFiles + LocoDataFilename + '.' + LocoDataFilenameSuffix + '"'
+                                      + ' cannot be located'
+                                      + CRLF
+                                      + 'Do you wish to continue?',
+                                      StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
+        THEN
+          ShutDownProgram(UnitRef, 'ReadInLocoDataFromDatabase')
+        ELSE
+          Exit;
+      END;
 
       LocoDataADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
                                                 + PathToRailDataFiles + LocoDataFilename + '.' + LocoDataFilenameSuffix
@@ -651,7 +663,7 @@ BEGIN
                 ErrorMsg := ''
               ELSE BEGIN
                 LocoDataADOConnection.Connected := False;
-                ShutDownProgram(UnitRef, 'ReadInLocoData');
+                ShutDownProgram(UnitRef, 'ReadInLocoDataFromDatabase');
               END;
             END;
 
@@ -695,9 +707,9 @@ BEGIN
     END; {WITH}
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG ReadInLocoData: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG ReadInLocoDataFromDatabase: ' + E.ClassName +' error raised, with message: '+ E.Message);
   END; {TRY}
-END; { ReadInLocoData }
+END; { ReadInLocoDataFromDatabase }
 
 PROCEDURE WriteOutLocoDataToDatabase;
 { Write out some loco data to the loco data file }
@@ -716,6 +728,18 @@ BEGIN
         ShowMessage('System offline so not writing out loco locations');
         Log('X System offline so not writing out loco locations');
       END ELSE BEGIN
+        IF NOT FileExists(PathToRailDataFiles + LocoDataFilename + '.' + LocoDataFilenameSuffix) THEN BEGIN
+          IF MessageDialogueWithDefault('Loco database file "' + PathToRailDataFiles + LocoDataFilename + '.' + LocoDataFilenameSuffix + '"'
+                                        + ' cannot be located'
+                                        + CRLF
+                                        + 'Do you wish to continue?',
+                                        StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
+          THEN
+            ShutDownProgram(UnitRef, 'WriteOutLocoDataToDatabase')
+          ELSE
+            Exit;
+        END;
+
         LocoDataADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
                                                   + PathToRailDataFiles + LocoDataFilename + '.' + LocoDataFilenameSuffix
                                                   + ';Persist Security Info=False';

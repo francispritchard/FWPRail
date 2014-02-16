@@ -115,8 +115,20 @@ VAR
 BEGIN
   TRY
     Log('G INITIALISING ROUTEING EXCEPTIONS {BLANKLINEBEFORE}');
-    
+
     WITH CreateRouteDisplayColoursWindow DO BEGIN
+      IF NOT FileExists(PathToRailDataFiles + RouteingExceptionDataFilename + '.' + RouteingExceptionDataFilenameSuffix) THEN BEGIN
+        IF MessageDialogueWithDefault('Routeing Exceptions database file "' + PathToRailDataFiles + RouteingExceptionDataFilename + '.' + RouteingExceptionDataFilenameSuffix + '"'
+                                      + ' cannot be located'
+                                      + CRLF
+                                      + 'Do you wish to continue?',
+                                      StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
+        THEN
+          ShutDownProgram(UnitRef, 'ReadInRouteingExceptionsFromDatabase')
+        ELSE
+          Exit;
+      END;
+
       RouteingExceptionDataADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
                                                              + PathToRailDataFiles + RouteingExceptionDataFilename + '.' + RouteingExceptionDataFilenameSuffix
                                                              + ';Persist Security Info=False';

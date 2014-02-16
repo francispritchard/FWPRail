@@ -45,7 +45,7 @@ TYPE
 PROCEDURE DrawWorkingTimetable(UnitRef : String; Str : String);
 { Write the complete WorkingTimetable to the screen after it has been changed }
 
-PROCEDURE LoadWorkingTimetable(OUT WorkingTimetableMissing, WorkingTimetableOK : Boolean);
+PROCEDURE LoadWorkingTimetableFromDatabase(OUT WorkingTimetableMissing, WorkingTimetableOK : Boolean);
 { Load the working timetable }
 
 PROCEDURE ProcessWorkingTimetable;
@@ -625,7 +625,7 @@ BEGIN
 
 END; { WorkingTimetableWindowGridMouseMove }
 
-PROCEDURE LoadWorkingTimetable(OUT WorkingTimetableMissing, WorkingTimetableOK : Boolean);
+PROCEDURE LoadWorkingTimetableFromDatabase(OUT WorkingTimetableMissing, WorkingTimetableOK : Boolean);
 { Load the working timetable }
 VAR
   ClassFound : Boolean;
@@ -846,7 +846,7 @@ BEGIN
     ON E : Exception DO
       Log('EG InitialiseWorkingTimetable: ' + E.ClassName +' error raised, with message: '+ E.Message);
   END; {TRY}
-END; { LoadWorkingTimetable }
+END; { LoadWorkingTimetableFromDatabase }
 
 FUNCTION GetRequiredStationsMaxLength(VAR W : WorkingTimetableRecType) : Extended;
 { Work out the maximum length for all the specified stations }
