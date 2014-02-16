@@ -1358,7 +1358,6 @@ BEGIN
 
             CheckTimeOut := False;
 
-
             { loop if necessary - not needed if no reply was awaited, or if the reply received was the one that was expected }
           END;
         UNTIL (ExpectedReply = NoReplyExpected) OR ExpectedDataReceived OR TimedOut OR ErrorFound OR (RetryFlag = True);
