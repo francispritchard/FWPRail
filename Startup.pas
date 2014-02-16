@@ -307,7 +307,7 @@ BEGIN
             END;
           END;
       'Y':
-        IF ParamString = 'Y:' THEN BEGIN
+        IF Copy(ParamString, 1, 2) = 'Y:' THEN BEGIN
           ShowByteParam := Copy(ParamString, 3, 255);
           IF (ShowByteParam = 'ALL')
           OR ((ShowByteParam >= '0')
