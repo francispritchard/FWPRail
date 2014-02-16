@@ -10,6 +10,9 @@ __history
 *.res
 *.dsk
 *.~dsk
-*.otares
+Rail.otares
+*.bak
+*.old
+*.dproj
 bin/*
-
+Rail Data Files/Logs/*
