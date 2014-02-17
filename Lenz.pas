@@ -754,9 +754,17 @@ BEGIN
         DebugStr := DebugStr + IntToHex(WriteArray[CommandLen + 1], 2);
         DebugStr := DebugStr + ']';
 
+        CASE RetryCount OF
+          0:
+            ; { do nothing }
+          1:
+            DebugStr := DebugStr + ' (2nd attempt)';
+          2:
+            DebugStr := DebugStr + ' (3rd attempt)';
+        END; {CASE}
+
         Log(TypeOfLogChar + ' ' + DebugStr); {+ ' byte 2= ' + DoBitPattern(WriteArray[2]) + ' byte 4= ' + DoBitPattern(WriteArray[4]));}
 
-        { Loop if the received data is not what's expected - aim to read in what's expected second, maybe third, time around }
         ErrorFound := False;
         ResponseOrBroadcast := NoResponse;
       END;
