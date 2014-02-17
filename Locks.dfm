@@ -14,8 +14,6 @@ object LockListWindow: TLockListWindow
   FormStyle = fsStayOnTop
   OldCreateOrder = False
   OnCreate = LockListWindowCreate
-  ExplicitWidth = 320
-  ExplicitHeight = 240
   PixelsPerInch = 96
   TextHeight = 13
   object LockListWindowMemo: TMemo
