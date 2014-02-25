@@ -327,7 +327,7 @@ BEGIN
   { Also add mouse help }
   AddRichLine(HelpWindow.HelpRichEdit, '');
   AddRichLine(HelpWindow.HelpRichEdit, '<b>MOUSE HELP</b>');
-  ChangeStateOfWhatIsUnderMouse(IrrelevantShiftState, True);
+  ChangeStateOfWhatIsUnderMouse(0, 0, IrrelevantShiftState, True);
 
   HelpWindow.Show;
 

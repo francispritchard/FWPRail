@@ -14,7 +14,7 @@ TYPE
     { Public declarations }
   END;
 
-PROCEDURE ChangeStateOfWhatIsUnderMouse(ShiftState : TShiftState; HelpRequired : Boolean);
+PROCEDURE ChangeStateOfWhatIsUnderMouse(X, Y : Integer; ShiftState : TShiftState; HelpRequired : Boolean);
 { See what the mouse is currently pointing at something, and change its state if appropriate }
 
 PROCEDURE MouseButtonPressed(Button : TMouseButton; X, Y : Integer; ShiftState : TShiftState);
@@ -23,8 +23,13 @@ PROCEDURE MouseButtonPressed(Button : TMouseButton; X, Y : Integer; ShiftState :
 PROCEDURE MouseButtonReleased(Button : TMouseButton; X, Y : Integer; ShiftState : TShiftState);
 { Button released }
 
-PROCEDURE WhatIsUnderMouse(X, Y : Integer; ShiftState : TShiftState);
-{ Returns the current mouse position without a keypress being required }
+PROCEDURE WhatIsUnderMouse(X, Y : Integer; ShiftState : TShiftState); Overload;
+{ Returns the current mouse position and whether a specific item has been found at that position without a keypress being required }
+
+PROCEDURE WhatIsUnderMouse(X, Y : Integer; ShiftState : TShiftState; OUT BufferStopFoundNum : Integer; OUT IndicatorFoundNum : Integer;
+                           OUT IndicatorFoundType : JunctionIndicatorType; OUT PointFoundNum : Integer; OUT SignalFoundNum : Integer; OUT SignalPostFoundNum : Integer;
+                           OUT TheatreIndicatorFoundNum : Integer; OUT TRSPlungerFoundLocation : Integer); Overload;
+{ Returns the current mouse position and whether a specific item has been found at that position without a keypress being required }
 
 VAR
   CuneoWindow: TCuneoWindow;
@@ -52,16 +57,10 @@ TYPE
   MouseButton = TMouseButton;
 
 VAR
-  BufferStopFoundNum : Integer = UnknownBufferStop;
   ButtonPress : MouseButton;
-  ConnectionChFound : Boolean = False;
   DownLineEndCharacterLine : Integer = UnknownLine;
   EmergencyRouteingStored : Boolean = False;
-  IndicatorFoundNum : Integer = UnknownSignal;
-  IndicatorFoundType : JunctionIndicatorType = UnknownJunctionIndicator;
-  LocoChipForRouteing : Integer = UnknownLocoChip;
   MoveZoomWindowMode : Boolean = False;
-  PointFoundNum : Integer = UnknownPoint;
   SaveDivergingLine : Integer = UnknownLine;
   SaveDivergingLineColour : TColour;
   SaveDownBufferStop : Integer = UnknownBufferStop;
@@ -70,7 +69,6 @@ VAR
   SaveHeelLineColour : TColour;
   SaveLine : Integer = UnknownLine;
   SaveLineColour : TColour;
-  SavePossibleRoutesArray : StringArrayType;
   SaveNextUpLineColour : TColour;
   SaveNextDownLineColour : TColour;
   SaveNextDownPoint : Integer = UnknownPoint;
@@ -80,22 +78,9 @@ VAR
   SaveStraightLine : Integer = UnknownLine;
   SaveStraightLineColour : TColour;
   SaveUpBufferStop : Integer = UnknownBufferStop;
-  SignalFoundNum : Integer = UnknownSignal;
   SignalPostDrawn : Boolean = False;
-  SignalPostFoundNum : Integer = UnknownSignal;
   SignalPostToBeFlashed : Integer = UnknownSignal;
-  StatusBarPanel1Str : String;
-  StatusBarPanel2Str : String;
   TCAdjoiningTCsDrawnNum : Integer = UnknownTC;
-  TheatreIndicatorFoundNum : Integer = UnknownSignal;
-  TheatreSignalSetting : Boolean = False;
-  TimetablingLocoChip : Integer = UnknownLocoChip;
-  TimetablingEndLine : Integer = UnknownLine;
-  TimetablingEndLocation : Integer = UnknownLocation;
-  TimetablingStartLine : Integer = UnknownLine;
-  TimetablingStartLocation : Integer = UnknownLocation;
-  TrainLengthInInchesForRouteing : Integer = UnknownTrainLength;
-  TrainTypeForRouteing : TypeOfTrainType = UnknownTrainType;
   TRSPlungerFoundLocation : Integer = UnknownLocation;
   UpLineEndCharacterLine : Integer = UnknownLine;
 
@@ -111,6 +96,7 @@ CONST
   Bold = True;
 
 VAR
+  ConnectionChFound : Boolean;
   L2 : Integer;
 
 BEGIN
@@ -141,6 +127,7 @@ CONST
   Bold = True;
 
 VAR
+  ConnectionChFound : Boolean;
   L2 : Integer;
 
 BEGIN
@@ -166,8 +153,10 @@ BEGIN
   END;
 END; { DownLineEndCharacterSelected }
 
-PROCEDURE WhatIsUnderMouse(X, Y : Integer; ShiftState : TShiftState);
-{ Returns the current mouse position without a keypress being required }
+PROCEDURE WhatIsUnderMouseMainProc(X, Y : Integer; ShiftState : TShiftState; OUT BufferStopFoundNum : Integer; OUT IndicatorFoundNum : Integer;
+                                   OUT IndicatorFoundType : JunctionIndicatorType; OUT PointFoundNum : Integer; OUT SignalFoundNum : Integer;
+                                   OUT SignalPostFoundNum : Integer; OUT TheatreIndicatorFoundNum : Integer; OUT TRSPlungerFoundLocation : Integer);
+{ Returns the current mouse position and whether a specific item has been found at that position without a keypress being required }
 CONST
   ActiveTrain = True;
   Bold = True;
@@ -182,6 +171,8 @@ VAR
   LockingFailureString : String;
   ObjectFound : Boolean;
   SaveRecordLineDrawingMode : Boolean;
+  StatusBarPanel1Str : String;
+  StatusBarPanel2Str : String;
   T : Train;
   TC : Integer;
   TempDraftRouteArray : StringArrayType;
@@ -191,6 +182,7 @@ VAR
 
 BEGIN
   TRY
+// Log('* ************ ' + TestCountStr);
     IF PreparingZoom THEN BEGIN
       { Draw and undraw the rectangle if any }
       DrawRectangularOutline(ZoomRect, clRed, UndrawRequired, NOT UndrawToBeAutomatic);
@@ -226,6 +218,7 @@ BEGIN
         IndicatorFoundNum := UnknownSignal;
         IndicatorFoundType := UnknownJunctionIndicator;
         SignalPostFoundNum := UnknownSignal;
+// Log('* ************* setting signalnum to unknown');
         TheatreIndicatorFoundNum := UnknownSignal;
         TRSPlungerFoundLocation := UnknownLocation;
         LineFoundNum := UnknownLine;
@@ -243,6 +236,8 @@ BEGIN
               ObjectFound := True;
               TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'S' + IntToStr(S) + ' ';
               SignalFoundNum := S;
+// Log('* 21. S=' + IntToStr(SignalFoundNum));
+
               IF SignalIsLocked(S, LockingFailureString) THEN
                 TempStatusBarPanel1Str := TempStatusBarPanel1Str + '[' + LockingFailureString + '] ';
               IF Signals[S].Signal_OutOfUse THEN
@@ -365,6 +360,7 @@ BEGIN
           RecordLineDrawingMode := SaveRecordLineDrawingMode;
         END;
 
+// Log('* 22. P=' + IntToStr(PointFoundnum));
         PointFoundNum := UnknownPoint;
         P := 0;
         WHILE (P <= High(Points))
@@ -414,6 +410,7 @@ BEGIN
           END; {WITH}
           Inc(P);
         END; {WHILE}
+// Log('* 30. P=' + IntToStr(PointFoundnum));
 
         IF TempStatusBarPanel1Str <> '' THEN BEGIN
           IF StatusBarPanel1Str <> '' THEN
@@ -664,11 +661,39 @@ BEGIN
                                 + IntToStr(MulDiv(1000, X, MainWindow.ClientWidth)) + '/1000,'
                                 + IntToStr(MulDiv(1000, Y, MainWindow.ClientHeight)) +'/1000');
       END;
+//      IF Signalfoundnum <> unknownsignal then
+//        Log('* 99. S=' + IntToStr(SignalFoundNum));
     END;
   EXCEPT {TRY}
     ON E : Exception DO
       Log('EG WhatIsUnderMouse: ' + E.ClassName +' error raised, with message: '+ E.Message);
   END; {TRY}
+END; { WhatIsUnderMouseMainProc }
+
+PROCEDURE WhatIsUnderMouse(X, Y : Integer; ShiftState : TShiftState); Overload;
+{{ Returns the current mouse position }
+VAR
+  BufferStopFoundNum : Integer;
+  IndicatorFoundNum : Integer;
+  IndicatorFoundType : JunctionIndicatorType;
+  PointFoundNum : Integer;
+  SignalFoundNum : Integer;
+  SignalPostFoundNum : Integer;
+  TheatreIndicatorFoundNum : Integer;
+  TRSPlungerFoundLocation : Integer;
+
+BEGIN
+  WhatIsUnderMouseMainProc(X, Y, ShiftState, BufferStopFoundNum, IndicatorFoundNum, IndicatorFoundType, PointFoundNum, SignalFoundNum, SignalPostFoundNum,
+                           TheatreIndicatorFoundNum, TRSPlungerFoundLocation);
+END; { WhatIsUnderMouse }
+
+PROCEDURE WhatIsUnderMouse(X, Y : Integer; ShiftState : TShiftState; OUT BufferStopFoundNum : Integer; OUT IndicatorFoundNum : Integer;
+                           OUT IndicatorFoundType : JunctionIndicatorType; OUT PointFoundNum : Integer; OUT SignalFoundNum : Integer; OUT SignalPostFoundNum : Integer;
+                           OUT TheatreIndicatorFoundNum : Integer; OUT TRSPlungerFoundLocation : Integer); Overload;
+{ Returns the current mouse position and whether a specific item has been found at that position without a keypress being required }
+BEGIN
+  WhatIsUnderMouseMainProc(X, Y, ShiftState, BufferStopFoundNum, IndicatorFoundNum, IndicatorFoundType, PointFoundNum, SignalFoundNum, SignalPostFoundNum,
+                           TheatreIndicatorFoundNum, TRSPlungerFoundLocation);
 END; { WhatIsUnderMouse }
 
 PROCEDURE MouseButtonReleased(Button : TMouseButton; X, Y : Integer; ShiftState : TShiftState);
@@ -759,7 +784,7 @@ BEGIN
   END;
 END; { CuneoTimerTick }
 
-PROCEDURE ChangeStateOfWhatIsUnderMouse(ShiftState : TShiftState; HelpRequired : Boolean);
+PROCEDURE ChangeStateOfWhatIsUnderMouse(X, Y : Integer; ShiftState : TShiftState; HelpRequired : Boolean);
 { See what the mouse is currently pointing at something, and change its state if appropriate }
 CONST
   Amendment = True;
@@ -772,6 +797,14 @@ CONST
 VAR
   IrrelevantShiftState : TShiftState;
   OK : Boolean;
+  BufferStopFoundNum : Integer;
+  IndicatorFoundNum : Integer;
+  IndicatorFoundType : JunctionIndicatorType;
+  PointFoundNum : Integer;
+  SignalFoundNum : Integer;
+  SignalPostFoundNum : Integer;
+  TheatreIndicatorFoundNum : Integer;
+  TRSPlungerFoundLocation : Integer;
 
   PROCEDURE ChangeSignal(S : Integer; ShiftState : TShiftState; HelpRequired : Boolean);
   { Change signal aspects }
@@ -846,8 +879,8 @@ VAR
                   BEGIN
                     { no shift keys pressed }
                     PullSignal(NoLocoChip, S, NoIndicatorLit, NoRoute, NoSubRoute, UnknownLine, UnknownTrainType, ByUser, OK);
-                    IF TheatreSignalSetting THEN
-                      TheatreSignalSetting := False;
+//                    IF TheatreSignalSetting THEN
+//                      TheatreSignalSetting := False;
                   END;
 
     LockingMode := SaveLockingMode;
@@ -956,6 +989,7 @@ VAR
       AddRichLine(HelpWindow.HelpRichEdit, '  <B>Shift + Left Mouse</B> - force point to move (if, for example, it has stuck)');
       AddRichLine(HelpWindow.HelpRichEdit, '  <B>Ctrl + Left Mouse</B> - force point to move even if locked');
     END ELSE BEGIN
+Log('* 1. P=' + IntToStr(P));
       IF Routes_RouteSettingByHand THEN
         Debug('!Cannot change point while route setting')
       ELSE
@@ -978,16 +1012,17 @@ VAR
                 SaveLockingMode := LockingMode;
                 LockingMode := False;
                 Log('P Locking mode suspended when changing point ' + IntToStr(P) + ' {BLANKLINEBEFORE}');
-                PullPoint(P, NoLocoChip, NoRoute, NoSubRoute, ForcePoint, ByUser, ErrorMessageRequired, PointResultPending, 
+                PullPoint(P, NoLocoChip, NoRoute, NoSubRoute, ForcePoint, ByUser, ErrorMessageRequired, PointResultPending,
                           DebugStr, OK);
                 LockingMode := SaveLockingMode;
               END ELSE
                 { move it normally }
-                PullPoint(P, NoLocoChip, NoRoute, NoSubRoute, NOT ForcePoint, ByUser, ErrorMessageRequired, PointResultPending, 
+                PullPoint(P, NoLocoChip, NoRoute, NoSubRoute, NOT ForcePoint, ByUser, ErrorMessageRequired, PointResultPending,
                           DebugStr, OK);
           END; {WITH}
         END;
     END;
+Log('* 2. P=' + IntToStr(P));
   END; { ChangePoint }
 
   PROCEDURE ChangeTRSPlunger(TRSPlungerFoundLocation : Integer;  HelpRequired : Boolean);
@@ -1106,11 +1141,14 @@ VAR
     RouteFoundOK : Boolean;
     Route : Integer;
     SaveIndicatorString : String;
+    SavePossibleRoutesArray : StringArrayType;
     StartLine, EndLine : Integer;
     StartSignal, EndSignal : Integer;
     TempBufferStop: Integer;
     TempSignal : Integer;
     T : Train;
+    TrainLengthInInchesForRouteing : Integer;
+    TrainTypeForRouteing : TypeOfTrainType;
 
   BEGIN
     Result := True;
@@ -1118,7 +1156,6 @@ VAR
     TRY
       EndLine := UnknownLine;
       EndSignal := UnknownSignal;
-      LocoChipForRouteing := UnknownLocoChip;
       PutativelyRouteSetting := False;
       PutativelyTheatreIndicatorSetting := False;
       RouteFindingCancelled := False;
@@ -1127,6 +1164,9 @@ VAR
       SaveIndicatorString := '';
       StartLine := UnknownLine;
       T := NIL;
+      TrainLengthInInchesForRouteing := UnknownTrainLength;
+      TrainTypeForRouteing := UnknownTrainType;
+
 
       IF HelpRequired THEN BEGIN
         AddRichLine(HelpWindow.HelpRichEdit, '');
@@ -1229,8 +1269,6 @@ VAR
                           Routes_RouteClearingsWithoutPointResetting[Route] := True;
                         { telling the system to start with the first subroute }
                         Routes_CurrentClearingSubRoute[Route] := 0;
-                        { reset the loco chip num }
-                        LocoChipForRouteing := UnknownLocoChip;
                         { and leave this subroutine }
                         Exit;
                       END;
@@ -1283,7 +1321,7 @@ VAR
                     END ELSE BEGIN
                       Log('S Theatre indicator setting request initiated by user - signal post ' + IntToStr(S) + ' pressed');
                       Routes_TheatreIndicatorSettingInitiated := True;
-                      SetIndicator(LocoChipForRouteing, S, QueryIndicatorLit, '', NoRoute, ByUser);
+                      SetIndicator(UnknownLocoChip, S, QueryIndicatorLit, '', NoRoute, ByUser);
                       Log('S User setting theatre indicator for S=' + IntToStr(S) + ' to Query');
                     END;
                 END;
@@ -1376,7 +1414,7 @@ VAR
                     Routes_TheatreIndicatorSettingInitiated := False;
                     RouteFindingCancelled := True;
                     { and remove the query indication }
-                    SetIndicator(LocoChipForRouteing, S, NoIndicatorLit, '', NoRoute, ByUser);
+                    SetIndicator(UnknownLocoChip, S, NoIndicatorLit, '', NoRoute, ByUser);
                   END ELSE
                     IF Routes_NearestSignalTestingInitiated THEN BEGIN
                       Log('S NextJunctionSignalTest cancelled by user - signal post ' + IntToStr(S) + ' pressed a second time');
@@ -1393,8 +1431,7 @@ VAR
                     IF ExtractBufferStopFromString(SavePossibleRoutesArray[I]) <> UnknownBufferStop THEN
                       DrawBufferStop(ExtractBufferStopFromString(SavePossibleRoutesArray[I]), BufferStopColour);
                 END;
-                { reset the loco chip num }
-                LocoChipForRouteing := UnknownLocoChip;
+
                 { and clear the array of possible routes }
                 SetLength(SavePossibleRoutesArray, 0);
               END ELSE BEGIN
@@ -1420,13 +1457,13 @@ VAR
                   IF OK THEN BEGIN
                     IF Routes_RouteSettingByHand THEN BEGIN
                       Log('R Route setting request by user concluded - BS=' + IntToStr(BS) + ' pressed');
-                      FindRouteFromLineAToLineB(LocoChipForRouteing, UnknownJourney, S, Signals[StartSignal].Signal_AdjacentLine, BufferStops[BS].BufferStop_AdjacentLine,
+                      FindRouteFromLineAToLineB(UnknownLocoChip, UnknownJourney, S, Signals[StartSignal].Signal_AdjacentLine, BufferStops[BS].BufferStop_AdjacentLine,
                                                 Signals[StartSignal].Signal_Direction, TrainTypeForRouteing, TrainLengthInInchesForRouteing, EmergencyRouteingStored,
                                                 NOT IncludeOutOfUseLinesOn, DraftRouteArray, LinesNotAvailableStr, ErrorMsg, RouteFoundOK);
                       EndLine := BufferStops[BS].BufferStop_AdjacentLine;
                     END ELSE BEGIN
                       Log('S Theatre indicator route setting request by user concluded - BS=' + IntToStr(BS) + ' pressed');
-                      FindRouteFromLineAToLineB(LocoChipForRouteing, UnknownJourney, S, Signals[StartSignal].Signal_AdjacentLine, BufferStops[BS].BufferStop_AdjacentLine,
+                      FindRouteFromLineAToLineB(UnknownLocoChip, UnknownJourney, S, Signals[StartSignal].Signal_AdjacentLine, BufferStops[BS].BufferStop_AdjacentLine,
                                                 Signals[StartSignal].Signal_Direction, TrainTypeForRouteing, TrainLengthInInchesForRouteing, EmergencyRouteingStored,
                                                 NOT IncludeOutOfUseLinesOn, DraftRouteArray, LinesNotAvailableStr, ErrorMsg, RouteFoundOK);
                       AppendToStringArray(DraftRouteArray, 'BS=' + IntToStr(BS));
@@ -1446,14 +1483,14 @@ VAR
                   IF OK THEN BEGIN
                     IF Routes_RouteSettingByHand THEN BEGIN
                       Log('R User Route setting request concluded - signal post ' + IntToStr(S) + ' pressed');
-                      FindRouteFromLineAToLineB(LocoChipForRouteing, UnknownJourney, S, Signals[StartSignal].Signal_AdjacentLine, Signals[EndSignal].Signal_AdjacentLine,
+                      FindRouteFromLineAToLineB(UnknownLocoChip, UnknownJourney, S, Signals[StartSignal].Signal_AdjacentLine, Signals[EndSignal].Signal_AdjacentLine,
                                                 Signals[StartSignal].Signal_Direction, TrainTypeForRouteing, TrainLengthInInchesForRouteing, EmergencyRouteingStored,
                                                 NOT IncludeOutOfUseLinesOn, DraftRouteArray, LinesNotAvailableStr, ErrorMsg, RouteFoundOK);
                       EndLine := Signals[EndSignal].Signal_AdjacentLine;
                     END ELSE BEGIN
                       Log('S User Theatre indicator route setting request concluded'
                              + ' - signal post ' + IntToStr(StartSignal) + ' pressed');
-                      FindRouteFromLineAToLineB(LocoChipForRouteing, UnknownJourney, S, Signals[StartSignal].Signal_AdjacentLine, Signals[EndSignal].Signal_AdjacentLine,
+                      FindRouteFromLineAToLineB(UnknownLocoChip, UnknownJourney, S, Signals[StartSignal].Signal_AdjacentLine, Signals[EndSignal].Signal_AdjacentLine,
                                                 Signals[StartSignal].Signal_Direction, TrainTypeForRouteing, TrainLengthInInchesForRouteing, EmergencyRouteingStored,
                                                 NOT IncludeOutOfUseLinesOn, DraftRouteArray, LinesNotAvailableStr, ErrorMsg, RouteFoundOK);
                       AppendToStringArray(DraftRouteArray, 'FS=' + IntToStr(EndSignal));
@@ -1496,30 +1533,30 @@ VAR
 
                 IF Routes_TheatreIndicatorSettingInitiated THEN BEGIN
                   Routes_TheatreIndicatorSettingInitiated := False;
-                  PullSignal(LocoChipForRouteing, StartSignal, TheatreIndicatorLit, Route, NoSubRoute, EndLine, TrainTypeForRouteing, ByUser, OK);
+                  PullSignal(UnknownLocoChip, StartSignal, TheatreIndicatorLit, Route, NoSubRoute, EndLine, TrainTypeForRouteing, ByUser, OK);
                 END ELSE
                   IF Routes_RouteSettingByHand THEN BEGIN
 
                     { Now set up the locking }
-                    CreateLockingArrayFromDraftRouteArray(LocoChipForRouteing, DraftRouteArray, LockingArray);
+                    CreateLockingArrayFromDraftRouteArray(UnknownLocoChip, DraftRouteArray, LockingArray);
 
                     { Now create the route array }
                     CreateRouteArrayFromLockingArray(Routes_RouteCounter, LockingArray, RouteArray);
 
                     { and the other route-related arrays }
-                    CreateInitialRouteRelatedArrays(T, LocoChipForRouteing, RouteArray, InAutoMode, StartSignal, EndSignal, BS, StartLine, EndLine);
+                    CreateInitialRouteRelatedArrays(T, UnknownLocoChip, RouteArray, InAutoMode, StartSignal, EndSignal, BS, StartLine, EndLine);
 
                     IF TestingMode THEN BEGIN
-                      WriteStringArrayToLog(LocoChipForRouteing, 'R', 'Draft Route Array to set up R=' + IntToStr(Routes_RouteCounter)
+                      WriteStringArrayToLog(UnknownLocoChip, 'R', 'Draft Route Array to set up R=' + IntToStr(Routes_RouteCounter)
                                                                       + ' ' + DescribeStartAndEndOfRoute(Routes_RouteCounter) + ':',
                                                                       DraftRouteArray,
                                                                       2, 190, 'SR=');
-                      WriteStringArrayToLog(LocoChipForRouteing, 'R', 'Locking Array to set up R=' + IntToStr(Routes_RouteCounter)
+                      WriteStringArrayToLog(UnknownLocoChip, 'R', 'Locking Array to set up R=' + IntToStr(Routes_RouteCounter)
                                                                       + ' ' + DescribeStartAndEndOfRoute(Routes_RouteCounter) + ':',
                                                                       LockingArray,
                                                                       2, 190, 'SR=');
                       FOR I := 0 TO (Routes_TotalSubRoutes[Routes_RouteCounter] - 1) DO
-                        WriteStringArrayToLog(LocoChipForRouteing, 'R', 'Final Route Array to set up'
+                        WriteStringArrayToLog(UnknownLocoChip, 'R', 'Final Route Array to set up'
                                                                         +' R=' + IntToStr(Routes_RouteCounter)
                                                                         + '/' + IntToStr(I) + ' '
                                                                         + DescribeSubRoute(Routes_RouteCounter, I) + ':',
@@ -1575,6 +1612,9 @@ BEGIN
       ChangeTRSPlunger(IrrelevantLocation, HelpRequired);
       WriteNextLineDetailToDebugWindow(LineFoundNum, HelpRequired);
     END ELSE
+      WhatIsUnderMouse(X, Y, ShiftState, BufferStopFoundNum, IndicatorFoundNum, IndicatorFoundType, PointFoundNum, SignalFoundNum, SignalPostFoundNum,
+                       TheatreIndicatorFoundNum, TRSPlungerFoundLocation);
+
       { We get the FoundNum data from the WhatIsUnderMouse routine }
       IF EditMode THEN BEGIN
         IF ButtonPress = mbLeft THEN BEGIN
@@ -1615,7 +1655,9 @@ BEGIN
                   SignalPostSelected(UnknownSignal, BufferStopFoundNum, ShiftState, HelpRequired)
                 ELSE
                   IF PointFoundNum <> UnknownPoint THEN BEGIN
+Log('* 16. P=' + IntToStr(PointFoundNum));
                     ChangePoint(PointFoundNum, ShiftState, HelpRequired);
+Log('* 17. P=' + IntToStr(PointFoundNum));
                     { also switch the opposite cross-over point (unless Alt is pressed) }
                     IF NOT (ssShift IN ShiftState)
                     AND NOT (ssAlt IN ShiftState)
@@ -1624,8 +1666,14 @@ BEGIN
                       { this second test may seem superfluous but is needed if we're in a Pause between switching LS150 points, when other mouse clicks might get through
                         and cause problems
                       }
-                      IF PointFoundNum <> UnknownPoint THEN 
+begin
+Log('* 18. P=' + IntToStr(PointFoundNum));
+                      IF PointFoundNum <> UnknownPoint THEN
+begin
                         ChangePoint(Points[PointFoundNum].Point_OtherPoint, ShiftState, HelpRequired);
+Log('* 19. P=' + IntToStr(PointFoundNum));
+end;
+end;
                   END ELSE
                     IF TheatreIndicatorFoundNum <> UnknownSignal THEN
                       TheatreIndicatorSelected(TheatreIndicatorFoundNum, UnknownBufferStop, ShiftState, HelpRequired)
@@ -1659,6 +1707,7 @@ BEGIN
                   PointPopupNum := PointFoundNum;
                   MainWindow.PointPopupMenu.Popup(MouseX, MouseY);
                   PointFoundNum := UnknownPoint;
+Log('* 23. P=' + IntToStr(Pointfoundnum));
                 END ELSE
                   IF BufferStopFoundNum <> UnknownBufferStop THEN BEGIN
                     BufferStopPopupNum := BufferStopFoundNum;
@@ -1719,8 +1768,8 @@ BEGIN
     THEN
       CheckEmergencyStop(Button, ShiftState)
     ELSE BEGIN
-      WhatIsUnderMouse(X, Y, ShiftState);
-      ChangeStateOfWhatIsUnderMouse(ShiftState, NOT HelpRequired);
+//      WhatIsUnderMouse(X, Y, ShiftState);
+      ChangeStateOfWhatIsUnderMouse(X, Y, ShiftState, NOT HelpRequired);
     END;
   END;
 END; { MouseButtonPressed }
