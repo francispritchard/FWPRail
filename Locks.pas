@@ -1987,7 +1987,11 @@ BEGIN
                       IF NOT PointChangedOK THEN BEGIN
                         DebugStr :=  'P=' + IntToStr(P) + ' failed once changing to ' + PointStateToStr(NewDirection);
                         Log(LocoChipStr + ' P ' + DebugStr);
-                        EmergencyDeselectPoint(P,   EmergencyDeselectPointOK);
+Log('* 10. P=' + IntToStr(P));
+                        EmergencyDeselectPoint(P, EmergencyDeselectPointOK);
+Log('* 11. P=' + IntToStr(P));
+
+                        { *** missing second test }
                         DebugStr :=  'System error: P=' + IntToStr(P) + ' failed twice changing to '  + PointStateToStr(NewDirection);
                         Debug('*** P=' + IntToStr(P) + ' Failure ***');
                         (*TP

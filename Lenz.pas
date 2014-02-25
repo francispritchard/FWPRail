@@ -2618,7 +2618,7 @@ BEGIN
 END; { OnLenzWatchdogTimerInterval }
 
 PROCEDURE TLenzWindow.OnLenzOneMilliSecondTimerInterval(Sender: TObject);
-{ This is used to stop point motors burning out }
+{ This is used to stop point and semaphore-signal motors burning out }
 VAR
   P : Integer;
   OK : Boolean;
@@ -2628,42 +2628,43 @@ BEGIN
   IF NOT ProgramStartup THEN BEGIN
     FOR P := 0 TO High(Points) DO BEGIN
       IF Points[P].Point_Energised THEN BEGIN
-//Log('P P=' + IntToStr(P) + ' energised at ' + TimeToHMSZStr(Points[P].Point_EnergisedTime));
-//Log('P Current time=' + TimeToHMSZStr(Time));
         IF MilliSecondsBetween(Time, Points[P].Point_EnergisedTime) > 2 THEN BEGIN
-//Log('X P=' + IntToStr(P) + ' ' + IntToStr(MilliSecondsBetween(Time, Points[P].Point_EnergisedTime)));
           { an error - it's been energised too long }
+          Log('PG Point ' + IntToStr(P) + ' [Lenz=' + IntToStr(Points[P].Point_LenzNum) + ']'
+                  + ' has been energised for too long (' + IntToStr(MilliSecondsBetween(Time, Points[P].Point_EnergisedTime)) + 'ms)'
+                  + ' so emergency deselection attempted at ' + TimeToHMSZStr(Time));
           EmergencyDeselectPoint(P, OK);
-          Log('PG Point ' + IntToStr(P) + ' [Lenz=' + IntToStr(Points[P].Point_LenzNum) + ']' + ' has been energised for too long so emergency deselection attempted');
           IF OK THEN BEGIN
             Points[P].Point_Energised := False;
-            Log('PG Point ' + IntToStr(P) + ' [Lenz=' + IntToStr(Points[P].Point_LenzNum) + ']' + ': emergency deselection was successful');
+            Log('PG Point ' + IntToStr(P) + ' [Lenz=' + IntToStr(Points[P].Point_LenzNum) + '] : emergency deselection was successful at ' + TimeToHMSZStr(Time)
+                    + ' after ' + IntToStr(MilliSecondsBetween(Time, Points[P].Point_EnergisedTime)) + ' seconds');
           END ELSE
-            Log('PG Point ' + IntToStr(P) + ' [Lenz=' + IntToStr(Points[P].Point_LenzNum) + ']' + ': emergency deselection failed');
+            Log('PG Point ' + IntToStr(P) + ' [Lenz=' + IntToStr(Points[P].Point_LenzNum) + ']' + ': emergency deselection failed at ' + TimeToHMSZStr(Time));
         END;
       END;
     END;
 
     FOR S := 0 TO High(Signals) DO BEGIN
       IF Signals[S].Signal_Energised THEN BEGIN
-  //    Log('S', 'S=' + IntToStr(S) + ' energised at ' + TimeHMToStr(Signals[S].EntergisedTime, 'hh:mm:ss:zzz')]);
-  //    Log('S', 'Current time=' + TimeHMToStr(Time, 'hh:mm:ss:zzz')]);
         IF MilliSecondsBetween(Time, Signals[S].Signal_EnergisedTime) > 2 THEN BEGIN
-  //      Log('X S=' + IntToStr(S) + ' ' + IntToStr(MilliSecondsBetween(Time, Signals[S].Signal_EnergisedTime))]);
           { an error - it's been energised too long }
-          EmergencyDeselectSignal(S, OK);
           Log('SG Signal ' + IntToStr(S) + ' [accessory address=' + IntToStr(Signals[S].Signal_AccessoryAddress) + ']'
-                           + ' has been energised for too long so emergency deselection attempted');
+                  + ' has been energised for too long (' + IntToStr(MilliSecondsBetween(Time, Signals[S].Signal_EnergisedTime)) + 'ms)'
+                  + ' so emergency deselection attempted at ' + TimeToHMSZStr(Time));
+          EmergencyDeselectSignal(S, OK);
           IF OK THEN BEGIN
             Signals[S].Signal_Energised := False;
-            Log('SG Signal ' + IntToStr(S) + ' [accessory address=' + IntToStr(Signals[S].Signal_AccessoryAddress) + ']' + ': emergency deselection was successful');
+            Log('SG Signal ' + IntToStr(S) + ' [accessory address=' + IntToStr(Signals[S].Signal_AccessoryAddress) + ']'
+                    + ': emergency deselection was successful at ' + TimeToHMSZStr(Time)
+                    + ' after ' + IntToStr(MilliSecondsBetween(Time, Signals[S].Signal_EnergisedTime)) + ' seconds');
           END ELSE
-            Log('SG Signal ' + IntToStr(S) + ' [accessory address=' + IntToStr(Signals[S].Signal_AccessoryAddress) + ']' + ': emergency deselection failed');
+            Log('SG Signal ' + IntToStr(S) + ' [accessory address=' + IntToStr(Signals[S].Signal_AccessoryAddress) + ']'
+                    + ': emergency deselection failed at ' + TimeToHMSZStr(Time));
         END;
       END;
     END;
   END;
-END; { OnLenzTimer }
+END; { OnLenzOneMilliSecondTimerInterval }
 
 PROCEDURE SetSignalFunction(LocoChip, S : Integer);
 { Set a numbered function on or off - used for LED signals controlled by LF100XF function only decoders, which are programmed to use functions 5-8 }
@@ -2789,7 +2790,9 @@ BEGIN
 
     { set bit 3 off to deselect }
     WriteArray[2] := 128; {1000 0000}
-    Log('E Writing out data to EMERGENCY DESELECT ' + 'P=' + IntToStr(P) + ' [Lenz=' + IntToStr(Points[P].Point_LenzNum - 1) + '] {BLANKLINEBEFORE}');
+    Log('E Writing out data to EMERGENCY DESELECT ' + 'P=' + IntToStr(P) + ' [Lenz=' + IntToStr(Points[P].Point_LenzNum - 1)  + ']'
+           + ' at ' + TimeToHMSZStr(Time)
+           + ' {BLANKLINEBEFORE}');
     DataIO('P', WriteArray, Acknowledgment, OK);
   END; {WITH}
 END; { EmergencyDeselectPoint }
@@ -2809,10 +2812,12 @@ BEGIN
 
     { set bit 3 off to deselect }
     WriteArray[2] := 128; {1000 0000}
-    Log('E Writing out data to EMERGENCY DESELECT ' + 'S=' + IntToStr(S) + ' [accessoryaddress=' + IntToStr(Signals[S].Signal_AccessoryAddress - 1) + '] {BLANKLINEBEFORE}');
+    Log('E Writing out data to EMERGENCY DESELECT ' + 'S=' + IntToStr(S) + ' [accessoryaddress=' + IntToStr(Signals[S].Signal_AccessoryAddress - 1)
+           + '] at ' + TimeToHMSZStr(Time)
+           + ' {BLANKLINEBEFORE}');
     DataIO('E', WriteArray, Acknowledgment, OK);
   END; {WITH}
-END; { EmergencyDeselectPoint }
+END; { EmergencyDeselectSignal }
 
 PROCEDURE MakeSemaphoreSignalChange(LocoChip, S, AccessoryAddress : Integer; OnOrOff : SignalStateType);
 { Pull a semaphore signal or or off using TrainTech's SC3, which "learns" given an accessory address by the LH100 }
@@ -2969,7 +2974,7 @@ VAR
       DebugStr := DebugStr + 'straight'
     ELSE
       DebugStr := DebugStr + 'diverging';
-    DebugStr := DebugStr + ' {BLANKLINEBEFORE}';
+    DebugStr := DebugStr + ' at ' + TimeToHMSZStr(Time);
 
     { If the wiring is reversed, the point is switching the opposite way to the way we think it is }
     IF Points[P].Point_WiringReversedFlag THEN BEGIN
@@ -2996,8 +3001,7 @@ VAR
       { **** }
     END;
 
-    DebugStr := DebugStr + ' at ' + TimeToHMSZStr(Time);
-    Log(LocoChipToStr(LocoChip) + ' P ' + DebugStr);
+    Log(LocoChipToStr(LocoChip) + ' P ' + DebugStr + ' {BLANKLINEBEFORE}');
 
     DataIO('P', WriteArray, PointAcknowledgment, OK);
   END; { TurnPointOn }
@@ -3050,7 +3054,7 @@ BEGIN { MakePointChange }
       DoCheckForUnexpectedData(UnitRef, 'MakePointChange 4');
       IF InAutoMode THEN
         MoveAllTrains;
-    UNTIL OK;
+    UNTIL OK OR NOT SystemOnline;
   END;
   Result := OK;
 END; { MakePointChange }

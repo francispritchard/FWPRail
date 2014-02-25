@@ -3458,6 +3458,11 @@ BEGIN { KeyPressedDown }
                       EmergencyDeselectPoint(P, OK);
                     Debug('All points now switched off');
                     Log('P User has switched all points off');
+
+                    FOR S := 0 TO High(Signals) DO
+                      EmergencyDeselectSignal(S, OK);
+                    Debug('All signal now switched off');
+                    Log('S User has switched all signals off');
                   END;
                 END;
               END;
@@ -4654,6 +4659,11 @@ BEGIN { KeyPressedDown }
                     FOR P := 0 TO High(Points) DO
                       EmergencyDeselectPoint(P, OK);
                     Log('P! User has switched all points off');
+
+                    FOR S := 0 TO High(Signals) DO
+                      EmergencyDeselectSignal(S, OK);
+                    Debug('All signal now switched off');
+                    Log('S User has switched all signals off');
                   END;
                 END;
               END;
@@ -4692,7 +4702,7 @@ BEGIN { KeyPressedDown }
               END;
             Ctrl: {Space}
               BEGIN
-                HelpMsg := 'switch all points off (in case they''ve been left energised)';
+                HelpMsg := 'switch all points and signals off (in case they''ve been left energised)';
                 IF NOT HelpRequired THEN BEGIN
                   IF NOT SystemOnline THEN
                     Debug('Cannot deselect points - system offline')
@@ -4700,6 +4710,11 @@ BEGIN { KeyPressedDown }
                     FOR P := 0 TO High(Points) DO
                       EmergencyDeselectPoint(P, OK);
                     Log('PG User has switched all points off');
+
+                    FOR S := 0 TO High(Signals) DO
+                      EmergencyDeselectSignal(S, OK);
+                    Debug('All signal now switched off');
+                    Log('S User has switched all signals off');
                   END;
                 END;
               END;
