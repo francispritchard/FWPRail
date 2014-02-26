@@ -24,14 +24,11 @@ object OptionsWindow: TOptionsWindow
     Width = 488
     Height = 824
     Align = alClient
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goEditing, goThumbTracking]
     TabOrder = 0
     OnDrawCell = OptionsValueListEditorDrawCell
     OnKeyDown = OptionsValueListEditorKeyDown
     OnValidate = OptionsValueListEditorValidate
-    ExplicitLeft = 174
-    ExplicitTop = 208
-    ExplicitWidth = 306
-    ExplicitHeight = 300
     ColWidths = (
       150
       332)
