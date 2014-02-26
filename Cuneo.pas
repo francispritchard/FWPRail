@@ -1767,10 +1767,8 @@ BEGIN
     AND (Button = mbRight)
     THEN
       CheckEmergencyStop(Button, ShiftState)
-    ELSE BEGIN
-//      WhatIsUnderMouse(X, Y, ShiftState);
+    ELSE
       ChangeStateOfWhatIsUnderMouse(X, Y, ShiftState, NOT HelpRequired);
-    END;
   END;
 END; { MouseButtonPressed }
 
