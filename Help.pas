@@ -22,8 +22,8 @@ TYPE
     { Public declarations }
   END;
 
-PROCEDURE FindDialogFind(FindDialog : TFindDialog; Text : String; OUT FoundPos : Integer);
-{ Find a given serach string - designed to be use on more than just this window }
+//PROCEDURE FindDialogFind(FindDialog : TFindDialog; Text : String; OUT FoundPos : Integer);
+//{ Find a given serach string - designed to be use on more than just this window }
 
 PROCEDURE WriteHelpText(HelpMsg : String);
 { write the text to the help window }
@@ -58,117 +58,39 @@ BEGIN
   END; {CASE}
 END; { HelpMemoKeyDown }
 
-PROCEDURE SearchHelpText(S : String);
-{ Search the Help Window text }
-BEGIN
-  PreviousFoundPos := 0;
-  WITH HelpWindow DO BEGIN
-    HelpWindowFindDialog.Position := Point(HelpWindow.Left + (HelpWindow.Width DIV 2), HelpWindow.Top);
-    HelpWindowFindDialog.Execute;
-  END; {WITH}
-END; { SearchHelpText }
-
-PROCEDURE FindDialogFind(FindDialog : TFindDialog; Text : String; OUT FoundPos : Integer);
-{ Find a given search string - designed to be used on more than just this window }
-VAR
-  SText: String;
-  StartFrom : Integer;
-  TempFoundPos : Integer;
-
-BEGIN
-  WITH FindDialog DO BEGIN
-    { If saved position is 0, this must be a "Find First" operation. }
-    IF PreviousFoundPos = 0 THEN
-      { Reset the frFindNext flag of the FindDialog }
-      Options := Options - [frFindNext];
-
-    IF frDown IN Options THEN BEGIN
-      { we're seeking down the list }
-      IF NOT (frFindNext IN Options) THEN BEGIN
-        { is it a Find "First" ? }
-        SText := Text;
-        StartFrom := 1;
-      END ELSE BEGIN
-        { it's a Find "Next" - calculate from where to start searching: start after the end of the last found position }
-        StartFrom := PreviousFoundPos + Length(Findtext);
-        { get text from the RichEdit, starting from StartFrom }
-        SText := Copy(Text, StartFrom, Length(Text) - StartFrom + 1);
-      END;
-
-      IF frMatchCase IN Options THEN
-        { case-sensitive search? Search position of FindText in SText. Note that function Pos() is case-sensitive. }
-        FoundPos := Pos(FindText, SText)
-      ELSE
-        { Search position of FindText, converted to uppercase, in SText, also converted to uppercase }
-        FoundPos := Pos(UpperCase(FindText), UpperCase(SText));
-
-      { If found, calculate position of FindText in the RichEdit }
-      PreviousFoundPos := FoundPos + StartFrom - 1;
-
-    END ELSE BEGIN
-      { we're seeking up the list  - reverse the list }
-      IF NOT (frFindNext IN Options) THEN
-        { is it a Find "First" ? }
-        SText := Text
-      ELSE BEGIN
-        { it's a Find "Next" - calculate from where to start searching: start before the end of the last found position }
-        StartFrom := PreviousFoundPos;
-        { get text from the RichEdit, starting from StartFrom }
-        SText := Copy(Text, 0, StartFrom - 1);
-      END;
-
-      IF frMatchCase IN Options THEN BEGIN
-        { case-sensitive search? Search position of FindText in SText. Note that function Pos() is case-sensitive. }
-        FoundPos := 0;
-        REPEAT
-          TempFoundPos := Pos(FindText, SText);
-          IF TempFoundPos > 0 THEN BEGIN
-            FoundPos := TempFoundPos;
-            { we need to find the last occurrence of the FindText - do this by converting the search string in the text to spaces unless we're searching for spaces! }
-            IF FindText <> StringOfChar(' ', Length(FindText)) THEN
-              SText := Copy(SText, 0, TempFoundPos - 1) + StringOfChar(' ', Length(FindText)) + Copy(SText, TempFoundPos + 3)
-            ELSE
-              SText := Copy(SText, 0, TempFoundPos - 1) + StringOfChar('X', Length(FindText)) + Copy(SText, TempFoundPos + 3);
-          END;
-        UNTIL TempFoundPos = 0;
-      END ELSE BEGIN
-        FoundPos := 0;
-        REPEAT
-          { search position of FindText, converted to uppercase, in SText, also converted to uppercase }
-          TempFoundPos := Pos(UpperCase(FindText), UpperCase(SText));
-          IF TempFoundPos > 0 THEN BEGIN
-            FoundPos := TempFoundPos;
-            { we need to find the last occurrence of the FindText - do this by converting the search string in the text to spaces unless we're searching for spaces! }
-            IF FindText <> StringOfChar(' ', Length(FindText)) THEN
-              SText := Copy(SText, 0, TempFoundPos - 1) + StringOfChar(' ', Length(FindText)) + Copy(SText, TempFoundPos + 3)
-            ELSE
-              SText := Copy(SText, 0, TempFoundPos - 1) + StringOfChar('X', Length(FindText)) + Copy(SText, TempFoundPos + 3);
-          END;
-        UNTIL TempFoundPos = 0;
-      END;
-
-      { If found, calculate position of FindText in the RichEdit }
-      PreviousFoundPos := FoundPos;
-    END;
-  END; {WITH}
-END; { FindDialogFind }
-
 PROCEDURE THelpWindow.HelpWindowFindDialogFind(Sender: TObject);
+{ From "http://docwiki.embarcadero.com/CodeExamples/XE3/en/FindText_%28Delphi%29" }
 VAR
-  FoundPos : Integer;
+  FoundAt : LongInt;
+  mySearchTypes : TSearchTypes;
+  StartPos : Integer;
+  ToEnd : Integer;
 
 BEGIN
-  WITH HelpWindow DO BEGIN
-    FindDialogFind(HelpWindowFindDialog, HelpRichEdit.Text, FoundPos);
-    IF FoundPos > 0 THEN BEGIN
-      IF NOT HelpWindow.Visible THEN
-        HelpWindow.Visible := True;
-      HelpRichEdit.SelStart := PreviousFoundPos - 1;
-      HelpRichEdit.SelLength := Length(HelpWindowFindDialog.FindText);
-      HelpRichEdit.SetFocus;
-      HelpRichEdit.Perform(EM_SCROLLCARET, 0, 0);
-    END ELSE
-      ShowMessage('Could not find "' + HelpWindowFindDialog.FindText + '"');
+  mySearchTypes := [];
+
+  WITH HelpRichEdit DO BEGIN
+    IF frMatchCase IN HelpWindowFindDialog.Options THEN
+       mySearchTypes := mySearchTypes + [stMatchCase];
+    IF frWholeWord IN HelpWindowFindDialog.Options THEN
+       mySearchTypes := mySearchTypes + [stWholeWord];
+
+    { Begin the search after the current selection, if there is one, otherwise, begin at the start of the text }
+    IF SelLength <> 0 THEN
+      StartPos := SelStart + SelLength
+    ELSE
+      StartPos := 0;
+
+    { ToEnd is the length from StartPos through the end of the text in the rich edit control }
+    ToEnd := Length(Text) - StartPos;
+    FoundAt := FindText(HelpWindowFindDialog.FindText, StartPos, ToEnd, mySearchTypes);
+    IF FoundAt = -1 THEN
+      Beep
+    ELSE BEGIN
+      SetFocus;
+      SelStart := FoundAt;
+      SelLength := Length(HelpWindowFindDialog.FindText);
+    END;
   END; {WITH}
 END; { HelpWindowFindDialogFind }
 
@@ -179,6 +101,10 @@ END;
 
 PROCEDURE THelpWindow.HelpWindowFindDialogShow(Sender: TObject);
 BEGIN
+  { There is no FindDialog.Width so the positioning here is a fudge to get it to the right of the Help window }
+  HelpWindowFindDialog.Left := HelpWindow.Left + (HelpWindow.Width DIV 2);
+
+  HelpWindowFindDialog.Top := HelpWindow.Top;
   HelpWindowFindDialogActive := True;
 END; { HelpWindowFindDialogShow }
 
@@ -187,7 +113,7 @@ BEGIN
   HelpWindowFindDialogActive := False;
 END; { HelpWindowFindDialogClose }
 
-PROCEDURE IdentifyLocoOnProgrammingTrack;    { half written 1/2/13 }
+PROCEDURE IdentifyLocoOnProgrammingTrack;    { ********** half written 1/2/13 }
 CONST
   StopTimer = True;
 
@@ -213,8 +139,8 @@ BEGIN
         HelpWindow.Hide;
     Ord('F'):
       IF ssCtrl IN ShiftState THEN BEGIN
-        S := Chr(Key);
-        SearchHelpText(S);
+        HelpWindowFindDialog.Position := Point(HelpRichEdit.Left + HelpRichEdit.Width, HelpRichEdit.Top);
+        HelpWindowFindDialog.Execute;
       END;
     Ord('L'):    { half written 1/2/13 }
       IF ssCtrl IN ShiftState THEN BEGIN
