@@ -182,7 +182,6 @@ VAR
 
 BEGIN
   TRY
-// Log('* ************ ' + TestCountStr);
     IF PreparingZoom THEN BEGIN
       { Draw and undraw the rectangle if any }
       DrawRectangularOutline(ZoomRect, clRed, UndrawRequired, NOT UndrawToBeAutomatic);
@@ -218,7 +217,6 @@ BEGIN
         IndicatorFoundNum := UnknownSignal;
         IndicatorFoundType := UnknownJunctionIndicator;
         SignalPostFoundNum := UnknownSignal;
-// Log('* ************* setting signalnum to unknown');
         TheatreIndicatorFoundNum := UnknownSignal;
         TRSPlungerFoundLocation := UnknownLocation;
         LineFoundNum := UnknownLine;
@@ -236,7 +234,6 @@ BEGIN
               ObjectFound := True;
               TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'S' + IntToStr(S) + ' ';
               SignalFoundNum := S;
-// Log('* 21. S=' + IntToStr(SignalFoundNum));
 
               IF SignalIsLocked(S, LockingFailureString) THEN
                 TempStatusBarPanel1Str := TempStatusBarPanel1Str + '[' + LockingFailureString + '] ';
@@ -360,7 +357,6 @@ BEGIN
           RecordLineDrawingMode := SaveRecordLineDrawingMode;
         END;
 
-// Log('* 22. P=' + IntToStr(PointFoundnum));
         PointFoundNum := UnknownPoint;
         P := 0;
         WHILE (P <= High(Points))
@@ -410,7 +406,6 @@ BEGIN
           END; {WITH}
           Inc(P);
         END; {WHILE}
-// Log('* 30. P=' + IntToStr(PointFoundnum));
 
         IF TempStatusBarPanel1Str <> '' THEN BEGIN
           IF StatusBarPanel1Str <> '' THEN
@@ -661,8 +656,6 @@ BEGIN
                                 + IntToStr(MulDiv(1000, X, MainWindow.ClientWidth)) + '/1000,'
                                 + IntToStr(MulDiv(1000, Y, MainWindow.ClientHeight)) +'/1000');
       END;
-//      IF Signalfoundnum <> unknownsignal then
-//        Log('* 99. S=' + IntToStr(SignalFoundNum));
     END;
   EXCEPT {TRY}
     ON E : Exception DO
@@ -989,7 +982,6 @@ VAR
       AddRichLine(HelpWindow.HelpRichEdit, '  <B>Shift + Left Mouse</B> - force point to move (if, for example, it has stuck)');
       AddRichLine(HelpWindow.HelpRichEdit, '  <B>Ctrl + Left Mouse</B> - force point to move even if locked');
     END ELSE BEGIN
-Log('* 1. P=' + IntToStr(P));
       IF Routes_RouteSettingByHand THEN
         Debug('!Cannot change point while route setting')
       ELSE
@@ -1022,7 +1014,6 @@ Log('* 1. P=' + IntToStr(P));
           END; {WITH}
         END;
     END;
-Log('* 2. P=' + IntToStr(P));
   END; { ChangePoint }
 
   PROCEDURE ChangeTRSPlunger(TRSPlungerFoundLocation : Integer;  HelpRequired : Boolean);
@@ -1655,9 +1646,7 @@ BEGIN
                   SignalPostSelected(UnknownSignal, BufferStopFoundNum, ShiftState, HelpRequired)
                 ELSE
                   IF PointFoundNum <> UnknownPoint THEN BEGIN
-Log('* 16. P=' + IntToStr(PointFoundNum));
                     ChangePoint(PointFoundNum, ShiftState, HelpRequired);
-Log('* 17. P=' + IntToStr(PointFoundNum));
                     { also switch the opposite cross-over point (unless Alt is pressed) }
                     IF NOT (ssShift IN ShiftState)
                     AND NOT (ssAlt IN ShiftState)
@@ -1666,14 +1655,8 @@ Log('* 17. P=' + IntToStr(PointFoundNum));
                       { this second test may seem superfluous but is needed if we're in a Pause between switching LS150 points, when other mouse clicks might get through
                         and cause problems
                       }
-begin
-Log('* 18. P=' + IntToStr(PointFoundNum));
                       IF PointFoundNum <> UnknownPoint THEN
-begin
                         ChangePoint(Points[PointFoundNum].Point_OtherPoint, ShiftState, HelpRequired);
-Log('* 19. P=' + IntToStr(PointFoundNum));
-end;
-end;
                   END ELSE
                     IF TheatreIndicatorFoundNum <> UnknownSignal THEN
                       TheatreIndicatorSelected(TheatreIndicatorFoundNum, UnknownBufferStop, ShiftState, HelpRequired)
@@ -1707,7 +1690,6 @@ end;
                   PointPopupNum := PointFoundNum;
                   MainWindow.PointPopupMenu.Popup(MouseX, MouseY);
                   PointFoundNum := UnknownPoint;
-Log('* 23. P=' + IntToStr(Pointfoundnum));
                 END ELSE
                   IF BufferStopFoundNum <> UnknownBufferStop THEN BEGIN
                     BufferStopPopupNum := BufferStopFoundNum;
