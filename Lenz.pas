@@ -2974,15 +2974,19 @@ VAR
       DebugStr := DebugStr + 'straight'
     ELSE
       DebugStr := DebugStr + 'diverging';
-    DebugStr := DebugStr + ' at ' + TimeToHMSZStr(Time);
 
     { If the wiring is reversed, the point is switching the opposite way to the way we think it is }
     IF Points[P].Point_WiringReversedFlag THEN BEGIN
-      IF Direction = Straight THEN
-        Direction := Diverging
-      ELSE
+      IF Direction = Straight THEN BEGIN
+        Direction := Diverging;
+        DebugStr := DebugStr + ' (wiring is reversed so actually requesting a change to diverging)';
+      END ELSE BEGIN
         Direction := Straight;
+        DebugStr := DebugStr + ' (wiring is reversed so actually requesting a change to straight)';
+      END;
     END;
+
+    DebugStr := DebugStr + ' at ' + TimeToHMSZStr(Time);
 
     { Bit 0 is the direction }
     IF Direction = Diverging THEN
