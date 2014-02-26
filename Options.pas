@@ -2750,21 +2750,21 @@ BEGIN
 END; { OptionsWindowCreate }
 
 PROCEDURE TOptionsWindow.OptionsWindowFindDialogFind(Sender: TObject);
-VAR
-  FoundPos : Integer;
+//VAR
+//  FoundPos : Integer;
 
 BEGIN
-  WITH OptionsWindow DO BEGIN
-    FindDialogFind(OptionsWindowFindDialog, OptionsValueListEditor.Strings.Text, FoundPos);
-    IF FoundPos > 0 THEN BEGIN
-      debug;
+//  WITH OptionsWindow DO BEGIN
+//    FindDialogFind(OptionsWindowFindDialog, OptionsValueListEditor.Strings.Text, FoundPos);
+//    IF FoundPos > 0 THEN BEGIN
+//      debug;
 //        HelpRichEdit.SelStart := PreviousFoundPos - 1;
 //        HelpRichEdit.SelLength := Length(HelpWindowFindDialog.FindText);
 //        HelpRichEdit.SetFocus;
 //        HelpRichEdit.Perform(EM_SCROLLCARET, 0, 0);
-    END ELSE
+//    END ELSE
 //      ShowMessage('Could not find "' + HelpWindowFindDialog.FindText + '"');
-  END; {WITH}
+//  END; {WITH}
 END; { OptionsWindowFindDialogFind }
 
 PROCEDURE SearchOptionsText(S : String);
