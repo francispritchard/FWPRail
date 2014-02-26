@@ -71,9 +71,9 @@ BEGIN
 
   WITH HelpRichEdit DO BEGIN
     IF frMatchCase IN HelpWindowFindDialog.Options THEN
-       mySearchTypes := mySearchTypes + [stMatchCase];
+      mySearchTypes := mySearchTypes + [stMatchCase];
     IF frWholeWord IN HelpWindowFindDialog.Options THEN
-       mySearchTypes := mySearchTypes + [stWholeWord];
+      mySearchTypes := mySearchTypes + [stWholeWord];
 
     { Begin the search after the current selection, if there is one, otherwise, begin at the start of the text }
     IF SelLength <> 0 THEN
