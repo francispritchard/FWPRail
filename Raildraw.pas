@@ -634,7 +634,6 @@ VAR
   TrackCircuitPopupLine : Integer;
   WindowsTaskbarDisabled : Boolean = False;
   ZoomScaleFactor : Integer = 1000;
-//firstpass : boolean = true;
 Region : HRGN;
 testregion : boolean = false;
 

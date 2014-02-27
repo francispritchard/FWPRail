@@ -340,8 +340,7 @@ VAR
   TCAboveFeedbackUnit : Integer;
   TempMPHSpeed : Real;
 
-  FUNCTION CalculateTrueSpeed(LenzSpeed : Integer; StartingTC, EndingTC : Integer; TCLengthInInches : Real;
-                              LocoStartTime, LocoStopTime : TDateTime) : Real;
+  FUNCTION CalculateTrueSpeed(LenzSpeed : Integer; StartingTC, EndingTC : Integer; TCLengthInInches : Real; LocoStartTime, LocoStopTime : TDateTime) : Real;
   { Stop the clock on the previous speed check and calculate the speed. The formula is as follows:
       ScaleFactor := 76
       InchesPerRealMile := 63360
@@ -453,9 +452,8 @@ VAR
 
               LocoTimingStopTime := Time;
               LocoTimingLenzSpeed := GetLenzSpeed(LocoChip, ForceRead);
-              TempMPHSpeed := CalculateTrueSpeed(LocoTimingLenzSpeed, LocoTimingStartTC, LocoTimingStopTC,
-                                                 InterveningTrackCircuitFeedbackDetectorsTotalLengthInInches, LocoTimingStartTime,
-                                                 LocoTimingStopTime);
+              TempMPHSpeed := CalculateTrueSpeed(LocoTimingLenzSpeed, LocoTimingStartTC, LocoTimingStopTC, InterveningTrackCircuitFeedbackDetectorsTotalLengthInInches,
+                                                 LocoTimingStartTime, LocoTimingStopTime);
 
               Log(LocoChipStr + ' * TC=' + IntToStr(LocoTimingStartTC) + ' to TC=' + IntToStr(LocoTimingStopTC) + ': '
                               + IntToStr(MilliSecondsBetween(LocoTimingStopTime, LocoTimingStartTime)) + 'ms, '
@@ -686,8 +684,8 @@ BEGIN { DecodeFeedback }
                               IF NOT Point_MovedWhenLocked THEN BEGIN
                                 Point_MovedWhenLocked := True;
                                 MakeSound(1);
-                                Log('XG <B>Serious error: P=' + IntToStr(P) + ' (Lenz=' + IntToStr(Point_LenzNum) + ')' +
-                                    ' [' + DescribeLineNamesForTrackCircuit(Point_TCAtHeel) + '] has changed to ' + PointStateToStr(Point_PresentState)
+                                Log('XG <B>Serious error: P=' + IntToStr(P) + ' (Lenz=' + IntToStr(Point_LenzNum) + ')'
+                                    + ' [' + DescribeLineNamesForTrackCircuit(Point_TCAtHeel) + '] has changed to ' + PointStateToStr(Point_PresentState)
                                     + ' even though ' + LockingFailureString + ':');
                                 Point_MovedWhenLocked := False;
                               END;

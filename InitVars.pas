@@ -1581,8 +1581,7 @@ BEGIN
 
     WITH InitVarsWindow DO BEGIN
       IF NOT FileExists(PathToRailDataFiles + TrackCircuitDataFilename + '.' + TrackCircuitDataFilenameSuffix) THEN BEGIN
-        IF MessageDialogueWithDefault('Track Circuit database file "' + TrackCircuitDataFilename + '.' + TrackCircuitDataFilenameSuffix + '"'
-                                      + ' cannot be located'
+        IF MessageDialogueWithDefault('Track Circuit database file "' + TrackCircuitDataFilename + '.' + TrackCircuitDataFilenameSuffix + '" cannot be located'
                                       + CRLF
                                       + 'Do you wish to continue?',
                                       StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
@@ -1771,8 +1770,7 @@ BEGIN
 
     WITH InitVarsWindow DO BEGIN
       IF NOT FileExists(PathToRailDataFiles + AreaDataFilename + '.' + AreaDataFilenameSuffix) THEN BEGIN
-        IF MessageDialogueWithDefault('Areas database file "' + PathToRailDataFiles + AreaDataFilename + '.' + AreaDataFilenameSuffix + '"'
-                                      + ' cannot be located'
+        IF MessageDialogueWithDefault('Areas database file "' + PathToRailDataFiles + AreaDataFilename + '.' + AreaDataFilenameSuffix + '" cannot be located'
                                       + CRLF
                                       + 'Do you wish to continue?',
                                       StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
@@ -1782,8 +1780,7 @@ BEGIN
           Exit;
       END;
 
-      AreasADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
-                                             + PathToRailDataFiles + AreaDataFilename + '.' + AreaDataFilenameSuffix
+      AreasADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source=' + PathToRailDataFiles + AreaDataFilename + '.' + AreaDataFilenameSuffix
                                              + ';Persist Security Info=False';
       AreasADOConnection.Connected := True;
       AreasADOTable.Open;
@@ -2030,8 +2027,7 @@ BEGIN
 
     WITH InitVarsWindow DO BEGIN
       IF NOT FileExists(PathToRailDataFiles + LocationDataFilename + '.' + LocationDataFilenameSuffix) THEN BEGIN
-        IF MessageDialogueWithDefault('Location database file "' + PathToRailDataFiles + LocationDataFilename + '.' + LocationDataFilenameSuffix + '"'
-                                      + ' cannot be located'
+        IF MessageDialogueWithDefault('Location database file "' + PathToRailDataFiles + LocationDataFilename + '.' + LocationDataFilenameSuffix + '" cannot be located'
                                       + CRLF
                                       + 'Do you wish to continue?',
                                       StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
@@ -2048,7 +2044,9 @@ BEGIN
       LocationsADOTable.Open;
       Log('T Location data table and connection opened to initialise the location data');
 
-      { First see if the location numbers in the MSAccess file are sequential and, if not, renumber it - we need this or deletions from the MSAccess file will cause problems }
+      { First see if the location numbers in the MSAccess file are sequential and, if not, renumber it - we need this or deletions from the MSAccess file will cause
+        problems
+      }
       Loc_Num := -1;
       LocationsADOTable.First;
       FieldName := 'LocationNum';
@@ -2387,7 +2385,7 @@ BEGIN
       Log('T Location Data table and connection closed');
     END; { WITH }
 
-    { And now test whether the locations referenced in the entries just read in are valid - this test cannot be carried out until all the locations are read in. }
+    { And now test whether the locations referenced in the entries just read in are valid - this test cannot be carried out until all the locations are read in }
     Location := 0;
     ErrorMsg := '';
     WHILE Location <= High(Locations) DO BEGIN
@@ -2586,8 +2584,7 @@ BEGIN
 // END ELSE
       BEGIN
         IF NOT FileExists(PathToRailDataFiles + LocationDataFilename + '.' + LocationDataFilenameSuffix) THEN BEGIN
-          IF MessageDialogueWithDefault('Location database file "' + PathToRailDataFiles + LocationDataFilename + '.' + LocationDataFilenameSuffix + '"'
-                                        + ' cannot be located'
+          IF MessageDialogueWithDefault('Location database file "' + PathToRailDataFiles + LocationDataFilename + '.' + LocationDataFilenameSuffix + '" cannot be located'
                                         + CRLF
                                         + 'Do you wish to continue?',
                                         StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
@@ -2894,8 +2891,7 @@ BEGIN
 
     WITH InitVarsWindow DO BEGIN
       IF NOT FileExists(PathToRailDataFiles + LineDataFilename + '.' + LineDataFilenameSuffix) THEN BEGIN
-        IF MessageDialogueWithDefault('Line database file "' + PathToRailDataFiles + LineDataFilename + '.' + LineDataFilenameSuffix + '"'
-                                      + ' cannot be located'
+        IF MessageDialogueWithDefault('Line database file "' + PathToRailDataFiles + LineDataFilename + '.' + LineDataFilenameSuffix + '" cannot be located'
                                       + CRLF
                                       + 'Do you wish to continue?',
                                       StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
@@ -2905,8 +2901,7 @@ BEGIN
           Exit;
       END;
 
-      LineDataADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
-                                                + PathToRailDataFiles + LineDataFilename + '.' + LineDataFilenameSuffix
+      LineDataADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source=' + PathToRailDataFiles + LineDataFilename + '.' + LineDataFilenameSuffix
                                                 + ';Persist Security Info=False';
       LineDataADOConnection.Connected := True;
       LineDataADOTable.Open;
@@ -3397,8 +3392,7 @@ BEGIN
   TRY
     WITH InitVarsWindow DO BEGIN
       IF NOT FileExists(PathToRailDataFiles + LineDataFilename + '.' + LineDataFilenameSuffix) THEN BEGIN
-        IF MessageDialogueWithDefault('Line database file "' + PathToRailDataFiles + LineDataFilename + '.' + LineDataFilenameSuffix + '"'
-                                      + ' cannot be located'
+        IF MessageDialogueWithDefault('Line database file "' + PathToRailDataFiles + LineDataFilename + '.' + LineDataFilenameSuffix + '" cannot be located'
                                       + CRLF
                                       + 'Do you wish to continue?',
                                       StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
@@ -3408,8 +3402,7 @@ BEGIN
           Exit;
       END;
 
-      LineDataADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
-                                                + PathToRailDataFiles + LineDataFilename + '.' + LineDataFilenameSuffix
+      LineDataADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source=' + PathToRailDataFiles + LineDataFilename + '.' + LineDataFilenameSuffix
                                                 + ';Persist Security Info=False';
       LineDataADOConnection.Connected := True;
       LineDataADOTable.Open;
@@ -4158,8 +4151,7 @@ BEGIN
       SetLength(TempLineArray, 0);
 
       IF NOT FileExists(PathToRailDataFiles + SignalDataFilename + '.' + SignalDataFilenameSuffix) THEN BEGIN
-        IF MessageDialogueWithDefault('Signal database file "' + PathToRailDataFiles + SignalDataFilename + '.' + SignalDataFilenameSuffix + '"'
-                                      + ' cannot be located'
+        IF MessageDialogueWithDefault('Signal database file "' + PathToRailDataFiles + SignalDataFilename + '.' + SignalDataFilenameSuffix + '" cannot be located'
                                       + CRLF
                                       + 'Do you wish to continue?',
                                       StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
@@ -4169,8 +4161,7 @@ BEGIN
           Exit;
       END;
 
-      SignalsADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
-                                               + PathToRailDataFiles + SignalDataFilename + '.' + SignalDataFilenameSuffix
+      SignalsADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source=' + PathToRailDataFiles + SignalDataFilename + '.' + SignalDataFilenameSuffix
                                                + ';Persist Security Info=False';
       TRY
         SignalsADOConnection.Connected := True;
@@ -4340,7 +4331,7 @@ BEGIN
           IF ErrorMsg = '' THEN
             Signal_NotUsedForRouteing := SignalsADOTable.FieldByName(Signal_NotUsedForRouteingFieldName).AsBoolean;
 
-          { This is the accessory address used by the TrainTech SC3s switching dapol semaphores }
+          { This is the accessory address used by the TrainTech SC3s switching Dapol semaphores }
           IF ErrorMsg = '' THEN
             Signal_AccessoryAddress := ValidateSignalAccessoryAddress(SignalsADOTable.FieldByName(Signal_AccessoryAddressFieldName).AsString, Signal_Type, ErrorMsg);
 
@@ -4444,8 +4435,7 @@ BEGIN
   TRY
     WITH InitVarsWindow DO BEGIN
       IF NOT FileExists(PathToRailDataFiles + SignalDataFilename + '.' + SignalDataFilenameSuffix) THEN BEGIN
-        IF MessageDialogueWithDefault('Signal database file "' + PathToRailDataFiles + SignalDataFilename + '.' + SignalDataFilenameSuffix + '"'
-                                      + ' cannot be located'
+        IF MessageDialogueWithDefault('Signal database file "' + PathToRailDataFiles + SignalDataFilename + '.' + SignalDataFilenameSuffix + '" cannot be located'
                                       + CRLF
                                       + 'Do you wish to continue?',
                                       StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
@@ -4455,8 +4445,7 @@ BEGIN
           Exit;
       END;
 
-      SignalsADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
-                                               + PathToRailDataFiles + SignalDataFilename + '.' + SignalDataFilenameSuffix
+      SignalsADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source=' + PathToRailDataFiles + SignalDataFilename + '.' + SignalDataFilenameSuffix
                                                + ';Persist Security Info=False';
       SignalsADOConnection.Connected := True;
       SignalsADOTable.Open;
@@ -4486,8 +4475,7 @@ BEGIN
   TRY
     WITH InitVarsWindow DO BEGIN
       IF NOT FileExists(PathToRailDataFiles + SignalDataFilename + '.' + SignalDataFilenameSuffix) THEN BEGIN
-        IF MessageDialogueWithDefault('Signal database file "' + PathToRailDataFiles + SignalDataFilename + '.' + SignalDataFilenameSuffix + '"'
-                                      + ' cannot be located'
+        IF MessageDialogueWithDefault('Signal database file "' + PathToRailDataFiles + SignalDataFilename + '.' + SignalDataFilenameSuffix + '" cannot be located'
                                       + CRLF
                                       + 'Do you wish to continue?',
                                       StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
@@ -4497,8 +4485,7 @@ BEGIN
           Exit;
       END;
 
-      SignalsADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
-                                               + PathToRailDataFiles + SignalDataFilename + '.' + SignalDataFilenameSuffix
+      SignalsADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source=' + PathToRailDataFiles + SignalDataFilename + '.' + SignalDataFilenameSuffix
                                                + ';Persist Security Info=False';
       SignalsADOConnection.Connected := True;
       SignalsADOTable.Open;
@@ -4567,8 +4554,7 @@ BEGIN
 
       IF SignalDatabaseNeedsUpdating THEN BEGIN
         IF NOT FileExists(PathToRailDataFiles + SignalDataFilename + '.' + SignalDataFilenameSuffix) THEN BEGIN
-          IF MessageDialogueWithDefault('Signal database file "' + PathToRailDataFiles + SignalDataFilename + '.' + SignalDataFilenameSuffix + '"'
-                                        + ' cannot be located'
+          IF MessageDialogueWithDefault('Signal database file "' + PathToRailDataFiles + SignalDataFilename + '.' + SignalDataFilenameSuffix + '" cannot be located'
                                         + CRLF
                                         + 'Do you wish to continue?',
                                         StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
@@ -4578,8 +4564,7 @@ BEGIN
             Exit;
         END;
 
-        SignalsADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
-                                                 + PathToRailDataFiles + SignalDataFilename + '.' + SignalDataFilenameSuffix
+        SignalsADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source=' + PathToRailDataFiles + SignalDataFilename + '.' + SignalDataFilenameSuffix
                                                  + ';Persist Security Info=False';
         SignalsADOConnection.Connected := True;
         SignalsADOTable.Open;
@@ -5079,8 +5064,8 @@ BEGIN
       ErrorMsg := 'ValidatePointManualStateAsReadIn : last manual state recorded but point not marked as being manually operated';
 END; { ValidatePointManualStateAsReadIn }
 
-FUNCTION ValidatePointLenzNum(LenzNumStr : String; PointManualStateAsReadIn : PointStateType; OUT PointManualOperation : Boolean;
-                              OUT PointPresentState : PointStateType; OUT ErrorMsg : String) : Integer;
+FUNCTION ValidatePointLenzNum(LenzNumStr : String; PointManualStateAsReadIn : PointStateType; OUT PointManualOperation : Boolean; OUT PointPresentState : PointStateType;
+                              OUT ErrorMsg : String) : Integer;
 { Check whether the Lenz point number is valid }
 BEGIN
   ErrorMsg := '';
@@ -5187,8 +5172,8 @@ BEGIN
   END;
 END; { ValidatePointOtherPoint }
 
-FUNCTION ValidatePointDefaultState(NewStateStr : String; HeelLine, StraightLine, DivergingLine : Integer; OUT PresentState : PointStateType;
-                                   OUT ErrorMsg : String) : PointStateType;
+FUNCTION ValidatePointDefaultState(NewStateStr : String; HeelLine, StraightLine, DivergingLine : Integer; OUT PresentState : PointStateType; OUT ErrorMsg : String)
+                                   : PointStateType;
 { Check whether the point state supplied is valid }
 BEGIN
   ErrorMsg := '';
@@ -5254,8 +5239,7 @@ BEGIN
 
     WITH InitVarsWindow DO BEGIN
       IF NOT FileExists(PathToRailDataFiles + PointDataFilename + '.' + PointDataFilenameSuffix) THEN BEGIN
-        IF MessageDialogueWithDefault('Point database file "' + PathToRailDataFiles + PointDataFilename + '.' + PointDataFilenameSuffix + '"'
-                                      + ' cannot be located'
+        IF MessageDialogueWithDefault('Point database file "' + PathToRailDataFiles + PointDataFilename + '.' + PointDataFilenameSuffix + '" cannot be located'
                                       + CRLF
                                       + 'Do you wish to continue?',
                                       StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
@@ -5265,8 +5249,7 @@ BEGIN
           Exit;
       END;
 
-      PointsADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
-                                              + PathToRailDataFiles + PointDataFilename + '.' + PointDataFilenameSuffix
+      PointsADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source=' + PathToRailDataFiles + PointDataFilename + '.' + PointDataFilenameSuffix
                                               + ';Persist Security Info=False';
       PointsADOConnection.Connected := True;
       PointsADOTable.Open;
@@ -5478,8 +5461,7 @@ BEGIN
 
       IF PointDatabaseNeedsUpdating THEN BEGIN
         IF NOT FileExists(PathToRailDataFiles + PointDataFilename + '.' + PointDataFilenameSuffix) THEN BEGIN
-          IF MessageDialogueWithDefault('Point database file "' + PathToRailDataFiles + PointDataFilename + '.' + PointDataFilenameSuffix + '"'
-                                        + ' cannot be located'
+          IF MessageDialogueWithDefault('Point database file "' + PathToRailDataFiles + PointDataFilename + '.' + PointDataFilenameSuffix + '" cannot be located'
                                         + CRLF
                                         + 'Do you wish to continue?',
                                         StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
@@ -5601,8 +5583,7 @@ BEGIN
 
     WITH InitVarsWindow DO BEGIN
       IF NOT FileExists(PathToRailDataFiles + PlatformDataFilename + '.' + PlatformDataFilenameSuffix) THEN BEGIN
-        IF MessageDialogueWithDefault('Platform database file "' + PathToRailDataFiles + PlatformDataFilename + '.' + PlatformDataFilenameSuffix + '"'
-                                      + ' cannot be located'
+        IF MessageDialogueWithDefault('Platform database file "' + PathToRailDataFiles + PlatformDataFilename + '.' + PlatformDataFilenameSuffix + '" cannot be located'
                                       + CRLF
                                       + 'Do you wish to continue?',
                                       StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
@@ -5865,8 +5846,7 @@ BEGIN
 
     WITH InitVarsWindow DO BEGIN
       IF NOT FileExists(PathToRailDataFiles + FeedbackDataFilename + '.' + FeedbackDataFilenameSuffix) THEN BEGIN
-        IF MessageDialogueWithDefault('Feedback database file "' + PathToRailDataFiles + FeedbackDataFilename + '.' + FeedbackDataFilenameSuffix + '"'
-                                      + ' cannot be located'
+        IF MessageDialogueWithDefault('Feedback database file "' + PathToRailDataFiles + FeedbackDataFilename + '.' + FeedbackDataFilenameSuffix + '" cannot be located'
                                       + CRLF
                                       + 'Do you wish to continue?',
                                       StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo

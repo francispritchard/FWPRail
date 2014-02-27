@@ -629,8 +629,7 @@ BEGIN
       //    IF PtInRect(MainPlatformPlungers[TRSPlungerLocation].TRSPlunger_MouseRect, Point(MouseX, MouseY)) THEN BEGIN
       //      ObjectFound := True;
       //      TRSPlungerFound := True;
-      //      TempStatusBarPanel1Str := TempStatusBarPanel1Str
-      //                                         + 'TRSPlunger for ' + MainPlatformPlungers[TRSPlungerLocation].TRSPlunger_PlatformNumStr + ' ';
+      //      TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'TRSPlunger for ' + MainPlatformPlungers[TRSPlungerLocation].TRSPlunger_PlatformNumStr + ' ';
       //      TRSPlungerFoundLocation := TRSPlungerLocation;
       //    END ELSE
       //      Inc(TRSPlungerLocation);
