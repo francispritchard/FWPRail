@@ -1,0 +1,21 @@
+*.dcu
+*.~*~
+*.local
+*.identcache
+__history
+*.drc
+*.map
+*.exe
+*.dll
+*.res
+*.dsk
+*.~dsk
+Rail Data Files/*.otares
+Rail Data Files/*.tds
+Rail Data Files/*.rsm
+*.bak
+*.old
+*.dproj
+bin/*
+Rail Data Files/Logs/*
+TestUnit.pas
