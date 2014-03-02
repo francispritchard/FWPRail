@@ -181,7 +181,7 @@ FUNCTION TrackCircuitLocked(LocoChip, TC : Integer; OUT LockingMsg : String) : B
 BEGIN
   Result := False;
   LockingMsg := 'not locked';
-  
+
   IF TrackCircuits[TC].TC_LockedForRoute <> UnknownRoute THEN BEGIN
     IF LocoChip <> Routes_LocoChips[TrackCircuits[TC].TC_LockedForRoute] THEN BEGIN
       { ignore locking by the supplied loco }
