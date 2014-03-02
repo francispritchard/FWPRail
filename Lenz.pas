@@ -1007,7 +1007,7 @@ BEGIN
                       Log('T Requested feedback for unit ' + IntToStr(ReadArray[1] + 1) + ' has arrived');
                     END ELSE BEGIN
                       UnrequestedDataFound := True;
-                      Log('T Unrequested feedback has arrived');
+//                      Log('T Unrequested feedback has arrived');
                       { see who it's from, etc. }
                     END;
                     GetFeedbackReply(ReadArray);
@@ -1018,7 +1018,7 @@ BEGIN
                     ExpectedDataReceived := True
                   ELSE BEGIN
                     UnrequestedDataFound := True;
-                    Log('T Unrequested feedback has arrived');
+//                    Log('T Unrequested feedback has arrived');
                   END;
                   { see who it's from, etc. }
                   GetFeedbackReply(ReadArray);
@@ -1029,7 +1029,7 @@ BEGIN
                     ExpectedDataReceived := True
                   ELSE BEGIN
                     UnrequestedDataFound := True;
-                    Log('T Unrequested feedback has arrived');
+//                    Log('T Unrequested feedback has arrived');
                   END;
                   GetFeedbackReply(ReadArray);
                 END;
@@ -1039,8 +1039,8 @@ BEGIN
                     ExpectedDataReceived := True
                   ELSE BEGIN
                     UnrequestedDataFound := True;
-                    Log('T Unrequested feedback has arrived');
-                    Log('TG -72-');
+//                    Log('T Unrequested feedback has arrived');
+//                    Log('TG -72-');
                     WriteDataToFeedbackWindow('*72*');
                   END;
                   GetFeedbackReply(ReadArray);
@@ -1051,8 +1051,8 @@ BEGIN
                     ExpectedDataReceived := True
                   ELSE BEGIN
                     UnrequestedDataFound := True;
-                    Log('T Unrequested feedback has arrived');
-                    Log('TG -74-');
+//                    Log('T Unrequested feedback has arrived');
+//                    Log('TG -74-');
                     WriteDataToFeedbackWindow('*74*');
                   END;
                   GetFeedbackReply(ReadArray);
@@ -1063,8 +1063,8 @@ BEGIN
                     ExpectedDataReceived := True
                   ELSE BEGIN
                     UnrequestedDataFound := True;
-                    Log('T Unrequested feedback has arrived');
-                    Log('TG -76-');
+//                    Log('T Unrequested feedback has arrived');
+//                    Log('TG -76-');
                     WriteDataToFeedbackWindow('*76*');
                   END;
                   GetFeedbackReply(ReadArray);
@@ -1075,8 +1075,8 @@ BEGIN
                     ExpectedDataReceived := True
                   ELSE BEGIN
                     UnrequestedDataFound := True;
-                    Log('T Unrequested feedback has arrived');
-                    Log('TG -78-');
+//                    Log('T Unrequested feedback has arrived');
+//                    Log('TG -78-');
                     WriteDataToFeedbackWindow('*78*');
                   END;
                   GetFeedbackReply(ReadArray);
