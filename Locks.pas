@@ -932,7 +932,7 @@ BEGIN
         OR (Copy(LockList[LockListPos], 1, 3) = 'BS=')
         OR (Copy(LockList[LockListPos], 1, 3) = 'TC=')
         OR (Copy(LockList[LockListPos], 1, 3) = 'FS=')
-        OR (Copy(LockList[LockListPos], 1, 3) = 'FR=') 
+        OR (Copy(LockList[LockListPos], 1, 3) = 'FR=')
         THEN
           LockListItem := Copy(LockList[LockListPos], 4, 255)
         ELSE
