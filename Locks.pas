@@ -1105,51 +1105,74 @@ CONST
 
 BEGIN
   WITH Signals[S] DO BEGIN
-    CASE Signal_Aspect OF
-      RedAspect:
-        IF Signals[Signal_PreviousSignal1].Signal_Aspect <> RedAspect THEN BEGIN
-          SetSignal(LocoChip, Signal_PreviousSignal1, SingleYellowAspect, NOT NoLog);
-          IF Signal_PreviousSignal2 <> UnknownSignal THEN BEGIN
-            IF Signals[Signal_PreviousSignal2].Signal_Aspect <> RedAspect THEN
-              SetSignal(LocoChip, Signal_PreviousSignal2, DoubleYellowAspect, NOT NoLog);
-          END;
-        END;
-      SingleYellowAspect:
-        IF (Signal_IndicatorState <> NoIndicatorLit)
-        AND (Signal_ApproachControlAspect = SingleYellowAspect)
-        THEN BEGIN
+    IF Signal_Type = SemaphoreHome THEN BEGIN
+      { we need to deal with the distant signal here if all the signals that it refers to are offf }
+//      CASE Signal_Aspect OF
+//        RedAspect:
+//          IF (Signals[Signal_PreviousSignal1].Signal_Type = SemaphoreDistant) THEN BEGIN
+//            IF Signals[Signal_PreviousSignal1].Signal_Aspect <> RedAspect THEN BEGIN
+//
+//            SetSignal(LocoChip, Signal_PreviousSignal1, SingleYellowAspect, NOT NoLog);
+//            IF Signal_PreviousSignal2 <> UnknownSignal THEN BEGIN
+//              IF Signals[Signal_PreviousSignal2].Signal_Aspect <> RedAspect THEN
+//                SetSignal(LocoChip, Signal_PreviousSignal2, DoubleYellowAspect, NOT NoLog);
+//            END;
+//          END;
+//        GreenAspect:
+//          IF Signals[Signal_PreviousSignal1].Signal_Aspect <> RedAspect THEN BEGIN
+//            SetSignal(LocoChip, Signal_PreviousSignal1, GreenAspect, NOT NoLog);
+//            IF Signal_PreviousSignal2 <> UnknownSignal THEN
+//              IF Signals[Signal_PreviousSignal2].Signal_Aspect <> RedAspect THEN
+//                SetSignal(LocoChip, Signal_PreviousSignal2, GreenAspect, NOT NoLog);
+//          END;
+//       END; {CASE}
+    END ELSE BEGIN
+      CASE Signal_Aspect OF
+        RedAspect:
           IF Signals[Signal_PreviousSignal1].Signal_Aspect <> RedAspect THEN BEGIN
-            SetSignal(LocoChip, Signal_PreviousSignal1, FlashingSingleYellowAspect, NOT NoLog);
-            IF Signal_PreviousSignal2 <> UnknownSignal THEN
+            SetSignal(LocoChip, Signal_PreviousSignal1, SingleYellowAspect, NOT NoLog);
+            IF Signal_PreviousSignal2 <> UnknownSignal THEN BEGIN
               IF Signals[Signal_PreviousSignal2].Signal_Aspect <> RedAspect THEN
-                SetSignal(LocoChip, Signal_PreviousSignal2, FlashingDoubleYellowAspect, NOT NoLog);
+                SetSignal(LocoChip, Signal_PreviousSignal2, DoubleYellowAspect, NOT NoLog);
+            END;
           END;
-        END ELSE BEGIN
+        SingleYellowAspect:
+          IF (Signal_IndicatorState <> NoIndicatorLit)
+          AND (Signal_ApproachControlAspect = SingleYellowAspect)
+          THEN BEGIN
+            IF Signals[Signal_PreviousSignal1].Signal_Aspect <> RedAspect THEN BEGIN
+              SetSignal(LocoChip, Signal_PreviousSignal1, FlashingSingleYellowAspect, NOT NoLog);
+              IF Signal_PreviousSignal2 <> UnknownSignal THEN
+                IF Signals[Signal_PreviousSignal2].Signal_Aspect <> RedAspect THEN
+                  SetSignal(LocoChip, Signal_PreviousSignal2, FlashingDoubleYellowAspect, NOT NoLog);
+            END;
+          END ELSE BEGIN
+            IF Signals[Signal_PreviousSignal1].Signal_Aspect <> RedAspect THEN BEGIN
+              IF Signals[Signal_PreviousSignal1].Signal_Type = FourAspect THEN
+                SetSignal(LocoChip, Signal_PreviousSignal1, DoubleYellowAspect, NOT NoLog)
+              ELSE
+                SetSignal(LocoChip, Signal_PreviousSignal1, GreenAspect, NOT NoLog);
+              IF Signal_PreviousSignal2 <> UnknownSignal THEN
+                IF Signals[Signal_PreviousSignal2].Signal_Aspect <> RedAspect THEN
+                  SetSignal(LocoChip, Signal_PreviousSignal2, GreenAspect, NOT NoLog);
+            END;
+          END;
+        DoubleYellowAspect:
           IF Signals[Signal_PreviousSignal1].Signal_Aspect <> RedAspect THEN BEGIN
-            IF Signals[Signal_PreviousSignal1].Signal_Type = FourAspect THEN
-              SetSignal(LocoChip, Signal_PreviousSignal1, DoubleYellowAspect, NOT NoLog)
-            ELSE
-              SetSignal(LocoChip, Signal_PreviousSignal1, GreenAspect, NOT NoLog);
+            SetSignal(LocoChip, Signal_PreviousSignal1, GreenAspect, NOT NoLog);
             IF Signal_PreviousSignal2 <> UnknownSignal THEN
               IF Signals[Signal_PreviousSignal2].Signal_Aspect <> RedAspect THEN
                 SetSignal(LocoChip, Signal_PreviousSignal2, GreenAspect, NOT NoLog);
           END;
-        END;
-      DoubleYellowAspect:
-        IF Signals[Signal_PreviousSignal1].Signal_Aspect <> RedAspect THEN BEGIN
-          SetSignal(LocoChip, Signal_PreviousSignal1, GreenAspect, NOT NoLog);
-          IF Signal_PreviousSignal2 <> UnknownSignal THEN
-            IF Signals[Signal_PreviousSignal2].Signal_Aspect <> RedAspect THEN
-              SetSignal(LocoChip, Signal_PreviousSignal2, GreenAspect, NOT NoLog);
-        END;
-      GreenAspect:
-        IF Signals[Signal_PreviousSignal1].Signal_Aspect <> RedAspect THEN BEGIN
-          SetSignal(LocoChip, Signal_PreviousSignal1, GreenAspect, NOT NoLog);
-          IF Signal_PreviousSignal2 <> UnknownSignal THEN
-            IF Signals[Signal_PreviousSignal2].Signal_Aspect <> RedAspect THEN
-              SetSignal(LocoChip, Signal_PreviousSignal2, GreenAspect, NOT NoLog);
-        END;
-     END; {CASE}
+        GreenAspect:
+          IF Signals[Signal_PreviousSignal1].Signal_Aspect <> RedAspect THEN BEGIN
+            SetSignal(LocoChip, Signal_PreviousSignal1, GreenAspect, NOT NoLog);
+            IF Signal_PreviousSignal2 <> UnknownSignal THEN
+              IF Signals[Signal_PreviousSignal2].Signal_Aspect <> RedAspect THEN
+                SetSignal(LocoChip, Signal_PreviousSignal2, GreenAspect, NOT NoLog);
+          END;
+       END; {CASE}
+    END;
   END; {WITH}
 END; { SetPreviousSignals }
 
