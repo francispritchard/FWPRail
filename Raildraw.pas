@@ -6343,7 +6343,7 @@ END; { ChangeBufferStopNumberColourClick }
 PROCEDURE TMainWindow.GeneralPopupRestoreBufferStopNumberColourClick(Sender: TObject);
 BEGIN
   BufferStopNumberColour := DefaultBufferStopNumberColour;
-  DrawMap;
+  InvalidateScreen(UnitRef, 'GeneralPopupRestoreBufferStopNumberColourClick');
 END; { GeneralPopupRestoreBufferStopNumberColourClick }
 
 PROCEDURE TMainWindow.GeneralPopupChangeBufferStopRedClick(Sender: TObject);
