@@ -1715,7 +1715,9 @@ BEGIN
                 Signals[S].Signal_FailMsgWritten := False;
                 SetLength(Signals[S].Signal_RouteLockingNeededArray, 0);
 
-                IF Signals[S].Signal_PreviousSignal1 <> UnknownSignal THEN
+                IF (Signals[S].Signal_PreviousSignal1 <> UnknownSignal)
+                AND (Signals[S].Signal_Type <> SemaphoreDistant)
+                THEN
                   SetPreviousSignals(LocoChip, S);
 
                 { If the signal is being reset to on, reset the other data too }
