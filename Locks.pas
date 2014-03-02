@@ -1438,7 +1438,7 @@ BEGIN
                     NextBufferStop := Signals[S].Signal_JunctionIndicators[MiddleLeftIndicator].JunctionIndicator_TargetBufferStop;
                 LowerLeftIndicatorLit:
                   IF Signals[S].Signal_JunctionIndicators[LowerLeftIndicator].JunctionIndicator_TargetSignal <> UnknownSignal THEN
-                     NextSignal := Signals[S].Signal_JunctionIndicators[LowerLeftIndicator].JunctionIndicator_TargetSignal
+                    NextSignal := Signals[S].Signal_JunctionIndicators[LowerLeftIndicator].JunctionIndicator_TargetSignal
                   ELSE
                     NextBufferStop := Signals[S].Signal_JunctionIndicators[LowerLeftIndicator].JunctionIndicator_TargetBufferStop;
                 UpperRightIndicatorLit:
@@ -1453,7 +1453,7 @@ BEGIN
                     NextBufferStop := Signals[S].Signal_JunctionIndicators[MiddleRightIndicator].JunctionIndicator_TargetBufferStop;
                 LowerRightIndicatorLit:
                   IF Signals[S].Signal_JunctionIndicators[LowerRightIndicator].JunctionIndicator_TargetSignal <> UnknownSignal THEN
-                     NextSignal := Signals[S].Signal_JunctionIndicators[LowerRightIndicator].JunctionIndicator_TargetSignal
+                    NextSignal := Signals[S].Signal_JunctionIndicators[LowerRightIndicator].JunctionIndicator_TargetSignal
                   ELSE
                     NextBufferStop := Signals[S].Signal_JunctionIndicators[LowerRightIndicator].JunctionIndicator_TargetBufferStop;
               ELSE {CASE}
@@ -1807,7 +1807,7 @@ BEGIN
         DebugStr := '';
         Count := 0;
 
-        { This prevents the points atttached to a LS150 being fired too quickly one after the other, as doing so often short circuits the unit - an undocumented feature! }
+        { This prevents the points attached to a LS150 being fired too quickly one after the other, as doing so often short circuits the unit - an undocumented feature! }
 //        PointDelayInMSS := 500;
 //        IF NOT Point_SecondAttempt THEN BEGIN
 //          IF CompareTime(Time, IncMilliSecond(LastTimeAnyPointChanged, PointDelayInMSS)) < 0 THEN BEGIN
@@ -1916,6 +1916,7 @@ BEGIN
                     NewDirection := Point_RequiredState;
                     PointChangedOK := MakePointChange(LocoChip, P, NewDirection, Count);
                     IF PointChangedOK THEN BEGIN
+                      { Point_PresentState is set by the point feedback detector reporting in }
                       IF Point_RequiredState = Point_PresentState THEN BEGIN
                         Point_SecondAttempt := False;
                         DebugStr := 'Successfully changed P=' + IntToStr(P) + ' to ' + PointStateToStr(Point_RequiredState);

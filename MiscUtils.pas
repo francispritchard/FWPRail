@@ -6063,6 +6063,7 @@ VAR
 
 BEGIN
   Start := GetTickCount;
+
   { Debug('Pausing...'); }
   WHILE GetTickCount - Start < MilliSeconds DO BEGIN
     IF ProcessMessages THEN

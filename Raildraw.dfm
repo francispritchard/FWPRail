@@ -12,6 +12,7 @@ object MainWindow: TMainWindow
   UseDockManager = True
   DefaultMonitor = dmDesktop
   DockSite = True
+  DoubleBuffered = True
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11

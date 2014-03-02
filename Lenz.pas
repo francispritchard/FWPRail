@@ -2618,7 +2618,7 @@ BEGIN
 END; { OnLenzWatchdogTimerInterval }
 
 PROCEDURE TLenzWindow.OnLenzOneMilliSecondTimerInterval(Sender: TObject);
-{ This is used to stop point and semaphore-signal motors burning out }
+{ This is used to stop point- and semaphore-signal motors burning out }
 VAR
   P : Integer;
   OK : Boolean;

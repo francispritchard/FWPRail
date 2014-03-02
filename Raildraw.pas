@@ -8377,8 +8377,6 @@ VAR
       END;
 
       IF (SystemStatus.EmergencyOff
-         OR SystemStatus.EmergencyStop
-         OR SystemStatus.EmergencyOff
          OR SystemStatus.EmergencyStop)
       AND NOT LocosStopped THEN BEGIN
         { And now stop all active trains }
@@ -8392,8 +8390,6 @@ VAR
       END;
 
       IF LocosStopped
-      AND NOT SystemStatus.EmergencyOff
-      AND NOT SystemStatus.EmergencyStop
       AND NOT SystemStatus.EmergencyOff
       AND NOT SystemStatus.EmergencyStop
       THEN BEGIN
