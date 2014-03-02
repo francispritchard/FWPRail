@@ -1439,7 +1439,6 @@ BEGIN
             IF Route <> NoRoute THEN
               DebugStr := DebugStr + ' for R=' + IntToStr(Route) + IfThen(SubRoute <> NoSubRoute,
                                                                           '/' + IntToStr(SubRoute));
-
             IF NOT Signals[S].Signal_FailMsgWritten THEN
               Log(LocoChipStr + ' S ' + DebugStr);
             DebugStr := '';
