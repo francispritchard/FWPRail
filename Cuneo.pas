@@ -67,6 +67,7 @@ VAR
   SaveNextDownLine : Integer = UnknownLine;
   SaveHeelLine : Integer = UnknownLine;
   SaveHeelLineColour : TColour;
+  SaveIndicatorString : String;
   SaveLine : Integer = UnknownLine;
   SaveLineColour : TColour;
   SaveNextUpLineColour : TColour;
@@ -75,6 +76,7 @@ VAR
   SaveNextUpLine : Integer = UnknownLine;
   SaveNextUpPoint : Integer = UnknownPoint;
   SavePoint : Integer = UnknownPoint;
+  SavePossibleRoutesArray : StringArrayType;
   SaveStraightLine : Integer = UnknownLine;
   SaveStraightLineColour : TColour;
   SaveUpBufferStop : Integer = UnknownBufferStop;
@@ -1130,8 +1132,6 @@ VAR
     RouteFindingCancelled : Boolean;
     RouteFoundOK : Boolean;
     Route : Integer;
-    SaveIndicatorString : String;
-    SavePossibleRoutesArray : StringArrayType;
     StartLine, EndLine : Integer;
     StartSignal, EndSignal : Integer;
     TempBufferStop: Integer;
