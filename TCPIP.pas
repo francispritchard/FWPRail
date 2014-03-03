@@ -276,12 +276,14 @@ END; { ReadDataFromTCPIPList }
 
 PROCEDURE TTCPIPForm.ResponsesTCPClientRead(Sender: TObject; Socket1 : TCustomWinSocket);
 VAR
+  AnsiStr : AnsiString;
   I : Integer;
   S : String;
 
 BEGIN
   IF Socket1.Connected = True THEN BEGIN
-    S := Socket1.ReceiveText;
+    AnsiStr := Socket1.ReceiveText;
+    S := String(AnsiStr);
     TCPBuf1 := TCPBuf1 + S;
 
     { strip off the carriage returns }
@@ -300,12 +302,14 @@ END; { ResponsesTCPClientRead }
 
 PROCEDURE TTCPIPForm.BroadcastsTCPClientRead(Sender: TObject; Socket2 : TCustomWinSocket);
 VAR
-  S : String;
+  AnsiStr : AnsiString;
   I : Integer;
+  S : String;
 
 BEGIN
   IF Socket2.Connected = True THEN BEGIN
-    S := Socket2.ReceiveText;
+    AnsiStr := Socket2.ReceiveText;
+    S := String(AnsiStr);
     TCPBuf2 := TCPBuf2 + S;
 
     WHILE Pos(CRLF, TCPBuf2) > 0 DO BEGIN
@@ -363,9 +367,13 @@ BEGIN
 END; { BroadcastsTCPClientError }
 
 PROCEDURE TTCPIPForm.ResponsesTCPSendText(S : String);
+VAR
+  AnsiStr : AnsiString;
+
 BEGIN
+  AnsiStr := AnsiString(S);
   IF TCPSocket1 <> NIL THEN BEGIN
-    TCPSocket1.SendText(S + CRLF);
+    TCPSocket1.SendText(AnsiStr + CRLF);
 //    SysUtils.sleep(10);
     Log('+ OUT1 *** ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + ' ' + S);
   END;
