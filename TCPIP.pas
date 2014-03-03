@@ -5,9 +5,6 @@ INTERFACE
 USES
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls, Buttons, ScktComp, InitVars, ShellAPI, MiscUtils;
 
-CONST
-  CRLF = #13#10;
-
 TYPE
   TTCPIPForm = CLASS(TForm)
     ClearButton: TButton;
