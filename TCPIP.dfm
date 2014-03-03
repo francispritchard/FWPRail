@@ -129,10 +129,6 @@ object TCPIPForm: TTCPIPForm
       TabOrder = 3
     end
   end
-  object XPManifest1: TXPManifest
-    Left = 22
-    Top = 74
-  end
   object TCPIPTimer: TTimer
     Interval = 30000
     OnTimer = TCPIPTimerOnTimer

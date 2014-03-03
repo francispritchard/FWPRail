@@ -3,8 +3,7 @@ UNIT TCPIP;
 INTERFACE
 
 USES
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls, Buttons, ScktComp, Vcl.XPMan, InitVars, ShellAPI,
-  MiscUtils;
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls, Buttons, ScktComp, InitVars, ShellAPI, MiscUtils;
 
 CONST
   CRLF = #13#10;
@@ -22,7 +21,6 @@ TYPE
     TCPAddress: TEdit;
     TCPCommand: TMemo;
     TCPConnectButton: TButton;
-    XPManifest1: TXPManifest;
     TCPIPTimer: TTimer;
     PROCEDURE ClearButtonClick(Sender: TObject);
     PROCEDURE TCPIPFormClose(Sender: TObject; VAR Action: TCloseAction);
