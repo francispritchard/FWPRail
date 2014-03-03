@@ -528,9 +528,6 @@ PROCEDURE ReadOut(SoundStr : String);
 { Uses system API sndPlaySound to read out the given text, by playing a .wav file. text is held in the system resource file, itself compiled by using "brcc32 -v rail.rc"
   from the command prompt. The file "rail.rc" is the resource script file.
 }
-FUNCTION RealToStr(Num : Real; Decimals : Integer) : String; Overload;
-{ Converts a floating point number to a string as a function not a procedure, Decimals is the number of decimals after the decimal point }
-
 FUNCTION RemoveAllSpacesFromAString(Str : String) : String;
 { Removes all spaces from a given string. Not in use. }
 
@@ -4755,16 +4752,6 @@ BEGIN
     Result := UnknownDirection;
   END; {CASE}
 END; { OppositeDirection }
-
-FUNCTION RealToStr(Num : Real; Decimals : Integer) : String;
-{ Converts a floating point number to a string as a function not a procedure, Decimals is the number of decimals after the decimal point }
-VAR
-  Stg : String;
-
-BEGIN
-  Str(Num:1:Decimals, Stg); { format is width then decimals }
-  Result := Stg;
-END; { RealToStr }
 
 PROCEDURE DrawDebugWindow;
 BEGIN

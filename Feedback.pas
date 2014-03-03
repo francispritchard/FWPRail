@@ -373,8 +373,8 @@ VAR
       ElapsedTimeInHours := MilliSeconds / 1000 / 60 / 60;
       MilesPerHour := DistanceInScaleMiles / ElapsedTimeInHours;
       Debug('TC=' + IntToStr(StartingTC) + ' to ' + IntToStr(EndingTC)
-            + ' (' + FloatToStr(MilliSeconds) + 'ms over ' + RealToStr(TCLengthInInches, 1) + ' inches)'
-            + ' Speed = ' + IntToStr(LenzSpeed) + ' : ' + RealToStr(MilesPerHour, 0) + ' mph');
+            + ' (' + FloatToStr(MilliSeconds) + 'ms over ' + FloatToStr(TCLengthInInches) + ' inches)'
+            + ' Speed = ' + IntToStr(LenzSpeed) + ' : ' + FloatToStr(MilesPerHour) + ' mph');
       Result := MilesPerHour;
     END;
   END; { CalculateTrueSpeed }
@@ -457,7 +457,7 @@ VAR
 
               Log(LocoChipStr + ' * TC=' + IntToStr(LocoTimingStartTC) + ' to TC=' + IntToStr(LocoTimingStopTC) + ': '
                               + IntToStr(MilliSecondsBetween(LocoTimingStopTime, LocoTimingStartTime)) + 'ms, '
-                              + RealToStr(TempMPHSpeed, 1) + ' mph, speed='
+                              + FloatToStr(TempMPHSpeed) + ' mph, speed='
                               + IntToStr(LocoTimingLenzSpeed)
                               + ' {NOUNITREF}');
 

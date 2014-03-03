@@ -723,7 +723,7 @@ BEGIN
         Train_BrakePos := MulDiv(Num, 6, Range);
         IF NumberOfSecondsToDecelerate <> (Train_BrakePos + 1) THEN BEGIN
           NumberOfSecondsToDecelerate := Train_BrakePos + 1;
-          Log('GG Braking: NumberOfSecondsToDecelerate = ' + RealToStr(NumberOfSecondsToDecelerate)]);
+          Log('GG Braking: NumberOfSecondsToDecelerate = ' + FloatToStr(NumberOfSecondsToDecelerate)]);
         END;
       END;
     END;
