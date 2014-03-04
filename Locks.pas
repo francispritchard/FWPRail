@@ -769,7 +769,7 @@ VAR
   TempLocoChipStr : String;
 
 BEGIN
-  WITH MainWindow.Canvas DO BEGIN
+  WITH FWPRailMainWindow.Canvas DO BEGIN
     WITH T^ DO BEGIN
       IF T <> NIL THEN
         TempLocoChipStr := LocoChipToStr(Train_LocoChip)

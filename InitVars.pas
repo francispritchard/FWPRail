@@ -1525,24 +1525,24 @@ PROCEDURE SetUpLineDrawingVars(ScaleFactor : Integer);
 { Set up the positions of the lines and plaforms }
 BEGIN
   { Interval spacing : the following data has been read in from the .ini file }
-  DeltaPointXSpaced := MulDiv(MainWindow.ClientHeight, DeltaPointX, ScaleFactor * 10);
-  BufferStopVerticalSpacingScaled := MulDiv(MainWindow.ClientHeight, BufferStopVerticalSpacing, ScaleFactor * 10);
-  IndicatorHorizontalSpacingScaled := MulDiv(MainWindow.ClientWidth, IndicatorHorizontalSpacing, ScaleFactor * 10);
-  IndicatorVerticalSpacingScaled := MulDiv(MainWindow.ClientHeight, IndicatorVerticalSpacing, ScaleFactor * 10);
-  MouseRectangleEdgeVerticalSpacingScaled := MulDiv(MainWindow.ClientHeight, MouseRectangleEdgeVerticalSpacing, ScaleFactor * 10);
-  PlatformEdgeVerticalSpacingScaled := MulDiv(MainWindow.ClientHeight, PlatformEdgeVerticalSpacing, ScaleFactor * 10);
-  PlatformNumberEdgeHorizontalSpacingScaled := MulDiv(MainWindow.ClientWidth, PlatformNumberEdgeHorizontalSpacing, ScaleFactor * 10);
-  PlatformNumberEdgeVerticalSpacingScaled := MulDiv(MainWindow.ClientHeight, PlatformNumberEdgeVerticalSpacing, ScaleFactor * 10);
-  SignalHorizontalSpacingScaled := MulDiv(MainWindow.ClientWidth, SignalHorizontalSpacing, ScaleFactor * 10);
-  SignalRadiusScaled := MulDiv(MainWindow.ClientWidth, SignalRadius, ScaleFactor * 10);
-  SignalSemaphoreHeightScaled := MulDiv(MainWindow.ClientWidth, SignalSemaphoreHeight, ScaleFactor * 10);
-  SignalSemaphoreWidthScaled := MulDiv(MainWindow.ClientHeight, SignalSemaphoreWidth, ScaleFactor * 10);
-  SignalVerticalSpacingScaled := MulDiv(MainWindow.ClientHeight, SignalVerticalSpacing, ScaleFactor * 10);
-  SpeedRestrictionHorizontalSpacingScaled := MulDiv(MainWindow.ClientWidth, SpeedRestrictionHorizontalSpacing, ScaleFactor * 10);
-  SpeedRestrictionVerticalSpacingScaled := MulDiv(MainWindow.ClientWidth, SpeedRestrictionVerticalSpacing, ScaleFactor * 10);
-  TheatreIndicatorHorizontalSpacingScaled := MulDiv(MainWindow.ClientWidth, TheatreIndicatorHorizontalSpacing, ScaleFactor * 10);
-  TheatreIndicatorVerticalSpacingScaled := MulDiv(MainWindow.ClientHeight, TheatreIndicatorVerticalSpacing, ScaleFactor * 10);
-  TRSPlungerLengthScaled := MulDiv(MainWindow.ClientWidth, TRSPlungerLength, ScaleFactor * 10);
+  DeltaPointXSpaced := MulDiv(FWPRailMainWindow.ClientHeight, DeltaPointX, ScaleFactor * 10);
+  BufferStopVerticalSpacingScaled := MulDiv(FWPRailMainWindow.ClientHeight, BufferStopVerticalSpacing, ScaleFactor * 10);
+  IndicatorHorizontalSpacingScaled := MulDiv(FWPRailMainWindow.ClientWidth, IndicatorHorizontalSpacing, ScaleFactor * 10);
+  IndicatorVerticalSpacingScaled := MulDiv(FWPRailMainWindow.ClientHeight, IndicatorVerticalSpacing, ScaleFactor * 10);
+  MouseRectangleEdgeVerticalSpacingScaled := MulDiv(FWPRailMainWindow.ClientHeight, MouseRectangleEdgeVerticalSpacing, ScaleFactor * 10);
+  PlatformEdgeVerticalSpacingScaled := MulDiv(FWPRailMainWindow.ClientHeight, PlatformEdgeVerticalSpacing, ScaleFactor * 10);
+  PlatformNumberEdgeHorizontalSpacingScaled := MulDiv(FWPRailMainWindow.ClientWidth, PlatformNumberEdgeHorizontalSpacing, ScaleFactor * 10);
+  PlatformNumberEdgeVerticalSpacingScaled := MulDiv(FWPRailMainWindow.ClientHeight, PlatformNumberEdgeVerticalSpacing, ScaleFactor * 10);
+  SignalHorizontalSpacingScaled := MulDiv(FWPRailMainWindow.ClientWidth, SignalHorizontalSpacing, ScaleFactor * 10);
+  SignalRadiusScaled := MulDiv(FWPRailMainWindow.ClientWidth, SignalRadius, ScaleFactor * 10);
+  SignalSemaphoreHeightScaled := MulDiv(FWPRailMainWindow.ClientWidth, SignalSemaphoreHeight, ScaleFactor * 10);
+  SignalSemaphoreWidthScaled := MulDiv(FWPRailMainWindow.ClientHeight, SignalSemaphoreWidth, ScaleFactor * 10);
+  SignalVerticalSpacingScaled := MulDiv(FWPRailMainWindow.ClientHeight, SignalVerticalSpacing, ScaleFactor * 10);
+  SpeedRestrictionHorizontalSpacingScaled := MulDiv(FWPRailMainWindow.ClientWidth, SpeedRestrictionHorizontalSpacing, ScaleFactor * 10);
+  SpeedRestrictionVerticalSpacingScaled := MulDiv(FWPRailMainWindow.ClientWidth, SpeedRestrictionVerticalSpacing, ScaleFactor * 10);
+  TheatreIndicatorHorizontalSpacingScaled := MulDiv(FWPRailMainWindow.ClientWidth, TheatreIndicatorHorizontalSpacing, ScaleFactor * 10);
+  TheatreIndicatorVerticalSpacingScaled := MulDiv(FWPRailMainWindow.ClientHeight, TheatreIndicatorVerticalSpacing, ScaleFactor * 10);
+  TRSPlungerLengthScaled := MulDiv(FWPRailMainWindow.ClientWidth, TRSPlungerLength, ScaleFactor * 10);
 END; { SetUpLineDrawingVars }
 
 PROCEDURE ReadInTrackCircuitDataFromDatabase;
@@ -1990,7 +1990,7 @@ BEGIN
   Location := 0;
   WHILE Location <= High(Locations) DO BEGIN
     WITH Locations[Location] DO
-      Location_YScaled := MulDiv(MainWindow.ClientHeight, Location_Y, ScaleFactor);
+      Location_YScaled := MulDiv(FWPRailMainWindow.ClientHeight, Location_Y, ScaleFactor);
     Inc(Location);
   END; { WHILE }
 END; { CalculateLocationPositions }
@@ -2687,8 +2687,8 @@ BEGIN
     L := 0;
     WHILE L <= High(Lines) DO BEGIN
       WITH Lines[L] DO BEGIN
-        Line_UpX := MulDiv(MainWindow.ClientWidth, Line_UpXAbsolute, ScaleFactor);
-        Line_DownX := MulDiv(MainWindow.ClientWidth, Line_DownXAbsolute, ScaleFactor);
+        Line_UpX := MulDiv(FWPRailMainWindow.ClientWidth, Line_UpXAbsolute, ScaleFactor);
+        Line_DownX := MulDiv(FWPRailMainWindow.ClientWidth, Line_DownXAbsolute, ScaleFactor);
       END; { WITH }
       Inc(L);
     END; { WHILE }
@@ -2697,7 +2697,7 @@ BEGIN
     WHILE L <= High(Lines) DO BEGIN
       WITH Lines[L] DO BEGIN
         IF Line_UpYAbsolute <> 0 THEN
-          Line_UpY := MulDiv(MainWindow.ClientHeight, Line_UpYAbsolute, ScaleFactor)
+          Line_UpY := MulDiv(FWPRailMainWindow.ClientHeight, Line_UpYAbsolute, ScaleFactor)
         ELSE BEGIN
           { see if it's two locations (from which we obtain the average Y value) }
           ObliquePos := Pos('/', Line_UpYLocationStr);
@@ -2721,14 +2721,14 @@ BEGIN
                 ErrorMsg := 'unknown UpY location "' + TempLocationStr2 + '"'
               ELSE BEGIN
                 Line_UpYAbsolute := GetMidPos(Locations[TempLocation1].Location_Y, Locations[TempLocation2].Location_Y);
-                Line_UpY := MulDiv(MainWindow.ClientHeight, Line_UpYAbsolute, ScaleFactor)
+                Line_UpY := MulDiv(FWPRailMainWindow.ClientHeight, Line_UpYAbsolute, ScaleFactor)
               END;
             END;
           END;
         END;
 
         IF Line_DownYAbsolute <> 0 THEN
-          Line_DownY := MulDiv(MainWindow.ClientHeight, Line_DownYAbsolute, ScaleFactor)
+          Line_DownY := MulDiv(FWPRailMainWindow.ClientHeight, Line_DownYAbsolute, ScaleFactor)
         ELSE BEGIN
           { see if it's two locations (from which we obtain the average Y value) }
           ObliquePos := Pos('/', Line_DownYLocationStr);
@@ -2752,7 +2752,7 @@ BEGIN
                 ErrorMsg := 'unknown DownY location "' + TempLocationStr2 + '"'
               ELSE BEGIN
                 Line_DownYAbsolute := GetMidPos(Locations[TempLocation1].Location_Y, Locations[TempLocation2].Location_Y);
-                Line_DownY := MulDiv(MainWindow.ClientHeight, Line_DownYAbsolute, ScaleFactor)
+                Line_DownY := MulDiv(FWPRailMainWindow.ClientHeight, Line_DownYAbsolute, ScaleFactor)
               END;
             END;
           END;
@@ -2785,9 +2785,9 @@ BEGIN
         END; { WITH }
 
         { Add the line-end characters which indicate where a line goes next }
-        WITH MainWindow.Canvas DO BEGIN
+        WITH FWPRailMainWindow.Canvas DO BEGIN
           { a straight line }
-          Font.Height := -MulDiv(MainWindow.ClientHeight, MainWindowFontHeight, ScaleFactor);
+          Font.Height := -MulDiv(FWPRailMainWindow.ClientHeight, MainWindowFontHeight, ScaleFactor);
           IF Line_UpConnectionCh <> '' THEN BEGIN
             WITH Line_UpConnectionChRect DO BEGIN
               Left := Line_UpX - (TextWidth(Line_UpConnectionCh) DIV 2);
@@ -2840,9 +2840,9 @@ BEGIN
 
       { The mouse rectangle }
       WITH BufferStop_MouseRect DO BEGIN
-        Left := BufferStop_X - MulDiv(MainWindow.ClientWidth, 5, ScaleFactor);
+        Left := BufferStop_X - MulDiv(FWPRailMainWindow.ClientWidth, 5, ScaleFactor);
         Top := BufferStop_Y1;
-        Right := BufferStop_X + MulDiv(MainWindow.ClientWidth, 5, ScaleFactor);
+        Right := BufferStop_X + MulDiv(FWPRailMainWindow.ClientWidth, 5, ScaleFactor);
         Bottom := BufferStop_Y2;
       END; { WITH }
     END; { WITH }
@@ -3515,10 +3515,10 @@ BEGIN
 
           { Adjust left or right if XAdjustment greater than or less than zero respectively }
           IF Signal_XAdjustment > 0 THEN
-            Signal_LocationX := Signal_LocationX + MulDiv(MainWindow.ClientWidth, Signal_XAdjustment, ScaleFactor)
+            Signal_LocationX := Signal_LocationX + MulDiv(FWPRailMainWindow.ClientWidth, Signal_XAdjustment, ScaleFactor)
           ELSE
             IF Signal_XAdjustment < 0 THEN
-              Signal_LocationX := Signal_LocationX - MulDiv(MainWindow.ClientWidth, Abs(Signal_XAdjustment), ScaleFactor);
+              Signal_LocationX := Signal_LocationX - MulDiv(FWPRailMainWindow.ClientWidth, Abs(Signal_XAdjustment), ScaleFactor);
 
           Signal_LocationY := Lines[Signal_AdjacentLine].Line_UpY;
 
@@ -3532,7 +3532,7 @@ BEGIN
 
           { Set up mouse access rectangles }
           WITH Signal_MouseRect DO BEGIN
-            MainWindow.Canvas.Pen.Width := WindowPenWidth;
+            FWPRailMainWindow.Canvas.Pen.Width := WindowPenWidth;
 
             IF (Signal_Type <> SemaphoreHome) AND (Signal_Type <> SemaphoreDistant) THEN BEGIN
               { it covers the signal circles }
@@ -3544,13 +3544,13 @@ BEGIN
               { it covers the signal arms }
               IF (Signal_Direction = Up) AND (Signal_Quadrant = UpperQuadrant) THEN BEGIN
                 Left := Signal_LocationX - SignalSemaphoreWidthScaled;
-                Top := Signal_LocationY + MainWindow.Canvas.Pen.Width;
+                Top := Signal_LocationY + FWPRailMainWindow.Canvas.Pen.Width;
                 Right := Signal_LocationX + (SignalSemaphoreHeightScaled * 2);
                 Bottom := Signal_LocationY + (SignalSemaphoreWidthScaled * 2);
               END ELSE
                 IF (Signal_Direction = Up) AND (Signal_Quadrant = LowerQuadrant) THEN BEGIN
                   Left := Signal_LocationX;
-                  Top := Signal_LocationY + MainWindow.Canvas.Pen.Width;
+                  Top := Signal_LocationY + FWPRailMainWindow.Canvas.Pen.Width;
                   Right := Signal_LocationX + (SignalSemaphoreHeightScaled * 2) + SignalSemaphoreWidthScaled;
                   Bottom := Signal_LocationY + (SignalSemaphoreWidthScaled * 2);
                 END ELSE
@@ -3558,13 +3558,13 @@ BEGIN
                     Left := Signal_LocationX - SignalSemaphoreWidthScaled;
                     Top := Signal_LocationY - (SignalSemaphoreWidthScaled * 2);
                     Right := Signal_LocationX + (SignalSemaphoreHeightScaled * 2);
-                    Bottom := Signal_LocationY - MainWindow.Canvas.Pen.Width;
+                    Bottom := Signal_LocationY - FWPRailMainWindow.Canvas.Pen.Width;
                   END ELSE
                     IF (Signal_Direction = Down) AND (Signal_Quadrant = LowerQuadrant) THEN BEGIN
                       Left := Signal_LocationX - (SignalSemaphoreHeightScaled * 2) - SignalSemaphoreWidthScaled;
                       Top := Signal_LocationY - (SignalSemaphoreWidthScaled * 2);
                       Right := Signal_LocationX;
-                      Bottom := Signal_LocationY - MainWindow.Canvas.Pen.Width;
+                      Bottom := Signal_LocationY - FWPRailMainWindow.Canvas.Pen.Width;
                     END;
             END;
           END; { WITH }
@@ -3611,11 +3611,11 @@ BEGIN
               { pen.width is the width of the line outlining the signal }
               Left := Signal_LocationX + SignalRadiusScaled;
               Top := Signal_LocationY - SignalRadiusScaled;
-              Right := Signal_LocationX + SignalRadiusScaled + MulDiv(MainWindow.ClientWidth, 10, ZoomScalefactor);
+              Right := Signal_LocationX + SignalRadiusScaled + MulDiv(FWPRailMainWindow.ClientWidth, 10, ZoomScalefactor);
               Bottom := Signal_LocationY + SignalRadiusScaled;
             END ELSE
               IF Signal_Direction = Down THEN BEGIN
-                Left := Signal_LocationX - SignalRadiusScaled - MulDiv(MainWindow.ClientWidth, 10, ZoomScalefactor);
+                Left := Signal_LocationX - SignalRadiusScaled - MulDiv(FWPRailMainWindow.ClientWidth, 10, ZoomScalefactor);
                 Top := Signal_LocationY - SignalRadiusScaled;
                 Right := Signal_LocationX - SignalRadiusScaled;
                 Bottom := Signal_LocationY + Signal_VerticalSpacing - MainWindowCanvasPenWidth;
@@ -5534,25 +5534,25 @@ BEGIN
       WITH Platform_Rect DO BEGIN
         Left := Lines[Platform_LeftLine].Line_UpX;
         IF Platform_LeftLineAdjustment > 0 THEN
-          Left := Left + MulDiv(MainWindow.ClientWidth, Platform_LeftLineAdjustment, ScaleFactor);
+          Left := Left + MulDiv(FWPRailMainWindow.ClientWidth, Platform_LeftLineAdjustment, ScaleFactor);
 
         Top := -1;
         IF Platforms[P].Platform_LocationAbovePlatform <> UnknownLocation THEN
-          Top := MulDiv(MainWindow.ClientHeight, Locations[Platform_LocationAbovePlatform].Location_Y, ScaleFactor);
+          Top := MulDiv(FWPRailMainWindow.ClientHeight, Locations[Platform_LocationAbovePlatform].Location_Y, ScaleFactor);
 
         Right := Lines[Platform_RightLine].Line_DownX;
         IF Platform_RightLineAdjustment > 0 THEN
-          Right := Right + MulDiv(MainWindow.ClientWidth, Platform_RightLineAdjustment, ScaleFactor);
+          Right := Right + MulDiv(FWPRailMainWindow.ClientWidth, Platform_RightLineAdjustment, ScaleFactor);
 
         Bottom := -1;
         IF Platforms[P].Platform_LocationBelowPlatform <> UnknownLocation THEN
-          Bottom := MulDiv(MainWindow.ClientHeight, Locations[Platform_LocationBelowPlatform].Location_Y, ScaleFactor);
+          Bottom := MulDiv(FWPRailMainWindow.ClientHeight, Locations[Platform_LocationBelowPlatform].Location_Y, ScaleFactor);
 
         IF Top = -1 THEN
-          Top := Platforms[P].Platform_Rect.Bottom - MulDiv(MainWindow.ClientHeight, Platforms[P].Platform_Height, ScaleFactor)
+          Top := Platforms[P].Platform_Rect.Bottom - MulDiv(FWPRailMainWindow.ClientHeight, Platforms[P].Platform_Height, ScaleFactor)
         ELSE
           IF Bottom = -1 THEN
-            Bottom := Platforms[P].Platform_Rect.Top + MulDiv(MainWindow.ClientHeight, Platforms[P].Platform_Height, ScaleFactor);
+            Bottom := Platforms[P].Platform_Rect.Top + MulDiv(FWPRailMainWindow.ClientHeight, Platforms[P].Platform_Height, ScaleFactor);
 
         IF Top = Bottom THEN
           Debug('Platform ' + IntToStr(P) + ': platform top value (' + IntToStr(Top) + ') = platform bottom value (' + IntToStr(Bottom) + ')')
@@ -6017,7 +6017,7 @@ END; { InitialiseLogFiles }
 PROCEDURE SaveScreenDrawingVariables;
 { Save the screen drawing variables }
 BEGIN
-  WITH MainWindow.Canvas DO BEGIN
+  WITH FWPRailMainWindow.Canvas DO BEGIN
     SaveBrushColour := Brush.Color;
     SaveBrushStyle := Brush.Style;
     SaveFontColour := Font.Color;
@@ -6034,7 +6034,7 @@ END; { SaveScreenDrawingVariables }
 PROCEDURE RestoreScreenDrawingVariables;
 { Restore the default screen drawing variables }
 BEGIN
-  WITH MainWindow.Canvas DO BEGIN
+  WITH FWPRailMainWindow.Canvas DO BEGIN
     Brush.Color := SaveBrushColour;
     Brush.Style := SaveBrushStyle;
     Font.Color := SaveFontColour;
@@ -6051,11 +6051,11 @@ END; { RestoreScreenDrawingVariables }
 PROCEDURE InitialiseScreenDrawingVariables;
 { Set up the default screen drawing variables }
 BEGIN
-  WITH MainWindow.Canvas DO BEGIN
+  WITH FWPRailMainWindow.Canvas DO BEGIN
     Brush.Color := BackgroundColour;
     Brush.Style := bsSolid;
     Font.Color := ForegroundColour;
-    Font.Height := -MulDiv(MainWindow.ClientHeight, 11, 1000);
+    Font.Height := -MulDiv(FWPRailMainWindow.ClientHeight, 11, 1000);
     Font.Name := RailFont;
     Font.Style := [];
     Pen.Color := ForegroundColour;

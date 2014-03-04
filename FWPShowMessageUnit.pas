@@ -48,8 +48,8 @@ BEGIN
     MsgWidth := Canvas.TextWidth(Msg);
 
     { Don't know why MsgWidth on its own isn't enough, but it ain't }
-    FWPShowMessageWindow.Width := MsgWidth + MulDiv(MainWindow.ClientWidth, 45, 1000);
-    FWPShowMessageLabel.Left := MulDiv(MainWindow.ClientWidth, 5, 1000);
+    FWPShowMessageWindow.Width := MsgWidth + MulDiv(FWPRailMainWindow.ClientWidth, 45, 1000);
+    FWPShowMessageLabel.Left := MulDiv(FWPRailMainWindow.ClientWidth, 5, 1000);
 
     FWPShowMessageLabel.Caption := Msg;
     IF NOT Visible THEN

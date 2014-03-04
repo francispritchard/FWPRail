@@ -727,7 +727,7 @@ PROCEDURE InitialiseStartupUnit;
 BEGIN
   { Deal with any user-provided parameters }
   HandleParameters;
-  IF MainWindow.MainWindowStatusBar.Panels[StatusBarPanel0].Text = '' THEN
+  IF FWPRailMainWindow.MainWindowStatusBar.Panels[StatusBarPanel0].Text = '' THEN
     WriteToStatusBarPanel(StatusBarPanel0, TimeToHMSStr(CurrentRailwayTime));
 END; { InitialiseStartupUnit }
 

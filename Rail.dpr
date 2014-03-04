@@ -13,7 +13,7 @@ PROGRAM Rail;
 
 USES
   Forms,
-  Raildraw IN 'Raildraw.pas' {MainWindow},
+  Raildraw IN 'Raildraw.pas' {FWPRailMainWindow},
   Diagrams IN 'Diagrams.pas' {DiagramsWindow},
   MiscUtils IN 'MiscUtils.pas' {DebugWindow},
   RDC IN 'RDC.pas',
@@ -63,7 +63,7 @@ BEGIN
     SplashForm.Show;
     SplashForm.Update;
   END;
-  Application.CreateForm(TMainWindow, MainWindow);
+  Application.CreateForm(TFWPRailMainWindow, FWPRailMainWindow);
   Application.CreateForm(TRailDriverWindow, RailDriverWindow);
   Application.CreateForm(TDebugWindow, DebugWindow);
   Application.CreateForm(TDiagramsWindow, DiagramsWindow);

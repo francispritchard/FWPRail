@@ -204,12 +204,12 @@ BEGIN
     IF SignalNum <> UnknownSignal THEN BEGIN
       Edit.EditWindow.Tag := 1;
       SaveSignalFoundNum := SignalNum;
-      MainWindow.SignalPopupEditSignalDetails.Enabled := False;
+      FWPRailMainWindow.SignalPopupEditSignalDetails.Enabled := False;
     END ELSE
       IF PointNum <> UnknownPoint THEN BEGIN
         Edit.EditWindow.Tag := 2;
         SavePointFoundNum := PointNum;
-        MainWindow.PointPopupEditPointDetails.Enabled := False;
+        FWPRailMainWindow.PointPopupEditPointDetails.Enabled := False;
       END;
     Edit.EditWindow.Visible := True;
 
@@ -217,7 +217,7 @@ BEGIN
     IF SystemOnline THEN
       SetSystemOffline('System offline as edit mode starting');
 
-    SetCaption(MainWindow, 'EDITING...');
+    SetCaption(FWPRailMainWindow, 'EDITING...');
     EditWindow.EditWindowLabel.caption := '';
     Application.Icon := EditIcon;
   END;
@@ -234,10 +234,10 @@ BEGIN
       EditWindow.Visible := False;
       Diagrams.DiagramsWindow.Visible := True;
       EditMode := False;
-      MainWindow.SignalPopupEditSignalDetails.Enabled := True;
-      MainWindow.PointPopupEditPointDetails.Enabled := True;
+      FWPRailMainWindow.SignalPopupEditSignalDetails.Enabled := True;
+      FWPRailMainWindow.PointPopupEditPointDetails.Enabled := True;
 
-      SetCaption(MainWindow, '');
+      SetCaption(FWPRailMainWindow, '');
       EditWindow.EditValueListEditor.Strings.Clear;
 
       IF SaveSystemOnlineState THEN BEGIN

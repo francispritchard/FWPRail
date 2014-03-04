@@ -1755,11 +1755,11 @@ BEGIN
       END;
 
       { Move the focus back to the main window }
-      IF (MainWindow.Visible
+      IF (FWPRailMainWindow.Visible
       AND NOT LocationDataWindow.Visible)
       AND NOT (HelpWindow.Active OR HelpWindow.Visible)
       THEN
-        MainWindow.SetFocus;
+        FWPRailMainWindow.SetFocus;
     END;
   EXCEPT
     ON E : Exception DO
@@ -1915,8 +1915,8 @@ BEGIN
       Show;
 
     { and move the focus back to the main window }
-    IF MainWindow.Visible THEN
-      MainWindow.SetFocus;
+    IF FWPRailMainWindow.Visible THEN
+      FWPRailMainWindow.SetFocus;
   END; {WITH}
 END; { DrawDiagramsWindow }
 
@@ -2434,14 +2434,14 @@ END; { DiagramsWindowGridMouseDown }
 PROCEDURE TDiagramsWindow.DiagramsWindowHide(Sender: TObject);
 { Un-check the window menu item }
 BEGIN
-  MainWindow.MainDisplayMenuDiagramsWindow.Checked := False;
+  FWPRailMainWindow.MainDisplayMenuDiagramsWindow.Checked := False;
 END; { DiagramsWindowHide }
 
 PROCEDURE TDiagramsWindow.DiagramsWindowShow(Sender: TObject);
 { Check the window menu item }
 BEGIN
-  MainWindow.MainDisplayMenuDiagramsWindow.Checked := True;
-  MainWindow.MainDisplayMenuWorkingTimetableWindow.Checked := False;
+  FWPRailMainWindow.MainDisplayMenuDiagramsWindow.Checked := True;
+  FWPRailMainWindow.MainDisplayMenuWorkingTimetableWindow.Checked := False;
   DiagramsWindowGrid.Color := DiagramsWindowGridBackgroundColour;
 END; { DiagramsWindowShow }
 
@@ -3817,7 +3817,7 @@ BEGIN
                 InputFoundOrCancelled := False;
                 NewLocationStr := '';
                 ErrorMsg := 'No feedback found for loco ' + LocoChipToStr(Train_LocoChip) + '. Please type in its present location or CANCEL to suspend it';
-                MainWindow.MainTimer.Enabled := False;
+                FWPRailMainWindow.MainTimer.Enabled := False;
                 REPEAT
                   IF NOT InputQuery('Enter train location', ErrorMsg, NewLocationStr) THEN BEGIN
                     InputFoundOrCancelled := True;
@@ -3845,7 +3845,7 @@ BEGIN
                     END;
                   END;
                 UNTIL InputFoundOrCancelled;
-                MainWindow.MainTimer.Enabled := True;
+                FWPRailMainWindow.MainTimer.Enabled := True;
               END ELSE BEGIN
                 IF Train_LastLocation <> Train_Locations[0] THEN BEGIN
                   CASE MessageDialogueWithDefault('Possible diagrams error: loco ' + LocoChipToStr(LocoChip) + ': ' + ErrorMsg
@@ -4335,7 +4335,7 @@ BEGIN
               END;
             END ELSE
               IF LengthOfTrainInCarriages = 0 THEN BEGIN
-                MainWindow.MainTimer.Enabled := False;
+                FWPRailMainWindow.MainTimer.Enabled := False;
                 TempStr := InputBox('Caption',
                                     'Diagrams error: loco ' + LocoChipToStr(LocoChip) + ':'
                                     + CRLF
@@ -4348,7 +4348,7 @@ BEGIN
                     ErrorMsg := 'No train length supplied in location record or diagram record'
                   ELSE
                     Train_CurrentLengthInInches := LengthOfTrainInCarriages * CarriageLengthInInches;
-                MainWindow.MainTimer.Enabled := True;
+                FWPRailMainWindow.MainTimer.Enabled := True;
               END ELSE BEGIN
                 Train_CurrentLengthInInches := LengthOfTrainInCarriages * CarriageLengthInInches;
                 Log(Train_LocoChipStr + ' T Train_CurrentLengthInInches is ' + IntToStr(Train_CurrentLengthInInches)

@@ -809,9 +809,9 @@ BEGIN
           IF TempStr = '' THEN BEGIN
             IF ExpectedReply = NoReplyExpected THEN
               Exit;
-            MainWindow.MainTimer.Enabled := False;
+            FWPRailMainWindow.MainTimer.Enabled := False;
             Application.ProcessMessages;
-            MainWindow.MainTimer.Enabled := True;
+            FWPRailMainWindow.MainTimer.Enabled := True;
             Continue;
           END;
 

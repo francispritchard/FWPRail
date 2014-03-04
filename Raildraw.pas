@@ -14,11 +14,12 @@ USES Windows, Messages, SysUtils, Variants, Classes, Graphics, Forms, Dialogs, M
      System.UITypes;
 
 TYPE
-  TMainWindow = CLASS(TForm)
+  TFWPRailMainWindow = CLASS(TForm)
     FlashTimer: TTimer;
 
     BufferStopPopupBufferStopNum: TMenuItem;
     BufferStopPopupMenu: TPopupMenu;
+    BufferStopPopupRuler: TMenuItem;
     ChangePoint: TMenuItem;
     ChangeSignal: TMenuItem;
     CreateOrDeleteMenuItemRuler: TMenuItem;
@@ -155,10 +156,12 @@ TYPE
     MainWindowMenu: TMainMenu;
     MainWindowPopupOpenDialogue: TOpenDialog;
     MainWindowStatusBar: TStatusBar;
+    PointPopupEditPointDetails: TMenuItem;
     PointPopupLockPoint: TMenuItem;
     PointPopupMenu: TPopupMenu;
     PointPopupPointNum: TMenuItem;
     PointPopupRuler1: TMenuItem;
+    PointPopupRuler2: TMenuItem;
     PointPopupSetPointBackInUse: TMenuItem;
     PointPopupSetPointOutOfUse: TMenuItem;
     PointPopupSetPointToAutomatic: TMenuItem;
@@ -191,15 +194,14 @@ TYPE
     TCPopupSetTrackCircuitToUserDriving: TMenuItem;
     TCPopupSetTrackCircuitUnoccupied: TMenuItem;
     TCPopupTrackCircuitNumber: TMenuItem;
-    PointPopupRuler2: TMenuItem;
-    PointPopupEditPointDetails: TMenuItem;
-    BufferStopPopupRuler: TMenuItem;
 
     PROCEDURE BufferStopMenuOnPopup(Sender: TObject);
     PROCEDURE CreateLineMenuItemClick(Sender: TObject);
     PROCEDURE CreateOrDeleteItemMenuOnPopup(Sender: TObject);
     PROCEDURE CreateSignalMenuItemClick(Sender: TObject);
     PROCEDURE CreatePointMenuItemClick(Sender: TObject);
+    PROCEDURE DeletePointMenuItemClick(Sender: TObject);
+    PROCEDURE DeleteLineMenuItemClick(Sender: TObject);
     PROCEDURE DeleteSignalMenuItemClick(Sender: TObject);
     PROCEDURE FlashTimerTick(Sender: TObject);
     PROCEDURE GeneralPopupChangeBackgroundColourClick(Sender: TObject);
@@ -418,6 +420,7 @@ TYPE
     PROCEDURE MainWindowStatusBarDblClick(Sender: TObject);
     PROCEDURE MainWindowStatusBarMouseMove(Sender: TObject; ShiftState: TShiftState; X, Y: Integer);
     PROCEDURE PointPopupMenuOnPopup(Sender: TObject);
+    PROCEDURE PointPopupEditPointDetailsClick(Sender: TObject);
     PROCEDURE PointPopupLockPointClick(Sender: TObject);
     PROCEDURE PointPopupSetPointBackInUseClick(Sender: TObject);
     PROCEDURE PointPopupSetPointOutOfUseClick(Sender: TObject);
@@ -451,23 +454,26 @@ TYPE
     PROCEDURE TCPopupSetTrackCircuitUnoccupiedClick(Sender: TObject);
     PROCEDURE TCPopupShowLocosLastErrorMessageClick(Sender: TObject);
     PROCEDURE TCPopupTrackCircuitNumberClick(Sender: TObject);
-    procedure DeletePointMenuItemClick(Sender: TObject);
-    procedure DeleteLineMenuItemClick(Sender: TObject);
-    procedure PointPopupEditPointDetailsClick(Sender: TObject);
 
   PRIVATE
     { Private declarations }
     PROCEDURE ApplicationMessage(VAR Msg: TMsg; VAR Handled: Boolean);
-    { Added to handle Windows messages }
+    { Intercept messages - only way of getting at the tab key! Now replaced by ShortCut above Sept 2009 }
+
+    PROCEDURE WMCopyData(VAR Msg : TWMCopyData); Message WM_COPYDATA;
+    { Receives data from the Watchdog program }
+
+    PROCEDURE SendStringToWatchdogProgram(S : String);
+//    { Added to handle Windows messages }
 //    PROCEDURE CM_MenuClosed(VAR msg: TMessage); MESSAGE CM_MENU_CLOSED;
 //    PROCEDURE CM_EnterMenuLoop(VAR msg: TMessage); MESSAGE CM_ENTER_MENU_LOOP;
 //    PROCEDURE CM_ExitMenuLoop(VAR msg: TMessage); MESSAGE CM_EXIT_MENU_LOOP;
   PUBLIC
     { Public declarations }
     PROCEDURE WMHScroll(VAR ScrollData: TMessage); MESSAGE wm_HScroll;
-   { Added to allow interception of scroll bar events }
+    { Added to allow interception of scroll bar events }
     PROCEDURE WMVScroll(VAR ScrollData: TMessage); MESSAGE wm_VScroll;
-   { Added to allow interception of scroll bar events }
+    { Added to allow interception of scroll bar events }
 
 //    PROCEDURE FWPExceptionHandler(Sender: TObject; E: Exception);
   END;
@@ -618,7 +624,7 @@ VAR
   DiagramsCheckingInProgress : Boolean = False;
   LastPointResetTime : TDateTime = 0;
   LinePopupNum : Integer;
-  MainWindow : TMainWindow;
+  FWPRailMainWindow : TFWPRailMainWindow;
   PointPopupNum : Integer;
   RestartProgram : Boolean = False;
   SaveCursor : TCursor = crDefault;
@@ -632,6 +638,8 @@ VAR
   SignalPopupNum : Integer;
   TimerT : Train = NIL;
   TrackCircuitPopupLine : Integer;
+  WatchdogActiveMsgFlag : Boolean = False;
+  WatchdogErrorMsgFlag : Boolean = False;
   WindowsTaskbarDisabled : Boolean = False;
   ZoomScaleFactor : Integer = 1000;
 Region : HRGN;
@@ -672,7 +680,7 @@ END; { Log }
 PROCEDURE DrawRedLampAndVerticalLine(X, Y1, Y2 : Integer; Colour : TCOlour);
 { Draw a red lamp and vertical line where there is a buffer stop or line obstruction }
 BEGIN
-  WITH MainWindow.Canvas DO BEGIN
+  WITH FWPRailMainWindow.Canvas DO BEGIN
     { Draw the line }
     Pen.Color := Colour;
     MoveTo(X - ScrollBarXAdjustment, Y1 - ScrollBarYAdjustment);
@@ -692,7 +700,7 @@ PROCEDURE DrawBufferStop(BufferStopNum : Integer; Colour : TColour);
 { Draw a buffer stop }
 BEGIN
   InitialiseScreenDrawingVariables;
-  WITH MainWindow.Canvas DO BEGIN
+  WITH FWPRailMainWindow.Canvas DO BEGIN
     WITH BufferStops[BufferStopNum] DO BEGIN
       { record the current colour }
       BufferStop_CurrentColour := Colour;
@@ -712,19 +720,19 @@ PROCEDURE DrawBufferStopData(BufferStopNum : Integer; BufferStopText : String; C
 { Put the bufferstop name or other supplied data on the diagram }
 BEGIN
   InitialiseScreenDrawingVariables;
-  WITH MainWindow.Canvas DO BEGIN
+  WITH FWPRailMainWindow.Canvas DO BEGIN
     Font.Style := [fsBold];
     Font.Color := Colour;
     Brush.Color := BackgroundColour;
-    Font.Height := -MulDiv(MainWindow.ClientHeight, LineFontHeight, ZoomScaleFactor);
+    Font.Height := -MulDiv(FWPRailMainWindow.ClientHeight, LineFontHeight, ZoomScaleFactor);
 
     WITH BufferStops[BufferStopNum] DO BEGIN
       IF BufferStop_Direction = Down THEN
-        TextOut(BufferStop_X - TextWidth(BufferStopText) - MulDiv(MainWindow.ClientWidth, 5, ZoomScaleFactor) - ScrollBarXAdjustment,
+        TextOut(BufferStop_X - TextWidth(BufferStopText) - MulDiv(FWPRailMainWindow.ClientWidth, 5, ZoomScaleFactor) - ScrollBarXAdjustment,
                 ((BufferStop_Y2 - BufferStop_Y1) DIV 2) + BufferStop_Y1 - (TextHeight(BufferStopText) DIV 2) - ScrollBarYAdjustment,
                 BufferStopText)
       ELSE
-        TextOut(BufferStop_X + MulDiv(MainWindow.ClientWidth, 5, ZoomScaleFactor) - ScrollBarXAdjustment,
+        TextOut(BufferStop_X + MulDiv(FWPRailMainWindow.ClientWidth, 5, ZoomScaleFactor) - ScrollBarXAdjustment,
                 ((BufferStop_Y2 - BufferStop_Y1) DIV 2) + BufferStop_Y1 - (TextHeight(BufferStopText) DIV 2) - ScrollBarYAdjustment,
                 BufferStopText);
     END; {WITH}
@@ -735,13 +743,13 @@ PROCEDURE SetCaption(Window : TForm; Caption : String);
 { Sets a window caption }
 BEGIN
   IF Window <> NIL THEN BEGIN
-    IF Window <> MainWindow THEN
+    IF Window <> FWPRailMainWindow THEN
       Window.Caption := Caption
     ELSE BEGIN
       IF NOT TestingMode THEN
-        MainWindow.Caption := 'FWP''s Railway Program ' + Caption
+        FWPRailMainWindow.Caption := 'FWP''s Railway Program ' + Caption
       ELSE
-        MainWindow.Caption := 'FWP''s Railway Program (Version ' + GetVersionInfoAsString + ' Build ' + GetBuildInfoAsString + ') ' + Caption;
+        FWPRailMainWindow.Caption := 'FWP''s Railway Program (Version ' + GetVersionInfoAsString + ' Build ' + GetBuildInfoAsString + ') ' + Caption;
     END;
   END;
 END; { SetCaption }
@@ -776,7 +784,7 @@ VAR
     TempNum : Integer;
 
   BEGIN
-    WITH MainWindow.Canvas DO BEGIN
+    WITH FWPRailMainWindow.Canvas DO BEGIN
       { First clear existing line detail, as it may obscure the data we're writing out }
       ShowLineOccupationDetail := False;
       FOR L := 0 TO High(Lines) DO
@@ -1023,7 +1031,7 @@ VAR
     TempLocationArray : IntegerArrayType;
 
   BEGIN
-    WITH MainWindow.Canvas DO BEGIN
+    WITH FWPRailMainWindow.Canvas DO BEGIN
       { First clear existing line detail, as it may obscure the data we're writing out }
       ShowLineOccupationDetail := False;
       SetLength(TempLocationArray, 0);
@@ -1231,10 +1239,10 @@ BEGIN
   TRY
     InitialiseScreenDrawingVariables;
 
-    WITH MainWindow.Canvas DO BEGIN
+    WITH FWPRailMainWindow.Canvas DO BEGIN
       Font.Color := clYellow;
       Font.Style := [fsBold];
-      Font.Height := -MulDiv(MainWindow.ClientHeight, LineFontHeight, ZoomScalefactor);
+      Font.Height := -MulDiv(FWPRailMainWindow.ClientHeight, LineFontHeight, ZoomScalefactor);
 
       IF ShowTrackCircuits
       OR ShowTrackCircuitLengths
@@ -1290,7 +1298,7 @@ BEGIN
     AND (TimeRectangleDrawn <> 0)
     THEN BEGIN
       TimeRectangleDrawn := 0;
-      WITH MainWindow.Canvas DO BEGIN
+      WITH FWPRailMainWindow.Canvas DO BEGIN
         Pen.Color := SaveUndrawRectColour;
         Brush.Color := BackgroundColour;
         WITH UndrawRect DO
@@ -1303,7 +1311,7 @@ BEGIN
     END;
 
     { Now draw what we've been asked to do }
-    WITH MainWindow.Canvas DO BEGIN
+    WITH FWPRailMainWindow.Canvas DO BEGIN
       IF UndrawRequired THEN
         Pen.Mode := pmNotXor;
       Pen.Color := Colour;
@@ -1342,17 +1350,17 @@ BEGIN
     CASE PanelNum OF
       0:
         IF SavePanel0Str <> Str THEN BEGIN
-          MainWindow.MainWindowStatusBar.Panels[StatusBarPanel0].Text := Str;
+          FWPRailMainWindow.MainWindowStatusBar.Panels[StatusBarPanel0].Text := Str;
           SavePanel0Str := Str;
         END;
       1:
         IF SavePanel1Str <> Str THEN BEGIN
-          MainWindow.MainWindowStatusBar.Panels[StatusBarPanel1].Text := Str;
+          FWPRailMainWindow.MainWindowStatusBar.Panels[StatusBarPanel1].Text := Str;
           SavePanel1Str := Str;
         END;
       2:
         IF SavePanel2Str <> Str THEN BEGIN
-          MainWindow.MainWindowStatusBar.Panels[StatusBarPanel2].Text := Str;
+          FWPRailMainWindow.MainWindowStatusBar.Panels[StatusBarPanel2].Text := Str;
           SavePanel2Str := Str;
         END;
     END; {CASE}
@@ -1386,7 +1394,7 @@ END; { DrawFailure }
 PROCEDURE StartSystemTimer;
 { Starts the system timer only }
 BEGIN
-  MainWindow.MainTimer.Enabled := True;
+  FWPRailMainWindow.MainTimer.Enabled := True;
 END; { StartSystemTimer }
 
 {$O-}
@@ -1571,14 +1579,14 @@ VAR
 
 BEGIN
   TRY
-    IF MainWindow <> NIL THEN BEGIN
+    IF FWPRailMainWindow <> NIL THEN BEGIN
       InitialiseScreenDrawingVariables;
       SetLength(TCArray, 0);
 
-      WITH MainWindow.Canvas DO BEGIN
+      WITH FWPRailMainWindow.Canvas DO BEGIN
         SaveLineFontName := Font.Name;
         Font.Name := 'Symbol';
-        Font.Height := -MulDiv(MainWindow.ClientHeight, LineFontHeight, ZoomScalefactor);
+        Font.Height := -MulDiv(FWPRailMainWindow.ClientHeight, LineFontHeight, ZoomScalefactor);
 
         FOR L := 0 TO High(Lines) DO BEGIN
           WITH Lines[L] DO BEGIN
@@ -1639,7 +1647,7 @@ BEGIN
                   { Write out the text - we need special code for adding arrows, as they use the Symbol typeface. HorizontalArrowAdjustment is needed to position the arrow
                     in line with the text.
                   }
-                  HorizontalArrowAdjustment := MulDiv(MainWindow.ClientWidth, 1, ZoomScalefactor);
+                  HorizontalArrowAdjustment := MulDiv(FWPRailMainWindow.ClientWidth, 1, ZoomScalefactor);
                   IF LeftArrowNeeded THEN BEGIN
                     { Note: we write the data on the wrong side of the track to avoid signals overwriting it }
                     TextOut(Line_UpX + SpeedRestrictionHorizontalSpacingScaled - ScrollBarXAdjustment,
@@ -1760,20 +1768,20 @@ PROCEDURE DrawSignalData(S : Integer; Str : String; Colour : Integer);
 BEGIN
   TRY
     InitialiseScreenDrawingVariables;
-    WITH MainWindow.Canvas DO BEGIN
+    WITH FWPRailMainWindow.Canvas DO BEGIN
       Font.Style := [fsBold];
       Font.Color := Colour;
       Brush.Color := BackgroundColour;
-      Font.Height := -MulDiv(MainWindow.ClientHeight, LineFontHeight, ZoomScalefactor);
+      Font.Height := -MulDiv(FWPRailMainWindow.ClientHeight, LineFontHeight, ZoomScalefactor);
 
       WITH Signals[S] DO BEGIN
         IF Signal_Direction = Up THEN
-          TextOut(Signal_PostMouseRect.Right + MulDiv(MainWindow.ClientWidth, 3, ZoomScalefactor) - ScrollBarXAdjustment,
+          TextOut(Signal_PostMouseRect.Right + MulDiv(FWPRailMainWindow.ClientWidth, 3, ZoomScalefactor) - ScrollBarXAdjustment,
                   Signal_PostMouseRect.Top + ((Signal_PostMouseRect.Bottom - Signal_PostMouseRect.Top - TextHeight(Str)) DIV 2) - ScrollBarYAdjustment,
                   Str)
         ELSE
           IF Signal_Direction = Down THEN
-            TextOut(Signal_PostMouseRect.Left - TextWidth(Str) - MulDiv(MainWindow.ClientWidth, 3, ZoomScalefactor) - ScrollBarXAdjustment,
+            TextOut(Signal_PostMouseRect.Left - TextWidth(Str) - MulDiv(FWPRailMainWindow.ClientWidth, 3, ZoomScalefactor) - ScrollBarXAdjustment,
                     Signal_PostMouseRect.Top + ((Signal_PostMouseRect.Bottom - Signal_PostMouseRect.Top - TextHeight(Str)) DIV 2) - ScrollBarYAdjustment,
                     Str);
       END; {WITH}
@@ -1826,7 +1834,7 @@ BEGIN
   TRY
     IF S <> UnknownSignal THEN BEGIN
       InitialiseScreenDrawingVariables;
-      WITH MainWindow.Canvas DO BEGIN
+      WITH FWPRailMainWindow.Canvas DO BEGIN
         WITH Signals[S] DO BEGIN
           IF Signal_Direction = Up THEN BEGIN
             { only erase a path for the signal post if part of a signal is not also going to be erased }
@@ -1834,7 +1842,7 @@ BEGIN
             Brush.Color := BackgroundColour;
             Rectangle(Signal_LocationX + SignalRadiusScaled - ScrollBarXAdjustment,
                       Signal_LocationY - Signal_VerticalSpacing + MainWindowCanvasPenWidth - ScrollBarYAdjustment,
-                      Signal_LocationX + SignalRadiusScaled + MulDiv(MainWindow.ClientWidth, 10, ZoomScalefactor) - ScrollBarXAdjustment,
+                      Signal_LocationX + SignalRadiusScaled + MulDiv(FWPRailMainWindow.ClientWidth, 10, ZoomScalefactor) - ScrollBarXAdjustment,
                       Signal_LocationY + SignalRadiusScaled - ScrollBarYAdjustment);
 
             IF Signals[S].Signal_HiddenAspect = RedAspect THEN
@@ -1855,16 +1863,16 @@ BEGIN
             ELSE
               MoveTo(Signal_LocationX + SignalRadiusScaled - Pen.Width - ScrollBarXAdjustment,
                      Signal_LocationY - ScrollBarYAdjustment);
-            LineTo(Signal_LocationX + SignalRadiusScaled - Pen.Width + MulDiv(MainWindow.ClientWidth, 8, ZoomScalefactor) - ScrollBarXAdjustment,
+            LineTo(Signal_LocationX + SignalRadiusScaled - Pen.Width + MulDiv(FWPRailMainWindow.ClientWidth, 8, ZoomScalefactor) - ScrollBarXAdjustment,
                    Signal_LocationY - ScrollBarYAdjustment);
-            LineTo(Signal_LocationX + SignalRadiusScaled - Pen.Width + MulDiv(MainWindow.ClientWidth, 8, ZoomScalefactor) - ScrollBarXAdjustment,
+            LineTo(Signal_LocationX + SignalRadiusScaled - Pen.Width + MulDiv(FWPRailMainWindow.ClientWidth, 8, ZoomScalefactor) - ScrollBarXAdjustment,
                    Signal_LocationY - Signal_VerticalSpacing + (MainWindowCanvasPenWidth DIV 2) - ScrollBarYAdjustment);
           END ELSE
             IF Signal_Direction = Down THEN BEGIN
               { only erase a path for the signal post if part of a signal is not also going to be erased }
               Pen.Color := BackgroundColour;
               Brush.Color := BackgroundColour;
-              Rectangle(Signal_LocationX - SignalRadiusScaled - MulDiv(MainWindow.ClientWidth, 10, ZoomScalefactor) - ScrollBarXAdjustment,
+              Rectangle(Signal_LocationX - SignalRadiusScaled - MulDiv(FWPRailMainWindow.ClientWidth, 10, ZoomScalefactor) - ScrollBarXAdjustment,
                         Signal_LocationY - SignalRadiusScaled - ScrollBarYAdjustment,
                         Signal_LocationX - SignalRadiusScaled - ScrollBarXAdjustment,
                         Signal_LocationY + Signal_VerticalSpacing - MainWindowCanvasPenWidth - ScrollBarYAdjustment);
@@ -1883,9 +1891,9 @@ BEGIN
               ELSE
                 MoveTo(Signal_LocationX - SignalRadiusScaled + Pen.Width - ScrollBarXAdjustment,
                        Signal_LocationY - ScrollBarYAdjustment);
-              LineTo(Signal_LocationX - SignalRadiusScaled + Pen.Width - MulDiv(MainWindow.ClientWidth, 8, ZoomScalefactor) - ScrollBarXAdjustment,
+              LineTo(Signal_LocationX - SignalRadiusScaled + Pen.Width - MulDiv(FWPRailMainWindow.ClientWidth, 8, ZoomScalefactor) - ScrollBarXAdjustment,
                      Signal_LocationY - ScrollBarYAdjustment);
-              LineTo(Signal_LocationX - SignalRadiusScaled + Pen.Width - MulDiv(MainWindow.ClientWidth, 8, ZoomScalefactor) - ScrollBarXAdjustment,
+              LineTo(Signal_LocationX - SignalRadiusScaled + Pen.Width - MulDiv(FWPRailMainWindow.ClientWidth, 8, ZoomScalefactor) - ScrollBarXAdjustment,
                      Signal_LocationY + Signal_VerticalSpacing - (MainWindowCanvasPenWidth DIV 2) - ScrollBarYAdjustment);
             END;
         END; {WITH}
@@ -1965,7 +1973,7 @@ VAR
       END;
     END; {FOR}
 
-    WITH MainWindow.Canvas DO
+    WITH FWPRailMainWindow.Canvas DO
       Polygon(PointArray);
   END; { DrawSemaphore }
 
@@ -1979,12 +1987,12 @@ BEGIN
     SignalBottom := 0;
 
     InitialiseScreenDrawingVariables;
-    WITH MainWindow.Canvas DO BEGIN
+    WITH FWPRailMainWindow.Canvas DO BEGIN
       SColour1 := BackgroundColour;
       SColour2 := BackgroundColour;
       Font.Style := [fsBold];
       Font.Color := clWhite;
-      Font.Height := -MulDiv(MainWindow.ClientHeight, TheatreFontHeight, ZoomScalefactor);
+      Font.Height := -MulDiv(FWPRailMainWindow.ClientHeight, TheatreFontHeight, ZoomScalefactor);
 
       WITH Signals[S] DO BEGIN
 //Region := CreateRectRgn(Signal_MouseRect.Left, Signal_MouseRect.Top, Signal_MouseRect.Right, Signal_MouseRect.Bottom);
@@ -2053,7 +2061,7 @@ BEGIN
             Pen.Color := BackgroundColour;
             Rectangle(Rect(TheatreIndicatorX1, TheatreIndicatorY1, TheatreIndicatorX2, TheatreIndicatorY2));
 
-            Font.Height := -MulDiv(MainWindow.ClientHeight, LineFontHeight, ZoomScalefactor);
+            Font.Height := -MulDiv(FWPRailMainWindow.ClientHeight, LineFontHeight, ZoomScalefactor);
             Font.Color := clWhite;
             IF Signal_IndicatorState = NoIndicatorLit THEN
               { Now the outline of the theatre indicator box }
@@ -2101,48 +2109,48 @@ BEGIN
               OR Signal_JunctionIndicators[LowerRightIndicator].JunctionIndicator_Exists
               THEN BEGIN
                 LowerX := IndicatorX;
-                IndicatorX := IndicatorX - MulDiv(MainWindow.ClientWidth, 3, ZoomScalefactor);
+                IndicatorX := IndicatorX - MulDiv(FWPRailMainWindow.ClientWidth, 3, ZoomScalefactor);
 
                 IF Signal_JunctionIndicators[MiddleLeftIndicator].JunctionIndicator_Exists
                 OR Signal_JunctionIndicators[MiddleRightIndicator].JunctionIndicator_Exists
                 THEN BEGIN
                   MiddleX := IndicatorX;
-                  UpperX := IndicatorX - MulDiv(MainWindow.ClientWidth, 3, ZoomScalefactor);
+                  UpperX := IndicatorX - MulDiv(FWPRailMainWindow.ClientWidth, 3, ZoomScalefactor);
                 END ELSE
-                  UpperX := IndicatorX + MulDiv(MainWindow.ClientWidth, 3, ZoomScalefactor);
+                  UpperX := IndicatorX + MulDiv(FWPRailMainWindow.ClientWidth, 3, ZoomScalefactor);
               END ELSE
                 { a slight adjustment to bring the middle arms nearer the signal }
                 IF Signal_JunctionIndicators[MiddleLeftIndicator].JunctionIndicator_Exists
                 OR Signal_JunctionIndicators[MiddleRightIndicator].JunctionIndicator_Exists
                 THEN BEGIN
-                  MiddleX := IndicatorX + MulDiv(MainWindow.ClientWidth, 3, ZoomScalefactor);
+                  MiddleX := IndicatorX + MulDiv(FWPRailMainWindow.ClientWidth, 3, ZoomScalefactor);
                   UpperX := IndicatorX;
                 END ELSE
-                  UpperX := IndicatorX + MulDiv(MainWindow.ClientWidth, 3, ZoomScalefactor);
+                  UpperX := IndicatorX + MulDiv(FWPRailMainWindow.ClientWidth, 3, ZoomScalefactor);
             END ELSE BEGIN
               { Signal_Direction = Down }
               IF Signal_JunctionIndicators[LowerLeftIndicator].JunctionIndicator_Exists
               OR Signal_JunctionIndicators[LowerRightIndicator].JunctionIndicator_Exists
               THEN BEGIN
                 LowerX := IndicatorX;
-                IndicatorX := IndicatorX + MulDiv(MainWindow.ClientWidth, 3, ZoomScalefactor);
+                IndicatorX := IndicatorX + MulDiv(FWPRailMainWindow.ClientWidth, 3, ZoomScalefactor);
 
                 IF Signal_JunctionIndicators[MiddleLeftIndicator].JunctionIndicator_Exists
                 OR Signal_JunctionIndicators[MiddleRightIndicator].JunctionIndicator_Exists
                 THEN BEGIN
                   MiddleX := IndicatorX;
-                  UpperX := IndicatorX + MulDiv(MainWindow.ClientWidth, 3, ZoomScalefactor);
+                  UpperX := IndicatorX + MulDiv(FWPRailMainWindow.ClientWidth, 3, ZoomScalefactor);
                 END ELSE
-                  UpperX := IndicatorX - MulDiv(MainWindow.ClientWidth, 3, ZoomScalefactor);
+                  UpperX := IndicatorX - MulDiv(FWPRailMainWindow.ClientWidth, 3, ZoomScalefactor);
               END ELSE
                 { a slight adjustment to bring the middle arms nearer the signal }
                 IF Signal_JunctionIndicators[MiddleLeftIndicator].JunctionIndicator_Exists
                 OR Signal_JunctionIndicators[MiddleRightIndicator].JunctionIndicator_Exists
                 THEN BEGIN
-                  MiddleX := IndicatorX - MulDiv(MainWindow.ClientWidth, 3, ZoomScalefactor);
+                  MiddleX := IndicatorX - MulDiv(FWPRailMainWindow.ClientWidth, 3, ZoomScalefactor);
                   UpperX := IndicatorX;
                 END ELSE
-                  UpperX := IndicatorX - MulDiv(MainWindow.ClientWidth, 3, ZoomScalefactor);
+                  UpperX := IndicatorX - MulDiv(FWPRailMainWindow.ClientWidth, 3, ZoomScalefactor);
             END;
 
             FOR Indicator := UpperLeftIndicator TO LowerRightIndicator DO BEGIN
@@ -2152,73 +2160,73 @@ BEGIN
                     UpperLeftIndicator:
                       IF Signal_Direction = Up THEN BEGIN
                         SignalLeft := UpperX;
-                        SignalTop := Signal_LocationY + MulDiv(MainWindow.ClientHeight, 3, ZoomScalefactor);
-                        SignalRight := UpperX - MulDiv(MainWindow.ClientWidth, 5, ZoomScalefactor);
+                        SignalTop := Signal_LocationY + MulDiv(FWPRailMainWindow.ClientHeight, 3, ZoomScalefactor);
+                        SignalRight := UpperX - MulDiv(FWPRailMainWindow.ClientWidth, 5, ZoomScalefactor);
                         SignalBottom := Signal_LocationY + IndicatorVerticalSpacingScaled;
                       END ELSE BEGIN
                         SignalLeft := UpperX;
-                        SignalTop := Signal_LocationY - MulDiv(MainWindow.ClientHeight, 3, ZoomScalefactor);
-                        SignalRight := UpperX + MulDiv(MainWindow.ClientWidth, 5, ZoomScalefactor);
+                        SignalTop := Signal_LocationY - MulDiv(FWPRailMainWindow.ClientHeight, 3, ZoomScalefactor);
+                        SignalRight := UpperX + MulDiv(FWPRailMainWindow.ClientWidth, 5, ZoomScalefactor);
                         SignalBottom := Signal_LocationY - IndicatorVerticalSpacingScaled;
                       END;
                     MiddleLeftIndicator:
                       IF Signal_Direction = Up THEN BEGIN
                         SignalLeft := MiddleX;
-                        SignalTop := Signal_LocationY + MulDiv(MainWindow.ClientHeight, 3, ZoomScalefactor);
+                        SignalTop := Signal_LocationY + MulDiv(FWPRailMainWindow.ClientHeight, 3, ZoomScalefactor);
                         SignalRight := MiddleX;
                         SignalBottom := Signal_LocationY + IndicatorVerticalSpacingScaled;
                       END ELSE BEGIN
                         SignalLeft := MiddleX;
-                        SignalTop := Signal_LocationY - MulDiv(MainWindow.ClientHeight, 3, ZoomScalefactor);
+                        SignalTop := Signal_LocationY - MulDiv(FWPRailMainWindow.ClientHeight, 3, ZoomScalefactor);
                         SignalRight := MiddleX;
                         SignalBottom := Signal_LocationY - IndicatorVerticalSpacingScaled;
                       END;
                     LowerLeftIndicator:
                       IF Signal_Direction = Up THEN BEGIN
                         SignalLeft := LowerX;
-                        SignalTop := Signal_LocationY + MulDiv(MainWindow.ClientHeight, 3, ZoomScalefactor);
-                        SignalRight := LowerX + MulDiv(MainWindow.ClientWidth, 5, ZoomScalefactor);
+                        SignalTop := Signal_LocationY + MulDiv(FWPRailMainWindow.ClientHeight, 3, ZoomScalefactor);
+                        SignalRight := LowerX + MulDiv(FWPRailMainWindow.ClientWidth, 5, ZoomScalefactor);
                         SignalBottom := Signal_LocationY + IndicatorVerticalSpacingScaled;
                       END ELSE BEGIN
                         SignalLeft := LowerX;
-                        SignalTop := Signal_LocationY - MulDiv(MainWindow.ClientHeight, 3, ZoomScalefactor);
-                        SignalRight := LowerX - MulDiv(MainWindow.ClientWidth, 5, ZoomScalefactor);
+                        SignalTop := Signal_LocationY - MulDiv(FWPRailMainWindow.ClientHeight, 3, ZoomScalefactor);
+                        SignalRight := LowerX - MulDiv(FWPRailMainWindow.ClientWidth, 5, ZoomScalefactor);
                         SignalBottom := Signal_LocationY - IndicatorVerticalSpacingScaled;
                       END;
                     UpperRightIndicator:
                       IF Signal_Direction = Up THEN BEGIN
                         SignalLeft := UpperX;
-                        SignalTop := Signal_LocationY - MulDiv(MainWindow.ClientHeight, 3, ZoomScalefactor);
-                        SignalRight := UpperX - MulDiv(MainWindow.ClientWidth, 5, ZoomScalefactor);
+                        SignalTop := Signal_LocationY - MulDiv(FWPRailMainWindow.ClientHeight, 3, ZoomScalefactor);
+                        SignalRight := UpperX - MulDiv(FWPRailMainWindow.ClientWidth, 5, ZoomScalefactor);
                         SignalBottom := Signal_LocationY - IndicatorVerticalSpacingScaled;
                       END ELSE BEGIN
                         SignalLeft := UpperX;
-                        SignalTop := Signal_LocationY + MulDiv(MainWindow.ClientHeight, 3, ZoomScalefactor);
-                        SignalRight := UpperX + MulDiv(MainWindow.ClientWidth, 5, ZoomScalefactor);
+                        SignalTop := Signal_LocationY + MulDiv(FWPRailMainWindow.ClientHeight, 3, ZoomScalefactor);
+                        SignalRight := UpperX + MulDiv(FWPRailMainWindow.ClientWidth, 5, ZoomScalefactor);
                         SignalBottom := Signal_LocationY + IndicatorVerticalSpacingScaled
                       END;
                     MiddleRightIndicator:
                       IF Signal_Direction = Up THEN BEGIN
                         SignalLeft := MiddleX;
-                        SignalTop := Signal_LocationY - MulDiv(MainWindow.ClientHeight, 3, ZoomScalefactor);
+                        SignalTop := Signal_LocationY - MulDiv(FWPRailMainWindow.ClientHeight, 3, ZoomScalefactor);
                         SignalRight := MiddleX;
                         SignalBottom := Signal_LocationY - IndicatorVerticalSpacingScaled;
                       END ELSE BEGIN
                         SignalLeft := MiddleX;
-                        SignalTop := Signal_LocationY + MulDiv(MainWindow.ClientHeight, 3, ZoomScalefactor);
+                        SignalTop := Signal_LocationY + MulDiv(FWPRailMainWindow.ClientHeight, 3, ZoomScalefactor);
                         SignalRight := MiddleX;
                         SignalBottom := Signal_LocationY + IndicatorVerticalSpacingScaled;
                       END;
                     LowerRightIndicator:
                       IF Signal_Direction = Up THEN BEGIN
                         SignalLeft := LowerX;
-                        SignalTop := Signal_LocationY - MulDiv(MainWindow.ClientHeight, 3, ZoomScalefactor);
-                        SignalRight := LowerX + MulDiv(MainWindow.ClientWidth, 5, ZoomScalefactor);
+                        SignalTop := Signal_LocationY - MulDiv(FWPRailMainWindow.ClientHeight, 3, ZoomScalefactor);
+                        SignalRight := LowerX + MulDiv(FWPRailMainWindow.ClientWidth, 5, ZoomScalefactor);
                         SignalBottom := Signal_LocationY - IndicatorVerticalSpacingScaled;
                       END ELSE BEGIN
                         SignalLeft := LowerX;
-                        SignalTop := Signal_LocationY + MulDiv(MainWindow.ClientHeight, 3, ZoomScalefactor);
-                        SignalRight := LowerX - MulDiv(MainWindow.ClientWidth, 5, ZoomScalefactor);
+                        SignalTop := Signal_LocationY + MulDiv(FWPRailMainWindow.ClientHeight, 3, ZoomScalefactor);
+                        SignalRight := LowerX - MulDiv(FWPRailMainWindow.ClientWidth, 5, ZoomScalefactor);
                         SignalBottom := Signal_LocationY + IndicatorVerticalSpacingScaled;
                       END;
                   END; {CASE}
@@ -2267,8 +2275,8 @@ BEGIN
 
                   { special case for these two indicators as otherwise the mouse is trying to click on an exact vertical line }
                   IF (Indicator = MiddleLeftIndicator) OR (Indicator = MiddleRightIndicator) THEN BEGIN
-                    JunctionIndicator_MouseRect.Left := JunctionIndicator_MouseRect.Left - MulDiv(MainWindow.ClientWidth, 1, ZoomScalefactor);
-                    JunctionIndicator_MouseRect.Right := JunctionIndicator_MouseRect.Right + MulDiv(MainWindow.ClientWidth, 1, ZoomScalefactor);
+                    JunctionIndicator_MouseRect.Left := JunctionIndicator_MouseRect.Left - MulDiv(FWPRailMainWindow.ClientWidth, 1, ZoomScalefactor);
+                    JunctionIndicator_MouseRect.Right := JunctionIndicator_MouseRect.Right + MulDiv(FWPRailMainWindow.ClientWidth, 1, ZoomScalefactor);
                   END;
                 END;
               END; {WITH}
@@ -2478,8 +2486,8 @@ PROCEDURE DrawConnectionCh(ConnectionCh : String; ConnectionChRect : TRect; Bold
 { Draw character at line starts/ends to indicate where lines are going when they disappear off the screen }
 BEGIN
   TRY
-    IF MainWindow <> NIL THEN BEGIN
-      WITH MainWindow.Canvas DO BEGIN
+    IF FWPRailMainWindow <> NIL THEN BEGIN
+      WITH FWPRailMainWindow.Canvas DO BEGIN
         IF Bold THEN BEGIN
           { undraw the old character }
           Font.Color := BackgroundColour;
@@ -2487,7 +2495,7 @@ BEGIN
           { now draw the new one in bold }
           Font.Color := clWhite;
           Font.Style := [fsBold];
-          Font.Height := -MulDiv(MainWindow.ClientHeight, MainWindowFontHeight * 2, ZoomScalefactor);
+          Font.Height := -MulDiv(FWPRailMainWindow.ClientHeight, MainWindowFontHeight * 2, ZoomScalefactor);
 
           TextOut(ConnectionChRect.Left - ((ConnectionChRect.Right - ConnectionChRect.Left)) - ScrollBarXAdjustment,
                   ConnectionChRect.Top - ((ConnectionChRect.Bottom - ConnectionChRect.Top) DIV 2) - ScrollBarYAdjustment,
@@ -2496,7 +2504,7 @@ BEGIN
           { undraw the old character if there is one by redrawing the screen }
           Font.Color := BackgroundColour;
           Font.Style := [fsBold];
-          Font.Height := -MulDiv(MainWindow.ClientHeight, MainWindowFontHeight * 2, ZoomScalefactor);
+          Font.Height := -MulDiv(FWPRailMainWindow.ClientHeight, MainWindowFontHeight * 2, ZoomScalefactor);
 
           TextOut(ConnectionChRect.Left - ((ConnectionChRect.Right - ConnectionChRect.Left)) - ScrollBarXAdjustment,
                   ConnectionChRect.Top - ((ConnectionChRect.Bottom - ConnectionChRect.Top) DIV 2) - ScrollBarYAdjustment,
@@ -2505,7 +2513,7 @@ BEGIN
           { Draw the new one }
           Font.Color := ForegroundColour;
           Font.Style := [];
-          Font.Height := -MulDiv(MainWindow.ClientHeight, MainWindowFontHeight, ZoomScalefactor);
+          Font.Height := -MulDiv(FWPRailMainWindow.ClientHeight, MainWindowFontHeight, ZoomScalefactor);
 
           TextOut(ConnectionChRect.Left - ScrollBarXAdjustment, ConnectionChRect.Top - ScrollBarYAdjustment, ConnectionCh);
         END;
@@ -2541,7 +2549,7 @@ VAR
 
   BEGIN
     TRY
-      WITH MainWindow.Canvas DO BEGIN
+      WITH FWPRailMainWindow.Canvas DO BEGIN
         SavePenWidth := Pen.Width;
         Pen.Width := 1;
         { Draw the line pen.width times, each time a little lower }
@@ -2568,10 +2576,10 @@ VAR
 
 BEGIN
   TRY
-    IF MainWindow <> NIL THEN BEGIN
+    IF FWPRailMainWindow <> NIL THEN BEGIN
       LineTextStr := '';
       InitialiseScreenDrawingVariables;
-      WITH MainWindow.Canvas DO BEGIN
+      WITH FWPRailMainWindow.Canvas DO BEGIN
         WITH Lines[L] DO BEGIN
           IF Line_TypeOfLine = SidingLine THEN
             Pen.Style := SidingPenStyle
@@ -2784,7 +2792,7 @@ BEGIN
               Brush.Color := BackgroundColour;
               IF ScreenColoursSetForPrinting THEN
                 Font.Color := clBlack;
-              Font.Height := -MulDiv(MainWindow.ClientHeight, LineFontHeight, ZoomScalefactor);
+              Font.Height := -MulDiv(FWPRailMainWindow.ClientHeight, LineFontHeight, ZoomScalefactor);
 
               { the following Rect is not used *** }
               LineTextStrRect := Rect(Line_UpX + ((Line_DownX - Line_UpX - TextWidth(LineTextStr + StringOfChar(' ', 2))) DIV 2) - ScrollBarXAdjustment,
@@ -3435,7 +3443,7 @@ VAR
 BEGIN
   TRY
     InitialiseScreenDrawingVariables;
-    WITH MainWindow.Canvas DO BEGIN
+    WITH FWPRailMainWindow.Canvas DO BEGIN
       WITH Points[P] DO BEGIN
         { Undraw the previous state by increasing the pen width when rubbing out the line - otherwise a faint trace of the line gets left behind (I know this is a hack,
           but it works!)
@@ -3593,7 +3601,7 @@ VAR
 BEGIN
   TRY
     InitialiseScreenDrawingVariables;
-    WITH MainWindow.Canvas DO BEGIN
+    WITH FWPRailMainWindow.Canvas DO BEGIN
       Brush.Color := BackgroundColour;
       Font.Color := Colour;
       Font.Style := [fsBold];
@@ -3705,7 +3713,7 @@ BEGIN
             END;
 
         WITH Point_MouseRect DO BEGIN
-          Font.Height := -MulDiv(MainWindow.ClientHeight, LineFontHeight, ZoomScaleFactor);
+          Font.Height := -MulDiv(FWPRailMainWindow.ClientHeight, LineFontHeight, ZoomScaleFactor);
           IF Point_FarY < Point_Y THEN
             TextOut(Right - ScrollBarXAdjustment,
                     Top + ((Bottom - Top - TextHeight(NumberText)) DIV 2) - ScrollBarYAdjustment,
@@ -3739,11 +3747,11 @@ VAR
 BEGIN
   TRY
     InitialiseScreenDrawingVariables;
-    WITH MainWindow.Canvas DO BEGIN
+    WITH FWPRailMainWindow.Canvas DO BEGIN
       Brush.Color := BackgroundColour;
       Font.Style := [fsBold];
       { show which Lenz feedback unit is being used }
-      Font.Height := -MulDiv(MainWindow.ClientHeight, LineFontHeight, ZoomScaleFactor);
+      Font.Height := -MulDiv(FWPRailMainWindow.ClientHeight, LineFontHeight, ZoomScaleFactor);
 
       NumberText := '';
       { Go through all the colours in sequence, but start randomly - this is better than choosing colours at random, as one can end up with too many colours the same that
@@ -3812,10 +3820,10 @@ BEGIN
     InitialiseScreenDrawingVariables;
     ShowLenzPointNumbers := True;
 
-    WITH MainWindow.Canvas DO BEGIN
+    WITH FWPRailMainWindow.Canvas DO BEGIN
       Brush.Color := BackgroundColour;
       Font.Style := [fsBold];
-      Font.Height := -MulDiv(MainWindow.ClientHeight, LineFontHeight, ZoomScaleFactor);
+      Font.Height := -MulDiv(FWPRailMainWindow.ClientHeight, LineFontHeight, ZoomScaleFactor);
 
       { Go through all the colours in sequence, but start randomly - this is better than choosing colours at random, as one can end up with too many colours the same that
         way. Note: the From in RandomRange is included in the results, but the To is not.
@@ -3940,9 +3948,9 @@ PROCEDURE DrawPlatforms;
 
   BEGIN
     TRY
-      WITH MainWindow.Canvas DO BEGIN
+      WITH FWPRailMainWindow.Canvas DO BEGIN
         WITH Platforms[P].Platform_Rect DO BEGIN
-          Font.Height := -MulDiv(MainWindow.ClientHeight, PlatformNumberFontHeight, ZoomScaleFactor);
+          Font.Height := -MulDiv(FWPRailMainWindow.ClientHeight, PlatformNumberFontHeight, ZoomScaleFactor);
           Font.Color := PlatformNumberColour;
           PlatformNumberX := 0;
           PlatformNumberY := 0;
@@ -3995,7 +4003,7 @@ VAR
 BEGIN
   TRY
     InitialiseScreenDrawingVariables;
-    WITH MainWindow.Canvas DO BEGIN
+    WITH FWPRailMainWindow.Canvas DO BEGIN
       { draw the platforms themselves }
       Brush.Color := PlatformColour;
       Brush.Style := bsSolid;
@@ -4072,7 +4080,7 @@ BEGIN
   TRY
     InitialiseScreenDrawingVariables;
 
-    WITH MainWindow.Canvas DO BEGIN
+    WITH FWPRailMainWindow.Canvas DO BEGIN
       WITH MainPlatformPlungers[Location] DO BEGIN
         X := TRSPlunger_Triangle.PlungerXScaled;
         Y := TRSPlunger_Triangle.PlungerYScaled;
@@ -4131,7 +4139,7 @@ BEGIN
       WITH Locations[Location] DO BEGIN
         Location_LineAtUp := UnknownLine;
         Location_LineAtDown := UnknownLine;
-        SaveUpX := MainWindow.ClientWidth;
+        SaveUpX := FWPRailMainWindow.ClientWidth;
         SaveDownX := 0;
         { Set up L to contain the lines at the ends of locations - if there is more than one line related to a location, use the one nearest to up or down }
         FOR L := 0 TO High(Lines) DO BEGIN
@@ -4253,13 +4261,13 @@ BEGIN
   END; {TRY}
 END; { InitialiseLocationLines }
 
-PROCEDURE TMainWindow.MainWindowPaint(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.MainWindowPaint(Sender: TObject);
 BEGIN
-  IF MainWindow.MainTimer.Enabled THEN
+  IF FWPRailMainWindow.MainTimer.Enabled THEN
     DrawMap;
 END; { MainWindowPaint }
 
-PROCEDURE TMainWindow.MainWindowExitClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.MainWindowExitClick(Sender: TObject);
 CONST
   ExitProgram = True;
 
@@ -4268,7 +4276,7 @@ BEGIN
   ShutDownProgram(UnitRef, 'MainWindowExitClick');
 END; { MainWindowExitClick }
 
-PROCEDURE TMainWindow.MainWindowShortCut(VAR Msg: TWMKey; VAR Handled: Boolean);
+PROCEDURE TFWPRailMainWindow.MainWindowShortCut(VAR Msg: TWMKey; VAR Handled: Boolean);
 VAR
   ShiftState : TShiftState;
   OK : Boolean;
@@ -4345,7 +4353,7 @@ BEGIN
   END; {TRY}
 END; { MainWindowShortCut }
 
-PROCEDURE TMainWindow.ApplicationMessage(VAR Msg: TMsg; VAR Handled: Boolean);
+PROCEDURE TFWPRailMainWindow.ApplicationMessage(VAR Msg: TMsg; VAR Handled: Boolean);
 { Intercept messages - only way of getting at the tab key! Now replaced by ShortCut above Sept 2009 }
 //VAR
 //  Button: TUDBtnType;
@@ -4502,16 +4510,16 @@ BEGIN
   END; {CASE}
 END; { ApplicationMessage }
 
-PROCEDURE TMainWindow.MainWindowMouseMove(Sender: TObject; ShiftState: TShiftState; X, Y: Integer);
+PROCEDURE TFWPRailMainWindow.MainWindowMouseMove(Sender: TObject; ShiftState: TShiftState; X, Y: Integer);
 { If the mouse moves into the main window, move the focus there, except from the Debug Window. (We can't use Activate as the main window remains activated until we click
   on the diagrams or debug windows).
 }
 BEGIN
   TRY
     IF NOT KeyboardAndMouseLocked
-    AND (MainWindow <> NIL)
+    AND (FWPRailMainWindow <> NIL)
     THEN BEGIN
-      IF NOT MainWindow.Active
+      IF NOT FWPRailMainWindow.Active
       AND NOT (ClockWindow.Active
                OR ClockWindow.Visible)
       AND NOT (DebuggingOptionsWindow.Active
@@ -4533,7 +4541,7 @@ BEGIN
       AND NOT TrackCircuitPopupMenuActive { a global variable, owing to the special nature of GeneralPopup menus which means one cannot normally detect whether they are
                                             "popped up" or not }
       THEN
-        MainWindow.SetFocus;
+        FWPRailMainWindow.SetFocus;
 
       IF NOT ProgramStartup THEN
         WhatIsUnderMouse(X, Y, ShiftState);
@@ -4544,7 +4552,7 @@ BEGIN
   END; {TRY}
 END; { MainWindowMouseMove }
 
-PROCEDURE TMainWindow.MainWindowMouseDown(Sender: TObject; Button: TMouseButton; ShiftState: TShiftState; X, Y: Integer);
+PROCEDURE TFWPRailMainWindow.MainWindowMouseDown(Sender: TObject; Button: TMouseButton; ShiftState: TShiftState; X, Y: Integer);
 BEGIN
   MouseButtonDown := True;
 
@@ -4553,13 +4561,13 @@ BEGIN
   MouseButtonPressed(Button, X, Y, ShiftState);
 END; { MainWindowMouseDown }
 
-PROCEDURE TMainWindow.MainWindowMouseUp(Sender: TObject; Button: TMouseButton; ShiftState: TShiftState; X, Y: Integer);
+PROCEDURE TFWPRailMainWindow.MainWindowMouseUp(Sender: TObject; Button: TMouseButton; ShiftState: TShiftState; X, Y: Integer);
 BEGIN
   MouseButtonDown := False;
   MouseButtonReleased(Button, X, Y, ShiftState);
 END; { MainWindowMouseUp }
 
-PROCEDURE TMainWindow.MainWindowKeyDown(Sender: TObject; VAR Key: Word; ShiftState: TShiftState);
+PROCEDURE TFWPRailMainWindow.MainWindowKeyDown(Sender: TObject; VAR Key: Word; ShiftState: TShiftState);
 CONST
   HelpRequired = True;
 
@@ -4590,14 +4598,14 @@ BEGIN
   END; {TRY}
 END; { MainWindowKeyDown }
 
-PROCEDURE TMainWindow.MainWindowResize(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.MainWindowResize(Sender: TObject);
 { This is called after a window is resized }
 BEGIN
   TRY
     IF MainWindowInitialised THEN BEGIN
       { Resize is called when we start up, so don't set ResizeMap then }
       ResizeMap := True;
-        MainWindow.MainWindowStatusBar.Visible := True;
+        FWPRailMainWindow.MainWindowStatusBar.Visible := True;
 
       IF (ScreenMode = DefaultWindowedScreenMode) OR (ScreenMode = CustomWindowedScreenMode) THEN BEGIN
         ScreenMode := CustomWindowedScreenMode;
@@ -4611,7 +4619,7 @@ BEGIN
   END; {TRY}
 END; { MainWindowResize }
 
-PROCEDURE TMainWindow.MainWindowClose(Sender: TObject; VAR Action: TCloseAction);
+PROCEDURE TFWPRailMainWindow.MainWindowClose(Sender: TObject; VAR Action: TCloseAction);
 BEGIN
   TRY
     Log('G Shutdown requested by user clicking on exit button or pressing Alt F4');
@@ -4642,7 +4650,7 @@ BEGIN
   Screen.Cursor := crDefault; { Show default cursor }
 END; { RestoreCursor }
 
-PROCEDURE TMainWindow.HelpMenuAboutClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.HelpMenuAboutClick(Sender: TObject);
 BEGIN
   MessageDlg(ProgramTitle
              + CRLF
@@ -4655,19 +4663,19 @@ BEGIN
              , mtInformation, [mbOK], 0);
 END; { MainWindowAboutClick }
 
-PROCEDURE TMainWindow.MainWindowDragDrop(Sender, Source: TObject; X, Y: Integer);
+PROCEDURE TFWPRailMainWindow.MainWindowDragDrop(Sender, Source: TObject; X, Y: Integer);
 BEGIN
   IF Source IS TImage THEN
     Debug('drag drop x=' + inttostr(X) + ' y=' + inttostr(y));
   Debug(TImage(Source).Name);
 END; { MainWindowDragDrop }
 
-PROCEDURE TMainWindow.MainWindowDragOver(Sender, Source: TObject; X, Y: Integer; State: TDragState; VAR Accept: Boolean);
+PROCEDURE TFWPRailMainWindow.MainWindowDragOver(Sender, Source: TObject; X, Y: Integer; State: TDragState; VAR Accept: Boolean);
 BEGIN
   Accept := (Source IS TImage);
 END; { MainWindowDragOver }
 
-PROCEDURE TMainWindow.MainDisplayMenuDiagramsWindowClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.MainDisplayMenuDiagramsWindowClick(Sender: TObject);
 BEGIN
   IF DiagramsWindow.Visible THEN BEGIN
     DiagramsWindow.Hide;
@@ -4679,7 +4687,7 @@ BEGIN
   END;
 END; { MainDisplayMenuDiagramsClick }
 
-PROCEDURE TMainWindow.MainDisplayMenuWorkingTimetableWindowClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.MainDisplayMenuWorkingTimetableWindowClick(Sender: TObject);
 BEGIN
   IF WorkingTimetableWindow.Visible THEN BEGIN
     WorkingTimetableWindow.Hide;
@@ -4712,7 +4720,7 @@ begin
 
 end;
 *)
-PROCEDURE TMainWindow.MainDisplayMenuDebugClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.MainDisplayMenuDebugClick(Sender: TObject);
 BEGIN
   IF DebugWindow.Visible THEN BEGIN
     DebugWindow.Hide;
@@ -4723,7 +4731,7 @@ BEGIN
   END;
 END; { MainDisplayMenuDebugClick }
 
-PROCEDURE TMainWindow.LocoInfoMenuItemClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.LocoInfoMenuItemClick(Sender: TObject);
 BEGIN
 (*
   IF LocoInfoWindow.Visible THEN BEGIN
@@ -4736,18 +4744,18 @@ BEGIN
 *)
 END; { LocoInfoMenuItemClick }
 
-PROCEDURE TMainWindow.ShowStatusBarClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.ShowStatusBarClick(Sender: TObject);
 BEGIN
-  IF MainWindow.MainWindowStatusBar.Visible THEN BEGIN
-    MainWindow.MainWindowStatusBar.Hide;
+  IF FWPRailMainWindow.MainWindowStatusBar.Visible THEN BEGIN
+    FWPRailMainWindow.MainWindowStatusBar.Hide;
     MainDisplayMenuShowStatusBar.Checked := False;
   END ELSE BEGIN
-    MainWindow.MainWindowStatusBar.Show;
+    FWPRailMainWindow.MainWindowStatusBar.Show;
     MainDisplayMenuShowStatusBar.Checked := True;
   END;
 END; { ShowStatusBarClick }
 
-PROCEDURE TMainWindow.MainDisplayMenuShowClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.MainDisplayMenuShowClick(Sender: TObject);
 { Make menus visible if they're not and vice versa }
 BEGIN
   IF MenusVisible THEN
@@ -4756,7 +4764,7 @@ BEGIN
     ShowMenus;
 END; { ShowMenuItemClick }
 
-PROCEDURE TMainWindow.MainDisplayMenuZoomClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.MainDisplayMenuZoomClick(Sender: TObject);
 BEGIN
   MainDisplayMenuZoom.Checked := NOT MainDisplayMenuZoom.Checked;
   IF MainDisplayMenuZoom.Checked THEN
@@ -4767,7 +4775,7 @@ BEGIN
   END;
 END; { MainDisplayMenuZoomClick }
 
-PROCEDURE TMainWindow.MainRunMenuResumeOperationsClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.MainRunMenuResumeOperationsClick(Sender: TObject);
 VAR
   OK : Boolean;
   
@@ -4780,7 +4788,7 @@ BEGIN
   InvalidateScreen(UnitRef, 'MainRunMenuResumeOperationsClick');
 END; { MainRunMenuResumeOperationsClick }
 
-PROCEDURE TMainWindow.MainHelpMenuRailHelpClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.MainHelpMenuRailHelpClick(Sender: TObject);
 BEGIN
   Application.HelpCommand(HELP_FINDER, 0);
 END; { MainHelpMenuRailHelpClick }
@@ -4788,11 +4796,11 @@ END; { MainHelpMenuRailHelpClick }
 PROCEDURE InvalidateScreen(UnitRefParam, CallingStr : String);
 { Draw the screen by invalidating it }
 BEGIN
-  MainWindow.Invalidate;
+  FWPRailMainWindow.Invalidate;
 //  Log('X Invalidate Screen - call ' + CallingStr + ' from Unit ' + UnitRefParam);
 END; { InvalidateScreen }
 
-PROCEDURE TMainWindow.FlashTimerTick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.FlashTimerTick(Sender: TObject);
 { Do any necessary flashing of signals or other on-screen detail }
 CONST
   Bold = True;
@@ -5018,20 +5026,20 @@ BEGIN
   END; {TRY}
 END; { CheckPointsAwaitingFeedback }
 
-PROCEDURE TMainWindow.GeneralPopupMenuOnPopup(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupMenuOnPopup(Sender: TObject);
 BEGIN
-  IF (MainWindow.Top <> DefaultMainWindowTop)
-  OR (MainWindow.Height <> DefaultMainWindowHeight)
-  OR (MainWindow.Left <> DefaultMainWindowLeft)
-  OR (MainWindow.Top <> DefaultMainWindowTop)
-  OR (MainWindow.Width <> DefaultMainWindowWidth)
+  IF (FWPRailMainWindow.Top <> DefaultMainWindowTop)
+  OR (FWPRailMainWindow.Height <> DefaultMainWindowHeight)
+  OR (FWPRailMainWindow.Left <> DefaultMainWindowLeft)
+  OR (FWPRailMainWindow.Top <> DefaultMainWindowTop)
+  OR (FWPRailMainWindow.Width <> DefaultMainWindowWidth)
   THEN
     GeneralPopupResetMainWindowSizeAndPosition.Enabled := True
   ELSE
     GeneralPopupResetMainWindowSizeAndPosition.Enabled := False;
 END; { MainWindowPopupMenuOnPopup }
 
-PROCEDURE TMainWindow.CreateOrDeleteItemMenuOnPopup(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.CreateOrDeleteItemMenuOnPopup(Sender: TObject);
 VAR
   P : Integer;
   S : Integer;
@@ -5112,27 +5120,27 @@ BEGIN
   END;
 END; { CreateOrDeleteItemMenuOnPopup }
 
-PROCEDURE TMainWindow.CreateSignalMenuItemClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.CreateSignalMenuItemClick(Sender: TObject);
 BEGIN
   CreateSignal;
 END; { CreateSignalMenuItemClick }
 
-PROCEDURE TMainWindow.DeleteSignalMenuItemClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.DeleteSignalMenuItemClick(Sender: TObject);
 BEGIN
   DeleteSignal(SignalPopupNum);
 END; { DeleteSignalMenuItemClick }
 
-PROCEDURE TMainWindow.CreatePointMenuItemClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.CreatePointMenuItemClick(Sender: TObject);
 BEGIN
   CreatePoint;
 END; { CreatePointMenuItemClick }
 
-PROCEDURE TMainWindow.DeletePointMenuItemClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.DeletePointMenuItemClick(Sender: TObject);
 BEGIN
   DeletePoint(PointPopupNum);
 END; { DeletePointMenuItemClick }
 
-PROCEDURE TMainWindow.CreateLineMenuItemClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.CreateLineMenuItemClick(Sender: TObject);
 BEGIN
   IF LinePopupNum = UnknownLine THEN
     CreateLineMenuItem.Enabled := True
@@ -5140,12 +5148,12 @@ BEGIN
     CreateLineMenuItem.Enabled := False;
 END; { CreateLineMenuItemClick }
 
-PROCEDURE TMainWindow.DeleteLineMenuItemClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.DeleteLineMenuItemClick(Sender: TObject);
 BEGIN
 
 END; { DeleteLineMenuItemClick }
 
-PROCEDURE TMainWindow.SignalPopupMenuOnPopup(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.SignalPopupMenuOnPopup(Sender: TObject);
 BEGIN
   WITH Signals[SignalPopupNum] DO BEGIN
     IF SignalPopupNum = UnknownSignal THEN BEGIN
@@ -5166,7 +5174,7 @@ BEGIN
   END; {WITH}
 END; { SignalPopupMenuOnPopup }
 
-PROCEDURE TMainWindow.SignalPopupSetSignalOutOfUseClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.SignalPopupSetSignalOutOfUseClick(Sender: TObject);
 BEGIN
   WITH Signals[SignalPopupNum] DO BEGIN
     IF NOT Signal_OutOfUse THEN BEGIN
@@ -5177,7 +5185,7 @@ BEGIN
   END; {WITH}
 END; { SignalPopupSetSignalOutOfUseClick }
 
-PROCEDURE TMainWindow.SignalPopupSetSignalBackInUseClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.SignalPopupSetSignalBackInUseClick(Sender: TObject);
 BEGIN
   WITH Signals[SignalPopupNum] DO BEGIN
     IF Signal_OutOfUse THEN BEGIN
@@ -5189,12 +5197,12 @@ BEGIN
   END; {WITH}
 END; { SignalPopupSetSignalBackInUseClick }
 
-PROCEDURE TMainWindow.SignalPopupEditSignalDetailsClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.SignalPopupEditSignalDetailsClick(Sender: TObject);
 BEGIN
   TurnEditModeOn(SignalPopupNum, UnknownPoint);
 END; { SignalPopupEditSignalDetailsClick }
 
-PROCEDURE TMainWindow.BufferStopMenuOnPopup(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.BufferStopMenuOnPopup(Sender: TObject);
 BEGIN
   WITH BufferStops[BufferStopPopupNum] DO BEGIN
     IF BufferStopPopupNum = UnknownBufferStop THEN BEGIN
@@ -5207,7 +5215,7 @@ BEGIN
   END; {WITH}
 END; { BufferStopMenuOnPopup }
 
-PROCEDURE TMainWindow.PointPopupMenuOnPopup(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.PointPopupMenuOnPopup(Sender: TObject);
 BEGIN
   WITH Points[PointPopupNum] DO BEGIN
     IF PointPopupNum = Unknownpoint THEN BEGIN
@@ -5241,12 +5249,12 @@ BEGIN
   END; {WITH}
 END; { PointPopupMenuOnPopup }
 
-PROCEDURE TMainWindow.PointPopupEditPointDetailsClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.PointPopupEditPointDetailsClick(Sender: TObject);
 BEGIN
   TurnEditModeOn(UnknownSignal, PointPopupNum);
 END; { PointPopupEditPointDetailsClick }
 
-PROCEDURE TMainWindow.PointPopupLockPointClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.PointPopupLockPointClick(Sender: TObject);
 BEGIN
   WITH Points[PointPopupNum] DO BEGIN
     IF Point_LockedByUser THEN BEGIN
@@ -5260,7 +5268,7 @@ BEGIN
   END; {WITH}
 END; { PointPopupLockPointClick }
 
-PROCEDURE TMainWindow.PointPopupSetPointOutOfUseClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.PointPopupSetPointOutOfUseClick(Sender: TObject);
 BEGIN
   WITH Points[PointPopupNum] DO BEGIN
     IF NOT Point_OutOfUse THEN BEGIN
@@ -5271,7 +5279,7 @@ BEGIN
   END; {WITH}
 END; { PointPopupSetPointOutOfUseClick }
 
-PROCEDURE TMainWindow.PointPopupSetPointBackInUseClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.PointPopupSetPointBackInUseClick(Sender: TObject);
 BEGIN
   WITH Points[PointPopupNum] DO BEGIN
     IF Point_OutOfUse THEN BEGIN
@@ -5282,7 +5290,7 @@ BEGIN
   END; {WITH}
 END; { PointPopupSetPointBackInUseClick }
 
-PROCEDURE TMainWindow.PointPopupSetPointToManualClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.PointPopupSetPointToManualClick(Sender: TObject);
 BEGIN
   WITH Points[PointPopupNum] DO BEGIN
     IF NOT Point_ManualOperation THEN BEGIN
@@ -5292,7 +5300,7 @@ BEGIN
   END; {WITH}
 END; { PointPopupSetPointToManualClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangePointLockedColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangePointLockedColourClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := ShowPointLockedColour;
@@ -5303,13 +5311,13 @@ BEGIN
   END;
 END; { GeneralPopupChangePointLockedColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestorePointLockedColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestorePointLockedColourClick(Sender: TObject);
 BEGIN
   ShowPointLockedColour := DefaultShowPointLockedColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestorePointLockedColourClick');
 END; { GeneralPopupRestorePointLockedColourClick }
 
-PROCEDURE TMainWindow.PointPopupSetPointToAutomaticClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.PointPopupSetPointToAutomaticClick(Sender: TObject);
 BEGIN
   WITH Points[PointPopupNum] DO BEGIN
     IF Point_ManualOperation THEN BEGIN
@@ -5319,7 +5327,7 @@ BEGIN
   END; {WITH}
 END; { PointPopupSetPointToAutomaticClick }
 
-PROCEDURE TMainWindow.TCPopupMenuOnPopup(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.TCPopupMenuOnPopup(Sender: TObject);
 BEGIN
   TRY
     WITH Lines[TrackCircuitPopupLine] DO BEGIN
@@ -5435,7 +5443,7 @@ BEGIN
   END; {TRY}
 END; { TCPopupMenuOnPopup }
 
-PROCEDURE TMainWindow.TCPopupSetTrackCircuitToSystemOccupationClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.TCPopupSetTrackCircuitToSystemOccupationClick(Sender: TObject);
 BEGIN
   WITH Lines[TrackCircuitPopupLine] DO BEGIN
     IF Line_TC <> UnknownTC THEN BEGIN
@@ -5446,7 +5454,7 @@ BEGIN
   END; {WITH}
 END; { TCPopupSetTrackCircuitToSystemOccupationClick }
 
-PROCEDURE TMainWindow.TCPopupSetTrackCircuitToFeedbackOccupationClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.TCPopupSetTrackCircuitToFeedbackOccupationClick(Sender: TObject);
 BEGIN
   WITH Lines[TrackCircuitPopupLine] DO BEGIN
     IF Line_TC <> UnknownTC THEN BEGIN
@@ -5457,7 +5465,7 @@ BEGIN
   END; {WITH}
 END; { TCPopupSetTrackCircuitToFeedbackOccupationClick }
 
-PROCEDURE TMainWindow.TCPopupSetTrackCircuitUnoccupiedClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.TCPopupSetTrackCircuitUnoccupiedClick(Sender: TObject);
 BEGIN
   WITH Lines[TrackCircuitPopupLine] DO BEGIN
     IF Line_TC <> UnknownTC THEN BEGIN
@@ -5468,7 +5476,7 @@ BEGIN
   END; {WITH}
 END; { TCPopupSetTrackCircuitOccupiedClick }
 
-PROCEDURE TMainWindow.TCPopupSetTrackCircuitOutOfUseSetByUserClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.TCPopupSetTrackCircuitOutOfUseSetByUserClick(Sender: TObject);
 BEGIN
   { Set the trackcircuit out of use, regardless of its current state }
   WITH Lines[TrackCircuitPopupLine] DO BEGIN
@@ -5480,7 +5488,7 @@ BEGIN
   END;
 END; { TCPopupSetTrackCircuitOutOfUseClick }
 
-PROCEDURE TMainWindow.TCPopupSetTrackCircuitToPermanentOccupationClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.TCPopupSetTrackCircuitToPermanentOccupationClick(Sender: TObject);
 BEGIN
   { Set the trackcircuit permanently occupied, regardless of its current state }
   WITH Lines[TrackCircuitPopupLine] DO BEGIN
@@ -5495,7 +5503,7 @@ BEGIN
   END; {WITH}
 END; { TCPopupSetTrackCircuitToPermanentOccupationClick }
 
-PROCEDURE TMainWindow.TCPopupShowLocosLastErrorMessageClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.TCPopupShowLocosLastErrorMessageClick(Sender: TObject);
 VAR
   T : Train;
 
@@ -5516,7 +5524,7 @@ BEGIN
 END;
 { ShowLocosLastErrorMessageClick }
 
-PROCEDURE TMainWindow.TCPopupTrackCircuitNumberClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.TCPopupTrackCircuitNumberClick(Sender: TObject);
 BEGIN
   WITH Lines[TrackCircuitPopupLine] DO
     IF TrackCircuits[Line_TC].TC_LocoChip = UnknownLocoChip THEN
@@ -5559,7 +5567,7 @@ BEGIN
   END; {TRY}
 END; { ClearLocoFromTrackCircuit }
 
-PROCEDURE TMainWindow.TCPopupClearLocoAllocationFromTrackCircuitClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.TCPopupClearLocoAllocationFromTrackCircuitClick(Sender: TObject);
 BEGIN
   WITH Lines[TrackCircuitPopupLine] DO BEGIN
     IF TrackCircuits[Line_TC].TC_LocoChip <> UnknownLocoChip THEN
@@ -5567,7 +5575,7 @@ BEGIN
   END;
 END; { TCPopupClearLocoAllocationFromTrackCircuitClick }
 
-PROCEDURE TMainWindow.TCPopupAllocateLocoToTrackCircuitClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.TCPopupAllocateLocoToTrackCircuitClick(Sender: TObject);
 { Allocate (or remove) a loco chip number from a given trackcircuit }
 CONST
   AllLocos = True;
@@ -5714,7 +5722,7 @@ BEGIN
   END; {TRY}
 END; { TCPopupAllocateLocoToTrackCircuitClick }
 
-PROCEDURE TMainWindow.TCPopupChangeInternalLocoDirectionToUpClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.TCPopupChangeInternalLocoDirectionToUpClick(Sender: TObject);
 CONST
   NoValue = 0;
 
@@ -5755,7 +5763,7 @@ BEGIN
   END; {TRY}
 END; { TCPopupChangeLocoDirectionToUpClick }
 
-PROCEDURE TMainWindow.TCPopupChangeInternalLocoDirectionToDownClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.TCPopupChangeInternalLocoDirectionToDownClick(Sender: TObject);
 CONST
   NoValue = 0;
 
@@ -5796,7 +5804,7 @@ BEGIN
   END; {TRY}
 END; { TCPopupChangeLocoDirectionToDownClick }
 
-PROCEDURE TMainWindow.TCPopupSetTrackCircuitToUserDrivingClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.TCPopupSetTrackCircuitToUserDrivingClick(Sender: TObject);
 BEGIN
   TRY
     WITH Lines[TrackCircuitPopupLine] DO BEGIN
@@ -5819,7 +5827,7 @@ BEGIN
   END; {TRY}
 END; { TCPopupSetTrackCircuitToUserDrivingClick }
 
-PROCEDURE TMainWindow.TCPopupSetTrackCircuitSpeedRestrictionClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.TCPopupSetTrackCircuitSpeedRestrictionClick(Sender: TObject);
 VAR
   ClearRestriction : Boolean;
   DefaultDirectionStr : String;
@@ -5906,7 +5914,7 @@ BEGIN
   END; {TRY}
 END; { TCPopupSetTCSpeedRestrictionClick }
 
-PROCEDURE TMainWindow.TCPopupClearTrackCircuitSpeedRestrictionClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.TCPopupClearTrackCircuitSpeedRestrictionClick(Sender: TObject);
 BEGIN
   TRY
     WITH Lines[TrackCircuitPopupLine] DO BEGIN
@@ -5929,7 +5937,7 @@ BEGIN
   END; {TRY}
 END; { ClearTrackCircuitSpeedRestrictionClick }
 
-PROCEDURE TMainWindow.TCPopupSetLineOutOfUseClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.TCPopupSetLineOutOfUseClick(Sender: TObject);
 BEGIN
   TRY
     WITH Lines[TrackCircuitPopupLine] DO BEGIN
@@ -5948,7 +5956,7 @@ BEGIN
   END; {TRY}
 END; { TCPopupSetLineOutOfUseClick }
 
-PROCEDURE TMainWindow.TCPopupSetLocationOutOfUseClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.TCPopupSetLocationOutOfUseClick(Sender: TObject);
 VAR
   LineCount : Integer;
 
@@ -5992,7 +6000,7 @@ BEGIN
   END; {TRY}
 END; { TCPopupSetLocationOutOfUseClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangeDefaultPointColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangeDefaultPointColourClick(Sender: TObject);
 BEGIN
   IF MainWindowColourDialogue.Execute THEN BEGIN
     PointColour := MainWindowColourDialogue.Color;
@@ -6000,19 +6008,19 @@ BEGIN
   END;
 END; { GeneralPopupChangePointDefaultColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestorePointDefaultColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestorePointDefaultColourClick(Sender: TObject);
 BEGIN
   PointColour := DefaultPointColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestorePointDefaultColourClick');
 END; { GeneralPopupRestorePointDefaultColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestoreDefaultBackgroundColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestoreDefaultBackgroundColourClick(Sender: TObject);
 BEGIN
   BackgroundColour := DefaultBackgroundColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreDefaultBackgroundColourClick');
 END; { GeneralPopupRestoreDefaultBackgroundColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangeBackgroundColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangeBackgroundColourClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := BackgroundColour;
@@ -6023,7 +6031,7 @@ BEGIN
   END;
 END; { GeneralPopupChangeBackgroundColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangeForegroundColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangeForegroundColourClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := ForegroundColour;
@@ -6034,13 +6042,13 @@ BEGIN
   END;
 END; { GeneralPopupChangeForegroundColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestoreForegroundColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestoreForegroundColourClick(Sender: TObject);
 BEGIN
   ForegroundColour := DefaultForegroundColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreForegroundColourClick');
 END; { GeneralPopupRestoreForegroundColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangePlatformColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangePlatformColourClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := PlatformColour;
@@ -6051,13 +6059,13 @@ BEGIN
   END;
 END; { GeberalPopupChangePlatformColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestorePlatformColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestorePlatformColourClick(Sender: TObject);
 BEGIN
   PlatformColour := DefaultPlatformColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestorePlatformColourClick');
 END; { GeneralPopupRestorePlatformColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangeTCMissingOccupationColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangeTCMissingOccupationColourClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := TCMissingOccupationColour;
@@ -6068,13 +6076,13 @@ BEGIN
   END;
 END; { ChangeMissingOccupationColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestoreTCMissingOccupationColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestoreTCMissingOccupationColourClick(Sender: TObject);
 BEGIN
   TCMissingOccupationColour := DefaultTCMissingOccupationColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreTCMissingOccupationColourClick');
 END; { GeneralPopupRestoreTCMissingOccupationColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangeLocoStalledColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangeLocoStalledColourClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := LocoStalledColour;
@@ -6085,13 +6093,13 @@ BEGIN
   END;
 END; { ChangeLocoStalledColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestoreLocoStalledColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestoreLocoStalledColourClick(Sender: TObject);
 BEGIN
   LocoStalledColour := DefaultLocoStalledColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreLocoStalledColourClick');
 END; { GeneralPopupRestoreLocoStalledColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangeTCPermanentFeedbackOccupationColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangeTCPermanentFeedbackOccupationColourClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := TCPermanentFeedbackOccupationColour;
@@ -6102,13 +6110,13 @@ BEGIN
   END;
 END; { GeneralPopupChangeTCPermanentFeedbackOccupationColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestoreTCPermanentFeedbackOccupationColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestoreTCPermanentFeedbackOccupationColourClick(Sender: TObject);
 BEGIN
   TCPermanentFeedbackOccupationColour := DefaultTCPermanentFeedbackOccupationColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreTCPermanentFeedbackOccupationColourClick');
 END; { GeneralPopupRestoreTCPermanentFeedbackOccupationColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangeTCPermanentSystemOccupationColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangeTCPermanentSystemOccupationColourClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := TCPermanentSystemOccupationColour;
@@ -6119,13 +6127,13 @@ BEGIN
   END;
 END; { GeneralPopupChangeTCPermanentSystemOccupationColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestoreTCPermanentSystemOccupationColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestoreTCPermanentSystemOccupationColourClick(Sender: TObject);
 BEGIN
   TCPermanentSystemOccupationColour := DefaultTCPermanentSystemOccupationColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreTCPermanentSystemOccupationColourClick');
 END; { GeneralPopupRestoreTCPermanentSystemOccupationColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangeTCPermanentOccupationSetByUserColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangeTCPermanentOccupationSetByUserColourClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := TCPermanentOccupationSetByUserColour;
@@ -6136,13 +6144,13 @@ BEGIN
   END;
 END; { GeneralPopupChangeTCPermanentOccupationSetByUserColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestoreTCPermanentOccupationSetByUserColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestoreTCPermanentOccupationSetByUserColourClick(Sender: TObject);
 BEGIN
   TCPermanentOccupationSetByUserColour := DefaultTCPermanentOccupationSetByUserColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreTCPermanentOccupationSetByUserColourClick');
 END; { GeneralPopupRestoreTCPermanentOccupationSetByUserColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangeTCSpeedRestrictionColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangeTCSpeedRestrictionColourClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := TCSpeedRestrictionColour;
@@ -6153,13 +6161,13 @@ BEGIN
   END;
 END; { GeneralPopupChangeTCSpeedRestrictionColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestoreTCSpeedRestrictionColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestoreTCSpeedRestrictionColourClick(Sender: TObject);
 BEGIN
   TCSpeedRestrictionColour := DefaultTCSpeedRestrictionColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreTCSpeedRestrictionColourClick');
 END; { GeneralPopupRestoreTCSpeedRestrictionColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangeTCLocoOutOfPlaceColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangeTCLocoOutOfPlaceColourClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := TCLocoOutOfPlaceOccupationColour;
@@ -6170,13 +6178,13 @@ BEGIN
   END;
 END; { GeneralPopupChangeTCLocoOutOfPlaceColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestoreTCLocoOutOfPlaceColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestoreTCLocoOutOfPlaceColourClick(Sender: TObject);
 BEGIN
   TCLocoOutOfPlaceOccupationColour := DefaultTCLocoOutOfPlaceOccupationColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreTCLocoOutOfPlaceColourClick');
 END; { GeneralPopupRestoreTCLocoOutOfPlaceColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangeTCFeedbackDataInUseColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangeTCFeedbackDataInUseColourClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := TCFeedbackDataInUseColour;
@@ -6187,13 +6195,13 @@ BEGIN
   END;
 END; { ChangeTCFeedbackDataInUseColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestoreTCFeedbackDataInUseColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestoreTCFeedbackDataInUseColourClick(Sender: TObject);
 BEGIN
   TCFeedbackDataInUseColour := DefaultTCFeedbackDataInUseColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreTCFeedbackDataInUseColourClick');
 END; { GeneralPopupRestoreTCFeedbackDataInUseColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangeTCFeedbackDataOutOfUseColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangeTCFeedbackDataOutOfUseColourClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := TCFeedbackDataOutOfUseColour;
@@ -6204,13 +6212,13 @@ BEGIN
   END;
 END; { ChangeTCFeedbackDataOutOfUseColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestoreTCFeedbackDataOutOfUseColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestoreTCFeedbackDataOutOfUseColourClick(Sender: TObject);
 BEGIN
   TCFeedbackDataOutOfUseColour := DefaultTCFeedbackDataOutOfUseColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreTCFeedbackDataOutOfUseColourClick');
 END; { GeneralPopupRestoreTCFeedbackDataOutOfUseColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangeTCFeedbackOccupationColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangeTCFeedbackOccupationColourClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := TCFeedbackOccupationColour;
@@ -6221,13 +6229,13 @@ BEGIN
   END;
 END; { ChangeFeedbackOccupationColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestoreTCFeedbackOccupationColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestoreTCFeedbackOccupationColourClick(Sender: TObject);
 BEGIN
   TCFeedbackOccupationColour := DefaultTCFeedbackOccupationColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreTCFeedbackOccupationColourClick');
 END; { GeneralPopupRestoreTCFeedbackOccupationColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangeTCFeedbackOccupationButOutOfUseColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangeTCFeedbackOccupationButOutOfUseColourClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := TCFeedbackOccupationButOutOfUseColour;
@@ -6238,13 +6246,13 @@ BEGIN
   END;
 END; { ChangeFeedbackOccupationButOutOfUseColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestoreTCFeedbackOccupationButOutOfUseColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestoreTCFeedbackOccupationButOutOfUseColourClick(Sender: TObject);
 BEGIN
   TCFeedbackOccupationButOutOfUseColour := DefaultTCFeedbackOccupationButOutOfUseColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreTCFeedbackOccupationButOutOfUseColourClick');
 END; { GeneralPopupRestoreTCFeedbackOccupationColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangeTCSystemOccupationColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangeTCSystemOccupationColourClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := TCSystemOccupationColour;
@@ -6255,13 +6263,13 @@ BEGIN
   END;
 END; { ChangeTCSystemOccupationColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestoreTCSystemOccupationColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestoreTCSystemOccupationColourClick(Sender: TObject);
 BEGIN
   TCSystemOccupationColour := DefaultTCSystemOccupationColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreTCSystemOccupationColourClick');
 END; { GeneralPopupRestoreTCSystemOccupationColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangeTCUnoccupiedColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangeTCUnoccupiedColourClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := TCUnoccupiedColour;
@@ -6272,13 +6280,13 @@ BEGIN
   END;
 END; { GeneralPopupChangeTCUnoccupiedColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestoreTCUnoccupiedColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestoreTCUnoccupiedColourClick(Sender: TObject);
 BEGIN
   TCUnoccupiedColour := DefaultTCUnoccupiedColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreTCUnoccupiedColourClick');
 END; { GeneralPopupRestoreTCUnoccupiedColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangeTCOutOfUseSetByUserColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangeTCOutOfUseSetByUserColourClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := TCOutOfUseSetByUserColour;
@@ -6289,13 +6297,13 @@ BEGIN
   END;
 END; { GeneralPopupChangeTCOutOfUseSetByUserColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestoreTCOutOfUseSetByUserColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestoreTCOutOfUseSetByUserColourClick(Sender: TObject);
 BEGIN
   TCOutOfUseSetByUserColour := DefaultTCOutOfUseSetByUserColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreTCOutOfUseSetByUserColourClick');
 END; { GeneralPopupRestoreTCOutOfUseSetByUserColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangeTCOutOfUseAsNoFeedbackReceivedColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangeTCOutOfUseAsNoFeedbackReceivedColourClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := TCOutOfUseAsNoFeedbackReceivedColour;
@@ -6306,13 +6314,13 @@ BEGIN
   END;
 END; { ChangeMysteryOccupationColour2Click }
 
-PROCEDURE TMainWindow.GeneralPopupRestoreTCOutOfUseAsNoFeedbackReceivedColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestoreTCOutOfUseAsNoFeedbackReceivedColourClick(Sender: TObject);
 BEGIN
   TCOutOfUseAsNoFeedbackReceivedColour := DefaultTCOutOfUseAsNoFeedbackReceivedColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreTCOutOfUseAsNoFeedbackReceivedColourClick');
 END; { GeneralPopupRestoreTCOutOfUseColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangeBufferStopColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangeBufferStopColourClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := BufferStopColour;
@@ -6323,13 +6331,13 @@ BEGIN
   END;
 END; { ChangeBufferStopColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestoreBufferStopColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestoreBufferStopColourClick(Sender: TObject);
 BEGIN
   BufferStopColour := DefaultBufferStopColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreBufferStopColourClick');
 END; { GeneralPopupRestoreBufferStopColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangeBufferStopNumberColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangeBufferStopNumberColourClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := BufferStopNumberColour;
@@ -6340,13 +6348,13 @@ BEGIN
   END;
 END; { ChangeBufferStopNumberColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestoreBufferStopNumberColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestoreBufferStopNumberColourClick(Sender: TObject);
 BEGIN
   BufferStopNumberColour := DefaultBufferStopNumberColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreBufferStopNumberColourClick');
 END; { GeneralPopupRestoreBufferStopNumberColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangeBufferStopRedClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangeBufferStopRedClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := BufferStopRed;
@@ -6357,13 +6365,13 @@ BEGIN
   END;
 END; { ChangeBufferStopRedClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestoreBufferStopRedClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestoreBufferStopRedClick(Sender: TObject);
 BEGIN
   BufferStopRed := DefaultBufferStopRed;
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreBufferStopRedClick');
 END; { GeneralPopupRestoreBufferStopRedClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangeLineNotAvailableColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangeLineNotAvailableColourClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := LineNotAvailableColour;
@@ -6374,13 +6382,13 @@ BEGIN
   END;
 END; { ChangeLineNotAvailableColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestoreLineNotAvailableColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestoreLineNotAvailableColourClick(Sender: TObject);
 BEGIN
   LineNotAvailableColour := DefaultLineNotAvailableColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreLineNotAvailableColourClick');
 END; { GeneralPopupRestoreLineNotAvailableColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangePlungerPressedColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangePlungerPressedColourClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := TRSPlungerPressedColour;
@@ -6391,13 +6399,13 @@ BEGIN
   END;
 END; { ChangePlungerPressedColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestorePlungerPressedColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestorePlungerPressedColourClick(Sender: TObject);
 BEGIN
   TRSPlungerPressedColour := DefaultTRSPlungerPressedColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestorePlungerPressedColourClick');
 END; { GeneralPopupRestorePlungerPressedColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangeSignalAspectUnlitColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangeSignalAspectUnlitColourClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := SignalAspectUnlit;
@@ -6408,13 +6416,13 @@ BEGIN
   END;
 END; { ChangeSignalAspectUnlitClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestoreSignalAspectUnlitColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestoreSignalAspectUnlitColourClick(Sender: TObject);
 BEGIN
   SignalAspectUnlit := DefaultSignalAspectUnlit;
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreSignalAspectUnlitColourClick');
 END; { GeneralPopupRestoreSignalAspectUnlitColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangeSignalAspectYellowClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangeSignalAspectYellowClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := SignalAspectYellow;
@@ -6425,13 +6433,13 @@ BEGIN
   END;
 END; { ChangeSignalAspectYellowClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestoreSignalAspectYellowClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestoreSignalAspectYellowClick(Sender: TObject);
 BEGIN
   SignalAspectYellow := DefaultSignalAspectYellow;
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreSignalAspectYellowClick');
 END; { GeneralPopupRestoreSignalAspectYellowClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangeSignalAspectRedClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangeSignalAspectRedClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := SignalAspectRed;
@@ -6442,13 +6450,13 @@ BEGIN
   END;
 END; { ChangeSignalAspectRedClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestoreSignalAspectRedClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestoreSignalAspectRedClick(Sender: TObject);
 BEGIN
   SignalAspectRed := DefaultSignalAspectRed;
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreSignalAspectRedClick');
 END; { GeneralPopupRestoreSignalAspectRedClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangeSignalAspectGreenClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangeSignalAspectGreenClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := SignalAspectGreen;
@@ -6459,13 +6467,13 @@ BEGIN
   END;
 END; { ChangeSignalAspectGreenClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestoreSignalAspectGreenClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestoreSignalAspectGreenClick(Sender: TObject);
 BEGIN
   SignalAspectGreen := DefaultSignalAspectGreen;
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreSignalAspectGreenClick');
 END; { GeneralPopupRestoreSignalAspectGreenClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangeSignalPostRouteSettingColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangeSignalPostRouteSettingColourClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := SignalPostRouteSettingColour;
@@ -6476,13 +6484,13 @@ BEGIN
   END;
 END; { ChangeSignalPostRouteSettingColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestoreSignalPostRouteSettingColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestoreSignalPostRouteSettingColourClick(Sender: TObject);
 BEGIN
   SignalPostRouteSettingColour := DefaultSignalPostRouteSettingColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreSignalPostRouteSettingColourClick');
 END; { GeneralPopupRestoreSignalPostRouteSettingColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangeSignalPostEmergencyRouteSettingColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangeSignalPostEmergencyRouteSettingColourClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := SignalPostRouteSettingColour;
@@ -6493,13 +6501,13 @@ BEGIN
   END;
 END; { ChangeSignalPostEmergencyRouteSettingColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestoreSignalPostEmergencyRouteSettingColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestoreSignalPostEmergencyRouteSettingColourClick(Sender: TObject);
 BEGIN
   SignalPostRouteSettingColour := DefaultSignalPostRouteSettingColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreSignalPostEmergencyRouteSettingColourClick');
 END; { GeneralPopupRestoreSignalPostEmergencyRouteSettingColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangeSignalPostTheatreSettingColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangeSignalPostTheatreSettingColourClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := SignalPostTheatreSettingColour;
@@ -6510,13 +6518,13 @@ BEGIN
   END;
 END; { ChangePostTheatreSettingColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestoreSignalPostTheatreSettingColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestoreSignalPostTheatreSettingColourClick(Sender: TObject);
 BEGIN
   SignalPostTheatreSettingColour := DefaultSignalPostTheatreSettingColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreSignalPostTheatreSettingColourClick');
 END; { GeneralPopupRestoreSignalPostTheatreSettingColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangeSignalNumberColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangeSignalNumberColourClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := SignalNumberColour;
@@ -6527,13 +6535,13 @@ BEGIN
   END;
 END; { ChangeSignalberColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestoreSignalNumberColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestoreSignalNumberColourClick(Sender: TObject);
 BEGIN
   SignalNumberColour := DefaultSignalNumberColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreSignalNumberColourClick');
 END; { GeneralPopupRestoreSignalNumberColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangeTrainActiveColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangeTrainActiveColourClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := TrainActiveColour;
@@ -6544,13 +6552,13 @@ BEGIN
   END;
 END; { ChangeTrainActiveColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestoreTrainActiveColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestoreTrainActiveColourClick(Sender: TObject);
 BEGIN
   TrainActiveColour := DefaultTrainActiveColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreTrainActiveColourClick');
 END; { GeneralPopupRestoreTrainActiveColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangeTrainInactiveColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangeTrainInactiveColourClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := TrainInactiveColour;
@@ -6559,20 +6567,20 @@ BEGIN
     TrainInactiveColour := MainWindowColourDialogue.Color;
     InvalidateScreen(UnitRef, 'GeneralPopupChangeTrainInactiveColourClick');
   END;
-END; procedure TMainWindow.GeneralPopupClockClick(Sender: TObject);
+END; procedure TFWPRailMainWindow.GeneralPopupClockClick(Sender: TObject);
 begin
 
 end;
 
 { ChangeTrainInactiveColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestoreTrainInactiveColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestoreTrainInactiveColourClick(Sender: TObject);
 BEGIN
   TrainInactiveColour := DefaultTrainInactiveColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreTrainInactiveColourClick');
 END; { GeneralPopupRestoreTrainInactiveColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangePointUpFacingColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangePointUpFacingColourClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := PointUpFacingColour;
@@ -6583,13 +6591,13 @@ BEGIN
   END;
 END; { ChangeUpFacingPointColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestorePointUpFacingColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestorePointUpFacingColourClick(Sender: TObject);
 BEGIN
   PointUpFacingColour := DefaultPointUpFacingColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestorePointUpFacingColourClick');
 END; { GeneralPopupRestorePointUpFacingColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangePointDownFacingColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangePointDownFacingColourClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := PointDownFacingColour;
@@ -6600,13 +6608,13 @@ BEGIN
   END;
 END; { ChangeDownFacingPointColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestorePointDownFacingColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestorePointDownFacingColourClick(Sender: TObject);
 BEGIN
   PointDownFacingColour := DefaultPointDownFacingColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestorePointDownFacingColourClick');
 END; { GeneralPopupRestorePointDownFacingColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangeShowPointDefaultStateColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangeShowPointDefaultStateColourClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := ShowPointDefaultStateColour;
@@ -6617,13 +6625,13 @@ BEGIN
   END;
 END; { ChangeShowPointDefaultStateColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestoreShowPointDefaultStateColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestoreShowPointDefaultStateColourClick(Sender: TObject);
 BEGIN
   ShowPointDefaultStateColour := DefaultShowPointDefaultStateColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreShowPointDefaultStateColourClick');
 END; { GeneralPopupRestoreShowPointDefaultStateColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangeLenzPointNumberColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangeLenzPointNumberColourClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := LenzPointNumberColour;
@@ -6634,13 +6642,13 @@ BEGIN
   END;
 END; { ChangeLenzPointNumberColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestoreLenzPointNumberColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestoreLenzPointNumberColourClick(Sender: TObject);
 BEGIN
   LenzPointNumberColour := DefaultLenzPointNumberColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreLenzPointNumberColourClick');
 END; { GeneralPopupRestoreLenzPointNumberColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangePointManualOperationColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangePointManualOperationColourClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := PointManualOperationColour;
@@ -6651,13 +6659,13 @@ BEGIN
   END;
 END; { ChangePointManualOperationColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestorePointManualOperationColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestorePointManualOperationColourClick(Sender: TObject);
 BEGIN
   PointManualOperationColour := DefaultPointManualOperationColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestorePointManualOperationColourClick');
 END; { GeneralPopupRestorePointManualOperationColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangePointFeedbackDataInUseColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangePointFeedbackDataInUseColourClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := PointFeedbackDataInUseColour;
@@ -6668,13 +6676,13 @@ BEGIN
   END;
 END; { ChangePointFeedbackDataInUseColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestorePointFeedbackDataInUseColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestorePointFeedbackDataInUseColourClick(Sender: TObject);
 BEGIN
   PointFeedbackDataInUseColour := DefaultPointFeedbackDataInUseColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestorePointFeedbackDataInUseColourClick');
 END; { GeneralPopupRestorePointFeedbackDataInUseColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangePointFeedbackDataOutOfUseColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangePointFeedbackDataOutOfUseColourClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := PointFeedbackDataOutOfUseColour;
@@ -6685,13 +6693,13 @@ BEGIN
   END;
 END; { ChangePointFeedbackDataOutOfUseColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestorePointFeedbackDataOutOfUseColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestorePointFeedbackDataOutOfUseColourClick(Sender: TObject);
 BEGIN
   PointFeedbackDataOutOfUseColour := DefaultPointFeedbackDataOutOfUseColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestorePointFeedbackDataOutOfUseColourClick');
 END; { GeneralPopupRestorePointFeedbackDataOutOfUseColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangePointsWithoutFeedbackColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangePointsWithoutFeedbackColourClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := PointsWithoutFeedbackColour;
@@ -6702,13 +6710,13 @@ BEGIN
   END;
 END; { ChangePointsWithoutFeedbackColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestorePointsWithoutFeedbackColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestorePointsWithoutFeedbackColourClick(Sender: TObject);
 BEGIN
   PointsWithoutFeedbackColour := DefaultPointsWithoutFeedbackColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestorePointsWithoutFeedbackColourClick');
 END; { GeneralPopupRestorePointsWithoutFeedbackColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangePointHeelLineColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangePointHeelLineColourClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := PointHeelLineColour;
@@ -6719,13 +6727,13 @@ BEGIN
   END;
 END; { ChangePointHeelLineColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestorePointHeelLineColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestorePointHeelLineColourClick(Sender: TObject);
 BEGIN
   PointHeelLineColour := DefaultPointHeelLineColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestorePointHeelLineColourClick');
 END; { GeneralPopupRestorePointHeelLineColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangePointStraightLineColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangePointStraightLineColourClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := PointStraightLineColour;
@@ -6736,13 +6744,13 @@ BEGIN
   END;
 END; { ChangePointStraightLineColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestorePointStraightLineColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestorePointStraightLineColourClick(Sender: TObject);
 BEGIN
   PointStraightLineColour := DefaultPointStraightLineColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestorePointStraightLineColourClick');
 END; { GeneralPopupRestorePointStraightLineColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangeLineRoutedOverColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangeLineRoutedOverColourClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := LineRoutedOverColour;
@@ -6753,13 +6761,13 @@ BEGIN
   END;
 END; { GeneralPopupChangeLineRoutedOverColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestoreLineRoutedOverColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestoreLineRoutedOverColourClick(Sender: TObject);
 BEGIN
   LineRoutedOverColour := DefaultLineRoutedOverColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreLineRoutedOverColourClick');
 END; { GeneralPopupRestoreLineRoutedOverColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangePointDivergingLineColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangePointDivergingLineColourClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := PointDivergingLineColour;
@@ -6770,13 +6778,13 @@ BEGIN
   END;
 END; { ChangePointDivergingLineColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestorePointDivergingLineColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestorePointDivergingLineColourClick(Sender: TObject);
 BEGIN
   PointDivergingLineColour := DefaultPointDivergingLineColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestorePointDivergingLineColourClick');
 END; { GeneralPopupRestorePointDivergingLineColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangePointUndrawColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangePointUndrawColourClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := PointUndrawColour;
@@ -6787,13 +6795,13 @@ BEGIN
   END;
 END; { GeneralPopupChangePointUndrawColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestorePointUndrawColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestorePointUndrawColourClick(Sender: TObject);
 BEGIN
   PointUndrawColour := DefaultPointUndrawColour;
   InvalidateScreen(UnitRef, 'END; { GeneralPopupChangePointU');
 END; { GeneralPopupRestorePointUndrawColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangePointOutOfUseColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangePointOutOfUseColourClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := PointOutOfUseColour;
@@ -6804,13 +6812,13 @@ BEGIN
   END;
 END; { GeneralPopupChangePointOutOfUseColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestorePointOutOfUseColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestorePointOutOfUseColourClick(Sender: TObject);
 BEGIN
   PointOutOfUseColour := DefaultPointOutOfUseColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestorePointOutOfUseColourClick');
 END; { GeneralPopupRestorePointOutOfUseColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupChangePlungerColourClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangePlungerColourClick(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := TRSPlungerColour;
@@ -6821,13 +6829,13 @@ BEGIN
   END;
 END; { GeneralPopupChangePlungerColourClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestorePlungerColour(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestorePlungerColour(Sender: TObject);
 BEGIN
   TRSPlungerColour := DefaultTRSPlungerColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestorePlungerColour');
 END; { GeneralPopupRestorePlungerColour }
 
-PROCEDURE TMainWindow.GeneralPopupChangePlungerOutlineColour(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangePlungerOutlineColour(Sender: TObject);
 BEGIN
   { Show the default }
   MainWindowColourDialogue.Color := TRSPlungerOutlineColour;
@@ -6838,13 +6846,13 @@ BEGIN
   END;
 END; { GeneralPopupChangePlungerOutlineColour }
 
-PROCEDURE TMainWindow.GeneralPopupRestorePlungerOutlineColour(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestorePlungerOutlineColour(Sender: TObject);
 BEGIN
   TRSPlungerOutlineColour := DefaultTRSPlungerOutlineColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestorePlungerOutlineColour');
 END; { GeneralPopupRestorePlungerOutlineColour }
 
-PROCEDURE TMainWindow.GeneralPopupRestoreAllDefaultColoursClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestoreAllDefaultColoursClick(Sender: TObject);
 BEGIN
   BackgroundColour := DefaultBackgroundColour;
   BufferStopColour := DefaultBufferStopColour;
@@ -6893,439 +6901,439 @@ BEGIN
   InvalidateScreen(UnitRef, 'RestoreAllDefaultColoursClick');
 END; { RestoreAllDefaultColoursClick }
 
-PROCEDURE TMainWindow.GeneralPopupSidingPenStyleSolidClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupSidingPenStyleSolidClick(Sender: TObject);
 BEGIN
   SidingPenStyle := psSolid;
   InvalidateScreen(UnitRef, 'GeneralPopupSidingPenStyleSolidClick');
 END; { GeneralPopupSidingPenStyleSolidClick }
 
-PROCEDURE TMainWindow.GeneralPopupSidingPenStyleDashClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupSidingPenStyleDashClick(Sender: TObject);
 BEGIN
   SidingPenStyle := psDash;
   InvalidateScreen(UnitRef, 'GeneralPopupSidingPenStyleDashClick');
 END; { GeneralPopupSidingPenStyleDashClick }
 
-PROCEDURE TMainWindow.GeneralPopupSidingPenStyleDotClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupSidingPenStyleDotClick(Sender: TObject);
 BEGIN
   SidingPenStyle := psDot;
   InvalidateScreen(UnitRef, 'GeneralPopupSidingPenStyleDotClick');
 END; { GeneralPopupSidingPenStyleDotClick }
 
-PROCEDURE TMainWindow.GeneralPopupSidingPenStyleDashDotClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupSidingPenStyleDashDotClick(Sender: TObject);
 BEGIN
   SidingPenStyle := psDashDot;
   InvalidateScreen(UnitRef, 'GeneralPopupSidingPenStyleDashDotClick');
 END; { GeneralPopupSidingPenStyleDashDotClick }
 
-PROCEDURE TMainWindow.GeneralPopupSidingPenStyleDashDotDotClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupSidingPenStyleDashDotDotClick(Sender: TObject);
 BEGIN
   SidingPenStyle := psDashDotDot;
   InvalidateScreen(UnitRef, 'GeneralPopupSidingPenStyleDashDotDotClick');
 END; { GeneralPopupSidingPenStyleDashDotDotClick }
 
-PROCEDURE TMainWindow.GeneralPopupSidingPenStyleClearClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupSidingPenStyleClearClick(Sender: TObject);
 BEGIN
   SidingPenStyle := psClear;
   InvalidateScreen(UnitRef, 'GeneralPopupSidingPenStyleClearClick');
 END; { GeneralPopupSidingPenStyleClearClick }
 
-PROCEDURE TMainWindow.GeneralPopupSidingPenStyleInsideFrameClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupSidingPenStyleInsideFrameClick(Sender: TObject);
 BEGIN
   SidingPenStyle := psInsideFrame;
   InvalidateScreen(UnitRef, 'GeneralPopupSidingPenStyleInsideFrameClick');
 END; { GeneralPopupSidingPenStyleInsideFrameClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestoreSidingPenStyleClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestoreSidingPenStyleClick(Sender: TObject);
 BEGIN
   SidingPenStyle := DefaultSidingPenStyle;
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreSidingPenStyleClick');
 END; { GeneralPopupRestoreSidingPenStyleClick }
 
-PROCEDURE TMainWindow.GeneralPopupFiddleyardLinePenStyleSolidClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupFiddleyardLinePenStyleSolidClick(Sender: TObject);
 BEGIN
   FiddleyardLinePenStyle := psSolid;
   InvalidateScreen(UnitRef, 'GeneralPopupFiddleyardLinePenStyleSolidClick');
 END; { GeneralPopupFiddleyardLinePenStyleSolidClick }
 
-PROCEDURE TMainWindow.GeneralPopupFiddleyardLinePenStyleDashClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupFiddleyardLinePenStyleDashClick(Sender: TObject);
 BEGIN
   FiddleyardLinePenStyle := psDash;
   InvalidateScreen(UnitRef, 'GeneralPopupFiddleyardLinePenStyleDashClick');
 END; { GeneralPopupFiddleyardLinePenStyleDashClick }
 
-PROCEDURE TMainWindow.GeneralPopupFiddleyardLinePenStyleDotClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupFiddleyardLinePenStyleDotClick(Sender: TObject);
 BEGIN
   FiddleyardLinePenStyle := psDot;
   InvalidateScreen(UnitRef, 'GeneralPopupFiddleyardLinePenStyleDotClick');
 END; { GeneralPopupFiddleyardLinePenStyleDotClick }
 
-PROCEDURE TMainWindow.GeneralPopupFiddleyardLinePenStyleDashDotClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupFiddleyardLinePenStyleDashDotClick(Sender: TObject);
 BEGIN
   FiddleyardLinePenStyle := psDashDot;
   InvalidateScreen(UnitRef, 'GeneralPopupFiddleyardLinePenStyleDashDotClick');
 END; { GeneralPopupFiddleyardLinePenStyleDashDotClick }
 
-PROCEDURE TMainWindow.GeneralPopupFiddleyardLinePenStyleDashDotDotClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupFiddleyardLinePenStyleDashDotDotClick(Sender: TObject);
 BEGIN
   FiddleyardLinePenStyle := psDashDotDot;
   InvalidateScreen(UnitRef, 'GeneralPopupFiddleyardLinePenStyleDashDotDotClick');
 END; { GeneralPopupFiddleyardLinePenStyleDashDotDotClick }
 
-PROCEDURE TMainWindow.GeneralPopupFiddleyardLinePenStyleClearClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupFiddleyardLinePenStyleClearClick(Sender: TObject);
 BEGIN
   FiddleyardLinePenStyle := psClear;
   InvalidateScreen(UnitRef, 'GeneralPopupFiddleyardLinePenStyleClearClick');
 END; { GeneralPopupFiddleyardLinePenStyleClearClick }
 
-PROCEDURE TMainWindow.GeneralPopupFiddleyardLinePenStyleInsideFrameClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupFiddleyardLinePenStyleInsideFrameClick(Sender: TObject);
 BEGIN
   FiddleyardLinePenStyle := psInsideFrame;
   InvalidateScreen(UnitRef, 'GeneralPopupFiddleyardLinePenStyleInsideFrameClick');
 END; { GeneralPopupFiddleyardLinePenStyleInsideFrameClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestoreFiddleyardLinePenStyleClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestoreFiddleyardLinePenStyleClick(Sender: TObject);
 BEGIN
   FiddleyardLinePenStyle := DefaultFiddleyardLinePenStyle;
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreFiddleyardLinePenStyleClick');
 END; { GeneralPopupRestoreFiddleyardLinePenStyleClick }
 
-PROCEDURE TMainWindow.GeneralPopupProjectedLinePenStyleSolidClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupProjectedLinePenStyleSolidClick(Sender: TObject);
 BEGIN
   ProjectedLinePenStyle := psSolid;
   InvalidateScreen(UnitRef, 'GeneralPopupProjectedLinePenStyleSolidClick');
 END; { GeneralPopupProjectedLinePenStyleSolidClick }
 
-PROCEDURE TMainWindow.GeneralPopupProjectedLinePenStyleDashClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupProjectedLinePenStyleDashClick(Sender: TObject);
 BEGIN
   ProjectedLinePenStyle := psDash;
   InvalidateScreen(UnitRef, 'GeneralPopupProjectedLinePenStyleDashClick');
 END; { GeneralPopupProjectedLinePenStyleDashClick }
 
-PROCEDURE TMainWindow.GeneralPopupProjectedLinePenStyleDotClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupProjectedLinePenStyleDotClick(Sender: TObject);
 BEGIN
   ProjectedLinePenStyle := psDot;
   InvalidateScreen(UnitRef, 'GeneralPopupProjectedLinePenStyleDotClick');
 END; { GeneralPopupProjectedLinePenStyleDotClick }
 
-PROCEDURE TMainWindow.GeneralPopupProjectedLinePenStyleDashDotClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupProjectedLinePenStyleDashDotClick(Sender: TObject);
 BEGIN
   ProjectedLinePenStyle := psDashDot;
   InvalidateScreen(UnitRef, 'GeneralPopupProjectedLinePenStyleDashDotClick');
 END; { GeneralPopupProjectedLinePenStyleDashDotClick }
 
-PROCEDURE TMainWindow.GeneralPopupProjectedLinePenStyleDashDotDotClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupProjectedLinePenStyleDashDotDotClick(Sender: TObject);
 BEGIN
   ProjectedLinePenStyle := psDashDotDot;
   InvalidateScreen(UnitRef, 'GeneralPopupProjectedLinePenStyleDashDotDotClick');
 END; { GeneralPopupProjectedLinePenStyleDashDotDotClick }
 
-PROCEDURE TMainWindow.GeneralPopupProjectedLinePenStyleClearClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupProjectedLinePenStyleClearClick(Sender: TObject);
 BEGIN
   ProjectedLinePenStyle := psClear;
   InvalidateScreen(UnitRef, 'GeneralPopupProjectedLinePenStyleClearClick');
 END; { GeneralPopupProjectedLinePenStyleClearClick }
 
-PROCEDURE TMainWindow.GeneralPopupProjectedLinePenStyleInsideFrameClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupProjectedLinePenStyleInsideFrameClick(Sender: TObject);
 BEGIN
   ProjectedLinePenStyle := psInsideFrame;
   InvalidateScreen(UnitRef, 'GeneralPopupProjectedLinePenStyleInsideFrameClick');
 END; { GeneralPopupProjectedLinePenStyleInsideFrameClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestoreProjectedLinePenStyleClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestoreProjectedLinePenStyleClick(Sender: TObject);
 BEGIN
   ProjectedLinePenStyle := DefaultProjectedLinePenStyle;
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreProjectedLinePenStyleClick');
 END; { GeneralPopupRestoreProjectedLinePenStyleClick }
 
-PROCEDURE TMainWindow.GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleSolidClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleSolidClick(Sender: TObject);
 BEGIN
   TCOutOfUseAsNoFeedbackReceivedPenStyle := psSolid;
   InvalidateScreen(UnitRef, 'GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleSolidClick');
 END; { GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleSolidClick }
 
-PROCEDURE TMainWindow.GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleDashClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleDashClick(Sender: TObject);
 BEGIN
   TCOutOfUseAsNoFeedbackReceivedPenStyle := psDash;
   InvalidateScreen(UnitRef, 'GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleDashClick');
 END; { GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleDashClick }
 
-PROCEDURE TMainWindow.GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleDotClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleDotClick(Sender: TObject);
 BEGIN
   TCOutOfUseAsNoFeedbackReceivedPenStyle := psDot;
   InvalidateScreen(UnitRef, 'GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleDotClick');
 END; { GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleDotClick }
 
-PROCEDURE TMainWindow.GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleDashDotClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleDashDotClick(Sender: TObject);
 BEGIN
   TCOutOfUseAsNoFeedbackReceivedPenStyle := psDashDot;
   InvalidateScreen(UnitRef, 'GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleDashDotClick');
 END; { GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleDashDotClick }
 
-PROCEDURE TMainWindow.GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleDashDotDotClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleDashDotDotClick(Sender: TObject);
 BEGIN
   TCOutOfUseAsNoFeedbackReceivedPenStyle := psDashDotDot;
   InvalidateScreen(UnitRef, 'GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleDashDotDotClick');
 END; { GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleDashDotDotClick }
 
-PROCEDURE TMainWindow.GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleClearClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleClearClick(Sender: TObject);
 BEGIN
   TCOutOfUseAsNoFeedbackReceivedPenStyle := psClear;
   InvalidateScreen(UnitRef, 'GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleClearClick');
 END; { GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleClearClick }
 
-PROCEDURE TMainWindow.GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleInsideFrameClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleInsideFrameClick(Sender: TObject);
 BEGIN
   TCOutOfUseAsNoFeedbackReceivedPenStyle := psInsideFrame;
   InvalidateScreen(UnitRef, 'GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleInsideFrameClick');
 END; { GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleInsideFrameClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestoreTCOutOfUseAsNoFeedbackReceivedPenStyleClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestoreTCOutOfUseAsNoFeedbackReceivedPenStyleClick(Sender: TObject);
 BEGIN
   TCOutOfUseAsNoFeedbackReceivedPenStyle := DefaultTCOutOfUseAsNoFeedbackReceivedPenStyle;
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreTCOutOfUseAsNoFeedbackReceivedPenStyleClick');
 END; { GeneralPopupRestoreTCOutOfUseAsNoFeedbackReceivedPenStyleClick }
 
-PROCEDURE TMainWindow.GeneralPopupTCOutOfUseSetByUserPenStyleSolidClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupTCOutOfUseSetByUserPenStyleSolidClick(Sender: TObject);
 BEGIN
   TCOutOfUseSetByUserPenStyle := psSolid;
   InvalidateScreen(UnitRef, 'GeneralPopupTCOutOfUseSetByUserPenStyleSolidClick');
 END; { GeneralPopupTCOutOfUseSetByUserPenStyleSolidClick }
 
-PROCEDURE TMainWindow.GeneralPopupTCOutOfUseSetByUserPenStyleDashClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupTCOutOfUseSetByUserPenStyleDashClick(Sender: TObject);
 BEGIN
   TCOutOfUseSetByUserPenStyle := psDash;
   InvalidateScreen(UnitRef, 'GeneralPopupTCOutOfUseSetByUserPenStyleDashClick');
 END; { GeneralPopupTCOutOfUseSetByUserPenStyleDashClick }
 
-PROCEDURE TMainWindow.GeneralPopupTCOutOfUseSetByUserPenStyleDotClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupTCOutOfUseSetByUserPenStyleDotClick(Sender: TObject);
 BEGIN
   TCOutOfUseSetByUserPenStyle := psDot;
   InvalidateScreen(UnitRef, 'GeneralPopupTCOutOfUseSetByUserPenStyleDotClick');
 END; { GeneralPopupTCOutOfUseSetByUserPenStyleDotClick }
 
-PROCEDURE TMainWindow.GeneralPopupTCOutOfUseSetByUserPenStyleDashDotClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupTCOutOfUseSetByUserPenStyleDashDotClick(Sender: TObject);
 BEGIN
   TCOutOfUseSetByUserPenStyle := psDashDot;
   InvalidateScreen(UnitRef, 'GeneralPopupTCOutOfUseSetByUserPenStyleDashDotClick');
 END; { GeneralPopupTCOutOfUseSetByUserPenStyleDashDotClick }
 
-PROCEDURE TMainWindow.GeneralPopupTCOutOfUseSetByUserPenStyleDashDotDotClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupTCOutOfUseSetByUserPenStyleDashDotDotClick(Sender: TObject);
 BEGIN
   TCOutOfUseSetByUserPenStyle := psDashDotDot;
   InvalidateScreen(UnitRef, 'GeneralPopupTCOutOfUseSetByUserPenStyleDashDotDotClick');
 END; { GeneralPopupTCOutOfUseSetByUserPenStyleDashDotDotClick }
 
-PROCEDURE TMainWindow.GeneralPopupTCOutOfUseSetByUserPenStyleClearClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupTCOutOfUseSetByUserPenStyleClearClick(Sender: TObject);
 BEGIN
   TCOutOfUseSetByUserPenStyle := psClear;
   InvalidateScreen(UnitRef, 'GeneralPopupTCOutOfUseSetByUserPenStyleClearClick');
 END; { GeneralPopupTCOutOfUseSetByUserPenStyleClearClick }
 
-PROCEDURE TMainWindow.GeneralPopupTCOutOfUseSetByUserPenStyleInsideFrameClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupTCOutOfUseSetByUserPenStyleInsideFrameClick(Sender: TObject);
 BEGIN
   TCOutOfUseSetByUserPenStyle := psInsideFrame;
   InvalidateScreen(UnitRef, 'GeneralPopupTCOutOfUseSetByUserPenStyleInsideFrameClick');
 END; { GeneralPopupTCOutOfUseSetByUserPenStyleInsideFrameClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestoreTCOutOfUseSetByUserPenStyleClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestoreTCOutOfUseSetByUserPenStyleClick(Sender: TObject);
 BEGIN
   TCOutOfUseSetByUserPenStyle := DefaultTCOutOfUseSetByUserPenStyle;
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreTCOutOfUseSetByUserPenStyleClick');
 END; { GeneralPopupRestoreTCOutOfUseSetByUserPenStyleClick }
 
-PROCEDURE TMainWindow.GeneralPopupTCPermanentFeedbackOccupationPenStyleSolidClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupTCPermanentFeedbackOccupationPenStyleSolidClick(Sender: TObject);
 BEGIN
   TCPermanentFeedbackOccupationPenStyle := psSolid;
   InvalidateScreen(UnitRef, 'GeneralPopupTCPermanentFeedbackOccupationPenStyleSolidClick');
 END; { GeneralPopupTCPermanentFeedbackOccupationPenStyleSolidClick }
 
-PROCEDURE TMainWindow.GeneralPopupTCPermanentFeedbackOccupationPenStyleDashClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupTCPermanentFeedbackOccupationPenStyleDashClick(Sender: TObject);
 BEGIN
   TCPermanentFeedbackOccupationPenStyle := psDash;
   InvalidateScreen(UnitRef, 'GeneralPopupTCPermanentFeedbackOccupationPenStyleDashClick');
 END; { GeneralPopupTCPermanentFeedbackOccupationPenStyleDashClick }
 
-PROCEDURE TMainWindow.GeneralPopupTCPermanentFeedbackOccupationPenStyleDotClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupTCPermanentFeedbackOccupationPenStyleDotClick(Sender: TObject);
 BEGIN
   TCPermanentFeedbackOccupationPenStyle := psDot;
   InvalidateScreen(UnitRef, 'GeneralPopupTCPermanentFeedbackOccupationPenStyleDotClick');
 END; { GeneralPopupTCPermanentFeedbackOccupationPenStyleDotClick }
 
-PROCEDURE TMainWindow.GeneralPopupTCPermanentFeedbackOccupationPenStyleDashDotClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupTCPermanentFeedbackOccupationPenStyleDashDotClick(Sender: TObject);
 BEGIN
   TCPermanentFeedbackOccupationPenStyle := psDashDot;
   InvalidateScreen(UnitRef, 'GeneralPopupTCPermanentFeedbackOccupationPenStyleDashDotClick');
 END; { GeneralPopupTCPermanentFeedbackOccupationPenStyleDashDotClick }
 
-PROCEDURE TMainWindow.GeneralPopupTCPermanentFeedbackOccupationPenStyleDashDotDotClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupTCPermanentFeedbackOccupationPenStyleDashDotDotClick(Sender: TObject);
 BEGIN
   TCPermanentFeedbackOccupationPenStyle := psDashDotDot;
   InvalidateScreen(UnitRef, 'GeneralPopupTCPermanentFeedbackOccupationPenStyleDashDotDotClick');
 END; { GeneralPopupTCPermanentFeedbackOccupationPenStyleDashDotDotClick }
 
-PROCEDURE TMainWindow.GeneralPopupTCPermanentFeedbackOccupationPenStyleClearClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupTCPermanentFeedbackOccupationPenStyleClearClick(Sender: TObject);
 BEGIN
   TCPermanentFeedbackOccupationPenStyle := psClear;
   InvalidateScreen(UnitRef, 'GeneralPopupTCPermanentFeedbackOccupationPenStyleClearClick');
 END; { GeneralPopupTCPermanentFeedbackOccupationPenStyleClearClick }
 
-PROCEDURE TMainWindow.GeneralPopupTCPermanentFeedbackOccupationPenStyleInsideFrameClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupTCPermanentFeedbackOccupationPenStyleInsideFrameClick(Sender: TObject);
 BEGIN
   TCPermanentFeedbackOccupationPenStyle := psInsideFrame;
   InvalidateScreen(UnitRef, 'GeneralPopupTCPermanentFeedbackOccupationPenStyleInsideFrameClick');
 END; { GeneralPopupTCPermanentFeedbackOccupationPenStyleInsideFrameClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestoreTCPermanentFeedbackOccupationPenStyleClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestoreTCPermanentFeedbackOccupationPenStyleClick(Sender: TObject);
 BEGIN
   TCPermanentFeedbackOccupationPenStyle := DefaultTCPermanentFeedbackOccupationPenStyle;
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreTCPermanentFeedbackOccupationPenStyleClick');
 END; { GeneralPopupRestoreTCPermanentFeedbackOccupationPenStyleClick }
 
-PROCEDURE TMainWindow.GeneralPopupTCPermanentSystemOccupationPenStyleSolidClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupTCPermanentSystemOccupationPenStyleSolidClick(Sender: TObject);
 BEGIN
   TCPermanentSystemOccupationPenStyle := psSolid;
   InvalidateScreen(UnitRef, 'GeneralPopupTCPermanentSystemOccupationPenStyleSolidClick');
 END; { GeneralPopupTCPermanentSystemOccupationPenStyleSolidClick }
 
-PROCEDURE TMainWindow.GeneralPopupTCPermanentSystemOccupationPenStyleDashClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupTCPermanentSystemOccupationPenStyleDashClick(Sender: TObject);
 BEGIN
   TCPermanentSystemOccupationPenStyle := psDash;
   InvalidateScreen(UnitRef, 'GeneralPopupTCPermanentSystemOccupationPenStyleDashClick');
 END; { GeneralPopupTCPermanentSystemOccupationPenStyleDashClick }
 
-PROCEDURE TMainWindow.GeneralPopupTCPermanentSystemOccupationPenStyleDotClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupTCPermanentSystemOccupationPenStyleDotClick(Sender: TObject);
 BEGIN
   TCPermanentSystemOccupationPenStyle := psDot;
   InvalidateScreen(UnitRef, 'GeneralPopupTCPermanentSystemOccupationPenStyleDotClick');
 END; { GeneralPopupTCPermanentSystemOccupationPenStyleDotClick }
 
-PROCEDURE TMainWindow.GeneralPopupTCPermanentSystemOccupationPenStyleDashDotClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupTCPermanentSystemOccupationPenStyleDashDotClick(Sender: TObject);
 BEGIN
   TCPermanentSystemOccupationPenStyle := psDashDot;
   InvalidateScreen(UnitRef, 'GeneralPopupTCPermanentSystemOccupationPenStyleDashDotClick');
 END; { GeneralPopupTCPermanentSystemOccupationPenStyleDashDotClick }
 
-PROCEDURE TMainWindow.GeneralPopupTCPermanentSystemOccupationPenStyleDashDotDotClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupTCPermanentSystemOccupationPenStyleDashDotDotClick(Sender: TObject);
 BEGIN
   TCPermanentSystemOccupationPenStyle := psDashDotDot;
   InvalidateScreen(UnitRef, 'GeneralPopupTCPermanentSystemOccupationPenStyleDashDotDotClick');
 END; { GeneralPopupTCPermanentSystemOccupationPenStyleDashDotDotClick }
 
-PROCEDURE TMainWindow.GeneralPopupTCPermanentSystemOccupationPenStyleClearClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupTCPermanentSystemOccupationPenStyleClearClick(Sender: TObject);
 BEGIN
   TCPermanentSystemOccupationPenStyle := psClear;
   InvalidateScreen(UnitRef, 'GeneralPopupTCPermanentSystemOccupationPenStyleClearClick');
 END; { GeneralPopupTCPermanentSystemOccupationPenStyleClearClick }
 
-PROCEDURE TMainWindow.GeneralPopupTCPermanentSystemOccupationPenStyleInsideFrameClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupTCPermanentSystemOccupationPenStyleInsideFrameClick(Sender: TObject);
 BEGIN
   TCPermanentSystemOccupationPenStyle := psInsideFrame;
   InvalidateScreen(UnitRef, 'GeneralPopupTCPermanentSystemOccupationPenStyleInsideFrameClick');
 END; { GeneralPopupTCPermanentSystemOccupationPenStyleInsideFrameClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestoreTCPermanentSystemOccupationPenStyleClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestoreTCPermanentSystemOccupationPenStyleClick(Sender: TObject);
 BEGIN
   TCPermanentSystemOccupationPenStyle := DefaultTCPermanentSystemOccupationPenStyle;
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreTCPermanentSystemOccupationPenStyleClick');
 END; { GeneralPopupRestoreTCPermanentSystemOccupationPenStyleClick }
 
-PROCEDURE TMainWindow.GeneralPopupTCLocoOutOfPlaceOccupationPenStyleSolidClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupTCLocoOutOfPlaceOccupationPenStyleSolidClick(Sender: TObject);
 BEGIN
   TCLocoOutOfPlaceOccupationPenStyle := psSolid;
   InvalidateScreen(UnitRef, 'GeneralPopupTCLocoOutOfPlaceOccupationPenStyleSolidClick');
 END; { GeneralPopupTCLocoOutOfPlaceOccupationPenStyleSolidClick }
 
-PROCEDURE TMainWindow.GeneralPopupTCLocoOutOfPlaceOccupationPenStyleDashClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupTCLocoOutOfPlaceOccupationPenStyleDashClick(Sender: TObject);
 BEGIN
   TCLocoOutOfPlaceOccupationPenStyle := psDash;
   InvalidateScreen(UnitRef, 'GeneralPopupTCLocoOutOfPlaceOccupationPenStyleDashClick');
 END; { GeneralPopupTCLocoOutOfPlaceOccupationPenStyleDashClick }
 
-PROCEDURE TMainWindow.GeneralPopupTCLocoOutOfPlaceOccupationPenStyleDotClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupTCLocoOutOfPlaceOccupationPenStyleDotClick(Sender: TObject);
 BEGIN
   TCLocoOutOfPlaceOccupationPenStyle := psDot;
   InvalidateScreen(UnitRef, 'GeneralPopupTCLocoOutOfPlaceOccupationPenStyleDotClick');
 END; { GeneralPopupTCLocoOutOfPlaceOccupationPenStyleDotClick }
 
-PROCEDURE TMainWindow.GeneralPopupTCLocoOutOfPlaceOccupationPenStyleDashDotClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupTCLocoOutOfPlaceOccupationPenStyleDashDotClick(Sender: TObject);
 BEGIN
   TCLocoOutOfPlaceOccupationPenStyle := psDashDot;
   InvalidateScreen(UnitRef, 'GeneralPopupTCLocoOutOfPlaceOccupationPenStyleDashDotClick');
 END; { GeneralPopupTCLocoOutOfPlaceOccupationPenStyleDashDotClick }
 
-PROCEDURE TMainWindow.GeneralPopupTCLocoOutOfPlaceOccupationPenStyleDashDotDotClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupTCLocoOutOfPlaceOccupationPenStyleDashDotDotClick(Sender: TObject);
 BEGIN
   TCLocoOutOfPlaceOccupationPenStyle := psDashDotDot;
   InvalidateScreen(UnitRef, 'GeneralPopupTCLocoOutOfPlaceOccupationPenStyleDashDotDotClick');
 END; { GeneralPopupTCLocoOutOfPlaceOccupationPenStyleDashDotDotClick }
 
-PROCEDURE TMainWindow.GeneralPopupTCLocoOutOfPlaceOccupationPenStyleClearClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupTCLocoOutOfPlaceOccupationPenStyleClearClick(Sender: TObject);
 BEGIN
   TCLocoOutOfPlaceOccupationPenStyle := psClear;
   InvalidateScreen(UnitRef, 'GeneralPopupTCLocoOutOfPlaceOccupationPenStyleClearClick');
 END; { GeneralPopupTCLocoOutOfPlaceOccupationPenStyleClearClick }
 
-PROCEDURE TMainWindow.GeneralPopupTCLocoOutOfPlaceOccupationPenStyleInsideFrameClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupTCLocoOutOfPlaceOccupationPenStyleInsideFrameClick(Sender: TObject);
 BEGIN
   TCLocoOutOfPlaceOccupationPenStyle := psInsideFrame;
   InvalidateScreen(UnitRef, 'GeneralPopupTCLocoOutOfPlaceOccupationPenStyleInsideFrameClick');
 END; { GeneralPopupTCLocoOutOfPlaceOccupationPenStyleInsideFrameClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestoreTCLocoOutOfPlaceOccupationPenStyleClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestoreTCLocoOutOfPlaceOccupationPenStyleClick(Sender: TObject);
 BEGIN
   TCLocoOutOfPlaceOccupationPenStyle := DefaultTCLocoOutOfPlaceOccupationPenStyle;
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreTCLocoOutOfPlaceOccupationPenStyleClick');
 END; { GeneralPopupRestoreTCLocoOutOfPlaceOccupationPenStyleClick }
 
-PROCEDURE TMainWindow.GeneralPopupTCPermanentOccupationSetByUserPenStyleSolidClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupTCPermanentOccupationSetByUserPenStyleSolidClick(Sender: TObject);
 BEGIN
   TCPermanentOccupationSetByUserPenStyle := psSolid;
   InvalidateScreen(UnitRef, 'GeneralPopupTCPermanentOccupationSetByUserPenStyleSolidClick');
 END; { GeneralPopupTCPermanentOccupationSetByUserPenStyleSolidClick }
 
-PROCEDURE TMainWindow.GeneralPopupTCPermanentOccupationSetByUserPenStyleDashClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupTCPermanentOccupationSetByUserPenStyleDashClick(Sender: TObject);
 BEGIN
   TCPermanentOccupationSetByUserPenStyle := psDash;
   InvalidateScreen(UnitRef, 'GeneralPopupTCPermanentOccupationSetByUserPenStyleDashClick');
 END; { GeneralPopupTCPermanentOccupationSetByUserPenStyleDashClick }
 
-PROCEDURE TMainWindow.GeneralPopupTCPermanentOccupationSetByUserPenStyleDotClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupTCPermanentOccupationSetByUserPenStyleDotClick(Sender: TObject);
 BEGIN
   TCPermanentOccupationSetByUserPenStyle := psDot;
   InvalidateScreen(UnitRef, 'GeneralPopupTCPermanentOccupationSetByUserPenStyleDotClick');
 END; { GeneralPopupTCPermanentOccupationSetByUserPenStyleDotClick }
 
-PROCEDURE TMainWindow.GeneralPopupTCPermanentOccupationSetByUserPenStyleDashDotClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupTCPermanentOccupationSetByUserPenStyleDashDotClick(Sender: TObject);
 BEGIN
   TCPermanentOccupationSetByUserPenStyle := psDashDot;
   InvalidateScreen(UnitRef, 'GeneralPopupTCPermanentOccupationSetByUserPenStyleDashDotClick');
 END; { GeneralPopupTCPermanentOccupationSetByUserPenStyleDashDotClick }
 
-PROCEDURE TMainWindow.GeneralPopupTCPermanentOccupationSetByUserPenStyleDashDotDotClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupTCPermanentOccupationSetByUserPenStyleDashDotDotClick(Sender: TObject);
 BEGIN
   TCPermanentOccupationSetByUserPenStyle := psDashDotDot;
   InvalidateScreen(UnitRef, 'GeneralPopupTCPermanentOccupationSetByUserPenStyleDashDotDotClick');
 END; { GeneralPopupTCPermanentOccupationSetByUserPenStyleDashDotDotClick }
 
-PROCEDURE TMainWindow.GeneralPopupTCPermanentOccupationSetByUserPenStyleClearClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupTCPermanentOccupationSetByUserPenStyleClearClick(Sender: TObject);
 BEGIN
   TCPermanentOccupationSetByUserPenStyle := psClear;
   InvalidateScreen(UnitRef, 'GeneralPopupTCPermanentOccupationSetByUserPenStyleClearClick');
 END; { GeneralPopupTCPermanentOccupationSetByUserPenStyleClearClick }
 
-PROCEDURE TMainWindow.GeneralPopupTCPermanentOccupationSetByUserPenStyleInsideFrameClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupTCPermanentOccupationSetByUserPenStyleInsideFrameClick(Sender: TObject);
 BEGIN
   TCPermanentOccupationSetByUserPenStyle := psInsideFrame;
   InvalidateScreen(UnitRef, 'GeneralPopupTCPermanentOccupationSetByUserPenStyleInsideFrameClick');
 END; { GeneralPopupTCPermanentOccupationSetByUserPenStyleInsideFrameClick }
 
-PROCEDURE TMainWindow.GeneralPopupRestoreTCPermanentOccupationSetByUserPenStyleClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRestoreTCPermanentOccupationSetByUserPenStyleClick(Sender: TObject);
 BEGIN
   TCPermanentOccupationSetByUserPenStyle := DefaultTCPermanentOccupationSetByUserPenStyle;
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreTCPermanentOccupationSetByUserPenStyleClick');
 END; { GeneralPopupRestoreTCPermanentOccupationSetByUserPenStyleClick }
 
-PROCEDURE TMainWindow.GeneralPopupShowMainMenuClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupShowMainMenuClick(Sender: TObject);
 BEGIN
   IF NOT MenusVisible THEN BEGIN
     ShowMenus;
@@ -7336,7 +7344,7 @@ BEGIN
   END;
 END; { GeneralPopupShowMainMenuClick }
 
-PROCEDURE TMainWindow.GeneralPopupSetCurrentRailwayDayOfTheWeekClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupSetCurrentRailwayDayOfTheWeekClick(Sender: TObject);
 VAR
   DefaultStr : String;
   NextDayOfTheWeek : DayOfTheWeekType;
@@ -7357,7 +7365,7 @@ BEGIN
     Debug('!"' + Str + '" is an invalid day of the week');
 END; { GeneralPopupSetCurrentRailwayDayOfTheWeekClick }
 
-PROCEDURE TMainWindow.GeneralPopupSetLogFileMaximumWidthClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupSetLogFileMaximumWidthClick(Sender: TObject);
 VAR
   SaveLogFileMaxWidthInChars : Integer;
   TempInput : String;
@@ -7371,17 +7379,17 @@ BEGIN
   END;
 END; { GeneralPopupSetLogFileMaximumWidthClick }
 
-PROCEDURE TMainWindow.MainWindowStatusBarMouseMove(Sender: TObject; ShiftState: TShiftState; X, Y: Integer);
+PROCEDURE TFWPRailMainWindow.MainWindowStatusBarMouseMove(Sender: TObject; ShiftState: TShiftState; X, Y: Integer);
 { Save the XY position of the cursor as it passes over a status bar to work out where it is should the mouse key be pressed }
 BEGIN
   StatusBarX := X;
   StatusBarY := X;
 END; { MainWindowStatusBarMouseMove }
 
-PROCEDURE TMainWindow.MainWindowStatusBarDblClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.MainWindowStatusBarDblClick(Sender: TObject);
 BEGIN
   { This is a work-around to find out if the cursor is within status bar Panel 0 as the proper test:
-    "IF Sender = MainWindow.MainWindowStatusBar.Panels[0] THEN..." does not work.
+    "IF Sender = FWPRailMainWindow.MainWindowStatusBar.Panels[0] THEN..." does not work.
   }
   IF (StatusBarX > 0)
   AND (StatusBarX <= MainWindowStatusBar.Panels[StatusBarPanel0].Width)
@@ -7389,7 +7397,7 @@ BEGIN
     GetTime.ClockWindow.Visible := True;
 END; { MainWindowStatusBarDblClick }
 
-PROCEDURE TMainWindow.SetCurrentRailwayTime(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.SetCurrentRailwayTime(Sender: TObject);
 { The result from this action is picked up in the TClockWindow.OKButtonClick routine in the GetTime unit }
 BEGIN
   GetTime.ClockWindow.Clock.Time := StrToTime(CurrentRailwayTimeStr);
@@ -7398,7 +7406,7 @@ BEGIN
   GetTime.ClockWindow.OKButton.SetFocus;
 END; { SetCurrentRailwayTime }
 
-PROCEDURE TMainWindow.SetProgramStartTime(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.SetProgramStartTime(Sender: TObject);
 { The result from this action is picked up in the TClockWindow.OKButtonClick routine in the GetTime unit }
 BEGIN
   GetTime.ClockWindow.Clock.Time := ProgramStartTime;
@@ -7407,7 +7415,7 @@ BEGIN
   GetTime.ClockWindow.OKButton.SetFocus;
 END; { SetProgramStartTime }
 
-PROCEDURE TMainWindow.SetDaylightStartTime(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.SetDaylightStartTime(Sender: TObject);
 { The result from this action is picked up in the TClockWindow.OKButtonClick routine in the GetTime unit }
 BEGIN
   GetTime.ClockWindow.Clock.Time := StrToTime(DaylightStartTimeStr);
@@ -7416,7 +7424,7 @@ BEGIN
   GetTime.ClockWindow.OKButton.SetFocus;
 END; { SetDaylightStartTime }
 
-PROCEDURE TMainWindow.SetDaylightEndTime(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.SetDaylightEndTime(Sender: TObject);
 { The result from this action is picked up in the TClockWindow.OKButtonClick routine in the GetTime unit }
 BEGIN
   GetTime.ClockWindow.Clock.Time := StrToTime(DaylightEndTimeStr);
@@ -7425,7 +7433,7 @@ BEGIN
   GetTime.ClockWindow.OKButton.SetFocus;
 END; { SetDaylightEndTime }
 
-PROCEDURE TMainWindow.GeneralPopupRunClockNormallyClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupRunClockNormallyClick(Sender: TObject);
 BEGIN
   GeneralPopupRunClockNormally.Checked := True;
   GeneralPopupRunClockSlower.Checked := False;
@@ -7434,7 +7442,7 @@ BEGIN
   SetRailwayTimeInterval(Normal);
 END; { GeneralPopupRunClockNormallyClick }
 
-PROCEDURE TMainWindow.GeneralPopupRunClockSlowerClick;
+PROCEDURE TFWPRailMainWindow.GeneralPopupRunClockSlowerClick;
 BEGIN
   GeneralPopupRunClockNormally.Checked := False;
   GeneralPopupRunClockSlower.Checked := True;
@@ -7443,7 +7451,7 @@ BEGIN
   SetRailwayTimeInterval(Slower);
 END; { GeneralPopupRunClockSlowerExecute }
 
-PROCEDURE TMainWindow.GeneralPopupRunClockFasterClick;
+PROCEDURE TFWPRailMainWindow.GeneralPopupRunClockFasterClick;
 BEGIN
   GeneralPopupRunClockNormally.Checked := False;
   GeneralPopupRunClockSlower.Checked := False;
@@ -7452,7 +7460,7 @@ BEGIN
   SetRailwayTimeInterval(Faster);
 END; { GeneralPopupRunClockFasterClick }
 
-PROCEDURE TMainWindow.GeneralPopupRunClockFastestClick;
+PROCEDURE TFWPRailMainWindow.GeneralPopupRunClockFastestClick;
 BEGIN
   GeneralPopupRunClockNormally.Checked := False;
   GeneralPopupRunClockSlower.Checked := False;
@@ -7461,14 +7469,14 @@ BEGIN
   SetRailwayTimeInterval(Fastest);
 END; { GeneralPopupRunClockFastestClick }
 
-PROCEDURE TMainWindow.StartClock(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.StartClock(Sender: TObject);
 BEGIN
   GeneralPopupStartClock.Visible := False;
   GeneralPopupStopClock.Visible := True;
   TurnAutoModeOn;
 END; { StartClock }
 
-PROCEDURE TMainWindow.StopClock(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.StopClock(Sender: TObject);
 CONST
   UserInCharge = True;
 
@@ -7478,19 +7486,19 @@ BEGIN
   TurnAutoModeOff(UserInCharge);
 END; { StopClock }
 
-PROCEDURE TMainWindow.GeneralPopupChangePointClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangePointClick(Sender: TObject);
 BEGIN
   InputDialogueBoxRequired := PointDialogueBox;
   InputDialogueBox.Show;
 END; { GeneralPopupChangePoint }
 
-PROCEDURE TMainWindow.GeneralPopupChangeSignalClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupChangeSignalClick(Sender: TObject);
 BEGIN
   InputDialogueBoxRequired := SignalDialogueBox;
   InputDialogueBox.Show;
 END; { GeneralPopupChangeSignalClick }
 
-PROCEDURE TMainWindow.GeneralPopupListLocomotivesClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupListLocomotivesClick(Sender: TObject);
 BEGIN
   IF LocoUtilsWindow.Visible THEN BEGIN
     LocoUtilsWindow.Visible := False;
@@ -7501,27 +7509,27 @@ BEGIN
   END;
 END; { GeneralPopupListLocomotivesClick }
 
-PROCEDURE TMainWindow.GeneralPopupShowTrackcircuitClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupShowTrackcircuitClick(Sender: TObject);
 BEGIN
   InputDialogueBoxRequired := TrackCircuitDialogueBox;
   InputDialogueBox.Show;
 END; { GeneralPopupShowTrackcircuitClick }
 
-PROCEDURE TMainWindow.GeneralPopupDebugOptionsClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupDebugOptionsClick(Sender: TObject);
 BEGIN
   Startup.DebuggingOptionsWindow.Show;
 END; { GeneralPopupDebugOptionsClick }
 
-PROCEDURE TMainWindow.GeneralPopupResetMainWindowSizeAndPositionClick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.GeneralPopupResetMainWindowSizeAndPositionClick(Sender: TObject);
 BEGIN
-  MainWindow.Height := MulDiv(Screen.WorkAreaHeight, 80, 100);
-  MainWindow.Width := Screen.WorkAreaWidth;
-  MainWindow.Top := 0;
-  MainWindow.Left := 0;
+  FWPRailMainWindow.Height := MulDiv(Screen.WorkAreaHeight, 80, 100);
+  FWPRailMainWindow.Width := Screen.WorkAreaWidth;
+  FWPRailMainWindow.Top := 0;
+  FWPRailMainWindow.Left := 0;
   InvalidateScreen(UnitRef, 'ResetMainWindowSizeClick');
 END; { ResetMainWindowSizeClick }
 
-PROCEDURE TMainWindow.MainWindowMouseWheel(Sender: TObject; ShiftState: TShiftState; WheelDelta: Integer; MousePos: TPoint; VAR Handled: Boolean);
+PROCEDURE TFWPRailMainWindow.MainWindowMouseWheel(Sender: TObject; ShiftState: TShiftState; WheelDelta: Integer; MousePos: TPoint; VAR Handled: Boolean);
 BEGIN
   IF (LocoDialogueWindow <> NIL)
   AND (LocoDialogueWindow.Visible)
@@ -7529,19 +7537,19 @@ BEGIN
     ControlSpeedByMouseWheel(WheelDelta, MousePos);
 END;
 
-//PROCEDURE TMainWindow.CM_EnterMenuLoop(var msg: TMessage);
+//PROCEDURE TFWPRailMainWindow.CM_EnterMenuLoop(var msg: TMessage);
 //BEGIN
 //  TrackCircuitPopupMenuActive := True;
 ////  Debug('PopupMenu entered');
 //END; { CM_EnterMenuLoop }
 //
-//PROCEDURE TMainWindow.CM_ExitMenuLoop(var msg: TMessage);
+//PROCEDURE TFWPRailMainWindow.CM_ExitMenuLoop(var msg: TMessage);
 //BEGIN
 //  TrackCircuitPopupMenuActive := False;
 ////  Debug('PopMenu exited');
 //END; { CM_ExitMenuLoop }
 //
-//PROCEDURE TMainWindow.CM_MenuClosed(var msg: TMessage);
+//PROCEDURE TFWPRailMainWindow.CM_MenuClosed(var msg: TMessage);
 //BEGIN
 ////  Debug('PopMenu closed');
 //END; { CM_MenuClosed }
@@ -7558,18 +7566,18 @@ BEGIN
     Exit;
 
   { Get the current font information. We only want to modify the angle }
-  GetObject(MainWindow.Canvas.Font.Handle, SizeOf(LogRec), Addr(LogRec));
+  GetObject(FWPRailMainWindow.Canvas.Font.Handle, SizeOf(LogRec), Addr(LogRec));
   { Modify the angle. "The angle, in tenths of a degrees, between the base line of a character and the x-axis." (Windows API Help) }
   LogRec.lfEscapement := D;
   { Create a new font handle using the modified old font handle }
   NewFontHandle := CreateFontIndirect(LogRec);
   { Save the old font handle! We have to put it back when we are done! }
-  OldFontHandle := SelectObject(MainWindow.Canvas.Handle, NewFontHandle);
+  OldFontHandle := SelectObject(FWPRailMainWindow.Canvas.Handle, NewFontHandle);
   { Finally. Output the text! }
-  MainWindow.Canvas.Brush.Style := bsClear;
-  MainWindow.Canvas.TextOut(X, Y, S);
+  FWPRailMainWindow.Canvas.Brush.Style := bsClear;
+  FWPRailMainWindow.Canvas.TextOut(X, Y, S);
   { Put the font back the way we found it! }
-  NewFontHandle := SelectObject(MainWindow.Canvas.Handle, OldFontHandle);
+  NewFontHandle := SelectObject(FWPRailMainWindow.Canvas.Handle, OldFontHandle);
   { Delete the temporary (NewFontHandle) that we created }
   DeleteObject(NewFontHandle);
 END; { CanvasTextOutAngle }
@@ -7577,7 +7585,7 @@ END; { CanvasTextOutAngle }
 PROCEDURE HideStatusBarAndUpDownIndications;
 { Before a zoomed screen move, hide the status bar and the "up" and "down" markers }
 BEGIN
-  WITH MainWindow DO BEGIN
+  WITH FWPRailMainWindow DO BEGIN
     MainWindowStatusBar.Visible := False;
 
     IF UpDownMarkersVisible THEN BEGIN
@@ -7587,7 +7595,7 @@ BEGIN
         Font.Color := BackgroundColour;
         Font.Height := -MulDiv(ClientHeight, MainWindowFontHeight, 1000);
         TextOut(0, ClientHeight DIV 2, 'Up');
-        TextOut(ClientWidth - MainWindow.Canvas.TextWidth('Down'), ClientHeight DIV 2, 'Down');
+        TextOut(ClientWidth - FWPRailMainWindow.Canvas.TextWidth('Down'), ClientHeight DIV 2, 'Down');
       END; {WITH}
     END;
   END; {WITH}
@@ -7596,7 +7604,7 @@ END; { HideStatusBarAndUpDownIndications }
 PROCEDURE ShowStatusBarAndUpDownIndications;
 { After a zoomed screen move, restore the status bar and the "up" and "down" markers }
 BEGIN
-  WITH MainWindow DO BEGIN
+  WITH FWPRailMainWindow DO BEGIN
     MainWindowStatusBar.Visible := True;
 
     IF NOT UpDownMarkersVisible THEN BEGIN
@@ -7606,13 +7614,13 @@ BEGIN
         Font.Color := clWhite;
         Font.Height := -MulDiv(ClientHeight, MainWindowFontHeight, 1000);
         TextOut(0, ClientHeight DIV 2, 'Up');
-        TextOut(ClientWidth - MainWindow.Canvas.TextWidth('Down'), ClientHeight DIV 2, 'Down');
+        TextOut(ClientWidth - FWPRailMainWindow.Canvas.TextWidth('Down'), ClientHeight DIV 2, 'Down');
       END; {WITH}
     END;
   END; {WITH}
 END; { ShowStatusBarAndUpDownIndications }
 
-PROCEDURE TMainWindow.WMHScroll(VAR ScrollData: TMessage);
+PROCEDURE TFWPRailMainWindow.WMHScroll(VAR ScrollData: TMessage);
 { Added to allow interception of scroll bar events }
 BEGIN
   INHERITED;
@@ -7653,7 +7661,7 @@ BEGIN
    END; {WITH}
 END; { WMHScroll }
 
-PROCEDURE TMainWindow.WMVScroll(VAR ScrollData: TMessage);
+PROCEDURE TFWPRailMainWindow.WMVScroll(VAR ScrollData: TMessage);
 { Added to allow interception of scroll bar events }
 BEGIN
   INHERITED;
@@ -7706,12 +7714,12 @@ BEGIN
   OfflineIcon.Handle := LoadIcon(hInstance, 'OfflineIcon');
 END; { LoadIcons }
 
-PROCEDURE TMainWindow.MainWindowCreate(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.MainWindowCreate(Sender: TObject);
 //VAR
 //PreviousDebugTime : TDateTime;
 BEGIN
   TRY
-    WITH MainWindow DO BEGIN
+    WITH FWPRailMainWindow DO BEGIN
       LoadIcons;
 
       // Application.OnException := FWPExceptionHandler;
@@ -7861,10 +7869,10 @@ VAR
 
 BEGIN { Main drawing procedure }
   TRY
-    // MainWindow.Canvas.FillRect(MainWindow.Canvas.ClipRect);
+    // FWPRailMainWindow.Canvas.FillRect(FWPRailMainWindow.Canvas.ClipRect);
     // Log('(1) ' + TimeToHMSZStr(Time));
     // PreviousDebugTime := Time;
-    WITH MainWindow DO BEGIN
+    WITH FWPRailMainWindow DO BEGIN
       WITH Canvas DO BEGIN
         { Do not record the line drawing detail each time DrawMap is called }
         SaveRecordLineDrawingMode := RecordLineDrawingMode;
@@ -8269,7 +8277,7 @@ BEGIN { Main drawing procedure }
           Font.Color := clWhite;
 
         { Keep the font size for the "up" and "down" screen guidance at the minimum size }
-        Font.Height := -MulDiv(MainWindow.ClientHeight, MainWindowFontHeight, 1000);
+        Font.Height := -MulDiv(FWPRailMainWindow.ClientHeight, MainWindowFontHeight, 1000);
         IF UpDownMarkersVisible THEN BEGIN
           TextOut(0, ClientHeight DIV 2, 'Up');
           TextOut(ClientWidth - TextWidth('Down'), ClientHeight DIV 2, 'Down');
@@ -8337,7 +8345,7 @@ BEGIN { Main drawing procedure }
   END; {TRY}
 END; { DrawMap }
 
-PROCEDURE TMainWindow.MainTimerTick(Sender: TObject);
+PROCEDURE TFWPRailMainWindow.MainTimerTick(Sender: TObject);
 { Runs the main loop }
 CONST
   ErrorMsgRequired = True;

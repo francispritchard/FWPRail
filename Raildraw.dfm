@@ -1,4 +1,4 @@
-object MainWindow: TMainWindow
+object FWPRailMainWindow: TFWPRailMainWindow
   Left = 606
   Top = 560
   HorzScrollBar.Tracking = True

@@ -471,7 +471,7 @@ BEGIN
         InputDialogueChangeOrSelectButton.Visible := True;
         InputDialogueChangeOrSelectButton.Caption := 'Change Point';
         InputDialogueMaskEdit.MaxLength := 3;
-        InputDialogueMaskEdit.Width := MulDiv(MainWindow.ClientWidth, 20, 1000);
+        InputDialogueMaskEdit.Width := MulDiv(FWPRailMainWindow.ClientWidth, 20, 1000);
         InputDialogueMaskEdit.SelectAll;
       END;
     LineDialogueBox:
@@ -487,7 +487,7 @@ BEGIN
         InputDialogueMaskEdit.MaxLength := 6;
 
         { This needs to be wide enough to accommodate long line names, e.g. DFYD11 }
-        InputDialogueMaskEdit.Width := MulDiv(MainWindow.ClientWidth, 30, 1000);
+        InputDialogueMaskEdit.Width := MulDiv(FWPRailMainWindow.ClientWidth, 30, 1000);
         InputDialogueMaskEdit.SelectAll;
       END;
     SignalDialogueBox:
@@ -502,7 +502,7 @@ BEGIN
         InputDialogueChangeOrSelectButton.Visible := True;
         InputDialogueChangeOrSelectButton.Caption := 'Change Signal';
         InputDialogueMaskEdit.MaxLength := 3;
-        InputDialogueMaskEdit.Width := MulDiv(MainWindow.ClientWidth, 20, 1000);
+        InputDialogueMaskEdit.Width := MulDiv(FWPRailMainWindow.ClientWidth, 20, 1000);
         InputDialogueMaskEdit.SelectAll;
       END;
     TrackCircuitDialogueBox:
@@ -519,7 +519,7 @@ BEGIN
         InputDialogueChangeOrSelectButton.Visible := True;
         InputDialogueChangeOrSelectButton.Caption := 'Set TC';
         InputDialogueMaskEdit.MaxLength := 3;
-        InputDialogueMaskEdit.Width := MulDiv(MainWindow.ClientWidth, 20, 1000);
+        InputDialogueMaskEdit.Width := MulDiv(FWPRailMainWindow.ClientWidth, 20, 1000);
         InputDialogueMaskEdit.SelectAll;
       END;
   END; {CASE};
@@ -1932,7 +1932,7 @@ BEGIN { KeyPressedDown }
         Ord('C'):
           CASE ShiftKeys OF
             NoShiftKeys: {C}
-              IF NOT MainWindow.MainClockMenu.Visible THEN BEGIN
+              IF NOT FWPRailMainWindow.MainClockMenu.Visible THEN BEGIN
                 HelpMsg := 'set clock';
                 IF NOT HelpRequired THEN BEGIN
                   IF GetTime.ClockWindow.Visible THEN
@@ -3021,7 +3021,7 @@ BEGIN { KeyPressedDown }
                       ReplayMode := True;
                       RestoreLogsToPreviousState := True;
                       ShutDownProgram(UnitRef, 'KeyPressedDown');
-                      MainWindow.MainTimer.Enabled := False;
+                      FWPRailMainWindow.MainTimer.Enabled := False;
                       IF InAutoMode THEN
                         TurnAutoModeOff(NOT ByUser);
                       LogsCurrentlyKept := False;
@@ -3282,11 +3282,11 @@ BEGIN { KeyPressedDown }
               BEGIN
                 HelpMsg := 'turn main timer off/on';
                 IF NOT HelpRequired THEN BEGIN
-                  IF MainWindow.MainTimer.Enabled THEN BEGIN
-                    MainWindow.MainTimer.Enabled := False;
+                  IF FWPRailMainWindow.MainTimer.Enabled THEN BEGIN
+                    FWPRailMainWindow.MainTimer.Enabled := False;
                     Log('XG Main Timer tuned off by user');
                   END ELSE BEGIN
-                    MainWindow.MainTimer.Enabled := True;
+                    FWPRailMainWindow.MainTimer.Enabled := True;
                     Log('XG Main Timer tuned on by user');
                   END;
                 END;
@@ -3696,10 +3696,10 @@ BEGIN { KeyPressedDown }
 
                   IF ZoomScaleFactor = 1000 THEN BEGIN
                     Zooming := False;
-                    SetCaption(MainWindow, '');
+                    SetCaption(FWPRailMainWindow, '');
                   END ELSE BEGIN
                     Zooming := True;
-                    SetCaption(MainWindow, 'Zoom level ' + ZoomAmountStr);
+                    SetCaption(FWPRailMainWindow, 'Zoom level ' + ZoomAmountStr);
                   END;
 
                   ReinitialiseMainWindowVariables := True;
@@ -4397,7 +4397,7 @@ BEGIN { KeyPressedDown }
                   IF ZoomScaleFactor <> 1000 THEN BEGIN
                     ZoomScaleFactor := 1000;
                     Zooming := False;
-                    SetCaption(MainWindow, '');
+                    SetCaption(FWPRailMainWindow, '');
                     WindowPenWidth := 1;
 
                     ReinitialiseMainWindowVariables := True;
@@ -5037,7 +5037,7 @@ BEGIN { KeyPressedDown }
                 HelpMsg := 'close the program';
                 IF NOT HelpRequired THEN BEGIN
                   { close the program after two consecutive escapes }
-                  MainWindow.MainWindowClose(NIL, CloseAction);
+                  FWPRailMainWindow.MainWindowClose(NIL, CloseAction);
                   Log('G Shutdown requested by user pressing Alt F4 {BLANKLINEBEFORE}');
                 END;
               END;
@@ -5381,8 +5381,8 @@ BEGIN { KeyPressedDown }
               END;
           END; {CASE}
         vk_F10:
-          { note: F10 does not pass on the shift key state. (F10 is being intercepted by TMainWindow.ApplicationMessage in Raildraw as otherwise it would do the same as
-            Alt, i.e. activate the menu bar). This doesn't work for any shifted keys as F10 processed by TMainWindow.ApplicationMessage deosn't seem to notice what the
+          { note: F10 does not pass on the shift key state. (F10 is being intercepted by TFWPRailMainWindow.ApplicationMessage in Raildraw as otherwise it would do the same as
+            Alt, i.e. activate the menu bar). This doesn't work for any shifted keys as F10 processed by TFWPRailMainWindow.ApplicationMessage deosn't seem to notice what the
             shift keys are ***.
           }
           BEGIN

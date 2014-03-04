@@ -2233,7 +2233,7 @@ VAR
 
 BEGIN
   { Need to throw away earlier lines? **** }
-  IF MainWindow <> NIL THEN BEGIN
+  IF FWPRailMainWindow <> NIL THEN BEGIN
     { remove prefixes }
     IF (Copy(Str, 1, 1) = '!') OR (Copy(Str, 1, 1) = '+') THEN
       TempStr := Copy(Str, 2);
@@ -3198,7 +3198,7 @@ END; { GetTrackCircuitState }
 PROCEDURE HideMenus;
 { Make all the menus invisible }
 BEGIN
-  WITH MainWindow DO BEGIN
+  WITH FWPRailMainWindow DO BEGIN
     MenusVisible := False;
 
     MainClockMenu.Visible := False;
@@ -5312,7 +5312,7 @@ VAR
 
 BEGIN
   IF StopTimer THEN
-    MainWindow.MainTimer.Enabled := False;
+    FWPRailMainWindow.MainTimer.Enabled := False;
 
   Dialogue := CreateMessageDialog(DialogueText, DlgType, Buttons);
 
@@ -5382,7 +5382,7 @@ BEGIN
   Dialogue.Free;
 
   IF StopTimer THEN
-    MainWindow.MainTimer.Enabled := True;
+    FWPRailMainWindow.MainTimer.Enabled := True;
 
   { and redraw the screen, or we are left with a dialogue-sized hole }
   InvalidateScreen(UnitRef, 'MessageDialogueWithDefault');
@@ -5400,7 +5400,7 @@ VAR
 
 BEGIN
   IF StopTimer THEN
-    MainWindow.MainTimer.Enabled := False;
+    FWPRailMainWindow.MainTimer.Enabled := False;
 
   Dialogue := CreateMessageDialog(DialogueText, DlgType, Buttons);
 
@@ -5504,7 +5504,7 @@ BEGIN
   Dialogue.Free;
 
   IF StopTimer THEN
-    MainWindow.MainTimer.Enabled := True;
+    FWPRailMainWindow.MainTimer.Enabled := True;
 
   { and redraw the screen, or we are left with a dialogue-sized hole }
   InvalidateScreen(UnitRef, 'MessageDialogueWithDefault');
@@ -6209,7 +6209,7 @@ PROCEDURE SetSystemOffline(OfflineMsg : String);
 { Change the caption and the icons to show we're offline }
 BEGIN
   SystemOnline := False;
-  SetCaption(MainWindow, 'OFFLINE');
+  SetCaption(FWPRailMainWindow, 'OFFLINE');
   Application.Icon := OffLineIcon;
   IF OfflineMsg <> '' THEN BEGIN
     IF FeedbackWindow <> NIL THEN BEGIN
@@ -6258,7 +6258,7 @@ BEGIN
 
   IF OK THEN BEGIN
     SystemOnline := True;
-    SetCaption(MainWindow, '');
+    SetCaption(FWPRailMainWindow, '');
     Application.Icon := OnlineIcon;
   END;
 END; { SetSystemOnline }
@@ -6335,7 +6335,7 @@ END; { SetTwoLightingChips }
 PROCEDURE ShowMenus;
 { Make all the menus visible }
 BEGIN
-  WITH MainWindow DO BEGIN
+  WITH FWPRailMainWindow DO BEGIN
     MenusVisible := True;
 
     MainClockMenu.Visible := True;
@@ -6426,7 +6426,7 @@ BEGIN { ShutDownProgram }
         CloseRailDriver;
       END;
 
-      MainWindow.MainTimer.Enabled := False;
+      FWPRailMainWindow.MainTimer.Enabled := False;
 
       { Write things back to the .ini file }
       IF NOT ReplayMode
@@ -8355,13 +8355,13 @@ end;
 PROCEDURE TDebugWindow.DebugWindowHide(Sender: TObject);
 { Un-check the window menu item }
 BEGIN
-  MainWindow.MainOperationsMenuDebugOptions.Checked := False;
+  FWPRailMainWindow.MainOperationsMenuDebugOptions.Checked := False;
 END; { DebugWindowHide }
 
 PROCEDURE TDebugWindow.DebugWindowShow(Sender: TObject);
 { Check the window menu item }
 BEGIN
-  MainWindow.MainOperationsMenuDebugOptions.Checked := True;
+  FWPRailMainWindow.MainOperationsMenuDebugOptions.Checked := True;
 END; { TDebugWindow }
 
 FUNCTION TimeIsValid(TimeStr : String) : Boolean;

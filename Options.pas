@@ -1819,12 +1819,12 @@ BEGIN
       WriteInteger(RDCSectionStr, RDCThreeWaySwitchBRightNumStr, RDCThreeWaySwitchBRightNum);
 
       { Windows }
-      WriteInteger(WindowsSectionStr, MainWindowWidthStr, MainWindow.Width);
-      WriteInteger(WindowsSectionStr, MainWindowHeightStr, MainWindow.Height);
-      WriteInteger(WindowsSectionStr, MainWindowTopStr, MainWindow.Top);
-      WriteInteger(WindowsSectionStr, MainWindowLeftStr, MainWindow.Left);
-      WriteInteger(WindowsSectionStr, MainWindowClientWidthStr, MainWindow.ClientWidth);
-      WriteInteger(WindowsSectionStr, MainWindowClientHeightStr, MainWindow.ClientHeight);
+      WriteInteger(WindowsSectionStr, MainWindowWidthStr, FWPRailMainWindow.Width);
+      WriteInteger(WindowsSectionStr, MainWindowHeightStr, FWPRailMainWindow.Height);
+      WriteInteger(WindowsSectionStr, MainWindowTopStr, FWPRailMainWindow.Top);
+      WriteInteger(WindowsSectionStr, MainWindowLeftStr, FWPRailMainWindow.Left);
+      WriteInteger(WindowsSectionStr, MainWindowClientWidthStr, FWPRailMainWindow.ClientWidth);
+      WriteInteger(WindowsSectionStr, MainWindowClientHeightStr, FWPRailMainWindow.ClientHeight);
 
       IF CreateRouteDisplayColoursWindow <> NIL THEN BEGIN
         WriteInteger(WindowsSectionStr, CreateRouteDisplayColoursWindowHeightStr, CreateRouteDisplayColoursWindow.Height);
