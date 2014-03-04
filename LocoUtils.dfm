@@ -14,6 +14,8 @@ object LocoUtilsWindow: TLocoUtilsWindow
   KeyPreview = True
   OldCreateOrder = False
   OnCreate = LocoUtilsWindowCreate
+  ExplicitWidth = 320
+  ExplicitHeight = 240
   PixelsPerInch = 96
   TextHeight = 13
   object LocoUtilsSortLabel: TLabel
