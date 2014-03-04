@@ -362,6 +362,9 @@ BEGIN
 END; { BroadcastsTCPClientError }
 
 PROCEDURE TTCPIPForm.ResponsesTCPSendText(S : String);
+CONST
+  CRLF = #13#10;
+
 VAR
   AnsiStr : AnsiString;
 
@@ -369,7 +372,6 @@ BEGIN
   AnsiStr := AnsiString(S);
   IF TCPSocket1 <> NIL THEN BEGIN
     TCPSocket1.SendText(AnsiStr + CRLF);
-//    SysUtils.sleep(10);
     Log('+ OUT1 *** ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + ' ' + S);
   END;
 END; { ResponsesTCPSendText }
