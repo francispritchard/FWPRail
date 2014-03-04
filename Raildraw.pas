@@ -8483,6 +8483,8 @@ VAR
 
 BEGIN
   TRY
+    SendStringToWatchdogProgram('FWPRail is running');
+
     IF RunTestUnitOnStartup THEN BEGIN
       Debug('Running test unit on startup');
       TestProc(KeyOut);
@@ -8716,6 +8718,58 @@ BEGIN
       Log('EG MainTimerTick: ' + E.ClassName +' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { MainTimerTick }
+
+PROCEDURE TFWPRailMainWindow.WMCopyData(VAR Msg: TWMCopyData);
+{ Receives data from the Watchdog program }
+VAR
+  S : String;
+
+BEGIN
+  SetString(S, PChar(Msg.CopyDataStruct.lpData), Msg.CopyDataStruct.cbData DIV SizeOf(Char));
+  Debug('From Watchdog: ' + S);
+
+  { And send an acknowledgment }
+  Msg.Result := 1234;
+END; { WMCopyData }
+
+PROCEDURE TFWPRailMainWindow.SendStringToWatchdogProgram(S : String);
+VAR
+  copyData: TCopyDataStruct;
+  ReceiverHandle : THandle;
+  ReceiverTypeString : PWideChar;
+  Res : Integer;
+  TimeStr : String;
+
+BEGIN
+  ReceiverTypeString := 'TWatchdogWindow';
+  ReceiverHandle := FindWindow(ReceiverTypeString, NIL);
+  IF ReceiverHandle = 0 THEN BEGIN
+    IF NOT WatchdogErrorMsgFlag THEN BEGIN
+      Debug('FWPRail watchdog not found - proceeding without it');
+      WatchdogActiveMsgFlag := False;
+      WatchdogErrorMsgFlag := True;
+    END;
+
+    Exit;
+  END;
+
+  { We have found the watchdog program }
+  CopyData.lpData := PChar(S);
+  CopyData.cbdata := Bytelength(S);
+  CopyData.dwData := ReceiverHandle;
+
+  Res := SendMessage(ReceiverHandle, WM_COPYDATA, Application.Handle, LPARAM(@CopyData));
+  IF (Res = 0) AND NOT WatchdogErrorMsgFlag THEN BEGIN
+    Debug('FWPRail watchdog is not responding to "FWPRail is running" message');
+    WatchdogErrorMsgFlag := True;
+    WatchdogActiveMsgFlag := False;
+  END ELSE
+    IF (Res <> 0) AND NOT WatchdogActiveMsgFlag THEN BEGIN
+      Debug('FWPRail watchdog is responding to "FWPRail is running" message');
+      WatchdogActiveMsgFlag := True;
+      WatchdogErrorMsgFlag := False;
+    END;
+END; { SendStringToWatchdogProgram }
 
 INITIALIZATION
 

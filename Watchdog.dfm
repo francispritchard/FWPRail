@@ -2,8 +2,8 @@ object WatchdogWindow: TWatchdogWindow
   Left = 433
   Top = 228
   Caption = 'Rail Watchdog Window'
-  ClientHeight = 537
-  ClientWidth = 557
+  ClientHeight = 593
+  ClientWidth = 933
   Color = clBtnFace
   Constraints.MinHeight = 300
   Constraints.MinWidth = 300
@@ -16,26 +16,26 @@ object WatchdogWindow: TWatchdogWindow
   OnClose = WatchdogWindowClose
   OnShow = WatchdogWindowShow
   DesignSize = (
-    557
-    537)
+    933
+    593)
   PixelsPerInch = 96
   TextHeight = 13
   object IncomingGB: TGroupBox
     Left = 6
     Top = 168
-    Width = 546
-    Height = 366
+    Width = 922
+    Height = 422
     Anchors = [akLeft, akTop, akRight, akBottom]
     Caption = ' Traffic log : '
     TabOrder = 0
     DesignSize = (
-      546
-      366)
+      922
+      422)
     object MSGMemo: TMemo
       Left = 3
       Top = 19
-      Width = 529
-      Height = 307
+      Width = 905
+      Height = 363
       Anchors = [akLeft, akTop, akRight, akBottom]
       Color = clBtnFace
       Font.Charset = DEFAULT_CHARSET
@@ -57,18 +57,26 @@ object WatchdogWindow: TWatchdogWindow
       TabOrder = 1
       OnClick = ClearButtonClick
     end
+    object WatchdogListBox: TListBox
+      Left = 408
+      Top = 19
+      Width = 484
+      Height = 366
+      ItemHeight = 13
+      TabOrder = 2
+    end
   end
   object ConnectPanel: TPanel
     Left = 3
     Top = 5
-    Width = 546
+    Width = 922
     Height = 157
     Anchors = [akLeft, akTop, akRight]
     BevelInner = bvRaised
     BevelOuter = bvLowered
     TabOrder = 1
     DesignSize = (
-      546
+      922
       157)
     object LabelTextEntry: TLabel
       Left = 8
@@ -87,7 +95,7 @@ object WatchdogWindow: TWatchdogWindow
       OnClick = SendTextButtonClick
     end
     object SendStatusRequestButton: TSpeedButton
-      Left = 128
+      Left = 152
       Top = 125
       Width = 121
       Height = 25
@@ -107,7 +115,7 @@ object WatchdogWindow: TWatchdogWindow
     object TCPCommand: TMemo
       Left = 8
       Top = 59
-      Width = 529
+      Width = 905
       Height = 60
       Anchors = [akLeft, akTop, akRight]
       TabOrder = 1
@@ -117,6 +125,12 @@ object WatchdogWindow: TWatchdogWindow
     Interval = 30000
     OnTimer = TCPIPTimerOnTimer
     Left = 94
+    Top = 248
+  end
+  object WatchdogTimer: TTimer
+    Interval = 1
+    OnTimer = WatchdogTimerTick
+    Left = 166
     Top = 248
   end
 end
