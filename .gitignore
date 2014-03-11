@@ -19,3 +19,4 @@ Rail Data Files/*.rsm
 bin/*
 Rail Data Files/Logs/*
 TestUnit.pas
+.test
