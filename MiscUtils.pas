@@ -1155,6 +1155,7 @@ VAR
   END; { RemoveGeneralInstructionsFromLogStr }
 
 BEGIN { WriteToLogFile }
+  TRY
   IF LogsCurrentlyKept THEN BEGIN
     { write out anything previous stored when the log file was not open }
     IF LogFileOpen
@@ -1200,7 +1201,7 @@ BEGIN { WriteToLogFile }
         Exit;
       END ELSE BEGIN
         CASE LogStr[1] OF
-          'G', 'g', '$',
+          'A', 'a', '$',
           'P', 'p', 'S', 's', 'T', 't',
           'L', 'l',
           'R', 'r',
@@ -1250,14 +1251,14 @@ BEGIN { WriteToLogFile }
         END; {CASE}
       END;
 
-      IF BlankLineBefore THEN BEGIN
-        { a blank line is required }
-        WriteLn(LargeLogFile, CurrentRailwayTimeStr + ' ' + TypeOfLog);
-        IF TestingMode THEN
-          Flush(LargeLogFile);
-        IF WriteToLogFileAndTestFile THEN
-          WriteLn(TestLogFile, '');
-      END;
+//      IF BlankLineBefore THEN BEGIN
+//        { a blank line is required }
+//        WriteLn(LargeLogFile, CurrentRailwayTimeStr + ' ' + TypeOfLog);
+//        IF TestingMode THEN
+//          Flush(LargeLogFile);
+//        IF WriteToLogFileAndTestFile THEN
+//          WriteLn(TestLogFile, '');
+//      END;
 
       { Check whether we're writing the same thing over and over - complain after three repeats }
       IF CheckForIdenticalLinesInLog THEN BEGIN
@@ -1336,6 +1337,20 @@ BEGIN { WriteToLogFile }
         AND (LogStr <> ' ')
         THEN BEGIN
           IdenticalLineMsgWritten := False;
+
+          IF BlankLineBefore THEN BEGIN
+            { a blank line is required }
+            IF CurrentRailwayTimeStr = '' THEN
+              CurrentRailwayTimeStr := TimeToHMSStr(CurrentRailwayTime);
+            IF NOT LogCurrentTimeMode THEN
+              WriteLn(LargeLogFile, CurrentRailwayTimeStr + ' ' + TypeOfLog)
+            ELSE
+              WriteLn(LargeLogFile, TimeToHMSZStr(Time) + ' ' + CurrentRailwayTimeStr + ' ' + TypeOfLog);
+            IF TestingMode THEN
+              Flush(LargeLogFile);
+            IF WriteToLogFileAndTestFile THEN
+              WriteLn(TestLogFile, '');
+          END;
 
           { Add LocoChip, if any, or else spaces }
           IF Length(LocoChipStr) < 4 THEN
@@ -1447,7 +1462,7 @@ BEGIN { WriteToLogFile }
             ' ':
               { ignore - this is for messages that we may at some stage want to log }
               ;
-            'G', 'g', '$':
+            'A', 'a', '$':
               { general happenings of relevance to all logs - includes '$' for quick debugging as it is easy to find in the log }
               IF MultipleLogFilesRequired THEN BEGIN
                 Flush(LocoLogFile);
@@ -1488,6 +1503,7 @@ BEGIN { WriteToLogFile }
         END;
       END;
     END;
+    end;
   EXCEPT {TRY}
     ON E : Exception DO
       { Cannot call Log here as we are already in it }
