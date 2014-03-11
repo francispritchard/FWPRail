@@ -192,13 +192,7 @@ BEGIN
             IF Length(ParamString) > 8 THEN
               LogFileName := Copy(ParamString, 9, 255)
           END ELSE
-            IF Copy(ParamString, 1, 10) = 'LOGTIME=ON' THEN
-              LogCurrentTimeMode := True
-            ELSE
-              IF Copy(ParamString, 1, 11) = 'LOGTIME=OFF' THEN
-                LogCurrentTimeMode := False
-              ELSE
-                OK := False;
+            OK := False;
       'M':
         IF ParamString = 'M+' THEN
           { Make menus visible }
