@@ -729,7 +729,7 @@ BEGIN { DecodeFeedback }
           TRSPlungerFeedbackDetector:
             { First see if we're starting/stopping the process - button held down for five seconds will stop/start it }
             BEGIN
-              Log('G ' + DebugStr);
+              Log('A ' + DebugStr);
               { If it's a quick button press, it will return here before five seconds are up }
               IF NOT FeedbackData.Feedback_InputOn THEN
                 { pressbutton is released }
@@ -742,13 +742,13 @@ BEGIN { DecodeFeedback }
   //                  998:
   //                    IF NOT MainPlatformPlungers[MainPlatform6A].TRSPlunger_Locked THEN BEGIN
   //                      MainPlatformPlungers[MainPlatform6A].TRSPlunger_Pressed := True;
-  //                      Log('G Received plunger data: plunger for ' + LocationToStr(MainPlatform6A) + ' has been pressed');
+  //                      Log('A Received plunger data: plunger for ' + LocationToStr(MainPlatform6A) + ' has been pressed');
   //                      DrawTRSPlunger(MainPlatform6A, Pressed);
   //                    END;
   //                  999:
   //                    IF NOT MainPlatformPlungers[MainPlatform6B].TRSPlunger_Locked THEN BEGIN
   //                      MainPlatformPlungers[MainPlatform6B].TRSPlunger_Pressed := True;
-  //                      Log('G Received plunger data: plunger for ' + LocationToStr(MainPlatform6B) + ' has been pressed');
+  //                      Log('A Received plunger data: plunger for ' + LocationToStr(MainPlatform6B) + ' has been pressed');
   //                      DrawTRSPlunger(MainPlatform6B, Pressed);
   //                    END;
   //                END; {CASE}

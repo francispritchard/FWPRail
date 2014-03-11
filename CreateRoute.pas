@@ -114,7 +114,7 @@ VAR
 
 BEGIN
   TRY
-    Log('G INITIALISING ROUTEING EXCEPTIONS {BLANKLINEBEFORE}');
+    Log('A INITIALISING ROUTEING EXCEPTIONS {BLANKLINEBEFORE}');
 
     WITH CreateRouteDisplayColoursWindow DO BEGIN
       IF NOT FileExists(PathToRailDataFiles + RouteingExceptionDataFilename + '.' + RouteingExceptionDataFilenameSuffix) THEN BEGIN

@@ -1468,7 +1468,7 @@ BEGIN
       AND (TimeIsValid(TempStr))
       THEN BEGIN
         ProgramStartTime := StrToTime(TempStr);
-        Log('G Program Start Time set to ' + TempStr);
+        Log('A Program Start Time set to ' + TempStr);
       END;
 
       TempStr := ReadString(TimesSectionStr, DayLightStartTimeOptionStr, DefaultDayLightStartTimeStr);
@@ -2585,7 +2585,7 @@ BEGIN
           ProgramStartTime := StrToTime(NewKeyValue);
           IF NOT AutoModeInitiated THEN BEGIN
             SetCurrentRailwayTimeAndDayOfTheWeek(ProgramStartTime);
-            Log('GG New Program Start Time of ' + TimeToHMSStr(ProgramStartTime) + ' adopted as Auto Mode has not yet been initiated');
+            Log('AG New Program Start Time of ' + TimeToHMSStr(ProgramStartTime) + ' adopted as Auto Mode has not yet been initiated');
           END;
         END;
       END;

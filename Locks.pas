@@ -2243,7 +2243,7 @@ BEGIN
   LockListWindow.Caption := 'Locking Data';
   LockListWindow.LockListWindowMemo.Clear;
   LockListWindow.Visible := True;
-  Log('G Lock list displayed');
+  Log('A Lock list displayed');
   FoundSomething := False;
 
   FOR I := 0 TO High(Points) DO BEGIN
@@ -2295,7 +2295,7 @@ BEGIN
   LockListWindow.LockListWindowMemo.Clear;
   LockListWindow.LockListWindowMemo.Lines.Clear;
   LockListWindow.Visible := True;
-  Log('G Routeing info displayed');
+  Log('A Routeing info displayed');
   FoundSomething := False;
   IF Length(Routes_Routes) > 0 THEN BEGIN
     FoundSomething := True;

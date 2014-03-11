@@ -1033,7 +1033,7 @@ VAR
       ELSE BEGIN
 //        IF NOT MainPlatformPlungers[TRSPlungerFoundLocation].TRSPlunger_Locked THEN BEGIN
 //          MainPlatformPlungers[TRSPlungerFoundLocation].TRSPlunger_Pressed := True;
-//          Log('G Received plunger data: plunger for ' + LocationToStr(TRSPlungerFoundLocation) + ' has been pressed');
+//          Log('A Received plunger data: plunger for ' + LocationToStr(TRSPlungerFoundLocation) + ' has been pressed');
 //          DrawTRSPlunger(TRSPlungerFoundLocation, Pressed);
 //        END;
       END;
@@ -1183,7 +1183,7 @@ VAR
           { we can't do any route-setting or theatre setting if there's a train waiting to be released }
           Signals[S].Signal_PostColour := SignalPostStationStartModeColour;
           DrawSignalPost(S);
-          Log('G S=' + IntToStr(S) + ' route-holding released');
+          Log('A S=' + IntToStr(S) + ' route-holding released');
           Signals[S].Signal_TRSReleased := True;
         END ELSE BEGIN
           { If we're in the middle of processing a route, don't start another one }

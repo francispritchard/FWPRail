@@ -1428,7 +1428,7 @@ BEGIN
     SaveSignalsCurrentState;
 
     IF NOT SystemOnline THEN
-      Log('GG Auto mode turned off - clock stopped')
+      Log('AG Auto mode turned off - clock stopped')
     ELSE BEGIN
       StopLocos('auto mode turn off');
       IF User THEN
@@ -1436,7 +1436,7 @@ BEGIN
       ELSE
         DebugStr := 'Auto mode turned off by system';
       DebugStr := DebugStr + ' - clock stopped, and all locos stopped';
-      Log('GG ' + DebugStr);
+      Log('AG ' + DebugStr);
     END;
   EXCEPT
     ON E : Exception DO
@@ -1460,17 +1460,17 @@ BEGIN
       { First a replay command - this doesn't use Log, as we don;t want the time etc. }
       WriteLn(LargeLogFile, '{Replay Write}');
 
-      Log('GG AutoOn Button pressed - clock started')
+      Log('AG AutoOn Button pressed - clock started')
     END ELSE BEGIN
       IF SystemOnline THEN BEGIN
-        Log('GG AutoOn Button pressed - clock restarted')
+        Log('AG AutoOn Button pressed - clock restarted')
       END ELSE BEGIN
         StartLocos(Restart);
-        Log('GG AutoOn Button pressed - clock restarted, and all locos restarted');
+        Log('AG AutoOn Button pressed - clock restarted, and all locos restarted');
       END;
 
       RestoreAllSignalsToPreviousState;
-      Log('G All signals now set to previous state');
+      Log('A All signals now set to previous state');
     END;
     LocosStopped := False;
     IF Restart THEN
@@ -4033,7 +4033,7 @@ VAR
 
 BEGIN
   TRY
-    Log('G CHECKING LINE CONNECTIONS ARE OK');
+    Log('A CHECKING LINE CONNECTIONS ARE OK');
 
     FOR L := 0 TO High(Lines) DO BEGIN
       WITH Lines[L] DO BEGIN
@@ -4272,7 +4272,7 @@ CONST
   ExitProgram = True;
 
 BEGIN
-  Log('G Shutdown requested by user selecting exit menu item');
+  Log('A Shutdown requested by user selecting exit menu item');
   ShutDownProgram(UnitRef, 'MainWindowExitClick');
 END; { MainWindowExitClick }
 
@@ -4324,15 +4324,15 @@ BEGIN
             THEN BEGIN
               ResumeOperations(OK);
               IF OK THEN
-                Log('GG Operations resumed')
+                Log('AG Operations resumed')
               ELSE
-                Log('GG Operations not resumed');
+                Log('AG Operations not resumed');
               InvalidateScreen(UnitRef, 'ApplicationMessage');
               Handled := True;
             END;
           END ELSE BEGIN
             StopOperations;
-            Log('GG ' + DescribeKey(Msg.Charcode, ShiftState) + ': all operations stopped');
+            Log('AG ' + DescribeKey(Msg.Charcode, ShiftState) + ': all operations stopped');
             Handled := True;
           END;
         END;
@@ -4411,16 +4411,16 @@ BEGIN
 //              THEN BEGIN
 //                ResumeOperations(OK);
 //                IF OK THEN
-//                  Log('GG Operations resumed')
+//                  Log('AG Operations resumed')
 //                ELSE
-//                  Log('GG Operations not resumed');
+//                  Log('AG Operations not resumed');
 //                InvalidateScreen(UnitRef, 'ApplicationMessage');
 //                ApplicationMessageShiftState := [];
 //                Handled := True;
 //              END;
 //            END ELSE BEGIN
 //              StopOperations;
-//              Log('GG ' + DescribeKey(Msg.wParam, ApplicationMessageShiftState) + ': all operations stopped');
+//              Log('AG ' + DescribeKey(Msg.wParam, ApplicationMessageShiftState) + ': all operations stopped');
 //              Handled := True;
 //            END;
 //          END;
@@ -4622,12 +4622,12 @@ END; { MainWindowResize }
 PROCEDURE TFWPRailMainWindow.MainWindowClose(Sender: TObject; VAR Action: TCloseAction);
 BEGIN
   TRY
-    Log('G Shutdown requested by user clicking on exit button or pressing Alt F4');
+    Log('A Shutdown requested by user clicking on exit button or pressing Alt F4');
     IF MessageDlg('Close FWP''s Railway Program?', mtConfirmation, [mbYes, mbNo], 0) = mrYes THEN BEGIN
       Action := caFree;
       ShutDownProgram(UnitRef, 'MainWindowClose');
     END ELSE BEGIN
-      Log('G Shutdown request cancelled by user {BLANKLINEBEFORE}');
+      Log('A Shutdown request cancelled by user {BLANKLINEBEFORE}');
       Action := caNone;
     END;
   EXCEPT
@@ -4782,9 +4782,9 @@ VAR
 BEGIN
   ResumeOperations(OK);
   IF OK THEN
-    Log('GG Operations resumed')
+    Log('AG Operations resumed')
   ELSE
-    Log('GG Operations not resumed');
+    Log('AG Operations not resumed');
   InvalidateScreen(UnitRef, 'MainRunMenuResumeOperationsClick');
 END; { MainRunMenuResumeOperationsClick }
 
@@ -7502,10 +7502,10 @@ PROCEDURE TFWPRailMainWindow.GeneralPopupListLocomotivesClick(Sender: TObject);
 BEGIN
   IF LocoUtilsWindow.Visible THEN BEGIN
     LocoUtilsWindow.Visible := False;
-    Log('G "?" key hides List of Locos');
+    Log('A "?" key hides List of Locos');
   END ELSE BEGIN
     LocoUtilsWindow.Visible := True;
-    Log('G "?" key makes List of Locos visible');
+    Log('A "?" key makes List of Locos visible');
   END;
 END; { GeneralPopupListLocomotivesClick }
 
@@ -7895,13 +7895,13 @@ BEGIN { Main drawing procedure }
                 THEN BEGIN
                   ScreenMode := DefaultWindowedScreenMode;
                   WriteToStatusBarPanel(StatusBarPanel2, 'Screen restored to default size');
-                  Log('G Main window restored to default size');
+                  Log('A Main window restored to default size');
                 END;
                 ThinLineMode := True;
                 Borderstyle := bsSizeable;
                 IF NOT MainWindowStatusBar.Visible THEN
                   MainWindowStatusBar.Show;
-                Log('G Main window set to user-defined size');
+                Log('A Main window set to user-defined size');
 
                 IF WindowsTaskbarDisabled THEN BEGIN
 
@@ -7922,7 +7922,7 @@ BEGIN { Main drawing procedure }
                 Height := MulDiv(Screen.WorkAreaHeight, 80, 100);
                 IF NOT MainWindowStatusBar.Visible THEN
                   MainWindowStatusBar.Show;
-                Log('G Main window set to default size');
+                Log('A Main window set to default size');
 
                 IF WindowsTaskbarDisabled THEN BEGIN
                   { Find handle of TASKBAR }
@@ -7947,7 +7947,7 @@ BEGIN { Main drawing procedure }
                 Left := 0;
                 IF MainWindowStatusBar.Visible THEN
                   MainWindowStatusBar.Hide;
-                Log('G Main window now full screen');
+                Log('A Main window now full screen');
                 Width := Screen.DeskTopWidth;
 
                 IF NOT WindowsTaskbarDisabled THEN BEGIN
@@ -7972,7 +7972,7 @@ BEGIN { Main drawing procedure }
                 Height := Screen.DeskTopHeight;
                 IF NOT MainWindowStatusBar.Visible THEN
                   MainWindowStatusBar.Show;
-                Log('G Main window now full screen with border');
+                Log('A Main window now full screen with border');
               END;
           END; {CASE}
         END;
@@ -8040,7 +8040,7 @@ BEGIN { Main drawing procedure }
           ReadInSignalDataFromDatabase(NOT NewSignalData);
           ReadInRouteingExceptionsFromDatabase;
           IF NOT LocationLinesInitialised THEN BEGIN
-            Log('G INITIALISING LOCATION LINES {BLANKLINEBEFORE}');
+            Log('A INITIALISING LOCATION LINES {BLANKLINEBEFORE}');
             InitialiseLocationLines;
             LocationLinesInitialised := True;
           END;
@@ -8085,7 +8085,7 @@ BEGIN { Main drawing procedure }
           WorkingTimetableOK := False;
           DiagramsOK := False;
           IF NOT WorkingTimetableMode THEN
-            Log('GG Starting without the working timetable - WorkingTimetableMode is not set {BLANKLINEBEFORE}')
+            Log('AG Starting without the working timetable - WorkingTimetableMode is not set {BLANKLINEBEFORE}')
           ELSE BEGIN
             LoadWorkingTimetableFromDatabase(WorkingTimetableMissing, WorkingTimetableOK);
             IF NOT WorkingTimetableMissing
@@ -8097,10 +8097,10 @@ BEGIN { Main drawing procedure }
           END;
 
           IF WorkingTimetableOK THEN
-            Log('GG Working timetable loaded - so starting without loading the diagrams from disc {BLANKLINEBEFORE}')
+            Log('AG Working timetable loaded - so starting without loading the diagrams from disc {BLANKLINEBEFORE}')
           ELSE
             IF NOT StartWithDiagrams THEN BEGIN
-              Log('GG Starting without the diagrams loaded - StartWithDiagrams is not set {BLANKLINEBEFORE}');
+              Log('AG Starting without the diagrams loaded - StartWithDiagrams is not set {BLANKLINEBEFORE}');
               CheckOccupiedLinesAndDiagrams;
             END ELSE BEGIN
               InitialiseDiagramsUnit;
@@ -8129,7 +8129,7 @@ BEGIN { Main drawing procedure }
                   ShutDownProgram(UnitRef, 'DrawMap');
                 END;
               END ELSE
-                Log('G Diagrams loaded - StartWithoutDiagrams is not set');
+                Log('A Diagrams loaded - StartWithoutDiagrams is not set');
             END;
 
           DiagramsCheckingInProgress := False;
@@ -8470,10 +8470,10 @@ VAR
       StationStartModeSetUpTime := 0;
       IF StationStartMode THEN BEGIN
         StationStartMode := False;
-        Log('GG Station Start Mode = off');
+        Log('AG Station Start Mode = off');
       END ELSE BEGIN
         StationStartMode := True;
-        Log('G! Station Start Mode = on');
+        Log('A! Station Start Mode = on');
         { and set all button presses to false }
 //        FOR Location := FirstMainPlatformLocation TO LastMainPlatformLocation DO
 //          MainPlatformPlungers[Location].TRSPlunger_Pressed := False;
@@ -8738,7 +8738,6 @@ VAR
   ReceiverHandle : THandle;
   ReceiverTypeString : PWideChar;
   Res : Integer;
-  TimeStr : String;
 
 BEGIN
   ReceiverTypeString := 'TWatchdogWindow';

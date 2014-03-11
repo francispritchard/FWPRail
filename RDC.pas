@@ -393,7 +393,7 @@ BEGIN
 
     WriteData(RailDriverDeviceHandle, DataToBeWritten[0]);
     IF LEDLongStr = '' THEN
-      Log('G LED: ' + LEDStr);
+      Log('A LED: ' + LEDStr);
   END;
 END; { WriteToRailDriverLEDs }
 
@@ -692,7 +692,7 @@ BEGIN
         10:
           Train_DesiredSpeedInMPH := MPH120; { *** }
       ELSE
-        Log('GG Funny RegulatorPos from RD: ' + IntToStr(RegulatorPos));
+        Log('AG Funny RegulatorPos from RD: ' + IntToStr(RegulatorPos));
       END; {CASE}
     END;
 
@@ -702,7 +702,7 @@ BEGIN
       { emergency brake }
       IF PresentSpeedNum <> 0 THEN BEGIN
         SetLenzSpeed(Train_LocoChip, Train_DoubleHeaderLocoChip, 0, Train_CurrentDirection, QuickStop, OK);
-        Log('G Emergency brake applied');
+        Log('A Emergency brake applied');
         EmergencyBrakeApplied := True;
       END;
     END ELSE BEGIN
@@ -723,7 +723,7 @@ BEGIN
         Train_BrakePos := MulDiv(Num, 6, Range);
         IF NumberOfSecondsToDecelerate <> (Train_BrakePos + 1) THEN BEGIN
           NumberOfSecondsToDecelerate := Train_BrakePos + 1;
-          Log('GG Braking: NumberOfSecondsToDecelerate = ' + FloatToStr(NumberOfSecondsToDecelerate)]);
+          Log('AG Braking: NumberOfSecondsToDecelerate = ' + FloatToStr(NumberOfSecondsToDecelerate)]);
         END;
       END;
     END;
@@ -773,7 +773,7 @@ BEGIN
   IF NOT RailDriverInitialised THEN BEGIN
     RailDriverWindow.RailDriverTimer.Enabled := False;
     RDCMode := False;
-    Log('GG RDC Mode turned off');
+    Log('AG RDC Mode turned off');
     WriteToRailDriverLEDs('');
   END;
 END; { CloseCalibrationWindow }
@@ -1093,7 +1093,7 @@ BEGIN
         WriteToRailDriverLEDs('  .');
         Visible := False;
         SendToBack;
-        Log('GG RailDriver console initialised');
+        Log('AG RailDriver console initialised');
       END;
     END;
   END; {WITH}
@@ -1844,7 +1844,7 @@ BEGIN
   IF Length(LEDLongStr) > 0 THEN BEGIN
     { Add three spaces at the end, to clear the display when the string has scrolled }
     IF NOT LEDLongStrInitialised THEN BEGIN
-      Log('G LED scroll: ' + LEDLongStr);
+      Log('A LED scroll: ' + LEDLongStr);
       LEDLongStr := StringOfChar(' ', 3) + LEDLongStr;
       LEDLongStr := LEDLongStr + StringOfChar(' ', 3);
       LEDLongStrInitialised := True;
@@ -1967,9 +1967,9 @@ BEGIN
         ResetButton(39);
         ResetButton(41);
         IF LocoSelected THEN
-          Log('GG Loco control by RDC cancelled')
+          Log('AG Loco control by RDC cancelled')
         ELSE
-          Log('GG Loco selection by RDC cancelled');
+          Log('AG Loco selection by RDC cancelled');
         WriteToRailDriverLEDs('  .');
         IF LocoSelectionInProgress THEN BEGIN
           LocoChipByButton := '';
@@ -2000,7 +2000,7 @@ BEGIN
               LEDAppendString := '';
               IF LocoChipByButton = '' THEN BEGIN
                 { no number entered }
-                Log('GG Loco selection by RDC cancelled');
+                Log('AG Loco selection by RDC cancelled');
                 WriteToRailDriverLEDs('  .');
                 LocoSelectionInProgress := False;
               END ELSE BEGIN
@@ -2017,11 +2017,11 @@ BEGIN
                 END; {WHILE}
 
                 IF NOT LocoExists THEN BEGIN
-                  Log('GG Loco ' + LocoChipByButton + ' does not exist' + ' - loco selection by RDC cancelled');
+                  Log('AG Loco ' + LocoChipByButton + ' does not exist' + ' - loco selection by RDC cancelled');
                   WriteToRailDriverLEDs('err');
                   LocoSelectionInProgress := False;
                 END ELSE BEGIN
-                  Log('GG Loco ' + LocoChipByButton + ' selected');
+                  Log('AG Loco ' + LocoChipByButton + ' selected');
 
                   { see if the loco is already }
 
@@ -2150,7 +2150,7 @@ BEGIN
     AND TrainBrakeMinCalibrated AND TrainBrakeMaxCalibrated
     THEN BEGIN
       WriteToRailDriverLEDs('  .');
-      Log('GG RailDriver console initialised');
+      Log('AG RailDriver console initialised');
       RailDriverInitialised := True;
       RailDriverReady := False;
     END ELSE
@@ -2182,7 +2182,7 @@ BEGIN
   IF NOT OK THEN
     Action := caNone
   ELSE BEGIN
-    Log('GG RailDriver window closed - RDC Mode off');
+    Log('AG RailDriver window closed - RDC Mode off');
     RDCMode := False;
   END;
 END; { RailDriverWindowClose }

@@ -118,7 +118,7 @@ BEGIN
   WasDayTime := DayTime;
 
   WriteTimeToStatusBar(TimeStr);
-  Log('GG Time set to ' + TimeStr);
+  Log('AG Time set to ' + TimeStr);
 END; { SetCurrentRailwayTime }
 
 FUNCTION DayTime : Boolean;
@@ -145,9 +145,9 @@ BEGIN
         RailwayTimeInterval := Normal;
         ClockWindow.GetTimeTimer.Interval := 220;
         IF NOT ClockWindow.GetTimeTimer.Enabled THEN
-          Log('GG Time now running normally')
+          Log('AG Time now running normally')
         ELSE
-          Log('GG Time set to run normally');
+          Log('AG Time set to run normally');
       END;
     Slower:
       BEGIN
@@ -155,27 +155,27 @@ BEGIN
         RailwayTimeInterval := Slower;
         ClockWindow.GetTimeTimer.Interval := 1000;
         IF NOT ClockWindow.GetTimeTimer.Enabled THEN
-          Log('GG Time now running slower')
+          Log('AG Time now running slower')
         ELSE
-          Log('GG Time set to run slower');
+          Log('AG Time set to run slower');
       END;
     Faster:
       BEGIN
         RailwayTimeInterval := Faster;
         ClockWindow.GetTimeTimer.Interval := 80;
         IF NOT ClockWindow.GetTimeTimer.Enabled THEN
-          Log('GG Time now running faster')
+          Log('AG Time now running faster')
         ELSE
-          Log('GG Time set to run faster');
+          Log('AG Time set to run faster');
       END;
     Fastest:
       BEGIN
         RailwayTimeInterval := Fastest;
         ClockWindow.GetTimeTimer.Interval := 1;
         IF NOT ClockWindow.GetTimeTimer.Enabled THEN
-          Log('GG Time now running at its fastest')
+          Log('AG Time now running at its fastest')
         ELSE
-          Log('GG Time set to run at its fastest');
+          Log('AG Time set to run at its fastest');
       END;
   END; {CASE}
 END; { SetRailwayTimeInterval }
@@ -206,32 +206,32 @@ BEGIN
   TRY
     IF Caption = SetCurrentRailwayTimeCaption THEN BEGIN
       SetCurrentRailwayTimeAndDayOfTheWeek(ClockWindow.Clock.Time);
-      Log('G Current railway time set in ClockWindow to ' + TimeToHMStr(CurrentRailwayTime));
+      Log('A Current railway time set in ClockWindow to ' + TimeToHMStr(CurrentRailwayTime));
       ClockWindow.Visible := False;
     END ELSE
       IF Caption = SetProgramStartTimeCaption THEN BEGIN
         ProgramStartTime := ClockWindow.Clock.Time;
-        Log('G Program Start Time set in ClockWindow to ' + TimeToHMStr(ProgramStartTime));
+        Log('A Program Start Time set in ClockWindow to ' + TimeToHMStr(ProgramStartTime));
         { If the clock hasn't started running yet, adjust the current program start time }
         IF NOT AutoModeInitiated THEN BEGIN
           SetCurrentRailwayTimeAndDayOfTheWeek(ProgramStartTime);
-          Log('GG New Program Start Time adopted as Auto Mode has not yet been initiated');
+          Log('AG New Program Start Time adopted as Auto Mode has not yet been initiated');
         END;
         ClockWindow.Visible := False;
       END ELSE
         IF Caption = SetDaylightStartTimeCaption THEN BEGIN
           DaylightStartTimeStr := TimeToHMSStr(ClockWindow.Clock.Time);
-          Log('G Daylight Start Time set in ClockWindow to ' + DaylightStartTimeStr);
+          Log('A Daylight Start Time set in ClockWindow to ' + DaylightStartTimeStr);
           ClockWindow.Visible := False;
         END ELSE
           IF Caption = SetDaylightEndTimeCaption THEN BEGIN
             { test to see if this is earlier then the daylight start time }
             IF StrToTime(DaylightStartTimeStr) > ClockWindow.Clock.Time THEN BEGIN
               ShowMessage('Daylight End Time "' + TimeToHMSStr(ClockWindow.Clock.Time) + '" cannot be earlier than Daylight Start Time "' + DaylightStartTimeStr + '"');
-              Log('G Daylight Start Time "' + TimeToHMSStr(ClockWindow.Clock.Time) + ' cannot be earlier than Program Start Time "' + TimeToHMSStr(ProgramStartTime));
+              Log('A Daylight Start Time "' + TimeToHMSStr(ClockWindow.Clock.Time) + ' cannot be earlier than Program Start Time "' + TimeToHMSStr(ProgramStartTime));
             END ELSE BEGIN
               DaylightEndTimeStr := TimeToHMSStr(ClockWindow.Clock.Time);
-              Log('G Daylight End Time set in ClockWindow to ' + DaylightEndTimeStr);
+              Log('A Daylight End Time set in ClockWindow to ' + DaylightEndTimeStr);
               ClockWindow.Visible := False;
             END;
           END;
@@ -279,11 +279,11 @@ BEGIN
       END; {WHILE}
       IF DayTimeSetByUser THEN BEGIN
         DayTimeSetByUser := False;
-        Log('GG DayTimeSetByUser now off');
+        Log('AG DayTimeSetByUser now off');
       END ELSE
         IF NightTimeSetByUser THEN BEGIN
           NightTimeSetByUser := False;
-          Log('GG NightTimeSetByUser now off');
+          Log('AG NightTimeSetByUser now off');
         END;
     END;
 

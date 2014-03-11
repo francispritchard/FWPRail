@@ -1768,7 +1768,7 @@ BEGIN
   LocoUtilsWindow.Visible := True;
   LocoUtilsWindow.BringToFront;
   ListLocosByChip;
-  Log('G List of locos made visible');
+  Log('A List of locos made visible');
 
   { The tag is used to tell the LocoDialogue where the request is coming from, so it can write the loco number back to the correct place, i.e. the LocoNum or DHLLocoNum
     edit control.
@@ -1848,7 +1848,7 @@ BEGIN
   LocoUtilsWindow.Visible := True;
   LocoUtilsWindow.BringToFront;
   ListLocosByChip;
-  Log('G List of locos made visible');
+  Log('A List of locos made visible');
 
   { The tag is used to tell the LocoDialogue where the request is coming from, so it can write the loco number back to the correct place, i.e. the LocoNum or DHLLocoNum
     edit control.

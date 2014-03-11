@@ -378,79 +378,79 @@ BEGIN
   IF LogsCurrentlyKept THEN
     InitialiseLogFiles;
 
-  Log('G Startup Detail:');
+  Log('A Startup Detail:');
 
   IF AllRouteDebuggingMode THEN
-    Log('GG All Route Debugging Mode ON' + '{INDENT=2}');
+    Log('AG All Route Debugging Mode ON' + '{INDENT=2}');
 
   IF NOT AnonymousOccupationMode THEN
-    Log('GG Anonymous Occupation Mode OFF' + '{INDENT=2}');
+    Log('AG Anonymous Occupation Mode OFF' + '{INDENT=2}');
 
   IF DebuggingMode THEN
-    Log('GG Debugging Mode ON' + '{INDENT=2}');
+    Log('AG Debugging Mode ON' + '{INDENT=2}');
 
   IF FeedbackDebuggingMode THEN
-    Log('GG Feedback Debugging Mode ON' + '{INDENT=2}');
+    Log('AG Feedback Debugging Mode ON' + '{INDENT=2}');
 
   IF LineDebuggingMode THEN
-    Log('GG Line Debugging Mode ON' + '{INDENT=2}');
+    Log('AG Line Debugging Mode ON' + '{INDENT=2}');
 
   IF LockDebuggingMode THEN
-    Log('GG Lock Debugging Mode ON' + '{INDENT=2}');
+    Log('AG Lock Debugging Mode ON' + '{INDENT=2}');
 
   IF NOT LockingMode THEN
-    Log('GG Locking State OFF' + '{INDENT=2}');
+    Log('AG Locking State OFF' + '{INDENT=2}');
 
   IF LocoSpeedTimingMode THEN
-    Log('GG Loco Speed Timing ON' + '{INDENT=2}');
+    Log('AG Loco Speed Timing ON' + '{INDENT=2}');
 
   IF NOT LogsCurrentlyKept THEN
-    Log('GG LogsCurrentlyKept is OFF' + '{INDENT=2}');
+    Log('AG LogsCurrentlyKept is OFF' + '{INDENT=2}');
 
   IF LogCurrentTimeMode THEN
-    Log('GG LogCurrentTimeMode is ON' + '{INDENT=2}');
+    Log('AG LogCurrentTimeMode is ON' + '{INDENT=2}');
 
   IF NOT MakeSoundWhenDebugWindowBoldTextAppears THEN
-    Log('GG Make Sound When Debug Window Bold Text Appears OFF' + '{INDENT=2}');
+    Log('AG Make Sound When Debug Window Bold Text Appears OFF' + '{INDENT=2}');
 
   IF RDCMode THEN
-    Log('GG RDC Mode ON' + '{INDENT=2}');
+    Log('AG RDC Mode ON' + '{INDENT=2}');
 
   IF ReadOutTCInFull THEN
-    Log('GG Read Out TC In Full ON' + '{INDENT=2}')
+    Log('AG Read Out TC In Full ON' + '{INDENT=2}')
   ELSE
     IF ReadOutTCOnce THEN
-      Log('GG Read Out TC Once ON' + '{INDENT=2}')
+      Log('AG Read Out TC Once ON' + '{INDENT=2}')
     ELSE
       IF ReadOutDecoderNumber THEN
-        Log('GG Read Out Decoder Number OFF' + '{INDENT=2}')
+        Log('AG Read Out Decoder Number OFF' + '{INDENT=2}')
       ELSE
         IF ReadOutAdjacentSignalNumber THEN
-          Log('GG Read Out Adjacent Signal Number OFF' + '{INDENT=2}');
+          Log('AG Read Out Adjacent Signal Number OFF' + '{INDENT=2}');
 
   IF RecordingMonitorScreens THEN
-    Log('GG Recording Monitor Screens is ON' + '{INDENT=2}');
+    Log('AG Recording Monitor Screens is ON' + '{INDENT=2}');
 
   IF NOT RecordLineDrawingMode THEN
-    Log('GG Record Line Drawing Mode OFF' + '{INDENT=2}');
+    Log('AG Record Line Drawing Mode OFF' + '{INDENT=2}');
 
   IF RouteBacktrackDebuggingMode THEN
-    Log('GG Route Backtrack Debugging Mode ON' + '{INDENT=2}');
+    Log('AG Route Backtrack Debugging Mode ON' + '{INDENT=2}');
 
   IF RouteDebuggingMode THEN
-    Log('GG Route Debugging Mode ON' + '{INDENT=2}');
+    Log('AG Route Debugging Mode ON' + '{INDENT=2}');
 
   IF RouteDrawingMode THEN
-    Log('GG Route Drawing Mode ON' + '{INDENT=2}');
+    Log('AG Route Drawing Mode ON' + '{INDENT=2}');
 
   IF StationStartMode THEN
-    Log('GG Station Start Mode ON' + '{INDENT=2}');
+    Log('AG Station Start Mode ON' + '{INDENT=2}');
 
   IF SystemInitiallySetOffline THEN
-    Log('GG System Initially Offline ON' + '{INDENT=2}');
+    Log('AG System Initially Offline ON' + '{INDENT=2}');
 
   IF TestingMode THEN
-    Log('GG Testing Mode ON' + '{INDENT=2}');
+    Log('AG Testing Mode ON' + '{INDENT=2}');
 
   { Let the user know if the system is offline or in some other odd state at startup }
   IF SystemStatusStr <> '' THEN BEGIN
@@ -467,10 +467,10 @@ BEGIN
   WITH Startup_DebuggingCheckBox DO BEGIN
     IF Checked THEN BEGIN
       DebuggingMode := True;
-      Log('GG Debugging = ON');
+      Log('AG Debugging = ON');
     END ELSE BEGIN
       DebuggingMode := False;
-      Log('GG Debugging = OFF');
+      Log('AG Debugging = OFF');
     END;
   END; {WITH}
 END; { Startup_DebuggingCheckBoxClick }
@@ -480,10 +480,10 @@ BEGIN
   WITH Startup_FeedbackDebuggingCheckBox DO BEGIN
     IF Checked THEN BEGIN
       FeedbackDebuggingMode := True;
-      Log('GG Feedback debugging = ON');
+      Log('AG Feedback debugging = ON');
     END ELSE BEGIN
       FeedbackDebuggingMode := False;
-      Log('GG Feedback debugging = OFF');
+      Log('AG Feedback debugging = OFF');
     END;
   END; {WITH}
 END; { Startup_FeedbackDebuggingCheckBoxClick }
@@ -493,7 +493,7 @@ BEGIN
   WITH Startup_LineDebuggingCheckBox DO BEGIN
     IF Checked THEN BEGIN
       LineDebuggingMode := True;
-      Log('GG Line debugging = ON');
+      Log('AG Line debugging = ON');
 
       { mutually exclusive, as it gets v. confusing! }
       LockDebuggingMode := False;
@@ -503,7 +503,7 @@ BEGIN
       Startup_PointDebuggingCheckBox.State := cbUnchecked;
     END ELSE BEGIN
       LineDebuggingMode := False;
-      Log('GG Line debugging = OFF');
+      Log('AG Line debugging = OFF');
     END;
   END; {WITH}
 END; { Startup_LineDebuggingCheckBoxClick }
@@ -513,7 +513,7 @@ BEGIN
   WITH Startup_LockDebuggingCheckBox DO BEGIN
     IF Checked THEN BEGIN
       LockDebuggingMode := True;
-      Log('GG Lock debugging = ON');
+      Log('AG Lock debugging = ON');
 
       { mutually exclusive, as it gets v. confusing! }
       LineDebuggingMode := False;
@@ -523,7 +523,7 @@ BEGIN
       Startup_PointDebuggingCheckBox.State := cbUnchecked;
     END ELSE BEGIN
       LockDebuggingMode := False;
-     Log('GG Lock debugging = OF');
+     Log('AG Lock debugging = OF');
     END;
   END; {WITH}
 END; { Startup_LockDebuggingCheckBoxClick }
@@ -533,7 +533,7 @@ BEGIN
   WITH Startup_PointDebuggingCheckBox DO BEGIN
     IF Checked THEN BEGIN
       PointDebuggingMode := True;
-      Log('GG Point debugging = ON');
+      Log('AG Point debugging = ON');
 
       { mutually exclusive, as it gets v. confusing! }
       LineDebuggingMode := False;
@@ -543,7 +543,7 @@ BEGIN
       Startup_LockDebuggingCheckBox.State := cbUnchecked;
     END ELSE BEGIN
       PointDebuggingMode := False;
-      Log('GG Point debugging = OFF');
+      Log('AG Point debugging = OFF');
     END;
   END; {WITH}
 END; { Startup_PointDebuggingCheckBoxClick }
@@ -553,10 +553,10 @@ BEGIN
   WITH Startup_RouteDebuggingCheckBox DO BEGIN
     IF Checked THEN BEGIN
       RouteDebuggingMode := True;
-      Log('GG Route debugging = ON');
+      Log('AG Route debugging = ON');
     END ELSE BEGIN
       RouteDebuggingMode := False;
-      Log('GG Route debugging = OFF');
+      Log('AG Route debugging = OFF');
     END;
   END; {WITH}
 END; { Startup_RouteDebuggingCheckBoxClick }
@@ -566,10 +566,10 @@ BEGIN
   WITH Startup_RouteBacktrackDebuggingCheckBox DO BEGIN
     IF Checked THEN BEGIN
       RouteBacktrackDebuggingMode := True;
-      Log('GG Route backtrack debugging = ON');
+      Log('AG Route backtrack debugging = ON');
     END ELSE BEGIN
       RouteBacktrackDebuggingMode := False;
-      Log('GG Route backtrack debugging = OFF');
+      Log('AG Route backtrack debugging = OFF');
     END;
   END; {WITH}
 END; { Startup_RouteBacktrackDebuggingCheckBoxClick }
@@ -579,10 +579,10 @@ BEGIN
   WITH Startup_AllRouteDebuggingCheckBox DO BEGIN
     IF Checked THEN BEGIN
       AllRouteDebuggingMode := True;
-      Log('GG All route debugging = ON');
+      Log('AG All route debugging = ON');
     END ELSE BEGIN
       AllRouteDebuggingMode := False;
-      Log('GG All route debugging = OFF');
+      Log('AG All route debugging = OFF');
     END;
   END; {WITH}
 END; { Startup_AllRouteDebuggingCheckBoxClick }
@@ -592,10 +592,10 @@ BEGIN
   WITH Startup_RouteDrawingCheckBox DO BEGIN
     IF Checked THEN BEGIN
       RouteDrawingMode := True;
-      Log('GG Route drawing = ON');
+      Log('AG Route drawing = ON');
     END ELSE BEGIN
       RouteDrawingMode := False;
-      Log('GG Route drawing = OFF');
+      Log('AG Route drawing = OFF');
     END;
   END; {WITH}
 END; { Startup_RouteDrawingCheckBoxClick }
@@ -605,10 +605,10 @@ BEGIN
   WITH Startup_TestingCheckBox DO BEGIN
     IF Checked THEN BEGIN
       TestingMode := True;
-      Log('GG Testing = ON');
+      Log('AG Testing = ON');
     END ELSE BEGIN
       TestingMode := False;
-      Log('GG Testing = OFF');
+      Log('AG Testing = OFF');
     END;
   END; {WITH}
 END; { Startup_TestingCheckBoxClick }
@@ -618,10 +618,10 @@ BEGIN
   WITH Startup_RecordLineDrawingCheckBox DO BEGIN
     IF Checked THEN BEGIN
       RecordLineDrawingMode := True;
-      Log('GG Record Line Drawing = ON');
+      Log('AG Record Line Drawing = ON');
     END ELSE BEGIN
       RecordLineDrawingMode := False;
-      Log('GG Record Line Drawing = OF');
+      Log('AG Record Line Drawing = OF');
     END;
   END; {WITH}
 END; { Startup_RecordLineDrawingCheckBoxClick }
@@ -631,10 +631,10 @@ BEGIN
   WITH Startup_LockingCheckBox DO BEGIN
     IF Checked THEN BEGIN
       LockingMode := False;
-      Log('GG Locking = OFF');
+      Log('AG Locking = OFF');
     END ELSE BEGIN
       LockingMode := True;
-      Log('GG Locking = ON');
+      Log('AG Locking = ON');
     END;
   END; {WITH}
 END; { Startup_LockingCheckBoxClick }
@@ -644,10 +644,10 @@ BEGIN
   WITH Startup_LogsKeptCheckBox DO BEGIN
     IF Checked THEN BEGIN
       LogsCurrentlyKept := True;
-      Log('GG Logs Kept= ON');
+      Log('AG Logs Kept= ON');
     END ELSE BEGIN
       LogsCurrentlyKept := True;
-      Log('GG Logs Kept = OFF');
+      Log('AG Logs Kept = OFF');
     END;
   END; {WITH}
 END; { LogsKeptCheckBoxClick }

@@ -243,9 +243,9 @@ BEGIN
       IF SaveSystemOnlineState THEN BEGIN
         SetSystemOnline(OK);    { what should we do with OK? ************* }
         IF OK THEN
-          Log('G Edit mode off so system now online again')
+          Log('A Edit mode off so system now online again')
         ELSE
-          Log('G Edit mode off but system failed to go online');
+          Log('A Edit mode off but system failed to go online');
       END;
 
       WITH EditWindow DO BEGIN

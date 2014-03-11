@@ -1322,7 +1322,7 @@ PROCEDURE TLocoUtilsWindow.LocoUtilsLocoChipButtonKeyDown(Sender: TObject; VAR K
 BEGIN
   IF Key = vk_Escape THEN BEGIN
     LocoUtilsWindow.Hide;
-    Log('G List of locos hidden');
+    Log('A List of locos hidden');
   END;
 END; { LocoListChipButtonKeyDown }
 

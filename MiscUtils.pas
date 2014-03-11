@@ -914,7 +914,7 @@ VAR
         ' ':
           { ignore - this is for messages that we may at some stage want to log }
           ;
-        'G', 'g', '$':
+        'A', 'a', '$':
           { general happenings of relevance to all logs - includes '$' for quick debugging as it is easy to find in the logs }
           BEGIN
             WriteLn(LargeLogFile, LogStr);
@@ -1488,8 +1488,11 @@ BEGIN { WriteToLogFile }
         END;
       END;
     END;
-  END;
-//  Finalize(Args);
+  EXCEPT {TRY}
+    ON E : Exception DO
+      { Cannot call Log here as we are already in it }
+      Debug('EG WriteToLogFile: ' + E.ClassName +' error raised, with message: '+ E.Message);
+  END; {TRY}
 END; { WriteToLogFile }
 
 PROCEDURE Log(Str : String);
@@ -2859,7 +2862,7 @@ BEGIN
 
   IF (InfoSize = 0) THEN BEGIN
     LastError := GetLastError;
-    Log('G ' + Format('GetFileVersionInfo failed: (%d) %s', [LastError, SysErrorMessage(LastError)]));
+    Log('A ' + Format('GetFileVersionInfo failed: (%d) %s', [LastError, SysErrorMessage(LastError)]));
     Exit;
   END ELSE BEGIN
     GetMem(VerBuf, InfoSize);
@@ -2900,7 +2903,7 @@ BEGIN
   VerInfoSize := GetFileVersionInfoSize(PChar(AFileName), Dummy);
   IF VerInfoSize = 0 THEN BEGIN
     LastError := GetLastError;
-    Log('G ' + Format('GetFileVersionInfo failed: (%d) %s', [LastError, SysErrorMessage(LastError)]));
+    Log('A ' + Format('GetFileVersionInfo failed: (%d) %s', [LastError, SysErrorMessage(LastError)]));
     Exit;
   END;
 
@@ -4684,7 +4687,7 @@ BEGIN
   CloseFile(OutputFile);
   {$I+}
   IF IOError(Filename, IOResult, ErrorMsg) THEN
-    Log('GG Error in closing file ' + Filename + ': ' + ErrorMsg);
+    Log('AG Error in closing file ' + Filename + ': ' + ErrorMsg);
 END; { CloseOutputFile }
 
 FUNCTION DirectionToStr{1}(Dir : DirectionType) : String; Overload;
@@ -5350,7 +5353,7 @@ BEGIN
 
   { Log the text of the dialogue, converting CRLFs before we write out the string }
   DebugStr := 'MessageDialogueWithDefault: "' + DialogueText + '"';
-  Log('G MessageDialogueWithDefault: "' + DebugStr + '"' + '{INDENT=0} {WRAP=SCREENWIDTH}');
+  Log('A MessageDialogueWithDefault: "' + DebugStr + '"' + '{INDENT=0} {WRAP=SCREENWIDTH}');
 
   { show the dialogue and obtain the result }
   Result := Dialogue.ShowModal;
@@ -5378,7 +5381,7 @@ BEGIN
     mrNoToAll + 1:
       DebugStr := DebugStr + 'Yes to All button';
   END; {CASE}
-  Log('G ' + DebugStr + ' [' + IntToStr(Dialogue.ModalResult) + ']');
+  Log('A ' + DebugStr + ' [' + IntToStr(Dialogue.ModalResult) + ']');
   Dialogue.Free;
 
   IF StopTimer THEN
@@ -5436,7 +5439,7 @@ BEGIN
   END; {FOR}
 
   IF ButtonCount <> Length(ButtonText) THEN
-    Log('G! ' + IntToStr(ButtonCount) + ' buttons are declared but there is text for ' + IntToStr(Length(ButtonText)) + ' buttons');
+    Log('A! ' + IntToStr(ButtonCount) + ' buttons are declared but there is text for ' + IntToStr(Length(ButtonText)) + ' buttons');
 
   DefaultButtonModalResult := mrAbort;
 
@@ -5472,7 +5475,7 @@ BEGIN
 
   { Log the text of the dialogue, converting CRLFs before we write out the string }
   DebugStr := 'MessageDialogueWithDefault: "' + DialogueText + '"';
-  Log('G MessageDialogueWithDefault: "' + DebugStr + '"' + '{INDENT=0} {WRAP=SCREENWIDTH}');
+  Log('A MessageDialogueWithDefault: "' + DebugStr + '"' + '{INDENT=0} {WRAP=SCREENWIDTH}');
 
   { show the dialogue and obtain the result }
   Result := Dialogue.ShowModal;
@@ -5500,7 +5503,7 @@ BEGIN
     mrNoToAll + 1:
       DebugStr := DebugStr + 'Yes to All button';
   END; {CASE}
-  Log('G ' + DebugStr + ' [' + IntToStr(Dialogue.ModalResult) + ']');
+  Log('A ' + DebugStr + ' [' + IntToStr(Dialogue.ModalResult) + ']');
   Dialogue.Free;
 
   IF StopTimer THEN
@@ -6368,7 +6371,7 @@ BEGIN { ShutDownProgram }
     { Write out the locations of the locos so we know where they are when we start up next time (locations are the last known location, added when a loco moves, or is
       purged)
     }
-    Log('G Shut down initiated');
+    Log('A Shut down initiated');
 
     { Restore the Windows taskbar if we're in full screen mode and it's been disabled }
     IF WindowsTaskbarDisabled THEN BEGIN
@@ -6432,7 +6435,7 @@ BEGIN { ShutDownProgram }
       IF NOT ReplayMode
       AND MainWindowInitialised
       THEN BEGIN
-        Log('G Writing .ini file');
+        Log('A Writing .ini file');
         MainWindowInitialised := True;
         WriteIniFile;
       END;
@@ -6440,7 +6443,7 @@ BEGIN { ShutDownProgram }
 
     StopLANUSBServer;
 
-    Log('G Shut down initiated in ' + UnitRef + ' unit, ' + SubroutineStr + ' subroutine' + ' is now complete (' + DescribeActualDateAndTime + ')');
+    Log('A Shut down initiated in ' + UnitRef + ' unit, ' + SubroutineStr + ' subroutine' + ' is now complete (' + DescribeActualDateAndTime + ')');
     IF LogsCurrentlyKept THEN BEGIN
       CloseFile(TestLogFile);
       CloseFile(LargeLogFile);
@@ -6654,10 +6657,10 @@ BEGIN
   IF Restart
   AND TrainsRestarted
   THEN
-    Log('GG All locos restarted')
+    Log('AG All locos restarted')
   ELSE
     IF Restart THEN
-      Log('GG No locos to restart');
+      Log('AG No locos to restart');
 END; { StartLocos }
 
 PROCEDURE StopLocos(Msg : String);
@@ -6669,7 +6672,7 @@ VAR
   T : Train;
 
 BEGIN
-  Log('GG Stopping any locos - initiated by ' + Msg);
+  Log('AG Stopping any locos - initiated by ' + Msg);
 
   T := TrainList;
   WHILE T <> NIL DO BEGIN
@@ -6692,9 +6695,9 @@ BEGIN
   END; {WHILE}
 
   IF LocosStopped THEN
-    Log('GG All locos stopped')
+    Log('AG All locos stopped')
   ELSE
-    Log('GG No locos to stop');
+    Log('AG No locos to stop');
 END; { StopLocos }
 
 FUNCTION StringArraysCompareOK(FirstArray, SecondArray : StringArrayType; OUT ErrorMsg : String) : Boolean;
@@ -8584,7 +8587,7 @@ VAR
 
 BEGIN
   TRY
-    Log('G INITIALISING Points {BlankLineBefore}');
+    Log('A INITIALISING Points {BlankLineBefore}');
 
     WITH InitVarsWindow DO BEGIN
       IF NOT FileExists(PathToRailDataFiles + Point1DataFilename + '.' + Point1DataFilenameSuffix) THEN BEGIN
@@ -8740,7 +8743,7 @@ VAR
 
 BEGIN
   TRY
-    Log('G INITIALISING SIGNALS {BlankLineBefore}');
+    Log('A INITIALISING SIGNALS {BlankLineBefore}');
 
     WITH InitVarsWindow DO BEGIN
       IF NOT FileExists(PathToRailDataFiles + Signal1DataFilename + '.' + Signal1DataFilenameSuffix) THEN BEGIN

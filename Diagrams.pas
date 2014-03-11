@@ -637,9 +637,9 @@ BEGIN
   IF DiscardOK THEN BEGIN
     { now check to see if there are any trains operating or waiting to operate }
     IF DiagramsFileName <> '' THEN
-      Log('GG Discarding diagrams "' + DiagramsFileName + '"')
+      Log('AG Discarding diagrams "' + DiagramsFileName + '"')
     ELSE
-      Log('GG Discarding diagrams');
+      Log('AG Discarding diagrams');
 
     T := TrainList;
     TrainFound := False;
@@ -3462,7 +3462,7 @@ BEGIN
   LockListWindow.LockListWindowMemo.Clear;
   LockListWindow.LockListWindowMemo.Lines.Clear;
   LockListWindow.Visible := True;
-  Log('G Train Journeys displayed');
+  Log('A Train Journeys displayed');
   WITH T^ DO BEGIN
     FOR I := 0 TO High(Train_JourneysArray) DO BEGIN
       WITH Train_JourneysArray[I] DO BEGIN

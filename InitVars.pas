@@ -1577,7 +1577,7 @@ VAR
 
 BEGIN
   TRY
-    Log('G INITIALISING TRACK CIRCUITS {BLANKLINEBEFORE}');
+    Log('A INITIALISING TRACK CIRCUITS {BLANKLINEBEFORE}');
 
     WITH InitVarsWindow DO BEGIN
       IF NOT FileExists(PathToRailDataFiles + TrackCircuitDataFilename + '.' + TrackCircuitDataFilenameSuffix) THEN BEGIN
@@ -1766,7 +1766,7 @@ VAR
 
 BEGIN
   TRY
-    Log('G INITIALISING AREAS {BLANKLINEBEFORE}');
+    Log('A INITIALISING AREAS {BLANKLINEBEFORE}');
 
     WITH InitVarsWindow DO BEGIN
       IF NOT FileExists(PathToRailDataFiles + AreaDataFilename + '.' + AreaDataFilenameSuffix) THEN BEGIN
@@ -2023,7 +2023,7 @@ VAR
 
 BEGIN
   TRY
-    Log('G INITIALISING LOCATIONS {BLANKLINEBEFORE}');
+    Log('A INITIALISING LOCATIONS {BLANKLINEBEFORE}');
 
     WITH InitVarsWindow DO BEGIN
       IF NOT FileExists(PathToRailDataFiles + LocationDataFilename + '.' + LocationDataFilenameSuffix) THEN BEGIN
@@ -2887,7 +2887,7 @@ VAR
 
 BEGIN
   TRY
-    Log('G INITIALISING LINES {BLANKLINEBEFORE}');
+    Log('A INITIALISING LINES {BLANKLINEBEFORE}');
 
     WITH InitVarsWindow DO BEGIN
       IF NOT FileExists(PathToRailDataFiles + LineDataFilename + '.' + LineDataFilenameSuffix) THEN BEGIN
@@ -4144,7 +4144,7 @@ VAR
 
 BEGIN
   TRY
-    Log('G READ IN SIGNAL DATA FROM DATABASE  {BLANKLINEBEFORE}');
+    Log('A READ IN SIGNAL DATA FROM DATABASE  {BLANKLINEBEFORE}');
 
     WITH InitVarsWindow DO BEGIN
       SetLength(Signals, 0);
@@ -5235,7 +5235,7 @@ VAR
 
 BEGIN
   TRY
-    Log('G INITIALISING POINTS {BLANKLINEBEFORE}');
+    Log('A INITIALISING POINTS {BLANKLINEBEFORE}');
 
     WITH InitVarsWindow DO BEGIN
       IF NOT FileExists(PathToRailDataFiles + PointDataFilename + '.' + PointDataFilenameSuffix) THEN BEGIN
@@ -5270,7 +5270,7 @@ BEGIN
             { at the start of the database }
             WHILE NOT PointsADOTable.EOF DO BEGIN
               IF PointsADOTable.FieldByName('OtherPoint').AsInteger = P THEN BEGIN
-                Log('G! P=' + IntToStr(PointsADOTable.FieldByName('PointNUm').AsInteger) + '''s OtherPoint refers to '
+                Log('A! P=' + IntToStr(PointsADOTable.FieldByName('PointNUm').AsInteger) + '''s OtherPoint refers to '
                         + ' P=' + IntToStr(PointsADOTable.FieldByName('OtherPoint').AsInteger)
                         + ' which did not exist prior to point renumbering - OtherPoint has been set to 9999');
                 PointsADOTable.Edit;
@@ -5287,7 +5287,7 @@ BEGIN
               IF InitVarsWindow.PointsADOTable.FieldByName('OtherPoint').AsInteger = NextInDatabaseP THEN BEGIN
                 IF NextInDatabaseP = P THEN
                   { this shouldn't happen }
-                  Log('G! OtherPoint=' + IntToStr(NextInDatabaseP) + ' is the same as P=' + IntToStr(P));
+                  Log('A! OtherPoint=' + IntToStr(NextInDatabaseP) + ' is the same as P=' + IntToStr(P));
                 PointsADOTable.Edit;
                 PointsADOTable.FieldByName('OtherPoint').AsInteger := P;
                 PointsADOTable.Post;
@@ -5579,7 +5579,7 @@ VAR
 
 BEGIN
   TRY
-    Log('G INITIALISING PLATFORMS {BLANKLINEBEFORE}');
+    Log('A INITIALISING PLATFORMS {BLANKLINEBEFORE}');
 
     WITH InitVarsWindow DO BEGIN
       IF NOT FileExists(PathToRailDataFiles + PlatformDataFilename + '.' + PlatformDataFilenameSuffix) THEN BEGIN
@@ -5842,7 +5842,7 @@ VAR
 
 BEGIN
   TRY
-    Log('G INITIALISING FEEDBACK UNIT DATA {BLANKLINEBEFORE}');
+    Log('A INITIALISING FEEDBACK UNIT DATA {BLANKLINEBEFORE}');
 
     WITH InitVarsWindow DO BEGIN
       IF NOT FileExists(PathToRailDataFiles + FeedbackDataFilename + '.' + FeedbackDataFilenameSuffix) THEN BEGIN

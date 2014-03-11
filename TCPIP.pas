@@ -125,7 +125,7 @@ BEGIN
       S := TCPCommand.Lines[0];
 
     MSGMemo.Text := MSGMemo.Text + 'OUT ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : ' + S + CRLF;
-    Log('G OUT ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : ' + S + CRLF);
+    Log('A OUT ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : ' + S + CRLF);
     ResponsesTCPSendText(TCPCommand.Text);
     TCPCommand.Clear;
   END;
@@ -161,7 +161,7 @@ BEGIN
   EXCEPT
     FreeAndNIL(ResponsesTCPClient);
     MSGMemo.Lines.Add('*** Unable to Connect to Client 1');
-    Log('G *** Unable to Connect to Client 1');
+    Log('A *** Unable to Connect to Client 1');
   END;
 
   IF BroadcastsTCPClient = NIL THEN BEGIN
@@ -188,7 +188,7 @@ BEGIN
   EXCEPT
     FreeAndNIL(BroadcastsTCPClient);
     MSGMemo.Lines.Add('*** Unable to Connect to Client 2');
-    Log('G *** Unable to Connect to Client 2');
+    Log('A *** Unable to Connect to Client 2');
   END;
 END; { CreateTCPClients }
 
@@ -220,7 +220,7 @@ BEGIN
   ConnectTS := GetTickCount;
   TCPSocket1 := Socket1;
   MSGMemo.Lines.Add('*** 1 Connected');
-  Log('G TCPClient 1 Connected');
+  Log('A TCPClient 1 Connected');
   TCPConnectButton.Enabled := True;
   TCPConnectButton.Caption := 'TCP 1 Disconnect';
 END; { ResponsesTCPClientConnect }
@@ -229,7 +229,7 @@ PROCEDURE TTCPIPForm.BroadcastsTCPClientConnect(Sender: TObject; Socket2 : TCust
 BEGIN
   ConnectTS := GetTickCount;
   TCPSocket2 := Socket2;
-  Log('G TCPClient 2 Connected');
+  Log('A TCPClient 2 Connected');
   TCPConnectButton.Enabled := True;
   TCPConnectButton.Caption := 'TCP 2 Disconnect';
 END; { BroadcastsTCPClientConnect }
@@ -238,7 +238,7 @@ PROCEDURE TTCPIPForm.ResponsesTCPClientDisconnect(Sender: TObject; Socket1 : TCu
 BEGIN
   IF ResponsesTCPClient <> NIL THEN BEGIN
     MSGMemo.Lines.Add('*** 1 Disconnected' + CRLF);
-    Log('G TCPClient 1 Disconnected' + CRLF);
+    Log('A TCPClient 1 Disconnected' + CRLF);
     TCPConnectButton.Enabled := True;
     TCPConnectButton.Caption := 'TCP 1 Connect';
     TCPSocket1 := NIL;
@@ -249,7 +249,7 @@ PROCEDURE TTCPIPForm.BroadcastsTCPClientDisconnect(Sender: TObject; Socket2 : TC
 BEGIN
   IF BroadcastsTCPClient <> NIL THEN BEGIN
     MSGMemo.Lines.Add('*** 2 Disconnected' + CRLF);
-    Log('G TCPClient 2 Disconnected' + CRLF);
+    Log('A TCPClient 2 Disconnected' + CRLF);
     TCPConnectButton.Enabled := True;
     TCPConnectButton.Caption := 'TCP 2 Connect';
     TCPSocket2 := NIL;
@@ -324,7 +324,7 @@ PROCEDURE TTCPIPForm.ResponsesTCPClientError(Sender: TObject; Socket1 : TCustomW
 BEGIN
   IF ErrorCode = 10061 THEN BEGIN
     MSGMemo.Lines.Add('*** Unable to Connect');
-    Log('G *** Unable to Connect');
+    Log('A *** Unable to Connect');
     //('G *** Unable to Connect');
     ErrorCode := 0;
     TCPIPConnected := False;
@@ -332,7 +332,7 @@ BEGIN
 
   IF ErrorCode = 10053 THEN BEGIN
     MSGMemo.Lines.Add('*** Server has disconnected/shutdown.');
-    Log('G *** Server has disconnected/shutdown.');
+    Log('A *** Server has disconnected/shutdown.');
     ErrorCode := 0;
     TCPIPConnected := False;
   END;
@@ -343,21 +343,21 @@ BEGIN
  TRY
   IF ErrorCode = 10061 THEN BEGIN
     MSGMemo.Lines.Add('*** Unable to Connect');
-    Log('G *** Unable to Connect');
+    Log('A *** Unable to Connect');
     ErrorCode := 0;
     TCPIPConnected := False;
   END;
 
   IF ErrorCode = 10053 THEN BEGIN
     MSGMemo.Lines.Add('*** Server has disconnected/shutdown.');
-    Log('G *** Server has disconnected/shutdown.');
+    Log('A *** Server has disconnected/shutdown.');
     ErrorCode := 0;
     TCPIPConnected := False;
   END;
 
  EXCEPT
     MSGMemo.Lines.Add('*** Unable to Connect to Client 1');
-    Log('G *** Unable to Connect to Client 1');
+    Log('A *** Unable to Connect to Client 1');
   END;
 END; { BroadcastsTCPClientError }
 
@@ -431,9 +431,9 @@ BEGIN
       Exit;
 
     IF OK THEN
-      Log('G Lan-USB Server stopped programmatically')
+      Log('A Lan-USB Server stopped programmatically')
     ELSE
-      Log('G Lan-USB Server failed to stop programmatically');
+      Log('A Lan-USB Server failed to stop programmatically');
   EXCEPT
     ON E : Exception DO
       ShowMessage('StopLANUSBServer: ' + E.ClassName +' error raised, with message: ' + E.Message);

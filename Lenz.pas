@@ -587,7 +587,7 @@ VAR
 
   BEGIN
     IF ((UnitNum + 1) < FirstFeedbackUnit) OR ((UnitNum + 1) > LastFeedbackUnit) THEN
-      Log('GG Feedback unit number ' + IntToStr(UnitNum + 1) + ' outside designated range')
+      Log('AG Feedback unit number ' + IntToStr(UnitNum + 1) + ' outside designated range')
     ELSE BEGIN
       { Upper or lower nibble? }
       IF (NewData AND 16) <> 16 THEN BEGIN
@@ -603,7 +603,7 @@ VAR
       B := FeedbackArray[UnitNum, Nibble] XOR NewData;
 
       IF B = 0 THEN
-        // Log('G Feedback unit ' + IntToStr(UnitNum + 1) + ': no change') { caused by lots of *78*s }
+        // Log('A Feedback unit ' + IntToStr(UnitNum + 1) + ': no change') { caused by lots of *78*s }
       ELSE BEGIN
         { There is a change - cycle through the four inputs }
         FOR I := 1 TO 4 DO BEGIN
@@ -855,7 +855,7 @@ BEGIN
               { write out the string }
               FOR I := 0 TO CommandLen + 1 DO
                 DebugStr := DebugStr + IntToStr(ReadArray[I]) + '=';
-              Log('G ' + DebugStr);
+              Log('A ' + DebugStr);
             EXCEPT
               ON E : Exception DO
                 Log('EG ReadInDataMainProcedure: ' + E.ClassName +' error raised, with message: ' + E.Message);
@@ -900,21 +900,21 @@ BEGIN
                   SignalAcknowledgment:
                     TypeOfLogChar := 'S';
                 ELSE
-                  TypeOfLogChar := 'G';
+                  TypeOfLogChar := 'A';
                 END; {CASE}
               66..78:
                 TypeOfLogChar := 'T'; { trackcircuit }
               198..230:
                 TypeOfLogChar := 'L'; { loco }
             ELSE
-              TypeOfLogChar := 'G'; { general }
+              TypeOfLogChar := 'A'; { general }
             END; {CASE}
 
             IF ResponseOrBroadcast = Response THEN
               Log(TypeOfLogChar + ' ' + StringOfChar(' ', 104) + 'Lenz response: ' + DebugStr)
             ELSE
               IF ResponseOrBroadcast = Broadcast THEN
-                Log('G ' + StringOfChar(' ', 104) + 'Lenz broadcast: ' + DebugStr + ' {BLANKLINEBEFORE}');
+                Log('A ' + StringOfChar(' ', 104) + 'Lenz broadcast: ' + DebugStr + ' {BLANKLINEBEFORE}');
 
             { Write out bytes as bits if run-time parameter Y is set }
             IF ShowByteParam <> '' THEN BEGIN
@@ -923,7 +923,7 @@ BEGIN
                 DebugStr := '';
                 FOR I := 1 TO (CommandLen + 1) DO
                   DebugStr := DebugStr + '[' + DoBitPattern(ReadArray[I]) + '] ';
-                Log('G ' + StringOfChar(' ', 64) + 'All bytes: ' + DebugStr); { 64 shouldn't be a magic number *** }
+                Log('A ' + StringOfChar(' ', 64) + 'All bytes: ' + DebugStr); { 64 shouldn't be a magic number *** }
               END ELSE
                 IF (StrToInt(ShowByteParam) >= 0)
                 AND (StrToInt(ShowByteParam) <= 14)
@@ -935,10 +935,10 @@ BEGIN
                     DebugStr := DoBitPattern(ReadArray[StrToInt(ShowByteParam)]);
 
                   IF ResponseOrBroadcast = Response THEN
-                    Log('G *** Response ***' + StringOfChar(' ', 48) + 'Byte ' + ShowByteParam + ': [' + DebugStr + ']')
+                    Log('A *** Response ***' + StringOfChar(' ', 48) + 'Byte ' + ShowByteParam + ': [' + DebugStr + ']')
                   ELSE
                     IF ResponseOrBroadcast = Broadcast THEN
-                      Log('G *** Broadcast ***' + StringOfChar(' ', 47) + 'Byte ' + ShowByteParam + ': [' + DebugStr + ']');
+                      Log('A *** Broadcast ***' + StringOfChar(' ', 47) + 'Byte ' + ShowByteParam + ': [' + DebugStr + ']');
                 END;
             END;
 
@@ -957,6 +957,7 @@ BEGIN
                     BEGIN
                       ErrorMsg := 'Error between interface and command station';
                       Log('XG ' + ErrorMsg);
+                      RetryFlag := True;
                     END;
                   3:
                     BEGIN
@@ -974,6 +975,7 @@ BEGIN
                     BEGIN
                       ErrorMsg := 'Error: Command station does not respond';
                       Log('XG ' + ErrorMsg);
+                      RetryFlag := True;
                     END;
                 END;
               2:
@@ -988,7 +990,7 @@ BEGIN
                     TempByte := ReadArray[2] AND NOT $F0;
                     DebugStr := DebugStr + ', software version=' + IntToStr(TempByte);
                   END;
-                  Log('G ' + DebugStr);
+                  Log('A ' + DebugStr);
                 END;
               66: { $42 }
                 BEGIN
@@ -1136,21 +1138,21 @@ BEGIN
                       ErrorMsg := 'Command station busy [Command not yet implemented]';
                       Log('EG ' + ErrorMsg);
                       ErrorFound := True;
+                      RetryFlag := True;
                     END;
                   128: { $80 }
                     BEGIN
                       ErrorMsg := 'Transfer error (XOR not correct)';
                       Log('EG ' + ErrorMsg);
                       ErrorFound := True;
-                      { should retransmit command **** }
+                      RetryFlag := True;
                     END;
                   129: { $81 }
                     BEGIN
                       ErrorMsg := 'Command station busy';
                       Log('EG ' + ErrorMsg);
                       ErrorFound := True;
-      //                MakeSound(1);
-                      { should retransmit command **** }
+                      RetryFlag := True;
                     END;
                   130: { $82 }
                     BEGIN
@@ -1209,12 +1211,12 @@ BEGIN
 
                         IF (ReadArray[2] AND $04) <> $04 THEN { 0000 0100 }
                           { bit 2 not set - this one is logged, but not written to the screen on start up }
-                          Log('G Returning system status for ' + PortStr +': start mode=manual')
+                          Log('A Returning system status for ' + PortStr +': start mode=manual')
                         ELSE
                           SystemStatusStr := 'start mode=auto - may need to send start-mode command (see s.2.1.4 of LI101F manual)';
 
                         IF SystemStatusStr <> '' THEN
-                          Log('G Returning system status for ' + PortStr + ': ' + SystemStatusStr);
+                          Log('A Returning system status for ' + PortStr + ': ' + SystemStatusStr);
                       END;
                     END;
                 END; {CASE}
@@ -1257,7 +1259,7 @@ BEGIN
                             DebugStr := DebugStr + ' - DPC';
                         END; {CASE}
                       END;
-                      Log('G ' + DebugStr);
+                      Log('A ' + DebugStr);
                     END;
                 END; {CASE}
               129: { $81 }{ Emergency stop - msg will arrive four times }
@@ -1405,7 +1407,7 @@ VAR
 
 BEGIN
   WriteReadVar := ReadOnly;
-  DataIOMainProcedure('G', WriteReadVar, WriteArray, ReadArray, NoReplyExpected, NOT CheckTimeOuts, TimedOut, ExpectedDataReceived);
+  DataIOMainProcedure('A', WriteReadVar, WriteArray, ReadArray, NoReplyExpected, NOT CheckTimeOuts, TimedOut, ExpectedDataReceived);
 END; { DataIO-1 }
 
 PROCEDURE DataIO{2}(WriteArray : ARRAY OF Byte); Overload
@@ -1421,7 +1423,7 @@ VAR
 
 BEGIN
   WriteReadVar := WriteOnly;
-  DataIOMainProcedure('G', WriteReadVar, WriteArray, ReadArray, NoReplyExpected, NOT CheckTimeOuts, TimedOut, ExpectedDataReceived);
+  DataIOMainProcedure('A', WriteReadVar, WriteArray, ReadArray, NoReplyExpected, NOT CheckTimeOuts, TimedOut, ExpectedDataReceived);
 END; { DataIO-2 }
 
 PROCEDURE DataIO{3}(TypeOfLogChar : Char; WriteArray : ARRAY OF Byte; ExpectedReply : ReplyType; OUT ExpectedDataReceived : Boolean); Overload;
@@ -1896,9 +1898,9 @@ VAR
   WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
 
 BEGIN
-  Log('G Requesting computer interface software version {BLANKLINEBEFORE}');
+  Log('A Requesting computer interface software version {BLANKLINEBEFORE}');
   WriteArray[0] := 240;
-  DataIO('G', WriteArray, ComputerInterfaceSoftwareReply, OK);
+  DataIO('A', WriteArray, ComputerInterfaceSoftwareReply, OK);
 END; { ReadComputerInterfaceSoftwareVersion }
 
 PROCEDURE ReadCommandStationSoftwareVersion(VAR OK : Boolean);
@@ -1907,10 +1909,10 @@ VAR
   WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
 
 BEGIN
-  Log('G Requesting command station software version {BLANKLINEBEFORE}');
+  Log('A Requesting command station software version {BLANKLINEBEFORE}');
   WriteArray[0] := 33;
   WriteArray[1] := 33;
-  DataIO('G', WriteArray, CommandStationSoftwareReply, OK);
+  DataIO('A', WriteArray, CommandStationSoftwareReply, OK);
 END; { ReadCommandStationSoftwareVersion }
 
 FUNCTION RequestProgrammingModeCV(CV : Integer) : String;      { half written 1/2/13 }
@@ -1926,19 +1928,19 @@ BEGIN
     IF CV = 256 THEN
       CV := 0;
 
-    Log('G Initialising request for CV from loco on programming track - direct mode CV read request {BLANKLINEBEFORE}');
+    Log('A Initialising request for CV from loco on programming track - direct mode CV read request {BLANKLINEBEFORE}');
     WriteArray[0] := 34;
     WriteArray[1] := 21;
     WriteArray[2] := CV;
 
     DataIO(WriteArray);
 
-    Log('G Finalising request for CV from loco on programming track - requesting result from programming mode {BLANKLINEBEFORE}');
+    Log('A Finalising request for CV from loco on programming track - requesting result from programming mode {BLANKLINEBEFORE}');
     WriteArray[0] := 33;
     WriteArray[1] := 16;
     WriteArray[2] := 49;
 
-    DataIO('G', WriteArray, ProgrammingModeReply, OK);
+    DataIO('A', WriteArray, ProgrammingModeReply, OK);
 
     ResumeOperations(OK);
   END;
@@ -2533,10 +2535,10 @@ VAR
   WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
 
 BEGIN
-  Log('G Requesting system status');
+  Log('A Requesting system status');
   WriteArray[0] := 33;
   WriteArray[1] := 36;
-  DataIO('G', WriteArray, ReadArray, SystemStatusReply, CheckTimeOuts, TimedOut, OK);
+  DataIO('A', WriteArray, ReadArray, SystemStatusReply, CheckTimeOuts, TimedOut, OK);
 
   WITH SystemStatus DO BEGIN
     IF (ReadArray[2] AND 8) = 8 THEN BEGIN
@@ -2562,9 +2564,9 @@ BEGIN
         THEN BEGIN
           ResumeOperations(OK);
           IF OK THEN
-            Log('GG Operations resumed')
+            Log('AG Operations resumed')
           ELSE
-            Log('GG Operations not resumed');
+            Log('AG Operations not resumed');
         END;
       END;
     END ELSE BEGIN
@@ -2584,9 +2586,9 @@ BEGIN
         THEN BEGIN
           ResumeOperations(OK);
           IF OK THEN
-            Log('GG Operations resumed')
+            Log('AG Operations resumed')
           ELSE
-            Log('GG Operations not resumed');
+            Log('AG Operations not resumed');
         END;
       END;
     END ELSE
@@ -2604,7 +2606,7 @@ VAR
 
 BEGIN
   IF SystemOnline THEN BEGIN
-    Log('G Watchdog timer: requesting system status at ' + DescribeActualDateAndTime + ' {BLANKLINEBEFORE}');
+    Log('A Watchdog timer: requesting system status at ' + DescribeActualDateAndTime + ' {BLANKLINEBEFORE}');
     ObtainSystemStatus(SystemStatus, Timedout, NOT StopTimer);
     IF Timedout THEN
       Log('X Watchdog timer failed to obtain a response at ' + DescribeActualDateAndTime);
@@ -2625,7 +2627,7 @@ VAR
   S : Integer;
 
 BEGIN
-  IF NOT ProgramStartup THEN BEGIN
+  IF NOT ProgramStartup AND SystemOnline THEN BEGIN
     FOR P := 0 TO High(Points) DO BEGIN
       IF Points[P].Point_Energised THEN BEGIN
         IF MilliSecondsBetween(Time, Points[P].Point_EnergisedTime) > 2 THEN BEGIN
@@ -3341,7 +3343,7 @@ BEGIN
 //    Pause(500, NOT ProcessMessages);
 //
 //    IF SystemOffline THEN
-//      Log('G System offline - noted when reading startup data');
+//      Log('A System offline - noted when reading startup data');
 //    Inc(UnitNum);
 //  END; {WHILE}
 //
@@ -3393,7 +3395,7 @@ BEGIN
   ELSE BEGIN
     SetSystemOnline(OK);
     IF OK THEN
-      Log('GG TCPIP Server is running')
+      Log('AG TCPIP Server is running')
     ELSE
       SetSystemOffline('TCPIP Server not running');
 

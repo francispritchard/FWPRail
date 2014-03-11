@@ -1319,7 +1319,7 @@ VAR
     TC : Integer;
 
   BEGIN
-    Log('G User clearing R=' + IntToStr(R));
+    Log('A User clearing R=' + IntToStr(R));
 
     { Set any signals locked by the route to on }
     FOR S := 0 TO High(Signals) DO BEGIN
@@ -2084,10 +2084,10 @@ BEGIN { KeyPressedDown }
                 IF NOT HelpRequired THEN BEGIN
                   IF AutomaticallySetFocusWhenInDebugWindow THEN BEGIN
                     AutomaticallySetFocusWhenInDebugWindow := False;
-                    Log('GG Automatically set focus when in Debug Window = OFF');
+                    Log('AG Automatically set focus when in Debug Window = OFF');
                   END ELSE BEGIN
                     AutomaticallySetFocusWhenInDebugWindow := True;
-                    Log('GG Automatically set focus when in Debug Window = ON');
+                    Log('AG Automatically set focus when in Debug Window = ON');
                   END;
                 END;
               END;
@@ -2396,7 +2396,7 @@ BEGIN { KeyPressedDown }
                 IF NOT HelpRequired THEN BEGIN
                   RedrawScreen := True;
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
-                  Log('GG Screen invalidated by user');
+                  Log('AG Screen invalidated by user');
                   RedrawScreen := False;
                 END;
               END;
@@ -2434,7 +2434,7 @@ BEGIN { KeyPressedDown }
                     RedrawScreen := True;
                     GetInitialFeedback;
                     InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
-                    Log('GG User requested screen redraw after initial feedback sought');
+                    Log('AG User requested screen redraw after initial feedback sought');
                     RedrawScreen := False;
                   END;
                 END;
@@ -2551,10 +2551,10 @@ BEGIN { KeyPressedDown }
                 IF NOT HelpRequired THEN BEGIN
                   IF LockingMode THEN BEGIN
                     LockingMode := False;
-                    Log('GG Locking = OFF');
+                    Log('AG Locking = OFF');
                   END ELSE BEGIN
                     LockingMode := True;
-                    Log('GG Locking = ON');
+                    Log('AG Locking = ON');
                   END;
                 END;
               END;
@@ -2563,11 +2563,11 @@ BEGIN { KeyPressedDown }
                 HelpMsg := 'logging on/off';
                 IF NOT HelpRequired THEN BEGIN
                   IF LogsCurrentlyKept THEN BEGIN
-                    Log('GG LogsCurrentlyKept = OFF');
+                    Log('AG LogsCurrentlyKept = OFF');
                     LogsCurrentlyKept := False;
                   END ELSE BEGIN
                     LogsCurrentlyKept := True;
-                    Log('GG LogsCurrentlyKept = ON');
+                    Log('AG LogsCurrentlyKept = ON');
                   END;
                 END;
               END;
@@ -2621,7 +2621,7 @@ BEGIN { KeyPressedDown }
                   IF MessageDialogueWithDefault('Rebuild all location occupations?',
                                                 NOT StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrYes
                   THEN BEGIN
-                    Log('G Rebuilding all location occupations');
+                    Log('A Rebuilding all location occupations');
                     T := TrainList;
                     WHILE T <> NIL DO BEGIN
                       Log(T^.Train_LocoChipStr + ' G Rebuilding location occupations');
@@ -2637,11 +2637,11 @@ BEGIN { KeyPressedDown }
                 HelpMsg := 'log current time mode on/off';
                 IF NOT HelpRequired THEN BEGIN
                   IF LogCurrentTimeMode THEN BEGIN
-                    Log('G! LogCurrentTimeMode = OFF');
+                    Log('A! LogCurrentTimeMode = OFF');
                     LogCurrentTimeMode  := False;
                   END ELSE BEGIN
                     LogCurrentTimeMode  := True;
-                    Log('G! LogCurrentTimeMode = ON');
+                    Log('A! LogCurrentTimeMode = ON');
                   END;
                 END;
               END;
@@ -2711,11 +2711,11 @@ BEGIN { KeyPressedDown }
                 IF NOT HelpRequired THEN BEGIN
                   IF NightTimeSetByUser THEN BEGIN
                     NightTimeSetByUser := False;
-                    Log('GG NightTimeSetByUser = OFF');
+                    Log('AG NightTimeSetByUser = OFF');
                   END ELSE BEGIN
                     DayTimeSetByUser := False;
                     NightTimeSetByUser := True;
-                    Log('GG NightTimeSetByUser = ON');
+                    Log('AG NightTimeSetByUser = ON');
                   END;
                 END;
               END;
@@ -2876,7 +2876,7 @@ BEGIN { KeyPressedDown }
                             IF PointFeedbackWaitInSeconds >= PointFeedbackMaximumWaitInSeconds THEN BEGIN
                               DebugStr := DebugStr + 'P=' + IntToStr(P) + ' pending change to ' + PointStateToStr( Points[P].Point_RequiredState)
                                                    + ' failed after a ' + IntToStr(PointFeedbackWaitInSeconds) + ' second wait';
-                              Log('G ' + DebugStr);
+                              Log('A ' + DebugStr);
                             END;
                           END ELSE
                             Debug('P=' + IntToStr(P) + ' (Lenz=' + IntToStr(Points[P].Point_LenzNum) + ') ok ' + PointStateToStr(Points[P].Point_RequiredState));
@@ -2907,7 +2907,7 @@ BEGIN { KeyPressedDown }
                             IF PointFeedbackWaitInSeconds >= PointFeedbackMaximumWaitInSeconds THEN BEGIN
                               DebugStr := DebugStr + 'P=' + IntToStr(P) + ' pending change to ' + PointStateToStr( Points[P].Point_RequiredState)
                                                    + ' failed after a ' + IntToStr(PointFeedbackWaitInSeconds) + ' second wait';
-                              Log('G ' + DebugStr);
+                              Log('A ' + DebugStr);
                             END;
                           END ELSE
                             Debug('P=' + IntToStr(P) + ' (Lenz=' + IntToStr(Points[P].Point_LenzNum) + ') ok ' + PointStateToStr(Points[P].Point_RequiredState));
@@ -3017,7 +3017,7 @@ BEGIN { KeyPressedDown }
                     IF NOT OK THEN
                       ShowMessage('Replay mode not enabled: ' + ErrorMsg)
                     ELSE BEGIN
-                      Log('GG REPLAY MODE ON');
+                      Log('AG REPLAY MODE ON');
                       ReplayMode := True;
                       RestoreLogsToPreviousState := True;
                       ShutDownProgram(UnitRef, 'KeyPressedDown');
@@ -3037,10 +3037,10 @@ BEGIN { KeyPressedDown }
                 IF NOT HelpRequired THEN BEGIN
                   Debug('Reinitialising all data');
 
-                  Log('G READ IN AREAS DATA FROM DATABASE');
+                  Log('A READ IN AREAS DATA FROM DATABASE');
                   ReadInAreasDataFromDatabase;
 
-                  Log('G READ IN LOCATION DATA FROM DATABASE');
+                  Log('A READ IN LOCATION DATA FROM DATABASE');
                   IF NOT ResizeMap THEN
                     ReadInLocationDataFromDatabase
                   ELSE
@@ -3050,7 +3050,7 @@ BEGIN { KeyPressedDown }
 
                   SetUpLineDrawingVars(1000);
 
-                  Log('G READ IN LINE DATA FROM DATABASE');
+                  Log('A READ IN LINE DATA FROM DATABASE');
                   IF NOT ResizeMap THEN
                     ReadInLineDataFromDatabase
                   ELSE BEGIN
@@ -3058,32 +3058,32 @@ BEGIN { KeyPressedDown }
                     CalculateBufferStopPositions(750);
                   END;
 
-                  Log('G READ IN FEEDBACK DATA FROM DATABASE');
+                  Log('A READ IN FEEDBACK DATA FROM DATABASE');
                   ReadInFeedbackDataFromDatabase;
 
                   IF NOT TrackCircuitsInitialised THEN BEGIN
                     { only initialise track circuit once, as doing so a second time removes the data **** }
                     TrackCircuitsInitialised := True;
-                    Log('G READ IN TRACK CIRCUIT DATA FROM DATABASE');
+                    Log('A READ IN TRACK CIRCUIT DATA FROM DATABASE');
                     ReadInTrackCircuitDataFromDatabase;
                   END;
 
-                  Log('G CHECKING LINE CONNECTIONS ARE OK');
+                  Log('A CHECKING LINE CONNECTIONS ARE OK');
                   CheckLineConnectionsAreOK;
 
-                  Log('G READ IN POINT DATA FROM DATABASE');
+                  Log('A READ IN POINT DATA FROM DATABASE');
                   ReadInPointDataFromDatabase;
 
-                  Log('G READ IN PLATFORM DATA FROM DATABASE');
+                  Log('A READ IN PLATFORM DATA FROM DATABASE');
                   ReadInPlatformDataFromDatabase;
 
-                  Log('G READ IN SIGNAL DATA FROM DATABASE');
+                  Log('A READ IN SIGNAL DATA FROM DATABASE');
                   ReadInSignalDataFromDatabase(NewSignalData);
 
-                  Log('G READ IN ROUTEING EXCEPTIONS FROM DATABASE');
+                  Log('A READ IN ROUTEING EXCEPTIONS FROM DATABASE');
                   ReadInRouteingExceptionsFromDatabase;
 
-                  Log('G INITIALISING LOCATION LINES');
+                  Log('A INITIALISING LOCATION LINES');
                   InitialiseLocationLines;
 
                   Debug('All data reinitialised');
@@ -3227,9 +3227,9 @@ BEGIN { KeyPressedDown }
                 IF NOT HelpRequired THEN BEGIN
                   StationStartMode := NOT StationStartMode;
                   IF StationStartMode THEN
-                    Log('GG Station Start Mode = ON')
+                    Log('AG Station Start Mode = ON')
                   ELSE
-                    Log('GG Station Start Mode = OFF');
+                    Log('AG Station Start Mode = OFF');
                 END;
               END;
             Ctrl: {S}
@@ -3238,9 +3238,9 @@ BEGIN { KeyPressedDown }
                 IF NOT HelpRequired THEN BEGIN
                   StopAllLocomotivesWhenDebugCalled := NOT StopAllLocomotivesWhenDebugCalled;
                   IF StopAllLocomotivesWhenDebugCalled THEN
-                    Log('GG Stop All Locomotives When Debug Called = ON')
+                    Log('AG Stop All Locomotives When Debug Called = ON')
                   ELSE
-                    Log('GG Stop All Locomotives When Debug Called = OFF');
+                    Log('AG Stop All Locomotives When Debug Called = OFF');
                 END;
               END;
             Alt: {S}
@@ -3307,10 +3307,10 @@ BEGIN { KeyPressedDown }
                 IF NOT HelpRequired THEN BEGIN
                   IF IncludeLocoChipInStationMonitors THEN BEGIN
                     IncludeLocoChipInStationMonitors := False;
-                    Log('GG IncludeLocoChipInStationMonitors = Off');
+                    Log('AG IncludeLocoChipInStationMonitors = Off');
                   END ELSE BEGIN
                     IncludeLocoChipInStationMonitors := True;
-                    Log('GG IncludeLocoChipInStationMonitors = ON');
+                    Log('AG IncludeLocoChipInStationMonitors = ON');
                   END;
                 END;
               END;
@@ -3320,11 +3320,11 @@ BEGIN { KeyPressedDown }
                 IF NOT HelpRequired THEN BEGIN
                   IF DisplayNotForPublicUseTrainsInStationMonitors THEN BEGIN
                     DisplayNotForPublicUseTrainsInStationMonitors := False;
-                    Log('GG DisplayNotForPublicUseTrainsInStationMonitors = OFF');
+                    Log('AG DisplayNotForPublicUseTrainsInStationMonitors = OFF');
                     DrawStationMonitorsWindow;
                   END ELSE BEGIN
                     DisplayNotForPublicUseTrainsInStationMonitors := True;
-                    Log('GG DisplayNotForPublicUseTrainsInStationMonitors = ON');
+                    Log('AG DisplayNotForPublicUseTrainsInStationMonitors = ON');
                     DrawStationMonitorsWindow;
                   END;
                 END;
@@ -3349,11 +3349,11 @@ BEGIN { KeyPressedDown }
                 IF NOT HelpRequired THEN BEGIN
                   IF StartRepeatJourneysOnNewLineInDiagrams THEN BEGIN
                     StartRepeatJourneysOnNewLineInDiagrams:= False;
-                    Log('GG DisplayNotForPublicUseTrainsInStationMonitors = OFF');
+                    Log('AG DisplayNotForPublicUseTrainsInStationMonitors = OFF');
                     DrawStationMonitorsWindow;
                   END ELSE BEGIN
                     StartRepeatJourneysOnNewLineInDiagrams:= True;
-                    Log('GG StartRepeatJourneysOnNewLineInDiagrams = ON');
+                    Log('AG StartRepeatJourneysOnNewLineInDiagrams = ON');
                   END;
                   DrawDiagrams(UnitRef, 'KeyPressed (StartRepeatJourneysOnNewLineInDiagrams)');
                 END;
@@ -3449,7 +3449,7 @@ BEGIN { KeyPressedDown }
                 HelpMsg := 'stop all operations';
                 IF NOT HelpRequired THEN BEGIN
                   StopOperations;
-                  Log('G Mouse wheel pressed: all operations stopped');
+                  Log('A Mouse wheel pressed: all operations stopped');
                   Debug('All operations stopped');
                   IF NOT SystemOnline THEN
                     Debug('Cannot deselect points - system offline')
@@ -3958,7 +3958,7 @@ BEGIN { KeyPressedDown }
                   LocoUtilsWindow.Visible := True;
                   LocoUtilsWindow.BringToFront;
                   ListLocosByChip;
-                  Log('G List of locos made visible');
+                  Log('A List of locos made visible');
                 END;
               END;
             Ctrl: {/}
@@ -4306,12 +4306,12 @@ BEGIN { KeyPressedDown }
                     { and mark the state of points as not known, as we might change them on screen without changing them on the ground }
                     FOR I := 0 TO High(Points) DO
                       Points[I].Point_PresentState := PointStateUnknown;
-                    Log('GG System offline');
+                    Log('AG System offline');
                   END ELSE BEGIN
                     TurnAutoModeOff(NOT ByUser);
 
 //                    IF LenzWindow.CommsSetUpOK THEN BEGIN
-//                      Log('GG Comms restarted');
+//                      Log('AG Comms restarted');
 //                    END ELSE
 //                      { still some problem }
 //                      SetSystemOffline('');
@@ -4340,13 +4340,13 @@ BEGIN { KeyPressedDown }
         //          IF RouteClearingOnlyMode THEN BEGIN
         //            TurnAutoModeOff(ByUser);
         //            RouteClearingOnlyMode := False;
-        //            Log('G Route clearing mode = off');
+        //            Log('A Route clearing mode = off');
         //          END ELSE BEGIN
         //            TurnAutoModeOn;
         //            RouteClearingOnlyMode := True;
         //            { Reset the clock to midnight - doesn't need to run at all, but it shows something is happening, and is useful for the debug output file }
         //            SetCurrentRailwayTime(EncodeTime(0, 0, 0, 0));
-        //            Log('G Route clearing mode = on, clock set to midnight');
+        //            Log('A Route clearing mode = on, clock set to midnight');
         //          END;
         //        END;
               END;
@@ -4407,7 +4407,7 @@ BEGIN { KeyPressedDown }
                     IF EscKeyStored THEN BEGIN
                       IF ScreenColoursSetForPrinting THEN
                         ResetScreenColours;
-                      Log('G Shutdown requested by user pressing Escape twice {BLANKLINEBEFORE}');
+                      Log('A Shutdown requested by user pressing Escape twice {BLANKLINEBEFORE}');
                       ShutDownProgram(UnitRef, 'KeyPressedDown');
                     END ELSE BEGIN
                       EscKeyStored := True;
@@ -4442,7 +4442,7 @@ BEGIN { KeyPressedDown }
                   IF EscKeyStored THEN BEGIN
                     IF ScreenColoursSetForPrinting THEN
                       ResetScreenColours;
-                    Log('G Shutdown requested by user pressing Escape twice - log to be restored to previous state');
+                    Log('A Shutdown requested by user pressing Escape twice - log to be restored to previous state');
                     RestoreLogsToPreviousState := True;
                     ShutDownProgram(UnitRef, 'KeyPressedDown');
                   END ELSE BEGIN
@@ -4651,7 +4651,7 @@ BEGIN { KeyPressedDown }
                 HelpMsg := 'stop all operations';
                 IF NOT HelpRequired THEN BEGIN
                   StopOperations;
-                  Log('G ' + DescribeKey(KeyToTest, InputShiftState) + ' : all operations stopped');
+                  Log('A ' + DescribeKey(KeyToTest, InputShiftState) + ' : all operations stopped');
                   Debug('All operations stopped');
                   IF NOT SystemOnline THEN
                     Debug('Cannot deselect points - system offline')
@@ -4692,9 +4692,9 @@ BEGIN { KeyPressedDown }
                   IF MessageDialogueWithDefault('Resume operations?', NOT StopTimer, mtConfirmation, [mbOK, mbAbort], mbAbort) = mrOK THEN BEGIN
                     ResumeOperations(OK);
                     IF OK THEN BEGIN
-                      Log('GG Operations resumed');
+                      Log('AG Operations resumed');
                     END ELSE BEGIN
-                      Log('G! Operations not resumed');
+                      Log('A! Operations not resumed');
                     END;
                     InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                   END;
@@ -5038,7 +5038,7 @@ BEGIN { KeyPressedDown }
                 IF NOT HelpRequired THEN BEGIN
                   { close the program after two consecutive escapes }
                   FWPRailMainWindow.MainWindowClose(NIL, CloseAction);
-                  Log('G Shutdown requested by user pressing Alt F4 {BLANKLINEBEFORE}');
+                  Log('A Shutdown requested by user pressing Alt F4 {BLANKLINEBEFORE}');
                 END;
               END;
           END; {CASE}
@@ -5206,11 +5206,11 @@ BEGIN { KeyPressedDown }
                 IF NOT HelpRequired THEN BEGIN
                   IF RDCMode THEN BEGIN
                     RDCMode := False;
-                    Log('GG RDC Mode off');
+                    Log('AG RDC Mode off');
                   END ELSE BEGIN
                     RDCMode := True;
                     StartRailDriver;
-                    Log('GG RDC Mode on');
+                    Log('AG RDC Mode on');
                   END;
                 END;
               END;
@@ -5411,11 +5411,11 @@ BEGIN { KeyPressedDown }
                     TurnAllSignalsOff;
                     AllSignalsSwitchedOff := True;
                     WriteToStatusBarPanel(StatusBarPanel2, 'All signals switched off');
-                    Log('G All signals switched off');
+                    Log('A All signals switched off');
                   END ELSE BEGIN
                     RestoreAllSignalsToPreviousState;
                     AllSignalsSwitchedOff := False;
-                    Log('G All signals restored to previous state');
+                    Log('A All signals restored to previous state');
                     WriteToStatusBarPanel(StatusBarPanel2, 'All signals restored to previous state');
                   END;
                 END;
