@@ -81,7 +81,7 @@ CONST
   clTeal = 8421376      $00 80 80 00
   clWhite = 16777215    $00 FF FF FF
   ClYellow = 65535      $00 00 FF FF
- }
+  }
   { Don't know why Delphi doesn't predefine the following (change ColourToStr and StrToColour in MiscUtils if change any of these) }
   clFWPDkBlue = $0802040; { 0 128  32  64 }
   clFWPOrange = $000080FF; { 0   0 128 255 }
@@ -757,7 +757,7 @@ TYPE
 
   { Note: we need Missing, Suspended, and MissingAndSuspended as otherwise the status can oscillate between Missing and Suspended if a train is suspended while missing - in
     that case, unsuspending renders it missing even though it may no longer be missing, and it's then a status we can't get out of.
- }
+  }
   TrainStatusType = (ReadyForCreation, WaitingForLightsOn, WaitingForSignalHiddenAspectToClear, WaitingForRouteing, InLightsOnTime, ReadyForRouteing, CommencedRouteing,
                      ReadyToDepart, Departed, RouteingWhileDeparted, RouteCompleted, WaitingForRemovalFromDiagrams, ReadyForRemovalFromDiagrams, RemovedFromDiagrams,
                      Missing, MissingAndSuspended, Suspended, NonMoving, Cancelled, UnknownTrainStatus);
@@ -997,7 +997,7 @@ TYPE
   StringType = (LongStringType, ShortStringType, VeryShortStringType);
   TrainArrayType = ARRAY OF Train;
 
-{ not yet in use - failed in testing 1/09 }
+  { not yet in use - failed in testing 1/09 }
   SavedRouteRec = RECORD
     SavedRoute_Array : StringArrayType;
     SavedRoute_StartLine : Integer;
@@ -1015,7 +1015,7 @@ CONST
   NoUnitRef = True;
   NumberElements = True;
 
-  { Various Strings - these have to match those in database fields }
+  { Various strings - these have to match those in database fields }
   LevelStr = 'Level';
   RisingIfDownStr = 'RisingIfDown';
   RisingIfUpStr = 'RisingIfUp';
@@ -1389,7 +1389,7 @@ FUNCTION ValidateIndicatorSpeedRestriction(Str : String; Indicator : IndicatorTy
 
 FUNCTION ValidateJunctionIndicators1(Str, FieldName : String; Signal_Indicator : IndicatorType; OUT ErrorMsg : String) : JunctionIndicatorRec;
 { The first part of verifying whether junction indicators are correctly set up; this part also returns the values for each junction indicator. This test requires that
-  the Indicator has been validated first
+  the indicator has been validated first
 }
 FUNCTION ValidateNextSignalIfNoIndicator(Str : String; Init : Boolean; OUT ErrorMsg : String) : Integer;
 { Validates and if ok returns what the other signal is if no indicator is lit }
