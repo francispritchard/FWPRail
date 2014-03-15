@@ -687,7 +687,7 @@ TYPE
     TC_Gradient : GradientType;
     TC_HeadCode : String;
     TC_Journey : Integer;
-    TC_LengthInInches : Extended; { in inches }
+    TC_LengthInInches : Extended;
     TC_LineArray : LineArrayType;
     TC_LitUp : Boolean; { used for flashing }
     TC_Location : Integer;
@@ -719,7 +719,7 @@ TYPE
     TrainJourney_ActualDepartureTime : TDateTime;
     TrainJourney_AdditionalRequiredStationWaitInMinutes : Integer;
     TrainJourney_Cleared : Boolean;
-                 { TrainJourney_Commenced : Boolean; - use TrainJourney_ActualDepartureTime <> 0 instead }
+    { TrainJourney_Commenced : Boolean; - use TrainJourney_ActualDepartureTime <> 0 instead }
     TrainJourney_Created : Boolean;
     TrainJourney_CurrentArrivalTime : TDateTime;
     TrainJourney_CurrentDepartureTime : TDateTime;
