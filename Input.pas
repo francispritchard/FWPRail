@@ -2547,15 +2547,10 @@ BEGIN { KeyPressedDown }
           CASE ShiftKeys OF
             NoShiftKeys: {L}
               BEGIN
-                HelpMsg := 'point/signal locking on/off';
+                HelpMsg := 'show line dialogue box';
                 IF NOT HelpRequired THEN BEGIN
-                  IF LockingMode THEN BEGIN
-                    LockingMode := False;
-                    Log('AG Locking = OFF');
-                  END ELSE BEGIN
-                    LockingMode := True;
-                    Log('AG Locking = ON');
-                  END;
+                  InputDialogueBoxRequired := LineDialogueBox;
+                  InputDialogueBox.Show;
                 END;
               END;
             CtrlAltShift: {L}
@@ -2608,10 +2603,15 @@ BEGIN { KeyPressedDown }
               END;
             Shift: {L}
               BEGIN
-                HelpMsg := 'show line dialogue box';
+                HelpMsg := 'point/signal locking on/off';
                 IF NOT HelpRequired THEN BEGIN
-                  InputDialogueBoxRequired := LineDialogueBox;
-                  InputDialogueBox.Show;
+                  IF LockingMode THEN BEGIN
+                    LockingMode := False;
+                    Log('AG Locking = OFF');
+                  END ELSE BEGIN
+                    LockingMode := True;
+                    Log('AG Locking = ON');
+                  END;
                 END;
               END;
             Ctrl: {L}
