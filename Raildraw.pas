@@ -513,6 +513,12 @@ PROCEDURE DrawLine{2}(L : Integer; NewLineColour : Integer; ActiveTrain : Boolea
 PROCEDURE DrawMap;
 { Draws the track layout }
 
+PROCEDURE DrawOutline(NewRect : TRect; Colour : TColour; UndrawRequired, UndrawToBeAutomatic : Boolean); Overload;
+{ We need this as the default Delphi Rectangle is filled in }
+
+PROCEDURE DrawOutline(FWPPolygon : ARRAY OF TPoint; Colour : TColour; UndrawRequired, UndrawToBeAutomatic : Boolean); Overload;
+{ We need this as the default Delphi Rectangle is filled in }
+
 PROCEDURE DrawPlatforms;
 { Draw the platforms }
 
@@ -521,9 +527,6 @@ PROCEDURE DrawPoint(P : Integer; Colour : TColour);
 
 PROCEDURE DrawPointNum(P : Integer; Colour : TColour);
 { Put the number of the point on the diagram }
-
-PROCEDURE DrawRectangularOutline(NewRect : TRect; Colour : TColour; UndrawRequired, UndrawToBeAutomatic : Boolean);
-{ We need this as the default Delphi Rectangle is filled in }
 
 PROCEDURE DrawSignal(S : Integer);
 { Draw a signal at the current position. We need to know if it is for up or down traffic, a home or distant or CallingOn, and what aspect it is. Location.X is the position
@@ -711,7 +714,7 @@ BEGIN
       DrawRedLampAndVerticalLine(BufferStop_X, BufferStop_Y1, BufferStop_Y2, Colour);
 
       IF ShowMouseRectangles THEN
-        DrawRectangularOutline(BufferStop_MouseRect, clFWPOrange, NOT UndrawRequired,NOT UndrawToBeAutomatic);
+        DrawOutline(BufferStop_MouseRect, clFWPOrange, NOT UndrawRequired,NOT UndrawToBeAutomatic);
     END; {WITH}
   END; {WITH}
 END; { DrawBufferStop }
@@ -1287,28 +1290,28 @@ BEGIN
   END; {TRY}
 END; { ShowLinePos }
 
-PROCEDURE DrawRectangularOutline(NewRect : TRect; Colour : TColour; UndrawRequired, UndrawToBeAutomatic : Boolean);
+PROCEDURE DrawOutline(FWPPolygon : ARRAY OF TPoint; Colour : TColour; UndrawRequired, UndrawToBeAutomatic : Boolean); Overload;
 { We need this as the default Delphi Rectangle is filled in }
 BEGIN
   TRY
     InitialiseScreenDrawingVariables;
 
-    { If the timer is running on the automatic undrawing of a previous draw, undraw it now before we start the timer on another drawing }
-    IF UndrawToBeAutomatic
-    AND (TimeRectangleDrawn <> 0)
-    THEN BEGIN
-      TimeRectangleDrawn := 0;
-      WITH FWPRailMainWindow.Canvas DO BEGIN
-        Pen.Color := SaveUndrawRectColour;
-        Brush.Color := BackgroundColour;
-        WITH UndrawRect DO
-          Polyline([Point(Left - ScrollBarXAdjustment, Top - ScrollBarYAdjustment),
-                    Point(Left - ScrollBarXAdjustment, Bottom - ScrollBarYAdjustment),
-                    Point(Right - ScrollBarXAdjustment, Bottom - ScrollBarYAdjustment),
-                    Point(Right - ScrollBarXAdjustment, Top - ScrollBarYAdjustment),
-                    Point(Left - ScrollBarXAdjustment, Top - ScrollBarYAdjustment)]);
-      END; {WITH}
-    END;
+//    { If the timer is running on the automatic undrawing of a previous draw, undraw it now before we start the timer on another drawing }
+//    IF UndrawToBeAutomatic
+//    AND (TimeRectangleDrawn <> 0)
+//    THEN BEGIN
+//      TimeRectangleDrawn := 0;
+//      WITH FWPRailMainWindow.Canvas DO BEGIN
+//        Pen.Color := SaveUndrawRectColour;
+//        Brush.Color := BackgroundColour;
+//        WITH UndrawRect DO
+//          Polyline([Point(Left - ScrollBarXAdjustment, Top - ScrollBarYAdjustment),
+//                    Point(Left - ScrollBarXAdjustment, Bottom - ScrollBarYAdjustment),
+//                    Point(Right - ScrollBarXAdjustment, Bottom - ScrollBarYAdjustment),
+//                    Point(Right - ScrollBarXAdjustment, Top - ScrollBarYAdjustment),
+//                    Point(Left - ScrollBarXAdjustment, Top - ScrollBarYAdjustment)]);
+//      END; {WITH}
+//    END;
 
     { Now draw what we've been asked to do }
     WITH FWPRailMainWindow.Canvas DO BEGIN
@@ -1316,27 +1319,36 @@ BEGIN
         Pen.Mode := pmNotXor;
       Pen.Color := Colour;
       Brush.Color := BackgroundColour;
-      WITH NewRect DO
-        Polyline([Point(Left - ScrollBarXAdjustment, Top - ScrollBarYAdjustment),
-                  Point(Left - ScrollBarXAdjustment, Bottom - ScrollBarYAdjustment),
-                  Point(Right - ScrollBarXAdjustment, Bottom - ScrollBarYAdjustment),
-                  Point(Right - ScrollBarXAdjustment, Top - ScrollBarYAdjustment),
-                  Point(Left - ScrollBarXAdjustment, Top - ScrollBarYAdjustment)]);
+      Polyline(FWPPolygon);
     END; {WITH}
 
-    IF UndrawRequired
-    AND UndrawToBeAutomatic
-    THEN BEGIN
-      { If automatic undraw required, do it after a set time }
-      TimeRectangleDrawn := GetTickCount;
-      UndrawRect := NewRect;
-      SaveUndrawRectColour := Colour;
-    END;
+//    IF UndrawRequired
+//    AND UndrawToBeAutomatic
+//    THEN BEGIN
+//      { If automatic undraw required, do it after a set time }
+//      TimeRectangleDrawn := GetTickCount;
+//      UndrawRect := NewRect;
+//      SaveUndrawRectColour := Colour;
+//    END;
   EXCEPT
     ON E : Exception DO
-      Log('EG DrawRectangularOutline:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG DrawOutline:' + E.ClassName +' error raised, with message: '+ E.Message);
   END; {TRY}
-END; { DrawRectangularOutline }
+END; { DrawOutline }
+
+PROCEDURE DrawOutline(NewRect : TRect; Colour : TColour; UndrawRequired, UndrawToBeAutomatic : Boolean); Overload;
+{ We need this as the default Delphi Rectangle is filled in }
+VAR
+  FWPPolygon : ARRAY [0..4] OF TPoint;
+
+BEGIN
+  FWPPolygon[0] := Point(NewRect.Left, NewRect.Top);
+  FWPPolygon[1] := Point(NewRect.Right, NewRect.Top);
+  FWPPolygon[2] := Point(NewRect.Right, NewRect.Bottom);
+  FWPPolygon[3] := Point(NewRect.Left, NewRect.Bottom);
+  FWPPolygon[4] := FWPPolygon[0];
+  DrawOutline(FWPPolygon, Colour, UndrawRequired, UndrawToBeAutomatic);
+END; { DrawOutline }
 
 PROCEDURE WriteToStatusBarPanel(PanelNum : Integer; Str : String);
 { Write the text in the chosen panel if the text has changed. Note: Debug can only be used in this routine with a second Boolean parameter turning DoNoWriteToStatusPanel
@@ -1382,7 +1394,7 @@ BEGIN
           { a point }
           WITH Points[Device] DO
             { note: black really is the new white here - as clBlack comes out as pmNotXored clWhite }
-            DrawRectangularOutline(Point_MouseRect, clBlack, UndrawRequired, UndrawToBeAutomatic);
+            DrawOutline(Point_MouseRect, clBlack, UndrawRequired, UndrawToBeAutomatic);
       END; {CASE}
     END;
   EXCEPT
@@ -2065,7 +2077,7 @@ BEGIN
             Font.Color := clWhite;
             IF Signal_IndicatorState = NoIndicatorLit THEN
               { Now the outline of the theatre indicator box }
-              DrawRectangularOutline(Rect(TheatreIndicatorX1,
+              DrawOutline(Rect(TheatreIndicatorX1,
                                           TheatreIndicatorY1,
                                           TheatreIndicatorX2,
                                           TheatreIndicatorY2),
@@ -2417,17 +2429,17 @@ BEGIN
 
         { Draw mouse access rectangles if required }
         IF ShowMouseRectangles THEN BEGIN
-          DrawRectangularOutline(Signal_MouseRect, clYellow, NOT UndrawRequired, NOT UndrawToBeAutomatic);
-          DrawRectangularOutline(Signal_PostMouseRect, clRed, NOT UndrawRequired, NOT UndrawToBeAutomatic);
+          DrawOutline(Signal_MouseRect, clYellow, NOT UndrawRequired, NOT UndrawToBeAutomatic);
+          DrawOutline(Signal_PostMouseRect, clRed, NOT UndrawRequired, NOT UndrawToBeAutomatic);
           IF (Signal_Indicator <> NoIndicator)
           AND (Signal_Indicator <> JunctionIndicator)
           THEN
-            DrawRectangularOutline(Signal_IndicatorMouseRect, clAqua, NOT UndrawRequired, NOT UndrawToBeAutomatic);
+            DrawOutline(Signal_IndicatorMouseRect, clAqua, NOT UndrawRequired, NOT UndrawToBeAutomatic);
 
           FOR Indicator := UpperLeftIndicator TO LowerRightIndicator DO
             WITH Signal_JunctionIndicators[Indicator] DO
               IF JunctionIndicator_Exists THEN BEGIN
-                DrawRectangularOutline(JunctionIndicator_MouseRect, clAqua, NOT UndrawRequired, NOT UndrawToBeAutomatic);
+                DrawOutline(JunctionIndicator_MouseRect, clAqua, NOT UndrawRequired, NOT UndrawToBeAutomatic);
 
           END;
         END;
@@ -2519,7 +2531,7 @@ BEGIN
         END;
 
         IF ShowMouseRectangles THEN
-          DrawRectangularOutline(ConnectionChRect, clFuchsia, NOT UndrawRequired, NOT UndrawToBeAutomatic);
+          DrawOutline(ConnectionChRect, clFuchsia, NOT UndrawRequired, NOT UndrawToBeAutomatic);
       END; {WITH}
     END;
   EXCEPT
@@ -2839,12 +2851,13 @@ BEGIN
             DrawConnectionCh(Lines[L].Line_DownConnectionCh, Lines[L].Line_DownConnectionChRect, NOT Bold);
 
           IF ShowMouseRectangles THEN BEGIN
-            IF Line_UpY = Line_DownY THEN
-              { horizontal lines }
-              DrawRectangularOutline(Line_MouseRect, clGreen, NOT UndrawRequired, NOT UndrawToBeAutomatic)
-            ELSE
-              { diagonal lines }
-              DrawRectangularOutline(Line_MouseRect, clLime, NOT UndrawRequired, NOT UndrawToBeAutomatic);
+            PolyLine(Line_MousePolygon);
+//            IF Line_UpY = Line_DownY THEN
+//              { horizontal lines }
+//              DrawOutline(Line_MouseRect, clGreen, NOT UndrawRequired, NOT UndrawToBeAutomatic)
+//            ELSE
+//              { diagonal lines }
+//              DrawOutline(Line_MouseRect, clLime, NOT UndrawRequired, NOT UndrawToBeAutomatic);
           END;
         END; {WITH}
       END; {WITH}
@@ -3929,7 +3942,7 @@ BEGIN
 
       { Draw mouse access rectangles }
       IF ShowMouseRectangles THEN
-        DrawRectangularOutline(Points[P].Point_MouseRect, clWhite, NOT UndrawRequired, NOT UndrawToBeAutomatic);
+        DrawOutline(Points[P].Point_MouseRect, clWhite, NOT UndrawRequired, NOT UndrawToBeAutomatic);
     END; {FOR}
   EXCEPT
     ON E : Exception DO
@@ -4114,7 +4127,7 @@ BEGIN
                    Point(X + TRSPlungerLength, Y + (TRSPlungerLength DIV 2))]);
 
         IF ShowMouseRectangles THEN
-          DrawRectangularOutline(TRSPlunger_MouseRect, clYellow, NOT UndrawRequired, NOT UndrawToBeAutomatic);
+          DrawOutline(TRSPlunger_MouseRect, clYellow, NOT UndrawRequired, NOT UndrawToBeAutomatic);
       END; {WITH}
     END; {WITH}
   EXCEPT
@@ -4914,7 +4927,7 @@ BEGIN
                   END;
 
                   { Illustrate where the offending turnout is; note: blue is the new yellow here (!) - as clBlue comes out as pmNotXored clYellow }
-                  DrawRectangularOutline(Point_MouseRect, clBlue, UndrawRequired, NOT UndrawToBeAutomatic);
+                  DrawOutline(Point_MouseRect, clBlue, UndrawRequired, NOT UndrawToBeAutomatic);
                   Point_MaybeBeingSetToManual := True;
 
                   IF (Points[P].Point_Type <> CatchPointUp) AND (Points[P].Point_Type <> CatchPointDown) THEN
@@ -8497,7 +8510,7 @@ BEGIN
     { See if any rectangles need to be undrawn }
     IF TimeRectangleDrawn > 0 THEN BEGIN
       IF ((GetTickCount - TimeRectangleDrawn) > MaxRectangleUndrawTime) THEN BEGIN
-        DrawRectangularOutline(UndrawRect, SaveUndrawRectColour, UndrawRequired, NOT UndrawToBeAutomatic);
+        DrawOutline(UndrawRect, SaveUndrawRectColour, UndrawRequired, NOT UndrawToBeAutomatic);
         TimeRectangleDrawn := 0;
       END;
     END;

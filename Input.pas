@@ -121,14 +121,14 @@ BEGIN
     Exit;
   END;
 
-  CASE InputDialogueBoxRequired OF
+ CASE InputDialogueBoxRequired OF
     PointDialogueBox:
       BEGIN
         InputDialogueChangeOrSelectButton.Enabled := False;
         IF PointRectangleDrawnNum <> UnknownPoint THEN BEGIN
           { we've been here before - need to undraw the rectangle }
           WITH Points[PointRectangleDrawnNum] DO
-            DrawRectangularOutline(Point_MouseRect, BackgroundColour, UndrawRequired, NOT UndrawToBeAutomatic);
+            DrawOutline(Point_MouseRect, BackgroundColour, UndrawRequired, NOT UndrawToBeAutomatic);
           PointRectangleDrawnNum := UnknownPoint;
         END;
 
@@ -147,7 +147,7 @@ BEGIN
               InputDialogueChangeOrSelectButton.Enabled := True;
               { draw a rectangle around it }
               WITH Points[InputDialoguePoint] DO
-                DrawRectangularOutline(Point_MouseRect, BackgroundColour, UndrawRequired, NOT UndrawToBeAutomatic);
+                DrawOutline(Point_MouseRect, BackgroundColour, UndrawRequired, NOT UndrawToBeAutomatic);
               PointRectangleDrawnNum := InputDialoguePoint;
             END;
           END; {WHILE}
@@ -159,7 +159,7 @@ BEGIN
         IF LineRectangleDrawnNum <> UnknownLine THEN BEGIN
           { we've been here before - need to undraw the rectangle }
           WITH Lines[LineRectangleDrawnNum] DO
-            DrawRectangularOutline(Line_MouseRect, BackgroundColour, UndrawRequired, NOT UndrawToBeAutomatic);
+            DrawOutline(Line_Mousepolygon, BackgroundColour, UndrawRequired, NOT UndrawToBeAutomatic);
           LineRectangleDrawnNum := UnknownLine;
         END;
 
@@ -178,7 +178,7 @@ BEGIN
               InputDialogueChangeOrSelectButton.Enabled := True;
               { draw a rectangle around it }
               WITH Lines[InputDialogueLine] DO
-                DrawRectangularOutline(Line_MouseRect, BackgroundColour, UndrawRequired, NOT UndrawToBeAutomatic);
+                DrawOutline(Line_MousePolygon, BackgroundColour, UndrawRequired, NOT UndrawToBeAutomatic);
               LineRectangleDrawnNum := InputDialogueLine;
             END;
           END; {WHILE}
@@ -190,7 +190,7 @@ BEGIN
         IF SignalRectangleDrawnNum <> UnknownSignal THEN BEGIN
           { we've been here before - need to undraw the rectangle }
           WITH Signals[InputDialogueSignal] DO
-            DrawRectangularOutline(Signal_MouseRect, BackgroundColour, UndrawRequired, NOT UndrawToBeAutomatic);
+            DrawOutline(Signal_MouseRect, BackgroundColour, UndrawRequired, NOT UndrawToBeAutomatic);
           SignalRectangleDrawnNum := UnknownSignal;
         END;
 
@@ -209,7 +209,7 @@ BEGIN
               InputDialogueChangeOrSelectButton.Enabled := True;
               { Draw a rectangle around it }
               WITH Signals[InputDialogueSignal] DO
-                DrawRectangularOutline(Signal_MouseRect, BackgroundColour, UndrawRequired, NOT UndrawToBeAutomatic);
+                DrawOutline(Signal_MouseRect, BackgroundColour, UndrawRequired, NOT UndrawToBeAutomatic);
               SignalRectangleDrawnNum := InputDialogueSignal;
             END;
           END; {WHILE}
@@ -226,7 +226,7 @@ BEGIN
             FOR L := 0 TO High(Lines) DO BEGIN
               WITH Lines[L] DO
                 IF Line_TC = InputDialogueTC THEN
-                  DrawRectangularOutline(Line_MouseRect, BackgroundColour, UndrawRequired, NOT UndrawToBeAutomatic);
+                  DrawOutline(Line_MousePolygon, BackgroundColour, UndrawRequired, NOT UndrawToBeAutomatic);
             END;
           END;
           TrackCircuitDrawnNum := UnknownTC;
@@ -252,7 +252,7 @@ BEGIN
                 FOR L := 0 TO High(Lines) DO BEGIN
                   WITH Lines[L] DO BEGIN
                     IF Lines[L].Line_TC = InputDialogueTC THEN
-                      DrawRectangularOutline(Line_MouseRect, BackgroundColour, UndrawRequired, NOT UndrawToBeAutomatic);
+                      DrawOutline(Line_MousePolygon, BackgroundColour, UndrawRequired, NOT UndrawToBeAutomatic);
                   END;
                 END;
               END;
@@ -296,7 +296,7 @@ BEGIN
         { Undraw the rectangle }
         IF PointRectangleDrawnNum <> UnknownPoint THEN
           WITH Points[PointRectangleDrawnNum] DO
-            DrawRectangularOutline(Point_MouseRect, BackgroundColour, UndrawRequired, NOT UndrawToBeAutomatic);
+            DrawOutline(Point_MouseRect, BackgroundColour, UndrawRequired, NOT UndrawToBeAutomatic);
         PointRectangleDrawnNum := UnknownPoint;
       END;
     SignalDialogueBox:
@@ -317,8 +317,8 @@ BEGIN
 
             FOR L := 0 TO High(Lines) DO BEGIN
               WITH Lines[L] DO BEGIN
-                IF Lines[L].Line_TC = InputDialogueTC THEN
-                  DrawRectangularOutline(Line_MouseRect, clWhite, UndrawRequired, NOT UndrawToBeAutomatic);
+//                IF Lines[L].Line_TC = InputDialogueTC THEN
+//                  DrawOutline(Line_MouseRect, clWhite, UndrawRequired, NOT UndrawToBeAutomatic);
               END; {WITH}
             END;
           END; {WITH}

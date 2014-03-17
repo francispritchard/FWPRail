@@ -515,6 +515,9 @@ PROCEDURE Pause(MilliSeconds : Cardinal; ProcessMessages : Boolean);
 FUNCTION PenStyleToStr(PenStyle : TPenStyle) : String;
 { Describes pen styles }
 
+FUNCTION PointInPolygon(CONST Polygon: ARRAY OF TPoint; Point: TPoint): Boolean;
+{ Returns true if a point is in a defined region }
+
 FUNCTION PointIsCatchPoint(P : Integer) : Boolean;
 { Returns whether a given point is a catch point }
 
@@ -5147,11 +5150,22 @@ VAR
   END; { TruncDateTimeToSeconds }
 
 BEGIN
-  { Substitutes DateTimeToTimeStamp and TimeStampToMilliseconds, TruncDateTimeToMinutes for use of Trunc function. }
+  { Substitutes DateTimeToTimeStamp and TimeStampToMilliseconds, TruncDateTimeToMinutes for use of Trunc function }
   nnNow := TruncDateTimeToMilliSeconds(ANow);
   nnThen := TruncDateTimeToMilliSeconds(AThen);
   Result := nnNow - nnThen;
 END; { NewMilliSecondsBetween }
+
+FUNCTION PointInPolygon(CONST Polygon: ARRAY OF TPoint; Point: TPoint): Boolean;
+{ Returns true if a point is in a defined region }
+VAR
+  Rgn: HRGN;
+
+BEGIN
+  Rgn := CreatePolygonRgn(Polygon[0], Length(Polygon), Winding);
+  Result := PtInRegion(Rgn, Point.X, Point.Y);
+  DeleteObject(Rgn);
+END; {  PointInPolygon }
 
 FUNCTION PointIsCatchPoint(P : Integer) : Boolean;
 { Returns whether a given point is a catch point }

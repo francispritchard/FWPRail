@@ -186,7 +186,7 @@ BEGIN
   TRY
     IF PreparingZoom THEN BEGIN
       { Draw and undraw the rectangle if any }
-      DrawRectangularOutline(ZoomRect, clRed, UndrawRequired, NOT UndrawToBeAutomatic);
+      DrawOutline(ZoomRect, clRed, UndrawRequired, NOT UndrawToBeAutomatic);
 
       { and set up and draw the new rectangle }
       ZoomRect.Left := MouseX;
@@ -200,7 +200,7 @@ BEGIN
       THEN
         ChangeCursor(crSizeNWSE);
 
-      DrawRectangularOutline(ZoomRect, clRed, UndrawRequired, NOT UndrawToBeAutomatic);
+      DrawOutline(ZoomRect, clRed, UndrawRequired, NOT UndrawToBeAutomatic);
     END ELSE BEGIN
       IF MoveZoomWindowMode THEN BEGIN
         HideStatusBarAndUpDownIndications;
@@ -470,7 +470,7 @@ BEGIN
         { See if the mouse pointer is within lines rectangle - note: no guarantee that MX1 < MX2 }
         FOR L := 0 TO High(Lines) DO BEGIN
           WITH Lines[L] DO BEGIN
-            IF PtInRect(Line_MouseRect, Point(MouseX, MouseY)) THEN BEGIN
+            IF PointInPolygon(Line_MousePolygon, Point(MouseX, MouseY)) THEN BEGIN
               ObjectFound := True;
 
               { Write out the line name }
@@ -744,7 +744,7 @@ BEGIN
         END;
 
         { Undraw the rectangle that's left }
-        DrawRectangularOutline(ZoomRect, clRed, UndrawRequired, NOT UndrawToBeAutomatic);
+        DrawOutline(ZoomRect, clRed, UndrawRequired, NOT UndrawToBeAutomatic);
       END;
   EXCEPT {TRY}
     ON E : Exception DO

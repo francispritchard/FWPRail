@@ -263,7 +263,7 @@ TYPE
     Line_Length : Integer;
     Line_Location : Integer;
     Line_LockFailureNotedInSubRouteUnit : Boolean;
-    Line_MouseRect : TRect; { mouse access for indicators }
+    Line_MousePolygon : ARRAY [0..4] OF TPoint; { mouse access for indicators }
     Line_NextDownIsEndOfLine : EndOfLineType;
     Line_NextDownLine : Integer;
     Line_NextDownPoint : Integer;
@@ -2764,25 +2764,11 @@ BEGIN
     L := 0;
     WHILE L <= High(Lines) DO BEGIN
       WITH Lines[L] DO BEGIN
-        WITH Line_MouseRect DO BEGIN
-          { Set up mouse co-ordinates }
-          IF Line_UpY <> Line_DownY THEN BEGIN
-            { a diagonal line }
-            IF Line_UpY < Line_DownY THEN BEGIN
-              Top := Line_UpY;
-              Bottom := Line_DownY;
-            END ELSE BEGIN
-              Top := Line_DownY;
-              Bottom := Line_UpY;
-            END;
-          END ELSE BEGIN
-            { a straight line }
-            Top := Line_UpY - MouseRectangleEdgeVerticalSpacingScaled;
-            Bottom := Line_DownY + MouseRectangleEdgeVerticalSpacingScaled;
-          END;
-          Left := Line_UpX;
-          Right := Line_DownX;
-        END; { WITH }
+        Line_MousePolygon[0] := Point(Line_UpX, Line_UpY + MouseRectangleEdgeVerticalSpacingScaled);
+        Line_MousePolygon[1] := Point(Line_UpX, Line_UpY - MouseRectangleEdgeVerticalSpacingScaled);
+        Line_MousePolygon[2] := Point(Line_DownX, Line_DownY - MouseRectangleEdgeVerticalSpacingScaled);
+        Line_MousePolygon[3] := Point(Line_DownX, Line_DownY + MouseRectangleEdgeVerticalSpacingScaled);
+        Line_MousePolygon[4] := Line_MousePolygon[0];
 
         { Add the line-end characters which indicate where a line goes next }
         WITH FWPRailMainWindow.Canvas DO BEGIN
