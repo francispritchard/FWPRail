@@ -105,7 +105,7 @@ VAR
 BEGIN
   WITH LocationDataWindowGrid DO BEGIN
     WITH LocationDataWindowGrid.Canvas DO BEGIN
-      Font.Name := RailFont;
+      Font.Name := RailFontName;
       Font.Size := 10;
       Font.Color := clBlack;
       CellText := Cells[ACol, ARow];
@@ -176,7 +176,7 @@ BEGIN
         RowCount := 0;
 
         { Get the width of the the longest location name }
-        Font.Name := RailFont;
+        Font.Name := RailFontName;
         Font.Size := 11;
         DefaultColWidth := TextWidth('<- 1: 0000 (j-1) 06:30');
 

@@ -242,8 +242,8 @@ VAR
   DefaultLinesWithoutTrackCircuitsColour : TColour = clYellow;
   LinesWithoutTrackCircuitsColour : TColour = clYellow;
 
-  DefaultRailFont : String = 'Arial';
-  RailFont : String;
+  DefaultRailFontName : String = 'Arial';
+  RailFontName : String;
 
   DefaultLineFontHeight : Integer = 10;
   LineFontHeight : Integer;
@@ -613,8 +613,8 @@ VAR
   DefaultStationMonitorsDataFilenameSuffix : String = 'csv';
   StationMonitorsDataFilenameSuffix : String;
 
-  DefaultStationMonitorsFont : String = 'Arial';
-  StationMonitorsFont : String;
+  DefaultStationMonitorsFontName : String = 'Arial';
+  StationMonitorsFontName : String;
 
   DefaultStationMonitorsLargeFontHeight : Integer = 48;
   StationMonitorsLargeFontHeight : Integer;
@@ -904,11 +904,11 @@ CONST
     TCLocoOutOfPlaceOccupationPenStyleStr = 'TC Loco Out Of Place Occupation Pen Style';
 
   FontsSectionStr = 'Fonts';
-    RailFontStr = 'Rail Font';
+    RailFontNameStr = 'Rail Font Name';
     LineFontHeightStr = 'Line Font Height';
     MainWindowFontHeightStr = 'Main Window Font Height';
     PlatformNumberFontHeightStr = 'Platform Number Font Height';
-    StationMonitorsFontStr = 'Station Monitors Font';
+    StationMonitorsFontNameStr = 'Station Monitors Font Name';
     StationMonitorsLargeFontHeightStr = 'Station Monitors Large Font Height';
     StationMonitorsSmallFontHeightStr = 'Station Monitors Small Font Height';
     TheatreFontHeightStr = 'Theatre Font Height';
@@ -1289,11 +1289,11 @@ BEGIN
       TCPermanentSystemOccupationPenStyle := StrToPenStyle(ReadString(PenStylesSectionStr, TCPermanentSystemOccupationPenStyleStr,
                                                                                                                 PenStyleToStr(DefaultTCPermanentSystemOccupationPenStyle)));
       { Fonts }
-      RailFont := ReadString(FontsSectionStr, RailFontStr, DefaultRailFont);
+      RailFontName := ReadString(FontsSectionStr, RailFontNameStr, DefaultRailFontName);
       LineFontHeight := ReadInteger(FontsSectionStr, LineFontHeightStr, DefaultLineFontHeight);
       MainWindowFontHeight := ReadInteger(FontsSectionStr, MainWindowFontHeightStr, DefaultMainWindowFontHeight);
       PlatformNumberFontHeight := ReadInteger(FontsSectionStr, PlatformNumberFontHeightStr, DefaultPlatformNumberFontHeight);
-      StationMonitorsFont := ReadString(FontsSectionStr, StationMonitorsFontStr, DefaultStationMonitorsFont);
+      StationMonitorsFontName := ReadString(FontsSectionStr, StationMonitorsFontNameStr, DefaultStationMonitorsFontName);
       StationMonitorsLargeFontHeight := ReadInteger(FontsSectionStr, StationMonitorsLargeFontHeightStr, DefaultStationMonitorsLargeFontHeight);
       StationMonitorsSmallFontHeight := ReadInteger(FontsSectionStr, StationMonitorsSmallFontHeightStr, DefaultStationMonitorsSmallFontHeight);
       TheatreFontHeight := ReadInteger(FontsSectionStr, TheatreFontHeightStr, DefaultTheatreFontHeight);
@@ -1770,11 +1770,11 @@ BEGIN
       WriteString(PenStylesSectionStr, TCPermanentSystemOccupationPenStyleStr, PenStyleToStr(TCPermanentSystemOccupationPenStyle));
 
       { Fonts }
-      WriteString(FontsSectionStr, RailFontStr, RailFont);
+      WriteString(FontsSectionStr, RailFontNameStr, RailFontName);
       WriteInteger(FontsSectionStr, LineFontHeightStr, LineFontHeight);
       WriteInteger(FontsSectionStr, MainWindowFontHeightStr, MainWindowFontHeight);
       WriteInteger(FontsSectionStr, PlatformNumberFontHeightStr, PlatformNumberFontHeight);
-      WriteString(FontsSectionStr, StationMonitorsFontStr, StationMonitorsFont);
+      WriteString(FontsSectionStr, StationMonitorsFontNameStr, StationMonitorsFontName);
       WriteInteger(FontsSectionStr, StationMonitorsLargeFontHeightStr, StationMonitorsLargeFontHeight);
       WriteInteger(FontsSectionStr, StationMonitorsSmallFontHeightStr, StationMonitorsSmallFontHeight);
       WriteInteger(FontsSectionStr, TheatreFontHeightStr, TheatreFontHeight);
@@ -2074,11 +2074,11 @@ BEGIN
 
       { Fonts }
       Values[FontsStr] := '';
-      Values[RailFontStr] := RailFont;
+      Values[RailFontNameStr] := RailFontName;
       Values[LineFontHeightStr] := IntToStr(LineFontHeight);
       Values[MainWindowFontHeightStr] := IntToStr(MainWindowFontHeight);
       Values[PlatformNumberFontHeightStr] := IntToStr(PlatformNumberFontHeight);
-      Values[StationMonitorsFontStr] := StationMonitorsFont;
+      Values[StationMonitorsFontNameStr] := StationMonitorsFontName;
       Values[StationMonitorsLargeFontHeightStr] := IntToStr(StationMonitorsLargeFontHeight);
       Values[StationMonitorsSmallFontHeightStr] := IntToStr(StationMonitorsSmallFontHeight);
       Values[TheatreFontHeightStr] := IntToStr(TheatreFontHeight);
@@ -2544,11 +2544,11 @@ BEGIN
       END; {CASE}
 
       { Fonts }
-      CheckStringValueListValue(KeyName, RailFontStr, NewKeyValue, RailFont);
+      CheckStringValueListValue(KeyName, RailFontNameStr, NewKeyValue, RailFontName);
       CheckIntegerValueListValue(KeyName, LineFontHeightStr, NewKeyValue, LineFontHeight);
       CheckIntegerValueListValue(KeyName, MainWindowFontHeightStr, NewKeyValue, MainWindowFontHeight);
       CheckIntegerValueListValue(KeyName, PlatformNumberFontHeightStr, NewKeyValue, PlatformNumberFontHeight);
-      CheckStringValueListValue(KeyName, StationMonitorsFontStr, NewKeyValue, StationMonitorsFont);
+      CheckStringValueListValue(KeyName, StationMonitorsFontNameStr, NewKeyValue, StationMonitorsFontName);
       CheckIntegerValueListValue(KeyName, StationMonitorsLargeFontHeightStr, NewKeyValue, StationMonitorsLargeFontHeight);
       CheckIntegerValueListValue(KeyName, StationMonitorsSmallFontHeightStr, NewKeyValue, StationMonitorsSmallFontHeight);
       CheckIntegerValueListValue(KeyName, TheatreFontHeightStr, NewKeyValue, TheatreFontHeight);

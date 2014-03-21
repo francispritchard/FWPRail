@@ -6042,7 +6042,7 @@ BEGIN
     Brush.Style := bsSolid;
     Font.Color := ForegroundColour;
     Font.Height := -MulDiv(FWPRailMainWindow.ClientHeight, 11, 1000);
-    Font.Name := RailFont;
+    Font.Name := RailFontName;
     Font.Style := [];
     Pen.Color := ForegroundColour;
     Pen.Mode := pmCopy;
