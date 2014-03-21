@@ -2197,7 +2197,7 @@ BEGIN
               SetUpTrainLocationOccupationsAbInitio(T, OK);
 
               { If we're offline, then we will want to clear the initial trackcircuits automatically, as there is no moving train to clear them }
-              IF SystemInitiallySetOffline THEN BEGIN
+              IF SystemSetOfflineByCommandLineParameter THEN BEGIN
                 IF Train_InitialTrackCircuits[1] <> UnknownTC THEN BEGIN
                   SetTrackCircuitState(Train_LocoChip, Train_InitialTrackCircuits[1], TCUnoccupied);
                   SetTrackCircuitState(Train_LocoChip, Train_InitialTrackCircuits[2], TCUnoccupied);

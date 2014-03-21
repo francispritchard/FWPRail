@@ -221,8 +221,8 @@ BEGIN
                OK := False;
       'O':
          IF Copy(ParamString, 1, 7) = 'OFFLINE' THEN BEGIN
-           SystemInitiallySetOffline := True;
-           SetSystemOffline('System now offline');
+           SystemSetOfflineByCommandLineParameter := True;
+           SetSystemOffline('by command line parameter');
          END;
       'P':
         IF Copy(ParamString, 1, 4) = 'PFW:' THEN
@@ -446,8 +446,8 @@ BEGIN
   IF StationStartMode THEN
     Log('AG Station Start Mode ON' + '{INDENT=2}');
 
-  IF SystemInitiallySetOffline THEN
-    Log('AG System Initially Offline ON' + '{INDENT=2}');
+  IF SystemSetOfflineByCommandLineParameter THEN
+    Log('AG System Set Offline By Command Line Parameter ON' + '{INDENT=2}');
 
   IF TestingMode THEN
     Log('AG Testing Mode ON' + '{INDENT=2}');

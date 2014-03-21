@@ -783,7 +783,7 @@ VAR
       AND (TrackCircuits[Train_InitialTrackCircuits[1]].TC_OccupationState <> TCPermanentFeedbackOccupation)
       THEN BEGIN
         { means the train ain't there, but that's a problem dealt with elsewhere! - it may also mean we're offline, though }
-        IF SystemInitiallySetOffline THEN
+        IF SystemSetOfflineByCommandLineParameter THEN
           SetTrackCircuitState(Train_LocoChip, Train_InitialTrackCircuits[1], TCFeedbackOccupation)
         ELSE BEGIN
           IF Train_UseTrailingTrackCircuits THEN BEGIN
@@ -800,7 +800,7 @@ VAR
         IF (TrackCircuits[Train_InitialTrackCircuits[2]].TC_OccupationState <> TCFeedbackOccupation)
         AND (TrackCircuits[Train_InitialTrackCircuits[2]].TC_OccupationState <> TCPermanentFeedbackOccupation)
         THEN BEGIN
-          IF SystemInitiallySetOffline THEN
+          IF SystemSetOfflineByCommandLineParameter THEN
             SetTrackCircuitState(Train_LocoChip, Train_InitialTrackCircuits[2], TCFeedbackOccupation)
           ELSE BEGIN
             IF Train_UseTrailingTrackCircuits THEN BEGIN

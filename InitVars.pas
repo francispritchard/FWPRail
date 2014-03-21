@@ -1141,8 +1141,8 @@ VAR
   StationMonitorsCurrentDisplayOrderNum : Integer = 0;
   Stop : MPHType = MPH0;
   StopAllLocomotivesWhenDebugCalled : Boolean = False;
-  SystemInitiallySetOffline : Boolean = False;
   SystemOnline : Boolean = False;
+  SystemSetOfflineByCommandLineParameter : Boolean = False;
   SystemStatusStr : String = '';
   TempTrainArray : ARRAY OF Train;
   TerminatingSpeedReductionMode : Boolean = False;

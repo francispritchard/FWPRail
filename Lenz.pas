@@ -3390,9 +3390,7 @@ BEGIN
   { For initial data flow check }
   OK := False;
 
-  IF SystemInitiallySetOffline THEN
-    SetSystemOffline('System initially set offline by command-line parameter')
-  ELSE BEGIN
+  IF NOT SystemSetOfflineByCommandLineParameter THEN BEGIN
     SetSystemOnline(OK);
     IF OK THEN
       Log('AG TCPIP Server is running')
