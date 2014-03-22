@@ -288,6 +288,12 @@ FUNCTION GetNextDayOfTheWeek(DayOfTheWeek : DayOfTheWeekType) : DayOfTheWeekType
 FUNCTION GetOrdinalFromCardinal(Ordinal : Integer) : String;
 { Return the ordinal version of a cardinal number }
 
+FUNCTION GetProgramTitle : String;
+{ Returns the program title }
+
+FUNCTION GetProgramVersion(Str : String) : String;
+{ Returns the program version }
+
 FUNCTION GetSignalAdjacentLine(S : Integer) : Integer;
 { Return the line adjacent to the given signal }
 
@@ -3124,6 +3130,21 @@ BEGIN
   END; {CASE}
 END; { GetNextDayOfTheWeek }
 
+FUNCTION GetProgramTitle : String;
+{ Returns the program title }
+BEGIN
+  Result := ProgramTitle + ' - ' + CopyrightStatementForWritingToFile;
+END; { GetProgramTitle }
+
+FUNCTION GetProgramVersion(Str : String) : String;
+{ Returns the program version preced by any additional text supplied }
+BEGIN
+  IF Str = '' THEN
+    Result := 'Version ' + GetVersionInfoAsString + ' build ' + GetBuildInfoAsString + ' at ' + DescribeActualDateAndTime
+  ELSE
+    Result := Str + ' : version ' + GetVersionInfoAsString + ' build ' + GetBuildInfoAsString + ' at ' + DescribeActualDateAndTime;
+END; { GetProgramVersion }
+
 FUNCTION GetSignalAdjacentLine(S : Integer) : Integer;
 { Return the line adjacent to the given signal }
 BEGIN
@@ -5162,7 +5183,7 @@ VAR
   Rgn: HRGN;
 
 BEGIN
-  Rgn := CreatePolygonRgn(Polygon[0], Length(Polygon), Winding);
+  Rgn := CreatePolygonRgn(Polygon[0], Length(Polygon), WINDING);
   Result := PtInRegion(Rgn, Point.X, Point.Y);
   DeleteObject(Rgn);
 END; {  PointInPolygon }

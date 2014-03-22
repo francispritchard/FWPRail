@@ -5947,8 +5947,8 @@ BEGIN
   IF NOT OpenOutputFileOK(LargeLogFile, PathToLogFiles + LogFileName + '.' + LogFileNameSuffix, ErrorMsg, NOT AppendToFile) THEN
     ShowMessage(ErrorMsg)
   ELSE BEGIN
-    WriteLn(LargeLogFile, ProgramTitle + ' - ' + CopyrightStatementForWritingToFile);
-    WriteLn(LargeLogFile, 'Debugging (and Replay) File for version ' + GetVersionInfoAsString + ' build ' + GetBuildInfoAsString + ' at ' + DescribeActualDateAndTime);
+    WriteLn(LargeLogFile, GetProgramTitle);
+    WriteLn(LargeLogFile, GetProgramVersion('Debugging (and Replay) Log File'));
     WriteLn(LargeLogFile, '{Replay NoWrite}');
     LogFileOpen := True;
   END;
@@ -5958,8 +5958,8 @@ BEGIN
   IF NOT OpenOutputFileOK(TestLogFile, PathToLogFiles + LogFileName + '-Test.' + LogFileNameSuffix, ErrorMsg, NOT AppendToFile) THEN
     ShowMessage(ErrorMsg)
   ELSE BEGIN
-    WriteLn(TestLogFile, ProgramTitle + ' - ' + CopyrightStatementForWritingToFile);
-    WriteLn(TestLogFile, 'Test File for version ' + GetVersionInfoAsString + ' build ' + GetBuildInfoAsString + ' at ' + DescribeActualDateAndTime);
+    WriteLn(TestLogFile, GetProgramTitle);
+    WriteLn(TestLogFile, GetProgramVersion('Test Log File'));
     IF TestingMode THEN
       Flush(TestLogFile);
   END;
@@ -5968,35 +5968,33 @@ BEGIN
   IF MultipleLogFilesRequired THEN BEGIN
     RenameEarlierFiles(ErrorLogFile, PathToLogFiles + LogFileName + '-Error', LogFileNameSuffix);
     Rewrite(ErrorLogFile);
-    WriteLn(ErrorLogFile, ProgramTitle + ' - ' + CopyrightStatementForWritingToFile);
-    WriteLn(ErrorLogFile, 'Error Log File for version ' + GetVersionInfoAsString + ' build ' + GetBuildInfoAsString + ' at ' + DescribeActualDateAndTime);
+    WriteLn(ErrorLogFile, GetProgramTitle);
+    WriteLn(ErrorLogFile, GetProgramVersion('Error Log File'));
 
     RenameEarlierFiles(LocoLogFile, PathToLogFiles + LogFileName + '-Loco', LogFileNameSuffix);
     Rewrite(LocoLogFile);
-    WriteLn(LocoLogFile, ProgramTitle + ' - ' + CopyrightStatementForWritingToFile);
-    WriteLn(LocoLogFile, 'Loco Log File for version ' + GetVersionInfoAsString + ' build ' + GetBuildInfoAsString + ' at ' + DescribeActualDateAndTime);
+    WriteLn(LocoLogFile, GetProgramTitle);
+    WriteLn(LocoLogFile, GetProgramVersion('Loco Log File'));
 
     RenameEarlierFiles(RouteLogFile, PathToLogFiles + LogFileName + '-Route', LogFileNameSuffix);
     Rewrite(RouteLogFile);
-    WriteLn(RouteLogFile, ProgramTitle + ' - ' + CopyrightStatementForWritingToFile);
-    WriteLn(RouteLogFile, 'Route Log File for version ' + GetVersionInfoAsString + ' build ' + GetBuildInfoAsString + ' at ' +  DescribeActualDateAndTime);
+    WriteLn(RouteLogFile, GetProgramTitle);
+    WriteLn(RouteLogFile, GetProgramVersion('Route Log File'));
 
     RenameEarlierFiles(SignalPointAndTCLogFile, PathToLogFiles + LogFileName + '-SignalPointAndTC', LogFileNameSuffix);
     Rewrite(SignalPointAndTCLogFile);
-    WriteLn(SignalPointAndTCLogFile, ProgramTitle + ' - ' + CopyrightStatementForWritingToFile);
-    WriteLn(SignalPointAndTCLogFile, 'Signal Point And TC Log File version ' + GetVersionInfoAsString + ' build ' + GetBuildInfoAsString
-                                     + ' at ' + DescribeActualDateAndTime);
+    WriteLn(SignalPointAndTCLogFile, GetProgramTitle);
+    WriteLn(SignalPointAndTCLogFile, GetProgramVersion('Signal Point And TC Log File'));
 
     RenameEarlierFiles(DiagramsLogFile, PathToLogFiles + LogFileName + '-Diagrams', LogFileNameSuffix);
     Rewrite(DiagramsLogFile);
-    WriteLn(DiagramsLogFile, ProgramTitle + ' - ' + CopyrightStatementForWritingToFile);
-    WriteLn(DiagramsLogFile, 'Diagrams Log File for version ' + GetVersionInfoAsString + ' build ' + GetBuildInfoAsString + ' at ' + DescribeActualDateAndTime);
+    WriteLn(DiagramsLogFile, GetProgramTitle);
+    WriteLn(DiagramsLogFile, GetProgramVersion('Diagrams Log File'));
 
     RenameEarlierFiles(WorkingTimetableLogFile, PathToLogFiles + LogFileName + '-WorkingTimetable', LogFileNameSuffix);
     Rewrite(WorkingTimetableLogFile);
-    WriteLn(WorkingTimetableLogFile, ProgramTitle + ' - ' + CopyrightStatementForWritingToFile);
-    WriteLn(WorkingTimetableLogFile, 'WorkingTimetable Log File for version ' + GetVersionInfoAsString + ' build ' + GetBuildInfoAsString
-                                     + ' at ' + DescribeActualDateAndTime);
+    WriteLn(WorkingTimetableLogFile, GetProgramTitle);
+    WriteLn(WorkingTimetableLogFile, GetProgramVersion('WorkingTimetable Log File'));
   END;
 END; { InitialiseLogFiles }
 
