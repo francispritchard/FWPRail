@@ -2505,7 +2505,7 @@ VAR
 
 BEGIN
   IDByte := 33; { for functions 5 - 8 }
-  Log(LocoChipToStr(LocoChip) + ' S  Setting S=' + IntToStr(SignalNum) + ' (' + DecoderNumString + ')' + ' to ' + AspectString + ' {BLANKLINEBEFORE}');
+  Log(LocoChipToStr(LocoChip) + ' S Setting S=' + IntToStr(SignalNum) + ' (' + DecoderNumString + ')' + ' to ' + AspectString + ' {BLANKLINEBEFORE}');
   { Now write the data out }
   WriteArray[0] := 228;
   WriteArray[1] := IDByte;
@@ -2521,7 +2521,7 @@ BEGIN
     DebugStr := DebugStr + ' ok';
   END ELSE
     DebugStr := DebugStr + ' failed in change';
-  Log(LocoChipToStr(LocoChip) + ' S  ' + DebugStr);
+  Log(LocoChipToStr(LocoChip) + ' S ' + DebugStr);
 END; { WriteSignalData }
 
 PROCEDURE ObtainSystemStatus(VAR SystemStatus : SystemRec; OUT TimedOut : Boolean; StartStopTimer : Boolean);
@@ -2726,7 +2726,7 @@ BEGIN
               DataByte := DataByte OR AspectByte;
               WriteSignalData(LocoChip, S, Signal_DecoderNum, DataByte, DecoderNumString, AspectString, OK);
             END ELSE
-              Log(LocoChipToStr(LocoChip) + ' S  Function decoder ' + IntToStr(Signal_DecoderNum) + ' specified is outside allowed range');
+              Log(LocoChipToStr(LocoChip) + ' S Function decoder ' + IntToStr(Signal_DecoderNum) + ' specified is outside allowed range');
           END;
       END;
   END; {WITH}

@@ -7,12 +7,12 @@ PROGRAM Rail;
   V6.0  27/03/11 And now using Embarcadero Delphi XE Professional
   v7.0  16/01/14 Now using XE5
 
- {$R RailResource.res} should be below this comment - this has the extra two icons in it - but sometimes Delphi removes it.
- {$R Rail.res}         should be below this comment - it has the version numbers in it - but sometimes Delphi removes it too.
+ {$R RailResource.res} // should be below this comment - this has the extra two icons in it - but sometimes Delphi removes it.
+ {$R Rail.res}         // should be below this comment - it has the version numbers in it - but sometimes Delphi removes it too.
 *)
 
-{$R RailResource.res} // {$R RailResource.res} should be to the left of this comment - this has the extra two icons in it - but sometimes Delphi removes it }
-{$R Rail.res}         // {$R Rail.res} should be to the left of this comment - it has the version numbers in it - but sometimes Delphi removes it too }
+ {$R RailResource.res} // should be below this comment - this has the extra two icons in it - but sometimes Delphi removes it.
+ {$R Rail.res}         // should be below this comment - it has the version numbers in it - but sometimes Delphi removes it too.
 
 USES
   Forms,

@@ -159,7 +159,7 @@ BEGIN
         IF LineRectangleDrawnNum <> UnknownLine THEN BEGIN
           { we've been here before - need to undraw the rectangle }
           WITH Lines[LineRectangleDrawnNum] DO
-            DrawOutline(Line_Mousepolygon, BackgroundColour, UndrawRequired, NOT UndrawToBeAutomatic);
+            DrawOutline(Line_MousePolygon, BackgroundColour, UndrawRequired, NOT UndrawToBeAutomatic);
           LineRectangleDrawnNum := UnknownLine;
         END;
 

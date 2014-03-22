@@ -33,6 +33,7 @@ object DebugWindow: TDebugWindow
     Font.Color = clWindowText
     Font.Height = -11
     Font.Name = 'Lucida Console'
+    Font.Pitch = fpFixed
     Font.Style = []
     HideScrollBars = False
     ParentFont = False

@@ -260,6 +260,6 @@ BEGIN
   { Move the cursor to the top of the screen }
   HelpWindow.HelpRichEdit.Perform(EM_SETSEL, 0, 0);
   HelpWindow.HelpRichEdit.Perform(EM_SCROLLCARET, 0, 0);
-END; {WriteHelpText }
+END; { WriteHelpText }
 
 END { HelpWindow }.
