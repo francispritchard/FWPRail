@@ -739,7 +739,8 @@ BEGIN
         END;
 
         { Now compose the "From PC" string }
-        DebugStr := StringOfChar(' ', 104) + 'PC request: '; { 104 shouldn't be a magic number *** }
+//        DebugStr := StringOfChar(' ', 104) + 'PC request: '; { 104 shouldn't be a magic number *** }
+        DebugStr := 'PC request: '; { 104 shouldn't be a magic number *** }
 
         CommandLen := GetCommandLen(WriteArray[0]);
 
@@ -911,7 +912,8 @@ BEGIN
             END; {CASE}
 
             IF ResponseOrBroadcast = Response THEN
-              Log(TypeOfLogChar + ' ' + StringOfChar(' ', 104) + 'Lenz response: ' + DebugStr)
+//              Log(TypeOfLogChar + ' ' + StringOfChar(' ', 104) + 'Lenz response: ' + DebugStr)
+              Log(TypeOfLogChar + ' Lenz response: ' + DebugStr)
             ELSE
               IF ResponseOrBroadcast = Broadcast THEN
                 Log('A ' + StringOfChar(' ', 104) + 'Lenz broadcast: ' + DebugStr + ' {BLANKLINEBEFORE}');

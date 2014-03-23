@@ -45,7 +45,8 @@ USES
   Replay IN 'Replay.pas' {ReplayForm},
   Options IN 'Options.pas' {OptionsWindow},
   Edit IN 'Edit.pas' {EditWindow},
-  WorkingTimetable IN 'WorkingTimetable.pas' {WorkingTimetableWindow};
+  WorkingTimetable IN 'WorkingTimetable.pas' {WorkingTimetableWindow},
+  Logging IN 'Logging.pas' {LoggingWindow};
 
 VAR
   I : Integer;

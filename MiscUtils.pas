@@ -3,15 +3,17 @@
 INTERFACE
 
 USES
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, InitVars, Input, Menus, ComCtrls, System.UITypes, TLHelp32;
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, InitVars, Input, Menus, ComCtrls, System.UITypes, TLHelp32, Logging;
 
 TYPE
   TDebugWindow = CLASS(TForm)
+    PopupDebugWindowResetSizeAndPosition: TMenuItem;
+    PopupDebugWindowCopy: TMenuItem;
     DebugRichEdit: TRichEdit;
     DebugRichEditColourDialogue: TColorDialog;
     DebugRichEditPopupMenu: TPopupMenu;
-    PopupDebugWindowResetSizeAndPosition: TMenuItem;
-    PopupDebugWindowCopy: TMenuItem;
+    PROCEDURE PopupDebugWindowCopyClick(Sender: TObject);
+    PROCEDURE PopupDebugWindowResetSizeAndPositionClick(Sender: TObject);
     PROCEDURE DebugRichEditKeyDown(Sender: TObject; VAR Key: Word; ShiftState: TShiftState);
     PROCEDURE DebugRichEditMouseDown(Sender: TObject; Button: TMouseButton; ShiftState: TShiftState; X, Y: Integer);
     PROCEDURE DebugRichEditMouseMove(Sender: TObject; ShiftState: TShiftState; X, Y: Integer);
@@ -21,8 +23,6 @@ TYPE
     PROCEDURE DebugWindowHide(Sender: TObject);
     PROCEDURE DebugWindowResize(Sender: TObject);
     PROCEDURE DebugWindowShow(Sender: TObject);
-    PROCEDURE PopupDebugWindowCopyClick(Sender: TObject);
-    PROCEDURE PopupDebugWindowResetSizeAndPositionClick(Sender: TObject);
   PRIVATE
     { Private declarations }
   PUBLIC
@@ -886,6 +886,9 @@ PROCEDURE WriteToLogFile(LogStr : String); Overload;
 
 CONST
   EllipsisStr = '...';
+  NoCurrentTimeStr = '';
+  NoLocoChipStr = '';
+  NoLogStr = '';
 
 VAR
   BlankLineBefore : Boolean;
@@ -907,16 +910,80 @@ VAR
   WrapNum : Integer;
   WrapNumStr : String;
 
-  PROCEDURE WriteToEachLogFile(TypeOfLog : Char; LogStr : String);
+  PROCEDURE WriteToEachLogFile(TypeOfLog : Char; CurrentTimeStr, CurrentRailwayTimeStr, LocoChipStr, LogStrWithRichEditCommands : String);
   { Write to the various log files depending on the type of log }
+  VAR
+    LogStrWithoutRichEditCommands : String;
+
+    PROCEDURE RemoveRichEditInstructionsFromLogStr(VAR TempLogStr : String);
+    { Removes any instructions in angle brackets from the log string }
+    VAR
+      CloseAnglePos : Integer;
+      OpenAnglePos : Integer;
+      TempStr : String;
+
+    BEGIN
+      IF Pos('<B>', UpperCase(TempLogStr)) > 0 THEN
+        TempLogStr := StringReplace(TempLogStr, '<B>', '', [rfIgnoreCase]);
+
+      IF Pos('<COLOR=', UpperCase(TempLogStr)) > 0 THEN BEGIN
+        TempStr := GetFollowingChars(TempLogStr, '<COLOR=', '>');
+        TempLogStr := StringReplace(TempLogStr, '<COLOR=' + TempStr + '>', '', [rfIgnoreCase]);
+      END;
+
+      { If there is anything else between curly brackets, there's presumably a typo somewhere }
+      OpenAnglePos := Pos('<', TempLogStr);
+      CloseAnglePos := Pos('>', TempLogStr);
+      IF (OpenAnglePos > 0) AND (CloseAnglePos > 0) THEN BEGIN
+        Debug('Log file error: invalid command "' + Copy(TempLogStr, OpenAnglePos, CloseAnglePos - OpenAnglePos + 1) + '" found');
+        AddRichLine(LoggingWindow.LoggingWindowRichEdit, 'Log file error: invalid command "' + Copy(TempLogStr, OpenAnglePos, CloseAnglePos - OpenAnglePos + 1) + '" found');
+        WriteLn(LargeLogFile, 'Log file error: invalid command "' + Copy(TempLogStr, OpenAnglePos, CloseAnglePos - OpenAnglePos + 1) + '" found');
+      END;
+
+      { Finally remove any sundry spaces left, from, for example, between angle brackets }
+      TempLogStr := StringReplace(TempLogStr, '  ', ' ', [rfIgnoreCase]);
+      TempLogStr := StringReplace(TempLogStr, '  ', ' ', [rfIgnoreCase]);
+    END; { RemoveRichEditInstructionsFromLogStr }
+
   BEGIN
+  if Pos('Setting S=90 (9904) to red', logstr) > 0 then
+null;
+
     IF NOT LogFileOpen THEN
       { Store the log until the file is opened }
-      AppendToStringArray(LogArray, LogStr)
+      AppendToStringArray(LogArray, LogStrWithRichEditCommands)
     ELSE BEGIN
       { See if a completely blank line is required }
-      IF Pos('{Blank Line}', LogStr) > 0 THEN
-        LogStr := '';
+      IF Pos('{Blank Line}', LogStrWithRichEditCommands) > 0 THEN
+        LogStrWithRichEditCommands := '';
+
+      { Remove the rich edit commands for the file copy }
+      LogStrWithOutRichEditCommands := LogStrWithRichEditCommands;
+      RemoveRichEditInstructionsFromLogStr(LogStrWithOutRichEditCommands);
+
+      LogStrWithRichEditCommands := IfThen(CurrentTimeStr = '',
+                                           '',
+                                           CurrentTimeStr)
+                                    + ' ' + CurrentRailwayTimeStr
+                                    + ' ' + TypeOfLog
+                                    + ' ' + IfThen(LocoChipStr = '',
+                                                   '    ',
+                                                   IfThen(LocoChipStr = '0000',
+                                                          '    ',
+                                                          LocoChipStr))
+                                    + ' ' + LogStrWithRichEditCommands;
+
+      LogStrWithOutRichEditCommands := IfThen(CurrentTimeStr = '',
+                                              '',
+                                              CurrentTimeStr)
+                                       + ' ' + CurrentRailwayTimeStr
+                                       + ' ' + TypeOfLog
+                                       + ' ' + IfThen(LocoChipStr = '',
+                                                      '    ',
+                                                      IfThen(LocoChipStr = '0000',
+                                                             '    ',
+                                                             LocoChipStr))
+                                       + ' ' + LogStrWithOutRichEditCommands;
 
       { And now specific happenings }
       CASE TypeOfLog OF
@@ -926,106 +993,94 @@ VAR
         'A', 'a', '$':
           { general happenings of relevance to all logs - includes '$' for quick debugging as it is easy to find in the logs }
           BEGIN
-            WriteLn(LargeLogFile, LogStr);
+            AddRichLine(LoggingWindow.LoggingWindowRichEdit, LogStrWithRichEditCommands);
+
+            WriteLn(LargeLogFile, LogStrWithoutRichEditCommands);
             IF MultipleLogFilesRequired THEN BEGIN
-              WriteLn(LocoLogFile, LogStr);
-              WriteLn(RouteLogFile, LogStr);
-              WriteLn(SignalPointAndTCLogFile, LogStr);
-              WriteLn(DiagramsLogFile, LogStr);
-              WriteLn(WorkingTimetableLogFile, LogStr);
+              WriteLn(LocoLogFile, LogStrWithoutRichEditCommands);
+              WriteLn(RouteLogFile, LogStrWithoutRichEditCommands);
+              WriteLn(SignalPointAndTCLogFile, LogStrWithoutRichEditCommands);
+              WriteLn(DiagramsLogFile, LogStrWithoutRichEditCommands);
+              WriteLn(WorkingTimetableLogFile, LogStrWithoutRichEditCommands);
             END;
           END;
         'P', 'p', 'S', 's', 'T', 't':
           BEGIN
-            WriteLn(LargeLogFile, LogStr);
+            AddRichLine(LoggingWindow.LoggingWindowRichEdit, LogStrWithRichEditCommands);
+            WriteLn(LargeLogFile, LogStrWithoutRichEditCommands);
+
             IF MultipleLogFilesRequired THEN
-              WriteLn(SignalPointAndTCLogFile, LogStr);
+              WriteLn(SignalPointAndTCLogFile, LogStrWithoutRichEditCommands);
           END;
         'D', 'd':
           BEGIN
-            WriteLn(LargeLogFile, LogStr);
+            AddRichLine(LoggingWindow.LoggingWindowRichEdit, LogStrWithRichEditCommands);
+            WriteLn(LargeLogFile, LogStrWithoutRichEditCommands);
+
             IF MultipleLogFilesRequired THEN
-              WriteLn(DiagramsLogFile, LogStr);
+              WriteLn(DiagramsLogFile, LogStrWithoutRichEditCommands);
           END;
         'W', 'w':
           BEGIN
-            WriteLn(LargeLogFile, LogStr);
-            WriteLn(TestLogFile, LogStr);
+            AddRichLine(LoggingWindow.LoggingWindowRichEdit, LogStrWithRichEditCommands);
+
+            WriteLn(LargeLogFile, LogStrWithoutRichEditCommands);
+            WriteLn(TestLogFile, LogStrWithoutRichEditCommands);
             IF MultipleLogFilesRequired THEN
-              WriteLn(WorkingTimetableLogFile, LogStr);
+              WriteLn(WorkingTimetableLogFile, LogStrWithoutRichEditCommands);
           END;
         'L', 'l':
           BEGIN
-            WriteLn(LargeLogFile, LogStr);
+            AddRichLine(LoggingWindow.LoggingWindowRichEdit, LogStrWithRichEditCommands);
+
+            WriteLn(LargeLogFile, LogStrWithoutRichEditCommands);
             IF MultipleLogFilesRequired THEN
-              WriteLn(LocoLogFile, LogStr);
+              WriteLn(LocoLogFile, LogStrWithoutRichEditCommands);
           END;
         'R', 'r':
           BEGIN
-            WriteLn(LargeLogFile, LogStr);
+            AddRichLine(LoggingWindow.LoggingWindowRichEdit, LogStrWithRichEditCommands);
+
+            WriteLn(LargeLogFile, LogStrWithoutRichEditCommands);
             IF MultipleLogFilesRequired THEN
-              WriteLn(RouteLogFile, LogStr);
+              WriteLn(RouteLogFile, LogStrWithoutRichEditCommands);
           END;
         '*':
           BEGIN
-            WriteLn(LargeLogFile, LogStr);
-            WriteLn(TestLogFile, LogStr);
+            AddRichLine(LoggingWindow.LoggingWindowRichEdit, LogStrWithRichEditCommands);
+
+            WriteLn(LargeLogFile, LogStrWithoutRichEditCommands);
+            WriteLn(TestLogFile, LogStrWithoutRichEditCommands);
           END;
         '+':
           { Only write to the test log file }
-          WriteLn(TestLogFile, LogStr);
+          WriteLn(TestLogFile, LogStrWithoutRichEditCommands);
         'E', 'e', 'X', 'x': { unusual happenings of relevance to all the log files }
           BEGIN
-            WriteLn(LargeLogFile, LogStr);
+            AddRichLine(LoggingWindow.LoggingWindowRichEdit, LogStrWithRichEditCommands);
+
+            WriteLn(LargeLogFile, LogStrWithoutRichEditCommands);
             IF MultipleLogFilesRequired THEN BEGIN
-              WriteLn(LocoLogFile, LogStr);
-              WriteLn(RouteLogFile, LogStr);
-              WriteLn(SignalPointAndTCLogFile, LogStr);
-              WriteLn(DiagramsLogFile, LogStr);
-              WriteLn(ErrorLogFile, LogStr);
+              WriteLn(LocoLogFile, LogStrWithoutRichEditCommands);
+              WriteLn(RouteLogFile, LogStrWithoutRichEditCommands);
+              WriteLn(SignalPointAndTCLogFile, LogStrWithoutRichEditCommands);
+              WriteLn(DiagramsLogFile, LogStrWithoutRichEditCommands);
+              WriteLn(ErrorLogFile, LogStrWithoutRichEditCommands);
             END;
           END;
       ELSE {CASE}
         BEGIN
           { a type of log we don't know about! }
           Debug('Unusual log type ''' + TypeOfLog + ''' found in line ''' + LogStr + '''');
+          AddRichLine(LoggingWindow.LoggingWindowRichEdit, 'Unusual log type ''' + TypeOfLog + ''' found in line ''' + LogStr + '''');
           WriteLn(LargeLogFile, 'Unusual log type ''' + TypeOfLog + ''' found in line ''' + LogStr + '''');
         END;
       END; {CASE}
 
       IF WriteToLogFileAndTestFile THEN
-        WriteLn(TestLogFile, LogStr);
+        WriteLn(TestLogFile, LogStrWithoutRichEditCommands);
     END;
   END; { WriteToEachLogFile }
-
-  PROCEDURE RemoveRichEditInstructionsFromLogStr(VAR LogStr : String);
-  { Removes any instructions in angle brackets from the log string }
-  VAR
-    CloseAnglePos : Integer;
-    OpenAnglePos : Integer;
-    TempStr : String;
-
-  BEGIN
-    IF Pos('<B>', UpperCase(LogStr)) > 0 THEN
-      LogStr := StringReplace(LogStr, '<B>', '', [rfIgnoreCase]);
-
-    IF Pos('<COLOR=', UpperCase(LogStr)) > 0 THEN BEGIN
-      TempStr := GetFollowingChars(LogStr, '<COLOR=', '>');
-      LogStr := StringReplace(LogStr, '<COLOR=' + TempStr + '>', '', [rfIgnoreCase]);
-    END;
-
-    { If there is anything else between curly brackets, there's presumably a typo somewhere }
-    OpenAnglePos := Pos('<', LogStr);
-    CloseAnglePos := Pos('>', LogStr);
-    IF (OpenAnglePos > 0) AND (CloseAnglePos > 0) THEN BEGIN
-      Debug('Log file error: invalid command "' + Copy(LogStr, OpenAnglePos, CloseAnglePos - OpenAnglePos + 1) + '" found');
-      WriteLn(LargeLogFile, 'Log file error: invalid command "' + Copy(LogStr, OpenAnglePos, CloseAnglePos - OpenAnglePos + 1) + '" found');
-    END;
-
-    { Finally remove any sundry spaces left, from, for example, between angle brackets }
-    LogStr := StringReplace(LogStr, '  ', ' ', [rfIgnoreCase]);
-    LogStr := StringReplace(LogStr, '  ', ' ', [rfIgnoreCase]);
-  END; { RemoveRichEditInstructionsFromLogStr }
 
   PROCEDURE RemoveGeneralInstructionsFromLogStr(VAR LogStr : String);
   { Removes any instructions in curly brackets from the log string and process them }
@@ -1047,6 +1102,8 @@ VAR
         WrapNumStr := GetFollowingChars(LogStr, '{WRAP=', '}');
         IF NOT TryStrToInt(WrapNumStr, WrapNum) THEN BEGIN
           Debug('Log file error: WRAP= must be followed  by "ScreenWidth" or a number (Log string="' + LogStr + '")');
+          AddRichLine(LoggingWindow.LoggingWindowRichEdit, 'Log file error in "' + LogStr + '" WRAP= must be followed by "ScreenWidth" or a number'
+                                                     + ' (Log string="' + LogStr + '")');
           WriteLn(LargeLogFile, 'Log file error in "' + LogStr + '" WRAP= must be followed by "ScreenWidth" or a number' + ' (Log string="' + LogStr + '")');
         END;
 
@@ -1105,6 +1162,9 @@ VAR
                   LogStr := StringReplace(LogStr, '{LINE=' + TempStr + '}', '', [rfIgnoreCase]);
                 END ELSE BEGIN
                   Debug('Log file error: Line= must be followed  by a single character or "BEFORE", "AFTER" OR "BEFOREANDAFTER" (Log string="' + LogStr + '")');
+                  AddRichLine(LoggingWindow.LoggingWindowRichEdit, 'Log file error in "' + LogStr
+                                                             + '" Line= must be followed by a single character or "BEFORE", "AFTER" OR "BEFOREANDAFTER" (Log string="'
+                                                             + LogStr + '")');
                   WriteLn(LargeLogFile, 'Log file error in "' + LogStr
                                         + '" Line= must be followed by a single character or "BEFORE", "AFTER" OR "BEFOREANDAFTER" (Log string="' + LogStr + '")');
                 END;
@@ -1122,6 +1182,7 @@ VAR
       IndentStr := GetFollowingChars(LogStr, '{INDENT=', '}');
       IF NOT TryStrToInt(IndentStr, Indent) THEN BEGIN
         Debug('Log file error: INDENT= must be followed by a number (Log string="' + LogStr + ')"');
+        AddRichLine(LoggingWindow.LoggingWindowRichEdit, 'Log file error in "' + LogStr + '": INDENT= must be followed by a number' + ' (Log string="' + LogStr + '")');
         WriteLn(LargeLogFile, 'Log file error in "' + LogStr + '": INDENT= must be followed by a number' + ' (Log string="' + LogStr + '")');
       END;
 
@@ -1155,6 +1216,7 @@ VAR
     CloseCurlyPos := Pos('}', LogStr);
     IF (OpenCurlyPos > 0) AND (CloseCurlyPos > 0) THEN BEGIN
       Debug('Log file error: invalid command "' + Copy(LogStr, OpenCurlyPos, CloseCurlyPos - OpenCurlyPos + 1) + '" found');
+      AddRichLine(LoggingWindow.LoggingWindowRichEdit, 'Log file error: invalid command "' + Copy(LogStr, OpenCurlyPos, CloseCurlyPos - OpenCurlyPos + 1) + '" found');
       WriteLn(LargeLogFile, 'Log file error: invalid command "' + Copy(LogStr, OpenCurlyPos, CloseCurlyPos - OpenCurlyPos + 1) + '" found');
     END;
 
@@ -1165,354 +1227,361 @@ VAR
 
 BEGIN { WriteToLogFile }
   TRY
-  IF LogsCurrentlyKept THEN BEGIN
-    { write out anything previous stored when the log file was not open }
-    IF LogFileOpen
-    AND (Length(LogArray) <> 0)
-    THEN BEGIN
-      WriteLn(LargeLogFile, '--------------------------------------------------');
-      WriteLn(LargeLogFile, 'Log strings stored before the log file was opened:');
-      WriteLn(LargeLogFile, '');
-      LogArrayCount := 0;
-      WHILE LogArrayCount <> Length(LogArray) DO BEGIN
-        WriteLn(LargeLogFile, LogArray[LogArrayCount]);
-        Inc(LogArrayCount);
-      END; {WHILE}
-      WriteLn(LargeLogFile, '--------------------------------------------------');
-      SetLength(LogArray, 0);
+    IF LoggingWindow = NIL THEN BEGIN
+      LoggingWindow := TLoggingWindow.Create(Application);
+      LoggingWindow.Update;
+
+      AddRichLine(LoggingWindow.LoggingWindowRichEdit, GetProgramTitle);
+      AddRichLine(LoggingWindow.LoggingWindowRichEdit, GetProgramVersion('Log File'));
     END;
 
-    IdenticalLinesFound := False;
+    IF LogsCurrentlyKept THEN BEGIN
+      { write out anything previous stored when the log file was not open }
+      IF LogFileOpen
+      AND (Length(LogArray) <> 0)
+      THEN BEGIN
+        AddRichLine(LoggingWindow.LoggingWindowRichEdit, '--------------------------------------------------');
+        AddRichLine(LoggingWindow.LoggingWindowRichEdit, 'Log strings stored before the log file was opened:');
+        AddRichLine(LoggingWindow.LoggingWindowRichEdit, '');
 
-    TypeOfLog := ' ';
-    Indent := 0;
-    WrapNum := 0;
-    LocoChipStr := '';
-    NoUnitRef := False;
+        WriteLn(LargeLogFile, '--------------------------------------------------');
+        WriteLn(LargeLogFile, 'Log strings stored before the log file was opened:');
+        WriteLn(LargeLogFile, '');
+        LogArrayCount := 0;
+        WHILE LogArrayCount <> Length(LogArray) DO BEGIN
+          AddRichLine(LoggingWindow.LoggingWindowRichEdit, LogArray[LogArrayCount]);
+          WriteLn(LargeLogFile, LogArray[LogArrayCount]);
+          Inc(LogArrayCount);
+        END; {WHILE}
+        AddRichLine(LoggingWindow.LoggingWindowRichEdit, '--------------------------------------------------');
+        WriteLn(LargeLogFile, '--------------------------------------------------');
+        SetLength(LogArray, 0);
+      END;
 
-    { See how the arguments are constituted }
-    IF NOT ReplayMode THEN BEGIN
-      { First look for locochip number }
-      IF TryStrToInt(Copy(LogStr, 1, 4), TempInt) THEN BEGIN
-        IF Copy(LogStr, 5, 1) <> ' ' THEN BEGIN
-          WriteOutError('No space after loco number in "' + LogStr + '"');
+      IdenticalLinesFound := False;
+
+      TypeOfLog := ' ';
+      Indent := 0;
+      WrapNum := 0;
+      LocoChipStr := '';
+      NoUnitRef := False;
+
+      { See how the arguments are constituted }
+      IF NOT ReplayMode THEN BEGIN
+        { First look for locochip number }
+        IF TryStrToInt(Copy(LogStr, 1, 4), TempInt) THEN BEGIN
+          IF Copy(LogStr, 5, 1) <> ' ' THEN BEGIN
+            WriteOutError('No space after loco number in "' + LogStr + '"');
+            Exit;
+          END ELSE BEGIN
+            LocoChipStr := Copy(LogStr, 1, 4);
+            LogStr := Copy(LogStr, 6);
+          END;
+        END;
+
+        { look for log character after locochip number }
+        IF Copy(LogStr, 1, 1) = ' ' THEN BEGIN
+          { there isn't one - write out the whole line in case it's an error message }
+          WriteOutError('Illegal space at position 1 in "' + LogStr + '"');
           Exit;
         END ELSE BEGIN
-          LocoChipStr := Copy(LogStr, 1, 4);
-          LogStr := Copy(LogStr, 6);
-        END;
-      END;
-
-      { look for log character after locochip number }
-      IF Copy(LogStr, 1, 1) = ' ' THEN BEGIN
-        { there isn't one - write out the whole line in case it's an error message }
-        WriteOutError('Illegal space at position 1 in "' + LogStr + '"');
-        Exit;
-      END ELSE BEGIN
-        CASE LogStr[1] OF
-          'A', 'a', '$',
-          'P', 'p', 'S', 's', 'T', 't',
-          'L', 'l',
-          'R', 'r',
-          'D', 'd',
-          'W', 'w',
-          '*', '+',
-          'E', 'e', 'X', 'x':
-            BEGIN
-              { extract the log character }
-              TypeOfLog := Copy(LogStr, 1, 1);
-              IF Copy(LogStr, 2, 1) = ' ' THEN BEGIN
-                LogStr := Copy(LogStr, 3);
-                RemoveGeneralInstructionsFromLogStr(LogStr);
-              END ELSE BEGIN
-                { we've found a debug character }
-                TempStr := LogStr[2];
-                CASE TempStr[1] OF
-                  'G':
+          CASE LogStr[1] OF
+            'A', 'a', '$',
+            'P', 'p', 'S', 's', 'T', 't',
+            'L', 'l',
+            'R', 'r',
+            'D', 'd',
+            'W', 'w',
+            '*', '+',
+            'E', 'e', 'X', 'x':
+              BEGIN
+                { extract the log character }
+                TypeOfLog := Copy(LogStr, 1, 1);
+                IF Copy(LogStr, 2, 1) = ' ' THEN BEGIN
+                  LogStr := Copy(LogStr, 3);
+                  RemoveGeneralInstructionsFromLogStr(LogStr);
+                END ELSE BEGIN
+                  { we've found a debug character }
+                  TempStr := LogStr[2];
+                  CASE TempStr[1] OF
+                    'G':
+                      BEGIN
+                        LogStr := Copy(LogStr, 4);
+                        RemoveGeneralInstructionsFromLogStr(LogStr);
+                        Debug(LogStr);
+//                        RemoveRichEditInstructionsFromLogStr(LogStr);
+                      END;
+                    '!', '+', '=': { bold; italics; or bold and italics }
+                      BEGIN
+                        LogStr := Copy(LogStr, 4);
+                        RemoveGeneralInstructionsFromLogStr(LogStr);
+                        Debug(TempStr + LogStr);
+//                        RemoveRichEditInstructionsFromLogStr(LogStr);
+                      END;
+                  ELSE {CASE}
                     BEGIN
-                      LogStr := Copy(LogStr, 4);
-                      RemoveGeneralInstructionsFromLogStr(LogStr);
-                      Debug(LogStr);
-                      RemoveRichEditInstructionsFromLogStr(LogStr);
+                      { there isn't one - write out the whole line in case it's an error message }
+                      WriteOutError('Illegal debug character "' + LogStr[2] + '" at position 2 in "' + LogStr + '"');
+                      Exit;
                     END;
-                  '!', '+', '=': { bold; italics; or bold and italics }
-                    BEGIN
-                      LogStr := Copy(LogStr, 4);
-                      RemoveGeneralInstructionsFromLogStr(LogStr);
-                      Debug(TempStr + LogStr);
-                      RemoveRichEditInstructionsFromLogStr(LogStr);
-                    END;
-                ELSE {CASE}
-                  BEGIN
-                    { there isn't one - write out the whole line in case it's an error message }
-                    WriteOutError('Illegal debug character "' + LogStr[2] + '" at position 2 in "' + LogStr + '"');
-                    Exit;
-                  END;
-                END; {CASE}
-              END;
-            END;
-        ELSE
-          { not a character we recognise }
-          BEGIN
-            WriteOutError('Illegal log character "' + LogStr[1] + '" at position 1 in "' + LogStr + '"');
-            Exit;
-          END;
-        END; {CASE}
-      END;
-
-//      IF BlankLineBefore THEN BEGIN
-//        { a blank line is required }
-//        WriteLn(LargeLogFile, CurrentRailwayTimeStr + ' ' + TypeOfLog);
-//        IF TestingMode THEN
-//          Flush(LargeLogFile);
-//        IF WriteToLogFileAndTestFile THEN
-//          WriteLn(TestLogFile, '');
-//      END;
-
-      { Check whether we're writing the same thing over and over - complain after three repeats }
-      IF CheckForIdenticalLinesInLog THEN BEGIN
-        IdenticalLinesFound := False;
-        J := 1;
-        I := 1;
-        WHILE (I <= MaxSaveLogStrs)
-        AND NOT IdenticalLinesFound
-        DO BEGIN
-          IF LogStr <> SaveLogStrArray[I] THEN
-            { reset the threshold }
-            J := 1
-          ELSE BEGIN
-            Inc(J);
-            IF J > 1 THEN BEGIN
-              IdenticalLinesFound := True;
-              IF NOT IdenticalLineMsgWritten THEN BEGIN
-                IdenticalLineMsgWritten := True;
-                WriteToEachLogFile(TypeOfLog[1], CurrentRailwayTimeStr + ' ' + TypeOfLog[1] + StringOfChar(' ', 6) + '[' + IntToStr(J) + ' identical lines found]');
-              END;
-            END;
-          END;
-          Inc(I);
-        END; {WHILE}
-      END;
-
-      SaveLogStrArray[1] := SaveLogStrArray[2];
-      SaveLogStrArray[2] := SaveLogStrArray[3];
-      SaveLogStrArray[3] := SaveLogStrArray[4];
-      SaveLogStrArray[4] := SaveLogStrArray[5];
-      SaveLogStrArray[5] := SaveLogStrArray[6];
-      SaveLogStrArray[6] := SaveLogStrArray[7];
-      SaveLogStrArray[7] := SaveLogStrArray[8];
-      SaveLogStrArray[8] := SaveLogStrArray[9];
-      SaveLogStrArray[9] := SaveLogStrArray[10];
-      SaveLogStrArray[10] := LogStr;
-
-      LastLogLine := LogStr;
-      TryStrToInt(LocoChipStr, LocoChip);
-      LineAfterJustDrawn := False;
-
-      IF NOT IdenticalLinesFound OR NOT CheckForIdenticalLinesInLog THEN BEGIN
-        { See if we want to draw a line either on its own or before the given output }
-        IF DrawLineInLogFileBefore OR DrawLineInLogFileOnly THEN BEGIN
-          WriteToEachLogFile(TypeOfLog[1],
-                             IfThen(LogCurrentTimeMode,
-                                    TimeToHMSZStr(Time) + ' ')
-                             + CurrentRailwayTimeStr
-                             + ' ' + TypeOfLog);
-          TempStr := '';
-          FOR I := 0 TO 70 DO
-            TempStr := TempStr + DrawLineChar + ' ';
-          { Truncate the string just in case }
-          Delete(TempStr, 140, Length(TempStr) - 140); { these shouldn't be magic numbers **** }
-
-          WriteToEachLogFile(TypeOfLog[1],
-                             IfThen(LogCurrentTimeMode,
-                                    TimeToHMSZStr(Time) + ' ')
-                             + CurrentRailwayTimeStr
-                             + ' ' + TypeOfLog
-                             + StringOfChar(' ', 6)
-                             + TempStr
-                             + '[' + UnitRef + ']');
-
-          WriteToEachLogFile(TypeOfLog[1],
-                             IfThen(LogCurrentTimeMode,
-                                    TimeToHMSZStr(Time) + ' ')
-                             + CurrentRailwayTimeStr
-                             + ' ' + TypeOfLog);
-
-          IF DrawLineInLogFileOnly THEN
-            LineAfterJustDrawn := True;
-        END;
-
-        IF NOT DrawLineInLogFileOnly
-        AND (LogStr <> ' ')
-        THEN BEGIN
-          IdenticalLineMsgWritten := False;
-
-          IF BlankLineBefore THEN BEGIN
-            { a blank line is required }
-            IF CurrentRailwayTimeStr = '' THEN
-              CurrentRailwayTimeStr := TimeToHMSStr(CurrentRailwayTime);
-            IF NOT LogCurrentTimeMode THEN
-              WriteLn(LargeLogFile, CurrentRailwayTimeStr + ' ' + TypeOfLog)
-            ELSE
-              WriteLn(LargeLogFile, TimeToHMSZStr(Time) + ' ' + CurrentRailwayTimeStr + ' ' + TypeOfLog);
-            IF TestingMode THEN
-              Flush(LargeLogFile);
-            IF WriteToLogFileAndTestFile THEN
-              WriteLn(TestLogFile, '');
-          END;
-
-          { Add LocoChip, if any, or else spaces }
-          IF Length(LocoChipStr) < 4 THEN
-            LocoChipStr := LocoChipStr + StringOfChar(' ', 4 - Length(LocoChipStr))
-          ELSE
-            IF LocoChipStr = '0000' THEN
-              LocoChipStr := StringOfChar(' ', 4);
-
-          IF (Indent = 0)
-          AND (WrapNum = 0)
-          THEN BEGIN
-            { Add the time, and a UnitRef if supplied }
-            IF CurrentRailwayTimeStr = '' THEN
-              CurrentRailwayTimeStr := TimeToHMSStr(CurrentRailwayTime);
-            IF (UnitRef = '') OR NoUnitRef THEN
-              LogStr := CurrentRailwayTimeStr + ' ' + TypeOfLog + ' ' + LocoChipStr + ' ' + Trim(LogStr)
-            ELSE
-              LogStr := CurrentRailwayTimeStr + ' ' + TypeOfLog + ' ' + LocoChipStr + ' ' + Trim(LogStr) + ' [' + UnitRef + ']';
-
-            IF LogCurrentTimeMode THEN
-              LogStr := TimeToHMSZStr(Time) + ' ' + LogStr;
-
-            WriteToEachLogFile(TypeOfLog[1], LogStr);
-          END ELSE BEGIN
-            { Do the indenting and line wrapping - it is assumed that the line wrapping happens at the given number regardless of the indent }
-            IF WrapNum <> 0 THEN BEGIN
-              IF WrapNum > 16 THEN
-                WrapNum := WrapNum - 16;
-
-              IF LogCurrentTimeMode THEN
-                IF WrapNum > 13 THEN
-                  WrapNum := WrapNum - 13;
-
-              IF WrapNum > Indent THEN
-                WrapNum := WrapNum - Indent - 4;
-
-              { Insert CRLF at or near WrapNum }
-              LogStr := WrapText(LogStr, WrapNum);
-            END;
-
-            Count := 1;
-
-            PossibleEllipsisStr := '';
-            IF Length(LogStr) > 1 THEN BEGIN
-              I := 1;
-              WHILE I < Length(LogStr) DO BEGIN
-                IF (LogStr[I] = #13)
-                AND (LogStr[I + 1] = #10)
-                THEN BEGIN
-                  WriteToEachLogFile(TypeOfLog[1],
-                                     IfThen(LogCurrentTimeMode,
-                                            TimeToHMSZStr(Time) + ' ')
-                                     + CurrentRailwayTimeStr
-                                     + ' ' + TypeOfLog
-                                     + ' ' + LocoChipStr
-                                     + ' '
-                                     + IfThen(Indent > 0,
-                                              StringOfChar(' ', Indent))
-                                     + IfThen(NumberLines,
-                                              IntToStr(Count) + ': ')
-                                     + IfThen(Count > 1,
-                                              EllipsisStr + ' ')
-                                     + LeftStr(LogStr, I - 1)
-                                     + EllipsisStr);
-                  Inc(Count);
-                  LogStr := Copy(LogStr, I + 2);
-                  I := 0;
-                  PossibleEllipsisStr := '... ';
+                  END; {CASE}
                 END;
-                Inc(I);
               END;
-              { Now write out the last bit }
-              WriteToEachLogFile(TypeOfLog[1],
-                                 IfThen(LogCurrentTimeMode,
-                                        TimeToHMSZStr(Time) + ' ')
-                                 + CurrentRailwayTimeStr
-                                 + ' ' + TypeOfLog
-                                 + ' ' + LocoChipStr
-                                 + ' '
-                                 + IfThen(Indent > 0,
-                                          StringOfChar(' ', Indent))
-                                 + IfThen(NumberLines,
-                                          IntToStr(Count) + ': ')
-                                 + PossibleEllipsisStr
-                                 + LogStr);
+          ELSE
+            { not a character we recognise }
+            BEGIN
+              WriteOutError('Illegal log character "' + LogStr[1] + '" at position 1 in "' + LogStr + '"');
+              Exit;
             END;
-          END;
+          END; {CASE}
+        END;
 
-          { See if we want to draw a line after the given output }
-          IF DrawLineInLogFileAfter THEN BEGIN
-            WriteToEachLogFile(TypeOfLog[1], CurrentRailwayTimeStr + ' ' + TypeOfLog);
+        { Check whether we're writing the same thing over and over - complain after three repeats }
+        IF CheckForIdenticalLinesInLog THEN BEGIN
+          IdenticalLinesFound := False;
+          J := 1;
+          I := 1;
+          WHILE (I <= MaxSaveLogStrs)
+          AND NOT IdenticalLinesFound
+          DO BEGIN
+            IF LogStr <> SaveLogStrArray[I] THEN
+              { reset the threshold }
+              J := 1
+            ELSE BEGIN
+              Inc(J);
+              IF J > 1 THEN BEGIN
+                IdenticalLinesFound := True;
+                IF NOT IdenticalLineMsgWritten THEN BEGIN
+                  IdenticalLineMsgWritten := True;
+                  WriteToEachLogFile(TypeOfLog[1], '', CurrentRailwayTimeStr, NoLocoChipStr, '[' + IntToStr(J) + ' identical lines found]');
+                END;
+              END;
+            END;
+            Inc(I);
+          END; {WHILE}
+        END;
+
+        SaveLogStrArray[1] := SaveLogStrArray[2];
+        SaveLogStrArray[2] := SaveLogStrArray[3];
+        SaveLogStrArray[3] := SaveLogStrArray[4];
+        SaveLogStrArray[4] := SaveLogStrArray[5];
+        SaveLogStrArray[5] := SaveLogStrArray[6];
+        SaveLogStrArray[6] := SaveLogStrArray[7];
+        SaveLogStrArray[7] := SaveLogStrArray[8];
+        SaveLogStrArray[8] := SaveLogStrArray[9];
+        SaveLogStrArray[9] := SaveLogStrArray[10];
+        SaveLogStrArray[10] := LogStr;
+
+        LastLogLine := LogStr;
+        TryStrToInt(LocoChipStr, LocoChip);
+        LineAfterJustDrawn := False;
+
+        IF NOT IdenticalLinesFound OR NOT CheckForIdenticalLinesInLog THEN BEGIN
+          { See if we want to draw a line either on its own or before the given output }
+          IF DrawLineInLogFileBefore OR DrawLineInLogFileOnly THEN BEGIN
+            WriteToEachLogFile(TypeOfLog[1],
+                               IfThen(LogCurrentTimeMode,
+                                      TimeToHMSZStr(Time),
+                                      NoCurrentTimeStr),
+                               CurrentRailwayTimeStr,
+                               NoLocoChipStr,
+                               NoLogStr);
             TempStr := '';
             FOR I := 0 TO 70 DO
               TempStr := TempStr + DrawLineChar + ' ';
-            WriteToEachLogFile(TypeOfLog[1], CurrentRailwayTimeStr + ' ' + TypeOfLog + StringOfChar(' ', 6) + TempStr + '[' + UnitRef + ']');
-            WriteToEachLogFile(TypeOfLog[1], CurrentRailwayTimeStr + ' ' + TypeOfLog);
+            { Truncate the string just in case }
+            Delete(TempStr, 140, Length(TempStr) - 140); { these shouldn't be magic numbers **** }
 
-            LineAfterJustDrawn := True;
+            WriteToEachLogFile(TypeOfLog[1],
+                               IfThen(LogCurrentTimeMode,
+                                      TimeToHMSZStr(Time),
+                                      NoCurrentTimeStr),
+                               CurrentRailwayTimeStr,
+                               NoLocoChipStr,
+                               TempStr + '[' + UnitRef + ']');
+
+            WriteToEachLogFile(TypeOfLog[1],
+                               IfThen(LogCurrentTimeMode,
+                                      TimeToHMSZStr(Time),
+                                      NoCurrentTimeStr),
+                               CurrentRailwayTimeStr,
+                               NoLocoChipStr,
+                               NoLogStr);
+
+            IF DrawLineInLogFileOnly THEN
+              LineAfterJustDrawn := True;
           END;
-        END;
 
-        { If we're in TestingMode, write things out immediately so they can be checked }
-        IF TestingMode
-        AND LogFileOpen
-        THEN BEGIN
-          IF TypeOfLog <> ' ' THEN
-            Flush(LargeLogFile);
-          CASE TypeOfLog[1] OF
-            ' ':
-              { ignore - this is for messages that we may at some stage want to log }
-              ;
-            'A', 'a', '$':
-              { general happenings of relevance to all logs - includes '$' for quick debugging as it is easy to find in the log }
-              IF MultipleLogFilesRequired THEN BEGIN
-                Flush(LocoLogFile);
-                Flush(RouteLogFile);
-                Flush(SignalPointAndTCLogFile);
-                Flush(DiagramsLogFile);
-                Flush(WorkingTimetableLogFile);
+          IF NOT DrawLineInLogFileOnly
+          AND (LogStr <> ' ')
+          THEN BEGIN
+            CurrentRailwayTimeStr := TimeToHMSStr(CurrentRailwayTime);
+            IdenticalLineMsgWritten := False;
+
+            IF BlankLineBefore THEN BEGIN
+              { a blank line is required }
+              IF NOT LogCurrentTimeMode THEN
+                WriteToEachLogFile(TypeOfLog[1], NoCurrentTimeStr, CurrentRailwayTimeStr, NoLocoChipStr, NoLogStr)
+              ELSE
+                WriteToEachLogFile(TypeOfLog[1], TimeToHMSZStr(Time), CurrentRailwayTimeStr, NoLocoChipStr, NoLogStr);
+
+              IF TestingMode THEN
+                Flush(LargeLogFile);
+              IF WriteToLogFileAndTestFile THEN
+                WriteLn(TestLogFile, '');
+            END;
+
+            { Add LocoChip, if any, or else spaces }
+            IF Length(LocoChipStr) < 4 THEN BEGIN
+              LocoChipStr := LocoChipStr + StringOfChar(' ', 4 - Length(LocoChipStr));
+              IF (LocoChipStr = '    ') OR (LocoChipStr = '0000') THEN
+                LocoChipStr := '';
+            END;
+            IF (Indent = 0)
+            AND (WrapNum = 0)
+            THEN BEGIN
+              { Add the time, and a UnitRef if supplied }
+              WriteToEachLogFile(TypeOfLog[1],
+                                 IfThen(LogCurrentTimeMode,
+                                        TimeToHMSZStr(Time),
+                                        NoCurrentTimeStr),
+                                 CurrentRailwayTimeStr,
+                                 IfThen(LocoChipStr = '',
+                                        NoLocoChipStr,
+                                        LocoChipStr),
+                                 LogStr + ' ' + '[' + UnitRef + ']');
+            END ELSE BEGIN
+              { Do the indenting and line wrapping - it is assumed that the line wrapping happens at the given number regardless of the indent }
+              IF WrapNum <> 0 THEN BEGIN
+                IF WrapNum > 16 THEN
+                  WrapNum := WrapNum - 16;
+
+                IF LogCurrentTimeMode THEN
+                  IF WrapNum > 13 THEN
+                    WrapNum := WrapNum - 13;
+
+                IF WrapNum > Indent THEN
+                  WrapNum := WrapNum - Indent - 4;
+
+                { Insert CRLF at or near WrapNum }
+                LogStr := WrapText(LogStr, WrapNum);
               END;
-            'P', 'p', 'S', 's', 'T', 't' :
-              IF MultipleLogFilesRequired THEN
-                Flush(SignalPointAndTCLogFile);
-            'L', 'l':
-              IF MultipleLogFilesRequired THEN
-                Flush(LocoLogFile);
-            'R', 'r':
-              IF MultipleLogFilesRequired THEN
-                Flush(RouteLogFile);
-            'D', 'd':
-              IF MultipleLogFilesRequired THEN
-                Flush(DiagramsLogFile);
-            'W', 'w':
-              begin Flush(TestLogFile);
-                IF MultipleLogFilesRequired THEN
+
+              Count := 1;
+
+              PossibleEllipsisStr := '';
+              IF Length(LogStr) > 1 THEN BEGIN
+                I := 1;
+                WHILE I < Length(LogStr) DO BEGIN
+                  IF (LogStr[I] = #13)
+                  AND (LogStr[I + 1] = #10)
+                  THEN BEGIN
+                    WriteToEachLogFile(TypeOfLog[1],
+                                       IfThen(LogCurrentTimeMode,
+                                              TimeToHMSZStr(Time),
+                                              NoCurrentTimeStr),
+                                       CurrentRailwayTimeStr,
+                                       IfThen(LocoChipStr = '',
+                                              NoLocoChipStr,
+                                              LocoChipStr),
+                                       IfThen(Indent > 0,
+                                              StringOfChar(' ', Indent))
+                                       + IfThen(NumberLines,
+                                                IntToStr(Count) + ': ')
+                                       + IfThen(Count > 1,
+                                                EllipsisStr + ' ')
+                                       + LeftStr(LogStr, I - 1)
+                                       + EllipsisStr);
+                    Inc(Count);
+                    LogStr := Copy(LogStr, I + 2);
+                    I := 0;
+                    PossibleEllipsisStr := '... ';
+                  END;
+                  Inc(I);
+                END;
+                { Now write out the last bit }
+                WriteToEachLogFile(TypeOfLog[1],
+                                   IfThen(LogCurrentTimeMode,
+                                          TimeToHMSZStr(Time),
+                                          NoCurrentTimeStr),
+                                   CurrentRailwayTimeStr,
+                                   IfThen(LocoChipStr = '',
+                                          NoLocoChipStr,
+                                          LocoChipStr),
+                                   IfThen(Indent > 0,
+                                          StringOfChar(' ', Indent))
+                                   + IfThen(NumberLines,
+                                            IntToStr(Count) + ': ')
+                                   + PossibleEllipsisStr
+                                   + LogStr);
+              END;
+            END;
+
+            { See if we want to draw a line after the given output }
+            IF DrawLineInLogFileAfter THEN BEGIN
+              WriteToEachLogFile(TypeOfLog[1], NoCurrentTimeStr, CurrentRailwayTimeStr, NoLocoChipStr, NoLogStr);
+              TempStr := '';
+              FOR I := 0 TO 70 DO
+                TempStr := TempStr + DrawLineChar + ' ';
+              WriteToEachLogFile(TypeOfLog[1], NoCurrentTimeStr, CurrentRailwayTimeStr, NoLocoChipStr, '[' + UnitRef + ']');
+              WriteToEachLogFile(TypeOfLog[1], NoCurrentTimeStr, CurrentRailwayTimeStr, NoLocoChipStr, NoLogStr);
+
+              LineAfterJustDrawn := True;
+            END;
+          END;
+
+          { If we're in TestingMode, write things out immediately so they can be checked }
+          IF TestingMode
+          AND LogFileOpen
+          THEN BEGIN
+            IF TypeOfLog <> ' ' THEN
+              Flush(LargeLogFile);
+            CASE TypeOfLog[1] OF
+              ' ':
+                { ignore - this is for messages that we may at some stage want to log }
+                ;
+              'A', 'a', '$':
+                { general happenings of relevance to all logs - includes '$' for quick debugging as it is easy to find in the log }
+                IF MultipleLogFilesRequired THEN BEGIN
+                  Flush(LocoLogFile);
+                  Flush(RouteLogFile);
+                  Flush(SignalPointAndTCLogFile);
+                  Flush(DiagramsLogFile);
                   Flush(WorkingTimetableLogFile);
-              end;
-            '*', '+':
-              Flush(TestLogFile);
-            'E', 'e', 'X', 'x': { unusual happenings of relevance to all the log files }
-              IF MultipleLogFilesRequired THEN BEGIN
-                Flush(LocoLogFile);
-                Flush(RouteLogFile);
-                Flush(SignalPointAndTCLogFile);
-                Flush(DiagramsLogFile);
-                Flush(ErrorLogFile);
-                Flush(WorkingTimetableLogFile);
-              END;
-          END; {CASE}
+                END;
+              'P', 'p', 'S', 's', 'T', 't' :
+                IF MultipleLogFilesRequired THEN
+                  Flush(SignalPointAndTCLogFile);
+              'L', 'l':
+                IF MultipleLogFilesRequired THEN
+                  Flush(LocoLogFile);
+              'R', 'r':
+                IF MultipleLogFilesRequired THEN
+                  Flush(RouteLogFile);
+              'D', 'd':
+                IF MultipleLogFilesRequired THEN
+                  Flush(DiagramsLogFile);
+              'W', 'w':
+                begin Flush(TestLogFile);
+                  IF MultipleLogFilesRequired THEN
+                    Flush(WorkingTimetableLogFile);
+                end;
+              '*', '+':
+                Flush(TestLogFile);
+              'E', 'e', 'X', 'x': { unusual happenings of relevance to all the log files }
+                IF MultipleLogFilesRequired THEN BEGIN
+                  Flush(LocoLogFile);
+                  Flush(RouteLogFile);
+                  Flush(SignalPointAndTCLogFile);
+                  Flush(DiagramsLogFile);
+                  Flush(ErrorLogFile);
+                  Flush(WorkingTimetableLogFile);
+                END;
+            END; {CASE}
+          END;
         END;
       END;
     END;
-    end;
   EXCEPT {TRY}
     ON E : Exception DO
       { Cannot call Log here as we are already in it }
@@ -1739,7 +1808,7 @@ BEGIN
   END; {WITH}
 END; { AddLightsToLightsToBeSwitchedOnArray }
 
-PROCEDURE AddRichLine(RichEdit: TRichEdit; StrToAdd: String);
+PROCEDURE AddRichLine(RichEdit: TRichEdit; StrToAdd : String);
 { Taken from Delpi Pages (http://www.delphipages.com/tips/thread.cfm?ID=186) - by Slavikn, WebPage: http://www.organizermp3.com }
 VAR
   RichTextFound : Boolean;
@@ -2257,6 +2326,7 @@ PROCEDURE Debug{2}(Str : String); Overload;
 { Write out debug text to the Debug Window }
 VAR
   SaveStyle : TFontStyles;
+  SaveDebugWindowVisible : Boolean;
   TempStr : String;
 
 BEGIN
@@ -2274,7 +2344,9 @@ BEGIN
       SetLength(DebugWindowLines, Length(DebugWindowLines) + 1);
       DebugWindowLines[High(DebugWindowLines)] := Str;
     END ELSE BEGIN
-      { Note: without the following statement, the RichEdit window doesn't initially scroll unless it's focused }
+      { Note: without the following two statements, the RichEdit window doesn't initially scroll }
+      IF DebugWindow.Visible THEN
+        DebugWindow.setFocus;
       DebugWindow.DebugRichEdit.Perform(EM_SCROLLCARET, 0, 0);
 
       SaveStyle := DebugWindow.DebugRichEdit.SelAttributes.Style;

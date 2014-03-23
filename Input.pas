@@ -54,7 +54,7 @@ IMPLEMENTATION
 {$R *.dfm}
 
 USES InitVars, Locks, RailDraw, MiscUtils, Cuneo, LocoUtils, Lenz, MaskUtils, Startup, Diagrams, GetTime, CreateRoute, Feedback, IDGlobal, RDC, Route, StrUtils, Menus,
-     DateUtils, TestUnit, StationMonitors, LocoDialogue, Help, LocationData, Replay, Options, Edit, WorkingTimetable, TCPIP;
+     DateUtils, TestUnit, StationMonitors, LocoDialogue, Help, LocationData, Replay, Options, Edit, WorkingTimetable, TCPIP, Logging;
 
 CONST
   UnitRef = 'Input';
@@ -112,7 +112,6 @@ CONST
   UndrawToBeAutomatic = True;
 
 VAR
-
   L : Integer;
 
 BEGIN
@@ -2282,8 +2281,9 @@ BEGIN { KeyPressedDown }
           CASE ShiftKeys OF
             NoShiftKeys: {G}
               BEGIN
-                HelpMsg := '';
+                HelpMsg := 'Open/close the logging window';
                 IF NOT HelpRequired THEN BEGIN
+                  LoggingWindow.Visible := NOT LoggingWindow.Visible;
                 END;
               END;
             ShiftAlt: {G}

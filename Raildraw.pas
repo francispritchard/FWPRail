@@ -653,7 +653,7 @@ IMPLEMENTATION
 {$R *.dfm}
 
 USES MiscUtils, Startup, Lenz, Input, Locks, Cuneo, Movement, GetTime, CreateRoute, Diagrams, RDC, Types, Feedback, Route, LocoUtils, DateUtils, IniFiles, LocoDialogue,
-     StrUtils, Help, Math {sic}, LocationData, FWPShowMessageUnit, Replay, TestUnit, WorkingTimetable, Options, Registry, Edit;
+     StrUtils, Help, Math {sic}, LocationData, FWPShowMessageUnit, Replay, TestUnit, WorkingTimetable, Options, Registry, Edit, Logging;
 
 CONST
   UnitRef = 'RailDraw';
@@ -4551,6 +4551,8 @@ BEGIN
                OR RailDriverWindow.Visible)
       AND NOT (OptionsWindow.Active
                OR OptionsWindow.Visible)
+      AND NOT (LoggingWindow.Active
+               OR LoggingWindow.Visible)
       AND NOT TrackCircuitPopupMenuActive { a global variable, owing to the special nature of GeneralPopup menus which means one cannot normally detect whether they are
                                             "popped up" or not }
       THEN

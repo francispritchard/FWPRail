@@ -314,6 +314,24 @@ VAR
   DefaultLogFilenameSuffix : String = '';
   LogFilenameSuffix : String;
 
+  DefaultLoggingWindowFontName : String = 'Lucida Console';
+  LoggingWindowFontName : String;
+
+  DefaultLoggingWindowFontSize : Integer = 8;
+  LoggingWindowFontSize : Integer;
+
+  DefaultLoggingWindowHeight : Integer;
+  LoggingWindowHeight : Integer;
+
+  DefaultLoggingWindowTop : Integer;
+  LoggingWindowTop : Integer;
+
+  DefaultLoggingWindowLeft : Integer;
+  LoggingWindowLeft : Integer;
+
+  DefaultLoggingWindowWidth : Integer;
+  LoggingWindowWidth : Integer;
+
   DefaultLogsKeptMode : Boolean = True;
   LogsKeptMode : Boolean;
 
@@ -796,7 +814,7 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES MiscUtils, Raildraw, Locks, LocoUtils, CreateRoute, Diagrams, GetTime, Help, LocationData, Edit, WorkingTimetable, LocoDialogue;
+USES MiscUtils, Raildraw, Locks, LocoUtils, CreateRoute, Diagrams, GetTime, Help, LocationData, Edit, WorkingTimetable, LocoDialogue, Logging;
 
 CONST
   UnitRef = 'Options';
@@ -906,6 +924,8 @@ CONST
   FontsSectionStr = 'Fonts';
     RailFontNameStr = 'Rail Font Name';
     LineFontHeightStr = 'Line Font Height';
+    LoggingWindowFontNameStr = 'Logging Window Font Name';
+    LoggingWindowFontSizeStr = 'Logging Window Font Size';
     MainWindowFontHeightStr = 'Main Window Font Height';
     PlatformNumberFontHeightStr = 'Platform Number Font Height';
     StationMonitorsFontNameStr = 'Station Monitors Font Name';
@@ -1127,6 +1147,11 @@ CONST
     LocoUtilsWindowTopStr = 'LocoUtils Window Top';
     LocoUtilsWindowWidthStr = 'LocoUtils Window Width';
 
+    LoggingWindowHeightStr = 'Logging Window Height';
+    LoggingWindowLeftStr = 'Logging Window Left';
+    LoggingWindowTopStr = 'Logging Window Top';
+    LoggingWindowWidthStr = 'Logging Window Width';
+
     MovementWindowHeightStr = 'Movement Window Height';
     MovementWindowLeftStr = 'Movement Window Left';
     MovementWindowTopStr = 'Movement Window Top';
@@ -1291,6 +1316,8 @@ BEGIN
       { Fonts }
       RailFontName := ReadString(FontsSectionStr, RailFontNameStr, DefaultRailFontName);
       LineFontHeight := ReadInteger(FontsSectionStr, LineFontHeightStr, DefaultLineFontHeight);
+      LoggingWindowFontName := ReadString(FontsSectionStr, LoggingWindowFontNameStr, DefaultLoggingWindowFontName);
+      LoggingWindowFontSize := ReadInteger(FontsSectionStr, LoggingWindowFontSizeStr, DefaultLoggingWindowFontSize);
       MainWindowFontHeight := ReadInteger(FontsSectionStr, MainWindowFontHeightStr, DefaultMainWindowFontHeight);
       PlatformNumberFontHeight := ReadInteger(FontsSectionStr, PlatformNumberFontHeightStr, DefaultPlatformNumberFontHeight);
       StationMonitorsFontName := ReadString(FontsSectionStr, StationMonitorsFontNameStr, DefaultStationMonitorsFontName);
@@ -1367,6 +1394,11 @@ BEGIN
       LocoUtilsWindowWidth := ReadInteger(WindowsSectionStr, LocoUtilsWindowWidthStr, DefaultLocoUtilsWindowWidth);
       LocoUtilsWindowHeight := ReadInteger(WindowsSectionStr, LocoUtilsWindowHeightStr, DefaultLocoUtilsWindowHeight);
 
+      LoggingWindowTop := ReadInteger(WindowsSectionStr, LoggingWindowTopStr, DefaultLoggingWindowTop);
+      LoggingWindowLeft := ReadInteger(WindowsSectionStr, LoggingWindowLeftStr, DefaultLoggingWindowLeft);
+      LoggingWindowWidth := ReadInteger(WindowsSectionStr, LoggingWindowWidthStr, DefaultLoggingWindowWidth);
+      LoggingWindowHeight := ReadInteger(WindowsSectionStr, LoggingWindowHeightStr, DefaultLoggingWindowHeight);
+
       MovementWindowTop := ReadInteger(WindowsSectionStr, MovementWindowTopStr, DefaultMovementWindowTop);
       MovementWindowLeft := ReadInteger(WindowsSectionStr, MovementWindowLeftStr, DefaultMovementWindowLeft);
       MovementWindowWidth := ReadInteger(WindowsSectionStr, MovementWindowWidthStr, DefaultMovementWindowWidth);
@@ -1384,6 +1416,7 @@ BEGIN
       WorkingTimetableSmallWindowWidth := ReadInteger(WindowsSectionStr, WorkingTimetableSmallWindowWidthStr, DefaultWorkingTimetableSmallWindowWidth);
       WorkingTimetableLargeWindowWidth := ReadInteger(WindowsSectionStr, WorkingTimetableLargeWindowWidthStr, DefaultWorkingTimetableLargeWindowWidth);
       WorkingTimetableWindowHeight := ReadInteger(WindowsSectionStr, WorkingTimetableWindowHeightStr, DefaultWorkingTimetableWindowHeight);
+
       { Spacing Options }
       BufferStopVerticalSpacing := ReadInteger(ScreenOptionsStr, BufferStopVerticalSpacingStr, DefaultBufferStopVerticalSpacing);
       DeltaPointX := ReadInteger(ScreenOptionsStr, DeltaPointXStr, DefaultDeltaPointX);
@@ -1772,6 +1805,8 @@ BEGIN
       { Fonts }
       WriteString(FontsSectionStr, RailFontNameStr, RailFontName);
       WriteInteger(FontsSectionStr, LineFontHeightStr, LineFontHeight);
+      WriteString(FontsSectionStr, LoggingWindowFontNameStr, LoggingWindowFontName);
+      WriteInteger(FontsSectionStr, LoggingWindowFontSizeStr, LoggingWindowFontSize);
       WriteInteger(FontsSectionStr, MainWindowFontHeightStr, MainWindowFontHeight);
       WriteInteger(FontsSectionStr, PlatformNumberFontHeightStr, PlatformNumberFontHeight);
       WriteString(FontsSectionStr, StationMonitorsFontNameStr, StationMonitorsFontName);
@@ -1867,6 +1902,13 @@ BEGIN
         WriteInteger(WindowsSectionStr, LocoUtilsWindowLeftStr, LocoUtilsWindow.Left);
         WriteInteger(WindowsSectionStr, LocoUtilsWindowTopStr, LocoUtilsWindow.Top);
         WriteInteger(WindowsSectionStr, LocoUtilsWindowWidthStr, LocoUtilsWindow.Width);
+      END;
+
+      IF LoggingWindow <> NIL THEN BEGIN
+        WriteInteger(WindowsSectionStr, LoggingWindowHeightStr, LoggingWindow.Height);
+        WriteInteger(WindowsSectionStr, LoggingWindowLeftStr, LoggingWindow.Left);
+        WriteInteger(WindowsSectionStr, LoggingWindowTopStr, LoggingWindow.Top);
+        WriteInteger(WindowsSectionStr, LoggingWindowWidthStr, LoggingWindow.Width);
       END;
 
       IF MovementWindow <> NIL THEN BEGIN
@@ -2076,6 +2118,8 @@ BEGIN
       Values[FontsStr] := '';
       Values[RailFontNameStr] := RailFontName;
       Values[LineFontHeightStr] := IntToStr(LineFontHeight);
+      Values[LoggingWindowFontNameStr] := LoggingWindowFontName;
+      Values[LoggingWindowFontSizeStr] := IntToStr(LoggingWindowFontSize);
       Values[MainWindowFontHeightStr] := IntToStr(MainWindowFontHeight);
       Values[PlatformNumberFontHeightStr] := IntToStr(PlatformNumberFontHeight);
       Values[StationMonitorsFontNameStr] := StationMonitorsFontName;
@@ -2546,6 +2590,8 @@ BEGIN
       { Fonts }
       CheckStringValueListValue(KeyName, RailFontNameStr, NewKeyValue, RailFontName);
       CheckIntegerValueListValue(KeyName, LineFontHeightStr, NewKeyValue, LineFontHeight);
+      CheckStringValueListValue(KeyName, LoggingWindowFontNameStr, NewKeyValue, LoggingWindowFontName);
+      CheckIntegerValueListValue(KeyName, LoggingWindowFontSizeStr, NewKeyValue, LoggingWindowFontSize);
       CheckIntegerValueListValue(KeyName, MainWindowFontHeightStr, NewKeyValue, MainWindowFontHeight);
       CheckIntegerValueListValue(KeyName, PlatformNumberFontHeightStr, NewKeyValue, PlatformNumberFontHeight);
       CheckStringValueListValue(KeyName, StationMonitorsFontNameStr, NewKeyValue, StationMonitorsFontName);
