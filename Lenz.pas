@@ -916,7 +916,8 @@ BEGIN
               Log(TypeOfLogChar + ' Lenz response: ' + DebugStr)
             ELSE
               IF ResponseOrBroadcast = Broadcast THEN
-                Log('A ' + StringOfChar(' ', 104) + 'Lenz broadcast: ' + DebugStr + ' {BLANKLINEBEFORE}');
+//                Log('A ' + StringOfChar(' ', 104) + 'Lenz broadcast: ' + DebugStr + ' {BLANKLINEBEFORE}');
+                Log('A Lenz broadcast: ' + DebugStr + ' {BLANKLINEBEFORE}');
 
             { Write out bytes as bits if run-time parameter Y is set }
             IF ShowByteParam <> '' THEN BEGIN
