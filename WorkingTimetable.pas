@@ -622,7 +622,6 @@ BEGIN
     ELSE
       ChangeCursor(crDefault);
   END; {WITH}
-
 END; { WorkingTimetableWindowGridMouseMove }
 
 PROCEDURE LoadWorkingTimetableFromDatabase(OUT WorkingTimetableMissing, WorkingTimetableOK : Boolean);
