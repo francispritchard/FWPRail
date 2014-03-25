@@ -7,22 +7,25 @@ USES Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.C
 
 TYPE
   TLoggingWindow = CLASS(TForm)
-    LoggingWindowRichEdit : TRichEdit;
-    LoggingWindowPopupMenu : TPopupMenu;
-    LoggingWindowPopupFontSize : TMenuItem;
-    LoggingWindowPopupChangeFontSize : TMenuItem;
-    LoggingWindowPopupFontSizeRestoreDefault : TMenuItem;
+    LoggingWindowFindDialogue: TFindDialog;
     LoggingWindowFontDialogue : TFontDialog;
-    LoggingWindowFindDialog: TFindDialog;
-    PROCEDURE LoggingWindowFindDialogClose(Sender: TObject);
-    PROCEDURE LoggingWindowFindDialogFind(Sender: TObject);
-    PROCEDURE LoggingWindowFindDialogShow(Sender: TObject);
+    LoggingWindowPopupChangeFontSize : TMenuItem;
+    LoggingWindowPopupFontSize : TMenuItem;
+    LoggingWindowPopupFontSizeRestoreDefault : TMenuItem;
+    LoggingWindowPopupMenu : TPopupMenu;
+    LoggingWindowRichEdit : TRichEdit;
+    LoggingWindowRichEditBuffer: TRichEdit;
+    PROCEDURE LoggingWindowClose(Sender: TObject; var Action: TCloseAction);
+    PROCEDURE LoggingWindowFindDialogueClose(Sender: TObject);
+    PROCEDURE LoggingWindowFindDialogueFind(Sender: TObject);
+    PROCEDURE LoggingWindowFindDialogueShow(Sender: TObject);
     PROCEDURE LoggingWindowPopupChangeFontSizeClick(Sender : TObject);
     PROCEDURE LoggingWindowPopupFontSizeRestoreDefaultClick(Sender : TObject);
     PROCEDURE LoggingWindowRichEditKeyDown(Sender : TObject; VAR Key : Word; ShiftState : TShiftState);
     PROCEDURE LoggingWindowRichEditMouseDown(Sender : TObject; Button : TMouseButton; Shift : TShiftState; MouseX, MouseY : Integer);
+    PROCEDURE LoggingWindowRichEditMouseEnter(Sender: TObject);
+    PROCEDURE LoggingWindowRichEditMouseLeave(Sender: TObject);
     PROCEDURE LoggingWindowShow(Sender: TObject);
-    procedure LoggingWindowClose(Sender: TObject; var Action: TCloseAction);
   PRIVATE
     { Private declarations }
   PUBLIC
@@ -31,7 +34,8 @@ TYPE
 
 VAR
   LoggingWindow: TLoggingWindow;
-  LoggingWindowFindDialogActive : Boolean = False;
+  LoggingWindowFindDialogueActive : Boolean = False;
+  NewLoggingTextHidden : Boolean = False;
 
 IMPLEMENTATION
 
@@ -85,21 +89,21 @@ BEGIN
   LoggingWindowLeft := LoggingWindow.Left;
 END; { LoggingWindowClose }
 
-PROCEDURE TLoggingWindow.LoggingWindowFindDialogClose(Sender: TObject);
+PROCEDURE TLoggingWindow.LoggingWindowFindDialogueClose(Sender: TObject);
 BEGIN
-  LoggingWindowFindDialogActive := False;
+  LoggingWindowFindDialogueActive := False;
 END; { LoggingWindowFindDialogClose }
 
-PROCEDURE TLoggingWindow.LoggingWindowFindDialogShow(Sender: TObject);
+PROCEDURE TLoggingWindow.LoggingWindowFindDialogueShow(Sender: TObject);
 BEGIN
   { There is no FindDialog.Width so the positioning here is a fudge to get it to the right of the Help window }
-  LoggingWindowFindDialog.Left := LoggingWindow.Left + (LoggingWindow.Width DIV 2);
+  LoggingWindowFindDialogue.Left := LoggingWindow.Left + (LoggingWindow.Width DIV 2);
 
-  LoggingWindowFindDialog.Top := LoggingWindow.Top;
-  LoggingWindowFindDialogActive := True;
+  LoggingWindowFindDialogue.Top := LoggingWindow.Top;
+  LoggingWindowFindDialogueActive := True;
 END; { LoggingWindowFindDialogShow }
 
-PROCEDURE TLoggingWindow.LoggingWindowFindDialogFind(Sender: TObject);
+PROCEDURE TLoggingWindow.LoggingWindowFindDialogueFind(Sender: TObject);
 { From "http://docwiki.embarcadero.com/CodeExamples/XE3/en/FindText_%28Delphi%29" }
 VAR
   FoundAt : LongInt;
@@ -111,9 +115,9 @@ BEGIN
   mySearchTypes := [];
 
   WITH LoggingWindowRichEdit DO BEGIN
-    IF frMatchCase IN LoggingWindowFindDialog.Options THEN
+    IF frMatchCase IN LoggingWindowFindDialogue.Options THEN
       mySearchTypes := mySearchTypes + [stMatchCase];
-    IF frWholeWord IN LoggingWindowFindDialog.Options THEN
+    IF frWholeWord IN LoggingWindowFindDialogue.Options THEN
       mySearchTypes := mySearchTypes + [stWholeWord];
 
     { Begin the search after the current selection, if there is one, otherwise, begin at the start of the text }
@@ -124,13 +128,13 @@ BEGIN
 
     { ToEnd is the length from StartPos through the end of the text in the rich edit control }
     ToEnd := Length(Text) - StartPos;
-    FoundAt := FindText(LoggingWindowFindDialog.FindText, StartPos, ToEnd, mySearchTypes);
+    FoundAt := FindText(LoggingWindowFindDialogue.FindText, StartPos, ToEnd, mySearchTypes);
     IF FoundAt = -1 THEN
       Beep
     ELSE BEGIN
       SetFocus;
       SelStart := FoundAt;
-      SelLength := Length(LoggingWindowFindDialog.FindText);
+      SelLength := Length(LoggingWindowFindDialogue.FindText);
     END;
   END; {WITH}
 END; { LoggingWindowFindDialogFind }
@@ -139,14 +143,14 @@ PROCEDURE TLoggingWindow.LoggingWindowRichEditKeyDown(Sender : TObject; VAR Key 
 BEGIN
   CASE Key OF
     vk_Escape:
-      IF LoggingWindowFindDialogActive THEN
-        LoggingWindowFindDialog.CloseDialog
+      IF LoggingWindowFindDialogueActive THEN
+        LoggingWindowFindDialogue.CloseDialog
       ELSE
         LoggingWindow.Hide;
     Ord('F'), Ord('f'):
       IF ssCtrl IN ShiftState THEN BEGIN
-        LoggingWindowFindDialog.Position := Point(LoggingWindowRichEdit.Left + LoggingWindowRichEdit.Width, LoggingWindowRichEdit.Top);
-        LoggingWindowFindDialog.Execute;
+        LoggingWindowFindDialogue.Position := Point(LoggingWindowRichEdit.Left + LoggingWindowRichEdit.Width, LoggingWindowRichEdit.Top);
+        LoggingWindowFindDialogue.Execute;
       END;
     Ord('G'), Ord('g'):
       LoggingWindow.Visible := False;
