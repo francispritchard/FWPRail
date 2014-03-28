@@ -1,5 +1,11 @@
 Things to do:
 
+24/4/14 
+Do log arrays in log window
+"Enter train location" "No feedback found" - huge window for loco number
+"Diagrams error - unknown location" - no opportunity to enter a new location
+Do diagrams processing before Lenz checking
+
 31/8/09
 Try OnShortCut rather than intercept Messages?
 
