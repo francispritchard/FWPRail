@@ -41,6 +41,9 @@ PROCEDURE AddRichLine(RichEdit: TRichEdit; StrToAdd: String);
 FUNCTION AddSeparatorToTimeString(Str : String) : String;
 { Add a separator to a string so that, e.g., 0630 becomes 06:30 }
 
+PROCEDURE AddStoredRichEditLoggingTextToLoggingWindow;
+{ Add any stored rich-edit data to the logging window }
+
 FUNCTION AllJourneysComplete(T : Train) : Boolean;
 { Returns true if all a train's journeys are complete }
 
@@ -864,8 +867,10 @@ VAR
   LogArray : StringArrayType;
   OldDebugStr : String = '';
   PreviousLogTime : TDateTime = 0;
+  RichEditArray : StringArrayType;
   SaveLogStrArray : ARRAY [1..MaxSaveLogStrs] OF String;
   SaveMainWindowStatusBarState : StatusBarStateType = Visible;
+  StoredRichEditLoggingTextArray : StringArrayType;
   UserDebugText : String = '';
   TestCounter : Integer = 0; { used to test iterations in debugging }
   TempSaveLogStr : String = '';
@@ -946,9 +951,6 @@ VAR
     END; { RemoveRichEditInstructionsFromLogStr }
 
   BEGIN
-  if Pos('Setting S=90 (9904) to red', logstr) > 0 then
-null;
-
     IF NOT LogFileOpen THEN
       { Store the log until the file is opened }
       AppendToStringArray(LogArray, LogStrWithRichEditCommands)
@@ -993,7 +995,10 @@ null;
         'A', 'a', '$':
           { general happenings of relevance to all logs - includes '$' for quick debugging as it is easy to find in the logs }
           BEGIN
-            AddRichLine(LoggingWindow.LoggingWindowRichEdit, LogStrWithRichEditCommands);
+            IF StoreRichEditLoggingText THEN
+              AppendToStringArray(StoredRichEditLoggingTextArray, LogStrWithRichEditCommands)
+            ELSE
+              AddRichLine(LoggingWindow.LoggingWindowRichEdit, LogStrWithRichEditCommands);
 
             WriteLn(LargeLogFile, LogStrWithoutRichEditCommands);
             IF MultipleLogFilesRequired THEN BEGIN
@@ -1006,7 +1011,10 @@ null;
           END;
         'P', 'p', 'S', 's', 'T', 't':
           BEGIN
-            AddRichLine(LoggingWindow.LoggingWindowRichEdit, LogStrWithRichEditCommands);
+            IF StoreRichEditLoggingText THEN
+              AppendToStringArray(StoredRichEditLoggingTextArray, LogStrWithRichEditCommands)
+            ELSE
+              AddRichLine(LoggingWindow.LoggingWindowRichEdit, LogStrWithRichEditCommands);
             WriteLn(LargeLogFile, LogStrWithoutRichEditCommands);
 
             IF MultipleLogFilesRequired THEN
@@ -1014,7 +1022,10 @@ null;
           END;
         'D', 'd':
           BEGIN
-            AddRichLine(LoggingWindow.LoggingWindowRichEdit, LogStrWithRichEditCommands);
+            IF StoreRichEditLoggingText THEN
+              AppendToStringArray(StoredRichEditLoggingTextArray, LogStrWithRichEditCommands)
+            ELSE
+              AddRichLine(LoggingWindow.LoggingWindowRichEdit, LogStrWithRichEditCommands);
             WriteLn(LargeLogFile, LogStrWithoutRichEditCommands);
 
             IF MultipleLogFilesRequired THEN
@@ -1022,7 +1033,10 @@ null;
           END;
         'W', 'w':
           BEGIN
-            AddRichLine(LoggingWindow.LoggingWindowRichEdit, LogStrWithRichEditCommands);
+            IF StoreRichEditLoggingText THEN
+              AppendToStringArray(StoredRichEditLoggingTextArray, LogStrWithRichEditCommands)
+            ELSE
+              AddRichLine(LoggingWindow.LoggingWindowRichEdit, LogStrWithRichEditCommands);
 
             WriteLn(LargeLogFile, LogStrWithoutRichEditCommands);
             WriteLn(TestLogFile, LogStrWithoutRichEditCommands);
@@ -1031,7 +1045,10 @@ null;
           END;
         'L', 'l':
           BEGIN
-            AddRichLine(LoggingWindow.LoggingWindowRichEdit, LogStrWithRichEditCommands);
+            IF StoreRichEditLoggingText THEN
+              AppendToStringArray(StoredRichEditLoggingTextArray, LogStrWithRichEditCommands)
+            ELSE
+              AddRichLine(LoggingWindow.LoggingWindowRichEdit, LogStrWithRichEditCommands);
 
             WriteLn(LargeLogFile, LogStrWithoutRichEditCommands);
             IF MultipleLogFilesRequired THEN
@@ -1039,7 +1056,10 @@ null;
           END;
         'R', 'r':
           BEGIN
-            AddRichLine(LoggingWindow.LoggingWindowRichEdit, LogStrWithRichEditCommands);
+            IF StoreRichEditLoggingText THEN
+              AppendToStringArray(StoredRichEditLoggingTextArray, LogStrWithRichEditCommands)
+            ELSE
+              AddRichLine(LoggingWindow.LoggingWindowRichEdit, LogStrWithRichEditCommands);
 
             WriteLn(LargeLogFile, LogStrWithoutRichEditCommands);
             IF MultipleLogFilesRequired THEN
@@ -1047,7 +1067,10 @@ null;
           END;
         '*':
           BEGIN
-            AddRichLine(LoggingWindow.LoggingWindowRichEdit, LogStrWithRichEditCommands);
+            IF StoreRichEditLoggingText THEN
+              AppendToStringArray(StoredRichEditLoggingTextArray, LogStrWithRichEditCommands)
+            ELSE
+              AddRichLine(LoggingWindow.LoggingWindowRichEdit, LogStrWithRichEditCommands);
 
             WriteLn(LargeLogFile, LogStrWithoutRichEditCommands);
             WriteLn(TestLogFile, LogStrWithoutRichEditCommands);
@@ -1057,7 +1080,10 @@ null;
           WriteLn(TestLogFile, LogStrWithoutRichEditCommands);
         'E', 'e', 'X', 'x': { unusual happenings of relevance to all the log files }
           BEGIN
-            AddRichLine(LoggingWindow.LoggingWindowRichEdit, LogStrWithRichEditCommands);
+            IF StoreRichEditLoggingText THEN
+              AppendToStringArray(StoredRichEditLoggingTextArray, LogStrWithRichEditCommands)
+            ELSE
+              AddRichLine(LoggingWindow.LoggingWindowRichEdit, LogStrWithRichEditCommands);
 
             WriteLn(LargeLogFile, LogStrWithoutRichEditCommands);
             IF MultipleLogFilesRequired THEN BEGIN
@@ -1227,15 +1253,18 @@ null;
 
 BEGIN { WriteToLogFile }
   TRY
-    IF LoggingWindow = NIL THEN BEGIN
-      LoggingWindow := TLoggingWindow.Create(Application);
-      LoggingWindow.Update;
-
-      AddRichLine(LoggingWindow.LoggingWindowRichEdit, GetProgramTitle);
-      AddRichLine(LoggingWindow.LoggingWindowRichEdit, GetProgramVersion('Log File'));
-    END;
-
     IF LogsCurrentlyKept THEN BEGIN
+      { Set up the internal logging window }
+      IF LoggingWindow = NIL THEN BEGIN
+        LoggingWindow := TLoggingWindow.Create(Application);
+        LoggingWindow.Update;
+        AddRichLine(LoggingWindow.LoggingWindowRichEdit, GetProgramTitle);
+        AddRichLine(LoggingWindow.LoggingWindowRichEdit, GetProgramVersion('Log File'));
+
+        { When the cursor is inside the rich-edit window, store the text to write it to the window when the cursor leaves the window }
+        SetLength(StoredRichEditLoggingTextArray, 0);
+      END;
+
       { write out anything previous stored when the log file was not open }
       IF LogFileOpen
       AND (Length(LogArray) <> 0)
@@ -1608,7 +1637,7 @@ BEGIN
   WrapNum := WrapNum - 25; { 20 is the amount of space taken up by the time and loco chip, etc. }
 
   { if there's an introductory string, write it first }
- IF InitStr <> '' THEN
+  IF InitStr <> '' THEN
     Log(LocoChipToStr(LocoChip) + ' ' + TypeOfLogChar + ' ' + InitStr);
 
   DebugStr := '';
@@ -1937,6 +1966,21 @@ BEGIN
   END;
   RichEdit.SelText := #13#10;
 END; { AddRichLine }
+
+PROCEDURE AddStoredRichEditLoggingTextToLoggingWindow;
+{ Add any stored rich-edit data to the logging window }
+VAR
+  StoredRichEditLoggingTextArrayCount : Integer;
+
+BEGIN
+  StoredRichEditLoggingTextArrayCount := 0;
+  WHILE StoredRichEditLoggingTextArrayCount <> Length(StoredRichEditLoggingTextArray) DO BEGIN
+    AddRichLine(LoggingWindow.LoggingWindowRichEdit, StoredRichEditLoggingTextArray[StoredRichEditLoggingTextArrayCount]);
+    Inc(StoredRichEditLoggingTextArrayCount);
+  END; {WHILE}
+
+  SetLength(StoredRichEditLoggingTextArray, 0);
+END; { AddStoredRichEditLoggingTextToLoggingWindow }
 
 PROCEDURE AppendIntegerArray2ToIntegerArray1(VAR IntegerArray1 : IntegerArrayType; IntegerArray2 : IntegerArrayType);
 { Join two integer arrays together }
@@ -2326,7 +2370,6 @@ PROCEDURE Debug{2}(Str : String); Overload;
 { Write out debug text to the Debug Window }
 VAR
   SaveStyle : TFontStyles;
-  SaveDebugWindowVisible : Boolean;
   TempStr : String;
 
 BEGIN

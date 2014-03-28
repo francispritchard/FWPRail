@@ -3,7 +3,7 @@ object LoggingWindow: TLoggingWindow
   Top = 0
   Caption = 'Log'
   ClientHeight = 336
-  ClientWidth = 527
+  ClientWidth = 641
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -18,7 +18,7 @@ object LoggingWindow: TLoggingWindow
   object LoggingWindowRichEdit: TRichEdit
     Left = 0
     Top = 0
-    Width = 527
+    Width = 641
     Height = 336
     Align = alClient
     Font.Charset = ANSI_CHARSET
@@ -34,6 +34,8 @@ object LoggingWindow: TLoggingWindow
     TabOrder = 0
     OnKeyDown = LoggingWindowRichEditKeyDown
     OnMouseDown = LoggingWindowRichEditMouseDown
+    OnMouseEnter = LoggingWindowRichEditMouseEnter
+    OnMouseLeave = LoggingWindowRichEditMouseLeave
   end
   object LoggingWindowPopupMenu: TPopupMenu
     Left = 168
@@ -60,10 +62,10 @@ object LoggingWindow: TLoggingWindow
     Left = 344
     Top = 176
   end
-  object LoggingWindowFindDialog: TFindDialog
-    OnClose = LoggingWindowFindDialogClose
-    OnShow = LoggingWindowFindDialogShow
-    OnFind = LoggingWindowFindDialogFind
+  object LoggingWindowFindDialogue: TFindDialog
+    OnClose = LoggingWindowFindDialogueClose
+    OnShow = LoggingWindowFindDialogueShow
+    OnFind = LoggingWindowFindDialogueFind
     Left = 280
     Top = 256
   end
