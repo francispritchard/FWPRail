@@ -177,9 +177,6 @@ BEGIN
 END; { LoggingWindowRichEditMouseEnter }
 
 PROCEDURE TLoggingWindow.LoggingWindowRichEditMouseLeave(Sender: TObject);
-VAR
-  TempStr: String;
-
 BEGIN
   StoreRichEditLoggingText := False;
 
