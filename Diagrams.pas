@@ -3966,7 +3966,7 @@ BEGIN
                                                       + CRLF
                                                       + 'Do you want to change its occupation to '
                                                       + LocationToStr(Train_Locations[0])
-                                                      + ' or cancel the it?',
+                                                      + ' or cancel it?',
                                                       StopTimer, mtError, [mbYes, mbNo], ['C&hange', '&Cancel'], mbYes) = mrNo
                         THEN
                           ChangeTrainStatus(T, Cancelled)
