@@ -714,6 +714,7 @@ VAR
   TempByte : Byte;
   TempStr : String;
   TempInt : Integer;
+  TempWriteArray : ARRAY [0..17] OF Byte;
   TickCount : Cardinal;
 
 BEGIN
@@ -732,15 +733,25 @@ BEGIN
           { get the length first from bits 3-0, and add the checkbyte }
           WriteArray[GetCommandLen(WriteArray[0]) + 1] := CheckSum(WriteArray);
           { and write it out }
-          S := '';
-          FOR I := 0 TO GetCommandLen(WriteArray[0]) + 1 DO
-            S := S + IntToHex(WriteArray[I], 2);
-          TCPIPForm.ResponsesTCPSendText(S);
+          IF LenzConnection = USBConnection THEN BEGIN
+            { Send the data as a string }
+            S := '';
+            FOR I := 0 TO GetCommandLen(WriteArray[0]) + 1 DO
+              S := S + IntToHex(WriteArray[I], 2);
+            TCPIPForm.ResponsesTCPSendText(S)
+          END ELSE
+            IF LenzConnection = EthernetConnection THEN BEGIN
+              { Add the two required header elements then send the data as an array of bytes }
+              TempWriteArray[0] := 255;
+              TempWriteArray[1] := 254;
+              FOR I := 0 TO GetCommandLen(WriteArray[0]) + 1 DO
+                TempWriteArray[I + 2] := WriteArray[I];
+              TCPIPForm.ResponsesTCPSendBuffer(TempWriteArray, GetCommandLen(WriteArray[0]) + 4);
+            END;
         END;
 
         { Now compose the "From PC" string }
-//        DebugStr := StringOfChar(' ', 104) + 'PC request: '; { 104 shouldn't be a magic number *** }
-        DebugStr := 'PC request: '; { 104 shouldn't be a magic number *** }
+        DebugStr := 'PC request: ';
 
         CommandLen := GetCommandLen(WriteArray[0]);
 
@@ -788,7 +799,7 @@ BEGIN
           AND (ExpectedReply <> TrackPowerOffReply)
           THEN BEGIN
             TickCount := (GetTickCount - StartTimer);
-            IF TickCount > (10000) THEN BEGIN
+            IF TickCount > (1000) THEN BEGIN
               TimedOut := True;
               RetryFlag := True;
 
@@ -1530,7 +1541,7 @@ BEGIN
         END;
     END; {CASE}
 
-    DataIO('L', WriteArray, ComputerInterfaceSoftwareReply, OK);
+    DataIO('L', WriteArray, LocoAcknowledgment, OK);
   END;
 END; { ProgramOnTheMain }
 
@@ -3395,10 +3406,12 @@ BEGIN
 
   IF NOT SystemSetOfflineByCommandLineParameter THEN BEGIN
     SetSystemOnline(OK);
-    IF OK THEN
-      Log('AG TCPIP Server is running')
-    ELSE
-      SetSystemOffline('TCPIP Server not running');
+    IF LenzConnection = USBConnection THEN BEGIN
+      IF OK THEN
+        Log('AG TCPIP Server is running')
+      ELSE
+        SetSystemOffline('TCPIP Server not running');
+    END;
 
 //      { provisionally... }
 //

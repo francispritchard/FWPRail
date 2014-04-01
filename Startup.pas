@@ -140,12 +140,6 @@ BEGIN
               DebuggingMode := True
             ELSE
               OK := False;
-      'E':
-        IF ParamString = 'E' THEN
-          { used for development }
-          ShowCreateRouteExitFunctionNum := True
-        ELSE
-          OK := False;
       'F':
         IF ParamString = 'FD' THEN
           FeedbackDebuggingMode := True
@@ -300,6 +294,10 @@ BEGIN
               END;
             END;
           END;
+      'X':
+        IF ParamString = 'X' THEN
+          { used for development }
+          ShowCreateRouteExitFunctionNum := True;
       'Y':
         IF Copy(ParamString, 1, 2) = 'Y:' THEN BEGIN
           ShowByteParam := Copy(ParamString, 3, 255);

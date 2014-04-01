@@ -11,6 +11,7 @@ object TCPIPForm: TTCPIPForm
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Font.Style = []
+  FormStyle = fsStayOnTop
   OldCreateOrder = False
   OnClose = TCPIPFormClose
   OnShow = TCPIPFormShow
@@ -69,14 +70,6 @@ object TCPIPForm: TTCPIPForm
     DesignSize = (
       546
       157)
-    object LabelConnectTo: TLabel
-      Left = 300
-      Top = 13
-      Width = 55
-      Height = 13
-      Anchors = [akTop, akRight]
-      Caption = 'Connect to:'
-    end
     object LabelTextEntry: TLabel
       Left = 8
       Top = 43
@@ -93,32 +86,14 @@ object TCPIPForm: TTCPIPForm
       Caption = 'Send Text'
       OnClick = SendButtonClick
     end
-    object TCPConnectButton: TButton
+    object USBConnectButton: TButton
       Left = 6
       Top = 7
       Width = 95
       Height = 25
-      Caption = 'TCP Connect'
+      Caption = 'USB Connect'
       TabOrder = 0
-      OnClick = TCPConnectButtonClick
-    end
-    object TCPAddress: TEdit
-      Left = 362
-      Top = 9
-      Width = 117
-      Height = 21
-      Anchors = [akTop, akRight]
-      TabOrder = 1
-      Text = '127.0.0.1'
-    end
-    object PortEdit: TEdit
-      Left = 483
-      Top = 9
-      Width = 55
-      Height = 21
-      Anchors = [akTop, akRight]
-      TabOrder = 2
-      Text = '5550'
+      OnClick = USBConnectButtonClick
     end
     object TCPCommand: TMemo
       Left = 8
@@ -126,7 +101,16 @@ object TCPIPForm: TTCPIPForm
       Width = 529
       Height = 60
       Anchors = [akLeft, akTop, akRight]
-      TabOrder = 3
+      TabOrder = 1
+    end
+    object EthernetConnectButton: TButton
+      Left = 126
+      Top = 7
+      Width = 95
+      Height = 25
+      Caption = 'Ethernet Connect'
+      TabOrder = 2
+      OnClick = EthernetConnectButtonClick
     end
   end
   object TCPIPTimer: TTimer

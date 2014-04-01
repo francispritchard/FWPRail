@@ -988,6 +988,7 @@ TYPE
 
   { Miscellaneous type declarations }
   ArrivalOrDepartureType = (Arrival, Departure);
+  LenzConnectionType = (EthernetConnection, USBConnection, NoConnection);
   PointerArrayType = ARRAY OF Pointer;
   RailwayTimeIntervalType = (Normal, Faster, Fastest, Slower);
   ScreenModeType = (DefaultWindowedScreenMode, CustomWindowedScreenMode, FullScreenMode, FullScreenWithStatusBarMode);
@@ -1063,6 +1064,7 @@ VAR
   KeyBoardandMouseLocked : Boolean = False;
   LastPointChanged : Integer = UnknownPoint;
   LastTimeAnyPointChanged : TDateTime = 0;
+  LenzConnection : LenzConnectionType = NoConnection;
   LightsToBeSwitchedOnArray : ARRAY OF LightsToBeSwitchedOnRec;
   LineDebuggingMode : Boolean = False;
   Lines : ARRAY OF LineRec;

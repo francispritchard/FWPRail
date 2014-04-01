@@ -9,27 +9,26 @@ TYPE
   TTCPIPForm = CLASS(TForm)
     ClearButton: TButton;
     ConnectPanel: TPanel;
+    EthernetConnectButton: TButton;
     IncomingGB: TGroupBox;
-    LabelConnectTo: TLABEL;
     LabelTextEntry: TLabel;
     MSGMemo: TMemo;
-    PortEdit: TEdit;
     SendButton: TSpeedButton;
-    TCPAddress: TEdit;
     TCPCommand: TMemo;
-    TCPConnectButton: TButton;
     TCPIPTimer: TTimer;
+    USBConnectButton: TButton;
     PROCEDURE ClearButtonClick(Sender: TObject);
+    PROCEDURE EthernetConnectButtonClick(Sender: TObject);
+    PROCEDURE SendButtonClick(Sender: TObject);
     PROCEDURE TCPIPFormClose(Sender: TObject; VAR Action: TCloseAction);
     PROCEDURE TCPIPFormShow(Sender: TObject);
-    PROCEDURE SendButtonClick(Sender: TObject);
-    PROCEDURE TCPConnectButtonClick(Sender: TObject);
     PROCEDURE TCPIPTimerOnTimer(Sender: TObject);
+    PROCEDURE USBConnectButtonClick(Sender: TObject);
 
   PRIVATE
 
   PUBLIC
-    PROCEDURE CreateTCPClients;
+    PROCEDURE CreateTCPClients(Connection : LenzConnectionType);
     PROCEDURE DestroyTCPClients;
 
     PROCEDURE ResponsesTCPClientConnect(Sender: TObject; Socket1 : TCustomWinSocket);
@@ -43,6 +42,7 @@ TYPE
     PROCEDURE BroadcastsTCPClientError(Sender: TObject; Socket2 : TCustomWinSocket; ErrorEvent: TErrorEvent; VAR ErrorCode: Integer);
 
     PROCEDURE ResponsesTCPSendText(S : String);
+    PROCEDURE ResponsesTCPSendBuffer(Buffer : ARRAY OF Byte; BufferLen : Integer);
   END;
 
 FUNCTION ReadDataFromTCPIPList : String;
@@ -94,13 +94,21 @@ BEGIN
     DestroyTCPClients;
 END; { TCPIPFormClose }
 
-PROCEDURE TTCPIPForm.TCPConnectButtonClick(Sender: TObject);
+PROCEDURE TTCPIPForm.USBConnectButtonClick(Sender: TObject);
 BEGIN
   IF TCPSocket1 = NIL THEN
-    CreateTCPClients
+    CreateTCPClients(USBConnection)
   ELSE
     DestroyTCPClients;
 END; { TCPConnectButtonClick }
+
+PROCEDURE TTCPIPForm.EthernetConnectButtonClick(Sender: TObject);
+BEGIN
+  IF TCPSocket1 = NIL THEN
+    CreateTCPClients(EthernetConnection)
+  ELSE
+    DestroyTCPClients;
+END; { EthernetConnectButtonClick }
 
 PROCEDURE TTCPIPForm.TCPIPFormShow(Sender: TObject);
 BEGIN
@@ -131,7 +139,7 @@ BEGIN
   END;
 END; { SendButtonClick }
 
-PROCEDURE TTCPIPForm.CreateTCPClients;
+PROCEDURE TTCPIPForm.CreateTCPClients(Connection : LenzConnectionType);
 { Set the TCPIP clients up }
 VAR
   I : Integer;
@@ -147,7 +155,10 @@ BEGIN
   END;
 
   ResponsesTCPClient.Port         := 5550;
-  ResponsesTCPClient.Address      := '127.0.0.1'; // TCPAddress.Text;
+  IF Connection = USBConnection THEN
+    ResponsesTCPClient.Address      := '127.0.0.1'
+  ELSE
+    ResponsesTCPClient.Address      := '192.168.0.200';
 
   TRY
     ResponsesTCPClient.Active := True;
@@ -164,31 +175,33 @@ BEGIN
     Log('A *** Unable to Connect to Client 1');
   END;
 
-  IF BroadcastsTCPClient = NIL THEN BEGIN
-    BroadcastsTCPClient              := TClientSocket.Create(TCPIPForm);
-    BroadcastsTCPClient.ClientType   := ctNonBlocking;
-    BroadcastsTCPClient.OnConnect    := BroadcastsTCPClientConnect;
-    BroadcastsTCPClient.OnDisconnect := BroadcastsTCPClientDisconnect;
-    BroadcastsTCPClient.OnRead       := BroadcastsTCPClientRead;
-    BroadcastsTCPClient.OnError      := BroadcastsTCPClientError;
-  END;
-
-  BroadcastsTCPClient.Port         := 5551;
-  BroadcastsTCPClient.Address      := '127.0.0.1'; // TCPAddress.Text;
-
-  TRY
-    BroadcastsTCPClient.Active := True;
-    I := 0;
-    WHILE (TCPSocket2 = NIL) AND (I < 50) DO BEGIN
-      Application.ProcessMessages;
-      IF TCPSocket2 = NIL THEN
-        Sleep(100);
-      Inc(I);
+  IF Connection = USBConnection THEN BEGIN
+    IF BroadcastsTCPClient = NIL THEN BEGIN
+      BroadcastsTCPClient              := TClientSocket.Create(TCPIPForm);
+      BroadcastsTCPClient.ClientType   := ctNonBlocking;
+      BroadcastsTCPClient.OnConnect    := BroadcastsTCPClientConnect;
+      BroadcastsTCPClient.OnDisconnect := BroadcastsTCPClientDisconnect;
+      BroadcastsTCPClient.OnRead       := BroadcastsTCPClientRead;
+      BroadcastsTCPClient.OnError      := BroadcastsTCPClientError;
     END;
-  EXCEPT
-    FreeAndNIL(BroadcastsTCPClient);
-    MSGMemo.Lines.Add('*** Unable to Connect to Client 2');
-    Log('A *** Unable to Connect to Client 2');
+
+    BroadcastsTCPClient.Port         := 5551;
+    BroadcastsTCPClient.Address      := '127.0.0.1'; // TCPAddress.Text;
+
+    TRY
+      BroadcastsTCPClient.Active := True;
+      I := 0;
+      WHILE (TCPSocket2 = NIL) AND (I < 50) DO BEGIN
+        Application.ProcessMessages;
+        IF TCPSocket2 = NIL THEN
+          Sleep(100);
+        Inc(I);
+      END;
+    EXCEPT
+      FreeAndNIL(BroadcastsTCPClient);
+      MSGMemo.Lines.Add('*** Unable to Connect to Client 2');
+      Log('A *** Unable to Connect to Client 2');
+    END;
   END;
 END; { CreateTCPClients }
 
@@ -221,8 +234,13 @@ BEGIN
   TCPSocket1 := Socket1;
   MSGMemo.Lines.Add('*** 1 Connected');
   Log('A TCPClient 1 Connected');
-  TCPConnectButton.Enabled := True;
-  TCPConnectButton.Caption := 'TCP 1 Disconnect';
+  IF LenzConnection = EthernetConnection THEN BEGIN
+    EthernetConnectButton.Enabled := True;
+    EthernetConnectButton.Caption := 'TCP 1 Disconnect';
+  END ELSE BEGIN
+    USBConnectButton.Enabled := True;
+    USBConnectButton.Caption := 'TCP 1 Disconnect';
+  END;
 END; { ResponsesTCPClientConnect }
 
 PROCEDURE TTCPIPForm.BroadcastsTCPClientConnect(Sender: TObject; Socket2 : TCustomWinSocket);
@@ -230,8 +248,13 @@ BEGIN
   ConnectTS := GetTickCount;
   TCPSocket2 := Socket2;
   Log('A TCPClient 2 Connected');
-  TCPConnectButton.Enabled := True;
-  TCPConnectButton.Caption := 'TCP 2 Disconnect';
+  IF LenzConnection = EthernetConnection THEN BEGIN
+    EthernetConnectButton.Enabled := True;
+    EthernetConnectButton.Caption := 'TCP 2 Disconnect';
+  END ELSE BEGIN
+    USBConnectButton.Enabled := True;
+    USBConnectButton.Caption := 'TCP 2 Disconnect';
+  END;
 END; { BroadcastsTCPClientConnect }
 
 PROCEDURE TTCPIPForm.ResponsesTCPClientDisconnect(Sender: TObject; Socket1 : TCustomWinSocket);
@@ -239,8 +262,13 @@ BEGIN
   IF ResponsesTCPClient <> NIL THEN BEGIN
     MSGMemo.Lines.Add('*** 1 Disconnected' + CRLF);
     Log('A TCPClient 1 Disconnected' + CRLF);
-    TCPConnectButton.Enabled := True;
-    TCPConnectButton.Caption := 'TCP 1 Connect';
+    IF LenzConnection = EthernetConnection THEN BEGIN
+      EthernetConnectButton.Enabled := True;
+      EthernetConnectButton.Caption := 'TCP 1 Connect';
+    END ELSE BEGIN
+      USBConnectButton.Enabled := True;
+      USBConnectButton.Caption := 'TCP 1 Connect';
+    END;
     TCPSocket1 := NIL;
   END;
 END; { ResponsesTCPClientDisconnect }
@@ -250,8 +278,13 @@ BEGIN
   IF BroadcastsTCPClient <> NIL THEN BEGIN
     MSGMemo.Lines.Add('*** 2 Disconnected' + CRLF);
     Log('A TCPClient 2 Disconnected' + CRLF);
-    TCPConnectButton.Enabled := True;
-    TCPConnectButton.Caption := 'TCP 2 Connect';
+    IF LenzConnection = EthernetConnection THEN BEGIN
+      EthernetConnectButton.Enabled := True;
+      EthernetConnectButton.Caption := 'TCP 2 Connect';
+    END ELSE BEGIN
+      USBConnectButton.Enabled := True;
+      USBConnectButton.Caption := 'TCP 2 Connect';
+    END;
     TCPSocket2 := NIL;
 
     SetSystemOffline('TCP Client has disconnected');
@@ -272,26 +305,89 @@ END; { ReadDataFromTCPIPList }
 PROCEDURE TTCPIPForm.ResponsesTCPClientRead(Sender: TObject; Socket1 : TCustomWinSocket);
 VAR
   AnsiStr : AnsiString;
+  Buffer : ARRAY[0..999] OF Byte;
   I : Integer;
+  J : Integer;
+  Response : Boolean;
   S : String;
+  Size : Integer;
+
+  FUNCTION ByteToHex(InByte : Byte): ShortString;
+  CONST
+    Digits : ARRAY[0..15] OF Char='0123456789ABCDEF';
+
+  BEGIN
+    Result:= Digits[InByte SHR 4] + Digits[InByte AND $0F];
+  END; { ByteToHex }
 
 BEGIN
   IF Socket1.Connected = True THEN BEGIN
-    AnsiStr := Socket1.ReceiveText;
-    S := String(AnsiStr);
-    TCPBuf1 := TCPBuf1 + S;
+    IF LenzConnection = USBConnection THEN BEGIN
+      AnsiStr := Socket1.ReceiveText;
+      S := String(AnsiStr);
+      TCPBuf1 := TCPBuf1 + S;
 
-    { strip off the carriage returns }
-    WHILE Pos(CRLF, TCPBuf1) > 0 DO BEGIN
-      I := Pos(CRLF, TCPBuf1);
-      S := Copy(TCPBuf1, 1, I - 1);
-      Delete(TCPBuf1, 1, I + 1);
-      MSGMemo.Lines.Add('IN1  ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : ' + S);
-      Log('+ IN1 *** ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : ' + S);
+      { If there's more than one response received in one go, strip off the carriage returns to create strings consisting of hex digits }
+      WHILE Pos(CRLF, TCPBuf1) > 0 DO BEGIN
+        I := Pos(CRLF, TCPBuf1);
+        S := Copy(TCPBuf1, 1, I - 1);
+        Delete(TCPBuf1, 1, I + 1);
 
-      { Put what's been read in at the top of the list, and note that it was a response to a request for data }
-      DataReadInList.Add('R ' + S);
-    END;
+        MSGMemo.Lines.Add('Response: ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : ' + S);
+        Log('+ Response: ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : ' + S);
+
+        { Put what's been read in at the top of the list, and note that it was a response to a request for data }
+        DataReadInList.Add('R ' + S);
+      END;
+    END ELSE
+      IF LenzConnection = EthernetConnection THEN BEGIN
+        Size := Socket1.ReceiveBuf(Buffer[0], 999);
+
+        { Convert the bytes to a hex string that we can return to match what is returned when the USB Connection is used - but ignore the first two bytes as they are
+          the header bytes, $FF $FE for responses and $FF $FD for broadcasts
+        }
+        FOR I := 0 TO Size - 1 DO
+          S := S + ByteToHex(Buffer[I]);
+        TCPBuf1 := TCPBuf1 + S;
+
+        { Check for both responses and broadcasts }
+        IF (Pos('FFFE', TCPBuf1) = 1) OR (Pos('FFFD', TCPBuf1) = 1) THEN BEGIN
+          { remove the first and add one at the end - makes working out how many strings there are easier }
+          Delete(TCPBuf1, 1, 4);
+          TCPBuf1 := TCPBuf1 + 'FFFE';
+        END ELSE BEGIN
+          MSGMemo.Lines.Add('*** Problem with string read in - not preceded by $FF $FE or $FF $FD');
+          Log('AG *** Problem with string read in - not preceded by $FF $FE or $FF $FD');
+          Exit;
+        END;
+
+        { If there's more than one response or broadcast received in one go, separate the data to create strings consisting of hex digits - bear in mind that the data may
+          be a mixture of responses and broadcasts
+        }
+        WHILE (Pos('FFFE', TCPBuf1) > 0) OR (Pos('FFFD', TCPBuf1) > 0) DO BEGIN
+          I := Pos('FFFE', TCPBuf1);
+          J := Pos('FFFD', TCPBuf1);
+          IF (J = 0) OR (I < J) THEN
+            Response := True
+          ELSE
+            Response := False;
+
+          { Either process the string as far as the next $FF $FE /$FF $FD or until the end of the string }
+          S := Copy(TCPBuf1, 1, I - 1);
+          Delete(TCPBuf1, 1, I + 3);
+
+          { Put what's been read in at the top of the list, and note that it was a response to a request for data }
+          IF Response THEN BEGIN
+            DataReadInList.Add('R ' + S);
+            MSGMemo.Lines.Add('Response: ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : ' + S);
+            Log('+ Response: ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : ' + S);
+          END ELSE BEGIN
+            DataReadInList.Add('B ' + S);
+            MSGMemo.Lines.Add('Broadcast: ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : ' + S);
+            Log('+ Broadcast: ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : ' + S);
+          END;
+        END;
+      END;
   END;
 END; { ResponsesTCPClientRead }
 
@@ -311,8 +407,8 @@ BEGIN
       I := Pos(CRLF, TCPBuf2);
       S := Copy(TCPBuf2, 1, I - 1);
       Delete(TCPBuf2, 1, I + 1);
-      MSGMemo.Lines.Add('IN2  ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : ' + S);
-      Log('+ IN2 *** ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : ' + S);
+      MSGMemo.Lines.Add('Broadcast: ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : ' + S);
+      Log('+ Broadcast: ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : ' + S);
 
       { Put what's been read in at the top of the list, and note that it was a broadcast }
       DataReadInList.Add('B ' + S);
@@ -372,23 +468,46 @@ BEGIN
   AnsiStr := AnsiString(S);
   IF TCPSocket1 <> NIL THEN BEGIN
     TCPSocket1.SendText(AnsiStr + CRLF);
-    Log('+ OUT1 *** ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + ' ' + S);
+    Log('+ OUT1 *** ' + S);
+    MSGMemo.Lines.Add('OUT1 *** ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : ' + S);
   END;
 END; { ResponsesTCPSendText }
 
-PROCEDURE TTCPIPForm.TCPIPTimerOnTimer(Sender: TOBJECT);
-{ Send something every 500 miliseconds or the TCPIP ports time out }
+PROCEDURE TTCPIPForm.ResponsesTCPSendBuffer(Buffer : ARRAY OF Byte; BufferLen : Integer);
+VAR
+  I : Integer;
+  S : String;
+
 BEGIN
   IF TCPSocket1 <> NIL THEN BEGIN
-    MSGMemo.Lines.Add('OUT1 ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : Sending Watchdog');
-    Log('+ OUT1 *** ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : Sending Watchdog');
-    TCPSocket1.SendText(' ');
-  END;
+    TCPSocket1.SendBuf(Buffer[0], BufferLen);
 
-  IF TCPSocket2 <> NIL THEN BEGIN
-    MSGMemo.Lines.Add('OUT2 ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : Sending Watchdog');
-    Log('+ OUT2 *** ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : Sending Watchdog');
-    TCPSocket2.SendText(' ');
+    S := '';
+    FOR I := 0 TO BufferLen - 1 DO
+      S := S + IntToStr(Buffer[I]) + ' ';
+    Log('+ OUT1 *** ' + S);
+    MSGMemo.Lines.Add('OUT1 *** ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : ' + S);
+  END;
+END; { ResponsesTCPSendText }
+
+PROCEDURE TTCPIPForm.TCPIPTimerOnTimer(Sender: TObject);
+{ Send something every 500 miliseconds or the TCPIP ports time out }
+BEGIN
+  IF LenzConnection = EthernetConnection THEN
+    { stop any further ticks }
+    TCPIPTimer.Enabled := False
+  ELSE BEGIN
+    IF TCPSocket1 <> NIL THEN BEGIN
+      MSGMemo.Lines.Add('OUT1 ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : Sending Watchdog');
+      Log('A OUT1 *** ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : Sending Watchdog');
+      TCPSocket1.SendText(' ');
+    END;
+
+    IF TCPSocket2 <> NIL THEN BEGIN
+      MSGMemo.Lines.Add('OUT2 ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : Sending Watchdog');
+      Log('A OUT2 *** ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : Sending Watchdog');
+      TCPSocket2.SendText(' ');
+    END;
   END;
 END; { TCPIPTimerOnTimer }
 
