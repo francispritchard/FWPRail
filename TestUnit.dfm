@@ -14,8 +14,6 @@ object TestUnitForm: TTestUnitForm
   FormStyle = fsStayOnTop
   OldCreateOrder = False
   OnCreate = FormCreate
-  ExplicitWidth = 320
-  ExplicitHeight = 240
   PixelsPerInch = 96
   TextHeight = 13
   object Button1: TButton
