@@ -305,12 +305,14 @@ END; { ReadDataFromTCPIPList }
 PROCEDURE TTCPIPForm.ResponsesTCPClientRead(Sender: TObject; Socket1 : TCustomWinSocket);
 VAR
   AnsiStr : AnsiString;
+  Broadcast : Boolean;
   Buffer : ARRAY[0..999] OF Byte;
+  Done : Boolean;
   I : Integer;
   J : Integer;
   Response : Boolean;
+  ResponseOrBroadcastSize : Integer;
   S : String;
-  Size : Integer;
 
   FUNCTION ByteToHex(InByte : Byte): ShortString;
   CONST
@@ -341,52 +343,106 @@ BEGIN
       END;
     END ELSE
       IF LenzConnection = EthernetConnection THEN BEGIN
-        Size := Socket1.ReceiveBuf(Buffer[0], 999);
+        ResponseOrBroadcastSize := Socket1.ReceiveBuf(Buffer[0], 999);
 
         { Convert the bytes to a hex string that we can return to match what is returned when the USB Connection is used - but ignore the first two bytes as they are
           the header bytes, $FF $FE for responses and $FF $FD for broadcasts
         }
-        FOR I := 0 TO Size - 1 DO
+        S := '';
+        FOR I := 0 TO ResponseOrBroadcastSize - 1 DO
           S := S + ByteToHex(Buffer[I]);
-        TCPBuf1 := TCPBuf1 + S;
+        TCPBuf1 :=  S;
+        Log('X Data Received: ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : ' + S + ' {BlankLineBefore}');
 
-        { Check for both responses and broadcasts }
-        IF (Pos('FFFE', TCPBuf1) = 1) OR (Pos('FFFD', TCPBuf1) = 1) THEN BEGIN
-          { remove the first and add one at the end - makes working out how many strings there are easier }
-          Delete(TCPBuf1, 1, 4);
-          TCPBuf1 := TCPBuf1 + 'FFFE';
-        END ELSE BEGIN
-          MSGMemo.Lines.Add('*** Problem with string read in - not preceded by $FF $FE or $FF $FD');
-          Log('AG *** Problem with string read in - not preceded by $FF $FE or $FF $FD');
-          Exit;
-        END;
+        //   TCPBuf1:= 'FFFD42434243FFFE42434243';
 
         { If there's more than one response or broadcast received in one go, separate the data to create strings consisting of hex digits - bear in mind that the data may
           be a mixture of responses and broadcasts
         }
-        WHILE (Pos('FFFE', TCPBuf1) > 0) OR (Pos('FFFD', TCPBuf1) > 0) DO BEGIN
+        WHILE (Pos('FFFE', TCPBuf1) = 1) OR (Pos('FFFD', TCPBuf1) = 1) DO BEGIN
+          Response := False;
+          Broadcast := False;
+
           I := Pos('FFFE', TCPBuf1);
           J := Pos('FFFD', TCPBuf1);
-          IF (J = 0) OR (I < J) THEN
+          IF I = 1 THEN
             Response := True
           ELSE
-            Response := False;
+            IF J = 1 THEN
+              Broadcast := True;
 
-          { Either process the string as far as the next $FF $FE /$FF $FD or until the end of the string }
-          S := Copy(TCPBuf1, 1, I - 1);
-          Delete(TCPBuf1, 1, I + 3);
+          { Remove the header bytes which are no longer useful }
+          TCPBuf1 := Copy(TCPBuf1, 5);
+
+          { Look for the next header bytes, if any }
+          I := Pos('FFFE', TCPBuf1);
+          J := Pos('FFFD', TCPBuf1);
+
+          IF (I = 0) AND (J = 0) THEN
+            { just process the rest of the string }
+            S := TCPBuf1
+          ELSE
+            { extract the string up to the next header bytes }
+            IF (J = 0) OR ((I > 0) AND (I < J)) THEN BEGIN
+              { a $FF $FE comes first }
+              S := Copy(TCPBuf1, 1, I - 1);
+              TCPBuf1 := Copy(TCPBuf1, I);
+            END ELSE BEGIN
+              { a $FF $FD comes first }
+              S := Copy(TCPBuf1, 1, J - 1);
+              TCPBuf1 := Copy(TCPBuf1, J);
+            END;
 
           { Put what's been read in at the top of the list, and note that it was a response to a request for data }
           IF Response THEN BEGIN
             DataReadInList.Add('R ' + S);
             MSGMemo.Lines.Add('Response: ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : ' + S);
             Log('+ Response: ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : ' + S);
-          END ELSE BEGIN
-            DataReadInList.Add('B ' + S);
-            MSGMemo.Lines.Add('Broadcast: ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : ' + S);
-            Log('+ Broadcast: ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : ' + S);
-          END;
-        END;
+          END ELSE
+            IF Broadcast THEN BEGIN
+              DataReadInList.Add('B ' + S);
+              MSGMemo.Lines.Add('Broadcast: ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : ' + S);
+              Log('+ Broadcast: ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : ' + S);
+            END;
+        END; {WHILE}
+
+//        { Check for both responses and broadcasts }
+//        IF (Pos('FFFE', TCPBuf1) = 1) OR (Pos('FFFD', TCPBuf1) = 1) THEN BEGIN
+//          { remove the first and add one at the end - makes working out how many strings there are easier }
+//          Delete(TCPBuf1, 1, 4);
+//          TCPBuf1 := TCPBuf1 + 'FFFE';
+//        END ELSE BEGIN
+//          MSGMemo.Lines.Add('*** Problem with string read in - not preceded by $FF $FE or $FF $FD');
+//          Log('AG *** Problem with string read in - not preceded by $FF $FE or $FF $FD');
+//          Exit;
+//        END;
+//
+//        { If there's more than one response or broadcast received in one go, separate the data to create strings consisting of hex digits - bear in mind that the data may
+//          be a mixture of responses and broadcasts
+//        }
+//        WHILE (Pos('FFFE', TCPBuf1) > 0) OR (Pos('FFFD', TCPBuf1) > 0) DO BEGIN
+//          I := Pos('FFFE', TCPBuf1);
+//          J := Pos('FFFD', TCPBuf1);
+//          IF (J = 0) OR (I < J) THEN
+//            Response := True
+//          ELSE
+//            Response := False;
+//
+//          { Either process the string as far as the next $FF $FE /$FF $FD or until the end of the string }
+//          S := Copy(TCPBuf1, 1, I - 1);
+//          Delete(TCPBuf1, 1, I + 3);
+//
+//          { Put what's been read in at the top of the list, and note that it was a response to a request for data }
+//          IF Response THEN BEGIN
+//            DataReadInList.Add('R ' + S);
+//            MSGMemo.Lines.Add('Response: ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : ' + S);
+//            Log('+ Response: ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : ' + S);
+//          END ELSE BEGIN
+//            DataReadInList.Add('B ' + S);
+//            MSGMemo.Lines.Add('Broadcast: ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : ' + S);
+//            Log('+ Broadcast: ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : ' + S);
+//          END;
+//        END;
       END;
   END;
 END; { ResponsesTCPClientRead }
