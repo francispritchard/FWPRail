@@ -59,7 +59,6 @@ VAR
   ConnectTS : Int64;
   DataReadInList : TStringList;
   ResponsesTCPClient : TClientSocket = NIL;
-  TCPIPConnected : Boolean = True;
   TCPIPForm : TTCPIPForm;
   TCPBuf1 : String = '';
   TCPBuf2 : String = '';
@@ -154,7 +153,7 @@ BEGIN
     ResponsesTCPClient.OnError      := ResponsesTCPClientError;
   END;
 
-  ResponsesTCPClient.Port         := 5550;
+  ResponsesTCPClient.Port           := 5550;
   IF Connection = USBConnection THEN
     ResponsesTCPClient.Address      := '127.0.0.1'
   ELSE
@@ -185,8 +184,8 @@ BEGIN
       BroadcastsTCPClient.OnError      := BroadcastsTCPClientError;
     END;
 
-    BroadcastsTCPClient.Port         := 5551;
-    BroadcastsTCPClient.Address      := '127.0.0.1'; // TCPAddress.Text;
+    BroadcastsTCPClient.Port           := 5551;
+    BroadcastsTCPClient.Address        := '127.0.0.1';
 
     TRY
       BroadcastsTCPClient.Active := True;
@@ -307,7 +306,6 @@ VAR
   AnsiStr : AnsiString;
   Broadcast : Boolean;
   Buffer : ARRAY[0..999] OF Byte;
-  Done : Boolean;
   I : Integer;
   J : Integer;
   Response : Boolean;
@@ -345,8 +343,8 @@ BEGIN
       IF LenzConnection = EthernetConnection THEN BEGIN
         ResponseOrBroadcastSize := Socket1.ReceiveBuf(Buffer[0], 999);
 
-        { Convert the bytes to a hex string that we can return to match what is returned when the USB Connection is used - but ignore the first two bytes as they are
-          the header bytes, $FF $FE for responses and $FF $FD for broadcasts
+        { Convert the bytes to a hex string so what we return matches what is returned when the USB Connection is used - but ignore the first two bytes as they are the
+          header bytes, $FF $FE for responses and $FF $FD for broadcasts
         }
         S := '';
         FOR I := 0 TO ResponseOrBroadcastSize - 1 DO
@@ -405,44 +403,6 @@ BEGIN
               Log('+ Broadcast: ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : ' + S);
             END;
         END; {WHILE}
-
-//        { Check for both responses and broadcasts }
-//        IF (Pos('FFFE', TCPBuf1) = 1) OR (Pos('FFFD', TCPBuf1) = 1) THEN BEGIN
-//          { remove the first and add one at the end - makes working out how many strings there are easier }
-//          Delete(TCPBuf1, 1, 4);
-//          TCPBuf1 := TCPBuf1 + 'FFFE';
-//        END ELSE BEGIN
-//          MSGMemo.Lines.Add('*** Problem with string read in - not preceded by $FF $FE or $FF $FD');
-//          Log('AG *** Problem with string read in - not preceded by $FF $FE or $FF $FD');
-//          Exit;
-//        END;
-//
-//        { If there's more than one response or broadcast received in one go, separate the data to create strings consisting of hex digits - bear in mind that the data may
-//          be a mixture of responses and broadcasts
-//        }
-//        WHILE (Pos('FFFE', TCPBuf1) > 0) OR (Pos('FFFD', TCPBuf1) > 0) DO BEGIN
-//          I := Pos('FFFE', TCPBuf1);
-//          J := Pos('FFFD', TCPBuf1);
-//          IF (J = 0) OR (I < J) THEN
-//            Response := True
-//          ELSE
-//            Response := False;
-//
-//          { Either process the string as far as the next $FF $FE /$FF $FD or until the end of the string }
-//          S := Copy(TCPBuf1, 1, I - 1);
-//          Delete(TCPBuf1, 1, I + 3);
-//
-//          { Put what's been read in at the top of the list, and note that it was a response to a request for data }
-//          IF Response THEN BEGIN
-//            DataReadInList.Add('R ' + S);
-//            MSGMemo.Lines.Add('Response: ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : ' + S);
-//            Log('+ Response: ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : ' + S);
-//          END ELSE BEGIN
-//            DataReadInList.Add('B ' + S);
-//            MSGMemo.Lines.Add('Broadcast: ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : ' + S);
-//            Log('+ Broadcast: ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : ' + S);
-//          END;
-//        END;
       END;
   END;
 END; { ResponsesTCPClientRead }
@@ -474,43 +434,16 @@ END; { BroadcastsTCPClientRead }
 
 PROCEDURE TTCPIPForm.ResponsesTCPClientError(Sender: TObject; Socket1 : TCustomWinSocket; ErrorEvent: TErrorEvent; VAR ErrorCode: Integer);
 BEGIN
-  IF ErrorCode = 10061 THEN BEGIN
-    MSGMemo.Lines.Add('*** Unable to Connect');
-    Log('A *** Unable to Connect');
-    //('G *** Unable to Connect');
-    ErrorCode := 0;
-    TCPIPConnected := False;
-  END;
-
-  IF ErrorCode = 10053 THEN BEGIN
-    MSGMemo.Lines.Add('*** Server has disconnected/shutdown.');
-    Log('A *** Server has disconnected/shutdown.');
-    ErrorCode := 0;
-    TCPIPConnected := False;
-  END;
+  Log('A Unable to Connect: ' + SysErrorMessage(ErrorCode));
+  MSGMemo.Lines.Add('*** Unable to Connect: ' + SysErrorMessage(ErrorCode));
+  ErrorCode := 0;
 END; { ResponsesTCPClientError }
 
 PROCEDURE TTCPIPForm.BroadcastsTCPClientError(Sender: TObject; Socket2 : TCustomWinSocket; ErrorEvent: TErrorEvent; VAR ErrorCode: Integer);
 BEGIN
- TRY
-  IF ErrorCode = 10061 THEN BEGIN
-    MSGMemo.Lines.Add('*** Unable to Connect');
-    Log('A *** Unable to Connect');
-    ErrorCode := 0;
-    TCPIPConnected := False;
-  END;
-
-  IF ErrorCode = 10053 THEN BEGIN
-    MSGMemo.Lines.Add('*** Server has disconnected/shutdown.');
-    Log('A *** Server has disconnected/shutdown.');
-    ErrorCode := 0;
-    TCPIPConnected := False;
-  END;
-
- EXCEPT
-    MSGMemo.Lines.Add('*** Unable to Connect to Client 1');
-    Log('A *** Unable to Connect to Client 1');
-  END;
+  Log('A Unable to Connect: ' + SysErrorMessage(ErrorCode));
+  MSGMemo.Lines.Add('*** Unable to Connect: ' + SysErrorMessage(ErrorCode));
+  ErrorCode := 0;
 END; { BroadcastsTCPClientError }
 
 PROCEDURE TTCPIPForm.ResponsesTCPSendText(S : String);

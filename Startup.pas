@@ -123,6 +123,17 @@ BEGIN
               Debug('Displaying adjacent trackcircuit mode = ON');
             END ELSE
               OK := False;
+      'C':
+        IF ParamString = 'CONNECTION=ETHERNET' THEN
+          DesiredLenzConnection := EthernetConnection
+        ELSE
+          IF ParamString = 'CONNECTION=USB' THEN
+            DesiredLenzConnection := USBConnection
+          ELSE
+            IF Copy(ParamString, 1, Length('CONNECTION')) = 'CONNECTION' THEN BEGIN
+              DesiredLenzConnection := NoConnection;
+              Log('XG Invalid connection type: ' + ParamString);
+            END;
       'D':
         IF Copy(ParamString, 1, 2) = 'D-' THEN
           StartWithDiagrams := False

@@ -4280,9 +4280,8 @@ BEGIN { KeyPressedDown }
             CtrlShift: {Enter}
               BEGIN
                 HelpMsg := 'Set System Online';
-                IF NOT HelpRequired THEN BEGIN
-                  SetSystemOnline(OK);
-                END;
+                IF NOT HelpRequired THEN
+                  SetSystemOnline;
               END;
             Shift: {Enter}
               BEGIN

@@ -225,9 +225,6 @@ END; { TurnEditModeOn }
 
 PROCEDURE TurnEditModeOff;
 { Turn edit mode off }
-VAR
-  OK : Boolean;
-
 BEGIN
   TRY
     IF EditMode THEN BEGIN
@@ -241,8 +238,7 @@ BEGIN
       EditWindow.EditValueListEditor.Strings.Clear;
 
       IF SaveSystemOnlineState THEN BEGIN
-        SetSystemOnline(OK);    { what should we do with OK? ************* }
-        IF OK THEN
+        IF SetSystemOnline THEN
           Log('A Edit mode off so system now online again')
         ELSE
           Log('A Edit mode off but system failed to go online');
