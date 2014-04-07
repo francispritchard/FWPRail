@@ -11,8 +11,8 @@ PROGRAM Rail;
  {$R Rail.res}         // should be below this comment - it has the version numbers in it - but sometimes Delphi removes it too.
 *)
 
- {$R RailResource.res} // should be below this comment - this has the extra two icons in it - but sometimes Delphi removes it.
- {$R Rail.res}         // should be below this comment - it has the version numbers in it - but sometimes Delphi removes it too.
+{$R RailResource.res} // should be below this comment - this has the extra two icons in it - but sometimes Delphi removes it.
+{$R Rail.res}         // should be below this comment - it has the version numbers in it - but sometimes Delphi removes it too.
 
 USES
   Forms,
