@@ -352,8 +352,6 @@ BEGIN
         TCPBuf1 :=  S;
         Log('X Data Received: ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : ' + S + ' {BlankLineBefore}');
 
-        //   TCPBuf1:= 'FFFD42434243FFFE42434243';
-
         { If there's more than one response or broadcast received in one go, separate the data to create strings consisting of hex digits - bear in mind that the data may
           be a mixture of responses and broadcasts
         }
