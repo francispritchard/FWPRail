@@ -5558,7 +5558,7 @@ END; { MessageDialogueWithDefault-1 }
 
 FUNCTION MessageDialogueWithDefault{2}(DialogueText: String; StopTimer : Boolean; DlgType : TMsgDlgType; Buttons : TMsgDlgButtons; ButtonText : ARRAY OF String;
                                        DefaultButton : TMsgDlgBtn) : Word; Overload;
-{ Adapted from the Borland Delphi web site example - uses procedures from their uDialogsExt Unit. This version has replacemnt button text as well as a default button }
+{ Adapted from the Borland Delphi web site example - uses procedures from their uDialogsExt Unit. This version has replacement button text as well as a default button }
 VAR
   ButtonCount : Integer;
   Dialogue : TForm;
@@ -5639,8 +5639,7 @@ BEGIN
   SetDefaultButton(Dialogue, DefaultButtonModalResult);
 
   { Log the text of the dialogue, converting CRLFs before we write out the string }
-  DebugStr := 'MessageDialogueWithDefault: "' + DialogueText + '"';
-  Log('A MessageDialogueWithDefault: "' + DebugStr + '"' + '{INDENT=0} {WRAP=SCREENWIDTH}');
+  Log('A MessageDialogueWithDefault: "' + DialogueText + '"' + '{INDENT=0} {WRAP=SCREENWIDTH}');
 
   { show the dialogue and obtain the result }
   Result := Dialogue.ShowModal;
