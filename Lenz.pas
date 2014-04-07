@@ -1904,7 +1904,7 @@ BEGIN
   END;
 END; { WriteLocoSpeedOrDirection }
 
-PROCEDURE ReadComputerInterfaceSoftwareVersion(VAR OK : Boolean);
+FUNCTION ReadComputerInterfaceSoftwareVersion : Boolean;
 { Ask the LI101 its own software version }
 VAR
   WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
@@ -1912,10 +1912,10 @@ VAR
 BEGIN
   Log('A Requesting computer interface software version {BLANKLINEBEFORE}');
   WriteArray[0] := 240;
-  DataIO('A', WriteArray, ComputerInterfaceSoftwareReply, OK);
+  DataIO('A', WriteArray, ComputerInterfaceSoftwareReply, Result);
 END; { ReadComputerInterfaceSoftwareVersion }
 
-PROCEDURE ReadCommandStationSoftwareVersion(VAR OK : Boolean);
+FUNCTION ReadCommandStationSoftwareVersion : Boolean;
 { Ask the LI101 for the software version of the command station }
 VAR
   WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
@@ -1924,7 +1924,7 @@ BEGIN
   Log('A Requesting command station software version {BLANKLINEBEFORE}');
   WriteArray[0] := 33;
   WriteArray[1] := 33;
-  DataIO('A', WriteArray, CommandStationSoftwareReply, OK);
+  DataIO('A', WriteArray, CommandStationSoftwareReply, Result);
 END; { ReadCommandStationSoftwareVersion }
 
 FUNCTION RequestProgrammingModeCV(CV : Integer) : String;      { half written 1/2/13 }
@@ -3396,20 +3396,11 @@ CONST
 
 VAR
   I, J : Word;
-  OK : Boolean;
 
 BEGIN
   { For initial data flow check }
-  OK := False;
-
   IF NOT SystemSetOfflineByCommandLineParameter THEN BEGIN
-    SetSystemOnline(OK);
-    IF LenzConnection = USBConnection THEN BEGIN
-      IF OK THEN
-        Log('AG TCPIP Server is running')
-      ELSE
-        SetSystemOffline('TCPIP Server not running');
-    END;
+    SetSystemOnline;
 
 //      { provisionally... }
 //
@@ -3443,10 +3434,10 @@ BEGIN
 
   IF SystemOnline THEN
     { Store settings of feedback units before starting }
-    ReadCommandStationSoftwareVersion(OK);
+    ReadCommandStationSoftwareVersion;
 
   IF SystemOnline THEN
-    ReadComputerInterfaceSoftwareVersion(OK);
+    ReadComputerInterfaceSoftwareVersion;
 
 //  FOR I := 0 TO (ReadArrayLen - 1) DO BEGIN
 //    ReadArray[I] := 0;
