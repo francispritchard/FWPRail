@@ -998,6 +998,13 @@ TYPE
   StringType = (LongStringType, ShortStringType, VeryShortStringType);
   TrainArrayType = ARRAY OF Train;
 
+  LenzSystemRec = RECORD
+                EmergencyStop : Boolean;
+                EmergencyOff : Boolean;
+                ProgrammingMode : Boolean;
+                StartMode : Boolean;
+              END;
+
   { not yet in use - failed in testing 1/09 }
   SavedRouteRec = RECORD
     SavedRoute_Array : StringArrayType;
@@ -1049,6 +1056,7 @@ VAR
   CrossHairCursor : TCursor;
   DayTimeSetByUser : Boolean = False;
   DebuggingMode : Boolean = False;
+  DesiredLenzConnection : LenzConnectionType = NoConnection;
   DisplayFeedbackStringsInDebugWindow : Boolean = False;
   EditIcon : TIcon;
   EditMode : Boolean = False;
