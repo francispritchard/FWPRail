@@ -46,7 +46,7 @@ IMPLEMENTATION
 {$R *.dfm}
 
 USES RailDraw, Locks, Startup, Route, GetTime, Diagrams, MiscUtils, Movement, Lenz, Input, LocoUtils, Types, CreateRoute, LocoDialogue, LocationData, Help, StrUtils,
-     Options;
+     Options, Main;
 
 CONST
   UnitRef = 'Cuneo';
@@ -205,8 +205,8 @@ BEGIN
       IF MoveZoomWindowMode THEN BEGIN
         HideStatusBarAndUpDownIndications;
 
-        FWPRailMainWindow.HorzScrollBar.Position := FWPRailMainWindow.HorzScrollBar.Position + MouseMovingX - X;
-        FWPRailMainWindow.VertScrollBar.Position := FWPRailMainWindow.VertScrollBar.Position + MouseMovingY - Y;
+        FWPRailWindow.HorzScrollBar.Position := FWPRailWindow.HorzScrollBar.Position + MouseMovingX - X;
+        FWPRailWindow.VertScrollBar.Position := FWPRailWindow.VertScrollBar.Position + MouseMovingY - Y;
         MouseMovingX := X;
         MouseMovingY := Y;
       END ELSE BEGIN
@@ -613,7 +613,7 @@ BEGIN
         { Is it a line-end character? - if so, highlight the corresponding line-end }
         FOR L := 0 TO High(Lines) DO BEGIN
           WITH Lines[L] DO BEGIN
-            WITH FWPRailMainWindow.Canvas DO BEGIN
+            WITH FWPRailWindow.Canvas DO BEGIN
               IF PtInRect(Line_UpConnectionChRect, Point(MouseX, MouseY)) THEN
                 UpLineEndCharacterLine := L;
               IF PtInRect(Line_DownConnectionChRect, Point(MouseX, MouseY)) THEN
@@ -654,8 +654,8 @@ BEGIN
         IF DebuggingMode THEN
           { Display mouse co-ordinates }
           WriteToStatusBarPanel(StatusBarPanel2, IntToStr(X) + ',' + IntToStr(Y) + '; '
-                                + IntToStr(MulDiv(1000, X, FWPRailMainWindow.ClientWidth)) + '/1000,'
-                                + IntToStr(MulDiv(1000, Y, FWPRailMainWindow.ClientHeight)) +'/1000');
+                                + IntToStr(MulDiv(1000, X, FWPRailWindow.ClientWidth)) + '/1000,'
+                                + IntToStr(MulDiv(1000, Y, FWPRailWindow.ClientHeight)) +'/1000');
       END;
     END;
   EXCEPT {TRY}
@@ -737,7 +737,7 @@ BEGIN
             END;
 
             ZoomScaleFactor := 750;
-            SetCaption(FWPRailMainWindow, 'Zoom level 130%');
+            SetCaption(FWPRailWindow, 'Zoom level 130%');
             Zooming := True;
             InvalidateScreen(UnitRef, 'MouseButtonReleased');
           END;
@@ -1628,7 +1628,7 @@ BEGIN
                 IF LineFoundNum <> UnknownLine THEN
                   LinePopupNum := LineFoundNum;
 
-            FWPRailMainWindow.CreateOrDeleteItemPopupMenu.Popup(MouseX, MouseY);
+            FWPRailWindow.CreateOrDeleteItemPopupMenu.Popup(MouseX, MouseY);
           END;
       END ELSE BEGIN
         IF ButtonPress = mbLeft THEN BEGIN
@@ -1678,7 +1678,7 @@ BEGIN
           IF ButtonPress = mbRight THEN BEGIN
             IF SignalFoundNum <> UnknownSignal THEN BEGIN
               SignalPopupNum := SignalFoundNum;
-              FWPRailMainWindow.SignalPopupMenu.Popup(MouseX, MouseY);
+              FWPRailWindow.SignalPopupMenu.Popup(MouseX, MouseY);
               SignalFoundNum := UnknownSignal;
             END ELSE
               IF SignalPostFoundNum <> UnknownSignal THEN
@@ -1687,12 +1687,12 @@ BEGIN
               ELSE
                 IF PointFoundNum <> UnknownPoint THEN BEGIN
                   PointPopupNum := PointFoundNum;
-                  FWPRailMainWindow.PointPopupMenu.Popup(MouseX, MouseY);
+                  FWPRailWindow.PointPopupMenu.Popup(MouseX, MouseY);
                   PointFoundNum := UnknownPoint;
                 END ELSE
                   IF BufferStopFoundNum <> UnknownBufferStop THEN BEGIN
                     BufferStopPopupNum := BufferStopFoundNum;
-                    FWPRailMainWindow.BufferStopPopupMenu.Popup(MouseX, MouseY);
+                    FWPRailWindow.BufferStopPopupMenu.Popup(MouseX, MouseY);
                     BufferStopFoundNum := UnknownBufferStop;
                   END ELSE
                     IF TheatreIndicatorFoundNum <> UnknownSignal THEN
@@ -1703,11 +1703,11 @@ BEGIN
                           WriteNextLineDetailToDebugWindow(LineFoundNum, HelpRequired)
                         ELSE BEGIN
                           TrackCircuitPopupLine := LineFoundNum;
-                          FWPRailMainWindow.TCPopupMenu.Popup(MouseX, MouseY);
+                          FWPRailWindow.TCPopupMenu.Popup(MouseX, MouseY);
                           LineFoundNum := UnknownLine;
                         END;
                       END ELSE
-                        FWPRailMainWindow.PopupMenu.Popup(MouseX, MouseY);
+                        FWPRailWindow.PopupMenu.Popup(MouseX, MouseY);
           END;
       END;
   EXCEPT

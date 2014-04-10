@@ -30,7 +30,7 @@ VAR
 
 IMPLEMENTATION
 
-USES MiscUtils, Initvars, RailDraw, Diagrams, Lenz, Options;
+USES MiscUtils, Initvars, RailDraw, Diagrams, Lenz, Options, Main;
 
 {$R *.dfm}
 

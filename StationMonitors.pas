@@ -346,7 +346,7 @@ VAR
     TRY
       WITH StationMonitorsWindow.Canvas DO BEGIN
         Font.Style := [fsBold];
-        Font.Height := -MulDiv(FWPRailMainWindow.ClientHeight, StationMonitorsSmallFontHeight, 1000);
+        Font.Height := -MulDiv(FWPRailWindow.ClientHeight, StationMonitorsSmallFontHeight, 1000);
 
         FillRect(Rect(0, YPos, MaxX, MaxY));
 
@@ -366,7 +366,7 @@ VAR
         YPos := YPos + MulDiv(TextHeight('06:00'), 1, 3);
         SetLength(TimetableArray, 0);
 
-        Font.Height := -MulDiv(FWPRailMainWindow.ClientHeight, StationMonitorsLargeFontHeight, 1000);
+        Font.Height := -MulDiv(FWPRailWindow.ClientHeight, StationMonitorsLargeFontHeight, 1000);
         Font.Style := [];
 
         { Compile a list for the timetable - this is unsorted, though }
@@ -473,7 +473,7 @@ VAR
   BEGIN
     WITH StationMonitorsWindow.Canvas DO BEGIN
       Font.Style := [fsBold];
-      Font.Height := -MulDiv(FWPRailMainWindow.ClientHeight, StationMonitorsSmallFontHeight, 1000);
+      Font.Height := -MulDiv(FWPRailWindow.ClientHeight, StationMonitorsSmallFontHeight, 1000);
 
       FillRect(Rect(0, YPos, MaxX, MaxY));
 
@@ -494,7 +494,7 @@ VAR
       SetLength(TimetableArray, 0);
 
       Font.Style := [];
-      Font.Height := -MulDiv(FWPRailMainWindow.ClientHeight, StationMonitorsLargeFontHeight, 1000);
+      Font.Height := -MulDiv(FWPRailWindow.ClientHeight, StationMonitorsLargeFontHeight, 1000);
 
       { Compile a list for the timetable - this is unsorted, though }
       DiagramsEntry := DiagramsList;
@@ -621,7 +621,7 @@ BEGIN
       ExpectedPos := 82;
 
       YPos := 0;
-      Font.Height := -MulDiv(FWPRailMainWindow.ClientHeight, StationMonitorsSmallFontHeight, 1000);
+      Font.Height := -MulDiv(FWPRailWindow.ClientHeight, StationMonitorsSmallFontHeight, 1000);
       Font.Style := [];
 
       WriteOutStationMonitorsData(TimetabledTimePos, YPos, GetStationNameFromArea(StationMonitorsCurrentArea), Font.Style,

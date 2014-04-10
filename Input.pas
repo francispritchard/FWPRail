@@ -54,7 +54,7 @@ IMPLEMENTATION
 {$R *.dfm}
 
 USES InitVars, Locks, RailDraw, MiscUtils, Cuneo, LocoUtils, Lenz, MaskUtils, Startup, Diagrams, GetTime, CreateRoute, Feedback, IDGlobal, RDC, Route, StrUtils, Menus,
-     DateUtils, TestUnit, StationMonitors, LocoDialogue, Help, LocationData, Replay, Options, Edit, WorkingTimetable, TCPIP, Logging;
+     DateUtils, TestUnit, StationMonitors, LocoDialogue, Help, LocationData, Replay, Options, Edit, WorkingTimetable, TCPIP, Logging, Main;
 
 CONST
   UnitRef = 'Input';
@@ -470,7 +470,7 @@ BEGIN
         InputDialogueChangeOrSelectButton.Visible := True;
         InputDialogueChangeOrSelectButton.Caption := 'Change Point';
         InputDialogueMaskEdit.MaxLength := 3;
-        InputDialogueMaskEdit.Width := MulDiv(FWPRailMainWindow.ClientWidth, 20, 1000);
+        InputDialogueMaskEdit.Width := MulDiv(FWPRailWindow.ClientWidth, 20, 1000);
         InputDialogueMaskEdit.SelectAll;
       END;
     LineDialogueBox:
@@ -486,7 +486,7 @@ BEGIN
         InputDialogueMaskEdit.MaxLength := 6;
 
         { This needs to be wide enough to accommodate long line names, e.g. DFYD11 }
-        InputDialogueMaskEdit.Width := MulDiv(FWPRailMainWindow.ClientWidth, 30, 1000);
+        InputDialogueMaskEdit.Width := MulDiv(FWPRailWindow.ClientWidth, 30, 1000);
         InputDialogueMaskEdit.SelectAll;
       END;
     SignalDialogueBox:
@@ -501,7 +501,7 @@ BEGIN
         InputDialogueChangeOrSelectButton.Visible := True;
         InputDialogueChangeOrSelectButton.Caption := 'Change Signal';
         InputDialogueMaskEdit.MaxLength := 3;
-        InputDialogueMaskEdit.Width := MulDiv(FWPRailMainWindow.ClientWidth, 20, 1000);
+        InputDialogueMaskEdit.Width := MulDiv(FWPRailWindow.ClientWidth, 20, 1000);
         InputDialogueMaskEdit.SelectAll;
       END;
     TrackCircuitDialogueBox:
@@ -518,7 +518,7 @@ BEGIN
         InputDialogueChangeOrSelectButton.Visible := True;
         InputDialogueChangeOrSelectButton.Caption := 'Set TC';
         InputDialogueMaskEdit.MaxLength := 3;
-        InputDialogueMaskEdit.Width := MulDiv(FWPRailMainWindow.ClientWidth, 20, 1000);
+        InputDialogueMaskEdit.Width := MulDiv(FWPRailWindow.ClientWidth, 20, 1000);
         InputDialogueMaskEdit.SelectAll;
       END;
   END; {CASE};
@@ -1931,7 +1931,7 @@ BEGIN { KeyPressedDown }
         Ord('C'):
           CASE ShiftKeys OF
             NoShiftKeys: {C}
-              IF NOT FWPRailMainWindow.MainClockMenu.Visible THEN BEGIN
+              IF NOT FWPRailWindow.MainClockMenu.Visible THEN BEGIN
                 HelpMsg := 'set clock';
                 IF NOT HelpRequired THEN BEGIN
                   IF GetTime.ClockWindow.Visible THEN
@@ -3021,7 +3021,7 @@ BEGIN { KeyPressedDown }
                       ReplayMode := True;
                       RestoreLogsToPreviousState := True;
                       ShutDownProgram(UnitRef, 'KeyPressedDown');
-                      FWPRailMainWindow.MainTimer.Enabled := False;
+                      MainWindow.MainTimer.Enabled := False;
                       IF InAutoMode THEN
                         TurnAutoModeOff(NOT ByUser);
                       LogsCurrentlyKept := False;
@@ -3282,11 +3282,11 @@ BEGIN { KeyPressedDown }
               BEGIN
                 HelpMsg := 'turn main timer off/on';
                 IF NOT HelpRequired THEN BEGIN
-                  IF FWPRailMainWindow.MainTimer.Enabled THEN BEGIN
-                    FWPRailMainWindow.MainTimer.Enabled := False;
+                  IF MainWindow.MainTimer.Enabled THEN BEGIN
+                    MainWindow.MainTimer.Enabled := False;
                     Log('XG Main Timer tuned off by user');
                   END ELSE BEGIN
-                    FWPRailMainWindow.MainTimer.Enabled := True;
+                    MainWindow.MainTimer.Enabled := True;
                     Log('XG Main Timer tuned on by user');
                   END;
                 END;
@@ -3696,13 +3696,13 @@ BEGIN { KeyPressedDown }
 
                   IF ZoomScaleFactor = 1000 THEN BEGIN
                     Zooming := False;
-                    SetCaption(FWPRailMainWindow, '');
+                    SetCaption(FWPRailWindow, '');
                   END ELSE BEGIN
                     Zooming := True;
-                    SetCaption(FWPRailMainWindow, 'Zoom level ' + ZoomAmountStr);
+                    SetCaption(FWPRailWindow, 'Zoom level ' + ZoomAmountStr);
                   END;
 
-                  ReinitialiseMainWindowVariables := True;
+                  ReinitialiseFWPRailWindowVariables := True;
                   ShowStatusBarAndUpDownIndications;
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
@@ -4396,10 +4396,10 @@ BEGIN { KeyPressedDown }
                   IF ZoomScaleFactor <> 1000 THEN BEGIN
                     ZoomScaleFactor := 1000;
                     Zooming := False;
-                    SetCaption(FWPRailMainWindow, '');
+                    SetCaption(FWPRailWindow, '');
                     WindowPenWidth := 1;
 
-                    ReinitialiseMainWindowVariables := True;
+                    ReinitialiseFWPRailWindowVariables := True;
                     InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                   END ELSE BEGIN
                     { Close the program after two consecutive escapes }
@@ -5036,7 +5036,7 @@ BEGIN { KeyPressedDown }
                 HelpMsg := 'close the program';
                 IF NOT HelpRequired THEN BEGIN
                   { close the program after two consecutive escapes }
-                  FWPRailMainWindow.MainWindowClose(NIL, CloseAction);
+                  FWPRailWindow.FWPRailWindowClose(NIL, CloseAction);
                   Log('A Shutdown requested by user pressing Alt F4 {BLANKLINEBEFORE}');
                 END;
               END;
@@ -5380,8 +5380,8 @@ BEGIN { KeyPressedDown }
               END;
           END; {CASE}
         vk_F10:
-          { note: F10 does not pass on the shift key state. (F10 is being intercepted by TFWPRailMainWindow.ApplicationMessage in Raildraw as otherwise it would do the same as
-            Alt, i.e. activate the menu bar). This doesn't work for any shifted keys as F10 processed by TFWPRailMainWindow.ApplicationMessage deosn't seem to notice what the
+          { note: F10 does not pass on the shift key state. (F10 is being intercepted by TFWPRailWindow.ApplicationMessage in Raildraw as otherwise it would do the same as
+            Alt, i.e. activate the menu bar). This doesn't work for any shifted keys as F10 processed by TFWPRailWindow.ApplicationMessage deosn't seem to notice what the
             shift keys are ***.
           }
           BEGIN

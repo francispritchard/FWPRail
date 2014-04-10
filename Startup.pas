@@ -724,13 +724,10 @@ END; { DebuggingOptionsWindowHide }
 
 PROCEDURE InitialiseStartupUnit;
 { Such routines as this allow us to initialises the units in the order we wish }
-//VAR
-//  ErrorMsg : String;
-
 BEGIN
   { Deal with any user-provided parameters }
   HandleParameters;
-  IF FWPRailMainWindow.MainWindowStatusBar.Panels[StatusBarPanel0].Text = '' THEN
+  IF FWPRailWindow.FWPRailWindowStatusBar.Panels[StatusBarPanel0].Text = '' THEN
     WriteToStatusBarPanel(StatusBarPanel0, TimeToHMSStr(CurrentRailwayTime));
 END; { InitialiseStartupUnit }
 

@@ -1,4 +1,4 @@
-object FWPRailMainWindow: TFWPRailMainWindow
+object FWPRailWindow: TFWPRailWindow
   Left = 606
   Top = 560
   HorzScrollBar.Tracking = True
@@ -19,25 +19,26 @@ object FWPRailMainWindow: TFWPRailMainWindow
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   HelpFile = 'rail'
-  Menu = MainWindowMenu
+  Menu = FWPRailWindowMenu
   OldCreateOrder = False
   PopupMenu = GeneralPopupMenu
   Position = poScreenCenter
-  OnClose = MainWindowClose
-  OnCreate = MainWindowCreate
-  OnDragDrop = MainWindowDragDrop
-  OnDragOver = MainWindowDragOver
-  OnKeyDown = MainWindowKeyDown
-  OnMouseDown = MainWindowMouseDown
-  OnMouseMove = MainWindowMouseMove
-  OnMouseUp = MainWindowMouseUp
-  OnMouseWheel = MainWindowMouseWheel
-  OnPaint = MainWindowPaint
-  OnResize = MainWindowResize
-  OnShortCut = MainWindowShortCut
+  Visible = True
+  OnClose = FWPRailWindowClose
+  OnCreate = FWPRailWindowCreate
+  OnDragDrop = FWPRailWindowDragDrop
+  OnDragOver = FWPRailWindowDragOver
+  OnKeyDown = FWPRailWindowKeyDown
+  OnMouseDown = FWPRailWindowMouseDown
+  OnMouseMove = FWPRailWindowMouseMove
+  OnMouseUp = FWPRailWindowMouseUp
+  OnMouseWheel = FWPRailWindowMouseWheel
+  OnPaint = FWPRailWindowPaint
+  OnResize = FWPRailWindowResize
+  OnShortCut = FWPRailWindowShortCut
   PixelsPerInch = 96
   TextHeight = 13
-  object MainWindowStatusBar: TStatusBar
+  object FWPRailWindowStatusBar: TStatusBar
     Left = 0
     Top = 0
     Width = 656
@@ -57,10 +58,10 @@ object FWPRailMainWindow: TFWPRailMainWindow
       item
         Width = 50
       end>
-    OnDblClick = MainWindowStatusBarDblClick
-    OnMouseMove = MainWindowStatusBarMouseMove
+    OnDblClick = FWPRailWindowStatusBarDblClick
+    OnMouseMove = FWPRailWindowStatusBarMouseMove
   end
-  object MainWindowMenu: TMainMenu
+  object FWPRailWindowMenu: TMainMenu
     Left = 36
     Top = 48
     object MainFileMenu: TMenuItem
@@ -68,7 +69,7 @@ object FWPRailMainWindow: TFWPRailMainWindow
       Visible = False
       object MainFileMenuExit: TMenuItem
         Caption = 'E&xit'
-        OnClick = MainWindowExitClick
+        OnClick = FWPRailWindowExitClick
       end
     end
     object MainOperationsMenu: TMenuItem
@@ -76,6 +77,7 @@ object FWPRailMainWindow: TFWPRailMainWindow
       Visible = False
       object MainOperationsMenuDriveLocomotive: TMenuItem
         Caption = '&Drive Locomotive'
+        OnClick = MainOperationsMenuDriveLocomotiveClick
       end
       object ChangePoint: TMenuItem
         Caption = 'Change &Point'
@@ -205,12 +207,6 @@ object FWPRailMainWindow: TFWPRailMainWindow
         OnClick = HelpMenuAboutClick
       end
     end
-  end
-  object MainTimer: TTimer
-    Interval = 1
-    OnTimer = MainTimerTick
-    Left = 132
-    Top = 48
   end
   object FlashTimer: TTimer
     Interval = 500
@@ -1268,20 +1264,20 @@ object FWPRailMainWindow: TFWPRailMainWindow
       Caption = 'Set Log File Maximum Width'
       OnClick = GeneralPopupSetLogFileMaximumWidthClick
     end
-    object GeneralPopupResetMainWindowSizeAndPosition: TMenuItem
+    object GeneralPopupResetFWPRailWindowSizeAndPosition: TMenuItem
       Caption = 'Reset Window Size && Position'
       Enabled = False
-      OnClick = GeneralPopupResetMainWindowSizeAndPositionClick
+      OnClick = GeneralPopupResetFWPRailWindowSizeAndPositionClick
     end
   end
-  object MainWindowPopupOpenDialogue: TOpenDialog
+  object FWPRailWindowPopupOpenDialogue: TOpenDialog
     Filter = 'FWP Rail Timetable Files|*.tim'
     OptionsEx = [ofExNoPlacesBar]
     Title = 'Load Timetable File'
     Left = 252
     Top = 48
   end
-  object MainWindowColourDialogue: TColorDialog
+  object FWPRailWindowColourDialogue: TColorDialog
     Left = 404
     Top = 49
   end

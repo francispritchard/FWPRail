@@ -826,7 +826,7 @@ IMPLEMENTATION
 {$R *.dfm}
 
 USES GetTime, Lenz, Diagrams, RailDraw, Types, LocoUtils, Math {sic}, IDGlobal, StrUtils, Feedback, RDC, CreateRoute, IniFiles, DateUtils, Startup, Cuneo, Movement,
-     LocoDialogue, FWPShowMessageUnit, Options, Registry, Help, MMSystem, ADODB, TCPIP;
+     LocoDialogue, FWPShowMessageUnit, Options, Registry, Help, MMSystem, ADODB, TCPIP, Main;
 
 CONST
   UnitRef = 'MiscUtils';
@@ -2373,7 +2373,7 @@ VAR
 
 BEGIN
   { Need to throw away earlier lines? **** }
-  IF FWPRailMainWindow <> NIL THEN BEGIN
+  IF FWPRailWindow <> NIL THEN BEGIN
     { remove prefixes }
     IF (Copy(Str, 1, 1) = '!') OR (Copy(Str, 1, 1) = '+') THEN
       TempStr := Copy(Str, 2);
@@ -3355,7 +3355,7 @@ END; { GetTrackCircuitState }
 PROCEDURE HideMenus;
 { Make all the menus invisible }
 BEGIN
-  WITH FWPRailMainWindow DO BEGIN
+  WITH FWPRailWindow DO BEGIN
     MenusVisible := False;
 
     MainClockMenu.Visible := False;
@@ -5480,7 +5480,7 @@ VAR
 
 BEGIN
   IF StopTimer THEN
-    FWPRailMainWindow.MainTimer.Enabled := False;
+    MainWindow.MainTimer.Enabled := False;
 
   Dialogue := CreateMessageDialog(DialogueText, DlgType, Buttons);
 
@@ -5550,7 +5550,7 @@ BEGIN
   Dialogue.Free;
 
   IF StopTimer THEN
-    FWPRailMainWindow.MainTimer.Enabled := True;
+    MainWindow.MainTimer.Enabled := True;
 
   { and redraw the screen, or we are left with a dialogue-sized hole }
   InvalidateScreen(UnitRef, 'MessageDialogueWithDefault');
@@ -5568,7 +5568,7 @@ VAR
 
 BEGIN
   IF StopTimer THEN
-    FWPRailMainWindow.MainTimer.Enabled := False;
+    MainWindow.MainTimer.Enabled := False;
 
   Dialogue := CreateMessageDialog(DialogueText, DlgType, Buttons);
 
@@ -5671,7 +5671,7 @@ BEGIN
   Dialogue.Free;
 
   IF StopTimer THEN
-    FWPRailMainWindow.MainTimer.Enabled := True;
+    MainWindow.MainTimer.Enabled := True;
 
   { and redraw the screen, or we are left with a dialogue-sized hole }
   InvalidateScreen(UnitRef, 'MessageDialogueWithDefault');
@@ -6376,7 +6376,7 @@ PROCEDURE SetSystemOffline(OfflineMsg : String);
 { Change the caption and the icons to show we're offline }
 BEGIN
   SystemOnline := False;
-  SetCaption(FWPRailMainWindow, 'OFFLINE');
+  SetCaption(FWPRailWindow, 'OFFLINE');
   Application.Icon := OffLineIcon;
   IF OfflineMsg <> '' THEN BEGIN
     IF FeedbackWindow <> NIL THEN BEGIN
@@ -6428,7 +6428,7 @@ BEGIN
     SetSystemOffline('System offline as no connection to the Lenz system')
   ELSE BEGIN
     SystemOnline := True;
-    SetCaption(FWPRailMainWindow, '');
+    SetCaption(FWPRailWindow, '');
     Application.Icon := OnlineIcon;
   END;
 
@@ -6507,7 +6507,7 @@ END; { SetTwoLightingChips }
 PROCEDURE ShowMenus;
 { Make all the menus visible }
 BEGIN
-  WITH FWPRailMainWindow DO BEGIN
+  WITH FWPRailWindow DO BEGIN
     MenusVisible := True;
 
     MainClockMenu.Visible := True;
@@ -6554,7 +6554,7 @@ BEGIN { ShutDownProgram }
       WindowsTaskbarDisabled := False;
     END;
 
-    IF MainWindowInitialised THEN BEGIN
+    IF FWPRailWindowInitialised THEN BEGIN
       WriteOutLineDataToDatabase;
       WriteOutLocationDataToDatabase;
       WriteOutPointDataToDatabase;
@@ -6598,14 +6598,14 @@ BEGIN { ShutDownProgram }
         CloseRailDriver;
       END;
 
-      FWPRailMainWindow.MainTimer.Enabled := False;
+      MainWindow.MainTimer.Enabled := False;
 
       { Write things back to the .ini file }
       IF NOT ReplayMode
-      AND MainWindowInitialised
+      AND FWPRailWindowInitialised
       THEN BEGIN
         Log('A Writing .ini file');
-        MainWindowInitialised := True;
+        FWPRailWindowInitialised := True;
         WriteIniFile;
       END;
     END;
@@ -8528,13 +8528,13 @@ end;
 PROCEDURE TDebugWindow.DebugWindowHide(Sender: TObject);
 { Un-check the window menu item }
 BEGIN
-  FWPRailMainWindow.MainOperationsMenuDebugOptions.Checked := False;
+  FWPRailWindow.MainOperationsMenuDebugOptions.Checked := False;
 END; { DebugWindowHide }
 
 PROCEDURE TDebugWindow.DebugWindowShow(Sender: TObject);
 { Check the window menu item }
 BEGIN
-  FWPRailMainWindow.MainOperationsMenuDebugOptions.Checked := True;
+  FWPRailWindow.MainOperationsMenuDebugOptions.Checked := True;
 END; { TDebugWindow }
 
 FUNCTION TimeIsValid(TimeStr : String) : Boolean;

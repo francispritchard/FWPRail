@@ -426,8 +426,8 @@ BEGIN
       Show;
 
     { and move the focus back to the main window }
-    IF FWPRailMainWindow.Visible THEN
-      FWPRailMainWindow.SetFocus;
+    IF FWPRailWindow.Visible THEN
+      FWPRailWindow.SetFocus;
   END; {WITH}
 END; { DrawWorkingTimetableWindow }
 
@@ -441,8 +441,8 @@ BEGIN
   ELSE
     WorkingTimetableWindow.Width := WorkingTimetableSmallWindowWidth;
 
-  FWPRailMainWindow.MainDisplayMenuDiagramsWindow.Checked := False;
-  FWPRailMainWindow.MainDisplayMenuWorkingTimetableWindow.Checked := True;
+  FWPRailWindow.MainDisplayMenuDiagramsWindow.Checked := False;
+  FWPRailWindow.MainDisplayMenuWorkingTimetableWindow.Checked := True;
   WorkingTimetableWindowGrid.Color := WorkingTimetableWindowGridBackgroundColour;
 
   IF CurrentRailwayDayOfTheWeek <> UnknownDayOfTheWeek THEN
@@ -475,7 +475,7 @@ END; { WorkingTimetableWindowGridKeyDown }
 PROCEDURE TWorkingTimetableWindow.WorkingTimetableWindowHide(Sender: TObject);
 { Un-check the window menu item }
 BEGIN
-  FWPRailMainWindow.MainDisplayMenuWorkingTimetableWindow.Checked := False;
+  FWPRailWindow.MainDisplayMenuWorkingTimetableWindow.Checked := False;
 END; { WorkingTimetableWindowHide }
 
 PROCEDURE TWorkingTimetableWindow.WorkingTimetableWindowShow(Sender: TObject);
@@ -489,8 +489,8 @@ BEGIN
   ELSE
     WorkingTimetableWindow.Width := WorkingTimetableSmallWindowWidth;
 
-  FWPRailMainWindow.MainDisplayMenuDiagramsWindow.Checked := False;
-  FWPRailMainWindow.MainDisplayMenuWorkingTimetableWindow.Checked := True;
+  FWPRailWindow.MainDisplayMenuDiagramsWindow.Checked := False;
+  FWPRailWindow.MainDisplayMenuWorkingTimetableWindow.Checked := True;
   WorkingTimetableWindowGrid.Color := WorkingTimetableWindowGridBackgroundColour;
 
   DrawWorkingTimetableWindow;

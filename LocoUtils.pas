@@ -49,7 +49,8 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES GetTime, Lenz, Diagrams, MiscUtils, RailDraw, Types, Math {sic}, IDGlobal, StrUtils, Feedback, Input, LocoDialogue, Options;
+USES GetTime, Lenz, Diagrams, MiscUtils, RailDraw, Types, Math {sic}, IDGlobal, StrUtils, Feedback, Input, LocoDialogue, Options,
+  Main;
 
 CONST
   UnitRef = 'LocoUtils';
@@ -365,7 +366,7 @@ BEGIN
                 OF
                   mrYes: { Amend }
                     BEGIN
-                      FWPRailMainWindow.MainTimer.Enabled := False;
+                      MainWindow.MainTimer.Enabled := False;
                       InputFoundOrCancelled := False;
                       InputErrorMsg := 'Enter new location for loco ' + LocoChipToStr(Train_LocoChip);
                       REPEAT
@@ -399,7 +400,7 @@ BEGIN
                       IF Train_LastLocation = UnknownLocation THEN
                         Log(Train_LocoChipStr + ' LG Deleting last location record as location is marked as occupied by '
                                               + LocoChipToStr(TempLocationsLocoChips[ElementPos]));
-                      FWPRailMainWindow.MainTimer.Enabled := True;
+                      MainWindow.MainTimer.Enabled := True;
                     END;
                   mrNo: { Delete }
                     BEGIN

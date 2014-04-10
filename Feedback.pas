@@ -45,7 +45,7 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES RailDraw, GetTime, Startup, MiscUtils, Movement, IDGlobal, Input, Locks, DateUtils, mmSystem, LocoDialogue, LocoUtils, Diagrams, Options;
+USES RailDraw, GetTime, Startup, MiscUtils, Movement, IDGlobal, Input, Locks, DateUtils, mmSystem, LocoDialogue, LocoUtils, Diagrams, Options, Main;
 
 CONST
   DefaultLocoSpeed = 24;
@@ -89,7 +89,7 @@ BEGIN
     END; {WHILE}
 
     IF NOT FeedbackUnitFound THEN BEGIN
-      IF NOT MainWindowInitialised
+      IF NOT FWPRailWindowInitialised
       AND NOT DiagramsCheckingInProgress
       THEN
         Log('X Data received from unknown feedback unit ' + IntToStr(Data.Feedback_Unit) + ' ignored as feedback data not yet initialised')

@@ -81,7 +81,7 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES GetTime, Diagrams, MiscUtils, Locks, Startup, Input, Cuneo, DateUtils, Movement, LocoUtils, Lenz, StrUtils, ProgressBar, Help, ShellAPI, LocationData, Options;
+USES GetTime, Diagrams, MiscUtils, Locks, Startup, Input, Cuneo, DateUtils, Movement, LocoUtils, Lenz, StrUtils, ProgressBar, Help, ShellAPI, LocationData, Options, Main;
 
 CONST
   UnitRef = 'CreateRoute';

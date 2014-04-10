@@ -198,6 +198,21 @@ VAR
   DefaultForegroundColour : TColour = clDkGray;
   ForegroundColour : TColour = clDkGray;
 
+  DefaultFWPRailWindowHeight : Integer;
+  FWPRailWindowHeight : Integer;
+
+  DefaultFWPRailWindowLeft : Integer = 0;
+  FWPRailWindowLeft : Integer = 0;
+
+  DefaultFWPRailWindowFontHeight : Integer = 10;
+  FWPRailWindowFontHeight : Integer;
+
+  DefaultFWPRailWindowTop : Integer = 0;
+  FWPRailWindowTop : Integer = 0;
+
+  DefaultFWPRailWindowWidth : Integer;
+  FWPRailWindowWidth : Integer;
+
   DefaultHighlightTrackCircuitSpeedRestrictions : Boolean = False;
   HighlightTrackCircuitSpeedRestrictions : Boolean;
 
@@ -337,21 +352,6 @@ VAR
 
   DefaultMakeSoundWhenDebugWindowBoldTextAppears : Boolean = True;
   MakeSoundWhenDebugWindowBoldTextAppears : Boolean;
-
-  DefaultMainWindowHeight : Integer;
-  MainWindowHeight : Integer;
-
-  DefaultMainWindowLeft : Integer = 0;
-  MainWindowLeft : Integer = 0;
-
-  DefaultMainWindowFontHeight : Integer = 10;
-  MainWindowFontHeight : Integer;
-
-  DefaultMainWindowTop : Integer = 0;
-  MainWindowTop : Integer = 0;
-
-  DefaultMainWindowWidth : Integer;
-  MainWindowWidth : Integer;
 
   DefaultMaxRectangleUndrawTime : Cardinal = 1;
   MaxRectangleUndrawTime : Cardinal;
@@ -926,7 +926,7 @@ CONST
     LineFontHeightStr = 'Line Font Height';
     LoggingWindowFontNameStr = 'Logging Window Font Name';
     LoggingWindowFontSizeStr = 'Logging Window Font Size';
-    MainWindowFontHeightStr = 'Main Window Font Height';
+    FWPRailWindowFontHeightStr = 'Main Window Font Height';
     PlatformNumberFontHeightStr = 'Platform Number Font Height';
     StationMonitorsFontNameStr = 'Station Monitors Font Name';
     StationMonitorsLargeFontHeightStr = 'Station Monitors Large Font Height';
@@ -1104,12 +1104,12 @@ CONST
   UserSectionStr = 'User';
 
   WindowsSectionStr = 'Windows';
-    MainWindowTopStr = 'Main Window Top';
-    MainWindowLeftStr = 'Main Window Left';
-    MainWindowWidthStr = 'Main Window Width';
-    MainWindowHeightStr = 'Main Window Height';
-    MainWindowClientWidthStr = 'Main Window Client Width';
-    MainWindowClientHeightStr = 'Main Window Client Height';
+    FWPRailWindowTopStr = 'Main Window Top';
+    FWPRailWindowLeftStr = 'Main Window Left';
+    FWPRailWindowWidthStr = 'Main Window Width';
+    FWPRailWindowHeightStr = 'Main Window Height';
+    FWPRailWindowClientWidthStr = 'Main Window Client Width';
+    FWPRailWindowClientHeightStr = 'Main Window Client Height';
 
     CreateRouteDisplayColoursWindowHeightStr = 'CreateRoute DisplayColours Window Height';
     CreateRouteDisplayColoursWindowLeftStr = 'CreateRoute DisplayColours Window Left';
@@ -1318,7 +1318,7 @@ BEGIN
       LineFontHeight := ReadInteger(FontsSectionStr, LineFontHeightStr, DefaultLineFontHeight);
       LoggingWindowFontName := ReadString(FontsSectionStr, LoggingWindowFontNameStr, DefaultLoggingWindowFontName);
       LoggingWindowFontSize := ReadInteger(FontsSectionStr, LoggingWindowFontSizeStr, DefaultLoggingWindowFontSize);
-      MainWindowFontHeight := ReadInteger(FontsSectionStr, MainWindowFontHeightStr, DefaultMainWindowFontHeight);
+      FWPRailWindowFontHeight := ReadInteger(FontsSectionStr, FWPRailWindowFontHeightStr, DefaultFWPRailWindowFontHeight);
       PlatformNumberFontHeight := ReadInteger(FontsSectionStr, PlatformNumberFontHeightStr, DefaultPlatformNumberFontHeight);
       StationMonitorsFontName := ReadString(FontsSectionStr, StationMonitorsFontNameStr, DefaultStationMonitorsFontName);
       StationMonitorsLargeFontHeight := ReadInteger(FontsSectionStr, StationMonitorsLargeFontHeightStr, DefaultStationMonitorsLargeFontHeight);
@@ -1358,10 +1358,10 @@ BEGIN
             END;
       END;
 
-      MainWindowTop := ReadInteger(WindowsSectionStr, MainWindowTopStr, DefaultMainWindowTop);
-      MainWindowLeft := ReadInteger(WindowsSectionStr, MainWindowLeftStr, DefaultMainWindowLeft);
-      MainWindowWidth := ReadInteger(WindowsSectionStr, MainWindowWidthStr, DefaultMainWindowWidth);
-      MainWindowHeight := ReadInteger(WindowsSectionStr, MainWindowHeightStr, DefaultMainWindowHeight);
+      FWPRailWindowTop := ReadInteger(WindowsSectionStr, FWPRailWindowTopStr, DefaultFWPRailWindowTop);
+      FWPRailWindowLeft := ReadInteger(WindowsSectionStr, FWPRailWindowLeftStr, DefaultFWPRailWindowLeft);
+      FWPRailWindowWidth := ReadInteger(WindowsSectionStr, FWPRailWindowWidthStr, DefaultFWPRailWindowWidth);
+      FWPRailWindowHeight := ReadInteger(WindowsSectionStr, FWPRailWindowHeightStr, DefaultFWPRailWindowHeight);
 
       CreateRouteDisplayColoursWindowTop := ReadInteger(WindowsSectionStr, CreateRouteDisplayColoursWindowTopStr, DefaultCreateRouteDisplayColoursWindowTop);
       CreateRouteDisplayColoursWindowLeft := ReadInteger(WindowsSectionStr, CreateRouteDisplayColoursWindowLeftStr, DefaultCreateRouteDisplayColoursWindowLeft);
@@ -1807,7 +1807,7 @@ BEGIN
       WriteInteger(FontsSectionStr, LineFontHeightStr, LineFontHeight);
       WriteString(FontsSectionStr, LoggingWindowFontNameStr, LoggingWindowFontName);
       WriteInteger(FontsSectionStr, LoggingWindowFontSizeStr, LoggingWindowFontSize);
-      WriteInteger(FontsSectionStr, MainWindowFontHeightStr, MainWindowFontHeight);
+      WriteInteger(FontsSectionStr, FWPRailWindowFontHeightStr, FWPRailWindowFontHeight);
       WriteInteger(FontsSectionStr, PlatformNumberFontHeightStr, PlatformNumberFontHeight);
       WriteString(FontsSectionStr, StationMonitorsFontNameStr, StationMonitorsFontName);
       WriteInteger(FontsSectionStr, StationMonitorsLargeFontHeightStr, StationMonitorsLargeFontHeight);
@@ -1854,12 +1854,12 @@ BEGIN
       WriteInteger(RDCSectionStr, RDCThreeWaySwitchBRightNumStr, RDCThreeWaySwitchBRightNum);
 
       { Windows }
-      WriteInteger(WindowsSectionStr, MainWindowWidthStr, FWPRailMainWindow.Width);
-      WriteInteger(WindowsSectionStr, MainWindowHeightStr, FWPRailMainWindow.Height);
-      WriteInteger(WindowsSectionStr, MainWindowTopStr, FWPRailMainWindow.Top);
-      WriteInteger(WindowsSectionStr, MainWindowLeftStr, FWPRailMainWindow.Left);
-      WriteInteger(WindowsSectionStr, MainWindowClientWidthStr, FWPRailMainWindow.ClientWidth);
-      WriteInteger(WindowsSectionStr, MainWindowClientHeightStr, FWPRailMainWindow.ClientHeight);
+      WriteInteger(WindowsSectionStr, FWPRailWindowWidthStr, FWPRailWindow.Width);
+      WriteInteger(WindowsSectionStr, FWPRailWindowHeightStr, FWPRailWindow.Height);
+      WriteInteger(WindowsSectionStr, FWPRailWindowTopStr, FWPRailWindow.Top);
+      WriteInteger(WindowsSectionStr, FWPRailWindowLeftStr, FWPRailWindow.Left);
+      WriteInteger(WindowsSectionStr, FWPRailWindowClientWidthStr, FWPRailWindow.ClientWidth);
+      WriteInteger(WindowsSectionStr, FWPRailWindowClientHeightStr, FWPRailWindow.ClientHeight);
 
       IF CreateRouteDisplayColoursWindow <> NIL THEN BEGIN
         WriteInteger(WindowsSectionStr, CreateRouteDisplayColoursWindowHeightStr, CreateRouteDisplayColoursWindow.Height);
@@ -2120,7 +2120,7 @@ BEGIN
       Values[LineFontHeightStr] := IntToStr(LineFontHeight);
       Values[LoggingWindowFontNameStr] := LoggingWindowFontName;
       Values[LoggingWindowFontSizeStr] := IntToStr(LoggingWindowFontSize);
-      Values[MainWindowFontHeightStr] := IntToStr(MainWindowFontHeight);
+      Values[FWPRailWindowFontHeightStr] := IntToStr(FWPRailWindowFontHeight);
       Values[PlatformNumberFontHeightStr] := IntToStr(PlatformNumberFontHeight);
       Values[StationMonitorsFontNameStr] := StationMonitorsFontName;
       Values[StationMonitorsLargeFontHeightStr] := IntToStr(StationMonitorsLargeFontHeight);
@@ -2592,7 +2592,7 @@ BEGIN
       CheckIntegerValueListValue(KeyName, LineFontHeightStr, NewKeyValue, LineFontHeight);
       CheckStringValueListValue(KeyName, LoggingWindowFontNameStr, NewKeyValue, LoggingWindowFontName);
       CheckIntegerValueListValue(KeyName, LoggingWindowFontSizeStr, NewKeyValue, LoggingWindowFontSize);
-      CheckIntegerValueListValue(KeyName, MainWindowFontHeightStr, NewKeyValue, MainWindowFontHeight);
+      CheckIntegerValueListValue(KeyName, FWPRailWindowFontHeightStr, NewKeyValue, FWPRailWindowFontHeight);
       CheckIntegerValueListValue(KeyName, PlatformNumberFontHeightStr, NewKeyValue, PlatformNumberFontHeight);
       CheckStringValueListValue(KeyName, StationMonitorsFontNameStr, NewKeyValue, StationMonitorsFontName);
       CheckIntegerValueListValue(KeyName, StationMonitorsLargeFontHeightStr, NewKeyValue, StationMonitorsLargeFontHeight);
