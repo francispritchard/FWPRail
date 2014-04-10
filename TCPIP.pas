@@ -312,12 +312,12 @@ VAR
   ResponseOrBroadcastSize : Integer;
   S : String;
 
-  FUNCTION ByteToHex(InByte : Byte): ShortString;
+  FUNCTION ByteToHex(InByte : Byte) : String;
   CONST
     Digits : ARRAY[0..15] OF Char='0123456789ABCDEF';
 
   BEGIN
-    Result:= Digits[InByte SHR 4] + Digits[InByte AND $0F];
+    Result := Digits[InByte SHR 4] + Digits[InByte AND $0F];
   END; { ByteToHex }
 
 BEGIN
@@ -349,6 +349,7 @@ BEGIN
         S := '';
         FOR I := 0 TO ResponseOrBroadcastSize - 1 DO
           S := S + ByteToHex(Buffer[I]);
+
         TCPBuf1 :=  S;
         Log('X Data Received: ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : ' + S + ' {BlankLineBefore}');
 
