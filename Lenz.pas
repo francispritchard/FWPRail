@@ -50,14 +50,6 @@ TYPE
 VAR
   LenzWindow: TLenzWindow;
 
-TYPE
-  SystemRec = RECORD
-                EmergencyStop : Boolean;
-                EmergencyOff : Boolean;
-                ProgrammingMode : Boolean;
-                StartMode : Boolean;
-              END;
-
 FUNCTION AdjustLenzSpeed(LocoChip, DoubleHeaderLocoChip : Integer; Value : Integer; TrainDirection : DirectionType; OUT OK : Boolean) : Integer;
 { Increase or decrease the speed by given amount }
 
@@ -106,7 +98,7 @@ PROCEDURE ResumeOperations(OUT OK : Boolean);
 FUNCTION ReturnFeedbackData(UnitNum : Byte; Input : Integer) : Boolean;
 { Pass data from the feedback array back }
 
-PROCEDURE ReturnSystemStatus(VAR S : SystemRec);
+PROCEDURE ReturnSystemStatus(VAR L : LenzSystemRec);
 { Return the present System status }
 
 PROCEDURE SetLenzSpeed(LocoChip, DoubleHeaderLocoChip : Integer; LenzSpeed : Integer; TrainDirection : DirectionType; QuickStopFlag : Boolean; VAR OK : Boolean);
@@ -143,7 +135,7 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES RailDraw, Feedback, GetTime, Startup, MiscUtils, Diagrams, LocoUtils, IDGlobal, Movement, MMSystem, DateUtils, StrUtils, Input;
+USES RailDraw, Feedback, GetTime, Startup, MiscUtils, Diagrams, LocoUtils, IDGlobal, Movement, MMSystem, DateUtils, StrUtils, Input, Main;
 
 CONST
   UnitRef = 'Lenz';
@@ -206,7 +198,7 @@ VAR
   SaveTimeLastDataReceived : Cardinal = 0;
   ShowEmergencyOffMessageVisible : Boolean = False;
   ShowEmergencyStopMessageVisible : Boolean = False;
-  SystemStatus : SystemRec;
+  SystemStatus : LenzSystemRec;
   TimeCTSLastFoundSet : Cardinal = 0;
   TimeLastUSBDataWritten : Cardinal = 0;
   UnrequestedDataFound : Boolean = False;
@@ -720,7 +712,6 @@ VAR
 BEGIN
   TRY
     ResponseOrBroadcast := NoResponse;
-    ErrorFound := False;
     RetryCount := 0;
 
     REPEAT
@@ -777,7 +768,6 @@ BEGIN
 
         Log(TypeOfLogChar + ' ' + DebugStr); {+ ' byte 2= ' + DoBitPattern(WriteArray[2]) + ' byte 4= ' + DoBitPattern(WriteArray[4]));}
 
-        ErrorFound := False;
         ResponseOrBroadcast := NoResponse;
       END;
 
@@ -790,6 +780,8 @@ BEGIN
           DebugStr := '';
           ExpectedDataReceived := False;
           UnrequestedDataFound := False;
+          ErrorFound := False;
+
           { Clears read array in case data left behind is processed a second time }
           FOR I := 0 TO (ReadArrayLen - 1) DO
             ReadArray[I] := 0;
@@ -799,7 +791,7 @@ BEGIN
           AND (ExpectedReply <> TrackPowerOffReply)
           THEN BEGIN
             TickCount := (GetTickCount - StartTimer);
-            IF TickCount > (1000) THEN BEGIN
+            IF TickCount > 1000 THEN BEGIN
               TimedOut := True;
               RetryFlag := True;
 
@@ -821,9 +813,9 @@ BEGIN
           IF TempStr = '' THEN BEGIN
             IF ExpectedReply = NoReplyExpected THEN
               Exit;
-            FWPRailMainWindow.MainTimer.Enabled := False;
+            MainWindow.MainTimer.Enabled := False;
             Application.ProcessMessages;
-            FWPRailMainWindow.MainTimer.Enabled := True;
+            MainWindow.MainTimer.Enabled := True;
             Continue;
           END;
 
@@ -1165,6 +1157,7 @@ BEGIN
                       Log('EG ' + ErrorMsg);
                       ErrorFound := True;
                       RetryFlag := True;
+                      Pause(500, False);
                     END;
                   130: { $82 }
                     BEGIN
@@ -2536,7 +2529,7 @@ BEGIN
   Log(LocoChipToStr(LocoChip) + ' S ' + DebugStr);
 END; { WriteSignalData }
 
-PROCEDURE ObtainSystemStatus(VAR SystemStatus : SystemRec; OUT TimedOut : Boolean; StartStopTimer : Boolean);
+PROCEDURE ObtainSystemStatus(VAR SystemStatus : LenzSystemRec; OUT TimedOut : Boolean; StartStopTimer : Boolean);
 { Read in the present system status }
 CONST
   CheckTimeOuts = True;
@@ -3190,10 +3183,10 @@ BEGIN
     LocoHasBeenTakenOverByProgram(LocoChip);
 END; { StopAParticularLocomotive }
 
-PROCEDURE ReturnSystemStatus(VAR S : SystemRec);
+PROCEDURE ReturnSystemStatus(VAR L : LenzSystemRec);
 { Return the present system status }
 BEGIN
-  S := SystemStatus;
+  L := SystemStatus;
 END; { ReturnSystemStatus }
 
 PROCEDURE WhichFeedbackInputsAreSet(UnitNum, B : Byte);
@@ -3278,8 +3271,9 @@ VAR
           AND (ReadArray[1] <> FeedbackAddress)
           THEN
             Log('TG Feedback for ' + IntToStr(ReadArray[1] + 1) + ' arrived when feedback for ' + IntToStr(FeedbackAddress + 1) + ' expected');
-        UNTIL OK
-        AND (ReadArray[1] = FeedbackAddress);
+        UNTIL (OK
+               AND (ReadArray[1] = FeedbackAddress))
+               OR NOT SystemOnline;
       END;
 
       IF OK THEN BEGIN
