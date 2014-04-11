@@ -3895,13 +3895,12 @@ END; { MainRunMenuResumeOperationsClick }
 PROCEDURE TFWPRailWindow.MainHelpMenuRailHelpClick(Sender: TObject);
 BEGIN
   Application.HelpCommand(HELP_FINDER, 0);
-END; procedure TFWPRailWindow.MainOperationsMenuDriveLocomotiveClick(
-  Sender: TObject);
-begin
+END; { MainHelpMenuRailHelpClick }
 
-end;
-
-{ MainHelpMenuRailHelpClick }
+PROCEDURE TFWPRailWindow.MainOperationsMenuDriveLocomotiveClick(Sender: TObject);
+BEGIN
+  { **** }
+END; { MainOperationsMenuDriveLocomotiveClick }
 
 PROCEDURE InvalidateScreen(UnitRefParam, CallingStr : String);
 { Draw the screen by invalidating it }
