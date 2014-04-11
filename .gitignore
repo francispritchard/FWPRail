@@ -21,3 +21,4 @@ Rail Data Files/Logs/*
 TestUnit.pas
 *.test
 *.aqt
+profiling/*
