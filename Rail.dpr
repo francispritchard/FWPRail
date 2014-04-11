@@ -7,7 +7,8 @@ PROGRAM Rail;
   V6.0  27/03/11 And now using Embarcadero Delphi XE Professional
   v7.0  16/01/14 Now using XE5
 
-  Note the lines below should be repeated below this comment - this has the extra two icons in it - but sometimes Delphi removes it.
+  Note the lines below should appear before BEGIN in the body of the code - this has the extra two icons in it - but sometimes Delphi removed it when they appeared beneath
+  this comment
 
 {$R RailResource.res}
 {$R Rail.res}

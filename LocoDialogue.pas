@@ -1317,7 +1317,7 @@ BEGIN
 END; { LocoDialogueMouseWheel }
 
 PROCEDURE TLocoDialogueWindow.LocoDialogueWindowKeyDown(Sender: TObject; VAR Key: Word; ShiftState: TShiftState);
-{ Note: certain key strokes (e.g. arrow keys and spacebar are intercepted by the Procedure TMainWindow.ApplicationMessage in Raildraw. (I forget why!). }
+{ Note: certain key strokes (e.g. arrow keys and spacebar are intercepted by the Procedure TFWPRailWindow.ApplicationMessage in Raildraw. (I forget why!). }
 BEGIN
   CASE Key OF
     vk_Escape:

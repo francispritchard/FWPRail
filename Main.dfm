@@ -5,6 +5,7 @@ object MainWindow: TMainWindow
   ClientHeight = 336
   ClientWidth = 527
   Color = clBtnFace
+  Enabled = False
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11

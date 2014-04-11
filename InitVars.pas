@@ -249,6 +249,7 @@ TYPE
     Line_Direction : DirectionType;
     Line_DownConnectionCh : String;
     Line_DownConnectionChRect : TRect;
+    Line_DownConnectionChBold : Boolean;
     Line_DownXAbsolute : Integer;
     Line_DownX : Integer;
     Line_DownYAbsolute : Integer;
@@ -285,6 +286,7 @@ TYPE
     Line_TypeOfLine : TypeOfLine;
     Line_UpConnectionCh : String;
     Line_UpConnectionChRect : TRect;
+    Line_UpConnectionChBold : Boolean;
     Line_UpXAbsolute : Integer;
     Line_UpX : Integer;
     Line_UpXLineStr : String;
@@ -1066,11 +1068,9 @@ VAR
   FeedbackUnitData : ARRAY OF FeedbackRec;
   FeedbackUnitInUseArray : ARRAY [FirstFeedbackUnit..LastFeedbackUnit] OF Boolean;
   FullScreenPenWidth : Integer = 5;
-  FWPRailWindowCanvasPenWidth : Integer;
+  BmpCanvasPenWidth : Integer;
   FWPRailWindowInitialised : Boolean = False;
   FWPRailWindowPartInitialised : Boolean = False;
-  HighlightedConnectionCh : String = ' ';
-  HighlightedConnectionChRect : TRect;
   InAutoMode : Boolean = False;
   KeyBoardandMouseLocked : Boolean = False;
   LastPointChanged : Integer = UnknownPoint;
@@ -1171,6 +1171,7 @@ VAR
 
   { Lists }
   TrainList : Train = NIL;
+  TTrainList : TTrain = NIL;
   DiagramsList : DiagramsEntryType;
 
   { Various file related variables }
@@ -2781,7 +2782,7 @@ BEGIN
         Line_MousePolygon[4] := Line_MousePolygon[0];
 
         { Add the line-end characters which indicate where a line goes next }
-        WITH FWPRailWindow.Canvas DO BEGIN
+        WITH Bmp.Canvas DO BEGIN
           { a straight line }
           Font.Height := -MulDiv(FWPRailWindow.ClientHeight, FWPRailWindowFontHeight, ScaleFactor);
           IF Line_UpConnectionCh <> '' THEN BEGIN
@@ -3117,6 +3118,7 @@ BEGIN
               Line_UpConnectionCh := FieldByName(FieldName).AsString;
               IF Length(Line_UpConnectionCh) > 1 THEN
                 ErrorMsg := 'line up connection ch is too long "' + TempStr + '"';
+              Line_UpConnectionChBold := False;
             END;
 
             IF ErrorMsg = '' THEN BEGIN
@@ -3124,6 +3126,7 @@ BEGIN
               Line_DownConnectionCh := FieldByName(FieldName).AsString;
               IF Length(Line_DownConnectionCh) > 1 THEN
                 ErrorMsg := 'line down connection ch is too long "' + TempStr + '"';
+              Line_DownConnectionChBold := False;
             END;
 
             IF ErrorMsg = '' THEN BEGIN
@@ -3528,7 +3531,7 @@ BEGIN
 
           { Set up mouse access rectangles }
           WITH Signal_MouseRect DO BEGIN
-            FWPRailWindow.Canvas.Pen.Width := WindowPenWidth;
+            Bmp.Canvas.Pen.Width := WindowPenWidth;
 
             IF (Signal_Type <> SemaphoreHome) AND (Signal_Type <> SemaphoreDistant) THEN BEGIN
               { it covers the signal circles }
@@ -3540,13 +3543,13 @@ BEGIN
               { it covers the signal arms }
               IF (Signal_Direction = Up) AND (Signal_Quadrant = UpperQuadrant) THEN BEGIN
                 Left := Signal_LocationX - SignalSemaphoreWidthScaled;
-                Top := Signal_LocationY + FWPRailWindow.Canvas.Pen.Width;
+                Top := Signal_LocationY + Bmp.Canvas.Pen.Width;
                 Right := Signal_LocationX + (SignalSemaphoreHeightScaled * 2);
                 Bottom := Signal_LocationY + (SignalSemaphoreWidthScaled * 2);
               END ELSE
                 IF (Signal_Direction = Up) AND (Signal_Quadrant = LowerQuadrant) THEN BEGIN
                   Left := Signal_LocationX;
-                  Top := Signal_LocationY + FWPRailWindow.Canvas.Pen.Width;
+                  Top := Signal_LocationY + Bmp.Canvas.Pen.Width;
                   Right := Signal_LocationX + (SignalSemaphoreHeightScaled * 2) + SignalSemaphoreWidthScaled;
                   Bottom := Signal_LocationY + (SignalSemaphoreWidthScaled * 2);
                 END ELSE
@@ -3554,13 +3557,13 @@ BEGIN
                     Left := Signal_LocationX - SignalSemaphoreWidthScaled;
                     Top := Signal_LocationY - (SignalSemaphoreWidthScaled * 2);
                     Right := Signal_LocationX + (SignalSemaphoreHeightScaled * 2);
-                    Bottom := Signal_LocationY - FWPRailWindow.Canvas.Pen.Width;
+                    Bottom := Signal_LocationY - Bmp.Canvas.Pen.Width;
                   END ELSE
                     IF (Signal_Direction = Down) AND (Signal_Quadrant = LowerQuadrant) THEN BEGIN
                       Left := Signal_LocationX - (SignalSemaphoreHeightScaled * 2) - SignalSemaphoreWidthScaled;
                       Top := Signal_LocationY - (SignalSemaphoreWidthScaled * 2);
                       Right := Signal_LocationX;
-                      Bottom := Signal_LocationY - FWPRailWindow.Canvas.Pen.Width;
+                      Bottom := Signal_LocationY - Bmp.Canvas.Pen.Width;
                     END;
             END;
           END; { WITH }
@@ -3614,7 +3617,7 @@ BEGIN
                 Left := Signal_LocationX - SignalRadiusScaled - MulDiv(FWPRailWindow.ClientWidth, 10, ZoomScalefactor);
                 Top := Signal_LocationY - SignalRadiusScaled;
                 Right := Signal_LocationX - SignalRadiusScaled;
-                Bottom := Signal_LocationY + Signal_VerticalSpacing - FWPRailWindowCanvasPenWidth;
+                Bottom := Signal_LocationY + Signal_VerticalSpacing - BmpCanvasPenWidth;
               END;
           END; { WITH }
         END;
@@ -6011,7 +6014,7 @@ END; { InitialiseLogFiles }
 PROCEDURE SaveScreenDrawingVariables;
 { Save the screen drawing variables }
 BEGIN
-  WITH FWPRailWindow.Canvas DO BEGIN
+  WITH Bmp.Canvas DO BEGIN
     SaveBrushColour := Brush.Color;
     SaveBrushStyle := Brush.Style;
     SaveFontColour := Font.Color;
@@ -6028,7 +6031,7 @@ END; { SaveScreenDrawingVariables }
 PROCEDURE RestoreScreenDrawingVariables;
 { Restore the default screen drawing variables }
 BEGIN
-  WITH FWPRailWindow.Canvas DO BEGIN
+  WITH Bmp.Canvas DO BEGIN
     Brush.Color := SaveBrushColour;
     Brush.Style := SaveBrushStyle;
     Font.Color := SaveFontColour;
@@ -6045,7 +6048,7 @@ END; { RestoreScreenDrawingVariables }
 PROCEDURE InitialiseScreenDrawingVariables;
 { Set up the default screen drawing variables }
 BEGIN
-  WITH FWPRailWindow.Canvas DO BEGIN
+  WITH Bmp.Canvas DO BEGIN
     Brush.Color := BackgroundColour;
     Brush.Style := bsSolid;
     Font.Color := ForegroundColour;

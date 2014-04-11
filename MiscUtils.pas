@@ -868,7 +868,6 @@ VAR
   OldDebugStr : String = '';
   PreviousLogTime : TDateTime = 0;
   SaveLogStrArray : ARRAY [1..MaxSaveLogStrs] OF String;
-  SaveMainWindowStatusBarState : StatusBarStateType = Visible;
   StoredRichEditLoggingTextArray : StringArrayType;
   UserDebugText : String = '';
   TestCounter : Integer = 0; { used to test iterations in debugging }

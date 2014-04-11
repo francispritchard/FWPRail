@@ -114,9 +114,8 @@ BEGIN
     DO BEGIN
       IF Lines[L2].Line_DownConnectionCh = Lines[L].Line_UpConnectionCh THEN BEGIN
         ConnectionChFound := True;
-        HighlightedConnectionCh := Lines[L2].Line_DownConnectionCh;
-        HighlightedConnectionChRect := Lines[L2].Line_DownConnectionChRect;
-        DrawConnectionCh(HighlightedConnectionCh, HighlightedConnectionChRect, Bold);
+        Lines[L2].Line_DownConnectionChBold := True;
+        DrawConnectionCh(L2, Down);
       END;
       Inc(L2);
     END; {WHILE}
@@ -146,9 +145,8 @@ BEGIN
     DO BEGIN
       IF Lines[L2].Line_UpConnectionCh = Lines[L].Line_DownConnectionCh THEN BEGIN
         ConnectionChFound := True;
-        HighlightedConnectionCh := Lines[L2].Line_UpConnectionCh;
-        HighlightedConnectionChRect := Lines[L2].Line_UpConnectionChRect;
-        DrawConnectionCh(HighlightedConnectionCh, HighlightedConnectionChRect, Bold);
+        Lines[L2].Line_UpConnectionChBold := True;
+        DrawConnectionCh(L2, Up);
       END;
       Inc(L2);
     END; {WHILE}
@@ -610,10 +608,10 @@ BEGIN
           TempStatusBarPanel1Str := '';
         END;
 
-        { Is it a line-end character? - if so, highlight the corresponding line-end }
+        { Is it a line-end character? - if so, highlight the corresponding line-end } { move this to Raildraw? ********* }
         FOR L := 0 TO High(Lines) DO BEGIN
           WITH Lines[L] DO BEGIN
-            WITH FWPRailWindow.Canvas DO BEGIN
+            WITH Bmp.Canvas DO BEGIN
               IF PtInRect(Line_UpConnectionChRect, Point(MouseX, MouseY)) THEN
                 UpLineEndCharacterLine := L;
               IF PtInRect(Line_DownConnectionChRect, Point(MouseX, MouseY)) THEN
@@ -696,14 +694,29 @@ CONST
   Bold = True;
 
 VAR
+  L : Integer;
   TempInt : Integer;
 
 BEGIN
   TRY
-    { Turn off any highlighted line-end characters }
-    IF HighlightedConnectionCh <> '' THEN BEGIN
-      DrawConnectionCh(HighlightedConnectionCh, HighlightedConnectionChRect, NOT Bold);
-      HighlightedConnectionCh := '';
+    L := 0;
+    WHILE L <= High(Lines) DO BEGIN
+      IF Lines[L].Line_UpConnectionChBold THEN BEGIN
+        Lines[L].Line_UpConnectionChBold := False;
+        DrawConnectionCh(L, Up);
+        InvalidateScreen(UnitRef, 'MouseButtonReleased');
+      END;
+      Inc(L);
+    END;
+
+    L := 0;
+    WHILE L <= High(Lines) DO BEGIN
+      IF Lines[L].Line_DownConnectionChBold THEN BEGIN
+        Lines[L].Line_DownConnectionChBold := False;
+        DrawConnectionCh(L, Down);
+        InvalidateScreen(UnitRef, 'MouseButtonReleased');
+      END;
+      Inc(L);
     END;
 
     { Ending a zoomed screen mouse move }
@@ -1750,6 +1763,8 @@ BEGIN
       CheckEmergencyStop(Button, ShiftState)
     ELSE
       ChangeStateOfWhatIsUnderMouse(X, Y, ShiftState, NOT HelpRequired);
+
+    InvalidateScreen(UnitRef, 'MouseButtonPressed');
   END;
 END; { MouseButtonPressed }
 

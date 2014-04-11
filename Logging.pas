@@ -181,7 +181,8 @@ BEGIN
   StoreRichEditLoggingText := False;
 
   { Remove the "paused" message }
-  LoggingWindow.LoggingWindowRichEdit.Lines.Delete(LoggingWindow.LoggingWindowRichEdit.Lines.Count - 1);
+  IF LoggingWindow.LoggingWindowRichEdit.Lines[LoggingWindowRichEdit.Lines.Count - 1] = 'Pausing writing the log to the logging window screen until the cursor is returned to the logging window' THEN
+    LoggingWindow.LoggingWindowRichEdit.Lines.Delete(LoggingWindow.LoggingWindowRichEdit.Lines.Count - 1);
 
   { Now add any stored rich-edit data to the logging window }
   AddStoredRichEditLoggingTextToLoggingWindow;

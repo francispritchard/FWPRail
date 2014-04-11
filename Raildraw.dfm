@@ -26,6 +26,7 @@ object FWPRailWindow: TFWPRailWindow
   Visible = True
   OnClose = FWPRailWindowClose
   OnCreate = FWPRailWindowCreate
+  OnDestroy = FormDestroy
   OnDragDrop = FWPRailWindowDragDrop
   OnDragOver = FWPRailWindowDragOver
   OnKeyDown = FWPRailWindowKeyDown

@@ -453,6 +453,7 @@ TYPE
     PROCEDURE TCPopupSetTrackCircuitUnoccupiedClick(Sender: TObject);
     PROCEDURE TCPopupShowLocosLastErrorMessageClick(Sender: TObject);
     PROCEDURE TCPopupTrackCircuitNumberClick(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
     procedure MainOperationsMenuDriveLocomotiveClick(Sender: TObject);
 
   PRIVATE
@@ -491,7 +492,7 @@ PROCEDURE DrawBufferStop(BufferStopNum : Integer; Colour : TColour);
 PROCEDURE DrawBufferStopData(BufferStopNum : Integer; BufferStopText : String; Colour : TColor);
 { Put the bufferstop name or other supplied data on the diagram }
 
-PROCEDURE DrawConnectionCh(ConnectionCh : String; ConnectionChRect : TRect; Bold : Boolean);
+PROCEDURE DrawConnectionCh(L : Integer; Direction : DirectionType);
 { Draw character at line starts/ends to indicate where lines are going when they disappear off the screen }
 
 PROCEDURE DrawFailure(Device : Integer; ActionCh : String);
@@ -511,9 +512,6 @@ PROCEDURE DrawOutline(NewRect : TRect; Colour : TColour; UndrawRequired, UndrawT
 
 PROCEDURE DrawOutline(FWPPolygon : ARRAY OF TPoint; Colour : TColour; UndrawRequired, UndrawToBeAutomatic : Boolean); Overload;
 { We need this as the default Delphi Rectangle is filled in }
-
-PROCEDURE DrawPlatforms;
-{ Draw the platforms }
 
 PROCEDURE DrawPoint(P : Integer; Colour : TColour);
 { Draw a point }
@@ -578,13 +576,12 @@ VAR
   ApplicationMessageShiftState : TShiftState = [];
   BufferStopPopupNum : Integer;
   DiagramsCheckingInProgress : Boolean = False;
+  FWPRailWindow : TFWPRailWindow;
   LastPointResetTime : TDateTime = 0;
   LinePopupNum : Integer;
-  FWPRailWindow : TFWPRailWindow;
   PointPopupNum : Integer;
   RestartProgram : Boolean = False;
   SaveCursor : TCursor = crDefault;
-  SaveMainWindowStatusBarState : StatusBarStateType = Visible;
   SavePanel0Str : String = '';
   SavePanel1Str : String = '';
   SavePanel2Str : String = '';
@@ -600,6 +597,8 @@ VAR
   ZoomScaleFactor : Integer = 1000;
 Region : HRGN;
 testregion : boolean = false;
+
+  Bmp : TBitmap;
 
 IMPLEMENTATION
 
@@ -632,7 +631,7 @@ END; { Log }
 PROCEDURE DrawRedLampAndVerticalLine(X, Y1, Y2 : Integer; Colour : TCOlour);
 { Draw a red lamp and vertical line where there is a buffer stop or line obstruction }
 BEGIN
-  WITH FWPRailWindow.Canvas DO BEGIN
+  WITH Bmp.Canvas DO BEGIN
     { Draw the line }
     Pen.Color := Colour;
     MoveTo(X - ScrollBarXAdjustment, Y1 - ScrollBarYAdjustment);
@@ -652,7 +651,7 @@ PROCEDURE DrawBufferStop(BufferStopNum : Integer; Colour : TColour);
 { Draw a buffer stop }
 BEGIN
   InitialiseScreenDrawingVariables;
-  WITH FWPRailWindow.Canvas DO BEGIN
+  WITH Bmp.Canvas DO BEGIN
     WITH BufferStops[BufferStopNum] DO BEGIN
       { record the current colour }
       BufferStop_CurrentColour := Colour;
@@ -672,7 +671,7 @@ PROCEDURE DrawBufferStopData(BufferStopNum : Integer; BufferStopText : String; C
 { Put the bufferstop name or other supplied data on the diagram }
 BEGIN
   InitialiseScreenDrawingVariables;
-  WITH FWPRailWindow.Canvas DO BEGIN
+  WITH Bmp.Canvas DO BEGIN
     Font.Style := [fsBold];
     Font.Color := Colour;
     Brush.Color := BackgroundColour;
@@ -736,7 +735,7 @@ VAR
     TempNum : Integer;
 
   BEGIN
-    WITH FWPRailWindow.Canvas DO BEGIN
+    WITH Bmp.Canvas DO BEGIN
       { First clear existing line detail, as it may obscure the data we're writing out }
       ShowLineOccupationDetail := False;
       FOR L := 0 TO High(Lines) DO
@@ -983,7 +982,7 @@ VAR
     TempLocationArray : IntegerArrayType;
 
   BEGIN
-    WITH FWPRailWindow.Canvas DO BEGIN
+    WITH Bmp.Canvas DO BEGIN
       { First clear existing line detail, as it may obscure the data we're writing out }
       ShowLineOccupationDetail := False;
       SetLength(TempLocationArray, 0);
@@ -1191,7 +1190,7 @@ BEGIN
   TRY
     InitialiseScreenDrawingVariables;
 
-    WITH FWPRailWindow.Canvas DO BEGIN
+    WITH Bmp.Canvas DO BEGIN
       Font.Color := clYellow;
       Font.Style := [fsBold];
       Font.Height := -MulDiv(FWPRailWindow.ClientHeight, LineFontHeight, ZoomScalefactor);
@@ -1250,7 +1249,7 @@ BEGIN
 //    AND (TimeRectangleDrawn <> 0)
 //    THEN BEGIN
 //      TimeRectangleDrawn := 0;
-//      WITH FWPRailWindow.Canvas DO BEGIN
+//      WITH Bmp.Canvas DO BEGIN
 //        Pen.Color := SaveUndrawRectColour;
 //        Brush.Color := BackgroundColour;
 //        WITH UndrawRect DO
@@ -1263,7 +1262,7 @@ BEGIN
 //    END;
 
     { Now draw what we've been asked to do }
-    WITH FWPRailWindow.Canvas DO BEGIN
+    WITH Bmp.Canvas DO BEGIN
       IF UndrawRequired THEN
         Pen.Mode := pmNotXor;
       Pen.Color := Colour;
@@ -1381,7 +1380,7 @@ BEGIN
       InitialiseScreenDrawingVariables;
       SetLength(TCArray, 0);
 
-      WITH FWPRailWindow.Canvas DO BEGIN
+      WITH Bmp.Canvas DO BEGIN
         SaveLineFontName := Font.Name;
         Font.Name := 'Symbol';
         Font.Height := -MulDiv(FWPRailWindow.ClientHeight, LineFontHeight, ZoomScalefactor);
@@ -1545,7 +1544,7 @@ PROCEDURE DrawSignalData(S : Integer; Str : String; Colour : Integer);
 BEGIN
   TRY
     InitialiseScreenDrawingVariables;
-    WITH FWPRailWindow.Canvas DO BEGIN
+    WITH Bmp.Canvas DO BEGIN
       Font.Style := [fsBold];
       Font.Color := Colour;
       Brush.Color := BackgroundColour;
@@ -1611,14 +1610,14 @@ BEGIN
   TRY
     IF S <> UnknownSignal THEN BEGIN
       InitialiseScreenDrawingVariables;
-      WITH FWPRailWindow.Canvas DO BEGIN
+      WITH Bmp.Canvas DO BEGIN
         WITH Signals[S] DO BEGIN
           IF Signal_Direction = Up THEN BEGIN
             { only erase a path for the signal post if part of a signal is not also going to be erased }
             Pen.Color := BackgroundColour;
             Brush.Color := BackgroundColour;
             Rectangle(Signal_LocationX + SignalRadiusScaled - ScrollBarXAdjustment,
-                      Signal_LocationY - Signal_VerticalSpacing + FWPRailWindowCanvasPenWidth - ScrollBarYAdjustment,
+                      Signal_LocationY - Signal_VerticalSpacing + BmpCanvasPenWidth - ScrollBarYAdjustment,
                       Signal_LocationX + SignalRadiusScaled + MulDiv(FWPRailWindow.ClientWidth, 10, ZoomScalefactor) - ScrollBarXAdjustment,
                       Signal_LocationY + SignalRadiusScaled - ScrollBarYAdjustment);
 
@@ -1643,7 +1642,7 @@ BEGIN
             LineTo(Signal_LocationX + SignalRadiusScaled - Pen.Width + MulDiv(FWPRailWindow.ClientWidth, 8, ZoomScalefactor) - ScrollBarXAdjustment,
                    Signal_LocationY - ScrollBarYAdjustment);
             LineTo(Signal_LocationX + SignalRadiusScaled - Pen.Width + MulDiv(FWPRailWindow.ClientWidth, 8, ZoomScalefactor) - ScrollBarXAdjustment,
-                   Signal_LocationY - Signal_VerticalSpacing + (FWPRailWindowCanvasPenWidth DIV 2) - ScrollBarYAdjustment);
+                   Signal_LocationY - Signal_VerticalSpacing + (BmpCanvasPenWidth DIV 2) - ScrollBarYAdjustment);
           END ELSE
             IF Signal_Direction = Down THEN BEGIN
               { only erase a path for the signal post if part of a signal is not also going to be erased }
@@ -1652,7 +1651,7 @@ BEGIN
               Rectangle(Signal_LocationX - SignalRadiusScaled - MulDiv(FWPRailWindow.ClientWidth, 10, ZoomScalefactor) - ScrollBarXAdjustment,
                         Signal_LocationY - SignalRadiusScaled - ScrollBarYAdjustment,
                         Signal_LocationX - SignalRadiusScaled - ScrollBarXAdjustment,
-                        Signal_LocationY + Signal_VerticalSpacing - FWPRailWindowCanvasPenWidth - ScrollBarYAdjustment);
+                        Signal_LocationY + Signal_VerticalSpacing - BmpCanvasPenWidth - ScrollBarYAdjustment);
 
               IF Signals[S].Signal_HiddenAspect = NoAspect THEN
                 Pen.Color := Signal_PostColour
@@ -1671,7 +1670,7 @@ BEGIN
               LineTo(Signal_LocationX - SignalRadiusScaled + Pen.Width - MulDiv(FWPRailWindow.ClientWidth, 8, ZoomScalefactor) - ScrollBarXAdjustment,
                      Signal_LocationY - ScrollBarYAdjustment);
               LineTo(Signal_LocationX - SignalRadiusScaled + Pen.Width - MulDiv(FWPRailWindow.ClientWidth, 8, ZoomScalefactor) - ScrollBarXAdjustment,
-                     Signal_LocationY + Signal_VerticalSpacing - (FWPRailWindowCanvasPenWidth DIV 2) - ScrollBarYAdjustment);
+                     Signal_LocationY + Signal_VerticalSpacing - (BmpCanvasPenWidth DIV 2) - ScrollBarYAdjustment);
             END;
         END; {WITH}
       END; {WITH}
@@ -1750,7 +1749,7 @@ VAR
       END;
     END; {FOR}
 
-    WITH FWPRailWindow.Canvas DO
+    WITH Bmp.Canvas DO
       Polygon(PointArray);
   END; { DrawSemaphore }
 
@@ -1764,7 +1763,7 @@ BEGIN
     SignalBottom := 0;
 
     InitialiseScreenDrawingVariables;
-    WITH FWPRailWindow.Canvas DO BEGIN
+    WITH Bmp.Canvas DO BEGIN
       SColour1 := BackgroundColour;
       SColour2 := BackgroundColour;
       Font.Style := [fsBold];
@@ -2260,13 +2259,25 @@ BEGIN
   END; {TRY}
 END; { SetSignal }
 
-PROCEDURE DrawConnectionCh(ConnectionCh : String; ConnectionChRect : TRect; Bold : Boolean);
+PROCEDURE DrawConnectionCh(L : Integer; Direction : DirectionType);
 { Draw character at line starts/ends to indicate where lines are going when they disappear off the screen }
+VAR
+  ConnectionCh : String;
+  ConnectionChRect : TRect;
+
 BEGIN
   TRY
     IF FWPRailWindow <> NIL THEN BEGIN
-      WITH FWPRailWindow.Canvas DO BEGIN
-        IF Bold THEN BEGIN
+      WITH Bmp.Canvas DO BEGIN
+        IF Direction = Up THEN BEGIN
+          ConnectionCh := Lines[L].Line_UpConnectionCh;
+          ConnectionChRect := Lines[L].Line_UpConnectionChRect;
+        END ELSE BEGIN
+          ConnectionCh := Lines[L].Line_DownConnectionCh;
+          ConnectionChRect := Lines[L].Line_DownConnectionChRect;
+        END;
+
+        IF Lines[L].Line_UpConnectionChBold OR Lines[L].Line_DownConnectionChBold THEN BEGIN
           { undraw the old character }
           Font.Color := BackgroundColour;
           TextOut(ConnectionChRect.Left - ScrollBarXAdjustment, ConnectionChRect.Top - ScrollBarYAdjustment, ConnectionCh);
@@ -2327,7 +2338,7 @@ VAR
 
   BEGIN
     TRY
-      WITH FWPRailWindow.Canvas DO BEGIN
+      WITH Bmp.Canvas DO BEGIN
         SavePenWidth := Pen.Width;
         Pen.Width := 1;
         { Draw the line pen.width times, each time a little lower }
@@ -2357,7 +2368,7 @@ BEGIN
     IF FWPRailWindow <> NIL THEN BEGIN
       LineTextStr := '';
       InitialiseScreenDrawingVariables;
-      WITH FWPRailWindow.Canvas DO BEGIN
+      WITH Bmp.Canvas DO BEGIN
         WITH Lines[L] DO BEGIN
           IF Line_TypeOfLine = SidingLine THEN
             Pen.Style := SidingPenStyle
@@ -2610,11 +2621,12 @@ BEGIN
           IF (Lines[L].Line_UpConnectionCh <> '')
           AND (Lines[L].Line_UpConnectionCh <> ' ')
           THEN
-            DrawConnectionCh(Lines[L].Line_UpConnectionCh, Lines[L].Line_UpConnectionChRect, NOT Bold);
+            DrawConnectionCh(L, Up);
+
           IF (Lines[L].Line_DownConnectionCh <> '')
           AND (Lines[L].Line_DownConnectionCh <> ' ')
           THEN
-            DrawConnectionCh(Lines[L].Line_DownConnectionCh, Lines[L].Line_DownConnectionChRect, NOT Bold);
+            DrawConnectionCh(L, Down);
 
           IF ShowMouseRectangles THEN BEGIN
             PolyLine(Line_MousePolygon);
@@ -2728,7 +2740,7 @@ VAR
 BEGIN
   TRY
     InitialiseScreenDrawingVariables;
-    WITH FWPRailWindow.Canvas DO BEGIN
+    WITH Bmp.Canvas DO BEGIN
       WITH Points[P] DO BEGIN
         { Undraw the previous state by increasing the pen width when rubbing out the line - otherwise a faint trace of the line gets left behind (I know this is a hack,
           but it works!)
@@ -2886,7 +2898,7 @@ VAR
 BEGIN
   TRY
     InitialiseScreenDrawingVariables;
-    WITH FWPRailWindow.Canvas DO BEGIN
+    WITH Bmp.Canvas DO BEGIN
       Brush.Color := BackgroundColour;
       Font.Color := Colour;
       Font.Style := [fsBold];
@@ -3032,7 +3044,7 @@ VAR
 BEGIN
   TRY
     InitialiseScreenDrawingVariables;
-    WITH FWPRailWindow.Canvas DO BEGIN
+    WITH Bmp.Canvas DO BEGIN
       Brush.Color := BackgroundColour;
       Font.Style := [fsBold];
       { show which Lenz feedback unit is being used }
@@ -3105,7 +3117,7 @@ BEGIN
     InitialiseScreenDrawingVariables;
     ShowLenzPointNumbers := True;
 
-    WITH FWPRailWindow.Canvas DO BEGIN
+    WITH Bmp.Canvas DO BEGIN
       Brush.Color := BackgroundColour;
       Font.Style := [fsBold];
       Font.Height := -MulDiv(FWPRailWindow.ClientHeight, LineFontHeight, ZoomScaleFactor);
@@ -3233,7 +3245,7 @@ PROCEDURE DrawPlatforms;
 
   BEGIN
     TRY
-      WITH FWPRailWindow.Canvas DO BEGIN
+      WITH Bmp.Canvas DO BEGIN
         WITH Platforms[P].Platform_Rect DO BEGIN
           Font.Height := -MulDiv(FWPRailWindow.ClientHeight, PlatformNumberFontHeight, ZoomScaleFactor);
           Font.Color := PlatformNumberColour;
@@ -3288,7 +3300,7 @@ VAR
 BEGIN
   TRY
     InitialiseScreenDrawingVariables;
-    WITH FWPRailWindow.Canvas DO BEGIN
+    WITH Bmp.Canvas DO BEGIN
       { draw the platforms themselves }
       Brush.Color := PlatformColour;
       Brush.Style := bsSolid;
@@ -3320,7 +3332,7 @@ BEGIN
   TRY
     InitialiseScreenDrawingVariables;
 
-    WITH FWPRailWindow.Canvas DO BEGIN
+    WITH Bmp.Canvas DO BEGIN
       WITH MainPlatformPlungers[Location] DO BEGIN
         X := TRSPlunger_Triangle.PlungerXScaled;
         Y := TRSPlunger_Triangle.PlungerYScaled;
@@ -3367,6 +3379,8 @@ PROCEDURE TFWPRailWindow.FWPRailWindowPaint(Sender: TObject);
 BEGIN
   IF MainWindow.MainTimer.Enabled THEN
     DrawMap;
+
+  Canvas.Draw(0,0, Bmp);
 END; { FWPRailWindowPaint }
 
 PROCEDURE TFWPRailWindow.FWPRailWindowExitClick(Sender: TObject);
@@ -3906,7 +3920,7 @@ PROCEDURE InvalidateScreen(UnitRefParam, CallingStr : String);
 { Draw the screen by invalidating it }
 BEGIN
   FWPRailWindow.Invalidate;
-//  Log('X Invalidate Screen - call ' + CallingStr + ' from Unit ' + UnitRefParam);
+  Log('X Invalidate Screen - call ' + CallingStr + ' from Unit ' + UnitRefParam);
 END; { InvalidateScreen }
 
 PROCEDURE TFWPRailWindow.FlashTimerTick(Sender: TObject);
@@ -3955,6 +3969,11 @@ BEGIN
       Log('EG FlashTimerTick:' + E.ClassName +' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { FlashTimerTick }
+
+procedure TFWPRailWindow.FormDestroy(Sender: TObject);
+begin
+  Bmp.Free;
+end;
 
 PROCEDURE TFWPRailWindow.GeneralPopupMenuOnPopup(Sender: TObject);
 BEGIN
@@ -6495,21 +6514,23 @@ BEGIN
   IF Application.Terminated THEN
     Exit;
 
-  { Get the current font information. We only want to modify the angle }
-  GetObject(FWPRailWindow.Canvas.Font.Handle, SizeOf(LogRec), Addr(LogRec));
-  { Modify the angle. "The angle, in tenths of a degrees, between the base line of a character and the x-axis." (Windows API Help) }
-  LogRec.lfEscapement := D;
-  { Create a new font handle using the modified old font handle }
-  NewFontHandle := CreateFontIndirect(LogRec);
-  { Save the old font handle! We have to put it back when we are done! }
-  OldFontHandle := SelectObject(FWPRailWindow.Canvas.Handle, NewFontHandle);
-  { Finally. Output the text! }
-  FWPRailWindow.Canvas.Brush.Style := bsClear;
-  FWPRailWindow.Canvas.TextOut(X, Y, S);
-  { Put the font back the way we found it! }
-  NewFontHandle := SelectObject(FWPRailWindow.Canvas.Handle, OldFontHandle);
-  { Delete the temporary (NewFontHandle) that we created }
-  DeleteObject(NewFontHandle);
+  WITH Bmp.Canvas DO BEGIN
+    { Get the current font information. We only want to modify the angle }
+    GetObject(Font.Handle, SizeOf(LogRec), Addr(LogRec));
+    { Modify the angle. "The angle, in tenths of a degrees, between the base line of a character and the x-axis." (Windows API Help) }
+    LogRec.lfEscapement := D;
+    { Create a new font handle using the modified old font handle }
+    NewFontHandle := CreateFontIndirect(LogRec);
+    { Save the old font handle! We have to put it back when we are done! }
+    OldFontHandle := SelectObject(Handle, NewFontHandle);
+    { Finally. Output the text! }
+    Brush.Style := bsClear;
+    TextOut(X, Y, S);
+    { Put the font back the way we found it! }
+    NewFontHandle := SelectObject(Handle, OldFontHandle);
+    { Delete the temporary (NewFontHandle) that we created }
+    DeleteObject(NewFontHandle);
+  END; {WITH}
 END; { CanvasTextOutAngle }
 
 PROCEDURE HideStatusBarAndUpDownIndications;
@@ -6521,11 +6542,11 @@ BEGIN
     IF UpDownMarkersVisible THEN BEGIN
       UpDownMarkersVisible := False;
 
-      WITH Canvas DO BEGIN
+      WITH Bmp.Canvas DO BEGIN
         Font.Color := BackgroundColour;
         Font.Height := -MulDiv(ClientHeight, FWPRailWindowFontHeight, 1000);
         TextOut(0, ClientHeight DIV 2, 'Up');
-        TextOut(ClientWidth - FWPRailWindow.Canvas.TextWidth('Down'), ClientHeight DIV 2, 'Down');
+        TextOut(ClientWidth - TextWidth('Down'), ClientHeight DIV 2, 'Down');
       END; {WITH}
     END;
   END; {WITH}
@@ -6540,11 +6561,11 @@ BEGIN
     IF NOT UpDownMarkersVisible THEN BEGIN
       UpDownMarkersVisible := True;
 
-      WITH Canvas DO BEGIN
+      WITH Bmp.Canvas DO BEGIN
         Font.Color := clWhite;
         Font.Height := -MulDiv(ClientHeight, FWPRailWindowFontHeight, 1000);
         TextOut(0, ClientHeight DIV 2, 'Up');
-        TextOut(ClientWidth - FWPRailWindow.Canvas.TextWidth('Down'), ClientHeight DIV 2, 'Down');
+        TextOut(ClientWidth - TextWidth('Down'), ClientHeight DIV 2, 'Down');
       END; {WITH}
     END;
   END; {WITH}
@@ -6647,6 +6668,7 @@ END; { LoadIcons }
 PROCEDURE TFWPRailWindow.FWPRailWindowCreate(Sender: TObject);
 //VAR
 //PreviousDebugTime : TDateTime;
+
 BEGIN
   TRY
     WITH FWPRailWindow DO BEGIN
@@ -6678,6 +6700,10 @@ BEGIN
       Width := FWPRailWindowWidth;
       Top := FWPRailWindowTop;
       Left := FWPRailWindowLeft;
+
+      Bmp := TBitmap.Create;
+      Bmp.Width := FWPRailWindowWidth; // ClientWidth;
+      Bmp.Height := FWPRailWindowHeight; // ClientHeight;
 
       FWPRailWindowInitialised := False;
       ResizeMap := False;
@@ -6797,11 +6823,11 @@ VAR
 
 BEGIN { Main drawing procedure }
   TRY
-    // FWPRailWindow.Canvas.FillRect(FWPRailWindow.Canvas.ClipRect);
+    // Bmp.Canvas.FillRect(Bmp.Canvas.ClipRect);
     // Log('X (1) ' + TimeToHMSZStr(Time));
     // PreviousDebugTime := Time;
     WITH FWPRailWindow DO BEGIN
-      WITH Canvas DO BEGIN
+      WITH Bmp.Canvas DO BEGIN
         { Do not record the line drawing detail each time DrawMap is called }
         SaveRecordLineDrawingMode := RecordLineDrawingMode;
 //        RecordLineDrawingMode := False;
@@ -6810,7 +6836,7 @@ BEGIN { Main drawing procedure }
           IF Screen.Cursor <> crHourGlass THEN
             ChangeCursor(crHourGlass);
 
-        FWPRailWindowCanvasPenWidth := Canvas.Pen.Width;
+        BmpCanvasPenWidth := Canvas.Pen.Width;
 
         IF (ScreenMode <> SaveScreenMode) OR NOT FWPRailWindowInitialised THEN BEGIN
           SaveScreenMode := ScreenMode;
