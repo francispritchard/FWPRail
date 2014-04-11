@@ -260,7 +260,7 @@ PROCEDURE TTCPIPForm.ResponsesTCPClientDisconnect(Sender: TObject; Socket1 : TCu
 BEGIN
   IF ResponsesTCPClient <> NIL THEN BEGIN
     MSGMemo.Lines.Add('*** 1 Disconnected' + CRLF);
-    Log('A TCPClient 1 Disconnected' + CRLF);
+    Log('A TCPClient 1 Disconnected');
     IF LenzConnection = EthernetConnection THEN BEGIN
       EthernetConnectButton.Enabled := True;
       EthernetConnectButton.Caption := 'TCP 1 Connect';
@@ -276,7 +276,7 @@ PROCEDURE TTCPIPForm.BroadcastsTCPClientDisconnect(Sender: TObject; Socket2 : TC
 BEGIN
   IF BroadcastsTCPClient <> NIL THEN BEGIN
     MSGMemo.Lines.Add('*** 2 Disconnected' + CRLF);
-    Log('A TCPClient 2 Disconnected' + CRLF);
+    Log('A TCPClient 2 Disconnected');
     IF LenzConnection = EthernetConnection THEN BEGIN
       EthernetConnectButton.Enabled := True;
       EthernetConnectButton.Caption := 'TCP 2 Connect';
