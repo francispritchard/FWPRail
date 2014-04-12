@@ -1068,7 +1068,6 @@ VAR
   FeedbackUnitData : ARRAY OF FeedbackRec;
   FeedbackUnitInUseArray : ARRAY [FirstFeedbackUnit..LastFeedbackUnit] OF Boolean;
   FullScreenPenWidth : Integer = 5;
-  BmpCanvasPenWidth : Integer;
   FWPRailWindowInitialised : Boolean = False;
   FWPRailWindowPartInitialised : Boolean = False;
   InAutoMode : Boolean = False;
@@ -1104,6 +1103,7 @@ VAR
   PostEmergencyTimeSet : Boolean = False;
   PreparingZoom : Boolean = False;
   ProgramStartup : Boolean = True;
+  RailWindowBitmapCanvasPenWidth : Integer;
   RailDriverCalibrated : Boolean = False;
   RailDriverCalibrationStarted : Boolean = False;
   RailDriverInitialised : Boolean = False;
@@ -2782,7 +2782,7 @@ BEGIN
         Line_MousePolygon[4] := Line_MousePolygon[0];
 
         { Add the line-end characters which indicate where a line goes next }
-        WITH Bmp.Canvas DO BEGIN
+        WITH RailWindowBitmap.Canvas DO BEGIN
           { a straight line }
           Font.Height := -MulDiv(FWPRailWindow.ClientHeight, FWPRailWindowFontHeight, ScaleFactor);
           IF Line_UpConnectionCh <> '' THEN BEGIN
@@ -3531,7 +3531,7 @@ BEGIN
 
           { Set up mouse access rectangles }
           WITH Signal_MouseRect DO BEGIN
-            Bmp.Canvas.Pen.Width := WindowPenWidth;
+            RailWindowBitmap.Canvas.Pen.Width := WindowPenWidth;
 
             IF (Signal_Type <> SemaphoreHome) AND (Signal_Type <> SemaphoreDistant) THEN BEGIN
               { it covers the signal circles }
@@ -3543,13 +3543,13 @@ BEGIN
               { it covers the signal arms }
               IF (Signal_Direction = Up) AND (Signal_Quadrant = UpperQuadrant) THEN BEGIN
                 Left := Signal_LocationX - SignalSemaphoreWidthScaled;
-                Top := Signal_LocationY + Bmp.Canvas.Pen.Width;
+                Top := Signal_LocationY + RailWindowBitmap.Canvas.Pen.Width;
                 Right := Signal_LocationX + (SignalSemaphoreHeightScaled * 2);
                 Bottom := Signal_LocationY + (SignalSemaphoreWidthScaled * 2);
               END ELSE
                 IF (Signal_Direction = Up) AND (Signal_Quadrant = LowerQuadrant) THEN BEGIN
                   Left := Signal_LocationX;
-                  Top := Signal_LocationY + Bmp.Canvas.Pen.Width;
+                  Top := Signal_LocationY + RailWindowBitmap.Canvas.Pen.Width;
                   Right := Signal_LocationX + (SignalSemaphoreHeightScaled * 2) + SignalSemaphoreWidthScaled;
                   Bottom := Signal_LocationY + (SignalSemaphoreWidthScaled * 2);
                 END ELSE
@@ -3557,13 +3557,13 @@ BEGIN
                     Left := Signal_LocationX - SignalSemaphoreWidthScaled;
                     Top := Signal_LocationY - (SignalSemaphoreWidthScaled * 2);
                     Right := Signal_LocationX + (SignalSemaphoreHeightScaled * 2);
-                    Bottom := Signal_LocationY - Bmp.Canvas.Pen.Width;
+                    Bottom := Signal_LocationY - RailWindowBitmap.Canvas.Pen.Width;
                   END ELSE
                     IF (Signal_Direction = Down) AND (Signal_Quadrant = LowerQuadrant) THEN BEGIN
                       Left := Signal_LocationX - (SignalSemaphoreHeightScaled * 2) - SignalSemaphoreWidthScaled;
                       Top := Signal_LocationY - (SignalSemaphoreWidthScaled * 2);
                       Right := Signal_LocationX;
-                      Bottom := Signal_LocationY - Bmp.Canvas.Pen.Width;
+                      Bottom := Signal_LocationY - RailWindowBitmap.Canvas.Pen.Width;
                     END;
             END;
           END; { WITH }
@@ -3617,7 +3617,7 @@ BEGIN
                 Left := Signal_LocationX - SignalRadiusScaled - MulDiv(FWPRailWindow.ClientWidth, 10, ZoomScalefactor);
                 Top := Signal_LocationY - SignalRadiusScaled;
                 Right := Signal_LocationX - SignalRadiusScaled;
-                Bottom := Signal_LocationY + Signal_VerticalSpacing - BmpCanvasPenWidth;
+                Bottom := Signal_LocationY + Signal_VerticalSpacing - RailWindowBitmapCanvasPenWidth;
               END;
           END; { WITH }
         END;
@@ -6014,7 +6014,7 @@ END; { InitialiseLogFiles }
 PROCEDURE SaveScreenDrawingVariables;
 { Save the screen drawing variables }
 BEGIN
-  WITH Bmp.Canvas DO BEGIN
+  WITH RailWindowBitmap.Canvas DO BEGIN
     SaveBrushColour := Brush.Color;
     SaveBrushStyle := Brush.Style;
     SaveFontColour := Font.Color;
@@ -6031,7 +6031,7 @@ END; { SaveScreenDrawingVariables }
 PROCEDURE RestoreScreenDrawingVariables;
 { Restore the default screen drawing variables }
 BEGIN
-  WITH Bmp.Canvas DO BEGIN
+  WITH RailWindowBitmap.Canvas DO BEGIN
     Brush.Color := SaveBrushColour;
     Brush.Style := SaveBrushStyle;
     Font.Color := SaveFontColour;
@@ -6048,7 +6048,7 @@ END; { RestoreScreenDrawingVariables }
 PROCEDURE InitialiseScreenDrawingVariables;
 { Set up the default screen drawing variables }
 BEGIN
-  WITH Bmp.Canvas DO BEGIN
+  WITH RailWindowBitmap.Canvas DO BEGIN
     Brush.Color := BackgroundColour;
     Brush.Style := bsSolid;
     Font.Color := ForegroundColour;

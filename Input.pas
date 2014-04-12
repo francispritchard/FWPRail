@@ -1913,7 +1913,7 @@ BEGIN { KeyPressedDown }
               BEGIN
                 HelpMsg := '';
                 IF NOT HelpRequired THEN BEGIN
-                  Bmp.SaveToFile('C:\Doc\Google Drive\RAD Studio\Projects\Rail\RailTemp.bmp');
+                  RailWindowBitmap.SaveToFile('C:\Doc\Google Drive\RAD Studio\Projects\Rail\RailTemp.RailWindowBitmap');
                 END;
               END;
             Ctrl: {B}

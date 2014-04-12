@@ -769,7 +769,7 @@ VAR
   TempLocoChipStr : String;
 
 BEGIN
-  WITH Bmp.Canvas DO BEGIN
+  WITH RailWindowBitmap.Canvas DO BEGIN
     WITH T^ DO BEGIN
       IF T <> NIL THEN
         TempLocoChipStr := LocoChipToStr(Train_LocoChip)

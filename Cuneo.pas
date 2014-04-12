@@ -611,7 +611,7 @@ BEGIN
         { Is it a line-end character? - if so, highlight the corresponding line-end } { move this to Raildraw? ********* }
         FOR L := 0 TO High(Lines) DO BEGIN
           WITH Lines[L] DO BEGIN
-            WITH Bmp.Canvas DO BEGIN
+            WITH RailWindowBitmap.Canvas DO BEGIN
               IF PtInRect(Line_UpConnectionChRect, Point(MouseX, MouseY)) THEN
                 UpLineEndCharacterLine := L;
               IF PtInRect(Line_DownConnectionChRect, Point(MouseX, MouseY)) THEN
