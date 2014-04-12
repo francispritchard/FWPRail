@@ -30,21 +30,21 @@ TYPE
     PointsADOConnection : TADOConnection;
     PointsADOTable : TADOTable;
     PointsDataSource : TDataSource;
+    PointsADOTable2 : TADOTable;
+    PointsADOConnection2 : TADOConnection;
+    PointsDataSource2 : TDataSource;
     SaveDialogue : TSaveDialog;
     SignalsADOConnection : TADOConnection;
     SignalsADOTable : TADOTable;
     SignalsDataSource : TDataSource;
+    SignalsDataSource2 : TDataSource;
+    SignalsADOTable2 : TADOTable;
+    SignalsADOConnection2 : TADOConnection;
     TrackCircuitDataADOConnection : TADOConnection;
     TrackCircuitDataADOTable : TADOTable;
     TrackCircuitDataSource : TDataSource;
     UnderwayOrCompleted1Label : TLabel;
     UnderwayOrCompleted2Label : TLabel;
-    SignalsDataSource2 : TDataSource;
-    SignalsADOTable2 : TADOTable;
-    SignalsADOConnection2 : TADOConnection;
-    PointsADOTable2 : TADOTable;
-    PointsADOConnection2 : TADOConnection;
-    PointsDataSource2 : TDataSource;
   PRIVATE
     { Private declarations }
   PUBLIC
