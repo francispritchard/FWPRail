@@ -13,6 +13,7 @@ __history
 Rail Data Files/*.otares
 Rail Data Files/*.tds
 Rail Data Files/*.rsm
+Rail Data Files/*.ldb
 *.bak
 *.old
 *.dproj
