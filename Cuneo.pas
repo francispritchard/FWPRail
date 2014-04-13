@@ -773,6 +773,7 @@ BEGIN
       Signals[SignalPostToBeFlashed].Signal_PostColour := SignalPostColour;
       DrawSignalPost(SignalPostToBeFlashed);
       SignalPostDrawn := False;
+      InvalidateScreen(UnitRef, 'CuneoTimerTick');
     END ELSE BEGIN
       IF Routes_RouteSettingByHand THEN BEGIN
         IF Routes_RouteSettingByEmergencyRoute THEN
@@ -787,6 +788,7 @@ BEGIN
             Signals[SignalPostToBeFlashed].Signal_PostColour := clRed;
       DrawSignalPost(SignalPostToBeFlashed);
       SignalPostDrawn := True;
+      InvalidateScreen(UnitRef, 'CuneoTimerTick');
     END;
   END;
 END; { CuneoTimerTick }
