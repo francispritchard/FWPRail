@@ -113,6 +113,12 @@ PROCEDURE SetSignalRouteFunction(LocoChip, S: Integer);
 PROCEDURE SetSingleLocoFunction(LocoChip, FunctionNum : Integer; TurnOn : Boolean; OUT OK : Boolean);
 { Set a numbered function on or off }
 
+PROCEDURE SetSystemOffline(OfflineMsg : String);
+{ Change the caption and the icons to show we're offline }
+
+FUNCTION SetSystemOnline : Boolean;
+{ Change the caption and the icons to show we're online - needs a test to see if we are, actually, online *************** 6/2/14 }
+
 PROCEDURE SetTrainDirection(T : Train; DirectionRequired : DirectionType; ForceWrite : Boolean; VAR OK : Boolean);
 { Sets/resets bit 7 - up is (arbitrarily) on }
 
@@ -3382,6 +3388,69 @@ BEGIN
 //  END;
 END; { GetInitialFeedback }
 
+PROCEDURE SetSystemOffline(OfflineMsg : String);
+{ Change the caption and the icons to show we're offline }
+BEGIN
+  SystemOnline := False;
+  SetCaption(FWPRailWindow, 'OFFLINE');
+  Application.Icon := OffLineIcon;
+  IF OfflineMsg <> '' THEN BEGIN
+    IF FeedbackWindow <> NIL THEN BEGIN
+      WriteDataToFeedbackWindow(OfflineMsg);
+      FeedbackWindow.FeedbackWindowTimer.Enabled := True;
+    END;
+    Log('X! System set offline: ' + OfflineMsg);
+  END;
+
+  IF LenzConnection = USBConnection THEN
+    StopLANUSBServer;
+END; { SetSystemOffline }
+
+FUNCTION SetSystemOnline : Boolean;
+{ Change the caption and the icons to show we're online - needs a test to see if we are, actually, online *************** 6/2/14 }
+BEGIN
+  { Create the TCPIP form here so we know it is available before we start using it }
+  IF TCPIPForm = NIL THEN BEGIN
+    TCPIPForm := TTCPIPForm.Create(Application);
+    TCPIPForm.Update;
+  END;
+
+  LenzConnection := NoConnection;
+
+  IF DesiredLenzConnection = EthernetConnection THEN BEGIN
+    { See if the Ethernet connection is up and running }
+    TCPIPForm.TCPIPFormShow(LenzWindow);
+    TCPIPForm.CreateTCPClients(EthernetConnection);
+    LenzConnection := EthernetConnection;
+  END;
+
+  IF DesiredLenzConnection = USBConnection THEN BEGIN
+    { First see if the Lenz server program is running via the USB Connection. (If it's connected, it's assumed that we wish to try it first). }
+    IF IsProgramRunning('LI-Server') THEN
+      { The LI-Server.exe program is already running - better kill it, as we can't programmaticaly start the server itself }
+      StopLANUSBServer;
+
+    StartLANUSBServer;
+    IF IsProgramRunning('LI-Server') THEN BEGIN
+      Log('XG LI-Server.exe is running');
+
+      TCPIPForm.TCPIPFormShow(LenzWindow);
+      TCPIPForm.CreateTCPClients(USBConnection);
+      LenzConnection := USBConnection
+    END;
+  END;
+
+  IF LenzConnection = NoConnection THEN
+    SetSystemOffline('System offline as no connection to the Lenz system')
+  ELSE BEGIN
+    SystemOnline := True;
+    SetCaption(FWPRailWindow, '');
+    Application.Icon := OnlineIcon;
+  END;
+
+  Result := LenzConnection <> NoConnection;
+END; { SetSystemOnline }
+
 PROCEDURE InitialiseLenzUnit;
 { Such routines as this allow us to initialises the units in the order we wish }
 CONST
@@ -3437,6 +3506,8 @@ BEGIN
 //    ReadArray[I] := 0;
 //    WriteArray[I] := 0;
 //  END;
+
+  Log('A Lenz unit initialised');
 END; { InitialiseLenzUnit }
 
 INITIALIZATION
