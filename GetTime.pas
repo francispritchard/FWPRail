@@ -342,6 +342,8 @@ PROCEDURE InitialiseGetTimeUnit;
 BEGIN
   SaveCurrentRailwayTimeStr := StringOfChar(' ', 11);
   WasDayTime := DayTime;
+
+  Log('A GetTime unit initialised');
 END; { InitialiseGetTimeUnit }
 
 INITIALIZATION

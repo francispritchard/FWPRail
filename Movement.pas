@@ -11,7 +11,6 @@ TYPE
     SignalLocationsToMonitorCheckListBox: TCheckListBox;
     SignalLocationsToMonitorOKButton: TButton;
     SignalLocationsToMonitorCancelButton: TButton;
-    PROCEDURE MovementWindowCreate(Sender: TObject);
     PROCEDURE SignalLocationsToMonitorCancelButtonClick(Sender: TObject);
     PROCEDURE SignalLocationsToMonitorOKButtonClick(Sender: TObject);
   PRIVATE
@@ -28,6 +27,9 @@ PROCEDURE CheckTrainsHaveDeparted;
 
 PROCEDURE CheckTrainsReadyToDepart;
 { Runs through the list of trains, and sees if any are ready to depart }
+
+PROCEDURE InitialiseMovementUnit;
+{ Initialises the unit }
 
 PROCEDURE LookOutForStrayingTrains;
 { See if any track circuits are occupied without our knowing who's doing the occupying }
@@ -2377,13 +2379,14 @@ BEGIN
   END; {WHILE}
 END; { CheckTrainsHaveArrived }
 
-PROCEDURE TMovementWindow.MovementWindowCreate(Sender: TObject);
+PROCEDURE InitialiseMovementUnit;
+{ Initialises the unit }
 BEGIN
   MovementWindow.Height := MovementWindowHeight;
   MovementWindow.Width := MovementWindowWidth;
   MovementWindow.Top := MovementWindowTop;
   MovementWindow.Left := MovementWindowLeft;
-END; { MovementWindowCreate }
+END; { InitialiseMovementUnit }
 
 PROCEDURE TMovementWindow.SignalLocationsToMonitorCancelButtonClick(Sender: TObject);
 BEGIN

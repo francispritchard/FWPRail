@@ -16,7 +16,6 @@ object WorkingTimetableWindow: TWorkingTimetableWindow
   OldCreateOrder = False
   Position = poDesigned
   OnClose = WorkingTimetableWindowClose
-  OnCreate = WorkingTimetableWindowCreate
   OnHide = WorkingTimetableWindowHide
   OnResize = WorkingTimetableWindowResize
   OnShow = WorkingTimetableWindowShow

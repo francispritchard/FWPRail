@@ -19,7 +19,6 @@ TYPE
     PROCEDURE DebugRichEditMouseMove(Sender: TObject; ShiftState: TShiftState; X, Y: Integer);
     PROCEDURE DebugRichEditPopupMenuOnPopup(Sender: TObject);
     PROCEDURE DebugWindowClose(Sender: TObject; VAR Action: TCloseAction);
-    PROCEDURE DebugWindowCreate(Sender: TObject);
     PROCEDURE DebugWindowHide(Sender: TObject);
     PROCEDURE DebugWindowResize(Sender: TObject);
     PROCEDURE DebugWindowShow(Sender: TObject);
@@ -345,6 +344,9 @@ FUNCTION IndicatorToStr(I : IndicatorType; LongOrShortString : StringType) : Str
 FUNCTION IndicatorStateToStr(I : IndicatorStateType) : String;
 { Return the state of a route indicator }
 
+PROCEDURE InitialiseMiscUtilsUnit;
+{ Initialises the unit }
+
 PROCEDURE InsertElementInIntegerArray(VAR IntegerArray : IntegerArrayType; Position : Integer; NewElement : Integer);
 { Adds an element to an integer array }
 
@@ -578,12 +580,6 @@ FUNCTION SetDefaultButton(CONST Dlg: TForm; CONST ModalResult: Integer): Boolean
 { SetDefaultButton sets the default button in a Message Dialogue that has been created with the Dialogs.CreateMessageDialogue function. The result is a success indicator.
   The function only fails, if the specified button is not present in the dialogue [from uDialogsExt from Borland website]
 }
-PROCEDURE SetSystemOffline(OfflineMsg : String);
-{ Change the caption and the icons to show we're offline }
-
-FUNCTION SetSystemOnline : Boolean;
-{ Change the caption and the icons to show we're online - needs a test to see if we are, actually, online *************** 6/2/14 }
-
 PROCEDURE SetTrainControlledByProgram(T : Train; ControlledByProgram : Boolean);
 { Mark a given train as controlled either by the software or by the LH100 }
 
@@ -6371,69 +6367,6 @@ BEGIN
     Dlg.ActiveControl := DefButton;
 END; { SetDefaultButton }
 
-PROCEDURE SetSystemOffline(OfflineMsg : String);
-{ Change the caption and the icons to show we're offline }
-BEGIN
-  SystemOnline := False;
-  SetCaption(FWPRailWindow, 'OFFLINE');
-  Application.Icon := OffLineIcon;
-  IF OfflineMsg <> '' THEN BEGIN
-    IF FeedbackWindow <> NIL THEN BEGIN
-      WriteDataToFeedbackWindow(OfflineMsg);
-      FeedbackWindow.FeedbackWindowTimer.Enabled := True;
-    END;
-    Log('X! System set offline: ' + OfflineMsg);
-  END;
-
-  IF LenzConnection = USBConnection THEN
-    StopLANUSBServer;
-END; { SetSystemOffline }
-
-FUNCTION SetSystemOnline : Boolean;
-{ Change the caption and the icons to show we're online - needs a test to see if we are, actually, online *************** 6/2/14 }
-BEGIN
-  { Create the TCPIP form here so we know it is available before we start using it }
-  IF TCPIPForm = NIL THEN BEGIN
-    TCPIPForm := TTCPIPForm.Create(Application);
-    TCPIPForm.Update;
-  END;
-
-  LenzConnection := NoConnection;
-
-  IF DesiredLenzConnection = EthernetConnection THEN BEGIN
-    { See if the Ethernet connection is up and running }
-    TCPIPForm.TCPIPFormShow(LenzWindow);
-    TCPIPForm.CreateTCPClients(EthernetConnection);
-    LenzConnection := EthernetConnection;
-  END;
-
-  IF DesiredLenzConnection = USBConnection THEN BEGIN
-    { First see if the Lenz server program is running via the USB Connection. (If it's connected, it's assumed that we wish to try it first). }
-    IF IsProgramRunning('LI-Server') THEN
-      { The LI-Server.exe program is already running - better kill it, as we can't programmaticaly start the server itself }
-      StopLANUSBServer;
-
-    StartLANUSBServer;
-    IF IsProgramRunning('LI-Server') THEN BEGIN
-      Log('XG LI-Server.exe is running');
-
-      TCPIPForm.TCPIPFormShow(LenzWindow);
-      TCPIPForm.CreateTCPClients(USBConnection);
-      LenzConnection := USBConnection
-    END;
-  END;
-
-  IF LenzConnection = NoConnection THEN
-    SetSystemOffline('System offline as no connection to the Lenz system')
-  ELSE BEGIN
-    SystemOnline := True;
-    SetCaption(FWPRailWindow, '');
-    Application.Icon := OnlineIcon;
-  END;
-
-  Result := LenzConnection <> NoConnection;
-END; { SetSystemOnline }
-
 PROCEDURE SetTrainControlledByProgram(T : Train; ControlledByProgram : Boolean);
 { Mark a given train as controlled either by the software or by the LH100 }
 BEGIN
@@ -8589,7 +8522,8 @@ BEGIN
   Result := OK;
 END; { TimeIsValid }
 
-PROCEDURE TDebugWindow.DebugWindowCreate(Sender: TObject);
+PROCEDURE InitialiseMiscUtilsUnit;
+{ Initialises the unit }
 VAR
   I : Integer;
 
@@ -8600,7 +8534,7 @@ BEGIN
       Debug(DebugWindowLines[I]);
 
   DrawDebugWindow;
-END; { DebugWindowCreate }
+END; { InitialiseMiscUtilsUnit }
 
 PROCEDURE TDebugWindow.DebugWindowClose(Sender: TObject; VAR Action: TCloseAction);
 { Hides but does not close the window }

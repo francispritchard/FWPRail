@@ -28,7 +28,6 @@ TYPE
 
     PROCEDURE WorkingTimetablePopupMenuOnPopup(Sender: TObject);
     PROCEDURE WorkingTimetableWindowClose(Sender: TObject; VAR Action: TCloseAction);
-    PROCEDURE WorkingTimetableWindowCreate(Sender: TObject);
     PROCEDURE WorkingTimetableWindowGridDrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
     PROCEDURE WorkingTimetableWindowGridKeyDown(Sender: TObject; VAR Key: Word; ShiftState: TShiftState);
     PROCEDURE WorkingTimetableWindowGridMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -44,6 +43,9 @@ TYPE
 
 PROCEDURE DrawWorkingTimetable(UnitRef : String; Str : String);
 { Write the complete WorkingTimetable to the screen after it has been changed }
+
+PROCEDURE InitialiseWorkingTimetableUnit;
+{ Initialises the unit }
 
 PROCEDURE LoadWorkingTimetableFromDatabase(OUT WorkingTimetableMissing, WorkingTimetableOK : Boolean);
 { Load the working timetable }
@@ -431,7 +433,8 @@ BEGIN
   END; {WITH}
 END; { DrawWorkingTimetableWindow }
 
-PROCEDURE TWorkingTimetableWindow.WorkingTimetableWindowCreate(Sender: TObject);
+PROCEDURE InitialiseWorkingTimetableUnit;
+{ Initialises the unit }
 BEGIN
   WorkingTimetableWindow.Left := WorkingTimetableWindowLeft;
   WorkingTimetableWindow.Top := WorkingTimetableWindowTop;
@@ -443,7 +446,7 @@ BEGIN
 
   FWPRailWindow.MainDisplayMenuDiagramsWindow.Checked := False;
   FWPRailWindow.MainDisplayMenuWorkingTimetableWindow.Checked := True;
-  WorkingTimetableWindowGrid.Color := WorkingTimetableWindowGridBackgroundColour;
+  WorkingTimetableWindow.WorkingTimetableWindowGrid.Color := WorkingTimetableWindowGridBackgroundColour;
 
   IF CurrentRailwayDayOfTheWeek <> UnknownDayOfTheWeek THEN
     WorkingTimetableWindow.Caption := WorkingTimetableWindow.Caption + ' for ' + DayOfTheWeekToStr(CurrentRailwayDayOfTheWeek);
@@ -452,7 +455,7 @@ BEGIN
     DrawWorkingTimetableWindow;
     WorkingTimetableWindow.Show;
   END;
-END; { WorkingTimetableWindowCreate }
+END; { InitialiseWorkingTimetableUnit }
 
 PROCEDURE TWorkingTimetableWindow.WorkingTimetableWindowClose(Sender: TObject; VAR Action: TCloseAction);
 { Hides but does not close the window }

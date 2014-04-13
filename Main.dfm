@@ -12,6 +12,7 @@ object MainWindow: TMainWindow
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
+  OnCreate = MainWindowCreate
   PixelsPerInch = 96
   TextHeight = 13
   object MainTimer: TTimer

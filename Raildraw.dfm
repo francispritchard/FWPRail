@@ -25,7 +25,6 @@ object FWPRailWindow: TFWPRailWindow
   Position = poScreenCenter
   Visible = True
   OnClose = FWPRailWindowClose
-  OnCreate = FWPRailWindowCreate
   OnDestroy = FormDestroy
   OnDragDrop = FWPRailWindowDragDrop
   OnDragOver = FWPRailWindowDragOver

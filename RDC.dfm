@@ -15,7 +15,6 @@ object RailDriverWindow: TRailDriverWindow
   OldCreateOrder = False
   Position = poScreenCenter
   OnClose = RailDriverWindowClose
-  OnCreate = RailDriverWindowCreate
   OnKeyDown = RailDriverWindowKeyDown
   ExplicitWidth = 320
   ExplicitHeight = 240

@@ -13,7 +13,6 @@ object LocoUtilsWindow: TLocoUtilsWindow
   Font.Style = []
   KeyPreview = True
   OldCreateOrder = False
-  OnCreate = LocoUtilsWindowCreate
   ExplicitWidth = 320
   ExplicitHeight = 240
   PixelsPerInch = 96

@@ -11,7 +11,6 @@ object EditWindow: TEditWindow
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
-  OnCreate = EditWindowCreate
   OnShow = EditWindowShow
   PixelsPerInch = 96
   TextHeight = 13

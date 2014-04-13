@@ -14,40 +14,40 @@ PROGRAM Rail;
 {$R Rail.res}
 
 *)
-uses
+USES
   Forms,
-  Raildraw in 'Raildraw.pas' {FWPRailWindow},
-  Diagrams in 'Diagrams.pas' {DiagramsWindow},
-  MiscUtils in 'MiscUtils.pas' {DebugWindow},
-  RDC in 'RDC.pas',
-  Input in 'Input.pas' {InputDialogueBox},
-  Feedback in 'Feedback.pas' {FeedbackWindow},
-  Startup in 'Startup.pas' {DebuggingOptionsWindow},
-  Cuneo in 'Cuneo.pas' {CuneoWindow},
-  Locks in 'Locks.pas' {LockListWindow},
-  TCPIP in 'TCPIP.pas' {TCPIPForm},
-  Lenz in 'Lenz.pas' {LenzWindow},
-  LocoUtils in 'LocoUtils.pas' {LocoUtilsWindow},
-  InitVars in 'InitVars.pas' {InitVarsWindow},
-  GetTime in 'GetTime.pas' {ClockWindow},
-  Movement in 'Movement.pas' {MovementWindow},
-  Route in 'Route.pas' {RouteWindow},
-  Splash in 'Splash.pas' {Splash},
-  CreateRoute in 'CreateRoute.pas' {CreateRouteDisplayColoursWindow},
-  TestUnit in 'TestUnit.pas' {TestUnitForm},
-  StationMonitors in 'StationMonitors.pas' {StationMonitorsWindow},
-  ProgressBar in 'ProgressBar.pas' {RoutesWritingProgressBarWindow},
-  LocoDialogue in 'LocoDialogue.pas' {LocoDialogueWindow},
-  Help in 'Help.pas' {HelpWindow},
-  IniFiles in 'IniFiles.pas',
-  LocationData in 'LocationData.pas' {LocationDataWindow},
-  FWPShowMessageUnit in 'FWPShowMessageUnit.pas' {FWPShowMessageWindow},
-  Replay in 'Replay.pas' {ReplayForm},
-  Options in 'Options.pas' {OptionsWindow},
-  Edit in 'Edit.pas' {EditWindow},
-  WorkingTimetable in 'WorkingTimetable.pas' {WorkingTimetableWindow},
-  Logging in 'Logging.pas' {LoggingWindow},
-  Main in 'Main.pas' {MainWindow};
+  Raildraw IN 'Raildraw.pas' {FWPRailWindow},
+  Diagrams IN 'Diagrams.pas' {DiagramsWindow},
+  MiscUtils IN 'MiscUtils.pas' {DebugWindow},
+  RDC IN 'RDC.pas',
+  Input IN 'Input.pas' {InputDialogueBox},
+  Feedback IN 'Feedback.pas' {FeedbackWindow},
+  Startup IN 'Startup.pas' {DebuggingOptionsWindow},
+  Cuneo IN 'Cuneo.pas' {CuneoWindow},
+  Locks IN 'Locks.pas' {LockListWindow},
+  TCPIP IN 'TCPIP.pas' {TCPIPForm},
+  Lenz IN 'Lenz.pas' {LenzWindow},
+  LocoUtils IN 'LocoUtils.pas' {LocoUtilsWindow},
+  InitVars IN 'InitVars.pas' {InitVarsWindow},
+  GetTime IN 'GetTime.pas' {ClockWindow},
+  Movement IN 'Movement.pas' {MovementWindow},
+  Route IN 'Route.pas' {RouteWindow},
+  Splash IN 'Splash.pas' {Splash},
+  CreateRoute IN 'CreateRoute.pas' {CreateRouteDisplayColoursWindow},
+  TestUnit IN 'TestUnit.pas' {TestUnitForm},
+  StationMonitors IN 'StationMonitors.pas' {StationMonitorsWindow},
+  ProgressBar IN 'ProgressBar.pas' {RoutesWritingProgressBarWindow},
+  LocoDialogue IN 'LocoDialogue.pas' {LocoDialogueWindow},
+  Help IN 'Help.pas' {HelpWindow},
+  IniFiles IN 'IniFiles.pas',
+  LocationData IN 'LocationData.pas' {LocationDataWindow},
+  FWPShowMessageUnit IN 'FWPShowMessageUnit.pas' {FWPShowMessageWindow},
+  Replay IN 'Replay.pas' {ReplayForm},
+  Options IN 'Options.pas' {OptionsWindow},
+  Edit IN 'Edit.pas' {EditWindow},
+  WorkingTimetable IN 'WorkingTimetable.pas' {WorkingTimetableWindow},
+  Logging IN 'Logging.pas' {LoggingWindow},
+  Main IN 'Main.pas' {MainWindow};
 
 VAR
   I : Integer;
@@ -72,33 +72,6 @@ BEGIN
     SplashForm.Update;
   END;
   Application.CreateForm(TMainWindow, MainWindow);
-  Application.CreateForm(TFWPRailWindow, FWPRailWindow);
-  Application.CreateForm(TRailDriverWindow, RailDriverWindow);
-  Application.CreateForm(TDebugWindow, DebugWindow);
-  Application.CreateForm(TDiagramsWindow, DiagramsWindow);
-  Application.CreateForm(TInputDialogueBox, InputDialogueBox);
-  Application.CreateForm(TFeedbackWindow, FeedbackWindow);
-  Application.CreateForm(TDebuggingOptionsWindow, DebuggingOptionsWindow);
-  Application.CreateForm(TCuneoWindow, CuneoWindow);
-  Application.CreateForm(TLockListWindow, LockListWindow);
-  Application.CreateForm(TLenzWindow, LenzWindow);
-  Application.CreateForm(TLocoUtilsWindow, LocoUtilsWindow);
-  Application.CreateForm(TInitVarsWindow, InitVarsWindow);
-  Application.CreateForm(TClockWindow, ClockWindow);
-  Application.CreateForm(TMovementWindow, MovementWindow);
-  Application.CreateForm(TRouteWindow, RouteWindow);
-  Application.CreateForm(TCreateRouteDisplayColoursWindow, CreateRouteDisplayColoursWindow);
-  Application.CreateForm(TTestUnitForm, TestUnitForm);
-  Application.CreateForm(TStationMonitorsWindow, StationMonitorsWindow);
-  Application.CreateForm(TRoutesWritingProgressBarWindow, RoutesWritingProgressBarWindow);
-  Application.CreateForm(TLocoDialogueWindow, LocoDialogueWindow);
-  Application.CreateForm(THelpWindow, HelpWindow);
-  Application.CreateForm(TLocationDataWindow, LocationDataWindow);
-  Application.CreateForm(TFWPShowMessageWindow, FWPShowMessageWindow);
-  Application.CreateForm(TReplayForm, ReplayForm);
-  Application.CreateForm(TWorkingTimetableWindow, WorkingTimetableWindow);
-  Application.CreateForm(TOptionsWindow, OptionsWindow);
-  Application.CreateForm(TEditWindow, EditWindow);
   Application.Run;
 END { Rail }.
 

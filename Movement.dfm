@@ -14,7 +14,6 @@ object MovementWindow: TMovementWindow
   KeyPreview = True
   OldCreateOrder = False
   Position = poDesigned
-  OnCreate = MovementWindowCreate
   PixelsPerInch = 96
   TextHeight = 13
   object SignalLocationsToMonitorCheckListBox: TCheckListBox

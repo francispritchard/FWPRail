@@ -35,7 +35,6 @@ TYPE
 
     PROCEDURE DiagramsPopupMenuOnPopup(Sender: TObject);
     PROCEDURE DiagramsWindowClose(Sender: TObject; VAR Action: TCloseAction);
-    PROCEDURE DiagramsWindowCreate(Sender: TObject);
     PROCEDURE DiagramsWindowDeactivate(Sender: TObject);
     PROCEDURE DiagramsWindowGridDrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
     PROCEDURE DiagramsWindowGridKeyDown(Sender: TObject; VAR Key: Word; ShiftState: TShiftState);
@@ -1664,7 +1663,6 @@ BEGIN
                     ELSE
                       SetUpDiagramsGridCell(T, TimeCol[ColumnCount], TempGridRowCount, TimeToHMStr(Train_JourneysArray[JourneyCount].TrainJourney_CurrentDepartureTime),
                                             CellStyle);
-
                     { Up or down }
                     SetUpDiagramsGridCell(T, UpDownCol[ColumnCount], TempGridRowCount, DirectionToStr(Train_JourneysArray[JourneyCount].TrainJourney_Direction,
                                           ShortStringType), CellStyle);
@@ -1919,11 +1917,6 @@ BEGIN
       FWPRailWindow.SetFocus;
   END; {WITH}
 END; { DrawDiagramsWindow }
-
-PROCEDURE TDiagramsWindow.DiagramsWindowCreate(Sender: TObject);
-BEGIN
-  DrawDiagramsWindow;
-END; { DiagramsWindowCreate }
 
 PROCEDURE TDiagramsWindow.DiagramsWindowClose(Sender: TObject; VAR Action: TCloseAction);
 { Hides but does not close the window }
@@ -6138,6 +6131,9 @@ PROCEDURE InitialiseDiagramsUnit;
 BEGIN
   DiagramsList := NIL;
   DiagramsChosenTrain := NIL;
+  DrawDiagramsWindow;
+
+  Log('A Diagrams unit initialised');
 END; { InitDiagramsUnit }
 
 INITIALIZATION

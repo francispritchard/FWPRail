@@ -18,7 +18,6 @@ TYPE
     PROCEDURE OptionsValueListEditorDrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
     PROCEDURE OptionsValueListEditorKeyDown(Sender: TObject; VAR Key: Word; Shift: TShiftState);
     PROCEDURE OptionsValueListEditorValidate(Sender: TObject; ACol, ARow: Integer; CONST KeyName, KeyValue: String);
-    PROCEDURE OptionsWindowCreate(Sender: TObject);
     PROCEDURE OptionsWindowFindDialogShow(Sender: TObject);
     PROCEDURE OptionsWindowFindDialogClose(Sender: TObject);
     PROCEDURE OptionsWindowFindDialogFind(Sender: TObject);
@@ -28,6 +27,9 @@ TYPE
   PUBLIC
     { Public declarations }
   END;
+
+PROCEDURE InitialiseOptionsUnit;
+{ Initialises the unit }
 
 PROCEDURE ReadIniFile;
 { Read in data from the .ini file or from the Registry, except for the trackcircuit data }
@@ -2785,15 +2787,14 @@ BEGIN
   WriteOptionsToValueList;
 END; { OptionsWindowShow }
 
-PROCEDURE TOptionsWindow.OptionsWindowCreate(Sender: TObject);
+PROCEDURE InitialiseOptionsUnit;
+{ Initialises the unit }
 BEGIN
-  OptionsWindow.Height := OptionsWindowHeight;
-  OptionsWindow.Width := OptionsWindowWidth;
-  OptionsWindow.Top := OptionsWindowTop;
-  OptionsWindow.Left := OptionsWindowLeft;
-
-  OptionsWindow.OptionsValueListEditor.ColWidths[0] := OptionsWindowValueListEditorCol0Width;
-END; { OptionsWindowCreate }
+  LocoUtilsWindow.Height := LocoUtilsWindowHeight;
+  LocoUtilsWindow.Width := LocoUtilsWindowWidth;
+  LocoUtilsWindow.Top := LocoUtilsWindowTop;
+  LocoUtilsWindow.Left := LocoUtilsWindowLeft;
+END; { InitialiseOptionsUnit }
 
 PROCEDURE TOptionsWindow.OptionsWindowFindDialogFind(Sender: TObject);
 //VAR

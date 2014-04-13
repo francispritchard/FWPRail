@@ -16,7 +16,6 @@ object DiagramsWindow: TDiagramsWindow
   OldCreateOrder = False
   Position = poDesigned
   OnClose = DiagramsWindowClose
-  OnCreate = DiagramsWindowCreate
   OnDeactivate = DiagramsWindowDeactivate
   OnHide = DiagramsWindowHide
   OnResize = DiagramsWindowResize

@@ -26,12 +26,14 @@ TYPE
     PROCEDURE LocoStringGridMouseUp(Sender : TObject; Button : TMouseButton; Shift : TShiftState; X, Y : Integer);
     PROCEDURE LocoUtilsLocoChipButtonKeyDown(Sender : TObject; VAR Key : Word; ShiftState : TShiftState);
     PROCEDURE LocoUtilsLocoNumButtonKeyDown(Sender : TObject; VAR Key : Word; ShiftState : TShiftState);
-    PROCEDURE LocoUtilsWindowCreate(Sender : TObject);
   PRIVATE
     { Private declarations }
   PUBLIC
     { Public declarations }
   END;
+
+PROCEDURE InitialiseLocoUtilsUnit;
+{ Initialises the unit }
 
 PROCEDURE ListLocosByChip;
 { Create a list by loco chip }
@@ -1311,13 +1313,14 @@ BEGIN
   END; {TRY}
 END; { SortNumbersInsertingLeadingZeroes }
 
-PROCEDURE TLocoUtilsWindow.LocoUtilsWindowCreate(Sender: TObject);
+PROCEDURE InitialiseLocoUtilsUnit;
+{ Initialises the unit }
 BEGIN
   LocoUtilsWindow.Height := LocoUtilsWindowHeight;
   LocoUtilsWindow.Width := LocoUtilsWindowWidth;
   LocoUtilsWindow.Top := LocoUtilsWindowTop;
   LocoUtilsWindow.Left := LocoUtilsWindowLeft;
-END; { LocoUtilsWindowCreate }
+END; { InitialiseLocoUtilsUnit }
 
 PROCEDURE TLocoUtilsWindow.LocoUtilsLocoChipButtonKeyDown(Sender: TObject; VAR Key: Word; ShiftState: TShiftState);
 BEGIN

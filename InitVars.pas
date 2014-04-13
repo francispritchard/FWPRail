@@ -6124,6 +6124,8 @@ BEGIN
   DefaultWorkingTimetableWindowLeft := 0;
   DefaultWorkingTimetableSmallWindowWidth := MulDiv(Screen.WorkAreaWidth, 500, 1000);
   DefaultWorkingTimetableLargeWindowWidth := Screen.WorkAreaWidth;
+
+  Log('A InitVars unit initialised');
 END; { InitialiseInitVarsUnit }
 
 INITIALIZATION
@@ -6132,5 +6134,4 @@ BEGIN
   SaveActualTime := Time;
 END;
 
-END { InitVars }
-  .
+END { InitVars }.

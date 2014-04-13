@@ -86,7 +86,6 @@ TYPE
     PROCEDURE LEDTimerTick(Sender: TObject);
     PROCEDURE RailDriverTimerTick(Sender: TObject);
     PROCEDURE RailDriverWindowClose(Sender: TObject; VAR Action: TCloseAction);
-    PROCEDURE RailDriverWindowCreate(Sender: TObject);
     PROCEDURE RailDriverWindowKeyDown(Sender: TObject; VAR Key: Word; ShiftState: TShiftState);
     PROCEDURE WriteButtonClick(Sender: TObject);
 
@@ -2162,16 +2161,9 @@ END; { InitialiseRailDriverConsole }
 PROCEDURE StartRailDriver;
 { Start up the Rail Driver, calibrating it if necessary }
 BEGIN
-  IF RDCMode THEN BEGIN
-    InitialiseRailDriverConsole;
-    ResetAllButtons;
-  END;
+  InitialiseRailDriverConsole;
+  ResetAllButtons;
 END; { StartRailDriver }
-
-PROCEDURE TRailDriverWindow.RailDriverWindowCreate(Sender: TObject);
-BEGIN
-  StartRailDriver;
-END; { RailDriverWindowCreate }
 
 PROCEDURE TRailDriverWindow.RailDriverWindowClose(Sender: TObject; VAR Action: TCloseAction);
 VAR

@@ -16,7 +16,6 @@ object DebugWindow: TDebugWindow
   OldCreateOrder = False
   Position = poDefault
   OnClose = DebugWindowClose
-  OnCreate = DebugWindowCreate
   OnHide = DebugWindowHide
   OnResize = DebugWindowResize
   OnShow = DebugWindowShow

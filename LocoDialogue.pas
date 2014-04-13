@@ -60,7 +60,6 @@ TYPE
     LocoDialogueTimer: TTimer;
     LocoDialogueTurnLightsOnOrOffButton: TButton;
     LocoDialogueUpButton: TButton;
-    PROCEDURE LocoDialogueWindowCreate(Sender: TObject);
     PROCEDURE LocoDialogueWindowClose(Sender: TObject; VAR Action: TCloseAction);
     PROCEDURE LocoDialogueWindowHide(Sender: TObject);
     PROCEDURE LocoDialogueWindowKeyDown(Sender: TObject; VAR Key: Word; ShiftState: TShiftState);
@@ -131,6 +130,9 @@ FUNCTION GetLocoDialogueLocoChip : Integer;
 
 FUNCTION GetLocoDialogueSelectedLocoSpeed : Integer;
 { Return the speed from the dialogue window }
+
+PROCEDURE InitialiseLocoDialogueUnit;
+{ Initialises the unit }
 
 PROCEDURE LocoDialogueChangeOrSelectLoco;
 { Select a loco }
@@ -1895,16 +1897,17 @@ BEGIN
   CheckEmergencyStop(Button, ShiftState);
 END; { LocoDialogueDHLocoMaskEditLabelMouseDown }
 
-PROCEDURE TLocoDialogueWindow.LocoDialogueWindowCreate(Sender: TObject);
+PROCEDURE InitialiseLocoDialogueUnit;
+{ Initialises the unit }
 BEGIN
   IF LocoDialogueSpeedInMPH THEN BEGIN
     LocoDialogueWindow.LocoDialogueSpeedInMPHButton.Caption := 'Switch To Speed Steps';
-    LocoDialogueMPHLabel.Visible := True;
+    LocoDialogueWindow.LocoDialogueMPHLabel.Visible := True;
   END ELSE BEGIN
     LocoDialogueWindow.LocoDialogueSpeedInMPHButton.Caption := 'Switch To Speed In MPH';
-    LocoDialogueMPHLabel.Visible := False;
+    LocoDialogueWindow.LocoDialogueMPHLabel.Visible := False;
   END;
-END; { LocoDialogueCreate }
+END; { InitialiseLocoDialogueUnit }
 
 PROCEDURE TLocoDialogueWindow.LocoDialogueWindowClose(Sender: TObject; VAR Action: TCloseAction);
 BEGIN

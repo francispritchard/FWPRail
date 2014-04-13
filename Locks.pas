@@ -40,7 +40,6 @@ USES Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, 
 TYPE
   TLockListWindow = CLASS(TForm)
     LockListWindowMemo: TMemo;
-    PROCEDURE LockListWindowCreate(Sender: TObject);
     PROCEDURE LockListWindowMemoKeyDown(Sender: TObject; VAR Key: Word; ShiftState: TShiftState);
   PRIVATE
     { Private declarations }
@@ -62,6 +61,9 @@ PROCEDURE FindPreviousHiddenAspectSignals(RouteArray : StringArrayType; CurrentS
 
 PROCEDURE Forbid;
 { Complains if user tries something stupid - no need if in auto mode }
+
+PROCEDURE InitialiseLocksUnit;
+{ Initialise the unit }
 
 PROCEDURE LockPointByRoute(LocoChip, P, Route : Integer; DoNotWriteMessage : Boolean);
 { Mark the point as locked by a specific route }
@@ -2474,13 +2476,14 @@ BEGIN
   END; {CASE}
 END; { LockListWindowMemOKeyDown }
 
-PROCEDURE TLockListWindow.LockListWindowCreate(Sender: TObject);
+PROCEDURE InitialiseLocksUnit;
+{ Initialise the unit }
 BEGIN
   LockListWindow.Height := LockListWindowHeight;
   LockListWindow.Width := LockListWindowWidth;
   LockListWindow.Top := LockListWindowTop;
   LockListWindow.Left := LockListWindowLeft;
-END; { LockListWindowCreate }
+END; { InitialiseLocksUnit }
 
 INITIALIZATION
 

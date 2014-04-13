@@ -12,7 +12,6 @@ object CreateRouteDisplayColoursWindow: TCreateRouteDisplayColoursWindow
   Font.Style = []
   FormStyle = fsStayOnTop
   OldCreateOrder = False
-  OnCreate = CreateRouteDisplayColoursWindowCreate
   PixelsPerInch = 96
   TextHeight = 13
   object CreateRouteDisplayColoursWindowRichEdit: TRichEdit

@@ -729,6 +729,8 @@ BEGIN
   HandleParameters;
   IF FWPRailWindow.FWPRailWindowStatusBar.Panels[StatusBarPanel0].Text = '' THEN
     WriteToStatusBarPanel(StatusBarPanel0, TimeToHMSStr(CurrentRailwayTime));
+
+  Log('A Startup unit initialised');
 END; { InitialiseStartupUnit }
 
 INITIALIZATION

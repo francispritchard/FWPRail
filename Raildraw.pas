@@ -404,7 +404,6 @@ TYPE
     PROCEDURE MainHelpMenuRailHelpClick(Sender: TObject);
     PROCEDURE MainRunMenuResumeOperationsClick(Sender: TObject);
     PROCEDURE FWPRailWindowClose(Sender: TObject; VAR Action: TCloseAction);
-    PROCEDURE FWPRailWindowCreate(Sender: TObject);
     PROCEDURE FWPRailWindowDragOver(Sender, Source: TObject; X, Y: Integer; State: TDragState; var Accept: Boolean);
     PROCEDURE FWPRailWindowDragDrop(Sender, Source: TObject; X, Y: Integer);
     PROCEDURE FWPRailWindowExitClick(Sender: TObject);
@@ -546,6 +545,9 @@ PROCEDURE DrawTRSPlunger(Location : Integer; Pressed : Boolean);
 
 PROCEDURE HideStatusBarAndUpDownIndications;
 { Before a zoomed screen move, hide the status bar and the "up" and "down" markers }
+
+PROCEDURE InitialiseRaildrawUnit;
+{ Initialises the unit }
 
 PROCEDURE InvalidateScreen(UnitRefParam, CallingStr : String);
 { Draw the screen by invalidating it }
@@ -6666,10 +6668,8 @@ BEGIN
   OfflineIcon.Handle := LoadIcon(hInstance, 'OfflineIcon');
 END; { LoadIcons }
 
-PROCEDURE TFWPRailWindow.FWPRailWindowCreate(Sender: TObject);
-//VAR
-//PreviousDebugTime : TDateTime;
-
+PROCEDURE InitialiseRaildrawUnit;
+{ Initialises the unit }
 BEGIN
   TRY
     WITH FWPRailWindow DO BEGIN
@@ -6689,8 +6689,7 @@ BEGIN
       Screen.Cursors[crPointLever] := LoadCursor(HInstance, 'PointLever');
 
       { Initialise lots of things before we start }
-      InitialiseInitVarsUnit;
-
+//      InitialiseInitVarsUnit;
       { but now read in details from the .ini file, which may amend data from the Initvars unit }
       ReadIniFile;
 
@@ -6705,6 +6704,7 @@ BEGIN
       RailWindowBitmap := TBitmap.Create;
       RailWindowBitmap.Width := FWPRailWindowWidth; // ClientWidth;
       RailWindowBitmap.Height := FWPRailWindowHeight; // ClientHeight;
+//drawmap;
 
       FWPRailWindowInitialised := False;
       ResizeMap := False;
@@ -6729,10 +6729,10 @@ BEGIN
 
       { Now start up the various Units - done here explicitly so we know what order it's being done in }
       InitialiseGetTimeUnit;
-      InitialiseStartupUnit;
-      InitialiseInitVarsUnit;
-      InitialiseLenzUnit;
-      InitialiseDiagramsUnit;
+//      InitialiseStartupUnit;
+//      InitialiseInitVarsUnit;
+//      InitialiseLenzUnit;
+//      InitialiseDiagramsUnit;
       InitialiseScreenDrawingVariables;
       // Log('#5 ' + TimeToHMSZStr(Time) + ' ' + IntToStr(MilliSecondsBetween(Time, PreviousDebugTime)));
       // DrawMap;
@@ -6741,7 +6741,7 @@ BEGIN
     ON E : Exception DO
       Log('EG FWPRailWindowCreate:' + E.ClassName +' error raised, with message: '+ E.Message);
   END; {TRY}
-END; { FWPRailWindowCreate }
+END; { InitialiseRaildrawUnit }
 
 PROCEDURE DrawMap;
 { Draws the track layout }

@@ -18,7 +18,6 @@ object LocoDialogueWindow: TLocoDialogueWindow
   KeyPreview = True
   OldCreateOrder = False
   OnClose = LocoDialogueWindowClose
-  OnCreate = LocoDialogueWindowCreate
   OnHide = LocoDialogueWindowHide
   OnKeyDown = LocoDialogueWindowKeyDown
   OnKeyUp = LocoDialogueWindowKeyUp

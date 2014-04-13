@@ -18,7 +18,6 @@ TYPE
     RouteingExceptionDataADOConnection: TADOConnection;
     RouteingExceptionDataADOTable: TADOTable;
     RouteingExceptionDataSource: TDataSource;
-    PROCEDURE CreateRouteDisplayColoursWindowCreate(Sender: TObject);
     PROCEDURE CreateRouteDisplayColoursWindowRichEditKeyDown(Sender: TObject; VAR Key: Word; Shift: TShiftState);
   PRIVATE
     { Private declarations }
@@ -73,6 +72,9 @@ PROCEDURE FindRouteFromLineAToLineB(LocoChip, Journey, S, StartLine, EndLine : I
 
 FUNCTION GetResettingTrackCircuit(LocoChip, S : Integer; SuppressMessage : Boolean) : Integer;
 { Extract the resetting trackcircuit (if any) from the Locking Array }
+
+PROCEDURE InitialiseCreateRouteDisplayColoursWindow;
+{ Initialises the window }
 
 PROCEDURE ReadInRouteingExceptionsFromDatabase;
 { Read in from file parameters that indicate routes that are explicitly not allowed }
@@ -3907,13 +3909,14 @@ BEGIN
   END; {TRY}
 END; { CreateRouteArraysForTrain }
 
-PROCEDURE TCreateRouteDisplayColoursWindow.CreateRouteDisplayColoursWindowCreate(Sender: TObject);
+PROCEDURE InitialiseCreateRouteDisplayColoursWindow;
+{ Initialises the window }
 BEGIN
   CreateRouteDisplayColoursWindow.Height := CreateRouteDisplayColoursWindowHeight;
   CreateRouteDisplayColoursWindow.Width := CreateRouteDisplayColoursWindowWidth;
   CreateRouteDisplayColoursWindow.Top := CreateRouteDisplayColoursWindowTop;
   CreateRouteDisplayColoursWindow.Left := CreateRouteDisplayColoursWindowLeft;
-END; { CreateRouteDisplayColoursWindowCreate }
+END; { InitialiseCreateRouteDisplayColoursWindow }
 
 PROCEDURE TCreateRouteDisplayColoursWindow.CreateRouteDisplayColoursWindowRichEditKeyDown(Sender: TObject; VAR Key: Word; Shift: TShiftState);
 BEGIN

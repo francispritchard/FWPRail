@@ -19,7 +19,6 @@ TYPE
     ExitWithoutSavingButton: TButton;
     SaveChangesButton: TButton;
     UndoChangesButton: TButton;
-    PROCEDURE EditWindowCreate(Sender: TObject);
     PROCEDURE EditWindowShow(Sender: TObject);
     PROCEDURE EditValueListEditorEditButtonClick(Sender: TObject);
     PROCEDURE EditValueListEditorExit(Sender: TObject);
@@ -53,6 +52,9 @@ PROCEDURE DisplaySignalOptionsInValueList(S : Integer);
 PROCEDURE DisplayPointOptionsInValueList(P : Integer);
 { Create a value list in the edit window with the appropriate values }
 
+PROCEDURE InitialiseEditUnit;
+{ Initialises the unit }
+
 PROCEDURE ProcessSignalLocationsToMonitorCheckListBoxChecks;
 { See which locations are ticked and update the array }
 
@@ -68,7 +70,7 @@ VAR
 IMPLEMENTATION
 
 {$R *.dfm}
-USES Diagrams, Input, Cuneo;
+USES Diagrams, Input, Cuneo, Lenz;
 
 CONST
   UnitRef = 'Edit';
@@ -255,13 +257,14 @@ BEGIN
   END; {TRY}
 END; { TurnEditModeOff }
 
-PROCEDURE TEditWindow.EditWindowCreate(Sender: TObject);
+PROCEDURE InitialiseEditUnit;
+{ Initialises the unit }
 BEGIN
-  Height := EditWindowHeight;
-  Top := EditWindowTop;
-  Left := EditWindowLeft;
-  Width := EditWindowWidth;
-END; { EditWindowCreate }
+  EditWindow.Height := EditWindowHeight;
+  EditWindowTop := EditWindowTop;
+  EditWindowLeft := EditWindowLeft;
+  EditWindowWidth := EditWindowWidth;
+END; { InitialiseEditUnit }
 
 PROCEDURE TEditWindow.EditValueListEditorStringsChange(Sender: TObject);
 BEGIN
