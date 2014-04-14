@@ -92,8 +92,11 @@ FUNCTION PointIsLockedByAnySignal(P : Integer; OUT SignalLockingArray : IntegerA
 FUNCTION PointIsLockedByASpecificSignal(P, S : Integer) : Boolean;
 { Returns true of the point is locked by the given signal }
 
-PROCEDURE PullPoint(P, LocoChip : Integer; Route, SubRoute : Integer; ForcePoint, User, ErrorMessageRequired : Boolean; OUT PointResultPending : Boolean;
-                    OUT ErrorMsg : String; OUT PointChangedOK : Boolean);
+PROCEDURE PullPoint{1}(P, LocoChip : Integer; Route, SubRoute : Integer; ForcePoint, User, ErrorMessageRequired : Boolean; OUT PointResultPending : Boolean;
+                    OUT ErrorMsg : String; OUT PointChangedOK : Boolean); Overload;
+{ Changes the state of a point if legal }
+
+PROCEDURE PullPoint{2}(P : Integer; ForcePoint : Boolean); Overload;
 { Changes the state of a point if legal }
 
 PROCEDURE PullSignal{1}(LocoChip, S : Integer; NewIndicatorState : IndicatorStateType; Route, SubRoute : Integer; PlatformOrFiddleyardLine : Integer;
@@ -1249,7 +1252,6 @@ PROCEDURE PullSignalMainProcedure(LocoChip, S : Integer; NewIndicatorState : Ind
 CONST
   EmergencyRouteing = True;
   IncludeOutOfUseLines = True;
-  NoLog = True;
   ShowError = True;
   SignalNotPoint = True;
   SuppressMessage = True;
@@ -1760,8 +1762,8 @@ BEGIN
   PullSignalMainProcedure(LocoChip, S, NewIndicatorState, Route, SubRoute, PlatformOrFiddleyardLine, SettingString, ResetTC, TrainTypeForRouteing, User, OK);
 END; { PullSignal-4 }
 
-PROCEDURE PullPoint(P, LocoChip : Integer; Route, SubRoute : Integer; ForcePoint, User, ErrorMessageRequired : Boolean; OUT PointResultPending : Boolean;
-                    OUT ErrorMsg : String; OUT PointChangedOK : Boolean);
+PROCEDURE PullPoint{1}(P, LocoChip : Integer; Route, SubRoute : Integer; ForcePoint, User, ErrorMessageRequired : Boolean; OUT PointResultPending : Boolean;
+                       OUT ErrorMsg : String; OUT PointChangedOK : Boolean); Overload;
 { Changes the state of a point if legal }
 CONST
   ChangeTwice = True;
@@ -1780,11 +1782,16 @@ VAR
 BEGIN
   LocoChipStr := LocoChipToStr(LocoChip);
 
+  IF Points[P].Point_RequiredState = PointStateUnknown THEN
+    Exit;
+
+  IF Points[P].Point_RequiredState = Points[P].Point_PresentState THEN
+    Exit;
+
   WITH Points[P] DO BEGIN
     IF Point_OutOfUse THEN BEGIN
       PointChangedOK := False;
-      ErrorMsg := 'Point ' + IntToStr(P) + ' change failed - point is out of use';
-      Log(LocoChipStr + ' PG Point ' + IntToStr(P) + ErrorMsg);
+      Log(LocoChipStr + ' PG Point ' + IntToStr(P) + ' change failed - point is out of use');
     END ELSE BEGIN
       PointChangedOK := False;
       EmergencyDeselectPointOK := False;
@@ -1860,7 +1867,9 @@ BEGIN
             Debug('P=' + IntToStr(P) + ' (Lenz=' + IntToStr(Points[P].Point_LenzNum) + ') feedback pending');
             PointChangedOK := False;
           END ELSE BEGIN
-            IF (Point_PresentState <> Point_RequiredState) OR Point_SetASecondTime OR ForcePoint THEN BEGIN
+            IF (Point_PresentState = Point_RequiredState) AND NOT Point_SetASecondTime AND NOT ForcePoint THEN
+              PointChangedOK := True
+            ELSE BEGIN
               IF NOT ReplayMode THEN BEGIN
                 IF NOT ForcePoint THEN
                   DebugStr := 'Changing P=' + IntToStr(P) + ' to ' + PointStateToStr(Point_RequiredState)
@@ -2050,7 +2059,20 @@ BEGIN
       END;
     END;
   END; {WITH}
-END; { PullPoint }
+END; { PullPoint-1 }
+
+PROCEDURE PullPoint{2}(P : Integer; ForcePoint : Boolean); Overload;
+{ Changes the state of a point if legal }
+VAR
+  DebugStr : String;
+  ErrorMessageRequired : Boolean;
+  PointResultPending : Boolean;
+  OK : Boolean;
+
+BEGIN
+  DebugStr := '';
+  PullPoint(P, NoLocoChip, NoRoute, NoSubRoute, ForcePoint, ByUser, NOT ErrorMessageRequired, PointResultPending, DebugStr, OK);
+END; { PullPoint-2 }
 
 PROCEDURE CheckRouteAheadLocking(T : Train; RouteArray : StringArrayType; OUT RouteCurrentlyLocked, RoutePermanentlyLocked : Boolean; OUT LockingMsg : String);
 { Tests a given route array to see if anything on it is locked. The test stops at any subsequent signal which is a route holding signal though. }

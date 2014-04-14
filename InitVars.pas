@@ -107,7 +107,6 @@ CONST
   ForcePoint = True;
   HelpRequired = True;
   Highlight = True;
-  NoLog = True;
   QuickStop = True;
   StopTimer = True;
   TrainExists = True;
@@ -451,7 +450,7 @@ TYPE
     Point_LockFailureNotedInLocksUnit : Boolean;
     Point_LockFailureNotedInSubRouteUnit : Boolean;
     Point_LockingArray : StringArrayType;
-    Point_LockingState : PointStateType;
+    Point_LockingState : PointStateType; { used to detect points that have moved while locked }
     Point_ManualOperation : Boolean;
     Point_ManualStateAsReadIn : PointStateType;
     Point_MaybeBeingSetToManual : Boolean;
@@ -5341,7 +5340,8 @@ BEGIN
           Point_LockingState := PointStateUnknown;
           Point_MaybeBeingSetToManual := False;
           Point_MovedWhenLocked := False;
-
+          Point_PresentState := PointStateUnknown;
+          Point_RequiredState := PointStateUnknown;
           Point_ResettingTime := 0;
           Point_RouteLockedByLocoChip := UnknownLocoChip;
           Point_SecondAttempt := False;
@@ -5374,6 +5374,7 @@ BEGIN
           IF ErrorMsg = '' THEN
             Point_ManualStateAsReadIn := ValidatePointManualStateAsReadIn(PointsADOTable.FieldByName(Point_ManualStateAsReadInFieldName).AsString, Point_ManualOperation,
                                                                           ErrorMsg);
+
           IF ErrorMsg = '' THEN
             Point_LenzNum := ValidatePointLenzNum(PointsADOTable.FieldByName(Point_LenzNumFieldName).AsString, Point_ManualStateAsReadIn, Point_ManualOperation,
                                                   Point_PresentState, ErrorMsg);
@@ -5409,6 +5410,16 @@ BEGIN
 
           IF ErrorMsg = '' THEN
             Point_LockedIfNonHeelTCsOccupied := PointsADOTable.FieldByName(Point_LockedIfNonHeelTCsOccupiedFieldName).AsBoolean;
+
+          IF ErrorMsg = '' THEN BEGIN
+            IF Point_ManualOperation THEN BEGIN
+              IF Point_ManualStateAsReadIn <> PointStateUnknown THEN
+                Point_RequiredState := Point_ManualStateAsReadIn
+              ELSE
+                Point_RequiredState := Point_DefaultState;
+            END ELSE
+              Point_RequiredState := Point_DefaultState;
+          END;
 
           IF ErrorMsg <> '' THEN BEGIN
             IF MessageDialogueWithDefault('Error in creating P=' + IntToStr(P) + ': '
@@ -5500,16 +5511,16 @@ BEGIN
               PointsADOTable.FieldByName('LastManualState').AsString := '';
               PointsADOTable.Post;
             END
-            ELSE
-              IF (Point_ManualOperation) AND (Point_ManualStateAsReadIn <> Point_PresentState) THEN BEGIN
-                PointsADOTable.Edit;
-                IF Points[P].Point_PresentState = Straight THEN
-                  PointsADOTable.FieldByName('LastManualState').AsString := 'straight'
-                ELSE
-                  PointsADOTable.FieldByName('LastManualState').AsString := 'diverging';
-                PointsADOTable.Post;
-                Log('P Recording in point database that manual P=' + IntToStr(P) + '''s state is now ' + PointStateToStr(Points[P].Point_PresentState));
-              END;
+              ELSE
+                IF (Point_ManualOperation) AND (Point_ManualStateAsReadIn <> Point_PresentState) THEN BEGIN
+                  PointsADOTable.Edit;
+                  IF Points[P].Point_PresentState = Straight THEN
+                    PointsADOTable.FieldByName('LastManualState').AsString := 'straight'
+                  ELSE
+                    PointsADOTable.FieldByName('LastManualState').AsString := 'diverging';
+                  PointsADOTable.Post;
+                  Log('P Recording in point database that manual P=' + IntToStr(P) + '''s state is now ' + PointStateToStr(Points[P].Point_PresentState));
+                END;
           END; { WITH }
           PointsADOTable.Next;
         END; { WHILE }
