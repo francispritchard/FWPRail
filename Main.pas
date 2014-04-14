@@ -82,7 +82,7 @@ IMPLEMENTATION
 {$R *.dfm}
 
 USES GetTime, Raildraw, MiscUtils, Locks, LocationData, Feedback, Options, System.StrUtils, Lenz, System.DateUtils, TestUnit, Movement, FWPShowMessageUnit, CreateRoute,
-     Diagrams, Route, Replay, Startup, Cuneo, LocoUtils, StationMonitors, ProgressBar, LocoDialogue, Help, WorkingTimetable, Edit, RDC;
+     Diagrams, Route, Replay, Startup, Cuneo, LocoUtils, StationMonitors, ProgressBar, LocoDialogue, Help, WorkingTimetable, Edit, RDC, Input;
 
 CONST
   UndrawRequired = True;
@@ -1282,6 +1282,10 @@ BEGIN
     IF EditWindow = NIL THEN BEGIN
       EditWindow := TEditWindow.Create(Application);
       EditWindow.Update;
+    END;
+    IF InputDialogueBox = NIL THEN BEGIN
+      InputDialogueBox := TInputDialogueBox.Create(Application);
+      InputDialogueBox.Update;
     END;
     IF FWPRailWindow = NIL THEN BEGIN
       FWPRailWindow := TFWPRailWindow.Create(Application);
