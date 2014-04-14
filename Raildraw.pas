@@ -6627,7 +6627,7 @@ BEGIN
       LoadIcons;
 
       // Application.OnException := FWPExceptionHandler;
-  Log('#1 ' + TimeToHMSZStr(Time));
+//  Log('#1 ' + TimeToHMSZStr(Time));
       //PreviousDebugTime := Time;
       { Intercept messages to be able to use the tab key! }
       Application.OnMessage := ApplicationMessage;
@@ -6642,7 +6642,7 @@ BEGIN
       { Initialise lots of things before we start }
 //      InitialiseInitVarsUnit;
       { but now read in details from the .ini file, which may amend data from the Initvars unit }
-      ReadIniFile;
+//      ReadIniFile;
 
       { Set up default window size }
       Position := poDesigned;
@@ -6679,7 +6679,7 @@ BEGIN
       // PreviousDebugTime := Time;
 
       { Now start up the various Units - done here explicitly so we know what order it's being done in }
-      InitialiseGetTimeUnit;
+//      InitialiseGetTimeUnit;
 //      InitialiseStartupUnit;
 //      InitialiseInitVarsUnit;
 //      InitialiseLenzUnit;
@@ -6979,7 +6979,6 @@ BEGIN { Main drawing procedure }
         THEN BEGIN
           { Load feedback data and the diagrams datat and compare the data (these routines are here, as the various windows are created by this stage) }
           DiagramsCheckingInProgress := True;
-//          GetInitialFeedback;
           // Log('X (3b) ' + TimeToHMSZStr(Time));
 
           { but change the state of any that we know are out-of-use }

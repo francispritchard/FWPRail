@@ -8,7 +8,7 @@ TYPE
   TMainWindow = CLASS(TForm)
     MainTimer: TTimer;
     PROCEDURE MainTimerTick(Sender: TObject);
-    procedure MainWindowCreate(Sender: TObject);
+    PROCEDURE MainWindowCreate(Sender: TObject);
   PRIVATE
     { Private declarations }
     PROCEDURE WMCopyData(VAR Msg : TWMCopyData); Message WM_COPYDATA;
@@ -1292,6 +1292,8 @@ BEGIN
 //      FWPRailWindow.Update;
     END;
 
+    ReadIniFile;
+
     InitialiseOptionsUnit;
     InitialiseLocoDialogueUnit;
     InitialiseLocksUnit;
@@ -1299,6 +1301,7 @@ BEGIN
     InitialiseMiscUtilsUnit;
     InitialiseMovementUnit;
     InitialiseRaildrawUnit;
+    InitialiseGetTimeUnit;
     InitialiseStartupUnit;
     InitialiseWorkingTimetableUnit;
     InitialiseEditUnit;
