@@ -2449,7 +2449,7 @@ BEGIN
         IF ((Signals[GetLineAdjacentSignal(CurrentLine)].Signal_Indicator = TheatreIndicator)
            AND (Signals[GetLineAdjacentSignal(CurrentLine)].Signal_IndicatorState = TheatreIndicatorLit))
         OR (Signals[GetLineAdjacentSignal(CurrentLine)].Signal_Aspect <> RedAspect)
-        { include sempahore distants as they obey different rules }
+        { include semaphore distants as they obey different rules }
         OR (Signals[GetLineAdjacentSignal(CurrentLine)].Signal_Type = SemaphoreDistant)
         THEN BEGIN
           Inc(SignalCount);

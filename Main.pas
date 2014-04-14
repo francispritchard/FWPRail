@@ -1304,7 +1304,7 @@ BEGIN
     InitialiseCreateRouteDisplayColoursWindow;
   EXCEPT
     ON E : Exception DO
-      Log('EG MainWindowCreate:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG MainWindowCreate:' + E.ClassName +' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { MainWindowCreate }
 

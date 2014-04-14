@@ -532,7 +532,7 @@ TYPE
     Signal_DataChanged : Boolean;
     Signal_DecoderNum : Integer;
     Signal_Direction : DirectionType;
-    Signal_DistantHomesArray : IntegerArrayType; { needed to tell a semaphore distant which sempahore homes lock it }
+    Signal_DistantHomesArray : IntegerArrayType; { needed to tell a semaphore distant which semaphore homes lock it }
     Signal_Energised : Boolean;
     Signal_EnergisedTime : TDateTime;
     Signal_FailedToResetFlag : Boolean;
