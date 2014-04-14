@@ -4297,25 +4297,10 @@ BEGIN { KeyPressedDown }
               END;
             Ctrl: {Enter}
               BEGIN
-                HelpMsg := 'reset';
+                HelpMsg := 'Set System Offline';
                 IF NOT HelpRequired THEN BEGIN
-                  IF SystemOnline THEN BEGIN
+                  IF SystemOnline THEN
                     SetSystemOffline('');
-                    { put offline indication on screen }
-
-                    { and mark the state of points as not known, as we might change them on screen without changing them on the ground }
-                    FOR I := 0 TO High(Points) DO
-                      Points[I].Point_PresentState := PointStateUnknown;
-                    Log('AG System offline');
-                  END ELSE BEGIN
-                    TurnAutoModeOff(NOT ByUser);
-
-//                    IF LenzWindow.CommsSetUpOK THEN BEGIN
-//                      Log('AG Comms restarted');
-//                    END ELSE
-//                      { still some problem }
-//                      SetSystemOffline('');
-                  END;
                 END;
               END;
             Alt: {Enter}
@@ -5404,7 +5389,7 @@ BEGIN { KeyPressedDown }
               END;
             ShiftAlt: {F11}
               BEGIN
-                HelpMsg := 'switch signals off/on';
+                HelpMsg := 'switch signals off/on';     { sets semaphores off for some funny reason ********** }
                 IF NOT HelpRequired THEN BEGIN
                   IF NOT AllSignalsSwitchedOff THEN BEGIN
                     SaveSignalsCurrentState;
