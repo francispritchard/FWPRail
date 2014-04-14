@@ -5851,7 +5851,9 @@ VAR
   ErrorMsg : String;
   FieldName : String;
   F : Integer;
+  FirstFeedbackUnit : Integer;
   Input : Integer;
+  LastFeedbackUnit : Integer;
   TempStr : String;
 
 BEGIN
@@ -5880,6 +5882,7 @@ BEGIN
       FeedbackUnitDataADOTable.Sort := 'Unit ASC';
       FeedbackUnitDataADOTable.First;
       SetLength(FeedbackUnitData, 0);
+      FirstFeedbackUnit := 99999;
 
       WHILE NOT FeedbackUnitDataADOTable.EOF DO BEGIN
         WITH FeedbackUnitDataADOTable DO BEGIN
@@ -5890,6 +5893,10 @@ BEGIN
 
             FieldName := 'Unit';
             Feedback_Unit := FieldByName(FieldName).AsInteger;
+            IF Feedback_Unit < FirstFeedbackUnit THEN
+              FirstFeedbackUnit := Feedback_Unit;
+            IF Feedback_Unit > LastFeedbackUnit THEN
+              LastFeedbackUnit := Feedback_Unit;
 
             FieldName := 'Type';
             IF FieldByName(FieldName).AsString = '' THEN
@@ -5928,9 +5935,7 @@ BEGIN
                   ErrorMsg := 'invalid integer ''' + TempStr + ''' in TCAbove field';
             END;
 
-            IF ErrorMsg = '' THEN
-              Log('T Reading in data for feedback unit ' + IntToStr(Feedback_Unit) + ' from database')
-            ELSE BEGIN
+            IF ErrorMsg <> '' THEN BEGIN
               IF MessageDialogueWithDefault('Error in creating Feedback Detector=' + IntToStr(Feedback_Unit) + ': '
                                             + '[' + ErrorMsg + ']:'
                                             + CRLF
@@ -5949,6 +5954,8 @@ BEGIN
       FeedbackUnitDataADOTable.Close;
       FeedbackUnitDataADOConnection.Connected := False;
       Log('T Feedback unit data table and connection closed');
+
+      Log('T Reading in feedback data from unit ' + IntToStr(FirstFeedbackUnit) + ' to unit ' + IntToStr(LastFeedbackUnit) + ' from database');
     END; { WITH }
   EXCEPT { TRY }
     ON E : Exception DO
