@@ -1164,6 +1164,7 @@ VAR
   TrackCircuits : ARRAY OF TrackCircuitRec;
   TrackCircuitsInitialised : Boolean = False;
   UpLineY, DownLineY : Word;
+  VerboseFlag : Boolean = True;
   WatchdogTimerCount : Integer = 0;
   WindowPenWidth : Integer = 1;
   WorkingTimetableRecArray : WorkingTimetableRecArrayType;
@@ -2811,9 +2812,10 @@ BEGIN
   END; { TRY }
 
 
-  FOR L := 0 TO High(Lines) DO
-    WITH Lines[L] DO
-      Log('X ' + Line_Str +  ' UpX=' + IntToStr(Line_UpX) + ' UpY=' + IntToStr(Line_UpY) + ' DownX=' + IntToStr(Line_DownX) + ' DownY=' + IntToStr(Line_DownY));
+  IF VerboseFlag THEN
+    FOR L := 0 TO High(Lines) DO
+      WITH Lines[L] DO
+        Log('X ' + Line_Str +  ' UpX=' + IntToStr(Line_UpX) + ' UpY=' + IntToStr(Line_UpY) + ' DownX=' + IntToStr(Line_DownX) + ' DownY=' + IntToStr(Line_DownY));
 END; { CalculateLinePositions }
 
 PROCEDURE CalculateBufferStopPositions(ScaleFactor : Integer);

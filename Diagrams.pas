@@ -1138,7 +1138,8 @@ CONST
   Indent = True;
 
 BEGIN
-  Log('D Adding train ' + LocoChipToStr(T^.Train_LocoChip) + ' to the train list');
+  IF VerboseFlag THEN
+    Log('D Adding train ' + LocoChipToStr(T^.Train_LocoChip) + ' to the train list');
 
   { Add train to front of train list }
   T^.Train_NextRecord := TrainList;
