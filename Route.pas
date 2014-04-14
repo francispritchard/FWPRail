@@ -41,7 +41,7 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES Locks, Startup, Diagrams, Movement, Input, MiscUtils, LocoUtils, IDGlobal, DateUtils, StrUtils, LocationData, Options;
+USES Locks, Startup, Diagrams, Movement, Input, MiscUtils, LocoUtils, IDGlobal, DateUtils, StrUtils, LocationData, Options, Main;
 
 CONST
   UnitRef = 'Route';
@@ -256,7 +256,7 @@ BEGIN
             ELSE
               NewAspect := SingleYellowAspect;
 
-            SetSignal(LocoChip, Device, NewAspect, NOT NoLog);
+            SetSignal(LocoChip, Device, NewAspect, LogSignalData, NOT ForceAWrite);
             Log(LocoChipToStr(LocoChip) + ' R Setting up route R=' + IntToStr(Route) + ': S=' + IntToStr(Device)
                                         + ' previously held by approach control now off');
             FindPreviousSignals(S, Signals[S].Signal_PreviousSignal1, Signals[S].Signal_PreviousSignal2);

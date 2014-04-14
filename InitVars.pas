@@ -1046,6 +1046,8 @@ CONST
   TRSPlungerFeedbackDetectorStr = 'TRSPlunger';
   UnknownFeedbackDetectorStr = 'Unknown';
 
+  LogSignalData = True;
+
 VAR
   AllHeldRouteingReleased : Boolean = False;
   AllRouteDebuggingMode : Boolean = False;

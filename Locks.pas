@@ -159,7 +159,7 @@ PROCEDURE WriteRouteInfoToLockListWindow;
 
 IMPLEMENTATION
 
-USES RailDraw, MiscUtils, CreateRoute, Route, Lenz, StrUtils, DateUtils, Input, Options;
+USES RailDraw, MiscUtils, CreateRoute, Route, Lenz, StrUtils, DateUtils, Input, Options, Main;
 
 VAR
   UnitRef : String = 'Locks';
@@ -1102,18 +1102,15 @@ END; { SignalLockingOK }
 
 PROCEDURE SetPreviousSignals(LocoChip : Integer; S : Integer);
 { Sees what previous signals are set to, and resets aspects accordingly. PreviousSignal1 is the nearer and PreviousSignal2 the further }
-CONST
-  NoLog = True;
-
 BEGIN
   WITH Signals[S] DO BEGIN
     CASE Signal_Aspect OF
       RedAspect:
         IF Signals[Signal_PreviousSignal1].Signal_Aspect <> RedAspect THEN BEGIN
-          SetSignal(LocoChip, Signal_PreviousSignal1, SingleYellowAspect, NOT NoLog);
+          SetSignal(LocoChip, Signal_PreviousSignal1, SingleYellowAspect, LogSignalData, NOT ForceAWrite);
           IF Signal_PreviousSignal2 <> UnknownSignal THEN BEGIN
             IF Signals[Signal_PreviousSignal2].Signal_Aspect <> RedAspect THEN
-              SetSignal(LocoChip, Signal_PreviousSignal2, DoubleYellowAspect, NOT NoLog);
+              SetSignal(LocoChip, Signal_PreviousSignal2, DoubleYellowAspect, LogSignalData, NOT ForceAWrite);
           END;
         END;
       SingleYellowAspect:
@@ -1121,35 +1118,35 @@ BEGIN
         AND (Signal_ApproachControlAspect = SingleYellowAspect)
         THEN BEGIN
           IF Signals[Signal_PreviousSignal1].Signal_Aspect <> RedAspect THEN BEGIN
-            SetSignal(LocoChip, Signal_PreviousSignal1, FlashingSingleYellowAspect, NOT NoLog);
+            SetSignal(LocoChip, Signal_PreviousSignal1, FlashingSingleYellowAspect, LogSignalData, NOT ForceAWrite);
             IF Signal_PreviousSignal2 <> UnknownSignal THEN
               IF Signals[Signal_PreviousSignal2].Signal_Aspect <> RedAspect THEN
-                SetSignal(LocoChip, Signal_PreviousSignal2, FlashingDoubleYellowAspect, NOT NoLog);
+                SetSignal(LocoChip, Signal_PreviousSignal2, FlashingDoubleYellowAspect, LogSignalData, NOT ForceAWrite);
           END;
         END ELSE BEGIN
           IF Signals[Signal_PreviousSignal1].Signal_Aspect <> RedAspect THEN BEGIN
             IF Signals[Signal_PreviousSignal1].Signal_Type = FourAspect THEN
-              SetSignal(LocoChip, Signal_PreviousSignal1, DoubleYellowAspect, NOT NoLog)
+              SetSignal(LocoChip, Signal_PreviousSignal1, DoubleYellowAspect, LogSignalData, NOT ForceAWrite)
             ELSE
-              SetSignal(LocoChip, Signal_PreviousSignal1, GreenAspect, NOT NoLog);
+              SetSignal(LocoChip, Signal_PreviousSignal1, GreenAspect, LogSignalData, NOT ForceAWrite);
             IF Signal_PreviousSignal2 <> UnknownSignal THEN
               IF Signals[Signal_PreviousSignal2].Signal_Aspect <> RedAspect THEN
-                SetSignal(LocoChip, Signal_PreviousSignal2, GreenAspect, NOT NoLog);
+                SetSignal(LocoChip, Signal_PreviousSignal2, GreenAspect, LogSignalData, NOT ForceAWrite);
           END;
         END;
       DoubleYellowAspect:
         IF Signals[Signal_PreviousSignal1].Signal_Aspect <> RedAspect THEN BEGIN
-          SetSignal(LocoChip, Signal_PreviousSignal1, GreenAspect, NOT NoLog);
+          SetSignal(LocoChip, Signal_PreviousSignal1, GreenAspect, LogSignalData, NOT ForceAWrite);
           IF Signal_PreviousSignal2 <> UnknownSignal THEN
             IF Signals[Signal_PreviousSignal2].Signal_Aspect <> RedAspect THEN
-              SetSignal(LocoChip, Signal_PreviousSignal2, GreenAspect, NOT NoLog);
+              SetSignal(LocoChip, Signal_PreviousSignal2, GreenAspect, LogSignalData, NOT ForceAWrite);
         END;
       GreenAspect:
         IF Signals[Signal_PreviousSignal1].Signal_Aspect <> RedAspect THEN BEGIN
-          SetSignal(LocoChip, Signal_PreviousSignal1, GreenAspect, NOT NoLog);
+          SetSignal(LocoChip, Signal_PreviousSignal1, GreenAspect, LogSignalData, NOT ForceAWrite);
           IF Signal_PreviousSignal2 <> UnknownSignal THEN
             IF Signals[Signal_PreviousSignal2].Signal_Aspect <> RedAspect THEN
-              SetSignal(LocoChip, Signal_PreviousSignal2, GreenAspect, NOT NoLog);
+              SetSignal(LocoChip, Signal_PreviousSignal2, GreenAspect, LogSignalData, NOT ForceAWrite);
         END;
     END; {CASE}
   END; {WITH}
@@ -1678,7 +1675,7 @@ BEGIN
                 END ELSE
                   NewAspect := RedAspect;
 
-                SetSignal(LocoChip, S, NewAspect, NoLog);
+                SetSignal(LocoChip, S, NewAspect, NOT LogSignalData, NOT ForceAWrite);
                 IF NOT User THEN
                   DebugStr := 'S=' + IntToStr(S) + ' successfully set to ' + AspectToStr(Signals[S].Signal_Aspect)
                 ELSE

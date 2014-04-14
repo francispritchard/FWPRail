@@ -558,9 +558,6 @@ PROCEDURE RestoreCursor;
 PROCEDURE SetCaption(Window : TForm; Caption : String);
 { Sets a window caption }
 
-PROCEDURE SetSignal(LocoChip, S : Integer; NewAspect : AspectType; NoLog : Boolean);
-{ Set the state of a particular signal }
-
 PROCEDURE ShowStatusBarAndUpDownIndications;
 { After a zoomed screen move, restore the status bar and the "up" and "down" markers }
 
@@ -1572,9 +1569,6 @@ END; { DrawSignalData }
 
 PROCEDURE DrawAllSignals(ShowSignalAndBufferStopNums, ShowTheatreDestinations : Boolean);
 { Draw all the signals }
-CONST
-  NoLog = True;
-
 VAR
   S : Integer;
 
@@ -1586,9 +1580,9 @@ BEGIN
         { initialise them to red - to force SetSignal to switch them on and draw them }
         IF NOT FWPRailWindowInitialised THEN BEGIN
           IF Signals[S].Signal_OutOfUse THEN
-            SetSignal(NoLocoChip, S, NoAspect, NOT NoLog)
+            SetSignal(NoLocoChip, S, NoAspect, LogSignalData, NOT ForceAWrite)
           ELSE
-            SetSignal(NoLocoChip, S, RedAspect, NOT NoLog);
+            SetSignal(NoLocoChip, S, RedAspect, LogSignalData, NOT ForceAWrite);
         END ELSE BEGIN
           { otherwise just draw them }
           DrawSignal(S);
@@ -2218,48 +2212,6 @@ BEGIN
       Log('EG DrawSignal: ' + E.ClassName +' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { DrawSignal }
-
-PROCEDURE SetSignal(LocoChip, S : Integer; NewAspect : AspectType; NoLog : Boolean);
-{ Set the state of a particular signal and draws it }
-CONST
-  ShowNames = True;
-
-BEGIN
-  TRY
-    WITH Signals[S] DO BEGIN
-      IF Signal_Aspect <> NewAspect THEN BEGIN
-        Signal_Aspect := NewAspect;
-        IF NOT ProgramStartup
-        AND NOT NoLog
-        THEN
-          Log(LocoChipToStr(LocoChip) + ' S S=' + IntToStr(S) + ' successfully set to ' + AspectToStr(Signals[S].Signal_Aspect));
-
-        IF SystemOnline
-        AND NOT ResizeMap
-        THEN
-          IF Signal_DecoderNum <> 0 THEN
-            { uses LF100 decoders - bits usually set as follows:
-              green is bit 1, red 2, single yellow 3, double yellow 3 + 4; the indicator is bit 4 (not necessarily on same decoder though)
-            }
-            SetSignalFunction(LocoChip, S)
-          ELSE
-            IF Signal_AccessoryAddress <> 0 THEN
-              { uses TrainTech SC3 units for controlling Dapol semaphores }
-              IF NewAspect = RedAspect THEN
-                MakeSemaphoreSignalChange(LocoChip, S, Signal_AccessoryAddress, SignalOff)
-              ELSE
-                MakeSemaphoreSignalChange(LocoChip, S, Signal_AccessoryAddress, SignalOn);
-
-// if s <> 90 then
-        IF NOT ProgramStartup THEN
-          InvalidateScreen(UnitRef, 'SetSignal S=' + IntToStr(S));
-      END;
-    END; {WITH}
-  EXCEPT
-    ON E : Exception DO
-      Log('EG SetSignal:' + E.ClassName +' error raised, with message: '+ E.Message);
-  END; {TRY}
-END; { SetSignal }
 
 PROCEDURE DrawConnectionCh(L : Integer; Direction : DirectionType);
 { Draw character at line starts/ends to indicate where lines are going when they disappear off the screen }
