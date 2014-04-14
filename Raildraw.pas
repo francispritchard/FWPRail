@@ -6980,7 +6980,7 @@ BEGIN { Main drawing procedure }
         THEN BEGIN
           { Load feedback data and the diagrams datat and compare the data (these routines are here, as the various windows are created by this stage) }
           DiagramsCheckingInProgress := True;
-          GetInitialFeedback;
+//          GetInitialFeedback;
           // Log('X (3b) ' + TimeToHMSZStr(Time));
 
           { but change the state of any that we know are out-of-use }
