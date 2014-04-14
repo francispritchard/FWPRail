@@ -141,7 +141,7 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES RailDraw, Feedback, GetTime, Startup, MiscUtils, Diagrams, LocoUtils, IDGlobal, Movement, MMSystem, DateUtils, StrUtils, Input, Main;
+USES RailDraw, Feedback, GetTime, Startup, MiscUtils, Diagrams, LocoUtils, IDGlobal, Movement, MMSystem, DateUtils, StrUtils, Input, Main, Locks;
 
 CONST
   UnitRef = 'Lenz';
@@ -3408,6 +3408,10 @@ END; { SetSystemOffline }
 
 FUNCTION SetSystemOnline : Boolean;
 { Change the caption and the icons to show we're online - needs a test to see if we are, actually, online *************** 6/2/14 }
+VAR
+  P : Integer;
+  S : Integer;
+
 BEGIN
   { Create the TCPIP form here so we know it is available before we start using it }
   IF TCPIPForm = NIL THEN BEGIN
@@ -3449,6 +3453,24 @@ BEGIN
   END;
 
   Result := LenzConnection <> NoConnection;
+
+  FOR P := 0 TO High(Points) DO
+    IF Points[P].Point_PresentState <> PointStateUnknown THEN
+      Points[P].Point_RequiredState := Points[P].Point_PresentState;
+
+  { Read in all the feedback }
+  GetInitialFeedback;
+
+  { Update real signals to match virtual signals in case they were changed offline }
+  S := 0;
+  WHILE S <= High(Signals) DO BEGIN
+    SetSignal(NoLocoChip, S, Signals[S].Signal_Aspect, True, ForceAWrite);
+    Inc(S);
+  END; {WHILE}
+
+  { Ditto for points }
+  FOR P := 0 TO High(Points) DO
+    PullPoint(P, ForcePoint);
 END; { SetSystemOnline }
 
 PROCEDURE InitialiseLenzUnit;
