@@ -168,6 +168,10 @@ BEGIN
       { insert a blank line before the numeral '1' to assist readability }
       AddRichLine(HelpWindow.HelpRichEdit, '');
 
+    IF TempKey = Ord('A') THEN
+      { insert a blank line before the letter 'a' to assist readability }
+      AddRichLine(HelpWindow.HelpRichEdit, '');
+
     RichLineAdded := False;
     KeyPressedDown(TempKey, [], True, HelpMsg);
     IF (HelpMsg <> '')
