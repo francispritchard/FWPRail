@@ -102,7 +102,7 @@ BEGIN
       IF Data.Feedback_Input > 0 THEN BEGIN
         { sometimes this routine is called with Input set to 0 just to ascertain if the unit is active }
         IF FeedbackType = TrackCircuitFeedbackDetector THEN BEGIN
-          Num := UnknownTC;
+          Num := UnknownTrackCircuit;
           TCFound := False;
           TC := 0;
           WHILE (TC <= High(TrackCircuits))
@@ -129,7 +129,7 @@ BEGIN
                 ELSE
                   IF FeedbackUnitData[F].Feedback_InputTypeArray[Data.Feedback_Input] = TrackCircuitFeedbackDetector THEN BEGIN
                     FeedbackType := TrackCircuitFeedbackDetector;
-                    Num := UnknownTC;
+                    Num := UnknownTrackCircuit;
                     TCFound := False;
                     TC := 0;
                     WHILE (TC <= High(TrackCircuits))
@@ -183,12 +183,12 @@ BEGIN
           FeedbackString := ' SS';
       END; {CASE}
 
-      IF Input <> UnknownTC THEN
+      IF Input <> UnknownTrackCircuit THEN
         FeedbackString := FeedbackString + ' ' + InputStr
       ELSE
         FeedbackString := FeedbackString + ' ?';
 
-      IF (Input <> UnknownTC)
+      IF (Input <> UnknownTrackCircuit)
       AND (Feedback_Type = TrackCircuitFeedbackDetector)
       THEN
         { TCLineArray[0] is only one of a number of possible lines **** }
@@ -514,13 +514,13 @@ BEGIN { DecodeFeedback }
           TrackCircuitFeedbackDetector:
             BEGIN
               TC := DecodedFeedbackNum;
-              IF TC <> UnknownTC THEN
+              IF TC <> UnknownTrackCircuit THEN
                 DebugStr := DebugStr + ' (TC=' + IntToStr(TC) + ')' + ' [' + DescribeLineNamesForTrackCircuit(TC) + ']'
               ELSE
                 DebugStr := DebugStr + ' (*** no TC assigned)';
               Log('T ' + DebugStr);
               IF Length(TrackCircuits) > 0 THEN BEGIN
-                IF TC <> UnknownTC THEN BEGIN
+                IF TC <> UnknownTrackCircuit THEN BEGIN
                   IF Feedback_InputOn THEN BEGIN
                     TrackCircuits[TC].TC_FeedbackOccupation := True;
                     IF RedrawScreen THEN BEGIN

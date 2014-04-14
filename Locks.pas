@@ -199,7 +199,7 @@ END; { TrackCircuitLocked }
 PROCEDURE UnlockTrackCircuitRouteLocking(TC : Integer);
 { Unlock a given track circuit }
 BEGIN
-  IF TC <> UnknownTC THEN BEGIN
+  IF TC <> UnknownTrackCircuit THEN BEGIN
     WITH TrackCircuits[TC] DO BEGIN
       IF TC_Journey <> UnknownJourney THEN BEGIN
         Log(LocoChipToStr(TC_LocoChip) + ' R TC=' + IntToStr(TC) + ': TC_Journey was ' + IntToStr(TC_Journey) + ' now set to unknown journey');
@@ -242,7 +242,7 @@ BEGIN
         Result := True;
       END ELSE BEGIN
         { See if the heel line is occupied - depending on the point record this will mean that the point is locked }
-        IF (Lines[Point_HeelLine].Line_TC <> UnknownTC)
+        IF (Lines[Point_HeelLine].Line_TC <> UnknownTrackCircuit)
         AND (TrackCircuits[Lines[Point_HeelLine].Line_TC].TC_OccupationState <> TCUnoccupied)
         AND (TrackCircuits[Lines[Point_HeelLine].Line_TC].TC_OccupationState <> TCOutOfUseSetByUser)
         AND (TrackCircuits[Lines[Point_HeelLine].Line_TC].TC_OccupationState <> TCOutOfUseAsNoFeedbackReceived)
@@ -255,7 +255,7 @@ BEGIN
         END;
 
         { Or if the straight or diverging lines is occupied - depending on the point record this will mean that the point is locked }
-        IF (Lines[Point_StraightLine].Line_TC <> UnknownTC)
+        IF (Lines[Point_StraightLine].Line_TC <> UnknownTrackCircuit)
         AND (TrackCircuits[Lines[Point_StraightLine].Line_TC].TC_OccupationState <> TCUnoccupied)
         AND (TrackCircuits[Lines[Point_StraightLine].Line_TC].TC_OccupationState <> TCOutOfUseSetByUser)
         AND (TrackCircuits[Lines[Point_StraightLine].Line_TC].TC_OccupationState <> TCOutOfUseAsNoFeedbackReceived)
@@ -268,7 +268,7 @@ BEGIN
         END;
 
         IF NOT PointIsCatchPoint(P) THEN BEGIN
-          IF (Lines[Point_DivergingLine].Line_TC <> UnknownTC)
+          IF (Lines[Point_DivergingLine].Line_TC <> UnknownTrackCircuit)
           AND (TrackCircuits[Lines[Point_DivergingLine].Line_TC].TC_OccupationState <> TCUnoccupied)
           AND (TrackCircuits[Lines[Point_DivergingLine].Line_TC].TC_OccupationState <> TCOutOfUseSetByUser)
           AND (TrackCircuits[Lines[Point_DivergingLine].Line_TC].TC_OccupationState <> TCOutOfUseAsNoFeedbackReceived)
@@ -1302,7 +1302,7 @@ BEGIN
   END ELSE BEGIN
     { Is signal being locked by the user, and it's already locked by a route, or is it locked by any route but the current one? }
     IF LockingMode
-    AND (ResetTC = UnknownTC)
+    AND (ResetTC = UnknownTrackCircuit)
     AND (((Route = UnknownRoute) AND SignalIsLockedByAnyRoute(S, RouteLockingArray))
          OR (SignalIsLockedByAnyRoute(S, RouteLockingArray)
          AND NOT SignalIsLockedBySpecificRoute(S, Route)))
@@ -1361,7 +1361,7 @@ BEGIN
         END ELSE BEGIN
           { Check that both the signals and the trackcircuit occupation resetting them, if locked, are locked by the same route }
           IF LockingMode
-          AND (ResetTC <> UnknownTC)
+          AND (ResetTC <> UnknownTrackCircuit)
           THEN BEGIN
             IF SignalIsLockedByAnyRoute(S, RouteLockingArray) THEN BEGIN
               IF NOT IsElementInIntegerArray(RouteLockingArray, TrackCircuits[ResetTC].TC_LockedForRoute) THEN BEGIN
@@ -1725,7 +1725,7 @@ PROCEDURE PullSignal{1}(LocoChip, S : Integer; NewIndicatorState : IndicatorStat
                         User : Boolean; OUT OK : Boolean); Overload;
 { Changes the state of a signal if legal }
 CONST
-  ResetTC = UnknownTC;
+  ResetTC = UnknownTrackCircuit;
 
 BEGIN
   PullSignalMainProcedure(LocoChip, S, NewIndicatorState, Route, SubRoute, PlatformOrFiddleyardLine, SettingString, ResetTC, UnknownTrainType, User, OK);
@@ -1736,7 +1736,7 @@ PROCEDURE PullSignal{2}(LocoChip, S : Integer; NewIndicatorState : IndicatorStat
 { Changes the state of a signal if legal }
 CONST
   NoSettingString = '';
-  ResetTC = UnknownTC;
+  ResetTC = UnknownTrackCircuit;
 
 BEGIN
   PullSignalMainProcedure(LocoChip, S, NewIndicatorState, Route, SubRoute, PlatformOrFiddleyardLine, NoSettingString, ResetTC, TrainTypeForRouteing, User, OK);
@@ -1756,7 +1756,7 @@ PROCEDURE PullSignal{4}(LocoChip, S : Integer; NewIndicatorState : IndicatorStat
                         SettingString : String; TrainTypeForRouteing : TypeOfTrainType; User : Boolean; OUT OK : Boolean); Overload;
 { Changes the state of a signal if legal; includes the original setting string for saving if necessary }
 CONST
-  ResetTC = UnknownTC;
+  ResetTC = UnknownTrackCircuit;
 
 BEGIN
   PullSignalMainProcedure(LocoChip, S, NewIndicatorState, Route, SubRoute, PlatformOrFiddleyardLine, SettingString, ResetTC, TrainTypeForRouteing, User, OK);
@@ -2063,9 +2063,11 @@ END; { PullPoint-1 }
 
 PROCEDURE PullPoint{2}(P : Integer; ForcePoint : Boolean); Overload;
 { Changes the state of a point if legal }
+CONST
+  ErrorMessageRequired = True;
+
 VAR
   DebugStr : String;
-  ErrorMessageRequired : Boolean;
   PointResultPending : Boolean;
   OK : Boolean;
 
@@ -2167,7 +2169,7 @@ BEGIN
         L := ExtractLineFromString(TempRouteArray[I]);
         IF L <> UnknownLine THEN BEGIN
           TC := Lines[L].Line_TC;
-          IF TC <> UnknownTC THEN BEGIN
+          IF TC <> UnknownTrackCircuit THEN BEGIN
             IF TrackCircuitLocked(T^.Train_LocoChip, TC, LockingMsg) THEN BEGIN
               LockingMsg := 'TC=' + IntToStr(TC) + ' (' + LockingMsg + ')';
               RouteCurrentlyLocked := True;
@@ -2214,7 +2216,7 @@ BEGIN
   DO BEGIN
     L := ExtractLineFromString(RouteArray[I]);
     IF L <> UnknownLine THEN BEGIN
-      IF Lines[L].Line_TC <> UnknownTC THEN BEGIN
+      IF Lines[L].Line_TC <> UnknownTrackCircuit THEN BEGIN
         IF (TrackCircuits[Lines[L].Line_TC].TC_OccupationState = TCOutOfUseSetByUser)
         OR (TrackCircuits[Lines[L].Line_TC].TC_OccupationState = TCOutOfUseAsNoFeedbackReceived)
         THEN BEGIN

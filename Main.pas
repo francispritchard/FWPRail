@@ -395,7 +395,7 @@ VAR
     BEGIN
       Result := False;
       TRY
-        IF (Lines[CurrentLine].Line_TC <> UnknownTC)
+        IF (Lines[CurrentLine].Line_TC <> UnknownTrackCircuit)
         AND (Lines[CurrentLine].Line_TC <> TC)
         THEN BEGIN
           Result := True;
@@ -513,10 +513,10 @@ VAR
 
 BEGIN
   TRY
-    AdjoiningUptc := UnknownTC;
-    AdjoiningDowntc := UnknownTC;
+    AdjoiningUptc := UnknownTrackCircuit;
+    AdjoiningDowntc := UnknownTrackCircuit;
 
-    IF TC <> UnknownTC THEN BEGIN
+    IF TC <> UnknownTrackCircuit THEN BEGIN
       L := 0;
       TCFound := False;
       WHILE (L <= High(Lines))
@@ -757,9 +757,9 @@ BEGIN
               J := 0;
               { see if any adjacent trackcircuits are marked as occupied }
               SetLength(AdjacentTrackCircuits, 0);
-              IF AdjacentUptc <> UnknownTC THEN
+              IF AdjacentUptc <> UnknownTrackCircuit THEN
                 AppendToIntegerArray(AdjacentTrackCircuits, AdjacentUpTC);
-              IF AdjacentDowntc <> UnknownTC THEN
+              IF AdjacentDowntc <> UnknownTrackCircuit THEN
                 AppendToIntegerArray(AdjacentTrackCircuits, AdjacentDownTC);
               WHILE (I <= High(AdjacentTrackCircuits))
               AND NOT LocoFound
@@ -899,7 +899,7 @@ BEGIN
         FeedbackData.Feedback_Input := J;
         ExtractDataFromFeedback(FeedbackData, TCAboveFeedbackUnit, FeedbackType, TC);
         IF FeedbackType = TrackCircuitFeedbackDetector THEN BEGIN
-          IF TC <> UnknownTC THEN
+          IF TC <> UnknownTrackCircuit THEN
             IF GetTrackCircuitState(TC) <> TCOutOfUseSetByUser THEN
               SetTrackCircuitState(TC, TCOutOfUseAsNoFeedbackReceived, 'no feedback obtained at startup');
         END;
@@ -1197,7 +1197,7 @@ BEGIN
     END;
     IF DiagramsWindow = NIL THEN BEGIN
       DiagramsWindow := TDiagramsWindow.Create(Application);
-//      DiagramsWindow.Update;
+      DiagramsWindow.Update;
     END;
     IF FeedbackWindow = NIL THEN BEGIN
       FeedbackWindow := TFeedbackWindow.Create(Application);

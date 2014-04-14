@@ -82,7 +82,7 @@ VAR
   SaveUpBufferStop : Integer = UnknownBufferStop;
   SignalPostDrawn : Boolean = False;
   SignalPostToBeFlashed : Integer = UnknownSignal;
-  TCAdjoiningTCsDrawnNum : Integer = UnknownTC;
+  TCAdjoiningTCsDrawnNum : Integer = UnknownTrackCircuit;
   TRSPlungerFoundLocation : Integer = UnknownLocation;
   UpLineEndCharacterLine : Integer = UnknownLine;
 
@@ -491,7 +491,7 @@ BEGIN
               { Debug('Up=' +  LineToStr(Lines[L].Line_NextUpLine) + ' Down=' + LineToStr(Lines[L].Line_NextDownLine)); }
 
               { Look for trackcircuits }
-              IF (Lines[L].Line_TC <> UnknownTC) THEN BEGIN
+              IF (Lines[L].Line_TC <> UnknownTrackCircuit) THEN BEGIN
                 IF TrackCircuits[Lines[L].Line_TC].TC_LocoChip <> UnknownLocoChip THEN BEGIN
                   T := GetTrainRecord(TrackCircuits[Lines[L].Line_TC].TC_LocoChip);
                   IF T <> NIL THEN BEGIN
@@ -1064,11 +1064,11 @@ VAR
   BEGIN
     Result := False;
     WITH Lines[L] DO BEGIN
-      IF Line_TC <> UnknownTC THEN BEGIN
+      IF Line_TC <> UnknownTrackCircuit THEN BEGIN
         IF ShowAdjacentTrackCircuitMode THEN BEGIN
           { Draw a trackcircuit and its adjoining trackcircuits }
           FindAdjoiningTrackCircuits(Lines[L].Line_TC, AdjacentTrackCircuitUp, AdjacentTrackCircuitDown);
-          IF TCAdjoiningTCsDrawnNum = UnknownTC THEN BEGIN
+          IF TCAdjoiningTCsDrawnNum = UnknownTrackCircuit THEN BEGIN
             { one hasn't been drawn before }
             DrawTrackCircuitsWithAdjoiningTrackCircuits(Lines[L].Line_TC, clRed, clYellow);
             TCAdjoiningTCsDrawnNum := Lines[L].Line_TC;
@@ -1076,7 +1076,7 @@ VAR
             { We've previously drawn one, so undraw that one before drawing the new one }
             DrawTrackCircuitsWithAdjoiningTrackCircuits(TCAdjoiningTCsDrawnNum, ForegroundColour, ForegroundColour);
             IF TCAdjoiningTCsDrawnNum = Lines[L].Line_TC THEN
-              TCAdjoiningTCsDrawnNum := UnknownTC
+              TCAdjoiningTCsDrawnNum := UnknownTrackCircuit
             ELSE BEGIN
               DrawTrackCircuitsWithAdjoiningTrackCircuits(Lines[L].Line_TC, clRed, clYellow);
               TCAdjoiningTCsDrawnNum := Lines[L].Line_TC;

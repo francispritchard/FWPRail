@@ -854,7 +854,7 @@ VAR
         StopStr := 'Dir = Down and CurrentLine = Up (embedded rule)';
 
     { If a line is permanently occupied by something which is out-of-use, do not route over it (unless we're allowed to do so)}
-    IF (Lines[CurrentLine].Line_TC <> UnknownTC)
+    IF (Lines[CurrentLine].Line_TC <> UnknownTrackCircuit)
     AND TrackCircuitStateIsPermanentlyOccupied(Trackcircuits[Lines[CurrentLine].Line_TC].TC_OccupationState)
     AND (CurrentLine <> StartLine)
     AND (CurrentLine <> Lines[StartLine].Line_NextUpLine)
@@ -1657,7 +1657,7 @@ BEGIN
       AppendToStringArray(TempDraftRouteArray, DraftRouteArray[I]);
 
     FirstSignalFound := UnknownSignal;
-    FirstLineTC := UnknownTC;
+    FirstLineTC := UnknownTrackCircuit;
 
     TempDraftRouteArrayPos := 0;
     WHILE (TempDraftRouteArrayPos < Length(TempDraftRouteArray)) DO BEGIN
@@ -1906,7 +1906,7 @@ BEGIN
         { find the first signal in the array }
         TempArrayPos := -1;
         WHILE (TempArrayPos < High(TempDraftRouteArray))
-        AND (FirstLineTC = UnknownTC)
+        AND (FirstLineTC = UnknownTrackCircuit)
         DO BEGIN
           Inc(TempArrayPos);
           IF ((Pos('FS=', TempDraftRouteArray[TempArrayPos]) > 0)
@@ -1917,7 +1917,7 @@ BEGIN
           END;
         END; {WHILE}
 
-        IF FirstLineTC = UnknownTC THEN BEGIN
+        IF FirstLineTC = UnknownTrackCircuit THEN BEGIN
           Log('X Routeing Error: No signal found in TempDraftRouteArray: ');
           WriteStringArrayToLog(LocoChip, 'R', TempDraftRouteArray);
           ShowMessage('Fatal error - see log file');
@@ -1925,7 +1925,7 @@ BEGIN
         END;
 
         TC := Lines[ExtractLineFromString(TempDraftRouteArray[TempDraftRouteArrayPos])].Line_TC;
-        IF TC <> UnknownTC THEN BEGIN
+        IF TC <> UnknownTrackCircuit THEN BEGIN
           { the finding of the trackcircuit next to the first signal is recorded lest it also exists at the end of the route! }
           IF FirstTrackCircuitFound OR (FirstLineTC <> TC) THEN BEGIN
             AppendToStringArray(LockingArray, 'TC=' + IntToStr(TC) + '*');
@@ -2086,7 +2086,7 @@ BEGIN
         END;
       END ELSE BEGIN
         { Now see if there's a trackcircuit to be moved to the front of the subroute }
-        IF ExtractTrackCircuitFromString(LockingArray[LockingArrayPos]) <> UnknownTC THEN BEGIN
+        IF ExtractTrackCircuitFromString(LockingArray[LockingArrayPos]) <> UnknownTrackCircuit THEN BEGIN
           Inc(TrackCircuitPos);
           InsertElementInStringArray(RouteArray, TrackCircuitPos, LockingArray[LockingArrayPos])
         END ELSE
@@ -2101,7 +2101,7 @@ BEGIN
       RouteLen := 0;
       FOR RouteArrayPos := 0 TO High(RouteArray) DO BEGIN
         TC := ExtractTrackCircuitFromString(RouteArray[RouteArrayPos]);
-        IF TC <> UnknownTC THEN
+        IF TC <> UnknownTrackCircuit THEN
           RouteLen := RouteLen + TrackCircuits[TC].TC_LengthInInches;
       END; {FOR}
       Debug('R=' + IntToStr(Route) + ': length=' + FloatToStr(RouteLen));
@@ -3895,7 +3895,7 @@ BEGIN
 
               IF InitialTrackCircuitsRequired THEN BEGIN
                 SetInitialTrackCircuits(T);
-                IF Train_InitialTrackCircuits[1] = UnknownTC THEN
+                IF Train_InitialTrackCircuits[1] = UnknownTrackCircuit THEN
                   Log(Train_LocoChipStr + ' EG Initial trackcircuits not ok');
               END;
             END;

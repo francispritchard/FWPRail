@@ -313,7 +313,7 @@ BEGIN
 
                   DiagramsWindow.PopupShowNonMovingTrains.Enabled := True;
                   Log(Train_LocoChipStr + ' D marked as non-moving when feedback found');
-                  IF Train_InitialTrackCircuits[1] = UnknownTC THEN
+                  IF Train_InitialTrackCircuits[1] = UnknownTrackCircuit THEN
                     SetInitialTrackCircuits(T);
                 END;
               END ELSE BEGIN
@@ -361,7 +361,7 @@ BEGIN
   END;
 
   { (2) If a loco in the loco locations file does not have feedback occupation, note the fact, unless we are starting intentionally in offline mode }
-  LocoTC := UnknownTC;
+  LocoTC := UnknownTrackCircuit;
   T := TrainList;
   StopCheckingRecordedLocations := False;
   RemoveRecordedLocationsQueryPut := False;
@@ -379,7 +379,7 @@ BEGIN
                                   + ' [' + DescribeLineNamesForTrackCircuit(Train_LastTC) + ']'
                                   + ' not set to TCPermanentFeedbackOccupation as train is marked as ready for creation')
           ELSE
-            IF Train_LastTC <> UnknownTC THEN BEGIN
+            IF Train_LastTC <> UnknownTrackCircuit THEN BEGIN
               SetTrackCircuitState(Train_LocoChip, Train_LastTC, TCPermanentFeedbackOccupation);
               Log(Train_LocoChipStr + ' T TC=' + IntToStr(Train_LastTC)
                                     + ' ['  + DescribeLineNamesForTrackCircuit(Train_LastTC) + ']'
@@ -388,7 +388,7 @@ BEGIN
               { and set up the train length if recorded in the loco database }
               IF Train_CurrentLengthInInches > 0 THEN BEGIN
                 Train_CurrentSourceLocation := Train_LastLocation;
-                IF Train_InitialTrackCircuits[1] = UnknownTC THEN
+                IF Train_InitialTrackCircuits[1] = UnknownTrackCircuit THEN
                   SetInitialTrackCircuits(T);
               END;
             END;
@@ -456,7 +456,7 @@ BEGIN
                 END ELSE BEGIN
                   { delete the occupation }
                   Log(Train_LocoChipStr + ' L removed from'
-                                        + ' ' + IfThen(Train_LastTC = UnknownTC,
+                                        + ' ' + IfThen(Train_LastTC = UnknownTrackCircuit,
                                                        '',
                                                        'TC=' + IntToStr(LocoTC))
                                         + ' ' + IfThen(Train_LastLocation = UnknownLocation,
@@ -464,8 +464,8 @@ BEGIN
                                                        LocationToStr(Train_LastLocation)));
                   Train_LastLocation := UnknownLocation;
                   Train_SavedLocation := UnknownLocation;
-                  Train_LastTC := UnknownTC;
-                  Train_CurrentTC := UnknownTC;
+                  Train_LastTC := UnknownTrackCircuit;
+                  Train_CurrentTC := UnknownTrackCircuit;
                   Train_CurrentDirection := UnknownDirection;
                   Train_CurrentLengthInInches := 0;
                 END;
@@ -494,7 +494,7 @@ BEGIN
           TrainInitialTrackCircuitCount := 1;
           TrainFound := False;
           WHILE (TrainInitialTrackCircuitCount <= 5)
-          AND (Train_InitialTrackCircuits[TrainInitialTrackCircuitCount] <> UnknownTC)
+          AND (Train_InitialTrackCircuits[TrainInitialTrackCircuitCount] <> UnknownTrackCircuit)
           AND NOT TrainFound
           DO BEGIN
             IF (TrackCircuits[Train_InitialTrackCircuits[TrainInitialTrackCircuitCount]].TC_OccupationState = TCPermanentFeedbackOccupation)
@@ -511,7 +511,7 @@ BEGIN
               LocationFound := False;
               TrainInitialTrackCircuitCount := 1;
               WHILE (TrainInitialTrackCircuitCount <= 5)
-              AND (Train_InitialTrackcircuits[TrainInitialTrackCircuitCount] <> UnknownTC)
+              AND (Train_InitialTrackcircuits[TrainInitialTrackCircuitCount] <> UnknownTrackCircuit)
               AND NOT LocationFound
               DO BEGIN
                 IF GetLocationFromTrackCircuit(Train_InitialTrackCircuits[TrainInitialTrackCircuitCount]) = Train_LastLocation
@@ -568,7 +568,7 @@ BEGIN
                       Train_CurrentTC := Train_InitialTrackCircuits[1];
                       { and set up the proper trackcircuits }
                       FOR I := 1 TO 5 DO BEGIN
-                        IF Train_InitialTrackCircuits[I] <> UnknownTC THEN BEGIN
+                        IF Train_InitialTrackCircuits[I] <> UnknownTrackCircuit THEN BEGIN
                           IF GetTrackCircuitState(Train_InitialTrackCircuits[I]) = TCPermanentFeedbackOccupation THEN BEGIN
                             SetTrackCircuitState(Train_LocoChip, Train_InitialTrackCircuits[I],
                                                  TCFeedbackOccupation,
@@ -709,12 +709,12 @@ VAR
 
     WITH T^ DO BEGIN
       { Now set initial track occupancy depending on the length of the train. Ignore the first circuit, as the train may only be occupying the last few yards of it }
-      IF Train_InitialTrackCircuits[2] = UnknownTC THEN
+      IF Train_InitialTrackCircuits[2] = UnknownTrackCircuit THEN
         Log(Train_LocoChipStr + ' T! Problem with initial trackcircuits: second TC is an unknown TC - is the train direction correct?')
       ELSE BEGIN
         Set2nd := True;
 
-        IF Train_InitialTrackCircuits[3] <> UnknownTC THEN BEGIN
+        IF Train_InitialTrackCircuits[3] <> UnknownTrackCircuit THEN BEGIN
           TempLocation := GetLocationFromTrackcircuit(Train_InitialTrackCircuits[3]);
           IF (TempLocation <> UnknownLocation)
           AND (Locations[TempLocation].Location_IsPlatform
@@ -731,7 +731,7 @@ VAR
           END;
         END;
 
-        IF Train_InitialTrackCircuits[4] <> UnknownTC THEN BEGIN
+        IF Train_InitialTrackCircuits[4] <> UnknownTrackCircuit THEN BEGIN
           TempLocation := GetLocationFromTrackcircuit(Train_InitialTrackCircuits[4]);
           IF (TempLocation <> UnknownLocation)
           AND (Locations[TempLocation].Location_IsPlatform
@@ -749,7 +749,7 @@ VAR
           END;
         END;
 
-        IF (Train_InitialTrackCircuits[5] <> UnknownTC) THEN BEGIN
+        IF (Train_InitialTrackCircuits[5] <> UnknownTrackCircuit) THEN BEGIN
           TempLocation := GetLocationFromTrackcircuit(Train_InitialTrackCircuits[5]);
           IF (TempLocation <> UnknownLocation)
           AND (Locations[TempLocation].Location_IsPlatform
@@ -814,7 +814,7 @@ VAR
 
       IF NOT Set3rd THEN
         { initialise the trackcircuit if the train isn't occupying it }
-        Train_InitialTrackCircuits[3] := UnknownTC
+        Train_InitialTrackCircuits[3] := UnknownTrackCircuit
       ELSE BEGIN
         IF Train_UseTrailingTrackCircuits THEN BEGIN
           IF (TrackCircuits[Train_InitialTrackCircuits[3]].TC_OccupationState <> TCFeedbackOccupation)
@@ -829,7 +829,7 @@ VAR
           END;
         END ELSE
           { see if the trackcircuit is actually occupied }
-          IF (Train_InitialTrackCircuits[3] <> UnknownTC)
+          IF (Train_InitialTrackCircuits[3] <> UnknownTrackCircuit)
           AND ((TrackCircuits[Train_InitialTrackCircuits[3]].TC_OccupationState = TCFeedbackOccupation)
                 OR (TrackCircuits[Train_InitialTrackCircuits[3]].TC_OccupationState = TCPermanentFeedbackOccupation))
           THEN BEGIN
@@ -840,7 +840,7 @@ VAR
 
       IF NOT Set4th THEN
         { initialise the trackcircuit if the train isn't occupying it }
-        Train_InitialTrackCircuits[4] := UnknownTC
+        Train_InitialTrackCircuits[4] := UnknownTrackCircuit
       ELSE BEGIN
         IF Train_UseTrailingTrackCircuits THEN BEGIN
           IF (TrackCircuits[Train_InitialTrackCircuits[4]].TC_OccupationState <> TCFeedbackOccupation)
@@ -856,7 +856,7 @@ VAR
           END;
         END ELSE
           { see if the trackcircuit is actually occupied }
-          IF (Train_InitialTrackCircuits[4] <> UnknownTC)
+          IF (Train_InitialTrackCircuits[4] <> UnknownTrackCircuit)
           AND ((TrackCircuits[Train_InitialTrackCircuits[4]].TC_OccupationState = TCFeedbackOccupation)
                 OR (TrackCircuits[Train_InitialTrackCircuits[4]].TC_OccupationState = TCPermanentFeedbackOccupation))
           THEN BEGIN
@@ -867,7 +867,7 @@ VAR
 
       IF NOT Set5th THEN
         { initialise the trackcircuit if the train isn't occupying it }
-        Train_InitialTrackCircuits[5] := UnknownTC
+        Train_InitialTrackCircuits[5] := UnknownTrackCircuit
       ELSE BEGIN
         IF Train_UseTrailingTrackCircuits THEN BEGIN
           IF (TrackCircuits[Train_InitialTrackCircuits[5]].TC_OccupationState <> TCFeedbackOccupation)
@@ -882,7 +882,7 @@ VAR
           END;
         END ELSE
           { see if the trackcircuit is actually occupied }
-          IF (Train_InitialTrackCircuits[5] <> UnknownTC)
+          IF (Train_InitialTrackCircuits[5] <> UnknownTrackCircuit)
           AND (TrackCircuits[Train_InitialTrackCircuits[5]].TC_OccupationState = TCFeedbackOccupation)
           THEN BEGIN
             TrackCircuits[Train_InitialTrackCircuits[5]].TC_LocoChip := Train_LocoChip;
@@ -944,11 +944,11 @@ BEGIN
       Log(Train_LocoChipStr + ' XG Cannot find initial track circuits when Train_CurrentSourceLocation = UnknownLocation')
     ELSE BEGIN
       { Because not all routes have more than two trackcircuits }
-      t^.Train_InitialTrackCircuits[1] := UnknownTC;
-      t^.Train_InitialTrackCircuits[2] := UnknownTC;
-      t^.Train_InitialTrackCircuits[3] := UnknownTC;
-      t^.Train_InitialTrackCircuits[4] := UnknownTC;
-      t^.Train_InitialTrackCircuits[5] := UnknownTC;
+      t^.Train_InitialTrackCircuits[1] := UnknownTrackCircuit;
+      t^.Train_InitialTrackCircuits[2] := UnknownTrackCircuit;
+      t^.Train_InitialTrackCircuits[3] := UnknownTrackCircuit;
+      t^.Train_InitialTrackCircuits[4] := UnknownTrackCircuit;
+      t^.Train_InitialTrackCircuits[5] := UnknownTrackCircuit;
 
       { Find the first trackcircuit in the list of lines which is the same location }
       L := 0;
@@ -977,7 +977,7 @@ BEGIN
           TempL := PreviousLine;
           Done := False;
           FOR I := 1 TO 4 DO BEGIN
-            IF Train_InitialTrackCircuits[I] <> UnknownTC THEN BEGIN
+            IF Train_InitialTrackCircuits[I] <> UnknownTrackCircuit THEN BEGIN
               REPEAT
                 IF Train_CurrentDirection = Up THEN
                   FindNextTrackCircuit(TempL, PreviousLine, NextTC, FoundEndOfLine, Down)
@@ -1013,7 +1013,7 @@ BEGIN
               Train_InitialTrackCircuits[2] := Train_InitialTrackCircuits[3];
               Train_InitialTrackCircuits[3] := Train_InitialTrackCircuits[4];
               Train_InitialTrackCircuits[4] := Train_InitialTrackCircuits[5];
-              Train_InitialTrackCircuits[5] := UnknownTC;
+              Train_InitialTrackCircuits[5] := UnknownTrackCircuit;
             END;
           END;
         END;
@@ -1028,14 +1028,14 @@ BEGIN
       Log(Train_LocoChipStr + ' T LocoPreviousTC set to ' + IntToStr(Train_PreviousTC) + ' in SetInitialTrackCircuitsOK routine');
 
       FOR I := 1 TO 5 DO
-        IF Train_InitialTrackCircuits[I] <> UnknownTC THEN
+        IF Train_InitialTrackCircuits[I] <> UnknownTrackCircuit THEN
           Log(Train_LocoChipStr + ' T TrainInitialTrackCircuit ' + IntToStr(I) + ' is TC=' + IntToStr(Train_InitialTrackCircuits[I]));
 
-      IF Train_InitialTrackCircuits[5] <> UnknownTC THEN
+      IF Train_InitialTrackCircuits[5] <> UnknownTrackCircuit THEN
         AppendToStringArray(Train_TCsOccupiedOrClearedArray, 'TC=' + IntToStr(Train_InitialTrackCircuits[5]));
-      IF Train_InitialTrackCircuits[4] <> UnknownTC THEN
+      IF Train_InitialTrackCircuits[4] <> UnknownTrackCircuit THEN
         AppendToStringArray(Train_TCsOccupiedOrClearedArray, 'TC=' + IntToStr(Train_InitialTrackCircuits[4]));
-      IF Train_InitialTrackCircuits[3] <> UnknownTC THEN
+      IF Train_InitialTrackCircuits[3] <> UnknownTrackCircuit THEN
         AppendToStringArray(Train_TCsOccupiedOrClearedArray, 'TC=' + IntToStr(Train_InitialTrackCircuits[3]));
       AppendToStringArray(Train_TCsOccupiedOrClearedArray, 'TC=' + IntToStr(Train_InitialTrackCircuits[2]));
       AppendToStringArray(Train_TCsOccupiedOrClearedArray, 'TC=' + IntToStr(Train_InitialTrackCircuits[1]));
@@ -1194,7 +1194,7 @@ BEGIN
       Log(Train_LocoChipStr + ' D Train ' + Train_LocoChipStr + ' cancelled');
 
     IF NOT TrainExists THEN BEGIN
-      Train_CurrentTC := UnknownTC;
+      Train_CurrentTC := UnknownTrackCircuit;
 
       { Turn its lights off if they've been turned on at program start }
       IF Train_LightsOn THEN
@@ -2361,7 +2361,7 @@ BEGIN
                     END;
 
                     IF (Train_BeingAdvancedTC <> SaveTrainBeingAdvancedTC)
-                    AND (SaveTrainBeingAdvancedTC <> UnknownTC)
+                    AND (SaveTrainBeingAdvancedTC <> UnknownTrackCircuit)
                     THEN BEGIN
                       IF InAutoMode THEN BEGIN
                         SetTrackCircuitState(SaveTrainBeingAdvancedTC, TCSystemOccupation);
@@ -2788,12 +2788,12 @@ VAR
 
 BEGIN
   Result := 0;
-  SaveTCToTest := UnknownTC;
+  SaveTCToTest := UnknownTrackCircuit;
   FOR RouteArrayPos := 0 TO High(RouteArray) DO BEGIN
     TempLine := ExtractLineFromString(RouteArray[RouteArrayPos]);
     IF TempLine <> UnknownLine THEN BEGIN
       TCToTest := Lines[TempLine].Line_TC;
-      IF (TCToTest <> UnknownTC)
+      IF (TCToTest <> UnknownTrackCircuit)
       AND (TCToTest <> SaveTCToTest)
       THEN BEGIN
         SaveTCToTest := TCToTest;
@@ -3045,7 +3045,7 @@ BEGIN
                 DO BEGIN
                   L := ExtractLineFromString(JourneyRouteArray[JourneyRouteArrayPos]);
                   IF L <> UnknownLine THEN BEGIN
-                    IF (Lines[L].Line_TC <> UnknownTC)
+                    IF (Lines[L].Line_TC <> UnknownTrackCircuit)
                     AND (TrackCircuits[Lines[L].Line_TC].TC_UserMustDrive)
                     THEN BEGIN
                       JourneyRouteArrayUserMustDriveTCFound := True;
@@ -3060,23 +3060,23 @@ BEGIN
                 { Now locate the first trackcircuit in the array }
                 I := 0;
                 FirstLineFound := False;
-                TrainJourney_FirstTC := UnknownTC;
+                TrainJourney_FirstTC := UnknownTrackCircuit;
                 WHILE (I <= High(JourneyRouteArray))
-                AND (TrainJourney_FirstTC = UnknownTC)
+                AND (TrainJourney_FirstTC = UnknownTrackCircuit)
                 DO BEGIN
                   NextLine := ExtractLineFromString(JourneyRouteArray[I]);
                   IF NextLine <> UnknownLine THEN BEGIN
                     IF FirstLineFound THEN BEGIN
-                      IF Lines[NextLine].Line_TC <> UnknownTC THEN
+                      IF Lines[NextLine].Line_TC <> UnknownTrackCircuit THEN
                         TrainJourney_FirstTC := Lines[NextLine].Line_TC;
                     END ELSE
-                      IF Lines[NextLine].Line_TC <> UnknownTC THEN
+                      IF Lines[NextLine].Line_TC <> UnknownTrackCircuit THEN
                         { we want the next TC (second) on the route }
                         FirstLineFound := True;
                   END;
                   Inc(I);
                 END; {WHILE}
-                IF TrainJourney_FirstTC = UnknownTC THEN
+                IF TrainJourney_FirstTC = UnknownTrackCircuit THEN
                   Log(Train_LocoChipStr + ' D J=' + IntToStr(Journey) + ': first TC not found');
 
               END;
@@ -3793,7 +3793,7 @@ BEGIN
                   Train_LocatedAtStartup := True;
                   Log(Train_LocoChipStr + ' D Start location changed' + ' from ' + StartLocationStr + ' to ' + LocationToStr(Train_Locations[0], ShortStringType));
                   StartLocationStr := LocationToStr(Train_Locations[0], ShortStringType);
-                  IF Train_CurrentTC = UnknownTC THEN BEGIN
+                  IF Train_CurrentTC = UnknownTrackCircuit THEN BEGIN
                     TempTCs := GetTrackCircuitsForLocation(Train_Locations[0]);
                     IF Length(TempTCs) > 0 THEN
                       Train_CurrentTC := TempTCs[0];
@@ -3859,7 +3859,7 @@ BEGIN
                                               + ' to ' + LocationToStr(Train_LastLocation, ShortStringType)
                                               + ' from ' + LocationToStr(Train_Locations[0], ShortStringType));
                         Train_Locations[0] := Train_LastLocation;
-                        IF Train_CurrentTC = UnknownTC THEN BEGIN
+                        IF Train_CurrentTC = UnknownTrackCircuit THEN BEGIN
                           TempTCs := GetTrackCircuitsForLocation(Train_Locations[0]);
                           IF Length(TempTCs) > 0 THEN
                             Train_CurrentTC := TempTCs[0];
@@ -3996,7 +3996,7 @@ BEGIN
                           Train_LocatedAtStartup := False;
                         END ELSE BEGIN
                           TempT^.Train_LastLocation := UnknownLocation;
-                          TempT^.Train_LastTC := UnknownTC;
+                          TempT^.Train_LastTC := UnknownTrackCircuit;
                           Train_LastLocation := Train_Locations[0];
                           Train_LastTC := GetTrackCircuitsForLocation(Train_Locations[0])[0];
                           Train_LocatedAtStartup := True;
@@ -4579,7 +4579,7 @@ BEGIN
   //      Train_Headcode := GetHeadcode(Train_LocoChip, Train_TypeNum, Train_FinalEndStationName);
 
 //        SetInitialTrackCircuits(T);
-//        IF Train_InitialTrackcircuits[1] = UnknownTC THEN
+//        IF Train_InitialTrackcircuits[1] = UnknownTrackCircuit THEN
 //          ErrorMsg := 'no initial trackcircuits found';
       END;
 

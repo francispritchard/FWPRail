@@ -90,7 +90,7 @@ VAR
   BEGIN
     OK := False;
     
-    IF AdjoiningTCUp <> UnknownTC THEN BEGIN
+    IF AdjoiningTCUp <> UnknownTrackCircuit THEN BEGIN
       IF (TrackCircuits[TC].TC_PreviousLocoChip <> UnknownLocoChip)
       AND (TrackCircuits[TC].TC_PreviousLocoChip = TrackCircuits[AdjoiningTCUp].TC_LocoChip)
       THEN BEGIN
@@ -145,7 +145,7 @@ VAR
     END;
 
     IF NOT OK THEN BEGIN
-      IF AdjoiningTCDown <> UnknownTC THEN BEGIN
+      IF AdjoiningTCDown <> UnknownTrackCircuit THEN BEGIN
         IF (TrackCircuits[TC].TC_PreviousLocoChip <> UnknownLocoChip)
         AND (TrackCircuits[TC].TC_PreviousLocoChip = TrackCircuits[AdjoiningTCDown].TC_LocoChip)
         THEN BEGIN
@@ -621,7 +621,7 @@ VAR
         { AND (DistanceToNextTCInInches <= 72) }
         DO BEGIN
           TCBeingChecked := ExtractTrackCircuitFromString(Train_TCsAndSignalsNotClearedArray[ArrayPos]);
-          IF TCBeingChecked <> UnknownTC THEN
+          IF TCBeingChecked <> UnknownTrackCircuit THEN
             SpeedRestriction := TrackCircuits[TCBeingChecked].TC_SpeedRestrictionInMPH
           ELSE BEGIN
             { Perhaps a speed restriction overrides the normal speed at a junction signal }
@@ -649,7 +649,7 @@ VAR
             END;
           END;
 
-          IF TCBeingChecked <> UnknownTC THEN BEGIN
+          IF TCBeingChecked <> UnknownTrackCircuit THEN BEGIN
             { how far away is it? }
             DistanceToNextTCInInches := DistanceToNextTCInInches + TrackCircuits[TCBeingChecked].TC_LengthInInches;
             IF (SpeedRestriction <> NoSpecifiedSpeed)
@@ -832,14 +832,14 @@ BEGIN
               IF BufferStopPos <> -1 THEN BEGIN
                 { Now count up the lengths of all the trackcircuits preceding it }
                 FOR I := 0 TO (BufferStopPos - 1) DO
-                  IF ExtractTrackCircuitFromString(Train_TCsAndSignalsNotClearedArray[I]) <> UnknownTC THEN
+                  IF ExtractTrackCircuitFromString(Train_TCsAndSignalsNotClearedArray[I]) <> UnknownTrackCircuit THEN
                     Train_DistanceToCurrentSignalOrBufferStop := Train_DistanceToCurrentSignalOrBufferStop
                                                                     + TrackCircuits[ExtractTrackCircuitFromString(Train_TCsAndSignalsNotClearedArray[I])].TC_LengthInInches;
               END;
             END ELSE BEGIN
               { Now count up the lengths of all the trackcircuits preceding it, ignoring subroute markers }
               FOR I := 0 TO (FirstSignalPos - 1) DO BEGIN
-                IF ExtractTrackCircuitFromString(Train_TCsAndSignalsNotClearedArray[I]) <> UnknownTC THEN
+                IF ExtractTrackCircuitFromString(Train_TCsAndSignalsNotClearedArray[I]) <> UnknownTrackCircuit THEN
                   Train_DistanceToCurrentSignalOrBufferStop := Train_DistanceToCurrentSignalOrBufferStop
                                                                     + TrackCircuits[ExtractTrackCircuitFromString(Train_TCsAndSignalsNotClearedArray[I])].TC_LengthInInches;
               END;
@@ -853,7 +853,7 @@ BEGIN
             IF BufferStopPos <> -1 THEN BEGIN
               { Now count up the lengths of all the trackcircuits preceding it }
               FOR I := 0 TO (BufferStopPos - 1) DO BEGIN
-                IF ExtractTrackCircuitFromString(Train_TCsAndSignalsNotClearedArray[I]) <> UnknownTC THEN
+                IF ExtractTrackCircuitFromString(Train_TCsAndSignalsNotClearedArray[I]) <> UnknownTrackCircuit THEN
                   Train_DistanceToNextSignalOrBufferStop := Train_DistanceToNextSignalOrBufferStop
                                                                     + TrackCircuits[ExtractTrackCircuitFromString(Train_TCsAndSignalsNotClearedArray[I])].TC_LengthInInches;
               END;
@@ -862,7 +862,7 @@ BEGIN
             NextSignal := ExtractSignalFromString(Train_TCsAndSignalsNotClearedArray[SecondSignalPos]);
             { Now count up the lengths of all the trackcircuits preceding it, ignoring subroute markers }
             FOR I := (FirstSignalPos + 1) TO (SecondSignalPos - 1) DO
-              IF ExtractTrackCircuitFromString(Train_TCsAndSignalsNotClearedArray[I]) <> UnknownTC THEN
+              IF ExtractTrackCircuitFromString(Train_TCsAndSignalsNotClearedArray[I]) <> UnknownTrackCircuit THEN
                 Train_DistanceToNextSignalOrBufferStop := Train_DistanceToNextSignalOrBufferStop
                                                                     + TrackCircuits[ExtractTrackCircuitFromString(Train_TCsAndSignalsNotClearedArray[I])].TC_LengthInInches;
           END;
@@ -873,7 +873,7 @@ BEGIN
             IF BufferStopPos <> -1 THEN BEGIN
               { Now count up the lengths of all the trackcircuits preceding it }
               FOR I := 0 TO (BufferStopPos - 1) DO BEGIN
-                IF ExtractTrackCircuitFromString(Train_TCsAndSignalsNotClearedArray[I]) <> UnknownTC THEN
+                IF ExtractTrackCircuitFromString(Train_TCsAndSignalsNotClearedArray[I]) <> UnknownTrackCircuit THEN
                   Train_DistanceToNextSignalButOneOrBufferStop := Train_DistanceToNextSignalButOneOrBufferStop
                                                                     + TrackCircuits[ExtractTrackCircuitFromString(Train_TCsAndSignalsNotClearedArray[I])].TC_LengthInInches;
               END;
@@ -881,7 +881,7 @@ BEGIN
           END ELSE BEGIN
             { Now count up the lengths of all the trackcircuits preceding it, ignoring subroute markers }
             FOR I := 0 TO ThirdSignalPos - 1 DO
-              IF ExtractTrackCircuitFromString(Train_TCsAndSignalsNotClearedArray[I]) <> UnknownTC THEN
+              IF ExtractTrackCircuitFromString(Train_TCsAndSignalsNotClearedArray[I]) <> UnknownTrackCircuit THEN
                 Train_DistanceToNextSignalButOneOrBufferStop := Train_DistanceToNextSignalButOneOrBufferStop
                                                                     + TrackCircuits[ExtractTrackCircuitFromString(Train_TCsAndSignalsNotClearedArray[I])].TC_LengthInInches;
           END;
@@ -1272,7 +1272,7 @@ BEGIN
 
         IF Train_CurrentSignal <> UnknownSignal THEN BEGIN
           DebugStr := DebugStr + ' S_ATC=' + IntToStr(Signals[Train_CurrentSignal].Signal_AdjacentTC);
-          IF Signals[Train_CurrentSignal].Signal_AdjacentTC <> UnknownTC THEN
+          IF Signals[Train_CurrentSignal].Signal_AdjacentTC <> UnknownTrackCircuit THEN
             DebugStr := DebugStr + ' S_ATCLen='
                         + FloatToStr(TrackCircuits[Signals[Train_CurrentSignal].Signal_AdjacentTC].TC_LengthInInches);
         END;
@@ -1444,36 +1444,36 @@ BEGIN
                 IF Length(Train_TCsNotClearedArray) > 1 THEN
                   Train_NextButOneTC := ExtractTrackCircuitFromString(Train_TCsNotClearedArray[1])
                 ELSE
-                  Train_NextButOneTC := UnknownTC;
+                  Train_NextButOneTC := UnknownTrackCircuit;
               END;
             END;
             IF Length(Train_TCsNotClearedArray) = 0 THEN
-              Train_NextTC := UnknownTC;
+              Train_NextTC := UnknownTrackCircuit;
 
           END ELSE
             IF SystemOnline THEN BEGIN
               { Now see if we've strayed - if the trackcircuits we're supposed to be in are TCUnoccupied - it's maybe we're somewhere else by mistake }
               PossiblyMissing := True;
 
-              IF Train_PreviousTC <> UnknownTC THEN
+              IF Train_PreviousTC <> UnknownTrackCircuit THEN
                 IF TrackCircuits[Train_PreviousTC].TC_OccupationState = TCFeedbackOccupation THEN
                   PossiblyMissing := False;
-              IF Train_CurrentTC <> UnknownTC THEN
+              IF Train_CurrentTC <> UnknownTrackCircuit THEN
                 IF TrackCircuits[Train_CurrentTC].TC_OccupationState = TCFeedbackOccupation THEN
                   PossiblyMissing := False;
-              IF Train_NextTC <> UnknownTC THEN
+              IF Train_NextTC <> UnknownTrackCircuit THEN
                 IF TrackCircuits[Train_NextTC].TC_OccupationState = TCFeedbackOccupation THEN
                   PossiblyMissing := False;
-              IF Train_InitialTrackCircuits[1] <> UnknownTC THEN
+              IF Train_InitialTrackCircuits[1] <> UnknownTrackCircuit THEN
                 IF TrackCircuits[Train_InitialTrackCircuits[1]].TC_OccupationState = TCFeedbackOccupation THEN
                   PossiblyMissing := False;
-              IF Train_InitialTrackCircuits[2] <> UnknownTC THEN
+              IF Train_InitialTrackCircuits[2] <> UnknownTrackCircuit THEN
                 IF TrackCircuits[Train_InitialTrackCircuits[2]].TC_OccupationState = TCFeedbackOccupation THEN
                   PossiblyMissing := False;
-              IF Train_InitialTrackCircuits[3] <> UnknownTC THEN
+              IF Train_InitialTrackCircuits[3] <> UnknownTrackCircuit THEN
                 IF TrackCircuits[Train_InitialTrackCircuits[3]].TC_OccupationState = TCFeedbackOccupation THEN
                   PossiblyMissing := False;
-              IF Train_InitialTrackCircuits[4] <> UnknownTC THEN
+              IF Train_InitialTrackCircuits[4] <> UnknownTrackCircuit THEN
                 IF TrackCircuits[Train_InitialTrackCircuits[4]].TC_OccupationState = TCFeedbackOccupation THEN
                   PossiblyMissing := False;
 
@@ -1513,7 +1513,7 @@ BEGIN
                              + ', Current: TC=' + IntToStr(Train_CurrentTC)
                              + ', and Next: TC=' + IntToStr(Train_NextTC)
                              + ' not occupied';
-          IF Train_NextButOneTC <> UnknownTC THEN
+          IF Train_NextButOneTC <> UnknownTrackCircuit THEN
             MissingTrainStr := MissingTrainstr + ' but next but one TC=' + IntToStr(Train_NextButOneTC) + ' is occupied';
 
           IF MissingTrainStr <> SaveMissingTrainStr THEN
@@ -2013,7 +2013,7 @@ BEGIN
         exist so need to test that first.
       }
       FOR InitialTrackCircuitCount := 1 TO 5 DO BEGIN
-        IF Train_InitialTrackCircuits[InitialTrackCircuitCount] <> UnknownTC THEN
+        IF Train_InitialTrackCircuits[InitialTrackCircuitCount] <> UnknownTrackCircuit THEN
           IF TrackCircuits[Train_InitialTrackCircuits[InitialTrackCircuitCount]].TC_OccupationState = TCFeedbackOccupation THEN
             Result := True;
       END; {FOR}
@@ -2024,7 +2024,7 @@ BEGIN
 
           DebugStr := 'Train not found in TC=' + IntToStr(Train_InitialTrackCircuits[1]);
           FOR InitialTrackCircuitCount := 2 TO 5 DO
-            IF Train_InitialTrackCircuits[InitialTrackCircuitCount] <> UnknownTC THEN
+            IF Train_InitialTrackCircuits[InitialTrackCircuitCount] <> UnknownTrackCircuit THEN
               DebugStr := DebugStr + ' or TC=' + IntToStr(Train_InitialTrackCircuits[InitialTrackCircuitCount]);
           DebugStr := DebugStr + ' so not activating it yet';
           Log(Train_LocoChipStr + ' L ' + DebugStr);
@@ -2200,14 +2200,14 @@ BEGIN
 
               { If we're offline, then we will want to clear the initial trackcircuits automatically, as there is no moving train to clear them }
               IF SystemSetOfflineByCommandLineParameter THEN BEGIN
-                IF Train_InitialTrackCircuits[1] <> UnknownTC THEN BEGIN
+                IF Train_InitialTrackCircuits[1] <> UnknownTrackCircuit THEN BEGIN
                   SetTrackCircuitState(Train_LocoChip, Train_InitialTrackCircuits[1], TCUnoccupied);
                   SetTrackCircuitState(Train_LocoChip, Train_InitialTrackCircuits[2], TCUnoccupied);
-                  IF Train_InitialTrackCircuits[3] <> UnknownTC THEN
+                  IF Train_InitialTrackCircuits[3] <> UnknownTrackCircuit THEN
                     SetTrackCircuitState(Train_LocoChip, Train_InitialTrackCircuits[3], TCUnoccupied);
-                  IF Train_InitialTrackCircuits[4] <> UnknownTC THEN
+                  IF Train_InitialTrackCircuits[4] <> UnknownTrackCircuit THEN
                     SetTrackCircuitState(Train_LocoChip, Train_InitialTrackCircuits[4], TCUnoccupied);
-                  IF Train_InitialTrackCircuits[5] <> UnknownTC THEN
+                  IF Train_InitialTrackCircuits[5] <> UnknownTrackCircuit THEN
                     SetTrackCircuitState(Train_LocoChip, Train_InitialTrackCircuits[5], TCUnoccupied);
                 END;
               END;

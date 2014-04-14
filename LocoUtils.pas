@@ -125,7 +125,7 @@ VAR
         Train_AtCurrentSignal := UnknownSignal;
         Train_AtHiddenAspectSignal := UnknownSignal;
         Train_BeingAdvanced := False;
-        Train_BeingAdvancedTC := UnknownTC;
+        Train_BeingAdvancedTC := UnknownTrackCircuit;
         Train_CabLightsHaveBeenOn := False;
         Train_ControlledByProgram := False;
         Train_ControlledByRDC := False;
@@ -140,7 +140,7 @@ VAR
         Train_CurrentSourceLocation := UnknownLocation;
         Train_CurrentSpeedInMPH := MPH0;
         Train_CurrentStatus := UnknownTrainStatus;
-        Train_CurrentTC := UnknownTC;
+        Train_CurrentTC := UnknownTrackCircuit;
         Train_Decelerating := False;
         Train_Description := '';
         Train_DesiredLenzSpeed := 0;
@@ -164,7 +164,7 @@ VAR
         Train_Headcode := '';
         Train_HomeArea := UnknownArea;
         FOR I := 1 TO 5 DO
-          Train_InitialTrackCircuits[I] := UnknownTC;
+          Train_InitialTrackCircuits[I] := UnknownTrackCircuit;
 
         Train_InLightsOnTime := False; { train inactive but for lights being on }
         FOR I := 1 TO 9 DO
@@ -174,10 +174,10 @@ VAR
         SetLength(Train_JourneysArray, 0);
         Train_LastLengthInInches := 0;
         Train_LastLocation := UnknownLocation;
-        Train_LastMissingTC := UnknownTC;
+        Train_LastMissingTC := UnknownTrackCircuit;
         Train_LastRouteLockedMsgStr := '';
         Train_LastSignal := UnknownSignal;
-        Train_LastTC := UnknownTC;
+        Train_LastTC := UnknownTrackCircuit;
         Train_LightingChipDown := UnknownLocoChip;
         Train_LightingChipDownAddress := NIL;
         Train_LightingChipUp := UnknownLocoChip;
@@ -199,15 +199,15 @@ VAR
         Train_MinimumAccelerationTimeInSeconds := 0; { needed as we only calculate it once when we enter a trackcircuit }
         Train_MissingMessage := False;
         Train_MissingNum := 0; { set if train missing, and used to restart train if found }
-        Train_NextTC := UnknownTC;
-        Train_NextButOneTC := UnknownTC;
+        Train_NextTC := UnknownTrackCircuit;
+        Train_NextButOneTC := UnknownTrackCircuit;
         Train_NotInPlaceMsgWritten := False;
         Train_NotLocatedAtStartupMsgWritten := False;
         Train_NumberOfCarriages := 0;
         Train_PossibleRerouteTime := 0;
         Train_PreviouslyControlledByProgram := False;
         Train_PreviousStatus := ReadyForCreation;
-        Train_PreviousTC := UnknownTC;
+        Train_PreviousTC := UnknownTrackCircuit;
         Train_Reversing := False;
         Train_ReversingDelayInSeconds := 0;
         Train_ReversingStartTime := 0;
@@ -218,7 +218,7 @@ VAR
         Train_RouteCreationHoldNum := 0;
         Train_RouteCreationReleasedMsg := '';
         Train_RouteingHeldAtSignal := UnknownSignal;
-        Train_SaveCurrentTC := UnknownTC;
+        Train_SaveCurrentTC := UnknownTrackCircuit;
         Train_SaveDesiredLenzSpeed := 0;
         Train_SavedLocation := UnknownLocation;
         Train_SavedRoute := UnknownRoute;
@@ -344,7 +344,7 @@ BEGIN
               ErrorMsg := 'Error in database for loco ' + LocoChipToStr(Train_LocoChip) + ': last TC=' + IntToStr(Train_LastTC)
                           + ' is already occupied by loco ' + LocoChipToStr(TempTCsLocoChips[ElementPos])
             ELSE
-              IF Train_LastTC <> UnknownTC THEN BEGIN
+              IF Train_LastTC <> UnknownTrackCircuit THEN BEGIN
                 AppendToIntegerArray(TempTCs, Train_LastTC);
                 AppendToIntegerArray(TempTCsLocoChips, Train_LocoChip);
               END;
@@ -376,7 +376,7 @@ BEGIN
                           InputFoundOrCancelled := True
                         ELSE BEGIN
                           IF NewLocationStr = 'CANCEL' THEN BEGIN
-                            Train_LastTC := UnknownTC;
+                            Train_LastTC := UnknownTrackCircuit;
                             Train_LastLocation := UnknownLocation;
                             ErrorMsg := '';
                             InputFoundOrCancelled := True;
@@ -388,7 +388,7 @@ BEGIN
                             IF Train_LastLocation = UnknownLocation THEN
                               InputErrorMsg := 'Invalid location entered. Please type in present location of ' + LocoChipToStr(Train_LocoChip) + ' or CANCEL to suspend it'
                             ELSE BEGIN
-                              Train_LastTC := UnknownTC;
+                              Train_LastTC := UnknownTrackCircuit;
                               ErrorMsg := '';
                               InputFoundOrCancelled := True;
                               Log(Train_LocoChipStr + ' D Start location set by user to ' + NewLocationStr);
@@ -417,7 +417,7 @@ BEGIN
                           DeleteElementFromIntegerArray(TempLocations, ElementPos);
                           ErrorMsg := '';
 
-                          TempT^.Train_LastTC := UnknownTC;
+                          TempT^.Train_LastTC := UnknownTrackCircuit;
                           TempT^.Train_LastLocation := UnknownLocation;
                         END;
                         TempT := TempT^.Train_NextRecord;
@@ -775,12 +775,12 @@ BEGIN
                 WITH T^ DO BEGIN
 
                   { Add the current trackcircuit }
-                  IF Train_CurrentTC = UnknownTC THEN
+                  IF Train_CurrentTC = UnknownTrackCircuit THEN
                     Train_CurrentTC := Train_LastTC;
 
                   Edit;
                   TempStr := FieldByName('LastTC').AsString;
-                  IF (TempStr = '') OR (Train_CurrentTC = UnknownTC) THEN
+                  IF (TempStr = '') OR (Train_CurrentTC = UnknownTrackCircuit) THEN
                     FieldByname('LastTC').AsString := ''
                   ELSE
                     FieldByname('LastTC').AsInteger := Train_CurrentTC;
@@ -788,7 +788,7 @@ BEGIN
 
                   { And the loco's current location, taken from its current trackcircuit }
                   LineFound := False;
-                  IF Train_CurrentTC = UnknownTC THEN BEGIN
+                  IF Train_CurrentTC = UnknownTrackCircuit THEN BEGIN
                     Edit;
                     FieldByname('LastLocation').AsString := '';
                     Post;

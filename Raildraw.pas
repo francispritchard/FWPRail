@@ -903,7 +903,7 @@ VAR
 
                   { note: the following options are mutually exclusive, so it doesn't need to be IF THEN ELSE }
                   IF ShowTrackCircuitLengths THEN BEGIN
-                    IF Line_TC <> UnknownTC THEN BEGIN
+                    IF Line_TC <> UnknownTrackCircuit THEN BEGIN
                       { how long (in inches) each trackcircuit is }
                       IF TrackCircuits[Line_TC].TC_LengthInInches = 0.0 THEN
                         { a missing length }
@@ -923,7 +923,7 @@ VAR
 
                   IF ShowTrackCircuitFeedbackDataInUse THEN BEGIN
                     { show which Lenz feedback unit is being used }
-                    IF Line_TC <> UnknownTC THEN BEGIN
+                    IF Line_TC <> UnknownTrackCircuit THEN BEGIN
                       SegmentText := '';
                       FeedbackUnitFound := False;
                       I := FirstFeedbackUnit;
@@ -994,7 +994,7 @@ VAR
         WITH Lines[L] DO BEGIN
           { how which trackcircuits have routes set over them }
           IF ShowTrackCircuitsRoutedOver THEN BEGIN
-            IF Line_TC <> UnknownTC THEN BEGIN
+            IF Line_TC <> UnknownTrackCircuit THEN BEGIN
               Font.Color := clAqua;
               IF TrackCircuits[Line_TC].TC_LockedForRoute <> UnknownRoute THEN
                 SegmentText := IntToStr(TrackCircuits[Line_TC].TC_LockedForRoute);
@@ -1205,7 +1205,7 @@ BEGIN
       IF ShowLinesWithoutTrackCircuits THEN BEGIN
         L := 0;
         WHILE L <= High(Lines) DO BEGIN
-          IF Lines[L].Line_TC = UnknownTC THEN BEGIN
+          IF Lines[L].Line_TC = UnknownTrackCircuit THEN BEGIN
             Font.Color := LinesWithoutTrackCircuitsColour;
             SegmentText := 'X';
             WITH Lines[L] DO BEGIN
@@ -1386,7 +1386,7 @@ BEGIN
 
         FOR L := 0 TO High(Lines) DO BEGIN
           WITH Lines[L] DO BEGIN
-            IF (Line_TC <> UnknownTC)
+            IF (Line_TC <> UnknownTrackCircuit)
             AND NOT IsElementInIntegerArray(TCArray, Line_TC)
             THEN BEGIN
               { store the TC so that we don't draw the restriction on each part of the TC }
@@ -2060,7 +2060,7 @@ BEGIN
 
         IF Signal_OutOfUse
         OR ((Signal_AdjacentLine <> UnknownLine)
-        AND (Lines[Signal_AdjacentLine].Line_TC = UnknownTC))
+        AND (Lines[Signal_AdjacentLine].Line_TC = UnknownTrackCircuit))
         THEN BEGIN
           { a safeguard - turn the signal off altogether! }
           SColour1 := SignalAspectUnlit;
@@ -2334,7 +2334,7 @@ BEGIN
                 Pen.Style := ProjectedLinePenStyle;
 
           { Work out what to display on the line }
-          IF Line_TC <> UnknownTC THEN BEGIN
+          IF Line_TC <> UnknownTrackCircuit THEN BEGIN
             WITH TrackCircuits[Lines[L].Line_TC] DO BEGIN
               CASE TC_OccupationState OF
                 TCFeedbackOccupationButOutOfUse:
@@ -2455,7 +2455,7 @@ BEGIN
             ELSE
               ActiveTrainText := 'N';
 
-            IF Lines[L].Line_TC <> UnknownTC THEN
+            IF Lines[L].Line_TC <> UnknownTrackCircuit THEN
               Log('T ' + StringOfChar(' ', 68) + '<<' + LineToStr(L) + ' (' + IntToStr(Lines[L].Line_TC) + ')'
                        + ' ' + ColourToStr(NewLineColour) + ' ' + LineTextStr + ' ' + ActiveTrainText + '>>')
             ELSE
@@ -2465,7 +2465,7 @@ BEGIN
 
           IF LineTextStr = '' THEN BEGIN
             IF ShowTrackCircuitsWhereUserMustDrive THEN
-              IF Lines[L].Line_TC <> UnknownTC THEN
+              IF Lines[L].Line_TC <> UnknownTrackCircuit THEN
                 IF TrackCircuits[Lines[L].Line_TC].TC_UserMustDrive THEN
                   LineTextStr := 'U';
           END;
@@ -2488,7 +2488,7 @@ BEGIN
           END;
 
           { Draw this line in the colour of the adjacent lines if it is not trackcircuited }
-          IF Lines[L].Line_TC = UnknownTC THEN BEGIN
+          IF Lines[L].Line_TC = UnknownTrackCircuit THEN BEGIN
             IF (Line_NextUpLine <> UnknownLine)
             AND (Line_NextDownLine <> UnknownLine)
             THEN BEGIN
@@ -2555,8 +2555,8 @@ BEGIN
           IF (Line_NextUpLine <> UnknownLine)
           AND (Line_NextDownLine <> UnknownLine)
           THEN BEGIN
-            IF (Lines[Line_NextUpLine].Line_TC = UnknownTC)
-            AND (Lines[Line_NextDownLine].Line_TC = UnknownTC)
+            IF (Lines[Line_NextUpLine].Line_TC = UnknownTrackCircuit)
+            AND (Lines[Line_NextDownLine].Line_TC = UnknownTrackCircuit)
             THEN BEGIN
               MoveTo(Lines[Line_NextUpLine].Line_UpX - ScrollBarXAdjustment,
                      Lines[Line_NextUpLine].Line_UpY - ScrollBarYAdjustment);
@@ -2625,7 +2625,6 @@ VAR
 
 BEGIN
   TRY
-    IF TC <> UnknownTC THEN BEGIN
       L := 0;
       WHILE L <= High(Lines) DO BEGIN
         IF Lines[L].Line_TC = TC THEN
@@ -2649,7 +2648,7 @@ VAR
 
 BEGIN
   TRY
-    IF TC <> UnknownTC THEN BEGIN
+    IF TC <> UnknownTrackCircuit THEN BEGIN
       L := 0;
       WHILE L <= High(Lines) DO BEGIN
         IF Lines[L].Line_TC = TC THEN
@@ -2758,27 +2757,27 @@ BEGIN
                   Pen.Color := GetTrackCircuitStateColour(Lines[Point_StraightLine].Line_TC)
                 ELSE BEGIN
                   IF (Point_PresentState = Diverging)
-                  AND (Lines[Point_DivergingLine].Line_TC <> UnknownTC)
+                  AND (Lines[Point_DivergingLine].Line_TC <> UnknownTrackCircuit)
                   AND (TrackCircuits[Lines[Point_DivergingLine].Line_TC].TC_OccupationState <> TCUnoccupied)
                   THEN
                     Pen.Color := GetTrackCircuitStateColour(Lines[Point_DivergingLine].Line_TC)
                   ELSE
                     IF (Point_PresentState = Straight)
-                    AND (Lines[Point_StraightLine].Line_TC <> UnknownTC)
+                    AND (Lines[Point_StraightLine].Line_TC <> UnknownTrackCircuit)
                     AND (TrackCircuits[Lines[Point_StraightLine].Line_TC].TC_OccupationState <> TCUnoccupied)
                     THEN
                       Pen.Color := GetTrackCircuitStateColour(Lines[Point_StraightLine].Line_TC)
                     ELSE
                       IF (Point_PresentState = Diverging)
-                      AND (Lines[Point_DivergingLine].Line_TC = UnknownTC)
-                      AND ((Lines[Point_HeelLine].Line_TC <> UnknownTC)
+                      AND (Lines[Point_DivergingLine].Line_TC = UnknownTrackCircuit)
+                      AND ((Lines[Point_HeelLine].Line_TC <> UnknownTrackCircuit)
                            AND (TrackCircuits[Lines[Point_HeelLine].Line_TC].TC_OccupationState <> TCUnoccupied))
                       THEN
                         Pen.Color := GetTrackCircuitStateColour(Lines[Point_HeelLine].Line_TC)
                       ELSE
                         IF (Point_PresentState = Straight)
-                        AND (Lines[Point_StraightLine].Line_TC = UnknownTC)
-                        AND ((Lines[Point_HeelLine].Line_TC <> UnknownTC)
+                        AND (Lines[Point_StraightLine].Line_TC = UnknownTrackCircuit)
+                        AND ((Lines[Point_HeelLine].Line_TC <> UnknownTrackCircuit)
                              AND (TrackCircuits[Lines[Point_HeelLine].Line_TC].TC_OccupationState <> TCUnoccupied))
                         THEN
                           Pen.Color := GetTrackCircuitStateColour(Lines[Point_HeelLine].Line_TC)
@@ -3905,7 +3904,7 @@ BEGIN
 
       { Also any lines set to flash }
       FOR L := 0 TO High(Lines) DO BEGIN
-        IF Lines[L].Line_TC <> UnknownTC THEN BEGIN
+        IF Lines[L].Line_TC <> UnknownTrackCircuit THEN BEGIN
           IF DisplayFlashingTrackCircuits
           AND (TrackCircuits[Lines[L].Line_TC].TC_Flashing)
           THEN BEGIN
@@ -4235,7 +4234,7 @@ PROCEDURE TFWPRailWindow.TCPopupMenuOnPopup(Sender: TObject);
 BEGIN
   TRY
     WITH Lines[TrackCircuitPopupLine] DO BEGIN
-      IF Line_TC = UnknownTC THEN BEGIN
+      IF Line_TC = UnknownTrackCircuit THEN BEGIN
         TCPopupTrackCircuitNumber.Caption := 'Track Circuit Number';
         TCPopupTrackCircuitNumber.Enabled := False;
         TCPopupAllocateLocoToTrackCircuit.Enabled := False;
@@ -4350,7 +4349,7 @@ END; { TCPopupMenuOnPopup }
 PROCEDURE TFWPRailWindow.TCPopupSetTrackCircuitToSystemOccupationClick(Sender: TObject);
 BEGIN
   WITH Lines[TrackCircuitPopupLine] DO BEGIN
-    IF Line_TC <> UnknownTC THEN BEGIN
+    IF Line_TC <> UnknownTrackCircuit THEN BEGIN
       SetTrackCircuitState(Line_TC, TCSystemOccupation);
       TCPopupSetTrackCircuitToSystemOccupation.Enabled := False;
       InvalidateScreen(UnitRef, 'TCPopupSetTrackCircuitToFeedbackOccupationClick');
@@ -4361,7 +4360,7 @@ END; { TCPopupSetTrackCircuitToSystemOccupationClick }
 PROCEDURE TFWPRailWindow.TCPopupSetTrackCircuitToFeedbackOccupationClick(Sender: TObject);
 BEGIN
   WITH Lines[TrackCircuitPopupLine] DO BEGIN
-    IF Line_TC <> UnknownTC THEN BEGIN
+    IF Line_TC <> UnknownTrackCircuit THEN BEGIN
       SetTrackCircuitState(Line_TC, TCFeedbackOccupation);
       TCPopupSetTrackCircuitToFeedbackOccupation.Enabled := False;
       InvalidateScreen(UnitRef, 'TCPopupSetTrackCircuitToFeedbackOccupationClick');
@@ -4372,7 +4371,7 @@ END; { TCPopupSetTrackCircuitToFeedbackOccupationClick }
 PROCEDURE TFWPRailWindow.TCPopupSetTrackCircuitUnoccupiedClick(Sender: TObject);
 BEGIN
   WITH Lines[TrackCircuitPopupLine] DO BEGIN
-    IF Line_TC <> UnknownTC THEN BEGIN
+    IF Line_TC <> UnknownTrackCircuit THEN BEGIN
       SetTrackCircuitState(Line_TC, TCUnoccupied);
       TCPopupSetTrackCircuitUnoccupied.Enabled := False;
       InvalidateScreen(UnitRef, 'TCPopupSetTrackCircuitOccupiedClick');
@@ -4384,7 +4383,7 @@ PROCEDURE TFWPRailWindow.TCPopupSetTrackCircuitOutOfUseSetByUserClick(Sender: TO
 BEGIN
   { Set the trackcircuit out of use, regardless of its current state }
   WITH Lines[TrackCircuitPopupLine] DO BEGIN
-    IF Line_TC <> UnknownTC THEN BEGIN
+    IF Line_TC <> UnknownTrackCircuit THEN BEGIN
       SetTrackCircuitState(Line_TC, TCOutOfUseSetByUser);
       TCPopupSetTrackCircuitOutOfUseSetByUser.Enabled := False;
       InvalidateScreen(UnitRef, 'TCPopupSetTrackCircuitOutOfUseClick');
@@ -4396,7 +4395,7 @@ PROCEDURE TFWPRailWindow.TCPopupSetTrackCircuitToPermanentOccupationClick(Sender
 BEGIN
   { Set the trackcircuit permanently occupied, regardless of its current state }
   WITH Lines[TrackCircuitPopupLine] DO BEGIN
-    IF Line_TC <> UnknownTC THEN BEGIN
+    IF Line_TC <> UnknownTrackCircuit THEN BEGIN
       IF GetTrackCircuitState(Line_TC) = TCFeedbackOccupation THEN
         SetTrackCircuitState(Line_TC, TCPermanentFeedbackOccupation)
       ELSE
@@ -4413,7 +4412,7 @@ VAR
 
 BEGIN
   WITH Lines[TrackCircuitPopupLine] DO BEGIN
-    IF Line_TC <> UnknownTC THEN BEGIN
+    IF Line_TC <> UnknownTrackCircuit THEN BEGIN
       T := GetTrainRecord(TrackCircuits[Line_TC].TC_LocoChip);
       IF T <> NIL THEN BEGIN
         WITH T^ DO BEGIN
@@ -4451,7 +4450,7 @@ BEGIN
     { no loco chip number has been entered, so clear any existing one }
     T := GetTrainRecord(TrackCircuits[TC].TC_LocoChip);
     IF T <> NIL THEN BEGIN
-      T^.Train_CurrentTC := UnknownTC;
+      T^.Train_CurrentTC := UnknownTrackCircuit;
       T^.Train_SavedLocation := UnknownLocation;
 
       { and clear it from other location trackcircuits except the one we're at (are we right to use Train_LastLocation here? **** ) }
@@ -4500,7 +4499,7 @@ BEGIN
   TRY
     WITH Lines[TrackCircuitPopupLine] DO BEGIN
       { If we don't know which loco is on a particular line }
-      IF Line_TC <> UnknownTC THEN BEGIN
+      IF Line_TC <> UnknownTrackCircuit THEN BEGIN
         { save chip number previously allocated to this trackcircuit }
         PossibleLocoChip := TrackCircuits[Line_TC].TC_LocoChip;
         SavePossibleLocoChip := PossibleLocoChip;
@@ -4534,7 +4533,7 @@ BEGIN
   //              Debug('!Loco ' + LocoChipToStr(PossibleLocoChip) + ' is in the loco table but is not active')
               ELSE BEGIN
                 FindAdjoiningTrackCircuits(Line_TC, AdjacentUpTC, AdjacentDownTC);
-                IF (PossibleT^.Train_CurrentTC <> UnknownTC)
+                IF (PossibleT^.Train_CurrentTC <> UnknownTrackCircuit)
                 AND (PossibleT^.Train_CurrentTC <> Line_TC)
                 AND (TrackCircuits[PossibleT^.Train_CurrentTC].TC_LocoChip <> UnknownLocoChip)
                 AND (PossibleT^.Train_CurrentTC <> AdjacentUpTC)
@@ -4581,27 +4580,27 @@ BEGIN
                     { and any other adjacent trackcircuits in the same location, unless they're already occupied. First search up the line: }
                     REPEAT
                       TC := AdjacentUpTC;
-                      IF TC <> UnknownTC THEN BEGIN
+                      IF TC <> UnknownTrackCircuit THEN BEGIN
                         IF TrackCircuits[AdjacentUpTC].TC_OccupationState = TCFeedbackOccupation THEN BEGIN
                           SetTrackCircuitState(PossibleLocoChip, TC, NewTrackCircuitState);
                           AppendToIntegerArray(TCArray, TC);
                         END;
                         FindAdjoiningTrackCircuits(TC, AdjacentUpTC, AdjacentDownTC);
                       END;
-                    UNTIL (AdjacentUpTC = UnknownTC) OR (TrackCircuits[AdjacentUpTC].TC_OccupationState = TCUnoccupied);
+                    UNTIL (AdjacentUpTC = UnknownTrackCircuit) OR (TrackCircuits[AdjacentUpTC].TC_OccupationState = TCUnoccupied);
 
                     { and then down: }
                     FindAdjoiningTrackCircuits(Line_TC, AdjacentUpTC, AdjacentDownTC);
                     REPEAT
                       TC := AdjacentDownTC;
-                      IF TC <> UnknownTC THEN BEGIN
+                      IF TC <> UnknownTrackCircuit THEN BEGIN
                         IF TrackCircuits[AdjacentDownTC].TC_OccupationState = TCFeedbackOccupation THEN BEGIN
                           SetTrackCircuitState(PossibleLocoChip, TC, NewTrackCircuitState);
                           AppendToIntegerArray(TCArray, TC);
                         END;
                         FindAdjoiningTrackCircuits(TC, AdjacentUpTC, AdjacentDownTC);
                       END;
-                    UNTIL (AdjacentDownTC = UnknownTC) OR (TrackCircuits[AdjacentDownTC].TC_OccupationState = TCUnoccupied);
+                    UNTIL (AdjacentDownTC = UnknownTrackCircuit) OR (TrackCircuits[AdjacentDownTC].TC_OccupationState = TCUnoccupied);
 
                     InvalidateScreen(UnitRef, 'TCPopupAllocateLocoToTrackCircuitClick');
                     DebugStr := 'Loco ' + IntToStr(PossibleLocoChip) + ' allocated to TC=' + IntToStr(Line_TC);
@@ -4637,7 +4636,7 @@ VAR
 BEGIN
   TRY
     WITH Lines[TrackCircuitPopupLine] DO BEGIN
-      IF Line_TC <> UnknownTC THEN BEGIN
+      IF Line_TC <> UnknownTrackCircuit THEN BEGIN
         LocoChip := TrackCircuits[Line_TC].TC_LocoChip;
         IF LocoChip <> UnknownLocoChip THEN BEGIN
           IF MessageDialogueWithDefault('Change loco ' + LocoChipToStr(LocoChip) + '''s internal direction to up - are you sure?',
@@ -4678,7 +4677,7 @@ VAR
 BEGIN
   TRY
     WITH Lines[TrackCircuitPopupLine] DO BEGIN
-      IF Line_TC <> UnknownTC THEN BEGIN
+      IF Line_TC <> UnknownTrackCircuit THEN BEGIN
         LocoChip := TrackCircuits[Line_TC].TC_LocoChip;
         IF LocoChip <> UnknownLocoChip THEN BEGIN
           IF MessageDialogueWithDefault('Change loco ' + LocoChipToStr(LocoChip) + '''s internal direction to down - are you sure?',
@@ -4749,7 +4748,7 @@ BEGIN
     DirectionStr := '';
 
     WITH Lines[TrackCircuitPopupLine] DO BEGIN
-      IF Line_TC <> UnknownTC THEN BEGIN
+      IF Line_TC <> UnknownTrackCircuit THEN BEGIN
         WITH TrackCircuits[Line_TC] DO BEGIN
           IF TC_SpeedRestrictionInMPH = NoSpecifiedSpeed THEN BEGIN
             DefaultSpeedStr := '';
@@ -4822,7 +4821,7 @@ PROCEDURE TFWPRailWindow.TCPopupClearTrackCircuitSpeedRestrictionClick(Sender: T
 BEGIN
   TRY
     WITH Lines[TrackCircuitPopupLine] DO BEGIN
-      IF Line_TC <> UnknownTC THEN BEGIN
+      IF Line_TC <> UnknownTrackCircuit THEN BEGIN
         WITH TrackCircuits[Line_TC] DO BEGIN
           IF TC_SpeedRestrictionInMPH <> NoSpecifiedSpeed THEN BEGIN
              IF MessageDialogueWithDefault('Do you wish to clear the ' + MPHToStr(TC_SpeedRestrictionInMPH) + ' mph speed restriction at TC=' + IntToStr(Line_TC) + '?',
@@ -7051,14 +7050,14 @@ BEGIN { Main drawing procedure }
               DrawLine(L, Line_OldColour, ActiveTrain)
             ELSE BEGIN
               { If the line is not associated with a trackcircuit }
-              IF Line_TC = UnknownTC THEN BEGIN
+              IF Line_TC = UnknownTrackCircuit THEN BEGIN
                 IF Line_RouteSet <> UnknownRoute THEN
                   Line_CurrentColour := LineRoutedOverColour
                 ELSE
                   Line_CurrentColour := SaveLineOldColour;
                 DrawLine(L, Line_CurrentColour, ActiveTrain);
               END ELSE BEGIN
-                { LineTC <> UnknownTC - see if it's an occupied trackcircuit etc. If in auto mode, only highlight the bits that are routed over. }
+                { LineTC <> UnknownTrackCircuit - see if it's an occupied trackcircuit etc. If in auto mode, only highlight the bits that are routed over. }
                 IF NOT DisplayFlashingTrackCircuits OR TrackCircuits[Line_TC].TC_LitUp THEN
                   Line_CurrentColour := GetTrackCircuitStateColour(Line_TC)
                 ELSE
@@ -7114,9 +7113,9 @@ BEGIN { Main drawing procedure }
                 IF NOT Signals[S].Signal_OutOfUse THEN BEGIN
                   { needs fixing - leaves TCs with signal numbers after exit **** }
                   { also needs headcodes not loco numbers (F10) turned on *** }
-                  IF Signals[S].Signal_AdjacentTC <> UnknownTC THEN
+                  IF Signals[S].Signal_AdjacentTC <> UnknownTrackCircuit THEN
                     DrawTrackCircuit(Signals[S].Signal_AdjacentTC, clLime);
-                  IF Signals[S].Signal_AdjacentTC <> UnknownTC THEN
+                  IF Signals[S].Signal_AdjacentTC <> UnknownTrackCircuit THEN
                     Log('X S=' + IntToStr(S) + ' TC=' + IntToStr(Signals[S].Signal_AdjacentTC));
                 END;
               END; {FOR}

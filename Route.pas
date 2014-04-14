@@ -1578,7 +1578,7 @@ VAR
   TestSubRoute : StringArrayType;
 
 BEGIN
-  LastTCOnRoute := UnknownTC;
+  LastTCOnRoute := UnknownTrackCircuit;
   SetLength(TestSubRoute, 0);
 
   IF InAutoMode THEN BEGIN
@@ -1592,11 +1592,11 @@ BEGIN
             TestSubRoute := Routes_SubRouteSettingStrings[Route, SubRouteCount];
             { Now find the last trackcircuit on the route }
             FOR I := 0 TO High(TestSubRoute) DO
-              IF ExtractTrackCircuitFromString(TestSubRoute[I]) <> UnknownTC THEN
+              IF ExtractTrackCircuitFromString(TestSubRoute[I]) <> UnknownTrackCircuit THEN
                 LastTCOnRoute := ExtractTrackCircuitFromString(TestSubRoute[I]);
 
             { If it's occupied, and the signal controlling it is back on, then the route has been used }
-            IF (LastTCOnRoute <> UnknownTC)
+            IF (LastTCOnRoute <> UnknownTrackCircuit)
             AND (TrackCircuits[LastTCOnRoute].TC_LockedForRoute = Route)
             AND (TrackCircuits[LastTCOnRoute].TC_OccupationState = TCFeedbackOccupation)
             AND (GetSignalAspect(Routes_SubRouteStartSignals[Route, SubRouteCount]) = RedAspect)

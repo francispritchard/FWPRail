@@ -2539,7 +2539,7 @@ VAR
 BEGIN
   Result := '';
   FOR L := 0 TO High(Lines) DO
-    IF (TC <> UnknownTC)
+    IF (TC <> UnknownTrackCircuit)
     AND (TC = Lines[L].Line_TC)
     THEN
       Result := Result + LineToStr(L) + ', ';
@@ -2902,7 +2902,7 @@ BEGIN
       Str2 := Copy(Str2, 1, Length(Str2) - 1);
     Result := StrToInt(Str2);
   END ELSE
-    Result := UnknownTC;
+    Result := UnknownTrackCircuit;
 END; { ExtractTrackCircuitFromString }
 
 FUNCTION ExtractSubRouteFromStringArray(StringArray : StringArrayType; SubRoute : Integer): StringArrayType;
@@ -3160,7 +3160,7 @@ BEGIN
   SetLength(Result, 0);
 
   FOR L := 0 TO High(Lines) DO
-    IF (TC <> UnknownTC)
+    IF (TC <> UnknownTrackCircuit)
     AND (TC = Lines[L].Line_TC)
     THEN
       AppendToLineArray(Result, L);
@@ -3286,7 +3286,7 @@ BEGIN
       { only append a new TC if it's not there already }
       IF Lines[L].Line_Location = Location THEN BEGIN
         IF (Length(Result) = 0) OR (Result[High(Result)] <> Lines[L].Line_TC) THEN
-          IF Lines[L].Line_TC <> UnknownTC THEN
+          IF Lines[L].Line_TC <> UnknownTrackCircuit THEN
             AppendToIntegerArray(Result, Lines[L].Line_TC)
       END;
     END;
@@ -3296,7 +3296,7 @@ END; { GetTrackCircuitsForLocation }
 FUNCTION GetTrackCircuitStateColour(TC : Integer) : TColour;
 { Return whether and how the trackcircuit is occupied }
 BEGIN
-  IF TC = UnknownTC THEN
+  IF TC = UnknownTrackCircuit THEN
     GetTrackCircuitStateColour := TCUnoccupiedColour
   ELSE
     CASE GetTrackCircuitState(TC) OF
@@ -3330,7 +3330,7 @@ END; { GetTrackCircuitStateColour }
 FUNCTION GetTrackCircuitState(TC : Integer) : TrackCircuitStateType;
 { Return whether and how the trackcircuit is occupied }
 BEGIN
-  IF TC = UnknownTC THEN
+  IF TC = UnknownTrackCircuit THEN
     Result := TCUnoccupied
   ELSE BEGIN
     Result := TrackCircuits[TC].TC_OccupationState;
@@ -3709,7 +3709,7 @@ BEGIN
   WHILE (Pos <= High(StringArray))
   AND (Result = False)
   DO BEGIN
-    IF (TC <> UnknownTC)
+    IF (TC <> UnknownTrackCircuit)
     AND (TC = ExtractTrackCircuitFromString(StringArray[Pos]))
     THEN
       Result := True

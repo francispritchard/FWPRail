@@ -121,10 +121,10 @@ CONST
   UnknownPoint = 99999;
   UnknownRoute = 99999;
   UnknownSignal = 99999;
-  UnknownTC = 99999;
+  UnknownTrackCircuit = 99999;
   UnknownTrainLength = 99999;
   UnknownTrainTypeNum = 99999;
-  NoTC = UnknownTC;
+  NoTC = UnknownTrackCircuit;
 
   NoLocoChip = UnknownLocoChip;
   NoRoute = UnknownRoute;
@@ -2875,7 +2875,7 @@ VAR
     WITH BufferStops[ High(BufferStops)] DO BEGIN
       BufferStop_AdjacentLine := L;
       BufferStop_AdjacentTrackCircuit := Lines[BufferStop_AdjacentLine].Line_TC;
-      IF (BufferStop_AdjacentTrackCircuit = UnknownTC) AND ProgramStartup THEN
+      IF (BufferStop_AdjacentTrackCircuit = UnknownTrackCircuit) AND ProgramStartup THEN
         Log('E Buffer stop ' + IntToStr( High(BufferStops)) + ' (at line' + ' ' + Lines[BufferStop_AdjacentLine].Line_Str + ') has no adjacent trackcircuit');
 
       BufferStop_AsTheatreDestination := BSTheatreDestination;
@@ -3060,12 +3060,12 @@ BEGIN
               FieldName := 'Line TC';
               TempStr := FieldByName(FieldName).AsString;
               IF TempStr = '' THEN
-                Line_TC := UnknownTC
+                Line_TC := UnknownTrackCircuit
               ELSE
                 IF NOT TryStrToInt(TempStr, Line_TC) THEN
                   ErrorMsg := 'invalid line TC integer "' + TempStr + '"'
                 ELSE
-                  IF ((Line_TC < 0) AND (Line_TC > High(TrackCircuits))) OR (Line_TC = UnknownTC) THEN
+                  IF ((Line_TC < 0) AND (Line_TC > High(TrackCircuits))) OR (Line_TC = UnknownTrackCircuit) THEN
                     ErrorMsg := 'trackcircuit number ' + IntToStr(Line_TC) + ' outside bounds';
             END;
 
@@ -3979,7 +3979,7 @@ BEGIN
   { Note which lines and trackcircuits are next the signal }
   IF NOT Flag THEN BEGIN
     AdjacentTC := Lines[AdjacentLine].Line_TC;
-    IF AdjacentTC = UnknownTC THEN
+    IF AdjacentTC = UnknownTrackCircuit THEN
       ErrorMsg := 'ValidateSignalOutOfUse: S=' + IntToStr(S) + ' (adjacent to line' + ' ' + LineToStr(AdjacentLine) + ') has no adjacent trackcircuit';
 // ELSE
 // AppendToIntegerArray(TrackCircuits[Lines[AdjacentLine].Line_TC].TC_AdjacentSignals, S);
@@ -4204,7 +4204,7 @@ BEGIN
 
         WITH Signals[S] DO BEGIN
           IF ErrorMsg = '' THEN BEGIN
-            Signal_AdjacentTC := UnknownTC;
+            Signal_AdjacentTC := UnknownTrackCircuit;
             Signal_ApproachLocked := False;
 
             IF NewSignalData THEN
@@ -4235,7 +4235,7 @@ BEGIN
             Signal_PreviousHiddenAspectSignal1 := UnknownSignal;
             Signal_PreviousHiddenAspectSignal2 := UnknownSignal;
             Signal_PreviousTheatreIndicatorString := '';
-            Signal_ResettingTC := UnknownTC;
+            Signal_ResettingTC := UnknownTrackCircuit;
             Signal_StateChanged := False;
             Signal_TheatreIndicatorString := '';
             Signal_TRSHeld := False;
@@ -5929,7 +5929,7 @@ BEGIN
               FieldName := 'TCAbove';
               TempStr := FieldByName(FieldName).AsString;
               IF TempStr = '' THEN
-                Feedback_TCAboveUnit := UnknownTC
+                Feedback_TCAboveUnit := UnknownTrackCircuit
               ELSE
                 IF NOT TryStrToInt(TempStr, Feedback_TCAboveUnit) THEN
                   ErrorMsg := 'invalid integer ''' + TempStr + ''' in TCAbove field';

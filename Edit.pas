@@ -1278,7 +1278,7 @@ BEGIN
         WITH Signals[High(Signals)] DO BEGIN
           Signal_AccessoryAddress := 0;
           Signal_AdjacentLine := LineFoundNum;
-          Signal_AdjacentTC := UnknownTC;
+          Signal_AdjacentTC := UnknownTrackCircuit;
           Signal_ApproachControlAspect := NoAspect;
           Signal_ApproachLocked := False;
           Signal_AsTheatreDestination := '';
@@ -1327,7 +1327,7 @@ BEGIN
           Signal_PreviousSignal1 := UnknownSignal;
           Signal_PreviousSignal2 := UnknownSignal;
           Signal_PreviousTheatreIndicatorString := '';
-          Signal_ResettingTC := UnknownTC;
+          Signal_ResettingTC := UnknownTrackCircuit;
           SetLength(Signal_RouteLockingNeededArray, 0);
           Signal_StateChanged := False;
           Signal_TRSHeld := False;
