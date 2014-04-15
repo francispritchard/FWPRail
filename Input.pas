@@ -1911,9 +1911,10 @@ BEGIN { KeyPressedDown }
               END;
             Shift: {B}
               BEGIN
-                HelpMsg := '';
+                HelpMsg := 'Save bitmap to file';
                 IF NOT HelpRequired THEN BEGIN
-                  RailWindowBitmap.SaveToFile('C:\Doc\Google Drive\RAD Studio\Projects\Rail\RailTemp.RailWindowBitmap');
+                  RailWindowBitmap.SaveToFile('C:\Doc\Google Drive\RAD Studio\Projects\Rail\Bitmap.bmp');
+                  Debug('Bitmap saved at C:\Doc\Google Drive\RAD Studio\Projects\Rail\RailTemp.Bitmap.bmp');
                 END;
               END;
             Ctrl: {B}
@@ -2054,7 +2055,7 @@ BEGIN { KeyPressedDown }
               END;
             Shift: {D}
               BEGIN
-                HelpMsg := 'display diagrams window';
+                HelpMsg := 'show diagrams window';
                 IF NOT HelpRequired THEN BEGIN
                   IF DisplayDiagrams THEN BEGIN
                     DiagramsWindow.Hide;
@@ -2331,19 +2332,19 @@ BEGIN { KeyPressedDown }
                 HelpMsg := 'toggle line headcodes, journeys and routes, and chip numbers';
                 IF NOT HelpRequired THEN BEGIN
                   IF DisplayLocoChipNums THEN BEGIN
-                    StatusBarPanelText := 'Displaying headcodes';
+                    StatusBarPanelText := 'Showing headcodes';
                     DisplayLocoHeadcodes := True;
                     DisplayLocoChipNums := False;
                     DisplayRoutesAndJourneys := False;
                   END ELSE
                     IF DisplayLocoHeadcodes THEN BEGIN
-                      StatusBarPanelText := 'Displaying journeys and routes';
+                      StatusBarPanelText := 'Showing journeys and routes';
                       DisplayRoutesAndJourneys := True;
                       DisplayLocoChipNums := False;
                       DisplayLocoHeadcodes := False;
                     END ELSE
                       IF DisplayRoutesAndJourneys THEN BEGIN
-                        StatusBarPanelText := 'Displaying chip numbers';
+                        StatusBarPanelText := 'Showing chip numbers';
                         DisplayLocoChipNums := True;
                         DisplayLocoHeadcodes := False;
                         DisplayRoutesAndJourneys := False;
@@ -2684,6 +2685,11 @@ BEGIN { KeyPressedDown }
               BEGIN
                 HelpMsg := '';
                 IF NOT HelpRequired THEN BEGIN
+                  IF MainWindow.Visible THEN
+                    MainWindow.Hide
+                  ELSE
+                    MainWindow.Show;
+                  Debug('Main window visible = ' + BoolToStr(MainWindow.Visible, True));
                 END;
               END;
             Ctrl: {M}
@@ -2761,7 +2767,7 @@ BEGIN { KeyPressedDown }
           CASE ShiftKeys OF
             NoShiftKeys: {O}
               BEGIN
-                HelpMsg := 'display options window';
+                HelpMsg := 'show options window';
                 IF NOT HelpRequired THEN BEGIN
                   IF InAutoMode THEN
                     MessageDlg('Cannot display options window if in Auto Mode', mtInformation, [mbOK], 0)
@@ -3409,15 +3415,15 @@ BEGIN { KeyPressedDown }
           CASE ShiftKeys OF
             NoShiftKeys: {V}
               BEGIN
-//                newreadout('100');
-//                newreadout('103');
-//                newreadout('180');
-//                newreadout('902');
-//                newreadout('912');
-//                readout('922');
-//                readout('fred');
-//                readout('ShortCircuit');
-             END;
+                HelpMsg := 'switch flashing trackcircuits on/off';
+                IF NOT HelpRequired THEN BEGIN
+                  IF DisplayFlashingTrackCircuits THEN
+                    DisplayFlashingTrackCircuits := False
+                  ELSE
+                    DisplayFlashingTrackCircuits := True;
+                  LOg('A Verbose flag set to ' + BoolToStr(DisplayFlashingTrackCircuits, True));
+                END;
+              END;
             ShiftAlt: {V}
               BEGIN
                 HelpMsg := '';
@@ -3478,7 +3484,7 @@ BEGIN { KeyPressedDown }
           CASE ShiftKeys OF
             NoShiftKeys: {W}
               BEGIN
-                HelpMsg := 'display working timetable';
+                HelpMsg := 'show working timetable';
                 IF NOT HelpRequired THEN BEGIN
                   IF DisplayWorkingTimetable THEN BEGIN
                     WorkingTimetableWindow.Hide;
@@ -4766,7 +4772,7 @@ BEGIN { KeyPressedDown }
           CASE ShiftKeys OF
             NoShiftKeys: {F1}
               BEGIN
-                HelpMsg := 'display key descriptions';
+                HelpMsg := 'show key descriptions';
                 IF NOT HelpRequired THEN
                   WriteHelpText(HelpMsg);
               END;
@@ -4811,10 +4817,10 @@ BEGIN { KeyPressedDown }
           CASE ShiftKeys OF
             NoShiftKeys: {F2}
               BEGIN
-                HelpMsg := 'display signal and bufferstop numbers';
+                HelpMsg := 'show signal and bufferstop numbers';
                 IF NOT HelpRequired THEN BEGIN
                   ShowSignalAndBufferStopNums := True;
-                  WriteToStatusBarPanel(StatusBarPanel2, 'Displaying signal and bufferstop numbers');
+                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing signal and bufferstop numbers');
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
               END;
@@ -4830,9 +4836,9 @@ BEGIN { KeyPressedDown }
               END;
             CtrlAlt: {F2}
               BEGIN
-                HelpMsg := 'display signals where there are hold markers and those not used for routeing';
+                HelpMsg := 'show signals where there are hold markers and those not used for routeing';
                 IF NOT HelpRequired THEN BEGIN
-                  WriteToStatusBarPanel(StatusBarPanel2, 'Displaying signals where there are hold markers and those not used for routeing');
+                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing signals where there are hold markers and those not used for routeing');
                   ShowSignalsWhereRouteingCanBeHeldAndThoseNotUsedForRouteing := True;
 
                   { List the colours for the forgetful }
@@ -4848,7 +4854,7 @@ BEGIN { KeyPressedDown }
               END;
             CtrlShift: {F2}
               BEGIN
-                HelpMsg := 'display where signals'' junction indicators point';
+                HelpMsg := 'show where signals'' junction indicators point';
                 IF NOT HelpRequired THEN BEGIN
                   IF ShowSignalJunctionDestinations THEN
                     ShowSignalJunctionDestinations := False
@@ -4859,31 +4865,31 @@ BEGIN { KeyPressedDown }
               END;
             Shift: {F2}
               BEGIN
-                HelpMsg := 'display signal numbers and adjacent trackcircuits';
+                HelpMsg := 'show signal numbers and adjacent trackcircuits';
                 IF NOT HelpRequired THEN BEGIN
-                  WriteToStatusBarPanel(StatusBarPanel2, 'Displaying signal numbers and adjacent trackcircuits');
+                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing signal numbers and adjacent trackcircuits');
                   ShowSignalsWithAdjacentTrackCircuits := True;
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
               END;
             Ctrl: {F2}
               BEGIN
-                HelpMsg := 'display signals with theatre destinations';
+                HelpMsg := 'show signals with theatre destinations';
                 IF NOT HelpRequired THEN BEGIN
                   ShowSignalsAndBufferStopsWithTheatreDestinations := True;
-                  WriteToStatusBarPanel(StatusBarPanel2, 'Displaying theatre destinations');
+                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing theatre destinations');
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
               END;
             Alt: {F2}
               BEGIN
-                HelpMsg := 'display/hide signal hidden aspects';
+                HelpMsg := 'show/hide signal hidden aspects';
                 IF NOT HelpRequired THEN BEGIN
                   IF ShowSignalHiddenAspects THEN BEGIN
                     WriteToStatusBarPanel(StatusBarPanel2, 'Not displaying signal hidden aspects');
                     ShowSignalHiddenAspects := False;
                   END ELSE BEGIN
-                    WriteToStatusBarPanel(StatusBarPanel2, 'Displaying signal hidden aspects');
+                    WriteToStatusBarPanel(StatusBarPanel2, 'Showing signal hidden aspects');
                     ShowSignalHiddenAspects := True;
                   END;
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
@@ -4894,63 +4900,63 @@ BEGIN { KeyPressedDown }
           CASE ShiftKeys OF
             NoShiftKeys:
               BEGIN
-                HelpMsg := 'display point numbers';
+                HelpMsg := 'show point numbers';
                 IF NOT HelpRequired THEN BEGIN
-                  WriteToStatusBarPanel(StatusBarPanel2, 'Displaying point numbers');
+                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing point numbers');
                   ShowPointDetail := True;
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
               END;
             ShiftAlt: {F3}
               BEGIN
-                HelpMsg := 'display Lenz point unit groups';
+                HelpMsg := 'show Lenz point unit groups';
                 IF NOT HelpRequired THEN BEGIN
-                  WriteToStatusBarPanel(StatusBarPanel2, 'Displaying Lenz points grouped by point unit');
+                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing Lenz points grouped by point unit');
                   ShowLenzPointUnitGroups := True;
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
               END;
             CtrlAlt: {F3}
               BEGIN
-                HelpMsg := 'display points straight and diverging states';
+                HelpMsg := 'show points straight and diverging states';
                 IF NOT HelpRequired THEN BEGIN
-                  WriteToStatusBarPanel(StatusBarPanel2, 'Displaying points (straight and diverging highlighted)');
+                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing points (straight and diverging highlighted)');
                   ShowPointsStraightAndDiverging := True;
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
               END;
             CtrlShift: {F3}
               BEGIN
-                HelpMsg := 'display point default state';
+                HelpMsg := 'show point default state';
                 IF NOT HelpRequired THEN BEGIN
-                  WriteToStatusBarPanel(StatusBarPanel2, 'Displaying point default state');
+                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing point default state');
                   ShowPointDefaultState := True;
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
               END;
             Shift: {F3}
               BEGIN
-                HelpMsg := 'display Lenz points numbers';
+                HelpMsg := 'show Lenz points numbers';
                 IF NOT HelpRequired THEN BEGIN
-                  WriteToStatusBarPanel(StatusBarPanel2, 'Displaying Lenz point numbers');
+                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing Lenz point numbers');
                   ShowLenzPointNumbers := True;
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
               END;
             Ctrl: {F3}
               BEGIN
-                HelpMsg := 'display points that are locked';
+                HelpMsg := 'show points that are locked';
                 IF NOT HelpRequired THEN BEGIN
-                  WriteToStatusBarPanel(StatusBarPanel2, 'Displaying points that are locked');
+                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing points that are locked');
                   ShowPointsThatAreLocked := True;
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
               END;
             Alt: {F3}
               BEGIN
-                HelpMsg := 'display point type';
+                HelpMsg := 'show point type';
                 IF NOT HelpRequired THEN BEGIN
-                  WriteToStatusBarPanel(StatusBarPanel2, 'Displaying point type');
+                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing point type');
                   ShowPointType := True;
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
@@ -4960,10 +4966,10 @@ BEGIN { KeyPressedDown }
           CASE ShiftKeys OF
             NoShiftKeys: {F4}
               BEGIN
-                HelpMsg := 'display line detail';
+                HelpMsg := 'show line detail';
                 IF NOT HelpRequired THEN BEGIN
                   ShowLineDetail := True;
-                  WriteToStatusBarPanel(StatusBarPanel2, 'Displaying line detail');
+                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing line detail');
                   { List the line colours for the forgetful (added this bit 12/12/07 because FWP forgot which was which!) }
                   CreateRouteDisplayColoursWindow.Visible := True;
                   CreateRouteDisplayColoursWindow.CreateRouteDisplayColoursWindowRichedit.Clear;
@@ -4983,37 +4989,37 @@ BEGIN { KeyPressedDown }
               END;
             CtrlAlt: {F4}
               BEGIN
-                HelpMsg := 'display lines where UpX value specified';
+                HelpMsg := 'show lines where UpX value specified';
                 IF NOT HelpRequired THEN BEGIN
                   ShowLinesWhereUpXValueSpecified := True;
-                  WriteToStatusBarPanel(StatusBarPanel2, 'Displaying line numbers where UpX value is specified');
+                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing line numbers where UpX value is specified');
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
               END;
             CtrlShift: {F4}
               BEGIN
-                HelpMsg := 'display line numbers';
+                HelpMsg := 'show line numbers';
                 IF NOT HelpRequired THEN BEGIN
                   ShowLineNumbers := True;
-                  WriteToStatusBarPanel(StatusBarPanel2, 'Displaying line numbers');
+                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing line numbers');
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
               END;
             Shift: {F4}
               BEGIN
-                HelpMsg := 'display line directions and non-through locations';
+                HelpMsg := 'show line directions and non-through locations';
                 IF NOT HelpRequired THEN BEGIN
                   ShowLineDirectionDetail := True;
-                  WriteToStatusBarPanel(StatusBarPanel2, 'Displaying line directions (blue) and non-through locations (red)');
+                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing line directions (blue) and non-through locations (red)');
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
               END;
             Ctrl: {F4}
               BEGIN
-                HelpMsg := 'display line gradients';
+                HelpMsg := 'show line gradients';
                 IF NOT HelpRequired THEN BEGIN
                   ShowLineGradients := True;
-                  WriteToStatusBarPanel(StatusBarPanel2, 'Displaying line gradients (bidirectional lines show U/D)');
+                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing line gradients (bidirectional lines show U/D)');
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
               END;
@@ -5031,9 +5037,9 @@ BEGIN { KeyPressedDown }
           CASE ShiftKeys OF
             NoShiftKeys: {F5}
               BEGIN
-                HelpMsg := 'display trackcircuits';
+                HelpMsg := 'show trackcircuits';
                 IF NOT HelpRequired THEN BEGIN
-                  WriteToStatusBarPanel(StatusBarPanel2, 'Displaying trackcircuits');
+                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing trackcircuits');
                   ShowTrackCircuits := True;
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
@@ -5054,33 +5060,33 @@ BEGIN { KeyPressedDown }
               END;
             CtrlAlt: {F5}
               BEGIN
-                HelpMsg := 'toggle adjacent trackcircuit mode';
+                HelpMsg := 'toggle show adjacent trackcircuit mode';
                 IF NOT HelpRequired THEN BEGIN
                   IF ShowAdjacentTrackCircuitMode THEN BEGIN
                     ShowAdjacentTrackCircuitMode := False;
-                    WriteToStatusBarPanel(StatusBarPanel2, 'Displaying adjacent trackcircuit mode = OFF');
+                    WriteToStatusBarPanel(StatusBarPanel2, 'Showing adjacent trackcircuit mode = OFF');
                   END ELSE BEGIN
                     ShowAdjacentTrackCircuitMode := True;
-                    WriteToStatusBarPanel(StatusBarPanel2, 'Displaying adjacent trackcircuit mode = ON');
+                    WriteToStatusBarPanel(StatusBarPanel2, 'Showing adjacent trackcircuit mode = ON');
                   END;
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
               END;
             CtrlShift: {F5}
               BEGIN
-                HelpMsg := 'display trackcircuits routed over';
+                HelpMsg := 'show trackcircuits routed over';
                 IF NOT HelpRequired THEN BEGIN
                   ShowTrackCircuitsRoutedOver := True;
-                  WriteToStatusBarPanel(StatusBarPanel2, 'Displaying trackcircuits routed over');
+                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing trackcircuits routed over');
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
               END;
             Shift: {F5}
               BEGIN
-                HelpMsg := 'display trackcircuits lengths in inches';
+                HelpMsg := 'show trackcircuits lengths in inches';
                 IF NOT HelpRequired THEN BEGIN
                   ShowTrackCircuitLengths := True;
-                  WriteToStatusBarPanel(StatusBarPanel2, 'Displaying trackcircuit lengths in inches');
+                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing trackcircuit lengths in inches');
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
               END;
@@ -5097,10 +5103,10 @@ BEGIN { KeyPressedDown }
               END;
             Alt: {F5}
               BEGIN
-                HelpMsg := 'display lines without trackcircuits';
+                HelpMsg := 'show lines without trackcircuits';
                 IF NOT HelpRequired THEN BEGIN
                   ShowLinesWithoutTrackCircuits := True;
-                  WriteToStatusBarPanel(StatusBarPanel2, 'Displaying lines without trackcircuits');
+                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing lines without trackcircuits');
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
               END;
@@ -5109,10 +5115,10 @@ BEGIN { KeyPressedDown }
           CASE ShiftKeys OF
             NoShiftKeys: {F6}
               BEGIN
-                HelpMsg := 'display locations';
+                HelpMsg := 'show locations';
                 IF NOT HelpRequired THEN BEGIN
                   ShowLocations := True;
-                  WriteToStatusBarPanel(StatusBarPanel2, 'Displaying locations');
+                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing locations');
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
               END;
@@ -5136,10 +5142,10 @@ BEGIN { KeyPressedDown }
               END;
             Shift: {F6}
               BEGIN
-                HelpMsg := 'display location lengths';
+                HelpMsg := 'show location lengths';
                 IF NOT HelpRequired THEN BEGIN
                   ShowLocationLengthDetail := True;
-                  WriteToStatusBarPanel(StatusBarPanel2, 'Displaying location lengths');
+                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing location lengths');
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
               END;
@@ -5160,10 +5166,10 @@ BEGIN { KeyPressedDown }
           CASE ShiftKeys OF
             NoShiftKeys: {F7}
               BEGIN
-                HelpMsg := 'display areas';
+                HelpMsg := 'show areas';
                 IF NOT HelpRequired THEN BEGIN
                   ShowAreas := True;
-                  WriteToStatusBarPanel(StatusBarPanel2, 'Displaying areas (Holding=Yellow; Reversing=Red; H&R=Aqua; Neither=Green)');
+                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing areas (Holding=Yellow; Reversing=Red; H&R=Aqua; Neither=Green)');
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
               END;
@@ -5224,9 +5230,9 @@ BEGIN { KeyPressedDown }
           CASE ShiftKeys OF
             NoShiftKeys: {F8}
               BEGIN
-                HelpMsg := 'display trackcircuit feedback data';
+                HelpMsg := 'show trackcircuit feedback data';
                 IF NOT HelpRequired THEN BEGIN
-                  WriteToStatusBarPanel(StatusBarPanel2, 'Displaying trackcircuit feedback data');
+                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing trackcircuit feedback data');
                   ShowTrackCircuitFeedbackDataInSeparateColours := True;
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
@@ -5236,7 +5242,7 @@ BEGIN { KeyPressedDown }
               END;
             CtrlAlt: {F8}
               BEGIN
-                HelpMsg := 'display chosen feedback units';
+                HelpMsg := 'show chosen feedback units';
                 IF NOT HelpRequired THEN BEGIN
                   IF InputQuery('Feedback Units', 'Enter a valid feedback unit number', Str) THEN BEGIN
                     IF NOT TryStrToInt(Str, ShowFeedbackUnitNum) THEN
@@ -5253,21 +5259,21 @@ BEGIN { KeyPressedDown }
               END;
             CtrlShift: {F8}
               BEGIN
-                HelpMsg := 'display feedback strings in debug window';
+                HelpMsg := 'show feedback strings in debug window';
                 IF NOT HelpRequired THEN BEGIN
                   IF DisplayFeedbackStringsInDebugWindow THEN
                     DisplayFeedbackStringsInDebugWindow := False
                   ELSE BEGIN
                     DisplayFeedbackStringsInDebugWindow := True;
-                    WriteToStatusBarPanel(StatusBarPanel2, 'Displaying feedback strings in debug window');
+                    WriteToStatusBarPanel(StatusBarPanel2, 'Showing feedback strings in debug window');
                   END;
                 END;
               END;
             Shift: {F8}
               BEGIN
-                HelpMsg := 'display trackcircuit feedback data (' + ColourToStrForUser(TCFeedbackDataOutOfUseColour) + ' = out of use)';
+                HelpMsg := 'show trackcircuit feedback data (' + ColourToStrForUser(TCFeedbackDataOutOfUseColour) + ' = out of use)';
                 IF NOT HelpRequired THEN BEGIN
-                  WriteToStatusBarPanel(StatusBarPanel2, 'Displaying trackcircuit feedback data'
+                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing trackcircuit feedback data'
                                                                                                + ' (' + ColourToStrForUser(TCFeedbackDataOutOfUseColour) + ' = out of use)');
                   ShowTrackCircuitFeedbackDataInUse := True;
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
@@ -5275,19 +5281,19 @@ BEGIN { KeyPressedDown }
               END;
             Ctrl: {F8}
               BEGIN
-                HelpMsg := 'display point feedback data in separate colours';
+                HelpMsg := 'show point feedback data in separate colours';
                 IF NOT HelpRequired THEN BEGIN
-                  WriteToStatusBarPanel(StatusBarPanel2, 'Displaying point feedback data');
+                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing point feedback data');
                   ShowPointFeedbackDataInSeparateColours := True;
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
               END;
             Alt: {F8}
               BEGIN
-                HelpMsg := 'display point feedback data (' + ColourToStrForUser(PointFeedbackDataOutOfUseColour) + ' = out of use, '
+                HelpMsg := 'show point feedback data (' + ColourToStrForUser(PointFeedbackDataOutOfUseColour) + ' = out of use, '
                                                                                                        + ColourToStrForUser(PointsWithoutFeedbackColour) + ' = no feedback)';
                 IF NOT HelpRequired THEN BEGIN
-                  WriteToStatusBarPanel(StatusBarPanel2, 'Displaying point feedback data'
+                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing point feedback data'
                                                                                             + ' (' + ColourToStrForUser(PointFeedbackDataOutOfUseColour) + ' = out of use, '
                                                                                             + ColourToStrForUser(PointsWithoutFeedbackColour) + ' = no feedback)');
                   ShowPointFeedbackDataInUse := True;
@@ -5356,7 +5362,7 @@ BEGIN { KeyPressedDown }
               END;
             Alt: {F9}
               BEGIN
-                HelpMsg := 'display options window';
+                HelpMsg := 'show options window';
                 IF NOT HelpRequired THEN BEGIN
                   IF OptionsWindow.Visible THEN
                     OptionsWindow.Visible := False
@@ -5424,16 +5430,16 @@ BEGIN { KeyPressedDown }
               END;
             CtrlShift: {F11}
               BEGIN
-                HelpMsg := 'display mouse rectangles';
+                HelpMsg := 'show mouse rectangles';
                 IF NOT HelpRequired THEN BEGIN
-                  WriteToStatusBarPanel(StatusBarPanel2, 'Displaying mouse rectangles');
+                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing mouse rectangles');
                   ShowMouseRectangles := True;
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
               END;
             Shift: {F11}
               BEGIN
-                HelpMsg := 'display which equipment is locked and by whom';
+                HelpMsg := 'show which equipment is locked and by whom';
                 IF NOT HelpRequired THEN
                   WriteLockingDataToLockListWindow;
               END;
