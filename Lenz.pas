@@ -132,7 +132,7 @@ PROCEDURE StopAParticularLocomotive(LocoChip : Integer; VAR OK : Boolean);
 { Stops a particular loco }
 
 PROCEDURE StopOperations;
-{ Turns the power off to the track and to I/O devices; it tells the system to stop sending DCC packets to the track and to switch off the DCC track power. }
+{ Turns the power off to the track and to I/O devices; it tells the system to stop sending DCC packets to the track and to switch off the DCC track power }
 
 PROCEDURE TurnPointOff(P : Integer; VAR OK : Boolean);
 { Deselect a given point }

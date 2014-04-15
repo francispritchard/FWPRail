@@ -2313,7 +2313,7 @@ VAR
       END; {WITH}
     EXCEPT
       ON E : Exception DO
-        Log('EG END; { DrawDottedLine:' + E.ClassName +' error raised, with message: '+ E.Message);
+        Log('EG DrawDottedLine:' + E.ClassName +' error raised, with message: '+ E.Message);
     END; {TRY}
   END; { DrawDottedLine }
 
@@ -3243,7 +3243,7 @@ PROCEDURE DrawPlatforms;
       END; {WITH}
     EXCEPT
       ON E : Exception DO
-        Log('EG END; { DrawPlatformNumber:' + E.ClassName +' error raised, with message: '+ E.Message);
+        Log('EG DrawPlatformNumber:' + E.ClassName +' error raised, with message: '+ E.Message);
     END; {TRY}
   END; { DrawPlatformNumber }
 
@@ -3874,7 +3874,7 @@ PROCEDURE InvalidateScreen(UnitRefParam, CallingStr : String);
 { Draw the screen by invalidating it }
 BEGIN
   FWPRailWindow.Invalidate;
-  Log('X Invalidate Screen - call ' + CallingStr + ' from Unit ' + UnitRefParam);
+//  Log('XG Invalidate Screen - call ' + CallingStr + ' from Unit ' + UnitRefParam);
 END; { InvalidateScreen }
 
 PROCEDURE TFWPRailWindow.FlashTimerTick(Sender: TObject);
@@ -6739,7 +6739,7 @@ VAR
       END;
     EXCEPT
       ON E : Exception DO
-        Log('EG END; { DrawAllBufferStopData:' + E.ClassName +' error raised, with message: '+ E.Message);
+        Log('EG DrawAllBufferStopData:' + E.ClassName +' error raised, with message: '+ E.Message);
     END; {TRY}
   END; { DrawAllBufferStopData }
 

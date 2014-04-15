@@ -390,76 +390,76 @@ BEGIN
   Log('A Startup Detail:');
 
   IF AllRouteDebuggingMode THEN
-    Log('AG All Route Debugging Mode ON' + '{INDENT=2}');
+    Log('AG All Route Debugging Mode ON {INDENT=2}');
 
   IF NOT AnonymousOccupationMode THEN
-    Log('AG Anonymous Occupation Mode OFF' + '{INDENT=2}');
+    Log('AG Anonymous Occupation Mode OFF {INDENT=2}');
 
   IF DebuggingMode THEN
-    Log('AG Debugging Mode ON' + '{INDENT=2}');
+    Log('AG Debugging Mode ON {INDENT=2}');
 
   IF FeedbackDebuggingMode THEN
-    Log('AG Feedback Debugging Mode ON' + '{INDENT=2}');
+    Log('AG Feedback Debugging Mode ON {INDENT=2}');
 
   IF LineDebuggingMode THEN
-    Log('AG Line Debugging Mode ON' + '{INDENT=2}');
+    Log('AG Line Debugging Mode ON {INDENT=2}');
 
   IF LockDebuggingMode THEN
-    Log('AG Lock Debugging Mode ON' + '{INDENT=2}');
+    Log('AG Lock Debugging Mode ON {INDENT=2}');
 
   IF NOT LockingMode THEN
-    Log('AG Locking State OFF' + '{INDENT=2}');
+    Log('AG Locking State OFF {INDENT=2}');
 
   IF LocoSpeedTimingMode THEN
-    Log('AG Loco Speed Timing ON' + '{INDENT=2}');
+    Log('AG Loco Speed Timing ON {INDENT=2}');
 
   IF NOT LogsCurrentlyKept THEN
-    Log('AG LogsCurrentlyKept is OFF' + '{INDENT=2}');
+    Log('AG LogsCurrentlyKept is OFF {INDENT=2}');
 
   IF LogCurrentTimeMode THEN
-    Log('AG LogCurrentTimeMode is ON' + '{INDENT=2}');
+    Log('AG LogCurrentTimeMode is ON {INDENT=2}');
 
   IF NOT MakeSoundWhenDebugWindowBoldTextAppears THEN
-    Log('AG Make Sound When Debug Window Bold Text Appears OFF' + '{INDENT=2}');
+    Log('AG Make Sound When Debug Window Bold Text Appears OFF {INDENT=2}');
 
   IF RDCMode THEN
-    Log('AG RDC Mode ON' + '{INDENT=2}');
+    Log('AG RDC Mode ON {INDENT=2}');
 
   IF ReadOutTCInFull THEN
-    Log('AG Read Out TC In Full ON' + '{INDENT=2}')
+    Log('AG Read Out TC In Full ON {INDENT=2}')
   ELSE
     IF ReadOutTCOnce THEN
-      Log('AG Read Out TC Once ON' + '{INDENT=2}')
+      Log('AG Read Out TC Once ON {INDENT=2}')
     ELSE
       IF ReadOutDecoderNumber THEN
-        Log('AG Read Out Decoder Number OFF' + '{INDENT=2}')
+        Log('AG Read Out Decoder Number OFF {INDENT=2}')
       ELSE
         IF ReadOutAdjacentSignalNumber THEN
-          Log('AG Read Out Adjacent Signal Number OFF' + '{INDENT=2}');
+          Log('AG Read Out Adjacent Signal Number OFF {INDENT=2}');
 
   IF RecordingMonitorScreens THEN
-    Log('AG Recording Monitor Screens is ON' + '{INDENT=2}');
+    Log('AG Recording Monitor Screens is ON {INDENT=2}');
 
   IF NOT RecordLineDrawingMode THEN
-    Log('AG Record Line Drawing Mode OFF' + '{INDENT=2}');
+    Log('AG Record Line Drawing Mode OFF {INDENT=2}');
 
   IF RouteBacktrackDebuggingMode THEN
-    Log('AG Route Backtrack Debugging Mode ON' + '{INDENT=2}');
+    Log('AG Route Backtrack Debugging Mode ON {INDENT=2}');
 
   IF RouteDebuggingMode THEN
-    Log('AG Route Debugging Mode ON' + '{INDENT=2}');
+    Log('AG Route Debugging Mode ON {INDENT=2}');
 
   IF RouteDrawingMode THEN
-    Log('AG Route Drawing Mode ON' + '{INDENT=2}');
+    Log('AG Route Drawing Mode ON {INDENT=2}');
 
   IF StationStartMode THEN
-    Log('AG Station Start Mode ON' + '{INDENT=2}');
+    Log('AG Station Start Mode ON {INDENT=2}');
 
   IF SystemSetOfflineByCommandLineParameter THEN
-    Log('AG System Set Offline By Command Line Parameter ON' + '{INDENT=2}');
+    Log('AG System Set Offline By Command Line Parameter ON {INDENT=2}');
 
   IF TestingMode THEN
-    Log('AG Testing Mode ON' + '{INDENT=2}');
+    Log('AG Testing Mode ON {INDENT=2}');
 
   { Let the user know if the system is offline or in some other odd state at startup }
   IF SystemStatusStr <> '' THEN BEGIN

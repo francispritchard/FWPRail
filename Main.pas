@@ -408,7 +408,7 @@ VAR
         END;
       EXCEPT
         ON E : Exception DO
-          Log('EG END; { FoundAdjacentTrackCircuit:' + E.ClassName +' error raised, with message: '+ E.Message);
+          Log('EG FoundAdjacentTrackCircuit:' + E.ClassName +' error raised, with message: '+ E.Message);
       END; {TRY}
     END; { FoundAdjacentTrackCircuit }
 
@@ -507,7 +507,7 @@ VAR
       END;
     EXCEPT
       ON E : Exception DO
-        Log('EG END; { FollowThatLine:' + E.ClassName +' error raised, with message: '+ E.Message);
+        Log('EG FollowThatLine:' + E.ClassName +' error raised, with message: '+ E.Message);
     END; {TRY}
   END; { FollowThatLine }
 
@@ -1424,7 +1424,7 @@ VAR
       END;
     EXCEPT
       ON E : Exception DO
-        Log('EG END; { CheckSystemStatus:' + E.ClassName +' error raised, with message: '+ E.Message);
+        Log('EG CheckSystemStatus:' + E.ClassName +' error raised, with message: '+ E.Message);
     END; {TRY}
   END; { CheckSystemStatus }
 
