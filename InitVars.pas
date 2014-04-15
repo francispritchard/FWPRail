@@ -1136,7 +1136,6 @@ VAR
   RouteingSuspendedWhenStopPressed : Boolean = False;
   RouteWritingCancel : Boolean = False;
   SaveStationMonitorsCurrentArea : Integer = UnknownArea;
-  SaveLastPointDataWriteString : String;
   SaveLocoDialogueMaskEditText : String = '';
   SaveMouseCursorPos : TPoint;
   SaveRouteInfoStr : String = '';

@@ -466,9 +466,6 @@ BEGIN
     Debug(UpperCase(SystemStatusStr));
     SystemStatusStr := '';
   END;
-
-  { Indicate to the user the age of the point data }
-  Debug(SaveLastPointDataWriteString);
 END; { HandleParameters }
 
 PROCEDURE TDebuggingOptionsWindow.Startup_DebuggingCheckBoxClick(Sender: TObject);
