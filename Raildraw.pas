@@ -1306,23 +1306,25 @@ CONST
 
 BEGIN
   TRY
-    CASE PanelNum OF
-      0:
-        IF SavePanel0Str <> Str THEN BEGIN
-          FWPRailWindow.FWPRailWindowStatusBar.Panels[StatusBarPanel0].Text := Str;
-          SavePanel0Str := Str;
-        END;
-      1:
-        IF SavePanel1Str <> Str THEN BEGIN
-          FWPRailWindow.FWPRailWindowStatusBar.Panels[StatusBarPanel1].Text := Str;
-          SavePanel1Str := Str;
-        END;
-      2:
-        IF SavePanel2Str <> Str THEN BEGIN
-          FWPRailWindow.FWPRailWindowStatusBar.Panels[StatusBarPanel2].Text := Str;
-          SavePanel2Str := Str;
-        END;
-    END; {CASE}
+    IF FWPRailWindow <> NIL THEN BEGIN
+      CASE PanelNum OF
+        0:
+          IF SavePanel0Str <> Str THEN BEGIN
+            FWPRailWindow.FWPRailWindowStatusBar.Panels[StatusBarPanel0].Text := Str;
+            SavePanel0Str := Str;
+          END;
+        1:
+          IF SavePanel1Str <> Str THEN BEGIN
+            FWPRailWindow.FWPRailWindowStatusBar.Panels[StatusBarPanel1].Text := Str;
+            SavePanel1Str := Str;
+          END;
+        2:
+          IF SavePanel2Str <> Str THEN BEGIN
+            FWPRailWindow.FWPRailWindowStatusBar.Panels[StatusBarPanel2].Text := Str;
+            SavePanel2Str := Str;
+          END;
+      END; {CASE}
+    END;
   EXCEPT
     ON E : Exception DO
       Log('EG WriteToStatusBarPanel:' + E.ClassName +' error raised, with message: '+ E.Message);
