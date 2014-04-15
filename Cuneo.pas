@@ -1055,68 +1055,68 @@ VAR
     END;
   END; { ChangeTRSPlunger }
 
-  FUNCTION ActivateTrackCircuit(L : Integer; HelpRequired : Boolean) : Boolean;
-  { This activates or de-activates a trackcircuit. More fancy things are done via a pop menu produced by a shift key. }
-  VAR
-    AdjacentTrackCircuitUp, AdjacentTrackCircuitDown : Integer;
-    T : Train;
-
-  BEGIN
-    Result := False;
-    WITH Lines[L] DO BEGIN
-      IF Line_TC <> UnknownTrackCircuit THEN BEGIN
-        IF ShowAdjacentTrackCircuitMode THEN BEGIN
-          { Draw a trackcircuit and its adjoining trackcircuits }
-          FindAdjoiningTrackCircuits(Lines[L].Line_TC, AdjacentTrackCircuitUp, AdjacentTrackCircuitDown);
-          IF TCAdjoiningTCsDrawnNum = UnknownTrackCircuit THEN BEGIN
-            { one hasn't been drawn before }
-            DrawTrackCircuitsWithAdjoiningTrackCircuits(Lines[L].Line_TC, clRed, clYellow);
-            TCAdjoiningTCsDrawnNum := Lines[L].Line_TC;
-          END ELSE BEGIN
-            { We've previously drawn one, so undraw that one before drawing the new one }
-            DrawTrackCircuitsWithAdjoiningTrackCircuits(TCAdjoiningTCsDrawnNum, ForegroundColour, ForegroundColour);
-            IF TCAdjoiningTCsDrawnNum = Lines[L].Line_TC THEN
-              TCAdjoiningTCsDrawnNum := UnknownTrackCircuit
-            ELSE BEGIN
-              DrawTrackCircuitsWithAdjoiningTrackCircuits(Lines[L].Line_TC, clRed, clYellow);
-              TCAdjoiningTCsDrawnNum := Lines[L].Line_TC;
-            END;
-          END;
-        END ELSE
-          { now consider its current state - if in user-set state or mystery state }
-          IF (TrackCircuitStateIsPermanentlyOccupied(TrackCircuits[Line_TC].TC_OccupationState))
-          AND NOT (TrackCircuitStateIsPermanentlyOccupied(TrackCircuits[Line_TC].TC_PreviousOccupationState))
-          THEN BEGIN
-            { set it to its previous state, and previous loco chip number if any }
-            IF (TrackCircuits[Line_TC].TC_PreviousOccupationState <> TCUnoccupied) THEN
-              SetTrackCircuitState(TrackCircuits[Line_TC].TC_PreviousLocoChip, Line_TC, TrackCircuits[Line_TC].TC_PreviousOccupationState)
-            ELSE BEGIN
-              IF TrackCircuits[Line_TC].TC_LocoChip <> UnknownLocoChip THEN BEGIN
-                Debug('Locochip ' + LocoChipToStr(TrackCircuits[Line_TC].TC_LocoChip) + ' cleared from TC=' + IntToStr(Line_TC));
-                T := GetTrainRecord(TrackCircuits[Line_TC].TC_LocoChip);
-                IF T <> NIL THEN
-                  T^.Train_SavedLocation := UnknownLocation;
-              END;
-              SetTrackCircuitState(Line_TC, TrackCircuits[Line_TC].TC_PreviousOccupationState);
-            END;
-          END ELSE
-            { if it's marked as occupied }
-            IF TrackCircuitStateIsTemporarilyOccupied(TrackCircuits[Line_TC].TC_OccupationState) THEN BEGIN
-              Result := True;
-              { then set it to system occupied or unoccupied }
-              Log('T User setting TC=' + IntToStr(Line_TC) + ' = off');
-              SetTrackCircuitState(Line_TC, TCUnoccupied);
-              TrackCircuits[Line_TC].TC_LocoChip := UnknownLocoChip;
-            END ELSE BEGIN
-              { mark it occupied }
-              Log('T User setting TC=' + IntToStr(Line_TC) + ' = on');
-              SetTrackCircuitState(Line_TC, TCFeedbackOccupation);
-            END;
-        { Debug('TC=' + IntToStr(Line_TC) + ', Ln=' + LineNameToString(LineNameFound)); }
-      END;
-    END; {WITH}
-  END; { ActivateTrackCircuit }
-
+//  FUNCTION ActivateTrackCircuit(L : Integer; HelpRequired : Boolean) : Boolean;
+//  { This activates or de-activates a trackcircuit. More fancy things are done via a pop menu produced by a shift key. }
+//  VAR
+//    AdjacentTrackCircuitUp, AdjacentTrackCircuitDown : Integer;
+//    T : Train;
+//
+//  BEGIN
+//    Result := False;
+//    WITH Lines[L] DO BEGIN
+//      IF Line_TC <> UnknownTrackCircuit THEN BEGIN
+//        IF ShowAdjacentTrackCircuitMode THEN BEGIN
+//          { Draw a trackcircuit and its adjoining trackcircuits }
+//          FindAdjoiningTrackCircuits(Lines[L].Line_TC, AdjacentTrackCircuitUp, AdjacentTrackCircuitDown);
+//          IF TCAdjoiningTCsDrawnNum = UnknownTrackCircuit THEN BEGIN
+//            { one hasn't been drawn before }
+//            DrawTrackCircuitsWithAdjoiningTrackCircuits(Lines[L].Line_TC, clRed, clYellow);
+//            TCAdjoiningTCsDrawnNum := Lines[L].Line_TC;
+//          END ELSE BEGIN
+//            { We've previously drawn one, so undraw that one before drawing the new one }
+//            DrawTrackCircuitsWithAdjoiningTrackCircuits(TCAdjoiningTCsDrawnNum, ForegroundColour, ForegroundColour);
+//            IF TCAdjoiningTCsDrawnNum = Lines[L].Line_TC THEN
+//              TCAdjoiningTCsDrawnNum := UnknownTrackCircuit
+//            ELSE BEGIN
+//              DrawTrackCircuitsWithAdjoiningTrackCircuits(Lines[L].Line_TC, clRed, clYellow);
+//              TCAdjoiningTCsDrawnNum := Lines[L].Line_TC;
+//            END;
+//          END;
+//        END ELSE
+//          { now consider its current state - if in user-set state or mystery state }
+//          IF (TrackCircuitStateIsPermanentlyOccupied(TrackCircuits[Line_TC].TC_OccupationState))
+//          AND NOT (TrackCircuitStateIsPermanentlyOccupied(TrackCircuits[Line_TC].TC_PreviousOccupationState))
+//          THEN BEGIN
+//            { set it to its previous state, and previous loco chip number if any }
+//            IF (TrackCircuits[Line_TC].TC_PreviousOccupationState <> TCUnoccupied) THEN
+//              SetTrackCircuitState(TrackCircuits[Line_TC].TC_PreviousLocoChip, Line_TC, TrackCircuits[Line_TC].TC_PreviousOccupationState)
+//            ELSE BEGIN
+//              IF TrackCircuits[Line_TC].TC_LocoChip <> UnknownLocoChip THEN BEGIN
+//                Debug('Locochip ' + LocoChipToStr(TrackCircuits[Line_TC].TC_LocoChip) + ' cleared from TC=' + IntToStr(Line_TC));
+//                T := GetTrainRecord(TrackCircuits[Line_TC].TC_LocoChip);
+//                IF T <> NIL THEN
+//                  T^.Train_SavedLocation := UnknownLocation;
+//              END;
+//              SetTrackCircuitState(Line_TC, TrackCircuits[Line_TC].TC_PreviousOccupationState);
+//            END;
+//          END ELSE
+//            { if it's marked as occupied }
+//            IF TrackCircuitStateIsTemporarilyOccupied(TrackCircuits[Line_TC].TC_OccupationState) THEN BEGIN
+//              Result := True;
+//              { then set it to system occupied or unoccupied }
+//              Log('T User setting TC=' + IntToStr(Line_TC) + ' = off');
+//              SetTrackCircuitState(Line_TC, TCUnoccupied);
+//              TrackCircuits[Line_TC].TC_LocoChip := UnknownLocoChip;
+//            END ELSE BEGIN
+//              { mark it occupied }
+//              Log('T User setting TC=' + IntToStr(Line_TC) + ' = on');
+//              SetTrackCircuitState(Line_TC, TCFeedbackOccupation);
+//            END;
+//        { Debug('TC=' + IntToStr(Line_TC) + ', Ln=' + LineNameToString(LineNameFound)); }
+//      END;
+//    END; {WITH}
+//  END; { ActivateTrackCircuit }
+//
   FUNCTION NotInArray(StringArray : StringArrayType; Str : String) : Boolean;
   { Returns true if the given element is not in the array }
   VAR
