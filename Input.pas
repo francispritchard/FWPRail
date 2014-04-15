@@ -11,6 +11,7 @@ TYPE
     InputDialogueChangeOrSelectButton: TButton;
     InputDialogueMaskEdit: TMaskEdit;
     InputDialogueMaskEditLabel: TLabel;
+    InputDialogueShowAdjacentTrackCircuitsCheckBox: TCheckBox;
     PROCEDURE InputDialogueBoxHide(Sender: TObject);
     PROCEDURE InputDialogueBoxKeyDown(Sender: TObject; VAR Key: Word; ShiftState: TShiftState);
     PROCEDURE InputDialogueBoxKeyUp(Sender: TObject; VAR Key: Word; ShiftState: TShiftState);
@@ -21,6 +22,7 @@ TYPE
     PROCEDURE InputDialogueMaskEditKeyPress(Sender: TObject; VAR Key: Char);
     PROCEDURE InputDialogueMouseDown(Sender: TObject; Button: TMouseButton; ShiftState: TShiftState; X, Y: Integer);
     PROCEDURE InputDialogueMouseMove(Sender: TObject; ShiftState: TShiftState; X, Y: Integer);
+    PROCEDURE InputDialogueShowAdjacentTrackCircuitsCheckBoxClick(Sender: TObject);
     { Private declarations }
   PUBLIC
     { Public declarations }
@@ -68,17 +70,13 @@ VAR
   InputDialoguePointFound : Boolean = False;
   InputDialogueSignal : Integer = UnknownSignal;
   InputDialogueSignalFound : Boolean = False;
-  InputDialogueTC : Integer = 0;
-  InputDialogueTCFound : Boolean = False;
+  InputDialogueTrackCircuit : Integer = 0;
+  InputDialogueTrackCircuitFound : Boolean = False;
   LastKeyPressed : Integer;
-  LineRectangleDrawnNum : Integer = UnknownLine;
-  PointRectangleDrawnNum : Integer = UnknownPoint;
   SaveBackgroundColourForPrinting : TColor;
   SaveDebugWindowDebugRichEditColour : TColor = clBlack;
   SaveForegroundColourForPrinting : TColor;
   SaveTCSpeedRestrictionColour : TColour;
-  SignalRectangleDrawnNum : Integer = UnknownSignal;
-  TrackCircuitDrawnNum : Integer = UnknownTC;
   ZoomLevel : Integer = 0;
 
 PROCEDURE Log(Str : String);
@@ -103,6 +101,15 @@ BEGIN
   END;
 END; { InputDialogueWindowMouseMove }
 
+PROCEDURE TInputDialogueBox.InputDialogueShowAdjacentTrackCircuitsCheckBoxClick(Sender: TObject);
+BEGIN
+  { Allow ShowAdjacentTrackCircuits mode to be turned on and off in the dialogue box }
+  IF InputDialogueShowAdjacentTrackCircuitsCheckBox.Checked THEN
+    ShowAdjacentTrackCircuitMode := True
+  ELSE
+    ShowAdjacentTrackCircuitMode := False;
+END; { InputDialogueShowAdjacentTrackCircuitsCheckBoxClick }
+
 PROCEDURE TInputDialogueBox.InputDialogueMaskEditChange(Sender: TObject);
 CONST
   SetUp = True;
@@ -110,9 +117,6 @@ CONST
   Surround = True;
   UndrawRequired = True;
   UndrawToBeAutomatic = True;
-
-VAR
-  L : Integer;
 
 BEGIN
   IF NOT InputDialogueCharValid THEN BEGIN
@@ -124,11 +128,10 @@ BEGIN
     PointDialogueBox:
       BEGIN
         InputDialogueChangeOrSelectButton.Enabled := False;
-        IF PointRectangleDrawnNum <> UnknownPoint THEN BEGIN
-          { we've been here before - need to undraw the rectangle }
-          WITH Points[PointRectangleDrawnNum] DO
-            DrawOutline(Point_MouseRect, BackgroundColour, UndrawRequired, NOT UndrawToBeAutomatic);
-          PointRectangleDrawnNum := UnknownPoint;
+        IF PointHighlighted <> UnknownPoint THEN BEGIN
+          { we've been here before - note that the point needs to be de-highlighted }
+          PointHighlighted := UnknownPoint;
+          InvalidateScreen(UnitRef, 'InputDialogueMaskEditChange 1');
         END;
 
         IF InputDialogueMaskEdit.Text <> '' THEN BEGIN
@@ -144,53 +147,22 @@ BEGIN
               { found a point }
               InputDialoguePointFound := True;
               InputDialogueChangeOrSelectButton.Enabled := True;
-              { draw a rectangle around it }
-              WITH Points[InputDialoguePoint] DO
-                DrawOutline(Point_MouseRect, BackgroundColour, UndrawRequired, NOT UndrawToBeAutomatic);
-              PointRectangleDrawnNum := InputDialoguePoint;
-            END;
-          END; {WHILE}
-        END;
-      END;
-    LineDialogueBox:
-      BEGIN
-        InputDialogueChangeOrSelectButton.Enabled := False;
-        IF LineRectangleDrawnNum <> UnknownLine THEN BEGIN
-          { we've been here before - need to undraw the rectangle }
-          WITH Lines[LineRectangleDrawnNum] DO
-            DrawOutline(Line_MousePolygon, BackgroundColour, UndrawRequired, NOT UndrawToBeAutomatic);
-          LineRectangleDrawnNum := UnknownLine;
-        END;
 
-        IF InputDialogueMaskEdit.Text <> '' THEN BEGIN
-          InputDialogueLine := 0;
-          InputDialogueLineFound := False;
-          WHILE (InputDialogueLine <= High(Lines))
-          AND NOT InputDialogueLineFound
-          DO BEGIN
-            IF InputDialogueLine <> StrToLine(InputDialogueMaskEdit.Text) THEN BEGIN
-              InputDialogueChangeOrSelectButton.Enabled := False;
-              Inc(InputDialogueLine);
-            END ELSE BEGIN
-              { found a Line }
-              InputDialogueLineFound := True;
-              InputDialogueChangeOrSelectButton.Enabled := True;
-              { draw a rectangle around it }
-              WITH Lines[InputDialogueLine] DO
-                DrawOutline(Line_MousePolygon, BackgroundColour, UndrawRequired, NOT UndrawToBeAutomatic);
-              LineRectangleDrawnNum := InputDialogueLine;
+              { Note that the point needs to be highlighted }
+              PointHighlighted := InputDialoguePoint;
+              InvalidateScreen(UnitRef, 'InputDialogueMaskEditChange 2');
             END;
           END; {WHILE}
         END;
       END;
+
     SignalDialogueBox:
       BEGIN
         InputDialogueChangeOrSelectButton.Enabled := False;
-        IF SignalRectangleDrawnNum <> UnknownSignal THEN BEGIN
-          { we've been here before - need to undraw the rectangle }
-          WITH Signals[InputDialogueSignal] DO
-            DrawOutline(Signal_MouseRect, BackgroundColour, UndrawRequired, NOT UndrawToBeAutomatic);
-          SignalRectangleDrawnNum := UnknownSignal;
+        IF SignalHighlighted <> UnknownSignal THEN BEGIN
+          { we've been here before - note that the signal needs to be de-highlighted }
+          SignalHighlighted := UnknownSignal;
+          InvalidateScreen(UnitRef, 'InputDialogueMaskEditChange 3');
         END;
 
         IF InputDialogueMaskEdit.Text <> '' THEN BEGIN
@@ -206,57 +178,73 @@ BEGIN
               { found a signal }
               InputDialogueSignalFound := True;
               InputDialogueChangeOrSelectButton.Enabled := True;
-              { Draw a rectangle around it }
-              WITH Signals[InputDialogueSignal] DO
-                DrawOutline(Signal_MouseRect, BackgroundColour, UndrawRequired, NOT UndrawToBeAutomatic);
-              SignalRectangleDrawnNum := InputDialogueSignal;
+
+              { Note that the signal needs to be highlighted }
+              SignalHighlighted := InputDialogueSignal;
+              InvalidateScreen(UnitRef, 'InputDialogueMaskEditChange 4');
+            END;
+          END; {WHILE}
+        END;
+
+      END;
+
+    LineDialogueBox:
+      BEGIN
+        InputDialogueChangeOrSelectButton.Enabled := False;
+        IF LineHighlighted <> UnknownLine THEN BEGIN
+          { we've been here before - note that the line needs to be de-highlighted }
+          LineHighlighted := UnknownLine;
+          InvalidateScreen(UnitRef, 'InputDialogueMaskEditChange 5');
+        END;
+
+        IF InputDialogueMaskEdit.Text <> '' THEN BEGIN
+          InputDialogueLine := 0;
+          InputDialogueLineFound := False;
+          WHILE (InputDialogueLine <= High(Lines))
+          AND NOT InputDialogueLineFound
+          DO BEGIN
+            IF UpperCase(LineToStr(InputDialogueLine)) <> UpperCase(InputDialogueMaskEdit.Text) THEN BEGIN
+              InputDialogueChangeOrSelectButton.Enabled := False;
+              Inc(InputDialogueLine);
+            END ELSE BEGIN
+              { found a line }
+              InputDialogueLineFound := True;
+              InputDialogueChangeOrSelectButton.Enabled := True;
+
+              { Note that the line needs to be highlighted }
+              LineHighlighted := InputDialogueLine;
+              InvalidateScreen(UnitRef, 'InputDialogueMaskEditChange 6');
             END;
           END; {WHILE}
         END;
       END;
+
     TrackCircuitDialogueBox:
       BEGIN
         InputDialogueChangeOrSelectButton.Enabled := False;
-        IF TrackCircuitDrawnNum <> UnknownTC THEN BEGIN
-          { we've been here before - need to undraw either the trackcircuits or the rectangle }
-          IF ShowAdjacentTrackCircuitMode THEN
-            DrawTrackCircuitsWithAdjoiningTrackCircuits(InputDialogueTC, ForegroundColour, ForegroundColour)
-          ELSE BEGIN
-            FOR L := 0 TO High(Lines) DO BEGIN
-              WITH Lines[L] DO
-                IF Line_TC = InputDialogueTC THEN
-                  DrawOutline(Line_MousePolygon, BackgroundColour, UndrawRequired, NOT UndrawToBeAutomatic);
-            END;
-          END;
-          TrackCircuitDrawnNum := UnknownTC;
+        IF TrackCircuitHighlighted <> UnknownTrackCircuit THEN BEGIN
+          { we've been here before - note that the track circuit needs to be de-highlighted }
+          TrackCircuitHighlighted := UnknownTrackCircuit;
+          InvalidateScreen(UnitRef, 'InputDialogueMaskEditChange 7');
         END;
+
         IF InputDialogueMaskEdit.Text <> '' THEN BEGIN
-          InputDialogueTC := 0;
-          InputDialogueTCFound := False;
-          WHILE (InputDialogueTC <= High(TrackCircuits))
-          AND NOT InputDialogueTCFound
+          InputDialogueTrackCircuit := 0;
+          InputDialogueTrackCircuitFound := False;
+          WHILE (InputDialogueTrackCircuit <= High(TrackCircuits))
+          AND NOT InputDialogueTrackCircuitFound
           DO BEGIN
-            IF InputDialogueTC <> StrToInt(InputDialogueMaskEdit.Text) THEN BEGIN
+            IF InputDialogueTrackCircuit <> StrToInt(InputDialogueMaskEdit.Text) THEN BEGIN
               InputDialogueChangeOrSelectButton.Enabled := False;
-              Inc(InputDialogueTC);
+              Inc(InputDialogueTrackCircuit);
             END ELSE BEGIN
-              { found a trackcircuit }
-              InputDialogueTCFound := True;
+              { found a track circuit }
+              InputDialogueTrackCircuitFound := True;
+              InputDialogueChangeOrSelectButton.Enabled := True;
 
-              IF ShowAdjacentTrackCircuitMode THEN
-                DrawTrackCircuitsWithAdjoiningTrackCircuits(InputDialogueTC, clYellow, clRed)
-              ELSE BEGIN
-                InputDialogueChangeOrSelectButton.Enabled := True;
-                { Draw a rectangle around it }
-                FOR L := 0 TO High(Lines) DO BEGIN
-                  WITH Lines[L] DO BEGIN
-                    IF Lines[L].Line_TC = InputDialogueTC THEN
-                      DrawOutline(Line_MousePolygon, BackgroundColour, UndrawRequired, NOT UndrawToBeAutomatic);
-                  END;
-                END;
-              END;
-
-              TrackCircuitDrawnNum := InputDialogueTC;
+              { Note that the track circuit needs to be highlighted }
+              TrackCircuitHighlighted := InputDialogueTrackCircuit;
+              InvalidateScreen(UnitRef, 'InputDialogueMaskEditChange 8');
             END;
           END; {WHILE}
         END;
@@ -293,10 +281,10 @@ BEGIN
                   DebugStr, OK);
 
         { Undraw the rectangle }
-        IF PointRectangleDrawnNum <> UnknownPoint THEN
-          WITH Points[PointRectangleDrawnNum] DO
+        IF PointHighlighted <> UnknownPoint THEN
+          WITH Points[PointHighlighted] DO
             DrawOutline(Point_MouseRect, BackgroundColour, UndrawRequired, NOT UndrawToBeAutomatic);
-        PointRectangleDrawnNum := UnknownPoint;
+        PointHighlighted := UnknownPoint;
       END;
     SignalDialogueBox:
       BEGIN
@@ -307,16 +295,16 @@ BEGIN
     TrackCircuitDialogueBox:
       BEGIN
         IF NOT ShowAdjacentTrackCircuitMode THEN BEGIN
-          WITH TrackCircuits[InputDialogueTC] DO BEGIN
+          WITH TrackCircuits[InputDialogueTrackCircuit] DO BEGIN
             IF TC_OccupationState = TCFeedbackOccupation THEN
-              SetTrackCircuitState(InputDialogueTC, TCUnoccupied, 'set by user')
+              SetTrackCircuitState(InputDialogueTrackCircuit, TCUnoccupied, 'set by user')
             ELSE
               IF TC_OccupationState = TCUnoccupied THEN
-                SetTrackCircuitState(InputDialogueTC, TCFeedbackOccupation, 'set by user');
+                SetTrackCircuitState(InputDialogueTrackCircuit, TCFeedbackOccupation, 'set by user');
 
             FOR L := 0 TO High(Lines) DO BEGIN
               WITH Lines[L] DO BEGIN
-//                IF Lines[L].Line_TC = InputDialogueTC THEN
+//                IF Lines[L].Line_TC = InputDialogueTrackCircuit THEN
 //                  DrawOutline(Line_MouseRect, clWhite, UndrawRequired, NOT UndrawToBeAutomatic);
               END; {WITH}
             END;
@@ -325,7 +313,7 @@ BEGIN
 
         END;
 
-        IF GetTrackCircuitState(InputDialogueTC) = TCFeedbackOccupation THEN
+        IF GetTrackCircuitState(InputDialogueTrackCircuit) = TCFeedbackOccupation THEN
           InputDialogueChangeOrSelectButton.Caption := 'Reset TC'
         ELSE
           InputDialogueChangeOrSelectButton.Caption := 'Set TC';
@@ -345,40 +333,37 @@ BEGIN
       BEGIN
         PointDialogueBoxLeft := Left;
         PointDialogueBoxTop := Top;
-        IF PointRectangleDrawnNum <> UnknownPoint THEN BEGIN
-          InvalidateScreen(UnitRef, 'InputDialogueBoxHide 1');
-          PointRectangleDrawnNum := UnknownPoint;
-        END;
+        IF PointHighlighted <> UnknownPoint THEN
+          PointHighlighted := UnknownPoint;
+        InvalidateScreen(UnitRef, 'InputDialogueBoxHide 1');
       END;
     LineDialogueBox:
       BEGIN
         LineDialogueBoxLeft := Left;
         LineDialogueBoxTop := Top;
-        IF LineRectangleDrawnNum <> UnknownLine THEN BEGIN
-          InvalidateScreen(UnitRef, 'InputDialogueBoxHide 2');
-          LineRectangleDrawnNum := UnknownLine;
-        END;
+        IF LineHighlighted <> UnknownLine THEN
+          LineHighlighted := UnknownLine;
+        InvalidateScreen(UnitRef, 'InputDialogueBoxHide 1');
       END;
     SignalDialogueBox:
       BEGIN
         SignalDialogueBoxLeft := Left;
         SignalDialogueBoxTop := Top;
-        IF SignalRectangleDrawnNum <> UnknownSignal THEN BEGIN
-          InvalidateScreen(UnitRef, 'InputDialogueBoxHide 3');
-          SignalRectangleDrawnNum := UnknownSignal;
-        END;
+        IF SignalHighlighted <> UnknownSignal THEN
+          SignalHighlighted := UnknownSignal;
+        InvalidateScreen(UnitRef, 'InputDialogueBoxHide 1');
       END;
     TrackCircuitDialogueBox:
       BEGIN
         TrackCircuitDialogueBoxLeft := Left;
         TrackCircuitDialogueBoxTop := Top;
-        IF TrackCircuitDrawnNum <> UnknownTC THEN BEGIN
-          InvalidateScreen(UnitRef, 'InputDialogueBoxHide 4');
-          TrackCircuitDrawnNum := UnknownTC;
-        END;
+        IF TrackCircuitHighlighted <> UnknownTrackCircuit THEN
+          TrackCircuitHighlighted := UnknownTrackCircuit;
+        InvalidateScreen(UnitRef, 'InputDialogueBoxHide 1');
+
         IF ShowAdjacentTrackCircuitMode THEN BEGIN
           ShowAdjacentTrackCircuitMode := False;
-          WriteToStatusBarPanel(StatusBarPanel2, 'Displaying adjacent trackcircuit mode = OFF');
+          WriteToStatusBarPanel(StatusBarPanel2, 'Showing adjacent trackcircuit mode = OFF');
           InvalidateScreen(UnitRef, 'InputDialogueBoxHide 4');
         END;
       END;
@@ -395,7 +380,7 @@ END; { InputDialogueBoxHide }
 
 PROCEDURE TInputDialogueBox.InputDialogueBoxShow(Sender: TObject);
 BEGIN
-  { Set up size of box contents first }
+  { Set up size of box contents first } { Lots of magic numbers! ******** }
   WITH InputDialogueMaskEdit DO BEGIN
     Left := 100;
     Top := 4;
@@ -452,8 +437,9 @@ BEGIN
       BEGIN
         Left := TrackCircuitDialogueBoxLeft;
         Top := TrackCircuitDialogueBoxTop;
-        ClientWidth := 157;
-        ClientHeight := 71;
+        InputDialogueShowAdjacentTrackCircuitsCheckBox.Visible := True;
+        ClientWidth := InputDialogueShowAdjacentTrackCircuitsCheckBox.Width + 20;
+        ClientHeight := 99;
       END;
   END; {CASE}
 
@@ -877,7 +863,7 @@ BEGIN
     END ELSE BEGIN
       CreateLockingArrayFromDraftRouteArray(NoLocoChip, TempDraftRouteArray, Signals[S].Signal_RouteLockingNeededArray);
       TC := GetResettingTrackCircuit(NoLocoChip, S, SuppressMessage);
-      IF TC = UnknownTC THEN
+      IF TC = UnknownTrackCircuit THEN
         Log('S No resetting TC for S=' + IntToStr(S) + ' [' + LineToStr(Signals[S].Signal_AdjacentLine) + '] found');
     END;
   END; {FOR}

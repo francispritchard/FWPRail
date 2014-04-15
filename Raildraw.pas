@@ -1592,6 +1592,11 @@ BEGIN
             IF ShowTheatreDestinations THEN
               DrawSignalData(S, Signals[S].Signal_AsTheatreDestination, SignalNumberColour);
         END;
+
+       { Draw a rectangle around any signal highlighted by the input procedure }
+       IF SignalHighlighted <> UnknownSignal THEN
+        WITH Signals[SignalHighlighted] DO
+          DrawOutline(Signal_MouseRect, clWhite, NOT UndrawRequired, NOT UndrawToBeAutomatic);
       END; {WITH}
     END; {FOR}
   EXCEPT
@@ -2625,6 +2630,7 @@ VAR
 
 BEGIN
   TRY
+    IF TC <> UnknownTrackCircuit THEN BEGIN
       L := 0;
       WHILE L <= High(Lines) DO BEGIN
         IF Lines[L].Line_TC = TC THEN
@@ -2632,6 +2638,7 @@ BEGIN
         Inc(L);
       END;
     END;
+    InvalidateScreen(UnitRef, 'DrawTrackCircuit-1');
   EXCEPT
     ON E : Exception DO
       Log('EG DrawTrackCircuit-1:' + E.ClassName +' error raised, with message: '+ E.Message);
@@ -2656,6 +2663,7 @@ BEGIN
         Inc(L);
       END;
     END;
+    InvalidateScreen(UnitRef, 'DrawTrackCircuit-2');
   EXCEPT
     ON E : Exception DO
       Log('EG DrawTrackCircuit-2:' + E.ClassName +' error raised, with message: '+ E.Message);
@@ -3176,6 +3184,11 @@ BEGIN
                         THEN
                           { only draw the point number if the point has a default state }
                           DrawPointNum(P, ShowPointDefaultStateColour);
+
+       { Draw a rectangle around any point highlighted by the input procedure }
+       IF PointHighlighted <> UnknownPoint THEN
+        WITH Points[PointHighlighted] DO
+          DrawOutline(Point_MouseRect, clWhite, NOT UndrawRequired, NOT UndrawToBeAutomatic);
 
       { Draw mouse access rectangles }
       IF ShowMouseRectangles THEN
@@ -6706,11 +6719,14 @@ CONST
   Up = True;
 
 VAR
+  AdjacentDownTC : Integer;
+  AdjacentUpTC : Integer;
   B, I, J : Integer;
   DiagramsMissing : Boolean;
   DiagramsOK : Boolean;
   ErrorMsg : String;
-  L : Integer;
+  L, L2 : Integer;
+  LinesArray : LineArrayType;
   LocoDataTableOK : Boolean;
   S : Integer;
   SaveLineOldColour : Integer;
@@ -7069,8 +7085,41 @@ BEGIN { Main drawing procedure }
                 END;
                 DrawLine(L, Line_CurrentColour, ActiveTrain);
               END;
+
+              { Draw a rectangle around any line highlighted by the input procedure }
+              IF LineHighlighted <> UnknownLine THEN
+                WITH Lines[LineHighlighted] DO
+                  DrawOutline(Line_MousePolygon, clWhite, NOT UndrawRequired, NOT UndrawToBeAutomatic);
+
+               { Draw a rectangle around any track circuit highlighted by the input procedure }
+              IF TrackCircuitHighlighted <> UnknownLine THEN
+                LinesArray := GetLinesForTrackCircuit(TrackCircuitHighlighted);
+                L2 := 0;
+                WHILE L2 <= High(LinesArray) DO BEGIN
+                  DrawOutline(Lines[LinesArray[L2]].Line_MousePolygon, clWhite, NOT UndrawRequired, NOT UndrawToBeAutomatic);
+                  Inc(L2);
+                END; {WHILE}
+
+                IF ShowAdjacentTrackCircuitMode THEN BEGIN
+                  FindAdjoiningTrackCircuits(TrackCircuitHighlighted, AdjacentUpTC, AdjacentDownTC);
+                  LinesArray := GetLinesForTrackCircuit(AdjacentUpTC);
+                  L2 := 0;
+                  WHILE L2 <= High(LinesArray) DO BEGIN
+                    DrawOutline(Lines[LinesArray[L2]].Line_MousePolygon, clAqua, NOT UndrawRequired, NOT UndrawToBeAutomatic);
+                    Inc(L2);
+                  END; {WHILE}
+
+                  FindAdjoiningTrackCircuits(TrackCircuitHighlighted, AdjacentUpTC, AdjacentDownTC);
+                  LinesArray := GetLinesForTrackCircuit(AdjacentDownTC);
+                  L2 := 0;
+                  WHILE L2 <= High(LinesArray) DO BEGIN
+                    DrawOutline(Lines[LinesArray[L2]].Line_MousePolygon, clYellow, NOT UndrawRequired, NOT UndrawToBeAutomatic);
+                    Inc(L2);
+                  END; {WHILE}
+                END;
             END;
-            { And restore it }
+
+            { And restore the saved colour }
             Line_OldColour := SaveLineOldColour;
           END; {WITH}
         END; {FOR}

@@ -5,8 +5,8 @@ object InputDialogueBox: TInputDialogueBox
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'Find/Change Item'
-  ClientHeight = 75
-  ClientWidth = 173
+  ClientHeight = 233
+  ClientWidth = 602
   Color = clBtnFace
   DockSite = True
   Font.Charset = ANSI_CHARSET
@@ -62,5 +62,15 @@ object InputDialogueBox: TInputDialogueBox
     Text = ''
     OnChange = InputDialogueMaskEditChange
     OnKeyPress = InputDialogueMaskEditKeyPress
+  end
+  object InputDialogueShowAdjacentTrackCircuitsCheckBox: TCheckBox
+    Left = 8
+    Top = 75
+    Width = 161
+    Height = 17
+    Alignment = taLeftJustify
+    Caption = 'Show Adjacent Track Circuits'
+    TabOrder = 3
+    OnClick = InputDialogueShowAdjacentTrackCircuitsCheckBoxClick
   end
 end

@@ -1078,6 +1078,7 @@ VAR
   LenzConnection : LenzConnectionType = NoConnection;
   LightsToBeSwitchedOnArray : ARRAY OF LightsToBeSwitchedOnRec;
   LineDebuggingMode : Boolean = False;
+  LineHighlighted : Integer = UnknownLine;
   Lines : ARRAY OF LineRec;
   LinesInitialised : Boolean = False;
   Locations : ARRAY OF LocationRec;
@@ -1097,6 +1098,7 @@ VAR
   OnlineIcon : TIcon;
   Platforms : ARRAY OF PlatformRec;
   PointDebuggingMode : Boolean = False;
+  PointHighlighted : Integer = UnknownPoint;
   PointResettingMode : Boolean = True;
   PointResettingToDefaultStateArray : IntegerArrayType;
   Points : ARRAY OF PointRec;
@@ -1143,6 +1145,7 @@ VAR
   ScreenMode : ScreenModeType = DefaultWindowedScreenMode;
   ShowCreateRouteExitFunctionNum : Boolean = False;
   ShowRouteLengths : Boolean = False;
+  SignalHighlighted : Integer = UnknownSignal;
   SourcePos, Destination1Pos, Destination2Pos, Destination3Pos : Integer;
   StationStartModeSetUpTime : TDateTime = 0;
   StationMonitorDisplay : StationMonitorsType;
@@ -1161,10 +1164,11 @@ VAR
   ThinLineMode : Boolean = True;
   TimeLastDataReceived : Cardinal = 0;
   TimeOutMsgWritten : Boolean = False;
+  TrackCircuitHighlighted : Integer = UnknownTrackCircuit;
   TrackCircuits : ARRAY OF TrackCircuitRec;
   TrackCircuitsInitialised : Boolean = False;
   UpLineY, DownLineY : Word;
-  VerboseFlag : Boolean = True;
+  VerboseFlag : Boolean = False;
   WatchdogTimerCount : Integer = 0;
   WindowPenWidth : Integer = 1;
   WorkingTimetableRecArray : WorkingTimetableRecArrayType;
@@ -5882,6 +5886,7 @@ BEGIN
       FeedbackUnitDataADOTable.First;
       SetLength(FeedbackUnitData, 0);
       FirstFeedbackUnit := 99999;
+      LastFeedbackUnit := 0;
 
       WHILE NOT FeedbackUnitDataADOTable.EOF DO BEGIN
         WITH FeedbackUnitDataADOTable DO BEGIN
