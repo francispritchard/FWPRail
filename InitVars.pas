@@ -273,7 +273,6 @@ TYPE
     Line_NextUpPoint : Integer;
     Line_NextUpType : NextLineRouteingType;
     Line_NoLongerOutOfUse : Boolean;
-    Line_Num : Integer;
     Line_OldColour : TColour;
     Line_OutOfUseState : OutOfUseState;
     Line_RoutedOver : Boolean;
@@ -282,6 +281,7 @@ TYPE
     Line_SaveOutOfUseState : OutOfUseState;
     Line_Str : String;
     Line_TC : Integer;
+    Line_TempNum : Integer;
     Line_TypeOfLine : TypeOfLine;
     Line_UpConnectionCh : String;
     Line_UpConnectionChRect : TRect;
@@ -2961,9 +2961,9 @@ BEGIN
             Line_UpXValueSpecified := False;
 
             FieldName := 'LineNum';
-            Line_Num := FieldByName(FieldName).AsInteger;
-            IF Line_Num <> L THEN
-              ErrorMsg := 'it does not match the line number in the database (' + IntToStr(Line_Num) + ')';
+            Line_TempNum := FieldByName(FieldName).AsInteger;
+            IF Line_TempNum <> L THEN
+              ErrorMsg := 'it does not match the line number in the database (' + IntToStr(Line_TempNum) + ')';
 
             IF ErrorMsg = '' THEN BEGIN
               FieldName := 'Line';
