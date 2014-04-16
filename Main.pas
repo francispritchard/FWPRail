@@ -99,6 +99,145 @@ BEGIN
   WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
 
+PROCEDURE TMainWindow.MainWindowCreate(Sender: TObject);
+BEGIN
+  TRY
+    IF OptionsWindow = NIL THEN BEGIN
+      OptionsWindow := TOptionsWindow.Create(Application);
+      OptionsWindow.Update;
+    END;
+    IF RailDriverWindow = NIL THEN BEGIN
+      RailDriverWindow := TRailDriverWindow.Create(Application);
+      RailDriverWindow.Update;
+    END;
+    IF DebugWindow = NIL THEN BEGIN
+      DebugWindow := TDebugWindow.Create(Application);
+      DebugWindow.Update;
+    END;
+    IF DiagramsWindow = NIL THEN BEGIN
+      DiagramsWindow := TDiagramsWindow.Create(Application);
+      DiagramsWindow.Update;
+    END;
+    IF FeedbackWindow = NIL THEN BEGIN
+      FeedbackWindow := TFeedbackWindow.Create(Application);
+      FeedbackWindow.Update;
+    END;
+    IF DebuggingOptionsWindow = NIL THEN BEGIN
+      DebuggingOptionsWindow := TDebuggingOptionsWindow.Create(Application);
+      DebuggingOptionsWindow.Update;
+    END;
+    IF CuneoWindow = NIL THEN BEGIN
+      CuneoWindow := TCuneoWindow.Create(Application);
+      CuneoWindow.Update;
+    END;
+    IF LockListWindow = NIL THEN BEGIN
+      LockListWindow := TLockListWindow.Create(Application);
+      LockListWindow.Update;
+    END;
+    IF LenzWindow = NIL THEN BEGIN
+      LenzWindow := TLenzWindow.Create(Application);
+      LenzWindow.Update;
+    END;
+    IF LocoUtilsWindow = NIL THEN BEGIN
+      LocoUtilsWindow := TLocoUtilsWindow.Create(Application);
+      LocoUtilsWindow.Update;
+    END;
+    IF InitVarsWindow = NIL THEN BEGIN
+      InitVarsWindow := TInitVarsWindow.Create(Application);
+      InitVarsWindow.Update;
+    END;
+    IF ClockWindow = NIL THEN BEGIN
+      ClockWindow := TClockWindow.Create(Application);
+      ClockWindow.Update;
+    END;
+    IF MovementWindow = NIL THEN BEGIN
+      MovementWindow := TMovementWindow.Create(Application);
+      MovementWindow.Update;
+    END;
+    IF RouteWindow = NIL THEN BEGIN
+      RouteWindow := TRouteWindow.Create(Application);
+      RouteWindow.Update;
+    END;
+    IF CreateRouteDisplayColoursWindow = NIL THEN BEGIN
+      CreateRouteDisplayColoursWindow := TCreateRouteDisplayColoursWindow.Create(Application);
+      CreateRouteDisplayColoursWindow.Update;
+    END;
+    IF TestUnitForm = NIL THEN BEGIN
+      TestUnitForm := TTestUnitForm.Create(Application);
+      TestUnitForm.Update;
+    END;
+    IF StationMonitorsWindow = NIL THEN BEGIN
+      StationMonitorsWindow := TStationMonitorsWindow.Create(Application);
+      StationMonitorsWindow.Update;
+    END;
+    IF RoutesWritingProgressBarWindow = NIL THEN BEGIN
+      RoutesWritingProgressBarWindow := TRoutesWritingProgressBarWindow.Create(Application);
+      RoutesWritingProgressBarWindow.Update;
+    END;
+    IF LocoDialogueWindow = NIL THEN BEGIN
+      LocoDialogueWindow := TLocoDialogueWindow.Create(Application);
+      LocoDialogueWindow.Update;
+    END;
+    IF HelpWindow = NIL THEN BEGIN
+      HelpWindow := THelpWindow.Create(Application);
+      HelpWindow.Update;
+    END;
+    IF LocationDataWindow = NIL THEN BEGIN
+      LocationDataWindow := TLocationDataWindow.Create(Application);
+      LocationDataWindow.Update;
+    END;
+    IF FWPShowMessageWindow = NIL THEN BEGIN
+      FWPShowMessageWindow := TFWPShowMessageWindow.Create(Application);
+      FWPShowMessageWindow.Update;
+    END;
+    IF ReplayForm = NIL THEN BEGIN
+      ReplayForm := TReplayForm.Create(Application);
+      ReplayForm.Update;
+    END;
+    IF WorkingTimetableWindow = NIL THEN BEGIN
+      WorkingTimetableWindow := TWorkingTimetableWindow.Create(Application);
+      WorkingTimetableWindow.Update;
+    END;
+    IF EditWindow = NIL THEN BEGIN
+      EditWindow := TEditWindow.Create(Application);
+      EditWindow.Update;
+    END;
+    IF InputDialogueBox = NIL THEN BEGIN
+      InputDialogueBox := TInputDialogueBox.Create(Application);
+      InputDialogueBox.Update;
+    END;
+    IF FWPRailWindow = NIL THEN BEGIN
+      FWPRailWindow := TFWPRailWindow.Create(Application);
+//      FWPRailWindow.Update;
+    END;
+
+    ReadIniFile;
+
+    InitialiseOptionsUnit;
+    InitialiseLocoDialogueUnit;
+    InitialiseLocksUnit;
+    InitialiseLocoUtilsUnit;
+    InitialiseMiscUtilsUnit;
+    InitialiseMovementUnit;
+    InitialiseRaildrawUnit;
+    InitialiseGetTimeUnit;
+    InitialiseStartupUnit;
+    InitialiseWorkingTimetableUnit;
+    InitialiseEditUnit;
+    InitialiseLenzUnit;
+    IF RDCMode THEN
+      StartRailDriver;
+    InitialiseCreateRouteDisplayColoursWindow;
+
+//  FWPRailWindow.Align := alCustom;
+  FWPRailWindow.Show;
+  DiagramsWindow.Show;
+  EXCEPT
+    ON E : Exception DO
+      Log('EG MainWindowCreate:' + E.ClassName +' error raised, with message: ' + E.Message);
+  END; {TRY}
+END; { MainWindowCreate }
+
 PROCEDURE SetSignal(LocoChip, S : Integer; NewAspect : AspectType; LogSignalData, ForceWriting : Boolean);
 { Set the state of a particular signal and draws it }
 CONST
@@ -1179,141 +1318,6 @@ BEGIN
       Log('EG CheckPointsAwaitingFeedback:' + E.ClassName +' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { CheckPointsAwaitingFeedback }
-
-PROCEDURE TMainWindow.MainWindowCreate(Sender: TObject);
-BEGIN
-  TRY
-    IF OptionsWindow = NIL THEN BEGIN
-      OptionsWindow := TOptionsWindow.Create(Application);
-      OptionsWindow.Update;
-    END;
-    IF RailDriverWindow = NIL THEN BEGIN
-      RailDriverWindow := TRailDriverWindow.Create(Application);
-      RailDriverWindow.Update;
-    END;
-    IF DebugWindow = NIL THEN BEGIN
-      DebugWindow := TDebugWindow.Create(Application);
-      DebugWindow.Update;
-    END;
-    IF DiagramsWindow = NIL THEN BEGIN
-      DiagramsWindow := TDiagramsWindow.Create(Application);
-      DiagramsWindow.Update;
-    END;
-    IF FeedbackWindow = NIL THEN BEGIN
-      FeedbackWindow := TFeedbackWindow.Create(Application);
-      FeedbackWindow.Update;
-    END;
-    IF DebuggingOptionsWindow = NIL THEN BEGIN
-      DebuggingOptionsWindow := TDebuggingOptionsWindow.Create(Application);
-      DebuggingOptionsWindow.Update;
-    END;
-    IF CuneoWindow = NIL THEN BEGIN
-      CuneoWindow := TCuneoWindow.Create(Application);
-      CuneoWindow.Update;
-    END;
-    IF LockListWindow = NIL THEN BEGIN
-      LockListWindow := TLockListWindow.Create(Application);
-      LockListWindow.Update;
-    END;
-    IF LenzWindow = NIL THEN BEGIN
-      LenzWindow := TLenzWindow.Create(Application);
-      LenzWindow.Update;
-    END;
-    IF LocoUtilsWindow = NIL THEN BEGIN
-      LocoUtilsWindow := TLocoUtilsWindow.Create(Application);
-      LocoUtilsWindow.Update;
-    END;
-    IF InitVarsWindow = NIL THEN BEGIN
-      InitVarsWindow := TInitVarsWindow.Create(Application);
-      InitVarsWindow.Update;
-    END;
-    IF ClockWindow = NIL THEN BEGIN
-      ClockWindow := TClockWindow.Create(Application);
-      ClockWindow.Update;
-    END;
-    IF MovementWindow = NIL THEN BEGIN
-      MovementWindow := TMovementWindow.Create(Application);
-      MovementWindow.Update;
-    END;
-    IF RouteWindow = NIL THEN BEGIN
-      RouteWindow := TRouteWindow.Create(Application);
-      RouteWindow.Update;
-    END;
-    IF CreateRouteDisplayColoursWindow = NIL THEN BEGIN
-      CreateRouteDisplayColoursWindow := TCreateRouteDisplayColoursWindow.Create(Application);
-      CreateRouteDisplayColoursWindow.Update;
-    END;
-    IF TestUnitForm = NIL THEN BEGIN
-      TestUnitForm := TTestUnitForm.Create(Application);
-      TestUnitForm.Update;
-    END;
-    IF StationMonitorsWindow = NIL THEN BEGIN
-      StationMonitorsWindow := TStationMonitorsWindow.Create(Application);
-      StationMonitorsWindow.Update;
-    END;
-    IF RoutesWritingProgressBarWindow = NIL THEN BEGIN
-      RoutesWritingProgressBarWindow := TRoutesWritingProgressBarWindow.Create(Application);
-      RoutesWritingProgressBarWindow.Update;
-    END;
-    IF LocoDialogueWindow = NIL THEN BEGIN
-      LocoDialogueWindow := TLocoDialogueWindow.Create(Application);
-      LocoDialogueWindow.Update;
-    END;
-    IF HelpWindow = NIL THEN BEGIN
-      HelpWindow := THelpWindow.Create(Application);
-      HelpWindow.Update;
-    END;
-    IF LocationDataWindow = NIL THEN BEGIN
-      LocationDataWindow := TLocationDataWindow.Create(Application);
-      LocationDataWindow.Update;
-    END;
-    IF FWPShowMessageWindow = NIL THEN BEGIN
-      FWPShowMessageWindow := TFWPShowMessageWindow.Create(Application);
-      FWPShowMessageWindow.Update;
-    END;
-    IF ReplayForm = NIL THEN BEGIN
-      ReplayForm := TReplayForm.Create(Application);
-      ReplayForm.Update;
-    END;
-    IF WorkingTimetableWindow = NIL THEN BEGIN
-      WorkingTimetableWindow := TWorkingTimetableWindow.Create(Application);
-      WorkingTimetableWindow.Update;
-    END;
-    IF EditWindow = NIL THEN BEGIN
-      EditWindow := TEditWindow.Create(Application);
-      EditWindow.Update;
-    END;
-    IF InputDialogueBox = NIL THEN BEGIN
-      InputDialogueBox := TInputDialogueBox.Create(Application);
-      InputDialogueBox.Update;
-    END;
-    IF FWPRailWindow = NIL THEN BEGIN
-      FWPRailWindow := TFWPRailWindow.Create(Application);
-//      FWPRailWindow.Update;
-    END;
-
-    ReadIniFile;
-
-    InitialiseOptionsUnit;
-    InitialiseLocoDialogueUnit;
-    InitialiseLocksUnit;
-    InitialiseLocoUtilsUnit;
-    InitialiseMiscUtilsUnit;
-    InitialiseMovementUnit;
-    InitialiseRaildrawUnit;
-    InitialiseGetTimeUnit;
-    InitialiseStartupUnit;
-    InitialiseWorkingTimetableUnit;
-    InitialiseEditUnit;
-    InitialiseLenzUnit;
-    IF RDCMode THEN
-      StartRailDriver;
-    InitialiseCreateRouteDisplayColoursWindow;
-  EXCEPT
-    ON E : Exception DO
-      Log('EG MainWindowCreate:' + E.ClassName +' error raised, with message: ' + E.Message);
-  END; {TRY}
-END; { MainWindowCreate }
 
 PROCEDURE TMainWindow.MainTimerTick(Sender: TObject);
 { Runs the main loop }
