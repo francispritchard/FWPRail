@@ -679,7 +679,7 @@ BEGIN { DecodeFeedback }
                         THEN
                           Point_MovedWhenLocked := False
                         ELSE BEGIN
-                          IF Point_PresentState <> Point_LockingState THEN BEGIN
+                          IF (Point_LockingState <> PointStateUnknown) AND (Point_PresentState <> Point_LockingState) THEN BEGIN
                             IF Point_RouteLockedByLocoChip = UnknownLocoChip THEN BEGIN
                               IF NOT Point_MovedWhenLocked THEN BEGIN
                                 Point_MovedWhenLocked := True;
