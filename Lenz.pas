@@ -3445,8 +3445,12 @@ BEGIN
   END;
 
   IF LenzConnection = NoConnection THEN
-    SetSystemOffline('System offline as no connection to the Lenz system')
+    SetSystemOffline('System offline as no connection to the Lenz system {BLANKLINEBEFORE}')
   ELSE BEGIN
+    IF LenzConnection = USBConnection THEN
+      Log('X System online via USB Connection to the Lenz system {BLANKLINEBEFORE}')
+    ELSE
+      Log('X System online via ethernet Connection to the Lenz system {BLANKLINEBEFORE}');
     SystemOnline := True;
     SetCaption(FWPRailWindow, '');
     Application.Icon := OnlineIcon;
