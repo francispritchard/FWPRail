@@ -5,7 +5,7 @@ object FWPRailWindow: TFWPRailWindow
   VertScrollBar.Tracking = True
   Caption = 'FWP'#39's Railway Program'
   ClientHeight = 303
-  ClientWidth = 656
+  ClientWidth = 732
   Color = clBtnFace
   Constraints.MinHeight = 132
   Constraints.MinWidth = 340
