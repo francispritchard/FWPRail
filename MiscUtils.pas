@@ -419,6 +419,9 @@ FUNCTION JunctionIndicatorLit(S : Integer) : Boolean;
 FUNCTION JunctionIndicatorTypeToStr(J : JunctionIndicatorType) : String;
 { Returns a junction indicator type as a string }
 
+FUNCTION LenzConnectionToStr(LenzConnection : LenzConnectionType) : String;
+{ Return the kind of connection }
+
 FUNCTION LightsTypeToStr(TypeOfLights : LightsType) : String;
 { Return the type of lights the train has }
 
@@ -2543,6 +2546,7 @@ BEGIN
     AND (TC = Lines[L].Line_TC)
     THEN
       Result := Result + LineToStr(L) + ', ';
+
   IF RightStr(Result, 2) = ', ' THEN
     Result := Copy(Result, 1, Length(Result) - 2);
 END; { DescribeLineNamesForTrackCircuit }
@@ -4563,6 +4567,19 @@ BEGIN
   END; {WHILE}
   Result := Str;
 END; { RemoveAllSpacesFromAString }
+
+FUNCTION LenzConnectionToStr(LenzConnection : LenzConnectionType) : String;
+{ Return the kind of connection }
+BEGIN
+  CASE LenzConnection OF
+    USBConnection:
+      Result := 'USB Connection';
+    EthernetConnection:
+      Result := 'Ethernet Connection';
+    NoConnection:
+      Result := 'No Connection';
+  END; {CASE}
+END; { LenzConnectionToStr }
 
 FUNCTION LTS(L : Integer) : String;
 { Return a line as a string - routine designed for use in debugging }
