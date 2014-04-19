@@ -228,10 +228,6 @@ BEGIN
     IF RDCMode THEN
       StartRailDriver;
     InitialiseCreateRouteDisplayColoursWindow;
-
-//  FWPRailWindow.Align := alCustom;
-  FWPRailWindow.Show;
-  DiagramsWindow.Show;
   EXCEPT
     ON E : Exception DO
       Log('EG MainWindowCreate:' + E.ClassName +' error raised, with message: ' + E.Message);
@@ -255,7 +251,7 @@ BEGIN
 
         IF SystemOnline
         AND NOT ResizeMap
-        THEN
+        THEN BEGIN
           IF Signal_DecoderNum <> 0 THEN
             { uses LF100 decoders - bits usually set as follows:
               green is bit 1, red 2, single yellow 3, double yellow 3 + 4; the indicator is bit 4 (not necessarily on same decoder though)
@@ -268,6 +264,7 @@ BEGIN
                 MakeSemaphoreSignalChange(LocoChip, S, Signal_AccessoryAddress, SignalOff)
               ELSE
                 MakeSemaphoreSignalChange(LocoChip, S, Signal_AccessoryAddress, SignalOn);
+        END;
 
 // if s <> 90 then
         IF NOT ProgramStartup THEN

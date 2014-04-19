@@ -717,6 +717,12 @@ VAR
 
 BEGIN
   TRY
+    IF NOT SystemOnline THEN BEGIN
+      ExpectedDataReceived := False;
+      TimedOut := False;
+      Exit;
+    END;
+
     ResponseOrBroadcast := NoResponse;
     RetryCount := 0;
 
@@ -857,15 +863,16 @@ BEGIN
             TRY
               OK := False;
               DebugStr := 'Checksum failure: ';
-              ASM
-                Int 3;
-              END; {ASM}
+//              ASM
+//                Int 3;
+//              END; {ASM}
               { need to recover from this by doing the read again? **** 6/11/06 }
 
               { write out the string }
               FOR I := 0 TO CommandLen + 1 DO
                 DebugStr := DebugStr + IntToStr(ReadArray[I]) + '=';
-              Log('A ' + DebugStr);
+              Log('AG ' + DebugStr);
+              Retryflag := True;
             EXCEPT
               ON E : Exception DO
                 Log('EG ReadInDataMainProcedure: ' + E.ClassName +' error raised, with message: ' + E.Message);
@@ -1163,7 +1170,7 @@ BEGIN
                       Log('EG ' + ErrorMsg);
                       ErrorFound := True;
                       RetryFlag := True;
-                      Pause(500, False);
+                      Pause(1000, False);
                     END;
                   130: { $82 }
                     BEGIN
@@ -1394,7 +1401,7 @@ BEGIN
 
     UNTIL (RetryFlag = False) OR (RetryCount > 2);
 
-    IF RetryCount > 2 THEN
+    IF (RetryCount > 2) AND SystemOnline THEN
       SetSystemOffline('3 failed attempts to write/read data from the LAN/USB interface - system now offline');
 
   EXCEPT {TRY}
@@ -2651,7 +2658,11 @@ BEGIN
           Log('PG Point ' + IntToStr(P) + ' [Lenz=' + IntToStr(Points[P].Point_LenzNum) + ']'
                   + ' has been energised for too long (' + IntToStr(MilliSecondsBetween(Time, Points[P].Point_EnergisedTime)) + 'ms)'
                   + ' so emergency deselection attempted at ' + TimeToHMSZStr(Time));
+          IF NOT SystemOnline THEN
+            Exit;
+
           EmergencyDeselectPoint(P, OK);
+
           IF OK THEN BEGIN
             Points[P].Point_Energised := False;
             Log('PG Point ' + IntToStr(P) + ' [Lenz=' + IntToStr(Points[P].Point_LenzNum) + '] : emergency deselection was successful at ' + TimeToHMSZStr(Time)
@@ -2669,7 +2680,11 @@ BEGIN
           Log('SG Signal ' + IntToStr(S) + ' [accessory address=' + IntToStr(Signals[S].Signal_AccessoryAddress) + ']'
                   + ' has been energised for too long (' + IntToStr(MilliSecondsBetween(Time, Signals[S].Signal_EnergisedTime)) + 'ms)'
                   + ' so emergency deselection attempted at ' + TimeToHMSZStr(Time));
+          IF NOT SystemOnline THEN
+            Exit;
+
           EmergencyDeselectSignal(S, OK);
+
           IF OK THEN BEGIN
             Signals[S].Signal_Energised := False;
             Log('SG Signal ' + IntToStr(S) + ' [accessory address=' + IntToStr(Signals[S].Signal_AccessoryAddress) + ']'
@@ -2926,7 +2941,7 @@ BEGIN
   DoCheckForUnexpectedData(UnitRef, 'MakeSemaphoreSignalChange');
   IF InAutoMode THEN
     MoveAllTrains;
-  Pause(50, NOT ProcessMessages);
+  Pause(50, NOT ProcessMessages);  { ********** }
 
   DeactivateSignal;
 END; { MakeSemaphoreSignalChange }
@@ -2967,6 +2982,7 @@ VAR
   DecoderUnitNum, DecoderOutputNum : Byte;
   InterfaceLenzPoint : Integer;
   OK : Boolean;
+  SavedTime : TDateTime;
   WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
 
   PROCEDURE TurnPointOn(LocoChip : Integer; VAR OK : Boolean);
@@ -3468,19 +3484,29 @@ BEGIN
     IF Points[P].Point_PresentState <> PointStateUnknown THEN
       Points[P].Point_RequiredState := Points[P].Point_PresentState;
 
-  { Read in all the feedback }
   GetInitialFeedback;
 
-  { Update real signals to match virtual signals in case they were changed offline }
-  S := 0;
-  WHILE S <= High(Signals) DO BEGIN
-    SetSignal(NoLocoChip, S, Signals[S].Signal_Aspect, True, ForceAWrite);
-    Inc(S);
-  END; {WHILE}
+  IF SystemOnline THEN BEGIN
+    { Read in all the feedback }
+    { Update real signals to match virtual signals in case they were changed offline }
+    S := 0;
+    WHILE S <= High(Signals) DO BEGIN
+      SetSignal(NoLocoChip, S, Signals[S].Signal_Aspect, True, ForceAWrite);
+      Inc(S);
+    END; {WHILE}
+  END;
 
   { Ditto for points }
-  FOR P := 0 TO High(Points) DO
-    PullPoint(P, ForcePoint);
+  IF SystemOnline THEN
+    FOR P := 0 TO High(Points) DO
+      IF NOT Points[P].Point_OutOfUse THEN
+        PullPoint(P, ForcePoint);
+
+  IF SystemOnline THEN BEGIN
+    Debug('System now connected via ' + LenzConnectionToStr(LenzConnection));
+    LenzWindow.LenzOneSecondTimerTick.Enabled := True;
+  END ELSE
+    Debug('Not connected to Lenz system')
 END; { SetSystemOnline }
 
 PROCEDURE InitialiseLenzUnit;
