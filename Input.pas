@@ -73,9 +73,7 @@ VAR
   InputDialogueTrackCircuit : Integer = 0;
   InputDialogueTrackCircuitFound : Boolean = False;
   LastKeyPressed : Integer;
-  SaveBackgroundColourForPrinting : TColor;
   SaveDebugWindowDebugRichEditColour : TColor = clBlack;
-  SaveForegroundColourForPrinting : TColor;
   SaveTCSpeedRestrictionColour : TColour;
   ZoomLevel : Integer = 0;
 
@@ -891,14 +889,6 @@ BEGIN
 
   Log('XG All checks concluded');
 END; { DoGeneralCheck }
-
-PROCEDURE ResetScreenColours;
-BEGIN
-  BackgroundColour := SaveBackgroundColourForPrinting;
-  ForegroundColour := SaveForegroundColourForPrinting;
-  ScreenColoursSetForPrinting := False;
-  Debug('Resetting screen colours');
-END; { ResetScreenColours }
 
 PROCEDURE SetUpStationMonitors(ShiftState : TShiftState; DisplayOrderNum : Integer);
 { Chooses which station we're going to or from and how to show the results }
@@ -4388,7 +4378,7 @@ BEGIN { KeyPressedDown }
                     { Close the program after two consecutive escapes }
                     IF EscKeyStored THEN BEGIN
                       IF ScreenColoursSetForPrinting THEN
-                        ResetScreenColours;
+                        ResetScreenColoursAfterPrinting;
                       Log('A Shutdown requested by user pressing Escape twice {BLANKLINEBEFORE}');
                       ShutDownProgram(UnitRef, 'KeyPressedDown');
                     END ELSE BEGIN
@@ -4423,7 +4413,7 @@ BEGIN { KeyPressedDown }
                   { close the program after two consecutive escapes }
                   IF EscKeyStored THEN BEGIN
                     IF ScreenColoursSetForPrinting THEN
-                      ResetScreenColours;
+                      ResetScreenColoursAfterPrinting;
                     Log('A Shutdown requested by user pressing Escape twice - log to be restored to previous state');
                     RestoreLogsToPreviousState := True;
                     ShutDownProgram(UnitRef, 'KeyPressedDown');
@@ -4961,15 +4951,17 @@ BEGIN { KeyPressedDown }
                 IF NOT HelpRequired THEN BEGIN
                   ShowLineDetail := True;
                   WriteToStatusBarPanel(StatusBarPanel2, 'Showing line detail');
-                  { List the line colours for the forgetful (added this bit 12/12/07 because FWP forgot which was which!) }
-                  CreateRouteDisplayColoursWindow.Visible := True;
-                  CreateRouteDisplayColoursWindow.CreateRouteDisplayColoursWindowRichedit.Clear;
-                  FOR XTypeOfLine := FirstTypeOfLine TO LastTypeOfLine DO
-                    AddRichLine(CreateRouteDisplayColoursWindow.CreateRouteDisplayColoursWindowRichedit, ('<colour=' + ColourToStr(GetIntegerColour(XTypeOfLine)) + '>'
-                                                                                                                     + ColourToStrForUser(GetIntegerColour(XTypeOfLine))
-                                                                                                                     + ' = ' + TypeOfLineToStr(XTypeOfLine)
-                                                                                                                     + '</colour>'));
-                  InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
+                  IF NOT ScreenColoursSetForPrinting THEN BEGIN
+                    { List the line colours for the forgetful (added this bit 12/12/07 because FWP forgot which was which!) }
+                    CreateRouteDisplayColoursWindow.Visible := True;
+                    CreateRouteDisplayColoursWindow.CreateRouteDisplayColoursWindowRichedit.Clear;
+                    FOR XTypeOfLine := FirstTypeOfLine TO LastTypeOfLine DO
+                      AddRichLine(CreateRouteDisplayColoursWindow.CreateRouteDisplayColoursWindowRichedit, ('<colour=' + ColourToStr(GetLineTypeColour(XTypeOfLine)) + '>'
+                                                                                                                       + ColourToStrForUser(GetLineTypeColour(XTypeOfLine))
+                                                                                                                       + ' = ' + TypeOfLineToStr(XTypeOfLine)
+                                                                                                                       + '</colour>'));
+                    InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
+                  END;
                 END;
               END;
             ShiftAlt: {F4}
@@ -5407,12 +5399,11 @@ BEGIN { KeyPressedDown }
                 HelpMsg := 'toggle screen colours for printing';
                 IF NOT HelpRequired THEN BEGIN
                   IF ScreenColoursSetForPrinting THEN
-                    ResetScreenColours
+                    ResetScreenColoursAfterPrinting
                   ELSE BEGIN
+                    SetScreenColoursBeforePrinting;
                     SaveBackgroundColourForPrinting := BackgroundColour;
                     SaveForegroundColourForPrinting := ForegroundColour;
-                    BackgroundColour := clWhite;
-                    ForegroundColour := clBlack;
                     ScreenColoursSetForPrinting := True;
                     Debug('Screen colours set for printing - press ' + DescribeKey(KeyToTest, InputShiftState) + ' to reset');
                   END;

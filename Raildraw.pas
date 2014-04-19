@@ -552,11 +552,17 @@ PROCEDURE InitialiseRaildrawUnit;
 PROCEDURE InvalidateScreen(UnitRefParam, CallingStr : String);
 { Draw the screen by invalidating it }
 
+PROCEDURE ResetScreenColoursAfterPrinting;
+{ Restore the colours to those saved before printing the screen in printer-friendly colours }
+
 PROCEDURE RestoreCursor;
 { Restores the shape of the cursor (from the Delphi Help system) }
 
 PROCEDURE SetCaption(Window : TForm; Caption : String);
 { Sets a window caption }
+
+PROCEDURE SetScreenColoursBeforePrinting;
+{ Save the screen colours before printing the screen in printer-friendly colours }
 
 PROCEDURE ShowStatusBarAndUpDownIndications;
 { After a zoomed screen move, restore the status bar and the "up" and "down" markers }
@@ -582,6 +588,45 @@ VAR
   RailWindowBitmap : TBitmap;
   RestartProgram : Boolean = False;
   SaveCursor : TCursor = crDefault;
+  SaveBackgroundColourForPrinting : TColor;
+  SaveBufferStopColourForPrinting : TColor;
+  SaveBufferStopNumberColourForPrinting : TColor;
+  SaveBufferStopRedForPrinting : TColor;
+  SaveForegroundColourForPrinting : TColor;
+  SaveLenzPointNumberColourForPrinting : TColor;
+  SaveLineNotAvailableColourForPrinting : TColor;
+  SaveLocoStalledColourForPrinting : TColor;
+  SavePlatformColourForPrinting : TColor;
+  SavePointColourForPrinting : TColor;
+  SavePointDivergingLineColourForPrinting : TColor;
+  SavePointDownFacingColourForPrinting : TColor;
+  SavePointFeedbackDataInUseColourForPrinting : TColor;
+  SavePointFeedbackDataOutOfUseColourForPrinting : TColor;
+  SavePointHeelLineColourForPrinting : TColor;
+  SavePointManualOperationColourForPrinting : TColor;
+  SavePointStraightLineColourForPrinting :TColor;
+  SavePointsWithoutFeedbackColourForPrinting : TColor;
+  SavePointUpFacingColourForPrinting : TColor;
+  SaveShowPointDefaultStateColourForPrinting : TColor;
+  SaveShowPointLockedColourForPrinting : TColor;
+  SaveSignalNumberColourForPrinting : TColor;
+  SaveSignalPostColourForPrinting : TColor;
+  SaveSignalPostRouteSettingColourForPrinting : TColor;
+  SaveSignalPostTheatreSettingColourForPrinting : TColor;
+  SaveTCMissingOccupationColourForPrinting : TColor;
+  SaveTCFeedbackOccupationColourForPrinting : TColor;
+  SaveTCOutOfUseSetByUserColourForPrinting : TColor;
+  SaveTCOutOfUseAsNoFeedbackReceivedColourForPrinting : TColor;
+  SaveTCPermanentFeedbackOccupationColourForPrinting : TColor;
+  SaveTCPermanentOccupationSetByUserColourForPrinting : TColor;
+  SaveTCPermanentSystemOccupationColourForPrinting : TColor;
+  SaveTCSystemOccupationColourForPrinting : TColor;
+  SaveTCUnoccupiedColourForPrinting : TColor;
+  SaveTrainActiveColourForPrinting : TColor;
+  SaveTrainInactiveColourForPrinting : TColor;
+  SaveTRSPlungerColourForPrinting : TColor;
+  SaveTRSPlungerOutlineColourForPrinting : TColor;
+  SaveTRSPlungerPressedColourForPrinting : TColor;
   SavePanel0Str : String = '';
   SavePanel1Str : String = '';
   SavePanel2Str : String = '';
@@ -1003,7 +1048,7 @@ VAR
 
           IF ShowLineDetail THEN BEGIN
             { show the internal name for each track segment }
-            Font.Color := GetIntegerColour(Line_TypeOfLine);
+            Font.Color := GetLineTypeColour(Line_TypeOfLine);
             LineNameWidth := TextWidth(LineToStr(L));
             IF Line_DownX > Line_UpX THEN BEGIN
               IF (Line_DownX - Line_UpX) > LineNameWidth THEN
@@ -1020,7 +1065,7 @@ VAR
 
           IF ShowLineNumbers THEN BEGIN
             { show the internal numbers for each track segment }
-            Font.Color := GetIntegerColour(Line_TypeOfLine);
+            Font.Color := GetLineTypeColour(Line_TypeOfLine);
             LineNameWidth := TextWidth(IntToStr(L));
             IF Line_DownX > Line_UpX THEN BEGIN
               IF (Line_DownX - Line_UpX) > LineNameWidth THEN
@@ -1036,7 +1081,7 @@ VAR
           END;
 
           IF ShowLinesWhereUpXValueSpecified THEN BEGIN
-            Font.Color := GetIntegerColour(Line_TypeOfLine);
+            Font.Color := GetLineTypeColour(Line_TypeOfLine);
             LineNameWidth := TextWidth(LineToStr(L));
             IF Line_UpXValueSpecified THEN
               SegmentText := LineToStr(L)
@@ -1156,6 +1201,9 @@ VAR
           END;
 
           IF SegmentText <> '' THEN BEGIN
+            IF ScreenColoursSetForPrinting THEN
+              Font.Color := clBlack;
+
             IF Zooming THEN
               Font.Size := 14;
 
@@ -1266,8 +1314,19 @@ BEGIN
         Pen.Mode := pmNotXor;
       Pen.Color := Colour;
       Brush.Color := BackgroundColour;
+//pen.color := claqua;
+//  FWPPolygon[0] := Point(1050, 43);
+//  FWPPolygon[1] := Point(1050, 27);
+//  FWPPolygon[2] := Point(1086, 27);
+//  FWPPolygon[3] := Point(1086, 43);
+//  FWPPolygon[4] := FWPPolygon[0];
       Polyline(FWPPolygon);
+
+//IF FWPPolygon[0] = Point(1050, 43) THEN
+//      InvalidateScreen(UnitRef, 'xxx');
     END; {WITH}
+
+//  InvalidateScreen(UnitRef, 'PointDialogueBox');
 
 //    IF UndrawRequired
 //    AND UndrawToBeAutomatic
@@ -5770,7 +5829,7 @@ BEGIN
   InvalidateScreen(UnitRef, 'GeneralPopupRestorePlungerOutlineColour');
 END; { GeneralPopupRestorePlungerOutlineColour }
 
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreAllDefaultColoursClick(Sender: TObject);
+PROCEDURE ResetScreenColoursToDefault;
 BEGIN
   BackgroundColour := DefaultBackgroundColour;
   BufferStopColour := DefaultBufferStopColour;
@@ -5816,8 +5875,183 @@ BEGIN
   TRSPlungerOutlineColour := DefaultTRSPlungerOutlineColour;
   TRSPlungerPressedColour := DefaultTRSPlungerPressedColour;
 
-  InvalidateScreen(UnitRef, 'RestoreAllDefaultColoursClick');
+  InvalidateScreen(UnitRef, 'ResetScreenColoursToDefault');
+END; { ResetScreenColoursToDefault }
+
+PROCEDURE TFWPRailWindow.GeneralPopupRestoreAllDefaultColoursClick(Sender: TObject);
+BEGIN
+  ResetScreenColoursToDefault;
 END; { RestoreAllDefaultColoursClick }
+
+PROCEDURE ResetScreenColoursAfterPrinting;
+{ Restore the colours to those saved before printing the screen in printer-friendly colours }
+BEGIN
+  BackgroundColour := SaveBackgroundColourForPrinting;
+  BufferStopColour := SaveBufferStopColourForPrinting;
+  BufferStopNumberColour := SaveBufferStopNumberColourForPrinting;
+  BufferStopRed := SaveBufferStopRedForPrinting;
+  ForegroundColour := SaveForegroundColourForPrinting;
+  LenzPointNumberColour := SaveLenzPointNumberColourForPrinting;
+  LineNotAvailableColour := SaveLineNotAvailableColourForPrinting;
+  LocoStalledColour := SaveLocoStalledColourForPrinting;
+  PlatformColour := SavePlatformColourForPrinting;
+  PointColour := SavePointColourForPrinting;
+  PointDivergingLineColour := SavePointDivergingLineColourForPrinting;
+  PointDownFacingColour := SavePointDownFacingColourForPrinting;
+  PointFeedbackDataInUseColour := SavePointFeedbackDataInUseColourForPrinting;
+  PointFeedbackDataOutOfUseColour := SavePointFeedbackDataOutOfUseColourForPrinting;
+  PointHeelLineColour := SavePointHeelLineColourForPrinting;
+  PointManualOperationColour := SavePointManualOperationColourForPrinting;
+  PointStraightLineColour := SavePointStraightLineColourForPrinting;
+  PointsWithoutFeedbackColour := SavePointsWithoutFeedbackColourForPrinting;
+  PointUpFacingColour := SavePointUpFacingColourForPrinting;
+  ShowPointDefaultStateColour := SaveShowPointDefaultStateColourForPrinting;
+  ShowPointLockedColour := SaveShowPointLockedColourForPrinting;
+  SignalNumberColour := SaveSignalNumberColourForPrinting;
+  SignalPostColour := SaveSignalPostColourForPrinting;
+  SignalPostRouteSettingColour := SaveSignalPostRouteSettingColourForPrinting;
+  SignalPostTheatreSettingColour := SaveSignalPostTheatreSettingColourForPrinting;
+  TCMissingOccupationColour := SaveTCMissingOccupationColourForPrinting;
+  TCFeedbackOccupationColour := SaveTCFeedbackOccupationColourForPrinting;
+  TCOutOfUseSetByUserColour := SaveTCOutOfUseSetByUserColourForPrinting;
+  TCOutOfUseAsNoFeedbackReceivedColour := SaveTCOutOfUseAsNoFeedbackReceivedColourForPrinting;
+  TCPermanentFeedbackOccupationColour := SaveTCPermanentFeedbackOccupationColourForPrinting;
+  TCPermanentOccupationSetByUserColour := SaveTCPermanentOccupationSetByUserColourForPrinting;
+  TCPermanentSystemOccupationColour := SaveTCPermanentSystemOccupationColourForPrinting;
+  TCSystemOccupationColour := SaveTCSystemOccupationColourForPrinting;
+  TCUnoccupiedColour := SaveTCUnoccupiedColourForPrinting;
+  TrainActiveColour := SaveTrainActiveColourForPrinting;
+  TrainInactiveColour := SaveTrainInactiveColourForPrinting;
+  TRSPlungerColour := SaveTRSPlungerColourForPrinting;
+  TRSPlungerOutlineColour := SaveTRSPlungerOutlineColourForPrinting;
+  TRSPlungerPressedColour := SaveTRSPlungerPressedColourForPrinting;
+
+  ScreenColoursSetForPrinting := False;
+  Debug('Resetting screen colours');
+END; { ResetScreenColoursAfterPrinting }
+
+PROCEDURE SetScreenColoursBeforePrinting;
+{ Save the screen colours before printing the screen in printer-friendly colours }
+BEGIN
+  SaveBackgroundColourForPrinting := BackgroundColour;
+  BackgroundColour := clWhite;
+
+  SaveBufferStopColourForPrinting := BufferStopColour;
+  BufferStopColour := clBlack;
+
+  SaveBufferStopNumberColourForPrinting := BufferStopNumberColour;
+  BufferStopNumberColour := clBlack;
+
+  SaveBufferStopRedForPrinting := BufferStopRed;
+  BufferStopRed := clBlack;
+
+  SaveForegroundColourForPrinting := ForegroundColour;
+  ForegroundColour := clBlack;
+
+  SaveLenzPointNumberColourForPrinting := LenzPointNumberColour;
+  LenzPointNumberColour := clBlack;
+
+  SaveLineNotAvailableColourForPrinting := LineNotAvailableColour;
+  LineNotAvailableColour := clBlack;
+
+  SaveLocoStalledColourForPrinting := LocoStalledColour;
+  LocoStalledColour := clBlack;
+
+  SavePlatformColourForPrinting := PlatformColour;
+  PlatformColour := clYellow;
+
+  SavePointColourForPrinting := PointColour;
+  PointColour := clBlack;
+
+  SavePointDivergingLineColourForPrinting := PointDivergingLineColour;
+  PointDivergingLineColour := clBlack;
+
+  SavePointDownFacingColourForPrinting := PointDownFacingColour;
+  PointDownFacingColour := clBlack;
+
+  SavePointFeedbackDataInUseColourForPrinting := PointFeedbackDataInUseColour;
+  PointFeedbackDataInUseColour := clBlack;
+
+  SavePointFeedbackDataOutOfUseColourForPrinting := PointFeedbackDataOutOfUseColour;
+  PointFeedbackDataOutOfUseColour := clBlack;
+
+  SavePointHeelLineColourForPrinting := PointHeelLineColour;
+  PointHeelLineColour := clBlack;
+
+  SavePointManualOperationColourForPrinting := PointManualOperationColour;
+  PointManualOperationColour := clBlack;
+
+  SavePointStraightLineColourForPrinting := PointStraightLineColour;
+  PointStraightLineColour := clBlack;
+
+  SavePointsWithoutFeedbackColourForPrinting := PointsWithoutFeedbackColour;
+  PointsWithoutFeedbackColour := clBlack;
+
+  SavePointUpFacingColourForPrinting := PointUpFacingColour;
+  PointUpFacingColour := clBlack;
+
+  SaveShowPointDefaultStateColourForPrinting := ShowPointDefaultStateColour;
+  ShowPointDefaultStateColour := clBlack;
+
+  SaveShowPointLockedColourForPrinting := ShowPointLockedColour;
+  ShowPointLockedColour := clBlack;
+
+  SaveSignalNumberColourForPrinting := SignalNumberColour;
+  SignalNumberColour := clBlack;
+
+  SaveSignalPostColourForPrinting := SignalPostColour;
+  SignalPostColour := clBlack;
+
+  SaveSignalPostRouteSettingColourForPrinting := SignalPostRouteSettingColour;
+  SignalPostRouteSettingColour := clBlack;
+
+  SaveSignalPostTheatreSettingColourForPrinting := SignalPostTheatreSettingColour;
+  SignalPostTheatreSettingColour := clBlack;
+
+  SaveTCMissingOccupationColourForPrinting := TCMissingOccupationColour;
+  TCMissingOccupationColour := clBlack;
+
+  SaveTCFeedbackOccupationColourForPrinting := TCFeedbackOccupationColour;
+  TCFeedbackOccupationColour := clBlack;
+
+  SaveTCOutOfUseSetByUserColourForPrinting := TCOutOfUseSetByUserColour;
+  TCOutOfUseSetByUserColour := clBlack;
+
+  SaveTCOutOfUseAsNoFeedbackReceivedColourForPrinting := TCOutOfUseAsNoFeedbackReceivedColour;
+  TCOutOfUseAsNoFeedbackReceivedColour := clBlack;
+
+  SaveTCPermanentFeedbackOccupationColourForPrinting := TCPermanentFeedbackOccupationColour;
+  TCPermanentFeedbackOccupationColour := clBlack;
+
+  SaveTCPermanentOccupationSetByUserColourForPrinting := TCPermanentOccupationSetByUserColour;
+  TCPermanentOccupationSetByUserColour := clBlack;
+
+  SaveTCPermanentSystemOccupationColourForPrinting := TCPermanentSystemOccupationColour;
+  TCPermanentSystemOccupationColour := clBlack;
+
+  SaveTCSystemOccupationColourForPrinting := TCSystemOccupationColour;
+  TCSystemOccupationColour := clBlack;
+
+  SaveTCUnoccupiedColourForPrinting := TCUnoccupiedColour;
+  TCUnoccupiedColour := clBlack;
+
+  SaveTrainActiveColourForPrinting := TrainActiveColour;
+  TrainActiveColour := clBlack;
+
+  SaveTrainInactiveColourForPrinting := TrainInactiveColour;
+  TrainInactiveColour := clBlack;
+
+  SaveTRSPlungerColourForPrinting := TRSPlungerColour;
+  TRSPlungerColour := clBlack;
+
+  SaveTRSPlungerOutlineColourForPrinting := TRSPlungerOutlineColour;
+  TRSPlungerOutlineColour := clBlack;
+
+  SaveTRSPlungerPressedColourForPrinting := TRSPlungerPressedColour;
+  TRSPlungerPressedColour := clBlack;
+
+  Debug('Resetting screen colours');
+END; { ResetScreenColoursBeforePrinting }
 
 PROCEDURE TFWPRailWindow.GeneralPopupSidingPenStyleSolidClick(Sender: TObject);
 BEGIN

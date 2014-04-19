@@ -272,7 +272,7 @@ FUNCTION GetComputerNetName : String;
 FUNCTION GetFollowingChars(Line: String; Str : String; EndStr : String) : String;
 { Return the characters after the given characters up to the delimiter supplied (or "CRLF" if it's at a line end) }
 
-FUNCTION GetIntegerColour(T : TypeOfLine) : TColour;
+FUNCTION GetLineTypeColour(T : TypeOfLine) : TColour;
 { Return the colour for a specific line type }
 
 FUNCTION GetLinesForTrackCircuit(TC : Integer) : LineArrayType;
@@ -3120,40 +3120,44 @@ BEGIN
     Result := 'Unknown';
 END;
 
-FUNCTION GetIntegerColour(T : TypeOfLine) : TColour;
-{ Return the colour for a specific line type }
+FUNCTION GetLineTypeColour(T : TypeOfLine) : TColour;
+{ Return the colour for a specific line type, unless the screen is set to be printed from, in whiuch case return black }
 BEGIN
-  CASE T OF
-    MainLine:
-      Result := clRed;
-    MainOrGoods:
-      Result := clFWPOrange;
-    GoodsLine:
-      Result := clLime;
-    SidingLine:
-      Result := clAqua;
-    SidingsApproach:
-      Result := clFuchsia;
-    BranchLineSingle, BranchLineDouble:
-      Result := clCream;
-    IslandStationLine:
-      Result := clSkyBlue;
-    MainStationLine:
-      Result := clTeal;
-    BranchStationLine:
-      Result := clFWPPink;
-    WindowStationLine:
-      Result := clFWPOrange;
-    FiddleyardLine:
-      Result := clYellow;
-    StationAvoiding:
-      Result := clGreen;
-    ProjectedLine:
-      Result := clLtGray;
-  ELSE
-    Result := clDkGray;
-  END; {CASE}
-END; { GetIntegerColour }
+  IF ScreenColoursSetForPrinting THEN
+    Result := clBlack
+  ELSE BEGIN
+    CASE T OF
+      MainLine:
+        Result := clRed;
+      MainOrGoods:
+        Result := clFWPOrange;
+      GoodsLine:
+        Result := clLime;
+      SidingLine:
+        Result := clAqua;
+      SidingsApproach:
+        Result := clFuchsia;
+      BranchLineSingle, BranchLineDouble:
+        Result := clCream;
+      IslandStationLine:
+        Result := clSkyBlue;
+      MainStationLine:
+        Result := clTeal;
+      BranchStationLine:
+        Result := clFWPPink;
+      WindowStationLine:
+        Result := clFWPOrange;
+      FiddleyardLine:
+        Result := clYellow;
+      StationAvoiding:
+        Result := clGreen;
+      ProjectedLine:
+        Result := clLtGray;
+    ELSE
+      Result := clDkGray;
+    END; {CASE}
+  END;
+END; { GetLineTypeColour }
 
 FUNCTION GetLinesForTrackCircuit(TC : Integer) : LineArrayType;
 { Return all the lines on a given trackcircuit }
