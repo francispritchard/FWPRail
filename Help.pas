@@ -9,7 +9,6 @@ TYPE
   THelpWindow = CLASS(TForm)
     HelpRichEdit: TRichEdit;
     HelpWindowFindDialog: TFindDialog;
-    HelpStatusBar: TStatusBar;
     PROCEDURE HelpRichEditKeyDown(Sender: TObject; VAR Key: Word; ShiftState: TShiftState);
     PROCEDURE HelpRichEditMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     PROCEDURE HelpMemoKeyDown(Sender: TObject; VAR Key: Word; ShiftState: TShiftState);

@@ -17,7 +17,7 @@ object HelpWindow: THelpWindow
     Left = 0
     Top = 0
     Width = 900
-    Height = 644
+    Height = 663
     Align = alClient
     Font.Charset = ANSI_CHARSET
     Font.Color = clWindowText
@@ -32,14 +32,7 @@ object HelpWindow: THelpWindow
     TabOrder = 0
     OnKeyDown = HelpRichEditKeyDown
     OnMouseDown = HelpRichEditMouseDown
-  end
-  object HelpStatusBar: TStatusBar
-    Left = 0
-    Top = 644
-    Width = 900
-    Height = 19
-    Panels = <>
-    SimpleText = 'Press F12 to start a search'
+    ExplicitHeight = 644
   end
   object HelpWindowFindDialog: TFindDialog
     OnClose = HelpWindowFindDialogClose
