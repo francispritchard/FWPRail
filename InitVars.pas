@@ -1105,6 +1105,7 @@ VAR
   PostEmergencyTime : TDateTime = 0;
   PostEmergencyTimeSet : Boolean = False;
   PreparingZoom : Boolean = False;
+  ProgramShuttingDown : Boolean = False;
   ProgramStartup : Boolean = True;
   RailWindowBitmapCanvasPenWidth : Integer;
   RailDriverCalibrated : Boolean = False;

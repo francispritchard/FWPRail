@@ -6473,6 +6473,7 @@ BEGIN { ShutDownProgram }
       purged)
     }
     Log('A Shut down initiated');
+    ProgramShuttingDown := True;
 
     { Restore the Windows taskbar if we're in full screen mode and it's been disabled }
     IF WindowsTaskbarDisabled THEN BEGIN

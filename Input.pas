@@ -1360,6 +1360,11 @@ VAR
 BEGIN { KeyPressedDown }
   HelpMsg := '';
   TRY
+    IF ProgramShuttingDown THEN BEGIN
+      Log('XG Cannot accept key press as program shutting down');
+      Exit;
+    END;
+
     LastKeyPressed := KeyToTest;
 
     BEGIN
