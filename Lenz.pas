@@ -38,8 +38,8 @@ USES Initvars, Forms, ExtCtrls, Windows, Messages, SysUtils, Variants, Classes, 
 TYPE
   TLenzWindow = CLASS(TForm)
     LenzWatchdogTimer: TTimer;
-    LenzOneMilliSecondTimerIntervalTimer: TTimer;
-    PROCEDURE OnLenzOneMilliSecondTimerInterval(Sender: TObject);
+    LenzOneSecondTimerTick: TTimer;
+    PROCEDURE OnLenzOneSecondTimerTick(Sender: TObject);
     PROCEDURE OnLenzWatchdogTimerInterval(Sender: TObject);
   PRIVATE
     { Private declarations }
@@ -199,7 +199,7 @@ VAR
   ExpectedFeedbackAddress : Byte = 0;
   FeedbackArray : ARRAY [0..127, 0..1] OF Byte; { needs to store upper and lower nibble of data }
   FeedbackDataArray : ARRAY [1..LastFeedbackUnit + 1, Input1..Input8] OF Boolean;
-//  ReadArray, WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
+  OneTimeCodeBeingExecuted : Boolean = False;
   SaveTimeCTSLastFoundSet : Cardinal = 0;
   SaveTimeLastDataReceived : Cardinal = 0;
   ShowEmergencyOffMessageVisible : Boolean = False;
@@ -2630,7 +2630,7 @@ BEGIN
   END;
 END; { OnLenzWatchdogTimerInterval }
 
-PROCEDURE TLenzWindow.OnLenzOneMilliSecondTimerInterval(Sender: TObject);
+PROCEDURE TLenzWindow.OnLenzOneSecondTimerTick(Sender: TObject);
 { This is used to stop point- and semaphore-signal motors burning out }
 VAR
   P : Integer;
@@ -2638,6 +2638,11 @@ VAR
   S : Integer;
 
 BEGIN
+  IF OneTimeCodeBeingExecuted THEN    { **** use sempahores - not thread safe - DJW }
+    Exit
+  ELSE
+    OneTimeCodeBeingExecuted := True;
+
   IF NOT ProgramStartup AND SystemOnline THEN BEGIN
     FOR P := 0 TO High(Points) DO BEGIN
       IF Points[P].Point_Energised THEN BEGIN
@@ -2677,7 +2682,9 @@ BEGIN
       END;
     END;
   END;
-END; { OnLenzOneMilliSecondTimerInterval }
+
+  OneTimeCodeBeingExecuted := False;
+END; { OnLenzOneSecondTimerTick }
 
 PROCEDURE SetSignalFunction(LocoChip, S : Integer);
 { Set a numbered function on or off - used for LED signals controlled by LF100XF function only decoders, which are programmed to use functions 5-8 }
@@ -3052,23 +3059,20 @@ BEGIN { MakePointChange }
 
   OK := False;
   TurnPointOn(LocoChip, OK);
+
+  SavedTime := Time;
   IF OK THEN BEGIN
-    DoCheckForUnexpectedData(UnitRef, 'MakePointChange 1');
-    IF InAutoMode THEN
-      MoveAllTrains;
-    Pause(50, NOT ProcessMessages);
-    DoCheckForUnexpectedData(UnitRef, 'MakePointChange 2');
-    IF InAutoMode THEN
-      MoveAllTrains;
-    Pause(50, NOT ProcessMessages);
-    DoCheckForUnexpectedData(UnitRef, 'MakePointChange 3');
-    IF InAutoMode THEN
-      MoveAllTrains;
+    WHILE MilliSecondsBetween(Time, SavedTime) < 100 DO BEGIN
+      DoCheckForUnexpectedData(UnitRef, 'MakePointChange 1');
+      IF InAutoMode THEN
+        MoveAllTrains;
+//      Pause(10, NOT ProcessMessages);
+    END; {WHILE}
 
     OK := False;
     REPEAT
       TurnPointOff(LocoChip, OK);
-      DoCheckForUnexpectedData(UnitRef, 'MakePointChange 4');
+      DoCheckForUnexpectedData(UnitRef, 'MakePointChange 2');
       IF InAutoMode THEN
         MoveAllTrains;
     UNTIL OK OR NOT SystemOnline;
@@ -3391,6 +3395,8 @@ END; { GetInitialFeedback }
 PROCEDURE SetSystemOffline(OfflineMsg : String);
 { Change the caption and the icons to show we're offline }
 BEGIN
+  LenzWindow.LenzOneSecondTimerTick.Enabled := False;
+
   SystemOnline := False;
   SetCaption(FWPRailWindow, 'OFFLINE');
   Application.Icon := OffLineIcon;

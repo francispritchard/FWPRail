@@ -20,8 +20,9 @@ object LenzWindow: TLenzWindow
     Left = 80
     Top = 48
   end
-  object LenzOneMilliSecondTimerIntervalTimer: TTimer
-    OnTimer = OnLenzOneMilliSecondTimerInterval
+  object LenzOneSecondTimerTick: TTimer
+    Enabled = False
+    OnTimer = OnLenzOneSecondTimerTick
     Left = 264
     Top = 48
   end

@@ -71,7 +71,7 @@ BEGIN
     OK := True;
     RecordLineDrawingMode := False;
 
-    LenzWindow.LenzOneMilliSecondTimerIntervalTimer.Enabled := False;
+    LenzWindow.LenzOneSecondTimerTick.Enabled := False;
     LenzWindow.LenzWatchdogTimer.Enabled := False;
 
     { all track occupations off }
