@@ -25,7 +25,7 @@ object FWPRailWindow: TFWPRailWindow
   Position = poScreenCenter
   Visible = True
   OnClose = FWPRailWindowClose
-  OnDestroy = FormDestroy
+  OnDestroy = FWPRailWindowDestroy
   OnDragDrop = FWPRailWindowDragDrop
   OnDragOver = FWPRailWindowDragOver
   OnKeyDown = FWPRailWindowKeyDown
@@ -62,7 +62,7 @@ object FWPRailWindow: TFWPRailWindow
     OnMouseMove = FWPRailWindowStatusBarMouseMove
   end
   object FWPRailWindowMenu: TMainMenu
-    Left = 36
+    Left = 60
     Top = 48
     object MainFileMenu: TMenuItem
       Caption = '&File'
@@ -669,15 +669,26 @@ object FWPRailWindow: TFWPRailWindow
             OnClick = GeneralPopupRestorePointHeelLineColourClick
           end
         end
-        object GeneralPopupPointLockedColour: TMenuItem
-          Caption = 'Point Locked Colour'
-          object GeneralPopupChangePointLockedColour: TMenuItem
-            Caption = 'Change Point Locked Colour'
-            OnClick = GeneralPopupChangePointLockedColourClick
+        object GeneralPopupPointLockedBySystemColour: TMenuItem
+          Caption = 'Point Locked By System Colour'
+          object GeneralPopupChangePointLockedBySystemColour: TMenuItem
+            Caption = 'Change Point Locked By System Colour'
+            OnClick = GeneralPopupChangePointLockedBySystemColourClick
           end
-          object GeneralPopupRestorePointLockedColour: TMenuItem
-            Caption = 'Restore Point Locked Colour'
-            OnClick = GeneralPopupRestorePointLockedColourClick
+          object GeneralPopupRestorePointLockedBySystemColour: TMenuItem
+            Caption = 'Restore Point Locked By System Colour'
+            OnClick = GeneralPopupRestorePointLockedBySystemColourClick
+          end
+        end
+        object GeneralPopupPointLockedByUserColour: TMenuItem
+          Caption = 'Point Locked By User Colour'
+          object GeneralPopupChangePointLockedByUserColour: TMenuItem
+            Caption = 'Change Point Locked By User Colour'
+            OnClick = GeneralPopupChangePointLockedByUserColourClick
+          end
+          object GeneralPopupRestorePointLockedByUserColour: TMenuItem
+            Caption = 'Restore Point Locked By User Colour'
+            OnClick = GeneralPopupRestorePointLockedByUserColourClick
           end
         end
         object GeneralPopupPointManualOperationColour: TMenuItem
@@ -1278,7 +1289,7 @@ object FWPRailWindow: TFWPRailWindow
     Top = 48
   end
   object FWPRailWindowColourDialogue: TColorDialog
-    Left = 404
+    Left = 436
     Top = 49
   end
   object TCPopupMenu: TPopupMenu
@@ -1361,8 +1372,8 @@ object FWPRailWindow: TFWPRailWindow
   end
   object PointPopupMenu: TPopupMenu
     OnPopup = PointPopupMenuOnPopup
-    Left = 432
-    Top = 112
+    Left = 336
+    Top = 168
     object PointPopupPointNum: TMenuItem
       Caption = 'Point '
     end
@@ -1399,8 +1410,8 @@ object FWPRailWindow: TFWPRailWindow
   end
   object SignalPopupMenu: TPopupMenu
     OnPopup = SignalPopupMenuOnPopup
-    Left = 472
-    Top = 112
+    Left = 336
+    Top = 216
     object SignalPopupSignalNum: TMenuItem
       Caption = 'Signals'
     end
@@ -1425,7 +1436,7 @@ object FWPRailWindow: TFWPRailWindow
   end
   object BufferStopPopupMenu: TPopupMenu
     OnPopup = BufferStopMenuOnPopup
-    Left = 504
+    Left = 480
     Top = 112
     object BufferStopPopupBufferStopNum: TMenuItem
       Caption = 'Buffer Stop'
@@ -1436,8 +1447,8 @@ object FWPRailWindow: TFWPRailWindow
   end
   object CreateOrDeleteItemPopupMenu: TPopupMenu
     OnPopup = CreateOrDeleteItemMenuOnPopup
-    Left = 576
-    Top = 112
+    Left = 472
+    Top = 176
     object CreateSignalMenuItem: TMenuItem
       Caption = 'Create Signal'
       Enabled = False

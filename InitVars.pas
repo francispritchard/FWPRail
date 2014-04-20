@@ -486,6 +486,7 @@ CONST
   Point_LenzNumFieldName : String = 'LenzPointNum';
   Point_LenzUnitFieldName : String = 'LenzPointUnit';
   Point_LenzUnitTypeFieldName : String = 'LenzPointUnitType';
+  Point_LockedByUserFieldName : String = 'LockedByUser';
   Point_LockedIfHeelTCOccupiedFieldName : String = 'LockedIfHeelTCOccupied';
   Point_LockedIfNonHeelTCsOccupiedFieldName : String = 'LockedIfNonHeelTCsOccupied';
   Point_ManualOperationFieldName : String = 'ManualOperation';
@@ -5370,6 +5371,9 @@ BEGIN
             Point_DivergingLine := ValidatePointDivergingLineName(PointsADOTable.FieldByName(Point_DivergingLineFieldName).AsString, Point_Type, ErrorMsg);
 
           IF ErrorMsg = '' THEN
+            Point_LockedByUser := PointsADOTable.FieldByName(Point_LockedByUserFieldName).AsBoolean;
+
+          IF ErrorMsg = '' THEN
             Point_OutOfUse := PointsADOTable.FieldByName(Point_OutOfUseFieldName).AsBoolean;
 
           IF ErrorMsg = '' THEN
@@ -5504,15 +5508,23 @@ BEGIN
             { First changes to out of use status }
             IF Point_DataChanged THEN BEGIN
               PointsADOTable.Edit;
-              PointsADOTable.FieldByName('OutOfUse').AsBoolean := Point_OutOfUse;
+              PointsADOTable.FieldByName(Point_OutOfUseFieldName).AsBoolean := Point_OutOfUse;
               PointsADOTable.Post;
               Log('P Recording in point database that P=' + IntToStr(P) + ' is now ' + IfThen(Points[P].Point_OutOfUse, 'out of use', 'back in use'));
+            END;
+
+            { And if the user has locked a particular point }
+            IF Point_DataChanged THEN BEGIN
+              PointsADOTable.Edit;
+              PointsADOTable.FieldByName(Point_LockedByUserFieldName).AsBoolean := Point_LockedByUser;
+              PointsADOTable.Post;
+              Log('P Recording in point database that P=' + IntToStr(P) + ' is now ' + IfThen(Points[P].Point_LockedByUser, 'locked by user', 'back in use'));
             END;
 
             { And the last known state of manual points }
             IF NOT Point_ManualOperation AND (Point_ManualStateAsReadIn <> PointStateUnknown) THEN BEGIN
               PointsADOTable.Edit;
-              PointsADOTable.FieldByName('LastManualState').AsString := '';
+              PointsADOTable.FieldByName(Point_ManualStateAsReadInFieldName).AsString := '';
               PointsADOTable.Post;
             END
               ELSE

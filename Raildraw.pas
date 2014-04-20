@@ -39,7 +39,8 @@ TYPE
     GeneralPopupChangeForegroundColour: TMenuItem;
     GeneralPopupChangePenStyles: TMenuItem;
     GeneralPopupChangePoint: TMenuItem;
-    GeneralPopupChangePointLockedColour: TMenuItem;
+    GeneralPopupChangePointLockedBySystemColour: TMenuItem;
+    GeneralPopupChangePointLockedByUserColour: TMenuItem;
     GeneralPopupChangePointManualOperationColour: TMenuItem;
     GeneralPopupChangePointOutOfUseColour: TMenuItem;
     GeneralPopupChangePointUndrawColour: TMenuItem;
@@ -71,14 +72,16 @@ TYPE
     GeneralPopupPlungerOutlineColour: TMenuItem;
     GeneralPopupPointColours: TMenuItem;
     GeneralPopupPointFeedbackDataInUseColour: TMenuItem;
-    GeneralPopupPointLockedColour: TMenuItem;
+    GeneralPopupPointLockedBySystemColour: TMenuItem;
+    GeneralPopupPointLockedByUserColour: TMenuItem;
     GeneralPopupPointOutOfUseColour: TMenuItem;
     GeneralPopupPointUndrawColour: TMenuItem;
     GeneralPopupResetFWPRailWindowSizeAndPosition: TMenuItem;
     GeneralPopupRestoreDefaultBackgroundColour: TMenuItem;
     GeneralPopupRestoreForegroundColour: TMenuItem;
     GeneralPopupRestorePointDefaultColour: TMenuItem;
-    GeneralPopupRestorePointLockedColour: TMenuItem;
+    GeneralPopupRestorePointLockedBySystemColour: TMenuItem;
+    GeneralPopupRestorePointLockedByUserColour: TMenuItem;
     GeneralPopupRestorePointOutOfUseColour: TMenuItem;
     GeneralPopupRestorePointUndrawColour: TMenuItem;
     GeneralPopupRestoreSidingPenStyle: TMenuItem;
@@ -204,6 +207,7 @@ TYPE
     PROCEDURE DeleteLineMenuItemClick(Sender: TObject);
     PROCEDURE DeleteSignalMenuItemClick(Sender: TObject);
     PROCEDURE FlashTimerTick(Sender: TObject);
+    PROCEDURE FWPRailWindowDestroy(Sender: TObject);
     PROCEDURE GeneralPopupChangeBackgroundColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangeBufferStopColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangeBufferStopNumberColourClick(Sender: TObject);
@@ -224,7 +228,8 @@ TYPE
     PROCEDURE GeneralPopupChangePointFeedbackDataInUseColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangePointFeedbackDataOutOfUseColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangePointHeelLineColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangePointLockedColourClick(Sender: TObject);
+    PROCEDURE GeneralPopupChangePointLockedBySystemColourClick(Sender: TObject);
+    PROCEDURE GeneralPopupChangePointLockedByUserColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangePointManualOperationColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangePointOutOfUseColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangePointStraightLineColourClick(Sender: TObject);
@@ -297,7 +302,8 @@ TYPE
     PROCEDURE GeneralPopupRestorePointFeedbackDataInUseColourClick(Sender: TObject);
     PROCEDURE GeneralPopupRestorePointFeedbackDataOutOfUseColourClick(Sender: TObject);
     PROCEDURE GeneralPopupRestorePointHeelLineColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestorePointLockedColourClick(Sender: TObject);
+    PROCEDURE GeneralPopupRestorePointLockedBySystemColourClick(Sender: TObject);
+    PROCEDURE GeneralPopupRestorePointLockedByUserColourClick(Sender: TObject);
     PROCEDURE GeneralPopupRestorePointManualOperationColourClick(Sender: TObject);
     PROCEDURE GeneralPopupRestorePointOutOfUseColourClick(Sender: TObject);
     PROCEDURE GeneralPopupRestorePointStraightLineColourClick(Sender: TObject);
@@ -402,6 +408,7 @@ TYPE
     PROCEDURE MainDisplayMenuZoomClick(Sender: TObject);
     PROCEDURE MainDisplayMenuWorkingTimetableWindowClick(Sender: TObject);
     PROCEDURE MainHelpMenuRailHelpClick(Sender: TObject);
+    PROCEDURE MainOperationsMenuDriveLocomotiveClick(Sender: TObject);
     PROCEDURE MainRunMenuResumeOperationsClick(Sender: TObject);
     PROCEDURE FWPRailWindowClose(Sender: TObject; VAR Action: TCloseAction);
     PROCEDURE FWPRailWindowDragOver(Sender, Source: TObject; X, Y: Integer; State: TDragState; var Accept: Boolean);
@@ -452,8 +459,6 @@ TYPE
     PROCEDURE TCPopupSetTrackCircuitUnoccupiedClick(Sender: TObject);
     PROCEDURE TCPopupShowLocosLastErrorMessageClick(Sender: TObject);
     PROCEDURE TCPopupTrackCircuitNumberClick(Sender: TObject);
-    procedure FormDestroy(Sender: TObject);
-    procedure MainOperationsMenuDriveLocomotiveClick(Sender: TObject);
 
   PRIVATE
     { Private declarations }
@@ -3023,7 +3028,6 @@ BEGIN
               END;
             END ELSE BEGIN
               IF ShowPointsThatAreLocked THEN BEGIN
-                Font.Color := clYellow;
                 IF PointIsLocked(P, LockingMsg) THEN
                   NumberText := IntToStr(P);
               END ELSE
@@ -3998,10 +4002,10 @@ BEGIN
   END; {TRY}
 END; { FlashTimerTick }
 
-procedure TFWPRailWindow.FormDestroy(Sender: TObject);
-begin
+PROCEDURE TFWPRailWindow.FWPRailWindowDestroy(Sender: TObject);
+BEGIN
   RailWindowBitmap.Free;
-end;
+END; { FWPRailWindowDestroy }
 
 PROCEDURE TFWPRailWindow.GeneralPopupMenuOnPopup(Sender: TObject);
 BEGIN
@@ -4236,9 +4240,11 @@ BEGIN
   WITH Points[PointPopupNum] DO BEGIN
     IF Point_LockedByUser THEN BEGIN
       Point_LockedByUser := False;
+      Point_DataChanged := True;
       PointPopupLockPoint.Caption := 'Lock Point';
     END ELSE BEGIN
       Point_LockedByUser := True;
+      Point_DataChanged := True;
       PointPopupLockPoint.Caption := 'Unlock Point';
     END;
     InvalidateScreen(UnitRef, 'PointPopupLockPointClick');
@@ -4277,7 +4283,7 @@ BEGIN
   END; {WITH}
 END; { PointPopupSetPointToManualClick }
 
-PROCEDURE TFWPRailWindow.GeneralPopupChangePointLockedColourClick(Sender: TObject);
+PROCEDURE TFWPRailWindow.GeneralPopupChangePointLockedBySystemColourClick(Sender: TObject);
 BEGIN
   { Show the default }
   FWPRailWindowColourDialogue.Color := ShowPointLockedColour;
@@ -4286,13 +4292,30 @@ BEGIN
     ShowPointLockedColour := FWPRailWindowColourDialogue.Color;
     InvalidateScreen(UnitRef, 'GeneralPopupChangePointLockedColourClick');
   END;
-END; { GeneralPopupChangePointLockedColourClick }
+END; { GeneralPopupChangePointLockedBySystemColourClick }
 
-PROCEDURE TFWPRailWindow.GeneralPopupRestorePointLockedColourClick(Sender: TObject);
+PROCEDURE TFWPRailWindow.GeneralPopupRestorePointLockedBySystemColourClick(Sender: TObject);
 BEGIN
   ShowPointLockedColour := DefaultShowPointLockedColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestorePointLockedColourClick');
-END; { GeneralPopupRestorePointLockedColourClick }
+END; { GeneralPopupRestorePointLockedBySystemColourClick }
+
+PROCEDURE TFWPRailWindow.GeneralPopupChangePointLockedByUserColourClick(Sender: TObject);
+BEGIN
+  { Show the default }
+  FWPRailWindowColourDialogue.Color := PointLockedByUserColour;
+  { Allow the user to change it }
+  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
+    PointLockedByUserColour := FWPRailWindowColourDialogue.Color;
+    InvalidateScreen(UnitRef, 'GeneralPopupChangePointLockedByUserColourClick');
+  END;
+END; { GeneralPopupChangePointLockedByUserColourClick }
+
+PROCEDURE TFWPRailWindow.GeneralPopupRestorePointLockedByUserColourClick(Sender: TObject);
+BEGIN
+  PointLockedByUserColour := DefaultPointLockedByUserColour;
+  InvalidateScreen(UnitRef, 'GeneralPopupRestorePointLockedByUserColourClick');
+END; { GeneralPopupRestorePointLockedByUserColourClick }
 
 PROCEDURE TFWPRailWindow.PointPopupSetPointToAutomaticClick(Sender: TObject);
 BEGIN
