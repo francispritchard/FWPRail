@@ -161,6 +161,7 @@ BEGIN
     IF CreateRouteDisplayColoursWindow = NIL THEN BEGIN
       CreateRouteDisplayColoursWindow := TCreateRouteDisplayColoursWindow.Create(Application);
       CreateRouteDisplayColoursWindow.Update;
+      CreateRouteDisplayColoursWindow.Visible := False;
     END;
     IF TestUnitForm = NIL THEN BEGIN
       TestUnitForm := TTestUnitForm.Create(Application);
