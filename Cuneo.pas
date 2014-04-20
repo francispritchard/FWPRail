@@ -1606,8 +1606,6 @@ VAR
 { Main Procedure for ChangeStateOfWhatIsUnderMouse }
 BEGIN
   TRY
-    PointChangedOK := False;
-
     IF HelpRequired THEN BEGIN
       ChangeSignal(IrrelevantNum, IrrelevantShiftState, HelpRequired);
       ChangeSignalIndicator(IrrelevantNum, UnknownJunctionIndicator, IrrelevantShiftState, HelpRequired);
