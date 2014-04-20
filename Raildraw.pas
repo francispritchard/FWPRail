@@ -654,7 +654,7 @@ IMPLEMENTATION
 {$R *.dfm}
 
 USES MiscUtils, Startup, Lenz, Input, Locks, Cuneo, Movement, GetTime, CreateRoute, Diagrams, RDC, Types, Feedback, Route, LocoUtils, IniFiles, LocoDialogue,
-     StrUtils, Help, Math {sic}, LocationData, FWPShowMessageUnit, Replay, TestUnit, WorkingTimetable, Options, Registry, Edit, Logging, Main;
+     StrUtils, Help, Math {sic}, LocationData, FWPShowMessageUnit, Replay, TestUnit, WorkingTimetable, Options, Registry, Edit, Logging, Main, Splash;
 
 CONST
   UnitRef = 'RailDraw';
@@ -3414,6 +3414,11 @@ BEGIN
 
   { And copy the the bitmap image to the screen }
   Canvas.Draw(0,0, RailWindowBitmap);
+
+  IF IsSplashFormVisible THEN BEGIN
+    HideSplashForm;
+    FWPRailWindow.Show;
+  END;
 END; { FWPRailWindowPaint }
 
 PROCEDURE TFWPRailWindow.FWPRailWindowExitClick(Sender: TObject);
@@ -6958,6 +6963,8 @@ BEGIN
 //      InitialiseLenzUnit;
 //      InitialiseDiagramsUnit;
       InitialiseScreenDrawingVariables;
+
+      FWPRailWindow.Visible := True;
       // Log('#5 ' + TimeToHMSZStr(Time) + ' ' + IntToStr(MilliSecondsBetween(Time, PreviousDebugTime)));
       // DrawMap;
     END; {WITH}
@@ -7584,6 +7591,9 @@ BEGIN { Main drawing procedure }
           InvalidateScreen(UnitRef, 'DrawMap 4');
         END;
       END; { WITH Canvas }
+
+      IF FWPRailWindow.Visible = False THEN
+        FWPRailWindow.Visible := True;
     END; { WITH FWPRailWindow }
   EXCEPT
     ON E : Exception DO

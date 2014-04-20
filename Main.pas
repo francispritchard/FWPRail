@@ -208,7 +208,7 @@ BEGIN
     END;
     IF FWPRailWindow = NIL THEN BEGIN
       FWPRailWindow := TFWPRailWindow.Create(Application);
-//      FWPRailWindow.Update;
+      FWPRailWindow.Visible := False;
     END;
 
     ReadIniFile;

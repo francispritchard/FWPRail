@@ -7,16 +7,22 @@ USES
 
 TYPE
   TSplashForm = CLASS(TForm)
-    SplashPanel: TPanel;
-    SplashImage: TImage;
-    SplashRailwayProgramLabel: TLabel;
     SplashCopyrightLabel: TLabel;
+    SplashImage: TImage;
+    SplashPanel: TPanel;
+    SplashRailwayProgramLabel: TLabel;
     SplashRightsReservedLabel: TLabel;
     PROCEDURE SplashPanelCreate(Sender: TObject);
   END;
 
 VAR
   SplashForm: TSplashForm;
+
+PROCEDURE HideSplashForm;
+{ Allows the main program to hide the splash form once it's no longer needed }
+
+FUNCTION IsSplashFormVisible : Boolean;
+{ Returns whether or not the splash form is visible }
 
 IMPLEMENTATION
 
@@ -25,6 +31,21 @@ IMPLEMENTATION
 PROCEDURE TSplashForm.SplashPanelCreate(Sender: TObject);
 BEGIN
   SplashCopyrightLabel.Caption := 'Copyright © 1998-2014 F.W. Pritchard && A.M. Stokes';
+END;
+
+PROCEDURE HideSplashForm;
+{ Allows the main program to hide the splash form once it's no longer needed }
+BEGIN
+  SplashForm.Hide;
+END;
+
+FUNCTION IsSplashFormVisible : Boolean;
+{ Returns whether or not the splash form is visible }
+BEGIN
+  IF SplashForm.Visible THEN
+    Result := True
+  ELSE
+    Result := False;
 END;
 
 END { Splash }.

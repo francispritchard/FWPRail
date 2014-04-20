@@ -12,6 +12,7 @@ object SplashForm: TSplashForm
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Font.Style = []
+  FormStyle = fsStayOnTop
   OldCreateOrder = True
   Position = poScreenCenter
   OnCreate = SplashPanelCreate
