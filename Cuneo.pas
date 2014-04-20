@@ -805,11 +805,11 @@ CONST
 
 VAR
   IrrelevantShiftState : TShiftState;
-  OK : Boolean;
   BufferStopFoundNum : Integer;
   IndicatorFoundNum : Integer;
   IndicatorFoundType : JunctionIndicatorType;
   PointFoundNum : Integer;
+  PointChangedOK : Boolean;
   SignalFoundNum : Integer;
   SignalPostFoundNum : Integer;
   TheatreIndicatorFoundNum : Integer;
@@ -823,6 +823,7 @@ VAR
 
   VAR
     I : Integer;
+    OK : Boolean;
     SaveLockingMode : Boolean;
     RouteLockingArray : IntegerArrayType;
 
@@ -902,6 +903,7 @@ VAR
 
   VAR
     IndicatorLit : IndicatorStateType;
+    OK : Boolean;
     SaveLockingMode : Boolean;
 
   BEGIN
@@ -979,15 +981,14 @@ VAR
     END;
   END; { ChangeSignalIndicator }
 
-  PROCEDURE ChangePoint(P : Integer; ShiftState : TShiftState; HelpRequired : Boolean);
-  { Switch points }
+  FUNCTION ChangePoint(P : Integer; ShiftState : TShiftState; HelpRequired : Boolean) : Boolean;
+  { Switch points, returning the result }
   CONST
     ErrorMessageRequired = True;
 
   VAR
     DebugStr : String;
     PointResultPending : Boolean;
-    OK : Boolean;
     SaveLockingMode : Boolean;
 
   BEGIN
@@ -1013,7 +1014,7 @@ VAR
 
             IF ssShift IN ShiftState THEN
               { Force the point to move }
-              PullPoint(P, NoLocoChip, NoRoute, NoSubRoute, ForcePoint, ByUser, ErrorMessageRequired, PointResultPending, DebugStr, OK)
+              PullPoint(P, NoLocoChip, NoRoute, NoSubRoute, ForcePoint, ByUser, ErrorMessageRequired, PointResultPending, DebugStr, Result)
             ELSE
               IF ssCtrl IN ShiftState THEN BEGIN
                 { Force the point to move even if it's locked }
@@ -1021,12 +1022,12 @@ VAR
                 LockingMode := False;
                 Log('P Locking mode suspended when changing point ' + IntToStr(P) + ' {BLANKLINEBEFORE}');
                 PullPoint(P, NoLocoChip, NoRoute, NoSubRoute, ForcePoint, ByUser, ErrorMessageRequired, PointResultPending,
-                          DebugStr, OK);
+                          DebugStr, Result);
                 LockingMode := SaveLockingMode;
               END ELSE
                 { move it normally }
                 PullPoint(P, NoLocoChip, NoRoute, NoSubRoute, NOT ForcePoint, ByUser, ErrorMessageRequired, PointResultPending,
-                          DebugStr, OK);
+                          DebugStr, Result);
           END; {WITH}
         END;
     END;
@@ -1142,6 +1143,7 @@ VAR
     ErrorMsg : String;
     I, SubRoute : Integer;
     LinesNotAvailableStr : String;
+    OK : Boolean;
     PutativelyRouteSetting, PutativelyTheatreIndicatorSetting : Boolean;
     RouteCount : Integer;
     RouteFindingCancelled : Boolean;
@@ -1604,7 +1606,7 @@ VAR
 { Main Procedure for ChangeStateOfWhatIsUnderMouse }
 BEGIN
   TRY
-    OK := False;
+    PointChangedOK := False;
 
     IF HelpRequired THEN BEGIN
       ChangeSignal(IrrelevantNum, IrrelevantShiftState, HelpRequired);
@@ -1660,17 +1662,24 @@ BEGIN
                   SignalPostSelected(UnknownSignal, BufferStopFoundNum, ShiftState, HelpRequired)
                 ELSE
                   IF PointFoundNum <> UnknownPoint THEN BEGIN
-                    ChangePoint(PointFoundNum, ShiftState, HelpRequired);
+                    PointChangedOK := ChangePoint(PointFoundNum, ShiftState, HelpRequired);
+
                     { also switch the opposite cross-over point (unless Alt is pressed) }
-                    IF NOT (ssShift IN ShiftState)
-                    AND NOT (ssAlt IN ShiftState)
-                    AND (Points[PointFoundNum].Point_Type = CrossOverPoint)
-                    THEN
-                      { this second test may seem superfluous but is needed if we're in a Pause between switching LS150 points, when other mouse clicks might get through
-                        and cause problems
-                      }
-                      IF PointFoundNum <> UnknownPoint THEN
-                        ChangePoint(Points[PointFoundNum].Point_OtherPoint, ShiftState, HelpRequired);
+                    IF (Points[PointFoundNum].Point_Type = CrossOverPoint) THEN BEGIN
+                      IF NOT PointChangedOK THEN
+                        Log('A Cannot change crossover point P=' + IntToStr(Points[PointFoundNum].Point_OtherPoint)
+                               + ' as corresponding point P=' + IntToStr(PointFoundNum) + ' failed to change')
+                      ELSE BEGIN
+                        IF NOT (ssShift IN ShiftState)
+                        AND NOT (ssAlt IN ShiftState)
+                        THEN
+                          { this second test may seem superfluous but is needed if we're in a pause between switching LS150 points, when other mouse clicks might get
+                            through and cause problems
+                          }
+                          IF PointFoundNum <> UnknownPoint THEN
+                            ChangePoint(Points[PointFoundNum].Point_OtherPoint, ShiftState, HelpRequired);
+                      END;
+                    END;
                   END ELSE
                     IF TheatreIndicatorFoundNum <> UnknownSignal THEN
                       TheatreIndicatorSelected(TheatreIndicatorFoundNum, UnknownBufferStop, ShiftState, HelpRequired)
