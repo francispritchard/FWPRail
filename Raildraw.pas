@@ -475,8 +475,6 @@ TYPE
     { Added to allow interception of scroll bar events }
     PROCEDURE WMVScroll(VAR ScrollData: TMessage); MESSAGE wm_VScroll;
     { Added to allow interception of scroll bar events }
-
-//    PROCEDURE FWPExceptionHandler(Sender: TObject; E: Exception);
   END;
 
 procedure CanvasTextOutAngle(x,y: Integer; d: Word; s: string);
@@ -6904,23 +6902,14 @@ BEGIN
     WITH FWPRailWindow DO BEGIN
       LoadIcons;
 
-      // Application.OnException := FWPExceptionHandler;
-//  Log('#1 ' + TimeToHMSZStr(Time));
-      //PreviousDebugTime := Time;
       { Intercept messages to be able to use the tab key! }
       Application.OnMessage := ApplicationMessage;
 
       { initialize parameters }
-  //    CrossHairCursor := LoadCursor(HInstance, 'CrossHair');
       Screen.Cursors[crCrossHair] := LoadCursor(HInstance, 'CrossHair');
       Screen.Cursors[crCrossHairForUpSignal] := LoadCursor(HInstance, 'CrossHair-UpSignal');
       Screen.Cursors[crCrossHairForDownSignal] := LoadCursor(HInstance, 'CrossHair-DownSignal');
       Screen.Cursors[crPointLever] := LoadCursor(HInstance, 'PointLever');
-
-      { Initialise lots of things before we start }
-//      InitialiseInitVarsUnit;
-      { but now read in details from the .ini file, which may amend data from the Initvars unit }
-//      ReadIniFile;
 
       { Set up default window size }
       Position := poDesigned;
@@ -6931,9 +6920,8 @@ BEGIN
       Left := FWPRailWindowLeft;
 
       RailWindowBitmap := TBitmap.Create;
-      RailWindowBitmap.Width := FWPRailWindowWidth; // ClientWidth;
-      RailWindowBitmap.Height := FWPRailWindowHeight; // ClientHeight;
-//drawmap;
+      RailWindowBitmap.Width := FWPRailWindowWidth;
+      RailWindowBitmap.Height := FWPRailWindowHeight;
 
       FWPRailWindowInitialised := False;
       ResizeMap := False;
@@ -6950,23 +6938,10 @@ BEGIN
       MainHelpMenu.Visible := False;
       MainOperationsMenu.Visible := False;
       MainRunMenu.Visible := False;
-      // Log('#2 ' + TimeToHMSZStr(Time) + ' ' + IntToStr(MilliSecondsBetween(Time, PreviousDebugTime)));
-      // PreviousDebugTime := Time;
 
-      // Log('#3 ' + TimeToHMSZStr(Time) + ' ' + IntToStr(MilliSecondsBetween(Time, PreviousDebugTime)));
-      // PreviousDebugTime := Time;
-
-      { Now start up the various Units - done here explicitly so we know what order it's being done in }
-//      InitialiseGetTimeUnit;
-//      InitialiseStartupUnit;
-//      InitialiseInitVarsUnit;
-//      InitialiseLenzUnit;
-//      InitialiseDiagramsUnit;
       InitialiseScreenDrawingVariables;
 
       FWPRailWindow.Visible := True;
-      // Log('#5 ' + TimeToHMSZStr(Time) + ' ' + IntToStr(MilliSecondsBetween(Time, PreviousDebugTime)));
-      // DrawMap;
     END; {WITH}
   EXCEPT
     ON E : Exception DO
@@ -7488,7 +7463,6 @@ BEGIN { Main drawing procedure }
                 END;
 
         IF ShowLinesWhichLockPoints THEN BEGIN
-          ShowPointNum := False;
           FOR P := 0 To High(Points) DO BEGIN
             ShowPointNum := False;
 
