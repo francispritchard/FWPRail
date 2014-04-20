@@ -1276,6 +1276,7 @@ BEGIN
       OR ShowLineDetail
       OR ShowLineNumbers
       OR ShowLinesWhereUpXValueSpecified
+      OR ShowLinesWhichLockPoints
       OR ShowLineDirectionDetail
       OR ShowLocationLengthDetail
       OR ShowLineGradients
@@ -6983,10 +6984,12 @@ VAR
   B, I, J : Integer;
   DiagramsMissing : Boolean;
   DiagramsOK : Boolean;
+  ShowPointNum : Boolean;
   ErrorMsg : String;
   L, L2 : Integer;
   LinesArray : LineArrayType;
   LocoDataTableOK : Boolean;
+  P : Integer;
   S : Integer;
   SaveLineOldColour : Integer;
   SaveRecordLineDrawingMode : Boolean;
@@ -7470,7 +7473,6 @@ BEGIN { Main drawing procedure }
                         END; {WITH}
                       END; {FOR}
                     END;
-
                   END;
                 END ELSE BEGIN
                   { the main calling point }
@@ -7478,6 +7480,36 @@ BEGIN { Main drawing procedure }
                   DrawAllBufferStopData(NOT ShowNums, NOT ShowTheatreDestinationChar);
                 END;
 
+        IF ShowLinesWhichLockPoints THEN BEGIN
+          ShowPointNum := False;
+          FOR P := 0 To High(Points) DO BEGIN
+            ShowPointNum := False;
+
+            IF Points[P].Point_LockedIfHeelTCOccupied THEN BEGIN
+              IF (Points[P].Point_HeelLine <> UnknownLine) AND (Lines[Points[P].Point_HeelLine].Line_TC <> UnknownTrackCircuit) THEN BEGIN
+                DrawLine(Points[P].Point_HeelLine, clYellow, NOT ActiveTrain);
+                ShowPointNum := True;
+              END;
+            END;
+
+            IF Points[P].Point_LockedIfNonHeelTCsOccupied THEN BEGIN
+              IF (Points[P].Point_StraightLine <> UnknownLine) AND (Lines[Points[P].Point_StraightLine].Line_TC <> UnknownTrackCircuit) THEN BEGIN
+                DrawLine(Points[P].Point_StraightLine, clFWPPink, NOT ActiveTrain);
+                ShowPointNum := True;
+              END;
+            END;
+
+            IF Points[P].Point_LockedIfNonHeelTCsOccupied THEN BEGIN
+              IF (Points[P].Point_DivergingLine <> UnknownLine) AND (Lines[Points[P].Point_DivergingLine].Line_TC <> UnknownTrackCircuit) THEN BEGIN
+                DrawLine(Points[P].Point_DivergingLine, clAqua, NOT ActiveTrain);
+                ShowPointNum := True;
+              END;
+            END;
+
+            IF ShowPointNum THEN
+              DrawPointNum(P, clWhite);
+          END; {FOR}
+        END;
     //    FOR Location := FirstMainPlatformLocation TO LastMainPlatformLocation DO
     //      IF MainPlatformPlungers[Location].TRSPlunger_Present THEN
     //        DrawTRSPlunger(Location, MainPlatformPlungers[Location].TRSPlunger_Pressed);
@@ -7501,6 +7533,7 @@ BEGIN { Main drawing procedure }
         OR ShowLineDetail
         OR ShowLineNumbers
         OR ShowLinesWhereUpXValueSpecified
+        OR ShowLinesWhichLockPoints
         OR ShowLineDirectionDetail
         OR ShowLocationLengthDetail
         OR ShowLineGradients

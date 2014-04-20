@@ -242,10 +242,10 @@ BEGIN
         Result := True;
       END ELSE BEGIN
         { See if the heel line is occupied - depending on the point record this will mean that the point is locked }
-        IF (Lines[Point_HeelLine].Line_TC <> UnknownTrackCircuit)
-        AND (TrackCircuits[Lines[Point_HeelLine].Line_TC].TC_OccupationState <> TCUnoccupied)
-        AND (TrackCircuits[Lines[Point_HeelLine].Line_TC].TC_OccupationState <> TCOutOfUseSetByUser)
-        AND (TrackCircuits[Lines[Point_HeelLine].Line_TC].TC_OccupationState <> TCOutOfUseAsNoFeedbackReceived)
+        IF (Lines[Points[P].Point_HeelLine].Line_TC <> UnknownTrackCircuit)
+        AND (TrackCircuits[Lines[Points[P].Point_HeelLine].Line_TC].TC_OccupationState <> TCUnoccupied)
+        AND (TrackCircuits[Lines[Points[P].Point_HeelLine].Line_TC].TC_OccupationState <> TCOutOfUseSetByUser)
+        AND (TrackCircuits[Lines[Points[P].Point_HeelLine].Line_TC].TC_OccupationState <> TCOutOfUseAsNoFeedbackReceived)
         AND Point_LockedIfHeelTCOccupied
         THEN BEGIN
           Result := True;
@@ -255,10 +255,10 @@ BEGIN
         END;
 
         { Or if the straight or diverging lines is occupied - depending on the point record this will mean that the point is locked }
-        IF (Lines[Point_StraightLine].Line_TC <> UnknownTrackCircuit)
-        AND (TrackCircuits[Lines[Point_StraightLine].Line_TC].TC_OccupationState <> TCUnoccupied)
-        AND (TrackCircuits[Lines[Point_StraightLine].Line_TC].TC_OccupationState <> TCOutOfUseSetByUser)
-        AND (TrackCircuits[Lines[Point_StraightLine].Line_TC].TC_OccupationState <> TCOutOfUseAsNoFeedbackReceived)
+        IF (Lines[Points[P].Point_StraightLine].Line_TC <> UnknownTrackCircuit)
+        AND (TrackCircuits[Lines[Points[P].Point_StraightLine].Line_TC].TC_OccupationState <> TCUnoccupied)
+        AND (TrackCircuits[Lines[Points[P].Point_StraightLine].Line_TC].TC_OccupationState <> TCOutOfUseSetByUser)
+        AND (TrackCircuits[Lines[Points[P].Point_StraightLine].Line_TC].TC_OccupationState <> TCOutOfUseAsNoFeedbackReceived)
         AND Point_LockedIfNonHeelTCsOccupied
         THEN BEGIN
           Result := True;
@@ -268,10 +268,10 @@ BEGIN
         END;
 
         IF NOT PointIsCatchPoint(P) THEN BEGIN
-          IF (Lines[Point_DivergingLine].Line_TC <> UnknownTrackCircuit)
-          AND (TrackCircuits[Lines[Point_DivergingLine].Line_TC].TC_OccupationState <> TCUnoccupied)
-          AND (TrackCircuits[Lines[Point_DivergingLine].Line_TC].TC_OccupationState <> TCOutOfUseSetByUser)
-          AND (TrackCircuits[Lines[Point_DivergingLine].Line_TC].TC_OccupationState <> TCOutOfUseAsNoFeedbackReceived)
+          IF (Lines[Points[P].Point_DivergingLine].Line_TC <> UnknownTrackCircuit)
+          AND (TrackCircuits[Lines[Points[P].Point_DivergingLine].Line_TC].TC_OccupationState <> TCUnoccupied)
+          AND (TrackCircuits[Lines[Points[P].Point_DivergingLine].Line_TC].TC_OccupationState <> TCOutOfUseSetByUser)
+          AND (TrackCircuits[Lines[Points[P].Point_DivergingLine].Line_TC].TC_OccupationState <> TCOutOfUseAsNoFeedbackReceived)
           AND Point_LockedIfNonHeelTCsOccupied
           THEN BEGIN
             Result := True;

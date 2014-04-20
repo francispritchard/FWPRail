@@ -1451,6 +1451,7 @@ BEGIN { KeyPressedDown }
             OR ShowLineNumbers
             OR ShowLinesWithoutTrackCircuits
             OR ShowLinesWhereUpXValueSpecified
+            OR ShowLinesWhichLockPoints
             OR ShowLocationLengthDetail
             OR ShowLocations
             OR ShowMouseRectangles
@@ -1483,6 +1484,7 @@ BEGIN { KeyPressedDown }
               ShowLineNumbers := False;
               ShowLinesWithoutTrackCircuits := False;
               ShowLinesWhereUpXValueSpecified := False;
+              ShowLinesWhichLockPoints := False;
               ShowLocationLengthDetail := False;
               ShowLocations := False;
               ShowMouseRectangles := False;
@@ -4966,8 +4968,11 @@ BEGIN { KeyPressedDown }
               END;
             ShiftAlt: {F4}
               BEGIN
-                HelpMsg := '';
+                HelpMsg := 'Show which heel and non-heel lines that lock points';
                 IF NOT HelpRequired THEN BEGIN
+                  ShowLinesWhichLockPoints := True;
+                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing which heel and non-heel lines lock points');
+                  InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
               END;
             CtrlAlt: {F4}

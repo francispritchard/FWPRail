@@ -378,6 +378,16 @@ BEGIN
               IF Point_OutOfUse THEN
                 TempStatusBarPanel1Str := TempStatusBarPanel1Str + '[out of use] ';
 
+              IF ShowLinesWhichLockPoints THEN BEGIN
+                IF Points[P].Point_LockedIfHeelTCOccupied THEN
+                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'Heel line = ' + LineToStr(Points[P].Point_HeelLine) + ' ';
+
+                IF Points[P].Point_LockedIfNonHeelTCsOccupied THEN BEGIN
+                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'Straight line = ' + LineToStr(Points[P].Point_StraightLine) + ' ';
+                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'Diverging line = ' + LineToStr(Points[P].Point_DivergingLine) + ' ';
+                END;
+              END;
+
               PointFoundNum := P;
               IF PointDebuggingMode THEN BEGIN
                 SaveRecordLineDrawingMode := RecordLineDrawingMode;

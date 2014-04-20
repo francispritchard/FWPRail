@@ -1261,6 +1261,7 @@ VAR
   ShowLineGradients : Boolean = False;
   ShowLineNumbers : Boolean = False;
   ShowLinesWhereUpXValueSpecified : Boolean = False;
+  ShowLinesWhichLockPoints : Boolean = False;
   ShowLinesWithoutTrackCircuits : Boolean = False;
   ShowLocationLengthDetail : Boolean = False;
   ShowLocations : Boolean = False;
