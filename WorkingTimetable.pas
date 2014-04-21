@@ -312,7 +312,7 @@ BEGIN
     Log('W ----------------- new WorkingTimetable end');
   EXCEPT
     ON E : Exception DO
-      Log('EG DrawWorkingTimetable: ' + E.ClassName +' error raised, with message: ' + E.Message);
+      Log('EG DrawWorkingTimetable: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { DrawWorkingTimetable }
 
@@ -838,7 +838,7 @@ BEGIN
         Log('W Working Timetable table and connection closed');
       EXCEPT {TRY}
         ON E : Exception DO
-          Log('EG InitialiseWorkingTimetable: ' + E.ClassName +' error raised, with message: '+ E.Message);
+          Log('EG InitialiseWorkingTimetable: ' + E.ClassName + ' error raised, with message: '+ E.Message);
       END; {TRY}
     END; {WITH}
 
@@ -846,7 +846,7 @@ BEGIN
       DrawWorkingTimetable(UnitRef, 'LoadWorkingTimetable');
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG InitialiseWorkingTimetable: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG InitialiseWorkingTimetable: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { LoadWorkingTimetableFromDatabase }
 
@@ -1019,7 +1019,7 @@ BEGIN
     END;
   EXCEPT
     ON E : Exception DO
-      Log('EG GetAreaToAreaRouteLengthInInches: ' + E.ClassName +' error raised, with message: ' + E.Message);
+      Log('EG GetAreaToAreaRouteLengthInInches: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { GetAreaToAreaRouteLengthInInches }
 
@@ -1174,7 +1174,7 @@ FUNCTION WhichAvailableTrainsAreSuitable(EntryNumStr : String; AllTrains : Integ
       END;
     EXCEPT
       ON E : Exception DO
-        Log('EG SortTrainsInIntegerArrayByLength: ' + E.ClassName +' error raised, with message: '+ E.Message);
+        Log('EG SortTrainsInIntegerArrayByLength: ' + E.ClassName + ' error raised, with message: '+ E.Message);
     END; {TRY}
   END; { SortTrainsInIntegerArrayByLength }
 
@@ -1374,7 +1374,7 @@ BEGIN
     END; {WITH}
   EXCEPT
     ON E : Exception DO
-      Log('EG InsertAdditionalWorkingTimetableEntry: ' + E.ClassName +' error raised, with message: ' + E.Message);
+      Log('EG InsertAdditionalWorkingTimetableEntry: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { InsertAdditionalWorkingTimetableEntry }
 
@@ -2173,7 +2173,7 @@ TYPE
         END;
       EXCEPT
         ON E : Exception DO
-          Log('EG SortTrainsInSuitableTrainsArrayByLength: ' + E.ClassName +' error raised, with message: '+ E.Message);
+          Log('EG SortTrainsInSuitableTrainsArrayByLength: ' + E.ClassName + ' error raised, with message: '+ E.Message);
       END; {TRY}
     END; { SortTrainsInSuitableTrainsArrayByLength }
 
@@ -2522,7 +2522,7 @@ BEGIN { ProcessWorkingTimetable }
     END; {WHILE}
   EXCEPT
     ON E : Exception DO
-      Log('EG ProcessWorkingTimetable: ' + E.ClassName +' error raised, with message: ' + E.Message);
+      Log('EG ProcessWorkingTimetable: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { ProcessWorkingTimetable }
 

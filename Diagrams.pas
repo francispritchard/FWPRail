@@ -1762,7 +1762,7 @@ BEGIN
     END;
   EXCEPT
     ON E : Exception DO
-      Log('EG DrawDiagrams: ' + E.ClassName +' error raised, with message: ' + E.Message);
+      Log('EG DrawDiagrams: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { DrawDiagrams }
 
@@ -3185,7 +3185,7 @@ BEGIN
     END; {WITH}
   EXCEPT
     ON E : Exception DO
-      Log('EG CreateJourney: ' + E.ClassName +' error raised, with message: ' + E.Message);
+      Log('EG CreateJourney: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { CreateJourney }
 
@@ -5042,7 +5042,7 @@ BEGIN
 
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG ReadInDiagramsFromDatabase: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG ReadInDiagramsFromDatabase: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { ReadInDiagramsFromDatabase }
 
@@ -5082,7 +5082,7 @@ BEGIN
     END; {WITH}
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG ClearDiagramsFromDatabase: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG ClearDiagramsFromDatabase: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { ClearDiagramsFromDatabase }
 
@@ -5219,7 +5219,7 @@ BEGIN
     END; {WITH}
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG WriteOutDiagramsToDatabase: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG WriteOutDiagramsToDatabase: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { WriteOutDiagramsToDatabase }
 

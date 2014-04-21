@@ -458,7 +458,7 @@ VAR
       SetLength(TimetableArray, 0);
     EXCEPT
       ON E : Exception DO
-        Log('EG ShowArrivals: ' + E.ClassName +' error raised, with message: ' + E.Message);
+        Log('EG ShowArrivals: ' + E.ClassName + ' error raised, with message: ' + E.Message);
     END; {TRY}
   END; { ShowArrivals }
 

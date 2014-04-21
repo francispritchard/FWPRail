@@ -668,7 +668,7 @@ BEGIN
     END;
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG WhatIsUnderMouse: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG WhatIsUnderMouse: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { WhatIsUnderMouseMainProc }
 
@@ -771,7 +771,7 @@ BEGIN
       END;
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG MouseButtonReleased: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG MouseButtonReleased: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { MouseButtonReleased }
 
@@ -1591,7 +1591,7 @@ VAR
       END;
     EXCEPT
       ON E : Exception DO
-        Log('EG SignalPostSelected: ' + E.ClassName +' error raised, with message: ' + E.Message);
+        Log('EG SignalPostSelected: ' + E.ClassName + ' error raised, with message: ' + E.Message);
     END; {TRY}
   END; { SignalPostSelected }
 
@@ -1744,7 +1744,7 @@ BEGIN
       END;
   EXCEPT
     ON E : Exception DO
-      Log('EG ChangeStateOfWhatIsUnderMouse: ' + E.ClassName +' error raised, with message: ' + E.Message);
+      Log('EG ChangeStateOfWhatIsUnderMouse: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { ChangeStateOfWhatIsUnderMouse }
 

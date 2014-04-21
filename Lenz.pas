@@ -875,7 +875,7 @@ BEGIN
               Retryflag := True;
             EXCEPT
               ON E : Exception DO
-                Log('EG ReadInDataMainProcedure: ' + E.ClassName +' error raised, with message: ' + E.Message);
+                Log('EG ReadInDataMainProcedure: ' + E.ClassName + ' error raised, with message: ' + E.Message);
             END; {TRY}
           END;
 
@@ -1406,7 +1406,7 @@ BEGIN
 
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG : ' + E.ClassName +' error raised, with message: ' + E.Message);
+      Log('EG : ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { DataIOMainProcedure }
 {$O+}
@@ -2078,7 +2078,7 @@ BEGIN
     END;
   EXCEPT
     ON E : Exception DO
-      Log('EG SetLenzSpeed: ' + E.ClassName +' error raised, with message: ' + E.Message);
+      Log('EG SetLenzSpeed: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { SetLenzSpeed }
 

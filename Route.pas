@@ -1046,7 +1046,7 @@ log('x and L=' + LinetoStr(Signals[Routes_SubRouteStartSignals[Route, SettingSub
     END;
   EXCEPT
     ON E : Exception DO
-      Log('EG SetUpASubRoute: ' + E.ClassName +' error raised, with message: ' + E.Message);
+      Log('EG SetUpASubRoute: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { SetUpASubRoute }
 

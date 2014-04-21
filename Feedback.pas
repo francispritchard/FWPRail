@@ -149,7 +149,7 @@ BEGIN
     END;
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG ExtractDataFromFeedback: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG ExtractDataFromFeedback: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { ExtractDataFromFeedback }
 
@@ -768,7 +768,7 @@ BEGIN { DecodeFeedback }
     END; {WITH}
   EXCEPT
     ON E : Exception DO
-      Log('EG DecodeFeedback: ' + E.ClassName +' error raised, with message: ' + E.Message);
+      Log('EG DecodeFeedback: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { DecodeFeedback }
 

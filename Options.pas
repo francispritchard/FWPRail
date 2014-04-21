@@ -1553,7 +1553,7 @@ BEGIN
     { The inifile is freed not here but after the track circuits are read in }
   EXCEPT
     ON E : Exception DO
-      Log('EG ReadIniFile: ' + E.ClassName +' error raised, with message: ' + E.Message);
+      Log('EG ReadIniFile: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { ReadIniFileMainProcedure }
 
@@ -1606,7 +1606,7 @@ BEGIN
     IniFile.Free;
   EXCEPT
     ON E : Exception DO
-      Log('EG ReadIniFileForTrackCircuitData: ' + E.ClassName +' error raised, with message: ' + E.Message);
+      Log('EG ReadIniFileForTrackCircuitData: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { ReadIniFileForTrackCircuitDataMainProcedure }
 
@@ -2032,7 +2032,7 @@ BEGIN
     IniFile.Free;
   EXCEPT
     ON E : Exception DO
-      Log('EG WriteIniFile: ' + E.ClassName +' error raised, with message: ' + E.Message);
+      Log('EG WriteIniFile: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { WriteIniFile }
 
@@ -2393,7 +2393,7 @@ BEGIN
     END; {WITH}
   EXCEPT
     ON E : Exception DO
-      Log('EG WriteOptionsToValueList: ' + E.ClassName +' error raised, with message: ' + E.Message);
+      Log('EG WriteOptionsToValueList: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { WriteOptionsToValueList }
 
@@ -2749,7 +2749,7 @@ BEGIN
     END; {WITH}
   EXCEPT
     ON E : Exception DO
-      Log('EG FillOptionsValueList: ' + E.ClassName +' error raised, with message: ' + E.Message);
+      Log('EG FillOptionsValueList: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { SaveOptionFromValueList }
 

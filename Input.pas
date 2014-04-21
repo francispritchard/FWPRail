@@ -5494,7 +5494,7 @@ BEGIN { KeyPressedDown }
     END;
   EXCEPT
     ON E : Exception DO
-      Log('EG KeyPressedDown: ' + E.ClassName +' error raised, with message: ' + E.Message);
+      Log('EG KeyPressedDown: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { KeyPressedDown }
 

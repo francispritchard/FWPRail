@@ -231,7 +231,7 @@ BEGIN
     InitialiseCreateRouteDisplayColoursWindow;
   EXCEPT
     ON E : Exception DO
-      Log('EG MainWindowCreate:' + E.ClassName +' error raised, with message: ' + E.Message);
+      Log('EG MainWindowCreate:' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { MainWindowCreate }
 
@@ -274,7 +274,7 @@ BEGIN
     END; {WITH}
   EXCEPT
     ON E : Exception DO
-      Log('EG SetSignal:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG SetSignal:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { SetSignal }
 
@@ -295,7 +295,7 @@ BEGIN
     END; {FOR}
   EXCEPT
     ON E : Exception DO
-      Log('EG SetAllSignalsToDanger:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG SetAllSignalsToDanger:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { SetAllSignalsToDanger }
 
@@ -433,7 +433,7 @@ BEGIN
     END; {FOR}
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG InitialiseLocationLines: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG InitialiseLocationLines: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { InitialiseLocationLines }
 
@@ -461,7 +461,7 @@ BEGIN
     END; {FOR}
   EXCEPT
     ON E : Exception DO
-      Log('EG SaveSignalsCurrentState:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG SaveSignalsCurrentState:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { SaveSignalsCurrentState }
 
@@ -479,7 +479,7 @@ BEGIN
     END; {FOR}
   EXCEPT
     ON E : Exception DO
-      Log('EG TurnAllSignalsOff:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG TurnAllSignalsOff:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { TurnAllSignalsOff }
 
@@ -505,7 +505,7 @@ BEGIN
     END; {FOR}
   EXCEPT
     ON E : Exception DO
-      Log('EG RestoreAllSignalsToPreviousState:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG RestoreAllSignalsToPreviousState:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { RestoreAllSignalsToPreviousState }
 
@@ -545,7 +545,7 @@ VAR
         END;
       EXCEPT
         ON E : Exception DO
-          Log('EG FoundAdjacentTrackCircuit:' + E.ClassName +' error raised, with message: '+ E.Message);
+          Log('EG FoundAdjacentTrackCircuit:' + E.ClassName + ' error raised, with message: '+ E.Message);
       END; {TRY}
     END; { FoundAdjacentTrackCircuit }
 
@@ -644,7 +644,7 @@ VAR
       END;
     EXCEPT
       ON E : Exception DO
-        Log('EG FollowThatLine:' + E.ClassName +' error raised, with message: '+ E.Message);
+        Log('EG FollowThatLine:' + E.ClassName + ' error raised, with message: '+ E.Message);
     END; {TRY}
   END; { FollowThatLine }
 
@@ -670,7 +670,7 @@ BEGIN
     END;
   EXCEPT
     ON E : Exception DO
-      Log('EG FindAdjoiningTrackCircuits:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG FindAdjoiningTrackCircuits:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { FindAdjoiningTrackCircuits }
 
@@ -709,7 +709,7 @@ BEGIN
     END; {FOR}
   EXCEPT
     ON E : Exception DO
-      Log('EG CheckLinesAreOK:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG CheckLinesAreOK:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { CheckLinesAreOK }
 
@@ -956,7 +956,7 @@ BEGIN
     END;
   EXCEPT
     ON E : Exception DO
-      Log('EG SetTrackCircuitStateMainProcedure: ' + E.ClassName +' error raised, with message: ' + E.Message);
+      Log('EG SetTrackCircuitStateMainProcedure: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { SetTrackCircuitStateMainProcedure }
 
@@ -1007,7 +1007,7 @@ BEGIN
     SetTrackCircuitStateMainProcedure(LocoChip, TC, NewState, Explanation);
   EXCEPT
     ON E : Exception DO
-      Log('EG SetTrackCircuitState-3:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG SetTrackCircuitState-3:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { SetTrackCircuitState-3 }
 
@@ -1044,7 +1044,7 @@ BEGIN
     END; {FOR}
   EXCEPT
     ON E : Exception DO
-      Log('EG NoteOutOfUseFeedbackUnitTrackCircuitsAtStartup:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG NoteOutOfUseFeedbackUnitTrackCircuitsAtStartup:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { NoteOutOfUseFeedbackUnitTrackCircuitsAtStartup }
 
@@ -1090,7 +1090,7 @@ BEGIN
     END;
   EXCEPT
     ON E : Exception DO
-      Log('EG TurnAutoModeOff:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG TurnAutoModeOff:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { TurnAutoModeOff }
 
@@ -1134,7 +1134,7 @@ BEGIN
     StartSystemTimer;
   EXCEPT
     ON E : Exception DO
-      Log('EG TurnAutoModeOn:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG TurnAutoModeOn:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { TurnAutoModeOn }
 
@@ -1313,7 +1313,7 @@ BEGIN
     END;
   EXCEPT
     ON E : Exception DO
-      Log('EG CheckPointsAwaitingFeedback:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG CheckPointsAwaitingFeedback:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { CheckPointsAwaitingFeedback }
 
@@ -1426,7 +1426,7 @@ VAR
       END;
     EXCEPT
       ON E : Exception DO
-        Log('EG CheckSystemStatus:' + E.ClassName +' error raised, with message: '+ E.Message);
+        Log('EG CheckSystemStatus:' + E.ClassName + ' error raised, with message: '+ E.Message);
     END; {TRY}
   END; { CheckSystemStatus }
 
@@ -1655,7 +1655,7 @@ BEGIN
           END;
         EXCEPT
           ON E : Exception DO
-            Log('EG Raildraw timer: ' + E.ClassName +' error raised, with message: '+ E.Message);
+            Log('EG Raildraw timer: ' + E.ClassName + ' error raised, with message: '+ E.Message);
         END; {TRY}
       END;
 
@@ -1689,7 +1689,7 @@ BEGIN
     END;
   EXCEPT
     ON E : Exception DO
-      Log('EG MainTimerTick: ' + E.ClassName +' error raised, with message: ' + E.Message);
+      Log('EG MainTimerTick: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { MainTimerTick }
 

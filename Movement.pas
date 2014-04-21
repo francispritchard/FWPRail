@@ -1301,7 +1301,7 @@ BEGIN
     END;
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG CalculateDesiredSpeed: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG CalculateDesiredSpeed: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { CalculateDesiredSpeed }
 

@@ -338,7 +338,7 @@ BEGIN
     END; {WITH}
   EXCEPT
     ON E : Exception DO
-      Log('EG PointIsLocked: ' + E.ClassName +' error raised, with message: ' + E.Message);
+      Log('EG PointIsLocked: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { PointIsLocked }
 

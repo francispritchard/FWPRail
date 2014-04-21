@@ -453,7 +453,7 @@ BEGIN
     END; {WITH}
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG ReadInRouteingExceptionsFromDatabase: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG ReadInRouteingExceptionsFromDatabase: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { ReadInRouteingExceptionsFromDatabase }
 
@@ -1610,7 +1610,7 @@ BEGIN
   //  Debug;
   EXCEPT
     ON E : Exception DO
-      Log('EG CreateDraftRouteArray: ' + E.ClassName +' error raised, with message: ' + E.Message);
+      Log('EG CreateDraftRouteArray: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { CreateDraftRouteArray }
 
@@ -1993,7 +1993,7 @@ BEGIN
   //  WriteToLogFileAndTestFile := False;
   EXCEPT
     ON E : Exception DO
-      Log('EG CreateLockingArrayFromDraftRouteArray: ' + E.ClassName +' error raised, with message: ' + E.Message);
+      Log('EG CreateLockingArrayFromDraftRouteArray: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { CreateLockingArrayFromDraftRouteArray }
 
@@ -2117,7 +2117,7 @@ BEGIN
   //Debug;
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG CreateRouteArrayFromLockingArray: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG CreateRouteArrayFromLockingArray: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { CreateRouteArrayFromLockingArray }
 
@@ -2287,7 +2287,7 @@ BEGIN
     END;
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG FindRouteFromLineAToLineB: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG FindRouteFromLineAToLineB: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { FindRouteFromLineAToLineB }
 
@@ -2410,7 +2410,7 @@ BEGIN
     END; {WITH}
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG GetResettingTrackCircuit: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG GetResettingTrackCircuit: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { GetResettingTrackCircuit }
 
@@ -2553,7 +2553,7 @@ BEGIN
   //  Debug(DebugStr);
   EXCEPT
     ON E : Exception DO
-      Log('EG FindPreviousSignals: ' + E.ClassName +' error raised, with message: ' + E.Message);
+      Log('EG FindPreviousSignals: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { FindPreviousSignals }
 
@@ -2622,7 +2622,7 @@ BEGIN
     Result := RouteFound;
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG FindNextSignalOrBufferStop: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG FindNextSignalOrBufferStop: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { FindNextSignalOrBufferStop }
 
@@ -2792,7 +2792,7 @@ BEGIN
     CreateSubRouteArrays(SubRouteCountStart);
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG CreateRouteArrays: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG CreateRouteArrays: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { CreateRouteArrays }
 
@@ -2857,7 +2857,7 @@ BEGIN
                                                         + ' :', Routes_SubRouteClearingStrings[Route, SubRoute], 2, 190, 'SR=');
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG CreateClearingSubRouteArray: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG CreateClearingSubRouteArray: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { CreateClearingSubRouteArray }
 
@@ -3019,7 +3019,7 @@ BEGIN
     END; {WITH}
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG JourneyAheadIsClear: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG JourneyAheadIsClear: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { JourneyAheadIsClear }
 
@@ -3905,7 +3905,7 @@ BEGIN
     END;
   EXCEPT
     ON E : Exception DO
-      Log('EG CreateRouteArraysForTrain: ' + E.ClassName +' error raised, with message: ' + E.Message);
+      Log('EG CreateRouteArraysForTrain: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { CreateRouteArraysForTrain }
 

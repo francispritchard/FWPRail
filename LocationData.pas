@@ -316,7 +316,7 @@ BEGIN
     END;
   EXCEPT
     ON E : Exception DO
-      Log('EG WriteLocationOccupations: ' + E.ClassName +' error raised, with message: ' + E.Message);
+      Log('EG WriteLocationOccupations: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { WriteLocationOccupations }
 
@@ -328,7 +328,7 @@ BEGIN
     SetLength(LocationOccupations[Location], 0);
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG ClearAllLocationOccupations: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG ClearAllLocationOccupations: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { ClearAllLocationOccupations }
 
@@ -346,7 +346,7 @@ BEGIN
         SetLength(LocationOccupations[Location], 0);
   EXCEPT
     ON E : Exception DO
-      Log('EG ClearAllLocationOccupations: ' + E.ClassName +' error raised, with message: ' + E.Message);
+      Log('EG ClearAllLocationOccupations: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { ClearAllLocationOccupations }
 
@@ -1011,7 +1011,7 @@ BEGIN
     END;
   EXCEPT
     ON E : Exception DO
-      Log('EG InsertDataInLocationOccupationArray: ' + E.ClassName +' error raised, with message: ' + E.Message);
+      Log('EG InsertDataInLocationOccupationArray: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { InsertDataInLocationOccupationArray }
 
@@ -1842,7 +1842,7 @@ CONST
             Log(LocoChipStr + ' D ' + DisplayJourneyNumber(Journey) + 'sorted by departure time=' + DebugStr);
     EXCEPT
       ON E : Exception DO
-        Log('EG SortPossibleAlternatives: ' + E.ClassName +' error raised, with message: '+ E.Message);
+        Log('EG SortPossibleAlternatives: ' + E.ClassName + ' error raised, with message: '+ E.Message);
     END; {TRY}
   END; { SortPossibleAlternatives }
 
@@ -2335,7 +2335,7 @@ BEGIN
     END; {WITH}
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG AlternativeAreaOrLocationAvailable: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG AlternativeAreaOrLocationAvailable: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
   Result := OK;
 END; { AlternativeAreaOrLocationAvailable }

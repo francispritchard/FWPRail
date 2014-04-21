@@ -1611,7 +1611,7 @@ BEGIN { WriteToLogFile }
   EXCEPT {TRY}
     ON E : Exception DO
       { Cannot call Log here as we are already in it }
-      Debug('EG WriteToLogFile: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Debug('EG WriteToLogFile: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { WriteToLogFile }
 
@@ -2601,7 +2601,7 @@ BEGIN
                + ']';
   EXCEPT
     ON E : Exception DO
-      Log('EG DescribeSubRoute: ' + E.ClassName +' error raised, with message: ' + E.Message);
+      Log('EG DescribeSubRoute: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { DescribeSubRoute }
 
@@ -2842,7 +2842,7 @@ BEGIN
           Result := StrToInt(Copy(Str, 4, 255));
   EXCEPT
     ON E : Exception DO
-      Log('EG ExtractSignalFromString: ' + E.ClassName +' error raised, with message: ' + E.Message);
+      Log('EG ExtractSignalFromString: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { ExtractSignalFromString }
 
@@ -3476,7 +3476,7 @@ BEGIN
     CloseHandle(ProcHandle);
   EXCEPT
     ON E : Exception DO
-      ShowMessage('IsProgramRunning: ' + E.ClassName +' error raised, with message: ' + E.Message);
+      ShowMessage('IsProgramRunning: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { IsProgramRunning }
 
@@ -4161,7 +4161,7 @@ BEGIN
         END;
   EXCEPT
     ON E : Exception DO
-      Log('EG NewReadOut: ' + E.ClassName +' error raised, with message: ' + E.Message);
+      Log('EG NewReadOut: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { ReadOut }
 
@@ -4274,7 +4274,7 @@ BEGIN
     END;
   EXCEPT
     ON E : Exception DO
-      Log('EG RenameLaterFiles: ' + E.ClassName +' error raised, with message: ' + E.Message);
+      Log('EG RenameLaterFiles: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { RenameLaterFiles }
 
@@ -6304,8 +6304,8 @@ BEGIN
 //    END; {WITH}
 //  EXCEPT {TRY}
 //    ON E : Exception DO BEGIN
-//      Debug('LoadLocationData: ' + E.ClassName +' error raised, with message: '+ E.Message);
-//      Log(NoLocoChip, 'E LoadLocationData: ' + E.ClassName +' error raised, with message: '+ E.Message);
+//      Debug('LoadLocationData: ' + E.ClassName + ' error raised, with message: '+ E.Message);
+//      Log(NoLocoChip, 'E LoadLocationData: ' + E.ClassName + ' error raised, with message: '+ E.Message);
 //    END;
 //  END; {TRY}
 END; { ReadInDataFromExcelFile }
@@ -6618,7 +6618,7 @@ BEGIN { ShutDownProgram }
     END;
   EXCEPT
     ON E : Exception DO
-      Log('EG ShutDownProgram: ' + E.ClassName +' error raised, with message: ' + E.Message);
+      Log('EG ShutDownProgram: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { ShutDownProgram }
 
@@ -7257,7 +7257,7 @@ BEGIN
           Result := PointOutOfAction;
   EXCEPT
     ON E : Exception DO
-      Log('EG StrToPointState: ' + E.ClassName +' error raised, with message: ' + E.Message);
+      Log('EG StrToPointState: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { StrToPointState }
 
@@ -7495,7 +7495,7 @@ BEGIN
     Result := TimeToStr(Time);
   EXCEPT
     ON E : Exception DO
-      Log('EG TimeToHM_Str: ' + E.ClassName +' error raised, with message: ' + E.Message);
+      Log('EG TimeToHM_Str: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { TimeToHMStr }
 
@@ -7507,7 +7507,7 @@ BEGIN
     Result := TimeToStr(Time);
   EXCEPT
     ON E : Exception DO
-      Log('EG TimeToHMSStr: ' + E.ClassName +' error raised, with message: ' + E.Message);
+      Log('EG TimeToHMSStr: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { TimeToHMSStr }
 
@@ -7519,7 +7519,7 @@ BEGIN
     Result := TimeToStr(Time);
   EXCEPT
     ON E : Exception DO
-      Log('EG TimeToHMSZStr: ' + E.ClassName +' error raised, with message: ' + E.Message);
+      Log('EG TimeToHMSZStr: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { TimeToHMSZStr }
 
@@ -7777,7 +7777,7 @@ BEGIN
     Result := TimeToStr(Time);
   EXCEPT
     ON E : Exception DO
-      Log('EG TTS: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG TTS: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { TTS }
 
@@ -7789,7 +7789,7 @@ BEGIN
     Result := TimeToStr(Time);
   EXCEPT
     ON E : Exception DO
-      Log('EG TTSS: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG TTSS: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { TTSS }
 
@@ -7812,7 +7812,7 @@ BEGIN
     END;
   EXCEPT
     ON E : Exception DO
-      Log('EG TTSA: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG TTSA: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { TTSA }
 
@@ -7824,7 +7824,7 @@ BEGIN
     Result := TimeToStr(Time);
   EXCEPT
     ON E : Exception DO
-      Log('EG TimeToHMSZStr: ' + E.ClassName +' error raised, with message: ' + E.Message);
+      Log('EG TimeToHMSZStr: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { TimeToHMSZStr }
 
@@ -8734,7 +8734,7 @@ BEGIN
         PointsADOConnection.Connected := True;
       EXCEPT
         ON E:Exception DO
-          Log('EG InitialisePoints 1: ' + E.ClassName +' error raised, with message: '+ E.Message);
+          Log('EG InitialisePoints 1: ' + E.ClassName + ' error raised, with message: '+ E.Message);
       END; {TRY}
 
       PointsADOTable.Open;
@@ -8746,7 +8746,7 @@ BEGIN
         PointsADOConnection2.Connected := True;
       EXCEPT
         ON E:Exception DO
-          Log('EG InitialisePoints 2: ' + E.ClassName +' error raised, with message: '+ E.Message);
+          Log('EG InitialisePoints 2: ' + E.ClassName + ' error raised, with message: '+ E.Message);
       END; {TRY}
 
       PointsADOTable2.Open;
@@ -8825,7 +8825,7 @@ BEGIN
     END; {WITH}
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG InitialisePoints: ' + E.ClassName +'error raised, with message: '+ E.Message);
+      Log('EG InitialisePoints: ' + E.ClassName + 'error raised, with message: '+ E.Message);
   END; {TRY}
 END; { CompareTwoSignalDatabases }
 
@@ -8890,7 +8890,7 @@ BEGIN
         SignalsADOConnection.Connected := True;
       EXCEPT
         ON E:Exception DO
-          Log('EG InitialiseSignals 1: ' + E.ClassName +' error raised, with message: '+ E.Message);
+          Log('EG InitialiseSignals 1: ' + E.ClassName + ' error raised, with message: '+ E.Message);
       END; {TRY}
 
       SignalsADOTable.Open;
@@ -8902,7 +8902,7 @@ BEGIN
         SignalsADOConnection2.Connected := True;
       EXCEPT
         ON E:Exception DO
-          Log('EG InitialiseSignals 2: ' + E.ClassName +' error raised, with message: '+ E.Message);
+          Log('EG InitialiseSignals 2: ' + E.ClassName + ' error raised, with message: '+ E.Message);
       END; {TRY}
 
       SignalsADOTable2.Open;
@@ -8988,7 +8988,7 @@ BEGIN
     END; {WITH}
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG InitialiseSignals: ' + E.ClassName +'error raised, with message: '+ E.Message);
+      Log('EG InitialiseSignals: ' + E.ClassName + 'error raised, with message: '+ E.Message);
   END; {TRY}
 END; { CompareTwoSignalDatabases }
 

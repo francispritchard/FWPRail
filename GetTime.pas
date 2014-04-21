@@ -239,7 +239,7 @@ BEGIN
     DrawStationMonitorsWindow;
   EXCEPT
     ON E : Exception DO
-      Log('EG OKButtonClick: ' + E.ClassName +' error raised, with message: ' + E.Message);
+      Log('EG OKButtonClick: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { OKButtonClick }
 
@@ -333,7 +333,7 @@ BEGIN
     END;
   EXCEPT
     ON E : Exception DO
-      Log('EG ControlTimeByMouseWheel: ' + E.ClassName +' error raised, with message: ' + E.Message);
+      Log('EG ControlTimeByMouseWheel: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { ControlTimeByMouseWheel }
 

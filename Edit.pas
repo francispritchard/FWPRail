@@ -253,7 +253,7 @@ BEGIN
     END;
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG TurnEditModeOff: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG TurnEditModeOff: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { TurnEditModeOff }
 
@@ -358,7 +358,7 @@ BEGIN
     END;
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG EditValueListEditorEditButtonClick: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG EditValueListEditorEditButtonClick: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { EditValueListEditorEditButtonClick }
 
@@ -393,7 +393,7 @@ BEGIN
     END; {WITH}
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG ProcessSignalLocationsToMonitorCheckListBoxChecks: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG ProcessSignalLocationsToMonitorCheckListBoxChecks: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { ProcessSignalLocationsToMonitorCheckListBoxChecks }
 
@@ -818,7 +818,7 @@ BEGIN
     END; {WITH}
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG DoEditValidation: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG DoEditValidation: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { DoEditValidation }
 
@@ -845,7 +845,7 @@ BEGIN
     END;
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG EditValueListEditorExit: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG EditValueListEditorExit: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { EditValueListEditorExit }
 
@@ -961,7 +961,7 @@ BEGIN { DisplayPointOptionsInValueList }
 
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG DisplayPointOptionsInValueList: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG DisplayPointOptionsInValueList: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { DisplayPointOptionsInValueList }
 
@@ -1064,7 +1064,7 @@ BEGIN { DisplaySignalOptionsInValueList }
 
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG DisplaySignalOptionsInValueList: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG DisplaySignalOptionsInValueList: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { DisplaySignalOptionsInValueList }
 
@@ -1075,7 +1075,7 @@ BEGIN
     DoEditValidation(KeyName, KeyValue);
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG EditValueListEditorValidate: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG EditValueListEditorValidate: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { EditValueListEditorValidate }
 
@@ -1090,7 +1090,7 @@ BEGIN
         DisplayPointOptionsInValueList(SavePointFoundNum);
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG EditWindowShow: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG EditWindowShow: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { EditWindowShow }
 
@@ -1173,7 +1173,7 @@ BEGIN
     SaveChangesButton.Enabled := False;
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG UndoChangesButtonClick: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG UndoChangesButtonClick: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { UndoChangesButtonClick }
 
@@ -1209,7 +1209,7 @@ BEGIN
     TurnEditModeOff;
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG SaveChangesButtonClick: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG SaveChangesButtonClick: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { SaveChangesButtonClick }
 
@@ -1244,7 +1244,7 @@ BEGIN
     TurnEditModeOff;
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG ExitWithSavingButtonClick: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG ExitWithSavingButtonClick: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { ExitWithSavingButtonClick }
 
@@ -1353,7 +1353,7 @@ BEGIN
     END;
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG CreateSignal: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG CreateSignal: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { CreateSignal }
 
@@ -1469,7 +1469,7 @@ BEGIN
     END;
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG DeleteSignal: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG DeleteSignal: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { DeleteSignal }
 
@@ -1561,7 +1561,7 @@ BEGIN
     END;
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG CreatePoint: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG CreatePoint: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { CreatePoint }
 
@@ -1602,7 +1602,7 @@ BEGIN
     END;
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG DeletePoint: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG DeletePoint: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { DeletePoint }
 

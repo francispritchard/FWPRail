@@ -519,7 +519,7 @@ BEGIN
     UNTIL IsProgramRunning('LI-Server');
   EXCEPT
     ON E : Exception DO
-      ShowMessage('StartLANUSBServer: ' + E.ClassName +' error raised, with message: ' + E.Message);
+      ShowMessage('StartLANUSBServer: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END;
 
@@ -543,7 +543,7 @@ BEGIN
       Log('A Lan-USB Server failed to stop programmatically');
   EXCEPT
     ON E : Exception DO
-      ShowMessage('StopLANUSBServer: ' + E.ClassName +' error raised, with message: ' + E.Message);
+      ShowMessage('StopLANUSBServer: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END;
 

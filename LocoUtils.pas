@@ -282,7 +282,7 @@ VAR
       END; {WITH}
     EXCEPT {TRY}
       ON E : Exception DO
-        Log('EG InitialiseTrainRecord: ' + E.ClassName +' error raised, with message: '+ E.Message);
+        Log('EG InitialiseTrainRecord: ' + E.ClassName + ' error raised, with message: '+ E.Message);
     END; {TRY}
   END; { InitialiseTrainRecord }
 
@@ -710,7 +710,7 @@ BEGIN
     END; {WITH}
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG ReadInLocoDataFromDatabase: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG ReadInLocoDataFromDatabase: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { ReadInLocoDataFromDatabase }
 
@@ -854,7 +854,7 @@ BEGIN
     END; {WITH}
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG WriteOutLocoDataToDatabase: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG WriteOutLocoDataToDatabase: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { WriteOutLocoDataToDatabase }
 
@@ -898,7 +898,7 @@ BEGIN
       SortGridDirection := Up;
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG SortGrid: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG SortGrid: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { SortGrid }
 
@@ -928,7 +928,7 @@ BEGIN
     END;
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG LocoUtilsStringGridDblClick: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG LocoUtilsStringGridDblClick: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { LocoUtilsStringGridDblClick }
 
@@ -968,7 +968,7 @@ BEGIN
     END;
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG LocoStringGridDrawCell: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG LocoStringGridDrawCell: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { LocoStringGridDrawCell }
 
@@ -1004,7 +1004,7 @@ PROCEDURE TLocoUtilsWindow.LocoStringGridKeyDown(Sender : TObject; VAR Key : Wor
       SaveLocoStringGridSearchRow := RowNum;
     EXCEPT {TRY}
       ON E : Exception DO
-        Log('EG DoSearch: ' + E.ClassName +' error raised, with message: '+ E.Message);
+        Log('EG DoSearch: ' + E.ClassName + ' error raised, with message: '+ E.Message);
     END; {TRY}
   END; { DoSearch}
 
@@ -1027,7 +1027,7 @@ BEGIN
     END; {CASE}
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG LocoStringGridKeyDown: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG LocoStringGridKeyDown: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { LocoStringGridKeyDown }
 
@@ -1064,7 +1064,7 @@ BEGIN
     END; {WITH}
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG LocoStringGridMouseUp: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG LocoStringGridMouseUp: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { LocoStringGridMouseUp }
 
@@ -1088,7 +1088,7 @@ VAR
       END; {WITH}
     EXCEPT {TRY}
       ON E : Exception DO
-        Log('EG AddItemToGrid: ' + E.ClassName +' error raised, with message: '+ E.Message);
+        Log('EG AddItemToGrid: ' + E.ClassName + ' error raised, with message: '+ E.Message);
     END; {TRY}
   END; { AddItemToGrid }
 
@@ -1196,7 +1196,7 @@ BEGIN
     END; {WITH}
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG ListLocosByChip: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG ListLocosByChip: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { ListLocosByChip }
 
@@ -1283,7 +1283,7 @@ BEGIN
           Result := 0;
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG CompareNumbers: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG CompareNumbers: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { CompareNumbers }
 
@@ -1309,7 +1309,7 @@ BEGIN
     END;
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG SortNumbersInsertingLeadingZeroes: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG SortNumbersInsertingLeadingZeroes: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { SortNumbersInsertingLeadingZeroes }
 

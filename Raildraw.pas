@@ -1285,7 +1285,7 @@ BEGIN
     END; {WITH}
   EXCEPT
     ON E : Exception DO
-      Log('EG ShowLinePos:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG ShowLinePos:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { ShowLinePos }
 
@@ -1342,7 +1342,7 @@ BEGIN
 //    END;
   EXCEPT
     ON E : Exception DO
-      Log('EG DrawOutline:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG DrawOutline:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { DrawOutline }
 
@@ -1390,7 +1390,7 @@ BEGIN
     END;
   EXCEPT
     ON E : Exception DO
-      Log('EG WriteToStatusBarPanel:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG WriteToStatusBarPanel:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { WriteToStatusBarPanel }
 
@@ -1411,7 +1411,7 @@ BEGIN
     END;
   EXCEPT
     ON E : Exception DO
-      Log('EG DrawFailure:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG DrawFailure:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { DrawFailure }
 
@@ -1599,7 +1599,7 @@ BEGIN
     END;
   EXCEPT
     ON E : Exception DO
-      Log('EG DrawSpeedRestrictions:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG DrawSpeedRestrictions:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { DrawSpeedRestrictions }
 
@@ -1628,7 +1628,7 @@ BEGIN
     END; {WITH}
   EXCEPT
     ON E : Exception DO
-      Log('EG DrawSignalData:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG DrawSignalData:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { DrawSignalData }
 
@@ -1666,7 +1666,7 @@ BEGIN
     END; {FOR}
   EXCEPT
     ON E : Exception DO
-      Log('EG DrawAllSignals:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG DrawAllSignals:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { DrawAllSignals }
 
@@ -1743,7 +1743,7 @@ BEGIN
     END;
   EXCEPT
     ON E : Exception DO
-      Log('EG DrawSignalPost:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG DrawSignalPost:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { DrawSignalPost }
 
@@ -2279,7 +2279,7 @@ BEGIN
     END; {WITH}
   EXCEPT
     ON E : Exception DO
-      Log('EG DrawSignal: ' + E.ClassName +' error raised, with message: ' + E.Message);
+      Log('EG DrawSignal: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { DrawSignal }
 
@@ -2337,7 +2337,7 @@ BEGIN
     END;
   EXCEPT
     ON E : Exception DO
-      Log('EG DrawConnectionCh:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG DrawConnectionCh:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { DrawConnectionCh }
 
@@ -2383,7 +2383,7 @@ VAR
       END; {WITH}
     EXCEPT
       ON E : Exception DO
-        Log('EG DrawDottedLine:' + E.ClassName +' error raised, with message: '+ E.Message);
+        Log('EG DrawDottedLine:' + E.ClassName + ' error raised, with message: '+ E.Message);
     END; {TRY}
   END; { DrawDottedLine }
 
@@ -2666,7 +2666,7 @@ BEGIN
     END;
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG DrawLineMainProcedure: ' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG DrawLineMainProcedure: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { DrawLineMainProcedure }
 
@@ -2706,7 +2706,7 @@ BEGIN
     InvalidateScreen(UnitRef, 'DrawTrackCircuit-1');
   EXCEPT
     ON E : Exception DO
-      Log('EG DrawTrackCircuit-1:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG DrawTrackCircuit-1:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { DrawTrackCircuit-1 }
 
@@ -2731,7 +2731,7 @@ BEGIN
     InvalidateScreen(UnitRef, 'DrawTrackCircuit-2');
   EXCEPT
     ON E : Exception DO
-      Log('EG DrawTrackCircuit-2:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG DrawTrackCircuit-2:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { DrawTrackCircuit-2 }
 
@@ -2754,7 +2754,7 @@ BEGIN
           + ' and adjacent TCs:' + IntToStr(AdjacentUpTC) + ' and ' + IntToStr(AdjacentDownTC));
   EXCEPT
     ON E : Exception DO
-      Log('EG DrawTrackCircuitsWithAdjoiningTrackCircuits:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG DrawTrackCircuitsWithAdjoiningTrackCircuits:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { DrawTrackCircuitsWithAdjoiningTrackCircuits }
 
@@ -2906,7 +2906,7 @@ BEGIN
     END; {WITH}
   EXCEPT
     ON E : Exception DO
-      Log('EG DrawPoint: ' + E.ClassName +' error raised, with message: ' + E.Message);
+      Log('EG DrawPoint: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { DrawPoint }
 
@@ -3049,7 +3049,7 @@ BEGIN
     END; {WITH}
   EXCEPT
     ON E : Exception DO
-      Log('EG DrawPointNum:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG DrawPointNum:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { DrawPointNum }
 
@@ -3124,7 +3124,7 @@ BEGIN
     END; {WITH}
   EXCEPT
     ON E : Exception DO
-      Log('EG DrawPointFeedbackDataInSeparateColours:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG DrawPointFeedbackDataInSeparateColours:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { DrawPointFeedbackDataInSeparateColours }
 
@@ -3195,7 +3195,7 @@ BEGIN
     ShowLenzPointNumbers := False;
   EXCEPT
     ON E : Exception DO
-      Log('EG DrawLenzPointUnitGroups:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG DrawLenzPointUnitGroups:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { DrawLenzPointUnitGroups }
 
@@ -3260,7 +3260,7 @@ BEGIN
     END; {FOR}
   EXCEPT
     ON E : Exception DO
-      Log('EG DrawAllPoints:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG DrawAllPoints:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { DrawAllPoints }
 
@@ -3320,7 +3320,7 @@ PROCEDURE DrawPlatforms;
       END; {WITH}
     EXCEPT
       ON E : Exception DO
-        Log('EG DrawPlatformNumber:' + E.ClassName +' error raised, with message: '+ E.Message);
+        Log('EG DrawPlatformNumber:' + E.ClassName + ' error raised, with message: '+ E.Message);
     END; {TRY}
   END; { DrawPlatformNumber }
 
@@ -3349,7 +3349,7 @@ BEGIN
     END; {WITH}
   EXCEPT
     ON E : Exception DO
-      Log('EG DrawPlatforms:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG DrawPlatforms:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { DrawPlatforms }
 
@@ -3401,7 +3401,7 @@ BEGIN
     END; {WITH}
   EXCEPT
     ON E : Exception DO
-      Log('EG DrawTRSPlunger:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG DrawTRSPlunger:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { DrawTRSPlunger }
 
@@ -3501,7 +3501,7 @@ BEGIN
     END; {CASE}
   EXCEPT
     ON E : Exception DO
-      Log('EG FWPRailWindowShortCut:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG FWPRailWindowShortCut:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { FWPRailWindowShortCut }
 
@@ -3702,7 +3702,7 @@ BEGIN
     END;
   EXCEPT
     ON E : Exception DO
-      Log('EG FWPRailWindowMouseMove:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG FWPRailWindowMouseMove:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { FWPRailWindowMouseMove }
 
@@ -3748,7 +3748,7 @@ BEGIN
     END; {CASE}
   EXCEPT
     ON E : Exception DO
-      Log('EG FWPRailWindowKeyDown:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG FWPRailWindowKeyDown:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { FWPRailWindowKeyDown }
 
@@ -3769,7 +3769,7 @@ BEGIN
     END;
   EXCEPT
     ON E : Exception DO
-      Log('EG FWPRailWindowResize:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG FWPRailWindowResize:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { FWPRailWindowResize }
 
@@ -3786,7 +3786,7 @@ BEGIN
     END;
   EXCEPT
     ON E : Exception DO
-      Log('EG FWPRailWindowClose:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG FWPRailWindowClose:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { FWPRailWindowClose }
 
@@ -4002,7 +4002,7 @@ BEGIN
     END;
   EXCEPT
     ON E : Exception DO
-      Log('EG FlashTimerTick:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG FlashTimerTick:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { FlashTimerTick }
 
@@ -4443,7 +4443,7 @@ BEGIN
     END; {WITH}
   EXCEPT
     ON E : Exception DO
-      Log('EG TCPopupMenuOnPopup:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG TCPopupMenuOnPopup:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { TCPopupMenuOnPopup }
 
@@ -4567,7 +4567,7 @@ BEGIN
     TrackCircuits[TC].TC_LocoChip := UnknownLocoChip;
   EXCEPT
     ON E : Exception DO
-      Log('EG ClearLocoFromTrackCircuit:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG ClearLocoFromTrackCircuit:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { ClearLocoFromTrackCircuit }
 
@@ -4722,7 +4722,7 @@ BEGIN
     END; {WITH}
   EXCEPT
     ON E : Exception DO
-      Log('EG TCPopupAllocateLocoToTrackCircuitClick:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG TCPopupAllocateLocoToTrackCircuitClick:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { TCPopupAllocateLocoToTrackCircuitClick }
 
@@ -4763,7 +4763,7 @@ BEGIN
     END; {WITH}
   EXCEPT
     ON E : Exception DO
-      Log('EG TCPopupChangeLocoDirectionToUpClick:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG TCPopupChangeLocoDirectionToUpClick:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { TCPopupChangeLocoDirectionToUpClick }
 
@@ -4804,7 +4804,7 @@ BEGIN
     END; {WITH}
   EXCEPT
     ON E : Exception DO
-      Log('EG TCPopupChangeLocoDirectionToDownClick:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG TCPopupChangeLocoDirectionToDownClick:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { TCPopupChangeLocoDirectionToDownClick }
 
@@ -4827,7 +4827,7 @@ BEGIN
     END; {WITH}
   EXCEPT
     ON E : Exception DO
-      Log('EG TCPopupSetTrackCircuitToUserDrivingClick:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG TCPopupSetTrackCircuitToUserDrivingClick:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { TCPopupSetTrackCircuitToUserDrivingClick }
 
@@ -4914,7 +4914,7 @@ BEGIN
     END; {WITH}
   EXCEPT
     ON E : Exception DO
-      Log('EG TCPopupSetTCSpeedRestrictionClick:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG TCPopupSetTCSpeedRestrictionClick:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { TCPopupSetTCSpeedRestrictionClick }
 
@@ -4937,7 +4937,7 @@ BEGIN
     END; {WITH}
   EXCEPT
     ON E : Exception DO
-      Log('EG ClearTrackCircuitSpeedRestrictionClick:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG ClearTrackCircuitSpeedRestrictionClick:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { ClearTrackCircuitSpeedRestrictionClick }
 
@@ -4956,7 +4956,7 @@ BEGIN
     END; {WITH}
   EXCEPT
     ON E : Exception DO
-      Log('EG TCPopupSetLineOutOfUseClick:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG TCPopupSetLineOutOfUseClick:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { TCPopupSetLineOutOfUseClick }
 
@@ -5000,7 +5000,7 @@ BEGIN
     END; {WITH}
   EXCEPT
     ON E : Exception DO
-      Log('EG TCPopupSetLocationOutOfUseClick:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG TCPopupSetLocationOutOfUseClick:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { TCPopupSetLocationOutOfUseClick }
 
@@ -6945,7 +6945,7 @@ BEGIN
     END; {WITH}
   EXCEPT
     ON E : Exception DO
-      Log('EG FWPRailWindowCreate:' + E.ClassName +' error raised, with message: '+ E.Message);
+      Log('EG FWPRailWindowCreate:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { InitialiseRaildrawUnit }
 
@@ -6999,7 +6999,7 @@ VAR
       END;
     EXCEPT
       ON E : Exception DO
-        Log('EG DrawAllBufferStopData:' + E.ClassName +' error raised, with message: '+ E.Message);
+        Log('EG DrawAllBufferStopData:' + E.ClassName + ' error raised, with message: '+ E.Message);
     END; {TRY}
   END; { DrawAllBufferStopData }
 
@@ -7571,7 +7571,7 @@ BEGIN { Main drawing procedure }
     END; { WITH FWPRailWindow }
   EXCEPT
     ON E : Exception DO
-      Log('EG DrawMap: ' + E.ClassName +' error raised, with message: ' + E.Message);
+      Log('EG DrawMap: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { DrawMap }
 
