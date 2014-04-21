@@ -5,7 +5,7 @@ UNIT Raildraw;
   Copyright © F.W. Pritchard 1988-2014. All Rights Reserved.
 
   v0.1  00/00/88 Unit created
-  v0.2  24/04/13 Header added; semaphore signal routine rewritten by JDK and FWP
+  v0.2  24/04/13 Header added; semaphore signal routine rewritten by James D King and FWP
   v1.0  08/04/14 Separated out screen drawing
 }
 
