@@ -15,7 +15,6 @@ TYPE
     ConnectPanel: TPanel;
     IncomingGB: TGroupBox;
     LabelTextEntry: TLabel;
-    WatchdogTimer: TTimer;
     MSGMemo: TMemo;
     SendStatusRequestButton: TSpeedButton;
     SendTextButton: TSpeedButton;
@@ -23,6 +22,7 @@ TYPE
     TCPConnectButton: TButton;
     TCPIPTimer: TTimer;
     WatchdogListBox: TListBox;
+    WatchdogTimer: TTimer;
     PROCEDURE ClearButtonClick(Sender: TObject);
     PROCEDURE SendStatusRequestButtonClick(Sender: TObject);
     PROCEDURE SendTextButtonClick(Sender: TObject);
@@ -30,6 +30,7 @@ TYPE
     PROCEDURE TCPIPTimerOnTimer(Sender: TObject);
     PROCEDURE WatchdogTimerTick(Sender: TObject);
     PROCEDURE WatchdogWindowClose(Sender: TObject; VAR Action: TCloseAction);
+    PROCEDURE WatchdogWindowCreate(Sender: TObject);
     PROCEDURE WatchdogWindowShow(Sender: TObject);
 
   PRIVATE
@@ -572,10 +573,10 @@ BEGIN
   CopyData.dwData := ReceiverHandle;
 
   Res := SendMessage(ReceiverHandle, WM_COPYDATA, Application.Handle, LPARAM(@CopyData));
-  IF Res = 5678 THEN
-    WriteMemoText('FWPRail has acknowledged the message')
+  IF Res = 2 THEN
+    WriteMemoText('FWPRail Watchdog has acknowledged the message')
   ELSE
-    WriteMemoText('FWPRail has not acknowledged the message');
+    WriteMemoText('FWPRail Watchdog has not acknowledged the message');
 END; { SendNotConnectedMsgToRailProgram }
 
 PROCEDURE TWatchdogWindow.WatchdogTimerTick(Sender: TObject);
@@ -583,48 +584,57 @@ VAR
   ReceiverHandle : THandle;
 
 BEGIN
-  IF WatchdogTimer.Interval = 1 THEN
-    { start off with it set to 1 to make the timer tick immediately, then set it to a more reasonable interval }
-    WatchdogTimer.Interval := 5000;
+  TRY
+    IF WatchdogTimer.Interval = 1 THEN
+      { start off with it set to 1 to make the timer tick immediately, then set it to a more reasonable interval }
+      WatchdogTimer.Interval := 5000;
 
-  { At each tick we check if FWPRail is running, and if so whether the Lenz LAN/USB server is running. If they both are then we expect a message every ten seconds. If we
-    do not receive one we assume that FWPRail has crashed or otherwise stopped and we put the Lenz system into power-off mode.
-  }
-  ReceiverHandle := FindWindow(ReceiverTypeString, NIL);
-  IF ReceiverHandle = 0 THEN BEGIN
-    { we can't find FWPRail - if it was running it's presumably been closed down, so stop close our connection to the LAN/USB Server }
-    IF MessageReceivedFromFWPRail THEN BEGIN
-      WriteMemoText('We can''t find FWPRail - if it was running it''s presumably been closed down, so close connection to the LAN/USB Server');;
+    { At each tick we check if FWPRail is running, and if so whether the Lenz LAN/USB server is running. If they both are then we expect a message every ten seconds. If we
+      do not receive one we assume that FWPRail has crashed or otherwise stopped and we put the Lenz system into power-off mode.
+    }
+    ReceiverHandle := FindWindow(ReceiverTypeString, NIL);
+    IF ReceiverHandle = 0 THEN BEGIN
+      { we can't find FWPRail - if it was running it's presumably been closed down, so stop close our connection to the LAN/USB Server }
+      IF MessageReceivedFromFWPRail THEN BEGIN
+        WriteMemoText('Cannot find FWPRail - if it was running it''s presumably been closed down, so close connection to the LAN/USB Server');;
 
-      FWPRailRunning := False;
-      MessageReceivedFromFWPRail := False;
-      IF TCPSocket1 <> NIL THEN
-        WatchdogWindow.DestroyTCPClients;
-    END;
-
-    Exit;
-  END;
-
-  IF NOT MessageReceivedFromFWPRail THEN BEGIN
-    IF NOT FWPRailLenzOperationsStopped THEN BEGIN
-        { Panic! }
-      IF ResponsesTCPClient <> NIL THEN BEGIN
-        WriteMemoText('OUT ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : [Stop Operations]');
-        ResponsesTCPSendText('21-80-A1' + CRLF);
-        TCPCommand.Clear;
-        FWPRailLenzOperationsStopped := True;
-        WriteMemoText('FWPRail has stopped running - Lenz system has been sent a "Stop Operations" command');
+        FWPRailRunning := False;
+        MessageReceivedFromFWPRail := False;
+        IF TCPSocket1 <> NIL THEN
+          WatchdogWindow.DestroyTCPClients;
       END;
 
-      { We might have sent a message to FWPRail at this point, but if FWPRail has stopped (for whatever reason), using SendMessage will cause the watchdog to hang, as it
-        waits for a response from the other end
-      }
+      Exit;
     END;
-  END;
 
-  { and set the running flag to false - it should be set to true by the incoming message before the watchdog timer ticks again }
-  MessageReceivedFromFWPRail := False;
-  Application.ProcessMessages;
+    IF NOT MessageReceivedFromFWPRail THEN BEGIN
+      IF NOT FWPRailLenzOperationsStopped THEN BEGIN
+        { Panic! }
+        FWPRailLenzOperationsStopped := True;
+        IF TCPSocket1 = NIL THEN BEGIN
+          Beep;
+          ShowMessage('FWPRail has stopped running - Lenz system would have been sent a "Stop Operations" command had the Watchdog been connected to it');
+        END ELSE BEGIN
+          WriteMemoText('Watchdog -> Lenz: Stop Operations');
+          ResponsesTCPSendText('21-80-A1' + CRLF);
+          TCPCommand.Clear;
+          Beep;
+          ShowMessage('FWPRail has stopped running - Lenz system has been sent a "Stop Operations" command');
+        END;
+
+        { We might have sent a message to FWPRail at this point, but if FWPRail has stopped (for whatever reason), using SendMessage will cause the watchdog to hang, as it
+          waits for a response from the other end
+        }
+      END;
+    END;
+
+    { and set the running flag to false - it should be set to true by the incoming message before the watchdog timer ticks again }
+    MessageReceivedFromFWPRail := False;
+    Application.ProcessMessages;
+  EXCEPT
+    ON E : Exception DO
+      WriteMemoText('WatchdogTimerTick:' + E.ClassName + ' error raised, with message: '+ E.Message);
+  END; {TRY}
 END; { WatchdogTimerTick }
 
 PROCEDURE TWatchdogWindow.WMCopyData(VAR Msg: TWMCopyData);
@@ -643,11 +653,6 @@ BEGIN
     END ELSE BEGIN
       WriteMemoText('First msg from FWPRail received: ' + S);
 
-      { List all the current windows - this is only really needed for debugging (to set the Receiver Strings in this and FWPRail), but no harm in having it each time
-        we run
-      }
-      EnumWindows(@EnumWindowsProc, LPARAM(WatchdogListBox));
-
       IF TCPSocket1 = NIL THEN BEGIN
         WriteMemoText('Creating TCP Client');
         WatchdogWindow.CreateTCPClients;
@@ -661,8 +666,14 @@ BEGIN
   END;
 
   { And send an acknowledgment }
-  Msg.Result := 1234;
+  Msg.Result := 1;
 END; { WMCopyData }
+
+PROCEDURE TWatchdogWindow.WatchdogWindowCreate(Sender: TObject);
+{ List all the current windows - this is only really needed for debugging (to set the Receiver Strings in this and FWPRail), but no harm in having it each time we run }
+BEGIN
+  EnumWindows(@EnumWindowsProc, LPARAM(WatchdogListBox));
+END; { WatchdogWindowCreate }
 
 INITIALIZATION
   DataReadInList := TStringList.Create;

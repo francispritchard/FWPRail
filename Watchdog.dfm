@@ -14,6 +14,7 @@ object WatchdogWindow: TWatchdogWindow
   Font.Style = []
   OldCreateOrder = False
   OnClose = WatchdogWindowClose
+  OnCreate = WatchdogWindowCreate
   OnShow = WatchdogWindowShow
   DesignSize = (
     933

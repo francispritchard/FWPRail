@@ -7578,16 +7578,16 @@ BEGIN { Main drawing procedure }
 END; { DrawMap }
 
 PROCEDURE TFWPRailWindow.WMCopyData(VAR Msg: TWMCopyData);
-{ Receives data from the Watchdog program }
+{ Receives data from the Watchdog program. (This code is here as the Raildraw window is the de facto main window visible to other programs). }
 VAR
   S : String;
 
 BEGIN
   SetString(S, PChar(Msg.CopyDataStruct.lpData), Msg.CopyDataStruct.cbData DIV SizeOf(Char));
-  Log('XG Message from Watchdog: ' + S);
+  Log('XG FWPRail Watchdog message: "' + S + '"');
 
   { And send an acknowledgment }
-  Msg.Result := 5678;
+  Msg.Result := 2;
 END; { WMCopyData }
 
 INITIALIZATION

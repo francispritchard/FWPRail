@@ -1,8 +1,8 @@
 PROGRAM RailWatchdog;
 
-USES
+uses
   Vcl.Forms,
-  Watchdog IN 'Watchdog.pas' {WatchdogWindow};
+  Watchdog in 'Watchdog.pas' {WatchdogWindow};
 
 {$R *.res}
 
@@ -11,4 +11,4 @@ BEGIN
   Application.MainFormOnTaskbar := True;
   Application.CreateForm(TWatchdogWindow, WatchdogWindow);
   Application.Run;
-END {RailWatchdog}.
+END { RailWatchdog }.

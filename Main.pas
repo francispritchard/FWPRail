@@ -1461,8 +1461,6 @@ VAR
 
 BEGIN
   TRY
-//MainTimer.Interval := 1000;
-
     IF RunTestUnitOnStartup THEN BEGIN
       Debug('Running test unit on startup');
       TestProc(KeyOut);
@@ -1733,18 +1731,18 @@ BEGIN
 
   Res := SendMessage(ReceiverHandle, WM_COPYDATA, Application.Handle, LPARAM(@CopyData));
   IF (Res = 0) AND NOT WatchdogErrorMsgFlag THEN BEGIN
-    Log('XG FWPRail watchdog has not responded correctly to "FWPRail is running" message');
+    Log('XG FWPRail Watchdog has not responded correctly to "FWPRail is running" message');
     WatchdogErrorMsgFlag := True;
     WatchdogActiveMsgFlag := False;
   END ELSE
-    IF Res = 1234 THEN BEGIN
-      Log('XG FWPRail watchdog has acknowledged the "FWPRail is running" message');
+    IF Res = 1 THEN BEGIN
+      Log('XG FWPRail Watchdog has acknowledged the "FWPRail is running" message');
       WatchdogErrorMsgFlag := False;
       IF NOT WatchdogActiveMsgFlag THEN
         WatchdogActiveMsgFlag := True;
     END ELSE
       IF DebuggingMode THEN
-        Log('XG FWPRail watchdog has incorrectly responded to "FWPRail is running" message with the response number: ' + IntToStr(Res));
+        Log('XG FWPRail Watchdog has incorrectly responded to "FWPRail is running" message with the response number: ' + IntToStr(Res));
 END; { SendStringToWatchdogProgram }
 
 PROCEDURE InitialiseMainUnit;
