@@ -21,7 +21,7 @@ object WatchdogWindow: TWatchdogWindow
   PixelsPerInch = 96
   TextHeight = 13
   object IncomingGB: TGroupBox
-    Left = 6
+    Left = 3
     Top = 168
     Width = 922
     Height = 422
@@ -34,7 +34,7 @@ object WatchdogWindow: TWatchdogWindow
     object MSGMemo: TMemo
       Left = 3
       Top = 19
-      Width = 905
+      Width = 454
       Height = 363
       Anchors = [akLeft, akTop, akRight, akBottom]
       Color = clBtnFace
@@ -50,7 +50,7 @@ object WatchdogWindow: TWatchdogWindow
     end
     object ClearButton: TButton
       Left = 3
-      Top = 332
+      Top = 388
       Width = 95
       Height = 25
       Caption = 'Clear'
@@ -58,9 +58,9 @@ object WatchdogWindow: TWatchdogWindow
       OnClick = ClearButtonClick
     end
     object WatchdogListBox: TListBox
-      Left = 408
+      Left = 463
       Top = 19
-      Width = 484
+      Width = 429
       Height = 366
       ItemHeight = 13
       TabOrder = 2
@@ -128,6 +128,7 @@ object WatchdogWindow: TWatchdogWindow
     Top = 248
   end
   object WatchdogTimer: TTimer
+    Enabled = False
     Interval = 1
     OnTimer = WatchdogTimerTick
     Left = 166

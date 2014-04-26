@@ -13,6 +13,7 @@ USES Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.C
 TYPE
   TMainWindow = CLASS(TForm)
     MainTimer: TTimer;
+    WatchdogOneSecondTimer: TTimer;
     PROCEDURE MainTimerTick(Sender: TObject);
     PROCEDURE MainWindowCreate(Sender: TObject);
     PROCEDURE WatchdogOneSecondTimerTick(Sender: TObject);
