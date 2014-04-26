@@ -21,4 +21,9 @@ object MainWindow: TMainWindow
     Left = 132
     Top = 48
   end
+  object WatchdogOneSecondTimer: TTimer
+    OnTimer = WatchdogOneSecondTimerTick
+    Left = 216
+    Top = 48
+  end
 end

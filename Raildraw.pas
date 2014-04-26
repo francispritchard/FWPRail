@@ -1,5 +1,4 @@
 UNIT Raildraw;
-
 { Handles graphics display for railway program
 
   Copyright © F.W. Pritchard 1988-2014. All Rights Reserved.
@@ -464,6 +463,9 @@ TYPE
     { Private declarations }
     PROCEDURE ApplicationMessage(VAR Msg: TMsg; VAR Handled: Boolean);
     { Intercept messages - only way of getting at the tab key! Now replaced by ShortCut above Sept 2009 }
+
+    PROCEDURE WMCopyData(VAR Msg : TWMCopyData); Message WM_COPYDATA;
+    { Receives data from the Watchdog program }
 
 //    { Added to handle Windows messages }
 //    PROCEDURE CM_MenuClosed(VAR msg: TMessage); MESSAGE CM_MENU_CLOSED;
@@ -7574,6 +7576,19 @@ BEGIN { Main drawing procedure }
       Log('EG DrawMap: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { DrawMap }
+
+PROCEDURE TFWPRailWindow.WMCopyData(VAR Msg: TWMCopyData);
+{ Receives data from the Watchdog program }
+VAR
+  S : String;
+
+BEGIN
+  SetString(S, PChar(Msg.CopyDataStruct.lpData), Msg.CopyDataStruct.cbData DIV SizeOf(Char));
+  Log('XG Message from Watchdog: ' + S);
+
+  { And send an acknowledgment }
+  Msg.Result := 5678;
+END; { WMCopyData }
 
 INITIALIZATION
 

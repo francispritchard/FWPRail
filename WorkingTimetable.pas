@@ -2528,4 +2528,4 @@ END; { ProcessWorkingTimetable }
 
 INITIALIZATION
 
-END { NewWorkingTimetable }.
+END { WorkingTimetable }.

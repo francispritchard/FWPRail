@@ -15,12 +15,11 @@ TYPE
     MainTimer: TTimer;
     PROCEDURE MainTimerTick(Sender: TObject);
     PROCEDURE MainWindowCreate(Sender: TObject);
+    PROCEDURE WatchdogOneSecondTimerTick(Sender: TObject);
   PRIVATE
     { Private declarations }
-    PROCEDURE WMCopyData(VAR Msg : TWMCopyData); Message WM_COPYDATA;
-    { Receives data from the Watchdog program }
-
     PROCEDURE SendStringToWatchdogProgram(S : String);
+
   PUBLIC
     { Public declarations }
   END;
@@ -1463,8 +1462,6 @@ BEGIN
   TRY
 //MainTimer.Interval := 1000;
 
-    SendStringToWatchdogProgram('FWPRail is running');
-
     IF RunTestUnitOnStartup THEN BEGIN
       Debug('Running test unit on startup');
       TestProc(KeyOut);
@@ -1699,18 +1696,11 @@ BEGIN
   END; {TRY}
 END; { MainTimerTick }
 
-PROCEDURE TMainWindow.WMCopyData(VAR Msg: TWMCopyData);
-{ Receives data from the Watchdog program }
-VAR
-  S : String;
-
+PROCEDURE TMainWindow.WatchdogOneSecondTimerTick(Sender: TObject);
+{ This sends a message to the watchdog program once a second to show we're still running }
 BEGIN
-  SetString(S, PChar(Msg.CopyDataStruct.lpData), Msg.CopyDataStruct.cbData DIV SizeOf(Char));
-  Debug('From Watchdog: ' + S);
-
-  { And send an acknowledgment }
-  Msg.Result := 1234;
-END; { WMCopyData }
+  SendStringToWatchdogProgram('FWPRail is running');
+END; { WatchdogOneSecondTimerTick }
 
 PROCEDURE TMainWindow.SendStringToWatchdogProgram(S : String);
 VAR
@@ -1733,21 +1723,27 @@ BEGIN
   END;
 
   { We have found the watchdog program }
+  IF DebuggingMode THEN
+    Log('XG Sending "' + S + '" message to Watchdog program');
+
   CopyData.lpData := PChar(S);
   CopyData.cbdata := Bytelength(S);
   CopyData.dwData := ReceiverHandle;
 
   Res := SendMessage(ReceiverHandle, WM_COPYDATA, Application.Handle, LPARAM(@CopyData));
   IF (Res = 0) AND NOT WatchdogErrorMsgFlag THEN BEGIN
-    Debug('FWPRail watchdog is not responding to "FWPRail is running" message');
+    Log('XG FWPRail watchdog has not responded correctly to "FWPRail is running" message');
     WatchdogErrorMsgFlag := True;
     WatchdogActiveMsgFlag := False;
   END ELSE
-    IF (Res <> 0) AND NOT WatchdogActiveMsgFlag THEN BEGIN
-      Debug('FWPRail watchdog is responding to "FWPRail is running" message');
-      WatchdogActiveMsgFlag := True;
+    IF Res = 1234 THEN BEGIN
+      Log('XG FWPRail watchdog has acknowledged the "FWPRail is running" message');
       WatchdogErrorMsgFlag := False;
-    END;
+      IF NOT WatchdogActiveMsgFlag THEN
+        WatchdogActiveMsgFlag := True;
+    END ELSE
+      IF DebuggingMode THEN
+        Log('XG FWPRail watchdog has incorrectly responded to "FWPRail is running" message with the response number: ' + IntToStr(Res));
 END; { SendStringToWatchdogProgram }
 
 PROCEDURE InitialiseMainUnit;
@@ -1755,7 +1751,7 @@ PROCEDURE InitialiseMainUnit;
 BEGIN
   SaveSystemStatusEmergencyOff := False;
 
-  Log('A Main unit initialised');
+  Log('A Main Unit initialised');
 END; { InitialiseGetTimeUnit }
 
 END { Main }.
