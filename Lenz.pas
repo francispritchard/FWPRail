@@ -741,7 +741,7 @@ BEGIN
             S := '';
             FOR I := 0 TO GetCommandLen(WriteArray[0]) + 1 DO
               S := S + IntToHex(WriteArray[I], 2);
-            TCPIPForm.ResponsesTCPSendText(S)
+            TCPIPForm.ResponsesTCPSendText(S);
           END ELSE
             IF LenzConnection = EthernetConnection THEN BEGIN
               { Add the two required header elements then send the data as an array of bytes }

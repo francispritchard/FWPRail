@@ -41,8 +41,8 @@ TYPE
     PROCEDURE BroadcastsTCPClientRead(Sender: TObject; Socket2 : TCustomWinSocket);
     PROCEDURE BroadcastsTCPClientError(Sender: TObject; Socket2 : TCustomWinSocket; ErrorEvent: TErrorEvent; VAR ErrorCode: Integer);
 
-    PROCEDURE ResponsesTCPSendText(S : String);
     PROCEDURE ResponsesTCPSendBuffer(Buffer : ARRAY OF Byte; BufferLen : Integer);
+    PROCEDURE ResponsesTCPSendText(S : String);
   END;
 
 FUNCTION ReadDataFromTCPIPList : String;
