@@ -32,7 +32,7 @@ object WatchdogWindow: TWatchdogWindow
     DesignSize = (
       922
       422)
-    object MSGMemo: TMemo
+    object WatchdogMemo: TMemo
       Left = 3
       Top = 19
       Width = 454
@@ -104,14 +104,14 @@ object WatchdogWindow: TWatchdogWindow
       Caption = 'Send Status Request'
       OnClick = SendStatusRequestButtonClick
     end
-    object TCPConnectButton: TButton
-      Left = 6
-      Top = 7
+    object USBConnectButton: TButton
+      Left = 8
+      Top = 12
       Width = 95
       Height = 25
-      Caption = 'TCP Connect'
+      Caption = 'USB Connect'
       TabOrder = 0
-      OnClick = TCPConnectButtonClick
+      OnClick = USBConnectButtonClick
     end
     object TCPCommand: TMemo
       Left = 8
@@ -120,6 +120,15 @@ object WatchdogWindow: TWatchdogWindow
       Height = 60
       Anchors = [akLeft, akTop, akRight]
       TabOrder = 1
+    end
+    object EthernetConnectButton: TButton
+      Left = 134
+      Top = 12
+      Width = 95
+      Height = 25
+      Caption = 'Ethernet Connect'
+      TabOrder = 2
+      OnClick = EthernetConnectButtonClick
     end
   end
   object TCPIPTimer: TTimer

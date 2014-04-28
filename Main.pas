@@ -91,6 +91,9 @@ USES GetTime, Raildraw, MiscUtils, Locks, LocationData, Feedback, Options, Syste
      Diagrams, Route, Replay, Startup, Cuneo, LocoUtils, StationMonitors, ProgressBar, LocoDialogue, Help, WorkingTimetable, Edit, RDC, Input;
 
 CONST
+  ConnectedViaUSBStr = 'via USB';
+  ConnectedViaEthernetStr = 'via Ethernet';
+  NotConnectedStr = 'but not connected to Lenz';
   UndrawRequired = True;
   UndrawToBeAutomatic = True;
   UnitRef = 'Main';
@@ -1698,7 +1701,14 @@ END; { MainTimerTick }
 PROCEDURE TMainWindow.WatchdogOneSecondTimerTick(Sender: TObject);
 { This sends a message to the watchdog program once a second to show we're still running }
 BEGIN
-  SendStringToWatchdogProgram('FWPRail is running');
+  IF LenzConnection = USBConnection THEN
+    SendStringToWatchdogProgram('FWPRail is running ' + ConnectedViaUSBStr)
+  ELSE
+    IF LenzConnection = EthernetConnection THEN
+      SendStringToWatchdogProgram('FWPRail is running ' + ConnectedViaEthernetStr)
+    ELSE
+      IF LenzConnection = NoConnection THEN
+        SendStringToWatchdogProgram('FWPRail is running ' + NotConnectedStr);
 END; { WatchdogOneSecondTimerTick }
 
 PROCEDURE TMainWindow.SendStringToWatchdogProgram(S : String);
