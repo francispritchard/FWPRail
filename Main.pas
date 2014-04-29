@@ -1699,7 +1699,7 @@ BEGIN
 END; { MainTimerTick }
 
 PROCEDURE TMainWindow.WatchdogOneSecondTimerTick(Sender: TObject);
-{ This sends a message to the watchdog program once a second to show we're still running }
+{ This sends a message to the watchdog program once a second to show we're still running. It also tells the watchdog what kind of connection we're using. }
 BEGIN
   IF LenzConnection = USBConnection THEN
     SendStringToWatchdogProgram('FWPRail is running ' + ConnectedViaUSBStr)
@@ -1733,7 +1733,7 @@ BEGIN
 
   { We have found the watchdog program }
   IF DebuggingMode THEN
-    Log('XG Sending "' + S + '" message to Watchdog program');
+    Log('X Sending "' + S + '" message to Watchdog program');
 
   CopyData.lpData := PChar(S);
   CopyData.cbdata := Bytelength(S);
@@ -1741,12 +1741,13 @@ BEGIN
 
   Res := SendMessage(ReceiverHandle, WM_COPYDATA, Application.Handle, LPARAM(@CopyData));
   IF (Res = 0) AND NOT WatchdogErrorMsgFlag THEN BEGIN
-    Log('XG FWPRail Watchdog has not responded correctly to "FWPRail is running" message');
+    Log('X FWPRail Watchdog has not responded correctly to "FWPRail is running" message');
     WatchdogErrorMsgFlag := True;
     WatchdogActiveMsgFlag := False;
   END ELSE
     IF Res = 1 THEN BEGIN
-      Log('XG FWPRail Watchdog has acknowledged the "FWPRail is running" message');
+      IF DebuggingMode THEN
+        Log('X FWPRail Watchdog has acknowledged the "FWPRail is running" message');
       WatchdogErrorMsgFlag := False;
       IF NOT WatchdogActiveMsgFlag THEN
         WatchdogActiveMsgFlag := True;

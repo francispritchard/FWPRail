@@ -41,21 +41,16 @@ TYPE
     PROCEDURE WMCopyData(VAR Msg : TWMCopyData); Message WM_COPYDATA;
     { Receives data from FWPRail }
 
-    PROCEDURE SendNotConnectedMsgToRailProgram;
+    PROCEDURE SendMsgToRailProgram(Msg : String);
 
   PUBLIC
     PROCEDURE CreateTCPClients(Connection : LenzConnectionType);
-    PROCEDURE DestroyTCPClients;
+    PROCEDURE DestroyTCPClient;
 
-    PROCEDURE ResponsesTCPClientConnect(Sender: TObject; Socket1 : TCustomWinSocket);
-    PROCEDURE ResponsesTCPClientDisconnect(Sender: TObject; Socket1 : TCustomWinSocket);
-    PROCEDURE ResponsesTCPClientRead(Sender: TObject; Socket1 : TCustomWinSocket);
-    PROCEDURE ResponsesTCPClientError(Sender: TObject; Socket1 : TCustomWinSocket; ErrorEvent: TErrorEvent; VAR ErrorCode: Integer);
-
-    PROCEDURE BroadcastsTCPClientConnect(Sender: TObject; Socket2 : TCustomWinSocket);
-    PROCEDURE BroadcastsTCPClientDisconnect(Sender: TObject; Socket2 : TCustomWinSocket);
-    PROCEDURE BroadcastsTCPClientRead(Sender: TObject; Socket2 : TCustomWinSocket);
-    PROCEDURE BroadcastsTCPClientError(Sender: TObject; Socket2 : TCustomWinSocket; ErrorEvent: TErrorEvent; VAR ErrorCode: Integer);
+    PROCEDURE ResponsesTCPClientConnect(Sender: TObject; Socket : TCustomWinSocket);
+    PROCEDURE ResponsesTCPClientDisconnect(Sender: TObject; Socket : TCustomWinSocket);
+    PROCEDURE ResponsesTCPClientRead(Sender: TObject; Socket : TCustomWinSocket);
+    PROCEDURE ResponsesTCPClientError(Sender: TObject; Socket : TCustomWinSocket; ErrorEvent: TErrorEvent; VAR ErrorCode: Integer);
 
     PROCEDURE ResponsesTCPSendBuffer(Buffer : ARRAY OF Byte; BufferLen : Integer);
     PROCEDURE ResponsesTCPSendText(S : String);
@@ -70,11 +65,9 @@ VAR
   DataReadInList : TStringList;
   ReceiverTypeString : PWideChar = '';
   ResponsesTCPClient : TClientSocket = NIL;
-  TCPBuf1 : String = '';
-  TCPBuf2 : String = '';
+  TCPBuf : String = '';
   TCPIPConnected : Boolean = True;
-  TCPSocket1 : TCustomWinSocket = NIL;
-  TCPSocket2 : TCustomWinSocket = NIL;
+  TCPSocket : TCustomWinSocket = NIL;
   WatchdogWindow : TWatchdogWindow;
 
 IMPLEMENTATION
@@ -84,7 +77,7 @@ IMPLEMENTATION
 CONST
   ConnectedViaUSBStr = 'via USB';
   ConnectedViaEthernetStr = 'via Ethernet';
-  NotConnectedStr = 'but not connected to Lenz';
+  NotConnectedMsg = 'The Watchdog program cannot connect to the Lenz system';
 
 VAR
   FirstMessageAlreadyReceivedFromFWPRail : Boolean = False;
@@ -241,23 +234,23 @@ END; { FillSpace }
 PROCEDURE TWatchdogWindow.WatchdogWindowClose(Sender: TObject; VAR Action: TCloseAction);
 BEGIN
   IF ResponsesTCPClient <> NIL THEN
-    DestroyTCPClients;
+    DestroyTCPClient;
 END; { WatchdogWindowClose }
 
 PROCEDURE TWatchdogWindow.USBConnectButtonClick(Sender: TObject);
 BEGIN
-  IF TCPSocket1 = NIL THEN
+  IF TCPSocket = NIL THEN
     CreateTCPClients(USBConnection)
   ELSE
-    DestroyTCPClients;
+    DestroyTCPClient;
 END; { USBConnectButtonClick }
 
 PROCEDURE TWatchdogWindow.EthernetConnectButtonClick(Sender: TObject);
 BEGIN
-  IF TCPSocket1 = NIL THEN
+  IF TCPSocket = NIL THEN
     CreateTCPClients(EthernetConnection)
   ELSE
-    DestroyTCPClients;
+    DestroyTCPClient;
 END; { EthernetConnectButtonClick }
 
 PROCEDURE TWatchdogWindow.WatchdogWindowShow(Sender: TObject);
@@ -268,7 +261,7 @@ END; { WatchdogWindowShow }
 PROCEDURE TWatchdogWindow.SendStatusRequestButtonClick(Sender: TObject);
 BEGIN
   IF ResponsesTCPClient <> NIL THEN BEGIN
-    WriteMemoText('OUT ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : [System Status Request]');
+    WriteMemoText('OUT [System Status Request]');
     ResponsesTCPSendText('21-24-05' +CRLF);
     TCPCommand.Clear;
   END;
@@ -291,7 +284,7 @@ BEGIN
     END ELSE
       S := TCPCommand.Lines[0];
 
-    WriteMemoText('OUT ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : ' + S);;
+    WriteMemoText('OUT ' + S);;
     ResponsesTCPSendText(TCPCommand.Text);
     TCPCommand.Clear;
   END;
@@ -321,9 +314,9 @@ BEGIN
   TRY
     ResponsesTCPClient.Active := True;
     I := 0;
-    WHILE (TCPSocket1 = NIL) AND (I < 50) DO BEGIN
+    WHILE (TCPSocket = NIL) AND (I < 50) DO BEGIN
       Application.ProcessMessages;
-      IF TCPSocket1 = NIL THEN
+      IF TCPSocket = NIL THEN
         Sleep(100);
       Inc(I);
     END;
@@ -331,117 +324,49 @@ BEGIN
     FreeAndNIL(ResponsesTCPClient);
     WriteMemoText('*** Unable to Connect to Client 1');
   END;
-
-  IF Connection = USBConnection THEN BEGIN
-    IF BroadcastsTCPClient = NIL THEN BEGIN
-      BroadcastsTCPClient              := TClientSocket.Create(WatchdogWindow);
-      BroadcastsTCPClient.ClientType   := ctNonBlocking;
-      BroadcastsTCPClient.OnConnect    := BroadcastsTCPClientConnect;
-      BroadcastsTCPClient.OnDisconnect := BroadcastsTCPClientDisconnect;
-      BroadcastsTCPClient.OnRead       := BroadcastsTCPClientRead;
-      BroadcastsTCPClient.OnError      := BroadcastsTCPClientError;
-    END;
-
-    BroadcastsTCPClient.Port           := 5551;
-    BroadcastsTCPClient.Address        := '127.0.0.1';
-
-    TRY
-      BroadcastsTCPClient.Active := True;
-      I := 0;
-      WHILE (TCPSocket2 = NIL) AND (I < 50) DO BEGIN
-        Application.ProcessMessages;
-        IF TCPSocket2 = NIL THEN
-          Sleep(100);
-        Inc(I);
-      END;
-    EXCEPT
-      FreeAndNIL(BroadcastsTCPClient);
-      WriteMemoText('*** Unable to Connect to Client 2');
-    END;
-  END;
 END; { CreateTCPClients }
 
-PROCEDURE TWatchdogWindow.DestroyTCPClients;
+PROCEDURE TWatchdogWindow.DestroyTCPClient;
 BEGIN
   IF ResponsesTCPClient <> NIL THEN BEGIN
-    IF TCPSocket1 <> NIL THEN BEGIN
-      TCPSocket1.Close;
-      TCPSocket1 := NIL;
+    IF TCPSocket <> NIL THEN BEGIN
+      TCPSocket.Close;
+      TCPSocket := NIL;
     END;
 
     ResponsesTCPClient.Active := False;
     FreeAndNIL(ResponsesTCPClient);
   END;
+END; { DestroyTCPClient }
 
-  IF BroadcastsTCPClient <> NIL THEN BEGIN
-    IF TCPSocket2 <> NIL THEN BEGIN
-      TCPSocket2.Close;
-      TCPSocket2 := NIL;
-    END;
-
-    BroadcastsTCPClient.Active := False;
-    FreeAndNIL(BroadcastsTCPClient);
-  END;
-END; { DestroyTCPClients }
-
-PROCEDURE TWatchdogWindow.ResponsesTCPClientConnect(Sender: TObject; Socket1 : TCustomWinSocket);
+PROCEDURE TWatchdogWindow.ResponsesTCPClientConnect(Sender: TObject; Socket : TCustomWinSocket);
 BEGIN
   ConnectTS := GetTickCount;
-  TCPSocket1 := Socket1;
+  TCPSocket := Socket;
   WriteMemoText('TCPClient 1 Connected');
   IF LenzConnection = EthernetConnection THEN BEGIN
     EthernetConnectButton.Enabled := True;
-    EthernetConnectButton.Caption := 'TCP 1 Disconnect';
+    EthernetConnectButton.Caption := 'TCP Disconnect';
   END ELSE BEGIN
     USBConnectButton.Enabled := True;
-    USBConnectButton.Caption := 'TCP 1 Disconnect';
+    USBConnectButton.Caption := 'TCP Disconnect';
   END;
 END; { ResponsesTCPClientConnect }
 
-PROCEDURE TWatchdogWindow.BroadcastsTCPClientConnect(Sender: TObject; Socket2 : TCustomWinSocket);
-BEGIN
-  ConnectTS := GetTickCount;
-  TCPSocket2 := Socket2;
-  WriteMemoText('TCPClient 2 Connected');
-  IF LenzConnection = EthernetConnection THEN BEGIN
-    EthernetConnectButton.Enabled := True;
-    EthernetConnectButton.Caption := 'TCP 2 Disconnect';
-  END ELSE BEGIN
-    USBConnectButton.Enabled := True;
-    USBConnectButton.Caption := 'TCP 2 Disconnect';
-  END;
-  WriteMemoText('TCPClient 2 Connected');
-END; { BroadcastsTCPClientConnect }
-
-PROCEDURE TWatchdogWindow.ResponsesTCPClientDisconnect(Sender: TObject; Socket1 : TCustomWinSocket);
+PROCEDURE TWatchdogWindow.ResponsesTCPClientDisconnect(Sender: TObject; Socket : TCustomWinSocket);
 BEGIN
   IF ResponsesTCPClient <> NIL THEN BEGIN
-    WriteMemoText('TCPClient 1 Disconnected');
+    WriteMemoText('TCPClient Disconnected');
     IF LenzConnection = EthernetConnection THEN BEGIN
       EthernetConnectButton.Enabled := True;
-      EthernetConnectButton.Caption := 'TCP 1 Connect';
+      EthernetConnectButton.Caption := 'TCP Connect';
     END ELSE BEGIN
       USBConnectButton.Enabled := True;
-      USBConnectButton.Caption := 'TCP 1 Connect';
+      USBConnectButton.Caption := 'TCP Connect';
     END;
-    TCPSocket1 := NIL;
+    TCPSocket := NIL;
   END;
 END; { ResponsesTCPClientDisconnect }
-
-PROCEDURE TWatchdogWindow.BroadcastsTCPClientDisconnect(Sender: TObject; Socket2 : TCustomWinSocket);
-BEGIN
-  IF BroadcastsTCPClient <> NIL THEN BEGIN
-    WriteMemoText('TCPClient 2 Disconnected');
-    IF LenzConnection = EthernetConnection THEN BEGIN
-      EthernetConnectButton.Enabled := True;
-      EthernetConnectButton.Caption := 'TCP 2 Connect';
-    END ELSE BEGIN
-      USBConnectButton.Enabled := True;
-      USBConnectButton.Caption := 'TCP 2 Connect';
-    END;
-    TCPSocket2 := NIL;
-  END;
-END; { BroadcastsTCPClientDisconnect }
 
 FUNCTION ReadDataFromTCPIPList : String;
 { Return string from data-read-in list }
@@ -454,24 +379,24 @@ BEGIN
   END;
 END; { ReadDataFromTCPIPList }
 
-PROCEDURE TWatchdogWindow.ResponsesTCPClientRead(Sender: TObject; Socket1 : TCustomWinSocket);
+PROCEDURE TWatchdogWindow.ResponsesTCPClientRead(Sender: TObject; Socket : TCustomWinSocket);
 VAR
   AnsiStr : AnsiString;
   I : Integer;
   S : String;
 
 BEGIN
-  IF Socket1.Connected = True THEN BEGIN
-    AnsiStr := Socket1.ReceiveText;
+  IF Socket.Connected = True THEN BEGIN
+    AnsiStr := Socket.ReceiveText;
     S := String(AnsiStr);
-    TCPBuf1 := TCPBuf1 + S;
+    TCPBuf := TCPBuf + S;
 
     { Strip off the carriage returns }
-    WHILE Pos(CRLF, TCPBuf1) > 0 DO BEGIN
-      I := Pos(CRLF, TCPBuf1);
-      S := Copy(TCPBuf1, 1, I - 1);
-      Delete(TCPBuf1, 1, I + 1);
-      WriteMemoText('IN1  ' + FillSpace(TimeToStr(Time), 8) + 'ms : ' + S);
+    WHILE Pos(CRLF, TCPBuf) > 0 DO BEGIN
+      I := Pos(CRLF, TCPBuf);
+      S := Copy(TCPBuf, 1, I - 1);
+      Delete(TCPBuf, 1, I + 1);
+      WriteMemoText('IN ' + S);
 
       { Put what's been read in at the top of the list, and note that it was a response to a request for data }
       DataReadInList.Add('R ' + S);
@@ -479,42 +404,12 @@ BEGIN
   END;
 END; { ResponsesTCPClientRead }
 
-PROCEDURE TWatchdogWindow.BroadcastsTCPClientRead(Sender: TObject; Socket2 : TCustomWinSocket);
-VAR
-  AnsiStr : AnsiString;
-  S : String;
-  I : Integer;
-
-BEGIN
-  IF Socket2.Connected = True THEN BEGIN
-    AnsiStr := Socket2.ReceiveText;
-    S := String(AnsiStr);
-    TCPBuf2 := TCPBuf2 + S;
-
-    WHILE Pos(CRLF, TCPBuf2) > 0 DO BEGIN
-      I := Pos(CRLF, TCPBuf2);
-      S := Copy(TCPBuf2, 1, I - 1);
-      Delete(TCPBuf2, 1, I + 1);
-      WriteMemoText('IN2  ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : ' + S);
-
-      { Put what's been read in at the top of the list, and note that it was a broadcast }
-      DataReadInList.Add('B ' + S);
-    END;
-  END;
-END; { BroadcastsTCPClientRead }
-
-PROCEDURE TWatchdogWindow.ResponsesTCPClientError(Sender: TObject; Socket1 : TCustomWinSocket; ErrorEvent: TErrorEvent; VAR ErrorCode: Integer);
+PROCEDURE TWatchdogWindow.ResponsesTCPClientError(Sender: TObject; Socket : TCustomWinSocket; ErrorEvent: TErrorEvent; VAR ErrorCode: Integer);
 BEGIN
   WriteMemoText('*** Unable to Connect: ' + SysErrorMessage(ErrorCode));
   ErrorCode := 0;
-  SendNotConnectedMsgToRailProgram;
+  SendMsgToRailProgram(NotConnectedMsg);
 END; { ResponsesTCPClientError }
-
-PROCEDURE TWatchdogWindow.BroadcastsTCPClientError(Sender: TObject; Socket2 : TCustomWinSocket; ErrorEvent: TErrorEvent; VAR ErrorCode: Integer);
-BEGIN
-  WriteMemoText('*** Unable to Connect: ' + SysErrorMessage(ErrorCode));
-  ErrorCode := 0;
-END; { BroadcastsTCPClientError }
 
 PROCEDURE TWatchdogWindow.ResponsesTCPSendText(S : String);
 VAR
@@ -522,9 +417,9 @@ VAR
 
 BEGIN
   AnsiStr := AnsiString(S);
-  IF TCPSocket1 <> NIL THEN BEGIN
-    TCPSocket1.SendText(AnsiStr + CRLF);
-    WriteMemoText('OUT1 *** ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + ' ' + S);
+  IF TCPSocket <> NIL THEN BEGIN
+    TCPSocket.SendText(AnsiStr + CRLF);
+    WriteMemoText('OUT ' + S);
   END;
 END; { ResponsesTCPSendText }
 
@@ -534,27 +429,22 @@ VAR
   S : String;
 
 BEGIN
-  IF TCPSocket1 <> NIL THEN BEGIN
-    TCPSocket1.SendBuf(Buffer[0], BufferLen);
+  IF TCPSocket <> NIL THEN BEGIN
+    TCPSocket.SendBuf(Buffer[0], BufferLen);
 
     S := '';
     FOR I := 0 TO BufferLen - 1 DO
       S := S + IntToStr(Buffer[I]) + ' ';
-    WriteMemoText('OUT1 *** ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : ' + S);
+    WriteMemoText('OUT ' + S);
   END;
 END; { ResponsesTCPSendText }
 
 PROCEDURE TWatchdogWindow.TCPIPTimerOnTimer(Sender: TOBJECT);
 { Send something every 500 miliseconds or the TCPIP ports time out }
 BEGIN
-  IF TCPSocket1 <> NIL THEN BEGIN
-    WriteMemoText('OUT1 ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : Sending Watchdog');
-    TCPSocket1.SendText(' ');
-  END;
-
-  IF TCPSocket2 <> NIL THEN BEGIN
-    WriteMemoText('OUT2 ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : Sending Watchdog');
-    TCPSocket2.SendText(' ');
+  IF TCPSocket <> NIL THEN BEGIN
+    WriteMemoText('OUT Sending Watchdog');
+    TCPSocket.SendText(' ');
   END;
 END; { TCPIPTimerOnTimer }
 
@@ -576,11 +466,8 @@ BEGIN
   Result := True;
 END; { EnumWindowsProc }
 
-PROCEDURE TWatchdogWindow.SendNotConnectedMsgToRailProgram;
+PROCEDURE TWatchdogWindow.SendMsgToRailProgram(Msg : String);
 { Let the Rail program know if we can't start because we're not talking to the Lenz system }
-CONST
-  NotConnectedMsg = 'The Watchdog program cannot connect to the Lenz system';
-
 VAR
   CopyData: TCopyDataStruct;
   ReceiverHandle : THandle;
@@ -591,15 +478,15 @@ BEGIN
   ReceiverTypeString := 'TFWPRailWindow';
   ReceiverHandle := FindWindow(ReceiverTypeString, NIL);
   IF ReceiverHandle = 0 THEN BEGIN
-    WriteMemoText('Cannot find Rail program so cannot warn it we''re not connected to the Lenz system');
+    WriteMemoText('Cannot find FWPRail so cannot send message "' + Msg + '" to it');
     Exit;
   END;
 
   { We have found the watchdog program }
-  WriteMemoText('Sending "' + NotConnectedMsg + '" message to Rail program');
+  WriteMemoText('Sending "' + Msg + '" message to Rail program');
 
-  CopyData.lpData := PChar(NotConnectedMsg);
-  CopyData.cbdata := Bytelength(NotConnectedMsg);
+  CopyData.lpData := PChar(Msg);
+  CopyData.cbdata := Bytelength(Msg);
   CopyData.dwData := ReceiverHandle;
 
   Res := SendMessage(ReceiverHandle, WM_COPYDATA, Application.Handle, LPARAM(@CopyData));
@@ -607,7 +494,7 @@ BEGIN
     WriteMemoText('FWPRail Watchdog has acknowledged the message')
   ELSE
     WriteMemoText('FWPRail Watchdog has not acknowledged the message');
-END; { SendNotConnectedMsgToRailProgram }
+END; { SendMsgToRailProgram }
 
 PROCEDURE TWatchdogWindow.WatchdogTimerTick(Sender: TObject);
 VAR
@@ -632,8 +519,8 @@ BEGIN
 
         FWPRailRunning := False;
         MessageReceivedFromFWPRail := False;
-        IF TCPSocket1 <> NIL THEN
-          WatchdogWindow.DestroyTCPClients;
+        IF TCPSocket <> NIL THEN
+          WatchdogWindow.DestroyTCPClient;
       END;
 
       Exit;
@@ -643,7 +530,7 @@ BEGIN
       IF NOT FWPRailLenzOperationsStopped THEN BEGIN
         { Panic! }
         FWPRailLenzOperationsStopped := True;
-        IF TCPSocket1 = NIL THEN BEGIN
+        IF TCPSocket = NIL THEN BEGIN
           WriteMemoText('FWPRail has stopped running - Lenz system would have been sent a "Stop Operations" command had the Watchdog been connected to it');
           Beep;
           ShowMessage('FWPRail has stopped running - Lenz system would have been sent a "Stop Operations" command had the Watchdog been connected to it');
@@ -663,16 +550,18 @@ BEGIN
               TempWriteArray[4] := $A1;
               ResponsesTCPSendBuffer(TempWriteArray, 5);
             END;
-          ResponsesTCPSendText('21-80-A1' + CRLF);
+
           TCPCommand.Clear;
-          WriteMemoText('FWPRail has stopped running - Lenz system has been sent a "Stop Operations" command');
+          WriteMemoText('FWPRail has stopped running - Lenz system has been sent a "Stop Operations" command and FWPRail will be informed');
           Beep;
           ShowMessage('FWPRail has stopped running - Lenz system has been sent a "Stop Operations" command');
+
+          { We might have to wait for a response here, because if FWPRail has stopped (for whatever reason), using SendMessage will cause the watchdog to hang, as
+            it waits for a response from FWPRail
+          }
+          SendMsgToRailProgram('Watchdog has detected that FWPRail has stopped running so has sent the Lenz system a "Stop Operations" command');
         END;
 
-        { We might have sent a message to FWPRail at this point, but if FWPRail has stopped (for whatever reason), using SendMessage will cause the watchdog to hang, as
-          it waits for a response from the other end
-        }
       END;
     END;
 
@@ -708,13 +597,13 @@ BEGIN
         LenzConnection := NoConnection;
 
     IF NOT FirstMessageAlreadyReceivedFromFWPRail THEN BEGIN
-      WriteMemoText('First msg from FWPRail received: ' + S);
+      WriteMemoText('First msg from FWPRail received: "' + S + '"');
 
       IF LenzConnection = NoConnection THEN
         WriteMemoText('Connecting to Lenz system as FWPRail is not connected')
       ELSE BEGIN
         WriteMemoText('Connecting');
-        IF TCPSocket1 = NIL THEN BEGIN
+        IF TCPSocket = NIL THEN BEGIN
           WriteMemoText('Creating TCP Client via ' + LenzConnectionToStr(LenzConnection));
           WatchdogWindow.CreateTCPClients(LenzConnection);
         END;
@@ -746,14 +635,14 @@ BEGIN
         CASE LenzConnection OF
           NoConnection:
             BEGIN
-              IF TCPSocket1 <> NIL THEN
-                DestroyTCPClients;
+              IF TCPSocket <> NIL THEN
+                DestroyTCPClient;
               WriteMemoText('Now connected to Lenz system as FWPRail is not connected');
             END;
           USBConnection, EthernetConnection:
             BEGIN
-              IF TCPSocket1 <> NIL THEN
-                DestroyTCPClients;
+              IF TCPSocket <> NIL THEN
+                DestroyTCPClient;
 
               WriteMemoText('Reconnecting');
               WriteMemoText('Creating TCP Client via ' + LenzConnectionToStr(LenzConnection));
