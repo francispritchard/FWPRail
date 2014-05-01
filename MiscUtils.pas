@@ -825,7 +825,7 @@ IMPLEMENTATION
 {$R *.dfm}
 
 USES GetTime, Lenz, Diagrams, RailDraw, Types, LocoUtils, Math {sic}, IDGlobal, StrUtils, Feedback, RDC, CreateRoute, IniFiles, DateUtils, Startup, Cuneo, Movement,
-     LocoDialogue, FWPShowMessageUnit, Options, Registry, Help, MMSystem, ADODB, TCPIP, Main;
+     LocoDialogue, FWPShowMessageUnit, Options, Registry, Help, MMSystem, ADODB, TCPIP, Main, StationMonitors;
 
 CONST
   UnitRef = 'MiscUtils';
@@ -2385,7 +2385,7 @@ BEGIN
       DebugWindowLines[High(DebugWindowLines)] := Str;
     END ELSE BEGIN
       { Note: without the following two statements, the RichEdit window doesn't initially scroll }
-      IF DebugWindow.Visible THEN
+      IF DebugWindow.Visible AND NOT StationMonitorsWindow.Visible THEN
         DebugWindow.setFocus;
       DebugWindow.DebugRichEdit.Perform(EM_SCROLLCARET, 0, 0);
 
