@@ -3,17 +3,22 @@ UNIT StationMonitors;
 INTERFACE
 
 USES
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, Grids, InitVars, System.UITypes;
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, Grids, InitVars, System.UITypes,
+  Web.Win.Sockets;
 
 CONST
   UnitRef = 'StationMonitors';
 
 TYPE
   TStationMonitorsWindow = CLASS(TForm)
-    PROCEDURE StationMonitorsWindowHide(Sender: TObject);
-    PROCEDURE StationMonitorsWindowKeyDown(Sender: TObject; VAR Key: Word; ShiftState: TShiftState);
-    PROCEDURE StationMonitorsWindowPaint(Sender: TObject);
-    PROCEDURE StationMonitorsWindowShow(Sender: TObject);
+    StationMonitorsTcpServer: TTcpServer;
+    StationMonitorsMemo: TMemo;
+    PROCEDURE StationMonitorsFormCreate(Sender: TObject);
+    PROCEDURE StationMonitorsFormHide(Sender: TObject);
+    PROCEDURE StationMonitorsFormKeyDown(Sender: TObject; VAR Key: Word; ShiftState: TShiftState);
+    PROCEDURE StationMonitorsFormPaint(Sender: TObject);
+    PROCEDURE StationMonitorsFormShow(Sender: TObject);
+    PROCEDURE StationMonitorsTcpServerAccept(Sender: TObject; ClientSocket: TCustomIpClient);
   PRIVATE
     { Private declarations }
   PUBLIC
@@ -43,7 +48,7 @@ BEGIN
   WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
 
-PROCEDURE TStationMonitorsWindow.StationMonitorsWindowKeyDown(Sender: TObject; VAR Key: Word; ShiftState: TShiftState);
+PROCEDURE TStationMonitorsWindow.StationMonitorsFormKeyDown(Sender: TObject; VAR Key: Word; ShiftState: TShiftState);
 BEGIN
   CASE Key OF
     vk_Escape, vk_Subtract:
@@ -64,13 +69,62 @@ BEGIN
   END; {CASE}
 END; { MonitorsWindowKeyDown }
 
-PROCEDURE TStationMonitorsWindow.StationMonitorsWindowShow(Sender: TObject);
+PROCEDURE TStationMonitorsWindow.StationMonitorsFormShow(Sender: TObject);
 BEGIN
   { Turns the cursor off when we display the station monitors }
   ShowCursor(False);
 END; { MonitorsWindowShow }
 
-PROCEDURE TStationMonitorsWindow.StationMonitorsWindowHide(Sender: TObject);
+PROCEDURE TStationMonitorsWindow.StationMonitorsFormCreate(Sender: TObject);
+BEGIN
+  StationMonitorsTCPServer.Open;
+  StationMonitorsMemo.Lines.Add(DateTimeToStr(Now) + ': server started');
+END; { StationMonitorsFormCreate }
+
+PROCEDURE TStationMonitorsWindow.StationMonitorsTcpServerAccept(Sender: TObject; ClientSocket: TCustomIpClient);
+VAR
+  HTTPPos : integer;
+  Line : String;
+  Path : String;
+
+BEGIN
+  Line := ' ';
+  WHILE ClientSocket.Connected AND (Line <> '') DO BEGIN
+    Line := ClientSocket.ReceiveLn();
+
+    StationMonitorsMemo.Lines.Add('Rec''d: ' + Line);
+
+    IF Copy(Line, 1, 3) = 'GET' THEN BEGIN
+      HTTPPos := Pos('HTTP', Line);
+      Path := Copy(Line, 5, HTTPPos - 6);
+      StationMonitorsMemo.Lines.Add('Path: ' + Path);
+      StationMonitorsMemo.Lines.Add('LocalHostaddr = ' + StationMonitorsTCPServer.LocalHostAddr);
+    END;
+  END;
+
+  IF Path = '/' THEN
+    Path := 'index.html';
+
+  IF FileExists('TestWebServerDocs/' + Path) THEN
+    WITH TstringList.Create DO BEGIN
+      LoadFromFile('TestWebServerDocs/' + Path);
+      ClientSocket.SendLn('HTTP/1.0 200 OK');
+      ClientSocket.SendLn('');
+      ClientSocket.SendLn(Text + 'xxx');
+      ClientSocket.Close;
+
+      Free;
+      Exit;
+    END;
+
+  ClientSocket.SendLn('HTTP/1.0 404 Not Found');
+  ClientSocket.SendLn('');
+  ClientSocket.SendLn('<h1>404 Not Found</h1><br><br>Path: ' + Path);
+
+  ClientSocket.Close;
+END; { StationMonitorsTcpServerAccept }
+
+PROCEDURE TStationMonitorsWindow.StationMonitorsFormHide(Sender: TObject);
 BEGIN
   { Turns the cursor on when we exit from the station monitors display }
   ShowCursor(True);
@@ -662,7 +716,7 @@ BEGIN
     Close(StationMonitorsOutputFile);
 END; { DrawStationMonitorsWindow }
 
-PROCEDURE TStationMonitorsWindow.StationMonitorsWindowPaint(Sender: TObject);
+PROCEDURE TStationMonitorsWindow.StationMonitorsFormPaint(Sender: TObject);
 BEGIN
   DrawStationMonitorsWindow;
 END; { StationMonitorsWindowPaint }

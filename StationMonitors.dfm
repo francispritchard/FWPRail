@@ -14,12 +14,29 @@ object StationMonitorsWindow: TStationMonitorsWindow
   Font.Style = []
   OldCreateOrder = False
   WindowState = wsMaximized
-  OnHide = StationMonitorsWindowHide
-  OnKeyDown = StationMonitorsWindowKeyDown
-  OnPaint = StationMonitorsWindowPaint
-  OnShow = StationMonitorsWindowShow
-  ExplicitWidth = 320
-  ExplicitHeight = 240
+  OnCreate = StationMonitorsFormCreate
+  OnHide = StationMonitorsFormHide
+  OnKeyDown = StationMonitorsFormKeyDown
+  OnPaint = StationMonitorsFormPaint
+  OnShow = StationMonitorsFormShow
   PixelsPerInch = 96
   TextHeight = 13
+  object StationMonitorsMemo: TMemo
+    Left = 103
+    Top = 120
+    Width = 489
+    Height = 321
+    Lines.Strings = (
+      '---LOG---'
+      '')
+    ScrollBars = ssVertical
+    TabOrder = 0
+  end
+  object StationMonitorsTcpServer: TTcpServer
+    LocalHost = '192.168.0.3'
+    LocalPort = '80'
+    OnAccept = StationMonitorsTcpServerAccept
+    Left = 584
+    Top = 328
+  end
 end
