@@ -4666,8 +4666,7 @@ BEGIN
               Log('S Recording in Signal database that S=' + IntToStr(S) + ' ' + Signal_IndicatorSpeedRestrictionFieldName
                      + ' is ''' + MPHToStr(Signal_IndicatorSpeedRestriction) + '''');
               SignalsADOTable.Edit;
-              SignalsADOTable.FieldByName(Signal_IndicatorSpeedRestrictionFieldName).AsString :=
-                MPHToStr(Signal_IndicatorSpeedRestriction);
+              SignalsADOTable.FieldByName(Signal_IndicatorSpeedRestrictionFieldName).AsString := MPHToStr(Signal_IndicatorSpeedRestriction);
               SignalsADOTable.Post;
 
               JunctionIndicatorStr := '';

@@ -586,8 +586,7 @@ VAR
                           LocoChipStr := IntToStr(Train_LocoChip);
 
                         IF TrainJourney_DiagrammedStartLocation <> UnknownLocation THEN
-                          DiagrammedPlatformNumStr :=
-                                                    Locations[TrainJourney_DiagrammedStartLocation].Location_PlatformOrFiddleyardNumStr;
+                          DiagrammedPlatformNumStr := Locations[TrainJourney_DiagrammedStartLocation].Location_PlatformOrFiddleyardNumStr;
 
                         IF TrainJourney_DiagrammedStartLocation = TrainJourney_StartLocation THEN
                           ActualPlatformNumStr := DiagrammedPlatformNumStr
