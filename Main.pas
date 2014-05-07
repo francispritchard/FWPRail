@@ -154,6 +154,7 @@ BEGIN
     IF InitVarsWindow = NIL THEN BEGIN
       InitVarsWindow := TInitVarsWindow.Create(Application);
       InitVarsWindow.Update;
+      InitialiseInitVarsUnit;
     END;
     IF ClockWindow = NIL THEN BEGIN
       ClockWindow := TClockWindow.Create(Application);

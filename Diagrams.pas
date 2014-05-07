@@ -143,6 +143,9 @@ PROCEDURE RemoveTrainFromDiagrams(T : Train);
 { Called to indicate a train is no longer of interest; it is removed from the diagrams, the others moved to fill the gap and a new train generated. The diagrams will be
   redrawn on screen.
 }
+PROCEDURE ResetDiagramsWindowSizeAndPosition;
+{ Reset the window's size and position }
+
 PROCEDURE SetInitialTrackCircuits(T : Train);
 { Sets the initial trackcircuits for a given route }
 
@@ -2542,7 +2545,13 @@ BEGIN
   ELSE
     PopupSelectDiagramsWindowSize.Caption := 'Select Wide Diagrams Window';
 
-  IF DiagramsWindow.Top <> DefaultDiagramsWindowTop THEN
+  IF (DiagramsWindow.Top <> DefaultDiagramsWindowTop)
+  OR (DiagramsWindow.Left <> DefaultDiagramsWindowLeft)
+  OR (DiagramsWindow.Height <> DefaultDiagramsWindowHeight)
+  OR ((DiagramsWindow.Width <> DefaultDiagramsSmallWindowWidth)
+     AND
+     (DiagramsWindow.Width <> DefaultDiagramsLargeWindowWidth))
+  THEN
     PopupResetDiagramsWindowSizeAndPosition.Enabled := True
   ELSE
     PopupResetDiagramsWindowSizeAndPosition.Enabled := False;
@@ -2565,16 +2574,22 @@ BEGIN
   DiagramsWindowGridBackgroundColour := DefaultDiagramsWindowGridBackgroundColour;
 END; { RestoreDefaultColourClick }
 
-PROCEDURE TDiagramsWindow.PopupResetDiagramsWindowSizeAndPositionClick(Sender: TObject);
+PROCEDURE ResetDiagramsWindowSizeAndPosition;
+{ Reset the window's size and position }
 BEGIN
-  DiagramsWindowHeight := DefaultDiagramsWindowHeight;
-  DiagramsLargeWindowWidth := DefaultDiagramsLargeWindowWidth;
-  DiagramsSmallWindowWidth := DefaultDiagramsSmallWindowWidth;
-  DiagramsWindowTop := DefaultDiagramsWindowTop;
-  DiagramsWindowLeft := DefaultDiagramsWindowLeft;
+  DiagramsWindowHeight := MulDiv(Screen.WorkAreaHeight, 20, 100);
+  DiagramsLargeWindowWidth := Screen.WorkAreaWidth;
+  DiagramsSmallWindowWidth := Screen.WorkAreaWidth DIV 2;
+  DiagramsWindowTop := MulDiv(Screen.WorkAreaHeight, 80, 100);;
+  DiagramsWindowLeft := 0;
 
   DrawDiagramsWindow;
   DrawDiagrams(UnitRef, 'PopupResetDiagramsWindowSizeAndPositionClick');
+END; { ResetDiagramsWindowSizeAndPosition }
+
+PROCEDURE TDiagramsWindow.PopupResetDiagramsWindowSizeAndPositionClick(Sender: TObject);
+BEGIN
+  ResetDiagramsWindowSizeAndPosition;
 END; { PopupResetDiagramsWindowSizeAndPositionClick }
 
 PROCEDURE TDiagramsWindow.DiagramsWindowResize(Sender: TObject);

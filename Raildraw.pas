@@ -557,6 +557,9 @@ PROCEDURE InitialiseRaildrawUnit;
 PROCEDURE InvalidateScreen(UnitRefParam, CallingStr : String);
 { Draw the screen by invalidating it }
 
+PROCEDURE ResetFWPRailWindowSizeAndPosition;
+{ Reset the window's size and position }
+
 PROCEDURE ResetScreenColoursAfterPrinting;
 { Restore the colours to those saved before printing the screen in printer-friendly colours }
 
@@ -6701,8 +6704,19 @@ BEGIN
   Startup.DebuggingOptionsWindow.Show;
 END; { GeneralPopupDebugOptionsClick }
 
+PROCEDURE ResetFWPRailWindowSizeAndPosition;
+{ Reset the window's size and position }
+BEGIN
+  FWPRailWindow.Height := MulDiv(Screen.WorkAreaHeight, 80, 100);
+  FWPRailWindow.Width := Screen.WorkAreaWidth;
+  FWPRailWindow.Top := 0;
+  FWPRailWindow.Left := 0;
+  InvalidateScreen(UnitRef, 'ResetFWPRailWindowSizeClick');
+END; { ResetFWPRailWindowSizeAndPosition }
+
 PROCEDURE TFWPRailWindow.GeneralPopupResetFWPRailWindowSizeAndPositionClick(Sender: TObject);
 BEGIN
+  ResetFWPRailWindowSizeAndPosition;
   FWPRailWindow.Height := MulDiv(Screen.WorkAreaHeight, 80, 100);
   FWPRailWindow.Width := Screen.WorkAreaWidth;
   FWPRailWindow.Top := 0;

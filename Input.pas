@@ -3080,6 +3080,21 @@ BEGIN { KeyPressedDown }
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
               END;
+            ShiftAlt: {R}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
+            CtrlShift: {R}
+              BEGIN
+                HelpMsg := 'Reset all window size and positions';
+                IF NOT HelpRequired THEN BEGIN
+                  ResetFWPRailWindowSizeAndPosition;
+                  ResetDiagramsWindowSizeAndPosition;
+                  ResetDebugWindowSizeAndPosition;
+                END;
+              END;
             Ctrl: {R}
               BEGIN
                 HelpMsg := 'release all held routeing';

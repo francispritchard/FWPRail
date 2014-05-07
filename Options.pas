@@ -43,6 +43,186 @@ PROCEDURE WriteIniFile;
 VAR
   OptionsWindow: TOptionsWindow;
 
+  { Windows variables first - these are all initialised in InitialiseInitVarsUnit }
+  DefaultCreateRouteDisplayColoursWindowHeight : Integer;
+  CreateRouteDisplayColoursWindowHeight : Integer;
+
+  DefaultCreateRouteDisplayColoursWindowTop : Integer;
+  CreateRouteDisplayColoursWindowTop : Integer;
+
+  DefaultCreateRouteDisplayColoursWindowLeft : Integer;
+  CreateRouteDisplayColoursWindowLeft : Integer;
+
+  DefaultCreateRouteDisplayColoursWindowWidth : Integer;
+  CreateRouteDisplayColoursWindowWidth : Integer;
+
+  DefaultDebuggingOptionsWindowLeft : Integer = 785; { these shouldn't be magic numbers *** }
+  DebuggingOptionsWindowLeft : Integer = 785; { these shouldn't be magic numbers *** }
+
+  DefaultDebuggingOptionsWindowTop : Integer = 415; { these shouldn't be magic numbers *** }
+  DebuggingOptionsWindowTop : Integer = 415; { these shouldn't be magic numbers *** }
+
+  DefaultDebugWindowHeight : Integer;
+  DebugWindowHeight : Integer;
+
+  DefaultDebugWindowLeft : Integer;
+  DebugWindowLeft : Integer;
+
+  DefaultDebugWindowTop : Integer;
+  DebugWindowTop : Integer;
+
+  DefaultDebugWindowWidth : Integer;
+  DebugWindowWidth : Integer;
+
+  DefaultDiagramsWindowHeight : Integer;
+  DiagramsWindowHeight : Integer;
+
+  DefaultDiagramsWindowLeft : Integer;
+  DiagramsWindowLeft : Integer;
+
+  DefaultDiagramsWindowTop : Integer;
+  DiagramsWindowTop : Integer;
+
+  DefaultDiagramsSmallWindowWidth : Integer;
+  DiagramsSmallWindowWidth : Integer;
+
+  DefaultDiagramsLargeWindowWidth : Integer;
+  DiagramsLargeWindowWidth : Integer;
+
+  DefaultEditWindowHeight : Integer;
+  EditWindowHeight : Integer;
+
+  DefaultEditWindowLeft : Integer;
+  EditWindowLeft : Integer;
+
+  DefaultEditWindowTop : Integer;
+  EditWindowTop : Integer;
+
+  DefaultEditWindowWidth : Integer;
+  EditWindowWidth : Integer;
+
+  DefaultFWPRailWindowHeight : Integer;
+  FWPRailWindowHeight : Integer;
+
+  DefaultFWPRailWindowLeft : Integer = 0; { these shouldn't be magic numbers *** }
+  FWPRailWindowLeft : Integer = 0;
+
+  DefaultFWPRailWindowFontHeight : Integer = 10;
+  FWPRailWindowFontHeight : Integer;
+
+  DefaultFWPRailWindowTop : Integer = 0;
+  FWPRailWindowTop : Integer = 0;
+
+  DefaultFWPRailWindowWidth : Integer;
+  FWPRailWindowWidth : Integer;
+
+  DefaultLockListWindowHeight : Integer;
+  LockListWindowHeight : Integer;
+
+  DefaultLockListWindowTop : Integer;
+  LockListWindowTop : Integer;
+
+  DefaultLockListWindowLeft : Integer;
+  LockListWindowLeft : Integer;
+
+  DefaultLockListWindowWidth : Integer;
+  LockListWindowWidth : Integer;
+
+  DefaultLocoUtilsWindowHeight : Integer;
+  LocoUtilsWindowHeight : Integer;
+
+  DefaultLocoUtilsWindowTop : Integer;
+  LocoUtilsWindowTop : Integer;
+
+  DefaultLocoUtilsWindowLeft : Integer;
+  LocoUtilsWindowLeft : Integer;
+
+  DefaultLocoUtilsWindowWidth : Integer;
+  LocoUtilsWindowWidth : Integer;
+
+  DefaultLoggingWindowHeight : Integer = 0; { these shouldn't be magic numbers *** }
+  LoggingWindowHeight : Integer;
+
+  DefaultLoggingWindowTop : Integer = 0;
+  LoggingWindowTop : Integer;
+
+  DefaultLoggingWindowLeft : Integer = 0;
+  LoggingWindowLeft : Integer;
+
+  DefaultLoggingWindowWidth : Integer = 0;
+  LoggingWindowWidth : Integer;
+
+  DefaultMovementWindowHeight : Integer;
+  MovementWindowHeight : Integer;
+
+  DefaultMovementWindowTop : Integer;
+  MovementWindowTop : Integer;
+
+  DefaultMovementWindowLeft : Integer;
+  MovementWindowLeft : Integer;
+
+  DefaultMovementWindowWidth : Integer;
+  MovementWindowWidth : Integer;
+
+  DefaultOptionsWindowHeight : Integer;
+  OptionsWindowHeight : Integer;
+
+  DefaultOptionsWindowTop : Integer;
+  OptionsWindowTop : Integer;
+
+  DefaultOptionsWindowLeft : Integer;
+  OptionsWindowLeft : Integer;
+
+  DefaultOptionsWindowWidth : Integer;
+  OptionsWindowWidth : Integer;
+
+  DefaultWorkingTimetableWindowHeight : Integer;
+  WorkingTimetableWindowHeight : Integer;
+
+  DefaultWorkingTimetableWindowTop : Integer;
+  WorkingTimetableWindowTop : Integer;
+
+  DefaultWorkingTimetableWindowLeft : Integer;
+  WorkingTimetableWindowLeft : Integer;
+
+  DefaultWorkingTimetableSmallWindowWidth : Integer;
+  WorkingTimetableSmallWindowWidth : Integer;
+
+  DefaultWorkingTimetableLargeWindowWidth : Integer;
+  WorkingTimetableLargeWindowWidth : Integer;
+
+  { Dialogue Boxes }
+  DefaultLineDialogueBoxLeft : Integer = 5; { these shouldn't be magic numbers *** }
+  LineDialogueBoxLeft : Integer = 5; { these shouldn't be magic numbers *** }
+
+  DefaultLineDialogueBoxTop : Integer = 473; { these shouldn't be magic numbers *** }
+  LineDialogueBoxTop : Integer = 473; { these shouldn't be magic numbers *** }
+
+  DefaultLocoDialogueWindowLeft : Integer = 739; { these shouldn't be magic numbers *** }
+  LocoDialogueWindowLeft : Integer = 739; { these shouldn't be magic numbers *** }
+
+  DefaultLocoDialogueWindowTop : Integer = 250; { these shouldn't be magic numbers *** }
+  LocoDialogueWindowTop : Integer = 250; { these shouldn't be magic numbers *** }
+
+  DefaultPointDialogueBoxLeft : Integer = 5; { these shouldn't be magic numbers *** }
+  PointDialogueBoxLeft : Integer = 5; { these shouldn't be magic numbers *** }
+
+  DefaultPointDialogueBoxTop : Integer = 473; { these shouldn't be magic numbers *** }
+  PointDialogueBoxTop : Integer = 473; { these shouldn't be magic numbers *** }
+
+  DefaultSignalDialogueBoxLeft : Integer = 5; { these shouldn't be magic numbers *** }
+  SignalDialogueBoxLeft : Integer = 5; { these shouldn't be magic numbers *** }
+
+  DefaultSignalDialogueBoxTop : Integer = 473; { these shouldn't be magic numbers *** }
+  SignalDialogueBoxTop : Integer = 473; { these shouldn't be magic numbers *** }
+
+  DefaultTrackCircuitDialogueBoxLeft : Integer = 5; { these shouldn't be magic numbers *** }
+  TrackCircuitDialogueBoxLeft : Integer = 5; { these shouldn't be magic numbers *** }
+
+  DefaultTrackCircuitDialogueBoxTop : Integer = 473; { these shouldn't be magic numbers *** }
+  TrackCircuitDialogueBoxTop : Integer = 473; { these shouldn't be magic numbers *** }
+
+  { Other variables }
   CurrentParametersFromIniFile : String = '';
   CurrentParametersFromParamStr : String = '';
 
@@ -83,18 +263,6 @@ VAR
   DefaultCheckForIdenticalLinesInLog : Boolean = True;
   CheckForIdenticalLinesInLog : Boolean;
 
-  DefaultCreateRouteDisplayColoursWindowHeight : Integer;
-  CreateRouteDisplayColoursWindowHeight : Integer;
-
-  DefaultCreateRouteDisplayColoursWindowTop : Integer;
-  CreateRouteDisplayColoursWindowTop : Integer;
-
-  DefaultCreateRouteDisplayColoursWindowLeft : Integer;
-  CreateRouteDisplayColoursWindowLeft : Integer;
-
-  DefaultCreateRouteDisplayColoursWindowWidth : Integer;
-  CreateRouteDisplayColoursWindowWidth : Integer;
-
   DefaultCurrentRailwayDayOfTheWeek : String = 'UnknownDayOfTheWeek';
   CurrentRailwayDayOfTheWeek : DayOfTheWeekType;
 
@@ -110,24 +278,6 @@ VAR
   DeltaPointX : Integer;
   DeltaPointXSpaced : Integer;
 
-  DefaultDebuggingOptionsWindowLeft : Integer = 785; { these shouldn't be magic numbers *** }
-  DebuggingOptionsWindowLeft : Integer = 785; { these shouldn't be magic numbers *** }
-
-  DefaultDebuggingOptionsWindowTop : Integer = 415; { these shouldn't be magic numbers *** }
-  DebuggingOptionsWindowTop : Integer = 415; { these shouldn't be magic numbers *** }
-
-  DefaultDebugWindowHeight : Integer;
-  DebugWindowHeight : Integer;
-
-  DefaultDebugWindowLeft : Integer;
-  DebugWindowLeft : Integer;
-
-  DefaultDebugWindowTop : Integer;
-  DebugWindowTop : Integer;
-
-  DefaultDebugWindowWidth : Integer;
-  DebugWindowWidth : Integer;
-
   DefaultDiagramsFilename : String = 'Diagrams';
   DiagramsFilename : String;
 
@@ -136,21 +286,6 @@ VAR
 
   DefaultDiagramsWindowGridBackgroundColour : TColor = clMenu;
   DiagramsWindowGridBackgroundColour : TColour = clMenu;
-
-  DefaultDiagramsWindowHeight : Integer;
-  DiagramsWindowHeight : Integer;
-
-  DefaultDiagramsWindowLeft : Integer;
-  DiagramsWindowLeft : Integer;
-
-  DefaultDiagramsWindowTop : Integer;
-  DiagramsWindowTop : Integer;
-
-  DefaultDiagramsSmallWindowWidth : Integer;
-  DiagramsSmallWindowWidth : Integer;
-
-  DefaultDiagramsLargeWindowWidth : Integer;
-  DiagramsLargeWindowWidth : Integer;
 
   DefaultDisplayDiagrams : Boolean = True;
   DisplayDiagrams : Boolean;
@@ -176,18 +311,6 @@ VAR
   DefaultDoNotCancelTrainsWithNoFeedbackOccupation : Boolean = False;
   DoNotCancelTrainsWithNoFeedbackOccupation : Boolean;
 
-  DefaultEditWindowHeight : Integer;
-  EditWindowHeight : Integer;
-
-  DefaultEditWindowLeft : Integer;
-  EditWindowLeft : Integer;
-
-  DefaultEditWindowTop : Integer;
-  EditWindowTop : Integer;
-
-  DefaultEditWindowWidth : Integer;
-  EditWindowWidth : Integer;
-
   DefaultFeedbackDataFilename : String = 'FeedbackUnitData';
   FeedbackDataFilename : String;
 
@@ -199,21 +322,6 @@ VAR
 
   DefaultForegroundColour : TColour = clDkGray;
   ForegroundColour : TColour = clDkGray;
-
-  DefaultFWPRailWindowHeight : Integer;
-  FWPRailWindowHeight : Integer;
-
-  DefaultFWPRailWindowLeft : Integer = 0;
-  FWPRailWindowLeft : Integer = 0;
-
-  DefaultFWPRailWindowFontHeight : Integer = 10;
-  FWPRailWindowFontHeight : Integer;
-
-  DefaultFWPRailWindowTop : Integer = 0;
-  FWPRailWindowTop : Integer = 0;
-
-  DefaultFWPRailWindowWidth : Integer;
-  FWPRailWindowWidth : Integer;
 
   DefaultHighlightTrackCircuitSpeedRestrictions : Boolean = False;
   HighlightTrackCircuitSpeedRestrictions : Boolean;
@@ -244,12 +352,6 @@ VAR
   DefaultLineDataFilenameSuffix : String = 'mdb';
   LineDataFilenameSuffix : String;
 
-  DefaultLineDialogueBoxLeft : Integer = 5; { these shouldn't be magic numbers *** }
-  LineDialogueBoxLeft : Integer = 5; { these shouldn't be magic numbers *** }
-
-  DefaultLineDialogueBoxTop : Integer = 473; { these shouldn't be magic numbers *** }
-  LineDialogueBoxTop : Integer = 473; { these shouldn't be magic numbers *** }
-
   DefaultLineNotAvailableColour : TColour = clLime;
   LineNotAvailableColour : TColour = clLime;
 
@@ -274,50 +376,20 @@ VAR
   DefaultLocationDataFilenameSuffix : String = 'mdb';
   LocationDataFilenameSuffix : String;
 
-  DefaultLockListWindowHeight : Integer;
-  LockListWindowHeight : Integer;
-
-  DefaultLockListWindowTop : Integer;
-  LockListWindowTop : Integer;
-
-  DefaultLockListWindowLeft : Integer;
-  LockListWindowLeft : Integer;
-
-  DefaultLockListWindowWidth : Integer;
-  LockListWindowWidth : Integer;
-
   DefaultLocoDataFilename : String = 'LocoData';
   LocoDataFilename : String;
 
   DefaultLocoDataFilenameSuffix : String = 'mdb';
   LocoDataFilenameSuffix : String;
 
-  DefaultLocoDialogueWindowLeft : Integer = 739; { these shouldn't be magic numbers *** }
-  LocoDialogueWindowLeft : Integer = 739; { these shouldn't be magic numbers *** }
-
   DefaultLocoDialogueSpeedInMPH : Boolean = False;
   LocoDialogueSpeedInMPH : Boolean;
-
-  DefaultLocoDialogueWindowTop : Integer = 250; { these shouldn't be magic numbers *** }
-  LocoDialogueWindowTop : Integer = 250; { these shouldn't be magic numbers *** }
 
   DefaultLocoStalledColour : TColour = clGreen;
   LocoStalledColour : TColour = clGreen;
 
   DefaultLocoTimingTimeBeforeAutoStopInSeconds : Integer = 90;
   LocoTimingTimeBeforeAutoStopInSeconds : Integer;
-
-  DefaultLocoUtilsWindowHeight : Integer;
-  LocoUtilsWindowHeight : Integer;
-
-  DefaultLocoUtilsWindowTop : Integer;
-  LocoUtilsWindowTop : Integer;
-
-  DefaultLocoUtilsWindowLeft : Integer;
-  LocoUtilsWindowLeft : Integer;
-
-  DefaultLocoUtilsWindowWidth : Integer;
-  LocoUtilsWindowWidth : Integer;
 
   DefaultLogCurrentTimeMode : Boolean = False;
   LogCurrentTimeMode : Boolean;
@@ -337,18 +409,6 @@ VAR
   DefaultLoggingWindowFontSize : Integer = 8;
   LoggingWindowFontSize : Integer;
 
-  DefaultLoggingWindowHeight : Integer;
-  LoggingWindowHeight : Integer;
-
-  DefaultLoggingWindowTop : Integer;
-  LoggingWindowTop : Integer;
-
-  DefaultLoggingWindowLeft : Integer;
-  LoggingWindowLeft : Integer;
-
-  DefaultLoggingWindowWidth : Integer;
-  LoggingWindowWidth : Integer;
-
   DefaultLogsKeptMode : Boolean = True;
   LogsKeptMode : Boolean;
 
@@ -367,30 +427,6 @@ VAR
   DefaultMouseRectangleEdgeVerticalSpacing : Integer = 100;
   MouseRectangleEdgeVerticalSpacing : Integer;
   MouseRectangleEdgeVerticalSpacingScaled : Integer;
-
-  DefaultMovementWindowHeight : Integer;
-  MovementWindowHeight : Integer;
-
-  DefaultMovementWindowTop : Integer;
-  MovementWindowTop : Integer;
-
-  DefaultMovementWindowLeft : Integer;
-  MovementWindowLeft : Integer;
-
-  DefaultMovementWindowWidth : Integer;
-  MovementWindowWidth : Integer;
-
-  DefaultOptionsWindowHeight : Integer;
-  OptionsWindowHeight : Integer;
-
-  DefaultOptionsWindowTop : Integer;
-  OptionsWindowTop : Integer;
-
-  DefaultOptionsWindowLeft : Integer;
-  OptionsWindowLeft : Integer;
-
-  DefaultOptionsWindowWidth : Integer;
-  OptionsWindowWidth : Integer;
 
   DefaultOptionsWindowValueListEditorCol0Width : Integer = 100;
   OptionsWindowValueListEditorCol0Width : Integer = 100;
@@ -439,12 +475,6 @@ VAR
 
   DefaultPointDataFilenameSuffix : String = 'mdb';
   PointDataFilenameSuffix : String;
-
-  DefaultPointDialogueBoxLeft : Integer = 5; { these shouldn't be magic numbers *** }
-  PointDialogueBoxLeft : Integer = 5; { these shouldn't be magic numbers *** }
-
-  DefaultPointDialogueBoxTop : Integer = 473; { these shouldn't be magic numbers *** }
-  PointDialogueBoxTop : Integer = 473; { these shouldn't be magic numbers *** }
 
   DefaultPointDivergingLineColour : TColour = clRed;
   PointDivergingLineColour : TColour = clRed;
@@ -552,12 +582,6 @@ VAR
 
   DefaultSignalDataFilenameSuffix : String = 'mdb';
   SignalDataFilenameSuffix : String;
-
-  DefaultSignalDialogueBoxLeft : Integer = 5; { these shouldn't be magic numbers *** }
-  SignalDialogueBoxLeft : Integer = 5; { these shouldn't be magic numbers *** }
-
-  DefaultSignalDialogueBoxTop : Integer = 473; { these shouldn't be magic numbers *** }
-  SignalDialogueBoxTop : Integer = 473; { these shouldn't be magic numbers *** }
 
   DefaultSignalHorizontalSpacing : Integer = 100;
   SignalHorizontalSpacing : Integer;
@@ -725,12 +749,6 @@ VAR
   DefaultTheatreFontHeight : Integer = 15;
   TheatreFontHeight : Integer;
 
-  DefaultTrackCircuitDialogueBoxLeft : Integer = 5; { these shouldn't be magic numbers *** }
-  TrackCircuitDialogueBoxLeft : Integer = 5; { these shouldn't be magic numbers *** }
-
-  DefaultTrackCircuitDialogueBoxTop : Integer = 473; { these shouldn't be magic numbers *** }
-  TrackCircuitDialogueBoxTop : Integer = 473; { these shouldn't be magic numbers *** }
-
   DefaultTrainActiveColour : TColor = clRed;
   TrainActiveColour : TColour = clRed;
 
@@ -770,21 +788,6 @@ VAR
 
   DefaultWorkingTimetableWindowGridBackgroundColour : TColor = clMenu;
   WorkingTimetableWindowGridBackgroundColour : TColour = clMenu;
-
-  DefaultWorkingTimetableWindowHeight : Integer;
-  WorkingTimetableWindowHeight : Integer;
-
-  DefaultWorkingTimetableWindowTop : Integer;
-  WorkingTimetableWindowTop : Integer;
-
-  DefaultWorkingTimetableWindowLeft : Integer;
-  WorkingTimetableWindowLeft : Integer;
-
-  DefaultWorkingTimetableSmallWindowWidth : Integer;
-  WorkingTimetableSmallWindowWidth : Integer;
-
-  DefaultWorkingTimetableLargeWindowWidth : Integer;
-  WorkingTimetableLargeWindowWidth : Integer;
 
   DefaultWritingStationMonitorsDisplayToFile : Boolean = False;
   WritingStationMonitorsDisplayToFile : Boolean;

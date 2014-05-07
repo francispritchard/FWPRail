@@ -563,6 +563,9 @@ PROCEDURE RenameEarlierFiles(VAR SuppliedFileType : TextFile; SuppliedFileName, 
 PROCEDURE RenameLaterFiles(VAR SuppliedFileType : TextFile; SuppliedFileName, SuppliedFilenamePrefix : String);
 { This is used when a current log is thrown away: the older log file names revert to their previous names }
 
+PROCEDURE ResetDebugWindowSizeAndPosition;
+{ Reset the window's size and position }
+
 PROCEDURE ResetTestCount;
 { Resets the number which is incremented each time the TestCount or TestCountStr routines are called - used for debugging }
 
@@ -8572,14 +8575,20 @@ BEGIN
   DebugRichEdit.SelStart := 0;
 END; { PopupDebugWindowCopyClick }
 
-PROCEDURE TDebugWindow.PopupDebugWindowResetSizeAndPositionClick(Sender: TObject);
+PROCEDURE ResetDebugWindowSizeAndPosition;
+{ Reset the window's size and position }
 BEGIN
-  DebugWindowHeight := DefaultDebugWindowHeight;
-  DebugWindowWidth := DefaultDebugWindowWidth;
-  DebugWindowTop := DefaultDebugWindowTop;
-  DebugWindowLeft := DefaultDebugWindowLeft;
+  DebugWindowHeight := MulDiv(Screen.WorkAreaHeight, 20, 100);
+  DebugWindowWidth := Screen.WorkAreaWidth DIV 2;
+  DebugWindowTop := MulDiv(Screen.WorkAreaHeight, 80, 100);
+  DebugWindowLeft := Screen.WorkAreaWidth DIV 2;
 
   DrawDebugWindow;
+END; { ResetDebugWindowSizeAndPosition }
+
+PROCEDURE TDebugWindow.PopupDebugWindowResetSizeAndPositionClick(Sender: TObject);
+BEGIN
+  ResetDebugWindowSizeAndPosition;
 END; { ResetDebugWindowSizeClick }
 
 PROCEDURE TDebugWindow.DebugWindowResize(Sender: TObject);
