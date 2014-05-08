@@ -1582,7 +1582,7 @@ END; { SetUpLineDrawingVars }
 PROCEDURE ReadInTrackCircuitDataFromDatabase;
 { Initialise the trackcircuit data which depends on lines being initialised first.
 
-  Note:
+  Interesting notes from the past here:
 
   Unit 77 inputs 5-8 free
   Unit 78 (tunnel) for UMC
