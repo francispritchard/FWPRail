@@ -12,7 +12,6 @@ CONST
 TYPE
   TStationMonitorsWindow = CLASS(TForm)
     StationMonitorsTcpServer: TTcpServer;
-    StationMonitorsMemo: TMemo;
     PROCEDURE StationMonitorsFormCreate(Sender: TObject);
     PROCEDURE StationMonitorsFormHide(Sender: TObject);
     PROCEDURE StationMonitorsFormKeyDown(Sender: TObject; VAR Key: Word; ShiftState: TShiftState);
@@ -29,7 +28,10 @@ VAR
   StationMonitorsExitTime : TDateTime = 0;
   StationMonitorsWindow: TStationMonitorsWindow;
 
-PROCEDURE DrawStationMonitorsWindow;
+PROCEDURE CloseStationMonitorsWebPage(OUT OK : Boolean);
+{ Close the station nonitor web page if it exists }
+
+PROCEDURE DrawStationMonitorsWindow(Area : Integer);
 { Collate, sort and display station monitors entries }
 
 IMPLEMENTATION
@@ -39,6 +41,7 @@ USES MiscUtils, StrUtils, DateUtils, Input, GetTime, Diagrams, Options, Raildraw
 VAR
   MaxX : Integer;
   MaxY : Integer;
+  StationMonitorsWebPage : TStringList;
 
 {$R *.dfm}
 
@@ -78,51 +81,8 @@ END; { MonitorsWindowShow }
 PROCEDURE TStationMonitorsWindow.StationMonitorsFormCreate(Sender: TObject);
 BEGIN
   StationMonitorsTCPServer.Open;
-  StationMonitorsMemo.Lines.Add(DateTimeToStr(Now) + ': server started');
+  AddLineToStationMonitorsWebDiagnosticsMemo(DateTimeToStr(Now) + ': server started');
 END; { StationMonitorsFormCreate }
-
-PROCEDURE TStationMonitorsWindow.StationMonitorsTcpServerAccept(Sender: TObject; ClientSocket: TCustomIpClient);
-VAR
-  HTTPPos : integer;
-  Line : String;
-  Path : String;
-
-BEGIN
-  Line := ' ';
-  WHILE ClientSocket.Connected AND (Line <> '') DO BEGIN
-    Line := ClientSocket.ReceiveLn();
-
-    StationMonitorsMemo.Lines.Add('Rec''d: ' + Line);
-
-    IF Copy(Line, 1, 3) = 'GET' THEN BEGIN
-      HTTPPos := Pos('HTTP', Line);
-      Path := Copy(Line, 5, HTTPPos - 6);
-      StationMonitorsMemo.Lines.Add('Path: ' + Path);
-      StationMonitorsMemo.Lines.Add('LocalHostaddr = ' + StationMonitorsTCPServer.LocalHostAddr);
-    END;
-  END;
-
-  IF Path = '/' THEN
-    Path := 'index.html';
-
-  IF FileExists('TestWebServerDocs/' + Path) THEN
-    WITH TstringList.Create DO BEGIN
-      LoadFromFile('TestWebServerDocs/' + Path);
-      ClientSocket.SendLn('HTTP/1.0 200 OK');
-      ClientSocket.SendLn('');
-      ClientSocket.SendLn(Text + 'xxx');
-      ClientSocket.Close;
-
-      Free;
-      Exit;
-    END;
-
-  ClientSocket.SendLn('HTTP/1.0 404 Not Found');
-  ClientSocket.SendLn('');
-  ClientSocket.SendLn('<h1>404 Not Found</h1><br><br>Path: ' + Path);
-
-  ClientSocket.Close;
-END; { StationMonitorsTcpServerAccept }
 
 PROCEDURE TStationMonitorsWindow.StationMonitorsFormHide(Sender: TObject);
 BEGIN
@@ -143,7 +103,7 @@ BEGIN
     LineTo(MaxX, YPos);
   END; {WITH}
 
-  IF WritingStationMonitorsDisplayToFile THEN BEGIN
+  IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN BEGIN
     { XPos }
     Str := IntToStr(0) + ',';
 
@@ -167,8 +127,6 @@ BEGIN
 
     { And the text }
     Str := Str + '[Line]';
-    WriteLn(StationMonitorsOutputFile, Str);
-    Flush(StationMonitorsOutputFile);
   END;
 END; { WriteOutSeparatorLine }
 
@@ -180,57 +138,63 @@ VAR
   TempXPos : Integer;
 
 BEGIN
-  WITH StationMonitorsWindow.Canvas DO BEGIN
-    TempXPos := MulDiv(MaxX, XPos, 100);
-    TextOut(TempXPos, YPos, Text);
-  END; {WITH}
+  TRY
+    WITH StationMonitorsWindow.Canvas DO BEGIN
+      TempXPos := MulDiv(MaxX, XPos, 100);
+      TextOut(TempXPos, YPos, Text);
+    END; {WITH}
 
-  IF WritingStationMonitorsDisplayToFile THEN BEGIN
-    { XPos }
-    Str := IntToStr(XPos) + ',';
+    IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN BEGIN
+      { XPos }
+      Str := IntToStr(XPos) + ',';
 
-    { YPos }
-    IF YPos = 0 THEN
-      Str := Str + '0,'
-    ELSE BEGIN
-      TempReal := MaxY / YPos;
+      { YPos }
+      IF YPos = 0 THEN
+        Str := Str + '0,'
+      ELSE BEGIN
+        TempReal := MaxY / YPos;
+        TempReal := 100 / TempReal;
+        Str := Str + FloatToStr(TempReal) + ',';
+      END;
+
+      { FontSize }
+      TempReal := MaxY / FontSize;
       TempReal := 100 / TempReal;
       Str := Str + FloatToStr(TempReal) + ',';
-    END;
 
-    { FontSize }
-    TempReal := MaxY / FontSize;
-    TempReal := 100 / TempReal;
-    Str := Str + FloatToStr(TempReal) + ',';
+  //    Str := Str + IntToStr(FontSize) + ',';
 
-//    Str := Str + IntToStr(FontSize) + ',';
+      { FontColour }
+      Str := Str + ColourToStr(FontColour) + ',';
 
-    { FontColour }
-    Str := Str + ColourToStr(FontColour) + ',';
-
-    { FontStyle }
-    IF fsBold IN FontStyle THEN
-      Str := Str + 'Bold' + ','
-    ELSE
-      IF fsItalic IN FontStyle THEN
-        Str := Str + 'Italic' + ','
+      { FontStyle }
+      IF fsBold IN FontStyle THEN
+        Str := Str + 'Bold' + ','
       ELSE
-        IF fsUnderline IN FontStyle THEN
-          Str := Str + 'Underline' + ','
+        IF fsItalic IN FontStyle THEN
+          Str := Str + 'Italic' + ','
         ELSE
-          IF fsStrikeout IN FontStyle THEN
-            Str := Str + 'Strikeout' + ','
+          IF fsUnderline IN FontStyle THEN
+            Str := Str + 'Underline' + ','
           ELSE
-            Str := Str + ',';
+            IF fsStrikeout IN FontStyle THEN
+              Str := Str + 'Strikeout' + ','
+            ELSE
+              Str := Str + ',';
 
-    { And the text }
-    Str := Str + Text;
-    WriteLn(StationMonitorsOutputFile, Str);
-    Flush(StationMonitorsOutputFile);
-  END;
+      { And the text }
+      Str := Str + Text;
+
+      { And add the data to the web page if one's active }
+      StationMonitorsWebPage.Add(Str);
+    END;
+  EXCEPT
+    ON E : Exception DO
+      Log('EG WriteOutStationMonitorsData: ' + E.ClassName + ' error raised, with message: ' + E.Message);
+  END; {TRY}
 END; { WriteOutStationMonitorsData }
 
-PROCEDURE DrawStationMonitorsWindow;
+PROCEDURE DrawStationMonitorsWindow(Area : Integer);
 { Collate, sort and display timetable entries }
 TYPE
   StationMonitorsRec = RECORD
@@ -251,7 +215,7 @@ CONST
 VAR
   CurrentTimeStr : String;
   DiagramsEntry : DiagramsEntryType;
-  ErrorMsg : String;
+//  ErrorMsg : String;
   ExpectedPos : Integer;
   HalfScreenY : Integer;
   LocationPos : Integer;
@@ -630,95 +594,179 @@ VAR
   END; { ShowDepartures }
 
 BEGIN
-  IF WritingStationMonitorsDisplayToFile THEN BEGIN
-    StationMonitorsOutputFileName := StationMonitorsDataFilename + '.' + StationMonitorsDataFilenameSuffix;
-    OpenOutputFileOK(StationMonitorsOutputFile, StationMonitorsOutputFileName, ErrorMsg, NOT AppendToFile);
-    {$I-}
-    Rewrite(StationMonitorsOutputFile);
-    {$I+}
-    IF IOError(StationMonitorsOutputFilename, IOResult, ErrorMsg) THEN
-      Debug('Cannot open ' + StationMonitorsOutputFilename + ': ' + ErrorMsg);
-  END;
+  TRY
+    IF StationMonitorsWebPageRequired THEN BEGIN
+      IF StationMonitorsWebPage <> NIL THEN
+        StationMonitorsWebPage.Free;
 
-  StationMonitorsWindow.Borderstyle := bsNone;
-  StationMonitorsWindow.Width := Screen.DeskTopWidth;
-  StationMonitorsWindow.Height := Screen.DeskTopHeight;
-
-  MaxX := StationMonitorsWindow.ClientWidth;
-  MaxY := StationMonitorsWindow.ClientHeight;
-
-  WITH StationMonitorsWindow.Canvas DO BEGIN
-    { Now draw it to the timetable screen }
-    Font.Color := clWhite;
-
-    IF StationMonitorDisplay = StationClockDisplay THEN BEGIN
-      CurrentTimeStr := TimeToHMSStr(CurrentRailwayTime);
-
-      FillRect(Rect(0, 0, MaxX, MaxY));
-
-      XPos := (MaxX - TextWidth(CurrentTimeStr)) DIV 2;
-      YPos := (MaxY - TextHeight(CurrentTimeStr)) DIV 2;
-
-      WriteOutStationMonitorsData(XPos, YPos, CurrentRailwayTimeStr, Font.Style, Font.Height, Font.Color);
-    END ELSE BEGIN
-      FillRect(Rect(0, 0, MaxX, MaxY));
-
-      TimetabledTimePos := 1;
-      IF NOT IncludeLocoChipInStationMonitors THEN
-        LocationPos := 20
-      ELSE BEGIN
-        LocoChipPos := 15;
-        LocationPos := 30;
-      END;
-      PlatformPos := 65;
-      ExpectedPos := 82;
-
-      YPos := 0;
-      Font.Height := -MulDiv(FWPRailWindow.ClientHeight, StationMonitorsSmallFontHeight, 1000);
-      Font.Style := [];
-
-      WriteOutStationMonitorsData(TimetabledTimePos, YPos, GetStationNameFromArea(StationMonitorsCurrentArea), Font.Style,
-                                  Font.Height, Font.Color);
-
-      IF RecordingMonitorScreens THEN BEGIN
-        DrawLineinLogFile(NoLocoChip, 'D', 'T', UnitRef);
-        Log('T ' + GetStationNameFromArea(StationMonitorsCurrentArea) + ' {NOUNITREF}');
-      END;
-
-      CurrentTimeStr := TimeToHMStr(CurrentRailwayTime);
-      TempReal := MaxX - TextWidth(CurrentTimeStr) - MulDiv(MaxX, 2, 100);
-      TempReal := MaxX / TempReal;
-      TimePos := Round(100 / TempReal);
-
-      WriteOutStationMonitorsData(TimePos, YPos, TimeToHMStr(CurrentRailwayTime), Font.Style, Font.Height, Font.Color);
-
-      YPos := YPos + TextHeight('06:00') + MulDiv(TextHeight('06:00'), 1, 6);
-
-      CASE StationMonitorDisplay OF
-        StationArrivalsDisplay:
-          ShowArrivals(StationMonitorsCurrentArea, YPos, MaxY);
-        StationDeparturesDisplay:
-          ShowDepartures(StationMonitorsCurrentArea, YPos, MaxY);
-        StationArrivalsAndDeparturesDisplay:
-          BEGIN
-            HalfScreenY := MulDiv(MaxY, 1, 2);
-            ShowArrivals(StationMonitorsCurrentArea, YPos, HalfScreenY);
-            ShowDepartures(StationMonitorsCurrentArea, HalfScreenY, MaxY);
-          END;
-      END; {CASE}
-
-      IF RecordingMonitorScreens THEN
-        DrawLineinLogFile(NoLocoChip, 'D', 'T', UnitRef);
+      StationMonitorsWebPage := TStringList.Create;
+      StationMonitorsWebPage.Add('<!DOCTYPE html>');
+      StationMonitorsWebPage.Add('<html>');
+      StationMonitorsWebPage.Add('<head>');
+      StationMonitorsWebPage.Add('<meta http-equiv="refresh" content="1">');
+      StationMonitorsWebPage.Add('<title>FWP Rail</title>');
+      StationMonitorsWebPage.Add('</head>');
+      StationMonitorsWebPage.Add('<body>');
+      StationMonitorsWebPage.Add('<B>FWP Railway Timetable</B> at ' + TimeToHMSZStr(Time) + '<BR>');
     END;
-  END; {WITH}
-  IF WritingStationMonitorsDisplayToFile THEN
-    Close(StationMonitorsOutputFile);
+
+    StationMonitorsWindow.Borderstyle := bsNone;
+    StationMonitorsWindow.Width := Screen.DeskTopWidth;
+    StationMonitorsWindow.Height := Screen.DeskTopHeight;
+
+    MaxX := StationMonitorsWindow.ClientWidth;
+    MaxY := StationMonitorsWindow.ClientHeight;
+
+    WITH StationMonitorsWindow.Canvas DO BEGIN
+      { Now draw it to the timetable screen }
+      Font.Color := clWhite;
+
+      IF StationMonitorDisplay = StationClockDisplay THEN BEGIN
+        CurrentTimeStr := TimeToHMSStr(CurrentRailwayTime);
+
+        FillRect(Rect(0, 0, MaxX, MaxY));
+
+        XPos := (MaxX - TextWidth(CurrentTimeStr)) DIV 2;
+        YPos := (MaxY - TextHeight(CurrentTimeStr)) DIV 2;
+
+        WriteOutStationMonitorsData(XPos, YPos, CurrentRailwayTimeStr, Font.Style, Font.Height, Font.Color);
+      END ELSE BEGIN
+        FillRect(Rect(0, 0, MaxX, MaxY));
+
+        TimetabledTimePos := 1;
+        IF NOT IncludeLocoChipInStationMonitors THEN
+          LocationPos := 20
+        ELSE BEGIN
+          LocoChipPos := 15;
+          LocationPos := 30;
+        END;
+        PlatformPos := 65;
+        ExpectedPos := 82;
+
+        YPos := 0;
+        Font.Height := -MulDiv(FWPRailWindow.ClientHeight, StationMonitorsSmallFontHeight, 1000);
+        Font.Style := [];
+
+        WriteOutStationMonitorsData(TimetabledTimePos, YPos, GetStationNameFromArea(Area), Font.Style, Font.Height, Font.Color);
+
+        IF RecordingMonitorScreens THEN BEGIN
+          DrawLineinLogFile(NoLocoChip, 'D', 'T', UnitRef);
+          Log('T ' + GetStationNameFromArea(Area) + ' {NOUNITREF}');
+        END;
+
+        CurrentTimeStr := TimeToHMStr(CurrentRailwayTime);
+        TempReal := MaxX - TextWidth(CurrentTimeStr) - MulDiv(MaxX, 2, 100);
+        TempReal := MaxX / TempReal;
+        TimePos := Round(100 / TempReal);
+
+        WriteOutStationMonitorsData(TimePos, YPos, TimeToHMStr(CurrentRailwayTime), Font.Style, Font.Height, Font.Color);
+
+        YPos := YPos + TextHeight('06:00') + MulDiv(TextHeight('06:00'), 1, 6);
+
+        CASE StationMonitorDisplay OF
+          StationArrivalsDisplay:
+            ShowArrivals(Area, YPos, MaxY);
+          StationDeparturesDisplay:
+            ShowDepartures(Area, YPos, MaxY);
+          StationArrivalsAndDeparturesDisplay:
+            BEGIN
+              HalfScreenY := MulDiv(MaxY, 1, 2);
+              ShowArrivals(Area, YPos, HalfScreenY);
+              ShowDepartures(Area, HalfScreenY, MaxY);
+            END;
+        END; {CASE}
+
+        IF RecordingMonitorScreens THEN
+          DrawLineinLogFile(NoLocoChip, 'D', 'T', UnitRef);
+      END;
+    END; {WITH}
+
+    IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN BEGIN
+      StationMonitorsWebPage.Add('</body>');
+      StationMonitorsWebPage.Add('</html>');
+    END;
+  EXCEPT
+    ON E : Exception DO
+      Log('EG DrawStationMonitorsWindow:' + E.ClassName + ' error raised, with message: ' + E.Message);
+  END; {TRY}
 END; { DrawStationMonitorsWindow }
 
 PROCEDURE TStationMonitorsWindow.StationMonitorsFormPaint(Sender: TObject);
 BEGIN
-  DrawStationMonitorsWindow;
+  DrawStationMonitorsWindow(StationMonitorsCurrentArea);
 END; { StationMonitorsWindowPaint }
+
+PROCEDURE TStationMonitorsWindow.StationMonitorsTcpServerAccept(Sender: TObject; ClientSocket: TCustomIpClient);
+VAR
+  HTTPPos : Integer;
+  I : Integer;
+  Line : String;
+  Path : String;
+  StationMonitorsWebArea : Integer;
+  StationMonitorsWebAreaStr : String;
+
+BEGIN
+  TRY
+    IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) AND NOT ProgramShuttingDown THEN BEGIN
+      Line := ' ';
+      WHILE ClientSocket.Connected AND (Line <> '') DO BEGIN
+        Line := String(ClientSocket.ReceiveLn());
+
+        IF InitVarsWindow <> NIL THEN
+          AddLineToStationMonitorsWebDiagnosticsMemo('Rec''d: ' + Line);
+
+        IF Copy(Line, 1, 3) = 'GET' THEN BEGIN
+          HTTPPos := Pos('HTTP', Line);
+          Path := Copy(Line, 5, HTTPPos - 6);
+          AddLineToStationMonitorsWebDiagnosticsMemo('Path: ' + Path);
+        END;
+      END;
+
+      StationMonitorsWebAreaStr := UnknownAreaStr;
+      IF Path = '/' THEN BEGIN
+        StationMonitorsWebArea := 1;
+        StationMonitorsWebAreaStr := AreaToStr(1);
+      END ELSE
+        IF (Pos('STATION', UpperCase(Path)) > 0) THEN BEGIN
+          { we want a particular station }
+          StationMonitorsWebArea := ExtractIntegerFromString(Path);
+          StationMonitorsWebAreaStr := AreaToStr(StationMonitorsWebArea);
+        END;
+
+      IF StationMonitorsWebAreaStr = UnknownAreaStr THEN BEGIN
+        ClientSocket.Sendln('HTTP/1.0 404 Not Found');
+        ClientSocket.Sendln('');
+        ClientSocket.Sendln('<H1>404 Not Found</H1><H2>' + 'Area incorrectly specified</H2>');
+        AddLineToStationMonitorsWebDiagnosticsMemo('Area ' + Path + ' not known');
+      END ELSE BEGIN
+        ClientSocket.SendLn('HTTP/1.0 200 OK');
+        ClientSocket.SendLn('');
+        AddLineToStationMonitorsWebDiagnosticsMemo('HTTP/1.0 200 OK');
+        AddLineToStationMonitorsWebDiagnosticsMemo('Returning data for Area ' + AreaToStr(StationMonitorsWebArea));
+        DrawStationMonitorsWindow(StationMonitorsWebArea);
+
+        IF (StationMonitorsWebPage.Count > 0) AND NOT ProgramShuttingDown THEN
+          FOR I := 0 TO StationMonitorsWebPage.Count - 1 DO
+            ClientSocket.SendLn(AnsiString(StationMonitorsWebPage[I]));
+      END;
+
+      ClientSocket.Close;
+    END;
+  EXCEPT
+    ON E : Exception DO
+      Log('EG StationMonitorsTcpServerAccept: ' + E.ClassName + ' error raised, with message: ' + E.Message);
+  END; {TRY}
+END; { StationMonitorsTcpServerAccept }
+
+PROCEDURE CloseStationMonitorsWebPage(OUT OK : Boolean);
+{ Close the station monitor web page if it exists }
+BEGIN
+  OK := False;
+  IF StationMonitorsWebPage <> NIL THEN BEGIN
+    StationMonitorsWebPage.Free;
+    OK := True;
+  END;
+END; { CloseStationMonitorsWebPage }
 
 INITIALIZATION
 

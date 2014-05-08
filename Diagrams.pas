@@ -1745,15 +1745,12 @@ BEGIN
 
     IF StationMonitorsWindow.Visible THEN
       { redraw it erasing the window first }
-      DrawStationMonitorsWindow
+      DrawStationMonitorsWindow(StationMonitorsCurrentArea)
     ELSE BEGIN
       IF RecordingMonitorScreens THEN BEGIN
-        SaveStationMonitorsCurrentArea := StationMonitorsCurrentArea;
-        StationMonitorsCurrentArea := StrToArea('IslandStationArea');
-        DrawStationMonitorsWindow;
-        StationMonitorsCurrentArea := StrToArea('MainStationArea');
-        DrawStationMonitorsWindow;
-        StationMonitorsCurrentArea := SaveStationMonitorsCurrentArea;
+        { ***** I'm not convenced this works now as the areas are defined in an Access database 7/5/14 }
+        DrawStationMonitorsWindow(StrToArea('IslandStationArea'));
+        DrawStationMonitorsWindow(StrToArea('MainStationArea'));
       END;
 
       { Move the focus back to the main window }

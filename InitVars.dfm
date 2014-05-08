@@ -4,7 +4,7 @@ object InitVarsWindow: TInitVarsWindow
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'InitVars Window'
-  ClientHeight = 536
+  ClientHeight = 931
   ClientWidth = 635
   Color = clBtnFace
   Enabled = False
@@ -13,6 +13,7 @@ object InitVarsWindow: TInitVarsWindow
   Font.Height = -9
   Font.Name = 'MS Sans Serif'
   Font.Style = []
+  FormStyle = fsStayOnTop
   OldCreateOrder = False
   Position = poScreenCenter
   PixelsPerInch = 96
@@ -42,6 +43,18 @@ object InitVarsWindow: TInitVarsWindow
     Font.Style = [fsBold]
     ParentFont = False
     WordWrap = True
+  end
+  object StationMonitorsWebDiagnosticsMemo: TMemo
+    Left = 0
+    Top = 0
+    Width = 635
+    Height = 931
+    Align = alClient
+    Lines.Strings = (
+      '---LOG---'
+      '')
+    ScrollBars = ssVertical
+    TabOrder = 0
   end
   object SaveDialogue: TSaveDialog
     DefaultExt = 'tim'

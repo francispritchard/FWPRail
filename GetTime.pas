@@ -236,7 +236,7 @@ BEGIN
             END;
           END;
     SetUpStationMonitors([], StationMonitorsCurrentDisplayOrderNum);
-    DrawStationMonitorsWindow;
+    DrawStationMonitorsWindow(StationMonitorsCurrentArea);
   EXCEPT
     ON E : Exception DO
       Log('EG OKButtonClick: ' + E.ClassName + ' error raised, with message: ' + E.Message);
@@ -291,7 +291,7 @@ BEGIN
     IF (StationMonitorDisplay = StationClockDisplay)
     OR (Copy(SaveCurrentRailwayTimeStr, 1, 5) <> Copy(CurrentRailwayTimeStr, 1, 5))
     THEN BEGIN
-      DrawStationMonitorsWindow;
+      DrawStationMonitorsWindow(StationMonitorsCurrentArea);
       IF LocationDataWindow.Visible THEN
         LocationDataWindow.Caption := 'LocationDataWindow (' + CurrentRailwayTimeStr + ')';
     END;
@@ -329,7 +329,7 @@ BEGIN
           Dec(Min);
 
       ClockWindow.Clock.Time := EncodeTime(Hour, Min, Sec, MSec);
-      DrawStationMonitorsWindow;
+      DrawStationMonitorsWindow(StationMonitorsCurrentArea);
     END;
   EXCEPT
     ON E : Exception DO

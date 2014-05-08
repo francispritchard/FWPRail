@@ -651,12 +651,6 @@ VAR
   DefaultStationStartOfDayPassengerBoardingTimeInMinutes : Integer = 4;
   StationStartOfDayPassengerBoardingTimeInMinutes : Integer = 4;
 
-  DefaultStationMonitorsDataFilename : String = 'StationMonitorsData';
-  StationMonitorsDataFilename : String;
-
-  DefaultStationMonitorsDataFilenameSuffix : String = 'csv';
-  StationMonitorsDataFilenameSuffix : String;
-
   DefaultStationMonitorsFontName : String = 'Arial';
   StationMonitorsFontName : String;
 
@@ -665,6 +659,9 @@ VAR
 
   DefaultStationMonitorsSmallFontHeight : Integer = 36;
   StationMonitorsSmallFontHeight : Integer;
+
+  DefaultStationMonitorsWebPageRequired : Boolean = False;
+  StationMonitorsWebPageRequired : Boolean;
 
   DefaultStopAllLocosAtShutDown : Boolean = True;
   StopAllLocosAtShutDown : Boolean;
@@ -788,9 +785,6 @@ VAR
 
   DefaultWorkingTimetableWindowGridBackgroundColour : TColor = clMenu;
   WorkingTimetableWindowGridBackgroundColour : TColour = clMenu;
-
-  DefaultWritingStationMonitorsDisplayToFile : Boolean = False;
-  WritingStationMonitorsDisplayToFile : Boolean;
 
   RDCBailOffMin : Integer = 0;
   RDCBailOffMax : Integer = 0;
@@ -981,8 +975,6 @@ CONST
     RouteingExceptionDataFilenameSuffixStr = 'Routeing Exception Data Filename Suffix';
     SignalDataFilenameStr = 'Signal Data Filename';
     SignalDataFilenameSuffixStr = 'Signal Data Filename Suffix';
-    StationMonitorsDataFilenameStr = 'Station Monitors Data Filename';
-    StationMonitorsDataFilenameSuffixStr = 'Station Monitors Data Filename Suffix';
     TrackCircuitDataFilenameStr = 'TrackCircuit Data Filename';
     TrackCircuitDataFilenameSuffixStr = 'TrackCircuit Data Filename Suffix';
     WorkingTimetableFilenameStr = 'Working Timetable Filename';
@@ -1028,6 +1020,7 @@ CONST
     StartRepeatJourneysOnNewLineInDiagramsStr = 'Start Repeat Journeys On New Line In Diagrams';
     StartWithDiagramsStr = 'Start With Diagrams';
     StationEndOfDayPassengerLeavingTimeInMinutesStr = 'Station End Of Day Passenger Leaving Time In Minutes';
+    StationMonitorsWebPageRequiredStr = 'Station Monitors Web Page Required';
     StationOppositeDirectionExitMinimumWaitTimeInMinutesStr = 'Station Opposite Direction Exit Minimum Wait Time In Minutes';
     StationSameDirectionExitMinimumWaitTimeInMinutesStr = 'Station Same Direction Exit Minimum Wait Time In Minutes';
     StationStartModeStr = 'Station Start Mode';
@@ -1038,7 +1031,6 @@ CONST
     TheatreBoxWidthStr = 'Theatre Box Width';
     WaitBeforeRerouteInMinutesStr = 'Wait Before Reroute In Minutes';
     WorkingTimetableModeStr = 'WorkingTimetable Mode';
-    WritingStationMonitorsDisplayToFileStr = 'Writing Station Monitors Display To File';
 
   RDCSectionStr = 'RDC';
     RDCBailOffMinStr = 'RDC BailOff Min';
@@ -1214,13 +1206,12 @@ BEGIN
       RouteingExceptionDataFilename := ReadString(FilesSectionStr, RouteingExceptionDataFilenameStr, DefaultRouteingExceptionDataFilename);
       RouteingExceptionDataFilenameSuffix := ReadString(FilesSectionStr, RouteingExceptionDataFilenameSuffixStr, DefaultRouteingExceptionDataFilenameSuffix);
       SignalDataFilename := ReadString(FilesSectionStr, SignalDataFilenameStr, DefaultSignalDataFilename);
-      StationMonitorsDataFilename := ReadString(FilesSectionStr, StationMonitorsDataFilenameStr, DefaultStationMonitorsDataFilename);
       SignalDataFilenameSuffix := ReadString(FilesSectionStr, SignalDataFilenameSuffixStr, DefaultSignalDataFilenameSuffix);
-      StationMonitorsDataFilenameSuffix := ReadString(FilesSectionStr, StationMonitorsDataFilenameSuffixStr, DefaultStationMonitorsDataFilenameSuffix);
       TrackCircuitDataFilename := ReadString(FilesSectionStr, TrackCircuitDataFilename, DefaultTrackCircuitDataFilename);
       TrackCircuitDataFilenameSuffix := ReadString(FilesSectionStr, TrackCircuitDataFilenameSuffixStr, DefaultTrackCircuitDataFilenameSuffix);
       WorkingTimetableFilename := ReadString(FilesSectionStr, WorkingTimetableFilename, DefaultWorkingTimetableFilename);
       WorkingTimetableFilenameSuffix := ReadString(FilesSectionStr, WorkingTimetableFilenameSuffixStr, DefaultWorkingTimetableFilenameSuffix);
+
       { Colours for buffer stops }
       BufferStopColour := StrToColour(ReadString(ColoursSectionStr, BufferStopColourStr, ColourToStr(DefaultBufferStopColour)));
       BufferStopNumberColour := StrToColour(ReadString(ColoursSectionStr, BufferStopNumberColourStr, ColourToStr(DefaultBufferStopNumberColour)));
@@ -1230,9 +1221,11 @@ BEGIN
       TRSPlungerColour := StrToColour(ReadString(ColoursSectionStr, TRSPlungerColourStr, ColourToStr(DefaultTRSPlungerColour)));
       TRSPlungerOutlineColour := StrToColour(ReadString(ColoursSectionStr, TRSPlungerOutlineColourStr, ColourToStr(DefaultTRSPlungerOutlineColour)));
       TRSPlungerPressedColour := StrToColour(ReadString(ColoursSectionStr, TRSPlungerPressedColourStr, ColourToStr(DefaultTRSPlungerPressedColour)));
+
       { Colours for platforms }
       PlatformColour := StrToColour(ReadString(ColoursSectionStr, PlatformColourStr, ColourToStr(DefaultPlatformColour)));
       PlatformNumberColour := StrToColour(ReadString(ColoursSectionStr, PlatformNumberColourStr, ColourToStr(DefaultPlatformNumberColour)));
+
       { Colours for points }
       LenzPointNumberColour := StrToColour(ReadString(ColoursSectionStr, LenzPointNumberColourStr, ColourToStr(DefaultLenzPointNumberColour)));
       PointColour := StrToColour(ReadString(ColoursSectionStr, PointColourStr, ColourToStr(DefaultPointColour)));
@@ -1486,6 +1479,7 @@ BEGIN
       StartWithDiagrams := ReadBool(OtherOptionsSectionStr, StartWithDiagramsStr, DefaultStartWithDiagrams);
       StationEndOfDayPassengerLeavingTimeInMinutes := ReadInteger(OtherOptionsSectionStr, StationEndOfDayPassengerLeavingTimeInMinutesStr,
                                                                                                                        DefaultStationEndOfDayPassengerLeavingTimeInMinutes);
+      StationMonitorsWebPageRequired := ReadBool(OtherOptionsSectionStr, StationMonitorsWebPageRequiredStr, DefaultStationMonitorsWebPageRequired);
       StationOppositeDirectionExitMinimumWaitTimeInMinutes := ReadInteger(OtherOptionssectionStr, StationOppositeDirectionExitMinimumWaitTimeInMinutesStr,
                                                                                                                DefaultStationOppositeDirectionExitMinimumWaitTimeInMinutes);
       StationSameDirectionExitMinimumWaitTimeInMinutes := ReadInteger(OtherOptionsSectionStr, StationSameDirectionExitMinimumWaitTimeInMinutesStr,
@@ -1499,7 +1493,7 @@ BEGIN
       TheatreBoxWidth := ReadInteger(OtherOptionsSectionStr, TheatreBoxWidthStr, DefaultTheatreBoxWidth);
       WaitBeforeRerouteInMinutes := ReadInteger(OtherOptionsSectionStr, WaitBeforeRerouteInMinutesStr, DefaultWaitBeforeRerouteInMinutes);
       WorkingTimetableMode := ReadBool(OtherOptionsSectionStr, WorkingTimetableModeStr, DefaultWorkingTimetableMode);
-      WritingStationMonitorsDisplayToFile := ReadBool(OtherOptionsSectionStr, WritingStationMonitorsDisplayToFileStr, DefaultWritingStationMonitorsDisplayToFile);
+
       { Time options }
       TempStr := ReadString(TimesSectionStr, ProgramStartTimeOptionStr, DefaultProgramStartTimeStr);
       IF (TempStr <> '')
@@ -1713,8 +1707,6 @@ BEGIN
       WriteString(FilesSectionStr, RouteingExceptionDataFilenameSuffixStr, RouteingExceptionDataFilenameSuffix);
       WriteString(FilesSectionStr, SignalDataFilenameStr, SignalDataFilename);
       WriteString(FilesSectionStr, SignalDataFilenameSuffixStr, SignalDataFilenameSuffix);
-      WriteString(FilesSectionStr, StationMonitorsDataFilenameStr, StationMonitorsDataFilename);
-      WriteString(FilesSectionStr, StationMonitorsDataFilenameSuffixStr, StationMonitorsDataFilenameSuffix);
       WriteString(FilesSectionStr, TrackCircuitDataFilenameStr, TrackCircuitDataFilename);
       WriteString(FilesSectionStr, TrackCircuitDataFilenameSuffixStr, TrackCircuitDataFilenameSuffix);
       WriteString(FilesSectionStr, WorkingTimetableFilenameStr, WorkingTimetableFilename);
@@ -1978,6 +1970,7 @@ BEGIN
       WriteBool(OtherOptionsSectionStr, StartRepeatJourneysOnNewLineInDiagramsStr, StartRepeatJourneysOnNewLineInDiagrams);
       WriteBool(OtherOptionsSectionStr, StartWithDiagramsStr, StartWithDiagrams);
       WriteInteger(OtherOptionsSectionStr, StationEndOfDayPassengerLeavingTimeInMinutesStr, StationEndOfDayPassengerLeavingTimeInMinutes);
+      WriteBool(OtherOptionsSectionStr, StationMonitorsWebPageRequiredStr, StationMonitorsWebPageRequired);
       WriteInteger(OtherOptionsSectionStr, StationOppositeDirectionExitMinimumWaitTimeInMinutesStr, StationOppositeDirectionExitMinimumWaitTimeInMinutes);
       WriteInteger(OtherOptionsSectionStr, StationSameDirectionExitMinimumWaitTimeInMinutesStr, StationSameDirectionExitMinimumWaitTimeInMinutes);
       WriteBool(OtherOptionsSectionStr, StationStartModeStr, StationStartMode);
@@ -1988,7 +1981,6 @@ BEGIN
       WriteInteger(OtherOptionsSectionStr, TheatreBoxWidthStr, TheatreBoxWidth);
       WriteInteger(OtherOptionsSectionStr, WaitBeforeRerouteInMinutesStr, WaitBeforeRerouteInMinutes);
       WriteBool(OtherOptionsSectionStr, WorkingTimetableModeStr, WorkingTimetableMode);
-      WriteBool(OtherOptionsSectionStr, WritingStationMonitorsDisplayToFileStr, WritingStationMonitorsDisplayToFile);
 
       { Various times }
       WriteString(TimesSectionStr, ProgramStartTimeOptionStr, TimeToHMSStr(ProgramStartTime));
@@ -2091,8 +2083,6 @@ BEGIN
       Values[ReplayFilenameSuffixStr] := ReplayFilenameSuffix;
       Values[SignalDataFilenameStr] := SignalDataFilename;
       Values[SignalDataFilenameSuffixStr] := SignalDataFilenameSuffix;
-      Values[StationMonitorsDataFilenameStr] := StationMonitorsDataFilename;
-      Values[StationMonitorsDataFilenameSuffixStr] := StationMonitorsDataFilenameSuffix;
       Values[TrackCircuitDataFilenameStr] := TrackCircuitDataFilename;
       Values[TrackCircuitDataFilenameSuffixStr] := TrackCircuitDataFilenameSuffix;
       Values[WorkingTimetableFilenameStr] := WorkingTimetableFilename;
@@ -2331,6 +2321,11 @@ BEGIN
 
       Values[StationEndOfDayPassengerLeavingTimeInMinutesStr] := IntToStr(StationEndOfDayPassengerLeavingTimeInMinutes);
 
+      Values[StationMonitorsWebPageRequiredStr] := BoolToStr(StationMonitorsWebPageRequired, True);
+      ItemProps[StationMonitorsWebPageRequiredStr].PickList.Add('True');
+      ItemProps[StationMonitorsWebPageRequiredStr].PickList.Add('False');
+      ItemProps[StationMonitorsWebPageRequiredStr].EditStyle := esPickList;
+
       Values[StationOppositeDirectionExitMinimumWaitTimeInMinutesStr] := IntToStr(StationOppositeDirectionExitMinimumWaitTimeInMinutes);
 
       Values[StationSameDirectionExitMinimumWaitTimeInMinutesStr] := IntToStr(StationSameDirectionExitMinimumWaitTimeInMinutes);
@@ -2361,11 +2356,6 @@ BEGIN
       ItemProps[WorkingTimetableModeStr].PickList.Add('True');
       ItemProps[WorkingTimetableModeStr].PickList.Add('False');
       ItemProps[WorkingTimetableModeStr].EditStyle := esPickList;
-
-      Values[WritingStationMonitorsDisplayToFileStr] := BoolToStr(WritingStationMonitorsDisplayToFile, True);
-      ItemProps[WritingStationMonitorsDisplayToFileStr].PickList.Add('True');
-      ItemProps[WritingStationMonitorsDisplayToFileStr].PickList.Add('False');
-      ItemProps[WritingStationMonitorsDisplayToFileStr].EditStyle := esPickList;
 
       { Add the RailDriver data - one wouldn't expect it to be changed this way, but it's a way of zeroing it if the wrong data has been accidentally acquired }
       Values[RDCStr] := '';
@@ -2568,8 +2558,6 @@ BEGIN
       CheckStringValueListValue(KeyName, RouteingExceptionDataFilenameSuffixStr, NewKeyValue, RouteingExceptionDataFilenameSuffix);
       CheckStringValueListValue(KeyName, SignalDataFilenameStr, NewKeyValue, SignalDataFilename);
       CheckStringValueListValue(KeyName, SignalDataFilenameSuffixStr, NewKeyValue, SignalDataFilenameSuffix);
-      CheckStringValueListValue(KeyName, StationMonitorsDataFilenameStr, NewKeyValue, StationMonitorsDataFilename);
-      CheckStringValueListValue(KeyName, StationMonitorsDataFilenameSuffixStr, NewKeyValue, StationMonitorsDataFilenameSuffix);
       CheckStringValueListValue(KeyName, TrackCircuitDataFilenameStr, NewKeyValue, TrackCircuitDataFilename);
       CheckStringValueListValue(KeyName, TrackCircuitDataFilenameSuffixStr, NewKeyValue, TrackCircuitDataFilenameSuffix);
       CheckStringValueListValue(KeyName, WorkingTimetableFilenameStr, NewKeyValue, WorkingTimetableFilename);
@@ -2711,6 +2699,7 @@ BEGIN
       CheckBooleanValueListValue(KeyName, StartRepeatJourneysOnNewLineInDiagramsStr, NewKeyValue, StartRepeatJourneysOnNewLineInDiagrams);
       CheckBooleanValueListValue(KeyName, StartWithDiagramsStr, NewKeyValue, StartWithDiagrams);
       CheckIntegerValueListValue(KeyName, StationEndOfDayPassengerLeavingTimeInMinutesStr, NewKeyValue, StationEndOfDayPassengerLeavingTimeInMinutes);
+      CheckBooleanValueListValue(KeyName, StationMonitorsWebPageRequiredStr, NewKeyValue, StationMonitorsWebPageRequired);
       CheckIntegerValueListValue(KeyName, StationOppositeDirectionExitMinimumWaitTimeInMinutesStr, NewKeyValue, StationOppositeDirectionExitMinimumWaitTimeInMinutes);
       CheckIntegerValueListValue(KeyName, StationSameDirectionExitMinimumWaitTimeInMinutesStr, NewKeyValue, StationSameDirectionExitMinimumWaitTimeInMinutes);
       CheckBooleanValueListValue(KeyName, StationStartModeStr, NewKeyValue, StationStartMode);
@@ -2721,7 +2710,6 @@ BEGIN
       CheckIntegerValueListValue(KeyName, TheatreBoxWidthStr, NewKeyValue, TheatreBoxWidth);
       CheckIntegerValueListValue(KeyName, WaitBeforeRerouteInMinutesStr, NewKeyValue, WaitBeforeRerouteInMinutes);
       CheckBooleanValueListValue(KeyName, WorkingTimetableModeStr, NewKeyValue, WorkingTimetableMode);
-      CheckBooleanValueListValue(KeyName, WritingStationMonitorsDisplayToFileStr, NewKeyValue, WritingStationMonitorsDisplayToFile);
 
       { RDC }
       Values[RDCSectionStr] := '';
@@ -2797,6 +2785,13 @@ BEGIN
   LocoUtilsWindow.Width := LocoUtilsWindowWidth;
   LocoUtilsWindow.Top := LocoUtilsWindowTop;
   LocoUtilsWindow.Left := LocoUtilsWindowLeft;
+
+  OptionsWindow.Height := OptionsWindowHeight;
+  OptionsWindow.Width := OptionsWindowWidth;
+  OptionsWindow.Top := OptionsWindowTop;
+  OptionsWindow.Left := OptionsWindowLeft;
+
+  OptionsWindow.OptionsValueListEditor.ColWidths[0] := OptionsWindowValueListEditorCol0Width;
 END; { InitialiseOptionsUnit }
 
 PROCEDURE TOptionsWindow.OptionsWindowFindDialogFind(Sender: TObject);

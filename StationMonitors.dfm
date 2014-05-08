@@ -19,19 +19,10 @@ object StationMonitorsWindow: TStationMonitorsWindow
   OnKeyDown = StationMonitorsFormKeyDown
   OnPaint = StationMonitorsFormPaint
   OnShow = StationMonitorsFormShow
+  ExplicitWidth = 320
+  ExplicitHeight = 240
   PixelsPerInch = 96
   TextHeight = 13
-  object StationMonitorsMemo: TMemo
-    Left = 103
-    Top = 120
-    Width = 489
-    Height = 321
-    Lines.Strings = (
-      '---LOG---'
-      '')
-    ScrollBars = ssVertical
-    TabOrder = 0
-  end
   object StationMonitorsTcpServer: TTcpServer
     LocalHost = '192.168.0.3'
     LocalPort = '80'

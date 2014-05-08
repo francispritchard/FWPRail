@@ -45,6 +45,8 @@ TYPE
     TrackCircuitDataSource : TDataSource;
     UnderwayOrCompleted1Label : TLabel;
     UnderwayOrCompleted2Label : TLabel;
+
+    StationMonitorsWebDiagnosticsMemo: TMemo;
   PRIVATE
     { Private declarations }
   PUBLIC
@@ -1183,8 +1185,6 @@ VAR
 
   { Various file related variables }
   ErrorLogFile, LargeLogFile, LocoLogFile, ReplayFile, RouteLogFile, SignalPointAndTCLogFile, DiagramsLogFile, WorkingTimetableLogFile, TestLogFile : TextFile;
-  StationMonitorsOutputFile : TextFile;
-  StationMonitorsOutputFilename : String;
 
   DebugWindowLines : ARRAY OF String;
   DebugCounter : Integer = 0; { may be used for debugging number of times things written for instance }
@@ -1324,6 +1324,9 @@ VAR
   HoursUpX, HoursStartY, HoursDownX, HoursEndY : Word;
   MinutesUpX, MinutesStartY, MinutesDownX, MinutesEndY : Word;
   SecondsUpX, SecondsStartY, SecondsDownX, SecondsEndY : Word;
+
+PROCEDURE AddLineToStationMonitorsWebDiagnosticsMemo(S : String);
+{ Adds a line of text to the station monitor unit's web diagnostics memo }
 
 PROCEDURE AddNewRecordToSignalDatabase;
 { Append a record to the signal database }
@@ -1539,6 +1542,18 @@ BEGIN
 
   Result := DateToStr(Now) + ' ' + TimeToHMSStr(Now);
 END; { DescribeActualDateAndTime }
+
+PROCEDURE AddLineToStationMonitorsWebDiagnosticsMemo(S : String);
+{ Adds a line of text to the station monitor unit's web diagnostics memo }
+BEGIN
+  TRY
+    IF (InitVarsWindow.StationMonitorsWebDiagnosticsMemo <> NIL) AND NOT ProgramShuttingDown THEN
+      InitVarsWindow.StationMonitorsWebDiagnosticsMemo.Lines.Add(S);
+  EXCEPT
+    ON E : Exception DO
+      Log('EG AddLineToStationMonitorsWebDiagnosticsMemo:' + E.ClassName + ' error raised, with message: ' + E.Message);
+  END; {TRY}
+END; { AddLineToStationMonitorsWebDiagnosticsMemo }
 
 PROCEDURE SetUpLineDrawingVars(ScaleFactor : Integer);
 { Set up the positions of the lines and plaforms }

@@ -220,14 +220,14 @@ FUNCTION EndOfLineToStr(E : EndOfLineType) : String;
 FUNCTION ExtractBufferStopFromString(Str : String): Integer;
 { Extract a signal post number from a string }
 
-FUNCTION ExtractLineFromString(Str : String): Integer;
-{ Returns a line from a given string }
-
-FUNCTION ExtractNumbersFromString(L : String) : String;
-{ Returns a string with just the numbers }
+FUNCTION ExtractIntegerFromString(L : String) : Integer;
+{ Returns a string with just the numbers, or -1 if there is no number }
 
 FUNCTION ExtractJourneyFromString(Str : String): Integer;
 { Returns a journey number from a given string }
+
+FUNCTION ExtractLineFromString(Str : String): Integer;
+{ Returns a line from a given string }
 
 FUNCTION ExtractPointFromString(Str : String): Integer;
 { Returns a point number from a given string }
@@ -2722,6 +2722,34 @@ BEGIN
     Result := StrToInt(Copy(Str, 4, 255));
 END; { ExtractBufferStopFromString }
 
+FUNCTION ExtractIntegerFromString(L : String) : Integer;
+{ Returns a string with just the numbers, or -1 if there is no number }
+VAR
+  I : Integer;
+  IntegerFound : Boolean;
+  TempStr : String;
+
+BEGIN
+  Result := -1;
+  TempStr := '';
+  IntegerFound := False;
+  I := 1;
+
+  WHILE (I <= Length(L)) DO BEGIN
+    IF IsNumeric(L[I]) THEN BEGIN
+      TempStr := TempStr + L[I];
+      IntegerFound := True;
+    END ELSE
+      IF IntegerFound THEN
+        { we've now found a non-integer}
+        Break;
+    Inc(I);
+  END;
+
+  IF TempStr <> '' THEN
+    Result := StrToInt(TempStr);
+END; { ExtractIntegerFromString }
+
 FUNCTION ExtractJourneyFromString(Str : String): Integer;
 { Returns a journey number from a given string }
 BEGIN
@@ -2743,21 +2771,6 @@ BEGIN
   END ELSE
     Result := UnknownLine;
 END; { ExtractLineFromString }
-
-FUNCTION ExtractNumbersFromString(L : String) : String;
-{ Returns a string with just the numbers }
-VAR
-  I : Integer;
-
-BEGIN
-  Result := '';
-  FOR I := 1 TO Length(L) DO
-    IF IsNumeric(L[I]) THEN
-      Result := Result + L[I];
-  IF Result = '' THEN
-    { if it does not contain a number, just return the first letter (e.g. "M" for Main) }
-    Result := Copy(L, 1, 1);
-END; { ExtractNumbersFromString }
 
 FUNCTION ExtractPointFromString(Str : String): Integer;
 { Returns a point number from a given array element }
@@ -6487,7 +6500,8 @@ CONST
   TrainListOnly = True;
 
 VAR
-  ErrorMsg : String;
+//  ErrorMsg : String;
+  OK : Boolean;
   T : Train;
   WindowsTaskBar : HWND;
 
@@ -6498,6 +6512,11 @@ BEGIN { ShutDownProgram }
     }
     Log('A Shut down initiated');
     ProgramShuttingDown := True;
+
+    { Close the station monitor web page if it exists }
+    CloseStationMonitorsWebPage(OK);
+    IF OK THEN
+      Log('A Station Monitors web poage closed');
 
     { Restore the Windows taskbar if we're in full screen mode and it's been disabled }
     IF WindowsTaskbarDisabled THEN BEGIN
@@ -6596,19 +6615,6 @@ BEGIN { ShutDownProgram }
         RenameLaterFiles(DiagramsLogFile, PathToLogFiles + LogFileName + '-Diagrams', LogFileNameSuffix);
         RenameLaterFiles(WorkingTimetableLogFile, PathToLogFiles + LogFileName + '-WorkingTimetable', LogFileNameSuffix);
       END;
-    END;
-
-    IF WritingStationMonitorsDisplayToFile THEN BEGIN
-      StationMonitorsOutputFileName := StationMonitorsDataFilename + '.' + StationMonitorsDataFilenameSuffix;
-      OpenOutputFileOK(StationMonitorsOutputFile, StationMonitorsOutputFileName, ErrorMsg, NOT AppendToFile);
-      {$I-}
-      Rewrite(StationMonitorsOutputFile);
-      {$I+}
-      IF IOError(StationMonitorsOutputFilename, IOResult, ErrorMsg) THEN
-        Debug('Cannot open ' + StationMonitorsOutputFilename + ': ' + ErrorMsg);
-
-      WriteLn(StationMonitorsOutputFile, 'Game Over!');
-      Close(StationMonitorsOutputFile);
     END;
 
     { and stop }

@@ -922,7 +922,7 @@ BEGIN
   END; {WHILE}
 
   StationMonitorsAlreadySetUp := True;
-  DrawStationMonitorsWindow;
+  DrawStationMonitorsWindow(StationMonitorsCurrentArea);
 END; { SetUpStationMonitors }
 
 FUNCTION DescribeKey(Key : Word; ShiftState : TShiftState) : String;
@@ -2677,8 +2677,12 @@ BEGIN { KeyPressedDown }
               END;
             Ctrl: {M}
               BEGIN
-                HelpMsg := '';
+                HelpMsg := 'Toggle the StationMonitor web-diagnostics Window visibility';
                 IF NOT HelpRequired THEN BEGIN
+                  IF InitVarsWindow.StationMonitorsWebDiagnosticsMemo.Visible THEN
+                    InitVarsWindow.Hide // StationMonitorsWebDiagnosticsMemo.Hide
+                  ELSE
+                    InitVarsWindow.Show; //StationMonitorsWebDiagnosticsMemo.Show;
                 END;
               END;
             Alt: {M}
@@ -3326,11 +3330,11 @@ BEGIN { KeyPressedDown }
                   IF DisplayNotForPublicUseTrainsInStationMonitors THEN BEGIN
                     DisplayNotForPublicUseTrainsInStationMonitors := False;
                     Log('AG DisplayNotForPublicUseTrainsInStationMonitors = OFF');
-                    DrawStationMonitorsWindow;
+                    DrawStationMonitorsWindow(StationMonitorsCurrentArea);
                   END ELSE BEGIN
                     DisplayNotForPublicUseTrainsInStationMonitors := True;
                     Log('AG DisplayNotForPublicUseTrainsInStationMonitors = ON');
-                    DrawStationMonitorsWindow;
+                    DrawStationMonitorsWindow(StationMonitorsCurrentArea);
                   END;
                 END;
               END;
@@ -3355,7 +3359,7 @@ BEGIN { KeyPressedDown }
                   IF StartRepeatJourneysOnNewLineInDiagrams THEN BEGIN
                     StartRepeatJourneysOnNewLineInDiagrams:= False;
                     Log('AG DisplayNotForPublicUseTrainsInStationMonitors = OFF');
-                    DrawStationMonitorsWindow;
+                    DrawStationMonitorsWindow(StationMonitorsCurrentArea);
                   END ELSE BEGIN
                     StartRepeatJourneysOnNewLineInDiagrams:= True;
                     Log('AG StartRepeatJourneysOnNewLineInDiagrams = ON');
