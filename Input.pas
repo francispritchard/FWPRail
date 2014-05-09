@@ -60,6 +60,7 @@ CONST
   UnitRef = 'Input';
 
 VAR
+  AllHeldRouteingReleased : Boolean = False;
   IncludeLocationOccupationStateFlag : Boolean = False;
   InputDialogueBoxRequired : InputDialogueBoxType;
   InputDialogueCharValid : Boolean = False;

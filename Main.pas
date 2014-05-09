@@ -223,6 +223,7 @@ BEGIN
 
     ReadIniFile;
 
+    InitialiseMainUnit;
     InitialiseInitVarsUnit;
     InitialiseOptionsUnit;
     InitialiseLocoDialogueUnit;

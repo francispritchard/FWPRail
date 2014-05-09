@@ -46,6 +46,9 @@ TYPE
 VAR
   DebuggingOptionsWindow: TDebuggingOptionsWindow;
 
+FUNCTION GetAllRouteDebuggingMode : Boolean;
+{ Return the status of AllRouteDebuggingMode }
+
 PROCEDURE InitialiseStartupUnit;
 { Such routines as this allow us to initialises the units in the order we wish }
 
@@ -58,11 +61,20 @@ USES LocoUtils, MiscUtils, Input, RailDraw, RDC, DateUtils, Feedback, CreateRout
 CONST
   UnitRef = 'Startup';
 
+VAR
+  AllRouteDebuggingMode : Boolean = False;
+
 PROCEDURE Log(Str : String);
 { For ease of debugging, adds the unit name }
 BEGIN
   WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
+
+FUNCTION GetAllRouteDebuggingMode : Boolean;
+{ Return the status of AllRouteDebuggingMode }
+BEGIN
+  Result := AllRouteDebuggingMode;
+END; { GetAllRouteDebuggingMode }
 
 PROCEDURE GetWord(VAR Str : String; VAR Word : String);
 { Finds the first word in S (delimited by spaces) and returns it in Word having removed it from Str }

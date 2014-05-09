@@ -1298,7 +1298,7 @@ VAR
         LinesNotAvailableStr := LinesNotAvailableStr + '; ' + IntToStr(LinesNotAvailableNum) + ' ' + LineToStr(CurrentLine) + ': ' + StopStr
     END;
 
-    IF AllRouteDebuggingMode THEN
+    IF GetAllRouteDebuggingMode THEN
       Log('R ' + LineToStr(CurrentLine) + ': ' + LineToStr(CurrentLine) + ': ' + StopStr);
   END; { LineAvailable }
 

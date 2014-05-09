@@ -1051,8 +1051,6 @@ CONST
   LogSignalData = True;
 
 VAR
-  AllHeldRouteingReleased : Boolean = False;
-  AllRouteDebuggingMode : Boolean = False;
   AllSignalsSwitchedOff : Boolean = False;
   AnonymousOccupationMode : Boolean = True;
   Areas : ARRAY OF AreaRec;
