@@ -6,9 +6,6 @@ USES
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, Grids, InitVars, System.UITypes,
   Web.Win.Sockets;
 
-CONST
-  UnitRef = 'StationMonitors';
-
 TYPE
   TStationMonitorsWindow = CLASS(TForm)
     StationMonitorsTcpServer: TTcpServer;
@@ -25,7 +22,6 @@ TYPE
   END;
 
 VAR
-  StationMonitorsExitTime : TDateTime = 0;
   StationMonitorsWindow: TStationMonitorsWindow;
 
 PROCEDURE CloseStationMonitorsWebPage(OUT OK : Boolean);
@@ -34,22 +30,35 @@ PROCEDURE CloseStationMonitorsWebPage(OUT OK : Boolean);
 PROCEDURE DrawStationMonitorsWindow(Area : Integer);
 { Collate, sort and display station monitors entries }
 
+FUNCTION GetStationMonitorsExitTime : TDateTime;
+{ Return the time we exited from and when - if it's soon afterwards we might want to return to the same screen }
+
+{$R *.dfm}
+
 IMPLEMENTATION
 
 USES MiscUtils, StrUtils, DateUtils, Input, GetTime, Diagrams, Options, Raildraw;
 
+CONST
+  UnitRef = 'StationMonitors';
+
 VAR
   MaxX : Integer;
   MaxY : Integer;
+  StationMonitorsExitTime : TDateTime = 0;
   StationMonitorsWebPage : TStringList;
-
-{$R *.dfm}
 
 PROCEDURE Log(Str : String);
 { For ease of debugging, adds the unit name }
 BEGIN
   WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
+
+FUNCTION GetStationMonitorsExitTime : TDateTime;
+{ Return the time we exited from and when - if it's soon afterwards we might want to return to the same screen }
+BEGIN
+  Result := GetStationMonitorsExitTime;
+END; { GetStationMonitorsExitTime }
 
 PROCEDURE TStationMonitorsWindow.StationMonitorsFormKeyDown(Sender: TObject; VAR Key: Word; ShiftState: TShiftState);
 BEGIN

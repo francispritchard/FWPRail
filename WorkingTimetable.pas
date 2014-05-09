@@ -54,7 +54,6 @@ PROCEDURE ProcessWorkingTimetable;
 { Convert the working timetable to train diagrams }
 
 VAR
-  TrainClickedOn : Train = NIL;
   WorkingTimetableWindow: TWorkingTimetableWindow;
 
 IMPLEMENTATION

@@ -28,6 +28,9 @@ TYPE
     { Public declarations }
   END;
 
+TYPE
+  InputDialogueBoxType = (SignalDialogueBox, PointDialogueBox, TrackCircuitDialogueBox, LineDialogueBox, NoDialogueBox);
+
 FUNCTION DescribeKey(Key : Word; ShiftState : TShiftState) : String;
 { Return a description of the key that's been pressed }
 
@@ -37,19 +40,14 @@ PROCEDURE KeyPressedDown{1}(KeyToTest : Word; InputShiftState : TShiftState); Ov
 PROCEDURE KeyPressedDown{2}(KeyToTest : Word; InputShiftState : TShiftState; HelpRequired : Boolean; OUT HelpMsg : String); Overload;
 { Called when a key is pressed or help on keys is required }
 
+PROCEDURE SetAndShowInputDialogueBox(InputDialogueBox : InputDialogueBoxType);
+{ Set and the display the appropriate input dialogue box }
+
 PROCEDURE SetUpStationMonitors(ShiftState : TShiftState; DisplayOrderNum : Integer);
 { Chooses which station we're going to or from and how to show the results }
 
-TYPE
-  InputDialogueBoxType = (SignalDialogueBox, PointDialogueBox, TrackCircuitDialogueBox, LineDialogueBox, NoDialogueBox);
-
 VAR
   InputDialogueBox: TInputDialogueBox;
-  InputDialogueBoxRequired : InputDialogueBoxType;
-  InputDialogueShiftState : TShiftState = [];
-  OldScrollbarXPos : Integer;
-  OldScrollbarYPos : Integer;
-  PreviouslyDisplayedInputDialogueBox : InputDialogueBoxType;
 
 IMPLEMENTATION
 
@@ -63,16 +61,19 @@ CONST
 
 VAR
   IncludeLocationOccupationStateFlag : Boolean = False;
+  InputDialogueBoxRequired : InputDialogueBoxType;
   InputDialogueCharValid : Boolean = False;
   InputDialogueLine : Integer = UnknownLine;
   InputDialogueLineFound : Boolean = False;
   InputDialoguePoint : Integer = UnknownPoint;
   InputDialoguePointFound : Boolean = False;
+  InputDialogueShiftState : TShiftState = [];
   InputDialogueSignal : Integer = UnknownSignal;
   InputDialogueSignalFound : Boolean = False;
   InputDialogueTrackCircuit : Integer = 0;
   InputDialogueTrackCircuitFound : Boolean = False;
   LastKeyPressed : Integer;
+  PreviouslyDisplayedInputDialogueBox : InputDialogueBoxType;
   SaveDebugWindowDebugRichEditColour : TColor = clBlack;
   SaveTCSpeedRestrictionColour : TColour;
   ZoomLevel : Integer = 0;
@@ -82,6 +83,13 @@ PROCEDURE Log(Str : String);
 BEGIN
   WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
+
+PROCEDURE SetAndShowInputDialogueBox(InputDialogueBox : InputDialogueBoxType);
+{ Set and the display the appropriate input dialogue box }
+BEGIN
+  InputDialogueBoxRequired := InputDialogueBox;
+  Input.InputDialogueBox.Show;
+END; { SetAndShowInputDialogueBox}
 
 PROCEDURE TInputDialogueBox.InputDialogueCancelButtonClick(Sender: TObject);
 BEGIN
@@ -1526,7 +1534,7 @@ BEGIN { KeyPressedDown }
                   { If we are returning to the timetable after a short gap, we probably want to return to the same one we left }
                   { note: we use the NewMinutesBetween system routine as the system one is known to be buggy }
                   IF NOT StationMonitorsWindow.Visible
-                  AND (NewMinutesBetween(Time, StationMonitorsExitTime) < 1)
+                  AND (NewMinutesBetween(Time, GetStationMonitorsExitTime) < 1)
                   THEN
                     SetUpStationMonitors(InputShiftState, StationMonitorsCurrentDisplayOrderNum)
                   ELSE BEGIN
@@ -1565,7 +1573,7 @@ BEGIN { KeyPressedDown }
                   { If we are returning to the station monitors after a short gap, we probably want to return to the same one we left }
                   { note: we use the NewMinutesBetween routine as the system MinutesBetween routine is known to be buggy }
                   IF NOT StationMonitorsWindow.Visible
-                  AND (NewMinutesBetween(Time, StationMonitorsExitTime) < 1)
+                  AND (NewMinutesBetween(Time, GetStationMonitorsExitTime) < 1)
                   THEN
                     SetUpStationMonitors(InputShiftState, StationMonitorsCurrentDisplayOrderNum)
                   ELSE BEGIN

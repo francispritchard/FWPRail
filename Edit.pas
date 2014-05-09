@@ -1257,7 +1257,7 @@ VAR
 
 BEGIN
   TRY
-    IF LineFoundNum = UnknownLine THEN
+    IF GetLineFoundNum = UnknownLine THEN
       { this shouldn't happen, but just in case it does... }
       ShowMessage('A new signal must be near an existing line')
     ELSE BEGIN
@@ -1265,19 +1265,19 @@ BEGIN
       ExistingSignalFoundAttachedToLine := False;
       S := 0;
       WHILE (S <= High(Signals)) AND NOT ExistingSignalFoundAttachedToLine DO BEGIN
-        IF Signals[S].Signal_AdjacentLine = LineFoundNum THEN
+        IF Signals[S].Signal_AdjacentLine = GetLineFoundNum THEN
           ExistingSignalFoundAttachedToLine := True
         ELSE
           Inc(S);
       END; {WHILE}
       IF ExistingSignalFoundAttachedToLine THEN
-        ShowMessage('Cannot create a signal adjacent to line ' + LineToStr(LineFoundNum) + ' as S=' + IntToStr(S) + ' is already marked as being adjacent to it')
+        ShowMessage('Cannot create a signal adjacent to line ' + LineToStr(GetLineFoundNum) + ' as S=' + IntToStr(S) + ' is already marked as being adjacent to it')
       ELSE BEGIN
         { Now create a basic signal which must then be added to using the value list editor }
         SetLength(Signals, Length(Signals) + 1);
         WITH Signals[High(Signals)] DO BEGIN
           Signal_AccessoryAddress := 0;
-          Signal_AdjacentLine := LineFoundNum;
+          Signal_AdjacentLine := GetLineFoundNum;
           Signal_AdjacentTC := UnknownTrackCircuit;
           Signal_ApproachControlAspect := NoAspect;
           Signal_ApproachLocked := False;
@@ -1286,7 +1286,7 @@ BEGIN
           Signal_Automatic := False; { not yet implemented }
           Signal_DataChanged := True;
           Signal_DecoderNum := 0;
-          IF Lines[LineFoundNum].Line_Direction = Down THEN
+          IF Lines[GetLineFoundNum].Line_Direction = Down THEN
             Signal_Direction := Down
           ELSE
             { this covers all the other options }
@@ -1480,13 +1480,12 @@ PROCEDURE CreatePoint;
 
 BEGIN
   TRY
-    IF LineFoundNum = UnknownLine THEN
+    IF GetLineFoundNum = UnknownLine THEN
       { this shouldn't happen, but just in case it does... }
       ShowMessage('A new point must be near an existing line')
     ELSE BEGIN
-      Debug(LineToStr(LineFoundNum));
-      Debug('MouseX=' + IntToStr(MouseX) + ' MouseY=' + IntToStr(MouseY));
-      Debug('Line_UpXLine=' + Lines[LineFoundNum].Line_UpXLineStr);
+      Debug(LineToStr(GetLineFoundNum));
+      Debug('Line_UpXLine=' + Lines[GetLineFoundNum].Line_UpXLineStr);
 
 
 (*

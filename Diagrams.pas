@@ -127,6 +127,9 @@ PROCEDURE DrawDiagramsStatusCell(T : Train; CellStyle : CellStyleType);
 FUNCTION GetStationNameFromArea(Area : Integer) : String;
 { Return a station name given the Area it is in }
 
+FUNCTION GetTrainClickedOn : Train;
+{ Return which train record corresponds to the train we've clicked on }
+
 PROCEDURE InitialiseDiagramsUnit;
 { Initialises the unit }
 
@@ -166,7 +169,6 @@ PROCEDURE WriteTrainRecord(T : Train);
 
 VAR
   DiagramsWindow: TDiagramsWindow;
-  TrainClickedOn : Train = NIL;
 
 IMPLEMENTATION
 
@@ -204,6 +206,7 @@ VAR
   InitDiagramsWindow : Boolean = True;
   ShowArrivalTimes : Boolean = False;
   ShowTrainLength : Boolean = True;
+  TrainClickedOn : Train = NIL;
 
   NumberOfRepeatColumns : Integer;
   DestinationCol : IntegerArrayType;
@@ -218,6 +221,12 @@ PROCEDURE Log(Str : String);
 BEGIN
   WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
+
+FUNCTION GetTrainClickedOn : Train;
+{ Return which train record corresponds to the train we've clicked on }
+BEGIN
+  Result := TrainClickedOn;
+END; { GetTrainClickedOn }
 
 FUNCTION TrainFoundInDiagrams(LocoChip : Integer) : DiagramsEntryType;
 { Search the diagrams for a particular loco and return where it is on the layout and in the diagram window }

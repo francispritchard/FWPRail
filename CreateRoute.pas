@@ -62,8 +62,8 @@ FUNCTION FindNextSignalOrBufferStop(CurrentSignal, NextSignal, NextBufferStop : 
 { Looks for the next signal using the rules in the LineAvailable procedure }
 
 PROCEDURE FindPreviousSignals(S : Integer; OUT PreviousSignal1, PreviousSignal2 : Integer);
-{ Looks for the signals before ours, so we can change their aspects too. We just go in reverse, following how the points are set - if a
-7  signal is off, it must be previous to us, as the points it controls would be locked
+{ Looks for the signals before ours, so we can change their aspects too. We just go in reverse, following how the points are set - if a signal is off, it must be previous
+  to us, as the points it controls would be locked
 }
 PROCEDURE FindRouteFromLineAToLineB(LocoChip, Journey, S, StartLine, EndLine : Integer; Direction : DirectionType; TrainType : TypeOfTrainType; TrainLength : Integer;
                                     EmergencyRouteing, AreOutOfUseLinesIncluded : Boolean; OUT DraftRouteArray : StringArrayType;

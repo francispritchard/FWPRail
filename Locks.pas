@@ -34,8 +34,7 @@ UNIT Locks;
 
 INTERFACE
 
-USES Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, Dialogs, StartUp, Diagrams, GetTime, InitVars,
-     StdCtrls, FWPShowMessageUnit;
+USES Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, Dialogs, StartUp, Diagrams, GetTime, InitVars, StdCtrls, FWPShowMessageUnit;
 
 TYPE
   TLockListWindow = CLASS(TForm)

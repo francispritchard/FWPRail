@@ -5,9 +5,6 @@ INTERFACE
 USES
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, Dialogs, GetTime, Lenz, Initvars, StdCtrls, Types, Registry;
 
-CONST
-  UnitRef = 'Startup';
-
 TYPE
   TDebuggingOptionsWindow = CLASS(TForm)
     Startup_AllRouteDebuggingCheckBox: TCheckBox;
@@ -57,6 +54,9 @@ IMPLEMENTATION
 {$R *.dfm}
 
 USES LocoUtils, MiscUtils, Input, RailDraw, RDC, DateUtils, Feedback, CreateRoute, Diagrams, StrUtils, LocationData, Options;
+
+CONST
+  UnitRef = 'Startup';
 
 PROCEDURE Log(Str : String);
 { For ease of debugging, adds the unit name }

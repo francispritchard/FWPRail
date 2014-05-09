@@ -3713,8 +3713,6 @@ END; { FWPRailWindowMouseMove }
 
 PROCEDURE TFWPRailWindow.FWPRailWindowMouseDown(Sender: TObject; Button: TMouseButton; ShiftState: TShiftState; X, Y: Integer);
 BEGIN
-  MouseButtonDown := True;
-
   { WhatIsUnderMouse needs to be repeated, as for some reason MouseButtonMove doesn't capture new mouse positions when a popup menu is "popped up" }
   WhatIsUnderMouse(X, Y, ShiftState);
   MouseButtonPressed(Button, X, Y, ShiftState);
@@ -3722,7 +3720,6 @@ END; { FWPRailWindowMouseDown }
 
 PROCEDURE TFWPRailWindow.FWPRailWindowMouseUp(Sender: TObject; Button: TMouseButton; ShiftState: TShiftState; X, Y: Integer);
 BEGIN
-  MouseButtonDown := False;
   MouseButtonReleased(Button, X, Y, ShiftState);
 END; { FWPRailWindowMouseUp }
 
@@ -6672,14 +6669,12 @@ END; { StopClock }
 
 PROCEDURE TFWPRailWindow.GeneralPopupChangePointClick(Sender: TObject);
 BEGIN
-  InputDialogueBoxRequired := PointDialogueBox;
-  InputDialogueBox.Show;
+  SetAndShowInputDialogueBox(PointDialogueBox);
 END; { GeneralPopupChangePoint }
 
 PROCEDURE TFWPRailWindow.GeneralPopupChangeSignalClick(Sender: TObject);
 BEGIN
-  InputDialogueBoxRequired := SignalDialogueBox;
-  InputDialogueBox.Show;
+  SetAndShowInputDialogueBox(SignalDialogueBox);
 END; { GeneralPopupChangeSignalClick }
 
 PROCEDURE TFWPRailWindow.GeneralPopupListLocomotivesClick(Sender: TObject);
@@ -6695,8 +6690,7 @@ END; { GeneralPopupListLocomotivesClick }
 
 PROCEDURE TFWPRailWindow.GeneralPopupShowTrackcircuitClick(Sender: TObject);
 BEGIN
-  InputDialogueBoxRequired := TrackCircuitDialogueBox;
-  InputDialogueBox.Show;
+  SetAndShowInputDialogueBox(TrackCircuitDialogueBox);
 END; { GeneralPopupShowTrackcircuitClick }
 
 PROCEDURE TFWPRailWindow.GeneralPopupDebugOptionsClick(Sender: TObject);
@@ -7178,12 +7172,12 @@ BEGIN { Main drawing procedure }
             VertScrollBar.Range := MulDiv(1000, ClientHeight, ZoomScaleFactor);
 
             { If there's a zoom rectangle, centre the enlarged picture on it }
-            WITH ZoomRect DO BEGIN
+            WITH GetZoomRect DO BEGIN
               IF (Left <> 0) OR (Top <> 0) OR (Right <> 0) OR (Bottom <> 0) THEN BEGIN
                 HorzScrollBar.Position := MulDiv(1000, Left - ((Right - Left) DIV 2), ZoomScaleFactor);
                 VertScrollBar.Position := MulDiv(1000, Top - ((Bottom - Top) DIV 2), ZoomScaleFactor);
 
-                ZoomRect := Rect(0, 0, 0, 0);
+                SetZoomRect(Rect(0, 0, 0, 0));
               END;
             END; {WITH}
           END;

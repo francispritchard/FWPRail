@@ -17,11 +17,20 @@ TYPE
 PROCEDURE ChangeStateOfWhatIsUnderMouse(X, Y : Integer; ShiftState : TShiftState; HelpRequired : Boolean);
 { See what the mouse is currently pointing at something, and change its state if appropriate }
 
+FUNCTION GetLineFoundNum : Integer;
+{ Returns which line we're on }
+
+FUNCTION GetZoomRect : TRect;
+{ Return the current zoom rectangle }
+
 PROCEDURE MouseButtonPressed(Button : TMouseButton; X, Y : Integer; ShiftState : TShiftState);
 { The mouse button has been pressed }
 
 PROCEDURE MouseButtonReleased(Button : TMouseButton; X, Y : Integer; ShiftState : TShiftState);
 { Button released }
+
+PROCEDURE SetZoomRect(TempZoomRect : TRect);
+{ Set the current zoom rectangle }
 
 PROCEDURE WhatIsUnderMouse(X, Y : Integer; ShiftState : TShiftState); Overload;
 { Returns the current mouse position and whether a specific item has been found at that position without a keypress being required }
@@ -33,13 +42,6 @@ PROCEDURE WhatIsUnderMouse(X, Y : Integer; ShiftState : TShiftState; OUT BufferS
 
 VAR
   CuneoWindow: TCuneoWindow;
-  LineFoundNum : Integer = UnknownLine;
-  MouseButtonDown : Boolean = False;
-  MouseMovingX : Integer;
-  MouseMovingY : Integer;
-  MouseX : Integer;
-  MouseY : Integer;
-  ZoomRect : TRect;
 
 IMPLEMENTATION
 
@@ -58,8 +60,13 @@ TYPE
 
 VAR
   ButtonPress : MouseButton;
+  LineFoundNum : Integer = UnknownLine;
   DownLineEndCharacterLine : Integer = UnknownLine;
   EmergencyRouteingStored : Boolean = False;
+  MouseMovingX : Integer;
+  MouseMovingY : Integer;
+  MouseX : Integer;
+  MouseY : Integer;
   MoveZoomWindowMode : Boolean = False;
   SaveDivergingLine : Integer = UnknownLine;
   SaveDivergingLineColour : TColour;
@@ -85,12 +92,31 @@ VAR
   TCAdjoiningTCsDrawnNum : Integer = UnknownTrackCircuit;
   TRSPlungerFoundLocation : Integer = UnknownLocation;
   UpLineEndCharacterLine : Integer = UnknownLine;
+  ZoomRect : TRect;
 
 PROCEDURE Log(Str : String);
 { For ease of debugging, adds the unit name }
 BEGIN
   WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
+
+FUNCTION GetLineFoundNum : Integer;
+{ Returns which line we're on }
+BEGIN
+  Result := LineFoundNum;
+END; { GetLineFoundNum }
+
+FUNCTION GetZoomRect : TRect;
+{ Return the current zoom rectangle }
+BEGIN
+  Result := ZoomRect;
+END; { GetZoomRect }
+
+PROCEDURE SetZoomRect(TempZoomRect : TRect);
+{ Set the current zoom rectangle }
+BEGIN
+  ZoomRect := TempZoomRect;
+END; { SetZoomRect }
 
 PROCEDURE UpLineEndCharacterSelected(L : Integer; HelpRequired : Boolean);
 { Find the corresponding line end }
@@ -1344,12 +1370,12 @@ VAR
                 END;
 
             { Start setting up routes - see if a loco has been selected from the timetable, as that will give us data about train type, etc. }
-            IF TrainClickedOn = NIL THEN BEGIN
+            IF GetTrainClickedOn = NIL THEN BEGIN
               TrainTypeForRouteing := UnknownTrainType;
               TrainLengthInInchesForRouteing := UnknownTrainLength;
             END ELSE BEGIN
-              TrainTypeForRouteing := TrainClickedOn^.Train_Type;
-              TrainLengthInInchesForRouteing := TrainClickedOn^.Train_CurrentLengthInInches;
+              TrainTypeForRouteing := GetTrainClickedOn^.Train_Type;
+              TrainLengthInInchesForRouteing := GetTrainClickedOn^.Train_CurrentLengthInInches;
             END;
 
             { If Shift or Ctrl are pressed, we want to amend the train type }
