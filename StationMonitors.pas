@@ -698,7 +698,10 @@ END; { StationMonitorsWindowPaint }
 
 PROCEDURE TStationMonitorsWindow.StationMonitorsTcpServerAccept(Sender: TObject; ClientSocket: TCustomIpClient);
 VAR
+  ErrorMsg : String;
   HTTPPos : Integer;
+  HTTPStatusNumStr : String;
+  HTTPStatusText : String;
   I : Integer;
   Line : String;
   Path : String;
@@ -722,32 +725,44 @@ BEGIN
         END;
       END;
 
-      StationMonitorsWebAreaStr := UnknownAreaStr;
-      IF Path = '/' THEN BEGIN
-        StationMonitorsWebArea := 1;
-        StationMonitorsWebAreaStr := AreaToStr(1);
+      ErrorMsg := '';
+      IF (Pos('STATION', UpperCase(Path)) > 0) THEN BEGIN
+        { we want a particular station }
+        StationMonitorsWebArea := ExtractIntegerFromString(Path);
+        StationMonitorsWebAreaStr := AreaToStr(StationMonitorsWebArea);
+        IF StationMonitorsWebAreaStr = UnknownAreaStr THEN BEGIN
+          { We can't find the area that is specifed }
+          ErrorMsg := 'Unknown Area Number';
+        END;
       END ELSE
-        IF (Pos('STATION', UpperCase(Path)) > 0) THEN BEGIN
-          { we want a particular station }
-          StationMonitorsWebArea := ExtractIntegerFromString(Path);
-          StationMonitorsWebAreaStr := AreaToStr(StationMonitorsWebArea);
+        IF Path = '/' THEN BEGIN
+          StationMonitorsWebArea := 1;
+          StationMonitorsWebAreaStr := AreaToStr(1);
+        END ELSE BEGIN
+          { Unknown request }
+          StationMonitorsWebArea := UnknownArea;
+          ErrorMsg := Path + ' not found';
         END;
 
-      IF StationMonitorsWebAreaStr = UnknownAreaStr THEN BEGIN
-        ClientSocket.Sendln('HTTP/1.0 404 Not Found');
-        ClientSocket.Sendln('');
-        ClientSocket.Sendln('<H1>404 Not Found</H1><H2>' + 'Area incorrectly specified</H2>');
-        AddLineToStationMonitorsWebDiagnosticsMemo('Area ' + Path + ' not known');
-      END ELSE BEGIN
-        ClientSocket.SendLn('HTTP/1.0 200 OK');
+      IF ErrorMsg = '' THEN BEGIN
+        HTTPStatusNumStr := '200';
+        HTTPStatusText := 'OK';
+        ClientSocket.SendLn(AnsiString('HTTP/1.0 ' + HTTPStatusNumStr + ' ' + HTTPStatusText));
         ClientSocket.SendLn('');
-        AddLineToStationMonitorsWebDiagnosticsMemo('HTTP/1.0 200 OK');
-        AddLineToStationMonitorsWebDiagnosticsMemo('Returning data for Area ' + AreaToStr(StationMonitorsWebArea));
-        DrawStationMonitorsWindow(StationMonitorsWebArea);
 
+        AddLineToStationMonitorsWebDiagnosticsMemo(HTTPStatusNumStr + ' ' + HTTPStatusText);
+        AddLineToStationMonitorsWebDiagnosticsMemo('Returning data for Area ' + AreaToStr(StationMonitorsWebArea));
+
+        DrawStationMonitorsWindow(StationMonitorsWebArea);
         IF (StationMonitorsWebPage.Count > 0) AND NOT ProgramShuttingDown THEN
           FOR I := 0 TO StationMonitorsWebPage.Count - 1 DO
             ClientSocket.SendLn(AnsiString(StationMonitorsWebPage[I]));
+      END ELSE BEGIN
+        HTTPStatusNumStr := '404';
+        HTTPStatusText := 'Not Found';
+        ClientSocket.SendLn('');
+        ClientSocket.SendLn(AnsiString('<H1>HTTP/1.0 ' + HTTPStatusNumStr + ' ' + HTTPStatusText + '</H1><H3>' + ErrorMsg + '</H3>'));
+        AddLineToStationMonitorsWebDiagnosticsMemo('Area ' + Path + ' not known');
       END;
 
       ClientSocket.Close;

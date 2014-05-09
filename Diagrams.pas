@@ -3513,7 +3513,7 @@ END; { WriteTrainJourneysRecordToLockListWindow }
 FUNCTION GetStationNameFromArea(Area : Integer) : String;
 { Return a station name given the area it is in }
 BEGIN
-  IF Area <> UnknownArea THEN BEGIN
+  IF (Area <> UnknownArea) AND (Area <= High(Areas)) THEN BEGIN
     IF TestingMode THEN
       Result := Areas[Area].Area_LongStr
     ELSE BEGIN
