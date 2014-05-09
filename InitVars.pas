@@ -1843,7 +1843,7 @@ BEGIN
         AreasADOTable.Sort := 'AreaNum ASC';
         WHILE NOT AreasADOTable.EOF DO BEGIN
           SetLength(Areas, Length(Areas) + 1);
-          WITH Areas[ High(Areas)] DO BEGIN
+          WITH Areas[High(Areas)] DO BEGIN
             { Some defaults first }
             Area_IsHoldingArea := False;
             Area_IsReversingArea := False;
@@ -1895,7 +1895,7 @@ BEGIN
               IF Area_IsReversingArea THEN BEGIN
                 { Also create the reversing areas database }
                 SetLength(ReversingAreas, Length(ReversingAreas) + 1);
-                WITH ReversingAreas[ High(ReversingAreas)] DO BEGIN
+                WITH ReversingAreas[High(ReversingAreas)] DO BEGIN
                   ReversingAreas_Area := A_Num;
                   ReversingAreas_AccessibleToFirstStationArea := False;
                   ReversingAreas_ToFirstStationAreaDirection := UnknownDirection;
@@ -1945,7 +1945,7 @@ BEGIN
             END;
 
             IF ErrorMsg <> '' THEN BEGIN
-              IF MessageDialogueWithDefault('Error in creating Area=' + IntToStr(A_Num) + ' (' + Areas[ High(Areas)].Area_LongStr + '): '
+              IF MessageDialogueWithDefault('Error in creating Area=' + IntToStr(A_Num) + ' (' + Areas[High(Areas)].Area_LongStr + '): '
                                             + ErrorMsg
                                             + CRLF
                                             + 'Do you wish to continue?',
@@ -2102,7 +2102,7 @@ BEGIN
         LocationsADOTable.Sort := 'LocationNum ASC';
         WHILE NOT LocationsADOTable.EOF DO BEGIN
           SetLength(Locations, Length(Locations) + 1);
-          WITH Locations[ High(Locations)] DO BEGIN
+          WITH Locations[High(Locations)] DO BEGIN
             { Some defaults first }
             Location_Area := UnknownArea;
             SetLength(Location_LocosNotAbleToUse, 0);
@@ -2893,7 +2893,7 @@ VAR
 
     Lines[L].Line_AdjacentBufferStop := High(BufferStops);
 
-    WITH BufferStops[ High(BufferStops)] DO BEGIN
+    WITH BufferStops[High(BufferStops)] DO BEGIN
       BufferStop_AdjacentLine := L;
       BufferStop_AdjacentTrackCircuit := Lines[BufferStop_AdjacentLine].Line_TC;
       IF (BufferStop_AdjacentTrackCircuit = UnknownTrackCircuit) AND ProgramStartup THEN
