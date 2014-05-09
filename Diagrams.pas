@@ -2631,7 +2631,7 @@ BEGIN
 
     IF (ColsAndRows.X > -1)
     AND (ColsAndRows.Y > -1)
-    AND (SaveCursor <> crHandPoint)
+    AND (GetSaveCursor <> crHandPoint)
     THEN
       ChangeCursor(crHandPoint)
     ELSE

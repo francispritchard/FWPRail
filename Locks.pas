@@ -55,9 +55,6 @@ PROCEDURE CheckRouteAheadLocking(T : Train; RouteArray : StringArrayType; OUT Ro
 PROCEDURE ClearHiddenAspectSignals(T : Train; HiddenAspectSignal : Integer);
 { Clear the hidden aspects of a given signal }
 
-PROCEDURE FindPreviousHiddenAspectSignals(RouteArray : StringArrayType; CurrentSignal : Integer; VAR PreviousSignal1, PreviousSignal2 : Integer);
-{ Look through a journey to see if any previous aspects need to be set too }
-
 PROCEDURE Forbid;
 { Complains if user tries something stupid - no need if in auto mode }
 
@@ -67,15 +64,6 @@ PROCEDURE InitialiseLocksUnit;
 PROCEDURE LockPointByRoute(LocoChip, P, Route : Integer; DoNotWriteMessage : Boolean);
 { Mark the point as locked by a specific route }
 
-PROCEDURE LockPointBySignal(P, S : Integer);
-{ Mark the point as locked by a specific signal }
-
-PROCEDURE LockSignalByRoute(LocoChip, S, Route : Integer; DoNotWriteMessage : Boolean);
-{ Mark the signal as locked by a specific route }
-
-PROCEDURE LockSignalByUser(S : Integer);
-{ Mark the signal as locked by a user }
-
 FUNCTION PointIsLocked(P : Integer; OUT LockingMsg : String) : Boolean;
 { Returns true if the point is locked }
 
@@ -84,12 +72,6 @@ FUNCTION PointIsLockedByASpecificRoute(P, Route : Integer) : Boolean;
 
 FUNCTION PointIsLockedByAnyRoute(P : Integer; OUT RouteLockingArray : IntegerArrayType) : Boolean;
 { Returns true if the point is locked by any route }
-
-FUNCTION PointIsLockedByAnySignal(P : Integer; OUT SignalLockingArray : IntegerArrayType) : Boolean;
-{ Returns true of the point is locked by any signal }
-
-FUNCTION PointIsLockedByASpecificSignal(P, S : Integer) : Boolean;
-{ Returns true of the point is locked by the given signal }
 
 PROCEDURE PullPoint{1}(P, LocoChip : Integer; Route, SubRoute : Integer; ForcePoint, User, ErrorMessageRequired : Boolean; OUT PointResultPending : Boolean;
                     OUT ErrorMsg : String; OUT PointChangedOK : Boolean); Overload;
@@ -179,21 +161,6 @@ BEGIN
   IF NOT InAutoMode THEN
     MakeSound(1);
 END; { Forbid }
-
-FUNCTION TrackCircuitLocked(LocoChip, TC : Integer; OUT LockingMsg : String) : Boolean;
-{ Returns true if the trackcircuit is locked by anything other than the given loco }
-BEGIN
-  Result := False;
-  LockingMsg := 'not locked';
-
-  IF TrackCircuits[TC].TC_LockedForRoute <> UnknownRoute THEN BEGIN
-    IF LocoChip <> Routes_LocoChips[TrackCircuits[TC].TC_LockedForRoute] THEN BEGIN
-      { ignore locking by the supplied loco }
-      Result := True;
-      LockingMsg := 'locked by ' + LocoChipToStr(Routes_LocoChips[TrackCircuits[TC].TC_LockedForRoute]) + ' for R=' + IntToStr(TrackCircuits[TC].TC_LockedForRoute);
-    END;
-  END;
-END; { TrackCircuitLocked }
 
 PROCEDURE UnlockTrackCircuitRouteLocking(TC : Integer);
 { Unlock a given track circuit }
@@ -341,21 +308,6 @@ BEGIN
   END; {TRY}
 END; { PointIsLocked }
 
-PROCEDURE LockPointBySignal(P, S : Integer);
-{ Mark the point as locked by a specific signal }
-VAR
-  ElementPos : Integer;
-
-BEGIN
-  { First remove the point from the point resetting array if it's there }
-  IF IsElementInIntegerArray(PointResettingToDefaultStateArray, P, ElementPos) THEN
-    DeleteElementFromIntegerArray(PointResettingToDefaultStateArray, ElementPos);
-
-  AppendToStringArray(Points[P].Point_LockingArray, 'S=' + IntToStr(S));
-  RemoveDuplicateElementsFromStringArray(Points[P].Point_LockingArray);
-  Points[P].Point_LockingState := Points[P].Point_PresentState;
-END; { LockPointBySignal }
-
 PROCEDURE LockPointByRoute(LocoChip, P, Route : Integer; DoNotWriteMessage : Boolean);
 { Mark the point as locked by a specific route }
 VAR
@@ -427,46 +379,6 @@ BEGIN
   Points[P].Point_RouteLockedByLocoChip := UnknownLocoChip;
 END; { UnlockPointLockedBySpecificRoute }
 
-FUNCTION PointIsLockedByASpecificSignal(P, S : Integer) : Boolean;
-{ Returns true of the point is locked by the given signal }
-VAR
-  PointLockCount : Integer;
-
-BEGIN
-  Result := False;
-  WITH Points[P] DO BEGIN
-    IF S <> UnknownSignal THEN BEGIN
-      PointLockCount := 0;
-      WHILE (PointLockCount < Length(Point_LockingArray))
-      AND (Result = False)
-      DO BEGIN
-        IF (Point_LockingArray[PointLockCount] = 'S=' + IntToStr(S)) THEN
-          Result := True;
-        Inc(PointLockCount);
-      END; {WHILE}
-    END;
-  END; {WITH}
-END; { PointIsLockedByASpecificSignal }
-
-FUNCTION PointIsLockedByAnySignal(P : Integer; OUT SignalLockingArray : IntegerArrayType) : Boolean;
-{ Returns true of the point is locked by any signal }
-VAR
-  PointLockCount : Integer;
-
-BEGIN
-  Result := False;
-  WITH Points[P] DO BEGIN
-    PointLockCount := 0;
-    WHILE (PointLockCount < Length(Point_LockingArray)) DO BEGIN
-      IF Pos('S=', Point_LockingArray[PointLockCount]) > 0 THEN BEGIN
-        AppendToIntegerArray(SignalLockingArray, ExtractSignalFromString(Point_LockingArray[PointLockCount]));
-        Result := True;
-      END;
-      Inc(PointLockCount);
-    END; {WHILE}
-  END; {WITH}
-END; { PointIsLockedByAnySignal }
-
 FUNCTION PointIsLockedByASpecificRoute(P, Route : Integer) : Boolean;
 { Returns true of the point is locked by the given route }
 VAR
@@ -511,37 +423,6 @@ BEGIN
   END; {WITH}
 END; { PointIsLockedByAnyRoute }
 
-FUNCTION PointIsLockedByRoute(P, Route : Integer) : Boolean;
-VAR
-  PointLockCount : Integer;
-
-BEGIN
-  Result := False;
-  WITH Points[P] DO BEGIN
-    IF Route <> UnknownRoute THEN BEGIN
-      { see if the point is locked by the given route }
-      PointLockCount := 0;
-      WHILE (PointLockCount < Length(Point_LockingArray))
-      AND (Result = False)
-      DO BEGIN
-        IF (Point_LockingArray[PointLockCount] = 'R=' + IntToStr(Route)) THEN
-          Result := True;
-        Inc(PointLockCount);
-      END; {WHILE}
-    END ELSE BEGIN
-      { see if the point is locked by any route }
-      PointLockCount := 0;
-      WHILE (PointLockCount < Length(Point_LockingArray))
-      AND (Result = False)
-      DO BEGIN
-        IF Pos('R=', Point_LockingArray[PointLockCount]) > 0 THEN
-          Result := True;
-        Inc(PointLockCount);
-      END; {WHILE}
-    END;
-  END; {WITH}
-END; { PointIsLockedByRoute }
-
 FUNCTION SignalIsLockedBySpecificRoute(S, Route : Integer) : Boolean;
 { Returns true if the signal is locked by the given route }
 VAR
@@ -584,25 +465,6 @@ BEGIN
     END; {WHILE}
   END; {WITH}
 END; { SignalIsLockedByAnyRoute }
-
-FUNCTION SignalIsLockedByUser(S : Integer) : Boolean;
-{ Returns true if the signal is locked by the user }
-VAR
-  LockCount : Integer;
-
-BEGIN
-  Result := False;
-  WITH Signals[S] DO BEGIN
-    LockCount := 0;
-    WHILE (LockCount < Length(Signal_LockedArray))
-    AND (Result = False)
-    DO BEGIN
-      IF Signal_LockedArray[LockCount] = 'USER' THEN
-        Result := True;
-      Inc(LockCount);
-    END; {WHILE}
-  END; {WITH}
-END; { SignalIsLockedByUser }
 
 FUNCTION SignalIsLockedByOppositePassingLoopSignal(S : Integer; OUT OtherS : Integer) : Boolean;
 { Returns true if an opposite passing loop signal is off }
@@ -658,19 +520,6 @@ BEGIN
     LockingMsg := 'locked by' + LockingMsg;
 END; { SignalIsLocked }
 
-PROCEDURE LockSignalByRoute(LocoChip, S, Route : Integer; DoNotWriteMessage : Boolean);
-{ Mark the signal as locked by a specific route }
-VAR
-  ElementPos : Integer;
-
-BEGIN
-  IF NOT IsElementInStringArray(Signals[S].Signal_LockedArray, 'R=' + IntToStr(Route), ElementPos) THEN BEGIN
-    AppendToStringArray(Signals[S].Signal_LockedArray, 'R=' + IntToStr(Route));
-    IF NOT DoNotWriteMessage THEN
-      Log(LocoChipToStr(LocoChip) + ' S S=' + IntToStr(S) + ' now locked by R=' + IntToStr(Route));
-  END;
-END; { LockSignalByRoute }
-
 PROCEDURE UnlockSignalLockedBySpecificRoute(S, Route : Integer);
 { Remove the locking }
 VAR
@@ -694,14 +543,6 @@ BEGIN
     Log('S S=' + IntToStr(S) + ' now unlocked by R=' + IntToStr(Route));
   END;
 END; { UnlockSignalLockedBySpecificRoute }
-
-PROCEDURE LockSignalByUser(S : Integer);
-{ Mark the signal as locked by a user }
-BEGIN
-  AppendToStringArray(Signals[S].Signal_LockedArray, 'USER');
-  RemoveDuplicateElementsFromStringArray(Signals[S].Signal_LockedArray);
-  Log('S S=' + IntToStr(S) + ' now locked by user');
-END; { LockSignalByUser }
 
 PROCEDURE UnlockSignalLockedByUser(S : Integer);
 { Remove the locking }
@@ -727,45 +568,46 @@ BEGIN
   END;
 END; { UnlockSignalLockedBySpecificRoute }
 
-PROCEDURE FindPreviousHiddenAspectSignals(RouteArray : StringArrayType; CurrentSignal : Integer; VAR PreviousSignal1, PreviousSignal2 : Integer);
-{ Look through a journey to see if any previous aspects need to be set too }
-VAR
-  Done : Boolean;
-  RouteArrayPos : Integer;
-  TempS : Integer;
-
-BEGIN
-  RouteArrayPos := High(RouteArray);
-  Done := False;
-  WHILE (RouteArrayPos > -1)
-  AND NOT Done
-  DO BEGIN
-    IF Pos('FS=', RouteArray[RouteArrayPos]) > 0 THEN BEGIN
-      IF ExtractSignalFromString(RouteArray[RouteArrayPos]) <> CurrentSignal THEN
-        IF (PreviousSignal1 = UnknownSignal)
-        AND (ExtractSignalFromString(RouteArray[RouteArrayPos]) <> CurrentSignal)
-        THEN
-          PreviousSignal1 := ExtractSignalFromString(RouteArray[RouteArrayPos])
-        ELSE
-          IF PreviousSignal2 = UnknownSignal THEN BEGIN
-            { assuming it's not the signal we've just found above }
-            TempS := ExtractSignalFromString(RouteArray[RouteArrayPos]);
-            IF (TempS <> UnknownSignal)
-            AND (TempS <> PreviousSignal1)
-            THEN BEGIN
-              Done := True;
-              { only use it if it's a four aspect signal }
-              IF Signals[TempS].Signal_Type = FourAspect THEN
-                PreviousSignal2 := ExtractSignalFromString(RouteArray[RouteArrayPos]);
-            END;
-          END;
-    END;
-    Dec(RouteArrayPos)
-  END; {WHILE}
-END; { FindPreviousHiddenAspectSignals }
-
 PROCEDURE SetHiddenAspectSignals(T : Train; HiddenAspectSignal, Journey, Route : Integer);
 { Find and set current and previous hidden aspects }
+
+  PROCEDURE FindPreviousHiddenAspectSignals(RouteArray : StringArrayType; CurrentSignal : Integer; VAR PreviousSignal1, PreviousSignal2 : Integer);
+  { Look through a journey to see if any previous aspects need to be set too }
+  VAR
+    Done : Boolean;
+    RouteArrayPos : Integer;
+    TempS : Integer;
+
+  BEGIN
+    RouteArrayPos := High(RouteArray);
+    Done := False;
+    WHILE (RouteArrayPos > -1)
+    AND NOT Done
+    DO BEGIN
+      IF Pos('FS=', RouteArray[RouteArrayPos]) > 0 THEN BEGIN
+        IF ExtractSignalFromString(RouteArray[RouteArrayPos]) <> CurrentSignal THEN
+          IF (PreviousSignal1 = UnknownSignal)
+          AND (ExtractSignalFromString(RouteArray[RouteArrayPos]) <> CurrentSignal)
+          THEN
+            PreviousSignal1 := ExtractSignalFromString(RouteArray[RouteArrayPos])
+          ELSE
+            IF PreviousSignal2 = UnknownSignal THEN BEGIN
+              { assuming it's not the signal we've just found above }
+              TempS := ExtractSignalFromString(RouteArray[RouteArrayPos]);
+              IF (TempS <> UnknownSignal)
+              AND (TempS <> PreviousSignal1)
+              THEN BEGIN
+                Done := True;
+                { only use it if it's a four aspect signal }
+                IF Signals[TempS].Signal_Type = FourAspect THEN
+                  PreviousSignal2 := ExtractSignalFromString(RouteArray[RouteArrayPos]);
+              END;
+            END;
+      END;
+      Dec(RouteArrayPos)
+    END; {WHILE}
+  END; { FindPreviousHiddenAspectSignals }
+
 VAR
   PreviousHiddenAspectSignal1 : Integer;
   PreviousHiddenAspectSignal2 : Integer;
@@ -886,221 +728,6 @@ BEGIN
      END;
   END; {WITH}
 END; { ClearHiddenAspectSignals }
-
-FUNCTION SignalLockingOK(LocoChip, S : Integer; LockList : StringArrayType; ShowError : Boolean) : Boolean;
-{ Accepts a string containing a list of locking requirements, consisting of pairs of points or signal names then '/' or '-', or '\' or '=' respectively. Also checks
-  routeing.
-}
-VAR
-  ActionCh : Char;
-  Device : Integer;
-  IndicatorRequested : IndicatorStateType;
-  LockListItem : String;
-  LockListPos : Word;
-  LocoChipStr : String;
-  OK : Boolean;
-  IndicatorStrPos : integer;
-  SignalPutativeStateStr : String;
-
-BEGIN
-  OK := True;
-  ActionCh := ' ';
-  Device := 99999;
-  SignalPutativeStateStr := 'on';
-  LocoChipStr := LocoChipToStr(LocoChip);
-
-  IF Length(Signals[S].Signal_RouteLockingNeededArray) <> 0 THEN BEGIN
-    { see whether we've pulling the signal off or not }
-    IF Signals[S].Signal_Aspect = RedAspect THEN
-      SignalPutativeStateStr := 'off';
-
-    IF NOT Signals[S].Signal_FailMsgWritten THEN
-      WriteStringArrayToLog(NoLocoChip, 'S', 'LA for S=' + IntToStr(S) + ': ', LockList, 2, 190);
-
-    LockListPos := 0;
-    WHILE OK
-    AND (LockListPos <= High(LockList))
-    DO BEGIN
-      { "L=" is not there for locking, but needed later for route drawing using LockList; HoldMarker is used by the routeing routine }
-      IF (Pos('L=', LockList[LockListPos]) > 0)
-      OR (LockList[LockListPos] = HoldMarker)
-      THEN
-        Inc(LockListPos)
-      ELSE BEGIN
-        { remove the prefix (which is there for FWP's benefit, not the program's) }
-        IF (Copy(LockList[LockListPos], 1, 3) = 'FP=')
-        OR (Copy(LockList[LockListPos], 1, 3) = 'TP=')
-        OR (Copy(LockList[LockListPos], 1, 3) = 'XP=')
-        OR (Copy(LockList[LockListPos], 1, 3) = 'TS=')
-        OR (Copy(LockList[LockListPos], 1, 3) = 'SR=')
-        OR (Copy(LockList[LockListPos], 1, 3) = 'BS=')
-        OR (Copy(LockList[LockListPos], 1, 3) = 'TC=')
-        OR (Copy(LockList[LockListPos], 1, 3) = 'FS=')
-        OR (Copy(LockList[LockListPos], 1, 3) = 'FR=')
-        THEN
-          LockListItem := Copy(LockList[LockListPos], 4, 255)
-        ELSE
-          Log(LocoChipStr + ' S! Error in LockList at position ' + IntToStr(LockListPos) + ' : ' + LockList[LockListPos]);
-
-        { Ignore buffer stops - info is there to help debug the list }
-        IF (Copy(LockList[LockListPos], 1, 3) <> 'BS=')
-        AND (Copy(LockList[LockListPos], 1, 3) <> 'SR=')
-        THEN BEGIN
-          IF (Copy(LockList[LockListPos], 1, 3) = 'FR=')
-          AND (Pos('>', LockList[LockListPos]) > 0)
-          THEN BEGIN
-            { a theatre indicator }
-            ActionCh := '>';
-            Device := StrToInt(Copy(LockListItem, 1, Pos('>', LockList[LockListPos]) - 4));
-          END ELSE BEGIN
-            ActionCh := LockListItem[Length(LockListItem)];
-            IndicatorStrPos := Pos('UL', LockListItem);
-            IF IndicatorStrPos > 0 THEN
-              Delete(LockListItem, IndicatorStrPos, 2)
-            ELSE BEGIN
-              IndicatorStrPos := Pos('ML', LockListItem);
-              IF IndicatorStrPos > 0 THEN
-                Delete(LockListItem, IndicatorStrPos, 2)
-              ELSE BEGIN
-                IndicatorStrPos := Pos('LL', LockListItem);
-                IF IndicatorStrPos > 0 THEN
-                  Delete(LockListItem, IndicatorStrPos, 2)
-                ELSE BEGIN
-                  IndicatorStrPos := Pos('UR', LockListItem);
-                  IF IndicatorStrPos > 0 THEN
-                    Delete(LockListItem, IndicatorStrPos, 2)
-                  ELSE BEGIN
-                    IndicatorStrPos := Pos('MR', LockListItem);
-                    IF IndicatorStrPos > 0 THEN
-                      Delete(LockListItem, IndicatorStrPos, 2)
-                    ELSE BEGIN
-                      IndicatorStrPos := Pos('LR', LockListItem);
-                      IF IndicatorStrPos > 0 THEN
-                        Delete(LockListItem, IndicatorStrPos, 2);
-                    END;
-                  END;
-                END;
-              END;
-            END;
-
-            Device := StrToInt(Copy(LockListItem, 1, Length(LockListItem) - 1));
-          END;
-
-          IF (Device <> S)
-          OR ((ActionCh <> '\')
-              AND (ActionCh <> '=')
-              AND (ActionCh <> '>')
-              AND (ActionCh <> '|')
-              AND (ActionCh <> '.'))
-          THEN BEGIN
-            { need to disregard the locking of the calling signal, or we find it can't be unlocked because it's already locked itself! }
-            CASE ActionCh OF
-              '\', '=', '>':
-                IF (ActionCh = '\') OR (ActionCh = '>') THEN BEGIN
-                  IF GetSignalAspect(Device) = RedAspect THEN BEGIN
-                    { the next signal - if it should be off, and it's actually on, it's a failure }
-                    OK := False;
-                    IF NOT Signals[S].Signal_FailMsgWritten THEN
-                      Log(LocoChipStr + ' S Cannot set S=' + IntToStr(S) + ' off because S=' + IntToStr(Device) + ' is on');
-                  END;
-                END ELSE
-                  { ActionCh = '=' }
-                  IF NOT (GetSignalAspect(Device) = RedAspect) THEN BEGIN
-                   { the next signal - if it should be on, and it's actually off, it's a failure }
-                    OK := False;
-                    IF NOT Signals[S].Signal_FailMsgWritten THEN
-                      Log(LocoChipStr + ' S Cannot set S=' + IntToStr(S) + ' on because S=' + IntToStr(Device) + ' is off');
-                  END;
-              '/', '-':
-                { a point }
-                { If the points are unlocked, or if they're locked by our signal, they're ok; they're also ok if they're locked by something else, and they're just an XP
-                  [crossing point] as far as our signal is concerned
-                }
-                IF NOT PointIsLockedByASpecificSignal(Device, S) THEN BEGIN
-                  IF Points[Device].Point_PresentState = PointStateUnknown THEN BEGIN
-                    { the next point - if it should be known, and it's actually unknown, it's a failure }
-                    OK := False;
-                    IF NOT Signals[S].Signal_FailMsgWritten THEN
-                      Log(LocoChipStr + ' S Cannot set S=' + IntToStr(S) + ' ' + SignalPutativeStateStr
-                                      + ' because P=' + IntToStr(Device) + ' is in an unknown state');
-                  END ELSE BEGIN
-                    IF ActionCh = '/' THEN BEGIN
-                      IF Points[Device].Point_PresentState = Straight THEN BEGIN
-                        { the next point - if it should be diverging, and it's straight, it's a failure }
-                        OK := False;
-                        IF NOT Signals[S].Signal_FailMsgWritten THEN
-                          Log(LocoChipStr +  ' S Cannot set S=' + IntToStr(S) + ' ' + SignalPutativeStateStr
-                                          + ' because P=' + IntToStr(Device) + ' is straight');
-                      END;
-                    END ELSE BEGIN
-                      { ActionCh = '-' }
-                      IF Points[Device].Point_PresentState = Diverging THEN BEGIN
-                        { the next point - if it should be straight, and it's diverging, it's a failure }
-                        OK := False;
-                        IF NOT Signals[S].Signal_FailMsgWritten THEN
-                          Log(LocoChipStr + ' S Cannot set S=' + IntToStr(S) + ' ' + SignalPutativeStateStr
-                                          + ' because P=' + IntToStr(Device) + ' is diverging');
-                      END;
-                    END;
-                  END;
-                  { Now lock them, if ok }
-                  IF OK THEN BEGIN
-                    LockPointBySignal(Device, S);
-                    IF NOT Signals[S].Signal_FailMsgWritten THEN BEGIN
-                      IF Points[Device].Point_PresentState = Straight THEN
-                        Log(LocoChipStr + ' S P=' + IntToStr(Device) + ' locked straight by S=' + IntToStr(S))
-                      ELSE
-                        Log(LocoChipStr + ' S P=' + IntToStr(Device) + ' locked diverging by S=' + IntToStr(S));
-                    END;
-                  END;
-                END;
-              '|', '.':
-                BEGIN
-                  IndicatorRequested := Signals[Device].Signal_IndicatorState;
-                  { an indicator }
-                  IF ActionCh = '|' THEN BEGIN
-                    IF IndicatorRequested = NoIndicatorLit THEN BEGIN
-                      IF NOT Signals[S].Signal_FailMsgWritten THEN
-                        Log(LocoChipStr + ' S Cannot set S=' + IntToStr(S) + ' ' + SignalPutativeStateStr
-                                        + ' because indicator requested not set up');
-                      OK := False;
-                    END;
-                  END ELSE
-                    IF ActionCh = '.' THEN BEGIN
-                      IF IndicatorRequested <> NoIndicatorLit THEN BEGIN
-                        IF NOT Signals[S].Signal_FailMsgWritten THEN
-                          Log(LocoChipStr + ' S Cannot set S=' + IntToStr(S) + ' ' + SignalPutativeStateStr
-                                          + ' because a different indicator is set');
-                        OK := False;
-                      END;
-                    END;
-                END;
-              '*':
-                { trackcircuit unoccupied - unless it's the one next the signal }
-                IF (TrackCircuits[Device].TC_OccupationState <> TCUnoccupied)
-                AND (Lines[Signals[S].Signal_AdjacentLine].Line_TC <> Device)
-                THEN BEGIN
-                  IF NOT Signals[S].Signal_FailMsgWritten THEN
-                    Log(LocoChipStr +  ' S Cannot set S=' + IntToStr(S) + ' ' + SignalPutativeStateStr
-                                    + ' because TC=' + IntToStr(Device) + ' is occupied');
-                  OK := False;
-                END;
-            END; {CASE}
-          END;
-        END;
-        Inc(LockListPos);
-      END;
-    END; {WHILE}
-
-    { write out the first lock failure, or clear it }
-    IF NOT OK
-    AND ShowError
-    AND NOT InAutoMode
-    THEN
-      DrawFailure(Device, ActionCh);
-  END;
-  Result := OK;
-END; { SignalLockingOK }
 
 PROCEDURE SetPreviousSignals(LocoChip : Integer; S : Integer);
 { Sees what previous signals are set to, and resets aspects accordingly. PreviousSignal1 is the nearer and PreviousSignal2 the further }
@@ -1248,6 +875,335 @@ END; { SetIndicator }
 PROCEDURE PullSignalMainProcedure(LocoChip, S : Integer; NewIndicatorState : IndicatorStateType; Route, SubRoute : Integer; PlatformOrFiddleyardLine : Integer;
                                   SettingString : String; ResetTC : Integer; TrainType : TypeOfTrainType; User : Boolean; OUT OK : Boolean);
 { Changes the state of a signal if legal }
+
+  FUNCTION SignalIsLockedByUser(S : Integer) : Boolean;
+  { Returns true if the signal is locked by the user }
+  VAR
+    LockCount : Integer;
+
+  BEGIN
+    Result := False;
+    WITH Signals[S] DO BEGIN
+      LockCount := 0;
+      WHILE (LockCount < Length(Signal_LockedArray))
+      AND (Result = False)
+      DO BEGIN
+        IF Signal_LockedArray[LockCount] = 'USER' THEN
+          Result := True;
+        Inc(LockCount);
+      END; {WHILE}
+    END; {WITH}
+  END; { SignalIsLockedByUser }
+
+  PROCEDURE LockSignalByRoute(LocoChip, S, Route : Integer; DoNotWriteMessage : Boolean);
+  { Mark the signal as locked by a specific route }
+  VAR
+    ElementPos : Integer;
+
+  BEGIN
+    IF NOT IsElementInStringArray(Signals[S].Signal_LockedArray, 'R=' + IntToStr(Route), ElementPos) THEN BEGIN
+      AppendToStringArray(Signals[S].Signal_LockedArray, 'R=' + IntToStr(Route));
+      IF NOT DoNotWriteMessage THEN
+        Log(LocoChipToStr(LocoChip) + ' S S=' + IntToStr(S) + ' now locked by R=' + IntToStr(Route));
+    END;
+  END; { LockSignalByRoute }
+
+  PROCEDURE LockSignalByUser(S : Integer);
+  { Mark the signal as locked by a user }
+  BEGIN
+    AppendToStringArray(Signals[S].Signal_LockedArray, 'USER');
+    RemoveDuplicateElementsFromStringArray(Signals[S].Signal_LockedArray);
+    Log('S S=' + IntToStr(S) + ' now locked by user');
+  END; { LockSignalByUser }
+
+  PROCEDURE FindPreviousHiddenAspectSignals(RouteArray : StringArrayType; CurrentSignal : Integer; VAR PreviousSignal1, PreviousSignal2 : Integer);
+  { Look through a journey to see if any previous aspects need to be set too }
+  VAR
+    Done : Boolean;
+    RouteArrayPos : Integer;
+    TempS : Integer;
+
+  BEGIN
+    RouteArrayPos := High(RouteArray);
+    Done := False;
+    WHILE (RouteArrayPos > -1)
+    AND NOT Done
+    DO BEGIN
+      IF Pos('FS=', RouteArray[RouteArrayPos]) > 0 THEN BEGIN
+        IF ExtractSignalFromString(RouteArray[RouteArrayPos]) <> CurrentSignal THEN
+          IF (PreviousSignal1 = UnknownSignal)
+          AND (ExtractSignalFromString(RouteArray[RouteArrayPos]) <> CurrentSignal)
+          THEN
+            PreviousSignal1 := ExtractSignalFromString(RouteArray[RouteArrayPos])
+          ELSE
+            IF PreviousSignal2 = UnknownSignal THEN BEGIN
+              { assuming it's not the signal we've just found above }
+              TempS := ExtractSignalFromString(RouteArray[RouteArrayPos]);
+              IF (TempS <> UnknownSignal)
+              AND (TempS <> PreviousSignal1)
+              THEN BEGIN
+                Done := True;
+                { only use it if it's a four aspect signal }
+                IF Signals[TempS].Signal_Type = FourAspect THEN
+                  PreviousSignal2 := ExtractSignalFromString(RouteArray[RouteArrayPos]);
+              END;
+            END;
+      END;
+      Dec(RouteArrayPos)
+    END; {WHILE}
+  END; { FindPreviousHiddenAspectSignals }
+
+  FUNCTION SignalLockingOK(LocoChip, S : Integer; LockList : StringArrayType; ShowError : Boolean) : Boolean;
+  { Accepts a string containing a list of locking requirements, consisting of pairs of points or signal names then '/' or '-', or '\' or '=' respectively. Also checks
+    routeing.
+  }
+    PROCEDURE LockPointBySignal(P, S : Integer);
+    { Mark the point as locked by a specific signal }
+    VAR
+      ElementPos : Integer;
+
+    BEGIN
+      { First remove the point from the point resetting array if it's there }
+      IF IsElementInIntegerArray(PointResettingToDefaultStateArray, P, ElementPos) THEN
+        DeleteElementFromIntegerArray(PointResettingToDefaultStateArray, ElementPos);
+
+      AppendToStringArray(Points[P].Point_LockingArray, 'S=' + IntToStr(S));
+      RemoveDuplicateElementsFromStringArray(Points[P].Point_LockingArray);
+      Points[P].Point_LockingState := Points[P].Point_PresentState;
+    END; { LockPointBySignal }
+
+    FUNCTION PointIsLockedByASpecificSignal(P, S : Integer) : Boolean;
+    { Returns true of the point is locked by the given signal }
+    VAR
+      PointLockCount : Integer;
+
+    BEGIN
+      Result := False;
+      WITH Points[P] DO BEGIN
+        IF S <> UnknownSignal THEN BEGIN
+          PointLockCount := 0;
+          WHILE (PointLockCount < Length(Point_LockingArray))
+          AND (Result = False)
+          DO BEGIN
+            IF (Point_LockingArray[PointLockCount] = 'S=' + IntToStr(S)) THEN
+              Result := True;
+            Inc(PointLockCount);
+          END; {WHILE}
+        END;
+      END; {WITH}
+    END; { PointIsLockedByASpecificSignal }
+
+  VAR
+    ActionCh : Char;
+    Device : Integer;
+    IndicatorRequested : IndicatorStateType;
+    LockListItem : String;
+    LockListPos : Word;
+    LocoChipStr : String;
+    OK : Boolean;
+    IndicatorStrPos : integer;
+    SignalPutativeStateStr : String;
+
+  BEGIN
+    OK := True;
+    ActionCh := ' ';
+    Device := 99999;
+    SignalPutativeStateStr := 'on';
+    LocoChipStr := LocoChipToStr(LocoChip);
+
+    IF Length(Signals[S].Signal_RouteLockingNeededArray) <> 0 THEN BEGIN
+      { see whether we've pulling the signal off or not }
+      IF Signals[S].Signal_Aspect = RedAspect THEN
+        SignalPutativeStateStr := 'off';
+
+      IF NOT Signals[S].Signal_FailMsgWritten THEN
+        WriteStringArrayToLog(NoLocoChip, 'S', 'LA for S=' + IntToStr(S) + ': ', LockList, 2, 190);
+
+      LockListPos := 0;
+      WHILE OK
+      AND (LockListPos <= High(LockList))
+      DO BEGIN
+        { "L=" is not there for locking, but needed later for route drawing using LockList; HoldMarker is used by the routeing routine }
+        IF (Pos('L=', LockList[LockListPos]) > 0)
+        OR (LockList[LockListPos] = HoldMarker)
+        THEN
+          Inc(LockListPos)
+        ELSE BEGIN
+          { remove the prefix (which is there for FWP's benefit, not the program's) }
+          IF (Copy(LockList[LockListPos], 1, 3) = 'FP=')
+          OR (Copy(LockList[LockListPos], 1, 3) = 'TP=')
+          OR (Copy(LockList[LockListPos], 1, 3) = 'XP=')
+          OR (Copy(LockList[LockListPos], 1, 3) = 'TS=')
+          OR (Copy(LockList[LockListPos], 1, 3) = 'SR=')
+          OR (Copy(LockList[LockListPos], 1, 3) = 'BS=')
+          OR (Copy(LockList[LockListPos], 1, 3) = 'TC=')
+          OR (Copy(LockList[LockListPos], 1, 3) = 'FS=')
+          OR (Copy(LockList[LockListPos], 1, 3) = 'FR=')
+          THEN
+            LockListItem := Copy(LockList[LockListPos], 4, 255)
+          ELSE
+            Log(LocoChipStr + ' S! Error in LockList at position ' + IntToStr(LockListPos) + ' : ' + LockList[LockListPos]);
+
+          { Ignore buffer stops - info is there to help debug the list }
+          IF (Copy(LockList[LockListPos], 1, 3) <> 'BS=')
+          AND (Copy(LockList[LockListPos], 1, 3) <> 'SR=')
+          THEN BEGIN
+            IF (Copy(LockList[LockListPos], 1, 3) = 'FR=')
+            AND (Pos('>', LockList[LockListPos]) > 0)
+            THEN BEGIN
+              { a theatre indicator }
+              ActionCh := '>';
+              Device := StrToInt(Copy(LockListItem, 1, Pos('>', LockList[LockListPos]) - 4));
+            END ELSE BEGIN
+              ActionCh := LockListItem[Length(LockListItem)];
+              IndicatorStrPos := Pos('UL', LockListItem);
+              IF IndicatorStrPos > 0 THEN
+                Delete(LockListItem, IndicatorStrPos, 2)
+              ELSE BEGIN
+                IndicatorStrPos := Pos('ML', LockListItem);
+                IF IndicatorStrPos > 0 THEN
+                  Delete(LockListItem, IndicatorStrPos, 2)
+                ELSE BEGIN
+                  IndicatorStrPos := Pos('LL', LockListItem);
+                  IF IndicatorStrPos > 0 THEN
+                    Delete(LockListItem, IndicatorStrPos, 2)
+                  ELSE BEGIN
+                    IndicatorStrPos := Pos('UR', LockListItem);
+                    IF IndicatorStrPos > 0 THEN
+                      Delete(LockListItem, IndicatorStrPos, 2)
+                    ELSE BEGIN
+                      IndicatorStrPos := Pos('MR', LockListItem);
+                      IF IndicatorStrPos > 0 THEN
+                        Delete(LockListItem, IndicatorStrPos, 2)
+                      ELSE BEGIN
+                        IndicatorStrPos := Pos('LR', LockListItem);
+                        IF IndicatorStrPos > 0 THEN
+                          Delete(LockListItem, IndicatorStrPos, 2);
+                      END;
+                    END;
+                  END;
+                END;
+              END;
+
+              Device := StrToInt(Copy(LockListItem, 1, Length(LockListItem) - 1));
+            END;
+
+            IF (Device <> S)
+            OR ((ActionCh <> '\')
+                AND (ActionCh <> '=')
+                AND (ActionCh <> '>')
+                AND (ActionCh <> '|')
+                AND (ActionCh <> '.'))
+            THEN BEGIN
+              { need to disregard the locking of the calling signal, or we find it can't be unlocked because it's already locked itself! }
+              CASE ActionCh OF
+                '\', '=', '>':
+                  IF (ActionCh = '\') OR (ActionCh = '>') THEN BEGIN
+                    IF GetSignalAspect(Device) = RedAspect THEN BEGIN
+                      { the next signal - if it should be off, and it's actually on, it's a failure }
+                      OK := False;
+                      IF NOT Signals[S].Signal_FailMsgWritten THEN
+                        Log(LocoChipStr + ' S Cannot set S=' + IntToStr(S) + ' off because S=' + IntToStr(Device) + ' is on');
+                    END;
+                  END ELSE
+                    { ActionCh = '=' }
+                    IF NOT (GetSignalAspect(Device) = RedAspect) THEN BEGIN
+                     { the next signal - if it should be on, and it's actually off, it's a failure }
+                      OK := False;
+                      IF NOT Signals[S].Signal_FailMsgWritten THEN
+                        Log(LocoChipStr + ' S Cannot set S=' + IntToStr(S) + ' on because S=' + IntToStr(Device) + ' is off');
+                    END;
+                '/', '-':
+                  { a point }
+                  { If the points are unlocked, or if they're locked by our signal, they're ok; they're also ok if they're locked by something else, and they're just an XP
+                    [crossing point] as far as our signal is concerned
+                  }
+                  IF NOT PointIsLockedByASpecificSignal(Device, S) THEN BEGIN
+                    IF Points[Device].Point_PresentState = PointStateUnknown THEN BEGIN
+                      { the next point - if it should be known, and it's actually unknown, it's a failure }
+                      OK := False;
+                      IF NOT Signals[S].Signal_FailMsgWritten THEN
+                        Log(LocoChipStr + ' S Cannot set S=' + IntToStr(S) + ' ' + SignalPutativeStateStr
+                                        + ' because P=' + IntToStr(Device) + ' is in an unknown state');
+                    END ELSE BEGIN
+                      IF ActionCh = '/' THEN BEGIN
+                        IF Points[Device].Point_PresentState = Straight THEN BEGIN
+                          { the next point - if it should be diverging, and it's straight, it's a failure }
+                          OK := False;
+                          IF NOT Signals[S].Signal_FailMsgWritten THEN
+                            Log(LocoChipStr +  ' S Cannot set S=' + IntToStr(S) + ' ' + SignalPutativeStateStr
+                                            + ' because P=' + IntToStr(Device) + ' is straight');
+                        END;
+                      END ELSE BEGIN
+                        { ActionCh = '-' }
+                        IF Points[Device].Point_PresentState = Diverging THEN BEGIN
+                          { the next point - if it should be straight, and it's diverging, it's a failure }
+                          OK := False;
+                          IF NOT Signals[S].Signal_FailMsgWritten THEN
+                            Log(LocoChipStr + ' S Cannot set S=' + IntToStr(S) + ' ' + SignalPutativeStateStr
+                                            + ' because P=' + IntToStr(Device) + ' is diverging');
+                        END;
+                      END;
+                    END;
+                    { Now lock them, if ok }
+                    IF OK THEN BEGIN
+                      LockPointBySignal(Device, S);
+                      IF NOT Signals[S].Signal_FailMsgWritten THEN BEGIN
+                        IF Points[Device].Point_PresentState = Straight THEN
+                          Log(LocoChipStr + ' S P=' + IntToStr(Device) + ' locked straight by S=' + IntToStr(S))
+                        ELSE
+                          Log(LocoChipStr + ' S P=' + IntToStr(Device) + ' locked diverging by S=' + IntToStr(S));
+                      END;
+                    END;
+                  END;
+                '|', '.':
+                  BEGIN
+                    IndicatorRequested := Signals[Device].Signal_IndicatorState;
+                    { an indicator }
+                    IF ActionCh = '|' THEN BEGIN
+                      IF IndicatorRequested = NoIndicatorLit THEN BEGIN
+                        IF NOT Signals[S].Signal_FailMsgWritten THEN
+                          Log(LocoChipStr + ' S Cannot set S=' + IntToStr(S) + ' ' + SignalPutativeStateStr
+                                          + ' because indicator requested not set up');
+                        OK := False;
+                      END;
+                    END ELSE
+                      IF ActionCh = '.' THEN BEGIN
+                        IF IndicatorRequested <> NoIndicatorLit THEN BEGIN
+                          IF NOT Signals[S].Signal_FailMsgWritten THEN
+                            Log(LocoChipStr + ' S Cannot set S=' + IntToStr(S) + ' ' + SignalPutativeStateStr
+                                            + ' because a different indicator is set');
+                          OK := False;
+                        END;
+                      END;
+                  END;
+                '*':
+                  { trackcircuit unoccupied - unless it's the one next the signal }
+                  IF (TrackCircuits[Device].TC_OccupationState <> TCUnoccupied)
+                  AND (Lines[Signals[S].Signal_AdjacentLine].Line_TC <> Device)
+                  THEN BEGIN
+                    IF NOT Signals[S].Signal_FailMsgWritten THEN
+                      Log(LocoChipStr +  ' S Cannot set S=' + IntToStr(S) + ' ' + SignalPutativeStateStr
+                                      + ' because TC=' + IntToStr(Device) + ' is occupied');
+                    OK := False;
+                  END;
+              END; {CASE}
+            END;
+          END;
+          Inc(LockListPos);
+        END;
+      END; {WHILE}
+
+      { write out the first lock failure, or clear it }
+      IF NOT OK
+      AND ShowError
+      AND NOT InAutoMode
+      THEN
+        DrawFailure(Device, ActionCh);
+    END;
+    Result := OK;
+  END; { SignalLockingOK }
+
 CONST
   EmergencyRouteing = True;
   IncludeOutOfUseLines = True;
@@ -2077,6 +2033,41 @@ END; { PullPoint-2 }
 
 PROCEDURE CheckRouteAheadLocking(T : Train; RouteArray : StringArrayType; OUT RouteCurrentlyLocked, RoutePermanentlyLocked : Boolean; OUT LockingMsg : String);
 { Tests a given route array to see if anything on it is locked. The test stops at any subsequent signal which is a route holding signal though. }
+
+  FUNCTION PointIsLockedByAnySignal(P : Integer; OUT SignalLockingArray : IntegerArrayType) : Boolean;
+  { Returns true of the point is locked by any signal }
+  VAR
+    PointLockCount : Integer;
+
+  BEGIN
+    Result := False;
+    WITH Points[P] DO BEGIN
+      PointLockCount := 0;
+      WHILE (PointLockCount < Length(Point_LockingArray)) DO BEGIN
+        IF Pos('S=', Point_LockingArray[PointLockCount]) > 0 THEN BEGIN
+          AppendToIntegerArray(SignalLockingArray, ExtractSignalFromString(Point_LockingArray[PointLockCount]));
+          Result := True;
+        END;
+        Inc(PointLockCount);
+      END; {WHILE}
+    END; {WITH}
+  END; { PointIsLockedByAnySignal }
+
+  FUNCTION TrackCircuitLocked(LocoChip, TC : Integer; OUT LockingMsg : String) : Boolean;
+  { Returns true if the trackcircuit is locked by anything other than the given loco }
+  BEGIN
+    Result := False;
+    LockingMsg := 'not locked';
+
+    IF TrackCircuits[TC].TC_LockedForRoute <> UnknownRoute THEN BEGIN
+      IF LocoChip <> Routes_LocoChips[TrackCircuits[TC].TC_LockedForRoute] THEN BEGIN
+        { ignore locking by the supplied loco }
+        Result := True;
+        LockingMsg := 'locked by ' + LocoChipToStr(Routes_LocoChips[TrackCircuits[TC].TC_LockedForRoute]) + ' for R=' + IntToStr(TrackCircuits[TC].TC_LockedForRoute);
+      END;
+    END;
+  END; { TrackCircuitLocked }
+
 VAR
   FirstRouteHoldSignalFound : Boolean;
   I : Integer;

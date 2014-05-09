@@ -6618,9 +6618,7 @@ BEGIN { ShutDownProgram }
     END;
 
     { and stop }
-    IF NOT ReplayMode
-    AND NOT RestartProgram
-    THEN BEGIN
+    IF NOT ReplayMode THEN BEGIN
       Application.Terminate;
       IF NOT Application.Terminated THEN
         Halt(12);

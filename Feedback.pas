@@ -90,7 +90,7 @@ BEGIN
 
     IF NOT FeedbackUnitFound THEN BEGIN
       IF NOT FWPRailWindowInitialised
-      AND NOT DiagramsCheckingInProgress
+      AND NOT GetDiagramsCheckingInProgress
       THEN
         Log('X Data received from unknown feedback unit ' + IntToStr(Data.Feedback_Unit) + ' ignored as feedback data not yet initialised')
       ELSE

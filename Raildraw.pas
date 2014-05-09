@@ -548,6 +548,12 @@ PROCEDURE DrawTrackCircuitsWithAdjoiningTrackCircuits(TC : Integer; TCColour1, T
 PROCEDURE DrawTRSPlunger(Location : Integer; Pressed : Boolean);
 { Indicate on a platform that a train-ready-to-start plunger has been pressed }
 
+FUNCTION GetDiagramsCheckingInProgress : Boolean;
+{ Return the DiagramsCheckingInProgress variable state }
+
+FUNCTION GetSaveCursor : TCursor;
+{ Return the SaveCursor variable state }
+
 PROCEDURE HideStatusBarAndUpDownIndications;
 { Before a zoomed screen move, hide the status bar and the "up" and "down" markers }
 
@@ -566,14 +572,29 @@ PROCEDURE ResetScreenColoursAfterPrinting;
 PROCEDURE RestoreCursor;
 { Restores the shape of the cursor (from the Delphi Help system) }
 
+PROCEDURE SetBufferStopPopupNum(Num : Integer);
+{ Set the buffer stop popup number }
+
 PROCEDURE SetCaption(Window : TForm; Caption : String);
 { Sets a window caption }
+
+PROCEDURE SetLinePopupNum(Num : Integer);
+{ Set the LinePopupNum variable state }
+
+PROCEDURE SetPointPopupNum(Num : Integer);
+{ Set the PointPopupNum variable state }
+
+PROCEDURE SetSignalPopupNum(Num : Integer);
+{ Set the SignalPopupNum variable state }
 
 PROCEDURE SetScreenColoursBeforePrinting;
 { Save the screen colours before printing the screen in printer-friendly colours }
 
 PROCEDURE ShowStatusBarAndUpDownIndications;
 { After a zoomed screen move, restore the status bar and the "up" and "down" markers }
+
+PROCEDURE SetTrackCircuitPopupLine(L : Integer);
+{ Set the TrackCircuitPopupLine variable state }
 
 PROCEDURE WriteToStatusBarPanel(PanelNum : Integer; Str : String);
 { Write the text in the chosen panel }
@@ -586,16 +607,8 @@ CONST
   crArrowRed = 9;
 
 VAR
-  ApplicationMessageShiftState : TShiftState = [];
-  BufferStopPopupNum : Integer;
-  DiagramsCheckingInProgress : Boolean = False;
   FWPRailWindow : TFWPRailWindow;
-  LastPointResetTime : TDateTime = 0;
-  LinePopupNum : Integer;
-  PointPopupNum : Integer;
   RailWindowBitmap : TBitmap;
-  RestartProgram : Boolean = False;
-  SaveCursor : TCursor = crDefault;
   SaveBackgroundColourForPrinting : TColor;
   SaveBufferStopColourForPrinting : TColor;
   SaveBufferStopNumberColourForPrinting : TColor;
@@ -641,9 +654,6 @@ VAR
   SavePanel3Str : String = '';
   ScrollBarXAdjustment : Integer = 0;
   ScrollBarYAdjustment : Integer = 0;
-  SignalPopupNum : Integer;
-  TimerT : Train = NIL;
-  TrackCircuitPopupLine : Integer;
   WatchdogActiveMsgFlag : Boolean = False;
   WatchdogErrorMsgFlag : Boolean = False;
   WindowsTaskbarDisabled : Boolean = False;
@@ -665,12 +675,19 @@ CONST
   UndrawToBeAutomatic = True;
 
 VAR
+  BufferStopPopupNum : Integer;
+  DiagramsCheckingInProgress : Boolean = False;
+  LinePopupNum : Integer;
   LocationLinesInitialised : Boolean = False;
+  PointPopupNum : Integer;
+  SaveCursor : TCursor = crDefault;
   SaveScreenMode : ScreenModeType = DefaultWindowedScreenMode;
   SaveZoomScaleFactor : Integer = 1000;
+  SignalPopupNum : Integer;
   StatusBarX : Integer = 0;
   StatusBarY : Integer = 0;
   TimeRectangleDrawn : Cardinal = 0;
+  TrackCircuitPopupLine : Integer;
   TrackCircuitPopupMenuActive : Boolean = False;
   UpDownMarkersVisible : Boolean = True;
 
@@ -679,6 +696,48 @@ PROCEDURE Log(Str : String);
 BEGIN
   WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
+
+FUNCTION GetSaveCursor : TCursor;
+{ Return the SaveCursor variable state }
+BEGIN
+  Result := SaveCursor;
+END; { SaveCursor }
+
+PROCEDURE SetLinePopupNum(Num : Integer);
+{ Set the GetLinePopupNum variable state }
+BEGIN
+  LinePopupNum := Num;
+END; { SetLinePopupNum }
+
+PROCEDURE SetPointPopupNum(Num : Integer);
+{ Set the GetPointPopupNum variable state }
+BEGIN
+  PointPopupNum := Num;
+END; { SetPointPopupNum }
+
+PROCEDURE SetSignalPopupNum(Num : Integer);
+{ Set the GetSignalPopupNum variable state }
+BEGIN
+  SignalPopupNum := Num;
+END; { SetSignalPopupNum }
+
+PROCEDURE SetTrackCircuitPopupLine(L : Integer);
+{ Set the TrackCircuitPopupLine variable state }
+BEGIN
+  TrackCircuitPopupLine := L;
+END; { TrackCircuitPopupLine }
+
+FUNCTION GetDiagramsCheckingInProgress : Boolean;
+{ Return the DiagramsCheckingInProgress variable state }
+BEGIN
+  Result := DiagramsCheckingInProgress;
+END; { GetDiagramsCheckingInProgress }
+
+PROCEDURE SetBufferStopPopupNum(Num : Integer);
+{ Set the buffer stop popup number }
+BEGIN
+  BufferStopPopupNum := Num;
+END; { SetBufferStopPopupNum }
 
 PROCEDURE DrawRedLampAndVerticalLine(X, Y1, Y2 : Integer; Colour : TCOlour);
 { Draw a red lamp and vertical line where there is a buffer stop or line obstruction }
@@ -3515,6 +3574,7 @@ PROCEDURE TFWPRailWindow.ApplicationMessage(VAR Msg: TMsg; VAR Handled: Boolean)
 //VAR
 //  Button: TUDBtnType;
 //  OK : Boolean;
+//  ApplicationMessageShiftState : TShiftState = [];
 
 BEGIN
   CASE Msg.Message OF

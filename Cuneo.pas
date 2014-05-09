@@ -118,67 +118,6 @@ BEGIN
   ZoomRect := TempZoomRect;
 END; { SetZoomRect }
 
-PROCEDURE UpLineEndCharacterSelected(L : Integer; HelpRequired : Boolean);
-{ Find the corresponding line end }
-CONST
-  Bold = True;
-
-VAR
-  ConnectionChFound : Boolean;
-  L2 : Integer;
-
-BEGIN
-  IF HelpRequired THEN BEGIN
-    AddRichLine(HelpWindow.HelpRichEdit, '');
-    AddRichLine(HelpWindow.HelpRichEdit, '<B>Up End Line Characters</B>');
-    AddRichLine(HelpWindow.HelpRichEdit, '  <B>Left Mouse</B> - indicate where the other end of the line is');
-  END ELSE BEGIN
-    ConnectionChFound := False;
-    L2 := 0;
-    WHILE (L2 <= High(Lines))
-    AND NOT ConnectionChFound
-    DO BEGIN
-      IF Lines[L2].Line_DownConnectionCh = Lines[L].Line_UpConnectionCh THEN BEGIN
-        ConnectionChFound := True;
-        Lines[L2].Line_DownConnectionChBold := True;
-        DrawConnectionCh(L2, Down);
-      END;
-      Inc(L2);
-    END; {WHILE}
-  END;
-END; { UpLineEndCharacterSelected }
-
-PROCEDURE DownLineEndCharacterSelected(L : Integer; HelpRequired : Boolean);
-{ Find the corresponding line end }
-CONST
-  Bold = True;
-
-VAR
-  ConnectionChFound : Boolean;
-  L2 : Integer;
-
-BEGIN
-  IF HelpRequired THEN BEGIN
-    AddRichLine(HelpWindow.HelpRichEdit, '');
-    AddRichLine(HelpWindow.HelpRichEdit, '<B>Down End Line Characters</B>');
-    AddRichLine(HelpWindow.HelpRichEdit, '  <B>Left Mouse</B> - indicate where the other end of the line is');
-  END ELSE BEGIN
-    { Find the corresponding line end }
-    ConnectionChFound := False;
-    L2 := 0;
-    WHILE (L2 <= High(Lines))
-    AND NOT ConnectionChFound
-    DO BEGIN
-      IF Lines[L2].Line_UpConnectionCh = Lines[L].Line_DownConnectionCh THEN BEGIN
-        ConnectionChFound := True;
-        Lines[L2].Line_UpConnectionChBold := True;
-        DrawConnectionCh(L2, Up);
-      END;
-      Inc(L2);
-    END; {WHILE}
-  END;
-END; { DownLineEndCharacterSelected }
-
 PROCEDURE WhatIsUnderMouseMainProc(X, Y : Integer; ShiftState : TShiftState; OUT BufferStopFoundNum : Integer; OUT IndicatorFoundNum : Integer;
                                    OUT IndicatorFoundType : JunctionIndicatorType; OUT PointFoundNum : Integer; OUT SignalFoundNum : Integer;
                                    OUT SignalPostFoundNum : Integer; OUT TheatreIndicatorFoundNum : Integer; OUT TRSPlungerFoundLocation : Integer);
@@ -850,6 +789,67 @@ VAR
   SignalPostFoundNum : Integer;
   TheatreIndicatorFoundNum : Integer;
   TRSPlungerFoundLocation : Integer;
+
+  PROCEDURE UpLineEndCharacterSelected(L : Integer; HelpRequired : Boolean);
+  { Find the corresponding line end }
+  CONST
+    Bold = True;
+
+  VAR
+    ConnectionChFound : Boolean;
+    L2 : Integer;
+
+  BEGIN
+    IF HelpRequired THEN BEGIN
+      AddRichLine(HelpWindow.HelpRichEdit, '');
+      AddRichLine(HelpWindow.HelpRichEdit, '<B>Up End Line Characters</B>');
+      AddRichLine(HelpWindow.HelpRichEdit, '  <B>Left Mouse</B> - indicate where the other end of the line is');
+    END ELSE BEGIN
+      ConnectionChFound := False;
+      L2 := 0;
+      WHILE (L2 <= High(Lines))
+      AND NOT ConnectionChFound
+      DO BEGIN
+        IF Lines[L2].Line_DownConnectionCh = Lines[L].Line_UpConnectionCh THEN BEGIN
+          ConnectionChFound := True;
+          Lines[L2].Line_DownConnectionChBold := True;
+          DrawConnectionCh(L2, Down);
+        END;
+        Inc(L2);
+      END; {WHILE}
+    END;
+  END; { UpLineEndCharacterSelected }
+
+  PROCEDURE DownLineEndCharacterSelected(L : Integer; HelpRequired : Boolean);
+  { Find the corresponding line end }
+  CONST
+    Bold = True;
+
+  VAR
+    ConnectionChFound : Boolean;
+    L2 : Integer;
+
+  BEGIN
+    IF HelpRequired THEN BEGIN
+      AddRichLine(HelpWindow.HelpRichEdit, '');
+      AddRichLine(HelpWindow.HelpRichEdit, '<B>Down End Line Characters</B>');
+      AddRichLine(HelpWindow.HelpRichEdit, '  <B>Left Mouse</B> - indicate where the other end of the line is');
+    END ELSE BEGIN
+      { Find the corresponding line end }
+      ConnectionChFound := False;
+      L2 := 0;
+      WHILE (L2 <= High(Lines))
+      AND NOT ConnectionChFound
+      DO BEGIN
+        IF Lines[L2].Line_UpConnectionCh = Lines[L].Line_DownConnectionCh THEN BEGIN
+          ConnectionChFound := True;
+          Lines[L2].Line_UpConnectionChBold := True;
+          DrawConnectionCh(L2, Up);
+        END;
+        Inc(L2);
+      END; {WHILE}
+    END;
+  END; { DownLineEndCharacterSelected }
 
   PROCEDURE ChangeSignal(S : Integer; ShiftState : TShiftState; HelpRequired : Boolean);
   { Change signal aspects }
@@ -1666,18 +1666,18 @@ BEGIN
               DisplayPointOptionsInValueList(PointFoundNum);
         END ELSE
           IF ButtonPress = mbRight THEN BEGIN
-            SignalPopupNum := UnknownSignal;
-            PointPopupNum := UnknownPoint;
-            LinePopupNum := UnknownLine;
+            SetSignalPopupNum(UnknownSignal);
+            SetPointPopupNum(UnknownPoint);
+            SetLinePopupNum(UnknownLine);
 
             IF SignalFoundNum <> UnknownSignal THEN
-              SignalPopupNum := SignalFoundNum
+              SetSignalPopupNum(SignalFoundNum)
             ELSE
               IF PointFoundNum <> UnknownPoint THEN
-                PointPopupNum := PointFoundNum
+                SetPointPopupNum(PointFoundNum)
               ELSE
                 IF LineFoundNum <> UnknownLine THEN
-                  LinePopupNum := LineFoundNum;
+                  SetLinePopupNum(LineFoundNum);
 
             FWPRailWindow.CreateOrDeleteItemPopupMenu.Popup(MouseX, MouseY);
           END;
@@ -1735,7 +1735,7 @@ BEGIN
         END ELSE
           IF ButtonPress = mbRight THEN BEGIN
             IF SignalFoundNum <> UnknownSignal THEN BEGIN
-              SignalPopupNum := SignalFoundNum;
+              SetSignalPopupNum(SignalFoundNum);
               FWPRailWindow.SignalPopupMenu.Popup(MouseX, MouseY);
               SignalFoundNum := UnknownSignal;
             END ELSE
@@ -1744,12 +1744,12 @@ BEGIN
                 SignalPostSelected(-SignalPostFoundNum, UnknownBufferStop, ShiftState, HelpRequired)
               ELSE
                 IF PointFoundNum <> UnknownPoint THEN BEGIN
-                  PointPopupNum := PointFoundNum;
+                  SetPointPopupNum(PointFoundNum);
                   FWPRailWindow.PointPopupMenu.Popup(MouseX, MouseY);
                   PointFoundNum := UnknownPoint;
                 END ELSE
                   IF BufferStopFoundNum <> UnknownBufferStop THEN BEGIN
-                    BufferStopPopupNum := BufferStopFoundNum;
+                    SetBufferStopPopupNum(BufferStopFoundNum);
                     FWPRailWindow.BufferStopPopupMenu.Popup(MouseX, MouseY);
                     BufferStopFoundNum := UnknownBufferStop;
                   END ELSE
@@ -1760,7 +1760,7 @@ BEGIN
                         IF ssShift IN ShiftState THEN
                           WriteNextLineDetailToDebugWindow(LineFoundNum, HelpRequired)
                         ELSE BEGIN
-                          TrackCircuitPopupLine := LineFoundNum;
+                          SetTrackCircuitPopupLine(LineFoundNum);
                           FWPRailWindow.TCPopupMenu.Popup(MouseX, MouseY);
                           LineFoundNum := UnknownLine;
                         END;

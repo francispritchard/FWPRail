@@ -2359,79 +2359,6 @@ BEGIN
                                       ErrorMsg, OK);
 END; { SetLocationOccupationAllDayState }
 
-PROCEDURE AddStationaryOccupationsToLocationOccupations(OUT OK : Boolean);
-{ Add existing stationary feedback and other occupations to the Location Occupation data }
-CONST
-  NoTrain = NIL;
-  StopTimer = True;
-
-VAR
-  DataInserted : Boolean;
-  ErrorMsg : String;
-  I : Integer;
-  Location : Integer;
-  LocationTCs : IntegerArrayType;
-
-BEGIN
-  OK := True;
-  Location := 0;
-  WHILE Location <= High(Locations) DO BEGIN
-    IF Locations[Location].Location_RecordInLocationOccupationArray THEN BEGIN
-      { Only record locations where trains might be stationary }
-      LocationTCs := GetTrackCircuitsForLocation(Location);
-      I := 0;
-      DataInserted := False;
-      WHILE (I <= High(LocationTCs))
-      AND NOT DataInserted
-      DO BEGIN
-        IF (TrackCircuits[LocationTCs[I]].TC_OccupationState = TCOutOfUseSetByUser)
-        OR (TrackCircuits[LocationTCs[I]].TC_OccupationState = TCOutOfUseAsNoFeedbackReceived)
-        THEN BEGIN
-          SetLocationOccupationAllDayState(NoLocoChip, Location, LocationOutOfUseOccupation, ErrorMsg, OK);
-          IF NOT OK THEN
-            Debug('!' + ErrorMsg);
-        END ELSE
-          IF TrackCircuits[LocationTCs[I]].TC_OccupationState = TCPermanentOccupationSetByUser THEN BEGIN
-            IF TrackCircuits[LocationTCs[I]].TC_LocoChip <> UnknownLocoChip THEN
-              SetLocationOccupationAllDayState(TrackCircuits[LocationTCs[I]].TC_LocoChip, Location, LocationPermanentOccupationSetByUser, ErrorMsg, OK)
-            ELSE
-              SetLocationOccupationAllDayState(NoLocoChip, Location, LocationPermanentOccupationSetByUser, ErrorMsg, OK);
-            IF OK THEN
-              DataInserted := True
-            ELSE
-              Debug('!' + ErrorMsg);
-          END ELSE BEGIN
-            IF (TrackCircuits[LocationTCs[I]].TC_OccupationState = TCPermanentFeedbackOccupation)
-            OR (TrackCircuits[LocationTCs[I]].TC_OccupationState = TCPermanentSystemOccupation)
-            THEN BEGIN
-              IF TrackCircuits[LocationTCs[I]].TC_LocoChip <> UnknownLocoChip THEN
-                SetLocationOccupationAllDayState(TrackCircuits[LocationTCs[I]].TC_LocoChip, Location, LocationPermanentOccupationWithFeedback, ErrorMsg, OK)
-              ELSE
-                SetLocationOccupationAllDayState(NoLocoChip, Location, LocationPermanentOccupationWithFeedback, ErrorMsg, OK);
-              IF OK THEN
-                DataInserted := True
-              ELSE
-                Debug('!' + ErrorMsg);
-            END;
-          END;
-        Inc(I);
-      END; {WHILE}
-    END;
-    Inc(Location);
-  END; {WHILE}
-
-  IF NOT OK THEN BEGIN
-    { Now need to sort out the problem }
-    Log('E Location occupation error: ' + ErrorMsg);
-    IF MessageDialogueWithDefault(ErrorMsg
-                                  + CRLF
-                                  + 'Do you wish to start anyway or exit the program?',
-                                  StopTimer, mtError, [mbYes, mbNo], ['Start', 'Exit'], mbNo) = mrNo
-    THEN
-      ShutDownProgram(UnitRef, 'AddStationaryOccupationsToLocationOccupations');
-  END; {WITH}
-END; { AddStationaryOccupationsToLocationOccupations }
-
 PROCEDURE AddTrainOccupationsToLocationOccupations(T : Train; IsTimetableLoading : Boolean; OUT ErrorMsg : String; OUT OK : Boolean);
 { Find a loco and record all its locations }
 VAR
@@ -2644,6 +2571,80 @@ END; { AddTrainOccupationsToLocationOccupations }
 
 PROCEDURE SetUpAllLocationOccupationsAbInitio(IsTimetableLoading : Boolean; OUT OK : Boolean);
 { Set up all train locations }
+
+  PROCEDURE AddStationaryOccupationsToLocationOccupations(OUT OK : Boolean);
+  { Add existing stationary feedback and other occupations to the Location Occupation data }
+  CONST
+    NoTrain = NIL;
+    StopTimer = True;
+
+  VAR
+    DataInserted : Boolean;
+    ErrorMsg : String;
+    I : Integer;
+    Location : Integer;
+    LocationTCs : IntegerArrayType;
+
+  BEGIN
+    OK := True;
+    Location := 0;
+    WHILE Location <= High(Locations) DO BEGIN
+      IF Locations[Location].Location_RecordInLocationOccupationArray THEN BEGIN
+        { Only record locations where trains might be stationary }
+        LocationTCs := GetTrackCircuitsForLocation(Location);
+        I := 0;
+        DataInserted := False;
+        WHILE (I <= High(LocationTCs))
+        AND NOT DataInserted
+        DO BEGIN
+          IF (TrackCircuits[LocationTCs[I]].TC_OccupationState = TCOutOfUseSetByUser)
+          OR (TrackCircuits[LocationTCs[I]].TC_OccupationState = TCOutOfUseAsNoFeedbackReceived)
+          THEN BEGIN
+            SetLocationOccupationAllDayState(NoLocoChip, Location, LocationOutOfUseOccupation, ErrorMsg, OK);
+            IF NOT OK THEN
+              Debug('!' + ErrorMsg);
+          END ELSE
+            IF TrackCircuits[LocationTCs[I]].TC_OccupationState = TCPermanentOccupationSetByUser THEN BEGIN
+              IF TrackCircuits[LocationTCs[I]].TC_LocoChip <> UnknownLocoChip THEN
+                SetLocationOccupationAllDayState(TrackCircuits[LocationTCs[I]].TC_LocoChip, Location, LocationPermanentOccupationSetByUser, ErrorMsg, OK)
+              ELSE
+                SetLocationOccupationAllDayState(NoLocoChip, Location, LocationPermanentOccupationSetByUser, ErrorMsg, OK);
+              IF OK THEN
+                DataInserted := True
+              ELSE
+                Debug('!' + ErrorMsg);
+            END ELSE BEGIN
+              IF (TrackCircuits[LocationTCs[I]].TC_OccupationState = TCPermanentFeedbackOccupation)
+              OR (TrackCircuits[LocationTCs[I]].TC_OccupationState = TCPermanentSystemOccupation)
+              THEN BEGIN
+                IF TrackCircuits[LocationTCs[I]].TC_LocoChip <> UnknownLocoChip THEN
+                  SetLocationOccupationAllDayState(TrackCircuits[LocationTCs[I]].TC_LocoChip, Location, LocationPermanentOccupationWithFeedback, ErrorMsg, OK)
+                ELSE
+                  SetLocationOccupationAllDayState(NoLocoChip, Location, LocationPermanentOccupationWithFeedback, ErrorMsg, OK);
+                IF OK THEN
+                  DataInserted := True
+                ELSE
+                  Debug('!' + ErrorMsg);
+              END;
+            END;
+          Inc(I);
+        END; {WHILE}
+      END;
+      Inc(Location);
+    END; {WHILE}
+
+    IF NOT OK THEN BEGIN
+      { Now need to sort out the problem }
+      Log('E Location occupation error: ' + ErrorMsg);
+      IF MessageDialogueWithDefault(ErrorMsg
+                                    + CRLF
+                                    + 'Do you wish to start anyway or exit the program?',
+                                    StopTimer, mtError, [mbYes, mbNo], ['Start', 'Exit'], mbNo) = mrNo
+      THEN
+        ShutDownProgram(UnitRef, 'AddStationaryOccupationsToLocationOccupations');
+    END; {WITH}
+  END; { AddStationaryOccupationsToLocationOccupations }
+
 CONST
   IncludeLocationOccupationStatus = True;
   TrainExists = True;

@@ -193,15 +193,6 @@ BEGIN
   Result := LocoDialogueSelectedLocoSpeed;
 END; { GetLocoDialogueSelectedLocoSpeed }
 
-PROCEDURE SwitchMPHSpeedsOff;
-BEGIN
-  WITH LocoDialogueWindow DO BEGIN
-    LocoDialogueSpeedInMPH := False;
-    LocoDialogueSpeedInMPHButton.Caption := 'Switch to Speed In MPH';
-    LocoDialogueMPHLabel.Visible := False;
-  END; {WITH}
-END; { SwitchMPHSpeedsOff }
-
 PROCEDURE SwitchMPHSpeedsOn;
 BEGIN
   WITH LocoDialogueWindow DO BEGIN
@@ -1690,6 +1681,16 @@ BEGIN
 END; { LocoDialogueTurnLightsOnOrOffButtonMouseDown }
 
 PROCEDURE TLocoDialogueWindow.LocoDialogueSpeedInMPHButtonMouseDown(Sender: TObject; Button: TMouseButton; ShiftState : TShiftState; X, Y: Integer);
+
+  PROCEDURE SwitchMPHSpeedsOff;
+  BEGIN
+    WITH LocoDialogueWindow DO BEGIN
+      LocoDialogueSpeedInMPH := False;
+      LocoDialogueSpeedInMPHButton.Caption := 'Switch to Speed In MPH';
+      LocoDialogueMPHLabel.Visible := False;
+    END; {WITH}
+  END; { SwitchMPHSpeedsOff }
+
 BEGIN
   CheckEmergencyStop(Button, ShiftState);
 

@@ -101,6 +101,7 @@ CONST
 VAR
   NumbersArrayCounter : Integer = -1;
   SaveSystemStatusEmergencyOff : Boolean;
+  TimerT : Train = NIL;
 
 PROCEDURE Log(Str : String);
 { For ease of debugging, adds the unit name }
@@ -1565,35 +1566,33 @@ BEGIN
       IF NOT PointResettingMode THEN
         SetLength(PointResettingToDefaultStateArray, 0)
       ELSE BEGIN
-//        IF CompareTime(IncSecond(LastPointResetTime, 20), Time) < 0 THEN BEGIN
-          I := 0;
-          WHILE I <= High(PointResettingToDefaultStateArray) DO BEGIN
-            IF NOT PointIsLocked(PointResettingToDefaultStateArray[I], LockingMsg) THEN BEGIN
-              WITH Points[PointResettingToDefaultStateArray[I]] DO BEGIN
-                IF Point_PresentState = Point_RequiredState THEN
-                  DeleteElementFromIntegerArray(PointResettingToDefaultStateArray, I)
-                ELSE BEGIN
-                  IF Point_ResettingTime = 0 THEN
-                    Point_ResettingTime := Time
-                  ELSE
-                    IF (Point_ResettingTime <> 0)
-                    AND (CompareTime(IncSecond(Point_ResettingTime, 5), Time) < 0)
-                    THEN BEGIN
-                      Log('P Resetting P=' + IntToStr(PointResettingToDefaultStateArray[I]) + ' one minute after unlocking');
-                      PullPoint(PointResettingToDefaultStateArray[I], NoLocoChip, NoRoute, NoSubRoute, NOT ForcePoint, NOT ByUser,
-                                NOT ErrorMsgRequired, PointResultPending, ErrorMsg, OK);
+        I := 0;
+        WHILE I <= High(PointResettingToDefaultStateArray) DO BEGIN
+          IF NOT PointIsLocked(PointResettingToDefaultStateArray[I], LockingMsg) THEN BEGIN
+            WITH Points[PointResettingToDefaultStateArray[I]] DO BEGIN
+              IF Point_PresentState = Point_RequiredState THEN
+                DeleteElementFromIntegerArray(PointResettingToDefaultStateArray, I)
+              ELSE BEGIN
+                IF Point_ResettingTime = 0 THEN
+                  Point_ResettingTime := Time
+                ELSE
+                  IF (Point_ResettingTime <> 0)
+                  AND (CompareTime(IncSecond(Point_ResettingTime, 5), Time) < 0)
+                  THEN BEGIN
+                    Log('P Resetting P=' + IntToStr(PointResettingToDefaultStateArray[I]) + ' one minute after unlocking');
+                    PullPoint(PointResettingToDefaultStateArray[I], NoLocoChip, NoRoute, NoSubRoute, NOT ForcePoint, NOT ByUser,
+                              NOT ErrorMsgRequired, PointResultPending, ErrorMsg, OK);
 //                      IF OK THEN
 //                        LastPointResetTime := Time;
 
-                      Point_ResettingTime := 0;
-                      DeleteElementFromIntegerArray(PointResettingToDefaultStateArray, I);
-                    END;
-                END;
-              END; {WITH}
-            END;
-            Inc(I);
-          END; {WHILE}
-//        END;
+                    Point_ResettingTime := 0;
+                    DeleteElementFromIntegerArray(PointResettingToDefaultStateArray, I);
+                  END;
+              END;
+            END; {WITH}
+          END;
+          Inc(I);
+        END; {WHILE}
       END;
     END;
 
