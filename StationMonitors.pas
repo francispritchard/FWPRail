@@ -43,7 +43,6 @@ CONST
 
 VAR
   ExpectedColumnStr : String;
-  JourneyCount : Integer;
   LocationColumnStr : String;
   LocoColumnStr : String;
   MaxX : Integer;
@@ -62,7 +61,7 @@ END; { Log }
 FUNCTION GetStationMonitorsExitTime : TDateTime;
 { Return the time we exited from and when - if it's soon afterwards we might want to return to the same screen }
 BEGIN
-//  Result := GetStationMonitorsExitTime; { *********** causes stack overflow! }
+  Result := StationMonitorsExitTime;
 END; { GetStationMonitorsExitTime }
 
 PROCEDURE TStationMonitorsWindow.StationMonitorsFormKeyDown(Sender: TObject; VAR Key: Word; ShiftState: TShiftState);
@@ -106,49 +105,17 @@ END; { MonitorsWindowHide }
 
 PROCEDURE WriteOutSeparatorLine(YPos : Integer; MaxX : Integer);
 { Write out a line for the station monitors to the screen and to file to be read in by another program }
-VAR
-  Str : String;
-  TempReal : Real;
-
 BEGIN
   WITH StationMonitorsWindow.Canvas DO BEGIN
     MoveTo(0, YPos);
     Pen.Color := clWhite;
     LineTo(MaxX, YPos);
   END; {WITH}
-
-//  IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN BEGIN
-//    { XPos }
-//    Str := IntToStr(0) + ',';
-//
-//    { YPos }
-//    IF YPos = 0 THEN
-//      Str := Str + '0,'
-//    ELSE BEGIN
-//      TempReal := MaxY / YPos;
-//      TempReal := 100 / TempReal;
-//      Str := Str + FloatToStr(TempReal) + ',';
-//    END;
-//
-//    { FontSize }
-//    Str := Str + '0,';
-//
-//    { FontColour }
-//    Str := Str + ColourToStr(clWhite) + ',';
-//
-//    { FontStyle }
-//    Str := Str + ',';
-//
-//    { And the text }
-//    Str := Str + '[Line]';
-//  END;
 END; { WriteOutSeparatorLine }
 
 PROCEDURE WriteOutStationMonitorsData(XPos, YPos : Integer; Text : String; FontStyle : TFontStyles; FontSize : Integer; FontColour : TColour);
 { Write out data for the station monitors to the screen and to file to be read in by another program }
 VAR
-  Str : String;
-  TempReal : Real;
   TempXPos : Integer;
 
 BEGIN
@@ -734,7 +701,7 @@ BEGIN
               ShowArrivals(Area, YPos, HalfScreenY);
               IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN BEGIN
                 StationMonitorsWebPage.Add('</div>');
-                StationMonitorsWebPage.Add('<div class="container" style="top:55%">');
+                StationMonitorsWebPage.Add('<div class="container" style="top:50%">');
               END;
               ShowDepartures(Area, HalfScreenY, MaxY);
               IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN
