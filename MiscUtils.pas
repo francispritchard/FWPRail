@@ -263,6 +263,9 @@ FUNCTION FindButton(CONST Dlg: TForm; CONST ModalResult: Integer): TButton;
 { FindButton finds a button in a Message Dialog that has been created with the Dialogs.CreateMessageDialog function, based on its ModalResult. The function returns the
   button, or NIL, if the button has not been found [from uDialogsExt from Borland website]
 }
+FUNCTION GetAreaFromStationMonitorsDisplayOrderNum(OrderNum : Integer) : Integer;
+{ Return the Area indicated by the station monitors' display order number }
+
 FUNCTION GetBuildInfoAsString : String;
 { Return the program's build number - this is auto incremented on each build }
 
@@ -301,6 +304,12 @@ FUNCTION GetSignalAdjacentLine(S : Integer) : Integer;
 
 FUNCTION GetSignalAspect(S : Integer) : AspectType;
 { Return the state of a signal }
+
+FUNCTION GetStationMonitorsDisplayOrderStr(OrderNum : Integer) : String;
+{ Return the description of the Area indicated by the station monitors' display order number }
+
+FUNCTION GetStationNumFromStationMonitorsDisplayOrderNum(StationMonitorsDisplayOrderStr : String) : Integer;
+{ Return the station monitors' display order number from the description of the Area }
 
 FUNCTION GetTrackCircuitsForLocation(Location : Integer) : IntegerArrayType;
 { Return all the trackcircuits for a given location }
@@ -546,7 +555,7 @@ PROCEDURE ReadOut(SoundStr : String);
   from the command prompt. The file "rail.rc" is the resource script file.
 }
 FUNCTION RemoveAllSpacesFromAString(Str : String) : String;
-{ Removes all spaces from a given string. Not in use. }
+{ Removes all spaces from a given string }
 
 PROCEDURE RemoveDuplicateElementsFromIntegerArray(VAR IntegerArray : IntegerArrayType);
 { Removes duplicate elements }
@@ -4439,6 +4448,33 @@ BEGIN
   END;
 END; { MakeSound }
 
+FUNCTION RemoveAllSpacesFromAString(Str : String) : String;
+{ Removes all spaces from a given string }
+VAR
+  I : Integer;
+
+BEGIN
+  I := 1;
+  WHILE I <= Length(Str) DO BEGIN
+    IF (Length(Str) > 0)
+    AND (Str[I] = ' ')
+    THEN BEGIN
+      { note: Delete may need "System" as because of a "WITH" statement it could become a DataSet command }
+      System.Delete(Str, I, 1);
+      I := I - 1;
+    END;
+    IF (Length(Str) > 3)
+    AND (Copy(Str, I, 3) = '%20')
+    THEN BEGIN
+      { note: Delete may need "System" as because of a "WITH" statement it could become a DataSet command }
+      System.Delete(Str, I, 3);
+      I := I - 3;
+    END;
+    Inc(I);
+  END; {WHILE}
+  Result := Str;
+END; { RemoveAllSpacesFromAString }
+
 FUNCTION LocoChipToStr(LocoChip : Integer) : String;
 { Return the locomotive number as a string - if LocoChip less then 1000, add appropriate number of leading zeros }
 BEGIN
@@ -4568,25 +4604,68 @@ BEGIN
   END;
 END; { ATSA }
 
-FUNCTION RemoveAllSpacesFromAString(Str : String) : String;
-{ Removes all spaces from a given string }
+FUNCTION GetAreaFromStationMonitorsDisplayOrderNum(OrderNum : Integer) : Integer;
+{ Return the Area indicated by the station monitors' display order number }
 VAR
-  I : Integer;
+  A : Integer;
+  OrderNumFound : Boolean;
 
 BEGIN
-  I := 1;
-  WHILE I <= Length(Str) DO BEGIN
-    IF (Length(Str) > 0)
-    AND (Str[I] = ' ')
-    THEN BEGIN
-      { note: Delete may need "System" as because of a "WITH" statement it could become a DataSet command }
-      System.Delete(Str, I, 1);
-      I := I - 1;
-    END;
-    Inc(I);
+  Result := -1;
+
+  A := 0;
+  OrderNumFound := False;
+  WHILE (A <= High(Areas)) AND NOT OrderNumFound DO BEGIN
+    IF Areas[A].Area_StationMonitorsDisplayOrderNum = OrderNum THEN BEGIN
+      Result := A;
+      OrderNumFound := True;
+    END ELSE
+      Inc(A);
   END; {WHILE}
-  Result := Str;
-END; { RemoveAllSpacesFromAString }
+END; { GetStationMonitorsDisplayOrderStr }
+
+FUNCTION GetStationMonitorsDisplayOrderStr(OrderNum : Integer) : String;
+{ Return the long description of the Area indicated by the station monitors' display order number }
+VAR
+  A : Integer;
+  OrderNumFound : Boolean;
+
+BEGIN
+  Result := '';
+
+  A := 0;
+  OrderNumFound := False;
+  WHILE (A <= High(Areas)) AND NOT OrderNumFound DO BEGIN
+    IF Areas[A].Area_StationMonitorsDisplayOrderNum = OrderNum THEN BEGIN
+      Result := Areas[A].Area_LongStr;
+      OrderNumFound := True;
+    END ELSE
+      Inc(A);
+  END; {WHILE}
+END; { GetStationMonitorsDisplayOrderStr }
+
+FUNCTION GetStationNumFromStationMonitorsDisplayOrderNum(StationMonitorsDisplayOrderStr : String) : Integer;
+{ returns the station monitors' display order number from the long or short station name }
+VAR
+  A : Integer;
+  OrderNumFound : Boolean;
+
+BEGIN
+  Result := -1;
+
+  A := 0;
+  OrderNumFound := False;
+  WHILE (A <= High(Areas)) AND NOT OrderNumFound DO BEGIN
+    StationMonitorsDisplayOrderStr := RemoveAllSpacesFromAString(StationMonitorsDisplayOrderStr);
+    IF (Pos(UpperCase(StationMonitorsDisplayOrderStr), UpperCase(RemoveAllSpacesFromAString(Areas[A].Area_LongStr))) > 0)
+    OR (Pos(UpperCase(StationMonitorsDisplayOrderStr), UpperCase(RemoveAllSpacesFromAString(Areas[A].Area_ShortStr))) > 0)
+    THEN BEGIN
+      Result := A;
+      OrderNumFound := True;
+    END ELSE
+      Inc(A);
+  END; {WHILE}
+END; { GetStationNumFromStationMonitorsDisplayOrderNum }
 
 FUNCTION LenzConnectionToStr(LenzConnection : LenzConnectionType) : String;
 { Return the kind of connection }

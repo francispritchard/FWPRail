@@ -1751,7 +1751,6 @@ BEGIN
     END; {WITH}
     Log('D ----------------- new diagrams end');
 
-
     IF StationMonitorsWindow.Visible THEN
       { redraw it erasing the window first }
       DrawStationMonitorsWindow(StationMonitorsCurrentArea)

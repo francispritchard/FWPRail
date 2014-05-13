@@ -36,12 +36,13 @@ FUNCTION GetStationMonitorsExitTime : TDateTime;
 
 IMPLEMENTATION
 
-USES MiscUtils, StrUtils, DateUtils, Input, GetTime, Diagrams, Options, Raildraw;
+USES MiscUtils, StrUtils, DateUtils, Input, GetTime, Diagrams, Options, Raildraw, Types, SyncObjs;
 
 CONST
   UnitRef = 'StationMonitors';
 
 VAR
+  CriticalSection : TCriticalSection;
   ExpectedColumnStr : String;
   LocationColumnStr : String;
   LocoColumnStr : String;
@@ -677,21 +678,19 @@ BEGIN
         CASE StationMonitorDisplay OF
           StationArrivalsDisplay:
             BEGIN
-              ShowArrivals(Area, YPos, MaxY);
-              IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN BEGIN
+              IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN
                 StationMonitorsWebPage.Add('<div class="container" style="top:5%">');
-                ShowArrivals(Area, YPos, MaxY);
+              ShowArrivals(Area, YPos, MaxY);
+              IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN
                 StationMonitorsWebPage.Add('</div>');
-              END;
             END;
           StationDeparturesDisplay:
             BEGIN
-              ShowDepartures(Area, YPos, MaxY);
-              IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN BEGIN
+              IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN
                 StationMonitorsWebPage.Add('<div class="container" style="top:5%">');
-                ShowDepartures(Area, YPos, MaxY);
+              ShowDepartures(Area, YPos, MaxY);
+              IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN
                 StationMonitorsWebPage.Add('</div>');
-              END;
             END;
           StationArrivalsAndDeparturesDisplay:
             BEGIN
@@ -740,95 +739,138 @@ VAR
   I : Integer;
   Line : String;
   Msg : String;
+  ParametersArray : TStringDynArray;
   Path : String;
   ServedPage : ServedPageType;
-  StationMonitorsWebArea : Integer;
-  StationMonitorsWebAreaStr : String;
+  StationMonitorsDisplayOrderNum : Integer;
+  StationStr : String;
   StyleSheetStream : TFileStream;
+  TempStr : String;
 
 BEGIN
   TRY
-    IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) AND NOT ProgramShuttingDown THEN BEGIN
-      Line := ' ';
-      WHILE ClientSocket.Connected AND (Line <> '') DO BEGIN
-        Line := String(ClientSocket.ReceiveLn());
+    { TCriticalSection allows a thread in a multithreaded application to temporarily block other threads from accessing a block of code }
+    CriticalSection.Enter;
+    TRY
+      IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) AND NOT ProgramShuttingDown THEN BEGIN
+        Line := ' ';
+        WHILE ClientSocket.Connected AND (Line <> '') DO BEGIN
+          Line := String(ClientSocket.ReceiveLn());
 
-        IF InitVarsWindow <> NIL THEN
-          AddLineToStationMonitorsWebDiagnosticsMemo('Rec''d: ' + Line);
+          IF InitVarsWindow <> NIL THEN
+            AddLineToStationMonitorsWebDiagnosticsMemo('Rec''d: ' + Line);
 
-        IF Copy(Line, 1, 3) = 'GET' THEN BEGIN
-          HTTPPos := Pos('HTTP', Line);
-          Path := UpperCase(Copy(Line, 5, HTTPPos - 6));
-          AddLineToStationMonitorsWebDiagnosticsMemo('Path: ' + Path);
-        END;
-      END;
-
-      Msg := '';
-      ServedPage := ErrorServedPage;
-
-      IF Path = '/' THEN BEGIN
-        ServedPage := StationServedPage;
-        StationMonitorsWebArea := 0; { *** use stationmonitorsordernum ********* }
-        StationMonitorsWebAreaStr := AreaToStr(1);
-      END ELSE
-        IF (Pos('STATION', Path) > 0) THEN BEGIN
-          { we want a particular station }
-          StationMonitorsWebArea := ExtractIntegerFromString(Path);
-          StationMonitorsWebAreaStr := AreaToStr(StationMonitorsWebArea);
-          IF StationMonitorsWebAreaStr = UnknownAreaStr THEN
-            { We can't find the area that is specified }
-            Msg := 'Unknown Station Number'
-          ELSE
-            ServedPage := StationServedPage;
-        END ELSE
-          IF Path = '/STYLE.CSS' THEN
-            ServedPage := StyleSheetServedPage
-          ELSE
-            { unknown request }
-            Msg := Path + ' not found';
-
-      CASE ServedPage OF
-        StationServedPage:
-          BEGIN
-            HTTPStatusNumStr := '200';
-            HTTPStatusText := 'OK';
-            ClientSocket.SendLn(AnsiString('HTTP/1.0 ' + HTTPStatusNumStr + ' ' + HTTPStatusText));
-            ClientSocket.SendLn('');
-
-            AddLineToStationMonitorsWebDiagnosticsMemo(HTTPStatusNumStr + ' ' + HTTPStatusText);
-            AddLineToStationMonitorsWebDiagnosticsMemo('Returning data for Area ' + AreaToStr(StationMonitorsWebArea));
-
-            DrawStationMonitorsWindow(StationMonitorsWebArea);
-            IF (StationMonitorsWebPage.Count > 0) AND NOT ProgramShuttingDown THEN
-              FOR I := 0 TO StationMonitorsWebPage.Count - 1 DO
-                ClientSocket.SendLn(AnsiString(StationMonitorsWebPage[I]));
+          IF Copy(Line, 1, 3) = 'GET' THEN BEGIN
+            HTTPPos := Pos('HTTP', Line);
+            Path := UpperCase(Copy(Line, 5, HTTPPos - 6));
+            AddLineToStationMonitorsWebDiagnosticsMemo('Path: ' + Path);
           END;
-        StyleSheetServedPage:
-          BEGIN
-            TRY
-              StyleSheetStream := TFileStream.Create(PathToRailDataFiles + 'style.css', fmOpenRead);
+        END;
+
+        Msg := '';
+        ServedPage := ErrorServedPage;
+
+        IF Path = '/' THEN BEGIN
+          { the default is the first listed station in the Areas database with arrivals and departures }
+          ServedPage := StationServedPage;
+          StationMonitorsDisplayOrderNum := 0;
+          StationStr := GetStationMonitorsDisplayOrderStr(1);
+          StationMonitorDisplay := StationArrivalsAndDeparturesDisplay;
+        END ELSE
+          IF Pos('/STYLE.CSS', Path) > 0 THEN
+            ServedPage := StyleSheetServedPage
+          ELSE BEGIN
+            { Parse the path string }
+            ParametersArray := SplitString(Path, '/');
+            { Note: the first element of the array is a null string because the first character in the Path variable is an oblique, which is the delimiter }
+            IF Length(ParametersArray) > 1 THEN BEGIN
+              IF ParametersArray[1] <> '' THEN BEGIN
+                { The second area is the name of the station }
+                TempStr := ParametersArray[1];
+                StationMonitorsDisplayOrderNum := GetStationNumFromStationMonitorsDisplayOrderNum(TempStr);
+                StationStr := GetStationMonitorsDisplayOrderStr(StationMonitorsDisplayOrderNum);
+                IF StationMonitorsDisplayOrderNum = -1 THEN BEGIN
+                  Msg := 'Unknown station name:' + ParametersArray[1];
+                  ServedPage := ErrorServedPage;
+                END ELSE BEGIN
+                  StationStr := GetStationMonitorsDisplayOrderStr(StationMonitorsDisplayOrderNum);
+                  ServedPage := StationServedPage;
+
+                  IF Length(ParametersArray) > 2 THEN BEGIN
+                    IF ParametersArray[2] <> '' THEN BEGIN
+                      { The third area is whether we are providing arrivals, departures or both }
+                      TempStr := ParametersArray[2];
+
+                      IF TempStr = 'ARRIVALS' THEN
+                        StationMonitorDisplay := StationArrivalsDisplay
+                      ELSE
+                        IF TempStr = 'DEPARTURES' THEN
+                          StationMonitorDisplay := StationDeparturesDisplay
+                        ELSE
+                          IF (TempStr = 'ARRIVALSANDDEPARTURES')
+                          OR (TempStr = 'ARRIVALS&DEPARTURES')
+                          OR (TempStr = 'DEPARTURESANDARRIVALS')
+                          OR (TempStr = 'DEPARTURES&ARRIVALS')
+                          OR (TempStr = 'D&A')
+                          OR (TempStr = 'A&D')
+                          THEN
+                            StationMonitorDisplay := StationArrivalsAndDeparturesDisplay
+                          ELSE BEGIN
+                            Msg := 'Unknown second parameter:' + ParametersArray[2];
+                            ServedPage := ErrorServedPage;
+                          END;
+                    END;
+                  END;
+                END;
+              END;
+            END;
+          END;
+
+        CASE ServedPage OF
+          StationServedPage:
+            BEGIN
               HTTPStatusNumStr := '200';
               HTTPStatusText := 'OK';
               ClientSocket.SendLn(AnsiString('HTTP/1.0 ' + HTTPStatusNumStr + ' ' + HTTPStatusText));
               ClientSocket.SendLn('');
-              ClientSocket.SendStream(StyleSheetStream);
-              StyleSheetStream.Free;
-            EXCEPT
-              ON E : Exception DO
-                Log('EG StyleSheetServedPage:' + E.ClassName + ' error raised, with message: '+ E.Message);
-            END; {TRY}
-          END;
-        ErrorServedPage:
-          BEGIN
-            HTTPStatusNumStr := '404';
-            HTTPStatusText := 'Not Found';
-            ClientSocket.SendLn('');
-            ClientSocket.SendLn(AnsiString('<H1>HTTP/1.0 ' + HTTPStatusNumStr + ' ' + HTTPStatusText + '</H1><H3>' + Msg + '</H3>'));
-            AddLineToStationMonitorsWebDiagnosticsMemo('Area ' + Path + ' not known');
-          END;
-      END; {CASE}
 
-      ClientSocket.Close;
+              AddLineToStationMonitorsWebDiagnosticsMemo(HTTPStatusNumStr + ' ' + HTTPStatusText);
+              AddLineToStationMonitorsWebDiagnosticsMemo('Returning data for ' + StationStr);
+
+              DrawStationMonitorsWindow(GetAreaFromStationMonitorsDisplayOrderNum(StationMonitorsDisplayOrderNum));
+              IF (StationMonitorsWebPage.Count > 0) AND NOT ProgramShuttingDown THEN
+                FOR I := 0 TO StationMonitorsWebPage.Count - 1 DO
+                  ClientSocket.SendLn(AnsiString(StationMonitorsWebPage[I]));
+            END;
+          StyleSheetServedPage:
+            BEGIN
+              TRY
+                StyleSheetStream := TFileStream.Create(PathToRailDataFiles + 'style.css', fmOpenRead);
+                HTTPStatusNumStr := '200';
+                HTTPStatusText := 'OK';
+                ClientSocket.SendLn(AnsiString('HTTP/1.0 ' + HTTPStatusNumStr + ' ' + HTTPStatusText));
+                ClientSocket.SendLn('');
+                ClientSocket.SendStream(StyleSheetStream);
+                StyleSheetStream.Free;
+              EXCEPT
+                ON E : Exception DO
+                  Log('EG StyleSheetServedPage:' + E.ClassName + ' error raised, with message: '+ E.Message);
+              END; {TRY}
+            END;
+          ErrorServedPage:
+            BEGIN
+              HTTPStatusNumStr := '404';
+              HTTPStatusText := 'Not Found';
+              ClientSocket.SendLn('');
+              ClientSocket.SendLn(AnsiString('<H1>HTTP/1.0 ' + HTTPStatusNumStr + ' ' + HTTPStatusText + '</H1><H3>' + Msg + '</H3>'));
+              AddLineToStationMonitorsWebDiagnosticsMemo('Area ' + Path + ' not known');
+            END;
+        END; {CASE}
+
+        ClientSocket.Close;
+      END;
+    FINALLY
+      CriticalSection.Leave;
     END;
   EXCEPT
     ON E : Exception DO
@@ -850,6 +892,7 @@ INITIALIZATION
 
 BEGIN
   StationMonitorsExitTime := StrToTime('23:59');
+  CriticalSection := TCriticalSection.Create;
 END;
 
 END { StationMonitors }.
