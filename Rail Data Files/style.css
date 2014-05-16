@@ -46,6 +46,15 @@ span.ttentry
   padding-top:5px;
 }
 
+span.ttlocoentry
+{
+  display:block;
+  font-size:275%;
+  padding-top:5px;
+  width:50%;
+  text-align:right;
+}
+
 div.container
 {
   position:absolute;
