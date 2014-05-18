@@ -1527,13 +1527,13 @@ PROCEDURE MoveAllTrains;
                         + IfThen(Train_ExtraPowerAdjustment > 0,
                                  ' [+' + IntToStr(Train_ExtraPowerAdjustment) + ']')
                         + IfThen(Train_UserPowerAdjustment > 0,
-                                 ' {+' + IntToStr(Train_UserPowerAdjustment) + '}')
+                                 ' [+' + IntToStr(Train_UserPowerAdjustment) + ']')
                         + IfThen(Train_UserPowerAdjustment < 0,
-                                 ' {' + IntToStr(Train_UserPowerAdjustment) + '}')
+                                 ' [' + IntToStr(Train_UserPowerAdjustment) + ']')
                         + IfThen(Train_GradientSpeedAdjustment > 0,
-                                 ' {+' + IntToStr(Train_GradientSpeedAdjustment) + '}')
+                                 ' [+' + IntToStr(Train_GradientSpeedAdjustment) + '[')
                         + IfThen(Train_GradientSpeedAdjustment < 0,
-                                 ' {' + IntToStr(Train_GradientSpeedAdjustment) + '}')
+                                 ' [' + IntToStr(Train_GradientSpeedAdjustment) + '}')
                         + ' (' + MPHToStr(Train_DesiredSpeedinMPH) + ' mph)'
                         + ' J=' + IntToStr(Train_CurrentJourney)
                         + ' R=' + IntToStr(Train_CurrentRoute);
