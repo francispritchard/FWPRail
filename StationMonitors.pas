@@ -8,12 +8,9 @@ USES
 TYPE
   TStationMonitorsWindow = CLASS(TForm)
     StationMonitorsTcpServer: TTcpServer;
-    PROCEDURE StationMonitorsFormCreate(Sender: TObject);
-    PROCEDURE StationMonitorsFormHide(Sender: TObject);
-    PROCEDURE StationMonitorsFormKeyDown(Sender: TObject; VAR Key: Word; ShiftState: TShiftState);
     PROCEDURE StationMonitorsFormPaint(Sender: TObject);
-    PROCEDURE StationMonitorsFormShow(Sender: TObject);
     PROCEDURE StationMonitorsTcpServerAccept(Sender: TObject; ClientSocket: TCustomIpClient);
+    procedure StationMonitorsFormCreate(Sender: TObject);
   PRIVATE
     { Private declarations }
   PUBLIC
@@ -29,9 +26,6 @@ PROCEDURE CloseStationMonitorsWebPage(OUT OK : Boolean);
 PROCEDURE DrawStationMonitorsWindow(Area : Integer);
 { Collate, sort and display station monitors entries }
 
-FUNCTION GetStationMonitorsExitTime : TDateTime;
-{ Return the time we exited from and when - if it's soon afterwards we might want to return to the same screen }
-
 {$R *.dfm}
 
 IMPLEMENTATION
@@ -46,90 +40,16 @@ VAR
   ExpectedColumnStr : String;
   LocationColumnStr : String;
   LocoColumnStr : String;
-  MaxX : Integer;
-  MaxY : Integer;
   PlatformColumnStr : String;
-  StationMonitorsExitTime : TDateTime = 0;
   StationMonitorsWebPage : TStringList;
   TimeColumnStr : String;
+  WebIncludeLocoChipInStationMonitors : Boolean = False;
 
 PROCEDURE Log(Str : String);
 { For ease of debugging, adds the unit name }
 BEGIN
   WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
-
-FUNCTION GetStationMonitorsExitTime : TDateTime;
-{ Return the time we exited from and when - if it's soon afterwards we might want to return to the same screen }
-BEGIN
-  Result := StationMonitorsExitTime;
-END; { GetStationMonitorsExitTime }
-
-PROCEDURE TStationMonitorsWindow.StationMonitorsFormKeyDown(Sender: TObject; VAR Key: Word; ShiftState: TShiftState);
-BEGIN
-  CASE Key OF
-    vk_Escape, vk_Subtract:
-      BEGIN
-        StationMonitorsWindow.Hide;
-        { note where we exited from and when - if it's soon afterwards we might want to return to the same screen }
-        StationMonitorsExitTime := Time;
-        SaveStationMonitorsCurrentArea := StationMonitorsCurrentArea;
-        //StationMonitorsCurrentArea := UnknownArea;
-      END;
-
-    { Allow some other keys through }
-    vk_Add, vk_Return, vk_Space, vk_Tab,
-    Ord(222), { '#' key }
-    Ord('8'), vk_Insert, vk_Multiply, { the star key, which inserts a line of stars in the log }
-    Ord('M'), Ord('B'), Ord('I'), Ord('T'), vk_Shift, vk_Control:
-      KeyPressedDown(Key, ShiftState);
-  END; {CASE}
-END; { MonitorsWindowKeyDown }
-
-PROCEDURE TStationMonitorsWindow.StationMonitorsFormShow(Sender: TObject);
-BEGIN
-  { Turns the cursor off when we display the station monitors }
-  ShowCursor(False);
-END; { MonitorsWindowShow }
-
-PROCEDURE TStationMonitorsWindow.StationMonitorsFormCreate(Sender: TObject);
-BEGIN
-  StationMonitorsTCPServer.Open;
-  AddLineToStationMonitorsWebDiagnosticsMemo(DateTimeToStr(Now) + ': server started');
-END; { StationMonitorsFormCreate }
-
-PROCEDURE TStationMonitorsWindow.StationMonitorsFormHide(Sender: TObject);
-BEGIN
-  { Turns the cursor on when we exit from the station monitors display }
-  ShowCursor(True);
-END; { MonitorsWindowHide }
-
-PROCEDURE WriteOutSeparatorLine(YPos : Integer; MaxX : Integer);
-{ Write out a line for the station monitors to the screen and to file to be read in by another program }
-BEGIN
-  WITH StationMonitorsWindow.Canvas DO BEGIN
-    MoveTo(0, YPos);
-    Pen.Color := clWhite;
-    LineTo(MaxX, YPos);
-  END; {WITH}
-END; { WriteOutSeparatorLine }
-
-PROCEDURE WriteOutStationMonitorsData(XPos, YPos : Integer; Text : String; FontStyle : TFontStyles; FontSize : Integer; FontColour : TColour);
-{ Write out data for the station monitors to the screen and to file to be read in by another program }
-VAR
-  TempXPos : Integer;
-
-BEGIN
-  TRY
-    WITH StationMonitorsWindow.Canvas DO BEGIN
-      TempXPos := MulDiv(MaxX, XPos, 100);
-      TextOut(TempXPos, YPos, Text);
-    END; {WITH}
-  EXCEPT
-    ON E : Exception DO
-      Log('EG WriteOutStationMonitorsData: ' + E.ClassName + ' error raised, with message: ' + E.Message);
-  END; {TRY}
-END; { WriteOutStationMonitorsData }
 
 PROCEDURE DrawStationMonitorsWindow(Area : Integer);
 { Collate, sort and display timetable entries }
@@ -153,18 +73,7 @@ VAR
   CurrentTimeStr : String;
   DiagramsEntry : DiagramsEntryType;
 //  ErrorMsg : String;
-  ExpectedPos : Integer;
-  HalfScreenY : Integer;
-  LocationPos : Integer;
-  LocoChipPos : Integer;
-  PlatformPos : Integer;
-  SaveFontStyle : TFontStyles;
   T : Train;
-  TempReal : Real;
-  TimePos : Integer;
-  TimetabledTimePos : Integer;
-  XPos : Integer;
-  YPos : Integer;
 
   FUNCTION EntriesAreInOrder(Timetable1Rec, Timetable2Rec : StationMonitorsRec) : Boolean;
   { Check the departure times. If less, return true. If greater, return false. If they are equal, check the platform numbers }
@@ -185,14 +94,13 @@ VAR
             Result := True;
   END; { EntriesAreInOrder }
 
-  PROCEDURE SortAndDisplayTimetableEntries(TimetableArray : ARRAY OF StationMonitorsRec; YPos, MaxY : Integer);
+  PROCEDURE SortAndDisplayTimetableEntries(TimetableArray : ARRAY OF StationMonitorsRec);
   { Sort and display the entries we're given - sort rewritten after discussion with AMS on Trafalgar Day 2007 at Battersea Park }
   VAR
     DebugStr : String;
     EarliestTimeStr : String;
     I, J, K : Integer;
     OldTimetableArray, NewTimetableArray : ARRAY OF StationMonitorsRec;
-    TempReal : Real;
     TimePos : Integer;
 
   BEGIN
@@ -228,79 +136,52 @@ VAR
       I := 0;
       WHILE I <= High(NewTimetableArray) DO BEGIN
         WITH NewTimetableArray[I] DO BEGIN
-          IF YPos + (1.5 * TextHeight('06:00')) < MaxY THEN BEGIN
+          IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN
+            TimeColumnStr := TimeColumnStr + '<span class="ttentry">' + DiagrammedTimeStr + '</span>';
+          DebugStr := DiagrammedTimeStr;
+
+          IF WebIncludeLocoChipInStationMonitors THEN BEGIN
             IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN
-              TimeColumnStr := TimeColumnStr + '<span class="ttentry">' + DiagrammedTimeStr + '</span>';
-            WriteOutStationMonitorsData(TimetabledTimePos, YPos, DiagrammedTimeStr, Font.Style, Font.Height, Font.Color);
-            DebugStr := DiagrammedTimeStr;
-
-            IF IncludeLocoChipInStationMonitors THEN BEGIN
-              { right justify the loco number for better readability }
-              TempReal := TextWidth('XXXX') - TextWidth(LocoChipStr);
-              TempReal := MaxX / TempReal;
-              TempReal := 100 / TempReal;
-
-              IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN
-                LocoColumnStr := LocoColumnStr + '<span class="ttentry">' + LocoChipStr + '</span>';
-              WriteOutStationMonitorsData(LocoChipPos + Round(TempReal), YPos, LocoChipStr, Font.Style, Font.Height, Font.Color);
-            END;
-
-            { Deal with trains that are not for public use }
-            SaveFontStyle := Font.Style;
-            IF LocationStr <> '' THEN BEGIN
-              IF Copy(LocationStr, 1, 3) = '<I>' THEN BEGIN
-                LocationStr := Copy(LocationStr, 4);
-                Font.Style := [fsItalic];
-              END;
-
-              IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN
-                LocationColumnStr := LocationColumnStr + '<span class="ttentry">' + LocationStr + '</span>';
-              WriteOutStationMonitorsData(LocationPos, YPos, LocationStr, Font.Style, Font.Height, Font.Color);
-              Font.Style := SaveFontStyle;
-
-              DebugStr := DebugStr + StringOfChar(' ', 2) + LocationStr;
-            END;
-
-            IF DiagrammedPlatformNumStr = ActualPlatformNumStr THEN BEGIN
-              IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN
-                PlatformColumnStr := PlatformColumnStr + '<span class="ttentry">' + DiagrammedPlatformNumStr + '</span>';
-              WriteOutStationMonitorsData(PlatformPos, YPos, DiagrammedPlatformNumStr, Font.Style, Font.Height, Font.Color);
-              DebugStr := DebugStr + StringOfChar(' ', 30 - Length(DebugStr)) + ActualPlatformNumStr;
-            END ELSE BEGIN
-              SaveFontStyle := Font.Style;
-              Font.Style := [fsBold];
-              IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN
-                PlatformColumnStr := PlatformColumnStr + '<span class="ttentry">' + ActualPlatformNumStr + '</span>';
-              WriteOutStationMonitorsData(PlatformPos, YPos, ActualPlatformNumStr, Font.Style, Font.Height, Font.Color);
-              DebugStr := DebugStr + StringOfChar(' ', 29 - Length(DebugStr)) + '*' + ActualPlatformNumStr + '*';
-              Font.Style := SaveFontStyle;
-            END;
-
-            IF Copy(ActualTimeStr, 1, 3) <> '<B>' THEN
-              DebugStr := DebugStr + StringOfChar(' ', 38 - Length(DebugStr)) + ActualTimeStr
-            ELSE BEGIN
-              SaveFontStyle := Font.Style;
-              Font.Style := [fsBold];
-              ActualTimeStr := Copy(ActualTimeStr, 4);
-              DebugStr := DebugStr + StringOfChar(' ', 38 - Length(DebugStr)) + '*' + ActualTimeStr + '*';
-            END;
-
-            IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN
-              ExpectedColumnStr := ExpectedColumnStr + '<span class="ttentry">' + ActualTimeStr + '</span>';
-            WriteOutStationMonitorsData(ExpectedPos, YPos, ActualTimeStr, Font.Style, Font.Height, Font.Color);
-            Font.Style := SaveFontStyle;
-            YPos := YPos + TextHeight('06:00');
-
-            IF RecordingMonitorScreens THEN
-              Log('T ' + DebugStr + ' {NOUNITREF}');
+              LocoColumnStr := LocoColumnStr + '<span class="ttlocoentry">' + LocoChipStr + '</span>';
           END;
+
+          { Deal with trains that are not for public use }
+          IF LocationStr <> '' THEN BEGIN
+            IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN
+              LocationColumnStr := LocationColumnStr + '<span class="ttentry">' + LocationStr + '</span>';
+
+            DebugStr := DebugStr + StringOfChar(' ', 2) + LocationStr;
+          END;
+
+          IF DiagrammedPlatformNumStr = ActualPlatformNumStr THEN BEGIN
+            IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN
+              PlatformColumnStr := PlatformColumnStr + '<span class="ttentry">' + DiagrammedPlatformNumStr + '</span>';
+            DebugStr := DebugStr + StringOfChar(' ', 30 - Length(DebugStr)) + ActualPlatformNumStr;
+          END ELSE BEGIN
+            IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN
+              PlatformColumnStr := PlatformColumnStr + '<span class="ttentry">' + ActualPlatformNumStr + '</span>';
+            DebugStr := DebugStr + StringOfChar(' ', 29 - Length(DebugStr)) + '*' + ActualPlatformNumStr + '*';
+          END;
+
+          IF Copy(ActualTimeStr, 1, 3) <> '<B>' THEN
+            DebugStr := DebugStr + StringOfChar(' ', 38 - Length(DebugStr)) + ActualTimeStr
+          ELSE BEGIN
+            ActualTimeStr := Copy(ActualTimeStr, 4);
+            DebugStr := DebugStr + StringOfChar(' ', 38 - Length(DebugStr)) + '*' + ActualTimeStr + '*';
+          END;
+
+          IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN
+            ExpectedColumnStr := ExpectedColumnStr + '<span class="ttentry">' + ActualTimeStr + '</span>';
+
+          IF RecordingMonitorScreens THEN
+            Log('T ' + DebugStr + ' {NOUNITREF}');
         END; {WITH}
         Inc(I);
       END; {WHILE}
     END; {WITH}
   END; { SortAndDisplayTimetableEntries }
 
-  PROCEDURE ShowArrivals(Area : Integer; YPos, MaxY : Integer);
+  PROCEDURE ShowArrivals(Area : Integer);
   { Write out the arrivals screen }
   VAR
     Hour, Min, Sec, MSec : Word;
@@ -315,7 +196,7 @@ VAR
         IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN BEGIN
           TimeColumnStr :=       '    <div style="width:20%;float:left;">' + CRLF
                                + '    <span class="ttheading">Arrives</span>';
-          IF IncludeLocoChipInStationMonitors THEN BEGIN
+          IF WebIncludeLocoChipInStationMonitors THEN BEGIN
             LocoColumnStr :=     '    <div style="width:10%;float:left;">' + CRLF
                                + '    <span class="ttheading">Loco</span>';
             LocationColumnStr := '    <div style="width:30%;float:left;">' + CRLF
@@ -331,29 +212,10 @@ VAR
                                + '    <span class="ttheading">Expected</span>';
         END;
 
-        Font.Style := [fsBold];
-        Font.Height := -MulDiv(FWPRailWindow.ClientHeight, StationMonitorsSmallFontHeight, 1000);
-
-        FillRect(Rect(0, YPos, MaxX, MaxY));
-
         IF RecordingMonitorScreens THEN
           Log('T Arrivals' + ' {NOUNITREF}');
-        WriteOutStationMonitorsData(TimetabledTimePos, YPos, 'Arrives', Font.Style, Font.Height, Font.Color);
-        IF IncludeLocoChipInStationMonitors THEN
-          WriteOutStationMonitorsData(LocoChipPos, YPos, 'Loco', Font.Style, Font.Height, Font.Color);
-        WriteOutStationMonitorsData(LocationPos, YPos, 'From', Font.Style, Font.Height, Font.Color);
-        WriteOutStationMonitorsData(PlatformPos, YPos, 'Platform', Font.Style, Font.Height, Font.Color);
-        WriteOutStationMonitorsData(ExpectedPos, YPos, 'Expected', Font.Style, Font.Height, Font.Color);
-        YPos := YPos + TextHeight('06:00') + MulDiv(TextHeight('06:00'), 1, 3);
 
-        { Draw a separator line }
-        WriteOutSeparatorLine(YPos, MaxX);
-
-        YPos := YPos + MulDiv(TextHeight('06:00'), 1, 3);
         SetLength(TimetableArray, 0);
-
-        Font.Height := -MulDiv(FWPRailWindow.ClientHeight, StationMonitorsLargeFontHeight, 1000);
-        Font.Style := [];
 
         { Compile a list for the timetable - this is unsorted, though }
         DiagramsEntry := DiagramsList;
@@ -381,9 +243,9 @@ VAR
                           LocationStr := TrainJourney_StartStationName;
                           IF TrainJourney_NotForPublicUse THEN
                             { show the location in a different font }
-                            LocationStr := '<I>' + LocationStr;
+                            LocationStr := '<i>' + LocationStr + '</i>';
 
-                          IF IncludeLocoChipInStationMonitors THEN
+                          IF WebIncludeLocoChipInStationMonitors THEN
                             LocoChipStr := IntToStr(Train_LocoChip);
 
                           IF TrainJourney_DiagrammedEndLocation <> UnknownLocation THEN BEGIN
@@ -397,10 +259,10 @@ VAR
 
                             IF (Train_CurrentStatus = Suspended) OR (Train_CurrentStatus = MissingAndSuspended) THEN
                               { keep it on the board as cancelled until its departure time has passed }
-                              ActualTimeStr := '<B>' + DelayedStr
+                              ActualTimeStr := '<b>' + DelayedStr + '</b>'
                             ELSE
                               IF Train_CurrentStatus = Cancelled THEN
-                                ActualTimeStr := '<B>' + CancelledStr
+                                ActualTimeStr := '<b>' + CancelledStr + '</b>'
                               ELSE
                                 IF Train_JourneysArray[JourneyCount].TrainJourney_ActualArrivalTime <> 0 THEN
                                   ActualTimeStr := ArrivedStr
@@ -425,7 +287,7 @@ VAR
                                     IF CompareTime(TrainJourney_CurrentArrivalTime, TrainJourney_DiagrammedArrivalTime) < 0 THEN
                                       ActualTimeStr := TimeToHMStr(TrainJourney_CurrentArrivalTime)
                                     ELSE
-                                      ActualTimeStr := '<B>' + TimeToHMStr(TrainJourney_CurrentArrivalTime);
+                                      ActualTimeStr := '<b>' + TimeToHMStr(TrainJourney_CurrentArrivalTime) + '</b>';
                                 END;
                           END;
                         END; {WITH}
@@ -439,12 +301,12 @@ VAR
           DiagramsEntry := DiagramsEntry^.NextDiagramsRecord;
         END; {WHILE}
 
-        SortAndDisplayTimetableEntries(TimetableArray, YPos, MaxY);
+        SortAndDisplayTimetableEntries(TimetableArray);
 
         IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN BEGIN
           StationMonitorsWebPage.Add('<div class="tttable">');
           StationMonitorsWebPage.Add(TimeColumnStr + '</div>');
-          IF IncludeLocoChipInStationMonitors THEN
+          IF WebIncludeLocoChipInStationMonitors THEN
             StationMonitorsWebPage.Add(LocoColumnStr + '</div>');
           StationMonitorsWebPage.Add(LocationColumnStr + '</div>');
           StationMonitorsWebPage.Add(PlatformColumnStr + '</div>');
@@ -459,7 +321,7 @@ VAR
     END; {TRY}
   END; { ShowArrivals }
 
-  PROCEDURE ShowDepartures(Area : Integer; YPos, MaxY : Integer);
+  PROCEDURE ShowDepartures(Area : Integer);
   { Write out the departures screen }
   VAR
     JourneyCount : Integer;
@@ -472,7 +334,7 @@ VAR
       IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN BEGIN
         TimeColumnStr :=       '    <div style="width:20%;float:left;">' + CRLF
                              + '    <span class="ttheading">Departs</span>';
-        IF IncludeLocoChipInStationMonitors THEN BEGIN
+        IF WebIncludeLocoChipInStationMonitors THEN BEGIN
           LocoColumnStr :=     '    <div style="width:10%;float:left;">' + CRLF
                              + '    <span class="ttheading">Loco</span>';
           LocationColumnStr := '    <div style="width:30%;float:left;">' + CRLF
@@ -488,29 +350,10 @@ VAR
                              + '    <span class="ttheading">Expected</span>';
       END;
 
-      Font.Style := [fsBold];
-      Font.Height := -MulDiv(FWPRailWindow.ClientHeight, StationMonitorsSmallFontHeight, 1000);
-
-      FillRect(Rect(0, YPos, MaxX, MaxY));
-
       IF RecordingMonitorScreens THEN
         Log('T Departures' + ' {NOUNITREF}');
-      WriteOutStationMonitorsData(TimetabledTimePos, YPos, 'Departs', Font.Style, Font.Height, Font.Color);
-      IF IncludeLocoChipInStationMonitors THEN
-        WriteOutStationMonitorsData(LocoChipPos, YPos, 'Loco', Font.Style, Font.Height, Font.Color);
-      WriteOutStationMonitorsData(LocationPos, YPos, 'To', Font.Style, Font.Height, Font.Color);
-      WriteOutStationMonitorsData(PlatformPos, YPos, 'Platform', Font.Style, Font.Height, Font.Color);
-      WriteOutStationMonitorsData(ExpectedPos, YPos, 'Expected', Font.Style, Font.Height, Font.Color);
-      YPos := YPos + TextHeight('06:00') + MulDiv(TextHeight('06:00'), 1, 3);
 
-      { Draw a separator line }
-      WriteOutSeparatorLine(YPos, MaxX);
-
-      YPos := YPos + MulDiv(TextHeight('06:00'), 1, 3);
       SetLength(TimetableArray, 0);
-
-      Font.Style := [];
-      Font.Height := -MulDiv(FWPRailWindow.ClientHeight, StationMonitorsLargeFontHeight, 1000);
 
       { Compile a list for the timetable - this is unsorted, though }
       DiagramsEntry := DiagramsList;
@@ -542,9 +385,9 @@ VAR
                         LocationStr := TrainJourney_EndStationName;
                         IF TrainJourney_NotForPublicUse THEN
                           { show the location in a different font }
-                          LocationStr := '<I>' + LocationStr;
+                          LocationStr := '<i>' + LocationStr + '</i>';
 
-                        IF IncludeLocoChipInStationMonitors THEN
+                        IF WebIncludeLocoChipInStationMonitors THEN
                           LocoChipStr := IntToStr(Train_LocoChip);
 
                         IF TrainJourney_DiagrammedStartLocation <> UnknownLocation THEN
@@ -561,19 +404,19 @@ VAR
                           ActualTimeStr := DelayedStr
                         ELSE
                           IF Train_CurrentStatus = Cancelled THEN
-                            ActualTimeStr := CancelledStr
+                            ActualTimeStr := '<b>' + CancelledStr + '</b>'
                           ELSE BEGIN
                             IF TrainJourney_ActualDepartureTime <> 0 THEN
-                              ActualTimeStr := DepartedStr
+                              ActualTimeStr := '<b>' + DepartedStr + '</b>'
                             ELSE
                               IF SameTimeInHoursAndMinutesOnly(TrainJourney_CurrentDepartureTime, TrainJourney_DiagrammedDepartureTime)
                               THEN
                                 ActualTimeStr := OnTimeStr
                               ELSE
-                                IF CompareTime(TrainJourney_CurrentDepartureTime, TrainJourney_DiagrammedDepartureTime) > 0 THEN
-                                  ActualTimeStr := '<B>' + TimeToHMStr(TrainJourney_CurrentDepartureTime)
+                                IF CompareTime(TrainJourney_CurrentDepartureTime, TrainJourney_DiagrammedDepartureTime) < 0 THEN
+                                  ActualTimeStr := TimeToHMStr(TrainJourney_CurrentDepartureTime)
                                 ELSE
-                                  ActualTimeStr := TimeToHMStr(TrainJourney_CurrentDepartureTime);
+                                  ActualTimeStr := '<B>' + TimeToHMStr(TrainJourney_CurrentDepartureTime) + '</b>';
                           END;
                       END; {WITH}
                     END;
@@ -586,12 +429,12 @@ VAR
         DiagramsEntry := DiagramsEntry^.NextDiagramsRecord;
       END; {WHILE}
 
-      SortAndDisplayTimetableEntries(TimetableArray, YPos, MaxY);
+      SortAndDisplayTimetableEntries(TimetableArray);
 
       IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN BEGIN
         StationMonitorsWebPage.Add('<div class="tttable">');
         StationMonitorsWebPage.Add(TimeColumnStr + '</div>');
-        IF IncludeLocoChipInStationMonitors THEN
+        IF WebIncludeLocoChipInStationMonitors THEN
           StationMonitorsWebPage.Add(LocoColumnStr + '</div>');
         StationMonitorsWebPage.Add(LocationColumnStr + '</div>');
         StationMonitorsWebPage.Add(PlatformColumnStr + '</div>');
@@ -626,61 +469,26 @@ BEGIN
     StationMonitorsWindow.Width := Screen.DeskTopWidth;
     StationMonitorsWindow.Height := Screen.DeskTopHeight;
 
-    MaxX := StationMonitorsWindow.ClientWidth;
-    MaxY := StationMonitorsWindow.ClientHeight;
-
     WITH StationMonitorsWindow.Canvas DO BEGIN
       { Now draw it to the timetable screen }
       Font.Color := clWhite;
 
       IF StationMonitorDisplay = StationClockDisplay THEN BEGIN
-        CurrentTimeStr := TimeToHMSStr(CurrentRailwayTime);
 
-        FillRect(Rect(0, 0, MaxX, MaxY));
-
-        XPos := (MaxX - TextWidth(CurrentTimeStr)) DIV 2;
-        YPos := (MaxY - TextHeight(CurrentTimeStr)) DIV 2;
-
-        WriteOutStationMonitorsData(XPos, YPos, CurrentRailwayTimeStr, Font.Style, Font.Height, Font.Color);
       END ELSE BEGIN
-        FillRect(Rect(0, 0, MaxX, MaxY));
-
-        TimetabledTimePos := 1;
-        IF NOT IncludeLocoChipInStationMonitors THEN
-          LocationPos := 20
-        ELSE BEGIN
-          LocoChipPos := 15;
-          LocationPos := 30;
-        END;
-        PlatformPos := 65;
-        ExpectedPos := 82;
-
-        YPos := 0;
-        Font.Height := -MulDiv(FWPRailWindow.ClientHeight, StationMonitorsSmallFontHeight, 1000);
-        Font.Style := [];
-
-        WriteOutStationMonitorsData(TimetabledTimePos, YPos, GetStationNameFromArea(Area), Font.Style, Font.Height, Font.Color);
-
         IF RecordingMonitorScreens THEN BEGIN
           DrawLineinLogFile(NoLocoChip, 'D', 'T', UnitRef);
           Log('T ' + GetStationNameFromArea(Area) + ' {NOUNITREF}');
         END;
 
         CurrentTimeStr := TimeToHMStr(CurrentRailwayTime);
-        TempReal := MaxX - TextWidth(CurrentTimeStr) - MulDiv(MaxX, 2, 100);
-        TempReal := MaxX / TempReal;
-        TimePos := Round(100 / TempReal);
-
-        WriteOutStationMonitorsData(TimePos, YPos, TimeToHMStr(CurrentRailwayTime), Font.Style, Font.Height, Font.Color);
-
-        YPos := YPos + TextHeight('06:00') + MulDiv(TextHeight('06:00'), 1, 6);
 
         CASE StationMonitorDisplay OF
           StationArrivalsDisplay:
             BEGIN
               IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN
                 StationMonitorsWebPage.Add('<div class="container" style="top:5%">');
-              ShowArrivals(Area, YPos, MaxY);
+              ShowArrivals(Area);
               IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN
                 StationMonitorsWebPage.Add('</div>');
             END;
@@ -688,21 +496,20 @@ BEGIN
             BEGIN
               IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN
                 StationMonitorsWebPage.Add('<div class="container" style="top:5%">');
-              ShowDepartures(Area, YPos, MaxY);
+              ShowDepartures(Area);
               IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN
                 StationMonitorsWebPage.Add('</div>');
             END;
           StationArrivalsAndDeparturesDisplay:
             BEGIN
-              HalfScreenY := MulDiv(MaxY, 1, 2);
               IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN
                 StationMonitorsWebPage.Add('<div class="container" style="top:5%">');
-              ShowArrivals(Area, YPos, HalfScreenY);
+              ShowArrivals(Area);
               IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN BEGIN
                 StationMonitorsWebPage.Add('</div>');
                 StationMonitorsWebPage.Add('<div class="container" style="top:50%">');
               END;
-              ShowDepartures(Area, HalfScreenY, MaxY);
+              ShowDepartures(Area);
               IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN
                 StationMonitorsWebPage.Add('</div>');
             END;
@@ -722,6 +529,12 @@ BEGIN
       Log('EG DrawStationMonitorsWindow:' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { DrawStationMonitorsWindow }
+
+PROCEDURE TStationMonitorsWindow.StationMonitorsFormCreate(Sender: TObject);
+BEGIN
+  StationMonitorsTCPServer.Open;
+  AddLineToStationMonitorsWebDiagnosticsMemo(DateTimeToStr(Now) + ': server started');
+END; { StationMonitorsFormCreate }
 
 PROCEDURE TStationMonitorsWindow.StationMonitorsFormPaint(Sender: TObject);
 BEGIN
@@ -769,6 +582,8 @@ BEGIN
 
         Msg := '';
         ServedPage := ErrorServedPage;
+        WebIncludeLocoChipInStationMonitors := False;
+        StationMonitorsDisplayOrderNum := 0;
 
         IF Path = '/' THEN BEGIN
           { the default is the first listed station in the Areas database with arrivals and departures }
@@ -790,7 +605,7 @@ BEGIN
                 StationMonitorsDisplayOrderNum := GetStationNumFromStationMonitorsDisplayOrderNum(TempStr);
                 StationStr := GetStationMonitorsDisplayOrderStr(StationMonitorsDisplayOrderNum);
                 IF StationMonitorsDisplayOrderNum = -1 THEN BEGIN
-                  Msg := 'Unknown station name:' + ParametersArray[1];
+                  Msg := 'Unknown station name: ' + ParametersArray[1];
                   ServedPage := ErrorServedPage;
                 END ELSE BEGIN
                   StationStr := GetStationMonitorsDisplayOrderStr(StationMonitorsDisplayOrderNum);
@@ -816,9 +631,23 @@ BEGIN
                           THEN
                             StationMonitorDisplay := StationArrivalsAndDeparturesDisplay
                           ELSE BEGIN
-                            Msg := 'Unknown second parameter:' + ParametersArray[2];
+                            Msg := 'Unknown second parameter: ' + ParametersArray[2];
                             ServedPage := ErrorServedPage;
                           END;
+
+                      IF Length(ParametersArray) > 3 THEN BEGIN
+                        IF ParametersArray[3] <> '' THEN BEGIN
+                          { The third area is whether we are providing arrivals, departures or both }
+                          TempStr := ParametersArray[3];
+
+                          IF TempStr = 'LOCOS' THEN
+                            WebIncludeLocoChipInStationMonitors := True
+                          ELSE BEGIN
+                            Msg := 'Unknown third parameter: ' + ParametersArray[3];
+                            ServedPage := ErrorServedPage;
+                          END;
+                        END;
+                      END;
                     END;
                   END;
                 END;
@@ -891,7 +720,6 @@ END; { CloseStationMonitorsWebPage }
 INITIALIZATION
 
 BEGIN
-  StationMonitorsExitTime := StrToTime('23:59');
   CriticalSection := TCriticalSection.Create;
 END;
 

@@ -1260,16 +1260,12 @@ TYPE
   ShiftKeysType = (NoShiftKeys, Alt, Shift, Ctrl, ShiftAlt, CtrlShift, CtrlAlt, CtrlAltShift);
 
 VAR
-  Area : Integer;
   CloseAction : TCloseAction;
   DebugStr : String;
   ErrorMsg : String;
-  FoundDisplayOrderNum : Boolean;
-  FoundTrainInArea : Boolean;
-  I, J : Integer;
+  I : Integer;
 //  IrrelevantShiftState : TShiftState;
   L : Integer;
-  MaxDisplayOrderNum : Integer;
   OK : Boolean;
   P : Integer;
   R : Integer;
@@ -1530,128 +1526,14 @@ BEGIN { KeyPressedDown }
           CASE ShiftKeys OF
             CtrlAltShift: { ctrl alt shift and the '+' sign on the numeric keypad }
               BEGIN
-                HelpMsg := 'cycle station monitors displays backwards';
+                HelpMsg := '';
                 IF NOT HelpRequired THEN BEGIN
-                  { If we are returning to the timetable after a short gap, we probably want to return to the same one we left }
-                  { note: we use the NewMinutesBetween system routine as the system one is known to be buggy }
-                  IF NOT StationMonitorsWindow.Visible
-                  AND (NewMinutesBetween(Time, GetStationMonitorsExitTime) < 1)
-                  THEN
-                    SetUpStationMonitors(InputShiftState, StationMonitorsCurrentDisplayOrderNum)
-                  ELSE BEGIN
-                    { Find a valid area number - not all areas need timetables }
-                    Dec(StationMonitorsCurrentDisplayOrderNum);
-                    FoundDisplayOrderNum := False;
-                    Area := 0;
-                    WHILE (Area <= High(Areas))
-                    AND NOT FoundDisplayOrderNum
-                    DO BEGIN
-                      IF StationMonitorsCurrentDisplayOrderNum = Areas[Area].Area_StationMonitorsDisplayOrderNum THEN
-                        FoundDisplayOrderNum := True;
-                      Inc(Area);
-                    END; {WHILE}
-
-                    IF NOT FoundDisplayOrderNum THEN BEGIN
-                      { we have to find the highest area number, so we can step backwards from there }
-                      MaxDisplayOrderNum := 0;
-                      FOR Area := 0 TO High(Areas) DO BEGIN
-                        IF MaxDisplayOrderNum < Areas[Area].Area_StationMonitorsDisplayOrderNum THEN
-                          MaxDisplayOrderNum := Areas[Area].Area_StationMonitorsDisplayOrderNum;
-                      END;
-
-                      StationMonitorsCurrentDisplayOrderNum := MaxDisplayOrderNum;
-                    END;
-                    SetUpStationMonitors(InputShiftState, StationMonitorsCurrentDisplayOrderNum);
-                  END;
-                  StationMonitorsWindow.visible := True;
                 END;
               END;
             NoShiftKeys, Ctrl, Alt, Shift: { the '+' sign on the numeric keypad }
               BEGIN
-                { cycle forwards through the various station monitors }
-                HelpMsg := 'cycle timetable displays forwards';
+                HelpMsg := '';
                 IF NOT HelpRequired THEN BEGIN
-                  { If we are returning to the station monitors after a short gap, we probably want to return to the same one we left }
-                  { note: we use the NewMinutesBetween routine as the system MinutesBetween routine is known to be buggy }
-                  IF NOT StationMonitorsWindow.Visible
-                  AND (NewMinutesBetween(Time, GetStationMonitorsExitTime) < 1)
-                  THEN
-                    SetUpStationMonitors(InputShiftState, StationMonitorsCurrentDisplayOrderNum)
-                  ELSE BEGIN
-                    { We have to find the highest area number }
-                    MaxDisplayOrderNum := 0;
-                    FOR Area := 0 TO High(Areas) DO BEGIN
-                      IF MaxDisplayOrderNum < Areas[Area].Area_StationMonitorsDisplayOrderNum THEN
-                        MaxDisplayOrderNum := Areas[Area].Area_StationMonitorsDisplayOrderNum;
-                    END; {FOR}
-
-                    FoundTrainInArea := False;
-                    I := StationMonitorsCurrentDisplayOrderNum;
-                    Inc(I);
-                    IF I > MaxDisplayOrderNum THEN
-                      I := 1;
-
-                    WHILE (I <= MaxDisplayOrderNum)
-                    AND NOT FoundTrainInArea
-                    DO BEGIN
-                      { Find the area referred to by the current display order number }
-                      Area := 0;
-                      FoundDisplayOrderNum := False;
-                      WHILE (Area <= High(Areas))
-                      AND NOT FoundDisplayOrderNum
-                      DO BEGIN
-                        IF (Areas[Area].Area_StationMonitorsDisplayOrderNum > 0)
-                        AND (I = Areas[Area].Area_StationMonitorsDisplayOrderNum)
-                        THEN
-                          FoundDisplayOrderNum := True
-                        ELSE
-                          Inc(Area);
-                      END; {WHILE}
-
-                      { Are there any trains in that area? }
-                      T := TrainList;
-                      FoundTrainInArea := False;
-                      WHILE (T <> NIL)
-                      AND NOT FoundTrainInArea
-                      DO BEGIN
-                        WITH T^ DO BEGIN
-                          IF (Train_CurrentStatus <> Cancelled)
-                          AND (Train_CurrentStatus <> NonMoving)
-                          THEN BEGIN
-                            IF Length(Train_JourneysArray) > 0 THEN BEGIN
-                              J := 0;
-                              WHILE (J <= High(Train_JourneysArray))
-                              AND NOT FoundTrainInArea
-                              DO BEGIN
-                                { Check first journey starting area, last journey arriving area, and intermediate stops }
-                                IF (t^.Train_JourneysArray[0].TrainJourney_StartArea = Area)
-                                OR (t^.Train_JourneysArray[High(Train_JourneysArray)].TrainJourney_EndArea = Area)
-                                OR ((J > 0)
-                                    AND (t^.Train_JourneysArray[J - 1].TrainJourney_StoppingOnArrival)
-                                    AND (t^.Train_JourneysArray[J].TrainJourney_StartArea = Area))
-                                THEN
-                                  FoundTrainInArea := True;
-
-                                Inc(J);
-                              END; {WHILE}
-                            END;
-                          END;
-                        END; {WITH}
-                        T := T^.Train_NextRecord;
-                      END; {WHILE}
-
-                      IF NOT FoundTrainInArea THEN
-                        StationMonitorsCurrentDisplayOrderNum := 1
-                      ELSE
-                        StationMonitorsCurrentDisplayOrderNum := I;
-
-                      { If not, check the next area }
-                      Inc(I);
-                    END; {WHILE}
-
-                    SetUpStationMonitors(InputShiftState, StationMonitorsCurrentDisplayOrderNum);
-                  END;
-                  StationMonitorsWindow.visible := True;
                 END;
               END;
           END; {CASE}
@@ -3321,15 +3203,8 @@ BEGIN { KeyPressedDown }
               END;
             CtrlShift: {T}
               BEGIN
-                HelpMsg := 'toggle loco chip display in station monitors display';
+                HelpMsg := '';
                 IF NOT HelpRequired THEN BEGIN
-                  IF IncludeLocoChipInStationMonitors THEN BEGIN
-                    IncludeLocoChipInStationMonitors := False;
-                    Log('AG IncludeLocoChipInStationMonitors = Off');
-                  END ELSE BEGIN
-                    IncludeLocoChipInStationMonitors := True;
-                    Log('AG IncludeLocoChipInStationMonitors = ON');
-                  END;
                 END;
               END;
             Shift: {T}

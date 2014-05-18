@@ -15,10 +15,7 @@ object StationMonitorsWindow: TStationMonitorsWindow
   OldCreateOrder = False
   WindowState = wsMaximized
   OnCreate = StationMonitorsFormCreate
-  OnHide = StationMonitorsFormHide
-  OnKeyDown = StationMonitorsFormKeyDown
   OnPaint = StationMonitorsFormPaint
-  OnShow = StationMonitorsFormShow
   PixelsPerInch = 96
   TextHeight = 13
   object StationMonitorsTcpServer: TTcpServer

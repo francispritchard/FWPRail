@@ -326,9 +326,6 @@ VAR
   DefaultHighlightTrackCircuitSpeedRestrictions : Boolean = False;
   HighlightTrackCircuitSpeedRestrictions : Boolean;
 
-  DefaultIncludeLocoChipInStationMonitors : Boolean = False;
-  IncludeLocoChipInStationMonitors : Boolean;
-
   DefaultIndicatorHorizontalSpacing : Integer = 100;
   IndicatorHorizontalSpacing : Integer;
   IndicatorHorizontalSpacingScaled : Integer;
@@ -998,7 +995,6 @@ CONST
     DisplayWorkingTimetableStr = 'Display Working Timetable';
     DoNotCancelTrainsWithNoFeedbackOccupationStr = 'Do Not Cancel Trains With No Feedback Occupation';
     HighlightTrackCircuitSpeedRestrictionsStr = 'Highlight Track Circuit Speed Restrictions';
-    IncludeLocoChipInStationMonitorsStr = 'Include LocoChip In Station Monitors';
     LargeDiagramsWindowSelectedStr = 'Large Diagrams Window Selected';
     LargeWorkingTimetableWindowSelectedStr = 'Large Working Timetable Window Selected';
     LineThicknessInFullScreenModeStr = 'Line Thickness In Full Screen Mode';
@@ -1453,7 +1449,6 @@ BEGIN
       DoNotCancelTrainsWithNoFeedbackOccupation := ReadBool(OtherOptionsSectionStr, DoNotCancelTrainsWithNoFeedbackOccupationStr,
                                                                                                                           DefaultDoNotCancelTrainsWithNoFeedbackOccupation);
       HighlightTrackCircuitSpeedRestrictions := ReadBool(OtherOptionsSectionStr, HighlightTrackCircuitSpeedRestrictionsStr, DefaultHighlightTrackCircuitSpeedRestrictions);
-      IncludeLocoChipInStationMonitors := ReadBool(OtherOptionsSectionStr, IncludeLocoChipInStationMonitorsStr, DefaultIncludeLocoChipInStationMonitors);
       LargeDiagramsWindowSelected := ReadBool(OtherOptionsSectionStr, LargeDiagramsWindowSelectedStr, DefaultLargeDiagramsWindowSelected);
       LargeWorkingTimetableWindowSelected := ReadBool(OtherOptionsSectionStr, LargeWorkingTimetableWindowSelectedStr, DefaultLargeWorkingTimetableWindowSelected);
       LineThicknessInFullScreenMode := ReadString(OtherOptionsSectionStr, LineThicknessInFullScreenModeStr, DefaultLineThicknessInFullScreenMode);
@@ -1947,7 +1942,6 @@ BEGIN
       WriteBool(OtherOptionsSectionStr, DisplayWorkingTimetableStr, DisplayWorkingTimetable);
       WriteBool(OtherOptionsSectionStr, DoNotCancelTrainsWithNoFeedbackOccupationStr, DoNotCancelTrainsWithNoFeedbackOccupation);
       WriteBool(OtherOptionsSectionStr, HighlightTrackCircuitSpeedRestrictionsStr, HighlightTrackCircuitSpeedRestrictions);
-      WriteBool(OtherOptionsSectionStr, IncludeLocoChipInStationMonitorsStr, IncludeLocoChipInStationMonitors);
       WriteBool(OtherOptionsSectionStr, LargeDiagramsWindowSelectedStr, LargeDiagramsWindowSelected);
       WriteBool(OtherOptionsSectionStr, LargeWorkingTimetableWindowSelectedStr, LargeWorkingTimetableWindowSelected);
       WriteString(OtherOptionsSectionStr, LineThicknessInFullScreenModeStr, LineThicknessInFullScreenMode);
@@ -2225,11 +2219,6 @@ BEGIN
       ItemProps[HighlightTrackCircuitSpeedRestrictionsStr].PickList.Add('True');
       ItemProps[HighlightTrackCircuitSpeedRestrictionsStr].PickList.Add('False');
       ItemProps[HighlightTrackCircuitSpeedRestrictionsStr].EditStyle := esPickList;
-
-      Values[IncludeLocoChipInStationMonitorsStr] := BoolToStr(IncludeLocoChipInStationMonitors, True);
-      ItemProps[IncludeLocoChipInStationMonitorsStr].PickList.Add('True');
-      ItemProps[IncludeLocoChipInStationMonitorsStr].PickList.Add('False');
-      ItemProps[IncludeLocoChipInStationMonitorsStr].EditStyle := esPickList;
 
       Values[LargeDiagramsWindowSelectedStr] := BoolToStr(LargeDiagramsWindowSelected, True);
       ItemProps[LargeDiagramsWindowSelectedStr].PickList.Add('True');
@@ -2676,7 +2665,6 @@ BEGIN
       CheckBooleanValueListValue(KeyName, DisplayWorkingTimetableStr, NewKeyValue, DisplayWorkingTimetable);
       CheckBooleanValueListValue(KeyName, DoNotCancelTrainsWithNoFeedbackOccupationStr, NewKeyValue, DoNotCancelTrainsWithNoFeedbackOccupation);
       CheckBooleanValueListValue(KeyName, HighlightTrackCircuitSpeedRestrictionsStr, NewKeyValue, HighlightTrackCircuitSpeedRestrictions);
-      CheckBooleanValueListValue(KeyName, IncludeLocoChipInStationMonitorsStr, NewKeyValue, IncludeLocoChipInStationMonitors);
       CheckBooleanValueListValue(KeyName, LargeDiagramsWindowSelectedStr, NewKeyValue, LargeDiagramsWindowSelected);
       CheckBooleanValueListValue(KeyName, LargeWorkingTimetableWindowSelectedStr, NewKeyValue, LargeWorkingTimetableWindowSelected);
       CheckStringValueWithSetValues(KeyName, LineThicknessInFullScreenModeStr, NewKeyValue, LineThicknessInFullScreenMode, 'Thin, Thick');
