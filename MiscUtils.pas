@@ -5307,7 +5307,7 @@ BEGIN
   StringArray := NewStringArray;
 END; { RemoveDuplicateElementsFromStringArray-2 }
 
-FUNCTION DateTimeToMilliseconds(DateTime: TDateTime): Int64;
+FUNCTION DateTimeToMilliSeconds(DateTime: TDateTime): Int64;
 { Converts a TDateTime variable to Int64 milliseconds from 0001-01-01 }
 VAR
   TimeStamp : SysUtils.TTimeStamp;
@@ -5318,21 +5318,21 @@ BEGIN
 
   { Multiply and add to complete the conversion }
   Result := Int64(TimeStamp.Date) * MSecsPerDay + TimeStamp.Time;
-END; { DateTimeToMilliseconds }
+END; { DateTimeToMilliSeconds }
 
-FUNCTION MillisecondsToDateTime(Milliseconds: Int64): TDateTime;
+FUNCTION MilliSecondsToDateTime(MilliSeconds: Int64): TDateTime;
 { Converts an Int64 milliseconds from 0001-01-01 to TDateTime variable }
 VAR
   TimeStamp : SysUtils.TTimeStamp;
 
 BEGIN
   { Divide and mod the milliseconds into the TimeStamp record }
-  TimeStamp.Date := Milliseconds DIV MSecsPerDay;
-  TimeStamp.Time := Milliseconds MOD MSecsPerDay;
+  TimeStamp.Date := MilliSeconds DIV MSecsPerDay;
+  TimeStamp.Time := MilliSeconds MOD MSecsPerDay;
 
   { Call TimeStampToDateTime to complete the conversion }
   Result := SysUtils.TimeStampToDateTime(TimeStamp);
-END; { MillisecondsToDateTime }
+END; { MilliSecondsToDateTime }
 
 FUNCTION NewMinutesBetween(CONST AThen, ANow: TDateTime): Int64;
 { A replacement for the system routine which is buggy - from http://qc.codegear.com/wc/qcmain.aspx?d=56957 and
@@ -5347,12 +5347,12 @@ VAR
     ms: Int64;
 
   BEGIN
-    ms := DateTimeToMilliseconds(DateTime);
+    ms := DateTimeToMilliSeconds(DateTime);
     Result := ms div (60*1000);
   END; { TruncDateTimeToMinutes }
 
 BEGIN
-  { Substitutes DateTimeToTimeStamp and TimeStampToMilliseconds, TruncDateTimeToMinutes for use of Trunc function. }
+  { Substitutes DateTimeToTimeStamp and TimeStampToMilliSeconds, TruncDateTimeToMinutes for use of Trunc function. }
   nnNow := TruncDateTimeToMinutes(ANow);
   nnThen := TruncDateTimeToMinutes(AThen);
   Result := nnNow - nnThen;
@@ -5371,12 +5371,12 @@ VAR
     ms: Int64;
 
   BEGIN
-    ms := DateTimeToMilliseconds(DateTime);
+    ms := DateTimeToMilliSeconds(DateTime);
     Result := ms div 1000;
   END; { TruncDateTimeToSeconds }
 
 BEGIN
-  { Substitutes DateTimeToTimeStamp and TimeStampToMilliseconds, TruncDateTimeToMinutes for use of Trunc function. }
+  { Substitutes DateTimeToTimeStamp and TimeStampToMilliSeconds, TruncDateTimeToMinutes for use of Trunc function. }
   nnNow := TruncDateTimeToSeconds(ANow);
   nnThen := TruncDateTimeToSeconds(AThen);
   Result := nnNow - nnThen;
@@ -5392,11 +5392,11 @@ VAR
   FUNCTION TruncDateTimeToMilliSeconds(DateTime: TDateTime): Int64;
   { Truncates a DateTime to seconds from 0001-01-01 }
   BEGIN
-    Result := DateTimeToMilliseconds(DateTime);
+    Result := DateTimeToMilliSeconds(DateTime);
   END; { TruncDateTimeToSeconds }
 
 BEGIN
-  { Substitutes DateTimeToTimeStamp and TimeStampToMilliseconds, TruncDateTimeToMinutes for use of Trunc function }
+  { Substitutes DateTimeToTimeStamp and TimeStampToMilliSeconds, TruncDateTimeToMinutes for use of Trunc function }
   nnNow := TruncDateTimeToMilliSeconds(ANow);
   nnThen := TruncDateTimeToMilliSeconds(AThen);
   Result := nnNow - nnThen;
