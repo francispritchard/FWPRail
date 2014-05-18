@@ -1178,7 +1178,6 @@ VAR
 
   { Lists }
   TrainList : Train = NIL;
-  TTrainList : TTrain = NIL;
   DiagramsList : DiagramsEntryType;
 
   { Various file related variables }

@@ -3597,7 +3597,6 @@ VAR
   OtherT : Train;
   StartArea : Integer;
   T : Train;
-  TT : TTrain;
   TempArea : Integer;
   TempDirection1, TempDirection2 : DirectionType;
   TempEndAreas : IntegerArrayType;
