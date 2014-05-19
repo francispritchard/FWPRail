@@ -2169,7 +2169,7 @@ BEGIN
       IF StartLine = UnknownLine THEN BEGIN
         ErrorMsg := 'cannot create a route with only the endline (' + LineToStr(EndLine) + ') specified';
         Log(LocoChipStr + ' RG ' + IfThen(Journey <> UnknownJourney,
-                                         DisplayJourneyNumber(Journey))
+                                          DisplayJourneyNumber(Journey))
                         + ErrorMsg);
         RouteFound := False;
       END ELSE

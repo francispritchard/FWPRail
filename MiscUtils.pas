@@ -1346,15 +1346,19 @@ BEGIN { WriteToLogFile }
                       BEGIN
                         LogStr := Copy(LogStr, 4);
                         RemoveGeneralInstructionsFromLogStr(LogStr);
-                        Debug(LogStr);
-//                        RemoveRichEditInstructionsFromLogStr(LogStr);
+                        IF LocoChipStr = '' THEN
+                          Debug(LogStr)
+                        ELSE
+                          Debug(LocoChipStr + ': ' + LogStr);
                       END;
                     '!', '+', '=': { bold; italics; or bold and italics }
                       BEGIN
                         LogStr := Copy(LogStr, 4);
                         RemoveGeneralInstructionsFromLogStr(LogStr);
-                        Debug(TempStr + LogStr);
-//                        RemoveRichEditInstructionsFromLogStr(LogStr);
+                        IF LocoChipStr = '' THEN
+                          Debug(TempStr + LogStr)
+                        ELSE
+                          Debug(TempStr + LocoChipStr + ': ' + LogStr);
                       END;
                   ELSE {CASE}
                     BEGIN

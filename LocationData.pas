@@ -674,15 +674,16 @@ BEGIN
       END;
 
       IF NOT OK THEN BEGIN
-        Log(Train_LocoChipStr + ' D ' + DisplayJourneyNumber(JourneyA)
-                              + 'Problem with occupation at ' + LocationToStr(TrainJourney_EndLocation));
+        Log(Train_LocoChipStr + ' DG J=' + IntToStr(JourneyA)
+                              + ': problem with occupation at ' + LocationToStr(TrainJourney_EndLocation) + ' so looking for an alternative location');
         IF AlternativeAreaOrLocationAvailable(T, JourneyA, TrainJourney_EndArea, TrainJourney_EndLocation, NewLocation, NewOccupationStartTime, NOT PreRouteing,
                                               NOT CurrentlyRouteing, NOT OmitLocoTypeRestriction, NOT FindNextAvailableLocation, MayReselectOldLocation, ErrorMsg,
                                               SuccessMsg)
         THEN BEGIN
           OK := True;
           { We now have to amend the end parameters for the journey into the area concerned - we use CreateJourney as that also rebuilds the RouteArray }
-          Log(Train_LocoChipStr + ' D Problem with location occupation at ' + LocationToStr(TrainJourney_EndLocation)
+          Log(Train_LocoChipStr + ' DG J=' + IntToStr(JourneyA)
+                                + ': problem with location occupation at ' + LocationToStr(TrainJourney_EndLocation)
                                 + ' solved by substituting ' + LocationToStr(NewLocation));
 
           WITH Train_JourneysArray[JourneyA] DO
@@ -730,16 +731,17 @@ BEGIN
             DrawDiagrams(UnitRef, 'CheckJourneyLocations');
         END ELSE BEGIN
           { try finding an available location by altering the train's timings }
-          Log(Train_LocoChipStr + ' D ' + DisplayJourneyNumber(JourneyA)
-                                + 'continuing problem with occupation at ' + LocationToStr(TrainJourney_EndLocation));
+          Log(Train_LocoChipStr + ' DG J=' + IntToStr(JourneyA)
+                                + ': no alternative area or location available to replace ' + LocationToStr(TrainJourney_EndLocation)
+                                + ' so trying retiming the journey');
           IF NOT AlternativeAreaOrLocationAvailable(T, JourneyA, TrainJourney_EndArea, TrainJourney_EndLocation, NewLocation, NewOccupationStartTime, NOT PreRouteing,
                                                     NOT CurrentlyRouteing, OmitLocoTypeRestriction, FindNextAvailableLocation, MayReselectOldLocation, ErrorMsg, SuccessMsg)
-          THEN
-            Log(Train_LocoChipStr + ' D! There is still a continuing problem with occupation at ' + LocationToStr(TrainJourney_EndLocation)
-                                  + ' so the train may have to be cancelled')
-          ELSE BEGIN
-            Log(Train_LocoChipStr + ' D ' + DisplayJourneyNumber(JourneyA)
-                                  + 'continuing problem with occupation at ' + LocationToStr(TrainJourney_EndLocation)
+          THEN BEGIN
+            Log(Train_LocoChipStr + ' DG J=' + IntToStr(JourneyA) + ': no alternative area or location available - train suspended');
+            SuspendTrain(T, NOT ByUser);
+          END ELSE BEGIN
+            Log(Train_LocoChipStr + ' D J-' + IntToStr(JourneyA)
+                                  + ': problem with occupation at ' + LocationToStr(TrainJourney_EndLocation)
                                   + ' solved by substituting ' + LocationToStr(NewLocation) + ': ' + SuccessMsg);
             OK := True;
 
@@ -2670,7 +2672,7 @@ BEGIN
   END;
   WriteLocationOccupations(NOT IncludeLocationOccupationStatus, NOT WriteToFile);
   DoCheckForUnexpectedData(UnitRef, 'SetUpAllLocationOccupationsAbInitio 2');
-END; { SetUpAllLocationOccupations }
+END; { SetUpAllLocationOccupationsAbInitio }
 
 PROCEDURE SetUpTrainLocationOccupationsAbInitio(T : Train; OUT OK : Boolean);
 { Set up a given train's locations }
