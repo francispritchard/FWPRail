@@ -3566,9 +3566,7 @@ FUNCTION CreateTrainDiagramsRecord(LocoChip, DoubleHeaderLocoChip, JourneyCount 
                                    NotForPublicUseArray : BooleanArrayType; StartLocationStr : String; StoppingArray : BooleanArrayType; LengthOfTrainInCarriages : Integer;
                                    TypeOfTrainNum : Integer; UserDriving, UserRequiresInstructions, StartOfRepeatJourney : Boolean)
                                    : Train;
-{ Creates a new train record for the diagram - NB the array parameters being passed are open array parameters and therefore start at
-  zero
-}
+{ Creates a new train record for the diagram - NB the array parameters being passed are open array parameters and therefore start at zero }
 CONST
   DescribeFullTrainList = True;
   DiagramsLoading = True;
@@ -3712,7 +3710,7 @@ BEGIN
     ChangeTrainStatus(T, NonMoving);
     AddTrainToTrainList(T, NOT DescribeFullTrainList);
   END ELSE BEGIN
-    { Have we already created a record for this train? }
+    { Make sure we have already created a record for this train }
     T := TrainList;
     WHILE (T <> NIL)
     AND NOT TrainFound
