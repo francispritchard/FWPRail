@@ -4259,58 +4259,18 @@ BEGIN
       IF (ErrorMsg = '')
       AND FirstTrainInstance
       THEN BEGIN
-        IF (Train_LastLengthInInches <> 0)
-        AND (Train_FixedLengthInInches <> 0)
-        THEN BEGIN
-          IF Train_LastLengthInInches = Train_FixedLengthInInches THEN BEGIN
-            Train_CurrentLengthInInches := Train_FixedLengthInInches;
-            Log(Train_LocoChipStr + ' T Train_CurrentLengthInInches is ' + IntToStr(Train_CurrentLengthInInches) + ' (from Train_FixedLengthInInches)');
-          END ELSE
-            IF MessageDialogueWithDefault('Diagrams error: loco ' + LocoChipToStr(LocoChip) + ':'
-                                          + ' last train length as read in from the LocoData database is ' + IntToStr(Train_LastLengthInInches) + ' inches'
-                                          + CRLF
-                                          + 'whereas the fixed length as read in from the LocoData database is ' + IntToStr(Train_FixedLengthInInches) + ' inches.'
-                                          + CRLF
-                                          + 'Please choose the current length below:',
-                                          StopTimer, mtError, [mbYes, mbNo],
-                                          [IntToStr(Train_LastLengthInInches) + ' inches',
-                                           IntToStr(Train_FixedLengthInInches) + ' inches'],
-                                          mbYes) = mrYes
-            THEN BEGIN
-              Train_CurrentLengthInInches := Train_LastLengthInInches;
-              Log(Train_LocoChipStr + ' T Train_CurrentLengthInInches is ' + IntToStr(Train_CurrentLengthInInches) + ' (from Train_LastLengthInInches)');
-            END ELSE BEGIN
-              Train_CurrentLengthInInches := Train_FixedLengthInInches;
-              Log(Train_LocoChipStr + ' T Train_CurrentLengthInInches is ' + IntToStr(Train_CurrentLengthInInches) + ' (from Train_FixedLengthInInches)');
-            END;
-        END;
-
         IF Train_CurrentLengthInInches = 0 THEN BEGIN
           IF Train_FixedLengthInInches <> 0 THEN BEGIN
             IF (LengthOfTrainInCarriages <> 0)
             AND (Train_FixedLengthInInches <> (LengthOfTrainInCarriages * CarriageLengthInInches))
             THEN BEGIN
-              IF MessageDialogueWithDefault('Diagrams error: loco ' + LocoChipToStr(LocoChip) + ':'
-                                            + ' train length in carriages as read in from the diagram is '
-                                            + IfThen(LengthOfTrainInCarriages = 1,
-                                                     'one carriage',
-                                                     IntToStr(LengthOfTrainInCarriages) + ' carriages')
-                                            + ' which works out at ' + IntToStr(LengthOfTrainInCarriages * CarriageLengthInInches) + ' inches'
-                                            + CRLF
-                                            + 'whereas the fixed length as read in from the LocoData database is ' + IntToStr(Train_FixedLengthInInches) + ' inches.'
-                                            + CRLF
-                                            + 'Please choose the current length below:',
-                                            StopTimer, mtError, [mbYes, mbNo], [IntToStr(LengthOfTrainInCarriages * CarriageLengthInInches) + ' inches',
-                                             IntToStr(Train_FixedLengthInInches) + ' inches'],
-                                            mbYes) = mrNo
-              THEN BEGIN
-                Train_CurrentLengthInInches := Train_FixedLengthInInches;
-                Log(Train_LocoChipStr + ' T Train_CurrentLengthInInches is ' + IntToStr(Train_CurrentLengthInInches) + ' (from Train_FixedLengthInInches)');
-              END ELSE BEGIN
-                Train_CurrentLengthInInches := LengthOfTrainInCarriages * CarriageLengthInInches;
-                Log(Train_LocoChipStr + ' T Train_CurrentLengthInInches is ' + IntToStr(Train_CurrentLengthInInches)
-                                      + ' (from LengthOfTrainInCarriages * CarriageLengthInInches)');
-              END;
+              Log(Train_LocoChipStr + ' D! using the fixed length read in from the LocoData database is ' + IntToStr(Train_FixedLengthInInches) + ' inches but'
+                                    + ' train length in carriages in the diagram is '
+                                    + IfThen(LengthOfTrainInCarriages = 1,
+                                             'one carriage',
+                                              IntToStr(LengthOfTrainInCarriages) + ' carriages')
+                                    + ' which equals ' + IntToStr(LengthOfTrainInCarriages * CarriageLengthInInches) + ' inches');
+              Train_CurrentLengthInInches := Train_FixedLengthInInches;
             END ELSE BEGIN
               Train_CurrentLengthInInches := Train_FixedLengthInInches;
               Log(Train_LocoChipStr + ' T Train_CurrentLengthInInches is ' + IntToStr(Train_CurrentLengthInInches) + ' (from Train_FixedLengthInInches)');
@@ -4329,7 +4289,7 @@ BEGIN
                                               + CRLF
                                               + 'whereas the last length as read in from the LocoData database is ' + IntToStr(Train_LastLengthInInches) + ' inches.'
                                               + CRLF
-                                              + 'Please choose the current length below:',
+                                              + 'Please choose the correct length below:',
                                               StopTimer, mtError, [mbYes, mbNo],
                                               [IntToStr(LengthOfTrainInCarriages * CarriageLengthInInches) + ' inches',
                                                IntToStr(Train_LastLengthInInches) + ' inches'],
@@ -4352,13 +4312,13 @@ BEGIN
                 TempStr := InputBox('Caption',
                                     'Diagrams error: loco ' + LocoChipToStr(LocoChip) + ':'
                                     + CRLF
-                                    + 'No train length supplied in location record or diagram record: enter number of carriages now:',
+                                    + 'No train length supplied in loco record or diagram record: enter number of carriages now:',
                                     '0');
                 IF NOT TryStrToInt(TempStr, LengthOfTrainInCarriages) THEN
                   ErrorMsg := 'Invalid integer ''' + TempStr + ''' supplied in location record or diagrams record'
                 ELSE
                   IF LengthOfTrainInCarriages = 0 THEN
-                    ErrorMsg := 'No train length supplied in location record or diagram record'
+                    ErrorMsg := 'No train length supplied in loco record or diagram record'
                   ELSE
                     Train_CurrentLengthInInches := LengthOfTrainInCarriages * CarriageLengthInInches;
                 MainWindow.MainTimer.Enabled := True;

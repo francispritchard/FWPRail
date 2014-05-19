@@ -6615,9 +6615,8 @@ BEGIN { ShutDownProgram }
       WriteOutPointDataToDatabase;
       WriteOutSignalDataToDatabase;
 
-      IF SystemOnline THEN BEGIN
+      IF SystemOnline THEN
         WriteOutLocoDataToDatabase;
-      END;
 
       { Stop any trains that are currently moving - better than leaving them running }
       IF StopAllLocosAtShutDown THEN
