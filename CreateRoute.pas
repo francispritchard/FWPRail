@@ -89,7 +89,6 @@ CONST
   UnitRef = 'CreateRoute';
 
 VAR
-  LineCounter : Integer = 0;
   LinesNotAvailableNum : Integer = 0;
   NonThroughLine : Integer = UnknownLine;
   SaveSignal : Integer = UnknownSignal;

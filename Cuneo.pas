@@ -71,13 +71,13 @@ VAR
   SaveDivergingLine : Integer = UnknownLine;
   SaveDivergingLineColour : TColour;
   SaveDownBufferStop : Integer = UnknownBufferStop;
-  SaveNextDownLine : Integer = UnknownLine;
   SaveHeelLine : Integer = UnknownLine;
   SaveHeelLineColour : TColour;
   SaveIndicatorString : String;
   SaveLine : Integer = UnknownLine;
   SaveLineColour : TColour;
   SaveNextUpLineColour : TColour;
+  SaveNextDownLine : Integer = UnknownLine;
   SaveNextDownLineColour : TColour;
   SaveNextDownPoint : Integer = UnknownPoint;
   SaveNextUpLine : Integer = UnknownLine;
@@ -89,8 +89,8 @@ VAR
   SaveUpBufferStop : Integer = UnknownBufferStop;
   SignalPostDrawn : Boolean = False;
   SignalPostToBeFlashed : Integer = UnknownSignal;
-  TCAdjoiningTCsDrawnNum : Integer = UnknownTrackCircuit;
-  TRSPlungerFoundLocation : Integer = UnknownLocation;
+//  TCAdjoiningTCsDrawnNum : Integer = UnknownTrackCircuit;
+//  TRSPlungerFoundLocation : Integer = UnknownLocation;
   UpLineEndCharacterLine : Integer = UnknownLine;
   ZoomRect : TRect;
 

@@ -203,7 +203,6 @@ VAR
   HeadcodeXRunningNum : Integer = 0;
   HeadcodeZRunningNum : Integer = 0;
   HighlightRow : Integer = -1;
-  InitDiagramsWindow : Boolean = True;
   ShowArrivalTimes : Boolean = False;
   ShowTrainLength : Boolean = True;
   TrainClickedOn : Train = NIL;
@@ -3574,7 +3573,6 @@ CONST
   DescribeFullTrainList = True;
   DiagramsLoading = True;
   IncludeOutOfUseLines = True;
-  MaxTrainLength = 144; { should be put in .ini **** }
   NewJourney = True;
   RepeatJourney = True;
   RebuildRouteArray = True;
