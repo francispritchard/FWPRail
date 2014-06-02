@@ -42,7 +42,7 @@ END;
 FUNCTION IsSplashFormVisible : Boolean;
 { Returns whether or not the splash form is visible }
 BEGIN
-  IF SplashForm.Visible THEN
+  IF (SplashForm <> NIL) AND (SplashForm.Visible) THEN
     Result := True
   ELSE
     Result := False;

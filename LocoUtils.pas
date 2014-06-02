@@ -301,8 +301,10 @@ BEGIN
                                       StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
         THEN
           ShutDownProgram(UnitRef, 'ReadInLocoDataFromDatabase')
-        ELSE
+        ELSE BEGIN
+          OK := False;
           Exit;
+        END;
       END;
 
       LocoDataADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='

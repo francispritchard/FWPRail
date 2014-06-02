@@ -488,7 +488,7 @@ FUNCTION MessageDialogueWithDefault{1}(DialogueText: String; StopTimer : Boolean
 
 FUNCTION MessageDialogueWithDefault{2}(DialogueText: String; StopTimer : Boolean; DlgType : TMsgDlgType; Buttons : TMsgDlgButtons; ButtonText : ARRAY OF String;
                                        DefaultButton : TMsgDlgBtn) : Word; Overload;
-{ Adapted from the Borland Delphi web site example - uses procedures from their uDialogsExt Unit. This version has replacemnt button text as well as a default button }
+{ Adapted from the Borland Delphi web site example - uses procedures from their uDialogsExt Unit. This version has replacement button text as well as a default button }
 
 FUNCTION MPHToInt(MPH : MPHType) : Integer;
 { Returns the given MPH as a integer }

@@ -4564,8 +4564,18 @@ BEGIN
         { non-moving trains should have their lights on if not in sidings *** are these ever turned off? *** }
         { we need to know which way the train is facing for lighting purposes *** }
         Train_Headcode := '0000';
-        IF DirectionsArray[0] = UnknownDirection THEN
-          ErrorMsg := 'direction1 must be ''U'' or ''D'' even though train is non-moving';
+        IF DirectionsArray[0] = UnknownDirection THEN BEGIN
+          IF MessageDialogueWithDefault('Diagrams error: loco ' + LocoChipToStr(LocoChip)
+                                        + ': Direction 1 must be set to Up or Down even though the train is non-moving'
+                                        + CRLF
+                                        + 'Please choose:',
+                                        StopTimer, mtError, [mbYes, mbNo], ['&Up', '&Down'], mbYes) = mrYes
+          THEN
+            DirectionsArray[0] := Up
+          ELSE
+            DirectionsArray[0] := Down;
+        END;
+
         TurnLightsOn(Train_LocoChip, OK);
       END;
 
@@ -5946,7 +5956,7 @@ BEGIN
                 IF NOT DiagramsOK THEN BEGIN
                   IF MessageDialogueWithDefault('Loco ' + LocoChipToStr(Train_LocoChip) + ': problem in finding a route ' + DirectionToStr(TrainJourney_Direction)
                                                 + ' from ' + LineToStr(TrainJourney_StartLine) + ' to ' + LineToStr(TrainJourney_EndLine) + ' even using emergency routeing'
-                                                + '(' + ErrorMsg + '):'
+                                                + ' (' + ErrorMsg + '):'
                                                 + CRLF
                                                 + 'Do you wish to cancel the train and continue loading the diagrams without it or exit the program?',
                                                 StopTimer, mtError, [mbYes, mbNo], ['&Cancel', '&Exit'], mbYes) = mrNo
