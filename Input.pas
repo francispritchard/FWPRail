@@ -3402,7 +3402,7 @@ BEGIN { KeyPressedDown }
               END;
             Shift: {W}
               BEGIN
-                HelpMsg := 'Change Working Timetable Window width';
+                HelpMsg := 'change working timetable window width';
                 IF NOT HelpRequired THEN BEGIN
                   IF LargeWorkingTimetableWindowSelected THEN
                     LargeWorkingTimetableWindowSelected := False
@@ -3416,7 +3416,7 @@ BEGIN { KeyPressedDown }
               END;
             Ctrl: {W}
               BEGIN
-                HelpMsg := 'Write Some Variable Data To File';
+                HelpMsg := 'write some variable data To file';
                 IF NOT HelpRequired THEN
                   WriteVariableDataToFile;
               END;
