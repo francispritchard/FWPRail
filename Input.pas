@@ -3416,9 +3416,9 @@ BEGIN { KeyPressedDown }
               END;
             Ctrl: {W}
               BEGIN
-                HelpMsg := '';
-                IF NOT HelpRequired THEN BEGIN
-                END;
+                HelpMsg := 'Write All Variable Data To File';
+                IF NOT HelpRequired THEN
+                  WriteAllVariableDataToFile;
               END;
             Alt: {W}
               BEGIN
