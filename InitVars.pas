@@ -988,8 +988,6 @@ TYPE
     NextDiagramsRecord : DiagramsEntryType;
   END;
 
-  DiagramsArrayType = ARRAY OF DiagramsRec;
-
   { Miscellaneous type declarations }
   ArrivalOrDepartureType = (Arrival, Departure);
   LenzConnectionType = (EthernetConnection, USBConnection, NoConnection);

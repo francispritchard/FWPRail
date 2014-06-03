@@ -371,9 +371,6 @@ PROCEDURE InsertElementInDateTimeArray(VAR DateTimeArray : DateTimeArrayType; Po
 PROCEDURE InsertElementInTrainJourneyRecArray(VAR JourneyRecArray : TrainJourneyRecArrayType; Position : Integer; NewElement : TrainJourneyRec);
 { Adds an element to a TrainJourneyRec array }
 
-PROCEDURE InsertElementInDiagramsArray(VAR DiagramsArray : DiagramsArrayType; Position : Integer; NewElement : DiagramsRec);
-{ Adds an element to a diagram array }
-
 PROCEDURE InsertEntryInWorkingTimetable(VAR WorkingTimetableRecArray : WorkingTimetableRecArrayType; Position : Integer);
 { Adds an entry to the working timetable }
 
@@ -5126,31 +5123,6 @@ BEGIN
     IntegerArray[Position] := NewElement;
   END;
 END; { InsertElementInIntegerArray }
-
-PROCEDURE InsertElementInDiagramsArray(VAR DiagramsArray : DiagramsArrayType; Position : Integer; NewElement : DiagramsRec);
-{ Adds an element to a diagram array }
-VAR
-  I : Integer;
-
-BEGIN
-  IF Position < 0 THEN
-    Log('XG Problem in InsertElementInDiagramsArray - Position < 0')
-  ELSE BEGIN
-    SetLength(DiagramsArray, Length(DiagramsArray) + 1);
-    IF Length(DiagramsArray) = 1 THEN
-      DiagramsArray[0] := NewElement
-    ELSE BEGIN
-      { Move all existing elements up one }
-      IF Position >= High(DiagramsArray) THEN
-        Position := High(DiagramsArray)
-      ELSE
-        FOR I := High(DiagramsArray) - 1 DOWNTO Position DO
-          DiagramsArray[I + 1] := DiagramsArray[I];
-      { and insert the new element }
-      DiagramsArray[Position] := NewElement;
-    END;
-  END;
-END; { InsertElementInDiagramsArray }
 
 PROCEDURE InsertEntryInWorkingTimetable(VAR WorkingTimetableRecArray : WorkingTimetableRecArrayType; Position : Integer);
 { Adds a blank entry to the working timetable }
