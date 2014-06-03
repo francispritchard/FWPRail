@@ -4721,290 +4721,298 @@ BEGIN
 
           IF T_TrainActive
           AND T_NonMoving
-          THEN
-            ErrorMsg := 'cannot be both active and stationary'
-          ELSE BEGIN
-            IF T_TrainActive OR T_NonMoving THEN BEGIN
-              { Read in the data from the diagrams database }
-              T_DoubleHeaderLocoChip := FieldByName('DoubleHeaderLocoChip').AsInteger;
+          THEN BEGIN
+            IF MessageDialogueWithDefault('Loco ' + LocoChipToStr(T_LocoChip)
+                                          + ': cannot be both active and stationary'
+                                          + CRLF
+                                          + 'Please choose:',
+                                          StopTimer, mtError, [mbYes, mbNo], ['Active', 'Stationary'], mbYes) = mrYes
+            THEN
+              T_NonMoving := False
+            ELSE
+              T_TrainActive := False;
+          END;
 
-              IF (T_LocoChip = UnknownLocoChip)
-              AND T_NonMoving
-              THEN
+          IF T_TrainActive OR T_NonMoving THEN BEGIN
+            { Read in the data from the diagrams database }
+            T_DoubleHeaderLocoChip := FieldByName('DoubleHeaderLocoChip').AsInteger;
 
+            IF (T_LocoChip = UnknownLocoChip)
+            AND T_NonMoving
+            THEN
+
+            ELSE
+              IF (T_LocoChip < 0) OR (T_LocoChip > 9999) THEN
+                ErrorMsg := 'chip number is ' + IntToStr(T_LocoChip) + ': it must be between 1 and 9999';
+
+            IF ErrorMsg = '' THEN BEGIN
+              AppendToDirectionArray(T_DirectionsArray, StrToDirectionType(FieldByName('Direction0').AsString));
+              T_StartAreaOrLocationStr := FieldByName('Source').AsString;
+
+              TempSourceLocation := StrToLocation(T_StartAreaOrLocationStr);
+              IF TempSourceLocation <> UnknownLocation THEN BEGIN
+                IF (T_DirectionsArray[0] = Up)
+                AND (Locations[TempSourceLocation].Location_LineAtUp <> UnknownLine)
+                AND (Lines[Locations[TempSourceLocation].Location_LineAtUp].Line_NextUpType = EndOfLineIsnext)
+                THEN
+                  ErrorMsg := 'line up of source ' + T_StartAreaOrLocationStr + ' is marked as an end of line'
+                ELSE
+                  IF (T_DirectionsArray[0] = Down)
+                  AND (Locations[TempSourceLocation].Location_LineAtDown <> UnknownLine)
+                  AND (Lines[Locations[TempSourceLocation].Location_LineAtDown].Line_NextUpType = EndOfLineIsnext)
+                  THEN
+                    ErrorMsg := 'line down of source ' + T_StartAreaOrLocationStr + ' is marked as an end of line';
+              END;
+            END;
+
+            IF ErrorMsg = '' THEN BEGIN
+              IF FieldByName('TrainLength').AsString = '' THEN
+                T_TrainLengthInCarriages := 0
               ELSE
-                IF (T_LocoChip < 0) OR (T_LocoChip > 9999) THEN
-                  ErrorMsg := 'chip number is ' + IntToStr(T_LocoChip) + ': it must be between 1 and 9999';
+                IF NOT TryStrToInt(FieldByName('TrainLength').AsString, T_TrainLengthInCarriages) THEN
+                  ErrorMsg := 'length in carriages ''' + FieldByName('TrainLength').AsString + ''' is not an integer';
+
+              JourneyCount := -1;
+              IF NOT T_NonMoving THEN BEGIN
+                { We can work out how many journeys there are from how many destinations there are. Only load MaxJourneys at any one time, though, as that's the number of
+                  fields in the database.
+                }
+                NoDestination := False;
+                WHILE (JourneyCount < MaxJourneys)
+                AND NOT NoDestination
+                DO BEGIN
+                  IF NOT NoDestination THEN
+                    Inc(JourneyCount);
+                  IF FieldByName('Destination' + IntToStr(JourneyCount)).AsString = '' THEN BEGIN
+                    NoDestination := True;
+                    Dec(JourneyCount);
+                  END ELSE
+                    AppendToStringArray(T_DestinationAreaOrLocationsStrArray, FieldByName('Destination' + IntToStr(JourneyCount)).AsString);
+                END; {WHILE}
+
+                IF JourneyCount = -1 THEN
+                  { treat trains with no journeys as non-moving if they are not already recorded as that }
+                  T_NonMoving := True;
+                END;
+            END;
+
+            IF ErrorMsg = '' THEN BEGIN
+              IF NOT T_NonMoving THEN BEGIN
+                FOR I := 0 TO (JourneyCount - 1) DO
+                  { stopping can be true even if we haven't ticked the box, but initialise the array anyway }
+                  AppendToBooleanArray(T_StoppingArray, FieldByName('Stopping' + IntToStr(I)).AsBoolean);
+
+                { although we have to stop at the end of the last journey }
+                AppendToBooleanArray(T_StoppingArray, True);
+
+                { Deal with trains not for public use (e.g. coming from the sidings) }
+                FOR I := 0 TO JourneyCount DO
+                  AppendToBooleanArray(T_NotForPublicUseArray, FieldByName('NotForPublicUse' + IntToStr(I)).AsBoolean);
+
+                FOR I := 0 TO JourneyCount DO BEGIN
+                  { if we've been given a departure time, we have to stop before we can depart }
+                  AppendToDateTimeArray(T_DepartureTimesArray, FieldByName('DepartureTime' + IntToStr(I)).AsDateTime);
+                  IF (I > 0)
+                  AND (T_DepartureTimesArray[I] <> 0)
+                  THEN
+                    T_StoppingArray[I - 1] := True;
+                END;
+
+                T_LightsOnTime := FieldByName('LightsOnTime').AsDateTime;
+
+                T_RepeatUntilTime := FieldByName('RepeatUntilTime').AsDateTime;
+                T_RepeatFrequencyInMinutes := FieldByName('RepeatFrequencyInMinutes').AsInteger;
+                IF (T_RepeatUntilTime <> 0)
+                AND (T_RepeatFrequencyInMinutes = 0)
+                THEN
+                  ErrorMsg := 'repeat until time must also have frequency supplied'
+                ELSE
+                  IF (T_RepeatUntilTime = 0)
+                  AND (T_RepeatFrequencyInMinutes <> 0)
+                  THEN
+                    ErrorMsg := 'repeat until time must be supplied if frequency is supplied';
+              END;
 
               IF ErrorMsg = '' THEN BEGIN
-                AppendToDirectionArray(T_DirectionsArray, StrToDirectionType(FieldByName('Direction0').AsString));
-                T_StartAreaOrLocationStr := FieldByName('Source').AsString;
+                { If we change direction, we have to stop before we can depart }
+                SaveDirection := T_DirectionsArray[0];
+                FOR I := 1 TO JourneyCount DO BEGIN
+                  { If there's no direction given, it's the same as the previous one }
+                  IF FieldByName('Direction' + IntToStr(I)).AsString = '' THEN
+                    AppendToDirectionArray(T_DirectionsArray, SaveDirection)
+                  ELSE BEGIN
+                    AppendToDirectionArray(T_DirectionsArray, StrToDirectionType(FieldByName('Direction' + IntToStr(I)).AsString));
+                    SaveDirection := StrToDirectionType(FieldByName('Direction' + IntToStr(I)).AsString);
+                  END;
+                  IF T_DirectionsArray[I] <> T_DirectionsArray[I - 1] THEN
+                    T_StoppingArray[I - 1] := True;
+                END; {FOR}
 
-                TempSourceLocation := StrToLocation(T_StartAreaOrLocationStr);
-                IF TempSourceLocation <> UnknownLocation THEN BEGIN
-                  IF (T_DirectionsArray[0] = Up)
-                  AND (Locations[TempSourceLocation].Location_LineAtUp <> UnknownLine)
-                  AND (Lines[Locations[TempSourceLocation].Location_LineAtUp].Line_NextUpType = EndOfLineIsnext)
-                  THEN
-                    ErrorMsg := 'line up of source ' + T_StartAreaOrLocationStr + ' is marked as an end of line'
-                  ELSE
-                    IF (T_DirectionsArray[0] = Down)
-                    AND (Locations[TempSourceLocation].Location_LineAtDown <> UnknownLine)
-                    AND (Lines[Locations[TempSourceLocation].Location_LineAtDown].Line_NextUpType = EndOfLineIsnext)
-                    THEN
-                      ErrorMsg := 'line down of source ' + T_StartAreaOrLocationStr + ' is marked as an end of line';
+                T_LightsRemainOn := FieldByName('LightsRemainOn').AsBoolean;
+                T_TrainTypeNum := FieldByName('TrainTypeNum').AsInteger;
+                IF (T_TrainTypeNum < 0) OR (T_TrainTypeNum > 12) THEN
+                  ErrorMsg := 'train type number is ' + IntToStr(T_TrainTypeNum) + ' but it should be between 0 and 12';
+
+                T_UserDriving := FieldByName('UserDriving').AsBoolean;
+                T_UserRequiresInstructions := FieldByName('UserRequiresInstructions').AsBoolean;
+              END;
+            END; { not NonMoving }
+
+            IF ErrorMsg <> '' THEN BEGIN
+              IF MessageDialogueWithDefault('Loco ' + LocoChipToStr(T_LocoChip) + ': ' + ErrorMsg
+                                            + CRLF
+                                            + 'Do you wish to continue loading the Diagrams without it?',
+                                            StopTimer, mtError, [mbYes, mbNo], mbYes) = mrNo
+              THEN BEGIN
+                Log(LocoChipToStr(T_LocoChip) + ' D ' + ErrorMsg);
+                DiagramsOK := False;
+                Exit;
+              END;
+            END;
+
+            IF NOT OmitTrain THEN BEGIN
+              { If the final journey is just to move the train to a stabling point, and there are repeating journeys, only submit the final journey to
+                CreateTrainDiagramsRecord when the final repeat is requested.
+              }
+              IF (JourneyCount > 1)
+              AND T_NotForPublicUseArray[High(T_NotForPublicUseArray)]
+              THEN BEGIN
+                IF (T_RepeatUntilTime <> 0)
+                AND (T_RepeatFrequencyInMinutes <> 0)
+                THEN BEGIN
+                  MoveToStablingAfterLastJourney := True;
+                  Dec(JourneyCount);
+
+                  SaveLastJourneyDepartureTime := T_DepartureTimesArray[High(T_DepartureTimesArray)];
+                  SetLength(T_DepartureTimesArray, Length(T_DepartureTimesArray) - 1);
+                  SaveLastJourneyAreaOrDestinationStr := T_DestinationAreaOrLocationsStrArray[High(T_DestinationAreaOrLocationsStrArray)];
+                  SetLength(T_DestinationAreaOrLocationsStrArray, Length(T_DestinationAreaOrLocationsStrArray) - 1);
+                  SaveLastJourneyDirection := T_DirectionsArray[High(T_DirectionsArray)];
+                  SetLength(T_DirectionsArray, Length(T_DirectionsArray) - 1);
                 END;
               END;
 
-              IF ErrorMsg = '' THEN BEGIN
-                IF FieldByName('TrainLength').AsString = '' THEN
-                  T_TrainLengthInCarriages := 0
-                ELSE
-                  IF NOT TryStrToInt(FieldByName('TrainLength').AsString, T_TrainLengthInCarriages) THEN
-                    ErrorMsg := 'length in carriages ''' + FieldByName('TrainLength').AsString + ''' is not an integer';
+              { Now process it to create a train - or a succession, if they are repeats }
+              T := CreateTrainDiagramsRecord(T_LocoChip, T_DoubleHeaderLocoChip, JourneyCount, T_DepartureTimesArray, T_LightsOnTime, T_DestinationAreaOrLocationsStrArray,
+                                             T_DirectionsArray, T_LightsRemainOn, T_NonMoving, T_NotForPublicUseArray, T_StartAreaOrLocationStr, T_StoppingArray,
+                                             T_TrainLengthInCarriages, T_TrainTypeNum, T_UserDriving, T_UserRequiresInstructions, NOT StartOfRepeatJourney);
 
-                JourneyCount := -1;
-                IF NOT T_NonMoving THEN BEGIN
-                  { We can work out how many journeys there are from how many destinations there are. Only load MaxJourneys at any one time, though, as that's the number of
-                    fields in the database.
-                  }
-                  NoDestination := False;
-                  WHILE (JourneyCount < MaxJourneys)
-                  AND NOT NoDestination
-                  DO BEGIN
-                    IF NOT NoDestination THEN
-                      Inc(JourneyCount);
-                    IF FieldByName('Destination' + IntToStr(JourneyCount)).AsString = '' THEN BEGIN
-                      NoDestination := True;
-                      Dec(JourneyCount);
-                    END ELSE
-                      AppendToStringArray(T_DestinationAreaOrLocationsStrArray, FieldByName('Destination' + IntToStr(JourneyCount)).AsString);
-                  END; {WHILE}
+              IF NOT T_NonMoving
+              AND (T_RepeatUntilTime <> 0)
+              AND (T_RepeatFrequencyInMinutes <> 0)
+              THEN BEGIN
+                { Amend the repeat details if the first station start time is specified and the first journey is not for public use, i.e. is just to reach the first
+                  destination - thus what repeats are the subsequent journeys and not the first journey.
+                }
+                IF T_NotForPublicUseArray[0] THEN BEGIN
+                  IF (T_DepartureTimesArray[0] = 0)
+                  AND (T_DepartureTimesArray[1] <> 0)
+                  THEN BEGIN
+                    JourneyCount := JourneyCount -1;
+                    T_StartAreaOrLocationStr := T_DestinationAreaOrLocationsStrArray[0];
 
-                  IF JourneyCount = -1 THEN
-                    { treat trains with no journeys as non-moving if they are not already recorded as that }
-                    T_NonMoving := True;
+                    { remove the first journey element from the other arrays }
+                    FOR I := 0 TO (High(T_DepartureTimesArray) - 1) DO
+                      T_DepartureTimesArray[I] := T_DepartureTimesArray[I + 1];
+                    SetLength(T_DepartureTimesArray, Length(T_DepartureTimesArray) - 1);
+
+                    FOR I := 0 TO (High(T_DestinationAreaOrLocationsStrArray) - 1) DO
+                      T_DestinationAreaOrLocationsStrArray[I] := T_DestinationAreaOrLocationsStrArray[I + 1];
+                    SetLength(T_DestinationAreaOrLocationsStrArray, Length(T_DestinationAreaOrLocationsStrArray) - 1);
+
+                    FOR I := 0 TO (High(T_DirectionsArray) - 1) DO
+                      T_DirectionsArray[I] := T_DirectionsArray[I + 1];
+                    SetLength(T_DirectionsArray, Length(T_DirectionsArray) - 1);
+
+                    FOR I := 0 TO (High(T_NotForPublicUseArray) - 1) DO
+                      T_NotForPublicUseArray[I] := T_NotForPublicUseArray[I + 1];
+                    SetLength(T_NotForPublicUseArray, Length(T_NotForPublicUseArray) -1);
+
+                    FOR I := 0 TO (High(T_StoppingArray) - 1) DO
+                      T_StoppingArray[I] := T_StoppingArray[I + 1];
+                    SetLength(T_StoppingArray, Length(T_StoppingArray) - 1);
                   END;
-              END;
+                END;
 
-              IF ErrorMsg = '' THEN BEGIN
-                IF NOT T_NonMoving THEN BEGIN
-                  FOR I := 0 TO (JourneyCount - 1) DO
-                    { stopping can be true even if we haven't ticked the box, but initialise the array anyway }
-                    AppendToBooleanArray(T_StoppingArray, FieldByName('Stopping' + IntToStr(I)).AsBoolean);
+                { See if the repeat is feasible in terms of destinations }
+                IF StrToArea(T_DestinationAreaOrLocationsStrArray[0]) = UnknownArea THEN
+                  ErrorMsg := 'cannot create a repeat journey for loco ' + LocoChipToStr(T_LocoChip)
+                              + ' as the source area  (' + T_StartAreaOrLocationStr + ') is unknown';
 
-                  { although we have to stop at the end of the last journey }
-                  AppendToBooleanArray(T_StoppingArray, True);
-
-                  { Deal with trains not for public use (e.g. coming from the sidings) }
-                  FOR I := 0 TO JourneyCount DO
-                    AppendToBooleanArray(T_NotForPublicUseArray, FieldByName('NotForPublicUse' + IntToStr(I)).AsBoolean);
-
-                  FOR I := 0 TO JourneyCount DO BEGIN
-                    { if we've been given a departure time, we have to stop before we can depart }
-                    AppendToDateTimeArray(T_DepartureTimesArray, FieldByName('DepartureTime' + IntToStr(I)).AsDateTime);
-                    IF (I > 0)
-                    AND (T_DepartureTimesArray[I] <> 0)
-                    THEN
-                      T_StoppingArray[I - 1] := True;
-                  END;
-
-                  T_LightsOnTime := FieldByName('LightsOnTime').AsDateTime;
-
-                  T_RepeatUntilTime := FieldByName('RepeatUntilTime').AsDateTime;
-                  T_RepeatFrequencyInMinutes := FieldByName('RepeatFrequencyInMinutes').AsInteger;
-                  IF (T_RepeatUntilTime <> 0)
-                  AND (T_RepeatFrequencyInMinutes = 0)
-                  THEN
-                    ErrorMsg := 'repeat until time must also have frequency supplied'
-                  ELSE
-                    IF (T_RepeatUntilTime = 0)
-                    AND (T_RepeatFrequencyInMinutes <> 0)
-                    THEN
-                      ErrorMsg := 'repeat until time must be supplied if frequency is supplied';
+                IF ErrorMsg = '' THEN BEGIN
+                  IF StrToArea(T_DestinationAreaOrLocationsStrArray[High(T_DestinationAreaOrLocationsStrArray)]) = UnknownArea THEN
+                    ErrorMsg := 'cannot create a repeat journey for loco ' + LocoChipToStr(T_LocoChip)
+                                + ' as the final destination area (' + T_DestinationAreaOrLocationsStrArray[High(T_DestinationAreaOrLocationsStrArray)] + ') is unknown';
                 END;
 
                 IF ErrorMsg = '' THEN BEGIN
-                  { If we change direction, we have to stop before we can depart }
-                  SaveDirection := T_DirectionsArray[0];
-                  FOR I := 1 TO JourneyCount DO BEGIN
-                    { If there's no direction given, it's the same as the previous one }
-                    IF FieldByName('Direction' + IntToStr(I)).AsString = '' THEN
-                      AppendToDirectionArray(T_DirectionsArray, SaveDirection)
-                    ELSE BEGIN
-                      AppendToDirectionArray(T_DirectionsArray, StrToDirectionType(FieldByName('Direction' + IntToStr(I)).AsString));
-                      SaveDirection := StrToDirectionType(FieldByName('Direction' + IntToStr(I)).AsString);
-                    END;
-                    IF T_DirectionsArray[I] <> T_DirectionsArray[I - 1] THEN
-                      T_StoppingArray[I - 1] := True;
-                  END; {FOR}
-
-                  T_LightsRemainOn := FieldByName('LightsRemainOn').AsBoolean;
-                  T_TrainTypeNum := FieldByName('TrainTypeNum').AsInteger;
-                  IF (T_TrainTypeNum < 0) OR (T_TrainTypeNum > 12) THEN
-                    ErrorMsg := 'train type number is ' + IntToStr(T_TrainTypeNum) + ' but it should be between 0 and 12';
-
-                  T_UserDriving := FieldByName('UserDriving').AsBoolean;
-                  T_UserRequiresInstructions := FieldByName('UserRequiresInstructions').AsBoolean;
+                  IF T_StartAreaOrLocationStr <> T_DestinationAreaOrLocationsStrArray[High(T_DestinationAreaOrLocationsStrArray)] THEN
+                    ErrorMsg := 'cannot create a repeat journey as the source area (' + T_StartAreaOrLocationStr
+                                + ') and final destination area (' + T_DestinationAreaOrLocationsStrArray[High(T_DestinationAreaOrLocationsStrArray)]
+                                + ') are not the same'
+                                + CRLF
+                                + '(which means the repeat train cannot start from where its previous instance stopped)';
                 END;
-              END; { not NonMoving }
 
-              IF ErrorMsg <> '' THEN BEGIN
-                IF MessageDialogueWithDefault('Loco ' + LocoChipToStr(T_LocoChip) + ': ' + ErrorMsg
-                                              + CRLF
-                                              + 'Do you wish to continue loading the Diagrams without it?',
-                                              StopTimer, mtError, [mbYes, mbNo], mbYes) = mrNo
-                THEN BEGIN
-                  Log(LocoChipToStr(T_LocoChip) + ' D ' + ErrorMsg);
-                  DiagramsOK := False;
-                  Exit;
+                IF ErrorMsg <> '' THEN BEGIN
+                  IF MessageDialogueWithDefault('Loco ' + LocoChipToStr(T_LocoChip) + ': ' + ErrorMsg
+                                                + CRLF
+                                                + 'Do you wish to continue loading the diagrams without it?',
+                                                StopTimer, mtError, [mbYes, mbNo], mbYes) = mrNo
+                  THEN BEGIN
+                    Log(LocoChipToStr(T_LocoChip) + ' D ' + ErrorMsg);
+                    DiagramsOK := False;
+                    Exit;
+                  END;
+                END;
+
+                IF NOT OmitTrain THEN BEGIN
+                  { Now add the repeated journeys }
+                  WHILE T_RepeatUntilTime >= IncMinute(T_DepartureTimesArray[0], T_RepeatFrequencyInMinutes) DO BEGIN
+                    FOR I := 0 TO High(T_DepartureTimesArray) DO
+                      T_DepartureTimesArray[I] := IncMinute(T_DepartureTimesArray[I], T_RepeatFrequencyInMinutes);
+
+                    T := CreateTrainDiagramsRecord(T_LocoChip, T_DoubleHeaderLocoChip, JourneyCount, T_DepartureTimesArray, T_LightsOnTime,
+                                                   T_DestinationAreaOrLocationsStrArray, T_DirectionsArray, T_LightsRemainOn, T_NonMoving, T_NotForPublicUseArray,
+                                                   T_StartAreaOrLocationStr, T_StoppingArray, T_TrainLengthInCarriages, T_TrainTypeNum, T_UserDriving,
+                                                   T_UserRequiresInstructions, StartOfRepeatJourney);
+                  END; {WHILE}
+
+                  { And if there's a stored journey, add it now }
+                  IF MoveToStablingAfterLastJourney THEN BEGIN
+                    JourneyCount := 0;
+                    T_StartAreaOrLocationStr := T_DestinationAreaOrLocationsStrArray[High(T_DestinationAreaOrLocationsStrArray)];
+
+                    SetLength(T_DepartureTimesArray, 0);
+                    AppendToDateTimeArray(T_DepartureTimesArray, SaveLastJourneyDepartureTime);
+
+                    SetLength(T_DestinationAreaOrLocationsStrArray, 0);
+                    AppendToStringArray(T_DestinationAreaOrLocationsStrArray, SaveLastJourneyAreaOrDestinationStr);
+
+                    SetLength(T_NotForPublicUseArray, 0);
+                    AppendToBooleanArray(T_NotForPublicUseArray, True);
+
+                    SetLength(T_StoppingArray, 0);
+                    AppendToBooleanArray(T_StoppingArray, True);
+
+                    SetLength(T_DirectionsArray, 0);
+                    AppendToDirectionArray(T_DirectionsArray, SaveLastJourneyDirection);
+                    T := CreateTrainDiagramsRecord(T_LocoChip, T_DoubleHeaderLocoChip, JourneyCount, T_DepartureTimesArray, T_LightsOnTime,
+                                                   T_DestinationAreaOrLocationsStrArray, T_DirectionsArray, T_LightsRemainOn, T_NonMoving, T_NotForPublicUseArray,
+                                                   T_StartAreaOrLocationStr, T_StoppingArray, T_TrainLengthInCarriages, T_TrainTypeNum, T_UserDriving,
+                                                   T_UserRequiresInstructions, NOT StartOfRepeatJourney);
+                  END;
                 END;
               END;
 
-              IF NOT OmitTrain THEN BEGIN
-                { If the final journey is just to move the train to a stabling point, and there are repeating journeys, only submit the final journey to
-                  CreateTrainDiagramsRecord when the final repeat is requested.
-                }
-                IF (JourneyCount > 1)
-                AND T_NotForPublicUseArray[High(T_NotForPublicUseArray)]
-                THEN BEGIN
-                  IF (T_RepeatUntilTime <> 0)
-                  AND (T_RepeatFrequencyInMinutes <> 0)
-                  THEN BEGIN
-                    MoveToStablingAfterLastJourney := True;
-                    Dec(JourneyCount);
-
-                    SaveLastJourneyDepartureTime := T_DepartureTimesArray[High(T_DepartureTimesArray)];
-                    SetLength(T_DepartureTimesArray, Length(T_DepartureTimesArray) - 1);
-                    SaveLastJourneyAreaOrDestinationStr := T_DestinationAreaOrLocationsStrArray[High(T_DestinationAreaOrLocationsStrArray)];
-                    SetLength(T_DestinationAreaOrLocationsStrArray, Length(T_DestinationAreaOrLocationsStrArray) - 1);
-                    SaveLastJourneyDirection := T_DirectionsArray[High(T_DirectionsArray)];
-                    SetLength(T_DirectionsArray, Length(T_DirectionsArray) - 1);
-                  END;
-                END;
-
-                { Now process it to create a train - or a succession, if they are repeats }
-                T := CreateTrainDiagramsRecord(T_LocoChip, T_DoubleHeaderLocoChip, JourneyCount, T_DepartureTimesArray, T_LightsOnTime, T_DestinationAreaOrLocationsStrArray,
-                                               T_DirectionsArray, T_LightsRemainOn, T_NonMoving, T_NotForPublicUseArray, T_StartAreaOrLocationStr, T_StoppingArray,
-                                               T_TrainLengthInCarriages, T_TrainTypeNum, T_UserDriving, T_UserRequiresInstructions, NOT StartOfRepeatJourney);
-
-                IF NOT T_NonMoving
-                AND (T_RepeatUntilTime <> 0)
-                AND (T_RepeatFrequencyInMinutes <> 0)
-                THEN BEGIN
-                  { Amend the repeat details if the first station start time is specified and the first journey is not for public use, i.e. is just to reach the first
-                    destination - thus what repeats are the subsequent journeys and not the first journey.
-                  }
-                  IF T_NotForPublicUseArray[0] THEN BEGIN
-                    IF (T_DepartureTimesArray[0] = 0)
-                    AND (T_DepartureTimesArray[1] <> 0)
-                    THEN BEGIN
-                      JourneyCount := JourneyCount -1;
-                      T_StartAreaOrLocationStr := T_DestinationAreaOrLocationsStrArray[0];
-
-                      { remove the first journey element from the other arrays }
-                      FOR I := 0 TO (High(T_DepartureTimesArray) - 1) DO
-                        T_DepartureTimesArray[I] := T_DepartureTimesArray[I + 1];
-                      SetLength(T_DepartureTimesArray, Length(T_DepartureTimesArray) - 1);
-
-                      FOR I := 0 TO (High(T_DestinationAreaOrLocationsStrArray) - 1) DO
-                        T_DestinationAreaOrLocationsStrArray[I] := T_DestinationAreaOrLocationsStrArray[I + 1];
-                      SetLength(T_DestinationAreaOrLocationsStrArray, Length(T_DestinationAreaOrLocationsStrArray) - 1);
-
-                      FOR I := 0 TO (High(T_DirectionsArray) - 1) DO
-                        T_DirectionsArray[I] := T_DirectionsArray[I + 1];
-                      SetLength(T_DirectionsArray, Length(T_DirectionsArray) - 1);
-
-                      FOR I := 0 TO (High(T_NotForPublicUseArray) - 1) DO
-                        T_NotForPublicUseArray[I] := T_NotForPublicUseArray[I + 1];
-                      SetLength(T_NotForPublicUseArray, Length(T_NotForPublicUseArray) -1);
-
-                      FOR I := 0 TO (High(T_StoppingArray) - 1) DO
-                        T_StoppingArray[I] := T_StoppingArray[I + 1];
-                      SetLength(T_StoppingArray, Length(T_StoppingArray) - 1);
-                    END;
-                  END;
-
-                  { See if the repeat is feasible in terms of destinations }
-                  IF StrToArea(T_DestinationAreaOrLocationsStrArray[0]) = UnknownArea THEN
-                    ErrorMsg := 'cannot create a repeat journey for loco ' + LocoChipToStr(T_LocoChip)
-                                + ' as the source area  (' + T_StartAreaOrLocationStr + ') is unknown';
-
-                  IF ErrorMsg = '' THEN BEGIN
-                    IF StrToArea(T_DestinationAreaOrLocationsStrArray[High(T_DestinationAreaOrLocationsStrArray)]) = UnknownArea THEN
-                      ErrorMsg := 'cannot create a repeat journey for loco ' + LocoChipToStr(T_LocoChip)
-                                  + ' as the final destination area (' + T_DestinationAreaOrLocationsStrArray[High(T_DestinationAreaOrLocationsStrArray)] + ') is unknown';
-                  END;
-
-                  IF ErrorMsg = '' THEN BEGIN
-                    IF T_StartAreaOrLocationStr <> T_DestinationAreaOrLocationsStrArray[High(T_DestinationAreaOrLocationsStrArray)] THEN
-                      ErrorMsg := 'cannot create a repeat journey as the source area (' + T_StartAreaOrLocationStr
-                                  + ') and final destination area (' + T_DestinationAreaOrLocationsStrArray[High(T_DestinationAreaOrLocationsStrArray)]
-                                  + ') are not the same'
-                                  + CRLF
-                                  + '(which means the repeat train cannot start from where its previous instance stopped)';
-                  END;
-
-                  IF ErrorMsg <> '' THEN BEGIN
-                    IF MessageDialogueWithDefault('Loco ' + LocoChipToStr(T_LocoChip) + ': ' + ErrorMsg
-                                                  + CRLF
-                                                  + 'Do you wish to continue loading the diagrams without it?',
-                                                  StopTimer, mtError, [mbYes, mbNo], mbYes) = mrNo
-                    THEN BEGIN
-                      Log(LocoChipToStr(T_LocoChip) + ' D ' + ErrorMsg);
-                      DiagramsOK := False;
-                      Exit;
-                    END;
-                  END;
-
-                  IF NOT OmitTrain THEN BEGIN
-                    { Now add the repeated journeys }
-                    WHILE T_RepeatUntilTime >= IncMinute(T_DepartureTimesArray[0], T_RepeatFrequencyInMinutes) DO BEGIN
-                      FOR I := 0 TO High(T_DepartureTimesArray) DO
-                        T_DepartureTimesArray[I] := IncMinute(T_DepartureTimesArray[I], T_RepeatFrequencyInMinutes);
-
-                      T := CreateTrainDiagramsRecord(T_LocoChip, T_DoubleHeaderLocoChip, JourneyCount, T_DepartureTimesArray, T_LightsOnTime,
-                                                     T_DestinationAreaOrLocationsStrArray, T_DirectionsArray, T_LightsRemainOn, T_NonMoving, T_NotForPublicUseArray,
-                                                     T_StartAreaOrLocationStr, T_StoppingArray, T_TrainLengthInCarriages, T_TrainTypeNum, T_UserDriving,
-                                                     T_UserRequiresInstructions, StartOfRepeatJourney);
-                    END; {WHILE}
-
-                    { And if there's a stored journey, add it now }
-                    IF MoveToStablingAfterLastJourney THEN BEGIN
-                      JourneyCount := 0;
-                      T_StartAreaOrLocationStr := T_DestinationAreaOrLocationsStrArray[High(T_DestinationAreaOrLocationsStrArray)];
-
-                      SetLength(T_DepartureTimesArray, 0);
-                      AppendToDateTimeArray(T_DepartureTimesArray, SaveLastJourneyDepartureTime);
-
-                      SetLength(T_DestinationAreaOrLocationsStrArray, 0);
-                      AppendToStringArray(T_DestinationAreaOrLocationsStrArray, SaveLastJourneyAreaOrDestinationStr);
-
-                      SetLength(T_NotForPublicUseArray, 0);
-                      AppendToBooleanArray(T_NotForPublicUseArray, True);
-
-                      SetLength(T_StoppingArray, 0);
-                      AppendToBooleanArray(T_StoppingArray, True);
-
-                      SetLength(T_DirectionsArray, 0);
-                      AppendToDirectionArray(T_DirectionsArray, SaveLastJourneyDirection);
-                      T := CreateTrainDiagramsRecord(T_LocoChip, T_DoubleHeaderLocoChip, JourneyCount, T_DepartureTimesArray, T_LightsOnTime,
-                                                     T_DestinationAreaOrLocationsStrArray, T_DirectionsArray, T_LightsRemainOn, T_NonMoving, T_NotForPublicUseArray,
-                                                     T_StartAreaOrLocationStr, T_StoppingArray, T_TrainLengthInCarriages, T_TrainTypeNum, T_UserDriving,
-                                                     T_UserRequiresInstructions, NOT StartOfRepeatJourney);
-                    END;
-                  END;
-                END;
-
-                IF DiagramsOK
-                AND (T <> NIL)
-                THEN BEGIN
-                  { Increment the counters }
-                  IF T_NonMoving THEN
-                    Inc(NonActiveTrainCount)
-                  ELSE
-                    Inc(ActiveTrainCount);
-                END;
+              IF DiagramsOK
+              AND (T <> NIL)
+              THEN BEGIN
+                { Increment the counters }
+                IF T_NonMoving THEN
+                  Inc(NonActiveTrainCount)
+                ELSE
+                  Inc(ActiveTrainCount);
               END;
             END;
           END; {WITH}
