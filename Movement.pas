@@ -2144,62 +2144,67 @@ VAR
   T : Train;
 
 BEGIN
-  T := TrainList;
-  WHILE T <> NIL DO BEGIN
-    WITH T^ DO BEGIN
-      IF (Train_LocoChip <> UnknownLocoChip)
-      AND Train_DiagramFound
-      AND (Train_CurrentStatus <> Suspended)
-      AND (Train_CurrentStatus <> MissingAndSuspended)
-      AND (Train_CurrentStatus <> Cancelled)
-      THEN BEGIN
-        WITH Train_JourneysArray[Train_CurrentJourney] DO BEGIN
-          IF Train_CurrentStatus = ReadyToDepart THEN BEGIN
-            IF TrainJourney_ActualDepartureTime = 0 THEN BEGIN
-              IF CurrentRailwayTime > IncMinute(TrainJourney_CurrentDepartureTime, 1) THEN BEGIN
-                { If we're held up before departure, we may need to alter the timetable - do the test once a minute }
-                Log(Train_LocoChipStr + ' T J=' + IntToStr(Train_CurrentJourney)
-                                      + ': departure delayed: expected departure time of ' + TimeToHMSStr(TrainJourney_CurrentDepartureTime)
-                                      + ' is now ' + TimeToHMSStr(CurrentRailwayTime));
+  TRY
+    T := TrainList;
+    WHILE T <> NIL DO BEGIN
+      WITH T^ DO BEGIN
+        IF (Train_LocoChip <> UnknownLocoChip)
+        AND Train_DiagramFound
+        AND (Train_CurrentStatus <> Suspended)
+        AND (Train_CurrentStatus <> MissingAndSuspended)
+        AND (Train_CurrentStatus <> Cancelled)
+        THEN BEGIN
+          WITH Train_JourneysArray[Train_CurrentJourney] DO BEGIN
+            IF Train_CurrentStatus = ReadyToDepart THEN BEGIN
+              IF TrainJourney_ActualDepartureTime = 0 THEN BEGIN
+                IF CurrentRailwayTime > IncMinute(TrainJourney_CurrentDepartureTime, 1) THEN BEGIN
+                  { If we're held up before departure, we may need to alter the timetable - do the test once a minute }
+                  Log(Train_LocoChipStr + ' T J=' + IntToStr(Train_CurrentJourney)
+                                        + ': departure delayed: expected departure time of ' + TimeToHMSStr(TrainJourney_CurrentDepartureTime)
+                                        + ' is now ' + TimeToHMSStr(CurrentRailwayTime));
 
-                TrainJourney_CurrentDepartureTime := CurrentRailwayTime;
-                RecalculateJourneyTimes(T, 'as departure delayed: expected departure time of ' + TimeToHMSStr(TrainJourney_CurrentDepartureTime)
-                                           + ' is now ' + TimeToHMSStr(CurrentRailwayTime));
+                  TrainJourney_CurrentDepartureTime := CurrentRailwayTime;
+                  RecalculateJourneyTimes(T, 'as departure delayed: expected departure time of ' + TimeToHMSStr(TrainJourney_CurrentDepartureTime)
+                                             + ' is now ' + TimeToHMSStr(CurrentRailwayTime));
+                END;
               END;
-            END;
 
-            IF Train_CurrentLenzSpeed <> 0 THEN BEGIN
-              ChangeTrainStatus(T, Departed);
-              TrainJourney_ActualDepartureTime := CurrentRailwayTime;
-              RecalculateJourneyTimes(T, 'following departure from ' + LocationToStr(Train_JourneysArray[Train_CurrentJourney].TrainJourney_StartLocation));
+              IF Train_CurrentLenzSpeed <> 0 THEN BEGIN
+                ChangeTrainStatus(T, Departed);
+                TrainJourney_ActualDepartureTime := CurrentRailwayTime;
+                RecalculateJourneyTimes(T, 'following departure from ' + LocationToStr(Train_JourneysArray[Train_CurrentJourney].TrainJourney_StartLocation));
 
-              Log(Train_LocoChipStr + ' T J=' + IntToStr(Train_CurrentJourney) + ' R=' + IntToStr(Train_CurrentRoute)
-                                        + ' has departed from ' + LocationToStr(TrainJourney_StartLocation));
-              DrawDiagrams(UnitRef, 'CheckTrainsHaveDeparted');
+                Log(Train_LocoChipStr + ' T J=' + IntToStr(Train_CurrentJourney) + ' R=' + IntToStr(Train_CurrentRoute)
+                                          + ' has departed from ' + LocationToStr(TrainJourney_StartLocation));
+                DrawDiagrams(UnitRef, 'CheckTrainsHaveDeparted');
 
-              { We must also update the LocationOccupations array if we've departed }
-              SetUpTrainLocationOccupationsAbInitio(T, OK);
+                { We must also update the LocationOccupations array if we've departed }
+                SetUpTrainLocationOccupationsAbInitio(T, OK);
 
-              { If we're offline, then we will want to clear the initial trackcircuits automatically, as there is no moving train to clear them }
-              IF SystemSetOfflineByCommandLineParameter THEN BEGIN
-                IF Train_InitialTrackCircuits[1] <> UnknownTrackCircuit THEN BEGIN
-                  SetTrackCircuitState(Train_LocoChip, Train_InitialTrackCircuits[1], TCUnoccupied);
-                  SetTrackCircuitState(Train_LocoChip, Train_InitialTrackCircuits[2], TCUnoccupied);
-                  IF Train_InitialTrackCircuits[3] <> UnknownTrackCircuit THEN
-                    SetTrackCircuitState(Train_LocoChip, Train_InitialTrackCircuits[3], TCUnoccupied);
-                  IF Train_InitialTrackCircuits[4] <> UnknownTrackCircuit THEN
-                    SetTrackCircuitState(Train_LocoChip, Train_InitialTrackCircuits[4], TCUnoccupied);
-                  IF Train_InitialTrackCircuits[5] <> UnknownTrackCircuit THEN
-                    SetTrackCircuitState(Train_LocoChip, Train_InitialTrackCircuits[5], TCUnoccupied);
+                { If we're offline, then we will want to clear the initial trackcircuits automatically, as there is no moving train to clear them }
+                IF SystemSetOfflineByCommandLineParameter THEN BEGIN
+                  IF Train_InitialTrackCircuits[1] <> UnknownTrackCircuit THEN BEGIN
+                    SetTrackCircuitState(Train_LocoChip, Train_InitialTrackCircuits[1], TCUnoccupied);
+                    SetTrackCircuitState(Train_LocoChip, Train_InitialTrackCircuits[2], TCUnoccupied);
+                    IF Train_InitialTrackCircuits[3] <> UnknownTrackCircuit THEN
+                      SetTrackCircuitState(Train_LocoChip, Train_InitialTrackCircuits[3], TCUnoccupied);
+                    IF Train_InitialTrackCircuits[4] <> UnknownTrackCircuit THEN
+                      SetTrackCircuitState(Train_LocoChip, Train_InitialTrackCircuits[4], TCUnoccupied);
+                    IF Train_InitialTrackCircuits[5] <> UnknownTrackCircuit THEN
+                      SetTrackCircuitState(Train_LocoChip, Train_InitialTrackCircuits[5], TCUnoccupied);
+                  END;
                 END;
               END;
             END;
-          END;
-        END; {WITH}
-      END;
-    END; {WITH}
-    T := T^.Train_NextRecord;
-  END; {WHILE}
+          END; {WITH}
+        END;
+      END; {WITH}
+      T := T^.Train_NextRecord;
+    END; {WHILE}
+  EXCEPT
+    ON E : Exception DO
+      Log('EG CheckTrainsHaveDeparted:' + E.ClassName + ' error raised, with message: ' + E.Message);
+  END; {TRY}
 END; { CheckTrainsHaveDeparted }
 
 PROCEDURE CheckTrainsHaveArrived;
