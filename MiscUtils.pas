@@ -103,6 +103,9 @@ FUNCTION ATS(Area : Integer) : String;
 FUNCTION ATSA(AreaArray : IntegerArrayType) : String;
 { Return an area array as a string - routine designed for use in debugging }
 
+FUNCTION BufferStopToStr(BufferStop : Integer) : String;
+{ Return the buffer stop number as a string }
+
 FUNCTION CabLightsAreOn(LocoChip : Integer) : Boolean;
 { Returns true if cab lights are on. Assumes that the cab lights are operated by function one }
 
@@ -419,6 +422,9 @@ FUNCTION IsSignalInStringArray(StringArray : StringArrayType; Signal : Integer) 
 FUNCTION IsTrackCircuitInStringArray(StringArray : StringArrayType; TC : Integer; OUT Pos : Integer) : Boolean;
 { Returns whether and where the given track circuit is found in a string array }
 
+FUNCTION JourneyToStr(Journey : Integer) : String;
+{ Return a journey number as a string }
+
 FUNCTION JunctionIndicatorLit(S : Integer) : Boolean;
 { Return true if a junction indicator is lit }
 
@@ -461,8 +467,11 @@ FUNCTION LocationToStr{1}(Location : Integer) : String; Overload;
 FUNCTION LocationToStr{2}(Location : Integer; LongOrShortString : StringType) : String; Overload;
 { Return a location as a either a short or a long string }
 
-FUNCTION LocoChipToStr(LocoChip : Integer) : String;
+FUNCTION LocoChipToStr{1}(LocoChip : Integer) : String; Overload;
 { Return the locomotive number as a string - if LocoChip less then 1000, add appropriate number of leading zeroes }
+
+FUNCTION LocoChipToStr{2}(LocoChip : Integer; UnknownAsZeroes : Boolean) : String; Overload;
+{ Return the locomotive number as a string - if LocoChip less then 1000, add appropriate number of leading zeros }
 
 FUNCTION LTS(L : Integer) : String;
 { Return a line as a string - routine designed only for use in debugging }
@@ -584,6 +593,9 @@ PROCEDURE ReturnTrainFromMissing(T : Train);
 FUNCTION RoundTimeToNextWholeMinute(Time : TDateTime) : TDateTime;
 { Round the time to the next whole minute, i.e. 06:30:00 becomes 0G:31:00, but 06:30:20 becomes 06:32:00 }
 
+FUNCTION RouteToStr(Route : Integer) : String;
+{ Return the Route number as a string }
+
 FUNCTION SameTimeInHoursAndMinutesOnly(Time1, Time2 : TDateTime) : Boolean;
 { Compares two given times and returns true if they are the same in terms of hours and minutes (the system routine SameTime compares times down to the millisecond level,
   and comparing two times by means of Time1 = Time2 also fails if there is a franction of a difference between them).
@@ -612,6 +624,9 @@ FUNCTION SignalHasRightJunctionIndicator(S : Integer; OUT Indicator : JunctionIn
 
 FUNCTION SignalQuadrantToStr(Q : QuadrantType) : String;
 { Return a string with the supplied signal quadrant details }
+
+FUNCTION SignalToStr(Signal : Integer) : String;
+{ Return the signal number as a string }
 
 FUNCTION SignalTypeToStr(ST : TypeOfSignal; LongOrShortString : StringType) : String;
 { Return the type of a signal in words }
@@ -722,6 +737,9 @@ FUNCTION TrackCircuitStateIsTemporarilyOccupied(State : TrackCircuitStateType) :
 FUNCTION TrackCircuitStateToStr(State : TrackCircuitStateType) : String;
 { Describe the current state of a given trackcircuit }
 
+FUNCTION TrackCircuitToStr(TrackCircuit : Integer) : String;
+{ Return the track circuit number as a string }
+
 FUNCTION TrainLightsAreOn(LocoChip : Integer) : Boolean;
 { Returns true if a train's lights are on, i.e. if function zero is on }
 
@@ -818,6 +836,9 @@ PROCEDURE WriteStringArrayToLog{8}(LocoChip : Integer; TypeOfLogChar : Char; Str
 { Write the contents of an array to the replay file, wrapping it by default at 150 and indenting it by two - this version is preceded by an explanatory string. If
   NumberElements is true, add number in array to each element. If the BreakOnStr string appears in the text, start a new line before it.
 }
+PROCEDURE WriteStringArrayToLog{9}(TypeOfLogChar : Char; Str: String; StringArray : StringArrayType; Indent, WrapNum : Integer; BreakOnStr : String); Overload;
+{ Write the contents of an array to the replay file, wrapping it at Wrapnum and indenting it by Indent: this version is preceded by an explanatory string }
+
 PROCEDURE WriteTimeToLog(Num : Integer);
 { A debugging procedure whereby the current time is written to the log, together with the elapsed time since the previous call to the routine }
 
@@ -1640,6 +1661,9 @@ END; { Log }
 PROCEDURE WriteStringArrayToLogMainProcedure(LocoChip : Integer; TypeOfLogChar : Char; InitStr : String; StringArray : StringArrayType; Indent, WrapNum : Integer;
                                              NumberEachElement : Boolean; BreakOnStr : String);
 { Write the contents of an array to the log file, wrapping it at Wrapnum and indenting it by Indent }
+CONST
+  UnknownAsZeroes = True;
+
 VAR
   BreakFound : Boolean;
   DebugStr : String;
@@ -1651,7 +1675,7 @@ BEGIN
 
   { if there's an introductory string, write it first }
   IF InitStr <> '' THEN
-    Log(LocoChipToStr(LocoChip) + ' ' + TypeOfLogChar + ' ' + InitStr);
+    Log(LocoChipToStr(LocoChip, UnknownAsZeroes) + ' ' + TypeOfLogChar + ' ' + InitStr);
 
   DebugStr := '';
   BreakFound := False;
@@ -1662,9 +1686,9 @@ BEGIN
       BreakFound := True;
       IF DebugStr <> '' THEN BEGIN
         IF NOT SaveBreak THEN
-          Log(LocoChipToStr(LocoChip) + ' ' + TypeOfLogChar + StringOfChar(' ', Indent + 1) + ': ' + DebugStr + ' {NOUNITREF}')
+          Log(LocoChipToStr(LocoChip, UnknownAsZeroes) + ' ' + TypeOfLogChar + StringOfChar(' ', Indent + 1) + ': ' + DebugStr + ' {NOUNITREF}')
         ELSE BEGIN
-          Log(LocoChipToStr(LocoChip) + ' ' + TypeOfLogChar + StringOfChar(' ', Indent + 1) + ': ' + StringOfChar(' ', 5) + DebugStr + ' {NOUNITREF}');
+          Log(LocoChipToStr(LocoChip, UnknownAsZeroes) + ' ' + TypeOfLogChar + StringOfChar(' ', Indent + 1) + ': ' + StringOfChar(' ', 5) + DebugStr + ' {NOUNITREF}');
           SaveBreak := False;
         END;
         DebugStr := '';
@@ -1675,9 +1699,9 @@ BEGIN
     AND (Length(DebugStr) > WrapNum)
     THEN BEGIN
       IF NOT BreakFound THEN
-        Log(LocoChipToStr(LocoChip) + ' ' + TypeOfLogChar + StringOfChar(' ', Indent + 1) + ': ' + StringOfChar(' ', 5) + DebugStr + ' {NOUNITREF}')
+        Log(LocoChipToStr(LocoChip, UnknownAsZeroes) + ' ' + TypeOfLogChar + StringOfChar(' ', Indent + 1) + ': ' + StringOfChar(' ', 5) + DebugStr + ' {NOUNITREF}')
       ELSE BEGIN
-        Log(LocoChipToStr(LocoChip) + ' ' + TypeOfLogChar + StringOfChar(' ', Indent + 1) + ': ' + DebugStr + ' {NOUNITREF}');
+        Log(LocoChipToStr(LocoChip, UnknownAsZeroes) + ' ' + TypeOfLogChar + StringOfChar(' ', Indent + 1) + ': ' + DebugStr + ' {NOUNITREF}');
         SaveBreak := True;
         BreakFound := False;
       END;
@@ -1691,9 +1715,9 @@ BEGIN
   { and tidy up }
   IF DebugStr <> '' THEN BEGIN
     IF NOT BreakFound THEN
-      Log(LocoChipToStr(LocoChip) + ' ' + TypeOfLogChar + StringOfChar(' ', Indent + 1) + ': ' + StringOfChar(' ', 5) + DebugStr + ' {NOUNITREF}')
+      Log(LocoChipToStr(LocoChip, UnknownAsZeroes) + ' ' + TypeOfLogChar + StringOfChar(' ', Indent + 1) + ': ' + StringOfChar(' ', 5) + DebugStr + ' {NOUNITREF}')
     ELSE
-      Log(LocoChipToStr(LocoChip) + ' ' + TypeOfLogChar + StringOfChar(' ', Indent + 1) + ': ' + DebugStr + ' {NOUNITREF}');
+      Log(LocoChipToStr(LocoChip, UnknownAsZeroes) + ' ' + TypeOfLogChar + StringOfChar(' ', Indent + 1) + ': ' + DebugStr + ' {NOUNITREF}');
   END;
 END; { WriteStringArrayToLogMainProcedure }
 
@@ -1783,6 +1807,15 @@ CONST
 BEGIN
   WriteStringArrayToLogMainProcedure(LocoChip, TypeOfLogChar, Str, StringArray, 2, WrapNum, NumberElements, BreakOnStr);
 END; { WriteStringArrayToLogFile - 8}
+
+PROCEDURE WriteStringArrayToLog{9}(TypeOfLogChar : Char; Str: String; StringArray : StringArrayType; Indent, WrapNum : Integer; BreakOnStr : String); Overload;
+{ Write the contents of an array to the replay file, wrapping it at Wrapnum and indenting it by Indent: this version is preceded by an explanatory string }
+CONST
+  NumberElements = True;
+
+BEGIN
+  WriteStringArrayToLogMainProcedure(NoLocoChip, TypeOfLogChar, Str, StringArray, Indent, WrapNum, NOT NumberElements, BreakOnStr);
+END; { WriteStringArrayToLogFile - 3}
 
 PROCEDURE WriteTimeToLog(Num : Integer);
 { A debugging procedure whereby the current time is written to the log, together with the elapsed time since the previous call to the routine }
@@ -2719,11 +2752,14 @@ END; { DisplayTrackCircuitsForLocation }
 
 PROCEDURE DrawLineInLogFile(LocoChip : Integer; LogFileCh : Char; LineStr : String; OriginatingUnitRef : String);
 { Draw a line of a given character in the log file }
+CONST
+  UnknownAsZeroes = True;
+
 BEGIN
   IF LineStr = '-' THEN
-    Log(LocoChipToStr(LocoChip) + ' ' + LogFileCh + ' ' + ' {LINE} {UNITSUBSTITUTE=' + OriginatingUnitRef + '}')
+    Log(LocoChipToStr(LocoChip, UnknownAsZeroes) + ' ' + LogFileCh + ' ' + ' {LINE} {UNITSUBSTITUTE=' + OriginatingUnitRef + '}')
   ELSE
-    Log(LocoChipToStr(LocoChip) + ' ' + LogFileCh + ' ' + ' {LINE=' + LineStr + '} {UNITSUBSTITUTE=' + OriginatingUnitRef + '}');
+    Log(LocoChipToStr(LocoChip, UnknownAsZeroes) + ' ' + LogFileCh + ' ' + ' {LINE=' + LineStr + '} {UNITSUBSTITUTE=' + OriginatingUnitRef + '}');
 END; { DrawLineInLogFile }
 
 FUNCTION ExtractBufferStopFromString(Str : String): Integer;
@@ -4479,12 +4515,53 @@ BEGIN
   Result := Str;
 END; { RemoveAllSpacesFromAString }
 
-FUNCTION LocoChipToStr(LocoChip : Integer) : String;
+FUNCTION BufferStopToStr(BufferStop : Integer) : String;
+{ Return the buffer stop number as a string }
+BEGIN
+  IF BufferStop = UnknownBufferStop THEN
+    Result := UnknownBufferStopStr
+  ELSE
+    Result := IntToStr(BufferStop);
+END; { BufferStopToStr }
+
+FUNCTION JourneyToStr(Journey : Integer) : String;
+{ Return a journey number as a string }
+BEGIN
+  IF Journey <> UnknownJourney THEN
+    Result := UnknownJourneyStr
+  ELSE
+    Result := IntToStr(Journey);
+END; { JourneyToStr }
+
+FUNCTION LineToStr(L : Integer) : String;
+{ Return a line's name as a string }
+BEGIN
+  IF (L <> UnknownLine)
+  AND (Length(Lines) > 0)
+  THEN
+    Result := Lines[L].Line_Str
+  ELSE
+    Result := UnknownLineStr;
+END; { LineToStr }
+
+FUNCTION LocoChipToStr{1}(LocoChip : Integer) : String; Overload;
+{ Return the locomotive number as a string - if LocoChip less then 1000, add appropriate number of leading zeros }
+CONST
+  UnknownAsZeroes = True;
+
+BEGIN
+  Result := LocoChipToStr(LocoChip, UnknownAsZeroes);
+END; { LocoChipToStr-1 }
+
+FUNCTION LocoChipToStr{2}(LocoChip : Integer; UnknownAsZeroes : Boolean) : String; Overload;
 { Return the locomotive number as a string - if LocoChip less then 1000, add appropriate number of leading zeros }
 BEGIN
-  IF LocoChip = UnknownLocoChip THEN
-    Result := '0000'
-  ELSE
+  IF LocoChip = UnknownLocoChip THEN BEGIN
+    IF UnknownAsZeroes THEN
+      Result := '----'
+    ELSE
+      Result := '[unknown loco chip]';
+  END ELSE
     IF LocoChip < 10 THEN
       Result := '000' + IntToStr(LocoChip)
     ELSE
@@ -4495,7 +4572,34 @@ BEGIN
           Result := '0' + IntToStr(LocoChip)
         ELSE
           Result := IntToStr(LocoChip);
-END; { LocoChipToStr }
+END; { LocoChipToStr-2 }
+
+FUNCTION RouteToStr(Route : Integer) : String;
+{ Return the Route number as a string }
+BEGIN
+  IF Route = UnknownRoute THEN
+    Result := UnknownRouteStr
+  ELSE
+    Result := IntToStr(Route);
+END; { RouteToStr }
+
+FUNCTION SignalToStr(Signal : Integer) : String;
+{ Return the signal number as a string }
+BEGIN
+  IF Signal = UnknownSignal THEN
+    Result := UnknownSignalStr
+  ELSE
+    Result := IntToStr(Signal);
+END; { SignalToStr }
+
+FUNCTION TrackCircuitToStr(TrackCircuit : Integer) : String;
+{ Return the track circuit number as a string }
+BEGIN
+  IF TrackCircuit = UnknownTrackCircuit THEN
+    Result := UnknownTrackCircuitStr
+  ELSE
+    Result := IntToStr(TrackCircuit);
+END; { TrackCircuitToStr }
 
 FUNCTION AddSeparatorToTimeString(Str : String) : String;
 { Add a separator to a string so that, e.g., 0630 becomes 06:30 }
@@ -4511,17 +4615,6 @@ BEGIN
   ELSE
     Result := I2 + ((I1 - I2) DIV 2);
 END; { GetMidPos }
-
-FUNCTION LineToStr(L : Integer) : String;
-{ Return a line's name as a string }
-BEGIN
-  IF (L <> UnknownLine)
-  AND (Length(Lines) > 0)
-  THEN
-    Result := Lines[L].Line_Str
-  ELSE
-    Result := UnknownLineStr;
-END; { LineToStr }
 
 FUNCTION AreaArrayToStr(AreaArray : IntegerArrayType) : String;
 { Return an area array as a string }
