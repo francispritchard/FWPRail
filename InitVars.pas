@@ -154,9 +154,14 @@ CONST
   { make these changeable in due course *** }
   ClearLineString = '[clear line string]';
   UnknownAreaStr = '[unknown area]';
+  UnknownBufferStopStr = '[unknown buffer stop]';
   UnknownColourStr = 'Unknown Colour';
   UnknownLineStr = '[unknown line]';
+  UnknownJourneyStr = '[unknown journey]';
   UnknownLocationStr = '[unknown location]';
+  UnknownRouteStr = '[unknown route]';
+  UnknownSignalStr = '[unknown signal]';
+  UnknownTrackCircuitStr = '[unknown track circuit]';
   UnknownTrainStatusStr = '[unknown train status]';
   UnknownTrainTypeStr = '[unknown train type]';
   UnknownTypeStr = '[unknown type]';

@@ -3188,12 +3188,11 @@ BEGIN
             IF Length(JourneyRouteArray) > 0 THEN BEGIN
               IF NOT StringArraysCompareOK(TrainJourney_RouteArray, JourneyRouteArray, TempStr) THEN BEGIN
                 { set up the revised route array }
-                WriteStringArrayToLog(NoLocoChip, 'R', StringOfChar(' ', 5) + ': changing journey route array from',
-                                                       TrainJourney_RouteArray,
-                                                       5, 190, 'SR=');
-                WriteStringArrayToLog(NoLocoChip, 'R', StringOfChar(' ', 5) + ': to ',
-                                                       JourneyRouteArray,
-                                                       5, 190, 'SR=');
+                WriteStringArrayToLog(Train_LocoChip, 'R', StringOfChar(' ', 5) + ': changing journey route array from',
+                                                           TrainJourney_RouteArray,
+                                                           5, 190, 'SR=');
+                WriteStringArrayToLog(Train_LocoChip, 'R', StringOfChar(' ', 5) + ': to ',
+                                                           JourneyRouteArray,
                 SetLength(TrainJourney_RouteArray, 0);
                 AppendStringArray2ToStringArray1(TrainJourney_RouteArray, JourneyRouteArray);
               END;
