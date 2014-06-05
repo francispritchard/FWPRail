@@ -4527,7 +4527,7 @@ END; { BufferStopToStr }
 FUNCTION JourneyToStr(Journey : Integer) : String;
 { Return a journey number as a string }
 BEGIN
-  IF Journey <> UnknownJourney THEN
+  IF Journey = UnknownJourney THEN
     Result := UnknownJourneyStr
   ELSE
     Result := IntToStr(Journey);
@@ -8503,9 +8503,9 @@ BEGIN
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_DiagramFound = ' + BoolToStr(Train_DiagramFound, True));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_DiagramsGridRowNums = ' + IntegerArrayToStr(Train_DiagramsGridRowNums));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_DistanceToCurrentSignalOrBufferStop = '
-                                                                                                                    + FloatToStr(Train_DistanceToCurrentSignalOrBufferStop));
+                                                                                                                   + FloatToStr(Train_DistanceToCurrentSignalOrBufferStop));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_DistanceToNextSignalButOneOrBufferStop = '
-                                                                                                                 + FloatToStr(Train_DistanceToNextSignalButOneOrBufferStop));
+                                                                                                                + FloatToStr(Train_DistanceToNextSignalButOneOrBufferStop));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_DistanceToNextSignalOrBufferStop = ' + FloatToStr(Train_DistanceToNextSignalOrBufferStop));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_EmergencyRouteing = ' + BoolToStr(Train_EmergencyRouteing, True));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_ExtraPowerAdjustment = ' + IntToStr(Train_ExtraPowerAdjustment));
@@ -8521,7 +8521,7 @@ BEGIN
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_Functions5To12Byte = ' + IntToStr(Train_Functions5To12Byte));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_GradientSpeedAdjustment = ' + IntToStr(Train_GradientSpeedAdjustment));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_GradientSpeedAdjustmentMsgWritten = '
-                                                                                                                 + BoolToStr(Train_GradientSpeedAdjustmentMsgWritten, True));
+                                                                                                                + BoolToStr(Train_GradientSpeedAdjustmentMsgWritten, True));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_HasCabLights = ' + BoolToStr(Train_HasCabLights, True));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_Headcode = ' + Train_Headcode);
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_HomeArea = ' + AreaToStr(Train_HomeArea));
@@ -8546,7 +8546,7 @@ BEGIN
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_LightsOn = ' + BoolToStr(Train_LightsOn, True));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_LightsOnTime = ' + TimeToHMSStr(Train_LightsOnTime));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_LightsRemainOnWhenJourneysComplete = '
-                                                                                                                + BoolToStr(Train_LightsRemainOnWhenJourneysComplete, True));
+                                                                                                               + BoolToStr(Train_LightsRemainOnWhenJourneysComplete, True));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_LightsType = ' + LIghtsTypeToStr(Train_LightsType));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_LocatedAtStartup = ' + BoolToStr(Train_LocatedAtStartup, True));
 
@@ -8576,7 +8576,7 @@ BEGIN
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_ReversingStartTime = ' + TimeToHMSStr(Train_ReversingStartTime));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_ReversingWaitStarted = ' + BoolToStr(Train_ReversingWaitStarted, True));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_RouteCheckedTime = ' + TimeToHMSStr(Train_RouteCheckedTime));
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_RouteCreationHeldJourney = ' + IntToStr(Train_RouteCreationHeldJourney));
+            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_RouteCreationHeldJourney = ' + JourneyToStr(Train_RouteCreationHeldJourney));
 
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_RouteCreationHeldMsgWrittenArray:');
             FOR I := FirstRouteCreationHeldMsgNumber TO LastRouteCreationHeldMsgNumber DO
@@ -8660,58 +8660,61 @@ BEGIN
               FOR I := 0 TO High(Train_JourneysArray) DO BEGIN
                 WITH Train_JourneysArray[I] DO BEGIN
                   WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ':   (' + IntToStr(I) + ') TrainJourney_ActualArrivalTime = '
-                                                                                                                             + TimeToHMSStr(TrainJourney_ActualArrivalTime));
+                                                                                                                            + TimeToHMSStr(TrainJourney_ActualArrivalTime));
                   WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ':   (' + IntToStr(I) + ') TrainJourney_ActualDepartureTime = '
-                                                                                                                           + TimeToHMSStr(TrainJourney_ActualDepartureTime));
+                                                                                                                          + TimeToHMSStr(TrainJourney_ActualDepartureTime));
                   WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ':   (' + IntToStr(I) + ') TrainJourney_AdditionalRequiredStationWaitInMinutes = '
-                                                                                                            + IntToStr(TrainJourney_AdditionalRequiredStationWaitInMinutes));
+                                                                                                           + IntToStr(TrainJourney_AdditionalRequiredStationWaitInMinutes));
                   WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ':   (' + IntToStr(I) + ') TrainJourney_Cleared = ' + BoolToStr(TrainJourney_Cleared));
                   WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ':   (' + IntToStr(I) + ') TrainJourney_Created = ' + BoolToStr(TrainJourney_Created));
                   WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ':   (' + IntToStr(I) + ') TrainJourney_CurrentArrivalTime = '
-                                                                                                                            + TimeToHMSStr(TrainJourney_CurrentArrivalTime));
+                                                                                                                           + TimeToHMSStr(TrainJourney_CurrentArrivalTime));
                   WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ':   (' + IntToStr(I) + ') TrainJourney_CurrentDepartureTime = '
-                                                                                                                          + TimeToHMSStr(TrainJourney_CurrentDepartureTime));
+                                                                                                                         + TimeToHMSStr(TrainJourney_CurrentDepartureTime));
                   WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ':   (' + IntToStr(I) + ') TrainJourney_DiagrammedArrivalTime = '
-                                                                                                                         + TimeToHMSStr(TrainJourney_DiagrammedArrivalTime));
+                                                                                                                        + TimeToHMSStr(TrainJourney_DiagrammedArrivalTime));
                   WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ':   (' + IntToStr(I) + ') TrainJourney_DiagrammedDepartureTime = '
-                                                                                                                       + TimeToHMSStr(TrainJourney_DiagrammedDepartureTime));
+                                                                                                                      + TimeToHMSStr(TrainJourney_DiagrammedDepartureTime));
                   WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ':   (' + IntToStr(I) + ') TrainJourney_DiagrammedStartLocation = '
-                                                                                                                      + LocationToStr(TrainJourney_DiagrammedStartLocation));
+                                                                                                                     + LocationToStr(TrainJourney_DiagrammedStartLocation));
                   WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ':   (' + IntToStr(I) + ') TrainJourney_DiagrammedEndLocation = '
-                                                                                                                        + LocationToStr(TrainJourney_DiagrammedEndLocation));
+                                                                                                                       + LocationToStr(TrainJourney_DiagrammedEndLocation));
                   WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ':   (' + IntToStr(I) + ') TrainJourney_Direction = ' + DirectionToStr(TrainJourney_Direction));
                   WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ':   (' + IntToStr(I) + ') TrainJourney_DurationInMinutes = '
-                                                                                                                                 + IntToStr(TrainJourney_DurationInMinutes));
+                                                                                                                                + IntToStr(TrainJourney_DurationInMinutes));
                   WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ':   (' + IntToStr(I) + ') TrainJourney_EndArea = ' + AreaToStr(TrainJourney_EndArea));
-                  WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ':   (' + IntToStr(I) + ') TrainJourney_EndBufferStop = ' + IntToStr(TrainJourney_EndBufferStop));
+                  WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ':   (' + IntToStr(I) + ') TrainJourney_EndBufferStop = '
+                                                                                                                             + BufferStopToStr(TrainJourney_EndBufferStop));
                   WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ':   (' + IntToStr(I) + ') TrainJourney_EndLine = ' + LineToStr(TrainJourney_EndLine));
-                  WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ':   (' + IntToStr(I) + ') TrainJourney_EndLocation = ' + LocationToStr(TrainJourney_EndLocation));
+                  WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ':   (' + IntToStr(I) + ') TrainJourney_EndLocation = '
+                                                                                                                                 + LocationToStr(TrainJourney_EndLocation));
                   WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ':   (' + IntToStr(I) + ') TrainJourney_EndStationName = ' + TrainJourney_EndStationName);
-                  WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ':   (' + IntToStr(I) + ') TrainJourney_EndSignal = ' + IntToStr(TrainJourney_EndSignal));
+                  WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ':   (' + IntToStr(I) + ') TrainJourney_EndSignal = ' + SignalToStr(TrainJourney_EndSignal));
                   WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ':   (' + IntToStr(I) + ') TrainJourney_FirstTC = ' + IntToStr(TrainJourney_FirstTC));
                   WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ':   (' + IntToStr(I) + ') TrainJourney_LengthInInches = '
-                                                                                                                                  + FloatToStr(TrainJourney_LengthInInches));
+                                                                                                                                 + FloatToStr(TrainJourney_LengthInInches));
                   WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ':   (' + IntToStr(I) + ') TrainJourney_LocationsPending = '
-                                                                                                                                 + BoolToStr(TrainJourney_LocationsPending));
+                                                                                                                                + BoolToStr(TrainJourney_LocationsPending));
                   WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ':   (' + IntToStr(I) + ') TrainJourney_LockingArray = '
-                                                                                                                              + StringArrayToStr(TrainJourney_LockingArray));
+                                                                                                                             + StringArrayToStr(TrainJourney_LockingArray));
                   WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ':   (' + IntToStr(I) + ') TrainJourney_NotForPublicUse = '
-                                                                                                                                  + BoolToStr(TrainJourney_NotForPublicUse));
-                  WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ':   (' + IntToStr(I) + ') TrainJourney_Route = ' + IntToStr(TrainJourney_Route));
+                                                                                                                           + BoolToStr(TrainJourney_NotForPublicUse, True));
+                  WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ':   (' + IntToStr(I) + ') TrainJourney_Route = ' + RouteToStr(TrainJourney_Route));
                   WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ':   (' + IntToStr(I) + ') TrainJourney_RouteArray = '
-                                                                                                                                + StringArrayToStr(TrainJourney_RouteArray));
+                                                                                                                               + StringArrayToStr(TrainJourney_RouteArray));
                   WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ':   (' + IntToStr(I) + ') TrainJourney_SetUp = ' + BoolToStr(TrainJourney_SetUp, True));
                   WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ':   (' + IntToStr(I) + ') TrainJourney_StartArea = ' + AreaToStr(TrainJourney_StartArea));
                   WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ':   (' + IntToStr(I) + ') TrainJourney_StartLine = ' + LineToStr(TrainJourney_StartLine));
                   WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ':   (' + IntToStr(I) + ') TrainJourney_StartLocation = '
-                                                                                                                                + LocationToStr(TrainJourney_StartLocation));
+                                                                                                                               + LocationToStr(TrainJourney_StartLocation));
                   WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ':   (' + IntToStr(I) + ') TrainJourney_StartStationName = ' + TrainJourney_StartStationName);
                   WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ':   (' + IntToStr(I) + ') TrainJourney_StartOfRepeatJourney ='
-                                                                                                                             + BoolToStr(TrainJourney_StartOfRepeatJourney));
-                  WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ':   (' + IntToStr(I) + ') TrainJourney_StartSignal = ' + IntToStr(TrainJourney_StartSignal));
+                                                                                                                      + BoolToStr(TrainJourney_StartOfRepeatJourney, True));
+                  WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ':   (' + IntToStr(I) + ') TrainJourney_StartSignal = ' + SignalToStr(TrainJourney_StartSignal));
                   WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ':   (' + IntToStr(I) + ') TrainJourney_StoppingOnArrival = '
-                                                                                                                                + BoolToStr(TrainJourney_StoppingOnArrival));
-                  WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ':   (' + IntToStr(I) + ') TrainJourney_UserToDrive = ' + BoolToStr(TrainJourney_UserToDrive));
+                                                                                                                         + BoolToStr(TrainJourney_StoppingOnArrival, True));
+                  WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ':   (' + IntToStr(I) + ') TrainJourney_UserToDrive = '
+                                                                                                                               + BoolToStr(TrainJourney_UserToDrive, True));
                   WriteLn(TempOutputFile);
                 END; {WITH}
               END; {FOR}
