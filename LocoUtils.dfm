@@ -43,8 +43,6 @@ object LocoUtilsWindow: TLocoUtilsWindow
     OnDrawCell = LocoStringGridDrawCell
     OnKeyDown = LocoStringGridKeyDown
     OnMouseUp = LocoStringGridMouseUp
-    ExplicitLeft = 4
-    ExplicitTop = 4
   end
   object LocoLocationsADOConnection: TADOConnection
     ConnectionString = 
