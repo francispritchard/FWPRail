@@ -190,10 +190,11 @@ VAR
   TempLockingMsg : String;
 
 BEGIN
+  Result := False;
+  LockingMsg := '';
+
   TRY
     WITH Points[P] DO BEGIN
-      LockingMsg := '';
-      Result := False;
 
       IF Length(Point_LockingArray) > 0 THEN BEGIN
         LockingMsg := '';
