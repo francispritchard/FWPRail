@@ -113,7 +113,7 @@ FUNCTION CardinalMulDiv(A, B, C : Cardinal) : Cardinal;
 { Returns (A * B) / C; intermediate result is held double-length to avoid overflow. FWP version }
 
 PROCEDURE ChangeTrainStatus(T : Train; NewStatus : TrainStatusType);
-{ Change out the current train status and record it }
+{ Change the current train status and record it }
 
 PROCEDURE CloseOutputFile(VAR OutputFile : Text; Filename : String);
 { Close an output file, capturing the error message if any }
@@ -5905,7 +5905,7 @@ BEGIN
 END; { RoundTimeToNextWholeMinute }
 
 PROCEDURE ChangeTrainStatus(T : Train; NewStatus : TrainStatusType);
-{ Change out the current train status and record it }
+{ Change the current train status and record it }
 VAR
   DebugStr : String;
 
@@ -5913,6 +5913,7 @@ BEGIN
   DebugStr := '';
 
   WITH T^ DO BEGIN
+    { we need to make special provision for missing trains, as their status can switch back and fore continuously from Missing to MissingAndSuspended }
     IF (Train_CurrentStatus = Missing) OR (Train_CurrentStatus = MissingAndSuspended) THEN
       DebugStr := ' (immediate previous status was ' + TrainStatusToStr(Train_CurrentStatus) + ')'
     ELSE
@@ -5923,6 +5924,26 @@ BEGIN
                           + '; previous status: ' + TrainStatusToStr(T^.Train_PreviousStatus) + DebugStr);
     { update the diagrams window }
     DrawDiagramsStatusCell(T, Normalstyle);
+
+    { And make any necessary changes to the train record, etc. }
+    CASE Train_CurrentStatus OF
+      ToBeRemovedFromDiagrams:
+        BEGIN
+          { Take it off the diagram grid }
+          RemoveTrainFromDiagrams(T);
+          ChangeTrainStatus(T, RemovedFromDiagrams);
+          DrawDiagrams(UnitRef, 'Change Train Status');
+
+          { Deal with the loco's lights (if any) }
+          IF NOT T^.Train_LightsRemainOnWhenJourneysComplete THEN
+            TurnLightsOff(T^.Train_LocoChip);
+
+          IF Train_HasCablights
+          AND CabLightsAreOn(Train_LocoChip)
+          THEN
+            TurnCabLightsOff(Train_LocoChip);
+        END;
+    END; {CASE}
   END; {WITH}
 END; { ChangeTrainStatus }
 
@@ -7802,8 +7823,6 @@ BEGIN
       Result := 'non-moving';
     ReadyForCreation:
       Result := 'ready for creation';
-    ReadyForRemovalFromDiagrams:
-      Result := 'ready for removal from diagrams';
     ReadyForRouteing:
       Result := 'ready for routeing';
     ReadyToDepart:
@@ -7816,6 +7835,8 @@ BEGIN
       Result := 'routeing while departed';
     Suspended:
       Result := 'suspended';
+    ToBeRemovedFromDiagrams:
+      Result := 'to be removed from diagrams';
     UnknownTrainStatus:
       Result := UnknownTrainStatusStr;
     WaitingForLightsOn:

@@ -768,7 +768,7 @@ TYPE
     that case, unsuspending renders it missing even though it may no longer be missing, and it's then a status we can't get out of.
   }
   TrainStatusType = (ReadyForCreation, WaitingForLightsOn, WaitingForSignalHiddenAspectToClear, WaitingForRouteing, InLightsOnTime, ReadyForRouteing, CommencedRouteing,
-                     ReadyToDepart, Departed, RouteingWhileDeparted, RouteCompleted, WaitingForRemovalFromDiagrams, ReadyForRemovalFromDiagrams, RemovedFromDiagrams,
+                     ReadyToDepart, Departed, RouteingWhileDeparted, RouteCompleted, WaitingForRemovalFromDiagrams, ToBeRemovedFromDiagrams, RemovedFromDiagrams,
                      Missing, MissingAndSuspended, Suspended, NonMoving, Cancelled, UnknownTrainStatus);
   Train = ^TrainRec;
 

@@ -498,17 +498,17 @@ VAR
 BEGIN
   T := TrainList;
   WHILE T <> NIL DO BEGIN
-    IF T^.Train_CurrentStatus = ReadyForRemovalFromDiagrams THEN BEGIN
-      { Take it off the diagram grid }
-      RemoveTrainFromDiagrams(T);
-      ChangeTrainStatus(T, RemovedFromDiagrams);
-
-      DrawDiagrams(UnitRef, 'PruneTrainList');
-
-      { Turn off the loco's lights (if any) }
-      IF NOT T^.Train_LightsRemainOnWhenJourneysComplete THEN
-        TurnLightsOff(T^.Train_LocoChip);
-    END;
+//    IF T^.Train_CurrentStatus = ReadyForRemovalFromDiagrams THEN BEGIN
+//      { Take it off the diagram grid }
+//      RemoveTrainFromDiagrams(T);
+//      ChangeTrainStatus(T, RemovedFromDiagrams);
+//
+//      DrawDiagrams(UnitRef, 'PruneTrainList');
+//
+//      { Turn off the loco's lights (if any) }
+//      IF NOT T^.Train_LightsRemainOnWhenJourneysComplete THEN
+//        TurnLightsOff(T^.Train_LocoChip);
+//    END;
     T := T^.Train_NextRecord;
   END; {WHILE}
 END; { PruneTrainList }
@@ -1611,7 +1611,7 @@ PROCEDURE MoveAllTrains;
 
   BEGIN { CalculateTrainSpeed }
     WITH T^ DO BEGIN
-      IF Train_CurrentStatus <> ReadyForRemovalFromDiagrams THEN BEGIN
+      IF Train_CurrentStatus <> ToBeRemovedFromDiagrams THEN BEGIN
         { See if we've stalled - can only do so by timing gap between known sections }
         { Need to adjust for long sections **** }
         IF (Train_CurrentSpeedInMPH = Stop)
@@ -2038,7 +2038,7 @@ BEGIN
       AND (Train_CurrentStatus <> Departed)
       AND (Train_CurrentStatus <> NonMoving)
       AND (Train_CurrentStatus <> WaitingForRemovalFromDiagrams)
-      AND (Train_CurrentStatus <> ReadyForRemovalFromDiagrams)
+      AND (Train_CurrentStatus <> ToBeRemovedFromDiagrams)
       AND (Train_CurrentStatus <> RemovedFromDiagrams)
       THEN BEGIN
         WITH Train_JourneysArray[Train_CurrentJourney] DO BEGIN
@@ -2238,24 +2238,9 @@ BEGIN
         IF Train_CurrentStatus = WaitingForRemovalFromDiagrams THEN BEGIN
           { wait for one minute after train arrives from its final journey before purging it - this keeps it in the station monitors in time to say "arrived" }
           IF CurrentRailwayTime > IncMinute(Train_JourneysArray[Train_TotalJourneys].TrainJourney_ActualArrivalTime, 1) THEN BEGIN
-            ChangeTrainStatus(T, ReadyForRemovalFromDiagrams);
-            IF Train_HasCablights
-            AND CabLightsAreOn(Train_LocoChip)
-            THEN
-              TurnCabLightsOff(Train_LocoChip);
-            Log(Train_LocoChipStr + ' T Purging can commence as arrival time was one minute ago for'
+            Log(Train_LocoChipStr + ' T Train marked as ReadyForRemovalFromDiagrams as arrival time was one minute ago for'
                                   + ' J=' + IntToStr((Train_CurrentJourney) - 1) + ' R=' + IntToStr(Train_CurrentRoute));
-
-            IF ((Length(Train_TCsNotClearedArray) = 0)
-            AND (Train_CurrentSpeedInMPH = Stop) AND AllJourneysComplete(T))
-            THEN BEGIN
-              DebugStr := 'now inactive:';
-              DebugStr := DebugStr + ' Set=';
-              DebugStr := DebugStr + ' Cleared=';
-              DebugStr := DebugStr + ' Speed=' + MPHTOStr(Train_CurrentSpeedInMPH) + ' mph';
-              DebugStr := DebugStr + ' ToBeSet=';
-              Log(Train_LocoChipStr + ' L ' + DebugStr);
-            END;
+            ChangeTrainStatus(T, ToBeRemovedFromDiagrams);
           END;
         END ELSE BEGIN
           IF (Train_CurrentSpeedInMPH = Stop)
@@ -2263,6 +2248,18 @@ BEGIN
           THEN BEGIN
             { the route's been deleted, so we must have arrived }
             IF AllJourneysComplete(T) THEN BEGIN
+              IF Length(Train_TCsNotClearedArray) = 0 THEN BEGIN
+                Log(Train_LocoChipStr + ' X Train_TCsNotClearedArray not empty but all journeys complete');
+                WriteStringArrayToLog(Train_LocoChip, 'T', 'Train_TCsNotClearedArray = ', Train_TCsNotClearedArray, 2, 190);
+              END;
+
+              DebugStr := 'now inactive:';
+              DebugStr := DebugStr + ' Set=';
+              DebugStr := DebugStr + ' Cleared=';
+              DebugStr := DebugStr + ' Speed=' + MPHTOStr(Train_CurrentSpeedInMPH) + ' mph';
+              DebugStr := DebugStr + ' ToBeSet=';
+              Log(Train_LocoChipStr + ' L ' + DebugStr);
+
               { We can't clear the train's remaining system-occupied-trackcircuits here, as at this time they may still be marked as having feedback occupation (they take
                 some time to clear)
               }

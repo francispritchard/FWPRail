@@ -1481,9 +1481,6 @@ BEGIN
         StatusText := 'LO';
       ReadyForCreation:
         StatusText := 'RY';
-      ReadyForRemovalFromDiagrams:
-        { it is unlikely this will be displayed, as it's a status that should only last a few milliseconds, but it is here for the sake of completeness }
-        StatusText := 'RT';
       ReadyForRouteing:
         StatusText := 'RR';
       ReadyToDepart:
@@ -1497,6 +1494,9 @@ BEGIN
         StatusText := 'RW';
       Suspended:
         StatusText := 'Suspend';
+      ToBeRemovedFromDiagrams:
+        { it is unlikely this will be displayed, as it's a status that should only last a few milliseconds, but it is here for the sake of completeness }
+        StatusText := 'RT';
       WaitingForLightsOn:
         StatusText := 'WL';
       WaitingForRouteing:
