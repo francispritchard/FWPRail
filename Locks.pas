@@ -64,7 +64,7 @@ PROCEDURE InitialiseLocksUnit;
 PROCEDURE LockPointByRoute(LocoChip, P, Route : Integer; DoNotWriteMessage : Boolean);
 { Mark the point as locked by a specific route }
 
-FUNCTION PointIsLocked(P : Integer; OUT LockingMsg : String) : Boolean;
+FUNCTION PointIsLocked{2}(P : Integer; OUT LockingMsg : String) : Boolean; Overload;
 { Returns true if the point is locked }
 
 FUNCTION PointIsLockedByASpecificRoute(P, Route : Integer) : Boolean;
@@ -182,17 +182,18 @@ BEGIN
   END;
 END; { UnlockTrackCircuitRouteLocking }
 
-FUNCTION PointIsLocked(P : Integer; OUT LockingMsg : String) : Boolean;
+FUNCTION PointIsLocked{1}(P : Integer; OUT LockingMsg : String; CheckCrossOverPoint : Boolean) : Boolean; Overload;
 { Returns true if the point is locked by whatever means }
 VAR
   CatchPoint : Integer;
   PointArrayCount : Integer;
+  TempLockingMsg : String;
 
 BEGIN
-  Result := False;
   TRY
     WITH Points[P] DO BEGIN
       LockingMsg := '';
+      Result := False;
 
       IF Length(Point_LockingArray) > 0 THEN BEGIN
         LockingMsg := '';
@@ -205,7 +206,6 @@ BEGIN
         END;
         IF RightStr(LockingMsg, 1) = ',' THEN
           LockingMsg := Copy(LockingMsg, 1, Length(LockingMsg) -1);
-        Result := True;
       END ELSE BEGIN
         { See if the heel line is occupied - depending on the point record this will mean that the point is locked }
         IF (Lines[Points[P].Point_HeelLine].Line_TC <> UnknownTrackCircuit)
@@ -214,7 +214,6 @@ BEGIN
         AND (TrackCircuits[Lines[Points[P].Point_HeelLine].Line_TC].TC_OccupationState <> TCOutOfUseAsNoFeedbackReceived)
         AND Point_LockedIfHeelTCOccupied
         THEN BEGIN
-          Result := True;
           IF LockingMsg = '' THEN
             LockingMsg := 'locked:';
           LockingMsg := LockingMsg + ' TC=' + IntToStr(Lines[Point_HeelLine].Line_TC) + ' occupied at heel line';
@@ -227,7 +226,6 @@ BEGIN
         AND (TrackCircuits[Lines[Points[P].Point_StraightLine].Line_TC].TC_OccupationState <> TCOutOfUseAsNoFeedbackReceived)
         AND Point_LockedIfNonHeelTCsOccupied
         THEN BEGIN
-          Result := True;
           IF LockingMsg = '' THEN
             LockingMsg := 'locked:';
           LockingMsg := LockingMsg + ' TC=' + IntToStr(Lines[Point_StraightLine].Line_TC) + ' occupied at straight line';
@@ -240,7 +238,6 @@ BEGIN
           AND (TrackCircuits[Lines[Points[P].Point_DivergingLine].Line_TC].TC_OccupationState <> TCOutOfUseAsNoFeedbackReceived)
           AND Point_LockedIfNonHeelTCsOccupied
           THEN BEGIN
-            Result := True;
             IF LockingMsg = '' THEN
               LockingMsg := 'locked:';
             LockingMsg := LockingMsg + 'TC=' + IntToStr(Lines[Point_DivergingLine].Line_TC) + ' occupied at diverging line';
@@ -250,7 +247,6 @@ BEGIN
         { See that three-way points have the first, 'a' point, set to straight before the 'b' point is set }
         IF Point_Type = ThreeWayPointB THEN BEGIN
           IF Points[Point_OtherPoint].Point_PresentState <> Straight THEN BEGIN
-            Result := True;
             IF LockingMsg = '' THEN
               LockingMsg := 'locked:';
             LockingMsg := LockingMsg + ' 3-way point A (P=' + IntToStr(Point_OtherPoint) + ') diverging';
@@ -258,7 +254,6 @@ BEGIN
         END ELSE
           IF Point_Type = ThreeWayPointA THEN BEGIN
             IF Points[Point_OtherPoint].Point_PresentState <> Straight THEN BEGIN
-              Result := True;
               IF LockingMsg = '' THEN
                 LockingMsg := 'locked:';
               LockingMsg := LockingMsg + ' 3-way point B (P=' + IntToStr(Point_OtherPoint) + ') diverging';
@@ -271,7 +266,6 @@ BEGIN
           IF (Points[CatchPoint].Point_Type = CatchPointUp) OR (Points[CatchPoint].Point_Type = CatchPointDown) THEN BEGIN
             IF Points[CatchPoint].Point_OtherPoint = P THEN BEGIN
               IF Points[CatchPoint].Point_PresentState <> Diverging THEN BEGIN
-                Result := True;
                 IF LockingMsg = '' THEN
                   LockingMsg := 'locked:';
                 LockingMsg := LockingMsg + ' catch point P=' + IntToStr(CatchPoint) + ' is not diverging';
@@ -281,32 +275,53 @@ BEGIN
           Inc(CatchPoint);
         END; {WHILE}
 
-        { and see if a catch point is locked by its adjoining point }
+        { And see if a catch point is locked by its adjoining point }
         IF (Points[P].Point_Type = CatchPointUp) OR (Points[P].Point_Type = CatchPointDown) THEN BEGIN
           IF Points[Points[P].Point_OtherPoint].Point_PresentState = Straight THEN BEGIN
-            Result := True;
             IF LockingMsg = '' THEN
               LockingMsg := 'locked:';
             LockingMsg := LockingMsg + ' protected point P=' + IntToStr(Points[P].Point_OtherPoint) + ' is not diverging';
           END;
         END;
+
+        { Also check if crossover points can change }
+        IF CheckCrossOverPoint THEN
+          { pass false as a second argument to prevent PointIsLocked from being called recursively in an infinite loop }
+          IF (Points[P].Point_Type = CrossOverPoint) AND PointIsLocked(Points[P].Point_OtherPoint, TempLockingMsg, False) THEN BEGIN
+            { but also allow a cross-over point to change to be in agreement with its locked partner }
+            IF Points[P].Point_PresentState = Points[Points[P].Point_OtherPoint].Point_PresentState THEN BEGIN
+              IF LockingMsg = '' THEN
+                LockingMsg := 'locked:';
+              LockingMsg := LockingMsg + ' cross-over point''s corresponding point P=' + PointToStr(Points[P].Point_OtherPoint) + ' is locked';
+            END;
+          END;
       END;
 
       IF Points[P].Point_LockedByUser THEN BEGIN
-        Result := True;
         IF LockingMsg = '' THEN
           LockingMsg := 'locked:';
         LockingMsg := LockingMsg + ' P=' + IntToStr(P) + ' by user';
       END;
 
-      IF Result = False THEN
-        LockingMsg := 'not locked';
+      IF LockingMsg = '' THEN
+        LockingMsg := 'not locked'
+      ELSE
+        Result := True;
     END; {WITH}
   EXCEPT
     ON E : Exception DO
       Log('EG PointIsLocked: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
-END; { PointIsLocked }
+END; { PointIsLocked-1 }
+
+FUNCTION PointIsLocked{2}(P : Integer; OUT LockingMsg : String) : Boolean; Overload;
+{ Returns true if the point is locked by whatever means }
+CONST
+  CheckCrossOverPoint = True;
+
+BEGIN
+  Result := PointIsLocked(P, LockingMsg, CheckCrossOverPoint);
+END; { PointIsLocked-2 }
 
 PROCEDURE LockPointByRoute(LocoChip, P, Route : Integer; DoNotWriteMessage : Boolean);
 { Mark the point as locked by a specific route }
