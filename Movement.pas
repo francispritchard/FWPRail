@@ -2153,6 +2153,7 @@ BEGIN
         AND (Train_CurrentStatus <> Suspended)
         AND (Train_CurrentStatus <> MissingAndSuspended)
         AND (Train_CurrentStatus <> Cancelled)
+        AND (Train_CurrentStatus <> NonMoving)
         THEN BEGIN
           WITH Train_JourneysArray[Train_CurrentJourney] DO BEGIN
             IF Train_CurrentStatus = ReadyToDepart THEN BEGIN
