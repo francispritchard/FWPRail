@@ -88,7 +88,6 @@ CONST
   DaysOfTheWeekCol = PreferredLengthCol + 1;
 
 VAR
-  EscapePressed : Boolean = False;
   HighlightRow : Integer = -1;
   ShowArrivalTimes : Boolean = False;
   MaxColumnCount : Integer = 0;

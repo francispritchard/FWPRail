@@ -44,7 +44,6 @@ object DiagramsWindow: TDiagramsWindow
     OnKeyDown = DiagramsWindowGridKeyDown
     OnMouseDown = DiagramsWindowGridMouseDown
     OnMouseMove = DiagramsWindowGridMouseMove
-    OnSelectCell = DiagramsWindowGridSelectCell
     ColWidths = (
       34
       34

@@ -2446,22 +2446,6 @@ BEGIN
   DiagramsWindowGrid.Color := DiagramsWindowGridBackgroundColour;
 END; { DiagramsWindowShow }
 
-PROCEDURE TDiagramsWindow.DiagramsWindowGridSelectCell(Sender: TObject; ACol, ARow: Integer; VAR CanSelect: Boolean);
-BEGIN
-  { Now a hack to stop the whole row being highlighted when Escape is pressed }
-  IF NOT EscapePressed THEN
-    { Exclude the title row then... }
-    IF ARow > 0 THEN BEGIN
-      WITH DiagramsWindowGrid DO BEGIN
-        { ...select the whole row for editing }
-        Options := Options + [goRowSelect];
-        { and save the loco chip num in case we are manually going to set a route up and need to know the train's characteristics **** }
-
-      END; {WITH}
-    END;
-  EscapePressed := False;
-END; { DiagramsWindowGridSelectCell }
-
 PROCEDURE TDiagramsWindow.DiagramsWindowDeactivate(Sender: TObject);
 VAR
   TempRect : TGridRect;
