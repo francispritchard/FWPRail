@@ -3579,6 +3579,7 @@ VAR
   DebugStr : String;
   DepartureTimesArray : DateTimeArrayType;
   DirectionFound : Boolean;
+  DirectionProblem : Boolean;
   DummyRouteArray : StringArrayType;
   ErrorMsg : String;
   FirstTrainInstance : Boolean;
