@@ -2080,8 +2080,25 @@ BEGIN { KeyPressedDown }
               END;
             CtrlShift: {F}
               BEGIN
-                HelpMsg := '';
+                HelpMsg := 'Read out all feedback from units on/off';
                 IF NOT HelpRequired THEN BEGIN
+                  IF NOT ReadOutTCInFull THEN BEGIN
+                    FeedbackDebuggingMode := True;
+                    ReadOutTCInFull := True;
+                    ReadOutTCOnce := False;
+                    ReadOutDecoderNumber := False;
+                    ReadOutAdjacentSignalNumber := False;
+
+                    Debug('Read out all feedback ON');
+                    WriteDataToFeedbackWindow('Read out all feedback ON)');
+                  END ELSE BEGIN
+                    ReadOutTCInFull := False;
+                    FeedbackDebuggingMode := False;
+
+                    WriteDataToFeedbackWindow('Read out all feedback OFF)');
+                    Debug('Feedback with read out TC OFF');
+                    FeedbackWindow.FeedbackWindowTimer.Enabled := True;
+                  END;
                 END;
               END;
             Shift: {F}
@@ -2130,29 +2147,8 @@ BEGIN { KeyPressedDown }
                 END;
               END;
             Ctrl: {F}
-              BEGIN
-                HelpMsg := 'Read out all feedback from units on/off';
-                IF NOT HelpRequired THEN BEGIN
-                  IF NOT ReadOutTCInFull THEN BEGIN
-                    FeedbackDebuggingMode := True;
-                    ReadOutTCInFull := True;
-                    ReadOutTCOnce := False;
-                    ReadOutDecoderNumber := False;
-                    ReadOutAdjacentSignalNumber := False;
-
-                    Debug('Read out all feedback ON');
-                    WriteDataToFeedbackWindow('Read out all feedback ON)');
-                  END ELSE BEGIN
-                    ReadOutTCInFull := False;
-                    FeedbackDebuggingMode := False;
-
-                    WriteDataToFeedbackWindow('Read out all feedback OFF)');
-                    Debug('Feedback with read out TC OFF');
-                    FeedbackWindow.FeedbackWindowTimer.Enabled := True;
-                  END;
-                END;
-              END;
-          END; {CASE}
+              ; { do not use as causes confusion with Ctrl-F used for searches }
+           END; {CASE}
         Ord('G'):
           CASE ShiftKeys OF
             NoShiftKeys: {G}
