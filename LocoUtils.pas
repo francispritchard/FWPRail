@@ -514,14 +514,12 @@ BEGIN
                 Train_LightsType := LightsOperatedByTwoChips;
                 TempStr := FieldByName('LightingChipUp').AsString;
                 IF (TempStr = '') OR (TempStr = '0') THEN
-                  ErrorMsg := 'Error in database for loco ' + LocoChipToStr(Train_LocoChip)
-                              + ': ''Lights From Two Chips'' ticked but no chip number supplied'
+                  ErrorMsg := 'Error in database for loco ' + LocoChipToStr(Train_LocoChip) + ': ''Lights From Two Chips'' ticked but no chip number supplied'
                 ELSE BEGIN
                   Train_LightingChipUp := StrToInt(TempStr);
                   TempStr := FieldByName('LightingChipDown').AsString;
                   IF (TempStr = '') OR (TempStr = '0') THEN
-                    ErrorMsg := 'Error in database for loco ' + LocoChipToStr(Train_LocoChip)
-                                + ': ''Lights From Two Chips'' ticked but no chip number supplied'
+                    ErrorMsg := 'Error in database for loco ' + LocoChipToStr(Train_LocoChip) + ': ''Lights From Two Chips'' ticked but no chip number supplied'
                   ELSE
                     Train_LightingChipDown := StrToInt(TempStr);
                 END;
