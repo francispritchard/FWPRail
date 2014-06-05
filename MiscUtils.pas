@@ -553,6 +553,9 @@ FUNCTION PointIsCatchPoint(P : Integer) : Boolean;
 FUNCTION PointStateToStr(PointState : PointStateType) : String;
 { Return the point state as a string }
 
+FUNCTION PointToStr(Point : Integer) : String;
+{ Return the point number as a string }
+
 FUNCTION PointTypeToStr(PType : TypeOfPoint) : String;
 { Return the point type }
 
@@ -4576,6 +4579,15 @@ BEGIN
         ELSE
           Result := IntToStr(LocoChip);
 END; { LocoChipToStr-2 }
+
+FUNCTION PointToStr(Point : Integer) : String;
+{ Return the point number as a string }
+BEGIN
+  IF Point = UnknownPoint THEN
+    Result := UnknownPointStr
+  ELSE
+    Result := IntToStr(Point);
+END; { PointToStr }
 
 FUNCTION RouteToStr(Route : Integer) : String;
 { Return the Route number as a string }

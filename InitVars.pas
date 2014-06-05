@@ -159,6 +159,7 @@ CONST
   UnknownLineStr = '[unknown line]';
   UnknownJourneyStr = '[unknown journey]';
   UnknownLocationStr = '[unknown location]';
+  UnknownPointStr = '[unknown point]';
   UnknownRouteStr = '[unknown route]';
   UnknownSignalStr = '[unknown signal]';
   UnknownTrackCircuitStr = '[unknown track circuit]';
