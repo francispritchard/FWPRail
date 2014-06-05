@@ -1328,12 +1328,15 @@ BEGIN { WriteToLogFile }
       { See how the arguments are constituted }
       IF NOT ReplayMode THEN BEGIN
         { First look for locochip number }
-        IF TryStrToInt(Copy(LogStr, 1, 4), TempInt) THEN BEGIN
+        IF TryStrToInt(Copy(LogStr, 1, 4), TempInt) OR (Copy(LogStr, 1, 4) = '----') THEN BEGIN
           IF Copy(LogStr, 5, 1) <> ' ' THEN BEGIN
             WriteOutError('No space after loco number in "' + LogStr + '"');
             Exit;
           END ELSE BEGIN
-            LocoChipStr := Copy(LogStr, 1, 4);
+            IF Copy(LogStr, 1, 4) = '----' THEN
+              LocoChipStr := '    '
+            ELSE
+              LocoChipStr := Copy(LogStr, 1, 4);
             LogStr := Copy(LogStr, 6);
           END;
         END;
