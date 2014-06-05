@@ -74,6 +74,190 @@ BEGIN
   WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
 
+PROCEDURE InitialiseTrainRecord(T : Train);
+{ Do the initialisations, or reinitialisations if specified }
+VAR
+  I : Integer;
+
+BEGIN
+  TRY
+    WITH T^ DO BEGIN
+      Train_DiagramFound := False;
+
+      { Set up defaults }
+      Train_Accelerating := False;
+      Train_AccelerationAdjustRange := 0;
+      Train_AccelerationStartTime := 0;
+      Train_AccelerationStr := '';
+      Train_AccelerationTimeInSeconds := 0.0;
+      Train_AccelerationTimeInterval := 0.0;
+      Train_Active := False;
+      Train_ActualNumStr := '';
+      Train_AtCurrentBufferStop := UnknownBufferStop;
+      Train_AtCurrentSignal := UnknownSignal;
+      Train_AtHiddenAspectSignal := UnknownSignal;
+      Train_BeingAdvanced := False;
+      Train_BeingAdvancedTC := UnknownTrackCircuit;
+      Train_CabLightsHaveBeenOn := False;
+      Train_ControlledByProgram := False;
+      Train_ControlledByRDC := False;
+      Train_CurrentArrivalTime := 0;
+      Train_CurrentBufferStop := UnknownBufferStop;
+      Train_CurrentDirection := UnknownDirection;
+      Train_CurrentJourney := 0;
+      Train_CurrentLengthInInches := 0;
+      Train_CurrentLenzSpeed := 0;
+      Train_CurrentRoute := UnknownRoute;
+      Train_CurrentSignal := UnknownSignal;
+      Train_CurrentSourceLocation := UnknownLocation;
+      Train_CurrentSpeedInMPH := MPH0;
+      Train_CurrentStatus := UnknownTrainStatus;
+      Train_CurrentTC := UnknownTrackCircuit;
+      Train_Decelerating := False;
+      Train_Description := '';
+      Train_DesiredLenzSpeed := 0;
+      Train_DesiredSpeedInMPH := MPH0;
+      Train_DistanceToCurrentSignalOrBufferStop := 0.0;
+      Train_DistanceToNextSignalButOneOrBufferStop := 0.0;
+      Train_DistanceToNextSignalOrBufferStop := 0.0;
+      Train_DoubleHeaderLocoChip := UnknownLocoChip;
+      Train_EmergencyRouteing := False;
+      Train_ExtraPowerAdjustment := 0; { used temporarily to increase the train speed where necessary }
+      Train_FirstStationSpecifiedStartTime := 0;
+      Train_FixedLengthInInches := 0;
+      FOR I := 0 TO 12 DO
+        Train_Functions[I] := False;
+
+      Train_Functions0To4Byte := 0;
+      Train_Functions5To12Byte := 0;
+      Train_GradientSpeedAdjustment := 0;
+      Train_GradientSpeedAdjustmentMsgWritten := False;
+      Train_HasCabLights := False;
+      Train_Headcode := '';
+      Train_HomeArea := UnknownArea;
+      FOR I := 1 TO 5 DO
+        Train_InitialTrackCircuits[I] := UnknownTrackCircuit;
+
+      Train_InLightsOnTime := False; { train inactive but for lights being on }
+      FOR I := 1 TO 9 DO
+        Train_RouteCreationHeldMsgWrittenArray[I] := False;
+
+      Train_RouteCreationPlatformHeldStr := '';
+      SetLength(Train_JourneysArray, 0);
+      Train_LastLengthInInches := 0;
+      Train_LastLocation := UnknownLocation;
+      Train_LastMissingTC := UnknownTrackCircuit;
+      Train_LastRouteLockedMsgStr := '';
+      Train_LastSignal := UnknownSignal;
+      Train_LastTC := UnknownTrackCircuit;
+      Train_LightingChipDown := UnknownLocoChip;
+      Train_LightingChipDownAddress := NIL;
+      Train_LightingChipUp := UnknownLocoChip;
+      Train_LightingChipUpAddress := NIL;
+      Train_LightingChipRecordForChip := UnknownLocoChip;
+      Train_LightsMsg := '';
+      Train_LightsOn := False;
+      Train_LightsOnTime := 0;
+      Train_LightsRemainOnWhenJourneysComplete := True;
+      Train_LightsType := NoLights;
+      Train_LocatedAtStartup := True;
+      SetLength(Train_Locations, 0);
+      Train_LocoChip := UnknownLocoChip;
+      Train_LocoChipStr := '';
+      Train_LocoClassStr := '';
+      Train_LocoName := '';
+      Train_LocoTypeStr := '';
+      Train_MaximumSpeedInMPH := MPH0;
+      Train_MinimumAccelerationTimeInSeconds := 0; { needed as we only calculate it once when we enter a trackcircuit }
+      Train_MissingMessage := False;
+      Train_MissingNum := 0; { set if train missing, and used to restart train if found }
+      Train_NextTC := UnknownTrackCircuit;
+      Train_NextButOneTC := UnknownTrackCircuit;
+      Train_NotInPlaceMsgWritten := False;
+      Train_NotLocatedAtStartupMsgWritten := False;
+      Train_NumberOfCarriages := 0;
+      Train_PossibleRerouteTime := 0;
+      Train_PreviouslyControlledByProgram := False;
+      Train_PreviousStatus := ReadyForCreation;
+      Train_PreviousTC := UnknownTrackCircuit;
+      Train_Reversing := False;
+      Train_ReversingDelayInSeconds := 0;
+      Train_ReversingStartTime := 0;
+      Train_ReversingWaitStarted := False;
+      Train_RouteCheckedTime := 0;
+      Train_RouteCreationHeldJourney := UnknownJourney;
+      Train_RouteCreationHoldMsg := '';
+      Train_RouteCreationHoldNum := 0;
+      Train_RouteCreationReleasedMsg := '';
+      Train_RouteingHeldAtSignal := UnknownSignal;
+      Train_SaveCurrentTC := UnknownTrackCircuit;
+      Train_SaveDesiredLenzSpeed := 0;
+      Train_SavedLocation := UnknownLocation;
+      Train_SavedRoute := UnknownRoute;
+      Train_SaveSpeedInFiddleyardMsg := '';
+      Train_SaveTCsClearedStr := '';
+      Train_SaveTCsForReleaseStr := '';
+      Train_SaveTCsOccupiedStr := '';
+      Train_SectionStartTime := 0;
+      Train_Speed10 := 0;
+      Train_Speed20 := 0;
+      Train_Speed30 := 0;
+      Train_Speed40 := 0;
+      Train_Speed50 := 0;
+      Train_Speed60 := 0;
+      Train_Speed70 := 0;
+      Train_Speed80 := 0;
+      Train_Speed90 := 0;
+      Train_Speed100 := 0;
+      Train_Speed110 := 0;
+      Train_Speed120 := 0;
+      FOR I := 1 TO 12 DO
+        Train_SpeedArray[I] := 0;
+
+      Train_SpeedByte := 0;
+      Train_SpeedByteReadIn := False;
+      Train_SpeedSettingsMissing := False;
+      Train_SpeedStepMode := 28; { this is the default - it could be added to the loco database *** }
+      Train_SpeedString := '';
+      Train_StalledMsgWritten := False;
+      Train_TakenOverByUserMsgWritten := False;
+
+      SetLength(Train_TCsAndSignalsNotClearedArray, 0);
+      Train_TCsAndSignalsNotClearedStr := '';
+
+      SetLength(Train_TCsNotClearedArray, 0);
+      Train_TCsNotClearedStr := '';
+
+      SetLength(Train_TCsOccupiedOrClearedArray, 0);
+      Train_TCsOccupiedOrClearedStr := '';
+
+      SetLength(Train_TCsReleasedArray, 0);
+      Train_TCsReleasedStr := '';
+
+      SetLength(Train_TempDraftRouteArray, 0);
+      SetLength(Train_TempLockingArray, 0);
+      Train_TerminatingSpeedReductionMsgWritten := False;
+      SetLength(Train_DiagramsGridRowNums, 0);
+      Train_TotalJourneys := -1;
+      Train_Type := UnknownTrainType;
+      Train_TypeNum := 0;
+      Train_UserDriving := False;
+      Train_UserPowerAdjustment := 0; { used by the user to increase or decrease the train speed where necessary }
+      Train_UserRequiresInstructions := False;
+      Train_UserRequiresInstructionMsg := '';
+      Train_UseTrailingTrackCircuits := False;  { where a train doesn't have lights at both ends, it may need artificial
+                                                  track circuit activation to allow the whole length of the train to be detected }
+      Train_WaitingForHiddenAspectStartTime := 0;
+      Train_WorkingTimetableLastArrivalArea := UnknownArea;
+      Train_WorkingTimetableLastArrivalTime := 0;
+      Train_WorkingTimetableLastEntryNumStr := '';
+    END; {WITH}
+  EXCEPT {TRY}
+    ON E : Exception DO
+      Log('EG InitialiseTrainRecord: ' + E.ClassName + ' error raised, with message: '+ E.Message);
+  END; {TRY}
+END; { InitialiseTrainRecord }
+
 PROCEDURE ReadInLocoDataFromDatabase(VAR OK : Boolean);
 { Read in the loco table data from the MSAccess file - the data is not read in loco chip order, but that does not matter }
 CONST
@@ -101,192 +285,10 @@ VAR
   TestInt : Integer;
   UpLightsTrainRecord : Train;
 
-  PROCEDURE InitialiseTrainRecord(T : Train);
-  { Do the initialisations }
-  VAR
-    I : Integer;
-
-  BEGIN
-    TRY
-      WITH T^ DO BEGIN
-        Train_DiagramFound := False;
-
-        { Set up defaults }
-        Train_Accelerating := False;
-        Train_AccelerationAdjustRange := 0;
-        Train_AccelerationStartTime := 0;
-        Train_AccelerationStr := '';
-        Train_AccelerationTimeInSeconds := 0.0;
-        Train_AccelerationTimeInterval := 0.0;
-        Train_Active := False;
-        Train_ActualNumStr := '';
-        Train_AtCurrentBufferStop := UnknownBufferStop;
-        Train_AtCurrentSignal := UnknownSignal;
-        Train_AtHiddenAspectSignal := UnknownSignal;
-        Train_BeingAdvanced := False;
-        Train_BeingAdvancedTC := UnknownTrackCircuit;
-        Train_CabLightsHaveBeenOn := False;
-        Train_ControlledByProgram := False;
-        Train_ControlledByRDC := False;
-        Train_CurrentArrivalTime := 0;
-        Train_CurrentBufferStop := UnknownBufferStop;
-        Train_CurrentDirection := UnknownDirection;
-        Train_CurrentJourney := 0;
-        Train_CurrentLengthInInches := 0;
-        Train_CurrentLenzSpeed := 0;
-        Train_CurrentRoute := UnknownRoute;
-        Train_CurrentSignal := UnknownSignal;
-        Train_CurrentSourceLocation := UnknownLocation;
-        Train_CurrentSpeedInMPH := MPH0;
-        Train_CurrentStatus := UnknownTrainStatus;
-        Train_CurrentTC := UnknownTrackCircuit;
-        Train_Decelerating := False;
-        Train_Description := '';
-        Train_DesiredLenzSpeed := 0;
-        Train_DesiredSpeedInMPH := MPH0;
-        Train_DistanceToCurrentSignalOrBufferStop := 0.0;
-        Train_DistanceToNextSignalButOneOrBufferStop := 0.0;
-        Train_DistanceToNextSignalOrBufferStop := 0.0;
-        Train_DoubleHeaderLocoChip := UnknownLocoChip;
-        Train_EmergencyRouteing := False;
-        Train_ExtraPowerAdjustment := 0; { used temporarily to increase the train speed where necessary }
-        Train_FirstStationSpecifiedStartTime := 0;
-        Train_FixedLengthInInches := 0;
-        FOR I := 0 TO 12 DO
-          Train_Functions[I] := False;
-
-        Train_Functions0To4Byte := 0;
-        Train_Functions5To12Byte := 0;
-        Train_GradientSpeedAdjustment := 0;
-        Train_GradientSpeedAdjustmentMsgWritten := False;
-        Train_HasCabLights := False;
-        Train_Headcode := '';
-        Train_HomeArea := UnknownArea;
-        FOR I := 1 TO 5 DO
-          Train_InitialTrackCircuits[I] := UnknownTrackCircuit;
-
-        Train_InLightsOnTime := False; { train inactive but for lights being on }
-        FOR I := 1 TO 9 DO
-          Train_RouteCreationHeldMsgWrittenArray[I] := False;
-
-        Train_RouteCreationPlatformHeldStr := '';
-        SetLength(Train_JourneysArray, 0);
-        Train_LastLengthInInches := 0;
-        Train_LastLocation := UnknownLocation;
-        Train_LastMissingTC := UnknownTrackCircuit;
-        Train_LastRouteLockedMsgStr := '';
-        Train_LastSignal := UnknownSignal;
-        Train_LastTC := UnknownTrackCircuit;
-        Train_LightingChipDown := UnknownLocoChip;
-        Train_LightingChipDownAddress := NIL;
-        Train_LightingChipUp := UnknownLocoChip;
-        Train_LightingChipUpAddress := NIL;
-        Train_LightingChipRecordForChip := UnknownLocoChip;
-        Train_LightsMsg := '';
-        Train_LightsOn := False;
-        Train_LightsOnTime := 0;
-        Train_LightsRemainOnWhenJourneysComplete := True;
-        Train_LightsType := NoLights;
-        Train_LocatedAtStartup := True;
-        SetLength(Train_Locations, 0);
-        Train_LocoChip := UnknownLocoChip;
-        Train_LocoChipStr := '';
-        Train_LocoClassStr := '';
-        Train_LocoName := '';
-        Train_LocoTypeStr := '';
-        Train_MaximumSpeedInMPH := MPH0;
-        Train_MinimumAccelerationTimeInSeconds := 0; { needed as we only calculate it once when we enter a trackcircuit }
-        Train_MissingMessage := False;
-        Train_MissingNum := 0; { set if train missing, and used to restart train if found }
-        Train_NextTC := UnknownTrackCircuit;
-        Train_NextButOneTC := UnknownTrackCircuit;
-        Train_NotInPlaceMsgWritten := False;
-        Train_NotLocatedAtStartupMsgWritten := False;
-        Train_NumberOfCarriages := 0;
-        Train_PossibleRerouteTime := 0;
-        Train_PreviouslyControlledByProgram := False;
-        Train_PreviousStatus := ReadyForCreation;
-        Train_PreviousTC := UnknownTrackCircuit;
-        Train_Reversing := False;
-        Train_ReversingDelayInSeconds := 0;
-        Train_ReversingStartTime := 0;
-        Train_ReversingWaitStarted := False;
-        Train_RouteCheckedTime := 0;
-        Train_RouteCreationHeldJourney := UnknownJourney;
-        Train_RouteCreationHoldMsg := '';
-        Train_RouteCreationHoldNum := 0;
-        Train_RouteCreationReleasedMsg := '';
-        Train_RouteingHeldAtSignal := UnknownSignal;
-        Train_SaveCurrentTC := UnknownTrackCircuit;
-        Train_SaveDesiredLenzSpeed := 0;
-        Train_SavedLocation := UnknownLocation;
-        Train_SavedRoute := UnknownRoute;
-        Train_SaveSpeedInFiddleyardMsg := '';
-        Train_SaveTCsClearedStr := '';
-        Train_SaveTCsForReleaseStr := '';
-        Train_SaveTCsOccupiedStr := '';
-        Train_SectionStartTime := 0;
-        Train_Speed10 := 0;
-        Train_Speed20 := 0;
-        Train_Speed30 := 0;
-        Train_Speed40 := 0;
-        Train_Speed50 := 0;
-        Train_Speed60 := 0;
-        Train_Speed70 := 0;
-        Train_Speed80 := 0;
-        Train_Speed90 := 0;
-        Train_Speed100 := 0;
-        Train_Speed110 := 0;
-        Train_Speed120 := 0;
-        FOR I := 1 TO 12 DO
-          Train_SpeedArray[I] := 0;
-
-        Train_SpeedByte := 0;
-        Train_SpeedByteReadIn := False;
-        Train_SpeedSettingsMissing := False;
-        Train_SpeedStepMode := 28; { this is the default - it could be added to the loco database *** }
-        Train_SpeedString := '';
-        Train_StalledMsgWritten := False;
-        Train_TakenOverByUserMsgWritten := False;
-
-        SetLength(Train_TCsAndSignalsNotClearedArray, 0);
-        Train_TCsAndSignalsNotClearedStr := '';
-
-        SetLength(Train_TCsNotClearedArray, 0);
-        Train_TCsNotClearedStr := '';
-
-        SetLength(Train_TCsOccupiedOrClearedArray, 0);
-        Train_TCsOccupiedOrClearedStr := '';
-
-        SetLength(Train_TCsReleasedArray, 0);
-        Train_TCsReleasedStr := '';
-
-        SetLength(Train_TempDraftRouteArray, 0);
-        SetLength(Train_TempLockingArray, 0);
-        Train_TerminatingSpeedReductionMsgWritten := False;
-        SetLength(Train_DiagramsGridRowNums, 0);
-        Train_TotalJourneys := -1;
-        Train_Type := UnknownTrainType;
-        Train_TypeNum := 0;
-        Train_UserDriving := False;
-        Train_UserPowerAdjustment := 0; { used by the user to increase or decrease the train speed where necessary }
-        Train_UserRequiresInstructions := False;
-        Train_UserRequiresInstructionMsg := '';
-        Train_UseTrailingTrackCircuits := False;  { where a train doesn't have lights at both ends, it may need artificial
-                                                    track circuit activation to allow the whole length of the train to be detected }
-        Train_WaitingForHiddenAspectStartTime := 0;
-        Train_WorkingTimetableLastArrivalArea := UnknownArea;
-        Train_WorkingTimetableLastArrivalTime := 0;
-        Train_WorkingTimetableLastEntryNumStr := '';
-      END; {WITH}
-    EXCEPT {TRY}
-      ON E : Exception DO
-        Log('EG InitialiseTrainRecord: ' + E.ClassName + ' error raised, with message: '+ E.Message);
-    END; {TRY}
-  END; { InitialiseTrainRecord }
-
 BEGIN
   TRY
+    OK := False;
+
     WITH LocoUtilsWindow DO BEGIN
       Log('L INITIALISING LOCO DATA {BLANKLINEBEFORE}');
       SetLength(TempLocations, 0);
