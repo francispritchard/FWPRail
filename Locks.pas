@@ -1017,7 +1017,7 @@ PROCEDURE PullSignalMainProcedure(LocoChip, S : Integer; NewIndicatorState : Ind
         SignalPutativeStateStr := 'off';
 
       IF NOT Signals[S].Signal_FailMsgWritten THEN
-        WriteStringArrayToLog(NoLocoChip, 'S', 'LA for S=' + IntToStr(S) + ': ', LockList, 2, 190);
+        WriteStringArrayToLog(LocoChip, 'S', 'LA for S=' + IntToStr(S) + ': ', LockList, 2, 190);
 
       LockListPos := 0;
       WHILE OK
