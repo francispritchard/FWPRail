@@ -4115,11 +4115,20 @@ BEGIN
           IF DirectionsArray[0] <> UnknownDirection THEN
             Train_CurrentDirection := DirectionsArray[0];
         END ELSE BEGIN
-          { If the loco can only go in one direction (perhaps because it's hauling coaches or wagons), that's the direction we have to go in }
+          { If the loco can only go in one direction (perhaps because it's hauling coaches or wagons), inform us }
           IF Train_FixedDirection <> UnknownDirection THEN BEGIN
-            FOR I := 0 TO High(DirectionsArray) DO
-              DirectionsArray[I] := Train_FixedDirection;
-            Log(Train_LocoChipStr + ' D Inserting fixed direction=' + DirectionToStr(DirectionsArray[0]) + ' to all journeys');
+            DirectionProblem := False;
+            I := 0;
+            WHILE (I <= High(DirectionsArray)) AND NOT DirectionProblem DO BEGIN
+              { but if it's counter to the stated direction in the diagram, note the fact }
+              IF DirectionsArray[I] <> Train_FixedDirection THEN
+                DirectionProblem := True;
+              Inc(I);
+            END; {WHILE}
+
+            IF DirectionProblem THEN
+              DiagramsError('the specified direction ' + DirectionToStr(DirectionsArray[I])
+                            + ' is contrary to the fixed direction ' + DirectionToStr(Train_FixedDirection));
           END ELSE BEGIN
             FOR I := 0 TO JourneyCount DO BEGIN
               IF DirectionsArray[I] = UnknownDirection THEN BEGIN
