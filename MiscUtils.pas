@@ -6687,7 +6687,6 @@ CONST
   TrainListOnly = True;
 
 VAR
-//  ErrorMsg : String;
   OK : Boolean;
   T : Train;
   WindowsTaskBar : HWND;
@@ -6697,13 +6696,13 @@ BEGIN { ShutDownProgram }
     { Write out the locations of the locos so we know where they are when we start up next time (locations are the last known location, added when a loco moves, or is
       purged)
     }
-    Log('A Shut down initiated');
+    Log('A! Shut down initiated');
     ProgramShuttingDown := True;
 
     { Close the station monitor web page if it exists }
     CloseStationMonitorsWebPage(OK);
     IF OK THEN
-      Log('A Station Monitors web poage closed');
+      Log('A Station Monitors web page closed');
 
     { Restore the Windows taskbar if we're in full screen mode and it's been disabled }
     IF WindowsTaskbarDisabled THEN BEGIN
