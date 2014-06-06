@@ -316,7 +316,7 @@ BEGIN
 END; { PointIsLocked-1 }
 
 FUNCTION PointIsLocked{2}(P : Integer; OUT LockingMsg : String) : Boolean; Overload;
-{ Returns true if the point is locked by whatever means }
+{ Returns true if the point is locked by whatever means. This function is needed to stop PointIsLocked calling itself recursively infinitely }
 CONST
   CheckCrossOverPoint = True;
 
