@@ -944,7 +944,7 @@ VAR
 BEGIN
   TRY
     WITH LocoStringGrid DO BEGIN
-      IF Acol > 0 THEN BEGIN
+      IF ACol > 0 THEN BEGIN
         CellLeftMargin := (ColWidths[ACol] - Canvas.TextWidth(Cells[ACol, ARow])) DIV 2;
         CellTopMargin := (RowHeights[ARow] - Canvas.TextHeight(Cells[ACol, ARow])) DIV 2;
 
@@ -1104,7 +1104,7 @@ BEGIN
     WITH LocoUtilsWindow DO BEGIN
       RowNum := 0;
       LocoStringGrid.RowCount := 2;
-      LocoStringGrid.ColCount := 9;
+      LocoStringGrid.ColCount := 10;
 
       ColNum := 0;
       AddItemToGrid('', ColNum, RowNum);
@@ -1133,6 +1133,10 @@ BEGIN
 
       Inc(ColNum);
       AddItemToGrid('Lighting Chip Down', ColNum, RowNum);
+
+      Inc(ColNum);
+      { note: these "notes" are automatically generated here and not taken from the database }
+      AddItemToGrid('To note', ColNum, RowNum);
 
       T := TrainList;
       WHILE T <> NIL DO BEGIN
@@ -1186,6 +1190,13 @@ BEGIN
                                         '[' + IntToStr(Train_LocoChip) + ']',
                                         IntToStr(Train_LightingChipDown))),
                           ColNum, RowNum);
+
+            Inc(ColNum);
+            IF Train_Active AND Train_SpeedSettingsMissing THEN
+              AddItemToGrid('active - speed settings missing', ColNum, RowNum)
+            ELSE
+              IF Train_Active THEN
+                AddItemToGrid('active', ColNum, RowNum);
           END;
         END; {WITH}
         T := T^.Train_NextRecord;
