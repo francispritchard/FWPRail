@@ -4168,9 +4168,9 @@ BEGIN { KeyPressedDown }
               END;
             CtrlShift: {Enter}
               BEGIN
-                HelpMsg := 'Set System Online';
-                IF NOT HelpRequired THEN
-                  SetSystemOnline;
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
               END;
             Shift: {Enter}
               BEGIN
@@ -4185,10 +4185,18 @@ BEGIN { KeyPressedDown }
               END;
             Ctrl: {Enter}
               BEGIN
-                HelpMsg := 'Set System Offline';
+                HelpMsg := 'Set System Online/Offline';
                 IF NOT HelpRequired THEN BEGIN
-                  IF SystemOnline THEN
-                    SetSystemOffline('');
+                  IF SystemOnline THEN BEGIN
+                    Log('XG Setting system offline');
+                    SetSystemOffline('')
+                  END ELSE BEGIN
+                    Log('XG Attempting to set system online...');
+                    IF SetSystemOnline THEN
+                      Log('XG Attempt to set system online succeeded')
+                    ELSE
+                      Log('XG Attempt to set system online failed');
+                  END;
                 END;
               END;
             Alt: {Enter}
