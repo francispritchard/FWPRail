@@ -2120,7 +2120,8 @@ VAR
   JourneyFound : Boolean;
   T : Train;
   SaveTrainBeingAdvancedTC : Integer;
-  StrToTest : String;
+  TempCellStr1 : String;
+  TempCellStr2 : String;
 
   FUNCTION FindTrainRecordFromColumnOne(TestY : Integer) : Train;
   { Find the loco by looking at the first column, stepping back through the grid if necessary }
@@ -2393,15 +2394,23 @@ BEGIN
                     WHILE (Journey < Train_TotalJourneys)
                     AND NOT JourneyFound
                     DO BEGIN
-                      IF (ColsAndRows.X - 2 > -1)
-                      AND (DiagramsWindowGrid.Cells[ColsAndRows.X - 2, ColsAndRows.Y] = TimeToHMStr(Train_JourneysArray[Journey].TrainJourney_CurrentDepartureTime))
-                      THEN BEGIN
-                        StrToTest := DiagramsWindowGrid.Cells[ColsAndRows.X, ColsAndRows.Y];
-                        IF Copy(StrToTest, 1, 3) = BoldStyleStr THEN
-                          { remove the Bold character if any }
-                          StrToTest := Copy(StrToTest, 4);
+                      { We need to use TempCellStr1 here as the cell may contain a <i> which interferes with the comparison }
+                      TempCellStr1 := DiagramsWindowGrid.Cells[ColsAndRows.X - 2, ColsAndRows.Y];
 
-                        IF StrToTest = LocationToStr(Train_JourneysArray[Journey].TrainJourney_EndLocation, ShortStringType) THEN BEGIN
+                      TempCellStr1 := ReplaceStr(TempCellStr1, BoldStyleStr, '');
+                      TempCellStr1 := ReplaceStr(TempCellStr1, ItalicStyleStr, '');
+                      TempCellStr1 := ReplaceStr(TempCellStr1, BoldAndItalicStyleStr, '');
+
+                      IF (ColsAndRows.X - 2 > -1)
+                      AND (TempCellStr1 = TimeToHMStr(Train_JourneysArray[Journey].TrainJourney_CurrentDepartureTime))
+                      THEN BEGIN
+                        TempCellStr2 := DiagramsWindowGrid.Cells[ColsAndRows.X, ColsAndRows.Y];
+
+                        TempCellStr2 := ReplaceStr(TempCellStr2, BoldStyleStr, '');
+                        TempCellStr2 := ReplaceStr(TempCellStr2, ItalicStyleStr, '');
+                        TempCellStr2 := ReplaceStr(TempCellStr2, BoldAndItalicStyleStr, '');
+
+                        IF TempCellStr2 = LocationToStr(Train_JourneysArray[Journey].TrainJourney_EndLocation, ShortStringType) THEN BEGIN
                           JourneyFound := True;
                           IF T^.Train_JourneysArray[Journey].TrainJourney_StoppingOnArrival THEN BEGIN
                             Log(Train_LocoChipStr + ' D J=' + IntToStr(Journey) + ': changed by user to not stopping on arrival');
@@ -3177,6 +3186,7 @@ BEGIN
                                                            5, 190, 'SR=');
                 WriteStringArrayToLog(Train_LocoChip, 'R', StringOfChar(' ', 5) + ': to ',
                                                            JourneyRouteArray,
+                                                           5, 190, 'SR=');
                 SetLength(TrainJourney_RouteArray, 0);
                 AppendStringArray2ToStringArray1(TrainJourney_RouteArray, JourneyRouteArray);
               END;
