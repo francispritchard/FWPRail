@@ -2334,7 +2334,7 @@ BEGIN { SelectMostSuitableAdditionalTrain }
 
 END; { SelectMostSuitableAdditionalTrain }
 
-PROCEDURE SetUpTrainDiagramsRecord(WorkingTimetableRec : WorkingTimetableRecType;OUT OK : Boolean);
+PROCEDURE SetUpTrainDiagramsRecordFromWorkingTimetable(WorkingTimetableRec : WorkingTimetableRecType;OUT OK : Boolean);
 { Now create the diagrams record }
 VAR
   DirectionsArray : DirectionArrayType;
@@ -2346,10 +2346,11 @@ VAR
   LightsOnTime : TDateTime;
   LightsRemainOn : Boolean;
   NotForPublicUseArray : BooleanArrayType;
+  PullingDapolCleaningWagon : Boolean;
   StartLocationStr : String;
   StartOfRepeatJourney : Boolean;
   StoppingArray : BooleanArrayType;
-   T : Train;
+  T : Train;
   TrainNonMoving : Boolean;
   TypeOfTrainNum : Integer;
   UserDriving : Boolean;
@@ -2395,6 +2396,7 @@ BEGIN
         ELSE
           AppendToBooleanArray(NotForPublicUseArray, False);
 
+        PullingDapolCleaningWagon := T^.Train_PullingDapolCleaningWagon;
         LengthOfTrainInCarriages := T^.Train_CurrentLengthInInches DIV 12;
         StartLocationStr := AreaToStr(WorkingTimetable_FirstStationArea);
         TypeOfTrainNum := WorkingTimetable_TrainTypeNum;
@@ -2422,9 +2424,9 @@ BEGIN
         END;
         AppendToStringArray(EndLocationsStrArray, AreaToStr(WorkingTimetable_LastStationArea));
 
-        CreateTrainDiagramsRecord(WorkingTimetable_LocoChip, DoubleHeaderLocoChip, JourneyCount, UserSpecifiedDepartureTimesArray, LightsOnTime, EndLocationsStrArray,
-                                  DirectionsArray, LightsRemainOn, TrainNonMoving, NotForPublicUseArray, StartLocationStr, StoppingArray, LengthOfTrainInCarriages,
-                                  TypeOfTrainNum, UserDriving, UserRequiresInstructions, StartOfRepeatJourney);
+        UpdateTrainRecordForDiagram(WorkingTimetable_LocoChip, DoubleHeaderLocoChip, JourneyCount, UserSpecifiedDepartureTimesArray, LightsOnTime, EndLocationsStrArray,
+                                    DirectionsArray, LightsRemainOn, TrainNonMoving, NotForPublicUseArray, StartLocationStr, StoppingArray, LengthOfTrainInCarriages,
+                                    TypeOfTrainNum, UserDriving, UserRequiresInstructions, StartOfRepeatJourney, PullingDapolCleaningWagon);
 
         Log('W W=' + WorkingTimetable_EntryNumStr + ': ' +  LocoChipToStr(WorkingTimetable_LocoChip)
                + ' ' + StartLocationStr + ' to ' + EndLocationsStrArray[High(EndLocationsStrArray)]
@@ -2443,7 +2445,7 @@ BEGIN
              + 'Problem with creating entry - entry cancelled');
     END;
   END; {WITH}
-END; { SetUpTrainDiagramsRecord }
+END; { SetUpTrainDiagramsRecordFromWorkingTimetable }
 
 PROCEDURE ProcessWorkingTimetable;
 { Convert the working timetable to train diagrams by locating and allocating trains }
@@ -2512,7 +2514,7 @@ BEGIN { ProcessWorkingTimetable }
             END;
 
           { Now create the diagrams record }
-          SetUpTrainDiagramsRecord(WorkingTimetableRecArray[WorkingTimetableCount], OK);
+          SetUpTrainDiagramsRecordFromWorkingTimetable(WorkingTimetableRecArray[WorkingTimetableCount], OK);
         END;
       END; {WITH}
 
