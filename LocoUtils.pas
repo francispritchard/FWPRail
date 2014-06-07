@@ -180,6 +180,7 @@ BEGIN
       Train_PreviouslyControlledByProgram := False;
       Train_PreviousStatus := ReadyForCreation;
       Train_PreviousTC := UnknownTrackCircuit;
+      Train_PullingDapolCleaningWagon := False;
       Train_Reversing := False;
       Train_ReversingDelayInSeconds := 0;
       Train_ReversingStartTime := 0;
@@ -506,12 +507,23 @@ BEGIN
                 Inc(LightSettingCount);
               END;
 
+                IF ErrorMsg = '' THEN BEGIN
+                  Train_IsDapolCleaningWagon := False;
+                  IF FieldByName('DapolCleaningWagonWithChip').AsBoolean THEN BEGIN
+                    IF DapolCleaningWagonLocoChip <> UnknownLocoChip THEN
+                      { there can't be more than one or we will get terribly confused }
+                      ErrorMsg := 'Error in database - cannot have two Dapol cleaning wagons - we already have ' + LocoChipToStr(DapolCleaningWagonLocoChip)
+                    ELSE BEGIN
+                      Train_IsDapolCleaningWagon := True;
+                      DapolCleaningWagonLocoChip := Train_LocoChip;
+                    END;
+                  END;
+                END;
               IF FieldByName('CustomLightingKit').AsBoolean THEN BEGIN
                 Train_LightsType := CustomLightingkit;
                 Inc(LightSettingCount);
               END;
 
-              IF FieldByName('LightsFromTwoChips').AsBoolean THEN BEGIN
                 Train_LightsType := LightsOperatedByTwoChips;
                 TempStr := FieldByName('LightingChipUp').AsString;
                 IF (TempStr = '') OR (TempStr = '0') THEN

@@ -99,13 +99,6 @@ PROCEDURE CreateJourney(VAR T : Train; Journey : Integer; NewJourney: Boolean; S
                         OUT ErrorMsg : String; OUT LinesNotAvailableStr : String; OUT OK : Boolean);
 { Given various parameters, set up each individual journey within the overall train record; returns ok if the journey route is clear }
 
-FUNCTION CreateTrainDiagramsRecord(LocoChip, DoubleHeaderLocoChip, JourneyCount : Integer; UserSpecifiedDepartureTimesArray : DateTimeArrayType; LightsOnTime : TDateTime;
-                                   EndLocationsStrArray : StringArrayType; DirectionsArray : DirectionArrayType; LightsRemainOn : Boolean; TrainNonMoving : Boolean;
-                                   NotForPublicUseArray : BooleanArrayType; StartLocationStr : String; StoppingArray : BooleanArrayType; LengthOfTrainInCarriages : Integer;
-                                   TypeOfTrainNum : Integer; UserDriving, UserRequiresInstructions, StartOfRepeatJourney : Boolean)
-                                   : Train;
-{ Creates a new train record for the diagram - NB the array parameters being passed are open array parameters and therefore start at zero }
-
 FUNCTION DescribeJourney(T : Train; Journey : Integer) : String;
 { Given various parameters, set up each individual journey within the overall train record }
 
@@ -157,6 +150,14 @@ PROCEDURE SuspendTrain(T : Train; User : Boolean);
 
 FUNCTION TrainFoundInDiagrams(LocoChip : Integer) : DiagramsEntryType;
 { Search the diagrams for a particular loco and return where it is on the layout and in the diagram window }
+
+FUNCTION UpdateTrainRecordForDiagram(LocoChip, DoubleHeaderLocoChip, JourneyCount : Integer; UserSpecifiedDepartureTimesArray : DateTimeArrayType; LightsOnTime : TDateTime;
+                                     EndLocationsStrArray : StringArrayType; DirectionsArray : DirectionArrayType; LightsRemainOn : Boolean; TrainNonMoving : Boolean;
+                                     NotForPublicUseArray : BooleanArrayType; StartLocationStr : String; StoppingArray : BooleanArrayType;
+                                     LengthOfTrainInCarriages : Integer; TypeOfTrainNum : Integer;
+                                     UserDriving, UserRequiresInstructions, StartOfRepeatJourney, PullingDapolCleaningWagon : Boolean)
+                                     : Train;
+{ Updates a train record to add to the diagram - NB the array parameters being passed are open array parameters and therefore start at zero }
 
 PROCEDURE WriteTrainJourneysRecordToLogFile(T : Train; FullRecord : Boolean);
 { Writes the journey record out to the log }
@@ -1601,8 +1602,10 @@ BEGIN
                 ELSE
                   SetUpDiagramsGridCell(T, HeadcodeCol, TempGridRowCount, IntToStr(Train_CurrentLengthInInches), NormalStyle);
 
-                SetUpDiagramsGridCell(T, LocoClassCol, TempGridRowCount, DescribeClass(Train_LocoClassStr), NormalStyle);
-                SetUpDiagramsGridCell(T, LocoClassCol, TempGridRowCount, DescribeClass(Train_LocoClassStr), NormalStyle);
+                IF Train_PullingDapolCleaningWagon THEN
+                  SetUpDiagramsGridCell(T, LocoClassCol, TempGridRowCount, DescribeClass(Train_LocoClassStr) + ' + C', NormalStyle)
+                ELSE
+                  SetUpDiagramsGridCell(T, LocoClassCol, TempGridRowCount, DescribeClass(Train_LocoClassStr), NormalStyle);
 
                 IF Train_Locations[0] <> UnknownLocation THEN BEGIN
                   IF Length(Train_JourneysArray) > 0 THEN BEGIN
@@ -3554,12 +3557,13 @@ BEGIN
   END;
 END; { GetStationNameFromArea }
 
-FUNCTION CreateTrainDiagramsRecord(LocoChip, DoubleHeaderLocoChip, JourneyCount : Integer; UserSpecifiedDepartureTimesArray : DateTimeArrayType; LightsOnTime : TDateTime;
-                                   EndLocationsStrArray : StringArrayType; DirectionsArray : DirectionArrayType; LightsRemainOn : Boolean; TrainNonMoving : Boolean;
-                                   NotForPublicUseArray : BooleanArrayType; StartLocationStr : String; StoppingArray : BooleanArrayType; LengthOfTrainInCarriages : Integer;
-                                   TypeOfTrainNum : Integer; UserDriving, UserRequiresInstructions, StartOfRepeatJourney : Boolean)
-                                   : Train;
-{ Creates a new train record for the diagram - NB the array parameters being passed are open array parameters and therefore start at zero }
+FUNCTION UpdateTrainRecordForDiagram(LocoChip, DoubleHeaderLocoChip, JourneyCount : Integer; UserSpecifiedDepartureTimesArray : DateTimeArrayType; LightsOnTime : TDateTime;
+                                     EndLocationsStrArray : StringArrayType; DirectionsArray : DirectionArrayType; LightsRemainOn : Boolean; TrainNonMoving : Boolean;
+                                     NotForPublicUseArray : BooleanArrayType; StartLocationStr : String; StoppingArray : BooleanArrayType;
+                                     LengthOfTrainInCarriages : Integer; TypeOfTrainNum : Integer;
+                                     UserDriving, UserRequiresInstructions, StartOfRepeatJourney, PullingDapolCleaningWagon : Boolean)
+                                     : Train;
+{ Updates a train record to add to the diagram - NB the array parameters being passed are open array parameters and therefore start at zero }
 CONST
   DescribeFullTrainList = True;
   DiagramsLoading = True;
@@ -3570,6 +3574,7 @@ CONST
   UseEmergencyRouteing = True;
 
 VAR
+  DapolCleaningWagonFound : Boolean;
   DebugStr : String;
   DepartureTimesArray : DateTimeArrayType;
   DirectionFound : Boolean;
@@ -3749,6 +3754,15 @@ BEGIN
       Train_TypeNum := TypeOfTrainNum;
       Train_Type := TrainTypeNumToTrainType(Train_TypeNum);
 
+      IF PullingDapolCleaningWagon THEN BEGIN
+        IF DapolCleaningWagonLocoChip = UnknownLocoChip THEN
+          Log(Train_LocoChipStr + ' XG cannot be noted as pulling Dapol Cleaning wagon as there is no locochip for it')
+        ELSE BEGIN
+          Train_PullingDapolCleaningWagon := True;
+          Log(Train_LocoChipStr + ' L pulling Dapol Cleaning wagon');
+        END;
+      END;
+
       { Find out where this loco is in the loco data table - the routine returns -1 if the loco is not in the loco table }
       IF (Train_CurrentStatus = NonMoving)
       AND (LocoChip = UnknownLocoChip)
@@ -3845,7 +3859,7 @@ BEGIN
                         Train_LocatedAtStartup := True;
                         ErrorMsg := '';
                         { Note: InvalidateScreen needed here as InputQuery leaves the screen sized as a small rectangle }
-                        InvalidateScreen(UnitRef, 'CreateTrainDiagramsRecord');
+                        InvalidateScreen(UnitRef, 'UpdateTrainRecordForDiagram');
                       END;
                     END;
                   END;
@@ -3883,7 +3897,7 @@ BEGIN
                         ChangeTrainStatus(T, Cancelled);
                       END;
                     mrAbort:
-                      ShutDownProgram(UnitRef, 'CreateTrainDiagramsRecord')
+                      ShutDownProgram(UnitRef, 'UpdateTrainRecordForDiagram')
                   END; {CASE}
                 END;
               END;
@@ -4598,7 +4612,7 @@ BEGIN
                                     + 'Do you wish to start the program and cancel the train or exit the program?',
                                     StopTimer, mtError, [mbYes, mbNo], ['&Start', '&Exit'], mbYes) = mrNo
       THEN
-        ShutDownProgram(UnitRef, 'CreateTrainDiagramsRecord')
+        ShutDownProgram(UnitRef, 'UpdateTrainRecordForDiagram')
       ELSE
         IF T <> NIL THEN
           CancelTrain(T, NOT ByUser, TrainExists);
@@ -4607,7 +4621,7 @@ BEGIN
 
   { And return T for those subroutines that want it }
   Result := T;
-END; { CreateTrainDiagramsRecord }
+END; { UpdateTrainRecordForDiagram }
 
 PROCEDURE ReadInDiagramsFromDatabase(OUT ErrorMsg : String; OUT DiagramsMissing, DiagramsOK : Boolean);
 { Read the diagrams in from the supplied database }
@@ -4650,6 +4664,7 @@ VAR
   T_StoppingArray : BooleanArrayType;
   T_TrainActive : Boolean;
   T_TrainLengthInCarriages : Integer;
+  T_TrainPullingDapolCleaningWagon : Boolean;
   T_TrainTypeNum : Integer;
   T_UserDriving : Boolean;
   T_UserRequiresInstructions : Boolean;
@@ -4721,6 +4736,7 @@ BEGIN
           T_TrainActive := FieldByName('TrainActive').AsBoolean;
           T_NonMoving := FieldByName('NonMoving').AsBoolean;
           T_LocoChip := FieldByName('LocoChip').AsInteger;
+          T_TrainPullingDapolCleaningWagon := False;
 
           IF T_TrainActive
           AND T_NonMoving
@@ -4769,6 +4785,10 @@ BEGIN
             END;
 
             IF ErrorMsg = '' THEN BEGIN
+              { Is the loco pulling a Dapol cleaning wagon? }
+              IF FieldByName('PullingDapolCleaningWagon').AsBoolean THEN
+                T_TrainPullingDapolCleaningWagon := True;
+
               IF FieldByName('TrainLength').AsString = '' THEN
                 T_TrainLengthInCarriages := 0
               ELSE
@@ -4875,7 +4895,7 @@ BEGIN
 
             IF NOT OmitTrain THEN BEGIN
               { If the final journey is just to move the train to a stabling point, and there are repeating journeys, only submit the final journey to
-                CreateTrainDiagramsRecord when the final repeat is requested.
+                UpdateTrainRecordForDiagram when the final repeat is requested.
               }
               IF (JourneyCount > 1)
               AND T_NotForPublicUseArray[High(T_NotForPublicUseArray)]
@@ -4896,9 +4916,10 @@ BEGIN
               END;
 
               { Now process it to create a train - or a succession, if they are repeats }
-              T := CreateTrainDiagramsRecord(T_LocoChip, T_DoubleHeaderLocoChip, JourneyCount, T_DepartureTimesArray, T_LightsOnTime, T_DestinationAreaOrLocationsStrArray,
-                                             T_DirectionsArray, T_LightsRemainOn, T_NonMoving, T_NotForPublicUseArray, T_StartAreaOrLocationStr, T_StoppingArray,
-                                             T_TrainLengthInCarriages, T_TrainTypeNum, T_UserDriving, T_UserRequiresInstructions, NOT StartOfRepeatJourney);
+              T := UpdateTrainRecordForDiagram(T_LocoChip, T_DoubleHeaderLocoChip, JourneyCount, T_DepartureTimesArray, T_LightsOnTime, T_DestinationAreaOrLocationsStrArray,
+                                               T_DirectionsArray, T_LightsRemainOn, T_NonMoving, T_NotForPublicUseArray, T_StartAreaOrLocationStr, T_StoppingArray,
+                                               T_TrainLengthInCarriages, T_TrainTypeNum, T_UserDriving, T_UserRequiresInstructions, NOT StartOfRepeatJourney,
+                                               T_TrainPullingDapolCleaningWagon);
 
               IF NOT T_NonMoving
               AND (T_RepeatUntilTime <> 0)
@@ -4975,10 +4996,10 @@ BEGIN
                     FOR I := 0 TO High(T_DepartureTimesArray) DO
                       T_DepartureTimesArray[I] := IncMinute(T_DepartureTimesArray[I], T_RepeatFrequencyInMinutes);
 
-                    T := CreateTrainDiagramsRecord(T_LocoChip, T_DoubleHeaderLocoChip, JourneyCount, T_DepartureTimesArray, T_LightsOnTime,
-                                                   T_DestinationAreaOrLocationsStrArray, T_DirectionsArray, T_LightsRemainOn, T_NonMoving, T_NotForPublicUseArray,
-                                                   T_StartAreaOrLocationStr, T_StoppingArray, T_TrainLengthInCarriages, T_TrainTypeNum, T_UserDriving,
-                                                   T_UserRequiresInstructions, StartOfRepeatJourney);
+                    T := UpdateTrainRecordForDiagram(T_LocoChip, T_DoubleHeaderLocoChip, JourneyCount, T_DepartureTimesArray, T_LightsOnTime,
+                                                     T_DestinationAreaOrLocationsStrArray, T_DirectionsArray, T_LightsRemainOn, T_NonMoving, T_NotForPublicUseArray,
+                                                     T_StartAreaOrLocationStr, T_StoppingArray, T_TrainLengthInCarriages, T_TrainTypeNum, T_UserDriving,
+                                                     T_UserRequiresInstructions, StartOfRepeatJourney, T_TrainPullingDapolCleaningWagon);
                   END; {WHILE}
 
                   { And if there's a stored journey, add it now }
@@ -5000,10 +5021,10 @@ BEGIN
 
                     SetLength(T_DirectionsArray, 0);
                     AppendToDirectionArray(T_DirectionsArray, SaveLastJourneyDirection);
-                    T := CreateTrainDiagramsRecord(T_LocoChip, T_DoubleHeaderLocoChip, JourneyCount, T_DepartureTimesArray, T_LightsOnTime,
-                                                   T_DestinationAreaOrLocationsStrArray, T_DirectionsArray, T_LightsRemainOn, T_NonMoving, T_NotForPublicUseArray,
-                                                   T_StartAreaOrLocationStr, T_StoppingArray, T_TrainLengthInCarriages, T_TrainTypeNum, T_UserDriving,
-                                                   T_UserRequiresInstructions, NOT StartOfRepeatJourney);
+                    T := UpdateTrainRecordForDiagram(T_LocoChip, T_DoubleHeaderLocoChip, JourneyCount, T_DepartureTimesArray, T_LightsOnTime,
+                                                     T_DestinationAreaOrLocationsStrArray, T_DirectionsArray, T_LightsRemainOn, T_NonMoving, T_NotForPublicUseArray,
+                                                     T_StartAreaOrLocationStr, T_StoppingArray, T_TrainLengthInCarriages, T_TrainTypeNum, T_UserDriving,
+                                                     T_UserRequiresInstructions, NOT StartOfRepeatJourney, T_TrainPullingDapolCleaningWagon);
                   END;
                 END;
               END;

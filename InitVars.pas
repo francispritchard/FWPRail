@@ -829,6 +829,7 @@ TYPE
     Train_HomeArea : Integer;
     Train_InitialTrackCircuits : ARRAY [1..5] OF Integer;
     Train_InLightsOnTime : Boolean; { train inactive but for lights being on }
+    Train_IsDapolCleaningWagon : Boolean;
     Train_JourneysArray : TrainJourneyRecArrayType;
     Train_LastLengthInInches : Integer;
     Train_LastLocation : Integer;
@@ -863,6 +864,7 @@ TYPE
     Train_NotLocatedAtStartupMsgWritten : Boolean;
     Train_PossibleRerouteTime : TDateTime;
     Train_PreviouslyControlledByProgram : Boolean;
+    Train_PullingDapolCleaningWagon : Boolean;
     Train_PreviousStatus : TrainStatusType;
     Train_PreviousTC : Integer;
     Train_Reversing : Boolean;
@@ -1062,6 +1064,7 @@ VAR
   BreakPointRequiredInMakeSoundRoutine : Boolean = False;
   BufferStops : ARRAY OF BufferStopRec;
   CrossHairCursor : TCursor;
+  DapolCleaningWagonLocoChip : Integer = 0;
   DayTimeSetByUser : Boolean = False;
   DebuggingMode : Boolean = False;
   DesiredLenzConnection : LenzConnectionType = NoConnection;
