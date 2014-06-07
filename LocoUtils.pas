@@ -246,8 +246,8 @@ BEGIN
       Train_UserPowerAdjustment := 0; { used by the user to increase or decrease the train speed where necessary }
       Train_UserRequiresInstructions := False;
       Train_UserRequiresInstructionMsg := '';
-      Train_UseTrailingTrackCircuits := False;  { where a train doesn't have lights at both ends, it may need artificial
-                                                  track circuit activation to allow the whole length of the train to be detected }
+      Train_UseTrailingTrackCircuits := False; { where a train doesn't have lights at both ends, it may need artificial track circuit activation to allow the whole length
+                                                 of the train to be detected }
       Train_WaitingForHiddenAspectStartTime := 0;
       Train_WorkingTimetableLastArrivalArea := UnknownArea;
       Train_WorkingTimetableLastArrivalTime := 0;
@@ -270,7 +270,7 @@ VAR
   ElementPos : Integer;
   ErrorMsg : String;
   I : Integer;
-  InputErrorMsg : string;
+  InputErrorMsg : String;
   InputFoundOrCancelled : Boolean;
   J : Integer;
   LightSettingCount : Integer;
@@ -355,157 +355,138 @@ BEGIN
 
             Train_HomeArea := StrToArea(FieldByName('HomeArea').AsString);
 
-            Train_LastLocation := StrToLocation(FieldByName('LastLocation').AsString);
-            IF Train_LastLocation <> UnknownLocation THEN BEGIN
-              IF NOT IsElementInLocationArray(TempLocations, Train_LastLocation, ElementPos) THEN BEGIN
-                AppendToLocationArray(TempLocations, Train_LastLocation);
-                AppendToIntegerArray(TempLocationsLocoChips, Train_LocoChip);
-              END ELSE BEGIN
-                CASE MessageDialogueWithDefault('Error in database for loco ' + LocoChipToStr(Train_LocoChip) + ': last location - '
-                                                + LocationToStr(Train_LastLocation) + ' - is already occupied by loco ' + LocoChipToStr(TempLocationsLocoChips[ElementPos])
-                                                + '.'
-                                                + CRLF
-                                                + 'Amend last location record for ' + LocoChipToStr(Train_LocoChip)
-                                                + ' or delete last location (' + LocationToStr(Train_LastLocation)
-                                                + ') for ' + LocoChipToStr(TempLocationsLocoChips[ElementPos]) + '?',
-                                                StopTimer, mtError, [mbYes, mbNo], ['&Amend', '&Delete'], mbYes)
-                OF
-                  mrYes: { Amend }
-                    BEGIN
-                      MainWindow.MainTimer.Enabled := False;
-                      InputFoundOrCancelled := False;
-                      InputErrorMsg := 'Enter new location for loco ' + LocoChipToStr(Train_LocoChip);
-                      REPEAT
-                        IF NOT InputQuery('Enter train location', InputErrorMsg, NewLocationStr) THEN
-                          InputFoundOrCancelled := True
-                        ELSE BEGIN
-                          IF NewLocationStr = 'CANCEL' THEN BEGIN
-                            Train_LastTC := UnknownTrackCircuit;
-                            Train_LastLocation := UnknownLocation;
-                            ErrorMsg := '';
-                            InputFoundOrCancelled := True;
-                            Log(Train_LocoChipStr + ' D No start location set by user');
-                            { Note: DrawScreen needed here as InputQuery leaves the screen sized as a small rectangle }
-                            InvalidateScreen(UnitRef, 'CreateTrainRecord');
-                          END ELSE BEGIN
-                            Train_LastLocation := StrToLocation(NewLocationStr);
-                            IF Train_LastLocation = UnknownLocation THEN
-                              InputErrorMsg := 'Invalid location entered. Please type in present location of ' + LocoChipToStr(Train_LocoChip) + ' or CANCEL to suspend it'
-                            ELSE BEGIN
+            IF ErrorMsg = '' THEN BEGIN
+              Train_LastLocation := StrToLocation(FieldByName('LastLocation').AsString);
+              IF Train_LastLocation <> UnknownLocation THEN BEGIN
+                IF NOT IsElementInLocationArray(TempLocations, Train_LastLocation, ElementPos) THEN BEGIN
+                  AppendToLocationArray(TempLocations, Train_LastLocation);
+                  AppendToIntegerArray(TempLocationsLocoChips, Train_LocoChip);
+                END ELSE BEGIN
+                  CASE MessageDialogueWithDefault('Error in database for loco ' + LocoChipToStr(Train_LocoChip) + ': last location - '
+                                                  + LocationToStr(Train_LastLocation) + ' - is already occupied by loco ' + LocoChipToStr(TempLocationsLocoChips[ElementPos])
+                                                  + '.'
+                                                  + CRLF
+                                                  + 'Amend last location record for ' + LocoChipToStr(Train_LocoChip)
+                                                  + ' or delete last location (' + LocationToStr(Train_LastLocation)
+                                                  + ') for ' + LocoChipToStr(TempLocationsLocoChips[ElementPos]) + '?',
+                                                  StopTimer, mtError, [mbYes, mbNo], ['&Amend', '&Delete'], mbYes)
+                  OF
+                    mrYes: { Amend }
+                      BEGIN
+                        MainWindow.MainTimer.Enabled := False;
+                        InputFoundOrCancelled := False;
+                        InputErrorMsg := 'Enter new location for loco ' + LocoChipToStr(Train_LocoChip);
+                        REPEAT
+                          IF NOT InputQuery('Enter train location', InputErrorMsg, NewLocationStr) THEN
+                            InputFoundOrCancelled := True
+                          ELSE BEGIN
+                            IF NewLocationStr = 'CANCEL' THEN BEGIN
                               Train_LastTC := UnknownTrackCircuit;
+                              Train_LastLocation := UnknownLocation;
                               ErrorMsg := '';
                               InputFoundOrCancelled := True;
-                              Log(Train_LocoChipStr + ' D Start location set by user to ' + NewLocationStr);
+                              Log(Train_LocoChipStr + ' D No start location set by user');
                               { Note: DrawScreen needed here as InputQuery leaves the screen sized as a small rectangle }
                               InvalidateScreen(UnitRef, 'CreateTrainRecord');
+                            END ELSE BEGIN
+                              Train_LastLocation := StrToLocation(NewLocationStr);
+                              IF Train_LastLocation = UnknownLocation THEN
+                                InputErrorMsg := 'Invalid location entered. Please type in present location of ' + LocoChipToStr(Train_LocoChip) + ' or CANCEL to suspend it'
+                              ELSE BEGIN
+                                Train_LastTC := UnknownTrackCircuit;
+                                ErrorMsg := '';
+                                InputFoundOrCancelled := True;
+                                Log(Train_LocoChipStr + ' D Start location set by user to ' + NewLocationStr);
+                                { Note: DrawScreen needed here as InputQuery leaves the screen sized as a small rectangle }
+                                InvalidateScreen(UnitRef, 'CreateTrainRecord');
+                              END;
                             END;
                           END;
-                        END;
-                      UNTIL InputFoundOrCancelled;
+                        UNTIL InputFoundOrCancelled;
 
-                      IF Train_LastLocation = UnknownLocation THEN
-                        Log(Train_LocoChipStr + ' LG Deleting last location record as location is marked as occupied by '
-                                              + LocoChipToStr(TempLocationsLocoChips[ElementPos]));
-                      MainWindow.MainTimer.Enabled := True;
-                    END;
-                  mrNo: { Delete }
-                    BEGIN
-                      Log(LocoChipToStr(TempLocationsLocoChips[ElementPos])
-                          + ' LG Deleting last location record as location is marked as occupied by ' + LocoChipToStr(Train_LocoChip));
-                      TempT := TrainList;
-                      WHILE TempT <> NIL DO BEGIN
-                        IF (ElementPos <= High(TempLocationsLocoChips))
-                        AND (TempT^.Train_LocoChip = TempLocationsLocoChips[ElementPos])
-                        THEN BEGIN
-                          DeleteElementFromIntegerArray(TempLocationsLocoChips, ElementPos);
-                          DeleteElementFromIntegerArray(TempLocations, ElementPos);
-                          ErrorMsg := '';
+                        IF Train_LastLocation = UnknownLocation THEN
+                          Log(Train_LocoChipStr + ' LG Deleting last location record as location is marked as occupied by '
+                                                + LocoChipToStr(TempLocationsLocoChips[ElementPos]));
+                        MainWindow.MainTimer.Enabled := True;
+                      END;
+                    mrNo: { Delete }
+                      BEGIN
+                        Log(LocoChipToStr(TempLocationsLocoChips[ElementPos])
+                            + ' LG Deleting last location record as location is marked as occupied by ' + LocoChipToStr(Train_LocoChip));
+                        TempT := TrainList;
+                        WHILE TempT <> NIL DO BEGIN
+                          IF (ElementPos <= High(TempLocationsLocoChips))
+                          AND (TempT^.Train_LocoChip = TempLocationsLocoChips[ElementPos])
+                          THEN BEGIN
+                            DeleteElementFromIntegerArray(TempLocationsLocoChips, ElementPos);
+                            DeleteElementFromIntegerArray(TempLocations, ElementPos);
+                            ErrorMsg := '';
 
-                          TempT^.Train_LastTC := UnknownTrackCircuit;
-                          TempT^.Train_LastLocation := UnknownLocation;
-                        END;
-                        TempT := TempT^.Train_NextRecord;
-                      END; {WHILE}
-                    END;
-                END; {CASE}
+                            TempT^.Train_LastTC := UnknownTrackCircuit;
+                            TempT^.Train_LastLocation := UnknownLocation;
+                          END;
+                          TempT := TempT^.Train_NextRecord;
+                        END; {WHILE}
+                      END;
+                  END; {CASE}
+                END;
               END;
             END;
 
-            IF NOT FieldByName('LocoActive').AsBoolean THEN
-              Train_SpeedSettingsMissing := True
-            ELSE BEGIN
-              Train_Active := True;
+            IF ErrorMsg = '' THEN BEGIN
+              IF NOT FieldByName('LocoActive').AsBoolean THEN
+                Train_SpeedSettingsMissing := True
+              ELSE BEGIN
+                Train_Active := True;
 
-              { Carriages is stored as a string in the database to avoid cluttering up the column with zeroes }
-              IF FieldByName('Carriages').AsString = '' THEN
-                Train_NumberOfCarriages := 0
-              ELSE
-                IF NOT TryStrToInt(FieldByName('Carriages').AsString, Train_NumberOfCarriages) THEN
-                  ErrorMsg := 'Error in database for loco ' + LocoChipToStr(Train_LocoChip) + ': number of carriages is not an integer';
+                { Carriages is stored as a string in the database to avoid cluttering up the column with zeroes }
+                IF FieldByName('Carriages').AsString = '' THEN
+                  Train_NumberOfCarriages := 0
+                ELSE
+                  IF NOT TryStrToInt(FieldByName('Carriages').AsString, Train_NumberOfCarriages) THEN
+                    ErrorMsg := 'Error in database for loco ' + LocoChipToStr(Train_LocoChip) + ': number of carriages is not an integer';
 
-              { FixedTrainLength is stored as a string in the database to avoid cluttering up the column with zeroes }
-              IF FieldByName('FixedTrainLength').AsString = '' THEN
-                Train_FixedLengthInInches := 0
-              ELSE
-                IF NOT TryStrToInt(FieldByName('FixedTrainLength').AsString, Train_FixedLengthInInches) THEN
-                  ErrorMsg := 'Error in database for loco ' + LocoChipToStr(Train_LocoChip) + ': last train length is not an integer';
+                IF ErrorMsg = '' THEN BEGIN
+                  { FixedTrainLength is stored as a string in the database to avoid cluttering up the column with zeroes }
+                  IF FieldByName('FixedTrainLength').AsString = '' THEN
+                    Train_FixedLengthInInches := 0
+                  ELSE
+                    IF NOT TryStrToInt(FieldByName('FixedTrainLength').AsString, Train_FixedLengthInInches) THEN
+                      ErrorMsg := 'Error in database for loco ' + LocoChipToStr(Train_LocoChip) + ': last train length is not an integer';
+                END;
 
-              { LastTrainLength is stored as a string in the database to avoid cluttering up the column with zeroes }
-              IF FieldByName('LastTrainLength').AsString = '' THEN
-                Train_LastLengthInInches := 0
-              ELSE
-                IF NOT TryStrToInt(FieldByName('LastTrainLength').AsString, Train_LastLengthInInches) THEN
-                  ErrorMsg := 'Error in database for loco ' + LocoChipToStr(Train_LocoChip) + ': last train length is not an integer';
+                IF ErrorMsg = '' THEN BEGIN
+                  { LastTrainLength is stored as a string in the database to avoid cluttering up the column with zeroes }
+                  IF FieldByName('LastTrainLength').AsString = '' THEN
+                    Train_LastLengthInInches := 0
+                  ELSE
+                    IF NOT TryStrToInt(FieldByName('LastTrainLength').AsString, Train_LastLengthInInches) THEN
+                      ErrorMsg := 'Error in database for loco ' + LocoChipToStr(Train_LocoChip) + ': last train length is not an integer';
+                END;
 
-              { Note the fixed train direction (if any) which is needed for trains hauling coaches or wagons }
-              Train_FixedDirection := StrToDirectionType(FieldByName('FixedTrainDirection').AsString);
-              Train_CurrentDirection := StrToDirectionType(FieldByName('LastTrainDirection').AsString);
+                IF ErrorMsg = '' THEN BEGIN
+                  { Note the fixed train direction (if any) which is needed for trains hauling coaches or wagons }
+                  Train_FixedDirection := StrToDirectionType(FieldByName('FixedTrainDirection').AsString);
+                  Train_CurrentDirection := StrToDirectionType(FieldByName('LastTrainDirection').AsString);
 
-              IF (Train_FixedDirection <> UnknownDirection)
-              AND (Train_CurrentDirection <> UnknownDirection)
-              AND (Train_CurrentDirection <> Train_FixedDirection)
-              THEN
-                { note there's a problem but allow the train record to be used, as the new diagram may fix it }
-                Log(Train_LocoChipStr + ' X! NB Discrepancy in train direction: ' + ' fixed direction is ' + FieldByName('FixedTrainDirection').AsString
-                            + ' whereas last train direction was ' + FieldByName('LastTrainDirection').AsString);
+                   IF (Train_FixedDirection <> UnknownDirection)
+                  AND (Train_CurrentDirection <> UnknownDirection)
+                  AND (Train_CurrentDirection <> Train_FixedDirection)
+                  THEN
+                    { note there's a problem but allow the train record to be used, as the new diagram may fix it }
+                    Log(Train_LocoChipStr + ' X! NB Discrepancy in train direction: ' + ' fixed direction is ' + FieldByName('FixedTrainDirection').AsString
+                                + ' whereas last train direction was ' + FieldByName('LastTrainDirection').AsString);
 
-              Train_SavedLocation := Train_LastLocation;
+                  Train_SavedLocation := Train_LastLocation;
+                END;
 
-              IF FieldByName('Description').AsString <> '' THEN
-                Train_Description := FieldByName('Description').AsString
-              ELSE
-                Train_Description := '';
+                IF ErrorMsg = '' THEN BEGIN
+                  IF FieldByName('Description').AsString <> '' THEN
+                    Train_Description := FieldByName('Description').AsString
+                  ELSE
+                    Train_Description := '';
+                END;
 
-              IF FieldByName('CabLights').AsBoolean THEN
-                Train_HasCabLights := True;
-
-              { The following are mutually exclusive - LightSettingCount is used to detect if more than one is selected }
-              LightSettingCount := 0;
-
-              IF FieldByName('NoTrailingTrackCircuits').AsBoolean THEN
-                Train_UseTrailingTrackCircuits := False
-              ELSE
-                Train_UseTrailingTrackCircuits := True;
-
-              IF FieldByName('OrdinaryLights').AsBoolean THEN BEGIN
-                Train_LightsType := HeadlightsAndTailLightsConnected;
-                Inc(LightSettingCount);
-              END;
-
-              IF FieldByName('LightsDimmed').AsBoolean THEN BEGIN
-                Train_LightsType := LightsShouldBeDimmed;
-                Inc(LightSettingCount);
-              END;
-
-              IF FieldByName('ExpressModelsKit').AsBoolean THEN BEGIN
-                Train_LightsType := ExpressModelsSeparateHeadlights;
-                Inc(LightSettingCount);
-              END;
-
-              IF FieldByName('TailLightsSwitched').AsBoolean THEN BEGIN
-                Train_LightsType := HeadlightsAndTailLightsSeparatelySwitched;
-                Inc(LightSettingCount);
-              END;
 
                 IF ErrorMsg = '' THEN BEGIN
                   Train_IsDapolCleaningWagon := False;
@@ -519,153 +500,196 @@ BEGIN
                     END;
                   END;
                 END;
-              IF FieldByName('CustomLightingKit').AsBoolean THEN BEGIN
-                Train_LightsType := CustomLightingkit;
-                Inc(LightSettingCount);
-              END;
 
-                Train_LightsType := LightsOperatedByTwoChips;
-                TempStr := FieldByName('LightingChipUp').AsString;
-                IF (TempStr = '') OR (TempStr = '0') THEN
-                  ErrorMsg := 'Error in database for loco ' + LocoChipToStr(Train_LocoChip) + ': ''Lights From Two Chips'' ticked but no chip number supplied'
-                ELSE BEGIN
-                  Train_LightingChipUp := StrToInt(TempStr);
-                  TempStr := FieldByName('LightingChipDown').AsString;
-                  IF (TempStr = '') OR (TempStr = '0') THEN
-                    ErrorMsg := 'Error in database for loco ' + LocoChipToStr(Train_LocoChip) + ': ''Lights From Two Chips'' ticked but no chip number supplied'
+                IF ErrorMsg = '' THEN BEGIN
+                  IF FieldByName('NoTrailingTrackCircuits').AsBoolean THEN
+                    Train_UseTrailingTrackCircuits := False
                   ELSE
-                    Train_LightingChipDown := StrToInt(TempStr);
+                    Train_UseTrailingTrackCircuits := True;
+                END;
+                IF ErrorMsg = '' THEN BEGIN
+                  IF FieldByName('CabLights').AsBoolean THEN
+                    Train_HasCabLights := True;
                 END;
 
-                Inc(LightSettingCount);
-              END ELSE BEGIN
-                IF FieldByName('LightingChipUp').AsInteger > 0 THEN
-                  ErrorMsg := 'Error in database for loco ' + LocoChipToStr(Train_LocoChip)
-                              + ': lighting chip number up ' + LocoChipToStr(FieldByName('LightingChipUp').AsInteger)
-                              + ' supplied but ''Lights From Two Chips'' not ticked'
-                ELSE
-                  IF FieldByName('LightingChipDown').AsInteger > 0 THEN
-                    ErrorMsg := 'Error in database for loco ' + LocoChipToStr(Train_LocoChip)
-                                + ': lighting chip number down ' + LocoChipToStr(FieldByName('LightingChipDown').AsInteger)
-                                + ' supplied but ''Lights From Two Chips'' not ticked';
-              END;
+                IF ErrorMsg = '' THEN BEGIN
+                  { The following are mutually exclusive - LightSettingCount is used to detect if more than one is selected }
+                  LightSettingCount := 0;
 
-              IF LightSettingCount > 1 THEN
-                ErrorMsg := 'Error in database for loco ' + LocoChipToStr(Train_LocoChip) + ': more than one lighting option ticked';
-
-              { Now deal with speed settings }
-              Train_SpeedArray[1] := FieldByName('Speed10').AsInteger;
-              FOR I := 2 TO 12 DO
-                Train_SpeedArray[I] := FieldByName('Speed' + IntToStr(I) + '0').AsInteger;
-
-              { First see if there any speeds here (speeds are added by hand to the database once the speed test is completed) by seeing if any of the speed settings are
-                non-zero
-              }
-              TestInt := 0;
-              FOR I := 1 TO 12 DO
-                TestInt := TestInt + Train_SpeedArray[I];
-              IF TestInt = 0 THEN BEGIN
-                { there are no speeds in the database }
-                Log(Train_LocoChipStr + ' L Loco has no speed settings in the loco database');
-                Train_SpeedSettingsMissing := True;
-              END ELSE BEGIN
-                { Find the minimum speed and add to all lower speed settings }
-                I := 1;
-                SpeedFound := False;
-                WHILE (I <= 12)
-                AND NOT SpeedFound
-                DO BEGIN
-                  IF Train_SpeedArray[I] <> 0 THEN BEGIN
-                    SpeedFound := True;
-                    { now add to all speed settings below }
-                    FOR J := 1 TO (I - 1) DO
-                      Train_SpeedArray[J] := Train_SpeedArray[I];
+                  IF FieldByName('OrdinaryLights').AsBoolean THEN BEGIN
+                    Train_LightsType := HeadlightsAndTailLightsConnected;
+                    Inc(LightSettingCount);
                   END;
-                  Inc(I);
-                END; {WHILE}
 
-                { Find the maximum speed, and add to all higher speed settings }
-                I := 12;
-                SpeedFound := False;
-                WHILE (I >= 1)
-                AND NOT SpeedFound
-                DO BEGIN
-                  IF Train_SpeedArray[I] <> 0 THEN BEGIN
-                    SpeedFound := True;
-                    { and store the maximum speed }
-                    CASE I OF
-                      1:
-                        Train_MaximumSpeedInMPH := MPH10;
-                      2:
-                        Train_MaximumSpeedInMPH := MPH20;
-                      3:
-                        Train_MaximumSpeedInMPH := MPH30;
-                      4:
-                        Train_MaximumSpeedInMPH := MPH40;
-                      5:
-                        Train_MaximumSpeedInMPH := MPH50;
-                      6:
-                        Train_MaximumSpeedInMPH := MPH60;
-                      7:
-                        Train_MaximumSpeedInMPH := MPH70;
-                      8:
-                        Train_MaximumSpeedInMPH := MPH80;
-                      9:
-                        Train_MaximumSpeedInMPH := MPH90;
-                      10:
-                        Train_MaximumSpeedInMPH := MPH100;
-                      11:
-                        Train_MaximumSpeedInMPH := MPH110;
-                      12:
-                        Train_MaximumSpeedInMPH := MPH120;
-                    END; {CASE}
-
-                    { now add to all speed settings below }
-                    FOR J := (I + 1) TO 12 DO
-                      Train_SpeedArray[J] := Train_SpeedArray[I];
+                  IF FieldByName('LightsDimmed').AsBoolean THEN BEGIN
+                    Train_LightsType := LightsShouldBeDimmed;
+                    Inc(LightSettingCount);
                   END;
-                  Dec(I);
-                END; {WHILE}
 
-                { But it might happen (has happened!) that, accidentally, an intervening speed setting is missing, or a speed step is lower than the one preceding it }
-                I := 1;
-                SpeedFound := True;
-                WHILE (I <= 12)
-                AND SpeedFound
-                DO BEGIN
-                  IF Train_SpeedArray[I] = 0 THEN BEGIN
-                    SpeedFound := False;
-                    Log(Train_LocoChipStr + ' L Missing speed step at position ' + IntToStr(I - 1));
-                    ErrorMsg := 'Loco ' + LocoChipToStr(Train_LocoChip) + ': missing speed step at position ' + IntToStr(I - 1);
-                    Train_SpeedSettingsMissing := True;
-                  END ELSE
-                    IF (I > 1)
-                    AND (Train_SpeedArray[I] < Train_SpeedArray[I - 1])
-                    THEN BEGIN
-                      SpeedFound := False;
-                      Log(Train_LocoChipStr + ' L Speed step at position ' + IntToStr(I - 1) + ' is less than speed step at position ' + IntToStr(I - 2));
-                      ErrorMsg := 'Loco ' + LocoChipToStr(Train_LocoChip) + ': speed step at position ' + IntToStr(I -1 )
-                                                                                                                + ' is less than speed step at position ' + IntToStr(I - 2);
-                      Train_SpeedSettingsMissing := True;
+                  IF FieldByName('ExpressModelsKit').AsBoolean THEN BEGIN
+                    Train_LightsType := ExpressModelsSeparateHeadlights;
+                    Inc(LightSettingCount);
+                  END;
+
+                  IF FieldByName('TailLightsSwitched').AsBoolean THEN BEGIN
+                    Train_LightsType := HeadlightsAndTailLightsSeparatelySwitched;
+                    Inc(LightSettingCount);
+                  END;
+
+                  IF FieldByName('CustomLightingKit').AsBoolean THEN BEGIN
+                    Train_LightsType := CustomLightingkit;
+                    Inc(LightSettingCount);
+                  END;
+
+                  IF FieldByName('LightsFromTwoChips').AsBoolean THEN BEGIN
+                    Train_LightsType := LightsOperatedByTwoChips;
+                    TempStr := FieldByName('LightingChipUp').AsString;
+                    IF (TempStr = '') OR (TempStr = '0') THEN
+                      ErrorMsg := 'Error in database for loco ' + LocoChipToStr(Train_LocoChip) + ': ''Lights From Two Chips'' ticked but no chip number supplied'
+                    ELSE BEGIN
+                      Train_LightingChipUp := StrToInt(TempStr);
+                      TempStr := FieldByName('LightingChipDown').AsString;
+                      IF (TempStr = '') OR (TempStr = '0') THEN
+                        ErrorMsg := 'Error in database for loco ' + LocoChipToStr(Train_LocoChip) + ': ''Lights From Two Chips'' ticked but no chip number supplied'
+                      ELSE
+                        Train_LightingChipDown := StrToInt(TempStr);
                     END;
-                  Inc(I);
-                END; {WHILE}
+
+                    Inc(LightSettingCount);
+                  END ELSE BEGIN
+                    IF FieldByName('LightingChipUp').AsInteger > 0 THEN
+                      ErrorMsg := 'Error in database for loco ' + LocoChipToStr(Train_LocoChip)
+                                  + ': lighting chip number up ' + LocoChipToStr(FieldByName('LightingChipUp').AsInteger)
+                                  + ' supplied but ''Lights From Two Chips'' not ticked'
+                    ELSE
+                      IF FieldByName('LightingChipDown').AsInteger > 0 THEN
+                        ErrorMsg := 'Error in database for loco ' + LocoChipToStr(Train_LocoChip)
+                                    + ': lighting chip number down ' + LocoChipToStr(FieldByName('LightingChipDown').AsInteger)
+                                    + ' supplied but ''Lights From Two Chips'' not ticked';
+                  END;
+
+                  IF LightSettingCount > 1 THEN
+                    ErrorMsg := 'Error in database for loco ' + LocoChipToStr(Train_LocoChip) + ': more than one lighting option ticked';
+                END;
+
+                IF ErrorMsg = '' THEN BEGIN
+                  { Now deal with speed settings }
+                  Train_SpeedArray[1] := FieldByName('Speed10').AsInteger;
+                  FOR I := 2 TO 12 DO
+                    Train_SpeedArray[I] := FieldByName('Speed' + IntToStr(I) + '0').AsInteger;
+
+                  { First see if there any speeds here (speeds are added by hand to the database once the speed test is completed) by seeing if any of the speed settings are
+                    non-zero
+                  }
+                  TestInt := 0;
+                  FOR I := 1 TO 12 DO
+                    TestInt := TestInt + Train_SpeedArray[I];
+                  IF TestInt = 0 THEN BEGIN
+                    { there are no speeds in the database }
+                    Log(Train_LocoChipStr + ' L Loco has no speed settings in the loco database');
+                    Train_SpeedSettingsMissing := True;
+                  END ELSE BEGIN
+                    { Find the minimum speed and add to all lower speed settings }
+                    I := 1;
+                    SpeedFound := False;
+                    WHILE (I <= 12)
+                    AND NOT SpeedFound
+                    DO BEGIN
+                      IF Train_SpeedArray[I] <> 0 THEN BEGIN
+                        SpeedFound := True;
+                        { now add to all speed settings below }
+                        FOR J := 1 TO (I - 1) DO
+                          Train_SpeedArray[J] := Train_SpeedArray[I];
+                      END;
+                      Inc(I);
+                    END; {WHILE}
+
+                    { Find the maximum speed, and add to all higher speed settings }
+                    I := 12;
+                    SpeedFound := False;
+                    WHILE (I >= 1)
+                    AND NOT SpeedFound
+                    DO BEGIN
+                      IF Train_SpeedArray[I] <> 0 THEN BEGIN
+                        SpeedFound := True;
+                        { and store the maximum speed }
+                        CASE I OF
+                          1:
+                            Train_MaximumSpeedInMPH := MPH10;
+                          2:
+                            Train_MaximumSpeedInMPH := MPH20;
+                          3:
+                            Train_MaximumSpeedInMPH := MPH30;
+                          4:
+                            Train_MaximumSpeedInMPH := MPH40;
+                          5:
+                            Train_MaximumSpeedInMPH := MPH50;
+                          6:
+                            Train_MaximumSpeedInMPH := MPH60;
+                          7:
+                            Train_MaximumSpeedInMPH := MPH70;
+                          8:
+                            Train_MaximumSpeedInMPH := MPH80;
+                          9:
+                            Train_MaximumSpeedInMPH := MPH90;
+                          10:
+                            Train_MaximumSpeedInMPH := MPH100;
+                          11:
+                            Train_MaximumSpeedInMPH := MPH110;
+                          12:
+                            Train_MaximumSpeedInMPH := MPH120;
+                        END; {CASE}
+
+                        { now add to all speed settings below }
+                        FOR J := (I + 1) TO 12 DO
+                          Train_SpeedArray[J] := Train_SpeedArray[I];
+                      END;
+                      Dec(I);
+                    END; {WHILE}
+
+                    { But it might happen (has happened!) that, accidentally, an intervening speed setting is missing, or a speed step is lower than the one preceding it }
+                    I := 1;
+                    SpeedFound := True;
+                    WHILE (I <= 12)
+                    AND SpeedFound
+                    DO BEGIN
+                      IF Train_SpeedArray[I] = 0 THEN BEGIN
+                        SpeedFound := False;
+                        Log(Train_LocoChipStr + ' L Missing speed step at position ' + IntToStr(I - 1));
+                        ErrorMsg := 'Loco ' + LocoChipToStr(Train_LocoChip) + ': missing speed step at position ' + IntToStr(I - 1);
+                        Train_SpeedSettingsMissing := True;
+                      END ELSE
+                        IF (I > 1)
+                        AND (Train_SpeedArray[I] < Train_SpeedArray[I - 1])
+                        THEN BEGIN
+                          SpeedFound := False;
+                          Log(Train_LocoChipStr + ' L Speed step at position ' + IntToStr(I - 1) + ' is less than speed step at position ' + IntToStr(I - 2));
+                          ErrorMsg := 'Loco ' + LocoChipToStr(Train_LocoChip) + ': speed step at position ' + IntToStr(I - 1)
+                                                                                                                    + ' is less than speed step at position ' + IntToStr(I - 2);
+                          Train_SpeedSettingsMissing := True;
+                        END;
+                      Inc(I);
+                    END; {WHILE}
+                  END;
+                END;
               END;
             END;
 
             { Now add the speed settings to the appropriate MPH variable }
-            Train_Speed10 := Train_SpeedArray[1];
-            Train_Speed20 := Train_SpeedArray[2];
-            Train_Speed30 := Train_SpeedArray[3];
-            Train_Speed40 := Train_SpeedArray[4];
-            Train_Speed50 := Train_SpeedArray[5];
-            Train_Speed60 := Train_SpeedArray[6];
-            Train_Speed70 := Train_SpeedArray[7];
-            Train_Speed80 := Train_SpeedArray[8];
-            Train_Speed90 := Train_SpeedArray[9];
-            Train_Speed100 := Train_SpeedArray[10];
-            Train_Speed110 := Train_SpeedArray[11];
-            Train_Speed120 := Train_SpeedArray[12];
+            IF ErrorMsg = '' THEN BEGIN
+              Train_Speed10 := Train_SpeedArray[1];
+              Train_Speed20 := Train_SpeedArray[2];
+              Train_Speed30 := Train_SpeedArray[3];
+              Train_Speed40 := Train_SpeedArray[4];
+              Train_Speed50 := Train_SpeedArray[5];
+              Train_Speed60 := Train_SpeedArray[6];
+              Train_Speed70 := Train_SpeedArray[7];
+              Train_Speed80 := Train_SpeedArray[8];
+              Train_Speed90 := Train_SpeedArray[9];
+              Train_Speed100 := Train_SpeedArray[10];
+              Train_Speed110 := Train_SpeedArray[11];
+              Train_Speed120 := Train_SpeedArray[12];
+            END;
 
             { Add the record to the trainlist }
             IF ErrorMsg = '' THEN
@@ -724,7 +748,7 @@ BEGIN
     END; {WITH}
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG ReadInLocoDataFromDatabase: ' + E.ClassName + ' error raised, with message: '+ E.Message);
+      Log('EG ReadInLocoDataFromDatabase: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { ReadInLocoDataFromDatabase }
 
@@ -783,7 +807,7 @@ BEGIN
 
               IF NOT TrainFound THEN BEGIN
                 Log('XG Error in TrainList: no locochip data for '
-                       + LocoChipToStr(FieldByName('LocoChip').AsInteger) + ' in the train list');
+                        + LocoChipToStr(FieldByName('LocoChip').AsInteger) + ' in the train list');
                 Log('X ' + DescribeTrainList(Unsorted, True) + '{INDENT=0} {WRAP=SCREENWIDTH}');
               END ELSE BEGIN
                 WITH T^ DO BEGIN
@@ -794,23 +818,25 @@ BEGIN
 
                   Edit;
                   TempStr := FieldByName('LastTC').AsString;
-                  IF (TempStr = '') OR (Train_CurrentTC = UnknownTrackCircuit) THEN
-                    FieldByname('LastTC').AsString := ''
+                  IF (TempStr = '')
+                  OR (Train_CurrentTC = UnknownTrackCircuit)
+                  THEN
+                    FieldByName('LastTC').AsString := ''
                   ELSE
-                    FieldByname('LastTC').AsInteger := Train_CurrentTC;
+                    FieldByName('LastTC').AsInteger := Train_CurrentTC;
                   Post;
 
                   { And the loco's current location, taken from its current trackcircuit }
                   LineFound := False;
                   IF Train_CurrentTC = UnknownTrackCircuit THEN BEGIN
                     Edit;
-                    FieldByname('LastLocation').AsString := '';
+                    FieldByName('LastLocation').AsString := '';
                     Post;
                   END ELSE BEGIN
                     LocationStr := LocationToStr(GetLocationFromTrackCircuit(Train_CurrentTC));
                     IF LocationStr <> UnknownLocationStr THEN BEGIN
                       Edit;
-                      FieldByname('LastLocation').AsString := LocationStr;
+                      FieldByName('LastLocation').AsString := LocationStr;
                       Post;
                     END ELSE BEGIN
                       { this may be one of those trackcircuits that's attached to more than one line, not all of which have a named location }
@@ -821,7 +847,7 @@ BEGIN
                         IF Lines[L].Line_TC = Train_CurrentTC THEN BEGIN
                           IF Lines[L].Line_Location <> UnknownLocation THEN BEGIN
                             Edit;
-                            FieldByname('LastLocation').AsString := LocationToStr(Lines[L].Line_Location);
+                            FieldByName('LastLocation').AsString := LocationToStr(Lines[L].Line_Location);
                             Post;
                             LineFound := True;
                           END;
@@ -843,12 +869,12 @@ BEGIN
                   { Write out the last train length - needed for trains that don't appear in the next timetable }
                   Edit;
                   IF Train_CurrentLengthInInches = 0 THEN
-                    FieldByname('LastTrainLength').AsString := ''
+                    FieldByName('LastTrainLength').AsString := ''
                   ELSE
                     IF Train_FixedLengthInInches = Train_CurrentLengthInInches THEN
-                      FieldByname('LastTrainLength').AsString := ''
+                      FieldByName('LastTrainLength').AsString := ''
                     ELSE
-                      FieldByname('LastTrainLength').AsString := IntToStr(Train_CurrentLengthInInches);
+                      FieldByName('LastTrainLength').AsString := IntToStr(Train_CurrentLengthInInches);
                   Post;
                   Edit;
                   IF Train_CurrentDirection = UnknownDirection THEN
@@ -871,7 +897,7 @@ BEGIN
     END; {WITH}
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG WriteOutLocoDataToDatabase: ' + E.ClassName + ' error raised, with message: '+ E.Message);
+      Log('EG WriteOutLocoDataToDatabase: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { WriteOutLocoDataToDatabase }
 
@@ -879,7 +905,7 @@ PROCEDURE SortGrid(Grid : TStringGrid; SortCol : Integer);
 { A simple exchange sort of grid rows }
 VAR
   I, J : Integer;
-  Temp: TStringList;
+  Temp : TStringList;
 
 BEGIN
   TRY
@@ -915,7 +941,7 @@ BEGIN
       SortGridDirection := Up;
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG SortGrid: ' + E.ClassName + ' error raised, with message: '+ E.Message);
+      Log('EG SortGrid: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { SortGrid }
 
@@ -945,7 +971,7 @@ BEGIN
     END;
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG LocoUtilsStringGridDblClick: ' + E.ClassName + ' error raised, with message: '+ E.Message);
+      Log('EG LocoUtilsStringGridDblClick: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { LocoUtilsStringGridDblClick }
 
@@ -985,7 +1011,7 @@ BEGIN
     END;
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG LocoStringGridDrawCell: ' + E.ClassName + ' error raised, with message: '+ E.Message);
+      Log('EG LocoStringGridDrawCell: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { LocoStringGridDrawCell }
 
@@ -1021,9 +1047,9 @@ PROCEDURE TLocoUtilsWindow.LocoStringGridKeyDown(Sender : TObject; VAR Key : Wor
       SaveLocoStringGridSearchRow := RowNum;
     EXCEPT {TRY}
       ON E : Exception DO
-        Log('EG DoSearch: ' + E.ClassName + ' error raised, with message: '+ E.Message);
+        Log('EG DoSearch: ' + E.ClassName + ' error raised, with message: ' + E.Message);
     END; {TRY}
-  END; { DoSearch}
+  END; { DoSearch }
 
 BEGIN
   TRY
@@ -1044,11 +1070,11 @@ BEGIN
     END; {CASE}
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG LocoStringGridKeyDown: ' + E.ClassName + ' error raised, with message: '+ E.Message);
+      Log('EG LocoStringGridKeyDown: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { LocoStringGridKeyDown }
 
-PROCEDURE TLocoUtilsWindow.LocoStringGridMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+PROCEDURE TLocoUtilsWindow.LocoStringGridMouseUp(Sender : TObject; Button : TMouseButton; Shift : TShiftState; X, Y : Integer);
 VAR
   ColNum : Integer;
   I : Integer;
@@ -1081,7 +1107,7 @@ BEGIN
     END; {WITH}
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG LocoStringGridMouseUp: ' + E.ClassName + ' error raised, with message: '+ E.Message);
+      Log('EG LocoStringGridMouseUp: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { LocoStringGridMouseUp }
 
@@ -1105,7 +1131,7 @@ VAR
       END; {WITH}
     EXCEPT {TRY}
       ON E : Exception DO
-        Log('EG AddItemToGrid: ' + E.ClassName + ' error raised, with message: '+ E.Message);
+        Log('EG AddItemToGrid: ' + E.ClassName + ' error raised, with message: ' + E.Message);
     END; {TRY}
   END; { AddItemToGrid }
 
@@ -1224,7 +1250,7 @@ BEGIN
     END; {WITH}
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG ListLocosByChip: ' + E.ClassName + ' error raised, with message: '+ E.Message);
+      Log('EG ListLocosByChip: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { ListLocosByChip }
 
@@ -1247,7 +1273,6 @@ BEGIN
   Result := 0;
 
   TRY
-
     { Isolate the number we are comparing from the rest of the string }
     IF (List[Index1][1] = ' ') OR (List[Index2][1] = ' ') THEN
       Exit;
@@ -1299,7 +1324,11 @@ BEGIN
       Exit;
 
     { Now do the comparison }
-    IF NOT NumberFound1 OR NOT NumberFound2 OR (NumberToTest1 = 0) OR (NumberToTest2 = 0) THEN
+    IF NOT NumberFound1
+    OR NOT NumberFound2
+    OR (NumberToTest1 = 0)
+    OR (NumberToTest2 = 0)
+    THEN
       Result := 0
     ELSE
       IF NumberToTest1 < NumberToTest2 THEN
@@ -1311,14 +1340,14 @@ BEGIN
           Result := 0;
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG CompareNumbers: ' + E.ClassName + ' error raised, with message: '+ E.Message);
+      Log('EG CompareNumbers: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { CompareNumbers }
 
 PROCEDURE SortNumbersInsertingLeadingZeroes(ListBox : TListBox);
 { Sorts numbers so that, for instance, class 158 does not precede class 47 }
 VAR
-  StringList: TStringList;
+  StringList : TStringList;
 
 BEGIN
   TRY
@@ -1337,7 +1366,7 @@ BEGIN
     END;
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG SortNumbersInsertingLeadingZeroes: ' + E.ClassName + ' error raised, with message: '+ E.Message);
+      Log('EG SortNumbersInsertingLeadingZeroes: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { SortNumbersInsertingLeadingZeroes }
 
