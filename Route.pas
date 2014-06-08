@@ -915,7 +915,6 @@ log('x and L=' + LinetoStr(Signals[Routes_SubRouteStartSignals[Route, SettingSub
           Routes_RouteSettingsInProgress[Route] := False;
         END;
 
-
         WHILE SubRouteSettingPos <= SaveSubRouteSettingPos DO BEGIN
         { need only go as far as we went above, not the whole array **** }
           { The following makes it easier to work with the bit of the array we're interested in! }

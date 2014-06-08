@@ -411,10 +411,10 @@ VAR
 
       Log(Train_LocoChipStr + ' L Train_CurrentSpeedInMPH=' + IntToStr(Train_CurrentLenzSpeed)
                             + ' Train_DesiredLenzSpeed=' + IntToStr(TrainSpeedInMPHToLenzSpeed(T, Train_DesiredSpeedInMPH))
-                            + ' (Train_DesiredSpeedInMPH=' + MPHToStr(Train_DesiredSpeedInMPH) + ' mph'
-                            + ') AdjustRange=' + IntToStr(Train_AccelerationAdjustRange)
+                            + ' (Train_DesiredSpeedInMPH=' + MPHToStr(Train_DesiredSpeedInMPH) + ' mph)'
+                            + ' AdjustRange=' + IntToStr(Train_AccelerationAdjustRange)
                             + ' TimeInterval=' + FloatToStr(Train_AccelerationTimeInterval)
-                            + ' (AccelTime=' + FloatToStr(Train_AccelerationTimeInSeconds) + ')'); //
+                            + ' (AccelTime=' + FloatToStr(Train_AccelerationTimeInSeconds) + ')');
       { Now start the timer }
       Train_AccelerationStartTime := Time;
     END; {WITH}
