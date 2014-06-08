@@ -829,7 +829,6 @@ TYPE
     Train_HomeArea : Integer;
     Train_InitialTrackCircuits : ARRAY [1..5] OF Integer;
     Train_InLightsOnTime : Boolean; { train inactive but for lights being on }
-    Train_IsDapolCleaningWagon : Boolean;
     Train_JourneysArray : TrainJourneyRecArrayType;
     Train_LastLengthInInches : Integer;
     Train_LastLocation : Integer;

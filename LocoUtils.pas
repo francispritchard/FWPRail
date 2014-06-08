@@ -317,43 +317,69 @@ BEGIN
       LocoDataADOTable.Open;
       Log('L Loco Data table and connection opened to initialise the loco data');
 
+      ErrorMsg := '';
+
+      { First do a check to see if there's a Dapol cleaning wagon - we need to do this first before we can see if any loco is pulling it }
       LocoDataADOTable.First;
       WHILE NOT LocoDataADOTable.EOF DO BEGIN
         WITH LocoDataADOTable DO BEGIN
-          ErrorMsg := '';
+          IF FieldByName('Non-Loco').AsBoolean AND (FieldByName('Non-LocoType').AsString = '') THEN
+             ErrorMsg := 'Error in database: cannot have a non-loco without a non-loco type';
+
+          IF ErrorMsg = '' THEN BEGIN
+            IF FieldByName('Non-LocoType').AsString = 'Dapol Cleaning Wagon' THEN BEGIN
+              { Check one hasn't been found already, as there can't be more than one or we will get terribly confused }
+              IF DapolCleaningWagonLocoChip <> UnknownLocoChip THEN
+                ErrorMsg := 'Error in database - cannot have two Dapol cleaning wagons - we already have ' + LocoChipToStr(DapolCleaningWagonLocoChip)
+              ELSE
+                DapolCleaningWagonLocoChip := FieldByName('LocoChip').AsInteger;
+            END;
+          END;
+        END; {WITH}
+        LocoDataADOTable.Next;
+      END; {WHILE}
+
+      { Now read in the real loco data }
+      LocoDataADOTable.First;
+      WHILE NOT LocoDataADOTable.EOF DO BEGIN
+        WITH LocoDataADOTable DO BEGIN
 
           { Create a new train record }
           New(T);
 
           WITH T^ DO BEGIN
-            InitialiseTrainRecord(T);
+            IF ErrorMsg = '' THEN BEGIN
+              InitialiseTrainRecord(T);
 
-            { Now the data from the database }
-            Train_LocoChip := FieldByName('LocoChip').AsInteger;
-            Train_LocoChipStr := LocoChipToStr(Train_LocoChip);
+              { Now the data from the database }
+              Train_LocoChip := FieldByName('LocoChip').AsInteger;
+              Train_LocoChipStr := LocoChipToStr(Train_LocoChip);
 
-            Train_ActualNumStr := FieldByName('ActualLocoNum').AsString;
-            Train_LocoName := FieldByName('LocoName').AsString;
-            Train_LocoClassStr := FieldByName('LocoClass').AsString;
-            Train_LocoTypeStr := FieldByName('LocoType').AsString;
 
-            { Where the loco last stopped and how its last train was }
-            TempStr := FieldByName('LastTC').AsString;
-            IF TempStr <> '' THEN
-              Train_LastTC := StrToInt(TempStr);
-            Train_CurrentTC := Train_LastTC;
+              Train_ActualNumStr := FieldByName('ActualLocoNum').AsString;
+              Train_LocoName := FieldByName('LocoName').AsString;
+              Train_LocoClassStr := FieldByName('LocoClass').AsString;
+              Train_LocoTypeStr := FieldByName('LocoType').AsString;
 
-            { but check that something else isn't already there }
-            IF IsElementInIntegerArray(TempTCs, Train_LastTC, ElementPos) THEN
-              ErrorMsg := 'Error in database for loco ' + LocoChipToStr(Train_LocoChip) + ': last TC=' + IntToStr(Train_LastTC)
-                          + ' is already occupied by loco ' + LocoChipToStr(TempTCsLocoChips[ElementPos])
-            ELSE
-              IF Train_LastTC <> UnknownTrackCircuit THEN BEGIN
-                AppendToIntegerArray(TempTCs, Train_LastTC);
-                AppendToIntegerArray(TempTCsLocoChips, Train_LocoChip);
-              END;
+              { Where the loco last stopped and how its last train was }
+              TempStr := FieldByName('LastTC').AsString;
+              IF TempStr <> '' THEN
+                Train_LastTC := StrToInt(TempStr);
+              Train_CurrentTC := Train_LastTC;
 
-            Train_HomeArea := StrToArea(FieldByName('HomeArea').AsString);
+              { but check that something else isn't already there }
+              IF IsElementInIntegerArray(TempTCs, Train_LastTC, ElementPos) THEN
+                ErrorMsg := 'Error in database for loco ' + LocoChipToStr(Train_LocoChip) + ': last TC=' + IntToStr(Train_LastTC)
+                            + ' is already occupied by loco ' + LocoChipToStr(TempTCsLocoChips[ElementPos])
+              ELSE
+                IF Train_LastTC <> UnknownTrackCircuit THEN BEGIN
+                  AppendToIntegerArray(TempTCs, Train_LastTC);
+                  AppendToIntegerArray(TempTCsLocoChips, Train_LocoChip);
+                END;
+            END;
+
+            IF ErrorMsg = '' THEN
+              Train_HomeArea := StrToArea(FieldByName('HomeArea').AsString);
 
             IF ErrorMsg = '' THEN BEGIN
               Train_LastLocation := StrToLocation(FieldByName('LastLocation').AsString);
@@ -487,20 +513,6 @@ BEGIN
                     Train_Description := '';
                 END;
 
-
-                IF ErrorMsg = '' THEN BEGIN
-                  Train_IsDapolCleaningWagon := False;
-                  IF FieldByName('Non-LocoType').AsString = 'Dapol Cleaning Wagon' THEN BEGIN
-                    { Check one hasn't been found already, as there can't be more than one or we will get terribly confused }
-                    IF DapolCleaningWagonLocoChip <> UnknownLocoChip THEN
-                      ErrorMsg := 'Error in database - cannot have two Dapol cleaning wagons - we already have ' + LocoChipToStr(DapolCleaningWagonLocoChip)
-                    ELSE BEGIN
-                      Train_IsDapolCleaningWagon := True;
-                      DapolCleaningWagonLocoChip := Train_LocoChip;
-                    END;
-                  END;
-                END;
-
                 IF ErrorMsg = '' THEN BEGIN
                   IF FieldByName('NoTrailingTrackCircuits').AsBoolean THEN
                     Train_UseTrailingTrackCircuits := False
@@ -573,103 +585,105 @@ BEGIN
                 END;
 
                 IF ErrorMsg = '' THEN BEGIN
-                  { Now deal with speed settings }
-                  Train_SpeedArray[1] := FieldByName('Speed10').AsInteger;
-                  FOR I := 2 TO 12 DO
-                    Train_SpeedArray[I] := FieldByName('Speed' + IntToStr(I) + '0').AsInteger;
+                  IF NOT FieldByName('Non-Loco').AsBoolean THEN BEGIN
+                    { Now deal with speed settings }
+                    Train_SpeedArray[1] := FieldByName('Speed10').AsInteger;
+                    FOR I := 2 TO 12 DO
+                      Train_SpeedArray[I] := FieldByName('Speed' + IntToStr(I) + '0').AsInteger;
 
-                  { First see if there any speeds here (speeds are added by hand to the database once the speed test is completed) by seeing if any of the speed settings are
-                    non-zero
-                  }
-                  TestInt := 0;
-                  FOR I := 1 TO 12 DO
-                    TestInt := TestInt + Train_SpeedArray[I];
-                  IF TestInt = 0 THEN BEGIN
-                    { there are no speeds in the database }
-                    Log(Train_LocoChipStr + ' L Loco has no speed settings in the loco database');
-                    Train_SpeedSettingsMissing := True;
-                  END ELSE BEGIN
-                    { Find the minimum speed and add to all lower speed settings }
-                    I := 1;
-                    SpeedFound := False;
-                    WHILE (I <= 12)
-                    AND NOT SpeedFound
-                    DO BEGIN
-                      IF Train_SpeedArray[I] <> 0 THEN BEGIN
-                        SpeedFound := True;
-                        { now add to all speed settings below }
-                        FOR J := 1 TO (I - 1) DO
-                          Train_SpeedArray[J] := Train_SpeedArray[I];
-                      END;
-                      Inc(I);
-                    END; {WHILE}
-
-                    { Find the maximum speed, and add to all higher speed settings }
-                    I := 12;
-                    SpeedFound := False;
-                    WHILE (I >= 1)
-                    AND NOT SpeedFound
-                    DO BEGIN
-                      IF Train_SpeedArray[I] <> 0 THEN BEGIN
-                        SpeedFound := True;
-                        { and store the maximum speed }
-                        CASE I OF
-                          1:
-                            Train_MaximumSpeedInMPH := MPH10;
-                          2:
-                            Train_MaximumSpeedInMPH := MPH20;
-                          3:
-                            Train_MaximumSpeedInMPH := MPH30;
-                          4:
-                            Train_MaximumSpeedInMPH := MPH40;
-                          5:
-                            Train_MaximumSpeedInMPH := MPH50;
-                          6:
-                            Train_MaximumSpeedInMPH := MPH60;
-                          7:
-                            Train_MaximumSpeedInMPH := MPH70;
-                          8:
-                            Train_MaximumSpeedInMPH := MPH80;
-                          9:
-                            Train_MaximumSpeedInMPH := MPH90;
-                          10:
-                            Train_MaximumSpeedInMPH := MPH100;
-                          11:
-                            Train_MaximumSpeedInMPH := MPH110;
-                          12:
-                            Train_MaximumSpeedInMPH := MPH120;
-                        END; {CASE}
-
-                        { now add to all speed settings below }
-                        FOR J := (I + 1) TO 12 DO
-                          Train_SpeedArray[J] := Train_SpeedArray[I];
-                      END;
-                      Dec(I);
-                    END; {WHILE}
-
-                    { But it might happen (has happened!) that, accidentally, an intervening speed setting is missing, or a speed step is lower than the one preceding it }
-                    I := 1;
-                    SpeedFound := True;
-                    WHILE (I <= 12)
-                    AND SpeedFound
-                    DO BEGIN
-                      IF Train_SpeedArray[I] = 0 THEN BEGIN
-                        SpeedFound := False;
-                        Log(Train_LocoChipStr + ' L Missing speed step at position ' + IntToStr(I - 1));
-                        ErrorMsg := 'Loco ' + LocoChipToStr(Train_LocoChip) + ': missing speed step at position ' + IntToStr(I - 1);
-                        Train_SpeedSettingsMissing := True;
-                      END ELSE
-                        IF (I > 1)
-                        AND (Train_SpeedArray[I] < Train_SpeedArray[I - 1])
-                        THEN BEGIN
-                          SpeedFound := False;
-                          Log(Train_LocoChipStr + ' L Speed step at position ' + IntToStr(I - 1) + ' is less than speed step at position ' + IntToStr(I - 2));
-                          ErrorMsg := 'Loco ' + LocoChipToStr(Train_LocoChip) + ': speed step at position ' + IntToStr(I - 1)
-                                                                                                                    + ' is less than speed step at position ' + IntToStr(I - 2);
-                          Train_SpeedSettingsMissing := True;
+                    { First see if there any speeds here (speeds are added by hand to the database once the speed test is completed) by seeing if any of the speed settings are
+                      non-zero
+                    }
+                    TestInt := 0;
+                    FOR I := 1 TO 12 DO
+                      TestInt := TestInt + Train_SpeedArray[I];
+                    IF TestInt = 0 THEN BEGIN
+                      { there are no speeds in the database }
+                      Log(Train_LocoChipStr + ' L Loco has no speed settings in the loco database');
+                      Train_SpeedSettingsMissing := True;
+                    END ELSE BEGIN
+                      { Find the minimum speed and add to all lower speed settings }
+                      I := 1;
+                      SpeedFound := False;
+                      WHILE (I <= 12)
+                      AND NOT SpeedFound
+                      DO BEGIN
+                        IF Train_SpeedArray[I] <> 0 THEN BEGIN
+                          SpeedFound := True;
+                          { now add to all speed settings below }
+                          FOR J := 1 TO (I - 1) DO
+                            Train_SpeedArray[J] := Train_SpeedArray[I];
                         END;
-                      Inc(I);
-                    END; {WHILE}
+                        Inc(I);
+                      END; {WHILE}
+
+                      { Find the maximum speed, and add to all higher speed settings }
+                      I := 12;
+                      SpeedFound := False;
+                      WHILE (I >= 1)
+                      AND NOT SpeedFound
+                      DO BEGIN
+                        IF Train_SpeedArray[I] <> 0 THEN BEGIN
+                          SpeedFound := True;
+                          { and store the maximum speed }
+                          CASE I OF
+                            1:
+                              Train_MaximumSpeedInMPH := MPH10;
+                            2:
+                              Train_MaximumSpeedInMPH := MPH20;
+                            3:
+                              Train_MaximumSpeedInMPH := MPH30;
+                            4:
+                              Train_MaximumSpeedInMPH := MPH40;
+                            5:
+                              Train_MaximumSpeedInMPH := MPH50;
+                            6:
+                              Train_MaximumSpeedInMPH := MPH60;
+                            7:
+                              Train_MaximumSpeedInMPH := MPH70;
+                            8:
+                              Train_MaximumSpeedInMPH := MPH80;
+                            9:
+                              Train_MaximumSpeedInMPH := MPH90;
+                            10:
+                              Train_MaximumSpeedInMPH := MPH100;
+                            11:
+                              Train_MaximumSpeedInMPH := MPH110;
+                            12:
+                              Train_MaximumSpeedInMPH := MPH120;
+                          END; {CASE}
+
+                          { now add to all speed settings below }
+                          FOR J := (I + 1) TO 12 DO
+                            Train_SpeedArray[J] := Train_SpeedArray[I];
+                        END;
+                        Dec(I);
+                      END; {WHILE}
+
+                      { But it might happen (has happened!) that, accidentally, an intervening speed setting is missing, or a speed step is lower than the one preceding it }
+                      I := 1;
+                      SpeedFound := True;
+                      WHILE (I <= 12)
+                      AND SpeedFound
+                      DO BEGIN
+                        IF Train_SpeedArray[I] = 0 THEN BEGIN
+                          SpeedFound := False;
+                          Log(Train_LocoChipStr + ' L Missing speed step at position ' + IntToStr(I - 1));
+                          ErrorMsg := 'Loco ' + LocoChipToStr(Train_LocoChip) + ': missing speed step at position ' + IntToStr(I - 1);
+                          Train_SpeedSettingsMissing := True;
+                        END ELSE
+                          IF (I > 1)
+                          AND (Train_SpeedArray[I] < Train_SpeedArray[I - 1])
+                          THEN BEGIN
+                            SpeedFound := False;
+                            Log(Train_LocoChipStr + ' L Speed step at position ' + IntToStr(I - 1) + ' is less than speed step at position ' + IntToStr(I - 2));
+                            ErrorMsg := 'Loco ' + LocoChipToStr(Train_LocoChip) + ': speed step at position ' + IntToStr(I - 1)
+                                                                                                                      + ' is less than speed step at position ' + IntToStr(I - 2);
+                            Train_SpeedSettingsMissing := True;
+                          END;
+                        Inc(I);
+                      END; {WHILE}
+                    END;
                   END;
                 END;
               END;
