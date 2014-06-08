@@ -249,9 +249,6 @@ END; { MainWindowCreate }
 
 PROCEDURE SetSignal(LocoChip, S : Integer; NewAspect : AspectType; LogSignalData, ForceWriting : Boolean);
 { Set the state of a particular signal and draws it }
-CONST
-  ShowNames = True;
-
 BEGIN
   TRY
     WITH Signals[S] DO BEGIN
@@ -279,9 +276,9 @@ BEGIN
                 MakeSemaphoreSignalChange(LocoChip, S, Signal_AccessoryAddress, SignalOn);
         END;
 
-// if s <> 90 then
         IF NOT ProgramStartup THEN
-          InvalidateScreen(UnitRef, 'SetSignal S=' + IntToStr(S));
+          { calling invalidate here didn't redraw the signal in time - repaint causes the screen to be redrawn instantly and not via the message queue }
+          FWPRailWindow.Repaint;
       END;
     END; {WITH}
   EXCEPT

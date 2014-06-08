@@ -782,7 +782,7 @@ PROCEDURE TurnCabLightsOn(LocoChip : Integer);
 PROCEDURE TurnCabLightsOff(LocoChip : Integer);
 { Turns cab lights off. Assumes that the cab lights are operated by function one }
 
-PROCEDURE TurnHeadLightsOff(LocoChip : Integer; UserDriving, UserRequiresInstruction : Boolean);
+PROCEDURE TurnHeadLightsOff(LocoChip : Integer; UserDriving, UserRequiresInstruction : Boolean; OUT OK : Boolean);
 { Turn off a loco's headlights }
 
 PROCEDURE TurnHeadLightsOn(LocoChip : Integer; Direction : DirectionType; UserDriving, UserRequiresInstruction : Boolean);
@@ -8048,13 +8048,10 @@ BEGIN
 
 END; { TrainLightsAreOn }
 
-PROCEDURE TurnHeadLightsOff(LocoChip : Integer; UserDriving, UserRequiresInstruction : Boolean);
+PROCEDURE TurnHeadLightsOff(LocoChip : Integer; UserDriving, UserRequiresInstruction : Boolean; OUT OK : Boolean);
 { Turn off a loco's headlight }
 CONST
   LightsOff = False;
-
-VAR
-  OK : Boolean;
 
 BEGIN
   IF UserDriving
@@ -8089,7 +8086,7 @@ BEGIN
     OK := True;
   END ELSE BEGIN
     DebugStr := 'Turning lights on';
-    IF SingleLocoFunctionISOn(LocoChip, Function0, NOT ForceRead, OK) THEN
+    IF SingleLocoFunctionIsOn(LocoChip, Function0, NOT ForceRead, OK) THEN
       DebugStr := DebugStr + ' is not necessary as lights are already on'
     ELSE BEGIN
       SetSingleLocoFunction(LocoChip, Function0, LightsOn, OK);
@@ -8342,20 +8339,20 @@ BEGIN
         WITH T^ DO BEGIN
           IF T^.Train_LightsType <> NoLights THEN BEGIN
             IF Train_LightsType = HeadlightsAndTailLightsConnected THEN
-              TurnHeadLightsOff(Train_LocoChip, Train_UserDriving, Train_UserRequiresInstructions)
+              TurnHeadLightsOff(Train_LocoChip, Train_UserDriving, Train_UserRequiresInstructions, OK)
             ELSE
               IF Train_LightsType = HeadlightsAndTailLightsSeparatelySwitched THEN BEGIN
-                TurnHeadLightsOff(Train_LocoChip, Train_UserDriving, Train_UserRequiresInstructions);
+                TurnHeadLightsOff(Train_LocoChip, Train_UserDriving, Train_UserRequiresInstructions, OK);
                 TurnTailLightsOff(Train_LocoChip, Train_UserDriving, Train_UserRequiresInstructions, OK);
               END ELSE
                 IF Train_LightsType = ExpressModelsSeparateHeadlights THEN BEGIN
-                  TurnHeadLightsOff(Train_LocoChip, Train_UserDriving, Train_UserRequiresInstructions);
+                  TurnHeadLightsOff(Train_LocoChip, Train_UserDriving, Train_UserRequiresInstructions, OK);
                   TurnTailLightsOff(Train_LocoChip, Train_UserDriving, Train_UserRequiresInstructions, OK);
                   TurnExpressModelsHeadlightsOff(Train_LocoChip, Train_UserDriving, Train_UserRequiresInstructions);
                 END ELSE
                   IF Train_LightsType = LightsOperatedByTwoChips THEN BEGIN
-                    TurnHeadLightsOff(Train_LightingChipUp, Train_UserDriving, Train_UserRequiresInstructions);
-                    TurnHeadLightsOff(Train_LightingChipDown, Train_UserDriving, Train_UserRequiresInstructions);
+                    TurnHeadLightsOff(Train_LightingChipUp, Train_UserDriving, Train_UserRequiresInstructions, Ok);
+                    TurnHeadLightsOff(Train_LightingChipDown, Train_UserDriving, Train_UserRequiresInstructions, Ok);
                   END ELSE
                     IF Train_LightsType = CustomLightingKit THEN BEGIN
                     END;

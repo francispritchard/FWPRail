@@ -292,7 +292,7 @@ BEGIN
     OR (Copy(SaveCurrentRailwayTimeStr, 1, 5) <> Copy(CurrentRailwayTimeStr, 1, 5))
     THEN BEGIN
       DrawStationMonitorsWindow(StationMonitorsCurrentArea);
-      IF LocationDataWindow.Visible THEN
+      IF (LocationDataWindow <> NIL) AND (LocationDataWindow.Visible) THEN
         LocationDataWindow.Caption := 'LocationDataWindow (' + CurrentRailwayTimeStr + ')';
     END;
 

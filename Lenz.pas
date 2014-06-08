@@ -3174,7 +3174,7 @@ VAR
   WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
 
 BEGIN
-  Log('E Requesting resume operations  {BLANKLINEBEFORE}');
+  Log('E Requesting resume operations {BLANKLINEBEFORE}');
   WriteArray[0] := 33;
   WriteArray[1] := 129;
 
@@ -3199,7 +3199,7 @@ VAR
   WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
 
 BEGIN
-  Log('L Requesting stop loco ' + LocoChipToStr(LocoChip) + ' {BLANKLINEBEFORE}');
+  Log(LocoChipToStr(LocoChip) + ' L Requesting stop loco {BLANKLINEBEFORE}');
   WriteArray[0] := 146;
   WriteArray[1] := GetLocoChipHighByte(LocoChip);
   WriteArray[2] := GetLocoChipLowByte(LocoChip);
