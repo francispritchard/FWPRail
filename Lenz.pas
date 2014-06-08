@@ -3433,6 +3433,7 @@ FUNCTION SetSystemOnline : Boolean;
 VAR
   P : Integer;
   S : Integer;
+  T : Train;
 
 BEGIN
   { Create the TCPIP form here so we know it is available before we start using it }
@@ -3503,11 +3504,27 @@ BEGIN
       IF NOT Points[P].Point_OutOfUse THEN
         PullPoint(P, ForcePoint);
 
-  IF SystemOnline THEN BEGIN
+  IF NOT SystemOnline THEN
+    Log('X& Not connected to Lenz system')
+  ELSE BEGIN
     Log('X& System now connected via ' + LenzConnectionToStr(LenzConnection));
     LenzWindow.LenzOneSecondTimerTick.Enabled := True;
-  END ELSE
-    Log('X& Not connected to Lenz system')
+
+    { and recalculate the journey times }
+    T := TrainList;
+    WHILE T <> NIL DO BEGIN
+      WITH T^ DO BEGIN
+        IF (Train_LocoChip <> UnknownLocoChip)
+        AND Train_DiagramFound
+        AND (Train_CurrentStatus <> Cancelled)
+        AND (Train_CurrentStatus <> NonMoving)
+        THEN
+          RecalculateJourneyTimes(T, 'as the system is now online');
+
+        T := Train_NextRecord;
+      END; {WITH}
+    END; {WHILE}
+  END;
 END; { SetSystemOnline }
 
 PROCEDURE InitialiseLenzUnit;
