@@ -3446,16 +3446,15 @@ BEGIN
   CASE DesiredLenzConnection OF
     EthernetConnection:
       BEGIN
-        Log('XG Checking Ethernet connection');
+        Log('X& Checking Ethernet connection');
         { See if the Ethernet connection is up and running }
         TCPIPForm.TCPIPFormShow(LenzWindow);
         TCPIPForm.CreateTCPClients(EthernetConnection);
         LenzConnection := EthernetConnection;
-        Log('X System online via ethernet Connection to the Lenz system {BLANKLINEBEFORE}');
       END;
     USBConnection:
       BEGIN
-        Log('XG Checking USB connection');
+        Log('X& Checking USB connection');
         { First see if the Lenz server program is running via the USB Connection. (If it's connected, it's assumed that we wish to try it first). }
         IF IsProgramRunning('LI-Server') THEN
           { The LI-Server.exe program is already running - better kill it, as we can't programmaticaly start the server itself }
@@ -3463,12 +3462,11 @@ BEGIN
 
         StartLANUSBServer;
         IF IsProgramRunning('LI-Server') THEN BEGIN
-          Log('XG LI-Server.exe is running');
+          Log('X& LI-Server.exe is running');
 
           TCPIPForm.TCPIPFormShow(LenzWindow);
           TCPIPForm.CreateTCPClients(USBConnection);
           LenzConnection := USBConnection;
-          Log('X System online via USB Connection to the Lenz system {BLANKLINEBEFORE}');
         END;
       END;
   END; {CASE}
@@ -3506,10 +3504,10 @@ BEGIN
         PullPoint(P, ForcePoint);
 
   IF SystemOnline THEN BEGIN
-    Debug('System now connected via ' + LenzConnectionToStr(LenzConnection));
+    Log('X& System now connected via ' + LenzConnectionToStr(LenzConnection));
     LenzWindow.LenzOneSecondTimerTick.Enabled := True;
   END ELSE
-    Debug('Not connected to Lenz system')
+    Log('X& Not connected to Lenz system')
 END; { SetSystemOnline }
 
 PROCEDURE InitialiseLenzUnit;

@@ -1378,7 +1378,7 @@ BEGIN { WriteToLogFile }
                         ELSE
                           Debug(LocoChipStr + ': ' + LogStr);
                       END;
-                    '!', '+', '=': { bold; italics; or bold and italics }
+                    '!', '+', '=', '&': { bold; italics; or bold and italics; and green! }
                       BEGIN
                         LogStr := Copy(LogStr, 4);
                         RemoveGeneralInstructionsFromLogStr(LogStr);
@@ -2428,7 +2428,7 @@ BEGIN
   { Need to throw away earlier lines? **** }
   IF FWPRailWindow <> NIL THEN BEGIN
     { remove prefixes }
-    IF (Copy(Str, 1, 1) = '!') OR (Copy(Str, 1, 1) = '+') THEN
+    IF (Copy(Str, 1, 1) = '!') OR (Copy(Str, 1, 1) = '+') OR (Copy(Str, 1, 1) = '&') THEN
       TempStr := Copy(Str, 2);
   END;
 
@@ -2453,33 +2453,41 @@ BEGIN
         IF MakeSoundWhenDebugWindowBoldTextAppears THEN
           MakeSound(1)
       END ELSE
-        IF (Copy(Str, 1, 1) = '+')
-        AND NOT (Copy(Str, 1, 2) = '++')
+        IF (Copy(Str, 1, 1) = '&')
+        AND NOT (Copy(Str, 1, 2) = '&&')
         THEN BEGIN
-          { warning messages }
-          AddRichLine(DebugWindow.DebugRichEdit, '{R}<i>' + Copy(Str, 2) + '</i>');
+          { urgent error messages }
+          AddRichLine(DebugWindow.DebugRichEdit, '{R}<color=clGreen><b>' + Copy(Str, 2) + '</b>');
           IF MakeSoundWhenDebugWindowBoldTextAppears THEN
-            MakeSound(5);
+            MakeSound(1)
         END ELSE
-          IF (Copy(Str, 1, 1) = '=')
-          AND NOT (Copy(Str, 1, 2) = '==')
+          IF (Copy(Str, 1, 1) = '+')
+          AND NOT (Copy(Str, 1, 2) = '++')
           THEN BEGIN
-            { instructions to the user }
-            AddRichLine(DebugWindow.DebugRichEdit, '{R}<b><i>' + Copy(Str, 2) + '</i></b>');
+            { warning messages }
+            AddRichLine(DebugWindow.DebugRichEdit, '{R}<i>' + Copy(Str, 2) + '</i>');
             IF MakeSoundWhenDebugWindowBoldTextAppears THEN
-              MakeSound(3);
+              MakeSound(5);
           END ELSE
-            IF (Pos('<', Str) > 0)
-            AND ((Pos('>', Str) > 0)
-                 AND ((Pos('>', Str) > Pos('<', Str))))
-            THEN
-              AddRichLine(DebugWindow.DebugRichEdit, Str)
-            ELSE BEGIN
-              { no fancy text, though we may have to convert two !!s to one !, as otherwise '!' at the start of a line indicates we wish to highlight the line }
-              IF Copy(Str, 1, 2) = '!!' THEN
-                Str := Copy(Str, 2);
-              DebugWindow.DebugRichEdit.Lines.Add(Str);
-            END;
+            IF (Copy(Str, 1, 1) = '=')
+            AND NOT (Copy(Str, 1, 2) = '==')
+            THEN BEGIN
+              { instructions to the user }
+              AddRichLine(DebugWindow.DebugRichEdit, '{R}<b><i>' + Copy(Str, 2) + '</i></b>');
+              IF MakeSoundWhenDebugWindowBoldTextAppears THEN
+                MakeSound(3);
+            END ELSE
+              IF (Pos('<', Str) > 0)
+              AND ((Pos('>', Str) > 0)
+                   AND ((Pos('>', Str) > Pos('<', Str))))
+              THEN
+                AddRichLine(DebugWindow.DebugRichEdit, Str)
+              ELSE BEGIN
+                { no fancy text, though we may have to convert two !!s to one !, as otherwise '!' at the start of a line indicates we wish to highlight the line }
+                IF Copy(Str, 1, 2) = '!!' THEN
+                  Str := Copy(Str, 2);
+                DebugWindow.DebugRichEdit.Lines.Add(Str);
+              END;
 
       OldDebugStr := Str;
       DebugWindow.DebugRichEdit.SelAttributes.Style := SaveStyle;
