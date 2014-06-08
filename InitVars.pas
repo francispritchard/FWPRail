@@ -1065,6 +1065,7 @@ VAR
   BufferStops : ARRAY OF BufferStopRec;
   CrossHairCursor : TCursor;
   DapolCleaningWagonLocoChip : Integer = 0;
+  DapolCleaningWagonLocoChipRunning : Boolean = False;
   DayTimeSetByUser : Boolean = False;
   DebuggingMode : Boolean = False;
   DesiredLenzConnection : LenzConnectionType = NoConnection;

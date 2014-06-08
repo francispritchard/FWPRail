@@ -7006,9 +7006,16 @@ BEGIN
         LocosStopped := True;
         DrawDiagramsSpeedCell(T);
       END;
+
+      IF Train_PullingDapolCleaningWagon THEN BEGIN
+        SetLenzSpeed(DapolCleaningWagonLocoChip, 0, 0, Up, QuickStop, OK);
+        DapolCleaningWagonLocoChipRunning := False;
+        Log(Train_LocoChipStr + ' L Dapol cleaning wagon stopped too');
+      END;
     END; {WITH}
     T := T^.Train_NextRecord;
   END; {WHILE}
+
 
   IF LocosStopped THEN
     Log('AG All locos stopped')

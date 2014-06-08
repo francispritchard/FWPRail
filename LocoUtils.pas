@@ -490,9 +490,9 @@ BEGIN
 
                 IF ErrorMsg = '' THEN BEGIN
                   Train_IsDapolCleaningWagon := False;
-                  IF FieldByName('DapolCleaningWagonWithChip').AsBoolean THEN BEGIN
+                  IF FieldByName('Non-LocoType').AsString = 'Dapol Cleaning Wagon' THEN BEGIN
+                    { Check one hasn't been found already, as there can't be more than one or we will get terribly confused }
                     IF DapolCleaningWagonLocoChip <> UnknownLocoChip THEN
-                      { there can't be more than one or we will get terribly confused }
                       ErrorMsg := 'Error in database - cannot have two Dapol cleaning wagons - we already have ' + LocoChipToStr(DapolCleaningWagonLocoChip)
                     ELSE BEGIN
                       Train_IsDapolCleaningWagon := True;
