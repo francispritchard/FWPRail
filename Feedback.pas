@@ -684,9 +684,9 @@ BEGIN { DecodeFeedback }
                               IF NOT Point_MovedWhenLocked THEN BEGIN
                                 Point_MovedWhenLocked := True;
                                 MakeSound(1);
-                                Log('XG <B>Serious error: P=' + IntToStr(P) + ' (Lenz=' + IntToStr(Point_LenzNum) + ')'
-                                    + ' [' + DescribeLineNamesForTrackCircuit(Point_TCAtHeel) + '] has changed to ' + PointStateToStr(Point_PresentState)
-                                    + ' even though ' + LockingFailureString + ':');
+                                Log('X! Serious error: P=' + IntToStr(P) + ' (Lenz=' + IntToStr(Point_LenzNum) + ')'
+                                        + ' [' + DescribeLineNamesForTrackCircuit(Point_TCAtHeel) + '] has changed to ' + PointStateToStr(Point_PresentState)
+                                        + ' even though ' + LockingFailureString + ':');
                                 Point_MovedWhenLocked := False;
                               END;
                             END ELSE BEGIN
@@ -699,11 +699,11 @@ BEGIN { DecodeFeedback }
                                 IF NOT Point_MovedWhenLocked THEN BEGIN
                                   Point_MovedWhenLocked := True;
                                   MakeSound(1);
-                                  Debug('<B><color=clRed>Serious error: P=' + IntToStr(P) + ' (Lenz=' + IntToStr(Point_LenzNum) + ')'
-                                        + ' [' + DescribeLineNamesForTrackCircuit(Point_TCAtHeel) + '] has changed to ' + PointStateToStr(Point_PresentState)
-                                        + ' even though ' + LockingFailureString + ':'
-                                        + CRLF
-                                        + 'loco ' + LocoChipToStr(Point_RouteLockedByLocoChip) + ' has been suspended');
+                                  Log('X! Serious error: P=' + IntToStr(P) + ' (Lenz=' + IntToStr(Point_LenzNum) + ')'
+                                          + ' [' + DescribeLineNamesForTrackCircuit(Point_TCAtHeel) + '] has changed to ' + PointStateToStr(Point_PresentState)
+                                          + ' even though ' + LockingFailureString + ':'
+                                          + CRLF
+                                          + 'loco ' + LocoChipToStr(Point_RouteLockedByLocoChip) + ' has been suspended');
                                   Point_MovedWhenLocked := False;
                                 END;
                               END;

@@ -74,7 +74,7 @@ FUNCTION PointIsLockedByAnyRoute(P : Integer; OUT RouteLockingArray : IntegerArr
 { Returns true if the point is locked by any route }
 
 PROCEDURE PullPoint{1}(P, LocoChip : Integer; Route, SubRoute : Integer; ForcePoint, User, ErrorMessageRequired : Boolean; OUT PointResultPending : Boolean;
-                    OUT ErrorMsg : String; OUT PointChangedOK : Boolean); Overload;
+                       OUT ErrorMsg : String; OUT PointChangedOK : Boolean); Overload;
 { Changes the state of a point if legal }
 
 PROCEDURE PullPoint{2}(P : Integer; ForcePoint : Boolean); Overload;
