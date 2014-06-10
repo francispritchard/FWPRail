@@ -3431,6 +3431,8 @@ END; { SetSystemOffline }
 FUNCTION SetSystemOnline : Boolean;
 { Change the caption and the icons to show we're online - needs a test to see if we are, actually, online *************** 6/2/14 }
 VAR
+  LockingMsg : String;
+  OK : Boolean;
   P : Integer;
   S : Integer;
   T : Train;
@@ -3499,10 +3501,17 @@ BEGIN
   END;
 
   { Ditto for points }
-  IF SystemOnline THEN
-    FOR P := 0 TO High(Points) DO
-      IF NOT Points[P].Point_OutOfUse THEN
-        PullPoint(P, ForcePoint);
+  IF SystemOnline THEN BEGIN
+    Log('P Initially resetting all points that are not at their default state');
+    FOR P := 0 TO High(Points) DO BEGIN
+      IF NOT Points[P].Point_OutOfUse THEN BEGIN
+        IF PointIsLocked(P, LockingMsg) THEN
+          Log('P Not initially resetting P=' + PointToStr(P) + ' as point is ' + LockingMsg)
+        ELSE
+          PullPoint(P, ForcePoint);
+      END;
+    END; {FOR}
+  END;
 
   IF NOT SystemOnline THEN
     Log('X& Not connected to Lenz system')
