@@ -591,7 +591,7 @@ VAR
                       DrawPoint(NextPoint, clLime);
 
                     CurrentLine := Points[NextPoint].Point_DivergingLine;
-                    IF FoundAdjacenttrackCircuit(CurrentLine) THEN
+                    IF (CurrentLine = UnknownLine) OR FoundAdjacenttrackCircuit(CurrentLine) THEN
                       ExitFunction := True;
                   END ELSE BEGIN
                     { Points[NextPoint].Point_PresentState = PointStateUnknown }
@@ -605,7 +605,7 @@ VAR
                 AND (Points[NextPoint].Point_PresentState = Straight))
                 THEN BEGIN
                   CurrentLine := Points[NextPoint].Point_HeelLine;
-                  IF FoundAdjacenttrackCircuit(CurrentLine) THEN
+                  IF (CurrentLine = UnknownLine) OR FoundAdjacenttrackCircuit(CurrentLine) THEN
                       ExitFunction := True;
 
                   IF LockDebuggingMode THEN
@@ -617,7 +617,7 @@ VAR
                   AND (Points[NextPoint].Point_PresentState = Diverging))
                   THEN BEGIN
                     CurrentLine := Points[NextPoint].Point_HeelLine;
-                    IF FoundAdjacenttrackCircuit(CurrentLine) THEN
+                    IF (CurrentLine = UnknownLine) OR FoundAdjacenttrackCircuit(CurrentLine) THEN
                         ExitFunction := True;
 
                     IF LockDebuggingMode THEN
