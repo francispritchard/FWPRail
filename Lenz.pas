@@ -62,7 +62,7 @@ PROCEDURE EmergencyDeselectPoint(P : Integer; VAR OK : Boolean);
 PROCEDURE EmergencyDeselectSignal(S : Integer; VAR OK : Boolean);
 { for use in emergency, when a signal remains energised }
 
-PROCEDURE GetInitialFeedback;
+PROCEDURE GetInitialFeedback(OUT OK : Boolean);
 { Read in the feedback before we start, or after an interruption }
 
 PROCEDURE GetLocoFunctions(LocoChip : Integer; ForceRead : Boolean; VAR FunctionArray : ARRAY OF Boolean; VAR OK : Boolean);
@@ -3252,7 +3252,7 @@ BEGIN
   END;
 END; { WhichFeedbackInputsAreSet }
 
-PROCEDURE GetInitialFeedback;
+PROCEDURE GetInitialFeedback(OUT OK : Boolean);
 { Read in the feedback before we start, or after an interruption }
 CONST
   ProcessMessages = True;
@@ -3263,7 +3263,6 @@ VAR
 //  FeedbackPort : PortType;
 //  FeedbackType : TypeOfFeedBackType;
 //  I, J : Integer;
-  OK : Boolean;
 //  TCAboveFeedbackUnit : Integer;
 //  TempFeedbackNum : Integer;
   UnitNum : Integer;
@@ -3438,6 +3437,8 @@ VAR
   T : Train;
 
 BEGIN
+  Result := False;
+
   { Create the TCPIP form here so we know it is available before we start using it }
   IF TCPIPForm = NIL THEN BEGIN
     TCPIPForm := TTCPIPForm.Create(Application);
@@ -3482,13 +3483,16 @@ BEGIN
     Application.Icon := OnlineIcon;
   END;
 
-  Result := LenzConnection <> NoConnection;
-
   FOR P := 0 TO High(Points) DO
     IF Points[P].Point_PresentState <> PointStateUnknown THEN
       Points[P].Point_RequiredState := Points[P].Point_PresentState;
 
-  GetInitialFeedback;
+  GetInitialFeedback(OK);
+
+  IF OK THEN BEGIN
+    SystemOnline := True;
+    Result := LenzConnection <> NoConnection;
+  END;
 
   IF SystemOnline THEN BEGIN
     { Read in all the feedback }
@@ -3508,7 +3512,7 @@ BEGIN
         IF PointIsLocked(P, LockingMsg) THEN
           Log('P Not initially resetting P=' + PointToStr(P) + ' as point is ' + LockingMsg)
         ELSE
-          PullPoint(P, ForcePoint);
+          PullPoint(P, NOT ForcePoint);
       END;
     END; {FOR}
   END;
