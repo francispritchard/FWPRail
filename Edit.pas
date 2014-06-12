@@ -126,7 +126,8 @@ VAR
   SavePointOutOfUse : Boolean;
   SavePointLockedIfNonHeelTCsOccupied : Boolean;
   SavePointNotes : String;
-  SavePointManualStateAsReadIn : PointStateType;
+  SavePointLastManualStateAsReadIn : PointStateType;
+  SavePointLastFeedbackStateAsReadIn : PointStateType;
 
 PROCEDURE Log(Str : String);
 { For ease of debugging, adds the unit name }
@@ -174,6 +175,8 @@ BEGIN
       SavePointDivergingLine := Point_DivergingLine;
       SavePointHeelLine := Point_HeelLine;
       SavePointStraightLine := Point_StraightLine;
+      SavePointLastFeedbackStateAsReadIn := Point_LastFeedbackStateAsReadIn;
+      SavePointLastManualStateAsReadIn := Point_LastManualStateAsReadIn;
       SavePointLenzNum := Point_LenzNum;
       SavePointLenzUnit := Point_LenzUnit;
       SavePointLenzUnitType := Point_LenzUnitType;
@@ -189,7 +192,7 @@ BEGIN
       SavePointOutOfUse := Point_OutOfUse;
       SavePointLockedIfNonHeelTCsOccupied := Point_LockedIfNonHeelTCsOccupied;
       SavePointNotes := Point_Notes;
-      SavePointManualStateAsReadIn := Point_ManualStateAsReadIn;
+      SavePointLastManualStateAsReadIn := Point_LastManualStateAsReadIn;
     END; {WITH}
   END;
 END; { InitialiseTemporaryVariables }
@@ -739,12 +742,16 @@ BEGIN
               Point_ManualOperation := StrToBool(NewKeyValue);
 
           IF ErrorMsg = '' THEN
-            IF KeyName =  Point_ManualStateAsReadInFieldName THEN
-              Point_ManualStateAsReadIn := ValidatePointManualStateAsReadIn(NewKeyValue, Point_ManualOperation, ErrorMsg);
+            IF KeyName =  Point_LastFeedbackStateAsReadInFieldName THEN
+              Point_LastFeedbackStateAsReadIn := ValidateLastPointFeedbackStateAsReadIn(NewKeyValue, Point_ManualOperation, ErrorMsg);
+
+          IF ErrorMsg = '' THEN
+            IF KeyName =  Point_LastManualStateAsReadInFieldName THEN
+              Point_LastManualStateAsReadIn := ValidateLastPointManualStateAsReadIn(NewKeyValue, Point_ManualOperation, ErrorMsg);
 
           IF ErrorMsg = '' THEN
             IF KeyName =  Point_LenzNumFieldName THEN
-              Point_LenzNum := ValidatePointLenzNum(NewKeyValue, Point_ManualStateAsReadIn, Point_ManualOperation, Point_PresentState, ErrorMsg);
+              Point_LenzNum := ValidatePointLenzNum(NewKeyValue, Point_LastManualStateAsReadIn, Point_ManualOperation, Point_PresentState, ErrorMsg);
 
           IF ErrorMsg = '' THEN
             IF KeyName = Point_LenzUnitFieldName THEN
@@ -1137,25 +1144,26 @@ BEGIN
 
     IF SavePointFoundNum <> UnknownPoint THEN BEGIN
       WITH Points[SavePointFoundNum] DO BEGIN
+        Point_DefaultState := SavePointDefaultState;
         Point_DivergingLine := SavePointDivergingLine;
+        Point_FeedbackInput := SavePointFeedbackInput;
+        Point_FeedbackOnIsStraight := SavePointFeedbackOnIsStraight;
+        Point_FeedbackUnit := SavePointFeedbackUnit;
         Point_HeelLine := SavePointHeelLine;
-        Point_StraightLine := SavePointStraightLine;
+        Point_LastFeedbackStateAsReadIn := SavePointLastManualStateAsReadIn;
+        Point_LastManualStateAsReadIn := SavePointLastManualStateAsReadIn;
         Point_LenzNum := SavePointLenzNum;
         Point_LenzUnit := SavePointLenzUnit;
         Point_LenzUnitType := SavePointLenzUnitType;
-        Point_ManualOperation := SavePointManualOperation;
-        Point_FeedbackUnit := SavePointFeedbackUnit;
-        Point_FeedbackInput := SavePointFeedbackInput;
-        Point_FeedbackOnIsStraight := SavePointFeedbackOnIsStraight;
-        Point_WiringReversedFlag := SavePointWiringReversedFlag;
-        Point_Type := SavePointType;
-        Point_OtherPoint := SavePointOtherPoint;
-        Point_DefaultState := SavePointDefaultState;
         Point_LockedIfHeelTCOccupied := SavePointLockedIfHeelTCOccupied;
-        Point_OutOfUse := SavePointOutOfUse;
         Point_LockedIfNonHeelTCsOccupied := SavePointLockedIfNonHeelTCsOccupied;
+        Point_ManualOperation := SavePointManualOperation;
         Point_Notes := SavePointNotes;
-        Point_ManualStateAsReadIn := SavePointManualStateAsReadIn;
+        Point_OtherPoint := SavePointOtherPoint;
+        Point_OutOfUse := SavePointOutOfUse;
+        Point_StraightLine := SavePointStraightLine;
+        Point_Type := SavePointType;
+        Point_WiringReversedFlag := SavePointWiringReversedFlag;
       END; {WITH}
 
       CreateNewPointRecord := False;

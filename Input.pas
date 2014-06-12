@@ -2304,9 +2304,11 @@ BEGIN { KeyPressedDown }
                                                 NOT StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrYes
                   THEN BEGIN
                     RedrawScreen := True;
-                    GetInitialFeedback;
+                    GetInitialFeedback(OK);
                     InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
-                    Log('AG User requested screen redraw after initial feedback sought');
+                    Log('AG User requested screen redraw after initial feedback sought ' + IfThen(OK,
+                                                                                                  ' and obtained',
+                                                                                                  ' but not provided'));
                     RedrawScreen := False;
                   END;
                 END;
@@ -2708,25 +2710,6 @@ BEGIN { KeyPressedDown }
               END;
             CtrlAlt: {P}
               BEGIN
-                HelpMsg := '';
-                IF NOT HelpRequired THEN BEGIN
-                END;
-              END;
-            CtrlShift: {P}
-              BEGIN
-                HelpMsg := 'turn point resetting mode on/off';
-                IF NOT HelpRequired THEN BEGIN
-                  IF PointResettingMode THEN BEGIN
-                    PointResettingMode := False;
-                    Log('XG PointResettingMode = OFF');
-                  END ELSE BEGIN
-                    PointResettingMode := True;
-                    Log('XG PointResettingMode = ON');
-                  END;
-                END;
-              END;
-            Shift: {P}
-              BEGIN
                 HelpMsg := 'test fire all points and say which is which';
                 IF NOT HelpRequired THEN BEGIN
                   IF MessageDialogueWithDefault('Test fire all points and describe them??',
@@ -2795,6 +2778,33 @@ BEGIN { KeyPressedDown }
                       END;
                     END;
                     Debug('+End of points test');
+                  END;
+                END;
+              END;
+            CtrlShift: {P}
+              BEGIN
+                HelpMsg := 'turn point resetting mode on/off';
+                IF NOT HelpRequired THEN BEGIN
+                  IF PointResettingMode THEN BEGIN
+                    PointResettingMode := False;
+                    Log('XG PointResettingMode = OFF');
+                  END ELSE BEGIN
+                    PointResettingMode := True;
+                    Log('XG PointResettingMode = ON');
+                  END;
+                END;
+              END;
+            Shift: {P}
+              BEGIN
+                HelpMsg := 'Load latest point settings in offline mode';
+                IF NOT HelpRequired THEN BEGIN
+                  IF SystemOnline THEN
+                    Debug('Cannot load previous point settings if system online')
+                  ELSE BEGIN
+                    Debug('Loading previous point settings');
+                    FOR P := 0 TO High(Points) DO
+                      Points[P].Point_PresentState := Points[P].Point_LastFeedbackStateAsReadIn;
+                    InvalidateScreen(UnitRef, 'Load latest point settings in offline mode');
                   END;
                 END;
               END;

@@ -9339,7 +9339,8 @@ BEGIN
             CheckBoolean(Point_OutOfUseFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
             CheckBoolean(Point_LockedIfNonHeelTCsOccupiedFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
             CheckString(Point_NotesFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
-            CheckString(Point_ManualStateAsReadInFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
+            CheckString(Point_LastManualStateAsReadInFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
+            CheckString(Point_LastFeedbackStateAsReadInFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
           END; {WITH}
         END;
 

@@ -449,6 +449,8 @@ TYPE
     Point_ForcedDelayMsg2Written : Boolean;
     Point_HasFeedback : Boolean;
     Point_LastChangedTime : TDateTime;
+    Point_LastFeedbackStateAsReadIn : PointStateType;
+    Point_LastManualStateAsReadIn : PointStateType;
     Point_LenzNum : Integer;
     Point_LenzUnit : Integer;
     Point_LenzUnitType : String;
@@ -460,7 +462,6 @@ TYPE
     Point_LockingArray : StringArrayType;
     Point_LockingState : PointStateType; { used to detect points that have moved while locked }
     Point_ManualOperation : Boolean;
-    Point_ManualStateAsReadIn : PointStateType;
     Point_MaybeBeingSetToManual : Boolean;
     Point_MouseRect : TRect; { mouse access rectangle }
     Point_MovedWhenLocked : Boolean;
@@ -491,6 +492,8 @@ CONST
   Point_FeedbackOnIsStraightFieldName : String = 'OnIsStraight';
   Point_FeedbackUnitFieldName : String = 'FeedbackUnit';
   Point_HeelLineFieldName : String = 'HeelLine';
+  Point_LastFeedbackStateAsReadInFieldName : String = 'LastFeedbackState';
+  Point_LastManualStateAsReadInFieldName : String = 'LastManualState';
   Point_LenzNumFieldName : String = 'LenzPointNum';
   Point_LenzUnitFieldName : String = 'LenzPointUnit';
   Point_LenzUnitTypeFieldName : String = 'LenzPointUnitType';
@@ -498,7 +501,6 @@ CONST
   Point_LockedIfHeelTCOccupiedFieldName : String = 'LockedIfHeelTCOccupied';
   Point_LockedIfNonHeelTCsOccupiedFieldName : String = 'LockedIfNonHeelTCsOccupied';
   Point_ManualOperationFieldName : String = 'ManualOperation';
-  Point_ManualStateAsReadInFieldName : String = 'LastManualState';
   Point_NotesFieldName : String = 'Notes';
   Point_OtherPointFieldName : String = 'OtherPoint';
   Point_OutOfUseFieldName : String = 'OutOfUse';
@@ -1417,6 +1419,12 @@ FUNCTION ValidateJunctionIndicators1(Str, FieldName : String; Signal_Indicator :
 { The first part of verifying whether junction indicators are correctly set up; this part also returns the values for each junction indicator. This test requires that
   the indicator has been validated first
 }
+FUNCTION ValidateLastPointFeedbackStateAsReadIn(PointStateStr : String; PointManualOperation : Boolean; OUT ErrorMsg : String) : PointStateType;
+{ Check whether the last point state read in is valid }
+
+FUNCTION ValidateLastPointManualStateAsReadIn(PointStateStr : String; PointManualOperation : Boolean; OUT ErrorMsg : String) : PointStateType;
+{ Check whether the last point state read in is valid }
+
 FUNCTION ValidateNextSignalIfNoIndicator(Str : String; Init : Boolean; OUT ErrorMsg : String) : Integer;
 { Validates and if ok returns what the other signal is if no indicator is lit }
 
@@ -1436,7 +1444,7 @@ FUNCTION ValidatePointFeedbackUnit(FeedbackUnitStr : String; OUT PointHasFeedbac
 FUNCTION ValidatePointHeelLineName(LineName : String; OUT ErrorMsg : String) : Integer;
 { Check that a given point's Heel Line name is valid }
 
-FUNCTION ValidatePointLenzNum(LenzNumStr : String; PointManualStateAsReadIn : PointStateType; OUT PointManualOperation : Boolean; OUT PointPresentState : PointStateType;
+FUNCTION ValidatePointLenzNum(LenzNumStr : String; PointLastManualStateAsReadIn : PointStateType; OUT PointManualOperation : Boolean; OUT PointPresentState : PointStateType;
                               OUT ErrorMsg : String) : Integer;
 { Check whether the Lenz point number is valid }
 
@@ -1445,9 +1453,6 @@ FUNCTION ValidatePointLenzUnit(LenzUnitStr : String; OUT ErrorMsg : String) : In
 
 FUNCTION ValidatePointLenzUnitType(LenzUnitTypeStr : String; PointManualOperation : Boolean; OUT ErrorMsg : String) : String;
 { Check whether a Lenz point unit type is valid }
-
-FUNCTION ValidatePointManualStateAsReadIn(PointStateStr : String; PointManualOperation : Boolean; OUT ErrorMsg : String) : PointStateType;
-{ Check whether the last point state read in is valid }
 
 FUNCTION ValidatePointOtherPoint(OtherPointStr : String; PointType : TypeOfPoint; OUT ErrorMsg : String) : Integer;
 { Check whether the value of the connected point (if any) is valid }
@@ -5079,18 +5084,35 @@ BEGIN
     ErrorMsg := 'ValidatePointType: unknown point type: ''' + PointTypeStr;
 END; { ValidatePointType }
 
-FUNCTION ValidatePointManualStateAsReadIn(PointStateStr : String; PointManualOperation : Boolean; OUT ErrorMsg : String) : PointStateType;
-{ Check whether the last point state read in is valid }
+FUNCTION ValidateLastPointFeedbackStateAsReadIn(PointStateStr : String; PointManualOperation : Boolean; OUT ErrorMsg : String) : PointStateType;
+{ Check whether the last feedback point state read in is valid }
 BEGIN
   ErrorMsg := '';
-  Result := StrToPointState(PointStateStr);
+  Result := PointStateUnknown;
 
-  IF Result <> PointStateUnknown THEN
+  IF PointStateStr <> '' THEN BEGIN
+    IF PointManualOperation THEN
+      ErrorMsg := 'ValidateLastPointFeedbackStateAsReadIn : last feedback state recorded but point marked as being manually operated'
+    ELSE
+      Result := StrToPointState(PointStateStr);
+  END;
+END; { ValidateLastPointFeedbackStateAsReadIn }
+
+FUNCTION ValidateLastPointManualStateAsReadIn(PointStateStr : String; PointManualOperation : Boolean; OUT ErrorMsg : String) : PointStateType;
+{ Check whether the last manual point state read in is valid }
+BEGIN
+  ErrorMsg := '';
+  Result := PointStateUnknown;
+
+  IF PointStateStr <> '' THEN BEGIN
     IF NOT PointManualOperation THEN
-      ErrorMsg := 'ValidatePointManualStateAsReadIn : last manual state recorded but point not marked as being manually operated';
-END; { ValidatePointManualStateAsReadIn }
+      ErrorMsg := 'ValidateLastPointManualStateAsReadIn : last manual state recorded but point not marked as being manually operated'
+    ELSE
+      Result := StrToPointState(PointStateStr);
+  END;
+END; { ValidateLastPointManualStateAsReadIn }
 
-FUNCTION ValidatePointLenzNum(LenzNumStr : String; PointManualStateAsReadIn : PointStateType; OUT PointManualOperation : Boolean; OUT PointPresentState : PointStateType;
+FUNCTION ValidatePointLenzNum(LenzNumStr : String; PointLastManualStateAsReadIn : PointStateType; OUT PointManualOperation : Boolean; OUT PointPresentState : PointStateType;
                               OUT ErrorMsg : String) : Integer;
 { Check whether the Lenz point number is valid }
 BEGIN
@@ -5108,7 +5130,7 @@ BEGIN
       PointManualOperation := (Result = 0)
     ELSE BEGIN
       PointManualOperation := True;
-      PointPresentState := PointManualStateAsReadIn;
+      PointPresentState := PointLastManualStateAsReadIn;
     END;
   END;
 END; { ValidatePointLenzNum }
@@ -5399,11 +5421,16 @@ BEGIN
             Point_ManualOperation := PointsADOTable.FieldByName(Point_ManualOperationFieldName).AsBoolean;
 
           IF ErrorMsg = '' THEN
-            Point_ManualStateAsReadIn := ValidatePointManualStateAsReadIn(PointsADOTable.FieldByName(Point_ManualStateAsReadInFieldName).AsString, Point_ManualOperation,
-                                                                          ErrorMsg);
+            Point_LastFeedbackStateAsReadIn := ValidateLastPointFeedbackStateAsReadIn(PointsADOTable.FieldByName(Point_LastFeedbackStateAsReadInFieldName).AsString,
+                                                                                      Point_ManualOperation, ErrorMsg);
+if p = 7 then
+null;
+          IF ErrorMsg = '' THEN
+            Point_LastManualStateAsReadIn := ValidateLastPointManualStateAsReadIn(PointsADOTable.FieldByName(Point_LastManualStateAsReadInFieldName).AsString,
+                                                                                  Point_ManualOperation, ErrorMsg);
 
           IF ErrorMsg = '' THEN
-            Point_LenzNum := ValidatePointLenzNum(PointsADOTable.FieldByName(Point_LenzNumFieldName).AsString, Point_ManualStateAsReadIn, Point_ManualOperation,
+            Point_LenzNum := ValidatePointLenzNum(PointsADOTable.FieldByName(Point_LenzNumFieldName).AsString, Point_LastManualStateAsReadIn, Point_ManualOperation,
                                                   Point_PresentState, ErrorMsg);
           IF ErrorMsg = '' THEN
             Point_LenzUnit := ValidatePointLenzUnit(PointsADOTable.FieldByName(Point_LenzUnitFieldName).AsString, ErrorMsg);
@@ -5440,8 +5467,8 @@ BEGIN
 
           IF ErrorMsg = '' THEN BEGIN
             IF Point_ManualOperation THEN BEGIN
-              IF Point_ManualStateAsReadIn <> PointStateUnknown THEN
-                Point_RequiredState := Point_ManualStateAsReadIn
+              IF Point_LastManualStateAsReadIn <> PointStateUnknown THEN
+                Point_RequiredState := Point_LastManualStateAsReadIn
               ELSE
                 Point_RequiredState := Point_DefaultState;
             END ELSE
@@ -5492,9 +5519,12 @@ BEGIN
         WITH Points[P] DO BEGIN
           IF Point_DataChanged THEN
             PointDatabaseNeedsUpdating := True;
-          IF Point_ManualOperation AND (Point_ManualStateAsReadIn <> Point_PresentState) THEN
+          IF Point_ManualOperation AND (Point_LastManualStateAsReadIn <> Point_PresentState) THEN
             PointDatabaseNeedsUpdating := True;
-          IF NOT Point_ManualOperation AND (Point_ManualStateAsReadIn <> PointStateUnknown) THEN
+          IF NOT Point_ManualOperation AND (Point_LastManualStateAsReadIn <> PointStateUnknown) THEN
+            PointDatabaseNeedsUpdating := True;
+
+          IF NOT Point_ManualOperation AND (Point_LastFeedbackStateAsReadIn <> Point_PresentState) THEN
             PointDatabaseNeedsUpdating := True;
         END; { WITH }
         Inc(P);
@@ -5541,21 +5571,38 @@ BEGIN
             END;
 
             { And the last known state of manual points }
-            IF NOT Point_ManualOperation AND (Point_ManualStateAsReadIn <> PointStateUnknown) THEN BEGIN
+            IF NOT Point_ManualOperation AND (Point_LastManualStateAsReadIn <> PointStateUnknown) THEN BEGIN
               PointsADOTable.Edit;
-              PointsADOTable.FieldByName(Point_ManualStateAsReadInFieldName).AsString := '';
+              PointsADOTable.FieldByName(Point_LastManualStateAsReadInFieldName).AsString := '';
               PointsADOTable.Post;
             END
               ELSE
-                IF (Point_ManualOperation) AND (Point_ManualStateAsReadIn <> Point_PresentState) THEN BEGIN
+                IF (Point_ManualOperation) AND (Point_LastManualStateAsReadIn <> Point_PresentState) THEN BEGIN
                   PointsADOTable.Edit;
-                  IF Points[P].Point_PresentState = Straight THEN
-                    PointsADOTable.FieldByName('LastManualState').AsString := 'straight'
+                  IF Points[P].Point_PresentState = PointStateUnknown THEN
+                    PointsADOTable.FieldByName(Point_LastManualStateAsReadInFieldName).AsString := ''
                   ELSE
-                    PointsADOTable.FieldByName('LastManualState').AsString := 'diverging';
+                    IF Points[P].Point_PresentState = Straight THEN
+                      PointsADOTable.FieldByName(Point_LastManualStateAsReadInFieldName).AsString := 'Straight'
+                    ELSE
+                      PointsADOTable.FieldByName(Point_LastManualStateAsReadInFieldName).AsString := 'Diverging';
                   PointsADOTable.Post;
                   Log('P Recording in point database that manual P=' + IntToStr(P) + '''s state is now ' + PointStateToStr(Points[P].Point_PresentState));
                 END;
+
+            { And of points from which we've had feedback }
+            IF NOT Point_ManualOperation THEN BEGIN
+              PointsADOTable.Edit;
+              IF Points[P].Point_PresentState = PointStateUnknown THEN
+                PointsADOTable.FieldByName(Point_LastManualStateAsReadInFieldName).AsString := ''
+              ELSE
+                IF Points[P].Point_PresentState = Straight THEN
+                  PointsADOTable.FieldByName(Point_LastFeedbackStateAsReadInFieldName).AsString := 'Straight'
+                ELSE
+                  PointsADOTable.FieldByName(Point_LastFeedbackStateAsReadInFieldName).AsString := 'Diverging';
+              PointsADOTable.Post;
+              Log('P Recording in point database that P=' + IntToStr(P) + '''s feedback state is now ' + PointStateToStr(Points[P].Point_PresentState));
+            END;
           END; { WITH }
           PointsADOTable.Next;
         END; { WHILE }
