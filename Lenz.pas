@@ -1981,95 +1981,99 @@ BEGIN
         Log('No train record for locochip ' + LocoChipToStr(LocoChip))
       ELSE BEGIN
         WITH T^ DO BEGIN
-          IF (T^.Train_SpeedStepMode = 28)
-          AND (LenzSpeed > 28)
-          THEN BEGIN
-            Log(LocoChipToStr(LocoChip) + ' XG  Fatal Error: Lenz speed ' + IntToStr(LenzSpeed) + ' supplied');
-            OK := False;
-          END;
-          IF DoubleHeaderLocoChip <> UnknownLocoChip THEN BEGIN
-            DoubleHeaderT := GetTrainRecord(DoubleHeaderLocoChip);
-            IF (DoubleHeaderT^.Train_SpeedStepMode = 28)
+          IF QuickStopFlag AND (LenzSpeed <> 0) THEN
+            Log(Train_LocoChipStr + ' XG Quick Stop set, but required loco speed not zero')
+          ELSE BEGIN
+            IF (T^.Train_SpeedStepMode = 28)
             AND (LenzSpeed > 28)
             THEN BEGIN
-              Log(LocoChipToStr(DoubleHeaderLocoChip) + ' XG Fatal Error: Lenz speed ' + IntToStr(LenzSpeed) + ' supplied');
+              Log(LocoChipToStr(LocoChip) + ' XG  Fatal Error: Lenz speed ' + IntToStr(LenzSpeed) + ' supplied');
               OK := False;
             END;
-          END;
-
-          IF OK THEN BEGIN
-            IF NOT SystemOnline THEN BEGIN
-              Debug('Speed for loco ' + LocoChipToStr(LocoChip) + ' would be set to ' + IntToStr(LenzSpeed));
-              IF DoubleHeaderLocoChip <> UnknownLocoChip THEN
-                Debug('Speed for loco ' + LocoChipToStr(LocoChip) + ' and for double header loco ' + LocoChipToStr(DoubleHeaderLocoChip)
-                      + ' would be set to ' + IntToStr(LenzSpeed))
-            END ELSE BEGIN
-              DebugStr := '';
-              OK := False;
-              { If we're controlling it, we know its speed }
-              IF T^.Train_SpeedByteReadIn
-              AND NOT LocoHasBeenTakenOverByUser(LocoChip)
-              THEN
-                TempSpeedByte := T^.Train_SpeedByte
-              ELSE BEGIN
-                ReadInLocoDetails(LocoChip, TempSpeedByte, OK);
-                IF NOT OK THEN
-                  Log(LocoChipToStr(LocoChip) + ' XG Locoread not ok-'); { ****** }
+            IF DoubleHeaderLocoChip <> UnknownLocoChip THEN BEGIN
+              DoubleHeaderT := GetTrainRecord(DoubleHeaderLocoChip);
+              IF (DoubleHeaderT^.Train_SpeedStepMode = 28)
+              AND (LenzSpeed > 28)
+              THEN BEGIN
+                Log(LocoChipToStr(DoubleHeaderLocoChip) + ' XG Fatal Error: Lenz speed ' + IntToStr(LenzSpeed) + ' supplied');
+                OK := False;
               END;
+            END;
 
-              IF NOT QuickStopFlag THEN BEGIN
-                { now set the appropriate ones }
-                IF T^.Train_SpeedStepMode = 28 THEN BEGIN
-                  { first clear bits 0-4 }
-                  TempSpeedByte := TempSpeedByte AND NOT $1F; { 0001 1111 }
-                  { and set new ones }
-                  TempSpeedByte := TempSpeedByte OR SpeedStep28Table[LenzSpeed];
-                END ELSE BEGIN
-                  { SpeedStepMode = 128 }
-                  { first clear bits 0-6 }
-                  TempSpeedByte := TempSpeedByte AND NOT $7F; { 0111 1111 }
-                  { and set new ones }
-                  TempSpeedByte := TempSpeedByte OR (LenzSpeed + 1);
-                END;
+            IF OK THEN BEGIN
+              IF NOT SystemOnline THEN BEGIN
+                Debug('Speed for loco ' + LocoChipToStr(LocoChip) + ' would be set to ' + IntToStr(LenzSpeed));
+                IF DoubleHeaderLocoChip <> UnknownLocoChip THEN
+                  Debug('Speed for loco ' + LocoChipToStr(LocoChip) + ' and for double header loco ' + LocoChipToStr(DoubleHeaderLocoChip)
+                        + ' would be set to ' + IntToStr(LenzSpeed))
               END ELSE BEGIN
-                { quickstop }
-                TempSpeedByte := T^.Train_SpeedByte;
-                { reset bits 1-6, leaving bit 7 as it indicates direction }
-                TempSpeedByte := TempSpeedByte AND NOT 126; { 0111 1110 }
-                { set bit 0 for emergency stop }
-                TempSpeedByte := TempSpeedByte OR 1; { 0000 0001 }
-              END;
-
-              { set top bit for direction }
-              IF TrainDirection = Up THEN BEGIN
-                TempSpeedByte := TempSpeedByte OR 128; { 1000 000 }
-                DebugStr := ' Up'
-              END ELSE BEGIN
-                TempSpeedByte := TempSpeedByte AND NOT 128; { 0000 000 }
-                DebugStr := ' Down';
-              END;
-
-              Log(LocoChipToStr(LocoChip) + ' L Writing speed data ' + IntToStr(LenzSpeed) + ' [' + DoBitPattern(TempSpeedByte) + ']' + DebugStr);
-              { now write the byte back }
-              WriteLocoSpeedOrDirection(LocoChip, TempSpeedByte, OK);
-              IF NOT OK THEN
-                Log(LocoChipToStr(LocoChip) + ' LG Data for loco ' + LocoChipToStr(LocoChip) + ' not written');
-
-              IF OK THEN BEGIN
-                IF DoubleHeaderLocoChip <> UnknownLocoChip THEN BEGIN
-                  { this makes use of the calculations above - we may have to do them again for the double header loco **** 11/10/06 }
-                  Log(LocoChipToStr(DoubleHeaderLocoChip) + ' L Writing speed data ' + IntToStr(LenzSpeed) + ' [' + DoBitPattern(TempSpeedByte) + ']' + DebugStr);
-                  WriteLocoSpeedOrDirection(DoubleHeaderLocoChip, TempSpeedByte, OK);
+                DebugStr := '';
+                OK := False;
+                { If we're controlling it, we know its speed }
+                IF T^.Train_SpeedByteReadIn
+                AND NOT LocoHasBeenTakenOverByUser(LocoChip)
+                THEN
+                  TempSpeedByte := T^.Train_SpeedByte
+                ELSE BEGIN
+                  ReadInLocoDetails(LocoChip, TempSpeedByte, OK);
                   IF NOT OK THEN
-                    Log(LocoChipToStr(DoubleHeaderLocoChip) + ' LG Data for loco ' + LocoChipToStr(DoubleHeaderLocoChip) + ' not written');
+                    Log(LocoChipToStr(LocoChip) + ' XG Locoread not ok-'); { ****** }
                 END;
-                T^.Train_CurrentLenzSpeed := LenzSpeed;
 
-                { Need to update the loco direction variable, as there may well not have been an explicit direction change by means of SetDirection, rather a speed change
-                  with the direction bit set differently.
-                }
-                IF TrainDirection <> T^.Train_CurrentDirection THEN
-                  T^.Train_CurrentDirection := TrainDirection;
+                IF NOT QuickStopFlag THEN BEGIN
+                  { now set the appropriate ones }
+                  IF T^.Train_SpeedStepMode = 28 THEN BEGIN
+                    { first clear bits 0-4 }
+                    TempSpeedByte := TempSpeedByte AND NOT $1F; { 0001 1111 }
+                    { and set new ones }
+                    TempSpeedByte := TempSpeedByte OR SpeedStep28Table[LenzSpeed];
+                  END ELSE BEGIN
+                    { SpeedStepMode = 128 }
+                    { first clear bits 0-6 }
+                    TempSpeedByte := TempSpeedByte AND NOT $7F; { 0111 1111 }
+                    { and set new ones }
+                    TempSpeedByte := TempSpeedByte OR (LenzSpeed + 1);
+                  END;
+                END ELSE BEGIN
+                  { quickstop }
+                  TempSpeedByte := T^.Train_SpeedByte;
+                  { reset bits 1-6, leaving bit 7 as it indicates direction }
+                  TempSpeedByte := TempSpeedByte AND NOT 126; { 0111 1110 }
+                  { set bit 0 for emergency stop }
+                  TempSpeedByte := TempSpeedByte OR 1; { 0000 0001 }
+                END;
+
+                { set top bit for direction }
+                IF TrainDirection = Up THEN BEGIN
+                  TempSpeedByte := TempSpeedByte OR 128; { 1000 000 }
+                  DebugStr := ' Up'
+                END ELSE BEGIN
+                  TempSpeedByte := TempSpeedByte AND NOT 128; { 0000 000 }
+                  DebugStr := ' Down';
+                END;
+
+                Log(LocoChipToStr(LocoChip) + ' L Writing speed data ' + IntToStr(LenzSpeed) + ' [' + DoBitPattern(TempSpeedByte) + ']' + DebugStr);
+                { now write the byte back }
+                WriteLocoSpeedOrDirection(LocoChip, TempSpeedByte, OK);
+                IF NOT OK THEN
+                  Log(LocoChipToStr(LocoChip) + ' LG Data for loco ' + LocoChipToStr(LocoChip) + ' not written');
+
+                IF OK THEN BEGIN
+                  IF DoubleHeaderLocoChip <> UnknownLocoChip THEN BEGIN
+                    { this makes use of the calculations above - we may have to do them again for the double header loco **** 11/10/06 }
+                    Log(LocoChipToStr(DoubleHeaderLocoChip) + ' L Writing speed data ' + IntToStr(LenzSpeed) + ' [' + DoBitPattern(TempSpeedByte) + ']' + DebugStr);
+                    WriteLocoSpeedOrDirection(DoubleHeaderLocoChip, TempSpeedByte, OK);
+                    IF NOT OK THEN
+                      Log(LocoChipToStr(DoubleHeaderLocoChip) + ' LG Data for loco ' + LocoChipToStr(DoubleHeaderLocoChip) + ' not written');
+                  END;
+                  T^.Train_CurrentLenzSpeed := LenzSpeed;
+
+                  { Need to update the loco direction variable, as there may well not have been an explicit direction change by means of SetDirection, rather a speed change
+                    with the direction bit set differently.
+                  }
+                  IF TrainDirection <> T^.Train_CurrentDirection THEN
+                    T^.Train_CurrentDirection := TrainDirection;
+                END;
               END;
             END;
           END;

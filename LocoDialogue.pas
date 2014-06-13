@@ -1481,7 +1481,7 @@ BEGIN
 
     { Deal with the cleaning wagon - if any }
     IF (LocoDialogueTrainRecord^.Train_PullingDapolCleaningWagon) AND (DapolCleaningWagonLocoChip <> unknownLocoChip) THEN
-        SetLenzSpeed(DapolCleaningWagonLocoChip, 0, 8, Up, QuickStop, OK)
+      SetLenzSpeed(DapolCleaningWagonLocoChip, 0, 8, Up, NOT QuickStop, OK)
   END; {WITH}
 END; { LocoDialogueIncreaseSpeed }
 
@@ -1570,7 +1570,8 @@ BEGIN
 
     { Deal with the cleaning wagon - if any }
     IF (LocoDialogueTrainRecord^.Train_PullingDapolCleaningWagon) AND (DapolCleaningWagonLocoChip <> unknownLocoChip) THEN
-      SetLenzSpeed(DapolCleaningWagonLocoChip, 0, 0, Up, QuickStop, OK);
+      IF LocoDialogueSelectedLocoSpeed = 0 THEN
+        SetLenzSpeed(DapolCleaningWagonLocoChip, 0, 0, Up, QuickStop, OK);
   END; {WITH}
 END; { LocoDialogueDecreaseSpeed }
 

@@ -492,7 +492,7 @@ BEGIN { SetDesiredTrainSpeed }
     IF Train_PullingDapolCleaningWagon THEN BEGIN
       IF Train_DesiredLenzSpeed > 0 THEN BEGIN
         IF NOT DapolCleaningWagonLocoChipRunning THEN BEGIN
-          SetLenzSpeed(DapolCleaningWagonLocoChip, 0, 8, Up, QuickStop, OK);
+          SetLenzSpeed(DapolCleaningWagonLocoChip, 0, 8, Up, NOT QuickStop, OK);
           DapolCleaningWagonLocoChipRunning := True;
         END;
       END ELSE BEGIN
