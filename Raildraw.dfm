@@ -282,6 +282,7 @@ object FWPRailWindow: TFWPRailWindow
     end
     object GeneralPopupChangeColours: TMenuItem
       Caption = '&Change Colours'
+      OnClick = GeneralPopupChangeColoursClick
       object GeneralPopupBackgroundColour: TMenuItem
         Caption = '&Background Colour'
         object GeneralPopupChangeBackgroundColour: TMenuItem
@@ -1279,6 +1280,14 @@ object FWPRailWindow: TFWPRailWindow
       Caption = 'Reset Window Size && Position'
       Enabled = False
       OnClick = GeneralPopupResetFWPRailWindowSizeAndPositionClick
+    end
+    object GeneralPopupRestoreAllScreenDrawingDefaultSettings: TMenuItem
+      Caption = 'Restore All Screen Drawing Default Settings'
+      OnClick = GeneralPopupRestoreAllScreenDrawingDefaultSettingsClick
+    end
+    object GeneralPopupRestoreAllProgramDefaultSettings: TMenuItem
+      Caption = 'Restore All Program'#39's Default Settings'
+      OnClick = GeneralPopupRestoreAllProgramDefaultSettingsClick
     end
   end
   object FWPRailWindowPopupOpenDialogue: TOpenDialog

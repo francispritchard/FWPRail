@@ -196,6 +196,8 @@ TYPE
     TCPopupSetTrackCircuitToUserDriving: TMenuItem;
     TCPopupSetTrackCircuitUnoccupied: TMenuItem;
     TCPopupTrackCircuitNumber: TMenuItem;
+    GeneralPopupRestoreAllProgramDefaultSettings: TMenuItem;
+    GeneralPopupRestoreAllScreenDrawingDefaultSettings: TMenuItem;
 
     PROCEDURE BufferStopMenuOnPopup(Sender: TObject);
     PROCEDURE CreateLineMenuItemClick(Sender: TObject);
@@ -458,6 +460,11 @@ TYPE
     PROCEDURE TCPopupSetTrackCircuitUnoccupiedClick(Sender: TObject);
     PROCEDURE TCPopupShowLocosLastErrorMessageClick(Sender: TObject);
     PROCEDURE TCPopupTrackCircuitNumberClick(Sender: TObject);
+    procedure GeneralPopupChangeColoursClick(Sender: TObject);
+    procedure GeneralPopupRestoreAllProgramDefaultSettingsClick(
+      Sender: TObject);
+    procedure GeneralPopupRestoreAllScreenDrawingDefaultSettingsClick(
+      Sender: TObject);
 
   PRIVATE
     { Private declarations }
@@ -5429,7 +5436,12 @@ BEGIN
     BufferStopRed := FWPRailWindowColourDialogue.Color;
     InvalidateScreen(UnitRef, 'GeneralPopupRestoreBufferStopNumberColourClick');
   END;
-END; { ChangeBufferStopRedClick }
+END; procedure TFWPRailWindow.GeneralPopupChangeColoursClick(Sender: TObject);
+begin
+
+end;
+
+{ ChangeBufferStopRedClick }
 
 PROCEDURE TFWPRailWindow.GeneralPopupRestoreBufferStopRedClick(Sender: TObject);
 BEGIN
@@ -5971,6 +5983,16 @@ PROCEDURE TFWPRailWindow.GeneralPopupRestoreAllDefaultColoursClick(Sender: TObje
 BEGIN
   ResetScreenColoursToDefault;
 END; { RestoreAllDefaultColoursClick }
+
+PROCEDURE TFWPRailWindow.GeneralPopupRestoreAllProgramDefaultSettingsClick(Sender: TObject);
+BEGIN
+
+END;{ GeneralPopupRestoreAllProgramDefaultSettingsClick }
+
+PROCEDURE TFWPRailWindow.GeneralPopupRestoreAllScreenDrawingDefaultSettingsClick(Sender: TObject);
+BEGIN
+  RestoreScreenDefaults;
+END; { GeneralPopupRestoreAllScreenDrawingDefaultSettingsClick }
 
 PROCEDURE ResetScreenColoursAfterPrinting;
 { Restore the colours to those saved before printing the screen in printer-friendly colours }
@@ -7375,6 +7397,8 @@ BEGIN { Main drawing procedure }
           WITH Lines[L] DO BEGIN
             { save the LineOldColour because otherwise DrawLine might update it erroneously }
             SaveLineOldColour := Line_OldColour;
+//if lines[l].line_str = 'BT1a' then
+//debug(testcountstr);
             IF ReplayMode THEN
               DrawLine(L, Line_OldColour, ActiveTrain)
             ELSE BEGIN

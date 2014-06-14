@@ -37,6 +37,9 @@ PROCEDURE ReadIniFile;
 PROCEDURE ReadIniFileForTrackCircuitData;
 { Read in trackcircuit data from the .ini file or from the Registry }
 
+PROCEDURE RestoreScreenDefaults;
+{ Restore screen colours, fonts, etc. }
+
 PROCEDURE WriteIniFile;
 { Write out data to the .ini file or to the Registry }
 
@@ -1162,6 +1165,110 @@ CONST
     WorkingTimetableSmallWindowWidthStr = 'Working Timetable Small Window Width';
     WorkingTimetableLargeWindowWidthStr = 'Working Timetable Large Window Width';
 
+PROCEDURE RestoreScreenDefaults;
+{ Restore screen colours, fonts, etc. }
+BEGIN
+  { Colours for buffer stops }
+  BufferStopColour := DefaultBufferStopColour;
+  BufferStopNumberColour := DefaultBufferStopNumberColour;
+  BufferStopRed := DefaultBufferStopRed;
+
+  { Colours for TRS plungers }
+  TRSPlungerColour := DefaultTRSPlungerColour;
+  TRSPlungerOutlineColour := DefaultTRSPlungerOutlineColour;
+  TRSPlungerPressedColour := DefaultTRSPlungerPressedColour;
+
+  { Colours for platforms }
+  PlatformColour := DefaultPlatformColour;
+  PlatformNumberColour := DefaultPlatformNumberColour;
+
+  { Colours for points }
+  LenzPointNumberColour := DefaultLenzPointNumberColour;
+  PointColour := DefaultPointColour;
+  PointDivergingLineColour := DefaultPointDivergingLineColour;
+  PointDownFacingColour := DefaultPointDownFacingColour;
+  PointFeedbackDataInUseColour := DefaultPointFeedbackDataInUseColour;
+  PointFeedbackDataOutOfUseColour := DefaultPointFeedbackDataOutOfUseColour;
+  PointHeelLineColour := DefaultPointHeelLineColour;
+  PointLockedByUserColour := DefaultPointLockedByUserColour;
+  PointManualOperationColour := DefaultPointManualOperationColour;
+  PointOutOfUseColour := DefaultPointOutOfUseColour;
+  PointStraightLineColour := DefaultPointStraightLineColour;
+  PointsWithoutFeedbackColour := DefaultPointsWithoutFeedbackColour;
+  PointUndrawColour := DefaultPointUndrawColour;
+  PointUpFacingColour := DefaultPointUpFacingColour;
+  ShowPointDefaultStateColour := DefaultShowPointDefaultStateColour;
+  ShowPointLockedColour := DefaultShowPointLockedColour;
+
+  { Colours for signal posts }
+  SignalPostColour := DefaultSignalPostColour;
+  SignalPostEmergencyRouteSettingColour := DefaultSignalPostEmergencyRouteSettingColour;
+  SignalPostRouteSettingColour := DefaultSignalPostRouteSettingColour;
+  SignalPostStationStartModeColour := DefaultSignalPostStationStartModeColour;
+  SignalPostTheatreSettingColour := DefaultSignalPostTheatreSettingColour;
+
+  { Colours for signals }
+  SignalAspectGreen := DefaultSignalAspectGreen;
+  SignalAspectRed := DefaultSignalAspectRed;
+  SignalAspectUnlit := DefaultSignalAspectUnlit;
+  SignalAspectYellow := DefaultSignalAspectYellow;
+  SignalNumberColour := DefaultSignalNumberColour;
+
+  { Colours for lines }
+  LineRoutedOverColour := DefaultLineRoutedOverColour;
+
+  { Colours for trackcircuits }
+  TCFeedbackDataInUseColour := DefaultTCFeedbackDataInUseColour;
+  TCFeedbackDataOutOfUseColour := DefaultTCFeedbackDataOutOfUseColour;
+  TCFeedbackOccupationColour := DefaultTCFeedbackOccupationColour;
+  TCFeedbackOccupationButOutOfUseColour := DefaultTCFeedbackOccupationButOutOfUseColour;
+  TCLocoOutOfPlaceOccupationColour := DefaultTCLocoOutOfPlaceOccupationColour;
+  TCMissingOccupationColour := DefaultTCMissingOccupationColour;
+  TCOutOfUseSetByUserColour := DefaultTCOutOfUseSetByUserColour;
+  TCOutOfUseAsNoFeedbackReceivedColour := DefaultTCOutOfUseAsNoFeedbackReceivedColour;
+
+  TCPermanentFeedbackOccupationColour := DefaultTCPermanentFeedbackOccupationColour;
+  TCPermanentOccupationSetByUserColour := DefaultTCPermanentOccupationSetByUserColour;
+  TCPermanentSystemOccupationColour := DefaultTCPermanentSystemOccupationColour;
+  TCSpeedRestrictionColour := DefaultTCSpeedRestrictionColour;
+  TCSystemOccupationColour := DefaultTCSystemOccupationColour;
+  TCUnoccupiedColour := DefaultTCUnoccupiedColour;
+  TrainActiveColour := DefaultTrainActiveColour;
+  TrainInactiveColour := DefaultTrainInactiveColour;
+
+  { Miscellaneous colours }
+  BackgroundColour := DefaultBackgroundColour;
+  ForegroundColour := DefaultForegroundColour;
+  DiagramsWindowGridBackgroundColour := DefaultDiagramsWindowGridBackgroundColour;
+  LineNotAvailableColour := DefaultLineNotAvailableColour;
+  LinesWithoutTrackCircuitsColour := DefaultLinesWithoutTrackCircuitsColour;
+  LocoStalledColour := DefaultLocoStalledColour;
+  WorkingTimetableWindowGridBackgroundColour := DefaultWorkingTimetableWindowGridBackgroundColour;
+
+  { Pen styles }
+  FiddleyardLinePenStyle := DefaultFiddleyardLinePenStyle;
+  ProjectedLinePenStyle := DefaultProjectedLinePenStyle;
+  SidingPenStyle := DefaultSidingPenStyle;
+  TCLocoOutOfPlaceOccupationPenStyle := DefaultTCLocoOutOfPlaceOccupationPenStyle;
+  TCOutOfUseAsNoFeedbackReceivedPenStyle := DefaultTCOutOfUseAsNoFeedbackReceivedPenStyle;
+  TCOutOfUseSetByUserPenStyle := DefaultTCOutOfUseSetByUserPenStyle;
+  TCPermanentFeedbackOccupationPenStyle := DefaultTCPermanentFeedbackOccupationPenStyle;
+  TCPermanentOccupationSetByUserPenStyle := DefaultTCPermanentOccupationSetByUserPenStyle;
+  TCPermanentSystemOccupationPenStyle := DefaultTCPermanentSystemOccupationPenStyle;
+
+  { Fonts }
+  RailFontName := DefaultRailFontName;
+  LineFontHeight := DefaultLineFontHeight;
+  LoggingWindowFontName := DefaultLoggingWindowFontName;
+  LoggingWindowFontSize := DefaultLoggingWindowFontSize;
+  FWPRailWindowFontHeight := DefaultFWPRailWindowFontHeight;
+  PlatformNumberFontHeight := DefaultPlatformNumberFontHeight;
+  StationMonitorsFontName := DefaultStationMonitorsFontName;
+  StationMonitorsLargeFontHeight := DefaultStationMonitorsLargeFontHeight;
+  StationMonitorsSmallFontHeight := DefaultStationMonitorsSmallFontHeight;
+  TheatreFontHeight := DefaultTheatreFontHeight;
+END; { RestoreScreenDefaults }
+
 PROCEDURE ReadIniFile; //MainProcedure(IniFile : TRegistryIniFile);
 { Read in data from the .ini file or from the Registry, except for the trackcircuit data }
 VAR
@@ -1175,7 +1282,7 @@ BEGIN
 
     WITH IniFile DO BEGIN
       { Check for various user supplied file data.
-        NB TrackCircuit data is read in separately in the ReadIniFileForTrackCircuitData routine.
+        NB Track circuit data is read in separately in the ReadIniFileForTrackCircuitData routine.
       }
       PathToLogFiles := ReadString(FilesSectionStr, PathToLogFilesStr, DefaultPathToLogFiles);
       PathToRailDataFiles := ReadString(FilesSectionStr, PathToRailDataFilesStr, DefaultPathToRailDataFiles);
@@ -1240,6 +1347,7 @@ BEGIN
       PointUpFacingColour := StrToColour(ReadString(ColoursSectionStr, PointUpFacingColourStr, ColourToStr(DefaultPointUpFacingColour)));
       ShowPointDefaultStateColour := StrToColour(ReadString(ColoursSectionStr, ShowPointDefaultStateColourStr, ColourToStr(DefaultShowPointDefaultStateColour)));
       ShowPointLockedColour := StrToColour(ReadString(ColoursSectionStr, ShowPointLockedColourStr, ColourToStr(DefaultShowPointLockedColour)));
+
       { Colours for signal posts }
       SignalPostColour := StrToColour(ReadString(ColoursSectionStr, SignalPostColourStr, ColourToStr(DefaultSignalPostColour)));
       SignalPostEmergencyRouteSettingColour := StrToColour(ReadString(ColoursSectionStr, SignalPostEmergencyRouteSettingColourStr,
@@ -1248,6 +1356,7 @@ BEGIN
       SignalPostStationStartModeColour := StrToColour(ReadString(ColoursSectionStr, SignalPostStationStartModeColourStr,
                                                                                                                      ColourToStr(DefaultSignalPostStationStartModeColour)));
       SignalPostTheatreSettingColour := StrToColour(ReadString(ColoursSectionStr, SignalPostTheatreSettingColourStr, ColourToStr(DefaultSignalPostTheatreSettingColour)));
+
       { Colours for signals }
       SignalAspectGreen := StrToColour(ReadString(ColoursSectionStr, SignalAspectGreenStr, ColourToStr(DefaultSignalAspectGreen)));
       SignalAspectRed := StrToColour(ReadString(ColoursSectionStr, SignalAspectRedStr, ColourToStr(DefaultSignalAspectRed)));
@@ -1255,8 +1364,10 @@ BEGIN
       SignalAspectYellow := StrToColour(ReadString(ColoursSectionStr, SignalAspectYellowStr, ColourToStr(DefaultSignalAspectYellow)));
       SignalNumberColour := StrToColour(ReadString(ColoursSectionStr, SignalNumberColourStr, ColourToStr(DefaultSignalNumberColour)));
 
+
       { Colours for lines }
       LineRoutedOverColour := StrToColour(ReadString(ColoursSectionStr, LineRoutedOverColourStr, ColourToStr(DefaultLineRoutedOverColour)));
+
       { Colours for trackcircuits }
       TCFeedbackDataInUseColour := StrToColour(ReadString(ColoursSectionStr, TCFeedbackDataInUseColourStr, ColourToStr(DefaultTCFeedbackDataInUseColour)));
       TCFeedbackDataOutOfUseColour := StrToColour(ReadString(ColoursSectionStr, TCFeedbackDataOutOfUseColourStr, ColourToStr(DefaultTCFeedbackDataOutOfUseColour)));
