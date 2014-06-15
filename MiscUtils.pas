@@ -637,10 +637,16 @@ FUNCTION SignalTypeToStr(ST : TypeOfSignal; LongOrShortString : StringType) : St
 PROCEDURE StartLocos(Restart : Boolean);
 { Restart all the locos that were running before the enforced stop }
 
+PROCEDURE StopAParticularTrain(T : TrainElement);
+{ Stops just one train }
+
 PROCEDURE StopLocos(Msg : String);
 { Stop all the locos currently in the diagram list. This is a better approach than the brute force approach which is to send a "StopAllLocomotives" command, which produces
   an "emergency off" situation.
 }
+PROCEDURE StopOrResumeAllOperations(Str : String);
+{ Deal with emergency situations by stopping operations or restarting them }
+
 FUNCTION StringArraysCompareOK(FirstArray, SecondArray : StringArrayType; OUT ErrorMsg : String) : Boolean;
 { Does an element by element comparison of two string arrays }
 
@@ -901,6 +907,7 @@ VAR
   LineAfterJustDrawn : Boolean = False;
   LogArray : StringArrayType;
   OldDebugStr : String = '';
+  OperationsStopped : Boolean = False;
   PreviousLogTime : TDateTime = 0;
   SaveLogStrArray : ARRAY [1..MaxSaveLogStrs] OF String;
   StoredRichEditLoggingTextArray : StringArrayType;
@@ -6987,41 +6994,62 @@ BEGIN
       Log('AG No locos to restart');
 END; { StartLocos }
 
+PROCEDURE StopAParticularTrain(T : TrainElement);
+{ Stops just one train }
+VAR
+  DebugStr : String;
+  OK : Boolean;
+
+BEGIN
+  WITH Trains[T] DO BEGIN
+    IF SystemOnline THEN BEGIN
+      DebugStr := 'Train stop requested';
+      StopAParticularLocomotive(Train_LocoChip, OK);
+      IF Train_DoubleHeaderLocoChip <> UnknownLocoChip THEN BEGIN
+        StopAParticularLocomotive(Train_DoubleHeaderLocoChip, OK);
+        DebugStr := DebugStr + '. DH Loco ' + LocoChipToStr(Train_DoubleHeaderLocoChip);
+      END;
+
+      IF Train_PullingDapolCleaningWagon THEN BEGIN
+        StopAParticularLocomotive(DapolCleaningWagonLocoChip, OK);
+//        SetLenzSpeed(DapolCleaningWagonLocoChip, 0, 0, Up, QuickStop, OK);
+        DapolCleaningWagonLocoChipRunning := False;
+        Log(Train_LocoChipStr + ' L Dapol cleaning wagon stopped too');
+        DebugStr := DebugStr + '. Dapol cleaning wagon ' + LocoChipToStr(DapolCleaningWagonLocoChip);
+      END;
+
+      IF (Train_DoubleHeaderLocoChip <> UnknownLocoChip) OR Train_PullingDapolCleaningWagon THEN
+        DebugStr := DebugStr + ' also stopped';
+
+      Log(Train_LocoChipStr + ' L ' + DebugStr);
+    END;
+  END; {WITH}
+END; { StopAParticularTrain }
+
 PROCEDURE StopLocos(Msg : String);
 { Stop all the locos currently in the diagram list. This is a better approach than the brute force approach which is to send a "StopAllLocomotives" command, which produces
   an "emergency off" situation.
 }
 VAR
-  OK : Boolean;
-  T : Train;
+  T : TrainElement;
 
 BEGIN
   Log('AG Stopping any locos - initiated by ' + Msg);
 
-  T := TrainList;
-  WHILE T <> NIL DO BEGIN
-    WITH T^ DO BEGIN
+  T := 0;
+  WHILE T <= High(Trains) DO BEGIN
+    WITH Trains[T] DO BEGIN
       IF (Train_LocoChip <> UnknownLocoChip)
       AND Train_DiagramFound
       AND (Train_CurrentStatus <> Cancelled)
       AND (Train_LocoChip <> UnknownLocoChip)
       THEN BEGIN
-        IF SystemOnline THEN BEGIN
-          StopAParticularLocomotive(Train_LocoChip, OK);
-          IF Train_DoubleHeaderLocoChip <> UnknownLocoChip THEN
-            StopAParticularLocomotive(Train_DoubleHeaderLocoChip, OK);
-        END;
+        StopAParticularTrain(T);
         LocosStopped := True;
         DrawDiagramsSpeedCell(T);
       END;
-
-      IF Train_PullingDapolCleaningWagon THEN BEGIN
-        SetLenzSpeed(DapolCleaningWagonLocoChip, 0, 0, Up, QuickStop, OK);
-        DapolCleaningWagonLocoChipRunning := False;
-        Log(Train_LocoChipStr + ' L Dapol cleaning wagon stopped too');
-      END;
     END; {WITH}
-    T := T^.Train_NextRecord;
+    Inc(T);
   END; {WHILE}
 
 

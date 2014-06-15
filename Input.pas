@@ -3346,24 +3346,8 @@ BEGIN { KeyPressedDown }
               }
               BEGIN
                 HelpMsg := 'stop all operations';
-                IF NOT HelpRequired THEN BEGIN
-                  StopOperations;
-                  Log('A Mouse wheel pressed: all operations stopped');
-                  Debug('All operations stopped');
-                  IF NOT SystemOnline THEN
-                    Debug('Cannot deselect points - system offline')
-                  ELSE BEGIN
-                    FOR P := 0 TO High(Points) DO
-                      EmergencyDeselectPoint(P, OK);
-                    Debug('All points now switched off');
-                    Log('P User has switched all points off');
-
-                    FOR S := 0 TO High(Signals) DO
-                      EmergencyDeselectSignal(S, OK);
-                    Debug('All signal now switched off');
-                    Log('S User has switched all signals off');
-                  END;
-                END;
+                IF NOT HelpRequired THEN
+                  StopOrResumeAllOperations('Mouse wheel or Ctrl-V');
               END;
             Alt: {V}
               BEGIN
@@ -4539,24 +4523,9 @@ BEGIN { KeyPressedDown }
           CASE ShiftKeys OF
             NoShiftKeys: {Space}
               BEGIN
-                HelpMsg := 'stop all operations';
-                IF NOT HelpRequired THEN BEGIN
-                  StopOperations;
-                  Log('A ' + DescribeKey(KeyToTest, InputShiftState) + ' : all operations stopped');
-                  Debug('All operations stopped');
-                  IF NOT SystemOnline THEN
-                    Debug('Cannot deselect points - system offline')
-                  ELSE BEGIN
-                    FOR P := 0 TO High(Points) DO
-                      EmergencyDeselectPoint(P, OK);
-                    Log('P! User has switched all points off');
-
-                    FOR S := 0 TO High(Signals) DO
-                      EmergencyDeselectSignal(S, OK);
-                    Debug('All signal now switched off');
-                    Log('S User has switched all signals off');
-                  END;
-                END;
+                HelpMsg := 'stop or resume all operations';
+                IF NOT HelpRequired THEN
+                  StopOrResumeAllOperations(DescribeKey(KeyToTest, InputShiftState));
               END;
             ShiftAlt: {Space}
               BEGIN
@@ -4578,17 +4547,8 @@ BEGIN { KeyPressedDown }
               END;
             Shift: {Space}
               BEGIN
-                HelpMsg := 'resume all operations';
+                HelpMsg := '';
                 IF NOT HelpRequired THEN BEGIN
-                  IF MessageDialogueWithDefault('Resume operations?', NOT StopTimer, mtConfirmation, [mbOK, mbAbort], mbAbort) = mrOK THEN BEGIN
-                    ResumeOperations(OK);
-                    IF OK THEN BEGIN
-                      Log('AG Operations resumed');
-                    END ELSE BEGIN
-                      Log('A! Operations not resumed');
-                    END;
-                    InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
-                  END;
                 END;
               END;
             Ctrl: {Space}

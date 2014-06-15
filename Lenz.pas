@@ -131,7 +131,7 @@ PROCEDURE StopAllLocomotives(VAR OK : Boolean);
 PROCEDURE StopAParticularLocomotive(LocoChip : Integer; VAR OK : Boolean);
 { Stops a particular loco }
 
-PROCEDURE StopOperations;
+PROCEDURE StopOperations(OUT OK : Boolean);
 { Turns the power off to the track and to I/O devices; it tells the system to stop sending DCC packets to the track and to switch off the DCC track power }
 
 PROCEDURE TurnPointOff(P : Integer; VAR OK : Boolean);
@@ -3158,10 +3158,9 @@ END; { DissolveDoubleHeader }
 
 {$O+}
 
-PROCEDURE StopOperations;
+PROCEDURE StopOperations(OUT OK : Boolean);
 { Turns the power off to the track and to I/O devices; it tells the system to stop sending DCC packets to the track and to switch off the DCC track power. }
 VAR
-  OK : Boolean;
   WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
 
 BEGIN
