@@ -5543,7 +5543,8 @@ BEGIN
               PointsADOTable.Edit;
               PointsADOTable.FieldByName(Point_OutOfUseFieldName).AsBoolean := Point_OutOfUse;
               PointsADOTable.Post;
-              Log('P Recording in point database that P=' + IntToStr(P) + ' is now ' + IfThen(Points[P].Point_OutOfUse, 'out of use', 'back in use'));
+              IF PointDebuggingMode THEN
+                Log('P Recording in point database that P=' + IntToStr(P) + ' is now ' + IfThen(Points[P].Point_OutOfUse, 'out of use', 'back in use'));
             END;
 
             { And if the user has locked a particular point }
@@ -5551,7 +5552,8 @@ BEGIN
               PointsADOTable.Edit;
               PointsADOTable.FieldByName(Point_LockedByUserFieldName).AsBoolean := Point_LockedByUser;
               PointsADOTable.Post;
-              Log('P Recording in point database that P=' + IntToStr(P) + ' is now ' + IfThen(Points[P].Point_LockedByUser, 'locked by user', 'back in use'));
+              IF PointDebuggingMode THEN
+                Log('P Recording in point database that P=' + IntToStr(P) + ' is now ' + IfThen(Points[P].Point_LockedByUser, 'locked by user', 'back in use'));
             END;
 
             { And the last known state of manual points }
@@ -5571,7 +5573,8 @@ BEGIN
                     ELSE
                       PointsADOTable.FieldByName(Point_LastManualStateAsReadInFieldName).AsString := 'Diverging';
                   PointsADOTable.Post;
-                  Log('P Recording in point database that manual P=' + IntToStr(P) + '''s state is now ' + PointStateToStr(Points[P].Point_PresentState));
+                  IF PointDebuggingMode THEN
+                    Log('P Recording in point database that manual P=' + IntToStr(P) + '''s state is now ' + PointStateToStr(Points[P].Point_PresentState));
                 END;
 
             { And of points from which we've had feedback }
@@ -5585,7 +5588,8 @@ BEGIN
                 ELSE
                   PointsADOTable.FieldByName(Point_LastFeedbackStateAsReadInFieldName).AsString := 'Diverging';
               PointsADOTable.Post;
-              Log('P Recording in point database that P=' + IntToStr(P) + '''s feedback state is now ' + PointStateToStr(Points[P].Point_PresentState));
+              IF PointDebuggingMode THEN
+                Log('P Recording in point database that P=' + IntToStr(P) + '''s feedback state is now ' + PointStateToStr(Points[P].Point_PresentState));
             END;
           END; { WITH }
           PointsADOTable.Next;
