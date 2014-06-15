@@ -119,7 +119,7 @@ PROCEDURE SetSystemOffline(OfflineMsg : String);
 FUNCTION SetSystemOnline : Boolean;
 { Change the caption and the icons to show we're online - needs a test to see if we are, actually, online *************** 6/2/14 }
 
-PROCEDURE SetTrainDirection(T : Train; DirectionRequired : DirectionType; ForceWrite : Boolean; VAR OK : Boolean);
+PROCEDURE SetTrainDirection(T : TrainElement; DirectionRequired : DirectionType; ForceWrite : Boolean; VAR OK : Boolean);
 { Sets/resets bit 7 - up is (arbitrarily) on }
 
 FUNCTION SingleLocoFunctionIsOn(LocoChip, FunctionNum : Integer; ForceRead : Boolean; OUT OK : Boolean) : Boolean;
@@ -141,7 +141,7 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES RailDraw, Feedback, GetTime, Startup, MiscUtils, Diagrams, LocoUtils, IDGlobal, Movement, MMSystem, DateUtils, StrUtils, Input, Main, Locks;
+USES RailDraw, Feedback, GetTime, Startup, MiscUtils, Diagrams, LocoUtils, IDGlobal, Movement, MMSystem, DateUtils, StrUtils, Input, Main, Locks, LocationData;
 
 CONST
   UnitRef = 'Lenz';
@@ -708,7 +708,7 @@ VAR
   RetryFlag : Boolean;
   S : String;
   StartTimer : Cardinal;
-  T : Train;
+  T : TrainElement;
   TempByte : Byte;
   TempStr : String;
   TempInt : Integer;
@@ -803,7 +803,7 @@ BEGIN
           AND (ExpectedReply <> TrackPowerOffReply)
           THEN BEGIN
             TickCount := (GetTickCount - StartTimer);
-            IF TickCount > 2000 THEN BEGIN
+            IF TickCount > 1000 THEN BEGIN
               TimedOut := True;
               RetryFlag := True;
 
@@ -1354,8 +1354,8 @@ BEGIN
                       { and record it }
                       Log(LocoChipToStr(LocoChip) + ' L taken over');
                       T := GetTrainRecord(LocoChip);
-                      IF T <> NIL THEN BEGIN
-                        T^.Train_PreviouslyControlledByProgram := True;
+                      IF T <= High(Trains) THEN BEGIN
+                        Trains[T].Train_PreviouslyControlledByProgram := True;
                         SetTrainControlledByProgram(T, False);
                       END;
                     END;
@@ -1495,12 +1495,12 @@ PROCEDURE ProgramOnTheMain(LocoChip : Integer; ProgramOnTheMainRequest : Program
 { Program a loco anywhere on the layout (i.e. not on the programming track) }
 VAR
   OK : Boolean;
-  T : Train;
+  T : TrainElement;
   WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
 
 BEGIN
   T := GetTrainRecord(LocoChip);
-  IF T <> NIL THEN BEGIN
+  IF T <= High(Trains) THEN BEGIN
     WriteArray[0] := 230; { header byte }
     WriteArray[1] := 48;  { identification byte }
     WriteArray[2] := GetLocoChipHighByte(LocoChip); { data byte 1 - AH }
@@ -1618,15 +1618,15 @@ VAR
   IDByte : Byte;
   ReadArray, WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
   SpeedNum : Integer;
-  T : Train;
+  T : TrainElement;
   TestByte : Byte;
 
 BEGIN
   TestByte := 0;
 
   T := GetTrainRecord(LocoChip);
-  IF T <> NIL THEN BEGIN
-    WITH T^ DO BEGIN
+  IF T <= High(Trains) THEN BEGIN
+    WITH Trains[T] DO BEGIN
       Log(LocoChipToStr(LocoChip) + ' L Requesting loco details {BLANKLINEBEFORE}');
 
       WriteArray[0] := 227;
@@ -1810,14 +1810,14 @@ END; { ReadInFunctionDecoderDetails }
 FUNCTION LocoHasBeenTakenOverByProgram(LocoChip : Integer) : Boolean;
 { Returns true if the loco has been taken over by the program }
 VAR
-  T : Train;
+  T : TrainElement;
 
 BEGIN
   Result := False;
 
   T := GetTrainRecord(LocoChip);
-  IF T <> NIL THEN BEGIN
-    WITH T^ DO BEGIN
+  IF T <= High(Trains) THEN BEGIN
+    WITH Trains[T] DO BEGIN
       IF Train_ControlledByProgram THEN BEGIN
         Train_PreviouslyControlledByProgram := False;
         Train_TakenOverByUserMsgWritten := False;
@@ -1830,14 +1830,14 @@ END; { LocoHasBeenTakenOverByProgram }
 FUNCTION LocoHasBeenTakenOverByUser(LocoChip : Integer) : Boolean;
 { Returns true if the loco has been taken over by an LH100 }
 VAR
-  T : Train;
+  T : TrainElement;
 
 BEGIN
   Result := False;
 
   T := GetTrainRecord(LocoChip);
-  IF T <> NIL THEN BEGIN
-    WITH T^ DO BEGIN
+  IF T <= High(Trains) THEN BEGIN
+    WITH Trains[T] DO BEGIN
       IF NOT Train_ControlledByProgram
       AND Train_PreviouslyControlledByProgram
       THEN BEGIN
@@ -1856,7 +1856,7 @@ FUNCTION GetLenzSpeed(LocoChip : Integer; ForceRead : Boolean) : Integer;
 { Returns the given loco's speed - if ForceRead set, reads it in even if we think we know what it is }
 VAR
   OK : Boolean;
-  T : Train;
+  T : TrainElement;
   TempSpeedByte : Byte;
 
 BEGIN
@@ -1872,22 +1872,22 @@ BEGIN
   END;
   { Either return the newly obtained speed, or the stored speed }
   T := GetTrainRecord(LocoChip);
-  IF T <> NIL THEN
-    Result := T^.Train_CurrentLenzSpeed;
+  IF T <= High(Trains) THEN
+    Result := Trains[T].Train_CurrentLenzSpeed;
 //    Result := T^.Train_LenzSpeed;
 END; { GetLenzSpeed }
 
 PROCEDURE WriteLocoSpeedOrDirection(LocoChip : Integer; TempSpeedByte : Byte; VAR OK : Boolean);
 { Write out the speed or direction of a given locomotive }
 VAR
-  T : Train;
+  T : TrainElement;
   WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
 
 BEGIN
   T := GetTrainRecord(LocoChip);
-  IF T <> NIL THEN BEGIN
+  IF T <= High(Trains) THEN BEGIN
     WriteArray[0] := 228;
-    IF T^.Train_SpeedStepMode = 28 THEN
+    IF Trains[T].Train_SpeedStepMode = 28 THEN
       WriteArray[1] := 18
     ELSE
       { 128 speed steps }
@@ -1904,7 +1904,7 @@ BEGIN
       Log(LocoChipToStr(LocoChip) + ' L Data not acknowledged')
     ELSE BEGIN
       SetTrainControlledByProgram(T, True);
-      T^.Train_SpeedByte := TempSpeedByte;
+      Trains[T].Train_SpeedByte := TempSpeedByte;
     END;
     Log(LocoChipToStr(LocoChip) + ' L Data acknowledged');
   END;
@@ -1968,23 +1968,24 @@ PROCEDURE SetLenzSpeed(LocoChip, DoubleHeaderLocoChip : Integer; LenzSpeed : Int
 { Sets the speed by changing bits 4 - 0 - if quickstop, don't bother to read in the loco details first, as we're not interested in what the speed used to be }
 VAR
   DebugStr : String;
-  DoubleHeaderT : Train;
-  T : Train;
+  DoubleHeaderT : TrainElement;
+  T : TrainElement;
   TempSpeedByte : Byte;
 
 BEGIN
   TRY
     OK := True;
+
     IF LocoChip <> UnknownLocoChip THEN BEGIN
       T := GetTrainRecord(LocoChip);
-      IF T = NIL THEN
+      IF T = 0 THEN
         Log('No train record for locochip ' + LocoChipToStr(LocoChip))
       ELSE BEGIN
-        WITH T^ DO BEGIN
+        WITH Trains[T] DO BEGIN
           IF QuickStopFlag AND (LenzSpeed <> 0) THEN
             Log(Train_LocoChipStr + ' XG Quick Stop set, but required loco speed not zero')
           ELSE BEGIN
-            IF (T^.Train_SpeedStepMode = 28)
+            IF (Train_SpeedStepMode = 28)
             AND (LenzSpeed > 28)
             THEN BEGIN
               Log(LocoChipToStr(LocoChip) + ' XG  Fatal Error: Lenz speed ' + IntToStr(LenzSpeed) + ' supplied');
@@ -1992,7 +1993,7 @@ BEGIN
             END;
             IF DoubleHeaderLocoChip <> UnknownLocoChip THEN BEGIN
               DoubleHeaderT := GetTrainRecord(DoubleHeaderLocoChip);
-              IF (DoubleHeaderT^.Train_SpeedStepMode = 28)
+              IF (Trains[DoubleHeaderT].Train_SpeedStepMode = 28)
               AND (LenzSpeed > 28)
               THEN BEGIN
                 Log(LocoChipToStr(DoubleHeaderLocoChip) + ' XG Fatal Error: Lenz speed ' + IntToStr(LenzSpeed) + ' supplied');
@@ -2010,10 +2011,10 @@ BEGIN
                 DebugStr := '';
                 OK := False;
                 { If we're controlling it, we know its speed }
-                IF T^.Train_SpeedByteReadIn
+                IF Train_SpeedByteReadIn
                 AND NOT LocoHasBeenTakenOverByUser(LocoChip)
                 THEN
-                  TempSpeedByte := T^.Train_SpeedByte
+                  TempSpeedByte := Train_SpeedByte
                 ELSE BEGIN
                   ReadInLocoDetails(LocoChip, TempSpeedByte, OK);
                   IF NOT OK THEN
@@ -2022,7 +2023,7 @@ BEGIN
 
                 IF NOT QuickStopFlag THEN BEGIN
                   { now set the appropriate ones }
-                  IF T^.Train_SpeedStepMode = 28 THEN BEGIN
+                  IF Train_SpeedStepMode = 28 THEN BEGIN
                     { first clear bits 0-4 }
                     TempSpeedByte := TempSpeedByte AND NOT $1F; { 0001 1111 }
                     { and set new ones }
@@ -2036,7 +2037,7 @@ BEGIN
                   END;
                 END ELSE BEGIN
                   { quickstop }
-                  TempSpeedByte := T^.Train_SpeedByte;
+                  TempSpeedByte := Train_SpeedByte;
                   { reset bits 1-6, leaving bit 7 as it indicates direction }
                   TempSpeedByte := TempSpeedByte AND NOT 126; { 0111 1110 }
                   { set bit 0 for emergency stop }
@@ -2066,13 +2067,13 @@ BEGIN
                     IF NOT OK THEN
                       Log(LocoChipToStr(DoubleHeaderLocoChip) + ' LG Data for loco ' + LocoChipToStr(DoubleHeaderLocoChip) + ' not written');
                   END;
-                  T^.Train_CurrentLenzSpeed := LenzSpeed;
+                  Train_CurrentLenzSpeed := LenzSpeed;
 
                   { Need to update the loco direction variable, as there may well not have been an explicit direction change by means of SetDirection, rather a speed change
                     with the direction bit set differently.
                   }
-                  IF TrainDirection <> T^.Train_CurrentDirection THEN
-                    T^.Train_CurrentDirection := TrainDirection;
+                  IF TrainDirection <> Train_CurrentDirection THEN
+                    Train_CurrentDirection := TrainDirection;
                 END;
               END;
             END;
@@ -2133,7 +2134,7 @@ PROCEDURE SetDirection(LocoChip, DoubleHeaderLocoChip : Integer; DirectionRequir
 { Sets/resets bit 7 - up is (arbitrarily) on }
 VAR
   DebugStr : String;
-  T : Train;
+  T : TrainElement;
   TempSpeedByte : Byte;
   TestByte : Byte;
 
@@ -2149,20 +2150,20 @@ BEGIN
   IF SystemOnline THEN BEGIN
     IF LocoChip <> UnknownLocoChip THEN BEGIN
       T := GetTrainRecord(LocoChip);
-      IF T = NIL THEN
+      IF T = 0 THEN
         Log(LocoChipToStr(LocoChip) + ' L No train record for locochip ' + LocoChipToStr(LocoChip))
       ELSE BEGIN
-        IF T^.Train_SpeedByteReadIn
+        IF Trains[T].Train_SpeedByteReadIn
         AND NOT LocoHasBeenTakenOverByUser(LocoChip)
         THEN
-          TempSpeedByte := T^.Train_SpeedByte
+          TempSpeedByte := Trains[T].Train_SpeedByte
         ELSE
           ReadInLocoDetails(LocoChip, TempSpeedByte, OK);
 
         TestByte := TempSpeedByte;
 
         { Needs to check loco is stationary first - check by looking at bits }
-        IF T^.Train_SpeedStepMode = 28 THEN
+        IF Trains[T].Train_SpeedStepMode = 28 THEN
           { clear the top 3 bits to do the test }
           TestByte := TestByte AND NOT $E0 { 1110 0000 }
         ELSE { SpeedStepMode = 128 }
@@ -2204,7 +2205,7 @@ BEGIN
             END;
 
             Log(LocoChipToStr(LocoChip) + ' L Loco direction changed to ' + DebugStr);
-            T^.Train_SpeedByte := TempSpeedByte;
+            Trains[T].Train_SpeedByte := TempSpeedByte;
           END ELSE
             Log(LocoChipToStr(LocoChip) + ' L Loco direction not changed');
         END ELSE BEGIN
@@ -2216,24 +2217,26 @@ BEGIN
   END;
 END; { SetDirection }
 
-PROCEDURE SetTrainDirection(T : Train; DirectionRequired : DirectionType; ForceWrite : Boolean; VAR OK : Boolean);
+PROCEDURE SetTrainDirection(T : TrainElement; DirectionRequired : DirectionType; ForceWrite : Boolean; VAR OK : Boolean);
 { Sets/resets bit 7 - up is (arbitrarily) on }
 VAR
   TempSpeedByte : Byte;
 
 BEGIN
   OK := True;
-  IF (T <> NIL)
+  IF (T <= High(Trains))
   AND SystemOnline
   THEN BEGIN
-    IF (LocoHasBeenTakenOverByUser(T^.Train_LocoChip) OR (T^.Train_CurrentDirection = UnknownDirection)) THEN
-      ReadInLocoDetails(T^.Train_LocoChip, TempSpeedByte, OK);
+    WITH Trains[T] DO BEGIN
+      IF (LocoHasBeenTakenOverByUser(Train_LocoChip) OR (Train_CurrentDirection = UnknownDirection)) THEN
+        ReadInLocoDetails(Train_LocoChip, TempSpeedByte, OK);
 
-    IF (DirectionRequired <> T^.Train_CurrentDirection) OR ForceWrite THEN BEGIN
-      SetDirection(T^.Train_LocoChip, T^.Train_DoubleHeaderLocoChip, DirectionRequired, OK);
-      IF OK THEN
-        T^.Train_CurrentDirection := DirectionRequired;
-    END;
+      IF (DirectionRequired <> Train_CurrentDirection) OR ForceWrite THEN BEGIN
+        SetDirection(Train_LocoChip, Train_DoubleHeaderLocoChip, DirectionRequired, OK);
+        IF OK THEN
+          Train_CurrentDirection := DirectionRequired;
+      END;
+    END; {WITH}
   END;
 END; { SetTrainDirection }
 
@@ -2242,7 +2245,7 @@ PROCEDURE GetLocoFunctions(LocoChip : Integer; ForceRead : Boolean; VAR Function
 VAR
   DebugStr : String;
   FunctionNum : Integer;
-  T : Train;
+  T : TrainElement;
   TempSpeedByte : Byte;
   TestByte : Byte;
 
@@ -2251,7 +2254,7 @@ BEGIN
   OK := True;
   IF LocoChip <> UnknownLocoChip THEN BEGIN
     T := GetTrainRecord(LocoChip);
-    IF T <> NIL THEN BEGIN
+    IF T <= High(Trains) THEN BEGIN
       IF LocoHasBeenTakenOverByuser(LocoChip) OR ForceRead THEN
         ReadInLocoDetails(LocoChip, TempSpeedByte, OK);
 
@@ -2288,7 +2291,7 @@ BEGIN
 
         CASE FunctionNum OF
           0, 1, 2, 3, 4:
-           IF (TestByte AND T^.Train_Functions0To4Byte) <> TestByte THEN BEGIN
+           IF (TestByte AND Trains[T].Train_Functions0To4Byte) <> TestByte THEN BEGIN
              FunctionArray[FunctionNum] := False;
              DebugStr := DebugStr + 'F' + IntToStr(FunctionNum) + ': off, '
            END ELSE BEGIN
@@ -2297,7 +2300,7 @@ BEGIN
            END;
 
           5, 6, 7, 8, 9, 10, 11, 12:
-           IF (TestByte AND T^.Train_Functions5To12Byte) <> TestByte THEN BEGIN
+           IF (TestByte AND Trains[T].Train_Functions5To12Byte) <> TestByte THEN BEGIN
              FunctionArray[FunctionNum] := False;
              DebugStr := DebugStr + 'F' + IntToStr(FunctionNum) + ': off, '
            END ELSE BEGIN
@@ -2323,7 +2326,7 @@ FUNCTION SingleLocoFunctionIsOn(LocoChip, FunctionNum : Integer; ForceRead : Boo
 { Read whether a numbered function is on or off }
 VAR
   DebugStr : String;
-  T : Train;
+  T : TrainElement;
   TempSpeedByte : Byte;
   TestByte : Byte;
 
@@ -2333,7 +2336,7 @@ BEGIN
   OK := True;
   IF LocoChip <> UnknownLocoChip THEN BEGIN
     T := GetTrainRecord(LocoChip);
-    IF T <> NIL THEN BEGIN
+    IF T <= High(Trains) THEN BEGIN
       IF LocoHasBeenTakenOverByuser(LocoChip) OR ForceRead THEN
         ReadInLocoDetails(LocoChip, TempSpeedByte, OK);
 
@@ -2370,10 +2373,10 @@ BEGIN
       Result := False;
       CASE FunctionNum OF
         0, 1, 2, 3, 4:
-         IF (TestByte AND T^.Train_Functions0To4Byte) = TestByte THEN
+         IF (TestByte AND Trains[T].Train_Functions0To4Byte) = TestByte THEN
            Result := True;
         5, 6, 7, 8, 9, 10, 11, 12:
-         IF (TestByte AND T^.Train_Functions5To12Byte) = TestByte THEN
+         IF (TestByte AND Trains[T].Train_Functions5To12Byte) = TestByte THEN
            Result := True;
       END; {CASE}
 
@@ -2397,7 +2400,7 @@ VAR
   DebugStr : String;
   FunctionWasOn, FunctionWasOff : Boolean;
   IDByte, SpeedByte : Byte;
-  T : Train;
+  T : TrainElement;
   TestByte1, TestByte2 : Byte;
   TurnOff : Boolean;
   WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
@@ -2414,16 +2417,16 @@ BEGIN
 
   IF LocoChip <> UnknownLocoChip THEN BEGIN
     T := GetTrainRecord(LocoChip);
-    IF T <> NIL THEN BEGIN
-      IF NOT T^.Train_ControlledByProgram THEN
+    IF T <= High(Trains) THEN BEGIN
+      IF NOT Trains[T].Train_ControlledByProgram THEN
         ReadInLocoDetails(LocoChip, SpeedByte, OK);
 
       { Now can use stored function bytes whether read in just now or previously }
       CASE FunctionNum OF
         0, 1, 2, 3, 4:
-         TestByte2 := T^.Train_Functions0To4Byte;
+         TestByte2 := Trains[T].Train_Functions0To4Byte;
         5, 6, 7, 8, 9, 10, 11, 12:
-         TestByte2 := T^.Train_Functions5To12Byte;
+         TestByte2 := Trains[T].Train_Functions5To12Byte;
       END; {CASE}
 
       { Now see if a particular bit is set (different set of values for 9-12 from reading in functions) }
@@ -2495,9 +2498,9 @@ BEGIN
             SetTrainControlledByProgram(T, True);
             CASE FunctionNum OF
               0, 1, 2, 3, 4:
-                T^.Train_Functions0To4Byte := TestByte2;
+                Trains[T].Train_Functions0To4Byte := TestByte2;
               5, 6, 7, 8, 9, 10, 11, 12:
-                T^.Train_Functions5To12Byte := TestByte2;
+                Trains[T].Train_Functions5To12Byte := TestByte2;
             END; {CASE}
 
             DebugStr := 'Function ' + IntToStr(FunctionNum);
@@ -3105,7 +3108,7 @@ PROCEDURE SetUpDoubleHeader(LocoChip1, LocoChip2 : Word; VAR OK : Boolean);
   not used by the rail program as the program deals with double heading by sending the speed commands to both named locos.
 }
 VAR
-  T1, T2 : Train;
+  T1, T2: TrainElement;
   WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
 
 BEGIN
@@ -3121,8 +3124,8 @@ BEGIN
   IF OK THEN BEGIN
     T1 := GetTrainRecord(LocoChip1);
     T2 := GetTrainRecord(LocoChip2);
-    IF (T1 <> NIL)
-    AND (T2 <> NIL)
+    IF (T1 <> 0)
+    AND (T2 <> 0)
     THEN BEGIN
       SetTrainControlledByProgram(T1, True);
       SetTrainControlledByProgram(T2, True);
@@ -3437,7 +3440,7 @@ VAR
   OK : Boolean;
   P : Integer;
   S : Integer;
-  T : Train;
+  T : TrainElement;
 
 BEGIN
   Result := False;
@@ -3526,10 +3529,11 @@ BEGIN
     Log('X& System now connected via ' + LenzConnectionToStr(LenzConnection));
     LenzWindow.LenzOneSecondTimerTick.Enabled := True;
 
+    SetUpAllLocationOccupationsAbInitio(False, OK);
     { and recalculate the journey times }
-    T := TrainList;
-    WHILE T <> NIL DO BEGIN
-      WITH T^ DO BEGIN
+    T := 0;
+    WHILE T <= High(Trains) DO BEGIN
+      WITH Trains[T] DO BEGIN
         IF (Train_LocoChip <> UnknownLocoChip)
         AND Train_DiagramFound
         AND (Train_CurrentStatus <> Cancelled)
@@ -3537,7 +3541,7 @@ BEGIN
         THEN
           RecalculateJourneyTimes(T, 'as the system is now online');
 
-        T := Train_NextRecord;
+        Inc(T);
       END; {WITH}
     END; {WHILE}
   END;

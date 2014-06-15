@@ -325,7 +325,7 @@ VAR
   SubRouteItemToCheck : String;
   SubRoutesClearedCount : Integer;
   SubRouteSettingPos : Integer;
-  T : Train;
+  T : TrainElement;
   TCDebugStr : String;
   TheatreDestinationToConvert : String;
 
@@ -344,10 +344,10 @@ BEGIN
     T := GetTrainRecord(LocoChip);
 
     IF (LocoChip = UnknownLocoChip)
-    OR (T = NIL)
-    OR ((T <> NIL)
-    AND (T^.Train_CurrentStatus <> Suspended)
-    AND (T^.Train_CurrentStatus <> MissingAndSuspended))
+    OR (T = 0)
+    OR ((T <= High(Trains))
+    AND (Trains[T].Train_CurrentStatus <> Suspended)
+    AND (Trains[T].Train_CurrentStatus <> MissingAndSuspended))
     THEN BEGIN
       { Is the route able to be set up ? }
       IF (Routes_SubRouteStates[Route, SettingSubRoute] = SubRouteSetUp)
@@ -815,11 +815,11 @@ log('x and L=' + LinetoStr(Signals[Routes_SubRouteStartSignals[Route, SettingSub
           Routes_RouteSettingByHand := False;
           Log(LocoChipStr + ' R R=' + IntToStr(Route) + ': route setting concluded');
 
-          IF (T <> NIL)
-          AND (T^.Train_LocoChip <> UnknownLocoChip)
+          IF (T <= High(Trains))
+          AND (Trains[T].Train_LocoChip <> UnknownLocoChip)
           THEN BEGIN
             { only set up hidden aspect signals if there's a train involved }
-            WITH T^ DO BEGIN
+            WITH Trains[T] DO BEGIN
               WITH Train_JourneysArray[Journey] DO BEGIN
                 TrainJourney_SetUp := True;
                 Log(LocoChipStr + ' R J=' + IntToStr(Journey) + ': journey set up');
@@ -1400,10 +1400,10 @@ BEGIN
           journeys are cleared when the following trackcircuit is occupied).
         }
         IF Routes_LocoChips[Route] <> UnknownLocoChip THEN BEGIN
-          IF Routes_Trains[Route] = NIL THEN BEGIN
+          IF Routes_Trains[Route] = 0 THEN BEGIN
             Log(LocoChipToStr(Routes_LocoChips[Route]) + ' R! Routes_Trains[Route] = NIL though Routes_LocoChips[Route] = ' + LocoChipToStr(Routes_LocoChips[Route]));
           END ELSE BEGIN
-            WITH Routes_Trains[Route]^ DO BEGIN
+            WITH Trains[Routes_Trains[Route]] DO BEGIN
               Train_JourneysArray[Routes_Journeys[Route]].TrainJourney_Cleared := True;
               Log(Train_LocoChipStr + ' R R=' + IntToStr(Route) + ' cleared');
 
@@ -1527,8 +1527,8 @@ BEGIN
           SetLength(Routes_SubRouteEndLines[TempRoute], 0);
           Log(LocoChipStr + ' R Cleared R=' + IntToStr(TempRoute) + ' deleted');
 
-          IF Routes_Trains[TempRoute] <> NIL THEN BEGIN
-            WITH Routes_Trains[TempRoute]^ DO BEGIN
+          IF Routes_Trains[TempRoute] <> 0 THEN BEGIN
+            WITH Trains[Routes_Trains[TempRoute]] DO BEGIN
               Train_CurrentSourceLocation := UnknownLocation;
 
               { Update the train's status, but not if it's been cancelled (routes are cleared automatically when trains are cancelled) }

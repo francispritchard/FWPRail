@@ -16,6 +16,8 @@ object StationMonitorsWindow: TStationMonitorsWindow
   WindowState = wsMaximized
   OnCreate = StationMonitorsFormCreate
   OnPaint = StationMonitorsFormPaint
+  ExplicitWidth = 320
+  ExplicitHeight = 240
   PixelsPerInch = 96
   TextHeight = 13
   object StationMonitorsTcpServer: TTcpServer

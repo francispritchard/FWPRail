@@ -2422,7 +2422,7 @@ VAR
   DownLineColour : TColor;
   LineTextStr : String;
   LineTextStrRect : TRect;
-  T : Train;
+  T : TrainElement;
   UpLineColour : TColor;
   X1, X2, Y1, Y2 : Integer;
 
@@ -2547,7 +2547,7 @@ BEGIN
                       IF DisplayRoutesAndJourneys THEN BEGIN
                         IF TC_LocoChip <> UnknownLocoChip THEN BEGIN
                           T := GetTrainRecord(TC_LocoChip);
-                          IF T <> NIL THEN
+                          IF T <= High(Trains) THEN
                             LineTextStr := IntToStr(TrackCircuits[Line_TC].TC_LockedForRoute) + ',' + IntToStr(TC_Journey);
                         END;
                       END;
@@ -3502,7 +3502,6 @@ END; { FWPRailWindowExitClick }
 PROCEDURE TFWPRailWindow.FWPRailWindowShortCut(VAR Msg: TWMKey; VAR Handled: Boolean);
 VAR
   ShiftState : TShiftState;
-  OK : Boolean;
 
 BEGIN
   TRY
@@ -3540,25 +3539,8 @@ BEGIN
           Handled := True;
         END;
       vk_Space: { space bar - need to handle specially in loco dialogue boxes }
-        IF LocoDialogueWindow.Visible THEN BEGIN
-          IF ssShift IN ShiftState THEN BEGIN
-            IF MessageDialogueWithDefault('Resume operations?', NOT StopTimer, mtConfirmation, [mbOK, mbAbort],
-                                          ['&Resume', '&Don''t resume'], mbAbort) = mrOK
-            THEN BEGIN
-              ResumeOperations(OK);
-              IF OK THEN
-                Log('AG Operations resumed')
-              ELSE
-                Log('AG Operations not resumed');
-              InvalidateScreen(UnitRef, 'ApplicationMessage');
-              Handled := True;
-            END;
-          END ELSE BEGIN
-            StopOperations;
-            Log('AG ' + DescribeKey(Msg.Charcode, ShiftState) + ': all operations stopped');
-            Handled := True;
-          END;
-        END;
+        IF LocoDialogueWindow.Visible THEN
+          StopOrResumeAllOperations(DescribeKey(Msg.Charcode, ShiftState));
       vk_F4:
         BEGIN
           KeyPressedDown(Msg.Charcode, ShiftState);
@@ -4578,14 +4560,14 @@ END; { TCPopupSetTrackCircuitToPermanentOccupationClick }
 
 PROCEDURE TFWPRailWindow.TCPopupShowLocosLastErrorMessageClick(Sender: TObject);
 VAR
-  T : Train;
+  T : TrainElement;
 
 BEGIN
   WITH Lines[TrackCircuitPopupLine] DO BEGIN
     IF Line_TC <> UnknownTrackCircuit THEN BEGIN
       T := GetTrainRecord(TrackCircuits[Line_TC].TC_LocoChip);
-      IF T <> NIL THEN BEGIN
-        WITH T^ DO BEGIN
+      IF T <= High(Trains) THEN BEGIN
+        WITH Trains[T] DO BEGIN
           IF Train_LastRouteLockedMsgStr <> '' THEN
             Debug(Train_LocoChipStr + ': ' +  Train_LastRouteLockedMsgStr);
           IF Train_RouteCreationHoldMsg <> '' THEN
@@ -4612,25 +4594,27 @@ PROCEDURE ClearLocoFromTrackCircuit(TC : Integer);
 { Clear a loco allocation from a given trackcircuit and other associated locations }
 VAR
   I : Integer;
-  T : Train;
+  T : TrainElement;
   TCArray : IntegerArrayType;
 
 BEGIN
   TRY
     { no loco chip number has been entered, so clear any existing one }
     T := GetTrainRecord(TrackCircuits[TC].TC_LocoChip);
-    IF T <> NIL THEN BEGIN
-      T^.Train_CurrentTC := UnknownTrackCircuit;
-      T^.Train_SavedLocation := UnknownLocation;
+    IF T <= High(Trains) THEN BEGIN
+      WITH Trains[T] DO BEGIN
+        Train_CurrentTC := UnknownTrackCircuit;
+        Train_SavedLocation := UnknownLocation;
 
-      { and clear it from other location trackcircuits except the one we're at (are we right to use Train_LastLocation here? **** ) }
-      TCArray := GetTrackCircuitsForLocation(T^.Train_LastLocation);
-      FOR I := 0 TO High(TCArray) DO BEGIN
-        IF TCArray[I] <> TC THEN
-          SetTrackCircuitState(T^.Train_LocoChip, TCArray[I], TCUnoccupied);
-      END;
-      Log('DG Loco chip number has been cleared from ' + LocationToStr(T^.Train_LastLocation));
-      InvalidateScreen(UnitRef, 'ClearLocoFromTrackCircuit');
+        { and clear it from other location trackcircuits except the one we're at (are we right to use Train_LastLocation here? **** ) }
+        TCArray := GetTrackCircuitsForLocation(Train_LastLocation);
+        FOR I := 0 TO High(TCArray) DO BEGIN
+          IF TCArray[I] <> TC THEN
+            SetTrackCircuitState(Train_LocoChip, TCArray[I], TCUnoccupied);
+        END;
+        Log('DG Loco chip number has been cleared from ' + LocationToStr(Train_LastLocation));
+        InvalidateScreen(UnitRef, 'ClearLocoFromTrackCircuit');
+      END; {WITH}
     END;
 
     TrackCircuits[TC].TC_LocoChip := UnknownLocoChip;
@@ -4660,7 +4644,7 @@ VAR
   InputQueryLocoChipStr : String;
   NewTrackCircuitState : TrackCircuitStateType;
   PossibleLocoChip : Integer;
-  PossibleT : Train;
+  PossibleT : TrainElement;
   SavePossibleLocoChip : Integer;
   TC : Integer;
   TCArray : IntegerArrayType;
@@ -4696,20 +4680,20 @@ BEGIN
           END ELSE BEGIN
             { see if it's recorded as being somewhere else - but see if that somewhere else is adjacent }
             PossibleT := GetTrainRecord(PossibleLocoChip, AllLocos);
-            IF PossibleT = NIL THEN
+            IF PossibleT = 0 THEN
               Debug('!Loco ' + LocoChipToStr(PossibleLocoChip) + ' is not in the loco table')
   //          ELSE
   //            IF NOT PossibleT^.Train_Active THEN
   //              Debug('!Loco ' + LocoChipToStr(PossibleLocoChip) + ' is in the loco table but is not active')
               ELSE BEGIN
                 FindAdjoiningTrackCircuits(Line_TC, AdjacentUpTC, AdjacentDownTC);
-                IF (PossibleT^.Train_CurrentTC <> UnknownTrackCircuit)
-                AND (PossibleT^.Train_CurrentTC <> Line_TC)
-                AND (TrackCircuits[PossibleT^.Train_CurrentTC].TC_LocoChip <> UnknownLocoChip)
-                AND (PossibleT^.Train_CurrentTC <> AdjacentUpTC)
-                AND (PossibleT^.Train_CurrentTC <> AdjacentDownTC)
+                IF (Trains[PossibleT].Train_CurrentTC <> UnknownTrackCircuit)
+                AND (Trains[PossibleT].Train_CurrentTC <> Line_TC)
+                AND (TrackCircuits[Trains[PossibleT].Train_CurrentTC].TC_LocoChip <> UnknownLocoChip)
+                AND (Trains[PossibleT].Train_CurrentTC <> AdjacentUpTC)
+                AND (Trains[PossibleT].Train_CurrentTC <> AdjacentDownTC)
                 AND (TrackCircuits[Line_TC].TC_OccupationState <> TCSystemOccupation)
-                AND (MessageDialogueWithDefault('Loco ' + IntToStr(PossibleLocoChip) + ' is already recorded as being at TC=' + IntToStr(PossibleT^.Train_CurrentTC)
+                AND (MessageDialogueWithDefault('Loco ' + IntToStr(PossibleLocoChip) + ' is already recorded as being at TC=' + IntToStr(Trains[PossibleT].Train_CurrentTC)
                                                 + ': has it moved?',
                                                 NOT StopTimer, mtWarning, [mbYes, mbNo], mbNo) = mrNo)
                 THEN
@@ -4721,7 +4705,7 @@ BEGIN
                     InvalidateScreen(UnitRef, 'TCPopupAllocateLocoToTrackCircuitClick');
                     Log(LocoChipToStr(PossibleLocoChip) + ' T System allocated to TC=' + IntToStr(Line_TC) + ' by user');
                   END ELSE BEGIN
-                    PossibleT^.Train_CurrentTC := Line_TC;
+                    Trains[PossibleT].Train_CurrentTC := Line_TC;
 
                     CASE GetTrackCircuitState(Line_TC) OF
                       TCFeedbackOccupation, TCLocoOutOfPlaceOccupation, TCPermanentFeedbackOccupation:
@@ -4737,7 +4721,7 @@ BEGIN
                     { and de-allocate it from where it was }
                     FOR TC := 0 TO High(TrackCircuits) DO BEGIN
                       IF TC <> Line_TC THEN BEGIN
-                        IF TrackCircuits[TC].TC_LocoChip = PossibleT^.Train_LocoChip THEN BEGIN
+                        IF TrackCircuits[TC].TC_LocoChip = Trains[PossibleT].Train_LocoChip THEN BEGIN
                           TrackCircuits[TC].TC_LocoChip := UnknownLocoChip;
                           IF NOT TrackCircuitStateIsPermanentlyOccupied(TrackCircuits[TC].TC_OccupationState) THEN
                             SetTrackCircuitState(TC, TCUnoccupied);
@@ -4801,7 +4785,7 @@ CONST
 
 VAR
   LocoChip : Integer;
-  T : Train;
+  T : TrainElement;
 
 BEGIN
   TRY
@@ -4814,7 +4798,7 @@ BEGIN
             Debug('Cancelling change of loco ' + LocoChipToStr(LocoChip) + '''s internal direction changed to up')
           ELSE BEGIN
             T := GetTrainRecord(LocoChip);
-            WITH T^ DO BEGIN
+            WITH Trains[T] DO BEGIN
               IF Train_LightsType <> LightsOperatedByTwoChips THEN BEGIN
                 ProgramOnTheMain(LocoChip, ChangeDirectionToUp, NoValue);
                 Log(LocoChipToStr(LocoChip) + ' XG Internal direction changed to up');
@@ -4842,7 +4826,7 @@ CONST
 
 VAR
   LocoChip : Integer;
-  T : Train;
+  T : TrainElement;
 
 BEGIN
   TRY
@@ -4855,7 +4839,7 @@ BEGIN
             Debug('Cancelling change of loco ' + LocoChipToStr(LocoChip) + '''s internal direction changed to down')
           ELSE BEGIN
             T := GetTrainRecord(LocoChip);
-            WITH T^ DO BEGIN
+            WITH Trains[T] DO BEGIN
               IF Train_LightsType <> LightsOperatedByTwoChips THEN BEGIN
                 ProgramOnTheMain(LocoChip, ChangeDirectionToDown, NoValue);
                 Log(LocoChipToStr(LocoChip) + ' XG Internal direction changed to down');

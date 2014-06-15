@@ -31,7 +31,7 @@ TYPE
 VAR
   DebugWindow: TDebugWindow;
 
-PROCEDURE AddLightsToLightsToBeSwitchedOnArray(T : Train; DesiredDirection1, DesiredDirection2 : DirectionType; MinSeconds, MaxSeconds : Integer; LightsOnTime : TDateTime);
+PROCEDURE AddLightsToLightsToBeSwitchedOnArray(T : TrainElement; DesiredDirection1, DesiredDirection2 : DirectionType; MinSeconds, MaxSeconds : Integer; LightsOnTime : TDateTime);
 { Set up a train's lights to switch on at a random time ahead }
 
 PROCEDURE AddRichLine(RichEdit: TRichEdit; StrToAdd: String);
@@ -43,7 +43,7 @@ FUNCTION AddSeparatorToTimeString(Str : String) : String;
 PROCEDURE AddStoredRichEditLoggingTextToLoggingWindow;
 { Add any stored rich-edit data to the logging window }
 
-FUNCTION AllJourneysComplete(T : Train) : Boolean;
+FUNCTION AllJourneysComplete(T : TrainElement) : Boolean;
 { Returns true if all a train's journeys are complete }
 
 PROCEDURE AppendIntegerArray2ToIntegerArray1(VAR IntegerArray1 : IntegerArrayType; IntegerArray2 : IntegerArrayType);
@@ -76,7 +76,7 @@ PROCEDURE AppendToLocationArray(VAR LocationArray : IntegerArrayType; NewElement
 PROCEDURE AppendToStringArray(VAR StringArray : StringArrayType; NewElement : String);
 { Appends a string value to the array }
 
-PROCEDURE AppendToTrainArray(VAR TrainArray : TrainArrayType; NewElement : Train);
+PROCEDURE AppendToTrainArray(VAR TrainArray : TrainArrayType; NewElement : TrainElement);
 { Appends a train value to the array }
 
 PROCEDURE AppendToTrainTypeArray(VAR TrainTypes : TrainTypeArray; NewElement : TypeOfTrainType);
@@ -112,7 +112,7 @@ FUNCTION CabLightsAreOn(LocoChip : Integer) : Boolean;
 FUNCTION CardinalMulDiv(A, B, C : Cardinal) : Cardinal;
 { Returns (A * B) / C; intermediate result is held double-length to avoid overflow. FWP version }
 
-PROCEDURE ChangeTrainStatus(T : Train; NewStatus : TrainStatusType);
+PROCEDURE ChangeTrainStatus(T : TrainElement; NewStatus : TrainStatusType);
 { Change the current train status and record it }
 
 PROCEDURE CloseOutputFile(VAR OutputFile : Text; Filename : String);
@@ -169,9 +169,6 @@ PROCEDURE DeleteElementFromLocationArray(VAR LocationArray : IntegerArrayType; P
 PROCEDURE DeleteElementFromStringArray(VAR StringArray : StringArrayType; Position : Integer);
 { Removes the selected element from a string array }
 
-FUNCTION DescribeDiagramsList(WTE : DiagramsEntryType; Sort : SortOrder) : String;
-{ Write out the contents of the diagrams list }
-
 FUNCTION DescribeIntegerArray(IntegerArray : IntegerArrayType) : String;
 { Return the contents of an integer array as a string }
 
@@ -190,7 +187,7 @@ FUNCTION DescribeStartAndEndOfRoute(Route : Integer) : String;
 FUNCTION DisplayJourneyNumber(Journey : Integer) : String;
 { Return the supplied journey number with an indent in a form that makes the debug output easier to read }
 
-FUNCTION DisplayJourneyNumbers(T : Train; FirstJourney, SecondJourney : Integer) : String;
+FUNCTION DisplayJourneyNumbers(T : TrainElement; FirstJourney, SecondJourney : Integer) : String;
 { Return the supplied journey numbers with an indent in a form that makes the debug output easier to read }
 
 FUNCTION DisplayTrackCircuitsForLocation(Location : Integer) : String;
@@ -208,7 +205,7 @@ FUNCTION DirectionToStr{1}(Dir : DirectionType) : String; Overload;
 FUNCTION DirectionToStr{2}(Dir : DirectionType; LongOrShortString : StringType) : String; Overload;
 { Return the either the short or the long name of a direction }
 
-FUNCTION DirectionWillChangeAfterGivenJourney(T : Train; CurrentJourney : Integer) : Boolean;
+FUNCTION DirectionWillChangeAfterGivenJourney(T : TrainElement; CurrentJourney : Integer) : Boolean;
 { Returns true if the direction will change on the journey after the given journey }
 
 FUNCTION DirectionArrayToStr(DirectionsArray : DirectionArrayType) : String;
@@ -259,7 +256,7 @@ FUNCTION ExtractTrackCircuitFromString(Str : String): Integer;
 FUNCTION FeedbackUnitTypeToStr(FeedbackType : TypeOfFeedBackType) : String;
 { Convert a feedback unit type to a string }
 
-FUNCTION FinalJourney(T : Train; CurrentJourney : Integer) : Boolean;
+FUNCTION FinalJourney(T : TrainElement; CurrentJourney : Integer) : Boolean;
 { Returns true if the current journey is the final one }
 
 FUNCTION FindButton(CONST Dlg: TForm; CONST ModalResult: Integer): TButton;
@@ -323,10 +320,10 @@ FUNCTION GetTrackCircuitStateColour(TC : Integer) : TColour;
 FUNCTION GetTrackCircuitState(TC : Integer) : TrackCircuitStateType;
 { Return whether and how the trackcircuit is occupied }
 
-FUNCTION GetTrainRecord{1}(LocoChip : Integer) : Train; Overload;
+FUNCTION GetTrainRecord{1}(LocoChip : Integer): TrainElement; Overload;
 { Look for a matching train record given a locochip }
 
-FUNCTION GetTrainRecord{2}(LocoChip : Integer; AllLocos : Boolean) : Train; Overload;
+FUNCTION GetTrainRecord{2}(LocoChip : Integer; AllLocos : Boolean): TrainElement; Overload;
 { Look for a matching train record given a locochip; include non-active locos }
 
 FUNCTION GetTrainTypeFromLocoChip(LocoChip : Integer) : TypeOfTrainType;
@@ -442,12 +439,6 @@ FUNCTION LineToStr(L : Integer) : String;
 
 FUNCTION LinesAreAdjacent(L1, L2 : Integer; ErrorMsg : String) : Boolean;
 { Returns true if the two given lines are adjacent }
-
-FUNCTION ListSort_SortDiagramsList(XDiagramsList : DiagramsEntryType; Sort : SortOrder) : DiagramsEntryType;
-{ Sorts the diagrams list into specified order; indent is to track the recursion for debugging purposes }
-
-FUNCTION ListSort_SortTrainList(XTrainList : Train; Sort : SortOrder; Indent : Boolean) : Train;
-{ Sorts the trainlist into loco order; indent is to track the recursion for debugging purposes }
 
 FUNCTION ListLocoChipsInIntegerArray(IntegerArray : IntegerArrayType) : String;
 { Lists loco chips from an integer array }
@@ -590,7 +581,7 @@ PROCEDURE ResetTestCount;
 FUNCTION ReturnFixedLengthStr(Str : String; FixedLength : Integer) : String;
 { Return a short string of a fixed length }
 
-PROCEDURE ReturnTrainFromMissing(T : Train);
+PROCEDURE ReturnTrainFromMissing(T : TrainElement);
 { Set a train as being no longer missing }
 
 FUNCTION RoundTimeToNextWholeMinute(Time : TDateTime) : TDateTime;
@@ -607,7 +598,7 @@ FUNCTION SetDefaultButton(CONST Dlg: TForm; CONST ModalResult: Integer): Boolean
 { SetDefaultButton sets the default button in a Message Dialogue that has been created with the Dialogs.CreateMessageDialogue function. The result is a success indicator.
   The function only fails, if the specified button is not present in the dialogue [from uDialogsExt from Borland website]
 }
-PROCEDURE SetTrainControlledByProgram(T : Train; ControlledByProgram : Boolean);
+PROCEDURE SetTrainControlledByProgram(T : TrainElement; ControlledByProgram : Boolean);
 { Mark a given train as controlled either by the software or by the LH100 }
 
 PROCEDURE SetTwoLightingChips(LocoChip : Integer; LightsAtUp, LightsAtDown : DirectionType; LightsOn : Boolean);
@@ -752,7 +743,7 @@ FUNCTION TrackCircuitToStr(TrackCircuit : Integer) : String;
 FUNCTION TrainLightsAreOn(LocoChip : Integer) : Boolean;
 { Returns true if a train's lights are on, i.e. if function zero is on }
 
-FUNCTION TrainSpeedInMPHToLenzSpeed(T : Train; Speed : MPHType) : Integer;
+FUNCTION TrainSpeedInMPHToLenzSpeed(T : TrainElement; Speed : MPHType) : Integer;
 { Return the appropriate Lenz speed number for the given loco }
 
 FUNCTION TrainStatusToStr(Status : TrainStatusType) : String;
@@ -1840,7 +1831,7 @@ BEGIN
   PreviousLogTime := Time;
 END; { WriteTimeToLog }
 
-FUNCTION AllJourneysComplete(T : Train) : Boolean;
+FUNCTION AllJourneysComplete(T : TrainElement) : Boolean;
 { Returns true if all a train's journeys are complete }
 VAR
   JourneyCount : Integer;
@@ -1848,14 +1839,14 @@ VAR
 BEGIN
   Result := True;
   JourneyCount := 0;
-  WHILE JourneyCount <= High(T^.Train_JourneysArray) DO BEGIN
-    IF NOT T^.Train_JourneysArray[JourneyCount].TrainJourney_Cleared THEN
+  WHILE JourneyCount <= High(Trains[T].Train_JourneysArray) DO BEGIN
+    IF NOT Trains[T].Train_JourneysArray[JourneyCount].TrainJourney_Cleared THEN
       Result := False;
     Inc(JourneyCount);
   END; {WHILE}
 END; { AllJourneysComplete }
 
-PROCEDURE AddLightsToLightsToBeSwitchedOnArray(T : Train; DesiredDirection1, DesiredDirection2 : DirectionType; MinSeconds, MaxSeconds : Integer; LightsOnTime : TDateTime);
+PROCEDURE AddLightsToLightsToBeSwitchedOnArray(T : TrainElement; DesiredDirection1, DesiredDirection2 : DirectionType; MinSeconds, MaxSeconds : Integer; LightsOnTime : TDateTime);
 { Set up a train's lights to switch on at a random time ahead }
 VAR
   DebugStr : String;
@@ -1889,7 +1880,7 @@ BEGIN
     SwitchOnTime := IncSecond(LightsOnTime, Seconds);
     DebugStr := DebugStr + ' set to ' + TimeToHMSStr(SwitchOnTime) + ' (' + IntToStr(Seconds) + ' = between ' + IntToStr(MinSeconds)
                 + ' and ' + IntToStr(MaxSeconds) + ' seconds of ' + TimeToHMSStr(LightsOnTime) + ')';
-    Log(T^.Train_LocoChipStr + ' X ' + DebugStr);
+    Log(Trains[T].Train_LocoChipStr + ' X ' + DebugStr);
 
     LightsToBeSwitchedOn_SwitchOnTime := SwitchOnTime;
     LightsToBeSwitchedOn_Train := T;
@@ -2119,7 +2110,7 @@ BEGIN
   StringArray[High(StringArray)] := NewElement;
 END; { AppendToStringArray }
 
-PROCEDURE AppendToTrainArray(VAR TrainArray : TrainArrayType; NewElement : Train);
+PROCEDURE AppendToTrainArray(VAR TrainArray : TrainArrayType; NewElement : TrainElement);
 { Appends a given train array value to the array }
 BEGIN
   SetLength(TrainArray, Length(TrainArray) + 1);
@@ -2561,7 +2552,7 @@ VAR
 
 BEGIN
   WITH LightsToBeSwitchedOnArray[Position] DO
-    Log(LightsToBeSwitchedOn_Train^.Train_LocoChipStr + ' L Lighting record removed from LightsToBeSwitchedOnArray');
+    Log(Trains[LightsToBeSwitchedOn_Train].Train_LocoChipStr + ' L Lighting record removed from LightsToBeSwitchedOnArray');
 
   { Move all existing elements down one }
   FOR I := Position TO (Length(LightsToBeSwitchedOnArray) - 2) DO
@@ -2697,10 +2688,10 @@ BEGIN
   END;
 END; { DescribeJourneyAndRoute }
 
-FUNCTION DirectionWillChangeAfterGivenJourney(T : Train; CurrentJourney : Integer) : Boolean;
+FUNCTION DirectionWillChangeAfterGivenJourney(T : TrainElement; CurrentJourney : Integer) : Boolean;
 { Returns true if the direction will change on the journey after the current journey }
 BEGIN
-  WITH T^ DO BEGIN
+  WITH Trains[T] DO BEGIN
     IF FinalJourney(T, CurrentJourney) THEN
       Result := False
     ELSE
@@ -2735,7 +2726,7 @@ BEGIN
   Result := Result + StringOfChar(' ', 8 - Length(Result)) + ': ';
 END; { DisplayJourneyNumber }
 
-FUNCTION DisplayJourneyNumbers(T : Train; FirstJourney, SecondJourney : Integer) : String; Overload;
+FUNCTION DisplayJourneyNumbers(T : TrainElement; FirstJourney, SecondJourney : Integer) : String; Overload;
 { Return the supplied journey numbers with an indent in a form that makes the debug output easier to read }
 BEGIN
   IF FirstJourney = UnknownJourney THEN
@@ -2747,7 +2738,7 @@ BEGIN
       ELSE
         Result := 'J=' + IntToStr(FirstJourney)
     END ELSE
-      IF (SecondJourney > High(T^.Train_JourneysArray)) OR (SecondJourney = UnknownJourney) THEN
+      IF (SecondJourney > High(Trains[T].Train_JourneysArray)) OR (SecondJourney = UnknownJourney) THEN
         Result := 'J=' + IntToStr(FirstJourney)
       ELSE
         Result := 'J=' + IntToStr(FirstJourney) + '/' + IntToStr(SecondJourney);
@@ -3050,10 +3041,10 @@ BEGIN
   END; {CASE}
 END; { EndOfLineToStr }
 
-FUNCTION FinalJourney(T : Train; CurrentJourney : Integer) : Boolean;
+FUNCTION FinalJourney(T : TrainElement; CurrentJourney : Integer) : Boolean;
 { Returns true if the current journey is the final one }
 BEGIN
-  WITH T^ DO BEGIN
+  WITH Trains[T] DO BEGIN
     IF CurrentJourney = High(Train_JourneysArray) THEN
       Result := True
     ELSE
@@ -3931,49 +3922,49 @@ BEGIN
   END; {WHILE}
 END; { LocationOutOfUse }
 
-FUNCTION GetTrainRecord{1}(LocoChip : Integer) : Train; Overload;
+FUNCTION GetTrainRecord{1}(LocoChip : Integer): TrainElement; Overload;
 { Look for a matching train record given a locochip }
 VAR
-  T : Train;
+  T : TrainElement;
   TrainFound : Boolean;
 
 BEGIN
-  Result := NIL;
-  T := TrainList;
+  Result := 0;
+  T := 0;
   TrainFound := False;
-  WHILE (T <> NIL)
+  WHILE (T <= High(Trains))
   AND NOT TrainFound
   DO BEGIN
     { run through the train list, to find our train }
-    IF T^.Train_LocoChip = LocoChip THEN BEGIN
+    IF Trains[T].Train_LocoChip = LocoChip THEN BEGIN
       TrainFound := True;
       Result := T;
     END ELSE
-      T := T^.Train_NextRecord;
+      Inc(T);
   END; {WHILE}
 END; { GetTrainRecord-1 }
 
-FUNCTION GetTrainRecord{2}(LocoChip : Integer; AllLocos : Boolean) : Train; Overload;
+FUNCTION GetTrainRecord{2}(LocoChip : Integer; AllLocos : Boolean): TrainElement; Overload;
 { Look for a matching train record given a locochip; include non-active locos }
 VAR
-  T : Train;
+  T : TrainElement;
   TrainFound : Boolean;
 
 BEGIN                                                                        
-  Result := NIL;
-  T := TrainList;
+  Result := 0;
+  T := 0;
   TrainFound := False;
-  WHILE (T <> NIL)
+  WHILE (T <= High(Trains))
   AND NOT TrainFound
   DO BEGIN
     { run through the train list, to find our train }
-    IF AllLocos OR T^.Train_Active THEN BEGIN
+    IF AllLocos OR Trains[T].Train_Active THEN BEGIN
 
-      IF T^.Train_LocoChip = LocoChip THEN BEGIN
+      IF Trains[T].Train_LocoChip = LocoChip THEN BEGIN
         TrainFound := True;
         Result := T;
       END ELSE
-        T := T^.Train_NextRecord;
+        Inc(T);
     END;
   END; {WHILE}
 END; { GetTrainRecord-2 }
@@ -4058,20 +4049,20 @@ FUNCTION GetTrainTypeFromLocoChip(LocoChip : Integer) : TypeOfTrainType;
 { Returns the train type given the loco number }
 VAR
   LocoChipFound : Boolean;
-  T : Train;
+  T : TrainElement;
 
 BEGIN
   Result := UnknownTrainType;
-  T := TrainList;
+  T := 0;
   LocoChipFound := False;
-  WHILE (T <> NIL)
+  WHILE (T <= High(Trains))
   AND NOT LocoChipFound
   DO BEGIN
-    IF T^.Train_LocoChip = LocoChip THEN BEGIN
+    IF Trains[T].Train_LocoChip = LocoChip THEN BEGIN
       LocoChipFound := True;
-      Result := T^.Train_Type;
+      Result := Trains[T].Train_Type;
     END;
-    T := T^.Train_NextRecord;
+    Inc(T);
   END; {WHILE}
 END; { GetTrainTypeFromLocoChip }
 
@@ -5934,7 +5925,49 @@ BEGIN
   Result := EncodeTime(Hour, Min, Sec, mSec);
 END; { RoundTimeToNextWholeMinute }
 
-PROCEDURE ChangeTrainStatus(T : Train; NewStatus : TrainStatusType);
+PROCEDURE StopOrResumeAllOperations(Str : String);
+{ Deal with emergency situations by stopping operations or restarting them }
+VAR
+  OK : Boolean;
+  P : Integer;
+  S : Integer;
+
+BEGIN
+  IF NOT SystemOnline THEN
+    Debug('Cannot stop or resume operations - system offline')
+  ELSE BEGIN
+    IF OperationsStopped THEN BEGIN
+      IF MessageDialogueWithDefault('Resume operations?', NOT StopTimer, mtConfirmation, [mbOK, mbAbort], mbAbort) = mrOK THEN BEGIN
+        Log('A ' + Str + ' pressed : requesting resume all operations');
+        ResumeOperations(OK);
+        IF OK THEN BEGIN
+          Log('AG Operations resumed');
+          OperationsStopped := False;
+        END ELSE
+          Log('A! Operations not resumed');
+
+        InvalidateScreen(UnitRef, 'StopOrResumeAllOperations');
+      END;
+    END ELSE BEGIN
+      Log('A ' + Str + ' pressed : requesting stop all operations');
+      StopOperations(OK);
+      IF OK THEN BEGIN
+        Log('A! All operations stopped');
+        OperationsStopped := True;
+      END;
+
+      FOR P := 0 TO High(Points) DO
+        EmergencyDeselectPoint(P, OK);
+      Log('P! User has switched all points off');
+
+      FOR S := 0 TO High(Signals) DO
+        EmergencyDeselectSignal(S, OK);
+      Log('S! User has switched all signals off');
+    END;
+  END;
+END; { StopOrResumeAllOperations }
+
+PROCEDURE ChangeTrainStatus(T : TrainElement; NewStatus : TrainStatusType);
 { Change the current train status and record it }
 VAR
   DebugStr : String;
@@ -5942,7 +5975,7 @@ VAR
 BEGIN
   DebugStr := '';
 
-  WITH T^ DO BEGIN
+  WITH Trains[T] DO BEGIN
     { we need to make special provision for missing trains, as their status can switch back and fore continuously from Missing to MissingAndSuspended }
     IF (Train_CurrentStatus = Missing) OR (Train_CurrentStatus = MissingAndSuspended) THEN
       DebugStr := ' (immediate previous status was ' + TrainStatusToStr(Train_CurrentStatus) + ')'
@@ -5950,8 +5983,8 @@ BEGIN
       Train_PreviousStatus := Train_CurrentStatus;
 
     Train_CurrentStatus := NewStatus;
-    Log(Train_LocoChipStr + ' L Current status: ' + TrainStatusToStr(T^.Train_CurrentStatus)
-                          + '; previous status: ' + TrainStatusToStr(T^.Train_PreviousStatus) + DebugStr);
+    Log(Train_LocoChipStr + ' L Current status: ' + TrainStatusToStr(Train_CurrentStatus)
+                          + '; previous status: ' + TrainStatusToStr(Train_PreviousStatus) + DebugStr);
     { update the diagrams window }
     DrawDiagramsStatusCell(T, Normalstyle);
 
@@ -5965,8 +5998,8 @@ BEGIN
           DrawDiagrams(UnitRef, 'Change Train Status');
 
           { Deal with the loco's lights (if any) }
-          IF NOT T^.Train_LightsRemainOnWhenJourneysComplete THEN
-            TurnLightsOff(T^.Train_LocoChip);
+          IF NOT Train_LightsRemainOnWhenJourneysComplete THEN
+            TurnLightsOff(Train_LocoChip);
 
           IF Train_HasCablights
           AND CabLightsAreOn(Train_LocoChip)
@@ -5980,16 +6013,16 @@ END; { ChangeTrainStatus }
 FUNCTION DescribeTrainList{1} : String; Overload;
 { Describe the contents of the train list, the full list of locos and trains if DescribeFullTrainList is set }
 VAR
-  T : Train;
+  T : TrainElement;
 
 BEGIN
   Result := '';
 
-  T := TrainList;
-  WHILE T <> NIL DO BEGIN
-    WITH T^ DO BEGIN
+  T := 0;
+  WHILE T <= High(Trains) DO BEGIN
+    WITH Trains[T] DO BEGIN
       Result := Result + IntToStr(Train_LocoChip) + ', ' ;
-      T := T^.Train_NextRecord;
+      Inc(T);
     END; {WITH}
   END; {WHILE}
 END; { DescribeTrainList-1 }
@@ -5997,14 +6030,14 @@ END; { DescribeTrainList-1 }
 FUNCTION DescribeTrainList{2}(Sort : SortOrder; DescribeFullTrainList : Boolean) : String; Overload;
 { Describe the contents of the train list, the full list of locos and trains if DescribeFullTrainList is set }
 VAR
-  T : Train;
+  T : TrainElement;
 
 BEGIN
   Result := '';
 
-  T := TrainList;
-  WHILE T <> NIL DO BEGIN
-    WITH T^ DO BEGIN
+  T := 0;
+  WHILE T <= High(Trains) DO BEGIN
+    WITH Trains[T] DO BEGIN
       IF DescribeFullTrainList OR Train_DiagramFound THEN BEGIN
         CASE Sort OF
           Unsorted, LocoChipSort, ReverseLocoChipSort:
@@ -6029,7 +6062,7 @@ BEGIN
           Result := 'Unknown sort type';
         END; {CASE}
       END;
-      T := T^.Train_NextRecord;
+      Inc(T);
     END; {WITH}
   END; {WHILE}
 
@@ -6053,159 +6086,6 @@ BEGIN
   END;
 END; { DescribeTrainList-2 }
 
-FUNCTION ListSort_SortTrainList(XTrainList : Train; Sort : SortOrder; Indent : Boolean) : Train;
-{ Sorts the TrainList into specified order; indent is to track the recursion for debugging purposes }
-CONST
-  MustIndent = True;
-
-  FUNCTION MergeTrainLists(XTrainList1, XTrainList2 : Train; Sort : SortOrder) : Train;
-  { Merge the two lists }
-  VAR
-    TakeFromList2 : Boolean;
-    TempNewList, NewList1, NewList2 : Train;
-
-  BEGIN
-    NewList1 := NIL;
-    NewList2 := NIL;
-    TakeFromList2 := False;
-
-    WHILE (XTrainList1 <> NIL) OR (XTrainList2 <> NIL) DO BEGIN
-      { something in both lists - now need to merge them }
-      IF XTrainList1 = NIL THEN
-        TakeFromList2 := True
-      ELSE
-        IF XTrainList2 = NIL THEN
-          TakeFromList2 := False
-        ELSE
-          CASE Sort OF
-            LocoChipAndDepartureTimeSort:
-              BEGIN
-                IF XTrainList1^.Train_LocoChip = XTrainList2^.Train_LocoChip THEN BEGIN
-                  IF (Length(XTrainList1^.Train_JourneysArray) > 0)
-                  AND (Length(XTrainList2^.Train_JourneysArray) > 0)
-                  AND (XTrainList1^.Train_JourneysArray[0].TrainJourney_CurrentDepartureTime > XTrainList2^.Train_JourneysArray[0].TrainJourney_CurrentDepartureTime)
-                  THEN
-                    TakeFromList2 := True
-                  ELSE
-                    TakeFromList2 := False;
-                END ELSE BEGIN
-                  IF (XTrainList1^.Train_LocoChip > XTrainList2^.Train_LocoChip) THEN
-                    TakeFromList2 := True
-                  ELSE
-                    TakeFromList2 := False;
-                END;
-              END;
-            LocoChipSort:
-              BEGIN
-                IF XTrainList1^.Train_LocoChip = XTrainList2^.Train_LocoChip THEN BEGIN
-                  IF XTrainList1^.Train_JourneysArray[0].TrainJourney_CurrentDepartureTime > XTrainList2^.Train_JourneysArray[0].TrainJourney_CurrentDepartureTime THEN
-                    TakeFromList2 := True
-                  ELSE
-                    TakeFromList2 := False;
-                END ELSE BEGIN
-                  IF (XTrainList1^.Train_LocoChip > XTrainList2^.Train_LocoChip) THEN
-                    TakeFromList2 := True
-                  ELSE
-                    TakeFromList2 := False;
-                END;
-              END;
-            ReverseLocoChipSort:
-              BEGIN
-                IF XTrainList1^.Train_LocoChip < XTrainList2^.Train_LocoChip THEN
-                  TakeFromList2 := True
-                ELSE
-                  TakeFromList2 := False;
-              END;
-            TrainTypeSort:
-              BEGIN
-                IF XTrainList1^.Train_Type > XTrainList2^.Train_Type THEN
-                  TakeFromList2 := True
-                ELSE
-                  TakeFromList2 := False;
-              END;
-          ELSE {CASE}
-            Debug('Unknown sort type');
-          END; {CASE}
-
-      IF TakeFromList2 THEN BEGIN
-        { remove item from XTrainList2 }
-        TempNewList := XTrainList2;
-        XTrainList2 := TempNewList^.Train_NextRecord;
-        { and add it to NewList }
-        TempNewList^.Train_NextRecord := NewList1;
-        NewList1 := TempNewList;
-      END ELSE BEGIN
-        { remove item from TrainList1 }
-        TempNewList := XTrainList1;
-        XTrainList1 := TempNewList^.Train_NextRecord;
-        { and add it to NewList }
-        TempNewList^.Train_NextRecord := NewList1;
-        NewList1 := TempNewList;
-      END;
-    END; {WHILE}
-
-    { Now reverse sort the list }
-    WHILE NewList1 <> NIL DO BEGIN
-      { remove item from NewList }
-      TempNewList := NewList1;
-      NewList1 := TempNewList^.Train_NextRecord;
-      { and add it to NewList2 }
-      TempNewList^.Train_NextRecord := NewList2;
-      NewList2 := TempNewList;
-    END; {WHILE}
-
-    Result := NewList2;
-  END; { MergeLists }
-
-  PROCEDURE SplitTrainLists(OldList : Train; VAR XTrainList1, XTrainList2 : Train);
-  { Split the train list in two }
-  VAR
-    Count : Word;
-    OldNext : Train;
-
-  BEGIN
-    Count := 0;
-    XTrainList1 := NIL;
-    XTrainList2 := NIL;
-    WHILE OldList <> NIL DO BEGIN
-      Inc(Count);
-      { store where original list points }
-      OldNext := OldList^.Train_NextRecord;
-      IF Odd(Count) THEN BEGIN
-        { make it point to new item instead }
-        OldList^.Train_NextRecord := XTrainList1;
-        { and make the new item the start of the original list }
-        XTrainList1 := OldList;
-      END ELSE BEGIN
-        { make it point to new item instead }
-        OldList^.Train_NextRecord := XTrainList2;
-        { and make the new item the start of the original list }
-        XTrainList2 := OldList;
-      END;
-      OldList := OldNext;
-    END; {WHILE}
-  END; { SplitLists }
-
-VAR
-  SplitList1, SplitList2, MergedList : Train;
-
-BEGIN
-  IF XTrainList = NIL THEN
-    { if list empty }
-    Result := NIL
-  ELSE
-    IF XTrainList^.Train_NextRecord = NIL THEN
-      { if list has just one item }
-      Result := XTrainList
-    ELSE BEGIN
-      SplitTrainLists(XTrainList, SplitList1, SplitList2);
-      SplitList1 := ListSort_SortTrainList(SplitList1, Sort, MustIndent);
-      SplitList2 := ListSort_SortTrainList(SplitList2, Sort, MustIndent);
-      MergedList := MergeTrainLists(SplitList1, SplitList2, Sort);
-      Result := MergedList;
-    END;
-END; { ListSort_SortTrainList }
-
 FUNCTION ListLocoChipsInIntegerArray(IntegerArray : IntegerArrayType) : String;
 { Lists loco chips from an integer array }
 VAR
@@ -6220,229 +6100,6 @@ BEGIN
     Result := Result + LocoChipToStr(IntegerArray[High(IntegerArray)]);
   END;
 END; { ListLocoChipsInIntegerArray }
-
-FUNCTION DescribeDiagramsList(WTE : DiagramsEntryType; Sort : SortOrder) : String;
-{ Write out the contents of the diagrams list }
-BEGIN
-  CASE Sort OF
-    Unsorted:
-      Result := 'Trains unsorted = ';
-    LocoChipSort:
-      Result := 'Trains sorted in LocoChip order = ';
-    ReverseLocoChipSort:
-      Result := 'Trains reverse-sorted in LocoChip order = ';
-    TrainTypeSort:
-      Result := 'Trains sorted in TrainType order = ';
-    LocoChipAndDepartureTimeSort:
-      Result := 'Trains sorted in LocoChip and Departure Time order = ';
-    DepartureTimeAndTrainTypeSort:
-      Result := 'Trains sorted in Departure Time and Train Type order = ';
-  ELSE {CASE}
-    Result := 'Unknown sort order';
-  END; {CASE}
-
-  WHILE WTE <> NIL DO BEGIN
-    CASE Sort OF
-      Unsorted:
-        Result := Result + IntToStr(WTE^.TrainPtr^.Train_LocoChip) + ', ';
-      LocoChipSort, ReverseLocoChipSort:
-        Result := Result + IntToStr(WTE^.TrainPtr^.Train_LocoChip) + ', ' ;
-      TrainTypeSort:
-        Result := Result + IntToStr(WTE^.TrainPtr^.Train_LocoChip) + ' ' + IntToStr(WTE^.TrainPtr^.Train_TypeNum) + ', ';
-      LocoChipAndDepartureTimeSort:
-        Result := Result + IntToStr(WTE^.TrainPtr^.Train_LocoChip) + ' ' + TimeToHMStr(WTE^.TrainPtr^.Train_JourneysArray[0].TrainJourney_CurrentDepartureTime) + ', ';
-      DepartureTimeAndTrainTypeSort:
-        Result := Result + IntToStr(WTE^.TrainPtr^.Train_LocoChip) + ' ' + TimeToHMStr(WTE^.TrainPtr^.Train_JourneysArray[0].TrainJourney_CurrentDepartureTime)
-                                                                                                                      + ' ' + IntToStr(WTE^.TrainPtr^.Train_TypeNum) + ', ';
-    ELSE {CASE}
-      Result := '';
-    END; {CASE}
-    WTE := WTE^.NextDiagramsRecord;
-  END; {WHILE}
-END; { DescribeDiagramsList }
-
-FUNCTION ListSort_MergeDiagramsLists(XDiagramsList1, XDiagramsList2 : DiagramsEntryType; Sort : SortOrder) : DiagramsEntryType;
-{ Merge the two diagrams lists }
-VAR
-  TempNewList, NewList1, NewList2 : DiagramsEntryType;
-  TakeFromList2 : Boolean;
-
-BEGIN
-  NewList1 := NIL;
-  NewList2 := NIL;
-  TakeFromList2 := False;
-
-  WHILE (XDiagramsList1 <> NIL) OR (XDiagramsList2 <> NIL) DO BEGIN
-    { something in both lists - now need to merge them }
-    IF XDiagramsList1 = NIL THEN
-      TakeFromList2 := True
-    ELSE
-      IF XDiagramsList2 = NIL THEN
-        TakeFromList2 := False
-      ELSE
-        CASE Sort OF
-          DepartureTimeAndTrainTypeSort:
-            BEGIN
-              { first check if there's a departure time }
-              IF (Length(XDiagramsList1^.TrainPtr^.Train_JourneysArray) = 0)
-              OR (Length(XDiagramsList2^.TrainPtr^.Train_JourneysArray) = 0)
-              THEN BEGIN
-                { if not, compare loco chip numbers }
-                IF XDiagramsList1^.TrainPtr^.Train_LocoChip > XDiagramsList2^.TrainPtr^.Train_LocoChip THEN
-                  TakeFromList2 := True
-                ELSE
-                  TakeFromList2 := False;
-              END ELSE BEGIN
-                { ideally compare departure times }
-                IF XDiagramsList1^.TrainPtr^.Train_JourneysArray[0].TrainJourney_CurrentDepartureTime =
-                                                                                          XDiagramsList2^.TrainPtr^.Train_JourneysArray[0].TrainJourney_CurrentDepartureTime
-                THEN BEGIN
-                  IF XDiagramsList1^.TrainPtr^.Train_TypeNum > XDiagramsList2^.TrainPtr^.Train_TypeNum THEN
-                    TakeFromList2 := True
-                  ELSE
-                    TakeFromList2 := False;
-                END ELSE BEGIN
-                  IF XDiagramsList1^.TrainPtr^.Train_JourneysArray[0].TrainJourney_CurrentDepartureTime >
-                                                                                          XDiagramsList2^.TrainPtr^.Train_JourneysArray[0].TrainJourney_CurrentDepartureTime
-                  THEN
-                    TakeFromList2 := True
-                  ELSE
-                    TakeFromList2 := False;
-                END;
-              END;
-            END;
-          LocoChipSort:
-            BEGIN
-              IF XDiagramsList1^.TrainPtr^.Train_LocoChip = XDiagramsList2^.TrainPtr^.Train_LocoChip THEN BEGIN
-                IF (XDiagramsList1^.TrainPtr^.Train_JourneysArray[0].TrainJourney_CurrentDepartureTime >
-                                                                                         XDiagramsList2^.TrainPtr^.Train_JourneysArray[0].TrainJourney_CurrentDepartureTime)
-                THEN
-                  TakeFromList2 := True
-                ELSE
-                  TakeFromList2 := False;
-              END ELSE BEGIN
-                IF (XDiagramsList1^.TrainPtr^.Train_LocoChip > XDiagramsList2^.TrainPtr^.Train_LocoChip) THEN
-                  TakeFromList2 := True
-                ELSE
-                  TakeFromList2 := False;
-              END;
-            END;
-          ReverseLocoChipSort:
-            BEGIN
-              IF XDiagramsList1^.TrainPtr^.Train_LocoChip < XDiagramsList2^.TrainPtr^.Train_LocoChip THEN
-                TakeFromList2 := True
-              ELSE
-                TakeFromList2 := False;
-            END;
-          TrainTypeSort:
-            BEGIN
-              IF XDiagramsList1^.TrainPtr^.Train_Type > XDiagramsList2^.TrainPtr^.Train_Type THEN
-                TakeFromList2 := True
-              ELSE
-                TakeFromList2 := False;
-            END;
-          LocoChipAndDepartureTimeSort:
-            BEGIN
-              IF XDiagramsList1^.TrainPtr^.Train_LocoChip = XDiagramsList2^.TrainPtr^.Train_LocoChip THEN BEGIN
-                IF (Length(XDiagramsList1^.TrainPtr^.Train_JourneysArray) > 0)
-                AND (Length(XDiagramsList2^.TrainPtr^.Train_JourneysArray) > 0)
-                AND (XDiagramsList1^.TrainPtr^.Train_JourneysArray[0].TrainJourney_CurrentDepartureTime >
-                                                                                         XDiagramsList2^.TrainPtr^.Train_JourneysArray[0].TrainJourney_CurrentDepartureTime)
-                THEN
-                  TakeFromList2 := True
-                ELSE
-                  TakeFromList2 := False;
-              END ELSE BEGIN
-                IF (XDiagramsList1^.TrainPtr^.Train_LocoChip > XDiagramsList2^.TrainPtr^.Train_LocoChip) THEN
-                  TakeFromList2 := True
-                ELSE
-                  TakeFromList2 := False;
-              END;
-            END;
-          ELSE {CASE}
-            Debug('Unknown sort type');
-          END; {CASE}
-
-    IF TakeFromList2 THEN BEGIN
-      { remove item from XDiagramsList2 }
-      TempNewList := XDiagramsList2;
-      XDiagramsList2 := TempNewList^.NextDiagramsRecord;
-      { and add it to NewList }
-      TempNewList^.NextDiagramsRecord := NewList1;
-      NewList1 := TempNewList;
-    END ELSE BEGIN
-      { remove item from DiagramsList1 }
-      TempNewList := XDiagramsList1;
-      XDiagramsList1 := TempNewList^.NextDiagramsRecord;
-      { and add it to NewList }
-      TempNewList^.NextDiagramsRecord := NewList1;
-      NewList1 := TempNewList;
-    END;
-  END; {WHILE}
-
-  { Now reverse sort the list }
-  WHILE NewList1 <> NIL DO BEGIN
-    { remove item from NewList }
-    TempNewList := NewList1;
-    NewList1 := TempNewList^.NextDiagramsRecord;
-    { and add it to NewList2 }
-    TempNewList^.NextDiagramsRecord := NewList2;
-    NewList2 := TempNewList;
-  END; {WHILE}
-
-  Result := NewList2;
-END; { ListSort_MergeDiagramsLists }
-
-PROCEDURE ListSort_SplitDiagramsLists(OldList : DiagramsEntryType; VAR XDiagramsList1, XDiagramsList2 : DiagramsEntryType);
-{ Split the Diagrams list in two }
-VAR
-  Count : Word;
-  OldNext : DiagramsEntryType;
-
-BEGIN
-  Count := 0;
-  XDiagramsList1 := NIL;
-  XDiagramsList2 := NIL;
-  WHILE OldList <> NIL DO BEGIN
-    Inc(Count);
-    { store where original list points }
-    OldNext := OldList^.NextDiagramsRecord;
-    IF Odd(Count) THEN BEGIN
-      { make it point to new item instead }
-      OldList^.NextDiagramsRecord := XDiagramsList1;
-      { and make the new item the start of the original list }
-      XDiagramsList1 := OldList;
-    END ELSE BEGIN
-      { make it point to new item instead }
-      OldList^.NextDiagramsRecord := XDiagramsList2;
-      { and make the new item the start of the original list }
-      XDiagramsList2 := OldList;
-    END;
-    OldList := OldNext;
-  END; {WHILE}
-END; { ListSort_SplitDiagramsLists }
-
-FUNCTION ListSort_SortDiagramsList(XDiagramsList : DiagramsEntryType; Sort : SortOrder) : DiagramsEntryType;
-{ Sorts the diagrams list into specified order; indent is to track the recursion for debugging purposes }
-VAR
-  SplitList1, SplitList2, MergedList : DiagramsEntryType;
-
-BEGIN
-  IF XDiagramsList = NIL THEN
-    { if list empty }
-    Result := NIL
-  ELSE
-    IF XDiagramsList^.NextDiagramsRecord = NIL THEN
-      { if list has just one item }
-      Result := XDiagramsList
-    ELSE BEGIN
-      ListSort_SplitDiagramsLists(XDiagramsList, SplitList1, SplitList2);
-      SplitList1 := ListSort_SortDiagramsList(SplitList1, Sort);
-      SplitList2 := ListSort_SortDiagramsList(SplitList2, Sort);
-      MergedList := ListSort_MergeDiagramsLists(SplitList1, SplitList2, Sort);
-      Result := MergedList;
-    END;
-END; { ListSort_SortDiagramsList }
 
 PROCEDURE Pause(MilliSeconds : Cardinal; ProcessMessages : Boolean);
 { Pause for a given number of milliseconds }
@@ -6534,13 +6191,13 @@ BEGIN
   Result := Str + StringOfChar(' ', 4 - Length(Str))
 END; { ReturnFixedLengthStr }
 
-PROCEDURE ReturnTrainFromMissing(T : Train);
+PROCEDURE ReturnTrainFromMissing(T : TrainElement);
 { Set a train as being no longer missing }
 VAR
   TC : Integer;
 
 BEGIN
-  WITH T^ DO BEGIN
+  WITH Trains[T] DO BEGIN
     IF Train_CurrentStatus = MissingAndSuspended THEN
       ChangeTrainStatus(T, Suspended)
     ELSE
@@ -6552,11 +6209,11 @@ BEGIN
     Dec(MissingTrainCounter);
 
     FOR TC := 0 TO High(TrackCircuits) DO BEGIN
-      IF (TrackCircuits[TC].TC_LocoChip = T^.Train_LocoChip)
+      IF (TrackCircuits[TC].TC_LocoChip = Train_LocoChip)
       AND (TrackCircuits[TC].TC_OccupationState = TCMissingOccupation)
       THEN BEGIN
         TrackCircuits[TC].TC_MissingTrainNoted := False;
-        SetTrackCircuitState(T^.Train_LocoChip, TC, TCFeedbackOccupation);
+        SetTrackCircuitState(Train_LocoChip, TC, TCFeedbackOccupation);
       END;
     END;
 
@@ -6606,21 +6263,21 @@ BEGIN
     Dlg.ActiveControl := DefButton;
 END; { SetDefaultButton }
 
-PROCEDURE SetTrainControlledByProgram(T : Train; ControlledByProgram : Boolean);
+PROCEDURE SetTrainControlledByProgram(T : TrainElement; ControlledByProgram : Boolean);
 { Mark a given train as controlled either by the software or by the LH100 }
 BEGIN
-  WITH T^ DO BEGIN
+  WITH Trains[T] DO BEGIN
     Train_PreviouslyControlledByProgram := Train_ControlledByProgram;
     Train_ControlledByProgram := ControlledByProgram;
 
     { Also mark the additional lighting chips if any as controlled. Note: the address of the additional chip may be NIL if it's the same as the loco chip }
     IF Train_LightingChipUp <> UnknownLocoChip THEN
-      IF Train_LightingChipUpAddress <> NIL THEN
-        Train_LightingChipUpAddress^.Train_ControlledByProgram := ControlledByProgram;
+      IF Train_LightingChipUpAddress <> 0 THEN
+        Trains[Train_LightingChipUpAddress].Train_ControlledByProgram := ControlledByProgram;
 
     IF Train_LightingChipDown <> UnknownLocoChip THEN
-      IF Train_LightingChipDownAddress <> NIL THEN
-        Train_LightingChipDownAddress^.Train_ControlledByProgram := ControlledByProgram;
+      IF Train_LightingChipDownAddress <> 0 THEN
+        Trains[Train_LightingChipDownAddress].Train_ControlledByProgram := ControlledByProgram;
   END;
 END; { SetTrainControlledByProgram }
 
@@ -6629,13 +6286,13 @@ PROCEDURE SetTwoLightingChips(LocoChip : Integer; LightsAtUp, LightsAtDown : Dir
 VAR
   DebugStr : String;
   OK : Boolean;
-  T : Train;
+  T : TrainElement;
 
 BEGIN
   IF LocoChip <> UnknownLocoChip THEN BEGIN
     T := GetTrainRecord(LocoChip);
-    IF T <> NIL THEN BEGIN
-      WITH T^ DO BEGIN
+    IF T <= High(Trains) THEN BEGIN
+      WITH Trains[T] DO BEGIN
         IF NOT LightsOn THEN BEGIN
           TurnLightsOff(Train_LocoChip);
           Log(Train_LocoChipStr + ' L Up and down lights turned off');
@@ -6643,21 +6300,21 @@ BEGIN
           IF NOT Train_LightsOn THEN    { ************* }
             TurnLightsOn(Train_LocoChip, OK);
 
-            IF Train_LightingChipUp = T^.Train_LocoChip THEN BEGIN
+            IF Train_LightingChipUp = Train_LocoChip THEN BEGIN
               IF Train_CurrentDirection <> LightsAtUp THEN
                 SetTrainDirection(T, LightsAtUp, NOT ForceAWrite, OK)
             END ELSE
-              IF Train_LightingChipUpAddress <> NIL THEN BEGIN
-                IF Train_LightingChipUpAddress^.Train_CurrentDirection <> LightsAtUp THEN
+              IF Train_LightingChipUpAddress <> 0 THEN BEGIN
+                IF Trains[Train_LightingChipUpAddress].Train_CurrentDirection <> LightsAtUp THEN
                   SetTrainDirection(Train_LightingChipUpAddress, LightsAtUp, NOT ForceAWrite, OK);
               END;
-            IF Train_LightingChipDown = T^.Train_LocoChip THEN BEGIN
+            IF Train_LightingChipDown = Train_LocoChip THEN BEGIN
               IF Train_CurrentDirection <> LightsAtDown THEN
                 SetTrainDirection(T, LightsAtDown, NOT ForceAWrite, OK)
             END ELSE
-              IF Train_LightingChipDownAddress <> NIL THEN
-                IF Train_LightingChipDownAddress^.Train_CurrentDirection <> LightsAtDown THEN
-                  SetTrainDirection(T^.Train_LightingChipDownAddress, LightsAtDown, NOT ForceAWrite, OK);
+              IF Train_LightingChipDownAddress <> 0 THEN
+                IF Trains[Train_LightingChipDownAddress].Train_CurrentDirection <> LightsAtDown THEN
+                  SetTrainDirection(Train_LightingChipDownAddress, LightsAtDown, NOT ForceAWrite, OK);
 
           DebugStr := 'Lights at Up set to ' + IfThen(LightsAtUp = Up,
                                                       'White',
@@ -6665,9 +6322,9 @@ BEGIN
                       + 'Lights at Down set to ' + IfThen(LightsAtDown = Down,
                                                          'White',
                                                          'Red');
-          IF DebugStr <> T^.Train_LightsMsg THEN BEGIN
+          IF DebugStr <> Train_LightsMsg THEN BEGIN
             Log(Train_LocoChipStr + ' L ' + DebugStr);
-            T^.Train_LightsMsg := DebugStr;
+            Train_LightsMsg := DebugStr;
           END;
         END;
       END; {WITH}
@@ -6703,7 +6360,7 @@ CONST
 
 VAR
   OK : Boolean;
-  T : Train;
+  T : TrainElement;
   WindowsTaskBar : HWND;
 
 BEGIN { ShutDownProgram }
@@ -6748,10 +6405,10 @@ BEGIN { ShutDownProgram }
         SetAllSignalsToDanger;
 
       IF SwitchActiveLocoLightsOffAtShutDown THEN BEGIN
-        T := TrainList;
-        WHILE T <> NIL DO BEGIN
-          WITH T^ DO BEGIN
-            IF TrainFoundInDiagrams(Train_LocoChip) <> NIL THEN BEGIN
+        T := 0;
+        WHILE T <= High(Trains) DO BEGIN
+          WITH Trains[T] DO BEGIN
+            IF TrainFoundInDiagrams(Train_LocoChip) <> 0 THEN BEGIN
               IF Train_LightsType <> NoLights THEN BEGIN
                 TurnLightsOff(Train_LocoChip);
                 IF Train_HasCabLights
@@ -6761,7 +6418,7 @@ BEGIN { ShutDownProgram }
               END;
             END;
           END; {WITH}
-          T := T^.Train_NextRecord;
+          Inc(T);
         END; {WHILE}
       END;
 
@@ -6933,15 +6590,15 @@ CONST
   LightsOn = True;
 
 VAR
-  T : Train;
+  T : TrainElement;
   OK : Boolean;
   TrainsRestarted : Boolean;
 
 BEGIN
   TrainsRestarted := False;
-  T := TrainList;
-  WHILE T <> NIL DO BEGIN
-    WITH T^ DO BEGIN
+  T := 0;
+  WHILE T <= High(Trains) DO BEGIN
+    WITH Trains[T] DO BEGIN
       IF (Train_LocoChip <> UnknownLocoChip)
       AND Train_DiagramFound
       AND (Train_CurrentStatus <> Suspended)
@@ -6982,7 +6639,7 @@ BEGIN
         TrainsRestarted := True;
       END; {WITH}
     END;
-    T := T^.Train_NextRecord;
+    Inc(T);
   END; {WHILE}
 
   IF Restart
@@ -7051,7 +6708,6 @@ BEGIN
     END; {WITH}
     Inc(T);
   END; {WHILE}
-
 
   IF LocosStopped THEN
     Log('AG All locos stopped')
@@ -7815,14 +7471,14 @@ BEGIN
   END; {CASE}
 END; { TrackCircuitStateToStr }
 
-FUNCTION TrainSpeedInMPHToLenzSpeed(T : Train; Speed : MPHType) : Integer;
+FUNCTION TrainSpeedInMPHToLenzSpeed(T : TrainElement; Speed : MPHType) : Integer;
 { Return the appropriate Lenz speed for the given loco as an MPH string }
 BEGIN
-  IF T = NIL THEN BEGIN
+  IF T = 0 THEN BEGIN
     Log('X! Cannot return speed in MPH for non-existent train');
     Result := 0;
   END ELSE BEGIN
-    WITH T^ DO BEGIN
+    WITH Trains[T] DO BEGIN
       CASE Speed OF
         MPH0:
           Result := 0;
@@ -8070,7 +7726,7 @@ CONST
 
 VAR
   OK : Boolean;
-  T : Train;
+  T : TrainElement;
 
 BEGIN
 //  LightsType = (NoLights, HeadlightsAndTailLightsConnected, HeadlightsAndTailLightsSeparatelySwitched, ExpressModelsSeparateHeadlights, LightsOperatedByTwoChips,
@@ -8078,7 +7734,7 @@ BEGIN
   Result := False;
 
   T := GetTrainRecord(LocoChip);
-  CASE T^.Train_LightsType OF
+  CASE Trains[T].Train_LightsType OF
     NoLights:
       Debug(LocoChipToStr(LocoChip) + ' does not have lights');
     HeadlightsAndTailLightsConnected:
@@ -8203,7 +7859,7 @@ CONST
   LightsOff = False;
 
 VAR
-  T : Train;
+  T : TrainElement;
 
   PROCEDURE TurnExpressModelsHeadlightsOn(LocoChip : Integer; Direction : DirectionType; UserDriving, UserRequiresInstruction : Boolean; OUT OK : Boolean);
   { Turn on a loco's head lights in day and night mode }
@@ -8268,9 +7924,9 @@ BEGIN
   IF SystemOnline THEN BEGIN
     IF LocoChip <> UnknownLocoChip THEN BEGIN
       T := GetTrainRecord(LocoChip);
-      IF T <> NIL THEN BEGIN
-        WITH T^ DO BEGIN
-          IF T^.Train_LightsType <> NoLights THEN BEGIN
+      IF T <= High(Trains) THEN BEGIN
+        WITH Trains[T] DO BEGIN
+          IF Train_LightsType <> NoLights THEN BEGIN
             IF Train_CurrentStatus = NonMoving THEN BEGIN
               IF Train_LightsType = HeadlightsAndTailLightsConnected THEN
                 TurnHeadLightsOn(Train_LocoChip, Train_CurrentDirection, Train_UserDriving, Train_UserRequiresInstructions)
@@ -8356,7 +8012,7 @@ CONST
 
 VAR
   OK : Boolean;
-  T : Train;
+  T : TrainElement;
 
   PROCEDURE TurnExpressModelsHeadlightsOff(LocoChip : Integer; UserDriving, UserRequiresInstruction : Boolean);
   { Turn off a loco's head lights in day and night mode }
@@ -8378,9 +8034,9 @@ BEGIN
   IF SystemOnline THEN BEGIN
     IF LocoChip <> UnknownLocoChip THEN BEGIN
       T := GetTrainRecord(LocoChip);
-      IF T <> NIL THEN BEGIN
-        WITH T^ DO BEGIN
-          IF T^.Train_LightsType <> NoLights THEN BEGIN
+      IF T <= High(Trains) THEN BEGIN
+        WITH Trains[T] DO BEGIN
+          IF Train_LightsType <> NoLights THEN BEGIN
             IF Train_LightsType = HeadlightsAndTailLightsConnected THEN
               TurnHeadLightsOff(Train_LocoChip, Train_UserDriving, Train_UserRequiresInstructions, OK)
             ELSE
@@ -8500,7 +8156,7 @@ VAR
   ErrorMsg : String;
   I : Integer;
   OnlyTrainsInDiagram : Boolean;
-  T : Train;
+  T : TrainElement;
   TempOutputFile : Text;
 
 BEGIN
@@ -8536,9 +8192,9 @@ BEGIN
                                                                       '(only trains in the current diagram)'))));
       WriteLn(TempOutputFile);
 
-      T := TrainList;
-      WHILE T <> NIL DO BEGIN
-        WITH T^ DO BEGIN
+      T := 0;
+      WHILE T <= High(Trains) DO BEGIN
+        WITH Trains[T] DO BEGIN
           IF AllTrains OR (ActiveTrains AND Train_Active) OR (OnlyTrainsInDiagram AND Train_DiagramFound) THEN BEGIN
             WriteLn(TempOutputFile, 'Train_LocoChip = ' + IntToStr(Train_LocoChip));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_DoubleHeaderLocoChip = ' + LocoChipToStr(Train_DoubleHeaderLocoChip));
@@ -8721,11 +8377,6 @@ BEGIN
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_WorkingTimetableLastArrivalTime = ' + TimeToHMSStr(Train_WorkingTimetableLastArrivalTime));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_WorkingTimetableLastEntryNumStr = ' + Train_WorkingTimetableLastEntryNumStr);
 
-            IF Train_NextRecord = NIL THEN
-              WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_NextRecord = NIL')
-            ELSE
-              WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_NextRecord = ' + LocoChipToStr(Train_NextRecord^.Train_LocoChip));
-
             { Deal with train journeys separately as they are held in a separate record }
             IF Length(Train_JourneysArray) = 0 THEN BEGIN
               WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_JourneysArray (no data)');
@@ -8797,7 +8448,7 @@ BEGIN
           END; {FOR}
         END;
 
-        T := T^.Train_NextRecord;
+        Inc(T);
       END; {WHILE}
 
       { Lights To Be Switched On Array }
@@ -8806,7 +8457,7 @@ BEGIN
                                                                       '(' + IntToStr(Length(LightsToBeSwitchedOnArray)) + ' records)'));
       FOR I := 0 TO High(LightsToBeSwitchedOnArray) DO BEGIN
         WITH LightsToBeSwitchedOnArray[I] DO BEGIN
-          WriteLn(TempOutputFile, IntToStr(I) + ' LightsToBeSwitchedOn_Train = ' + LocoChipToStr(LightsToBeSwitchedOn_Train.Train_LocoChip));
+          WriteLn(TempOutputFile, IntToStr(I) + ' LightsToBeSwitchedOn_Train = ' + LocoChipToStr(Trains[LightsToBeSwitchedOn_Train].Train_LocoChip));
           WriteLn(TempOutputFile, IntToStr(I) + ' LightsToBeSwitchedOn_ColourStr1 = ' + LightsToBeSwitchedOn_ColourStr1);
           WriteLn(TempOutputFile, IntToStr(I) + ' LightsToBeSwitchedOn_ColourStr2 = ' + LightsToBeSwitchedOn_ColourStr2);
           WriteLn(TempOutputFile, IntToStr(I) + ' LightsToBeSwitchedOn_Direction1 = ' + DirectionToStr(LightsToBeSwitchedOn_Direction1));
@@ -9234,17 +8885,17 @@ END; { DebugRichEditPopupMenuOnPopup }
 PROCEDURE DummyProc;
 { Here just to be copied elsewhere }
 VAR
-  T : Train;
+  T : TrainElement;
 
 BEGIN
-  T := TrainList;
-  WHILE T <> NIL DO BEGIN
-    WITH T^ DO BEGIN
-      IF T^.Train_DiagramFound THEN BEGIN
+  T := 0;
+  WHILE T <= High(Trains) DO BEGIN
+    WITH Trains[T] DO BEGIN
+      IF Trains[T].Train_DiagramFound THEN BEGIN
 
       END;
     END;
-    T := T^.Train_NextRecord;
+    Inc(T);
   END; {WHILE}
 END; { DummyProc }
 

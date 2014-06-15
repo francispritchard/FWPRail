@@ -71,9 +71,9 @@ CONST
 
 VAR
   CurrentTimeStr : String;
-  DiagramsEntry : DiagramsEntryType;
+  DiagramsArrayPos : Integer;
 //  ErrorMsg : String;
-  T : Train;
+  T : Integer;
 
   FUNCTION EntriesAreInOrder(Timetable1Rec, Timetable2Rec : StationMonitorsRec) : Boolean;
   { Check the departure times. If less, return true. If greater, return false. If they are equal, check the platform numbers }
@@ -218,10 +218,10 @@ VAR
         SetLength(TimetableArray, 0);
 
         { Compile a list for the timetable - this is unsorted, though }
-        DiagramsEntry := DiagramsList;
-        WHILE (DiagramsEntry <> NIL) DO BEGIN
-          T := DiagramsEntry^.TrainPtr;
-          WITH T^ DO BEGIN
+        DiagramsArrayPos := 0;
+        WHILE DiagramsArrayPos <= High(DiagramsArray) DO BEGIN
+          T := DiagramsArray[DiagramsArrayPos];
+          WITH Trains[T] DO BEGIN
             { Build a list of trains using the station }
             FOR JourneyCount := 0 TO High(Train_JourneysArray) DO BEGIN
               WITH Train_JourneysArray[JourneyCount] DO BEGIN
@@ -298,7 +298,7 @@ VAR
               END; {WITH}
             END;
           END; {WITH}
-          DiagramsEntry := DiagramsEntry^.NextDiagramsRecord;
+          Inc(DiagramsArrayPos);
         END; {WHILE}
 
         SortAndDisplayTimetableEntries(TimetableArray);
@@ -326,7 +326,7 @@ VAR
   VAR
     JourneyCount : Integer;
     PreviouslyStopping : Boolean;
-    T : Train;
+    T : Integer;
     TimetableArray : ARRAY OF StationMonitorsRec;
 
   BEGIN
@@ -356,10 +356,10 @@ VAR
       SetLength(TimetableArray, 0);
 
       { Compile a list for the timetable - this is unsorted, though }
-      DiagramsEntry := DiagramsList;
-      WHILE (DiagramsEntry <> NIL) DO BEGIN
-        T := DiagramsEntry^.TrainPtr;
-        WITH T^ DO BEGIN
+      DiagramsArrayPos := 0;
+      WHILE DiagramsArrayPos <= High(DiagramsArray) DO BEGIN
+        T := DiagramsArray[DiagramsArrayPos];
+        WITH Trains[T] DO BEGIN
           { Build a list of trains using the station }
           FOR JourneyCount := 0 TO High(Train_JourneysArray) DO BEGIN
             IF (JourneyCount = 0)
@@ -426,7 +426,7 @@ VAR
             END; {WITH}
           END; {FOR}
         END; {WITH}
-        DiagramsEntry := DiagramsEntry^.NextDiagramsRecord;
+        Inc(DiagramsArrayPos);
       END; {WHILE}
 
       SortAndDisplayTimetableEntries(TimetableArray);

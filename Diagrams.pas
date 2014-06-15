@@ -68,9 +68,8 @@ TYPE
 TYPE
   CellStyleType = (NormalStyle, BoldStyle, ItalicStyle, BoldAndItalicStyle, GreyedOutStyle);
 
-PROCEDURE AddTrainToTrainList(T : Train; DescribeFullTrainList : Boolean);
-{ Add a descriptor for each active loco to the train list. List the full train list (locos only and locos and trains if
-  DescribeFullTrainList is set.
+PROCEDURE AddTrainToTrainList(T : TrainElement; DescribeFullTrainList : Boolean);
+{ Add a descriptor for each active loco to the train list. List the full train list (locos only and locos and trains if DescribeFullTrainList is set.
 }
 FUNCTION CalculateJourneyTimeinMinutes(TrainTypeNum : Integer; RouteLengthInInches : Real) : Integer;
 { Given the journey length in inches, calculate the journey time in minutes }
@@ -78,10 +77,10 @@ FUNCTION CalculateJourneyTimeinMinutes(TrainTypeNum : Integer; RouteLengthInInch
 FUNCTION CalculateRouteLength(RouteArray : StringArrayType) : Real;
 { Using the route array, calculate the route length. (We need this to calculate how long journeys take). }
 
-PROCEDURE CancelTrain(T : Train; UserInstruction, TrainExists : Boolean);
+PROCEDURE CancelTrain(T : TrainElement; UserInstruction, TrainExists : Boolean);
 { Mark a train as cancelled, and enable the appropriate popup to display it in the diagrams window }
 
-FUNCTION CheckJourney(T : Train; Journey : Integer; Direction : DirectionType; StartLocation, EndLocation : Integer; StartLine, EndLine : Integer; OUT ErrorMsg : String;
+FUNCTION CheckJourney(T : TrainElement; Journey : Integer; Direction : DirectionType; StartLocation, EndLocation : Integer; StartLine, EndLine : Integer; OUT ErrorMsg : String;
                       OUT LinesNotAvailableStr : String; UseEmergencyRouteing : Boolean; OUT JourneyArray : StringArrayType; OUT OK : Boolean) : Boolean;
 { See if each projected journey is correct }
 
@@ -92,14 +91,14 @@ PROCEDURE CheckOccupiedLinesAndDiagrams;
   (3) If a diagrammed train does not have a feedback occupation in any of its initial trackcircuits, ask if it actually exists (in case of faulty trackcircuits).  Also
       check whether a diagrammed train has a feedback occupation in any of its initial trackcircuits, but is recorded in the loco locations file as being elsewhere.
 }
-PROCEDURE CreateJourney(VAR T : Train; Journey : Integer; NewJourney: Boolean; StartArea, EndArea, StartLocation, EndLocation: Integer;
+PROCEDURE CreateJourney(VAR T : TrainElement; Journey : Integer; NewJourney: Boolean; StartArea, EndArea, StartLocation, EndLocation: Integer;
                         DiagrammedStartLocation, DiagrammedEndLocation, StartLine, EndLine: Integer;
                         CurrentDepartureTime, DiagrammedDepartureTime, CurrentArrivalTime: TDateTime; TrainDirection : DirectionType; JourneyRouteArray : StringArrayType;
                         RebuildRouteArray : Boolean; StoppingOnArrival, NotForPublicUse, RouteingInEmergency, StartOfRepeatJourney, AreDiagramsLoading : Boolean;
                         OUT ErrorMsg : String; OUT LinesNotAvailableStr : String; OUT OK : Boolean);
 { Given various parameters, set up each individual journey within the overall train record; returns ok if the journey route is clear }
 
-FUNCTION DescribeJourney(T : Train; Journey : Integer) : String;
+FUNCTION DescribeJourney(T : TrainElement; Journey : Integer) : String;
 { Given various parameters, set up each individual journey within the overall train record }
 
 PROCEDURE DiscardDiagrams(CheckIfOK : Boolean);
@@ -111,16 +110,16 @@ PROCEDURE DrawDiagramsWindow;
 PROCEDURE DrawDiagrams(UnitRef : String; Str : String);
 { Write the complete diagrams to the screen after they have been changed }
 
-PROCEDURE DrawDiagramsSpeedCell(T : Train);
+PROCEDURE DrawDiagramsSpeedCell(T : TrainElement);
 { Draw the speed cell for a given loco }
 
-PROCEDURE DrawDiagramsStatusCell(T : Train; CellStyle : CellStyleType);
+PROCEDURE DrawDiagramsStatusCell(T : TrainElement; CellStyle : CellStyleType);
 { Draw the status cell for a given loco - this routine is to avoid having to draw all the diagrams for a minor change }
 
 FUNCTION GetStationNameFromArea(Area : Integer) : String;
 { Return a station name given the Area it is in }
 
-FUNCTION GetTrainClickedOn : Train;
+FUNCTION GetTrainClickedOn: TrainElement;
 { Return which train record corresponds to the train we've clicked on }
 
 PROCEDURE InitialiseDiagramsUnit;
@@ -132,23 +131,23 @@ PROCEDURE ProcessDiagrams(OUT ErrorMsg : String; OUT DiagramsOK : Boolean);
 PROCEDURE ReadInDiagramsFromDatabase(OUT ErrorMsg : String; OUT DiagramsMissing, DiagramsOK : Boolean);
 { Read the diagrams in from the supplied database }
 
-PROCEDURE RecalculateJourneyTimes(T : Train; ExplanatoryStr : String);
+PROCEDURE RecalculateJourneyTimes(T : TrainElement; ExplanatoryStr : String);
 { Recalculate the journey times to allow for any inserted journeys or other changes }
 
-PROCEDURE RemoveTrainFromDiagrams(T : Train);
+PROCEDURE RemoveTrainFromDiagrams(T : TrainElement);
 { Called to indicate a train is no longer of interest; it is removed from the diagrams, the others moved to fill the gap and a new train generated. The diagrams will be
   redrawn on screen.
 }
 PROCEDURE ResetDiagramsWindowSizeAndPosition;
 { Reset the window's size and position }
 
-PROCEDURE SetInitialTrackCircuits(T : Train);
+PROCEDURE SetInitialTrackCircuits(T : TrainElement);
 { Sets the initial trackcircuits for a given route }
 
-PROCEDURE SuspendTrain(T : Train; User : Boolean);
+PROCEDURE SuspendTrain(T : TrainElement; User : Boolean);
 { Suspend a given train - it can be reactivated in the diagrams window }
 
-FUNCTION TrainFoundInDiagrams(LocoChip : Integer) : DiagramsEntryType;
+FUNCTION TrainFoundInDiagrams(LocoChip : Integer) : TrainElement;
 { Search the diagrams for a particular loco and return where it is on the layout and in the diagram window }
 
 FUNCTION UpdateTrainRecordForDiagram(LocoChip, DoubleHeaderLocoChip, JourneyCount : Integer; UserSpecifiedDepartureTimesArray : DateTimeArrayType; LightsOnTime : TDateTime;
@@ -156,16 +155,16 @@ FUNCTION UpdateTrainRecordForDiagram(LocoChip, DoubleHeaderLocoChip, JourneyCoun
                                      NotForPublicUseArray : BooleanArrayType; StartLocationStr : String; StoppingArray : BooleanArrayType;
                                      LengthOfTrainInCarriages : Integer; TypeOfTrainNum : Integer;
                                      UserDriving, UserRequiresInstructions, StartOfRepeatJourney, PullingDapolCleaningWagon : Boolean)
-                                     : Train;
+                                    : TrainElement;
 { Updates a train record to add to the diagram - NB the array parameters being passed are open array parameters and therefore start at zero }
 
-PROCEDURE WriteTrainJourneysRecordToLogFile(T : Train; FullRecord : Boolean);
+PROCEDURE WriteTrainJourneysRecordToLogFile(T : TrainElement; FullRecord : Boolean);
 { Writes the journey record out to the log }
 
-PROCEDURE WriteTrainJourneysRecordToLockListWindow(T : Train; FullRecord : Boolean);
+PROCEDURE WriteTrainJourneysRecordToLockListWindow(T : TrainElement; FullRecord : Boolean);
 { Writes the journey record to the locklist window }
 
-PROCEDURE WriteTrainRecord(T : Train);
+PROCEDURE WriteTrainRecord(T : TrainElement);
 { Writes the main train record out }
 
 VAR
@@ -193,7 +192,7 @@ CONST
   SourceCol = JourneyCol + 1;
 
 VAR
-  DiagramsChosenTrain : Train;
+  DiagramsChosenTrain: TrainElement;
   EscapePressed : Boolean = False;
   HeadcodeARunningNum : Integer = 0;
   HeadcodeERunningNum : Integer = 0;
@@ -206,7 +205,7 @@ VAR
   HighlightRow : Integer = -1;
   ShowArrivalTimes : Boolean = False;
   ShowTrainLength : Boolean = True;
-  TrainClickedOn : Train = NIL;
+  TrainClickedOn : TrainElement = 0;
 
   NumberOfRepeatColumns : Integer;
   DestinationCol : IntegerArrayType;
@@ -222,34 +221,34 @@ BEGIN
   WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
 
-FUNCTION GetTrainClickedOn : Train;
+FUNCTION GetTrainClickedOn: TrainElement;
 { Return which train record corresponds to the train we've clicked on }
 BEGIN
   Result := TrainClickedOn;
 END; { GetTrainClickedOn }
 
-FUNCTION TrainFoundInDiagrams(LocoChip : Integer) : DiagramsEntryType;
+FUNCTION TrainFoundInDiagrams(LocoChip : Integer) : TrainElement;
 { Search the diagrams for a particular loco and return where it is on the layout and in the diagram window }
 VAR
   TrainFound : Boolean;
-  TestList : DiagramsEntryType;
+  T : TrainElement;
 
 BEGIN
-  TestList := DiagramsList;
+  T := 0;
   TrainFound := False;
 
-  WHILE (TestList <> NIL)
+  WHILE (T <= High(Trains))
   AND NOT TrainFound
   DO BEGIN
-    IF TestList^.TrainPtr^.Train_DiagramFound
-    AND (TestList^.TrainPtr^.Train_LocoChip = LocoChip)
+    IF Trains[T].Train_DiagramFound
+    AND (Trains[T].Train_LocoChip = LocoChip)
     THEN
       TrainFound := True
     ELSE
-      TestList := TestList^.NextDiagramsRecord;
+      Inc(T);
   END; {WHILE}
 
-  Result := TestList;
+  Result := T;
   IF TrainFound THEN
     Log(LocoChipToStr(LocoChip) + ' D Train found in diagrams');
 END; { TrainFoundInDiagrams }
@@ -262,7 +261,7 @@ PROCEDURE CheckOccupiedLinesAndDiagrams;
       check whether a diagrammed train has a feedback occupation in any of its initial trackcircuits, but is recorded in the loco locations file as being elsewhere.
 }
 VAR
-  DiagramsEntry : DiagramsEntryType;
+  FoundTrainElement : TrainElement;
   I : Integer;
   InitialTrackCircuitCount : Integer;
   LocationFound : Boolean;
@@ -272,7 +271,7 @@ VAR
   OccupiedTrackCircuitFound : Boolean;
   RemoveRecordedLocationsQueryPut : Boolean;
   StopCheckingRecordedLocations : Boolean;
-  T : Train;
+  T : TrainElement;
   TC : Integer;
   TempTCs : IntegerArrayType;
   TrainFound : Boolean;
@@ -287,19 +286,19 @@ BEGIN
       IF TrackCircuits[TC].TC_OccupationState = TCFeedbackOccupation THEN BEGIN
         { Is there a loco recorded as occupying this trackcircuit? }
         MatchingLocationFound := False;
-        T := TrainList;
-        WHILE (T <> NIL)
+        T := 0;
+        WHILE (T <= High(Trains))
         AND NOT MatchingLocationFound
         DO BEGIN
-          WITH T^ DO BEGIN
+          WITH Trains[T] DO BEGIN
             IF (GetLocationFromTrackCircuit(TC) <> UnknownLocation)
             AND (GetLocationFromTrackCircuit(TC) = Train_LastLocation)
             THEN BEGIN
               MatchingLocationFound := True;
               TrackCircuits[TC].TC_LocoChip := Train_LocoChip;
               { If a feedback occupation does not has a diagrammed train occupying or adjacent to it, mark it as permanently occupied }
-              DiagramsEntry := TrainFoundInDiagrams(TrackCircuits[TC].TC_LocoChip);
-              IF DiagramsEntry = NIL THEN BEGIN
+              FoundTrainElement := TrainFoundInDiagrams(Train_LocoChip);
+              IF FoundTrainElement = 0 THEN BEGIN
                 TrackCircuits[TC].TC_OccupationState := TCPermanentFeedbackOccupation;
                 Log(LocoChipToStr(TrackCircuits[TC].TC_LocoChip) + ' T recorded as being at TC=' + IntToStr(TC)
                                                                  + ' [' + DescribeLineNamesForTrackCircuit(TC) + ']'
@@ -330,14 +329,14 @@ BEGIN
                 END;
               END ELSE BEGIN
                 { it's in the diagrams, but does its location match? }
-                IF DiagramsEntry^.TrainPtr^.Train_CurrentSourceLocation = GetLocationFromTrackCircuit(TC) THEN
+                IF Trains[FoundTrainElement].Train_CurrentSourceLocation = GetLocationFromTrackCircuit(TC) THEN
                   TrackCircuits[TC].TC_OccupationState := TCFeedbackOccupation
                 ELSE BEGIN
                   { no, it doesn't }
                   IF Train_CurrentStatus <> Cancelled THEN BEGIN
                     TrackCircuits[TC].TC_OccupationState := TCLocoOutOfPlaceOccupation;
-                    CancelTrain(DiagramsEntry^.TrainPtr, NOT ByUser, TrainExists);
-                    Debug('Train ' + DiagramsEntry^.TrainPtr^.Train_Headcode
+                    CancelTrain(FoundTrainElement, NOT ByUser, TrainExists);
+                    Debug('Train ' + Trains[FoundTrainElement].Train_Headcode
                           + ' (loco ' + IntToStr(TrackCircuits[TC].TC_LocoChip)
                           + ') found in the diagrams but its recorded location'
                           + ' ' + LocationToStr(GetLocationFromTrackCircuit(TC))
@@ -357,7 +356,7 @@ BEGIN
               Inc(InitialTrackCircuitCount);
             END; {END}
           END; {WITH}
-          T := T^.Train_NextRecord;
+          Inc(T);
         END; {WHILE}
         { If a feedback occupation does not has a loco recorded as occupying it or adjacent to it, mark it as permanently occupied and as a query }
         IF NOT MatchingLocationFound THEN BEGIN
@@ -374,13 +373,13 @@ BEGIN
 
   { (2) If a loco in the loco locations file does not have feedback occupation, note the fact, unless we are starting intentionally in offline mode }
   LocoTC := UnknownTrackCircuit;
-  T := TrainList;
+  T := 0;
   StopCheckingRecordedLocations := False;
   RemoveRecordedLocationsQueryPut := False;
-  WHILE (T <> NIL)
+  WHILE (T <= High(Trains))
   AND NOT StopCheckingRecordedLocations
   DO BEGIN
-    WITH T^ DO BEGIN
+    WITH Trains[T] DO BEGIN
       IF (Train_LocoChip <> UnknownLocoChip)
       AND (Train_LastLocation <> UnknownLocation)
       THEN BEGIN
@@ -487,16 +486,16 @@ BEGIN
         END;
       END;
     END; {WITH}
-    T := T^.Train_NextRecord;
+    Inc(T);
   END; {WHILE}
 
   { (3) If a diagrammed train does not have a feedback occupation in any of its initial trackcircuits, ask if it actually exists (in case of faulty trackcircuits). Also
         check whether a diagrammed train has a feedback occupation in any of its initial trackcircuits, but is recorded in the loco locations file as being elsewhere.
   }
   IF SystemOnline THEN BEGIN
-    T := TrainList;
-    WHILE T <> NIL DO BEGIN
-      WITH T^ DO BEGIN
+    T := 0;
+    WHILE T <= High(Trains) DO BEGIN
+      WITH Trains[T] DO BEGIN
         IF Train_DiagramFound
         AND (Train_LocoChip <> UnknownLocoChip)
         AND (Train_CurrentStatus <> Suspended)
@@ -624,12 +623,56 @@ BEGIN
           END;
         END;
       END; {WITH}
-      T := T^.Train_NextRecord;
+      Inc(T);
     END; {WHILE}
   END;
 END; { CheckOccupiedLinesAndDiagrams }
 
-PROCEDURE DiscardDiagrams(CheckIfOK : Boolean);
+PROCEDURE DeleteAllRoutesForTrain(T : TrainElement);
+{ Delete all routes allocated to a specific train }
+VAR
+  L : Integer;
+  R : Integer;
+  SR : Integer;
+  TC : Integer;
+
+BEGIN
+  WITH Trains[T] DO BEGIN
+    FOR R := 0 TO High(Routes_LocoChips) DO BEGIN
+      IF Routes_LocoChips[R] = Train_LocoChip THEN BEGIN
+        Routes_RouteSettingsInProgress[R] := False;
+        Routes_RouteClearingsInProgress[R] := True;
+
+        { Clear the routes without resetting points, as the train may be sitting on one }
+        Routes_RouteClearingsWithoutPointResetting[R] := True;
+        FOR SR := 0 TO High(Routes_SubRouteStates[R]) DO BEGIN
+          IF Routes_SubRouteStates[R, SR] <> SubRouteCleared THEN
+            CreateClearingSubRouteArray(R, SR);
+          Routes_SubRouteStates[R, SR] := SubRouteToBeCleared;
+        END;
+
+        { And also clear any track circuits marked as locked by the route just in case they're not cleared by route clearing }
+        FOR TC := 0 TO High(TrackCircuits) DO BEGIN
+          IF TrackCircuits[TC].TC_LocoChip = Train_LocoChip THEN
+            IF TrackCircuits[TC].TC_OccupationState = TCUnoccupied THEN BEGIN
+              TrackCircuits[TC].TC_LocoChip := UnknownLocoChip;
+              UnlockTrackCircuitRouteLocking(TC);
+            END;
+        END; {FOR}
+
+        FOR L := 0 TO High(Lines) DO BEGIN
+          IF Lines[L].Line_RouteLockingForDrawing = R THEN
+            Lines[L].Line_RouteLockingForDrawing := UnknownRoute;
+          IF Lines[L].Line_RouteSet = R THEN
+            Lines[L].Line_RouteSet := UnknownRoute;
+        END; {FOR}
+
+        Log(Train_LocoChipStr + ' L R=' + IntToStr(R) + ' for cancelled train now deleted');
+      END;
+    END; {FOR}
+  END; {WITH}
+END; { DeleteAllRoutesForTrain }
+
 { Throw away the current diagrams, and do appropriate tidying up }
 VAR
   DiscardOK : Boolean;
@@ -696,7 +739,7 @@ BEGIN
   END;
 END; { DiscardDiagrams }
 
-PROCEDURE SetInitialTrackCircuits(T : Train);
+PROCEDURE SetInitialTrackCircuits(T : TrainElement);
 { Sets the initial trackcircuits for a given route }
 VAR
   Done : Boolean;
@@ -707,7 +750,7 @@ VAR
   PreviousLine : Integer;
   TempL : Integer;
 
-  PROCEDURE SetUpOccupancy(VAR T : Train);
+  PROCEDURE SetUpOccupancy(VAR T : TrainElement);
   { Sets the initial track occupancy }
   VAR
     Set2nd, Set3rd, Set4th, Set5th : Boolean;
@@ -719,7 +762,7 @@ VAR
     Set4th := False;
     Set5th := False;
 
-    WITH T^ DO BEGIN
+    WITH Trains[T] DO BEGIN
       { Now set initial track occupancy depending on the length of the train. Ignore the first circuit, as the train may only be occupying the last few yards of it }
       IF Train_InitialTrackCircuits[2] = UnknownTrackCircuit THEN
         Log(Train_LocoChipStr + ' T! Problem with initial trackcircuits: second TC is an unknown TC - is the train direction correct?')
@@ -733,8 +776,8 @@ VAR
                OR Locations[TempLocation].Location_IsSiding
                OR Locations[TempLocation].Location_IsFiddleyard)
           THEN BEGIN
-            IF (TrackCircuits[t^.Train_InitialTrackCircuits[2]].TC_OccupationState = TCFeedbackOccupation)
-            OR (Train_CurrentLengthInInches > TrackCircuits[T^.Train_InitialTrackCircuits[2]].TC_LengthInInches)
+            IF (TrackCircuits[Train_InitialTrackCircuits[2]].TC_OccupationState = TCFeedbackOccupation)
+            OR (Train_CurrentLengthInInches > TrackCircuits[Train_InitialTrackCircuits[2]].TC_LengthInInches)
             THEN BEGIN
               Set3rd := True;
               Log(Train_LocoChipStr + ' T TrainLengthInInches=' + IntToStr(Train_CurrentLengthInInches)
@@ -750,13 +793,13 @@ VAR
                OR Locations[TempLocation].Location_IsSiding
                OR Locations[TempLocation].Location_IsFiddleyard)
           THEN BEGIN
-            IF Train_CurrentLengthInInches > (TrackCircuits[T^.Train_InitialTrackCircuits[2]].TC_LengthInInches
-                                              + TrackCircuits[t^.Train_InitialTrackCircuits[3]].TC_LengthInInches)
+            IF Train_CurrentLengthInInches > (TrackCircuits[Train_InitialTrackCircuits[2]].TC_LengthInInches
+                                              + TrackCircuits[Train_InitialTrackCircuits[3]].TC_LengthInInches)
             THEN BEGIN
               Set4th := True;
               Log(Train_LocoChipStr + ' T TrainLengthInInches=' + IntToStr(Train_CurrentLengthInInches)
                                     + ' > 2nd and 3rd track circuit lengths=' + FloatToStr(TrackCircuits[Train_InitialTrackCircuits[2]].TC_LengthInInches
-                                                                              + TrackCircuits[t^.Train_InitialTrackCircuits[3]].TC_LengthInInches));
+                                                                              + TrackCircuits[Train_InitialTrackCircuits[3]].TC_LengthInInches));
             END;
           END;
         END;
@@ -768,15 +811,15 @@ VAR
                OR Locations[TempLocation].Location_IsSiding
                OR Locations[TempLocation].Location_IsFiddleyard)
           THEN BEGIN
-            IF Train_CurrentLengthInInches > (TrackCircuits[t^.Train_InitialTrackCircuits[2]].TC_LengthInInches
-                                              + TrackCircuits[T^.Train_InitialTrackCircuits[3]].TC_LengthInInches
-                                              + TrackCircuits[T^.Train_InitialTrackCircuits[4]].TC_LengthInInches)
+            IF Train_CurrentLengthInInches > (TrackCircuits[Train_InitialTrackCircuits[2]].TC_LengthInInches
+                                              + TrackCircuits[Train_InitialTrackCircuits[3]].TC_LengthInInches
+                                              + TrackCircuits[Train_InitialTrackCircuits[4]].TC_LengthInInches)
             THEN BEGIN
               Set5th := True;
               Log(Train_LocoChipStr + ' T TrainLengthInInches=' + IntToStr(Train_CurrentLengthInInches)
                                     + ' > 2nd, 3rd and 4th trackcircuit lengths=' + FloatToStr(TrackCircuits[Train_InitialTrackCircuits[2]].TC_LengthInInches
-                                                                                  + TrackCircuits[t^.Train_InitialTrackCircuits[3]].TC_LengthInInches
-                                                                                  + TrackCircuits[t^.Train_InitialTrackCircuits[4]].TC_LengthInInches));
+                                                                                  + TrackCircuits[Train_InitialTrackCircuits[3]].TC_LengthInInches
+                                                                                  + TrackCircuits[Train_InitialTrackCircuits[4]].TC_LengthInInches));
             END;
           END;
         END;
@@ -951,16 +994,16 @@ VAR
   END; { FindNextTrackCircuit }
 
 BEGIN
-  WITH T^ DO BEGIN
+  WITH Trains[T] DO BEGIN
     IF Train_CurrentSourceLocation = UnknownLocation THEN
       Log(Train_LocoChipStr + ' XG Cannot find initial track circuits when Train_CurrentSourceLocation = UnknownLocation')
     ELSE BEGIN
       { Because not all routes have more than two trackcircuits }
-      t^.Train_InitialTrackCircuits[1] := UnknownTrackCircuit;
-      t^.Train_InitialTrackCircuits[2] := UnknownTrackCircuit;
-      t^.Train_InitialTrackCircuits[3] := UnknownTrackCircuit;
-      t^.Train_InitialTrackCircuits[4] := UnknownTrackCircuit;
-      t^.Train_InitialTrackCircuits[5] := UnknownTrackCircuit;
+      Train_InitialTrackCircuits[1] := UnknownTrackCircuit;
+      Train_InitialTrackCircuits[2] := UnknownTrackCircuit;
+      Train_InitialTrackCircuits[3] := UnknownTrackCircuit;
+      Train_InitialTrackCircuits[4] := UnknownTrackCircuit;
+      Train_InitialTrackCircuits[5] := UnknownTrackCircuit;
 
       { Find the first trackcircuit in the list of lines which is the same location }
       L := 0;
@@ -1144,58 +1187,40 @@ BEGIN
   Log(LocoChipToStr(LocoChip) + ' D New headcode created: ' + Result);
 END; { GetHeadcode }
 
-PROCEDURE AddTrainToTrainList(T : Train; DescribeFullTrainList : Boolean);
+PROCEDURE AddTrainToTrainList(T : TrainElement; DescribeFullTrainList : Boolean);
 { Add a descriptor for each active loco to the train list. List the full train list (locos only and locos and trains if DescribeFullTrainList is set. }
 CONST
   Indent = True;
 
 BEGIN
   IF VerboseFlag THEN
-    Log('D Adding train ' + LocoChipToStr(T^.Train_LocoChip) + ' to the train list');
-
-  { Add train to front of train list }
-  T^.Train_NextRecord := TrainList;
-  TrainList := T;
+    Log('D Adding train ' + LocoChipToStr(Trains[T].Train_LocoChip) + ' to the train list');
+//
+//  { Add train to front of train list }
+//  T^.Train_NextRecord := TrainList;
+//  TrainList := T;
 END; { AddTrainToTrainList }
 
-PROCEDURE AddTrainToDiagramsList(T : Train);
+PROCEDURE AddTrainToDiagramsList(T : TrainElement);
 { Create the diagrams list }
-VAR
-  DiagramsEntry : DiagramsEntryType;
-
 BEGIN
-  IF T^.Train_DiagramFound THEN BEGIN
-    IF T^.Train_LocoChipStr = '' THEN BEGIN
-      ASM
-        Int 3;
-      END; {ASM}
-    END;
-    Log('D Adding train ' + T^.Train_Headcode + ' (' + T^.Train_LocoChipStr + ')' + ' to the diagrams');
-    New(DiagramsEntry);
-    DiagramsEntry^.TrainPtr := T;
-    DiagramsEntry^.NextDiagramsRecord := DiagramsList;
-    DiagramsList := DiagramsEntry;
-
-    { and re-sort it after adding the new entry }
-    DiagramsList := ListSort_SortDiagramsList(DiagramsList, DepartureTimeAndTrainTypeSort);
-  END;
+  SetLength(DiagramsArray, Length(DiagramsArray) + 1);
+  DiagramsArray[High(DiagramsArray)] := T;
+  IF Trains[T].Train_DiagramFound THEN
+    Log('D Adding train ' + Trains[T].Train_Headcode + ' (' + Trains[T].Train_LocoChipStr + ')' + ' to the diagrams');
 END; { AddTrainToDiagramsList }
 
-PROCEDURE CancelTrain(T : Train; UserInstruction, TrainExists : Boolean);
+PROCEDURE CancelTrain(T : TrainElement; UserInstruction, TrainExists : Boolean);
 { Mark a train as cancelled, and enable the appropriate popup to display it in the diagrams }
 CONST
   IncludeFirstOccupation = True;
 
 VAR
-  L : Integer;
   OK : Boolean;
-  OtherT : Train;
-  R : Integer;
-  SR : Integer;
-  TC : Integer;
+  OtherT : TrainElement;
 
 BEGIN
-  WITH T^ DO BEGIN
+  WITH Trains[T] DO BEGIN
     ChangeTrainStatus(T, Cancelled);
     Log(Train_LocoChipStr + ' D Train cancelled');
 
@@ -1216,79 +1241,38 @@ BEGIN
       SetUpTrainLocationOccupationsAbInitio(T, OK);
 
       { and add the rest }
-      OtherT := TrainList;
-      WHILE OtherT <> NIL DO BEGIN
+      OtherT := 0;
+      WHILE OtherT <= High(Trains) DO BEGIN
         IF T <> OtherT THEN
           SetUpTrainLocationOccupationsAbInitio(OtherT, OK);
-        OtherT := OtherT^.Train_NextRecord;
+        Inc(OtherT);
       END;
 
       Train_TotalJourneys := -1;
 
       { And delete any routes created for this train }
-      FOR R := 0 TO High(Routes_LocoChips) DO BEGIN
-        IF Routes_LocoChips[R] = Train_LocoChip THEN BEGIN
-          Routes_RouteSettingsInProgress[R] := False;
-          Routes_RouteClearingsInProgress[R] := True;
-
-          { Clear the routes without resetting points, as the train may be sitting on one }
-          Routes_RouteClearingsWithoutPointResetting[R] := True;
-          FOR SR := 0 TO High(Routes_SubRouteStates[R]) DO BEGIN
-            IF Routes_SubRouteStates[R, SR] <> SubRouteCleared THEN
-              CreateClearingSubRouteArray(R, SR);
-            Routes_SubRouteStates[R, SR] := SubRouteToBeCleared;
-          END;
-
-          { And also clear any track circuits marked as locked by the route just in case they're not cleared by route clearing }
-          FOR TC := 0 TO High(TrackCircuits) DO BEGIN
-            IF TrackCircuits[TC].TC_LocoChip = Train_LocoChip THEN
-              IF TrackCircuits[TC].TC_OccupationState = TCUnoccupied THEN BEGIN
-                TrackCircuits[TC].TC_LocoChip := UnknownLocoChip;
-                UnlockTrackCircuitRouteLocking(TC);
-              END;
-          END; {FOR}
-
-          FOR L := 0 TO High(Lines) DO BEGIN
-            IF Lines[L].Line_RouteLockingForDrawing = R THEN
-              Lines[L].Line_RouteLockingForDrawing := UnknownRoute;
-            IF Lines[L].Line_RouteSet = R THEN
-              Lines[L].Line_RouteSet := UnknownRoute;
-          END; {FOR}
-
-          Log(Train_LocoChipStr + ' L R=' + IntToStr(R) + ' for cancelled train now deleted');
-        END;
-      END;
+      DeleteAllRoutesForTrain(T);
     END;
 
     DrawDiagrams(UnitRef, 'CancelTrain');
   END; {WITH}
 END; { CancelTrain }
 
-PROCEDURE RemoveTrainFromDiagrams(T : Train);
+PROCEDURE RemoveTrainFromDiagrams(T : TrainElement);
 { Called to indicate a train is no longer of interest; it is removed from the diagrams list, the others moved to fill the gap and a new train generated. The diagrams will
   be redrawn on screen.
 }
-  PROCEDURE PurgeDiagrams(VAR DiagramsEntry : DiagramsEntryType);
-  VAR
-    TempDiagramsEntry : DiagramsEntryType;
-
-  BEGIN
-    WHILE (DiagramsEntry <> NIL)
-    AND (DiagramsEntry^.TrainPtr = T)
-    DO BEGIN
-      TempDiagramsEntry := DiagramsEntry;
-      Log(DiagramsEntry^.TrainPtr^.Train_LocoChipStr + ' D Removing train ' + TempDiagramsEntry^.TrainPtr^.Train_Headcode
-                                                     + ' (' + TempDiagramsEntry^.TrainPtr^.Train_LocoChipStr + ')' + ' from the diagrams');
-      DiagramsEntry := DiagramsEntry^.NextDiagramsRecord;
-      Dispose(TempDiagramsEntry);
-    END; {WHILE}
-
-    IF DiagramsEntry <> NIL THEN
-      PurgeDiagrams(DiagramsEntry^.NextDiagramsRecord);
-  END; { PurgeDiagrams }
+VAR
+  DiagramsArrayPos : Integer;
 
 BEGIN
-  PurgeDiagrams(DiagramsList);
+  DiagramsArrayPos := 0;
+  WHILE DiagramsArrayPos <= HIGH(DiagramsArray) DO BEGIN
+    IF DiagramsArray[DiagramsArrayPos] = T THEN
+      DeleteElementFromIntegerArray(DiagramsArray, DiagramsArrayPos);
+    Inc(DiagramsArrayPos);
+  END; {WHILE}
+
   DrawDiagrams(UnitRef, 'RemoveTrainFromDiagrams');
 END; { RemoveTrainFromDiagrams }
 
@@ -1370,15 +1354,15 @@ BEGIN
   END; {WITH}
 END; { DiagramsWindowGridDrawCell }
 
-PROCEDURE DrawDiagramsSpeedCell(T : Train);
+PROCEDURE DrawDiagramsSpeedCell(T : TrainElement);
 { Draw the speed cell for a given loco - this routine is to avoid having to draw all the diagrams for a minor change }
 BEGIN
-  WITH T^ DO BEGIN
+  WITH Trains[T] DO BEGIN
     IF Train_CurrentStatus <> Cancelled THEN BEGIN
-      IF Length(T^.Train_DiagramsGridRowNums) > 0 THEN BEGIN
+      IF Length(Train_DiagramsGridRowNums) > 0 THEN BEGIN
         WITH DiagramsWindow.DiagramsWindowGrid DO BEGIN
           IF LocosStopped THEN BEGIN
-            Cells[SpeedCol, T^.Train_DiagramsGridRowNums[0]] :=
+            Cells[SpeedCol, Train_DiagramsGridRowNums[0]] :=
                                   '0'
                                   + IfThen(Train_CurrentLenzSpeed <> 0,
                                            '[' + IntToStr(Train_CurrentLenzSpeed) + ']')
@@ -1401,7 +1385,7 @@ BEGIN
                                   + IfThen(Train_CurrentLenzSpeed <> 0,
                                            ' [' + MPHToStr(Train_CurrentSpeedInMPH) + ' mph]')
           END ELSE BEGIN
-            Cells[SpeedCol, T^.Train_DiagramsGridRowNums[0]] :=
+            Cells[SpeedCol, Train_DiagramsGridRowNums[0]] :=
                                   IntToStr(Train_CurrentLenzSpeed)
                                   + IfThen(Train_CurrentLenzSpeed <> Train_DesiredLenzSpeed,
                                            ':' + IntToStr(Train_DesiredLenzSpeed))
@@ -1428,41 +1412,43 @@ BEGIN
   END; {WITH}
 END; { DrawDiagramsSpeedCell }
 
-PROCEDURE SetUpDiagramsGridCell(T : Train; DiagramsCol, DiagramsRow : Integer; Str : String; Style : CellStyleType);
+PROCEDURE SetUpDiagramsGridCell(T : TrainElement; DiagramsCol, DiagramsRow : Integer; Str : String; Style : CellStyleType);
 { May add an cancelled train marker or highlight some text before passing to the DrawDiagramsGridCell routine (this would not be necessary if that routine knew where
   the text was coming from).
 }
 BEGIN
   WITH DiagramsWindow.DiagramsWindowGrid DO BEGIN
-    IF (T^.Train_CurrentStatus = Suspended)
-    OR (T^.Train_CurrentStatus = MissingAndSuspended)
-    OR (T^.Train_CurrentStatus = Cancelled)
-    THEN
-      { override other styles }
-      Style := GreyedOutStyle;
+    WITH Trains[T] DO BEGIN
+      IF (Train_CurrentStatus = Suspended)
+      OR (Train_CurrentStatus = MissingAndSuspended)
+      OR (Train_CurrentStatus = Cancelled)
+      THEN
+        { override other styles }
+        Style := GreyedOutStyle;
 
-    CASE Style OF
-      NormalStyle:
-        Cells[DiagramsCol, DiagramsRow - 1] := Trim(Str);
-      BoldStyle:
-        Cells[DiagramsCol, DiagramsRow - 1] := BoldStyleStr + Trim(Str);
-      ItalicStyle:
-        Cells[DiagramsCol, DiagramsRow - 1] := ItalicStyleStr + Trim(Str);
-      BoldAndItalicStyle:
-        Cells[DiagramsCol, DiagramsRow - 1] := BoldAndItalicStyleStr + Trim(Str);
-      GreyedOutStyle:
-        Cells[DiagramsCol, DiagramsRow - 1] := GreyedOutStyleStr + Trim(Str);
-    END; {CASE}
+      CASE Style OF
+        NormalStyle:
+          Cells[DiagramsCol, DiagramsRow - 1] := Trim(Str);
+        BoldStyle:
+          Cells[DiagramsCol, DiagramsRow - 1] := BoldStyleStr + Trim(Str);
+        ItalicStyle:
+          Cells[DiagramsCol, DiagramsRow - 1] := ItalicStyleStr + Trim(Str);
+        BoldAndItalicStyle:
+          Cells[DiagramsCol, DiagramsRow - 1] := BoldAndItalicStyleStr + Trim(Str);
+        GreyedOutStyle:
+          Cells[DiagramsCol, DiagramsRow - 1] := GreyedOutStyleStr + Trim(Str);
+      END; {CASE}
+    END; {WITH}
   END; {WITH}
 END; { SetUpDiagramsGridCell }
 
-PROCEDURE DrawDiagramsStatusCell(T : Train; CellStyle : CellStyleType);
+PROCEDURE DrawDiagramsStatusCell(T : TrainElement; CellStyle : CellStyleType);
 { Draw the status cell for a given loco - this routine is to avoid having to draw all the diagrams for a minor change }
 VAR
   StatusText : String;
 
 BEGIN
-  WITH T^ DO BEGIN
+  WITH Trains[T] DO BEGIN
     { Options and status }
     StatusText := ' ';
     CASE Train_CurrentStatus OF
@@ -1513,8 +1499,8 @@ BEGIN
     IF Train_ReversingWaitStarted THEN
       StatusText := StatusText + ' RW';
 
-    IF Length(T^.Train_DiagramsGridRowNums) > 0 THEN
-      SetUpDiagramsGridCell(T, StatusCol, T^.Train_DiagramsGridRowNums[0] + 1, StatusText, CellStyle);
+    IF Length(Trains[T].Train_DiagramsGridRowNums) > 0 THEN
+      SetUpDiagramsGridCell(T, StatusCol, Trains[T].Train_DiagramsGridRowNums[0] + 1, StatusText, CellStyle);
 
 //      WITH DiagramsWindow.DiagramsWindowGrid DO
 //        Cells[StatusCol, T^.Train_DiagramsGridRowNums[0]] := StatusText;
@@ -1534,11 +1520,11 @@ VAR
   DebugStr : String;
   DebugStrSaveStartLocation : Integer;
   DestinationStr : String;
-  DiagramsEntry : DiagramsEntryType;
+  DiagramsArrayPos : Integer;
   JourneyCount : Integer;
   I, J : Integer;
   NewRow : Boolean;
-  T : Train;
+  T : TrainElement;
   TempGridRowCount : Integer;
 
   FUNCTION DescribeClass(C : String) : String;
@@ -1566,10 +1552,10 @@ BEGIN
       { Remove lines between the cells }
       GridLineWidth := 0;
 
-      DiagramsEntry := DiagramsList;
-      WHILE DiagramsEntry <> NIL DO BEGIN
-        T := DiagramsEntry^.TrainPtr;
-        WITH T^ DO BEGIN
+      DiagramsArrayPos := 0;
+      WHILE DiagramsArrayPos <= High(DiagramsArray) DO BEGIN
+        T := DiagramsArray[DiagramsArrayPos];
+        WITH Trains[T] DO BEGIN
           IF Train_LocoChip <> UnknownLocoChip THEN BEGIN
             { Omit non-moving and cancelled trains unless told to display them }
             IF Train_DiagramFound THEN BEGIN
@@ -1607,7 +1593,7 @@ BEGIN
                 ELSE
                   SetUpDiagramsGridCell(T, LocoClassCol, TempGridRowCount, DescribeClass(Train_LocoClassStr), NormalStyle);
 
-                IF Train_Locations[0] <> UnknownLocation THEN BEGIN
+                IF (Train_Locations <> NIL) AND (Train_Locations[0] <> UnknownLocation) THEN BEGIN
                   IF Length(Train_JourneysArray) > 0 THEN BEGIN
                     IF Train_JourneysArray[0].TrainJourney_NotForPublicUse THEN
                       SetUpDiagramsGridCell(T, SourceCol, TempGridRowCount, LocationToStr(Train_Locations[0], ShortStringType), BoldAndItalicStyle)
@@ -1616,7 +1602,7 @@ BEGIN
                   END;
                 END;
 
-                SetUpDiagramsGridCell(T, JourneyCol, TempGridRowCount, IntToStr(T^.Train_CurrentJourney), NormalStyle);
+                SetUpDiagramsGridCell(T, JourneyCol, TempGridRowCount, IntToStr(Train_CurrentJourney), NormalStyle);
                 DebugStrSaveStartLocation := Train_CurrentSourceLocation;
 
                 DrawDiagramsStatusCell(T, NormalStyle);
@@ -1645,15 +1631,15 @@ BEGIN
                     AND (JourneyCount > 0)
                     THEN BEGIN
                       { Start the row with the next starting point }
-                      IF t^.Train_JourneysArray[JourneyCount - 1].TrainJourney_StoppingOnArrival THEN
+                      IF Train_JourneysArray[JourneyCount - 1].TrainJourney_StoppingOnArrival THEN
                         CellStyle := BoldStyle
                       ELSE
-                        IF (t^.Train_JourneysArray[JourneyCount - 1].TrainJourney_StoppingOnArrival) THEN
+                        IF (Train_JourneysArray[JourneyCount - 1].TrainJourney_StoppingOnArrival) THEN
                           CellStyle := BoldStyle
                         ELSE
                           CellStyle := NormalStyle;
 
-                      IF t^.Train_JourneysArray[JourneyCount].TrainJourney_NotForPublicUse THEN
+                      IF Train_JourneysArray[JourneyCount].TrainJourney_NotForPublicUse THEN
                         CellStyle := ItalicStyle;
 
                       SetUpDiagramsGridCell(T, SourceCol, TempGridRowCount, DestinationStr, CellStyle);
@@ -1666,7 +1652,7 @@ BEGIN
                       { and make the original train source "greyed out" too }
                       SetUpDiagramsGridCell(T, SourceCol, TempGridRowCount, LocationToStr(Train_Locations[0], ShortStringType), CellStyle);
                     END ELSE
-                      IF t^.Train_JourneysArray[JourneyCount].TrainJourney_NotForPublicUse THEN
+                      IF Train_JourneysArray[JourneyCount].TrainJourney_NotForPublicUse THEN
                         CellStyle := ItalicStyle
                       ELSE
                         CellStyle := NormalStyle;
@@ -1698,13 +1684,13 @@ BEGIN
                       ELSE
                         IF Train_JourneysArray[JourneyCount].TrainJourney_StoppingOnArrival
                         AND (JourneyCount < Train_TotalJourneys)
-                        AND t^.Train_JourneysArray[JourneyCount + 1].TrainJourney_NotForPublicUse THEN
+                        AND Train_JourneysArray[JourneyCount + 1].TrainJourney_NotForPublicUse THEN
                           CellStyle := BoldAndItalicStyle
                         ELSE
                           IF Train_JourneysArray[JourneyCount].TrainJourney_StoppingOnArrival THEN
                             CellStyle := BoldStyle
                           ELSE
-                            IF t^.Train_JourneysArray[JourneyCount].TrainJourney_NotForPublicUse THEN
+                            IF Train_JourneysArray[JourneyCount].TrainJourney_NotForPublicUse THEN
                               CellStyle := ItalicStyle
                             ELSE
                               CellStyle := NormalStyle;
@@ -1747,7 +1733,7 @@ BEGIN
           Log('D ' + DebugStr + ' {NOUNITREF}');
           DebugStr := '';
         END;
-        DiagramsEntry := DiagramsEntry^.NextDiagramsRecord;
+        Inc(DiagramsArrayPos);
       END; {WHILE}
       DiagramsWindow.DiagramsWindowGrid.RowCount := TempGridRowCount;
     END; {WITH}
@@ -1952,44 +1938,44 @@ BEGIN
   IF NOT SystemOnline THEN
     Debug('Cannot select a loco - system offline')
   ELSE BEGIN
-    IF DiagramsChosenTrain <> NIL THEN BEGIN
+    IF DiagramsChosenTrain <> 0 THEN BEGIN
       LocoDialogueWindow.Show;
       LocoDialogue.LocoDialogueWindow.LocoDialogueLocoMaskEdit.Clear;
-      LocoDialogueWindow.LocoDialogueLocoMaskEdit.SelText := LocoChipToStr(DiagramsChosenTrain^.Train_LocoChip);
+      LocoDialogueWindow.LocoDialogueLocoMaskEdit.SelText := LocoChipToStr(Trains[DiagramsChosenTrain].Train_LocoChip);
       EnableLocoDialogueLocoButtonsAndBoxes;
     END;
   END;
 END; { PopupDriveTrainClick }
 
-PROCEDURE SuspendTrain(T : Train; User : Boolean);
+PROCEDURE SuspendTrain(T : TrainElement; User : Boolean);
 { Suspend a given train - it can be reactivated in the diagrams window }
 VAR
   DebugStr : String;
-  OK : Boolean;
 
 BEGIN
-  WITH T^ DO BEGIN
+  WITH Trains[T] DO BEGIN
     IF Train_CurrentStatus = Missing THEN
       ChangeTrainStatus(T, MissingAndSuspended)
     ELSE
       ChangeTrainStatus(T, Suspended);
 
     IF User THEN
-      DebugStr := 'has been suspended by user'
+      DebugStr := 'has been suspended by user - stop request pending'
     ELSE
-      DebugStr := 'has been suspended by the system';
+      DebugStr := 'has been suspended by the system - stop request pending';
 
     Log(Train_LocoChipStr + ' DG ' + DebugStr);
     { and set its speed to zero }
 
-    StopAParticularLocomotive(Train_LocoChip, OK);
+    IF SystemOnline THEN
+      StopAParticularTrain(T);
   END; {WITH}
 END; { SuspendTrain }
 
 PROCEDURE TDiagramsWindow.PopupSuspendTrainClick(Sender: TObject);
 BEGIN
-  IF DiagramsChosenTrain <> NIL THEN BEGIN
-    WITH DiagramsChosenTrain^ DO BEGIN
+  IF DiagramsChosenTrain <> 0 THEN BEGIN
+    WITH Trains[DiagramsChosenTrain] DO BEGIN
       IF (Train_CurrentStatus = Suspended) OR (Train_CurrentStatus = MissingAndSuspended) THEN BEGIN
         IF Train_CurrentStatus = Suspended THEN
           ChangeTrainStatus(DiagramsChosenTrain, Train_PreviousStatus)
@@ -2002,7 +1988,7 @@ BEGIN
         SuspendTrain(DiagramsChosenTrain, ByUser);
         PopupSuspendTrain.Caption := 'Activate Suspended Train ' + LocoChipToStr(Train_LocoChip);
       END;
-      DiagramsChosenTrain := NIL;
+      DiagramsChosenTrain := 0;
     END; {WITH}
   END;
   DrawDiagrams(UnitRef, 'PopupSuspendTrainClick');
@@ -2010,8 +1996,8 @@ END; { PopupSuspendTrainClick }
 
 PROCEDURE TDiagramsWindow.PopupMarkTrainNotMissingClick(Sender: TObject);
 BEGIN
-  IF DiagramsChosenTrain <> NIL THEN BEGIN
-    WITH DiagramsChosenTrain^ DO BEGIN
+  IF DiagramsChosenTrain <> 0 THEN BEGIN
+    WITH Trains[DiagramsChosenTrain] DO BEGIN
       IF Train_CurrentStatus = Missing THEN BEGIN
         PopupMarkTrainNotMissing.Enabled := False;
         ReturnTrainFromMissing(DiagramsChosenTrain);
@@ -2022,19 +2008,17 @@ BEGIN
 END; { PopupMarkTrainNotMissingClick }
 
 PROCEDURE TDiagramsWindow.PopupCancelTrainClick(Sender: TObject);
-VAR
-  OK : Boolean;
-
 BEGIN
-  IF DiagramsChosenTrain <> NIL THEN BEGIN
-    WITH DiagramsChosenTrain^ DO BEGIN
+  IF DiagramsChosenTrain <> 0 THEN BEGIN
+    WITH Trains[DiagramsChosenTrain] DO BEGIN
       CancelTrain(DiagramsChosenTrain, ByUser, TrainExists);
       Log(Train_LocoChipStr + ' DG Train has been cancelled by user');
 
       { and set its speed to zero }
-      StopAParticularLocomotive(Train_LocoChip, OK);
+      IF SystemOnline THEN
+        StopAParticularTrain(DiagramsChosenTrain);
 
-      DiagramsChosenTrain := NIL;
+      DiagramsChosenTrain := 0;
     END; {WITH}
   END;
   DrawDiagrams(UnitRef, 'PopupCancelTrainClick');
@@ -2042,8 +2026,8 @@ END; { PopupCancelTrainClick }
 
 PROCEDURE TDiagramsWindow.PopupTrainUserDrivingClick(Sender: TObject);
 BEGIN
-  IF DiagramsChosenTrain <> NIL THEN BEGIN
-    WITH DiagramsChosenTrain^ DO BEGIN
+  IF DiagramsChosenTrain <> 0 THEN BEGIN
+    WITH Trains[DiagramsChosenTrain] DO BEGIN
       IF Train_UserDriving THEN BEGIN
         Train_UserDriving := False;
         { and reset the speed, in case we're already in motion }
@@ -2055,7 +2039,7 @@ BEGIN
         Log(Train_LocoChipStr + ' DG Train now being driven by the user');
         PopupTrainUserDriving.Caption := 'Make Train ' + LocoChipToStr(Train_LocoChip) + ' Computer Driven';
       END;
-      DiagramsChosenTrain := NIL;
+      DiagramsChosenTrain := 0;
     END; {WITH}
   END;
   DrawDiagrams(UnitRef, 'PopupTrainUserDrivenClick');
@@ -2063,8 +2047,8 @@ END; { PopupTrainUserDrivenClick }
 
 PROCEDURE TDiagramsWindow.PopupSupplyUserTrainInstructionsClick(Sender: TObject);
 BEGIN
-  IF DiagramsChosenTrain <> NIL THEN BEGIN
-    WITH DiagramsChosenTrain^ DO BEGIN
+  IF DiagramsChosenTrain <> 0 THEN BEGIN
+    WITH Trains[DiagramsChosenTrain] DO BEGIN
       IF Train_UserRequiresInstructions THEN BEGIN
         Train_UserRequiresInstructions := False;
         Log(Train_LocoChipStr + ' D Instructions no longer supplied to user');
@@ -2078,7 +2062,7 @@ BEGIN
           PopupSupplyUserTrainInstructions.Caption := 'Cancel Supply Of User Instructions';
         END;
       END;
-      DiagramsChosenTrain := NIL;
+      DiagramsChosenTrain := 0;
     END; {WITH}
   END;
   DrawDiagrams(UnitRef, 'PopupTrainUserDrivenClick');
@@ -2090,8 +2074,8 @@ VAR
 
 BEGIN
   DebugStr := '';
-  IF DiagramsChosenTrain <> NIL THEN BEGIN
-    WITH DiagramsChosenTrain^ DO BEGIN
+  IF DiagramsChosenTrain <> 0 THEN BEGIN
+    WITH Trains[DiagramsChosenTrain] DO BEGIN
       IF Train_LastRouteLockedMsgStr <> '' THEN
         DebugStr := LocoChipToStr(Train_LocoChip) + ': ' +  Train_LastRouteLockedMsgStr;
       IF Train_RouteCreationHoldMsg <> '' THEN
@@ -2121,12 +2105,12 @@ VAR
   I : Integer;
   Journey : Integer;
   JourneyFound : Boolean;
-  T : Train;
+  T : TrainElement;
   SaveTrainBeingAdvancedTC : Integer;
   TempCellStr1 : String;
   TempCellStr2 : String;
 
-  FUNCTION FindTrainRecordFromColumnOne(TestY : Integer) : Train;
+  FUNCTION FindTrainRecordFromColumnOne(TestY : Integer): TrainElement;
   { Find the loco by looking at the first column, stepping back through the grid if necessary }
   VAR
     LocoNumFound : Boolean;
@@ -2134,7 +2118,7 @@ VAR
 
   BEGIN
     LocoNumFound := False;
-    Result := NIL;
+    Result := 0;
     TestY := ColsAndRows.Y;
     IF TestY > -1 THEN BEGIN
       REPEAT
@@ -2160,10 +2144,10 @@ VAR
     END;
   END; { FindTrainRecordFromColumnOne }
 
-  PROCEDURE EnableTrainOperations(T : Train);
+  PROCEDURE EnableTrainOperations(T : TrainElement);
   { Enable operations via the Diagrams popup }
   BEGIN
-    WITH T^ DO BEGIN
+    WITH Trains[T] DO BEGIN
       PopupTrainLocoChip.Caption := 'Train ' + LocoChipToStr(Train_LocoChip);
       PopupTrainLocoChip.Visible := True;
       PopupTrainRule1.Visible := True;
@@ -2237,10 +2221,10 @@ BEGIN
     THEN BEGIN
       { If it's a right click, do nothing if we are in the speed column, otherwise see if we want to control a train via the popup }
       T := FindTrainRecordFromColumnOne(ColsAndRows.Y);
-      IF T = NIL THEN
+      IF T = 0 THEN
         DisableTrainOperations
       ELSE BEGIN
-        WITH T^ DO BEGIN
+        WITH Trains[T] DO BEGIN
           IF (Train_LocoChip <> UnknownLocoChip)
           AND Train_DiagramFound
           THEN BEGIN
@@ -2285,8 +2269,8 @@ BEGIN
         THEN BEGIN
           { we may need to advance the journey (if, for example, a journey has been concluded but the system hasn't noticed) }
           T := FindTrainRecordFromColumnOne(ColsAndRows.Y);
-          IF T <> NIL THEN BEGIN
-            WITH T^ DO BEGIN
+          IF T <= High(Trains) THEN BEGIN
+            WITH Trains[T] DO BEGIN
               IF NOT Train_JourneysArray[Train_CurrentJourney].TrainJourney_Cleared THEN BEGIN
                 Train_JourneysArray[Train_CurrentJourney].TrainJourney_Cleared := True;
                 Log(Train_LocoChipStr + ' LG J=' + IntToStr(Train_CurrentJourney) + ' cleared by user clicking on the diagram');
@@ -2300,8 +2284,8 @@ BEGIN
           AND (ColsAndRows.X = SpeedCol)
           THEN BEGIN
             T := FindTrainRecordFromColumnOne(ColsAndRows.Y);
-            IF T <> NIL THEN BEGIN
-              WITH T^ DO BEGIN
+            IF T <= High(Trains) THEN BEGIN
+              WITH Trains[T] DO BEGIN
                 IF (Train_CurrentStatus <> Cancelled)
                 AND (Train_CurrentStatus <> Suspended)
                 AND (Train_CurrentStatus <> MissingAndSuspended)
@@ -2348,13 +2332,13 @@ BEGIN
             AND (ColsAndRows.X = LocoChipCol) AND (Button = mbLeft)
             THEN BEGIN
               T := FindTrainRecordFromColumnOne(ColsAndRows.Y);
-              IF T <> NIL THEN BEGIN
+              IF T <= High(Trains) THEN BEGIN
                 { Now advance it if we can }
-                WITH T^ DO BEGIN
+                WITH Trains[T] DO BEGIN
                   IF Train_CurrentRoute = UnknownRoute THEN BEGIN
                     IF HighlightRow = ColsAndRows.Y THEN BEGIN
                       HighlightRow := -1;
-                      TrainClickedOn := NIL;
+                      TrainClickedOn := 0;
                     END ELSE BEGIN
                       HighlightRow := ColsAndRows.Y;
                       TrainClickedOn := T;
@@ -2389,8 +2373,8 @@ BEGIN
               IF ColsAndRows.Y <> HeadingRow THEN BEGIN
                 { See if we want to change a train's stopping status }
                 T := FindTrainRecordFromColumnOne(ColsAndRows.Y);
-                IF T <> NIL THEN BEGIN
-                  WITH T^ DO BEGIN
+                IF T <= High(Trains) THEN BEGIN
+                  WITH Trains[T] DO BEGIN
                     { Find which journey it is - start from the second journey }
                     Journey := 0;
                     JourneyFound := False;
@@ -2415,9 +2399,9 @@ BEGIN
 
                         IF TempCellStr2 = LocationToStr(Train_JourneysArray[Journey].TrainJourney_EndLocation, ShortStringType) THEN BEGIN
                           JourneyFound := True;
-                          IF T^.Train_JourneysArray[Journey].TrainJourney_StoppingOnArrival THEN BEGIN
+                          IF Train_JourneysArray[Journey].TrainJourney_StoppingOnArrival THEN BEGIN
                             Log(Train_LocoChipStr + ' D J=' + IntToStr(Journey) + ': changed by user to not stopping on arrival');
-                            T^.Train_JourneysArray[Journey].TrainJourney_StoppingOnArrival := False;
+                            Train_JourneysArray[Journey].TrainJourney_StoppingOnArrival := False;
                             ClearHiddenAspectSignals(T, Train_JourneysArray[Journey].TrainJourney_EndSignal);
                           END ELSE BEGIN
                             IF Signals[Train_JourneysArray[Journey].TrainJourney_EndSignal].Signal_Aspect <> RedAspect THEN
@@ -2427,7 +2411,7 @@ BEGIN
                             ELSE BEGIN
                               SetHiddenAspectSignals(T, Train_JourneysArray[Journey].TrainJourney_EndSignal, Journey, NoRoute);
                               Log(Train_LocoChipStr + ' D J=' + IntToStr(Journey) + ': changed by user to stopping on arrival');
-                              T^.Train_JourneysArray[Journey].TrainJourney_StoppingOnArrival := True;
+                              Train_JourneysArray[Journey].TrainJourney_StoppingOnArrival := True;
                             END;
                           END;
 
@@ -2659,10 +2643,10 @@ BEGIN
 //  END;
 END; { DiagramsWindowGridMouseMove }
 
-FUNCTION DescribeJourney(T : Train; Journey : Integer) : String;
+FUNCTION DescribeJourney(T : TrainElement; Journey : Integer) : String;
 { Given various parameters, set up each individual journey within the overall train record }
 BEGIN
-  WITH T^.Train_JourneysArray[Journey] DO BEGIN
+  WITH Trains[T].Train_JourneysArray[Journey] DO BEGIN
     Result := IfThen(TrainJourney_StartLocation <> UnknownLocation,
                      LocationToStr(TrainJourney_StartLocation, ShortStringType),
                      'Loc=?')
@@ -2704,8 +2688,8 @@ BEGIN
                        ' [U]')
               + IfThen(TrainJourney_StoppingOnArrival,
                        ' [SOA]');
-    IF T^.Train_CurrentRoute <> UnknownRoute THEN
-      Result := Result + ' R=' + IntToStr(T^.Train_CurrentRoute);
+    IF Trains[T].Train_CurrentRoute <> UnknownRoute THEN
+      Result := Result + ' R=' + IntToStr(Trains[T].Train_CurrentRoute);
     IF NOT TrainJourney_Created THEN
       Result := Result + ' - not created or setup'
     ELSE
@@ -2716,7 +2700,7 @@ BEGIN
   END; {WITH}
 END; { DescribeJourney }
 
-FUNCTION CheckJourney(T : Train; Journey : Integer; Direction : DirectionType; StartLocation, EndLocation : Integer; StartLine, EndLine : Integer; OUT ErrorMsg : String;
+FUNCTION CheckJourney(T : TrainElement; Journey : Integer; Direction : DirectionType; StartLocation, EndLocation : Integer; StartLine, EndLine : Integer; OUT ErrorMsg : String;
                       OUT LinesNotAvailableStr : String; UseEmergencyRouteing : Boolean; OUT JourneyArray : StringArrayType; OUT OK : Boolean) : Boolean;
 { See if each projected journey is correct }
 CONST
@@ -2758,7 +2742,7 @@ BEGIN
       END;
 
     IF OK THEN BEGIN
-      WITH T^ DO
+      WITH Trains[T] DO
         FindRouteFromLineAToLineB(Train_LocoChip, Journey, UnknownSignal, StartLine, EndLine, Direction, Train_Type, Train_CurrentLengthInInches, UseEmergencyRouteing,
                                   NOT IncludeOutOfUseLines, JourneyArray, LinesNotAvailableStr, ErrorMsg, OK);
       IF NOT OK THEN
@@ -2818,7 +2802,7 @@ BEGIN
   END;
 END; { CalculateRouteLength }
 
-PROCEDURE CreateJourney(VAR T : Train; Journey : Integer; NewJourney: Boolean; StartArea, EndArea, StartLocation, EndLocation: Integer;
+PROCEDURE CreateJourney(VAR T : TrainElement; Journey : Integer; NewJourney: Boolean; StartArea, EndArea, StartLocation, EndLocation: Integer;
                         DiagrammedStartLocation, DiagrammedEndLocation, StartLine, EndLine: Integer;
                         CurrentDepartureTime, DiagrammedDepartureTime, CurrentArrivalTime: TDateTime; TrainDirection : DirectionType;
                         JourneyRouteArray : StringArrayType; RebuildRouteArray : Boolean;
@@ -2857,7 +2841,7 @@ VAR
 
 BEGIN
   TRY
-    WITH T^ DO BEGIN
+    WITH Trains[T] DO BEGIN
       OK := True;
 
       IF NewJourney THEN BEGIN
@@ -3204,14 +3188,14 @@ BEGIN
   END; {TRY}
 END; { CreateJourney }
 
-PROCEDURE WriteTrainRecord(T : Train);
+PROCEDURE WriteTrainRecord(T : TrainElement);
 { Writes the main train record out }
 VAR
   I : Integer;
   TempStr : String;
 
 BEGIN
-  WITH T^ DO BEGIN
+  WITH Trains[T] DO BEGIN
     Log('Train_LocoChip=' + LocoChipToStr(Train_LocoChip));
     Log('Train_DoubleHeaderLocoChip=' + LocoChipToStr(Train_DoubleHeaderLocoChip));
 
@@ -3412,13 +3396,13 @@ BEGIN
   Debug('train record written to log file');
 END; { WriteTrainRecord }
 
-PROCEDURE WriteTrainJourneysRecordToLogFile(T : Train; FullRecord : Boolean);
+PROCEDURE WriteTrainJourneysRecordToLogFile(T : TrainElement; FullRecord : Boolean);
 { Writes the journey record out }
 VAR
   I : Integer;
 
 BEGIN
-  WITH T^ DO BEGIN
+  WITH Trains[T] DO BEGIN
     FOR I := 0 TO High(Train_JourneysArray) DO BEGIN
       WITH Train_JourneysArray[I] DO BEGIN
         Log(' {NOUNITREF}');
@@ -3461,7 +3445,7 @@ BEGIN
   Debug('train journeys record written to log file');
 END; { WriteTrainJourneysRecordToLogFile }
 
-PROCEDURE WriteTrainJourneysRecordToLockListWindow(T : Train; FullRecord : Boolean);
+PROCEDURE WriteTrainJourneysRecordToLockListWindow(T : TrainElement; FullRecord : Boolean);
 { Writes the journey record to the locklist window }
 VAR
   I : Integer;
@@ -3472,7 +3456,7 @@ BEGIN
   LockListWindow.LockListWindowMemo.Lines.Clear;
   LockListWindow.Visible := True;
   Log('A Train Journeys displayed');
-  WITH T^ DO BEGIN
+  WITH Trains[T] DO BEGIN
     FOR I := 0 TO High(Train_JourneysArray) DO BEGIN
       WITH Train_JourneysArray[I] DO BEGIN
         WITH LockListWindow.LockListWindowMemo.Lines DO BEGIN
@@ -3562,7 +3546,7 @@ FUNCTION UpdateTrainRecordForDiagram(LocoChip, DoubleHeaderLocoChip, JourneyCoun
                                      NotForPublicUseArray : BooleanArrayType; StartLocationStr : String; StoppingArray : BooleanArrayType;
                                      LengthOfTrainInCarriages : Integer; TypeOfTrainNum : Integer;
                                      UserDriving, UserRequiresInstructions, StartOfRepeatJourney, PullingDapolCleaningWagon : Boolean)
-                                     : Train;
+                                    : TrainElement;
 { Updates a train record to add to the diagram - NB the array parameters being passed are open array parameters and therefore start at zero }
 CONST
   DescribeFullTrainList = True;
@@ -3589,9 +3573,9 @@ VAR
   LocoFound : Boolean;
   NewLocationStr : String;
   OK : Boolean;
-  OtherT : Train;
+  OtherT : TrainElement;
   StartArea : Integer;
-  T : Train;
+  T : TrainElement;
   TempArea : Integer;
   TempDirection1, TempDirection2 : DirectionType;
   TempEndAreas : IntegerArrayType;
@@ -3599,7 +3583,7 @@ VAR
   TempStartAreas : IntegerArrayType;
   TempStartLocations : IntegerArrayType;
   TempStr : String;
-  TempT : Train;
+  TempT : TrainElement;
   TempTCs : IntegerArrayType;
   TrainFound : Boolean;
 
@@ -3613,7 +3597,7 @@ VAR
 //  PROCEDURE SetUpTrainSpeeds;
 //  { Use the speed settings from the loco database }
 //  BEGIN
-//    WITH T^ DO BEGIN
+//    WITH Trains[T] DO BEGIN
 //      Train_Speed10 := Train_SpeedArray[1];
 //      Train_Speed20 := Train_SpeedArray[2];
 //      Train_Speed30 := Train_SpeedArray[3];
@@ -3629,33 +3613,35 @@ VAR
 //    END; {WITH}
 //  END; { SetUpTrainSpeeds }
 
-  PROCEDURE DiagramsError(Str : String);
+  PROCEDURE DiagramsError(T : TrainElement; Str : String);
   { Process diagram errors }
   BEGIN
-    { May want to mark the cancelled train as cancelled, or load the diagrams anyway }
-    IF T^.Train_CurrentStatus = Cancelled THEN
-      Log('DG Diagrams Error: ' + Str)
-    ELSE BEGIN
-      CASE MessageDialogueWithDefault('Diagrams error: ' + Str + ' for loco ' + T^.Train_LocoChipStr
-                                      + CRLF
-                                      + 'Do you want to cancel this train, mark it as being non-moving or ignore the problem?',
-                                      StopTimer, mtError, [mbYes, mbNo, mbAbort], ['&Cancel', '&Non-Moving', '&Ignore'], mbYes)
-      OF
-        mrYes:
-          CancelTrain(T, ByUser, NOT TrainExists);
-        mrNo:
-          BEGIN
-            ChangeTrainStatus(T, NonMoving);
-            { and enable the appropriate popup to allow it to be displayed }
-            DiagramsWindow.PopupShowNonMovingTrains.Enabled := True;
-            Log(T^.Train_LocoChipStr + ' D Train marked as non-moving by user');
-            DrawDiagrams(UnitRef, 'DiagramsError');
-          END;
-        mrAbort:
-          { do nothing! }
-          ;
-      END; {CASE}
-    END;
+    WITH Trains[T] DO BEGIN
+      { May want to mark the cancelled train as cancelled, or load the diagrams anyway }
+      IF Train_CurrentStatus = Cancelled THEN
+        Log('DG Diagrams Error: ' + Str)
+      ELSE BEGIN
+        CASE MessageDialogueWithDefault('Diagrams error: ' + Str + ' for loco ' + Train_LocoChipStr
+                                        + CRLF
+                                        + 'Do you want to cancel this train, mark it as being non-moving or ignore the problem?',
+                                        StopTimer, mtError, [mbYes, mbNo, mbAbort], ['&Cancel', '&Non-Moving', '&Ignore'], mbYes)
+        OF
+          mrYes:
+            CancelTrain(T, ByUser, NOT TrainExists);
+          mrNo:
+            BEGIN
+              ChangeTrainStatus(T, NonMoving);
+              { and enable the appropriate popup to allow it to be displayed }
+              DiagramsWindow.PopupShowNonMovingTrains.Enabled := True;
+              Log(Train_LocoChipStr + ' D Train marked as non-moving by user');
+              DrawDiagrams(UnitRef, 'DiagramsError');
+            END;
+          mrAbort:
+            { do nothing! }
+            ;
+        END; {CASE}
+      END;
+    END; {WITH}
   END; { DiagramsError }
 
 BEGIN
@@ -3701,20 +3687,20 @@ BEGIN
   FirstTrainInstance := True;
   TrainFound := False;
 
+  T := 0;
   IF LocoChip = UnknownLocoChip THEN BEGIN
     { a train with no loco attached }
-    New(T);
-//    TT := TTrain.Create;
-    T^.Train_LocoChip := UnknownLocoChip;
+    SetLength(Trains, Length(Trains) + 1);
+    T := High(Trains);
+    Trains[T].Train_LocoChip := UnknownLocoChip;
     ChangeTrainStatus(T, NonMoving);
     AddTrainToTrainList(T, NOT DescribeFullTrainList);
   END ELSE BEGIN
     { Make sure we have already created a record for this train }
-    T := TrainList;
-    WHILE (T <> NIL)
+    WHILE (T <= High(Trains))
     AND NOT TrainFound
     DO BEGIN
-      WITH T^ DO BEGIN
+      WITH Trains[T] DO BEGIN
         IF LocoChip = Train_LocoChip THEN BEGIN
           TrainFound := True;
           IF NOT Train_DiagramFound THEN
@@ -3724,12 +3710,12 @@ BEGIN
         END;
 
         IF NOT TrainFound THEN
-          T := T^.Train_NextRecord;
+          Inc(T);
       END; {WITH}
     END; {WHILE}
   END;
 
-  IF NOT TrainFound OR (T = NIL) THEN
+  IF NOT TrainFound OR (T = 0) THEN
     ErrorMsg := 'No record found for train ' + LocoChipToStr(LocoChip)
   ELSE BEGIN
     ErrorMsg := '';
@@ -3737,506 +3723,479 @@ BEGIN
     SetLength(TempStartLocations, 0);
     SetLength(TempEndAreas, 0);
     SetLength(TempEndLocations, 0);
-  END;
 
-  WITH T^ DO BEGIN
-    IF (ErrorMsg = '')
-    AND FirstTrainInstance
-    THEN BEGIN
-      { Save the address of the train for debugging purposes }
-      SetLength(TempTrainArray, Length(TempTrainArray) + 1);
-      TempTrainArray[High(TempTrainArray)] := T;
-
-      { First the initialisations not already done in LocoUtils }
-      IF TrainNonMoving THEN
-        ChangeTrainStatus(T, NonMoving);
-
-      Train_TypeNum := TypeOfTrainNum;
-      Train_Type := TrainTypeNumToTrainType(Train_TypeNum);
-
-      IF PullingDapolCleaningWagon THEN BEGIN
-        IF DapolCleaningWagonLocoChip = UnknownLocoChip THEN
-          Log(Train_LocoChipStr + ' XG cannot be noted as pulling Dapol Cleaning wagon as there is no locochip for it')
-        ELSE BEGIN
-          Train_PullingDapolCleaningWagon := True;
-          Log(Train_LocoChipStr + ' L pulling Dapol Cleaning wagon');
-        END;
-      END;
-
-      { Find out where this loco is in the loco data table - the routine returns -1 if the loco is not in the loco table }
-      IF (Train_CurrentStatus = NonMoving)
-      AND (LocoChip = UnknownLocoChip)
+    WITH Trains[T] DO BEGIN
+      IF (ErrorMsg = '')
+      AND FirstTrainInstance
       THEN BEGIN
-        ChangeTrainStatus(T, NonMoving);
-        Train_DoubleHeaderLocoChip := UnknownLocoChip;
-      END ELSE
-        IF Train_CurrentStatus <> NonMoving THEN BEGIN
-          ChangeTrainStatus(T, ReadyForCreation);
-          { Check valid loconum for double-heading - applicable to trains not intended to move, too }
-          IF DoubleHeaderLocoChip = UnknownLocoChip THEN
-            Train_DoubleHeaderLocoChip := UnknownLocoChip
-          ELSE
-            IF Train_LocoChip = DoubleHeaderLocoChip THEN
-              ErrorMsg := 'double header loco cannot be the same as the initial loco'
-            ELSE
-              Train_DoubleHeaderLocoChip := DoubleHeaderLocoChip;
+        { Save the address of the train for debugging purposes }
+        SetLength(TempTrainArray, Length(TempTrainArray) + 1);
+        TempTrainArray[High(TempTrainArray)] := T;
+
+        { First the initialisations not already done in LocoUtils }
+        IF TrainNonMoving THEN
+          ChangeTrainStatus(T, NonMoving);
+
+        Train_TypeNum := TypeOfTrainNum;
+        Train_Type := TrainTypeNumToTrainType(Train_TypeNum);
+
+        IF PullingDapolCleaningWagon THEN BEGIN
+          IF DapolCleaningWagonLocoChip = UnknownLocoChip THEN
+            Log(Train_LocoChipStr + ' XG cannot be noted as pulling Dapol Cleaning wagon as there is no locochip for it')
+          ELSE BEGIN
+            Train_PullingDapolCleaningWagon := True;
+            Log(Train_LocoChipStr + ' L pulling Dapol Cleaning wagon');
+          END;
         END;
 
-      IF ErrorMsg = '' THEN BEGIN
-        { Set up the first train location }
-        IF StartLocationStr = '' THEN
-          ErrorMsg := 'no start location supplied'
-        ELSE
-          IF StrToLocation(StartLocationStr) = UnknownLocation THEN BEGIN
-            StartArea := StrToArea(StartLocationStr);
-            { see if an area is specified }
-            IF StartArea = UnknownArea THEN
-              ErrorMsg := 'unknown start area/location ' + StartLocationStr
-            ELSE BEGIN
-              { see if the given train is anywhere in that area }
-              IF (Train_LastLocation <> UnknownLocation)
-              AND (Locations[Train_LastLocation].Location_Area = StartArea)
-              AND (LocationOccupied(Train_LastLocation)
-                   OR NOT SystemOnline)
-              THEN BEGIN
-                AppendToLocationArray(Train_Locations, Train_LastLocation);
-                Train_CurrentSourceLocation := Train_Locations[0];
-
-                { See if we can exit from the location }
-                IF ((DirectionsArray[0] = Up)
-                    AND Locations[Train_Locations[0]].Location_LineAtUpIsEndOfLine)
-                OR ((DirectionsArray[0] = Down)
-                    AND Locations[Train_Locations[0]].Location_LineAtDownIsEndOfLine)
-                THEN
-                  ErrorMsg := LocationToStr(Train_Locations[0])
-                              + ': desired direction is ' + DirectionToStr(DirectionsArray[0])
-                              + ' but line at ' + DirectionToStr(DirectionsArray[0]) + ' is marked as being an end of line';
-
-                IF ErrorMsg = '' THEN BEGIN
-                  Train_LocatedAtStartup := True;
-                  Log(Train_LocoChipStr + ' D Start location changed' + ' from ' + StartLocationStr + ' to ' + LocationToStr(Train_Locations[0], ShortStringType));
-                  StartLocationStr := LocationToStr(Train_Locations[0], ShortStringType);
-                  IF Train_CurrentTC = UnknownTrackCircuit THEN BEGIN
-                    TempTCs := GetTrackCircuitsForLocation(Train_Locations[0]);
-                    IF Length(TempTCs) > 0 THEN
-                      Train_CurrentTC := TempTCs[0];
-                  END;
-                END;
-              END;
-            END;
+        { Find out where this loco is in the loco data table - the routine returns -1 if the loco is not in the loco table }
+        IF (Train_CurrentStatus = NonMoving)
+        AND (LocoChip = UnknownLocoChip)
+        THEN BEGIN
+          ChangeTrainStatus(T, NonMoving);
+          Train_DoubleHeaderLocoChip := UnknownLocoChip;
+        END ELSE
+          IF Train_CurrentStatus <> NonMoving THEN BEGIN
+            ChangeTrainStatus(T, ReadyForCreation);
+            { Check valid loconum for double-heading - applicable to trains not intended to move, too }
+            IF DoubleHeaderLocoChip = UnknownLocoChip THEN
+              Train_DoubleHeaderLocoChip := UnknownLocoChip
+            ELSE
+              IF Train_LocoChip = DoubleHeaderLocoChip THEN
+                ErrorMsg := 'double header loco cannot be the same as the initial loco'
+              ELSE
+                Train_DoubleHeaderLocoChip := DoubleHeaderLocoChip;
           END;
 
         IF ErrorMsg = '' THEN BEGIN
-          IF (Length(Train_Locations) = 0) OR (Train_Locations[0] = UnknownLocation) THEN BEGIN
-            AppendToLocationArray(Train_Locations, StrToLocation(StartLocationStr));
-            IF SystemOnline
-            AND (Train_CurrentStatus <> NonMoving)
-            THEN BEGIN
-              IF NOT LocationOccupied(Train_LastLocation) THEN BEGIN
-                InputFoundOrCancelled := False;
-                NewLocationStr := '';
-                ErrorMsg := 'No feedback found for loco ' + LocoChipToStr(Train_LocoChip) + '. Please type in its present location or CANCEL to suspend it';
-                MainWindow.MainTimer.Enabled := False;
-                REPEAT
-                  IF NOT InputQuery('Enter train location', ErrorMsg, NewLocationStr) THEN BEGIN
-                    InputFoundOrCancelled := True;
-                    ErrorMsg := 'No feedback found for loco ' + LocoChipToStr(Train_LocoChip);
-                    Train_LocatedAtStartup := False;
-                  END ELSE BEGIN
-                    Train_Locations[0] := StrToLocation(NewLocationStr);
-                    IF Train_Locations[0] = UnknownLocation THEN
-                      ErrorMsg := 'Invalid location entered. Please type in present location of ' + LocoChipToStr(Train_LocoChip) + ' or CANCEL to suspend it'
-                    ELSE BEGIN
-                      IF NOT LocationOccupied(StrToLocation(NewLocationStr)) THEN BEGIN
-                        Debug('!No feedback found at ' + NewLocationStr);
-                        ErrorMsg := 'No feedback found at ' + NewLocationStr + '. Please type in present location of ' +  LocoChipToStr(Train_LocoChip)
-                                    + ' or CANCEL to suspend it';
-                      END ELSE BEGIN
-                        InputFoundOrCancelled := True;
-                        StartLocationStr := NewLocationStr;
-                        Log(Train_LocoChipStr + ' D As no feedback found at train''s last location, start location set by user to ' + NewLocationStr);
-                        Train_LastLocation := Train_Locations[0];
-                        Train_LocatedAtStartup := True;
-                        ErrorMsg := '';
-                        { Note: InvalidateScreen needed here as InputQuery leaves the screen sized as a small rectangle }
-                        InvalidateScreen(UnitRef, 'UpdateTrainRecordForDiagram');
-                      END;
+          { Set up the first train location }
+          IF StartLocationStr = '' THEN
+            ErrorMsg := 'no start location supplied'
+          ELSE
+            IF StrToLocation(StartLocationStr) = UnknownLocation THEN BEGIN
+              StartArea := StrToArea(StartLocationStr);
+              { see if an area is specified }
+              IF StartArea = UnknownArea THEN
+                ErrorMsg := 'unknown start area/location ' + StartLocationStr
+              ELSE BEGIN
+                { see if the given train is anywhere in that area }
+                IF (Train_LastLocation <> UnknownLocation)
+                AND (Locations[Train_LastLocation].Location_Area = StartArea)
+                AND (LocationOccupied(Train_LastLocation)
+                     OR NOT SystemOnline)
+                THEN BEGIN
+                  AppendToLocationArray(Train_Locations, Train_LastLocation);
+                  Train_CurrentSourceLocation := Train_Locations[0];
+
+                  { See if we can exit from the location }
+                  IF ((DirectionsArray[0] = Up)
+                      AND Locations[Train_Locations[0]].Location_LineAtUpIsEndOfLine)
+                  OR ((DirectionsArray[0] = Down)
+                      AND Locations[Train_Locations[0]].Location_LineAtDownIsEndOfLine)
+                  THEN
+                    ErrorMsg := LocationToStr(Train_Locations[0])
+                                + ': desired direction is ' + DirectionToStr(DirectionsArray[0])
+                                + ' but line at ' + DirectionToStr(DirectionsArray[0]) + ' is marked as being an end of line';
+
+                  IF ErrorMsg = '' THEN BEGIN
+                    Train_LocatedAtStartup := True;
+                    Log(Train_LocoChipStr + ' D Start location changed' + ' from ' + StartLocationStr + ' to ' + LocationToStr(Train_Locations[0], ShortStringType));
+                    StartLocationStr := LocationToStr(Train_Locations[0], ShortStringType);
+                    IF Train_CurrentTC = UnknownTrackCircuit THEN BEGIN
+                      TempTCs := GetTrackCircuitsForLocation(Train_Locations[0]);
+                      IF Length(TempTCs) > 0 THEN
+                        Train_CurrentTC := TempTCs[0];
                     END;
                   END;
-                UNTIL InputFoundOrCancelled;
-                MainWindow.MainTimer.Enabled := True;
-              END ELSE BEGIN
-                IF Train_LastLocation <> Train_Locations[0] THEN BEGIN
-                  CASE MessageDialogueWithDefault('Possible diagrams error: loco ' + LocoChipToStr(LocoChip) + ': ' + ErrorMsg
-                                                  + CRLF
-                                                  + 'Do you wish to change the diagrams so the loco departs from '
-                                                  + LocationToStr(Train_LastLocation, ShortStringType) + ', '
-                                                  +  CRLF
-                                                  + 'start the program anyway (and cancel the train), or exit the program?',
-                                                  StopTimer, mtError, [mbYes, mbNo, mbAbort], ['&Change', '&Start', '&Exit'], mbNo)
-                  OF
-                    mrYes:
-                      BEGIN
-                        Train_LocatedAtStartup := True;
-                        Log(Train_LocoChipStr + ' D Start location changed'
-                                              + ' to ' + LocationToStr(Train_LastLocation, ShortStringType)
-                                              + ' from ' + LocationToStr(Train_Locations[0], ShortStringType));
-                        Train_Locations[0] := Train_LastLocation;
-                        IF Train_CurrentTC = UnknownTrackCircuit THEN BEGIN
-                          TempTCs := GetTrackCircuitsForLocation(Train_Locations[0]);
-                          IF Length(TempTCs) > 0 THEN
-                            Train_CurrentTC := TempTCs[0];
-                        END;
-
-                        StartLocationStr := LocationToStr(Train_LastLocation, ShortStringType);
-                        ErrorMsg := '';
-                      END;
-                    mrNo:
-                      BEGIN
-                        Train_LocatedAtStartup := False;
-                        ChangeTrainStatus(T, Cancelled);
-                      END;
-                    mrAbort:
-                      ShutDownProgram(UnitRef, 'UpdateTrainRecordForDiagram')
-                  END; {CASE}
                 END;
               END;
+            END;
 
-              { Is there a feedback location at the given start location? }
-              IF NOT LocationOccupied(Train_Locations[0]) THEN BEGIN
-                IF T^.Train_LastLocation = T^.Train_Locations[0] THEN
-                  ErrorMsg := 'no feedback found at start location ' + LocationToStr(Train_Locations[0], ShortStringType)
-                              + ' even though loco ' + LocoChipToStr(Train_LocoChip) + ' is recorded as being there'
-                ELSE
-                  IF Train_LastLocation <> UnknownLocation THEN BEGIN
-                    IF Length(Train_Locations) = 0 THEN
-                      ErrorMsg := 'no start location found - loco ' + LocoChipToStr(Train_LocoChip)
-                                  + '''s last recorded location was ' + LocationToStr(Train_LastLocation, ShortStringType)
-                    ELSE
-                      IF Train_Locations[0] = UnknownLocation THEN BEGIN
-                        { we've presumably been supplied only with an area }
-                        TempArea := StrToArea(StartLocationStr);
-                        IF TempArea <> UnknownArea THEN
-                          ErrorMsg := 'loco not recorded as being in start area ' + AreaToStr(TempArea)
-                                    + ': loco ' + LocoChipToStr(Train_LocoChip) + '''s last recorded location was ' + LocationToStr(Train_LastLocation, ShortStringType)
-                        ELSE
-                          ErrorMsg := 'no feedback found for loco ' + LocoChipToStr(Train_LocoChip)
-                                    + ': it''s last recorded location was ' + LocationToStr(Train_LastLocation, ShortStringType)
-                      END ELSE
-                        ErrorMsg := 'no feedback found at start location ' + LocationToStr(Train_Locations[0], ShortStringType)
-                                    + ': loco ' + LocoChipToStr(Train_LocoChip) + '''s last recorded location was ' + LocationToStr(Train_LastLocation, ShortStringType);
-                  END ELSE
-                    ErrorMsg := 'no feedback found at start location ' + LocationToStr(Train_Locations[0], ShortStringType)
-                                + ': loco ' + LocoChipToStr(Train_LocoChip) + ' has no last recorded location';
-                { But check if we want to continue anyway, as we may want to change the diagrams, or move a train to the original location before the start of operations.
-                  If the latter, mark the train suspended for the time being.
-                }
-                { Is there feedback at the loco's last location? }
-                
-              END ELSE BEGIN
-                LocoFound := False;
-                OtherT := TrainList;
-                WHILE (OtherT <> NIL)
-                AND NOT LocoFound
-                DO BEGIN
-                  IF OtherT^.Train_LocoChip = Train_LocoChip THEN BEGIN
-                    LocoFound := True;
-                    IF Train_LastLocation <> Train_Locations[0] THEN BEGIN
-                      { See if its last recorded location is currently occupied }
-                      IF LocationOccupied(Train_LastLocation) THEN BEGIN
-                        CASE MessageDialogueWithDefault('Loco ' + T^.Train_LocoChipStr
-                                                        + ' is recorded as being at ' + LocationToStr(Train_LastLocation)
-                                                        + ' but the diagram states that it is at ' + LocationToStr(Train_Locations[0])
-                                                        + CRLF
-                                                        + 'Do you want to change the Diagrams so that it is at ' + LocationToStr(Train_LastLocation)
-                                                        + CRLF
-                                                        + ' alter the train''s location to ' + LocationToStr(Train_Locations[0])
-                                                        + CRLF
-                                                        + ' or ignore the problem?',
-                                                        StopTimer, mtError, [mbYes, mbNo, mbAbort], ['C&hange', '&Alter', '&Ignore'],
-                                                        mbYes)
-                        OF
-                          mrYes:
-                            BEGIN
-                              StartLocationStr := LocationToStr(Train_LastLocation, ShortStringType);
-                              Train_Locations[0] := Train_LastLocation;
-                              Train_LocatedAtStartup := True;
-                            END;
-                          mrNo:
-                            BEGIN
-                              Train_LastLocation := Train_Locations[0];
-                              Train_LastTC := GetTrackCircuitsForLocation(Train_Locations[0])[0];
-                              Train_LocatedAtStartup := True;
-                            END;
-                          mrAbort:
-                            BEGIN
-                              Train_LocatedAtStartup := False;
-                              ErrorMsg := 'Loco ' + T^.Train_LocoChipStr + ' has trackcircuits marked as having feedback occupation at ' + LocationToStr(Train_Locations[0])
-                                          + ', but the loco is recorded as being at ' + LocationToStr(Train_LastLocation) + ': user aborted startup';
-                            END;
-                        END; {CASE}
-                      END ELSE BEGIN
-                        IF MessageDialogueWithDefault('Loco ' + T^.Train_LocoChipStr
-                                                      + ' has trackcircuits marked as having feedback occupation at ' + LocationToStr(Train_Locations[0])
-                                                      + ',' + CRLF
-                                                      + IfThen(Train_LastLocation <> UnknownLocation,
-                                                               'but the loco is recorded as being at ' + LocationToStr(Train_LastLocation),
-                                                               'but the loco has no recorded location')
-                                                      + CRLF
-                                                      + 'Do you want to change its occupation to '
-                                                      + LocationToStr(Train_Locations[0])
-                                                      + ' or cancel it?',
-                                                      StopTimer, mtError, [mbYes, mbNo], ['C&hange', '&Cancel'], mbYes) = mrNo
-                        THEN
-                          ChangeTrainStatus(T, Cancelled)
-                        ELSE BEGIN
-                          Train_LastLocation := Train_Locations[0];
-                          Train_LastTC := GetTrackCircuitsForLocation(Train_Locations[0])[0];
-                          Train_LocatedAtStartup := True;
-                        END;
-                      END;
-                    END;
-
-                    { See if any other loco is supposed to be occupying that trackcircuit }
-                    TempT := TrainList;
-                    WHILE TempT <> NIL DO BEGIN
-                      IF (TempT^.Train_LocoChip <> UnknownLocoChip)
-                      AND ((TempT^.Train_LastLocation = Train_Locations[0])
-                           AND (Train_Locations[0] <> UnknownLocation))
-                      AND (TempT^.Train_LocoChip <> T^.Train_LocoChip)
-                      THEN BEGIN
-                        IF MessageDialogueWithDefault('Loco ' + LocoChipToStr(TempT^.Train_LocoChip)
-                                                      + ' is recorded as being at' + ' ' + LocationToStr(Train_Locations[0])
-                                                      + ',' + CRLF
-                                                      + 'Do you want to replace it with ' + ' ' + LocoChipToStr(Train_LocoChip)
-                                                      + ' or exit the program?',
-                                                      StopTimer, mtError, [mbYes, mbAbort], ['&Replace', '&Exit'], mbYes) = mrAbort
-                        THEN BEGIN
-                          ErrorMsg := 'loco ' + LocoChipToStr(TempT^.Train_LocoChip)
-                                      + ' is recorded as being at' + ' ' + LocationToStr(Train_Locations[0])
-                                      + ': user did not want to substitute' + ' ' + LocoChipToStr(Train_LocoChip)
-                                      + ' so aborted startup';
-                          Train_LocatedAtStartup := False;
+          IF ErrorMsg = '' THEN BEGIN
+            IF (Length(Train_Locations) = 0) OR (Train_Locations[0] = UnknownLocation) THEN BEGIN
+              AppendToLocationArray(Train_Locations, StrToLocation(StartLocationStr));
+              IF SystemOnline
+              AND (Train_CurrentStatus <> NonMoving)
+              THEN BEGIN
+                IF NOT LocationOccupied(Train_LastLocation) THEN BEGIN
+                  InputFoundOrCancelled := False;
+                  NewLocationStr := '';
+                  ErrorMsg := 'No feedback found for loco ' + LocoChipToStr(Train_LocoChip) + '. Please type in its present location or CANCEL to suspend it';
+                  MainWindow.MainTimer.Enabled := False;
+                  REPEAT
+                    IF NOT InputQuery('Enter train location', ErrorMsg, NewLocationStr) THEN BEGIN
+                      InputFoundOrCancelled := True;
+                      ErrorMsg := 'No feedback found for loco ' + LocoChipToStr(Train_LocoChip);
+                      Train_LocatedAtStartup := False;
+                    END ELSE BEGIN
+                      Train_Locations[0] := StrToLocation(NewLocationStr);
+                      IF Train_Locations[0] = UnknownLocation THEN
+                        ErrorMsg := 'Invalid location entered. Please type in present location of ' + LocoChipToStr(Train_LocoChip) + ' or CANCEL to suspend it'
+                      ELSE BEGIN
+                        IF NOT LocationOccupied(StrToLocation(NewLocationStr)) THEN BEGIN
+                          Debug('!No feedback found at ' + NewLocationStr);
+                          ErrorMsg := 'No feedback found at ' + NewLocationStr + '. Please type in present location of ' +  LocoChipToStr(Train_LocoChip)
+                                      + ' or CANCEL to suspend it';
                         END ELSE BEGIN
-                          TempT^.Train_LastLocation := UnknownLocation;
-                          TempT^.Train_LastTC := UnknownTrackCircuit;
+                          InputFoundOrCancelled := True;
+                          StartLocationStr := NewLocationStr;
+                          Log(Train_LocoChipStr + ' D As no feedback found at train''s last location, start location set by user to ' + NewLocationStr);
                           Train_LastLocation := Train_Locations[0];
-                          Train_LastTC := GetTrackCircuitsForLocation(Train_Locations[0])[0];
                           Train_LocatedAtStartup := True;
+                          ErrorMsg := '';
+                          { Note: InvalidateScreen needed here as InputQuery leaves the screen sized as a small rectangle }
+                          InvalidateScreen(UnitRef, 'UpdateTrainRecordForDiagram');
                         END;
                       END;
-                      TempT := TempT^.Train_NextRecord;
-                    END; {WHILE}
+                    END;
+                  UNTIL InputFoundOrCancelled;
+                  MainWindow.MainTimer.Enabled := True;
+                END ELSE BEGIN
+                  IF Train_LastLocation <> Train_Locations[0] THEN BEGIN
+                    CASE MessageDialogueWithDefault('Possible diagrams error: loco ' + LocoChipToStr(LocoChip) + ': ' + ErrorMsg
+                                                    + CRLF
+                                                    + 'Do you wish to change the diagrams so the loco departs from '
+                                                    + LocationToStr(Train_LastLocation, ShortStringType) + ', '
+                                                    +  CRLF
+                                                    + 'start the program anyway (and cancel the TrainElement), or exit the program?',
+                                                    StopTimer, mtError, [mbYes, mbNo, mbAbort], ['&Change', '&Start', '&Exit'], mbNo)
+                    OF
+                      mrYes:
+                        BEGIN
+                          Train_LocatedAtStartup := True;
+                          Log(Train_LocoChipStr + ' D Start location changed'
+                                                + ' to ' + LocationToStr(Train_LastLocation, ShortStringType)
+                                                + ' from ' + LocationToStr(Train_Locations[0], ShortStringType));
+                          Train_Locations[0] := Train_LastLocation;
+                          IF Train_CurrentTC = UnknownTrackCircuit THEN BEGIN
+                            TempTCs := GetTrackCircuitsForLocation(Train_Locations[0]);
+                            IF Length(TempTCs) > 0 THEN
+                              Train_CurrentTC := TempTCs[0];
+                          END;
+
+                          StartLocationStr := LocationToStr(Train_LastLocation, ShortStringType);
+                          ErrorMsg := '';
+                        END;
+                      mrNo:
+                        BEGIN
+                          Train_LocatedAtStartup := False;
+                          ChangeTrainStatus(T, Cancelled);
+                        END;
+                      mrAbort:
+                        ShutDownProgram(UnitRef, 'UpdateTrainRecordForDiagram')
+                    END; {CASE}
                   END;
-                  OtherT := OtherT^.Train_NextRecord;
-                END; {WHILE}
-              END;
-            END;
-          END;
-          Train_CurrentSourceLocation := Train_Locations[0];
-        END;
-      END;
-    END;
-
-    { If this train is moving then see if any previous instances of it are non-moving and vice versa }
-    IF NOT FirstTrainInstance THEN BEGIN
-      IF (TrainNonMoving
-      AND (Train_CurrentStatus <> NonMoving))
-      OR (NOT TrainNonMoving
-          AND (Train_CurrentStatus = NonMoving))
-      THEN
-        ErrorMsg := 'train cannot be both moving and non-moving';
-    END;
-
-    IF (ErrorMsg = '')
-    AND (Train_CurrentStatus <> Cancelled)
-    THEN BEGIN
-      { Now add data regardless of whether this is a new record or not }
-      IF FirstTrainInstance THEN BEGIN
-        { First see if it's a stationary train }
-        IF Train_CurrentStatus = NonMoving THEN BEGIN
-          Log(Train_LocoChipStr + ' D noted as non-moving');
-          { and enable the appropriate popup to allow it to be displayed }
-          DiagramsWindow.PopupShowNonMovingTrains.Enabled := True;
-        END;
-      END;
-
-      { If a loco has no speed settings set up, it can't run }
-      IF (Train_CurrentStatus <> NonMoving)
-      AND Train_SpeedSettingsMissing
-      THEN BEGIN
-        Debug('!Loco ' + LocoChipToStr(Train_LocoChip) + ' has no speed settings in the loco database - cancelled');
-        ErrorMsg := 'Loco ' + LocoChipToStr(Train_LocoChip) + ' has no speed settings in the loco database';
-      END;
-
-      { Locations and areas }
-      IF ErrorMsg = '' THEN BEGIN
-        I := 0;
-        WHILE (ErrorMsg = '')
-        AND (I <= JourneyCount)
-        DO BEGIN
-          IF I = 0 THEN BEGIN
-            AppendToLocationArray(TempStartLocations, StrToLocation(StartLocationStr));
-            IF TempStartLocations[0] <> UnknownLocation THEN
-              AppendToAreaArray(TempStartAreas, Locations[TempStartLocations[0]].Location_Area)
-            ELSE
-              IF StrToArea(StartLocationStr) <> UnknownArea THEN
-                AppendToAreaArray(TempStartAreas, StrToArea(StartLocationStr));
-
-            AppendToLocationArray(TempEndLocations, StrToLocation(EndLocationsStrArray[0]));
-            IF TempEndLocations[0] <> UnknownLocation THEN
-              AppendToAreaArray(TempEndAreas, Locations[TempEndLocations[0]].Location_Area)
-            ELSE BEGIN
-              IF StrToArea(EndLocationsStrArray[0]) <> UnknownArea THEN
-                AppendToAreaArray(TempEndAreas, StrToArea(EndLocationsStrArray[0]))
-              ELSE
-                ErrorMsg := 'unknown location/area "' + EndLocationsStrArray[0] + '"';
-
-                { add opportunity to correct it? **** }
-            END;
-          END ELSE BEGIN
-            AppendToLocationArray(TempStartLocations, StrToLocation(EndLocationsStrArray[I - 1]));
-            IF TempStartLocations[High(TempStartLocations)] <> UnknownLocation THEN
-              AppendToAreaArray(TempStartAreas, Locations[TempStartLocations[High(TempStartLocations)]].Location_Area)
-            ELSE
-              AppendToAreaArray(TempStartAreas, StrToArea(EndLocationsStrArray[I - 1]));
-
-            AppendToLocationArray(TempEndLocations, StrToLocation(EndLocationsStrArray[I]));
-            IF TempEndLocations[High(TempEndLocations)] <> UnknownLocation THEN
-              AppendToAreaArray(TempEndAreas, Locations[TempEndLocations[High(TempEndLocations)]].Location_Area)
-            ELSE BEGIN
-              IF StrToArea(EndLocationsStrArray[I]) <> UnknownArea THEN
-                AppendToAreaArray(TempEndAreas, StrToArea(EndLocationsStrArray[I]))
-              ELSE
-                ErrorMsg := 'unknown location/area "' + EndLocationsStrArray[I] + '"';
-
-                { add opportunity to correct it? **** }
-            END;
-          END;
-
-          Inc(I);
-        END; {WHILE}
-      END;
-
-      { Now the database-related initialisations - firstly direction and stopping }
-      IF ErrorMsg = '' THEN BEGIN
-        IF Train_CurrentStatus = NonMoving THEN BEGIN
-          IF DirectionsArray[0] <> UnknownDirection THEN
-            Train_CurrentDirection := DirectionsArray[0];
-        END ELSE BEGIN
-          { If the loco can only go in one direction (perhaps because it's hauling coaches or wagons), inform us }
-          IF Train_FixedDirection <> UnknownDirection THEN BEGIN
-            DirectionProblem := False;
-            I := 0;
-            WHILE (I <= High(DirectionsArray)) AND NOT DirectionProblem DO BEGIN
-              { but if it's counter to the stated direction in the diagram, note the fact }
-              IF DirectionsArray[I] <> Train_FixedDirection THEN
-                DirectionProblem := True;
-              Inc(I);
-            END; {WHILE}
-
-            IF DirectionProblem THEN
-              DiagramsError('the specified direction ' + DirectionToStr(DirectionsArray[I])
-                            + ' is contrary to the fixed direction ' + DirectionToStr(Train_FixedDirection));
-          END ELSE BEGIN
-            FOR I := 0 TO JourneyCount DO BEGIN
-              IF DirectionsArray[I] = UnknownDirection THEN BEGIN
-                { We have to work the direction out from the Areas or Locations supplied }
-                TempDirection1 := UnknownDirection;
-                TempDirection2 := UnknownDirection;
-
-                IF TempStartLocations[I] <> UnknownLocation THEN BEGIN
-                  { we've been given a specific start location, so there may be a specific up or down route to it }
-                  IF Length(Locations[TempStartLocations[I]].Location_AccessibleLocationsUp) = 0 THEN
-                    TempDirection1 := Down
-                  ELSE
-                    IF Length(Locations[TempStartLocations[I]].Location_AccessibleLocationsDown) = 0 THEN
-                      TempDirection1 := Up
-                    ELSE
-                      TempDirection1 := BiDirectional;
-
-                  Log(Train_LocoChipStr + ' D J=' + IntToStr(I) + ': inserting temporary direction=' + DirectionToStr(TempDirection1));
                 END;
 
-                IF TempEndLocations[I] <> UnknownLocation THEN BEGIN
-                  { we've been given a specific end location, so there may be a specific up or down route to it }
-                  IF Length(Locations[TempEndLocations[I]].Location_AccessibleLocationsUp) = 0 THEN
-                    TempDirection2 := Up
+                { Is there a feedback location at the given start location? }
+                IF NOT LocationOccupied(Train_Locations[0]) THEN BEGIN
+                  IF Train_LastLocation = Train_Locations[0] THEN
+                    ErrorMsg := 'no feedback found at start location ' + LocationToStr(Train_Locations[0], ShortStringType)
+                                + ' even though loco ' + LocoChipToStr(Train_LocoChip) + ' is recorded as being there'
                   ELSE
-                    IF Length(Locations[TempEndLocations[I]].Location_AccessibleLocationsDown) = 0 THEN
-                      TempDirection2 := Down
-                    ELSE
-                      TempDirection1 := BiDirectional;
-
-                  IF (TempDirection1 <> UnknownDirection)
-                  AND (TempDirection1 <> TempDirection2)
-                  THEN
-                    ErrorMsg := 'incompatibility in directions'
-                  ELSE
-                    Log(Train_LocoChipStr + ' D J=' + IntToStr(I) + ': inserting temporary direction=' + DirectionToStr(TempDirection2));
-                END;
-
-                IF TempDirection1 <> UnknownDirection THEN
-                  DirectionsArray[I] := TempDirection1
-                ELSE
-                  IF TempDirection2 <> UnknownDirection THEN
-                    DirectionsArray[I] := TempDirection2;
-
-                IF (DirectionsArray[I] = Bidirectional) OR (DirectionsArray[I] = UnknownDirection) THEN BEGIN
-                  IF IsElementInIntegerArray(Areas[TempStartAreas[I]].Area_AccessibleAreasUp, TempEndAreas[I])
-                  AND IsElementInIntegerArray(Areas[TempStartAreas[I]].Area_AccessibleAreasDown, TempEndAreas[I])
-                  THEN
-                    DirectionsArray[I] := BiDirectional
-                  ELSE
-                    IF IsElementInIntegerArray(Areas[TempStartAreas[I]].Area_AccessibleAreasUp, TempEndAreas[I]) THEN
-                      DirectionsArray[I] := Up
-                    ELSE
-                      IF IsElementInIntegerArray(Areas[TempStartAreas[I]].Area_AccessibleAreasDown, TempEndAreas[I]) THEN
-                        DirectionsArray[I] := Down
+                    IF Train_LastLocation <> UnknownLocation THEN BEGIN
+                      IF Length(Train_Locations) = 0 THEN
+                        ErrorMsg := 'no start location found - loco ' + LocoChipToStr(Train_LocoChip)
+                                    + '''s last recorded location was ' + LocationToStr(Train_LastLocation, ShortStringType)
                       ELSE
-                        ErrorMsg := 'End area ''' + AreaToStr(TempEndAreas[I])
-                                    + ''' is not accessible from ' + AreaToStr(TempStartAreas[I])
-                                    + ' according to AccessibleAreasUp or AccessibleAreasDown for the ' + AreaToStr(TempStartAreas[I]);
-                END;
-
-                IF ErrorMsg = '' THEN
-                  Log(Train_LocoChipStr + ' D J=' + IntToStr(I) + ': inserting temporary direction=' + DirectionToStr(DirectionsArray[I]));
-              END;
-            END; {FOR}
-
-            { Where the journeys can be in either direction, replace with the next or previous direction that is specific. First deal with cases where there is only one
-              journey and the initial direction is bidirectional.
-            }
-            IF ErrorMsg = '' THEN BEGIN
-              IF Length(DirectionsArray) = 1 THEN BEGIN
-                IF DirectionsArray[0] = Bidirectional THEN BEGIN
-                  { Note: the From in RandomRange is included in the results, but the To is not }
-                  I := RandomRange(1, 3);
-                  CASE I OF
-                    1:
-                      DirectionsArray[0] := Up;
-                    2:
-                      DirectionsArray[0] := Down;
-                  END; {CASE}
-                END;
-              END ELSE BEGIN
-                { Now where the initial direction is bidirectional }
-                IF DirectionsArray[0] = Bidirectional THEN BEGIN
-                  I := 1;
-                  DirectionFound := False;
-                  WHILE (I <= High(DirectionsArray))
-                  AND NOT DirectionFound
+                        IF Train_Locations[0] = UnknownLocation THEN BEGIN
+                          { we've presumably been supplied only with an area }
+                          TempArea := StrToArea(StartLocationStr);
+                          IF TempArea <> UnknownArea THEN
+                            ErrorMsg := 'loco not recorded as being in start area ' + AreaToStr(TempArea)
+                                      + ': loco ' + LocoChipToStr(Train_LocoChip) + '''s last recorded location was ' + LocationToStr(Train_LastLocation, ShortStringType)
+                          ELSE
+                            ErrorMsg := 'no feedback found for loco ' + LocoChipToStr(Train_LocoChip)
+                                      + ': it''s last recorded location was ' + LocationToStr(Train_LastLocation, ShortStringType)
+                        END ELSE
+                          ErrorMsg := 'no feedback found at start location ' + LocationToStr(Train_Locations[0], ShortStringType)
+                                      + ': loco ' + LocoChipToStr(Train_LocoChip) + '''s last recorded location was ' + LocationToStr(Train_LastLocation, ShortStringType);
+                    END ELSE
+                      ErrorMsg := 'no feedback found at start location ' + LocationToStr(Train_Locations[0], ShortStringType)
+                                  + ': loco ' + LocoChipToStr(Train_LocoChip) + ' has no last recorded location';
+                  { But check if we want to continue anyway, as we may want to change the diagrams, or move a train to the original location before the start of operations.
+                    If the latter, mark the train suspended for the time being.
+                  }
+                  { Is there feedback at the loco's last location? }
+                
+                END ELSE BEGIN
+                  LocoFound := False;
+                  OtherT := 0;
+                  WHILE (OtherT <= High(Trains))
+                  AND NOT LocoFound
                   DO BEGIN
-                    { look for a specific direction }
-                    IF DirectionsArray[I] <> Bidirectional THEN
-                      { apply it to the first direction }
-                      DirectionFound := True;
-                      DirectionsArray[0] := DirectionsArray[I];
-                    Inc(I);
-                  END; {WHILE}
+                    IF Trains[OtherT].Train_LocoChip = Train_LocoChip THEN BEGIN
+                      LocoFound := True;
+                      IF Train_LastLocation <> Train_Locations[0] THEN BEGIN
+                        { See if its last recorded location is currently occupied }
+                        IF LocationOccupied(Train_LastLocation) THEN BEGIN
+                          CASE MessageDialogueWithDefault('Loco ' + Train_LocoChipStr
+                                                          + ' is recorded as being at ' + LocationToStr(Train_LastLocation)
+                                                          + ' but the diagram states that it is at ' + LocationToStr(Train_Locations[0])
+                                                          + CRLF
+                                                          + 'Do you want to change the Diagrams so that it is at ' + LocationToStr(Train_LastLocation)
+                                                          + CRLF
+                                                          + ' alter the train''s location to ' + LocationToStr(Train_Locations[0])
+                                                          + CRLF
+                                                          + ' or ignore the problem?',
+                                                          StopTimer, mtError, [mbYes, mbNo, mbAbort], ['C&hange', '&Alter', '&Ignore'],
+                                                          mbYes)
+                          OF
+                            mrYes:
+                              BEGIN
+                                StartLocationStr := LocationToStr(Train_LastLocation, ShortStringType);
+                                Train_Locations[0] := Train_LastLocation;
+                                Train_LocatedAtStartup := True;
+                              END;
+                            mrNo:
+                              BEGIN
+                                Train_LastLocation := Train_Locations[0];
+                                Train_LastTC := GetTrackCircuitsForLocation(Train_Locations[0])[0];
+                                Train_LocatedAtStartup := True;
+                              END;
+                            mrAbort:
+                              BEGIN
+                                Train_LocatedAtStartup := False;
+                                ErrorMsg := 'Loco ' + Train_LocoChipStr + ' has trackcircuits marked as having feedback occupation at ' + LocationToStr(Train_Locations[0])
+                                            + ', but the loco is recorded as being at ' + LocationToStr(Train_LastLocation) + ': user aborted startup';
+                              END;
+                          END; {CASE}
+                        END ELSE BEGIN
+                          IF MessageDialogueWithDefault('Loco ' + Train_LocoChipStr
+                                                        + ' has trackcircuits marked as having feedback occupation at ' + LocationToStr(Train_Locations[0])
+                                                        + ',' + CRLF
+                                                        + IfThen(Train_LastLocation <> UnknownLocation,
+                                                                 'but the loco is recorded as being at ' + LocationToStr(Train_LastLocation),
+                                                                 'but the loco has no recorded location')
+                                                        + CRLF
+                                                        + 'Do you want to change its occupation to '
+                                                        + LocationToStr(Train_Locations[0])
+                                                        + ' or cancel it?',
+                                                        StopTimer, mtError, [mbYes, mbNo], ['C&hange', '&Cancel'], mbYes) = mrNo
+                          THEN
+                            ChangeTrainStatus(T, Cancelled)
+                          ELSE BEGIN
+                            Train_LastLocation := Train_Locations[0];
+                            Train_LastTC := GetTrackCircuitsForLocation(Train_Locations[0])[0];
+                            Train_LocatedAtStartup := True;
+                          END;
+                        END;
+                      END;
 
-                  IF NOT DirectionFound THEN BEGIN
-                    { all the directions are bidirectional - just choose the first at random. Note: the From in RandomRange is included in the results, but the To is not. }
+                      { See if any other loco is supposed to be occupying that trackcircuit }
+                      TempT := 0;
+                      WHILE TempT <= High(Trains) DO BEGIN
+                        IF (Trains[TempT].Train_LocoChip <> UnknownLocoChip)
+                        AND ((Trains[TempT].Train_LastLocation = Train_Locations[0])
+                             AND (Train_Locations[0] <> UnknownLocation))
+                        AND (Trains[TempT].Train_LocoChip <> Train_LocoChip)
+                        THEN BEGIN
+                          IF MessageDialogueWithDefault('Loco ' + LocoChipToStr(Trains[TempT].Train_LocoChip)
+                                                        + ' is recorded as being at' + ' ' + LocationToStr(Train_Locations[0])
+                                                        + ',' + CRLF
+                                                        + 'Do you want to replace it with ' + ' ' + LocoChipToStr(Train_LocoChip)
+                                                        + ' or exit the program?',
+                                                        StopTimer, mtError, [mbYes, mbAbort], ['&Replace', '&Exit'], mbYes) = mrAbort
+                          THEN BEGIN
+                            ErrorMsg := 'loco ' + LocoChipToStr(Trains[TempT].Train_LocoChip)
+                                        + ' is recorded as being at' + ' ' + LocationToStr(Train_Locations[0])
+                                        + ': user did not want to substitute' + ' ' + LocoChipToStr(Train_LocoChip)
+                                        + ' so aborted startup';
+                            Train_LocatedAtStartup := False;
+                          END ELSE BEGIN
+                            Trains[TempT].Train_LastLocation := UnknownLocation;
+                            Trains[TempT].Train_LastTC := UnknownTrackCircuit;
+                            Train_LastLocation := Train_Locations[0];
+                            Train_LastTC := GetTrackCircuitsForLocation(Train_Locations[0])[0];
+                            Train_LocatedAtStartup := True;
+                          END;
+                        END;
+                        Inc(TempT);
+                      END; {WHILE}
+                    END;
+                    Inc(OtherT);
+                  END; {WHILE}
+                END;
+              END;
+            END;
+            Train_CurrentSourceLocation := Train_Locations[0];
+          END;
+        END;
+      END;
+
+      { If this train is moving then see if any previous instances of it are non-moving and vice versa }
+      IF NOT FirstTrainInstance THEN BEGIN
+        IF (TrainNonMoving
+        AND (Train_CurrentStatus <> NonMoving))
+        OR (NOT TrainNonMoving
+            AND (Train_CurrentStatus = NonMoving))
+        THEN
+          ErrorMsg := 'train cannot be both moving and non-moving';
+      END;
+
+      IF (ErrorMsg = '')
+      AND (Train_CurrentStatus <> Cancelled)
+      THEN BEGIN
+        { Now add data regardless of whether this is a new record or not }
+        IF FirstTrainInstance THEN BEGIN
+          { First see if it's a stationary train }
+          IF Train_CurrentStatus = NonMoving THEN BEGIN
+            Log(Train_LocoChipStr + ' D noted as non-moving');
+            { and enable the appropriate popup to allow it to be displayed }
+            DiagramsWindow.PopupShowNonMovingTrains.Enabled := True;
+          END;
+        END;
+
+        { If a loco has no speed settings set up, it can't run }
+        IF (Train_CurrentStatus <> NonMoving)
+        AND Train_SpeedSettingsMissing
+        THEN BEGIN
+          Debug('!Loco ' + LocoChipToStr(Train_LocoChip) + ' has no speed settings in the loco database - cancelled');
+          ErrorMsg := 'Loco ' + LocoChipToStr(Train_LocoChip) + ' has no speed settings in the loco database';
+        END;
+
+        { Locations and areas }
+        IF ErrorMsg = '' THEN BEGIN
+          I := 0;
+          WHILE (ErrorMsg = '')
+          AND (I <= JourneyCount)
+          DO BEGIN
+            IF I = 0 THEN BEGIN
+              AppendToLocationArray(TempStartLocations, StrToLocation(StartLocationStr));
+              IF TempStartLocations[0] <> UnknownLocation THEN
+                AppendToAreaArray(TempStartAreas, Locations[TempStartLocations[0]].Location_Area)
+              ELSE
+                IF StrToArea(StartLocationStr) <> UnknownArea THEN
+                  AppendToAreaArray(TempStartAreas, StrToArea(StartLocationStr));
+
+              AppendToLocationArray(TempEndLocations, StrToLocation(EndLocationsStrArray[0]));
+              IF TempEndLocations[0] <> UnknownLocation THEN
+                AppendToAreaArray(TempEndAreas, Locations[TempEndLocations[0]].Location_Area)
+              ELSE BEGIN
+                IF StrToArea(EndLocationsStrArray[0]) <> UnknownArea THEN
+                  AppendToAreaArray(TempEndAreas, StrToArea(EndLocationsStrArray[0]))
+                ELSE
+                  ErrorMsg := 'unknown location/area "' + EndLocationsStrArray[0] + '"';
+
+                  { add opportunity to correct it? **** }
+              END;
+            END ELSE BEGIN
+              AppendToLocationArray(TempStartLocations, StrToLocation(EndLocationsStrArray[I - 1]));
+              IF TempStartLocations[High(TempStartLocations)] <> UnknownLocation THEN
+                AppendToAreaArray(TempStartAreas, Locations[TempStartLocations[High(TempStartLocations)]].Location_Area)
+              ELSE
+                AppendToAreaArray(TempStartAreas, StrToArea(EndLocationsStrArray[I - 1]));
+
+              AppendToLocationArray(TempEndLocations, StrToLocation(EndLocationsStrArray[I]));
+              IF TempEndLocations[High(TempEndLocations)] <> UnknownLocation THEN
+                AppendToAreaArray(TempEndAreas, Locations[TempEndLocations[High(TempEndLocations)]].Location_Area)
+              ELSE BEGIN
+                IF StrToArea(EndLocationsStrArray[I]) <> UnknownArea THEN
+                  AppendToAreaArray(TempEndAreas, StrToArea(EndLocationsStrArray[I]))
+                ELSE
+                  ErrorMsg := 'unknown location/area "' + EndLocationsStrArray[I] + '"';
+
+                  { add opportunity to correct it? **** }
+              END;
+            END;
+
+            Inc(I);
+          END; {WHILE}
+        END;
+
+        { Now the database-related initialisations - firstly direction and stopping }
+        IF ErrorMsg = '' THEN BEGIN
+          IF Train_CurrentStatus = NonMoving THEN BEGIN
+            IF DirectionsArray[0] <> UnknownDirection THEN
+              Train_CurrentDirection := DirectionsArray[0];
+          END ELSE BEGIN
+            { If the loco can only go in one direction (perhaps because it's hauling coaches or wagons), inform us }
+            IF Train_FixedDirection <> UnknownDirection THEN BEGIN
+              DirectionProblem := False;
+              I := 0;
+              WHILE (I <= High(DirectionsArray)) AND NOT DirectionProblem DO BEGIN
+                { but if it's counter to the stated direction in the diagram, note the fact }
+                IF DirectionsArray[I] <> Train_FixedDirection THEN
+                  DirectionProblem := True;
+                Inc(I);
+              END; {WHILE}
+
+//              IF DirectionProblem THEN
+//                DiagramsError('the specified direction ' + DirectionToStr(DirectionsArray[I])
+//                              + ' is contrary to the fixed direction ' + DirectionToStr(Train_FixedDirection));
+            END ELSE BEGIN
+              FOR I := 0 TO JourneyCount DO BEGIN
+                IF DirectionsArray[I] = UnknownDirection THEN BEGIN
+                  { We have to work the direction out from the Areas or Locations supplied }
+                  TempDirection1 := UnknownDirection;
+                  TempDirection2 := UnknownDirection;
+
+                  IF TempStartLocations[I] <> UnknownLocation THEN BEGIN
+                    { we've been given a specific start location, so there may be a specific up or down route to it }
+                    IF Length(Locations[TempStartLocations[I]].Location_AccessibleLocationsUp) = 0 THEN
+                      TempDirection1 := Down
+                    ELSE
+                      IF Length(Locations[TempStartLocations[I]].Location_AccessibleLocationsDown) = 0 THEN
+                        TempDirection1 := Up
+                      ELSE
+                        TempDirection1 := BiDirectional;
+
+                    Log(Train_LocoChipStr + ' D J=' + IntToStr(I) + ': inserting temporary direction=' + DirectionToStr(TempDirection1));
+                  END;
+
+                  IF TempEndLocations[I] <> UnknownLocation THEN BEGIN
+                    { we've been given a specific end location, so there may be a specific up or down route to it }
+                    IF Length(Locations[TempEndLocations[I]].Location_AccessibleLocationsUp) = 0 THEN
+                      TempDirection2 := Up
+                    ELSE
+                      IF Length(Locations[TempEndLocations[I]].Location_AccessibleLocationsDown) = 0 THEN
+                        TempDirection2 := Down
+                      ELSE
+                        TempDirection1 := BiDirectional;
+
+                    IF (TempDirection1 <> UnknownDirection)
+                    AND (TempDirection1 <> TempDirection2)
+                    THEN
+                      ErrorMsg := 'incompatibility in directions'
+                    ELSE
+                      Log(Train_LocoChipStr + ' D J=' + IntToStr(I) + ': inserting temporary direction=' + DirectionToStr(TempDirection2));
+                  END;
+
+                  IF TempDirection1 <> UnknownDirection THEN
+                    DirectionsArray[I] := TempDirection1
+                  ELSE
+                    IF TempDirection2 <> UnknownDirection THEN
+                      DirectionsArray[I] := TempDirection2;
+
+                  IF (DirectionsArray[I] = Bidirectional) OR (DirectionsArray[I] = UnknownDirection) THEN BEGIN
+                    IF IsElementInIntegerArray(Areas[TempStartAreas[I]].Area_AccessibleAreasUp, TempEndAreas[I])
+                    AND IsElementInIntegerArray(Areas[TempStartAreas[I]].Area_AccessibleAreasDown, TempEndAreas[I])
+                    THEN
+                      DirectionsArray[I] := BiDirectional
+                    ELSE
+                      IF IsElementInIntegerArray(Areas[TempStartAreas[I]].Area_AccessibleAreasUp, TempEndAreas[I]) THEN
+                        DirectionsArray[I] := Up
+                      ELSE
+                        IF IsElementInIntegerArray(Areas[TempStartAreas[I]].Area_AccessibleAreasDown, TempEndAreas[I]) THEN
+                          DirectionsArray[I] := Down
+                        ELSE
+                          ErrorMsg := 'End area ''' + AreaToStr(TempEndAreas[I])
+                                      + ''' is not accessible from ' + AreaToStr(TempStartAreas[I])
+                                      + ' according to AccessibleAreasUp or AccessibleAreasDown for the ' + AreaToStr(TempStartAreas[I]);
+                  END;
+
+                  IF ErrorMsg = '' THEN
+                    Log(Train_LocoChipStr + ' D J=' + IntToStr(I) + ': inserting temporary direction=' + DirectionToStr(DirectionsArray[I]));
+                END;
+              END; {FOR}
+
+              { Where the journeys can be in either direction, replace with the next or previous direction that is specific. First deal with cases where there is only one
+                journey and the initial direction is bidirectional.
+              }
+              IF ErrorMsg = '' THEN BEGIN
+                IF Length(DirectionsArray) = 1 THEN BEGIN
+                  IF DirectionsArray[0] = Bidirectional THEN BEGIN
+                    { Note: the From in RandomRange is included in the results, but the To is not }
                     I := RandomRange(1, 3);
                     CASE I OF
                       1:
@@ -4245,378 +4204,405 @@ BEGIN
                         DirectionsArray[0] := Down;
                     END; {CASE}
                   END;
+                END ELSE BEGIN
+                  { Now where the initial direction is bidirectional }
+                  IF DirectionsArray[0] = Bidirectional THEN BEGIN
+                    I := 1;
+                    DirectionFound := False;
+                    WHILE (I <= High(DirectionsArray))
+                    AND NOT DirectionFound
+                    DO BEGIN
+                      { look for a specific direction }
+                      IF DirectionsArray[I] <> Bidirectional THEN
+                        { apply it to the first direction }
+                        DirectionFound := True;
+                        DirectionsArray[0] := DirectionsArray[I];
+                      Inc(I);
+                    END; {WHILE}
+
+                    IF NOT DirectionFound THEN BEGIN
+                      { all the directions are bidirectional - just choose the first at random. Note: the From in RandomRange is included in the results, but the To is not. }
+                      I := RandomRange(1, 3);
+                      CASE I OF
+                        1:
+                          DirectionsArray[0] := Up;
+                        2:
+                          DirectionsArray[0] := Down;
+                      END; {CASE}
+                    END;
+                  END;
+
+                  { Now we know the directions begin with a specific direction, so maintain that direction until it specifically changes }
+                  IF Length(DirectionsArray) > 1 THEN BEGIN
+                    I := 1;
+                    WHILE I <= High(DirectionsArray) DO BEGIN
+                      IF DirectionsArray[I] = Bidirectional THEN
+                        DirectionsArray[I] := DirectionsArray[I - 1];
+
+                      Inc(I);
+                    END; {WHILE}
+                  END;
                 END;
+              END; {FOR}
 
-                { Now we know the directions begin with a specific direction, so maintain that direction until it specifically changes }
-                IF Length(DirectionsArray) > 1 THEN BEGIN
-                  I := 1;
-                  WHILE I <= High(DirectionsArray) DO BEGIN
-                    IF DirectionsArray[I] = Bidirectional THEN
-                      DirectionsArray[I] := DirectionsArray[I - 1];
-
-                    Inc(I);
-                  END; {WHILE}
-                END;
-              END;
-            END; {FOR}
-
-            IF ErrorMsg = '' THEN
-              FOR I := 0 TO JourneyCount DO
-              Log(Train_LocoChipStr + ' D J=' + IntToStr(I) + ': inserting final direction=' + DirectionToStr(DirectionsArray[I]));
-          END;
-
-          { Finally initialise the current direction variable }
-          IF FirstTrainInstance THEN
-            Train_CurrentDirection := DirectionsArray[0];
-        END;
-      END;
-
-      IF (ErrorMsg = '')
-      AND FirstTrainInstance
-      THEN BEGIN
-        IF Train_CurrentLengthInInches = 0 THEN BEGIN
-          IF Train_FixedLengthInInches <> 0 THEN BEGIN
-            IF (LengthOfTrainInCarriages <> 0)
-            AND (Train_FixedLengthInInches <> (LengthOfTrainInCarriages * CarriageLengthInInches))
-            THEN BEGIN
-              Log(Train_LocoChipStr + ' D! using the fixed length read in from the LocoData database is ' + IntToStr(Train_FixedLengthInInches) + ' inches but'
-                                    + ' train length in carriages in the diagram is '
-                                    + IfThen(LengthOfTrainInCarriages = 1,
-                                             'one carriage',
-                                              IntToStr(LengthOfTrainInCarriages) + ' carriages')
-                                    + ' which equals ' + IntToStr(LengthOfTrainInCarriages * CarriageLengthInInches) + ' inches');
-              Train_CurrentLengthInInches := Train_FixedLengthInInches;
-            END ELSE BEGIN
-              Train_CurrentLengthInInches := Train_FixedLengthInInches;
-              Log(Train_LocoChipStr + ' T Train_CurrentLengthInInches is ' + IntToStr(Train_CurrentLengthInInches) + ' (from Train_FixedLengthInInches)');
+              IF ErrorMsg = '' THEN
+                FOR I := 0 TO JourneyCount DO
+                Log(Train_LocoChipStr + ' D J=' + IntToStr(I) + ': inserting final direction=' + DirectionToStr(DirectionsArray[I]));
             END;
-          END ELSE
-            IF Train_LastLengthInInches <> 0 THEN BEGIN
+
+            { Finally initialise the current direction variable }
+            IF FirstTrainInstance THEN
+              Train_CurrentDirection := DirectionsArray[0];
+          END;
+        END;
+
+        IF (ErrorMsg = '')
+        AND FirstTrainInstance
+        THEN BEGIN
+          IF Train_CurrentLengthInInches = 0 THEN BEGIN
+            IF Train_FixedLengthInInches <> 0 THEN BEGIN
               IF (LengthOfTrainInCarriages <> 0)
-              AND (Train_LastLengthInInches <> (LengthOfTrainInCarriages * CarriageLengthInInches))
+              AND (Train_FixedLengthInInches <> (LengthOfTrainInCarriages * CarriageLengthInInches))
               THEN BEGIN
-                IF MessageDialogueWithDefault('Diagrams error: loco ' + LocoChipToStr(LocoChip) + ':'
-                                              + ' train length in carriages as read in from the diagram is '
-                                              + IfThen(LengthOfTrainInCarriages = 1,
-                                                       'one carriage',
-                                                       IntToStr(LengthOfTrainInCarriages) + ' carriages')
-                                              + ' which works out at ' + IntToStr(LengthOfTrainInCarriages * CarriageLengthInInches) + ' inches'
-                                              + CRLF
-                                              + 'whereas the last length as read in from the LocoData database is ' + IntToStr(Train_LastLengthInInches) + ' inches.'
-                                              + CRLF
-                                              + 'Please choose the correct length below:',
-                                              StopTimer, mtError, [mbYes, mbNo],
-                                              [IntToStr(LengthOfTrainInCarriages * CarriageLengthInInches) + ' inches',
-                                               IntToStr(Train_LastLengthInInches) + ' inches'],
-                                              mbYes) = mrNo
+                Log(Train_LocoChipStr + ' D! using the fixed length read in from the LocoData database is ' + IntToStr(Train_FixedLengthInInches) + ' inches but'
+                                      + ' train length in carriages in the diagram is '
+                                      + IfThen(LengthOfTrainInCarriages = 1,
+                                               'one carriage',
+                                                IntToStr(LengthOfTrainInCarriages) + ' carriages')
+                                      + ' which equals ' + IntToStr(LengthOfTrainInCarriages * CarriageLengthInInches) + ' inches');
+                Train_CurrentLengthInInches := Train_FixedLengthInInches;
+              END ELSE BEGIN
+                Train_CurrentLengthInInches := Train_FixedLengthInInches;
+                Log(Train_LocoChipStr + ' T Train_CurrentLengthInInches is ' + IntToStr(Train_CurrentLengthInInches) + ' (from Train_FixedLengthInInches)');
+              END;
+            END ELSE
+              IF Train_LastLengthInInches <> 0 THEN BEGIN
+                IF (LengthOfTrainInCarriages <> 0)
+                AND (Train_LastLengthInInches <> (LengthOfTrainInCarriages * CarriageLengthInInches))
                 THEN BEGIN
+                  IF MessageDialogueWithDefault('Diagrams error: loco ' + LocoChipToStr(LocoChip) + ':'
+                                                + ' train length in carriages as read in from the diagram is '
+                                                + IfThen(LengthOfTrainInCarriages = 1,
+                                                         'one carriage',
+                                                         IntToStr(LengthOfTrainInCarriages) + ' carriages')
+                                                + ' which works out at ' + IntToStr(LengthOfTrainInCarriages * CarriageLengthInInches) + ' inches'
+                                                + CRLF
+                                                + 'whereas the last length as read in from the LocoData database is ' + IntToStr(Train_LastLengthInInches) + ' inches.'
+                                                + CRLF
+                                                + 'Please choose the correct length below:',
+                                                StopTimer, mtError, [mbYes, mbNo],
+                                                [IntToStr(LengthOfTrainInCarriages * CarriageLengthInInches) + ' inches',
+                                                 IntToStr(Train_LastLengthInInches) + ' inches'],
+                                                mbYes) = mrNo
+                  THEN BEGIN
+                    Train_CurrentLengthInInches := Train_LastLengthInInches;
+                    Log(Train_LocoChipStr + ' T Train_CurrentLengthInInches is ' + IntToStr(Train_CurrentLengthInInches) + ' (from Train_LastLengthInInches)');
+                  END ELSE BEGIN
+                    Train_CurrentLengthInInches := LengthOfTrainInCarriages * CarriageLengthInInches;
+                    Log(Train_LocoChipStr + ' T Train_CurrentLengthInInches is ' + IntToStr(Train_CurrentLengthInInches)
+                                          + ' (from LengthOfTrainInCarriages * CarriageLengthInInches)');
+                  END;
+                END ELSE BEGIN
                   Train_CurrentLengthInInches := Train_LastLengthInInches;
                   Log(Train_LocoChipStr + ' T Train_CurrentLengthInInches is ' + IntToStr(Train_CurrentLengthInInches) + ' (from Train_LastLengthInInches)');
+                END;
+              END ELSE
+                IF LengthOfTrainInCarriages = 0 THEN BEGIN
+                  MainWindow.MainTimer.Enabled := False;
+                  TempStr := InputBox('Caption',
+                                      'Diagrams error: loco ' + LocoChipToStr(LocoChip) + ':'
+                                      + CRLF
+                                      + 'No train length supplied in loco record or diagram record: enter number of carriages now:',
+                                      '0');
+                  IF NOT TryStrToInt(TempStr, LengthOfTrainInCarriages) THEN
+                    ErrorMsg := 'Invalid integer ''' + TempStr + ''' supplied in location record or diagrams record'
+                  ELSE
+                    IF LengthOfTrainInCarriages = 0 THEN
+                      ErrorMsg := 'No train length supplied in loco record or diagram record'
+                    ELSE
+                      Train_CurrentLengthInInches := LengthOfTrainInCarriages * CarriageLengthInInches;
+                  MainWindow.MainTimer.Enabled := True;
                 END ELSE BEGIN
                   Train_CurrentLengthInInches := LengthOfTrainInCarriages * CarriageLengthInInches;
                   Log(Train_LocoChipStr + ' T Train_CurrentLengthInInches is ' + IntToStr(Train_CurrentLengthInInches)
                                         + ' (from LengthOfTrainInCarriages * CarriageLengthInInches)');
                 END;
-              END ELSE BEGIN
-                Train_CurrentLengthInInches := Train_LastLengthInInches;
-                Log(Train_LocoChipStr + ' T Train_CurrentLengthInInches is ' + IntToStr(Train_CurrentLengthInInches) + ' (from Train_LastLengthInInches)');
-              END;
-            END ELSE
-              IF LengthOfTrainInCarriages = 0 THEN BEGIN
-                MainWindow.MainTimer.Enabled := False;
-                TempStr := InputBox('Caption',
-                                    'Diagrams error: loco ' + LocoChipToStr(LocoChip) + ':'
-                                    + CRLF
-                                    + 'No train length supplied in loco record or diagram record: enter number of carriages now:',
-                                    '0');
-                IF NOT TryStrToInt(TempStr, LengthOfTrainInCarriages) THEN
-                  ErrorMsg := 'Invalid integer ''' + TempStr + ''' supplied in location record or diagrams record'
-                ELSE
-                  IF LengthOfTrainInCarriages = 0 THEN
-                    ErrorMsg := 'No train length supplied in loco record or diagram record'
-                  ELSE
-                    Train_CurrentLengthInInches := LengthOfTrainInCarriages * CarriageLengthInInches;
-                MainWindow.MainTimer.Enabled := True;
-              END ELSE BEGIN
-                Train_CurrentLengthInInches := LengthOfTrainInCarriages * CarriageLengthInInches;
-                Log(Train_LocoChipStr + ' T Train_CurrentLengthInInches is ' + IntToStr(Train_CurrentLengthInInches)
-                                      + ' (from LengthOfTrainInCarriages * CarriageLengthInInches)');
-              END;
-        END;
-      END;
-
-      IF (ErrorMsg = '')
-      AND (Train_CurrentStatus <> NonMoving)
-      THEN BEGIN
-//        IF FirstTrainInstance THEN
-//          SetUpTrainSpeeds;
-
-        { Set up the first train destination }
-        IF ErrorMsg = '' THEN BEGIN
-          { but make sure the next starting point is the same as the previous location }
-          IF NOT FirstTrainInstance THEN BEGIN
-            IF (Train_Locations[High(Train_Locations)] <> StrToLocation(StartLocationStr))
-            AND (Train_Locations[High(Train_Locations)] <> UnknownLocation)
-            THEN
-              ErrorMsg := 'train ' + Train_LocoChipStr + '''s start location at ' + StartLocationStr + ' is not the same as its previous location which was '
-                          + LocationToStr(Train_Locations[High(Train_Locations)], ShortStringType) + '.';
           END;
         END;
-
-        IF ErrorMsg = '' THEN BEGIN
-          AppendToLocationArray(Train_Locations, StrToLocation(EndLocationsStrArray[0]));
-
-          { Now the remaining locations }
-          I := 1;
-          WHILE (ErrorMsg = '')
-          AND (I <= JourneyCount)
-          DO BEGIN
-            IF EndLocationsStrArray[I] <> '' THEN
-              { add one to the journey counter in the train record first - it starts at one }
-              AppendToLocationArray(Train_Locations, StrToLocation(EndLocationsStrArray[I]))
-            ELSE
-              ErrorMsg := 'No end location supplied';
-            Inc(I);
-          END; {WHILE}
-        END;
-
-        { Departure times }
-        IF ErrorMsg = '' THEN BEGIN
-          I := 0;
-          WHILE I <= JourneyCount DO BEGIN
-            AppendToDateTimeArray(DepartureTimesArray, UserSpecifiedDepartureTimesArray[I]);
-            Inc(I);
-          END; {WHILE}
-
-          { See if the initial departure time is not specified }
-          IF DepartureTimesArray[0] = 0 THEN BEGIN
-            IF Length(DepartureTimesArray) = 1 THEN
-              { if there is only one departure time and it's not specified, make it the program start time }
-              DepartureTimesArray[0] := StrToTime(ProgramStartTimeStr)
-            ELSE
-              IF Length(DepartureTimesArray) > 1 THEN BEGIN
-                { if there is more than one departure time }
-                 IF DepartureTimesArray[1] = 0 THEN
-                   { if the first two departure times are not specified, make the first the program start time }
-                   DepartureTimesArray[0] := StrToTime(ProgramStartTimeStr)
-                 ELSE
-                   IF (DepartureTimesArray[1] <> 0)
-                   AND NotForPublicUseArray[0]
-                   THEN
-                     { if there is more than one departure time and the first is not specified but the second is, and the first journey is marked 'not for public use',
-                       i.e. its only purpose is to get to the second journey starting point
-                     }
-                     Train_FirstStationSpecifiedStartTime := DepartureTimesArray[1];
-              END;
-          END;
-        END;
-
-//        { Locations and areas }
-//        IF ErrorMsg = '' THEN BEGIN
-//          I := 0;
-//          WHILE (ErrorMsg = '')
-//          AND (I <= JourneyCount)
-//          DO BEGIN
-//            IF I = 0 THEN BEGIN
-//              AppendToLocationArray(TempStartLocations, StrToLocation(StartLocationStr));
-//              IF TempStartLocations[0] <> UnknownLocation THEN
-//                AppendToAreaArray(TempStartAreas, Locations[TempStartLocations[0]].Location_Area)
-//              ELSE
-//                IF StrToArea(StartLocationStr) <> UnknownArea THEN
-//                  AppendToAreaArray(TempStartAreas, StrToArea(StartLocationStr));
-//
-//              AppendToLocationArray(TempEndLocations, StrToLocation(EndLocationsStrArray[0]));
-//              IF TempEndLocations[0] <> UnknownLocation THEN
-//                AppendToAreaArray(TempEndAreas, Locations[TempEndLocations[0]].Location_Area)
-//              ELSE BEGIN
-//                IF StrToArea(EndLocationsStrArray[0]) <> UnknownArea THEN
-//                  AppendToAreaArray(TempEndAreas, StrToArea(EndLocationsStrArray[0]))
-//                ELSE
-//                  ErrorMsg := 'unknown location/area "' + EndLocationsStrArray[0] + '"';
-//
-//                  { add opportunity to correct it? **** }
-//              END;
-//            END ELSE BEGIN
-//              AppendToLocationArray(TempStartLocations, StrToLocation(EndLocationsStrArray[I - 1]));
-//              IF TempStartLocations[High(TempStartLocations)] <> UnknownLocation THEN
-//                AppendToAreaArray(TempStartAreas, Locations[TempStartLocations[High(TempStartLocations)]].Location_Area)
-//              ELSE
-//                AppendToAreaArray(TempStartAreas, StrToArea(EndLocationsStrArray[I - 1]));
-//
-//              AppendToLocationArray(TempEndLocations, StrToLocation(EndLocationsStrArray[I]));
-//              IF TempEndLocations[High(TempEndLocations)] <> UnknownLocation THEN
-//                AppendToAreaArray(TempEndAreas, Locations[TempEndLocations[High(TempEndLocations)]].Location_Area)
-//              ELSE BEGIN
-//                IF StrToArea(EndLocationsStrArray[I]) <> UnknownArea THEN
-//                  AppendToAreaArray(TempEndAreas, StrToArea(EndLocationsStrArray[I]))
-//                ELSE
-//                  ErrorMsg := 'unknown location/area "' + EndLocationsStrArray[I] + '"';
-//
-//                  { add opportunity to correct it? **** }
-//              END;
-//            END;
-//
-//            Inc(I);
-//          END; {WHILE}
-//        END;
-
-        { Lights on time }
-        IF (ErrorMsg = '')
-        AND FirstTrainInstance
-        THEN BEGIN
-          IF Train_LightsType = NoLights THEN BEGIN
-            IF LightsOnTime <> 0 THEN
-              Log(Train_LocoChipStr + ' X! Loco ' + LocoChipToStr(Train_LocoChip) + ' cannot have a lights on time as loco does not have lights');
-          END ELSE
-            { Check it's not before the current time }
-            IF LightsOnTime <> 0 THEN BEGIN
-              IF CurrentRailwayTime > LightsOnTime THEN
-                Log(Train_LocoChipStr + ' X! Loco ' + LocoChipToStr(Train_LocoChip) + ': lights-on time ' + TimeToHMStr(LightsOnTime)
-                                      + ' is earlier than current railway time ' + TimeToHMStr(CurrentRailwayTime))
-              ELSE
-                IF DepartureTimesArray[0] < LightsOnTime THEN
-                  Log(Train_LocoChipStr + ' X! Loco ' + LocoChipToStr(Train_LocoChip) + ': lights-on time ' + TimeToHMStr(LightsOnTime)
-                                        + ' should be earlier than initial departure time ' + TimeToHMStr(DepartureTimesArray[0]))
-                ELSE
-                  Train_LightsOnTime := LightsOnTime;
-          END;
-        END;
-
-        { Lights remain on }
-        Train_LightsRemainOnWhenJourneysComplete := LightsRemainOn;
 
         IF (ErrorMsg = '')
-        AND FirstTrainInstance
+        AND (Train_CurrentStatus <> NonMoving)
         THEN BEGIN
-          Train_UserDriving := UserDriving;
-          Train_UserRequiresInstructions := UserRequiresInstructions;
-          Train_UserRequiresInstructionMsg := '';
-        END;
+  //        IF FirstTrainInstance THEN
+  //          SetUpTrainSpeeds;
 
-        { Set up the various individual journeys for this train }
-        IF ErrorMsg = '' THEN BEGIN
-          I := 0;
-          OK := True;
-          WHILE (ErrorMsg = '')
-          AND (I <= JourneyCount)
-          DO BEGIN
-            { Add one to the journey counter in the train record first - it starts at one }
-            Inc(Train_TotalJourneys);
-            
-            { Check the journey }
-            IF (TempStartLocations[I] <> UnknownLocation)
-            AND (TempEndLocations[I] <> UnknownLocation)
-            THEN BEGIN
-              CheckJourney(T, Train_TotalJourneys, DirectionsArray[I], TempStartLocations[I], TempEndLocations[I], UnknownLine, UnknownLine, ErrorMsg, LinesNotAvailableStr,
-                           NOT UseEmergencyRouteing, JourneysArray, OK);
-              IF NOT OK THEN
-                CheckJourney(T, Train_TotalJourneys, DirectionsArray[I], TempStartLocations[I], TempEndLocations[I], UnknownLine, UnknownLine, ErrorMsg,
-                             LinesNotAvailableStr, UseEmergencyRouteing, JourneysArray, OK);
-            END;
-
-            IF OK THEN BEGIN
-              { NB: this test of OK is not dependent on the result coming from CheckJourney above, as that may not have been called }
-              IF StartOfRepeatJourney
-              AND (I = 0)
+          { Set up the first train destination }
+          IF ErrorMsg = '' THEN BEGIN
+            { but make sure the next starting point is the same as the previous location }
+            IF NOT FirstTrainInstance THEN BEGIN
+              IF (Train_Locations[High(Train_Locations)] <> StrToLocation(StartLocationStr))
+              AND (Train_Locations[High(Train_Locations)] <> UnknownLocation)
               THEN
-                CreateJourney(T, UnknownJourney, NewJourney,
-                              TempStartAreas[I], TempEndAreas[I],
-                              TempStartLocations[I], TempEndLocations[I],
-                              TempStartLocations[I], TempEndLocations[I],
-                              UnknownLine, UnknownLine,
-                              0, DepartureTimesArray[I],
-                              0,
-                              DirectionsArray[I],
-                              DummyRouteArray,
-                              NOT RebuildRouteArray,
-                              StoppingArray[I],
-                              NotForPublicUseArray[I],
-                              NOT UseEmergencyRouteing,
-                              RepeatJourney,
-                              DiagramsLoading,
-                              ErrorMsg,
-                              LinesNotAvailableStr, OK)
-              ELSE
-                CreateJourney(T, UnknownJourney, NewJourney,
-                              TempStartAreas[I], TempEndAreas[I],
-                              TempStartLocations[I], TempEndLocations[I],
-                              TempStartLocations[I], TempEndLocations[I],
-                              UnknownLine, UnknownLine,
-                              0, DepartureTimesArray[I],
-                              0,
-                              DirectionsArray[I],
-                              DummyRouteArray,
-                              NOT RebuildRouteArray,
-                              StoppingArray[I],
-                              NotForPublicUseArray[I],
-                              NOT UseEmergencyRouteing,
-                              NOT RepeatJourney,
-                              DiagramsLoading,
-                              ErrorMsg,
-                              LinesNotAvailableStr, OK);
-
-              IF NOT OK THEN BEGIN
-                { the journey route wasn't ok, so we can try substituting an area for the End location }
-                TempEndLocations[I] := UnknownLocation;
-                OK := True;
-              END;
+                ErrorMsg := 'train ' + Train_LocoChipStr + '''s start location at ' + StartLocationStr + ' is not the same as its previous location which was '
+                            + LocationToStr(Train_Locations[High(Train_Locations)], ShortStringType) + '.';
             END;
-            Inc(I);
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            AppendToLocationArray(Train_Locations, StrToLocation(EndLocationsStrArray[0]));
+
+            { Now the remaining locations }
+            I := 1;
+            WHILE (ErrorMsg = '')
+            AND (I <= JourneyCount)
+            DO BEGIN
+              IF EndLocationsStrArray[I] <> '' THEN
+                { add one to the journey counter in the train record first - it starts at one }
+                AppendToLocationArray(Train_Locations, StrToLocation(EndLocationsStrArray[I]))
+              ELSE
+                ErrorMsg := 'No end location supplied';
+              Inc(I);
+            END; {WHILE}
+          END;
+
+          { Departure times }
+          IF ErrorMsg = '' THEN BEGIN
+            I := 0;
+            WHILE I <= JourneyCount DO BEGIN
+              AppendToDateTimeArray(DepartureTimesArray, UserSpecifiedDepartureTimesArray[I]);
+              Inc(I);
+            END; {WHILE}
+
+            { See if the initial departure time is not specified }
+            IF DepartureTimesArray[0] = 0 THEN BEGIN
+              IF Length(DepartureTimesArray) = 1 THEN
+                { if there is only one departure time and it's not specified, make it the program start time }
+                DepartureTimesArray[0] := StrToTime(ProgramStartTimeStr)
+              ELSE
+                IF Length(DepartureTimesArray) > 1 THEN BEGIN
+                  { if there is more than one departure time }
+                   IF DepartureTimesArray[1] = 0 THEN
+                     { if the first two departure times are not specified, make the first the program start time }
+                     DepartureTimesArray[0] := StrToTime(ProgramStartTimeStr)
+                   ELSE
+                     IF (DepartureTimesArray[1] <> 0)
+                     AND NotForPublicUseArray[0]
+                     THEN
+                       { if there is more than one departure time and the first is not specified but the second is, and the first journey is marked 'not for public use',
+                         i.e. its only purpose is to get to the second journey starting point
+                       }
+                       Train_FirstStationSpecifiedStartTime := DepartureTimesArray[1];
+                END;
+            END;
+          END;
+
+  //        { Locations and areas }
+  //        IF ErrorMsg = '' THEN BEGIN
+  //          I := 0;
+  //          WHILE (ErrorMsg = '')
+  //          AND (I <= JourneyCount)
+  //          DO BEGIN
+  //            IF I = 0 THEN BEGIN
+  //              AppendToLocationArray(TempStartLocations, StrToLocation(StartLocationStr));
+  //              IF TempStartLocations[0] <> UnknownLocation THEN
+  //                AppendToAreaArray(TempStartAreas, Locations[TempStartLocations[0]].Location_Area)
+  //              ELSE
+  //                IF StrToArea(StartLocationStr) <> UnknownArea THEN
+  //                  AppendToAreaArray(TempStartAreas, StrToArea(StartLocationStr));
+  //
+  //              AppendToLocationArray(TempEndLocations, StrToLocation(EndLocationsStrArray[0]));
+  //              IF TempEndLocations[0] <> UnknownLocation THEN
+  //                AppendToAreaArray(TempEndAreas, Locations[TempEndLocations[0]].Location_Area)
+  //              ELSE BEGIN
+  //                IF StrToArea(EndLocationsStrArray[0]) <> UnknownArea THEN
+  //                  AppendToAreaArray(TempEndAreas, StrToArea(EndLocationsStrArray[0]))
+  //                ELSE
+  //                  ErrorMsg := 'unknown location/area "' + EndLocationsStrArray[0] + '"';
+  //
+  //                  { add opportunity to correct it? **** }
+  //              END;
+  //            END ELSE BEGIN
+  //              AppendToLocationArray(TempStartLocations, StrToLocation(EndLocationsStrArray[I - 1]));
+  //              IF TempStartLocations[High(TempStartLocations)] <> UnknownLocation THEN
+  //                AppendToAreaArray(TempStartAreas, Locations[TempStartLocations[High(TempStartLocations)]].Location_Area)
+  //              ELSE
+  //                AppendToAreaArray(TempStartAreas, StrToArea(EndLocationsStrArray[I - 1]));
+  //
+  //              AppendToLocationArray(TempEndLocations, StrToLocation(EndLocationsStrArray[I]));
+  //              IF TempEndLocations[High(TempEndLocations)] <> UnknownLocation THEN
+  //                AppendToAreaArray(TempEndAreas, Locations[TempEndLocations[High(TempEndLocations)]].Location_Area)
+  //              ELSE BEGIN
+  //                IF StrToArea(EndLocationsStrArray[I]) <> UnknownArea THEN
+  //                  AppendToAreaArray(TempEndAreas, StrToArea(EndLocationsStrArray[I]))
+  //                ELSE
+  //                  ErrorMsg := 'unknown location/area "' + EndLocationsStrArray[I] + '"';
+  //
+  //                  { add opportunity to correct it? **** }
+  //              END;
+  //            END;
+  //
+  //            Inc(I);
+  //          END; {WHILE}
+  //        END;
+
+          { Lights on time }
+          IF (ErrorMsg = '')
+          AND FirstTrainInstance
+          THEN BEGIN
+            IF Train_LightsType = NoLights THEN BEGIN
+              IF LightsOnTime <> 0 THEN
+                Log(Train_LocoChipStr + ' X! Loco ' + LocoChipToStr(Train_LocoChip) + ' cannot have a lights on time as loco does not have lights');
+            END ELSE
+              { Check it's not before the current time }
+              IF LightsOnTime <> 0 THEN BEGIN
+                IF CurrentRailwayTime > LightsOnTime THEN
+                  Log(Train_LocoChipStr + ' X! Loco ' + LocoChipToStr(Train_LocoChip) + ': lights-on time ' + TimeToHMStr(LightsOnTime)
+                                        + ' is earlier than current railway time ' + TimeToHMStr(CurrentRailwayTime))
+                ELSE
+                  IF DepartureTimesArray[0] < LightsOnTime THEN
+                    Log(Train_LocoChipStr + ' X! Loco ' + LocoChipToStr(Train_LocoChip) + ': lights-on time ' + TimeToHMStr(LightsOnTime)
+                                          + ' should be earlier than initial departure time ' + TimeToHMStr(DepartureTimesArray[0]))
+                  ELSE
+                    Train_LightsOnTime := LightsOnTime;
+            END;
+          END;
+
+          { Lights remain on }
+          Train_LightsRemainOnWhenJourneysComplete := LightsRemainOn;
+
+          IF (ErrorMsg = '')
+          AND FirstTrainInstance
+          THEN BEGIN
+            Train_UserDriving := UserDriving;
+            Train_UserRequiresInstructions := UserRequiresInstructions;
+            Train_UserRequiresInstructionMsg := '';
+          END;
+
+          { Set up the various individual journeys for this train }
+          IF ErrorMsg = '' THEN BEGIN
+            I := 0;
+            OK := True;
+            WHILE (ErrorMsg = '')
+            AND (I <= JourneyCount)
+            DO BEGIN
+              { Add one to the journey counter in the train record first - it starts at one }
+              Inc(Train_TotalJourneys);
+            
+              { Check the journey }
+              IF (TempStartLocations[I] <> UnknownLocation)
+              AND (TempEndLocations[I] <> UnknownLocation)
+              THEN BEGIN
+                CheckJourney(T, Train_TotalJourneys, DirectionsArray[I], TempStartLocations[I], TempEndLocations[I], UnknownLine, UnknownLine, ErrorMsg, LinesNotAvailableStr,
+                             NOT UseEmergencyRouteing, JourneysArray, OK);
+                IF NOT OK THEN
+                  CheckJourney(T, Train_TotalJourneys, DirectionsArray[I], TempStartLocations[I], TempEndLocations[I], UnknownLine, UnknownLine, ErrorMsg,
+                               LinesNotAvailableStr, UseEmergencyRouteing, JourneysArray, OK);
+              END;
+
+              IF OK THEN BEGIN
+                { NB: this test of OK is not dependent on the result coming from CheckJourney above, as that may not have been called }
+                IF StartOfRepeatJourney
+                AND (I = 0)
+                THEN
+                  CreateJourney(T, UnknownJourney, NewJourney,
+                                TempStartAreas[I], TempEndAreas[I],
+                                TempStartLocations[I], TempEndLocations[I],
+                                TempStartLocations[I], TempEndLocations[I],
+                                UnknownLine, UnknownLine,
+                                0, DepartureTimesArray[I],
+                                0,
+                                DirectionsArray[I],
+                                DummyRouteArray,
+                                NOT RebuildRouteArray,
+                                StoppingArray[I],
+                                NotForPublicUseArray[I],
+                                NOT UseEmergencyRouteing,
+                                RepeatJourney,
+                                DiagramsLoading,
+                                ErrorMsg,
+                                LinesNotAvailableStr, OK)
+                ELSE
+                  CreateJourney(T, UnknownJourney, NewJourney,
+                                TempStartAreas[I], TempEndAreas[I],
+                                TempStartLocations[I], TempEndLocations[I],
+                                TempStartLocations[I], TempEndLocations[I],
+                                UnknownLine, UnknownLine,
+                                0, DepartureTimesArray[I],
+                                0,
+                                DirectionsArray[I],
+                                DummyRouteArray,
+                                NOT RebuildRouteArray,
+                                StoppingArray[I],
+                                NotForPublicUseArray[I],
+                                NOT UseEmergencyRouteing,
+                                NOT RepeatJourney,
+                                DiagramsLoading,
+                                ErrorMsg,
+                                LinesNotAvailableStr, OK);
+
+                IF NOT OK THEN BEGIN
+                  { the journey route wasn't ok, so we can try substituting an area for the End location }
+                  TempEndLocations[I] := UnknownLocation;
+                  OK := True;
+                END;
+              END;
+              Inc(I);
+            END;
           END;
         END;
-      END;
 
-      IF ErrorMsg = '' THEN BEGIN
-        { this part is both for all trains, moving and non-moving, and those with pending locations too }
-  //      Train_Headcode := GetHeadcode(Train_LocoChip, Train_TypeNum, Train_FinalEndStationName);
+        IF ErrorMsg = '' THEN BEGIN
+          { this part is both for all trains, moving and non-moving, and those with pending locations too }
+    //      Train_Headcode := GetHeadcode(Train_LocoChip, Train_TypeNum, Train_FinalEndStationName);
 
-//        SetInitialTrackCircuits(T);
-//        IF Train_InitialTrackcircuits[1] = UnknownTrackCircuit THEN
-//          ErrorMsg := 'no initial trackcircuits found';
-      END;
-
-      IF (ErrorMsg = '')
-      AND (Train_CurrentStatus = NonMoving)
-      THEN BEGIN
-        { non-moving trains should have their lights on if not in sidings *** are these ever turned off? *** }
-        { we need to know which way the train is facing for lighting purposes *** }
-        Train_Headcode := '0000';
-        IF DirectionsArray[0] = UnknownDirection THEN BEGIN
-          IF MessageDialogueWithDefault('Diagrams error: loco ' + LocoChipToStr(LocoChip)
-                                        + ': Direction 1 must be set to Up or Down even though the train is non-moving'
-                                        + CRLF
-                                        + 'Please choose:',
-                                        StopTimer, mtError, [mbYes, mbNo], ['&Up', '&Down'], mbYes) = mrYes
-          THEN
-            DirectionsArray[0] := Up
-          ELSE
-            DirectionsArray[0] := Down;
+  //        SetInitialTrackCircuits(T);
+  //        IF Train_InitialTrackcircuits[1] = UnknownTrackCircuit THEN
+  //          ErrorMsg := 'no initial trackcircuits found';
         END;
 
-        TurnLightsOn(Train_LocoChip, OK);
+        IF (ErrorMsg = '')
+        AND (Train_CurrentStatus = NonMoving)
+        THEN BEGIN
+          { non-moving trains should have their lights on if not in sidings *** are these ever turned off? *** }
+          { we need to know which way the train is facing for lighting purposes *** }
+          Train_Headcode := '0000';
+          IF DirectionsArray[0] = UnknownDirection THEN BEGIN
+            IF MessageDialogueWithDefault('Diagrams error: loco ' + LocoChipToStr(LocoChip)
+                                          + ': Direction 1 must be set to Up or Down even though the train is non-moving'
+                                          + CRLF
+                                          + 'Please choose:',
+                                          StopTimer, mtError, [mbYes, mbNo], ['&Up', '&Down'], mbYes) = mrYes
+            THEN
+              DirectionsArray[0] := Up
+            ELSE
+              DirectionsArray[0] := Down;
+          END;
+
+          TurnLightsOn(Train_LocoChip, OK);
+        END;
+
+        Train_Headcode := 'ZZZZ';
+
       END;
 
-      T^.Train_Headcode := 'ZZZZ';
+      IF ErrorMsg <> '' THEN BEGIN
+        { Now need to sort out the problem }
+        IF T <= High(Trains) THEN
+          Log(Train_LocoChipStr + ' E Loco ' + LocoChipToStr(LocoChip) + ': diagrams error: ' + ErrorMsg)
+        ELSE
+          Log('E Loco ' + LocoChipToStr(LocoChip) + ': diagrams error: ' + ErrorMsg);
 
-    END;
-
-    IF ErrorMsg <> '' THEN BEGIN
-      { Now need to sort out the problem }
-      IF T <> NIL THEN
-        Log(Train_LocoChipStr + ' E Loco ' + LocoChipToStr(LocoChip) + ': diagrams error: ' + ErrorMsg)
-      ELSE
-        Log('E Loco ' + LocoChipToStr(LocoChip) + ': diagrams error: ' + ErrorMsg);
-
-      IF MessageDialogueWithDefault('Diagrams error: loco ' + LocoChipToStr(LocoChip) + ': ' + ErrorMsg
-                                    + CRLF
-                                    + 'Do you wish to start the program and cancel the train or exit the program?',
-                                    StopTimer, mtError, [mbYes, mbNo], ['&Start', '&Exit'], mbYes) = mrNo
-      THEN
-        ShutDownProgram(UnitRef, 'UpdateTrainRecordForDiagram')
-      ELSE
-        IF T <> NIL THEN
-          CancelTrain(T, NOT ByUser, TrainExists);
-    END;
+        IF MessageDialogueWithDefault('Diagrams error: loco ' + LocoChipToStr(LocoChip) + ': ' + ErrorMsg
+                                      + CRLF
+                                      + 'Do you wish to start the program and cancel the train or exit the program?',
+                                      StopTimer, mtError, [mbYes, mbNo], ['&Start', '&Exit'], mbYes) = mrNo
+        THEN
+          ShutDownProgram(UnitRef, 'UpdateTrainRecordForDiagram')
+        ELSE
+          IF T <= High(Trains) THEN
+            CancelTrain(T, NOT ByUser, TrainExists);
+      END;
+    END; {WITH}
   END; {WITH}
 
   { And return T for those subroutines that want it }
@@ -4647,7 +4633,7 @@ VAR
   SaveLastJourneyAreaOrDestinationStr : String;
   SaveLastJourneyDepartureTime : TDateTime;
   SaveLastJourneyDirection : DirectionType;
-  T : Train;
+  T : TrainElement;
   TempSourceLocation : Integer;
   T_DepartureTimesArray : DateTimeArrayType;
   T_DestinationAreaOrLocationsStrArray : StringArrayType;
@@ -5030,7 +5016,7 @@ BEGIN
               END;
 
               IF DiagramsOK
-              AND (T <> NIL)
+              AND (T <= High(Trains))
               THEN BEGIN
                 { Increment the counters }
                 IF T_NonMoving THEN
@@ -5246,14 +5232,14 @@ VAR
   JourneyCount : Integer;
   JourneyMinutes : Integer;
   StartTimeChanged : Boolean;
-  T : Train;
+  T : TrainElement;
 
 BEGIN
   StartTimeChanged := False;
 
-  T := TrainList;
-  WHILE T <> NIL DO BEGIN
-    WITH T^ DO BEGIN
+  T := 0;
+  WHILE T <= High(Trains) DO BEGIN
+    WITH Trains[T] DO BEGIN
       IF (Train_LocoChip <> UnknownLocoChip)
       AND Train_DiagramFound
       AND (Train_CurrentStatus <> Cancelled)
@@ -5294,12 +5280,12 @@ BEGIN
 
         DrawLineInLogFile(Train_LocoChip, 'D', '-', UnitRef);
       END;
-      T := Train_NextRecord;
+      Inc(T);
     END; {WITH}
   END; {WHILE}
 END; { CalculatePublicJourneyStartTimes }
 
-PROCEDURE RecalculateJourneyTimes(T : Train; ExplanatoryStr : String);
+PROCEDURE RecalculateJourneyTimes(T : TrainElement; ExplanatoryStr : String);
 { Recalculate the journey times to allow for any inserted journeys or other changes }
 VAR
   ArrivalTime : TDateTime;
@@ -5310,54 +5296,54 @@ VAR
   JourneyCount : Integer;
   LogStr : String;
   NextStartLocationStr : String;
-  OtherT : Train;
+  OtherT : TrainElement;
   OtherTrainFound : Boolean;
   OtherTrainJourneyCount : Integer;
   SaveLogStr : String;
   TotalWaitingMinutes : Integer;
 
-  PROCEDURE CheckIfTrainsAreDepartingAtTheSameTime(T : Train);
+  PROCEDURE CheckIfTrainsAreDepartingAtTheSameTime(T : TrainElement);
   { If any other trains are departing at the same time in the same direction with the same destination, allow time for each to depart }
   BEGIN
-    WITH T^ DO BEGIN
+    WITH Trains[T] DO BEGIN
       WITH Train_JourneysArray[JourneyCount] DO BEGIN
-        OtherT := TrainList;
+        OtherT := 0;
         OtherTrainFound := False;
-        WHILE (OtherT <> NIL)
+        WHILE (OtherT <= High(Trains))
         AND NOT OtherTrainFound
         DO BEGIN
           IF (OtherT <> T)
-          AND OtherT^.Train_DiagramFound
-          AND (OtherT^.Train_CurrentStatus <> Cancelled)
-          AND (OtherT^.Train_CurrentStatus <> Suspended)
-          AND (OtherT^.Train_CurrentStatus <> MissingAndSuspended)
+          AND Trains[OtherT].Train_DiagramFound
+          AND (Trains[OtherT].Train_CurrentStatus <> Cancelled)
+          AND (Trains[OtherT].Train_CurrentStatus <> Suspended)
+          AND (Trains[OtherT].Train_CurrentStatus <> MissingAndSuspended)
           THEN BEGIN
             OtherTrainJourneyCount := 0;
-            WHILE OtherTrainJourneyCount <= High(OtherT^.Train_JourneysArray) DO BEGIN
+            WHILE OtherTrainJourneyCount <= High(Trains[OtherT].Train_JourneysArray) DO BEGIN
               IF (OtherTrainJourneyCount = 0)
-              OR (OtherT^.Train_JourneysArray[OtherTrainJourneyCount - 1].TrainJourney_StoppingOnArrival)
+              OR (Trains[OtherT].Train_JourneysArray[OtherTrainJourneyCount - 1].TrainJourney_StoppingOnArrival)
               THEN BEGIN
                 IF (JourneyCount = 0)
-                OR (T^.Train_JourneysArray[JourneyCount - 1].TrainJourney_StoppingOnArrival)
+                OR (Train_JourneysArray[JourneyCount - 1].TrainJourney_StoppingOnArrival)
                 THEN BEGIN
-                  IF NOT OtherT^.Train_JourneysArray[OtherTrainJourneyCount].TrainJourney_Cleared THEN BEGIN
-                    IF OtherT^.Train_JourneysArray[OtherTrainJourneyCount].TrainJourney_StartArea = TrainJourney_StartArea THEN BEGIN
-                      IF OtherT^.Train_JourneysArray[OtherTrainJourneyCount].TrainJourney_Direction = TrainJourney_Direction THEN BEGIN
-                        IF OtherT^.Train_JourneysArray[OtherTrainJourneyCount].TrainJourney_EndStationName = TrainJourney_EndStationName
+                  IF NOT Trains[OtherT].Train_JourneysArray[OtherTrainJourneyCount].TrainJourney_Cleared THEN BEGIN
+                    IF Trains[OtherT].Train_JourneysArray[OtherTrainJourneyCount].TrainJourney_StartArea = TrainJourney_StartArea THEN BEGIN
+                      IF Trains[OtherT].Train_JourneysArray[OtherTrainJourneyCount].TrainJourney_Direction = TrainJourney_Direction THEN BEGIN
+                        IF Trains[OtherT].Train_JourneysArray[OtherTrainJourneyCount].TrainJourney_EndStationName = TrainJourney_EndStationName
                         THEN BEGIN
-                          IF OtherT^.Train_JourneysArray[OtherTrainJourneyCount].TrainJourney_CurrentDepartureTime = TrainJourney_CurrentDepartureTime
+                          IF Trains[OtherT].Train_JourneysArray[OtherTrainJourneyCount].TrainJourney_CurrentDepartureTime = TrainJourney_CurrentDepartureTime
                           THEN BEGIN
                             TrainJourney_CurrentDepartureTime := IncMinute(TrainJourney_CurrentDepartureTime, 2);
                             Log(Train_LocoChipStr + ' D ' + DisplayJourneyNumber(JourneyCount)
                                                   + 'current departure time retimed to '
                                                   + TimeToHMSStr(TrainJourney_CurrentDepartureTime)
-                                                  + ' as ' + LocoChipToStr(OtherT^.Train_LocoChip)
+                                                  + ' as ' + LocoChipToStr(Trains[OtherT].Train_LocoChip)
                                                   + ' J=' + IntToStr(OtherTrainJourneyCount)
                                                   + ' was also timed to leave ' + AreaToStr(TrainJourney_StartArea)
                                                   + ' going ' + DirectionToStr(TrainJourney_Direction)
                                                   + ' to ' + TrainJourney_EndStationName
                                                   + ' at '
-                                                  + TimeToHMSStr(OtherT^.Train_JourneysArray[OtherTrainJourneyCount].TrainJourney_CurrentDepartureTime));
+                                                  + TimeToHMSStr(Trains[OtherT].Train_JourneysArray[OtherTrainJourneyCount].TrainJourney_CurrentDepartureTime));
                           END;
                         END;
                       END;
@@ -5368,14 +5354,14 @@ VAR
               Inc(OtherTrainJourneyCount);
             END; {WHILE}
           END;
-          OtherT := OtherT^.Train_NextRecord;
+          Inc(OtherT);
         END; {WHILE}
       END; {WITH}
     END; {WITH}
   END; { CheckIfTrainsAreDepartingAtTheSameTime }
 
 BEGIN
-  WITH T^ DO BEGIN
+  WITH Trains[T] DO BEGIN
     Log(Train_LocoChipStr + ' D RECALCULATING JOURNEY TIMES ' + ExplanatoryStr);
     NextStartLocationStr := '';
 
@@ -5536,12 +5522,12 @@ VAR
   JourneyCount : Integer;
   SaveStartStationName : String;
   SaveEndStationName : String;
-  T : Train;
+  T : TrainElement;
 
 BEGIN
-  T := TrainList;
-  WHILE T <> NIL DO BEGIN
-    WITH T^ DO BEGIN
+  T := 0;
+  WHILE T <= High(Trains) DO BEGIN
+    WITH Trains[T] DO BEGIN
       IF (Train_LocoChip <> UnknownLocoChip)
       AND Train_DiagramFound
       AND (Train_CurrentStatus <> Cancelled)
@@ -5553,7 +5539,7 @@ BEGIN
               TrainJourney_StartStationName := GetStationNameFromArea(Train_JourneysArray[JourneyCount].TrainJourney_StartArea);
               SaveStartStationName := TrainJourney_StartStationName;
             END ELSE
-              IF T^.Train_JourneysArray[JourneyCount -1].TrainJourney_StoppingOnArrival THEN BEGIN
+              IF Train_JourneysArray[JourneyCount - 1].TrainJourney_StoppingOnArrival THEN BEGIN
                 TrainJourney_StartStationName := GetStationNameFromArea(Train_JourneysArray[JourneyCount - 1].TrainJourney_EndArea);
                 SaveStartStationName := TrainJourney_StartStationName
               END ELSE
@@ -5567,7 +5553,7 @@ BEGIN
               TrainJourney_EndStationName := GetStationNameFromArea(Train_JourneysArray[JourneyCount].TrainJourney_EndArea);
               SaveEndStationName := TrainJourney_EndStationName
             END ELSE
-              IF T^.Train_JourneysArray[JourneyCount].TrainJourney_StoppingOnArrival THEN BEGIN
+              IF Train_JourneysArray[JourneyCount].TrainJourney_StoppingOnArrival THEN BEGIN
                 TrainJourney_EndStationName := GetStationNameFromArea(Train_JourneysArray[JourneyCount].TrainJourney_EndArea);
                 SaveEndStationName := TrainJourney_EndStationName
               END ELSE
@@ -5581,7 +5567,7 @@ BEGIN
 
         DrawLineInLogFile(Train_LocoChip, 'D', '-', UnitRef);
       END; {WITH}
-      T := Train_NextRecord;
+      Inc(T);
     END; {WHILE}
   END;
 END; { AddStationNamesToJourneys }
@@ -5614,13 +5600,13 @@ VAR
   S : Integer;
   SaveS : Integer;
   SignalFound : Boolean;
-  T : Train;
+  T : TrainElement;
 
 BEGIN
   IF DiagramsOK THEN BEGIN
-    T := TrainList;
-    WHILE T <> NIL DO BEGIN
-      WITH T^ DO BEGIN
+    T := 0;
+    WHILE T <= High(Trains) DO BEGIN
+      WITH Trains[T] DO BEGIN
         IF (Train_LocoChip <> UnknownLocoChip)
         AND Train_DiagramFound
         AND (Train_CurrentStatus <> Suspended)
@@ -5828,7 +5814,7 @@ BEGIN
           DrawLineInLogFile(Train_LocoChip, 'D', '-', UnitRef);
         END;
       END; {WITH}
-      T := T^.Train_NextRecord;
+      Inc(T);
     END; {WHILE}
   END;
 END; { SplitJourneys }
@@ -5860,7 +5846,7 @@ VAR
   NotForPublicUseArray : BooleanArrayType;
   StartLocationStr : String;
   StoppingArray : BooleanArrayType;
-  T : Train;
+  T : TrainElement;
   TrainNonMoving : Boolean;
   TypeOfTrainNum : Integer;
 
@@ -5872,69 +5858,70 @@ BEGIN
 
     ClearDiagramsFromDatabase;
 
-    T := TrainList;
-    WHILE T <> NIL DO BEGIN
-      IF T^.Train_DiagramFound
-      AND (T^.Train_CurrentStatus <> NonMoving)
-      THEN BEGIN
-        WITH T^ DO BEGIN
-          SetLength(DepartureTimeArray, 0);
-          SetLength(DirectionsArray, 0);
-          SetLength(EndLocationsStrArray, 0);
-          SetLength(NotForPublicUseArray, 0);
-          SetLength(StoppingArray, 0);
+    T := 0;
+    WHILE T <= High(Trains) DO BEGIN
+      WITH Trains[T] DO BEGIN
+        IF Train_DiagramFound
+        AND (Train_CurrentStatus <> NonMoving)
+        THEN BEGIN
+          WITH Trains[T] DO BEGIN
+            SetLength(DepartureTimeArray, 0);
+            SetLength(DirectionsArray, 0);
+            SetLength(EndLocationsStrArray, 0);
+            SetLength(NotForPublicUseArray, 0);
+            SetLength(StoppingArray, 0);
 
-          StartLocationStr := LocationToStr(t^.Train_JourneysArray[0].TrainJourney_StartLocation);
-          IF StartLocationStr = UnknownLocationStr THEN
-            StartLocationStr := AreaToStr(t^.Train_JourneysArray[0].TrainJourney_StartArea);
+            StartLocationStr := LocationToStr(Train_JourneysArray[0].TrainJourney_StartLocation);
+            IF StartLocationStr = UnknownLocationStr THEN
+              StartLocationStr := AreaToStr(Train_JourneysArray[0].TrainJourney_StartArea);
 
-          JourneyCount := 0;
-          WHILE JourneyCount <= High(Train_JourneysArray) DO BEGIN
-            WITH Train_JourneysArray[JourneyCount] DO BEGIN
-              AppendToDateTimeArray(DepartureTimeArray, TrainJourney_DiagrammedDepartureTime);
-              IF TrainJourney_EndLocation <> UnknownLocation THEN
-                AppendToStringArray(EndLocationsStrArray, LocationToStr(TrainJourney_EndLocation))
-              ELSE
-                AppendToStringArray(EndLocationsStrArray, AreaToStr(TrainJourney_EndArea));
+            JourneyCount := 0;
+            WHILE JourneyCount <= High(Train_JourneysArray) DO BEGIN
+              WITH Train_JourneysArray[JourneyCount] DO BEGIN
+                AppendToDateTimeArray(DepartureTimeArray, TrainJourney_DiagrammedDepartureTime);
+                IF TrainJourney_EndLocation <> UnknownLocation THEN
+                  AppendToStringArray(EndLocationsStrArray, LocationToStr(TrainJourney_EndLocation))
+                ELSE
+                  AppendToStringArray(EndLocationsStrArray, AreaToStr(TrainJourney_EndArea));
 
-              AppendToDirectionArray(DirectionsArray, TrainJourney_Direction);
-              LightsRemainOn := True;
-              TrainNonMoving := False;
-              LightsOnTime := 0;
+                AppendToDirectionArray(DirectionsArray, TrainJourney_Direction);
+                LightsRemainOn := True;
+                TrainNonMoving := False;
+                LightsOnTime := 0;
 
-              AppendToBooleanArray(NotForPublicUseArray, TrainJourney_NotForPublicUse);
+                AppendToBooleanArray(NotForPublicUseArray, TrainJourney_NotForPublicUse);
 
-              AppendToBooleanArray(StoppingArray, TrainJourney_StoppingOnArrival);
-              LengthOfTrainInCarriages := 0;
-              TypeOfTrainNum := Train_TypeNum;
+                AppendToBooleanArray(StoppingArray, TrainJourney_StoppingOnArrival);
+                LengthOfTrainInCarriages := 0;
+                TypeOfTrainNum := Train_TypeNum;
 
-              IF (JourneyCount = High(Train_JourneysArray)) OR ((JourneyCount > 0)
-              AND (JourneyCount MOD 7 = 0))
-              THEN BEGIN
-                Log('X ' + Locochiptostr(T^.Train_Locochip) + ' J=' + inttostr(journeycount) + ' ' + StartLocationStr);
+                IF (JourneyCount = High(Train_JourneysArray)) OR ((JourneyCount > 0)
+                AND (JourneyCount MOD 7 = 0))
+                THEN BEGIN
+                  Log('X ' + Locochiptostr(Train_Locochip) + ' J=' + inttostr(journeycount) + ' ' + StartLocationStr);
 
-                WriteOutDiagramsToDatabase(T^.Train_LocoChip, T^.Train_DoubleHeaderLocoChip, JourneyCount, DepartureTimeArray, LightsOnTime, EndLocationsStrArray,
-                                                 DirectionsArray, LightsRemainOn, TrainNonMoving, NotForPublicUseArray, StartLocationStr, StoppingArray,
-                                                 LengthOfTrainInCarriages, TypeOfTrainNum, NOT UserDriving, NOT UserRequiresInstructions, NOT StartOfRepeatJourney);
+                  WriteOutDiagramsToDatabase(Train_LocoChip, Train_DoubleHeaderLocoChip, JourneyCount, DepartureTimeArray, LightsOnTime, EndLocationsStrArray,
+                                             DirectionsArray, LightsRemainOn, TrainNonMoving, NotForPublicUseArray, StartLocationStr, StoppingArray,
+                                             LengthOfTrainInCarriages, TypeOfTrainNum, NOT UserDriving, NOT UserRequiresInstructions, NOT StartOfRepeatJourney);
+                  IF (JourneyCount > 0)
+                  AND (JourneyCount MOD 7 = 0)
+                  THEN
+                    { replace the source string if we're wrapping to a fresh line in the diagram }
+                    StartLocationStr := EndLocationsStrArray[JourneyCount];
 
-                IF (JourneyCount > 0)
-                AND (JourneyCount MOD 7 = 0)
-                THEN
-                  { replace the source string if we're wrapping to a fresh line in the diagram }
-                  StartLocationStr := EndLocationsStrArray[JourneyCount];
-
-                SetLength(DepartureTimeArray, 0);
-                SetLength(DirectionsArray, 0);
-                SetLength(EndLocationsStrArray, 0);
-                SetLength(NotForPublicUseArray, 0);
-                SetLength(StoppingArray, 0);
-              END;
-            END; {WITH}
-            Inc(JourneyCount);
-          END; {WHILE}
-        END; {WITH}
-      END;
-      T := T^.Train_NextRecord;
+                  SetLength(DepartureTimeArray, 0);
+                  SetLength(DirectionsArray, 0);
+                  SetLength(EndLocationsStrArray, 0);
+                  SetLength(NotForPublicUseArray, 0);
+                  SetLength(StoppingArray, 0);
+                END;
+              END; {WITH}
+              Inc(JourneyCount);
+            END; {WHILE}
+          END; {WITH}
+        END;
+        Inc(T);
+      END; {WITH}
     END; {WHILE}
   END;
 
@@ -5942,13 +5929,13 @@ BEGIN
     { Now add the trains to the diagrams - this is only valid for a short time before being replaced with the final version, but is very useful if one has to deal with
       an on-screen query about an unavailable destination
     }
-    T := TrainList;
-    WHILE T <> NIL DO BEGIN
-      IF T^.Train_DiagramFound
-      AND (T^.Train_CurrentStatus <> NonMoving)
+    T := 0;
+    WHILE T <= High(Trains) DO BEGIN
+      IF Trains[T].Train_DiagramFound
+      AND (Trains[T].Train_CurrentStatus <> NonMoving)
       THEN
         AddTrainToDiagramsList(T);
-      T := T^.Train_NextRecord;
+      Inc(T);
     END; {WHILE}
 
     CheckOccupiedLinesAndDiagrams;
@@ -5959,9 +5946,9 @@ BEGIN
 
   IF DiagramsOK THEN BEGIN
     { Now create the train journey route array }
-    T := TrainList;
-    WHILE T <> NIL DO BEGIN
-      WITH T^ DO BEGIN
+    T := 0;
+    WHILE T <= High(Trains) DO BEGIN
+      WITH Trains[T] DO BEGIN
         IF (Train_LocoChip <> UnknownLocoChip)
         AND Train_DiagramFound
         AND (Train_CurrentStatus <> Cancelled)
@@ -5971,9 +5958,9 @@ BEGIN
           WHILE (JourneyCount <= High(Train_JourneysArray))
           AND (Train_CurrentStatus <> Cancelled)
           DO BEGIN
-            WITH T^ DO BEGIN
+            WITH Trains[T] DO BEGIN
               WITH Train_JourneysArray[JourneyCount] DO BEGIN
-                FindRouteFromLineAToLineB(t^.Train_LocoChip, JourneyCount, UnknownSignal, TrainJourney_StartLine, TrainJourney_EndLine, TrainJourney_Direction, Train_Type,
+                FindRouteFromLineAToLineB(Train_LocoChip, JourneyCount, UnknownSignal, TrainJourney_StartLine, TrainJourney_EndLine, TrainJourney_Direction, Train_Type,
                                           Train_CurrentLengthInInches, NOT EmergencyRouteing, NOT IncludeOutOfUseLines, TrainJourney_RouteArray, LinesNotAvailableStr,
                                           ErrorMsg, DiagramsOK);
                 IF NOT DiagramsOK THEN BEGIN
@@ -6005,7 +5992,7 @@ BEGIN
           END; {WHILE}
         END;
 
-        T := Train_NextRecord;
+        Inc(T);
       END; {WITH}
     END; {WHILE}
   END;
@@ -6020,9 +6007,9 @@ BEGIN
     CalculatePublicJourneyStartTimes;
 
   IF DiagramsOK THEN BEGIN
-    T := TrainList;
-    WHILE T <> NIL DO BEGIN
-      WITH T^ DO BEGIN
+    T := 0;
+    WHILE T <= High(Trains) DO BEGIN
+      WITH Trains[T] DO BEGIN
         IF (Train_LocoChip <> UnknownLocoChip)
         AND Train_DiagramFound
         AND (Train_CurrentStatus <> Cancelled)
@@ -6038,22 +6025,21 @@ BEGIN
           DrawLineInLogFile(Train_LocoChip, 'D', '-', UnitRef);
         END;
 
-        T := Train_NextRecord;
+        Inc(T);
       END; {WITH}
     END; {WHILE}
   END;
 
   IF DiagramsOK THEN BEGIN
     { Now clear the temporary diagrams, and add the trains to the real diagrams }
-    DiagramsList := NIL;
+    SetLength(DiagramsArray, 0);
 
-    T := TrainList;
-    WHILE T <> NIL DO BEGIN
-      IF T^.Train_DiagramFound THEN //AND (T^.Train_CurrentStatus <> NonMoving) THEN
+    T := 0;
+    WHILE T <= High(Trains) DO BEGIN
+      IF Trains[T].Train_DiagramFound THEN
         AddTrainToDiagramsList(T);
-      T := T^.Train_NextRecord;
+      Inc(T);
     END; {WHILE}
-    DiagramsList := ListSort_SortDiagramsList(DiagramsList, DepartureTimeAndTrainTypeSort);
   END;
 
   { Finally record the fact the diagrams are loaded }
@@ -6065,9 +6051,9 @@ BEGIN
 
   IF DiagramsOK THEN BEGIN
     { Recalculate the journey length in inches }
-    T := TrainList;
-    WHILE T <> NIL DO BEGIN
-      WITH T^ DO BEGIN
+    T := 0;
+    WHILE T <= High(Trains) DO BEGIN
+      WITH Trains[T] DO BEGIN
         IF (Train_LocoChip <> UnknownLocoChip)
         AND Train_DiagramFound
         AND (Train_CurrentStatus <> Cancelled)
@@ -6077,7 +6063,7 @@ BEGIN
           WHILE (JourneyCount <= High(Train_JourneysArray))
           AND (Train_CurrentStatus <> Cancelled)
           DO BEGIN
-            WITH T^ DO BEGIN
+            WITH Trains[T] DO BEGIN
               WITH Train_JourneysArray[JourneyCount] DO BEGIN
                 TrainJourney_LengthInInches := CalculateRouteLength(TrainJourney_RouteArray);
                 IF TrainJourney_LengthInInches > 0 THEN BEGIN
@@ -6096,7 +6082,7 @@ BEGIN
           END; {WHILE}
         END;
 
-        T := Train_NextRecord;
+        Inc(T);
       END; {WITH}
     END; {WHILE}
   END;
@@ -6106,9 +6092,9 @@ BEGIN
     SetUpAllLocationOccupationsAbInitio(TimetableIsloading, DiagramsOK);
 
   IF DiagramsOK THEN BEGIN
-    T := TrainList;
-    WHILE T <> NIL DO BEGIN
-      WITH T^ DO BEGIN
+    T := 0;
+    WHILE T <= High(Trains) DO BEGIN
+      WITH Trains[T] DO BEGIN
         IF (Train_LocoChip <> UnknownLocoChip)
         AND Train_DiagramFound
         AND (Train_CurrentStatus <> Cancelled)
@@ -6118,8 +6104,8 @@ BEGIN
 
           { Add the arrival and departure time data to the record kept for the station monitors }
           JourneyCount := 0;
-          WHILE JourneyCount <= High(T^.Train_JourneysArray) DO BEGIN
-            WITH T^.Train_JourneysArray[JourneyCount] DO BEGIN
+          WHILE JourneyCount <= High(Train_JourneysArray) DO BEGIN
+            WITH Train_JourneysArray[JourneyCount] DO BEGIN
               TrainJourney_DiagrammedDepartureTime := TrainJourney_CurrentDepartureTime;
               TrainJourney_DiagrammedArrivalTime := TrainJourney_CurrentArrivalTime;
             END; {WITH}
@@ -6134,7 +6120,7 @@ BEGIN
           DrawLineInLogFile(Train_LocoChip, 'D', '-', UnitRef);
         END;
 
-        T := Train_NextRecord;
+        Inc(T);
       END; {WITH}
     END; {WHILE}
   END;
@@ -6147,8 +6133,7 @@ END; { ProcessDiagrams }
 PROCEDURE InitialiseDiagramsUnit;
 { Initialises the unit }
 BEGIN
-  DiagramsList := NIL;
-  DiagramsChosenTrain := NIL;
+  DiagramsChosenTrain := 0;
   DrawDiagramsWindow;
 
   Log('A Diagrams unit initialised');

@@ -22,25 +22,25 @@ TYPE
     { Public declarations }
   END;
 
-FUNCTION AlternativeAreaOrLocationAvailable(T : Train; Journey : Integer; Area : Integer; OldLocation : Integer; OUT NewLocation : Integer;
+FUNCTION AlternativeAreaOrLocationAvailable(T : TrainElement; Journey : Integer; Area : Integer; OldLocation : Integer; OUT NewLocation : Integer;
                                             OUT NewLocationStartTime : TDateTime; PreRouteing, CurrentlyRouteing, OmitLocoTypeRestriction : Boolean;
                                             FindNextAvailableLocation, MayReselectOldLocation : Boolean; VAR ErrorMsg : String; OUT SuccessMsg : String): Boolean;
 { See if there's an adjacent platform/siding free at the required time. If PresentArea is not specified, we want to replace a specified location. ErrorMsg may tell us why
   we are being called.
 }
-PROCEDURE CheckLocationOccupation(T : Train; JourneyA, JourneyB : Integer; Location : Integer; StartTime, EndTime : TDateTime; OUT OK: Boolean);
+PROCEDURE CheckLocationOccupation(T : TrainElement; JourneyA, JourneyB : Integer; Location : Integer; StartTime, EndTime : TDateTime; OUT OK: Boolean);
 { Checks whether it's ok to insert the data in the array }
 
 PROCEDURE ClearLocationOccupationsForSpecificLocation(Location : Integer);
 { Clear a given location occupation arrays }
 
-PROCEDURE DeleteTrainLocationOccupation(T : Train);
+PROCEDURE DeleteTrainLocationOccupation(T : TrainElement);
 { Delete the location occupation arrays }
 
 PROCEDURE FindPendingLocations(IsTimetableLoading : Boolean; OUT OK : Boolean);
 { Process those trains where some or all of the locations are waiting to be allocated }
 
-PROCEDURE InsertDataInLocationOccupationArray(T : Train; JourneyA, JourneyB : Integer; Location : Integer; StartTime, EndTime : TDateTime;
+PROCEDURE InsertDataInLocationOccupationArray(T : TrainElement; JourneyA, JourneyB : Integer; Location : Integer; StartTime, EndTime : TDateTime;
                                               LocationState : LocationOccupationStateType; OUT ErrorMsg : String; OUT OK : Boolean);
 { Insert data in the Location Occupation array }
 
@@ -50,7 +50,7 @@ PROCEDURE SetLocationOccupationAllDayState(LocoChip : Integer; Location : Intege
 PROCEDURE SetUpAllLocationOccupationsAbInitio(IsTimetableLoading : Boolean; OUT OK : Boolean);
 { Set up all train and track circuit locations }
 
-PROCEDURE SetUpTrainLocationOccupationsAbInitio(T : Train; OUT OK : Boolean);
+PROCEDURE SetUpTrainLocationOccupationsAbInitio(T : TrainElement; OUT OK : Boolean);
 { Set up a given train's locations }
 
 PROCEDURE WriteLocationOccupations(IncludeLocationOccupationStatus, WriteToFile : Boolean);
@@ -350,7 +350,7 @@ BEGIN
   END; {TRY}
 END; { ClearAllLocationOccupations }
 
-PROCEDURE DeleteTrainLocationOccupation(T : Train);
+PROCEDURE DeleteTrainLocationOccupation(T : TrainElement);
 { Clear the location occupation array for a given train, apart from the first, start of day, occupation }
 VAR
   Location : Integer;
@@ -369,13 +369,13 @@ VAR
   END; { DeleteElementFromLocationOccupationStateArray }
 
 BEGIN
-  WITH T^ DO BEGIN
+  WITH Trains[T] DO BEGIN
     Log(Train_LocoChipStr + ' D Deleting location occupation');
     FOR Location := 0 TO High(Locations) DO BEGIN
       LocationOccupationArrayPos := 0;
       WHILE LocationOccupationArrayPos <= High(LocationOccupations[Location]) DO BEGIN
         WITH LocationOccupations[Location, LocationOccupationArrayPos] DO BEGIN
-          IF LocationOccupation_LocoChip = T^.Train_LocoChip THEN BEGIN
+          IF LocationOccupation_LocoChip = Train_LocoChip THEN BEGIN
             Log(Train_LocoChipStr + ' D ' + DisplayJourneyNumbers(T, LocationOccupation_JourneyA, LocationOccupation_JourneyB)
                                   + 'Deleting occupation at pos=' + IntToStr(LocationOccupationArrayPos)
                                   + ' of ' + LocationToStr(Location)
@@ -391,7 +391,7 @@ BEGIN
   END; {WITH}
 END; { DeleteTrainLocationOccupation }
 
-PROCEDURE CheckLocationOccupation(T : Train; JourneyA, JourneyB : Integer; Location : Integer; StartTime, EndTime : TDateTime; OUT OK: Boolean);
+PROCEDURE CheckLocationOccupation(T : TrainElement; JourneyA, JourneyB : Integer; Location : Integer; StartTime, EndTime : TDateTime; OUT OK: Boolean);
 { Checks whether it's ok to insert the data in the array. If the location has an unknown occupation starting at 00:01, and our occupation starts at 00:01, it's ok, as it's
   presumably us
 }
@@ -401,7 +401,7 @@ VAR
   ErrorMsg : String;
 
 BEGIN
-  WITH T^ DO BEGIN
+  WITH Trains[T] DO BEGIN
     IF Location = UnknownLocation THEN BEGIN
       OK := True;
       Log(Train_LocoChipStr + ' D ' + DisplayJourneyNumbers(T, JourneyA, JourneyB)
@@ -530,7 +530,7 @@ BEGIN
   END; {WITH}
 END; { CheckLocationOccupation }
 
-PROCEDURE CheckJourneyLocations(T : Train; JourneyA : Integer; IsTimetableLoading : Boolean; OUT OK : Boolean);
+PROCEDURE CheckJourneyLocations(T : TrainElement; JourneyA : Integer; IsTimetableLoading : Boolean; OUT OK : Boolean);
 { Checks whether a train on a particular journey has somewhere to end up }
 CONST
   CurrentlyRouteing = True;
@@ -556,7 +556,7 @@ VAR
   SuccessMsg : String;
 
 BEGIN
-  WITH T^ DO BEGIN
+  WITH Trains[T] DO BEGIN
     OK := True;
 
     Log(Train_LocoChipStr + ' D ' + DisplayJourneyNumber(JourneyA) + 'CHECKING JOURNEY LOCATIONS:');
@@ -830,7 +830,7 @@ BEGIN
   END; {WITH}
 END; { CheckJourneyLocations }
 
-PROCEDURE InsertDataInLocationOccupationArray(T : Train; JourneyA, JourneyB : Integer; Location : Integer; StartTime, EndTime : TDateTime;
+PROCEDURE InsertDataInLocationOccupationArray(T : TrainElement; JourneyA, JourneyB : Integer; Location : Integer; StartTime, EndTime : TDateTime;
                                               LocationState : LocationOccupationStateType; OUT ErrorMsg : String; OUT OK : Boolean);
 { Insert data in the Location Occupation array }
 VAR
@@ -842,182 +842,184 @@ VAR
 
 BEGIN
   TRY
-    OK := True;
-    Position := 0;
+    WITH Trains[T] DO BEGIN
+      OK := True;
+      Position := 0;
 
-    IF Location = UnknownLocation THEN
-      Log(T^.Train_LocoChipStr + ' X Unknown location in InsertDataInLocationOccupationArray')
-    ELSE BEGIN
-      { Only record locations where trains might be stationary }
-      IF Locations[Location].Location_RecordInLocationOccupationArray THEN BEGIN
-        IF Length(LocationOccupations) = 0 THEN
-          { add the first entry }
-          Position := 0
-        ELSE BEGIN
-          { work our way through the location occupation array }
-          LocationOccupationArrayPos := -1;
-          WHILE OK
-          AND (LocationOccupationArrayPos < High(LocationOccupations[Location]))
-          DO BEGIN
-            Inc(LocationOccupationArrayPos);
-            { check if the location is already occupied, except when we add out-of-use occupations, which deletes all other occupations }
-            IF LocationState = LocationOutOfUseOccupation THEN BEGIN
-              IF LocationOccupations[Location, LocationOccupationArrayPos].LocationOccupation_State = LocationOutOfUseOccupation THEN
-                { no point reinserting it }
-                Exit;
-            END ELSE
-              IF (T <> NIL)
-              AND (T^.Train_LocoChip <> LocationOccupations[Location][LocationOccupationArrayPos].LocationOccupation_LocoChip)
-              THEN BEGIN
-                CheckLocationOccupation(T, JourneyA, JourneyB,
-                                        Location,
-                                        StartTime,
-                                        EndTime,
-                                        OK);
-                IF NOT OK THEN
-                  Log(T^.Train_LocoChipStr + ' D ' + DisplayJourneyNumber(JourneyA)
-                                           + 'LocationOccupation failure in InsertDataInLocationOccupationArray');
-              END;
-          END; {WHILE}
-        END;
-
-        IF Length(LocationOccupations[Location]) > 0 THEN BEGIN
-          { subsequent entries }
-          IF OK THEN BEGIN
-            OK := False;
-            { now to work out where the insertion should be: is it before the first element in the array? }
-            IF StartTime < LocationOccupations[Location][0].LocationOccupation_StartTime THEN BEGIN
-              Position := 0;
-              OK := True;
-            END ELSE
-              IF StartTime > LocationOccupations[Location][High(LocationOccupations[Location])].LocationOccupation_StartTime THEN BEGIN
-                { or after the last element in the array? }
-                Position := High(LocationOccupations[Location]) + 1;
-                OK := True;
-              END ELSE BEGIN
-                IF (High(LocationOccupations[Location]) <> 0)
-                AND (StartTime = LocationOccupations[Location][High(LocationOccupations[Location])].LocationOccupation_StartTime)
-                THEN
-                  { if it's the same start time, something is amiss, unless it's the first start time of the day (as an initial holding record may have been added at start
-                    up) where we can substitute the new data.
-                  }
-                  ErrorMsg := 'start time ' + TimeToHMStr(StartTime) + ' is the same as an existing start time for the same loco'
-                ELSE
-                  IF StartTime = LocationOccupations[Location][High(LocationOccupations[Location])].LocationOccupation_StartTime
-                  THEN BEGIN
-                    { if it's the same but for the same loco, no point in flagging it as an error }
-                    IF NOT SystemOnline
-                    OR ((T <> NIL)
-                        AND (EndTime = LocationOccupations[Location][High(LocationOccupations[Location])].LocationOccupation_EndTime)
-                        AND (T^.Train_LocoChip = LocationOccupations[Location][High(LocationOccupations[Location])].LocationOccupation_LocoChip))
-                      THEN
-                        Exit
-                      ELSE
-                        ErrorMsg := 'start time ' + TimeToHMStr(StartTime) + ' is the same as an existing start time for '
-                                    + LocoChipToStr(LocationOccupations[Location][High(LocationOccupations[Location])].LocationOccupation_LocoChip)
-                                    + ' (attempting to replace '
-                                    + LocationOccupationStateToStr(LocationOccupations[Location][High(LocationOccupations[Location])].LocationOccupation_State)
-                                    + ' with ' + LocationOccupationStateToStr(LocationState) +')';
-                  END ELSE BEGIN
-                    { so it should be somewhere in the middle }
-                    LocationOccupationArrayPos := 0;
-                    WHILE LocationOccupationArrayPos < High(LocationOccupations[Location]) DO BEGIN
-                      IF (StartTime > LocationOccupations[Location][LocationOccupationArrayPos].LocationOccupation_StartTime)
-                      AND (StartTime < LocationOccupations[Location][LocationOccupationArrayPos + 1].LocationOccupation_StartTime)
-                      THEN BEGIN
-                        Position := LocationOccupationArrayPos + 1;
-                        OK := True;
-                      END;
-                      Inc(LocationOccupationArrayPos);
-                    END; {WHILE}
-                  END;
-              END;
-          END;
-        END;
-
-        IF NOT OK THEN BEGIN
-          IF T = NIL THEN BEGIN
-            ErrorMsg := 'Start journey ' + IntToStr(JourneyA) + ': '
-                        + 'error in InsertDataInLocationOccupationArray routine - '
-                        + TimeToHMStr(StartTime) + ' to ' + TimeToHMStr(EndTime) + ' at ' + LocationToStr(Location, ShortStringType)
-                        + IfThen(Length(GetTrackCircuitsForLocation(Location)) = 0,
-                                 '',
-                                 ' (' + DisplayTrackCircuitsForLocation(Location) + ')')
-                        + ' not inserted: '
-                        + ErrorMsg;
-            Log('EG ' + ErrorMsg + ' {INDENT=0} {WRAP=SCREENWIDTH}');
-          END ELSE BEGIN
-            ErrorMsg := 'Loco ' + LocoChipToStr(T^.Train_LocoChip)
-                        + ', start journey ' + IntToStr(JourneyA) + ': '
-                        + 'error in InsertDataInLocationOccupationArray routine - '
-                        + TimeToHMStr(StartTime) + ' to ' + TimeToHMStr(EndTime) + ' at ' + LocationToStr(Location, ShortStringType)
-                        + IfThen(Length(GetTrackCircuitsForLocation(Location)) = 0,
-                                 '',
-                                 ' (' + DisplayTrackCircuitsForLocation(Location) + ')')
-                        + ' not inserted: '
-                        + ErrorMsg;
-            Log(T^.Train_LocoChipStr + ' EG ' + ErrorMsg + ' {INDENT=0} {WRAP=SCREENWIDTH}');
-          END;
-        END ELSE BEGIN
-          IF T = NIL THEN BEGIN
-            { probably being added before we read in the timetable, so we don't know if we know which locos these are }
-            DebugStr := DisplayJourneyNumber(JourneyA) + 'adding '
-                        + LocationToStr(Location, ShortStringType)
-                        + IfThen(Length(GetTrackCircuitsForLocation(Location)) = 0,
-                                 '',
-                                 ' (' + DisplayTrackCircuitsForLocation(Location) + ')')
-                        + ' to LocationOccupations array at pos=0'
-                        + ' (' + TimeToHMStr(StartTime) + ' to ' + TimeToHMStr(EndTime)
-                        + ') [' + LocationOccupationStateToStr(LocationState)
-                        + ']';
-
-            Log('D ' + DebugStr);
-          END ELSE BEGIN
-            DebugStr := DisplayJourneyNumber(JourneyA) + 'adding '
-                        + LocationToStr(Location, ShortStringType)
-                        + IfThen(Length(GetTrackCircuitsForLocation(Location)) = 0,
-                                 '',
-                                 ' (' + DisplayTrackCircuitsForLocation(Location) + ')')
-                        + ' to LocationOccupations array at pos=' + IntToStr(Position)
-                        + ' (' + TimeToHMStr(StartTime) + ' to ' + TimeToHMStr(EndTime)
-                        + ') [' + LocationOccupationStateToStr(LocationState)
-                        + ']';
-
-            Log(T^.Train_LocoChipStr + ' D ' + DebugStr);
-          END;
-
-          WITH NewLocationOccupationRecord DO BEGIN
-            IF T = NIL THEN
-              LocationOccupation_LocoChip := UnknownLocoChip
-            ELSE
-              LocationOccupation_LocoChip := T^.Train_LocoChip;
-            LocationOccupation_JourneyA := JourneyA;
-            LocationOccupation_JourneyB := JourneyB;
-            LocationOccupation_StartTime := StartTime;
-            LocationOccupation_EndTime := EndTime;
-            LocationOccupation_State := LocationState;
-          END; {WITH}
-
-          SetLength(LocationOccupations[Location], Length(LocationOccupations[Location]) + 1);
-          { Move all existing elements up one }
-          IF Length(LocationOccupations[Location]) = 1 THEN
-            LocationOccupations[Location][0] := NewLocationOccupationRecord
+      IF Location = UnknownLocation THEN
+        Log(Train_LocoChipStr + ' X Unknown location in InsertDataInLocationOccupationArray')
+      ELSE BEGIN
+        { Only record locations where trains might be stationary }
+        IF Locations[Location].Location_RecordInLocationOccupationArray THEN BEGIN
+          IF Length(LocationOccupations) = 0 THEN
+            { add the first entry }
+            Position := 0
           ELSE BEGIN
-            FOR I := (Length(LocationOccupations[Location]) - 1) DOWNTO (Position + 1) DO
-              LocationOccupations[Location][I] := LocationOccupations[Location][I - 1];
-            { and insert the new element }
-            LocationOccupations[Location][Position] := NewLocationOccupationRecord;
+            { work our way through the location occupation array }
+            LocationOccupationArrayPos := -1;
+            WHILE OK
+            AND (LocationOccupationArrayPos < High(LocationOccupations[Location]))
+            DO BEGIN
+              Inc(LocationOccupationArrayPos);
+              { check if the location is already occupied, except when we add out-of-use occupations, which deletes all other occupations }
+              IF LocationState = LocationOutOfUseOccupation THEN BEGIN
+                IF LocationOccupations[Location, LocationOccupationArrayPos].LocationOccupation_State = LocationOutOfUseOccupation THEN
+                  { no point reinserting it }
+                  Exit;
+              END ELSE
+                IF (T <= High(Trains))
+                AND (Train_LocoChip <> LocationOccupations[Location][LocationOccupationArrayPos].LocationOccupation_LocoChip)
+                THEN BEGIN
+                  CheckLocationOccupation(T, JourneyA, JourneyB,
+                                          Location,
+                                          StartTime,
+                                          EndTime,
+                                          OK);
+                  IF NOT OK THEN
+                    Log(Train_LocoChipStr + ' D ' + DisplayJourneyNumber(JourneyA)
+                                          + 'LocationOccupation failure in InsertDataInLocationOccupationArray');
+                END;
+            END; {WHILE}
+          END;
+
+          IF Length(LocationOccupations[Location]) > 0 THEN BEGIN
+            { subsequent entries }
+            IF OK THEN BEGIN
+              OK := False;
+              { now to work out where the insertion should be: is it before the first element in the array? }
+              IF StartTime < LocationOccupations[Location][0].LocationOccupation_StartTime THEN BEGIN
+                Position := 0;
+                OK := True;
+              END ELSE
+                IF StartTime > LocationOccupations[Location][High(LocationOccupations[Location])].LocationOccupation_StartTime THEN BEGIN
+                  { or after the last element in the array? }
+                  Position := High(LocationOccupations[Location]) + 1;
+                  OK := True;
+                END ELSE BEGIN
+                  IF (High(LocationOccupations[Location]) <> 0)
+                  AND (StartTime = LocationOccupations[Location][High(LocationOccupations[Location])].LocationOccupation_StartTime)
+                  THEN
+                    { if it's the same start time, something is amiss, unless it's the first start time of the day (as an initial holding record may have been added at start
+                      up) where we can substitute the new data.
+                    }
+                    ErrorMsg := 'start time ' + TimeToHMStr(StartTime) + ' is the same as an existing start time for the same loco'
+                  ELSE
+                    IF StartTime = LocationOccupations[Location][High(LocationOccupations[Location])].LocationOccupation_StartTime
+                    THEN BEGIN
+                      { if it's the same but for the same loco, no point in flagging it as an error }
+                      IF NOT SystemOnline
+                      OR ((T <= High(Trains))
+                          AND (EndTime = LocationOccupations[Location][High(LocationOccupations[Location])].LocationOccupation_EndTime)
+                          AND (Train_LocoChip = LocationOccupations[Location][High(LocationOccupations[Location])].LocationOccupation_LocoChip))
+                        THEN
+                          Exit
+                        ELSE
+                          ErrorMsg := 'start time ' + TimeToHMStr(StartTime) + ' is the same as an existing start time for '
+                                      + LocoChipToStr(LocationOccupations[Location][High(LocationOccupations[Location])].LocationOccupation_LocoChip)
+                                      + ' (attempting to replace '
+                                      + LocationOccupationStateToStr(LocationOccupations[Location][High(LocationOccupations[Location])].LocationOccupation_State)
+                                      + ' with ' + LocationOccupationStateToStr(LocationState) +')';
+                    END ELSE BEGIN
+                      { so it should be somewhere in the middle }
+                      LocationOccupationArrayPos := 0;
+                      WHILE LocationOccupationArrayPos < High(LocationOccupations[Location]) DO BEGIN
+                        IF (StartTime > LocationOccupations[Location][LocationOccupationArrayPos].LocationOccupation_StartTime)
+                        AND (StartTime < LocationOccupations[Location][LocationOccupationArrayPos + 1].LocationOccupation_StartTime)
+                        THEN BEGIN
+                          Position := LocationOccupationArrayPos + 1;
+                          OK := True;
+                        END;
+                        Inc(LocationOccupationArrayPos);
+                      END; {WHILE}
+                    END;
+                END;
+            END;
+          END;
+
+          IF NOT OK THEN BEGIN
+            IF T = 0 THEN BEGIN
+              ErrorMsg := 'Start journey ' + IntToStr(JourneyA) + ': '
+                          + 'error in InsertDataInLocationOccupationArray routine - '
+                          + TimeToHMStr(StartTime) + ' to ' + TimeToHMStr(EndTime) + ' at ' + LocationToStr(Location, ShortStringType)
+                          + IfThen(Length(GetTrackCircuitsForLocation(Location)) = 0,
+                                   '',
+                                   ' (' + DisplayTrackCircuitsForLocation(Location) + ')')
+                          + ' not inserted: '
+                          + ErrorMsg;
+              Log('EG ' + ErrorMsg + ' {INDENT=0} {WRAP=SCREENWIDTH}');
+            END ELSE BEGIN
+              ErrorMsg := 'Loco ' + LocoChipToStr(Train_LocoChip)
+                          + ', start journey ' + IntToStr(JourneyA) + ': '
+                          + 'error in InsertDataInLocationOccupationArray routine - '
+                          + TimeToHMStr(StartTime) + ' to ' + TimeToHMStr(EndTime) + ' at ' + LocationToStr(Location, ShortStringType)
+                          + IfThen(Length(GetTrackCircuitsForLocation(Location)) = 0,
+                                   '',
+                                   ' (' + DisplayTrackCircuitsForLocation(Location) + ')')
+                          + ' not inserted: '
+                          + ErrorMsg;
+              Log(Train_LocoChipStr + ' EG ' + ErrorMsg + ' {INDENT=0} {WRAP=SCREENWIDTH}');
+            END;
+          END ELSE BEGIN
+            IF T = 0 THEN BEGIN
+              { probably being added before we read in the timetable, so we don't know if we know which locos these are }
+              DebugStr := DisplayJourneyNumber(JourneyA) + 'adding '
+                          + LocationToStr(Location, ShortStringType)
+                          + IfThen(Length(GetTrackCircuitsForLocation(Location)) = 0,
+                                   '',
+                                   ' (' + DisplayTrackCircuitsForLocation(Location) + ')')
+                          + ' to LocationOccupations array at pos=0'
+                          + ' (' + TimeToHMStr(StartTime) + ' to ' + TimeToHMStr(EndTime)
+                          + ') [' + LocationOccupationStateToStr(LocationState)
+                          + ']';
+
+              Log('D ' + DebugStr);
+            END ELSE BEGIN
+              DebugStr := DisplayJourneyNumber(JourneyA) + 'adding '
+                          + LocationToStr(Location, ShortStringType)
+                          + IfThen(Length(GetTrackCircuitsForLocation(Location)) = 0,
+                                   '',
+                                   ' (' + DisplayTrackCircuitsForLocation(Location) + ')')
+                          + ' to LocationOccupations array at pos=' + IntToStr(Position)
+                          + ' (' + TimeToHMStr(StartTime) + ' to ' + TimeToHMStr(EndTime)
+                          + ') [' + LocationOccupationStateToStr(LocationState)
+                          + ']';
+
+              Log(Train_LocoChipStr + ' D ' + DebugStr);
+            END;
+
+            WITH NewLocationOccupationRecord DO BEGIN
+              IF T = 0 THEN
+                LocationOccupation_LocoChip := UnknownLocoChip
+              ELSE
+                LocationOccupation_LocoChip := Train_LocoChip;
+              LocationOccupation_JourneyA := JourneyA;
+              LocationOccupation_JourneyB := JourneyB;
+              LocationOccupation_StartTime := StartTime;
+              LocationOccupation_EndTime := EndTime;
+              LocationOccupation_State := LocationState;
+            END; {WITH}
+
+            SetLength(LocationOccupations[Location], Length(LocationOccupations[Location]) + 1);
+            { Move all existing elements up one }
+            IF Length(LocationOccupations[Location]) = 1 THEN
+              LocationOccupations[Location][0] := NewLocationOccupationRecord
+            ELSE BEGIN
+              FOR I := (Length(LocationOccupations[Location]) - 1) DOWNTO (Position + 1) DO
+                LocationOccupations[Location][I] := LocationOccupations[Location][I - 1];
+              { and insert the new element }
+              LocationOccupations[Location][Position] := NewLocationOccupationRecord;
+            END;
           END;
         END;
       END;
-    END;
+    END; {WITH}
   EXCEPT
     ON E : Exception DO
       Log('EG InsertDataInLocationOccupationArray: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { InsertDataInLocationOccupationArray }
 
-FUNCTION AlternativeAreaOrLocationAvailable(T : Train; Journey : Integer; Area : Integer; OldLocation : Integer; OUT NewLocation : Integer;
+FUNCTION AlternativeAreaOrLocationAvailable(T : TrainElement; Journey : Integer; Area : Integer; OldLocation : Integer; OUT NewLocation : Integer;
                                             OUT NewLocationStartTime : TDateTime; PreRouteing, CurrentlyRouteing, OmitLocoTypeRestriction : Boolean;
                                             FindNextAvailableLocation, MayReselectOldLocation : Boolean; VAR ErrorMsg : String; OUT SuccessMsg : String): Boolean;
 { See if there's an adjacent platform/siding free at the required time. If PresentArea is not specified, we want to replace a specified location. ErrorMsg may tell us why
@@ -1047,7 +1049,7 @@ CONST
   UseEmergencyRouteing = True;
   NoUnitRef = True;
 
-  PROCEDURE FindNextAvailabilityForLocation(T : Train; Journey : Integer; MainLocation : Integer; AdjoiningLocationRequired : Boolean; AdjoiningLocation : Integer;
+  PROCEDURE FindNextAvailabilityForLocation(T : TrainElement; Journey : Integer; MainLocation : Integer; AdjoiningLocationRequired : Boolean; AdjoiningLocation : Integer;
                                             RequestedStartTime : TDateTime; RequiredDurationInMinutes : Integer; OUT ReturnedStartTime : TDateTime;
                                             OUT SuccessMsg : String; OUT OK : Boolean);
   { Returns when the given location is next available, and the adjoining one too if that's required }
@@ -1091,7 +1093,7 @@ CONST
     ToMinute : Integer;
 
   BEGIN
-    WITH T^ DO BEGIN
+    WITH Trains[T] DO BEGIN
       SuccessMsg := '';
       
       IF DebuggingMode THEN
@@ -1223,7 +1225,7 @@ CONST
     SetLength(PossibleLocationsArray, Length(PossibleLocationsArray) - 1);
   END; { DeleteElementFromPossibleLocationsArray }
 
-  PROCEDURE FindPossibleAlternatives(T : Train; Journey : Integer; Area : Integer; OldLocation : Integer; MayReselectOldLocation : Boolean;
+  PROCEDURE FindPossibleAlternatives(T : TrainElement; Journey : Integer; Area : Integer; OldLocation : Integer; MayReselectOldLocation : Boolean;
                                      OUT PossibleAlternativesArray : PossibleLocationsArrayType);
   { Work out which are the possible alternatives }
   VAR
@@ -1240,7 +1242,7 @@ CONST
     TempLocationWeighting : Integer;
 
   BEGIN
-    WITH T^ DO BEGIN
+    WITH Trains[T] DO BEGIN
       WITH Train_JourneysArray[Journey] DO BEGIN
         { Note the direction the train is going in }
         IF Journey = High(Train_JourneysArray) THEN
@@ -1596,7 +1598,7 @@ CONST
                   IF NOT OmitLocoTypeRestriction
                   AND (PossibleLocation_TrainPriority = ExpressOnly)
                   THEN BEGIN
-                    IF NOT T^.Train_journeysArray[Journey].TrainJourney_StoppingOnArrival THEN
+                    IF NOT Train_journeysArray[Journey].TrainJourney_StoppingOnArrival THEN
                       Log(Train_LocoChipStr + ' D ' + DisplayJourneyNumber(Journey)
                                             + LocationToStr(PossibleLocation_PlatformOrFiddleyardLocation)
                                             + ' available even though the train is not an express as it is not stopping')
@@ -1877,7 +1879,7 @@ BEGIN
     OK := False;
     NewLocation := UnknownLocation;
 
-    WITH T^ DO BEGIN
+    WITH Trains[T] DO BEGIN
       DrawLineInLogFile(Train_LocoChip, 'D', '-', UnitRef);
 
       Log(Train_LocoChipStr + ' D J=' + IntToStr(Journey) + ': ' + DescribeJourney(T, Journey));
@@ -2348,7 +2350,7 @@ CONST
   NoTrain = NIL;
 
 VAR
-  T : Train;
+  T : TrainElement;
 
 BEGIN
   T := GetTrainRecord(LocoChip);
@@ -2361,7 +2363,7 @@ BEGIN
                                       ErrorMsg, OK);
 END; { SetLocationOccupationAllDayState }
 
-PROCEDURE AddTrainOccupationsToLocationOccupations(T : Train; IsTimetableLoading : Boolean; OUT ErrorMsg : String; OUT OK : Boolean);
+PROCEDURE AddTrainOccupationsToLocationOccupations(T : TrainElement; IsTimetableLoading : Boolean; OUT ErrorMsg : String; OUT OK : Boolean);
 { Find a loco and record all its locations }
 VAR
   JourneyA : Integer;
@@ -2372,7 +2374,7 @@ BEGIN
   OK := True;
   JourneyA := 0;
 
-  WITH T^ DO BEGIN
+  WITH Trains[T] DO BEGIN
     IF (Train_LocoChip <> UnknownLocoChip)
     AND Train_DiagramFound
     THEN BEGIN
@@ -2394,7 +2396,7 @@ BEGIN
           WITH Train_JourneysArray[JourneyA] DO BEGIN
             JourneyB := JourneyA + 1;
             IF (JourneyB <= Train_TotalJourneys)
-            AND (t^.Train_JourneysArray[JourneyB].TrainJourney_ActualDepartureTime <> 0)
+            AND (Train_JourneysArray[JourneyB].TrainJourney_ActualDepartureTime <> 0)
             THEN
               Log('X J=' + IntToStr(JourneyA ) + ' to be cleared')
             ELSE BEGIN
@@ -2654,7 +2656,7 @@ CONST
 
 VAR
   ErrorMsg : String;
-  T : Train;
+  T : TrainElement;
 
 BEGIN
   DoCheckForUnexpectedData(UnitRef, 'SetUpAllLocationOccupationsAbInitio 1');
@@ -2663,18 +2665,18 @@ BEGIN
   AddStationaryOccupationsToLocationOccupations(OK);
   IF OK THEN BEGIN
     Log('D ADDING NON-STATIONARY OCCUPATIONS TO LOCATION OCCUPATIONS ARRAY {BLANKLINEBEFORE}');
-    T := TrainList;
-    WHILE T <> NIL DO BEGIN
-      WITH T^ DO
+    T := 0;
+    WHILE T <= High(Trains) DO BEGIN
+      WITH Trains[T] DO
         AddTrainOccupationsToLocationOccupations(T, IsTimetableLoading, ErrorMsg, OK);
-      T := T^.Train_NextRecord;
+      Inc(T);
     END; {WHILE}
   END;
   WriteLocationOccupations(NOT IncludeLocationOccupationStatus, NOT WriteToFile);
   DoCheckForUnexpectedData(UnitRef, 'SetUpAllLocationOccupationsAbInitio 2');
 END; { SetUpAllLocationOccupationsAbInitio }
 
-PROCEDURE SetUpTrainLocationOccupationsAbInitio(T : Train; OUT OK : Boolean);
+PROCEDURE SetUpTrainLocationOccupationsAbInitio(T : TrainElement; OUT OK : Boolean);
 { Set up a given train's locations }
 CONST
   IsTimetableLoading = True;
@@ -2683,7 +2685,7 @@ VAR
   ErrorMsg : String;
 
 BEGIN
-  Log(T^.Train_LocoChipStr + ' D REPLACING NON-STATIONARY OCCUPATIONS IN LOCATION OCCUPATIONS ARRAY');
+  Log(Trains[T].Train_LocoChipStr + ' D REPLACING NON-STATIONARY OCCUPATIONS IN LOCATION OCCUPATIONS ARRAY');
   DeleteTrainLocationOccupation(T);
   AddTrainOccupationsToLocationOccupations(T, NOT IsTimetableLoading, ErrorMsg, OK);
 END; { SetUpTrainLocationOccupationsAbInitio }
@@ -2707,14 +2709,14 @@ VAR
   LinesNotAvailableStr : String;
   NewLocation : Integer;
   SuccessMsg : String;
-  T : Train;
+  T : TrainElement;
   TempTime : TDateTime;
 
 BEGIN
   Log('D FINDING PENDING LOCATIONS: {BLANKLINEBEFORE}');
-  T := TrainList;
-  WHILE T <> NIL DO BEGIN
-    WITH T^ DO BEGIN
+  T := 0;
+  WHILE T <= High(Trains) DO BEGIN
+    WITH Trains[T] DO BEGIN
       IF (Train_LocoChip <> UnknownLocoChip)
       AND Train_DiagramFound
       AND (Train_CurrentStatus <> Cancelled)
@@ -2732,12 +2734,12 @@ BEGIN
               IF TrainJourney_LocationsPending THEN BEGIN
                 IF TrainJourney_EndLocation = UnknownLocation THEN BEGIN
                   { Find an alternative }
-                  IF NOT AlternativeAreaOrLocationAvailable(T, Journey, t^.Train_JourneysArray[Journey].TrainJourney_EndArea, UnknownLocation, NewLocation, TempTime,
+                  IF NOT AlternativeAreaOrLocationAvailable(T, Journey, Train_JourneysArray[Journey].TrainJourney_EndArea, UnknownLocation, NewLocation, TempTime,
                                                             PreRouteing, NOT CurrentlyRouteing, NOT OmitLocoTypeRestriction, NOT FindNextAvailableLocation,
                                                             MayReselectOldLocation, ErrorMsg, SuccessMsg)
                   THEN
                     { try again with the loco type restriction lifted }
-                    AlternativeAreaOrLocationAvailable(T, Journey, t^.Train_JourneysArray[Journey].TrainJourney_EndArea, UnknownLocation, NewLocation, TempTime, PreRouteing,
+                    AlternativeAreaOrLocationAvailable(T, Journey, Train_JourneysArray[Journey].TrainJourney_EndArea, UnknownLocation, NewLocation, TempTime, PreRouteing,
                                                        NOT CurrentlyRouteing, OmitLocoTypeRestriction, FindNextAvailableLocation, MayReselectOldLocation, ErrorMsg,
                                                        SuccessMsg);
 
@@ -2874,7 +2876,7 @@ BEGIN
         END;
       END;
     END; {WITH}
-    T := T^.Train_NextRecord;
+    Inc(T);
   END; {WHILE}
 END; { FindPendingLocations }
 

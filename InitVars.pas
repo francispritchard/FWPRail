@@ -773,7 +773,7 @@ TYPE
   TrainStatusType = (ReadyForCreation, WaitingForLightsOn, WaitingForSignalHiddenAspectToClear, WaitingForRouteing, InLightsOnTime, ReadyForRouteing, CommencedRouteing,
                      ReadyToDepart, Departed, RouteingWhileDeparted, RouteCompleted, WaitingForRemovalFromDiagrams, ToBeRemovedFromDiagrams, RemovedFromDiagrams,
                      Missing, MissingAndSuspended, Suspended, NonMoving, Cancelled, UnknownTrainStatus);
-  Train = ^TrainRec;
+  TrainElement = Integer;
 
   TrainRec = RECORD
     Train_LocoChip : Integer;
@@ -839,9 +839,9 @@ TYPE
     Train_LastSignal : Integer;
     Train_LastTC : Integer;
     Train_LightingChipDown : Integer;
-    Train_LightingChipDownAddress : Train;
+    Train_LightingChipDownAddress: TrainElement;
     Train_LightingChipUp : Integer;
-    Train_LightingChipUpAddress : Train;
+    Train_LightingChipUpAddress: TrainElement;
     Train_LightingChipRecordForChip : Integer;
     Train_LightsMsg : String;
     Train_LightsOn : Boolean;
@@ -924,9 +924,6 @@ TYPE
     Train_WorkingTimetableLastArrivalArea : Integer;
     Train_WorkingTimetableLastArrivalTime : TDateTime;
     Train_WorkingTimetableLastEntryNumStr : String;
-
-    { linked-list bit: }
-    Train_NextRecord : Train;
   END;
 
   RouteingExceptionRec = RECORD
@@ -957,7 +954,7 @@ TYPE
   END;
 
   LightsToBeSwitchedOnRec = RECORD
-    LightsToBeSwitchedOn_Train : Train;
+    LightsToBeSwitchedOn_Train: TrainElement;
     LightsToBeSwitchedOn_ColourStr1 : String;
     LightsToBeSwitchedOn_ColourStr2 : String;
     LightsToBeSwitchedOn_Direction1 : DirectionType;
@@ -988,15 +985,6 @@ TYPE
 
   WorkingTimetableRecArrayType = ARRAY OF WorkingTimetableRecType;
 
-  { Diagram-related type declarations }
-  DiagramsEntryType = ^DiagramsRec;
-
-  DiagramsRec = RECORD
-    TrainPtr : Train;
-    { linked-list bit: }
-    NextDiagramsRecord : DiagramsEntryType;
-  END;
-
   { Miscellaneous type declarations }
   ArrivalOrDepartureType = (Arrival, Departure);
   LenzConnectionType = (EthernetConnection, USBConnection, NoConnection);
@@ -1007,7 +995,7 @@ TYPE
   StationMonitorsType = (StationArrivalsDisplay, StationArrivalsAndDeparturesDisplay, StationDeparturesDisplay, StationClockDisplay);
   StatusBarStateType = (Visible, Hidden);
   StringType = (LongStringType, ShortStringType, VeryShortStringType);
-  TrainArrayType = ARRAY OF Train;
+  TrainArrayType = ARRAY OF TrainElement;
 
   LenzSystemRec = RECORD
                 EmergencyStop : Boolean;
@@ -1070,6 +1058,7 @@ VAR
   DayTimeSetByUser : Boolean = False;
   DebuggingMode : Boolean = False;
   DesiredLenzConnection : LenzConnectionType = NoConnection;
+  DiagramsArray : IntegerArrayType;
   DisplayFeedbackStringsInDebugWindow : Boolean = False;
   EditIcon : TIcon;
   EditMode : Boolean = False;
@@ -1168,7 +1157,7 @@ VAR
   SystemOnline : Boolean = False;
   SystemSetOfflineByCommandLineParameter : Boolean = False;
   SystemStatusStr : String = '';
-  TempTrainArray : ARRAY OF Train;
+  TempTrainArray : ARRAY OF TrainElement;
   TerminatingSpeedReductionMode : Boolean = False;
   TestingMode : Boolean = False;
   TextWindowHeight : Word;
@@ -1178,16 +1167,13 @@ VAR
   TrackCircuitHighlighted : Integer = UnknownTrackCircuit;
   TrackCircuits : ARRAY OF TrackCircuitRec;
   TrackCircuitsInitialised : Boolean = False;
+  Trains : ARRAY OF TrainRec;
   UpLineY, DownLineY : Word;
   VerboseFlag : Boolean = False;
   WatchdogTimerCount : Integer = 0;
   WindowPenWidth : Integer = 1;
   WorkingTimetableRecArray : WorkingTimetableRecArrayType;
   Zooming : Boolean = False;
-
-  { Lists }
-  TrainList : Train = NIL;
-  DiagramsList : DiagramsEntryType;
 
   { Various file related variables }
   ErrorLogFile, LargeLogFile, LocoLogFile, ReplayFile, RouteLogFile, SignalPointAndTCLogFile, DiagramsLogFile, WorkingTimetableLogFile, TestLogFile : TextFile;
@@ -5423,8 +5409,6 @@ BEGIN
           IF ErrorMsg = '' THEN
             Point_LastFeedbackStateAsReadIn := ValidateLastPointFeedbackStateAsReadIn(PointsADOTable.FieldByName(Point_LastFeedbackStateAsReadInFieldName).AsString,
                                                                                       Point_ManualOperation, ErrorMsg);
-if p = 7 then
-null;
           IF ErrorMsg = '' THEN
             Point_LastManualStateAsReadIn := ValidateLastPointManualStateAsReadIn(PointsADOTable.FieldByName(Point_LastManualStateAsReadInFieldName).AsString,
                                                                                   Point_ManualOperation, ErrorMsg);

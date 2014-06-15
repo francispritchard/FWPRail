@@ -594,7 +594,7 @@ FUNCTION MissingTrainFoundByUser(KeyToTest : Integer) : Boolean;
 VAR
   I : Integer;
   FoundKey, FoundTrain : Boolean;
-  T : Train;
+  T : TrainElement;
 
 BEGIN
   Result := False;
@@ -608,12 +608,12 @@ BEGIN
     THEN BEGIN
       { we've found one }
       FoundKey := True;
-      T := TrainList;
+      T := 0;
       FoundTrain := False;
-      WHILE (T <> NIL)
+      WHILE (T <= High(Trains))
       AND NOT FoundTrain
       DO BEGIN
-        WITH T^ DO BEGIN
+        WITH Trains[T] DO BEGIN
           IF Train_DiagramFound THEN BEGIN
             IF (Train_CurrentStatus = Missing) OR (Train_CurrentStatus = MissingAndSuspended) THEN BEGIN
               IF Train_MissingNum = KeyToTest THEN BEGIN
@@ -627,7 +627,7 @@ BEGIN
             END;
           END;
         END; {WITH}
-        T := T^.Train_NextRecord;
+        Inc(T);
       END; {WHILE}
     END;
     Inc(I);
@@ -1277,7 +1277,7 @@ VAR
   ShiftKeys : ShiftKeysType;
   StatusBarPanelText : String;
   Str : String;
-  T : Train;
+  T : TrainElement;
   TC : Integer;
 //  TempKey : Word;
   XTypeOfLine : TypeOfLine;
@@ -2445,12 +2445,12 @@ BEGIN { KeyPressedDown }
                 HelpMsg := 'turn all loco lights out';
                 IF NOT HelpRequired THEN BEGIN
                   IF MessageDialogueWithDefault('Turn all loco lights off?', NOT StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrYes THEN BEGIN
-                    T := TrainList;
-                    WHILE T <> NIL DO BEGIN
-                      WITH T^ DO
+                    T := 0;
+                    WHILE T <= High(Trains) DO BEGIN
+                      WITH Trains[T] DO
                         IF Train_LightsType <> NoLights THEN
                           TurnLightsOff(Train_LocoChip);
-                      T := T^.Train_NextRecord;
+                      Inc(T);
                     END; {WHILE}
                   END;
                 END;
@@ -2496,11 +2496,11 @@ BEGIN { KeyPressedDown }
                                                 NOT StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrYes
                   THEN BEGIN
                     Log('A Rebuilding all location occupations');
-                    T := TrainList;
-                    WHILE T <> NIL DO BEGIN
-                      Log(T^.Train_LocoChipStr + ' G Rebuilding location occupations');
+                    T := 0;
+                    WHILE T <= High(Trains) DO BEGIN
+                      Log(Trains[T].Train_LocoChipStr + ' G Rebuilding location occupations');
                       SetUpAllLocationOccupationsAbInitio(NOT TimetableLoading, OK);
-                      T := T^.Train_NextRecord;
+                      Inc(T);
                     END; {WHILE}
                     Debug('Location occupations rebuilt');
                   END;
@@ -2844,11 +2844,11 @@ BEGIN { KeyPressedDown }
               BEGIN
                 HelpMsg := 'write all train records to .csv file';
                 IF NOT HelpRequired THEN BEGIN
-                  T := TrainList;
-                  WHILE T <> NIL DO BEGIN
-                    WITH T^ DO
+                  T := 0;
+                  WHILE T <= High(Trains) DO BEGIN
+                    WITH Trains[T] DO
                       WriteTrainRecord(T);
-                    T := T^.Train_NextRecord;
+                    Inc(T);
                   END; {WHILE}
                 END;
               END;
@@ -2874,11 +2874,11 @@ BEGIN { KeyPressedDown }
               BEGIN
                 HelpMsg := 'write train only records to .csv file';
                 IF NOT HelpRequired THEN BEGIN
-                  T := TrainList;
-                  WHILE T <> NIL DO BEGIN
-                    IF T^.Train_DiagramFound THEN
+                  T := 0;
+                  WHILE T <= High(Trains) DO BEGIN
+                    IF Trains[T].Train_DiagramFound THEN
                       WriteTrainRecord(T);
-                    T := T^.Train_NextRecord;
+                    Inc(T);
                   END; {WHILE}
                 END;
               END;
@@ -3067,10 +3067,10 @@ BEGIN { KeyPressedDown }
                     Inc(R);
                   END; {WHILE}
 
-                  T := TrainList;
-                  WHILE T <> NIL DO BEGIN
-                    WITH T^ DO BEGIN
-                      IF T^.Train_DiagramFound THEN BEGIN
+                  T := 0;
+                  WHILE T <= High(Trains) DO BEGIN
+                    WITH Trains[T] DO BEGIN
+                      IF Trains[T].Train_DiagramFound THEN BEGIN
                         FOR I := FirstRouteCreationHeldMsgNumber TO LastRouteCreationHeldMsgNumber DO BEGIN
                           IF Train_RouteCreationHeldMsgWrittenArray[I] THEN BEGIN
                             Train_RouteCreationHeldMsgWrittenArray[I] := False;
@@ -3079,7 +3079,7 @@ BEGIN { KeyPressedDown }
                         END;
                       END;
                     END; {WITH}
-                    T := T^.Train_NextRecord;
+                    Inc(T);
                   END; {WHILE}
 
                   Debug('Logging current routeing status and republishing any route messages');
@@ -3157,9 +3157,9 @@ BEGIN { KeyPressedDown }
                                                 NOT StopTimer, mtConfirmation, [mbYes, mbNo], mbYes) = mrYes
                   THEN BEGIN
                     Log('X Suspending all active trains');
-                    T := TrainList;
-                    WHILE T <> NIL DO BEGIN
-                      WITH T^ DO BEGIN
+                    T := 0;
+                    WHILE T <= High(Trains) DO BEGIN
+                      WITH Trains[T] DO BEGIN
                         IF Train_DiagramFound THEN BEGIN
                           IF (Train_CurrentStatus <> Missing)
                           AND (Train_CurrentStatus <> MissingAndSuspended)
@@ -3167,7 +3167,7 @@ BEGIN { KeyPressedDown }
                             ChangeTrainStatus(T, Suspended);
                         END;
                       END; {WITH}
-                      T := T^.Train_NextRecord;
+                      Inc(T);
                     END; {WHILE}
                     Log('XG All active trains suspended');
                   END;
@@ -5172,11 +5172,11 @@ BEGIN { KeyPressedDown }
               BEGIN
                 HelpMsg := 'show full journey record window';
                 IF NOT HelpRequired THEN BEGIN
-                  T := TrainList;
-                  WHILE T <> NIL DO BEGIN
-                    IF T^.Train_DiagramFound THEN
+                  T := 0;
+                  WHILE T <= High(Trains) DO BEGIN
+                    IF Trains[T].Train_DiagramFound THEN
                       WriteTrainJourneysRecordToLockListWindow(T, NOT FullRecord);
-                    T := T^.Train_NextRecord;
+                    Inc(T);
                   END; {WHILE}
                 END;
               END;
@@ -5187,11 +5187,11 @@ BEGIN { KeyPressedDown }
               BEGIN
                 HelpMsg := 'write train journeys record to file';
                 IF NOT HelpRequired THEN BEGIN
-                  T := TrainList;
-                  WHILE T <> NIL DO BEGIN
-                    IF T^.Train_DiagramFound THEN
+                  T := 0;
+                  WHILE T <= High(Trains) DO BEGIN
+                    IF Trains[T].Train_DiagramFound THEN
                       WriteTrainJourneysRecordToLogFile(T, FullRecord);
-                    T := T^.Train_NextRecord;
+                    Inc(T);
                   END; {WHILE}
                 END;
               END;
@@ -5199,11 +5199,11 @@ BEGIN { KeyPressedDown }
               BEGIN
                 HelpMsg := 'show partial journey record visibility';
                 IF NOT HelpRequired THEN BEGIN
-                  T := TrainList;
-                  WHILE T <> NIL DO BEGIN
-                    IF T^.Train_DiagramFound THEN
+                  T := 0;
+                  WHILE T <= High(Trains) DO BEGIN
+                    IF Trains[T].Train_DiagramFound THEN
                       WriteTrainJourneysRecordToLockListWindow(T, FullRecord);
-                    T := T^.Train_NextRecord;
+                    Inc(T);
                   END; {WHILE}
                 END;
               END;
@@ -5211,11 +5211,11 @@ BEGIN { KeyPressedDown }
               BEGIN
                 HelpMsg := 'write partial train journeys record to file';
                 IF NOT HelpRequired THEN BEGIN
-                  T := TrainList;
-                  WHILE T <> NIL DO BEGIN
-                    IF T^.Train_DiagramFound THEN
+                  T := 0;
+                  WHILE T <= High(Trains) DO BEGIN
+                    IF Trains[T].Train_DiagramFound THEN
                       WriteTrainJourneysRecordToLogFile(T, NOT FullRecord);
-                    T := T^.Train_NextRecord;
+                    Inc(T);
                   END; {WHILE}
                 END;
               END;

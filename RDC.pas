@@ -116,7 +116,7 @@ VAR
   RailDriverReady : Boolean = False;
   RegulatorPos : Cardinal = 0;
   ReverserData, RegulatorData : Byte;
-  T : Train = NIL;
+  T : TrainElement = 0;
   ThreeWaySwitchAData, ThreeWaySwitchBData : Byte;
   TrainBrakeData : Byte;
   TrainBrakePos : Cardinal = 0;
@@ -124,7 +124,7 @@ VAR
 PROCEDURE CloseRailDriver;
 { Close the RailDriver unit down }
 
-PROCEDURE SetSpeedByRailDriverConsole(T : Train);
+PROCEDURE SetSpeedByRailDriverConsole(T : TrainElement);
 { Set the speed by using the console }
 
 PROCEDURE StartRailDriver;
@@ -558,14 +558,14 @@ BEGIN
   END;
 END; { GetTrainBrakePos }
 
-PROCEDURE SetSpeedByRailDriverConsole(T : Train);
+PROCEDURE SetSpeedByRailDriverConsole(T : TrainElement);
 { Set the speed by using the console }
 VAR
   OK : Boolean;
   PresentSpeedNum : Integer;
 
 BEGIN
-  WITH T^ DO BEGIN
+  WITH Trains[T] DO BEGIN
     { Get current speed }
     IF SystemOnline THEN
       PresentSpeedNum := GetLenzSpeed(Train_LocoChip, NOT ForceARead)
@@ -1862,10 +1862,10 @@ VAR
   I : Integer;
   NewDigit : String;
   LocoChipByButtonAsInteger : Integer;
-  T : Train;
+  T : TrainElement;
 
 BEGIN
-  T := NIL;
+  T := 0;
 
   { See if the controls are set to neural positions }
   IF ButtonPressed[27] THEN BEGIN
@@ -2004,15 +2004,15 @@ BEGIN
                 LocoSelectionInProgress := False;
               END ELSE BEGIN
                 LocoChipByButtonAsInteger := StrToInt(LocoChipByButton);
-                T := TrainList;
+                T := 0;
                 LocoExists := False;
-                WHILE (T <> NIL)
+                WHILE (T <= High(Trains))
                 AND NOT LocoExists
                 DO BEGIN
-                  IF T^.Train_LocoChip = LocoChipByButtonAsInteger THEN
+                  IF Trains[T].Train_LocoChip = LocoChipByButtonAsInteger THEN
                     LocoExists := True
                   ELSE
-                    T := T^.Train_NextRecord;
+                    Inc(T);
                 END; {WHILE}
 
                 IF NOT LocoExists THEN BEGIN
@@ -2063,7 +2063,7 @@ BEGIN
           END;
         END;
 
-        IF T <> NIL THEN BEGIN
+        IF T <> 0 THEN BEGIN
 //          T^.Train_ControlledByRDC := True;
           SetSpeedByRailDriverConsole(T);
         END;

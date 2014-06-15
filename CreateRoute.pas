@@ -31,7 +31,7 @@ VAR
 PROCEDURE CreateClearingSubRouteArray(Route, SubRoute : Integer);
 { Takes the subroute setting up array and converts it to clear the subroute }
 
-PROCEDURE CreateInitialRouteRelatedArrays(T : Train; LocoChip : Integer; RouteArray : StringArrayType; AutoRouteSetting : Boolean;
+PROCEDURE CreateInitialRouteRelatedArrays(T : TrainElement; LocoChip : Integer; RouteArray : StringArrayType; AutoRouteSetting : Boolean;
                                           StartSignal, EndSignal, EndBufferStop, StartLine, EndLine : Integer);
 { Set up the various route-related arrays }
 
@@ -43,7 +43,7 @@ PROCEDURE CreateRouteArrayFromLockingArray(Route : Integer; LockingArray : Strin
   end of the section of the array it controls. Start off by adding the signal at the very start of the route (it effectively throws away the signal at the end of the route,
   as that should always be on).
 }
-PROCEDURE CreateRouteArraysForTrain(T : Train);
+PROCEDURE CreateRouteArraysForTrain(T : TrainElement);
 { See what routeing needs doing for the given train }
 
 PROCEDURE FindAndHighlightAllRoutes(RouteStartLine : Integer; RouteDirection : DirectionType; TrainType : TypeOfTrainType; TrainLength : Integer;
@@ -2625,7 +2625,7 @@ BEGIN
   END; {TRY}
 END; { FindNextSignalOrBufferStop }
 
-PROCEDURE CreateInitialRouteRelatedArrays(T : Train; LocoChip : Integer; RouteArray : StringArrayType; AutoRouteSetting : Boolean;
+PROCEDURE CreateInitialRouteRelatedArrays(T : TrainElement; LocoChip : Integer; RouteArray : StringArrayType; AutoRouteSetting : Boolean;
                                           StartSignal, EndSignal, EndBufferStop, StartLine, EndLine : Integer);
 { Set up the various route-related arrays }
 VAR
@@ -2860,7 +2860,7 @@ BEGIN
   END; {TRY}
 END; { CreateClearingSubRouteArray }
 
-FUNCTION JourneyAheadIsClear(T : Train; S, Route, Journey : Integer; StartLine, EndLine : Integer; ArrivalTime : TDateTime; VAR DraftRouteArray : StringArrayType) : Boolean;
+FUNCTION JourneyAheadIsClear(T : TrainElement; S, Route, Journey : Integer; StartLine, EndLine : Integer; ArrivalTime : TDateTime; VAR DraftRouteArray : StringArrayType) : Boolean;
 { Tests the journey given - if clear returns true; else tries alternative routes - if one of those if clear, substitute it for the original journey; if none are clear,
   return true anyway, as otherwise the routeing will never happen (??? ****).
 }
@@ -2892,7 +2892,7 @@ BEGIN
   Result := False;
 
   TRY
-    WITH T^ DO BEGIN
+    WITH Trains[T] DO BEGIN
       DrawLineInLogFile(Train_LocoChip, 'R', '_', UnitRef);
       Log(Train_LocoChipStr + ' R J=' + IntToStr(Journey)
                             + ': is journey ahead from ' + LineToStr(StartLine) + ' to ' + LineToStr(EndLine) + ' clear?');
@@ -2949,8 +2949,8 @@ BEGIN
               Result := True
             ELSE BEGIN
               { Try again after setting the loco type to unknown - allows express trains to use the goods line and vice versa }
-              SaveTrainType := T^.Train_Type;
-              T^.Train_Type := UnknownTrainType;
+              SaveTrainType := Train_Type;
+              Train_Type := UnknownTrainType;
               Log(Train_LocoChipStr + ' R J=' + IntToStr(Journey)
                                     + ': rechecking alternative subroute availability with train type set to unknown:');
               IF AlternativeAreaOrLocationAvailable(T, Journey, Area, OldLocation, NewLocation, TempTime, NOT PreRouteing, CurrentlyRouteing, NOT OmitLocoTypeRestriction,
@@ -2958,7 +2958,7 @@ BEGIN
               THEN
                 Result := True;
 
-              T^.Train_Type := SaveTrainType;
+              Train_Type := SaveTrainType;
             END;
 
             IF Result = True THEN BEGIN
@@ -3022,7 +3022,7 @@ BEGIN
   END; {TRY}
 END; { JourneyAheadIsClear }
 
-PROCEDURE CreateRouteArraysForTrain(T : Train);
+PROCEDURE CreateRouteArraysForTrain(T : TrainElement);
 { See what routeing needs doing for the given train }
 CONST
   AutoRouteSetting = True;
@@ -3033,6 +3033,7 @@ CONST
   Undo = True;
 
 VAR
+  DiagramsArrayPos : Integer;
   DraftRouteArray : StringArrayType;
   DraftRouteArrayPos : Integer;
   ElementPos : Integer;
@@ -3048,7 +3049,7 @@ VAR
   LockingArray : StringArrayType;
   NewRoute : Integer;
   OtherJourneyCount : Integer;
-  OtherT : Train;
+  OtherT : TrainElement;
   OtherTrainActualDepartureTime : TDateTime;
   OtherTrainArrivalTime : TDateTime;
   OtherTrainDepartureTime : TDateTime;
@@ -3070,7 +3071,6 @@ VAR
 //  TCJourneyFound : Boolean;
   TempLocation : Integer;
   TempRouteCounter : Integer;
-  TestList : DiagramsEntryType;
   ThisTrainArrivalTime : TDateTime;
   ThisTrainDepartureTime : TDateTime;
   ThisTrainTypeNum : Integer;
@@ -3083,7 +3083,7 @@ BEGIN
       InitialTrackCircuitsRequired := True;
       SetLength(DraftRouteArray, 0);
 
-      WITH T^ DO BEGIN
+      WITH Trains[T] DO BEGIN
         { Do not do this test every tick as it is time consuming }
         IF CurrentRailwayTime > IncSecond(Train_RouteCheckedTime, 15) THEN BEGIN { put 15 in as a .ini parameter? **** }
           Train_RouteCheckedTime := CurrentRailwayTime;
@@ -3119,36 +3119,36 @@ BEGIN
                   { See if another train has priority }
                   RouteCreationHeld := False;
                   Train_RouteCreationHoldNum := 0;
-                  OtherT := TrainList;
-                  WHILE (OtherT <> NIL)
+                  OtherT := 0;
+                  WHILE (OtherT <= High(Trains))
                   AND NOT RouteCreationHeld
                   DO BEGIN
                     IF (OtherT <> T)
-                    AND OtherT^.Train_DiagramFound
-                    AND (OtherT^.Train_CurrentStatus <> Cancelled)
-                    AND (OtherT^.Train_CurrentStatus <> Suspended)
-                    AND (OtherT^.Train_CurrentStatus <> MissingAndSuspended)
+                    AND Trains[OtherT].Train_DiagramFound
+                    AND (Trains[OtherT].Train_CurrentStatus <> Cancelled)
+                    AND (Trains[OtherT].Train_CurrentStatus <> Suspended)
+                    AND (Trains[OtherT].Train_CurrentStatus <> MissingAndSuspended)
                     THEN BEGIN
-                      IF Length(OtherT^.Train_JourneysArray) > 0 THEN BEGIN
-                        OtherTrainActualDepartureTime := OtherT^.Train_JourneysArray[OtherT^.Train_CurrentJourney].TrainJourney_ActualDepartureTime;
-                        OtherTrainDepartureTime := OtherT^.Train_JourneysArray[OtherT^.Train_CurrentJourney].TrainJourney_CurrentDepartureTime;
-                        OtherTrainStartArea := OtherT^.Train_JourneysArray[OtherT^.Train_CurrentJourney].TrainJourney_StartArea;
-                        OtherTrainDirection := OtherT^.Train_JourneysArray[OtherT^.Train_CurrentJourney].TrainJourney_Direction;
+                      IF Length(Trains[OtherT].Train_JourneysArray) > 0 THEN BEGIN
+                        OtherTrainActualDepartureTime := Trains[OtherT].Train_JourneysArray[Trains[OtherT].Train_CurrentJourney].TrainJourney_ActualDepartureTime;
+                        OtherTrainDepartureTime := Trains[OtherT].Train_JourneysArray[Trains[OtherT].Train_CurrentJourney].TrainJourney_CurrentDepartureTime;
+                        OtherTrainStartArea := Trains[OtherT].Train_JourneysArray[Trains[OtherT].Train_CurrentJourney].TrainJourney_StartArea;
+                        OtherTrainDirection := Trains[OtherT].Train_JourneysArray[Trains[OtherT].Train_CurrentJourney].TrainJourney_Direction;
 
                         IF OtherTrainActualDepartureTime = 0 THEN BEGIN
                           IF TrainJourney_StartArea = OtherTrainStartArea THEN BEGIN
                             IF TrainJourney_Direction = OtherTrainDirection THEN BEGIN
                               IF CompareTime(TrainJourney_CurrentDepartureTime, OtherTrainDepartureTime) = 0 THEN BEGIN
                                 { give expresses priority }
-                                IF (T^.Train_Type <> ExpressPassenger)
-                                AND (OtherT^.Train_Type = ExpressPassenger)
+                                IF (Train_Type <> ExpressPassenger)
+                                AND (Trains[OtherT].Train_Type = ExpressPassenger)
                                 THEN BEGIN
                                   RouteCreationHeld := True;
                                   Train_RouteCreationHoldNum := 1;
                                   Train_RouteCreationReleasedMsg := '';
                                   Train_RouteCreationHoldMsg := 'J=' + IntToStr(JourneyCount) + ': '
                                                                 + LineToStr(TrainJourney_StartLine) + ' to ' + LineToStr(TrainJourney_EndLine)
-                                                                + ': held as an express train (' + LocoChipToStr(OtherT^.Train_LocoChip) + ')'
+                                                                + ': held as an express train (' + LocoChipToStr(Trains[OtherT].Train_LocoChip) + ')'
                                                                 + ' is due to leave at the same time'
                                                                 + ' (RCH=' + IntToStr(Train_RouteCreationHoldNum) + ')';
                                   IF NOT Train_RouteCreationHeldMsgWrittenArray[Train_RouteCreationHoldNum] THEN BEGIN
@@ -3157,16 +3157,16 @@ BEGIN
                                   END;
                                 END ELSE
                                   { this covers all other non-passenger types that we might be }
-                                  IF (T^.Train_Type <> ExpressPassenger)
-                                  AND (T^.Train_Type <> OrdinaryPassenger)
-                                  AND (OtherT^.Train_Type = OrdinaryPassenger)
+                                  IF (Train_Type <> ExpressPassenger)
+                                  AND (Train_Type <> OrdinaryPassenger)
+                                  AND (Trains[OtherT].Train_Type = OrdinaryPassenger)
                                   THEN BEGIN
                                     RouteCreationHeld := True;
                                     Train_RouteCreationHoldNum := 2;
                                     Train_RouteCreationReleasedMsg := '';
                                     Train_RouteCreationHoldMsg := 'J=' + IntToStr(JourneyCount) + ': '
                                                                   + LineToStr(TrainJourney_StartLine) + ' to ' + LineToStr(TrainJourney_EndLine)
-                                                                  + ': held as a passenger train (' + LocoChipToStr(OtherT^.Train_LocoChip) + ')'
+                                                                  + ': held as a passenger train (' + LocoChipToStr(Trains[OtherT].Train_LocoChip) + ')'
                                                                   + ' is due to leave at the same time'
                                                                   + ' (RCH=' + IntToStr(Train_RouteCreationHoldNum) + ')';
                                     IF NOT Train_RouteCreationHeldMsgWrittenArray[Train_RouteCreationHoldNum] THEN BEGIN
@@ -3180,7 +3180,7 @@ BEGIN
                         END;
                       END;
                     END;
-                    OtherT := OtherT^.Train_NextRecord;
+                    Inc(OtherT);
                   END; {WHILE}
 
                   IF NOT RouteCreationHeld THEN BEGIN
@@ -3290,8 +3290,8 @@ BEGIN
                   IF NOT RouteCreationHeld THEN BEGIN
                     Train_RouteCreationHoldNum := 5;
                     IF (JourneyCount > 0)
-                    AND T^.Train_JourneysArray[JourneyCount - 1].TrainJourney_StoppingOnArrival
-                    AND NOT T^.Train_JourneysArray[JourneyCount - 1].TrainJourney_Cleared
+                    AND Train_JourneysArray[JourneyCount - 1].TrainJourney_StoppingOnArrival
+                    AND NOT Train_JourneysArray[JourneyCount - 1].TrainJourney_Cleared
     // AND False { route-ahead checked - nothing else due to occupy it for some time **** }
                     THEN BEGIN
                       RouteCreationHeld := True;
@@ -3326,30 +3326,30 @@ BEGIN
                       IF S <> UnknownSignal THEN BEGIN
                         IF Length(Signals[S].Signal_LocationsToMonitorArray) > 0 THEN BEGIN
                           { we have to see what is happening in the supplied list of platforms }
-                          TestList := DiagramsList;
-                          WHILE (TestList <> NIL)
+                          DiagramsArrayPos := 0;
+                          WHILE (DiagramsArrayPos <= High(DiagramsArray))
                           AND NOT RouteCreationHeld
                           DO BEGIN
-                            OtherT := TestList^.TrainPtr;
-                            IF Train_LocoChip <> TestList^.TrainPtr^.Train_LocoChip THEN BEGIN
-                              IF OtherT^.Train_DiagramFound
-                              AND (OtherT^.Train_CurrentStatus <> Suspended)
-                              AND (OtherT^.Train_CurrentStatus <> Cancelled)
-                              AND (OtherT^.Train_CurrentStatus <> Departed)
-                              AND (OtherT^.Train_CurrentStatus <> RouteingWhileDeparted)
+                            OtherT := DiagramsArray[DiagramsArrayPos];
+                            IF Train_LocoChip <> Trains[OtherT].Train_LocoChip THEN BEGIN
+                              IF Trains[OtherT].Train_DiagramFound
+                              AND (Trains[OtherT].Train_CurrentStatus <> Suspended)
+                              AND (Trains[OtherT].Train_CurrentStatus <> Cancelled)
+                              AND (Trains[OtherT].Train_CurrentStatus <> Departed)
+                              AND (Trains[OtherT].Train_CurrentStatus <> RouteingWhileDeparted)
                               THEN BEGIN
-                                OtherJourneyCount := OtherT^.Train_CurrentJourney;
-                                WHILE OtherJourneyCount <= OtherT^.Train_TotalJourneys DO BEGIN
+                                OtherJourneyCount := Trains[OtherT].Train_CurrentJourney;
+                                WHILE OtherJourneyCount <= Trains[OtherT].Train_TotalJourneys DO BEGIN
                                   LocationsToMonitorCount := 0;
                                   WHILE LocationsToMonitorCount <= High(Signals[S].Signal_LocationsToMonitorArray) DO BEGIN
                                     TempLocation := Signals[S].Signal_LocationsToMonitorArray[LocationsToMonitorCount];
-                                    IF TempLocation = OtherT^.Train_JourneysArray[OtherJourneyCount].TrainJourney_StartLocation
+                                    IF TempLocation = Trains[OtherT].Train_JourneysArray[OtherJourneyCount].TrainJourney_StartLocation
                                     THEN BEGIN
                                       { allow trains to leave platforms or fiddleyards before routeing things in }
                                       ThisTrainArrivalTime := Train_JourneysArray[Train_CurrentJourney].TrainJourney_CurrentArrivalTime;
-                                      OtherTrainDepartureTime := OtherT^.Train_JourneysArray[OtherJourneyCount].TrainJourney_CurrentDepartureTime;
+                                      OtherTrainDepartureTime := Trains[OtherT].Train_JourneysArray[OtherJourneyCount].TrainJourney_CurrentDepartureTime;
                                       IF CompareTime(IncMinute(ThisTrainArrivalTime, 1), OtherTrainDepartureTime) >= 0 THEN BEGIN
-                                        IF TrainJourney_Direction <> OtherT^.Train_JourneysArray[OtherJourneyCount].TrainJourney_Direction
+                                        IF TrainJourney_Direction <> Trains[OtherT].Train_JourneysArray[OtherJourneyCount].TrainJourney_Direction
                                         THEN BEGIN
                                           RouteCreationHeld := True;
                                           Train_RouteCreationReleasedMsg := '';
@@ -3357,9 +3357,9 @@ BEGIN
                                                                         + LineToStr(TrainJourney_StartLine)
                                                                         + ' to ' + LineToStr(TrainJourney_EndLine)
                                                                         + ': held as another train ('
-                                                                        + LocoChipToStr(OtherT^.Train_LocoChip)
+                                                                        + LocoChipToStr(Trains[OtherT].Train_LocoChip)
                                                                         + ') has an earlier departure time from '
-                                                                        + AreaToStr(OtherT^.Train_JourneysArray[OtherJourneyCount].TrainJourney_StartArea, LongStringType);
+                                                                        + AreaToStr(Trains[OtherT].Train_JourneysArray[OtherJourneyCount].TrainJourney_StartArea, LongStringType);
                                           IF NOT Train_RouteCreationHeldMsgWrittenArray[Train_RouteCreationHoldNum] THEN BEGIN
                                             Log(Train_LocoChipStr + ' R ' + Train_RouteCreationHoldMsg);
                                             Train_RouteCreationHeldMsgWrittenArray[Train_RouteCreationHoldNum] := True;
@@ -3374,7 +3374,7 @@ BEGIN
                                 END; {WHILE}
                               END;
                             END;
-                            TestList := TestList^.NextDiagramsRecord;
+                            Inc(DiagramsArrayPos);
                           END; {WHILE}
                         END;
                       END;
@@ -3390,30 +3390,30 @@ BEGIN
                       IF S <> UnknownSignal THEN BEGIN
                         IF Length(Signals[S].Signal_LocationsToMonitorArray) > 0 THEN BEGIN
                           { we have to see what is happening in the supplied list of platforms }
-                          TestList := DiagramsList;
-                          WHILE (TestList <> NIL)
+                          DiagramsArrayPos := 0;
+                          WHILE (DiagramsArrayPos <= High(DiagramsArray))
                           AND NOT RouteCreationHeld
                           DO BEGIN
-                            OtherT := TestList^.TrainPtr;
-                            IF Train_LocoChip <> TestList^.TrainPtr^.Train_LocoChip THEN BEGIN
-                              IF OtherT^.Train_DiagramFound
-                              AND (OtherT^.Train_CurrentStatus <> Suspended)
-                              AND (OtherT^.Train_CurrentStatus <> Cancelled)
-                              AND (OtherT^.Train_CurrentStatus <> Departed)
-                              AND (OtherT^.Train_CurrentStatus <> RouteingWhileDeparted)
+                            OtherT := DiagramsArray[DiagramsArrayPos];
+                            IF Train_LocoChip <> Trains[OtherT].Train_LocoChip THEN BEGIN
+                              IF Trains[OtherT].Train_DiagramFound
+                              AND (Trains[OtherT].Train_CurrentStatus <> Suspended)
+                              AND (Trains[OtherT].Train_CurrentStatus <> Cancelled)
+                              AND (Trains[OtherT].Train_CurrentStatus <> Departed)
+                              AND (Trains[OtherT].Train_CurrentStatus <> RouteingWhileDeparted)
                               THEN BEGIN
-                                OtherJourneyCount := OtherT^.Train_CurrentJourney;
-                                WHILE OtherJourneyCount <= OtherT^.Train_TotalJourneys DO BEGIN
+                                OtherJourneyCount := Trains[OtherT].Train_CurrentJourney;
+                                WHILE OtherJourneyCount <= Trains[OtherT].Train_TotalJourneys DO BEGIN
                                   LocationsToMonitorCount := 0;
                                   WHILE LocationsToMonitorCount <= High(Signals[S].Signal_LocationsToMonitorArray) DO BEGIN
                                     TempLocation := Signals[S].Signal_LocationsToMonitorArray[LocationsToMonitorCount];
-                                    IF TempLocation = OtherT^.Train_JourneysArray[OtherJourneyCount].TrainJourney_StartLocation
+                                    IF TempLocation = Trains[OtherT].Train_JourneysArray[OtherJourneyCount].TrainJourney_StartLocation
                                     THEN BEGIN
                                       { allow trains that arrived in platforms or fiddleyards first to leave them first }
                                       ThisTrainArrivalTime := Train_JourneysArray[Train_CurrentJourney].TrainJourney_CurrentArrivalTime;
-                                      OtherTrainArrivalTime := OtherT^.Train_JourneysArray[OtherJourneyCount].TrainJourney_CurrentArrivalTime;
+                                      OtherTrainArrivalTime := Trains[OtherT].Train_JourneysArray[OtherJourneyCount].TrainJourney_CurrentArrivalTime;
                                       IF CompareTime(IncMinute(ThisTrainArrivalTime, 1), OtherTrainArrivalTime) >= 0 THEN BEGIN
-                                        IF TrainJourney_Direction = OtherT^.Train_JourneysArray[OtherJourneyCount].TrainJourney_Direction
+                                        IF TrainJourney_Direction = Trains[OtherT].Train_JourneysArray[OtherJourneyCount].TrainJourney_Direction
                                         THEN BEGIN
                                           RouteCreationHeld := True;
                                           Train_RouteCreationReleasedMsg := '';
@@ -3421,7 +3421,7 @@ BEGIN
                                                                         + LineToStr(TrainJourney_StartLine)
                                                                         + ' to ' + LineToStr(TrainJourney_EndLine)
                                                                         + ': held as another train ('
-                                                                        + LocoChipToStr(OtherT^.Train_LocoChip)
+                                                                        + LocoChipToStr(Trains[OtherT].Train_LocoChip)
                                                                         + ') arrived first (at ' + TimeToHMSStr(OtherTrainArrivalTime)
                                                                         + ') so should depart first';
                                           IF NOT Train_RouteCreationHeldMsgWrittenArray[Train_RouteCreationHoldNum] THEN BEGIN
@@ -3438,7 +3438,7 @@ BEGIN
                                 END; {WHILE}
                               END;
                             END;
-                            TestList := TestList^.NextDiagramsRecord;
+                            Inc(DiagramsArrayPos);
                           END; {WHILE}
                         END;
                       END;

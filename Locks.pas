@@ -49,10 +49,10 @@ TYPE
 VAR
   LockListWindow: TLockListWindow;
 
-PROCEDURE CheckRouteAheadLocking(T : Train; RouteArray : StringArrayType; OUT RouteCurrentlyLocked, RoutePermanentlyLocked : Boolean; OUT LockingMsg : String);
+PROCEDURE CheckRouteAheadLocking(T : TrainElement; RouteArray : StringArrayType; OUT RouteCurrentlyLocked, RoutePermanentlyLocked : Boolean; OUT LockingMsg : String);
 { Tests a given route array to see if anything on it is locked }
 
-PROCEDURE ClearHiddenAspectSignals(T : Train; HiddenAspectSignal : Integer);
+PROCEDURE ClearHiddenAspectSignals(T : TrainElement; HiddenAspectSignal : Integer);
 { Clear the hidden aspects of a given signal }
 
 PROCEDURE Forbid;
@@ -99,7 +99,7 @@ PROCEDURE PullSignal{4}(LocoChip, S : Integer; NewIndicatorState : IndicatorStat
 FUNCTION RouteAheadOutOfUse(RouteArray : StringArrayType; OUT LockingMsg : String) : Boolean;
 { Tests a given route locking array to see if anything on it is out of use }
 
-PROCEDURE SetHiddenAspectSignals(T : Train; HiddenAspectSignal, Journey, Route : Integer);
+PROCEDURE SetHiddenAspectSignals(T : TrainElement; HiddenAspectSignal, Journey, Route : Integer);
 { Find and set current and previous hidden aspects }
 
 PROCEDURE SetIndicator(LocoChip, S : Integer; IndicatorState : IndicatorStateType; TheatreIndicatorString : String; Route : Integer; User : Boolean);
@@ -584,7 +584,7 @@ BEGIN
   END;
 END; { UnlockSignalLockedBySpecificRoute }
 
-PROCEDURE SetHiddenAspectSignals(T : Train; HiddenAspectSignal, Journey, Route : Integer);
+PROCEDURE SetHiddenAspectSignals(T : TrainElement; HiddenAspectSignal, Journey, Route : Integer);
 { Find and set current and previous hidden aspects }
 
   PROCEDURE FindPreviousHiddenAspectSignals(RouteArray : StringArrayType; CurrentSignal : Integer; VAR PreviousSignal1, PreviousSignal2 : Integer);
@@ -632,8 +632,8 @@ VAR
 
 BEGIN
   WITH RailWindowBitmap.Canvas DO BEGIN
-    WITH T^ DO BEGIN
-      IF T <> NIL THEN
+    WITH Trains[T] DO BEGIN
+      IF T <= High(Trains) THEN
         TempLocoChipStr := LocoChipToStr(Train_LocoChip)
       ELSE
         TempLocoChipStr := '';
@@ -703,14 +703,14 @@ BEGIN
   END; {WITH}
 END; { SetHiddenAspectSignals }
 
-PROCEDURE ClearHiddenAspectSignals(T : Train; HiddenAspectSignal : Integer);
+PROCEDURE ClearHiddenAspectSignals(T : TrainElement; HiddenAspectSignal : Integer);
 { Clear the hidden aspects of a given signal }
 VAR
   TempLocoChipStr : String;
 
 BEGIN
-  WITH T^ DO BEGIN
-    IF T <> NIL THEN
+  WITH Trains[T] DO BEGIN
+    IF T <= High(Trains) THEN
       TempLocoChipStr := LocoChipToStr(Train_LocoChip)
     ELSE
       TempLocoChipStr := '';
@@ -2047,7 +2047,7 @@ BEGIN
   PullPoint(P, NoLocoChip, NoRoute, NoSubRoute, ForcePoint, ByUser, NOT ErrorMessageRequired, PointResultPending, DebugStr, OK);
 END; { PullPoint-2 }
 
-PROCEDURE CheckRouteAheadLocking(T : Train; RouteArray : StringArrayType; OUT RouteCurrentlyLocked, RoutePermanentlyLocked : Boolean; OUT LockingMsg : String);
+PROCEDURE CheckRouteAheadLocking(T : TrainElement; RouteArray : StringArrayType; OUT RouteCurrentlyLocked, RoutePermanentlyLocked : Boolean; OUT LockingMsg : String);
 { Tests a given route array to see if anything on it is locked. The test stops at any subsequent signal which is a route holding signal though. }
 
   FUNCTION PointIsLockedByAnySignal(P : Integer; OUT SignalLockingArray : IntegerArrayType) : Boolean;
@@ -2176,12 +2176,12 @@ BEGIN
         IF L <> UnknownLine THEN BEGIN
           TC := Lines[L].Line_TC;
           IF TC <> UnknownTrackCircuit THEN BEGIN
-            IF TrackCircuitLocked(T^.Train_LocoChip, TC, LockingMsg) THEN BEGIN
+            IF TrackCircuitLocked(Trains[T].Train_LocoChip, TC, LockingMsg) THEN BEGIN
               LockingMsg := 'TC=' + IntToStr(TC) + ' (' + LockingMsg + ')';
               RouteCurrentlyLocked := True;
             END ELSE
               IF (TrackCircuits[TC].TC_OccupationState <> TCUnoccupied)
-              AND (TrackCircuits[TC].TC_LocoChip <> T^.Train_LocoChip)
+              AND (TrackCircuits[TC].TC_LocoChip <> Trains[T].Train_LocoChip)
               THEN BEGIN
                 IF (TrackCircuits[TC].TC_OccupationState = TCPermanentFeedbackOccupation)
                 OR (TrackCircuits[TC].TC_OccupationState = TCPermanentOccupationSetByUser)
@@ -2205,7 +2205,7 @@ BEGIN
   END; {WHILE}
 
   IF RouteCurrentlyLocked OR RoutePermanentlyLocked THEN
-    T^.Train_LastRouteLockedMsgStr := LockingMsg;
+    Trains[T].Train_LastRouteLockedMsgStr := LockingMsg;
 END; { CheckRouteAheadLocking }
 
 FUNCTION RouteAheadOutOfUse(RouteArray : StringArrayType; OUT LockingMsg : String) : Boolean;

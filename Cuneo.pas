@@ -138,7 +138,7 @@ VAR
   SaveRecordLineDrawingMode : Boolean;
   StatusBarPanel1Str : String;
   StatusBarPanel2Str : String;
-  T : Train;
+  T : TrainElement;
   TC : Integer;
   TempDraftRouteArray : StringArrayType;
   TempLinesNotAvailableStr : String;
@@ -469,8 +469,8 @@ BEGIN
               IF (Lines[L].Line_TC <> UnknownTrackCircuit) THEN BEGIN
                 IF TrackCircuits[Lines[L].Line_TC].TC_LocoChip <> UnknownLocoChip THEN BEGIN
                   T := GetTrainRecord(TrackCircuits[Lines[L].Line_TC].TC_LocoChip);
-                  IF T <> NIL THEN BEGIN
-                    WITH T^ DO BEGIN
+                  IF T <= High(Trains) THEN BEGIN
+                    WITH Trains[T] DO BEGIN
                       ObjectFound := True;
                       StatusBarPanel2Str := LocoChipToStr(Train_LocoChip) + ': ' + TrainStatusToStr(Train_CurrentStatus);
                       IF Train_RouteCreationHoldMsg <> '' THEN
@@ -855,7 +855,7 @@ VAR
   { Change signal aspects }
   CONST
     NoActionCh = '';
-    NoTrainRecord = NIL;
+    NoTrainRecord = 0;
 
   VAR
     I : Integer;
@@ -1096,7 +1096,7 @@ VAR
 //  { This activates or de-activates a trackcircuit. More fancy things are done via a pop menu produced by a shift key. }
 //  VAR
 //    AdjacentTrackCircuitUp, AdjacentTrackCircuitDown : Integer;
-//    T : Train;
+//    T : TrainElement;
 //
 //  BEGIN
 //    Result := False;
@@ -1131,7 +1131,7 @@ VAR
 //              IF TrackCircuits[Line_TC].TC_LocoChip <> UnknownLocoChip THEN BEGIN
 //                Debug('Locochip ' + LocoChipToStr(TrackCircuits[Line_TC].TC_LocoChip) + ' cleared from TC=' + IntToStr(Line_TC));
 //                T := GetTrainRecord(TrackCircuits[Line_TC].TC_LocoChip);
-//                IF T <> NIL THEN
+//                IF T <= High(Trains) THEN
 //                  T^.Train_SavedLocation := UnknownLocation;
 //              END;
 //              SetTrackCircuitState(Line_TC, TrackCircuits[Line_TC].TC_PreviousOccupationState);
@@ -1189,7 +1189,7 @@ VAR
     StartSignal, EndSignal : Integer;
     TempBufferStop: Integer;
     TempSignal : Integer;
-    T : Train;
+    T : TrainElement;
     TrainLengthInInchesForRouteing : Integer;
     TrainTypeForRouteing : TypeOfTrainType;
 
@@ -1206,7 +1206,7 @@ VAR
       Routes_RouteSettingByEmergencyRoute := False;
       SaveIndicatorString := '';
       StartLine := UnknownLine;
-      T := NIL;
+      T := 0;
       TrainLengthInInchesForRouteing := UnknownTrainLength;
       TrainTypeForRouteing := UnknownTrainType;
 
@@ -1370,12 +1370,12 @@ VAR
                 END;
 
             { Start setting up routes - see if a loco has been selected from the timetable, as that will give us data about train type, etc. }
-            IF GetTrainClickedOn = NIL THEN BEGIN
+            IF GetTrainClickedOn = 0 THEN BEGIN
               TrainTypeForRouteing := UnknownTrainType;
               TrainLengthInInchesForRouteing := UnknownTrainLength;
             END ELSE BEGIN
-              TrainTypeForRouteing := GetTrainClickedOn^.Train_Type;
-              TrainLengthInInchesForRouteing := GetTrainClickedOn^.Train_CurrentLengthInInches;
+              TrainTypeForRouteing := Trains[GetTrainClickedOn].Train_Type;
+              TrainLengthInInchesForRouteing := Trains[GetTrainClickedOn].Train_CurrentLengthInInches;
             END;
 
             { If Shift or Ctrl are pressed, we want to amend the train type }

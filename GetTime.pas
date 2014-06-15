@@ -246,61 +246,68 @@ END; { OKButtonClick }
 PROCEDURE TClockWindow.GetTimeTimerTick(Sender: TObject);
 VAR
   OK : Boolean;
-  T : Train;
+  T : TrainElement;
   TimeStr : String;
 
 BEGIN
-  CurrentRailwayTime := IncSecond(CurrentRailwayTime);
-  IF SaveRailwayTime = 0 THEN
-    SaveRailwayTime := CurrentRailwayTime;
-  CurrentRailwayTimeStr := TimeToHMSStr(CurrentRailwayTime);
+  TRY
+    CurrentRailwayTime := IncSecond(CurrentRailwayTime);
+    IF SaveRailwayTime = 0 THEN
+      SaveRailwayTime := CurrentRailwayTime;
+    CurrentRailwayTimeStr := TimeToHMSStr(CurrentRailwayTime);
 
-  IF SaveCurrentRailwayTimeStr <> CurrentRailwayTimeStr THEN BEGIN
-    { Need to see if night turns to day (or vice versa) - may affect loco lights }
-    IF (DayTime <> WasDayTime) OR DayTimeSetByUser OR NightTimeSetByUser THEN BEGIN
-      T := TrainList;
-      WHILE T <> NIL DO BEGIN
-        IF T^.Train_DiagramFound THEN BEGIN
-          IF T^.Train_LightsType = ExpressModelsSeparateHeadlights THEN BEGIN
-            IF T^.Train_LightsOn THEN BEGIN
-              { turning lights back on adjusts them to the new time }
-              TurnLightsOff(T^.Train_LocoChip);
-              TurnLightsOn(T^.Train_LocoChip, OK);
+    IF SaveCurrentRailwayTimeStr <> CurrentRailwayTimeStr THEN BEGIN
+      { Need to see if night turns to day (or vice versa) - may affect loco lights }
+      IF (DayTime <> WasDayTime) OR DayTimeSetByUser OR NightTimeSetByUser THEN BEGIN
+        T := 0;
+        WHILE T <= High(Trains) DO BEGIN
+          WITH Trains[T] DO BEGIN
+            IF Train_DiagramFound THEN BEGIN
+              IF Train_LightsType = ExpressModelsSeparateHeadlights THEN BEGIN
+                IF Train_LightsOn THEN BEGIN
+                  { turning lights back on adjusts them to the new time }
+                  TurnLightsOff(Train_LocoChip);
+                  TurnLightsOn(Train_LocoChip, OK);
+                END;
+              END ELSE
+                IF Train_LightsType = CustomLightingKit THEN BEGIN
+                  IF Train_LightsOn THEN BEGIN
+                    { turning lights back on adjusts them to the new time }
+
+                  END;
+                END;
             END;
-          END ELSE
-            IF T^.Train_LightsType = CustomLightingKit THEN BEGIN
-              IF T^.Train_LightsOn THEN BEGIN
-                { turning lights back on adjusts them to the new time }
+            Inc(T);
+          END; {WITH}
+        END; {WHILE}
+        IF DayTimeSetByUser THEN BEGIN
+          DayTimeSetByUser := False;
+          Log('AG DayTimeSetByUser now off');
+        END ELSE
+          IF NightTimeSetByUser THEN BEGIN
+            NightTimeSetByUser := False;
+            Log('AG NightTimeSetByUser now off');
+          END;
+      END;
 
-              END;
-            END;
-        END;
-        T := T^.Train_NextRecord;
-      END; {WHILE}
-      IF DayTimeSetByUser THEN BEGIN
-        DayTimeSetByUser := False;
-        Log('AG DayTimeSetByUser now off');
-      END ELSE
-        IF NightTimeSetByUser THEN BEGIN
-          NightTimeSetByUser := False;
-          Log('AG NightTimeSetByUser now off');
-        END;
+      { Write the new time to the screen }
+      IF (StationMonitorDisplay = StationClockDisplay)
+      OR (Copy(SaveCurrentRailwayTimeStr, 1, 5) <> Copy(CurrentRailwayTimeStr, 1, 5))
+      THEN BEGIN
+        DrawStationMonitorsWindow(StationMonitorsCurrentArea);
+        IF (LocationDataWindow <> NIL) AND (LocationDataWindow.Visible) THEN
+          LocationDataWindow.Caption := 'LocationDataWindow (' + CurrentRailwayTimeStr + ')';
+      END;
+
+      WriteTimeToStatusBar(TimeStr);
+
+      SaveCurrentRailwayTimeStr := CurrentRailwayTimeStr;
+      WasDayTime := DayTime;
     END;
-
-    { Write the new time to the screen }
-    IF (StationMonitorDisplay = StationClockDisplay)
-    OR (Copy(SaveCurrentRailwayTimeStr, 1, 5) <> Copy(CurrentRailwayTimeStr, 1, 5))
-    THEN BEGIN
-      DrawStationMonitorsWindow(StationMonitorsCurrentArea);
-      IF (LocationDataWindow <> NIL) AND (LocationDataWindow.Visible) THEN
-        LocationDataWindow.Caption := 'LocationDataWindow (' + CurrentRailwayTimeStr + ')';
-    END;
-
-    WriteTimeToStatusBar(TimeStr);
-
-    SaveCurrentRailwayTimeStr := CurrentRailwayTimeStr;
-    WasDayTime := DayTime;
-  END;
+  EXCEPT
+    ON E : Exception DO
+      Log('EG GetTimeTimerTick: ' + E.ClassName + ' error raised, with message: ' + E.Message);
+  END; {TRY}
 END; { GetTimeTimerTick }
 
 PROCEDURE TClockWindow.ClockWindowMouseWheel(Sender: TObject; Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint; VAR Handled: Boolean);

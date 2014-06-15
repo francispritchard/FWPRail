@@ -159,7 +159,7 @@ VAR
   AltPressed : Boolean = False;
   CtrlPressed : Boolean = False;
   LocoDialogueCharValid : Boolean = False;
-  LocoDialogueDoubleHeaderTrainRecord : Train = NIL;
+  LocoDialogueDoubleHeaderTrainRecord : TrainElement = 0;
   LocoDialogueDoubleHeaderTrainRecordFound : Boolean = False;
   LocoDialogueIncreaseSpeedFlag : Boolean = True;
   LocoDialogueSelectedDHLocoChip : Integer = UnknownLocoChip;
@@ -167,7 +167,7 @@ VAR
   LocoDialogueSelectedLocoSpeed : Integer = 0;
   LocoDialogueSelectedLocoSpeedInMPH : MPHType = MPH0;
   LocoDialogueShiftState : TShiftState = [];
-  LocoDialogueTrainRecord : Train = NIL;
+  LocoDialogueTrainRecord : TrainElement = 0;
   LocoDialogueTrainRecordFound : Boolean = False;
   LocoTakenOver : Boolean = False;
   LocoDialogueMouseDownTime : TDateTime = 0;
@@ -296,7 +296,7 @@ BEGIN
     LocoDialogueChangeOrSelectButton.Caption := 'Select &Loco 1';
     LocoDialogueChangeOrSelectButton.Enabled := False;
     LocoDialogueEmergencyStopButton.Enabled := False;
-    LocoDialogueTrainRecord := NIL;
+    LocoDialogueTrainRecord := 0;
     LocoDialogueTrainRecordFound := False;
     LocoDialogueLocoTimerStartStopButton.Enabled := False;
     LocoDialogueSpeedInMPHButton.Enabled := False;
@@ -311,13 +311,13 @@ BEGIN
     LocoDialogueDHLocoClearButton.Enabled := False;
 
     IF LocoDialogueLocoMaskEdit.Text <> '' THEN BEGIN
-      LocoDialogueTrainRecord := TrainList;
-      WHILE (LocoDialogueTrainRecord <> NIL)
+      LocoDialogueTrainRecord := 0;
+      WHILE (LocoDialogueTrainRecord <= High(Trains))
       AND NOT (LocoDialogueTrainRecordFound)
       DO BEGIN
-        IF LocoDialogueTrainRecord^.Train_LocoChip <> StrToInt(LocoDialogueLocoMaskEdit.Text) THEN BEGIN
+        IF Trains[LocoDialogueTrainRecord].Train_LocoChip <> StrToInt(LocoDialogueLocoMaskEdit.Text) THEN BEGIN
           LocoDialogueChangeOrSelectButton.Enabled := False;
-          LocoDialogueTrainRecord := LocoDialogueTrainRecord^.Train_NextRecord;
+          Inc(LocoDialogueTrainRecord);
         END ELSE BEGIN
           { found a loco }
           LocoDialogueChangeOrSelectButton.Enabled := True;
@@ -346,13 +346,13 @@ BEGIN
       LocoDialogueUpButton.Enabled := True;
       LocoDialogueDownButton.Enabled := True;
     END ELSE BEGIN
-      LocoDialogueDoubleHeaderTrainRecord := TrainList;
-      WHILE (LocoDialogueDoubleHeaderTrainRecord <> NIL)
+      LocoDialogueDoubleHeaderTrainRecord := 0;
+      WHILE (LocoDialogueDoubleHeaderTrainRecord <= High(Trains))
       AND NOT (LocoDialogueDoubleHeaderTrainRecordFound)
       DO BEGIN
-        IF LocoDialogueDoubleHeaderTrainRecord^.Train_LocoChip <> StrToInt(LocoDialogueDHLocoMaskEdit.Text) THEN BEGIN
+        IF Trains[LocoDialogueDoubleHeaderTrainRecord].Train_LocoChip <> StrToInt(LocoDialogueDHLocoMaskEdit.Text) THEN BEGIN
           LocoDialogueChangeOrSelectButton.Enabled := False;
-          LocoDialogueDoubleHeaderTrainRecord := LocoDialogueDoubleHeaderTrainRecord^.Train_NextRecord;
+          Inc(LocoDialogueDoubleHeaderTrainRecord);
         END ELSE BEGIN
           { found a loco }
           LocoDialogueDoubleHeaderTrainRecordFound := True;
@@ -386,26 +386,28 @@ VAR
 
 BEGIN
   WITH LocoDialogueWindow DO BEGIN
-    IF LocoDialogueTrainRecord <> NIL THEN BEGIN
+    IF LocoDialogueTrainRecord <> 0 THEN BEGIN
       { Function 0 }
-      IF LocoDialogueTrainRecord^.Train_LightsType <> NoLights THEN
-        LocoDialogueTurnLightsOnOrOffButton.Enabled := True;
+      WITH Trains[LocoDialogueTrainRecord] DO BEGIN
+        IF Train_LightsType <> NoLights THEN
+          LocoDialogueTurnLightsOnOrOffButton.Enabled := True;
 
-      GetLocoFunctions(LocoDialogueSelectedLocoChip, NOT ForceARead, FunctionsArray, OK);
+        GetLocoFunctions(LocoDialogueSelectedLocoChip, NOT ForceARead, FunctionsArray, OK);
 
-      IF FunctionsArray[0] THEN BEGIN
-        IF (LocoDialogueTrainRecord^.Train_LightsType = HeadlightsAndTailLightsConnected)
-        OR (LocoDialogueTrainRecord^.Train_LightsType = LightsOperatedByTwoChips)
-        THEN
-          LocoDialogueTurnLightsOnOrOffButton.Caption := '&F0: Turn Lights Off';
-        LocoDialogueFunction0CheckBox.Checked := True
-      END ELSE BEGIN
-        IF (LocoDialogueTrainRecord^.Train_LightsType= HeadlightsAndTailLightsConnected)
-        OR (LocoDialogueTrainRecord^.Train_LightsType = LightsOperatedByTwoChips)
-        THEN
-          LocoDialogueTurnLightsOnOrOffButton.Caption := '&F0: Turn Lights On';
-        LocoDialogueFunction0CheckBox.Checked := False;
-      END;
+        IF FunctionsArray[0] THEN BEGIN
+          IF (Train_LightsType = HeadlightsAndTailLightsConnected)
+          OR (Train_LightsType = LightsOperatedByTwoChips)
+          THEN
+            LocoDialogueTurnLightsOnOrOffButton.Caption := '&F0: Turn Lights Off';
+          LocoDialogueFunction0CheckBox.Checked := True
+        END ELSE BEGIN
+          IF (Train_LightsType= HeadlightsAndTailLightsConnected)
+          OR (Train_LightsType = LightsOperatedByTwoChips)
+          THEN
+            LocoDialogueTurnLightsOnOrOffButton.Caption := '&F0: Turn Lights On';
+          LocoDialogueFunction0CheckBox.Checked := False;
+        END;
+      END; {WITH}
 
       { Function 1 }
       IF FunctionsArray[1] THEN
@@ -490,66 +492,68 @@ BEGIN
       EnableFunctionBoxes;
 
       LocoDialogueChangeOrSelectButton.Enabled := True;
-      IF LocoDialogueTrainRecord <> NIL THEN BEGIN
-        LocoDialogueSelectedLocoChip := LocoDialogueTrainRecord^.Train_LocoChip;
-        LocoDialogueSelectedLocoSpeed := GetLenzSpeed(LocoDialogueSelectedLocoChip, ForceARead);
-        IF (LocoDialogueSelectedLocoSpeed > 0) AND (LocoDialogueSelectedLocoSpeed < 29) THEN BEGIN
-          LocoDialogueUpButton.Enabled := True;
-          LocoDialogueDownButton.Enabled := True;
-          LocoDialogueLeftButton.Enabled := False;
-          LocoDialogueRightButton.Enabled := False;
-        END ELSE
-          IF LocoDialogueSelectedLocoSpeed = 0 THEN BEGIN
+      IF LocoDialogueTrainRecord <> 0 THEN BEGIN
+        WITH Trains[LocoDialogueTrainRecord] dO BEGIN
+          LocoDialogueSelectedLocoChip := Train_LocoChip;
+          LocoDialogueSelectedLocoSpeed := GetLenzSpeed(LocoDialogueSelectedLocoChip, ForceARead);
+          IF (LocoDialogueSelectedLocoSpeed > 0) AND (LocoDialogueSelectedLocoSpeed < 29) THEN BEGIN
             LocoDialogueUpButton.Enabled := True;
-            LocoDialogueDownButton.Enabled := False;
-            LocoDialogueLeftButton.Enabled := True;
-            LocoDialogueRightButton.Enabled := True;
+            LocoDialogueDownButton.Enabled := True;
+            LocoDialogueLeftButton.Enabled := False;
+            LocoDialogueRightButton.Enabled := False;
           END ELSE
-            IF LocoDialogueSelectedLocoSpeed = 28 THEN BEGIN
-              LocoDialogueUpButton.Enabled := False;
-              LocoDialogueDownButton.Enabled := True;
-            END;
+            IF LocoDialogueSelectedLocoSpeed = 0 THEN BEGIN
+              LocoDialogueUpButton.Enabled := True;
+              LocoDialogueDownButton.Enabled := False;
+              LocoDialogueLeftButton.Enabled := True;
+              LocoDialogueRightButton.Enabled := True;
+            END ELSE
+              IF LocoDialogueSelectedLocoSpeed = 28 THEN BEGIN
+                LocoDialogueUpButton.Enabled := False;
+                LocoDialogueDownButton.Enabled := True;
+              END;
 
-        IF LocoDialogueTrainRecord^.Train_CurrentDirection = Up THEN
-          LocoDialogueLeftButton.Down := True
-        ELSE
-          LocoDialogueRightButton.Down := True;
+          IF Train_CurrentDirection = Up THEN
+            LocoDialogueLeftButton.Down := True
+          ELSE
+            LocoDialogueRightButton.Down := True;
 
-        IF NOT LocoDialogueTrainRecord^.Train_SpeedSettingsMissing THEN
-          LocoDialogueSpeedInMPHButton.Enabled := True
-        ELSE BEGIN
-          LocoDialogueSpeedInMPH := False;
-          LocoDialogueSpeedInMPHButton.Caption := 'Switch to Speed In MPH';
-          LocoDialogueSpeedInMPHButton.Enabled := False;
-          LocoDialogueMaxLabel.Visible := False;
-          LocoDialogueMPHLabel.Visible := False;
+          IF NOT Train_SpeedSettingsMissing THEN
+            LocoDialogueSpeedInMPHButton.Enabled := True
+          ELSE BEGIN
+            LocoDialogueSpeedInMPH := False;
+            LocoDialogueSpeedInMPHButton.Caption := 'Switch to Speed In MPH';
+            LocoDialogueSpeedInMPHButton.Enabled := False;
+            LocoDialogueMaxLabel.Visible := False;
+            LocoDialogueMPHLabel.Visible := False;
+          END;
         END;
-      END;
 
-      LocoDialogueEmergencyStopButton.Enabled := True;
-      LocoDialogueLocoTimerStartStopButton.Enabled := True;
-      IF NOT LocoSpeedTimingMode THEN
-        LocoDialogueLocoTimerStartStopButton.Caption := 'Start Loco Timer'
-      ELSE
-        LocoDialogueLocoTimerStartStopButton.Caption := 'Stop Loco Timer';
-      LocoDialogueSpeedDisplay.Caption := IntToStr(LocoDialogueSelectedLocoSpeed);
-      LocoDialogueSpeedDisplay.Font.Color := clBtnText;
-      LocoDialogueReturnFunctionState;
-      LocoDialogueChangeOrSelectButton.Caption := 'Deselect &Loco 1';
+        LocoDialogueEmergencyStopButton.Enabled := True;
+        LocoDialogueLocoTimerStartStopButton.Enabled := True;
+        IF NOT LocoSpeedTimingMode THEN
+          LocoDialogueLocoTimerStartStopButton.Caption := 'Start Loco Timer'
+        ELSE
+          LocoDialogueLocoTimerStartStopButton.Caption := 'Stop Loco Timer';
+        LocoDialogueSpeedDisplay.Caption := IntToStr(LocoDialogueSelectedLocoSpeed);
+        LocoDialogueSpeedDisplay.Font.Color := clBtnText;
+        LocoDialogueReturnFunctionState;
+        LocoDialogueChangeOrSelectButton.Caption := 'Deselect &Loco 1';
 
-      LocoDialogueDHLocoMaskEditLabel.Enabled := True;
-      LocoDialogueDHLocoMaskEdit.Enabled := True;
-      LocoDialogueDHLocoQueryButton.Enabled := True;
-      LocoDialogueDHLocoClearButton.Enabled := True;
-      IF LocoDialogueDHLocoMaskEdit.Text <> '' THEN BEGIN
-        LocoDialogueDHLocoChangeOrSelectButton.Enabled := True;
+        LocoDialogueDHLocoMaskEditLabel.Enabled := True;
+        LocoDialogueDHLocoMaskEdit.Enabled := True;
+        LocoDialogueDHLocoQueryButton.Enabled := True;
         LocoDialogueDHLocoClearButton.Enabled := True;
-      END;
+        IF LocoDialogueDHLocoMaskEdit.Text <> '' THEN BEGIN
+          LocoDialogueDHLocoChangeOrSelectButton.Enabled := True;
+          LocoDialogueDHLocoClearButton.Enabled := True;
+        END;
 
-      LocoDialogueMaxLabel.Enabled := True;
-      LocoDialogueMPHLabel.Enabled := True;
+        LocoDialogueMaxLabel.Enabled := True;
+        LocoDialogueMPHLabel.Enabled := True;
 
-      LocoDialogueEmergencyStopButton.SetFocus;
+        LocoDialogueEmergencyStopButton.SetFocus;
+      END; {WITH}
     END; {WITH}
   EXCEPT
     ON E : Exception DO
@@ -619,10 +623,10 @@ VAR
   OK : Boolean;
 
 BEGIN
-  IF LocoDialogueTrainRecord <> NIL THEN BEGIN
+  IF LocoDialogueTrainRecord <> 0 THEN BEGIN
     WITH LocoDialogueWindow DO BEGIN
       LocoDialogueDownButton.Enabled := False;
-      SetLenzSpeed(LocoDialogueSelectedLocoChip, LocoDialogueSelectedDHLocoChip, 0, LocoDialogueTrainRecord^.Train_CurrentDirection, QuickStop, OK);
+      SetLenzSpeed(LocoDialogueSelectedLocoChip, LocoDialogueSelectedDHLocoChip, 0, Trains[LocoDialogueTrainRecord].Train_CurrentDirection, QuickStop, OK);
       LocoDialogueSelectedLocoSpeed := GetLenzSpeed(LocoDialogueSelectedLocoChip, ForceARead);
       IF LocoDialogueSelectedLocoSpeed <> 0 THEN
         Log('XG Emergency stop - speed is still ' + IntToStr(LocoDialogueSelectedLocoSpeed));
@@ -715,7 +719,7 @@ BEGIN
   ClientWidth := 162;
 //  ClientHeight := 425;
 
-  IF LocoDialogueTrainRecord <> NIL THEN BEGIN
+  IF LocoDialogueTrainRecord <> 0 THEN BEGIN
     IF (SaveLocoDialogueMaskEditText <> '')
     AND (StrToInt(SaveLocoDialogueMaskEditText) <> 0)
     THEN BEGIN
@@ -1003,121 +1007,123 @@ PROCEDURE IncrementSpeedInMPH;
 { Increase the speed in MPH and also check whether the maximum speed has been reached }
 BEGIN
   WITH LocoDialogueWindow DO BEGIN
-    CASE LocoDialogueSelectedLocoSpeedInMPH OF
-      MPH0:
-        BEGIN
-          LocoDialogueSelectedLocoSpeedInMPH := MPH10;
-          LocoDialogueMaxLabel.Visible := False;
-        END;
-      MPH10:
-        BEGIN
-          LocoDialogueSelectedLocoSpeedInMPH := MPH20;
-          IF LocoDialogueTrainRecord^.Train_MaximumSpeedInMPH = MPH20 THEN BEGIN
+    WITH Trains[LocoDialogueTrainRecord] DO BEGIN
+      CASE LocoDialogueSelectedLocoSpeedInMPH OF
+        MPH0:
+          BEGIN
+            LocoDialogueSelectedLocoSpeedInMPH := MPH10;
+            LocoDialogueMaxLabel.Visible := False;
+          END;
+        MPH10:
+          BEGIN
+            LocoDialogueSelectedLocoSpeedInMPH := MPH20;
+            IF Train_MaximumSpeedInMPH = MPH20 THEN BEGIN
+              LocoDialogueUpButton.Enabled := False;
+              LocoDialogueMaxLabel.Visible := True;
+            END;
+          END;
+        MPH20:
+          BEGIN
+            LocoDialogueSelectedLocoSpeedInMPH := MPH30;
+            IF Train_MaximumSpeedInMPH = MPH30 THEN BEGIN
+              LocoDialogueUpButton.Enabled := False;
+              LocoDialogueMaxLabel.Visible := True;
+            END;
+          END;
+        MPH30:
+          BEGIN
+            LocoDialogueSelectedLocoSpeedInMPH := MPH40;
+            IF Train_MaximumSpeedInMPH = MPH40 THEN BEGIN
+              LocoDialogueUpButton.Enabled := False;
+              LocoDialogueMaxLabel.Visible := True;
+            END;
+          END;
+        MPH40:
+          BEGIN
+            LocoDialogueSelectedLocoSpeedInMPH := MPH50;
+            IF Train_MaximumSpeedInMPH = MPH50 THEN BEGIN
+              LocoDialogueUpButton.Enabled := False;
+              LocoDialogueMaxLabel.Visible := True;
+            END;
+          END;
+        MPH50:
+          BEGIN
+            LocoDialogueSelectedLocoSpeedInMPH := MPH60;
+            IF Train_MaximumSpeedInMPH = MPH60 THEN BEGIN
+              LocoDialogueUpButton.Enabled := False;
+              LocoDialogueMaxLabel.Visible := True;
+            END;
+          END;
+        MPH60:
+          BEGIN
+            LocoDialogueSelectedLocoSpeedInMPH := MPH70;
+            IF Train_MaximumSpeedInMPH = MPH70 THEN BEGIN
+              LocoDialogueUpButton.Enabled := False;
+              LocoDialogueMaxLabel.Visible := True;
+            END;
+          END;
+        MPH70:
+          BEGIN
+            LocoDialogueSelectedLocoSpeedInMPH := MPH80;
+            IF Train_MaximumSpeedInMPH = MPH80 THEN BEGIN
+              LocoDialogueUpButton.Enabled := False;
+              LocoDialogueMaxLabel.Visible := True;
+            END;
+          END;
+        MPH80:
+          BEGIN
+            LocoDialogueSelectedLocoSpeedInMPH := MPH90;
+            IF Train_MaximumSpeedInMPH = MPH90 THEN BEGIN
+              LocoDialogueUpButton.Enabled := False;
+              LocoDialogueMaxLabel.Visible := True;
+            END;
+          END;
+        MPH90:
+          BEGIN
+            LocoDialogueSelectedLocoSpeedInMPH := MPH100;
+            IF Train_MaximumSpeedInMPH = MPH100 THEN BEGIN
+              LocoDialogueUpButton.Enabled := False;
+              LocoDialogueMaxLabel.Visible := True;
+            END;
+          END;
+        MPH100:
+          BEGIN
+            LocoDialogueSelectedLocoSpeedInMPH := MPH110;
+            IF Train_MaximumSpeedInMPH = MPH110 THEN BEGIN
+              LocoDialogueUpButton.Enabled := False;
+              LocoDialogueMaxLabel.Visible := True;
+            END;
+          END;
+        MPH110:
+          BEGIN
+            LocoDialogueSelectedLocoSpeedInMPH := MPH120;
+            IF Train_MaximumSpeedInMPH = MPH120 THEN BEGIN
+              LocoDialogueUpButton.Enabled := False;
+              LocoDialogueMaxLabel.Visible := True;
+            END;
+          END;
+        MPH120:
+          BEGIN
+            LocoDialogueSelectedLocoSpeedInMPH := MPH120;
             LocoDialogueUpButton.Enabled := False;
             LocoDialogueMaxLabel.Visible := True;
           END;
-        END;
-      MPH20:
-        BEGIN
-          LocoDialogueSelectedLocoSpeedInMPH := MPH30;
-          IF LocoDialogueTrainRecord^.Train_MaximumSpeedInMPH = MPH30 THEN BEGIN
-            LocoDialogueUpButton.Enabled := False;
-            LocoDialogueMaxLabel.Visible := True;
-          END;
-        END;
-      MPH30:
-        BEGIN
-          LocoDialogueSelectedLocoSpeedInMPH := MPH40;
-          IF LocoDialogueTrainRecord^.Train_MaximumSpeedInMPH = MPH40 THEN BEGIN
-            LocoDialogueUpButton.Enabled := False;
-            LocoDialogueMaxLabel.Visible := True;
-          END;
-        END;
-      MPH40:
-        BEGIN
-          LocoDialogueSelectedLocoSpeedInMPH := MPH50;
-          IF LocoDialogueTrainRecord^.Train_MaximumSpeedInMPH = MPH50 THEN BEGIN
-            LocoDialogueUpButton.Enabled := False;
-            LocoDialogueMaxLabel.Visible := True;
-          END;
-        END;
-      MPH50:
-        BEGIN
-          LocoDialogueSelectedLocoSpeedInMPH := MPH60;
-          IF LocoDialogueTrainRecord^.Train_MaximumSpeedInMPH = MPH60 THEN BEGIN
-            LocoDialogueUpButton.Enabled := False;
-            LocoDialogueMaxLabel.Visible := True;
-          END;
-        END;
-      MPH60:
-        BEGIN
-          LocoDialogueSelectedLocoSpeedInMPH := MPH70;
-          IF LocoDialogueTrainRecord^.Train_MaximumSpeedInMPH = MPH70 THEN BEGIN
-            LocoDialogueUpButton.Enabled := False;
-            LocoDialogueMaxLabel.Visible := True;
-          END;
-        END;
-      MPH70:
-        BEGIN
-          LocoDialogueSelectedLocoSpeedInMPH := MPH80;
-          IF LocoDialogueTrainRecord^.Train_MaximumSpeedInMPH = MPH80 THEN BEGIN
-            LocoDialogueUpButton.Enabled := False;
-            LocoDialogueMaxLabel.Visible := True;
-          END;
-        END;
-      MPH80:
-        BEGIN
-          LocoDialogueSelectedLocoSpeedInMPH := MPH90;
-          IF LocoDialogueTrainRecord^.Train_MaximumSpeedInMPH = MPH90 THEN BEGIN
-            LocoDialogueUpButton.Enabled := False;
-            LocoDialogueMaxLabel.Visible := True;
-          END;
-        END;
-      MPH90:
-        BEGIN
-          LocoDialogueSelectedLocoSpeedInMPH := MPH100;
-          IF LocoDialogueTrainRecord^.Train_MaximumSpeedInMPH = MPH100 THEN BEGIN
-            LocoDialogueUpButton.Enabled := False;
-            LocoDialogueMaxLabel.Visible := True;
-          END;
-        END;
-      MPH100:
-        BEGIN
-          LocoDialogueSelectedLocoSpeedInMPH := MPH110;
-          IF LocoDialogueTrainRecord^.Train_MaximumSpeedInMPH = MPH110 THEN BEGIN
-            LocoDialogueUpButton.Enabled := False;
-            LocoDialogueMaxLabel.Visible := True;
-          END;
-        END;
-      MPH110:
-        BEGIN
-          LocoDialogueSelectedLocoSpeedInMPH := MPH120;
-          IF LocoDialogueTrainRecord^.Train_MaximumSpeedInMPH = MPH120 THEN BEGIN
-            LocoDialogueUpButton.Enabled := False;
-            LocoDialogueMaxLabel.Visible := True;
-          END;
-        END;
-      MPH120:
-        BEGIN
-          LocoDialogueSelectedLocoSpeedInMPH := MPH120;
-          LocoDialogueUpButton.Enabled := False;
-          LocoDialogueMaxLabel.Visible := True;
-        END;
-    END; {CASE}
+      END; {CASE}
 
-    IF LocoDialogueSelectedLocoSpeedInMPH <> MPH0 THEN BEGIN
-      LocoDialogueDownButton.Enabled := True;
-      IF NOT LocoDialogueLeftButton.Down THEN
-        LocoDialogueLeftButton.Enabled := False;
-      IF NOT LocoDialogueRightButton.Down THEN
-        LocoDialogueRightButton.Enabled := False;
-    END;
+      IF LocoDialogueSelectedLocoSpeedInMPH <> MPH0 THEN BEGIN
+        LocoDialogueDownButton.Enabled := True;
+        IF NOT LocoDialogueLeftButton.Down THEN
+          LocoDialogueLeftButton.Enabled := False;
+        IF NOT LocoDialogueRightButton.Down THEN
+          LocoDialogueRightButton.Enabled := False;
+      END;
 
-    IF LocoDialogueSelectedLocoSpeedInMPH = MPH120 THEN
-      LocoDialogueUpButton.Enabled := False;
+      IF LocoDialogueSelectedLocoSpeedInMPH = MPH120 THEN
+        LocoDialogueUpButton.Enabled := False;
 
-    LocoDialogueSpeedDisplay.Caption := MPHToStr(LocoDialogueSelectedLocoSpeedInMPH);
-    LocoDialogueSpeedDisplay.Font.Color := clBtnText;
+      LocoDialogueSpeedDisplay.Caption := MPHToStr(LocoDialogueSelectedLocoSpeedInMPH);
+      LocoDialogueSpeedDisplay.Font.Color := clBtnText;
+    END; {WITH}
   END; {WITH}
 END; { IncrementSpeedInMPH }
 
@@ -1245,7 +1251,7 @@ BEGIN
             DecrementSpeedInMPH;
 
         IF SaveLocoSpeed <> LocoDialogueSelectedLocoSpeed THEN
-          SetLenzSpeed(LocoDialogueSelectedLocoChip, LocoDialogueSelectedDHLocoChip, LocoDialogueSelectedLocoSpeed, LocoDialogueTrainRecord^.Train_CurrentDirection,
+          SetLenzSpeed(LocoDialogueSelectedLocoChip, LocoDialogueSelectedDHLocoChip, LocoDialogueSelectedLocoSpeed, Trains[LocoDialogueTrainRecord].Train_CurrentDirection,
                        NOT QuickStop, OK);
       END ELSE BEGIN
         SaveLocoSpeed := LocoDialogueSelectedLocoSpeed;
@@ -1275,7 +1281,7 @@ BEGIN
             LocoDialogueSelectedLocoSpeed := 28;
 
         IF SaveLocoSpeed <> LocoDialogueSelectedLocoSpeed THEN
-          SetLenzSpeed(LocoDialogueSelectedLocoChip, LocoDialogueSelectedDHLocoChip, LocoDialogueSelectedLocoSpeed, LocoDialogueTrainRecord^.Train_CurrentDirection,
+          SetLenzSpeed(LocoDialogueSelectedLocoChip, LocoDialogueSelectedDHLocoChip, LocoDialogueSelectedLocoSpeed, Trains[LocoDialogueTrainRecord].Train_CurrentDirection,
                        NOT QuickStop, OK);
 
         IF OK THEN BEGIN
@@ -1368,7 +1374,7 @@ BEGIN
           LocoDialogueRightButton.Enabled := True;
           LocoDialogueLeftButton.Enabled := True;
 
-          IF LocoDialogueTrainRecord^.Train_CurrentDirection = Up THEN BEGIN
+          IF Trains[LocoDialogueTrainRecord].Train_CurrentDirection = Up THEN BEGIN
             LocoDialogueLeftButton.Down := True;
             LocoDialogueRightButton.Down := False;
           END ELSE BEGIN
@@ -1382,7 +1388,7 @@ BEGIN
           LocoDialogueRightButton.Enabled := False;
           LocoDialogueLeftButton.Enabled := False;
 
-          IF LocoDialogueTrainRecord^.Train_CurrentDirection = Up THEN BEGIN
+          IF Trains[LocoDialogueTrainRecord].Train_CurrentDirection = Up THEN BEGIN
             LocoDialogueLeftButton.Down := True;
             LocoDialogueRightButton.Down := False;
           END ELSE BEGIN
@@ -1452,14 +1458,14 @@ BEGIN
       LocoDialogueSelectedLocoSpeed := TrainSpeedInMPHToLenzSpeed(LocoDialogueTrainRecord, LocoDialogueSelectedLocoSpeedInMPH);
 
       { Now we have to separate out the two locos, as they may well have different Lenz speeds }
-      SetLenzSpeed(LocoDialogueSelectedLocoChip, NoLocoChip, LocoDialogueSelectedLocoSpeed, LocoDialogueTrainRecord^.Train_CurrentDirection, NOT QuickStop, OK);
+      SetLenzSpeed(LocoDialogueSelectedLocoChip, NoLocoChip, LocoDialogueSelectedLocoSpeed, Trains[LocoDialogueTrainRecord].Train_CurrentDirection, NOT QuickStop, OK);
       IF LocoDialogueSelectedDHLocoChip <> NoLocoChip THEN BEGIN
         TempDHLocoSpeed := TrainSpeedInMPHToLenzSpeed(LocoDialogueDoubleHeaderTrainRecord, LocoDialogueSelectedLocoSpeedInMPH);
-        SetLenzSpeed(LocoDialogueSelectedDHLocoChip, NoLocoChip, TempDHLocoSpeed, LocoDialogueTrainRecord^.Train_CurrentDirection, NOT QuickStop, OK);
+        SetLenzSpeed(LocoDialogueSelectedDHLocoChip, NoLocoChip, TempDHLocoSpeed, Trains[LocoDialogueTrainRecord].Train_CurrentDirection, NOT QuickStop, OK);
       END;
     END ELSE BEGIN
       Inc(LocoDialogueSelectedLocoSpeed);
-      SetLenzSpeed(LocoDialogueSelectedLocoChip, LocoDialogueSelectedDHLocoChip, LocoDialogueSelectedLocoSpeed, LocoDialogueTrainRecord^.Train_CurrentDirection,
+      SetLenzSpeed(LocoDialogueSelectedLocoChip, LocoDialogueSelectedDHLocoChip, LocoDialogueSelectedLocoSpeed, Trains[LocoDialogueTrainRecord].Train_CurrentDirection,
                    NOT QuickStop, OK);
 
       IF LocoDialogueSelectedLocoSpeed > 0 THEN BEGIN
@@ -1480,7 +1486,7 @@ BEGIN
     END;
 
     { Deal with the cleaning wagon - if any }
-    IF (LocoDialogueTrainRecord^.Train_PullingDapolCleaningWagon) AND (DapolCleaningWagonLocoChip <> unknownLocoChip) THEN
+    IF (Trains[LocoDialogueTrainRecord].Train_PullingDapolCleaningWagon) AND (DapolCleaningWagonLocoChip <> unknownLocoChip) THEN
       SetLenzSpeed(DapolCleaningWagonLocoChip, 0, 8, Up, NOT QuickStop, OK)
   END; {WITH}
 END; { LocoDialogueIncreaseSpeed }
@@ -1538,15 +1544,15 @@ BEGIN
       LocoDialogueSelectedLocoSpeed := TrainSpeedInMPHToLenzSpeed(LocoDialogueTrainRecord, LocoDialogueSelectedLocoSpeedInMPH);
 
       { Now we have to separate out the two locos, as they may well have different Lenz speeds }
-      SetLenzSpeed(LocoDialogueSelectedLocoChip, NoLocoChip, LocoDialogueSelectedLocoSpeed, LocoDialogueTrainRecord^.Train_CurrentDirection, NOT QuickStop, OK);
+      SetLenzSpeed(LocoDialogueSelectedLocoChip, NoLocoChip, LocoDialogueSelectedLocoSpeed, Trains[LocoDialogueTrainRecord].Train_CurrentDirection, NOT QuickStop, OK);
       IF LocoDialogueSelectedDHLocoChip <> NoLocoChip THEN BEGIN
         TempDHLocoSpeed := TrainSpeedInMPHToLenzSpeed(LocoDialogueDoubleHeaderTrainRecord, LocoDialogueSelectedLocoSpeedInMPH);
-        SetLenzSpeed(LocoDialogueSelectedDHLocoChip, NoLocoChip, TempDHLocoSpeed, LocoDialogueTrainRecord^.Train_CurrentDirection, NOT QuickStop, OK);
+        SetLenzSpeed(LocoDialogueSelectedDHLocoChip, NoLocoChip, TempDHLocoSpeed, Trains[LocoDialogueTrainRecord].Train_CurrentDirection, NOT QuickStop, OK);
       END;
     END ELSE BEGIN
       IF LocoDialogueSelectedLocoSpeed > 0 THEN BEGIN
         Dec(LocoDialogueSelectedLocoSpeed);
-        SetLenzSpeed(LocoDialogueSelectedLocoChip, LocoDialogueSelectedDHLocoChip, LocoDialogueSelectedLocoSpeed, LocoDialogueTrainRecord^.Train_CurrentDirection,
+        SetLenzSpeed(LocoDialogueSelectedLocoChip, LocoDialogueSelectedDHLocoChip, LocoDialogueSelectedLocoSpeed, Trains[LocoDialogueTrainRecord].Train_CurrentDirection,
                      NOT QuickStop, OK);
       END;
 
@@ -1569,7 +1575,7 @@ BEGIN
     END;
 
     { Deal with the cleaning wagon - if any }
-    IF (LocoDialogueTrainRecord^.Train_PullingDapolCleaningWagon) AND (DapolCleaningWagonLocoChip <> unknownLocoChip) THEN
+    IF (Trains[LocoDialogueTrainRecord].Train_PullingDapolCleaningWagon) AND (DapolCleaningWagonLocoChip <> unknownLocoChip) THEN
       IF LocoDialogueSelectedLocoSpeed = 0 THEN
         SetLenzSpeed(DapolCleaningWagonLocoChip, 0, 0, Up, QuickStop, OK);
   END; {WITH}
@@ -1606,10 +1612,10 @@ BEGIN
 
   LocoTakenOver := False;
 
-  IF LocoDialogueTrainRecord^.Train_CurrentDirection = Down THEN BEGIN
+  IF Trains[LocoDialogueTrainRecord].Train_CurrentDirection = Down THEN BEGIN
     LocoDialogueLeftButton.Down := True;
 
-    WITH LocoDialogueTrainRecord^ DO BEGIN
+    WITH Trains[LocoDialogueTrainRecord] DO BEGIN
       SetTrainDirection(LocoDialogueTrainRecord, Up, ForceAWrite, OK);
 
       IF Train_LightsType = LightsOperatedByTwoChips THEN
@@ -1630,10 +1636,10 @@ BEGIN
 
   LocoTakenOver := False;
 
-  IF LocoDialogueTrainRecord^.Train_CurrentDirection = Up THEN BEGIN
+  IF Trains[LocoDialogueTrainRecord].Train_CurrentDirection = Up THEN BEGIN
     LocoDialogueRightButton.Down := True;
 
-    WITH LocoDialogueTrainRecord^ DO BEGIN
+    WITH Trains[LocoDialogueTrainRecord] DO BEGIN
       SetTrainDirection(LocoDialogueTrainRecord, Down, ForceAWrite, OK);
 
       IF Train_LightsType = LightsOperatedByTwoChips THEN
@@ -1658,28 +1664,27 @@ BEGIN
 
   LocoTakenOver := False;
 
-  WITH LocoDialogueTrainRecord^ DO BEGIN
-    IF LocoDialogueTrainRecord^.Train_LightsType = HeadlightsAndTailLightsConnected THEN BEGIN
+  WITH Trains[LocoDialogueTrainRecord] DO BEGIN
+    IF Train_LightsType = HeadlightsAndTailLightsConnected THEN BEGIN
       { Assume for the moment that all lights are operated by function 0 - will want to improve on this *** }
-      IF LocoDialogueFunction0CheckBox.Checked OR LocoDialogueTrainRecord^.Train_LightsOn THEN BEGIN
-        TurnLightsOff(LocoDialogueTrainRecord^.Train_LocoChip);
+      IF LocoDialogueFunction0CheckBox.Checked OR Train_LightsOn THEN BEGIN
+        TurnLightsOff(Train_LocoChip);
         LocoDialogueTurnLightsOnOrOffButton.Caption := 'Turn Lights On';
         LocoDialogueFunction0CheckBox.Checked := False;
       END ELSE BEGIN
-        TurnLightsOn(LocoDialogueTrainRecord^.Train_LocoChip, OK);
+        TurnLightsOn(Train_LocoChip, OK);
         LocoDialogueTurnLightsOnOrOffButton.Caption := 'Turn Lights Off';
         LocoDialogueFunction0CheckBox.Checked := True;
       END;
     END ELSE
-      IF LocoDialogueTrainRecord^.Train_LightsType = LightsOperatedByTwoChips THEN BEGIN
+      IF Train_LightsType = LightsOperatedByTwoChips THEN BEGIN
         { Assume for the moment that all lights are operated by function 0 - will want to improve on this *** }
-        IF LocoDialogueFunction0CheckBox.Checked OR LocoDialogueTrainRecord^.Train_LightsOn THEN BEGIN
-          SetTwoLightingChips(LocoDialogueTrainRecord^.Train_LocoChip, Up, Up, NOT LightsOn);
+        IF LocoDialogueFunction0CheckBox.Checked OR Train_LightsOn THEN BEGIN
+          SetTwoLightingChips(Train_LocoChip, Up, Up, NOT LightsOn);
           LocoDialogueTurnLightsOnOrOffButton.Caption := 'Turn Lights On';
           LocoDialogueFunction0CheckBox.Checked := False;
         END ELSE BEGIN
-          SetTwoLightingChips(LocoDialogueTrainRecord^.Train_LocoChip, LocoDialogueTrainRecord^.Train_CurrentDirection, LocoDialogueTrainRecord^.Train_CurrentDirection,
-                                                                                                                                                                  LightsOn);
+          SetTwoLightingChips(Train_LocoChip, Train_CurrentDirection, Train_CurrentDirection, LightsOn);
           LocoDialogueTurnLightsOnOrOffButton.Caption := 'Turn Lights Off';
           LocoDialogueFunction0CheckBox.Checked := True;
         END;
@@ -1810,7 +1815,7 @@ BEGIN
 
     LocoDialogueDHLocoMaskEdit.SetFocus;
   END ELSE BEGIN
-    LocoDialogueSelectedDHLocoChip := LocoDialogueDoubleHeaderTrainRecord^.Train_LocoChip;
+    LocoDialogueSelectedDHLocoChip := Trains[LocoDialogueDoubleHeaderTrainRecord].Train_LocoChip;
     LocoDialogueWindow.Caption := 'Drive Loco';
 
     { Enable double heading items }
@@ -1827,7 +1832,7 @@ BEGIN
     LocoDialogueSpeedDisplay.Font.Color := clBtnText;
     LocoDialogueTurnLightsOnOrOffButton.Enabled := True;
     LocoDialogueSpeedInMPHButton.Enabled := True;
-    IF LocoDialogueDoubleHeaderTrainRecord^.Train_SpeedSettingsMissing THEN
+    IF Trains[LocoDialogueDoubleHeaderTrainRecord].Train_SpeedSettingsMissing THEN
       { can't allow double heading where we don;t know that the two locos have compatible speed settings }
       LocoDialogueSpeedInMPHButton.Enabled := False
     ELSE BEGIN
@@ -1835,7 +1840,7 @@ BEGIN
       I := 1;
       DifferenceFound := False;
       WHILE (I <= 12) AND NOT DifferenceFound DO BEGIN
-        IF LocoDialogueDoubleHeaderTrainRecord^.Train_SpeedArray[I] <> LocoDialogueTrainRecord^.Train_SpeedArray[I] THEN
+        IF Trains[LocoDialogueDoubleHeaderTrainRecord].Train_SpeedArray[I] <> Trains[LocoDialogueTrainRecord].Train_SpeedArray[I] THEN
           DifferenceFound := True;
         Inc(I);
       END; {WHILE}
@@ -1877,7 +1882,7 @@ BEGIN
 
   IF NOT LocoDialogueSpeedInMPHButton.Enabled THEN
     { it may be disabled because the double-header loco doesn't have any speed settings }
-    IF NOT LocoDialogueTrainRecord^.Train_SpeedSettingsMissing THEN
+    IF NOT Trains[LocoDialogueTrainRecord].Train_SpeedSettingsMissing THEN
       LocoDialogueSpeedInMPHButton.Enabled := True;
 END; { LocoDialogueDHLocoClearButtonMouseDown }
 

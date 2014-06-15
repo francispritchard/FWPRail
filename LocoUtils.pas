@@ -74,14 +74,14 @@ BEGIN
   WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
 
-PROCEDURE InitialiseTrainRecord(T : Train);
+PROCEDURE InitialiseTrainRecord(T : TrainElement);
 { Do the initialisations, or reinitialisations if specified }
 VAR
   I : Integer;
 
 BEGIN
   TRY
-    WITH T^ DO BEGIN
+    WITH Trains[T] DO BEGIN
       Train_DiagramFound := False;
 
       { Set up defaults }
@@ -151,9 +151,9 @@ BEGIN
       Train_LastSignal := UnknownSignal;
       Train_LastTC := UnknownTrackCircuit;
       Train_LightingChipDown := UnknownLocoChip;
-      Train_LightingChipDownAddress := NIL;
+      Train_LightingChipDownAddress := 0;
       Train_LightingChipUp := UnknownLocoChip;
-      Train_LightingChipUpAddress := NIL;
+      Train_LightingChipUpAddress := 0;
       Train_LightingChipRecordForChip := UnknownLocoChip;
       Train_LightsMsg := '';
       Train_LightsOn := False;
@@ -266,7 +266,7 @@ CONST
   StopTimer = True;
 
 VAR
-  DownLightsTrainRecord : Train;
+//  DownLightsTrainRecord: TrainElement;
   ElementPos : Integer;
   ErrorMsg : String;
   I : Integer;
@@ -276,15 +276,15 @@ VAR
   LightSettingCount : Integer;
   NewLocationStr : String;
   SpeedFound : Boolean;
-  T : Train;
+  T : TrainElement;
   TempStr : String;
-  TempT : Train;
+  TempT : TrainElement;
   TempLocations : IntegerArrayType;
   TempLocationsLocoChips : IntegerArrayType;
   TempTCs : IntegerArrayType;
   TempTCsLocoChips : IntegerArrayType;
   TestInt : Integer;
-  UpLightsTrainRecord : Train;
+//  UpLightsTrainRecord: TrainElement;
 
 BEGIN
   TRY
@@ -347,9 +347,10 @@ BEGIN
         WITH LocoDataADOTable DO BEGIN
 
           { Create a new train record }
-          New(T);
+          SetLength(Trains, Length(Trains) + 1);
+          T := High(Trains);
 
-          WITH T^ DO BEGIN
+          WITH Trains[T] DO BEGIN
             IF ErrorMsg = '' THEN BEGIN
               InitialiseTrainRecord(T);
 
@@ -440,19 +441,19 @@ BEGIN
                       BEGIN
                         Log(LocoChipToStr(TempLocationsLocoChips[ElementPos])
                             + ' LG Deleting last location record as location is marked as occupied by ' + LocoChipToStr(Train_LocoChip));
-                        TempT := TrainList;
-                        WHILE TempT <> NIL DO BEGIN
+                        TempT := 0;
+                        WHILE TempT <= High(Trains) DO BEGIN
                           IF (ElementPos <= High(TempLocationsLocoChips))
-                          AND (TempT^.Train_LocoChip = TempLocationsLocoChips[ElementPos])
+                          AND (Trains[TempT].Train_LocoChip = TempLocationsLocoChips[ElementPos])
                           THEN BEGIN
                             DeleteElementFromIntegerArray(TempLocationsLocoChips, ElementPos);
                             DeleteElementFromIntegerArray(TempLocations, ElementPos);
                             ErrorMsg := '';
 
-                            TempT^.Train_LastTC := UnknownTrackCircuit;
-                            TempT^.Train_LastLocation := UnknownLocation;
+                            Trains[TempT].Train_LastTC := UnknownTrackCircuit;
+                            Trains[TempT].Train_LastLocation := UnknownLocation;
                           END;
-                          TempT := TempT^.Train_NextRecord;
+                          Inc(TempT);
                         END; {WHILE}
                       END;
                   END; {CASE}
@@ -723,30 +724,30 @@ BEGIN
               END;
             END;
 
-            { Also add records for the additional lighting chips if any }
-            IF (Train_LightingChipUp <> UnknownLocoChip)
-            AND (Train_LightingChipUp <> Train_LocoChip)
-            THEN BEGIN
-              New(UpLightsTrainRecord);
-              Train_LightingChipUpAddress := UpLightsTrainRecord;
-              InitialiseTrainRecord(UpLightsTrainRecord);
-              UpLightsTrainRecord^.Train_LocoChip := Train_LightingChipUp;
-              UpLightsTrainRecord^.Train_LocoChipStr := LocoChipToStr(UpLightsTrainRecord^.Train_LocoChip);
-              UpLightsTrainRecord^.Train_LightingChipRecordForChip := Train_LocoChip;
+            { Also add records for the additional lighting chips if any } { not sure if we need these 14/6/14 ****** }
+//            IF (Train_LightingChipUp <> UnknownLocoChip)
+//            AND (Train_LightingChipUp <> Train_LocoChip)
+//            THEN BEGIN
+//              New(UpLightsTrainRecord);
+//              Train_LightingChipUpAddress := UpLightsTrainRecord;
+//              InitialiseTrainRecord(UpLightsTrainRecord);
+//              UpLightsTrainRecord^.Train_LocoChip := Train_LightingChipUp;
+//              UpLightsTrainRecord^.Train_LocoChipStr := LocoChipToStr(UpLightsTrainRecord^.Train_LocoChip);
+//              UpLightsTrainRecord^.Train_LightingChipRecordForChip := Train_LocoChip;
 //              AddTrainToTrainList(UpLightsTrainRecord, DescribeFullTrainList);
-            END;
+//            END;
 
-            IF (Train_LightingChipDown <> UnknownLocoChip)
-            AND (Train_LightingChipDown <> Train_LocoChip)
-            THEN BEGIN
-              New(DownLightsTrainRecord);
-              Train_LightingChipDownAddress := DownLightsTrainRecord;
-              InitialiseTrainRecord(DownLightsTrainRecord);
-              DownLightsTrainRecord^.Train_LocoChip := Train_LightingChipDown;
-              DownLightsTrainRecord^.Train_LocoChipStr := LocoChipToStr(DownLightsTrainRecord^.Train_LocoChip);
-              DownLightsTrainRecord^.Train_LightingChipRecordForChip := Train_LocoChip;
+//            IF (Train_LightingChipDown <> UnknownLocoChip)
+//            AND (Train_LightingChipDown <> Train_LocoChip)
+//            THEN BEGIN
+//              New(DownLightsTrainRecord);
+//              Train_LightingChipDownAddress := DownLightsTrainRecord;
+//              InitialiseTrainRecord(DownLightsTrainRecord);
+//              DownLightsTrainRecord^.Train_LocoChip := Train_LightingChipDown;
+//              DownLightsTrainRecord^.Train_LocoChipStr := LocoChipToStr(DownLightsTrainRecord^.Train_LocoChip);
+//              DownLightsTrainRecord^.Train_LightingChipRecordForChip := Train_LocoChip;
 //              AddTrainToTrainList(DownLightsTrainRecord, DescribeFullTrainList);
-            END;
+//            END;
           END; {WITH}
         END; {WITH}
         LocoDataADOTable.Next;
@@ -773,7 +774,7 @@ VAR
   L : Integer;
   LocationStr : String;
   LineFound : Boolean;
-  T : Train;
+  T : TrainElement;
   TempStr : String;
   TrainFound : Boolean;
 
@@ -807,70 +808,69 @@ BEGIN
         LocoDataADOTable.First;
         WHILE NOT LocoDataADOTable.EOF DO BEGIN
           WITH LocoDataADOTable DO BEGIN
-//            IF FieldByName('LocoActive').AsBoolean THEN BEGIN
-              T := TrainList;
-              TrainFound := False;
-              WHILE (T <> NIL)
-              AND NOT TrainFound
-              DO BEGIN
-                IF FieldByName('LocoChip').AsInteger = T^.Train_LocoChip THEN
-                  TrainFound := True;
+            T := 0;
+            TrainFound := False;
+            WHILE (T <= High(Trains))
+            AND NOT TrainFound
+            DO BEGIN
+              IF FieldByName('LocoChip').AsInteger = Trains[T].Train_LocoChip THEN
+                TrainFound := True;
 
-                IF NOT TrainFound THEN
-                  T := T^.Train_NextRecord;
-              END; {WHILE}
+              IF NOT TrainFound THEN
+                Inc(T);
+            END; {WHILE}
 
-              IF NOT TrainFound THEN BEGIN
-                Log('XG Error in TrainList: no locochip data for '
-                        + LocoChipToStr(FieldByName('LocoChip').AsInteger) + ' in the train list');
-                Log('X ' + DescribeTrainList(Unsorted, True) + '{INDENT=0} {WRAP=SCREENWIDTH}');
-              END ELSE BEGIN
-                WITH T^ DO BEGIN
+            IF NOT TrainFound THEN BEGIN
+              Log('XG Error in TrainList: no locochip data for '
+                      + LocoChipToStr(FieldByName('LocoChip').AsInteger) + ' in the train list');
+              Log('X ' + DescribeTrainList(Unsorted, True) + '{INDENT=0} {WRAP=SCREENWIDTH}');
+            END ELSE BEGIN
+              WITH Trains[T] DO BEGIN
 
-                  { Add the current trackcircuit }
-                  IF Train_CurrentTC = UnknownTrackCircuit THEN
-                    Train_CurrentTC := Train_LastTC;
+                { Add the current trackcircuit }
+                IF Train_CurrentTC = UnknownTrackCircuit THEN
+                  Train_CurrentTC := Train_LastTC;
 
+                Edit;
+                TempStr := FieldByName('LastTC').AsString;
+                IF (TempStr = '')
+                OR (Train_CurrentTC = UnknownTrackCircuit)
+                THEN
+                  FieldByName('LastTC').AsString := ''
+                ELSE
+                  FieldByName('LastTC').AsInteger := Train_CurrentTC;
+                Post;
+
+                { And the loco's current location, taken from its current trackcircuit }
+                LineFound := False;
+                IF Train_CurrentTC = UnknownTrackCircuit THEN BEGIN
                   Edit;
-                  TempStr := FieldByName('LastTC').AsString;
-                  IF (TempStr = '')
-                  OR (Train_CurrentTC = UnknownTrackCircuit)
-                  THEN
-                    FieldByName('LastTC').AsString := ''
-                  ELSE
-                    FieldByName('LastTC').AsInteger := Train_CurrentTC;
+                  FieldByName('LastLocation').AsString := '';
                   Post;
-
-                  { And the loco's current location, taken from its current trackcircuit }
-                  LineFound := False;
-                  IF Train_CurrentTC = UnknownTrackCircuit THEN BEGIN
+                END ELSE BEGIN
+                  LocationStr := LocationToStr(GetLocationFromTrackCircuit(Train_CurrentTC));
+                  IF LocationStr <> UnknownLocationStr THEN BEGIN
                     Edit;
-                    FieldByName('LastLocation').AsString := '';
+                    FieldByName('LastLocation').AsString := LocationStr;
                     Post;
                   END ELSE BEGIN
-                    LocationStr := LocationToStr(GetLocationFromTrackCircuit(Train_CurrentTC));
-                    IF LocationStr <> UnknownLocationStr THEN BEGIN
-                      Edit;
-                      FieldByName('LastLocation').AsString := LocationStr;
-                      Post;
-                    END ELSE BEGIN
-                      { this may be one of those trackcircuits that's attached to more than one line, not all of which have a named location }
-                      L := 0;
-                      WHILE (L <= High(Lines))
-                      AND NOT LineFound
-                      DO BEGIN
-                        IF Lines[L].Line_TC = Train_CurrentTC THEN BEGIN
-                          IF Lines[L].Line_Location <> UnknownLocation THEN BEGIN
-                            Edit;
-                            FieldByName('LastLocation').AsString := LocationToStr(Lines[L].Line_Location);
-                            Post;
-                            LineFound := True;
-                          END;
+                    { this may be one of those trackcircuits that's attached to more than one line, not all of which have a named location }
+                    L := 0;
+                    WHILE (L <= High(Lines))
+                    AND NOT LineFound
+                    DO BEGIN
+                      IF Lines[L].Line_TC = Train_CurrentTC THEN BEGIN
+                        IF Lines[L].Line_Location <> UnknownLocation THEN BEGIN
+                          Edit;
+                          FieldByName('LastLocation').AsString := LocationToStr(Lines[L].Line_Location);
+                          Post;
+                          LineFound := True;
                         END;
-                        Inc(L);
-                      END; {WHILE}
-                    END;
+                      END;
+                      Inc(L);
+                    END; {WHILE}
                   END;
+                END;
 
 //                  IF NOT LineFound THEN BEGIN
 //                    Edit;
@@ -881,25 +881,24 @@ BEGIN
 //                    Post;
 //                  END;
 
-                  { Write out the last train length - needed for trains that don't appear in the next timetable }
-                  Edit;
-                  IF Train_CurrentLengthInInches = 0 THEN
+                { Write out the last train length - needed for trains that don't appear in the next timetable }
+                Edit;
+                IF Train_CurrentLengthInInches = 0 THEN
+                  FieldByName('LastTrainLength').AsString := ''
+                ELSE
+                  IF Train_FixedLengthInInches = Train_CurrentLengthInInches THEN
                     FieldByName('LastTrainLength').AsString := ''
                   ELSE
-                    IF Train_FixedLengthInInches = Train_CurrentLengthInInches THEN
-                      FieldByName('LastTrainLength').AsString := ''
-                    ELSE
-                      FieldByName('LastTrainLength').AsString := IntToStr(Train_CurrentLengthInInches);
-                  Post;
-                  Edit;
-                  IF Train_CurrentDirection = UnknownDirection THEN
-                    FieldByName('LastTrainDirection').AsString := ''
-                  ELSE
-                    FieldByName('LastTrainDirection').AsString := DirectionToStr(Train_CurrentDirection);
-                  Post;
-                END; {WITH}
-              END;
-//            END;
+                    FieldByName('LastTrainLength').AsString := IntToStr(Train_CurrentLengthInInches);
+                Post;
+                Edit;
+                IF Train_CurrentDirection = UnknownDirection THEN
+                  FieldByName('LastTrainDirection').AsString := ''
+                ELSE
+                  FieldByName('LastTrainDirection').AsString := DirectionToStr(Train_CurrentDirection);
+                Post;
+              END; {WITH}
+            END;
           END; {WITH}
           LocoDataADOTable.Next;
         END; {WHILE}
@@ -1132,7 +1131,7 @@ VAR
   I : Integer;
   ColNum : Integer;
   RowNum : Integer;
-  T : Train;
+  T : TrainElement;
   TempCell : String;
   WindowWidth : Integer;
 
@@ -1191,10 +1190,10 @@ BEGIN
       { note: these "notes" are automatically generated here and not taken from the database }
       AddItemToGrid('To note', ColNum, RowNum);
 
-      T := TrainList;
-      WHILE T <> NIL DO BEGIN
-        WITH T^ DO BEGIN
-          IF T^.Train_LocoChip <> UnknownLocoChip THEN BEGIN
+      T := 0;
+      WHILE T <= High(Trains) DO BEGIN
+        WITH Trains[T] DO BEGIN
+          IF Train_LocoChip <> UnknownLocoChip THEN BEGIN
             LocoStringGrid.RowCount := LocoStringGrid.RowCount + 1;
             Inc(RowNum);
 
@@ -1252,7 +1251,7 @@ BEGIN
                 AddItemToGrid('active', ColNum, RowNum);
           END;
         END; {WITH}
-        T := T^.Train_NextRecord;
+        Inc(T);
       END; {WHILE}
 
       { Resize the LocoStringGrid window }

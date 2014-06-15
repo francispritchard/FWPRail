@@ -335,7 +335,7 @@ VAR
   OK : Boolean;
   P : Integer;
   PointFeedbackFound : Boolean;
-  T : Train;
+  T: TrainElement;
   TC : Integer;
   TCAboveFeedbackUnit : Integer;
   TempMPHSpeed : Real;
@@ -578,15 +578,15 @@ BEGIN { DecodeFeedback }
                       ELSE
                         SetTrackCircuitstate(TC, TCUnoccupied)
                     END ELSE BEGIN
-                      T := NIL;
+                      T := 0;
                       IF TrackCircuits[TC].TC_LocoChip <> UnknownLocoChip THEN
                         T := GetTrainRecord(TrackCircuits[TC].TC_LocoChip);
 
                       IF TrackCircuits[TC].TC_PreviousOccupationState = TCOutOfUseSetByUser THEN
                         SetTrackCircuitstate(NoLocoChip, TC, TCOutOfUseSetByUser)
                       ELSE BEGIN
-                        IF (T <> NIL)
-                        AND T^.Train_UseTrailingTrackCircuits
+                        IF (T <= High(Trains))
+                        AND Trains[T].Train_UseTrailingTrackCircuits
                         THEN
                           SetTrackCircuitstate(TrackCircuits[TC].TC_LocoChip, TC, TCSystemOccupation)
                         ELSE
@@ -691,8 +691,8 @@ BEGIN { DecodeFeedback }
                               END;
                             END ELSE BEGIN
                               T := GetTrainRecord(Point_RouteLockedByLocochip);
-                              IF (T^.Train_CurrentStatus <> Suspended)
-                              AND (T^.Train_CurrentStatus <> MissingAndSuspended)
+                              IF (Trains[T].Train_CurrentStatus <> Suspended)
+                              AND (Trains[T].Train_CurrentStatus <> MissingAndSuspended)
                               THEN BEGIN
                                 SuspendTrain(T, NOT ByUser);
 
@@ -701,9 +701,7 @@ BEGIN { DecodeFeedback }
                                   MakeSound(1);
                                   Log('X! Serious error: P=' + IntToStr(P) + ' (Lenz=' + IntToStr(Point_LenzNum) + ')'
                                           + ' [' + DescribeLineNamesForTrackCircuit(Point_TCAtHeel) + '] has changed to ' + PointStateToStr(Point_PresentState)
-                                          + ' even though ' + LockingFailureString + ':'
-                                          + CRLF
-                                          + 'loco ' + LocoChipToStr(Point_RouteLockedByLocoChip) + ' has been suspended');
+                                          + ' even though ' + LockingFailureString + ':' + 'loco ' + LocoChipToStr(Point_RouteLockedByLocoChip) + ' has been suspended');
                                   Point_MovedWhenLocked := False;
                                 END;
                               END;

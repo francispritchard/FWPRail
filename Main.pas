@@ -101,7 +101,6 @@ CONST
 VAR
   NumbersArrayCounter : Integer = -1;
   SaveSystemStatusEmergencyOff : Boolean;
-  TimerT : Train = NIL;
 
 PROCEDURE Log(Str : String);
 { For ease of debugging, adds the unit name }
@@ -740,7 +739,7 @@ VAR
   LocoFound : Boolean;
   OK : Boolean;
   P : Integer;
-  T : Train;
+  T : TrainElement;
 
 BEGIN
   TRY
@@ -762,8 +761,8 @@ BEGIN
           IF NOT RedrawScreen THEN BEGIN
             T := GetTrainRecord(TC_LocoChip);
             IF (TC_PreviousOccupationState = TCSystemOccupation)
-            OR ((T <> NIL)
-            AND NOT T^.Train_UseTrailingTrackCircuits
+            OR ((T <= High(Trains))
+            AND NOT Trains[T].Train_UseTrailingTrackCircuits
             AND (TC_PreviousOccupationState = TCFeedbackOccupation))
             THEN BEGIN
               TC_OccupationState := NewState;
@@ -836,7 +835,7 @@ BEGIN
               IF Length(TempLocationLocoChips) > 0 THEN BEGIN
                 FOR I := 0 TO High(TempLocationLocoChips) DO BEGIN
                   T := GetTrainRecord(TempLocationLocoChips[I]);
-                  IF T <> NIL THEN
+                  IF T <= High(Trains) THEN
                     SetUpTrainLocationOccupationsAbInitio(T, OK);
                 END;
               END;
@@ -940,8 +939,8 @@ BEGIN
                   ELSE BEGIN
                     TC_LocoChip := TrackCircuits[AdjacentTrackCircuits[I]].TC_LocoChip;
                     T := GetTrainRecord(TC_LocoChip);
-                    IF T <> NIL THEN
-                      T^.Train_CurrentTC := TC;
+                    IF T <= High(Trains) THEN
+                      Trains[T].Train_CurrentTC := TC;
                     Log(LocoChipToStr(TC_LocoChip) + ' E ...found loco in adjacent TC=' + IntToStr(AdjacentTrackCircuits[I])
                                                    + ' so assuming it has moved to TC=' + IntToStr(TC));
                   END;
@@ -991,7 +990,7 @@ CONST
 
 VAR
   LocoChip : Integer;
-  T : Train;
+  T : TrainElement;
   TCFound : Boolean;
 
 BEGIN
@@ -999,18 +998,20 @@ BEGIN
     { See if it belongs to a loco }
     LocoChip := UnknownLocoChip;
     TCFound := False;
-    T := TrainList;
-    WHILE (T <> NIL)
+    T := 0;
+    WHILE (T <= High(Trains))
     AND NOT TCFound
     DO BEGIN
-      IF T^.Train_DiagramFound THEN BEGIN
-        IF T^.Train_CurrentTC = TC THEN BEGIN
-          TCFound := True;
-          LocoChip := T^.Train_LocoChip;
-          Log('T TC=' + IntToStr(TC) + ' allocated to loco ' + LocoChipToStr(LocoChip) + ' as it is that loco''s Train_CurrentTC');
+      WITH Trains[T] DO BEGIN
+        IF Train_DiagramFound THEN BEGIN
+          IF Train_CurrentTC = TC THEN BEGIN
+            TCFound := True;
+            LocoChip := Train_LocoChip;
+            Log('T TC=' + IntToStr(TC) + ' allocated to loco ' + LocoChipToStr(LocoChip) + ' as it is that loco''s Train_CurrentTC');
+          END;
         END;
-      END;
-      T := T^.Train_NextRecord;
+        Inc(T);
+      END; {WITH}
     END; {WHILE}
 
     SetTrackCircuitStateMainProcedure(LocoChip, TC, NewState, Explanation);
@@ -1162,7 +1163,7 @@ VAR
   RouteFound : Boolean;
   Route : Integer;
   SubRoute : Integer;
-  T : Train;
+  T : TrainElement;
   TempDivergingLineStr : String;
 
 BEGIN
@@ -1301,7 +1302,7 @@ BEGIN
                                 Log(LocoChipToStr(Routes_LocoChips[Route]) + ' DG System occupation and diagram entry cancelled by user');
                                 { look for our train }
                                 T := GetTrainRecord(Routes_LocoChips[Route]);
-                                IF T <> NIL THEN
+                                IF T <= High(Trains) THEN
                                   CancelTrain(T, ByUser, TrainExists);
                               END;
                             END;
@@ -1341,7 +1342,7 @@ VAR
   LockingMsg : String;
   OK : Boolean;
   PointResultPending : Boolean;
-  TempTrainArrayElementFound : Boolean;
+  T : TrainElement;
   TempRoute : Integer;
 
   PROCEDURE CheckSystemStatus;
@@ -1470,9 +1471,6 @@ BEGIN
       RunTestUnitOnStartup := False;
     END;
 
-    IF TimerT = NIL THEN
-      TimerT := TrainList;
-
 //    { See if any rectangles need to be undrawn } { seems not to be in use (as TimeRectangleDrawn is not initialised 8/4/14 ********* }
 //    IF TimeRectangleDrawn > 0 THEN BEGIN
 //      IF ((GetTickCount - TimeRectangleDrawn) > MaxRectangleUndrawTime) THEN BEGIN
@@ -1598,7 +1596,7 @@ BEGIN
       I := 0;
       WHILE I <= High(LightsToBeSwitchedOnArray) DO BEGIN
         WITH LightsToBeSwitchedOnArray[I] DO BEGIN
-          WITH LightsToBeSwitchedOn_Train^ DO BEGIN
+          WITH Trains[LightsToBeSwitchedOn_Train] DO BEGIN
             IF CurrentRailwayTime >= LightsToBeSwitchedOn_SwitchOnTime THEN BEGIN
               Log(Train_LocoChipStr + ' L Now switching on ' + LightsToBeSwitchedOn_ColourStr1 + ' lights at up'
                                     + ' and ' + LightsToBeSwitchedOn_ColourStr2 + ' lights at down');
@@ -1627,39 +1625,8 @@ BEGIN
         { Create routes that need creating, but don't do so if RouteClearingOnly is on (mode whereby routes are automatically cleared when train pass, but no routes are
           created - problem with the mode though - doesn't clear the system-occupied TCs when the train passes **** FWP 16/10/06)
         }
-        IF TimerT = NIL THEN
-          { cycle through the trains afresh, if there are any }
-          TimerT := TrainList;
-
-        TRY
-          IF TimerT <> NIL THEN BEGIN
-            IF TimerT^.Train_DiagramFound THEN BEGIN
-              { this is temporarily here to check for mad address errors FWP 14/2/08 **** }
-              TempTrainArrayElementFound := False;
-              I := 0;
-              WHILE I <= High(TempTrainArray) DO BEGIN
-                IF TimerT = TempTrainArray[I] THEN
-                  TempTrainArrayElementFound := True;
-                Inc(I);
-              END; {WHILE}
-              IF NOT TempTrainArrayElementFound THEN BEGIN
-                Debug;
-                { A permanent breakpoint in case the existing one gets moved or lost: }
-                IF DebugHook <> 0 THEN BEGIN
-                  ASM
-                    Int 3
-                  END; {ASM}
-                END;
-              END;
-
-              CreateRouteArraysForTrain(TimerT);
-            END;
-            TimerT := TimerT^.Train_NextRecord;
-          END;
-        EXCEPT
-          ON E : Exception DO
-            Log('EG Raildraw timer: ' + E.ClassName + ' error raised, with message: '+ E.Message);
-        END; {TRY}
+        FOR T := 0 TO High(Trains) DO
+          CreateRouteArraysForTrain(T);
       END;
 
       DoCheckForUnexpectedData(UnitRef, 'MainTimerTick 10');
