@@ -22,9 +22,9 @@ TYPE
     BufferStopPopupRuler: TMenuItem;
     ChangePoint: TMenuItem;
     ChangeSignal: TMenuItem;
-    CreateOrDeleteMenuItemRuler: TMenuItem;
-    CreateOrDeleteItemPopupMenu: TPopupMenu;
     CreateLineMenuItem: TMenuItem;
+    CreateOrDeleteItemPopupMenu: TPopupMenu;
+    CreateOrDeleteMenuItemRuler: TMenuItem;
     CreatePointMenuItem: TMenuItem;
     CreateSignalMenuItem: TMenuItem;
     DeleteLineMenuItem: TMenuItem;
@@ -32,6 +32,9 @@ TYPE
     DeleteSignalMenuItem: TMenuItem;
     FWPRailApplicationEvents: TApplicationEvents;
     FWPRailWindowColourDialogue: TColorDialog;
+    FWPRailWindowMenu: TMainMenu;
+    FWPRailWindowPopupOpenDialogue: TOpenDialog;
+    FWPRailWindowStatusBar: TStatusBar;
     GeneralPopupBackgroundColour: TMenuItem;
     GeneralPopupBufferStopColours: TMenuItem;
     GeneralPopupChangeBackgroundColour: TMenuItem;
@@ -78,6 +81,8 @@ TYPE
     GeneralPopupPointOutOfUseColour: TMenuItem;
     GeneralPopupPointUndrawColour: TMenuItem;
     GeneralPopupResetFWPRailWindowSizeAndPosition: TMenuItem;
+    GeneralPopupRestoreAllProgramDefaultSettings: TMenuItem;
+    GeneralPopupRestoreAllScreenDrawingDefaultSettings: TMenuItem;
     GeneralPopupRestoreDefaultBackgroundColour: TMenuItem;
     GeneralPopupRestoreForegroundColour: TMenuItem;
     GeneralPopupRestorePointDefaultColour: TMenuItem;
@@ -137,9 +142,9 @@ TYPE
     MainClockMenuStartClock: TMenuItem;
     MainDisplayMenu: TMenuItem;
     MainDisplayMenuDebug: TMenuItem;
+    MainDisplayMenuDiagramsWindow: TMenuItem;
     MainDisplayMenuShow: TMenuItem;
     MainDisplayMenuShowStatusbar: TMenuItem;
-    MainDisplayMenuDiagramsWindow: TMenuItem;
     MainDisplayMenuWorkingTimetableWindow: TMenuItem;
     MainDisplayMenuZoom: TMenuItem;
     MainFileMenu: TMenuItem;
@@ -156,10 +161,6 @@ TYPE
     MainRunMenu: TMenuItem;
     MainRunMenuHaltOperations: TMenuItem;
     MainRunMenuResumeOperations: TMenuItem;
-    FWPRailWindowColourDialogue: TColorDialog;
-    FWPRailWindowMenu: TMainMenu;
-    FWPRailWindowPopupOpenDialogue: TOpenDialog;
-    FWPRailWindowStatusBar: TStatusBar;
     PointPopupEditPointDetails: TMenuItem;
     PointPopupLockPoint: TMenuItem;
     PointPopupMenu: TPopupMenu;
@@ -198,25 +199,37 @@ TYPE
     TCPopupSetTrackCircuitToUserDriving: TMenuItem;
     TCPopupSetTrackCircuitUnoccupied: TMenuItem;
     TCPopupTrackCircuitNumber: TMenuItem;
-    GeneralPopupRestoreAllProgramDefaultSettings: TMenuItem;
-    GeneralPopupRestoreAllScreenDrawingDefaultSettings: TMenuItem;
 
     PROCEDURE BufferStopMenuOnPopup(Sender: TObject);
     PROCEDURE CreateLineMenuItemClick(Sender: TObject);
     PROCEDURE CreateOrDeleteItemMenuOnPopup(Sender: TObject);
-    PROCEDURE CreateSignalMenuItemClick(Sender: TObject);
     PROCEDURE CreatePointMenuItemClick(Sender: TObject);
-    PROCEDURE DeletePointMenuItemClick(Sender: TObject);
+    PROCEDURE CreateSignalMenuItemClick(Sender: TObject);
     PROCEDURE DeleteLineMenuItemClick(Sender: TObject);
+    PROCEDURE DeletePointMenuItemClick(Sender: TObject);
     PROCEDURE DeleteSignalMenuItemClick(Sender: TObject);
     PROCEDURE FlashTimerTick(Sender: TObject);
     PROCEDURE FWPRailApplicationEventsShortCut(VAR Msg: TWMKey; VAR Handled: Boolean);
     PROCEDURE FWPRailWindowClose(Sender: TObject; VAR Action: TCloseAction);
     PROCEDURE FWPRailWindowDestroy(Sender: TObject);
+    PROCEDURE FWPRailWindowDragDrop(Sender, Source: TObject; X, Y: Integer);
+    PROCEDURE FWPRailWindowDragOver(Sender, Source: TObject; X, Y: Integer; State: TDragState; var Accept: Boolean);
+    PROCEDURE FWPRailWindowExitClick(Sender: TObject);
+    PROCEDURE FWPRailWindowKeyDown(Sender: TObject; VAR Key: Word; ShiftState: TShiftState);
+    PROCEDURE FWPRailWindowMouseDown(Sender: TObject; Button: TMouseButton; ShiftState: TShiftState; X, Y: Integer);
+    PROCEDURE FWPRailWindowMouseMove(Sender: TObject; ShiftState: TShiftState; X, Y: Integer);
+    PROCEDURE FWPRailWindowMouseUp(Sender: TObject; Button: TMouseButton; ShiftState: TShiftState; X, Y: Integer);
+    PROCEDURE FWPRailWindowMouseWheel(Sender: TObject; ShiftState: TShiftState; WheelDelta: Integer; MousePos: TPoint; VAR Handled: Boolean);
+    PROCEDURE FWPRailWindowPaint(Sender: TObject);
+    PROCEDURE FWPRailWindowResize(Sender: TObject);
+    PROCEDURE FWPRailWindowShortCut(VAR Msg: TWMKey; VAR Handled: Boolean);
+    PROCEDURE FWPRailWindowStatusBarDblClick(Sender: TObject);
+    PROCEDURE FWPRailWindowStatusBarMouseMove(Sender: TObject; ShiftState: TShiftState; X, Y: Integer);
     PROCEDURE GeneralPopupChangeBackgroundColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangeBufferStopColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangeBufferStopNumberColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangeBufferStopRedClick(Sender: TObject);
+    PROCEDURE GeneralPopupChangeColoursClick(Sender: TObject);
     PROCEDURE GeneralPopupChangeDefaultPointColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangeForegroundColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangeLenzPointNumberColourClick(Sender: TObject);
@@ -287,6 +300,8 @@ TYPE
     PROCEDURE GeneralPopupProjectedLinePenStyleSolidClick(Sender: TObject);
     PROCEDURE GeneralPopupResetFWPRailWindowSizeAndPositionClick(Sender: TObject);
     PROCEDURE GeneralPopupRestoreAllDefaultColoursClick(Sender: TObject);
+    PROCEDURE GeneralPopupRestoreAllProgramDefaultSettingsClick(Sender: TObject);
+    PROCEDURE GeneralPopupRestoreAllScreenDrawingDefaultSettingsClick(Sender: TObject);
     PROCEDURE GeneralPopupRestoreBufferStopColourClick(Sender: TObject);
     PROCEDURE GeneralPopupRestoreBufferStopNumberColourClick(Sender: TObject);
     PROCEDURE GeneralPopupRestoreBufferStopRedClick(Sender: TObject);
@@ -408,30 +423,16 @@ TYPE
     PROCEDURE HelpMenuAboutClick(Sender: TObject);
     PROCEDURE LocoInfoMenuItemClick(Sender: TObject);
     PROCEDURE MainDisplayMenuDebugClick(Sender: TObject);
-    PROCEDURE MainDisplayMenuShowClick(Sender: TObject);
     PROCEDURE MainDisplayMenuDiagramsWindowClick(Sender: TObject);
-    PROCEDURE MainDisplayMenuZoomClick(Sender: TObject);
+    PROCEDURE MainDisplayMenuShowClick(Sender: TObject);
     PROCEDURE MainDisplayMenuWorkingTimetableWindowClick(Sender: TObject);
+    PROCEDURE MainDisplayMenuZoomClick(Sender: TObject);
     PROCEDURE MainHelpMenuRailHelpClick(Sender: TObject);
     PROCEDURE MainOperationsMenuDriveLocomotiveClick(Sender: TObject);
     PROCEDURE MainRunMenuResumeOperationsClick(Sender: TObject);
-    PROCEDURE FWPRailWindowClose(Sender: TObject; VAR Action: TCloseAction);
-    PROCEDURE FWPRailWindowDragOver(Sender, Source: TObject; X, Y: Integer; State: TDragState; var Accept: Boolean);
-    PROCEDURE FWPRailWindowDragDrop(Sender, Source: TObject; X, Y: Integer);
-    PROCEDURE FWPRailWindowExitClick(Sender: TObject);
-    PROCEDURE FWPRailWindowKeyDown(Sender: TObject; VAR Key: Word; ShiftState: TShiftState);
-    PROCEDURE FWPRailWindowMouseDown(Sender: TObject; Button: TMouseButton; ShiftState: TShiftState; X, Y: Integer);
-    PROCEDURE FWPRailWindowMouseMove(Sender: TObject; ShiftState: TShiftState; X, Y: Integer);
-    PROCEDURE FWPRailWindowMouseUp(Sender: TObject; Button: TMouseButton; ShiftState: TShiftState; X, Y: Integer);
-    PROCEDURE FWPRailWindowMouseWheel(Sender: TObject; ShiftState: TShiftState; WheelDelta: Integer; MousePos: TPoint; VAR Handled: Boolean);
-    PROCEDURE FWPRailWindowPaint(Sender: TObject);
-    PROCEDURE FWPRailWindowResize(Sender: TObject);
-    PROCEDURE FWPRailWindowShortCut(VAR Msg: TWMKey; VAR Handled: Boolean);
-    PROCEDURE FWPRailWindowStatusBarDblClick(Sender: TObject);
-    PROCEDURE FWPRailWindowStatusBarMouseMove(Sender: TObject; ShiftState: TShiftState; X, Y: Integer);
-    PROCEDURE PointPopupMenuOnPopup(Sender: TObject);
     PROCEDURE PointPopupEditPointDetailsClick(Sender: TObject);
     PROCEDURE PointPopupLockPointClick(Sender: TObject);
+    PROCEDURE PointPopupMenuOnPopup(Sender: TObject);
     PROCEDURE PointPopupSetPointBackInUseClick(Sender: TObject);
     PROCEDURE PointPopupSetPointOutOfUseClick(Sender: TObject);
     PROCEDURE PointPopupSetPointToAutomaticClick(Sender: TObject);
@@ -441,8 +442,8 @@ TYPE
     PROCEDURE SetDaylightStartTime(Sender: TObject);
     PROCEDURE SetProgramStartTime(Sender: TObject);
     PROCEDURE ShowStatusBarClick(Sender: TObject);
-    PROCEDURE SignalPopupMenuOnPopup(Sender: TObject);
     PROCEDURE SignalPopupEditSignalDetailsClick(Sender: TObject);
+    PROCEDURE SignalPopupMenuOnPopup(Sender: TObject);
     PROCEDURE SignalPopupSetSignalBackInUseClick(Sender: TObject);
     PROCEDURE SignalPopupSetSignalOutOfUseClick(Sender: TObject);
     PROCEDURE StartClock(Sender: TObject);
@@ -464,9 +465,6 @@ TYPE
     PROCEDURE TCPopupSetTrackCircuitUnoccupiedClick(Sender: TObject);
     PROCEDURE TCPopupShowLocosLastErrorMessageClick(Sender: TObject);
     PROCEDURE TCPopupTrackCircuitNumberClick(Sender: TObject);
-    procedure GeneralPopupChangeColoursClick(Sender: TObject);
-    procedure GeneralPopupRestoreAllProgramDefaultSettingsClick(
-      Sender: TObject);
 
   PRIVATE
     { Private declarations }

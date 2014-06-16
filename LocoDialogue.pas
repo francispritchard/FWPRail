@@ -60,11 +60,6 @@ TYPE
     LocoDialogueTimer: TTimer;
     LocoDialogueTurnLightsOnOrOffButton: TButton;
     LocoDialogueUpButton: TButton;
-    PROCEDURE LocoDialogueWindowClose(Sender: TObject; VAR Action: TCloseAction);
-    PROCEDURE LocoDialogueWindowHide(Sender: TObject);
-    PROCEDURE LocoDialogueWindowKeyDown(Sender: TObject; VAR Key: Word; ShiftState: TShiftState);
-    PROCEDURE LocoDialogueWindowKeyUp(Sender: TObject; VAR Key: Word; ShiftState: TShiftState);
-    PROCEDURE LocoDialogueWindowShow(Sender: TObject);
     PROCEDURE LocoDialogueCancelButtonMouseDown(Sender: TObject; Button: TMouseButton; ShiftState: TShiftState; X, Y: Integer);
     PROCEDURE LocoDialogueChangeOrSelectButtonMouseDown(Sender: TObject; Button: TMouseButton; ShiftState: TShiftState; X, Y: Integer);
     PROCEDURE LocoDialogueDHLocoChangeOrSelectButtonMouseDown(Sender: TObject; Button: TMouseButton; ShiftState: TShiftState; X, Y: Integer);
@@ -108,6 +103,11 @@ TYPE
     PROCEDURE LocoDialogueUpButtonMouseDown(Sender: TObject; Button: TMouseButton; ShiftState : TShiftState; X, Y: Integer);
     PROCEDURE LocoDialogueUpButtonMouseLeave(Sender: TObject);
     PROCEDURE LocoDialogueUpButtonMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    PROCEDURE LocoDialogueWindowClose(Sender: TObject; VAR Action: TCloseAction);
+    PROCEDURE LocoDialogueWindowHide(Sender: TObject);
+    PROCEDURE LocoDialogueWindowKeyDown(Sender: TObject; VAR Key: Word; ShiftState: TShiftState);
+    PROCEDURE LocoDialogueWindowKeyUp(Sender: TObject; VAR Key: Word; ShiftState: TShiftState);
+    PROCEDURE LocoDialogueWindowShow(Sender: TObject);
     { Private declarations }
   PUBLIC
     { Public declarations }
