@@ -1247,6 +1247,7 @@ CONST
   NewSignalData = True;
   NoNextSubRouteCh = ' ';
   ProcessMessages = True;
+  Rebuild = True;
   Start = True;
   StopTimer = True;
   Test = True;
@@ -1255,6 +1256,7 @@ CONST
   Undo = True;
   UpLine = True;
   WarnUser = True;
+  WriteToFile = True;
 
 TYPE
   ShiftKeysType = (NoShiftKeys, Alt, Shift, Ctrl, ShiftAlt, CtrlShift, CtrlAlt, CtrlAltShift);
@@ -1281,10 +1283,40 @@ VAR
   TC : Integer;
 //  TempKey : Word;
   XTypeOfLine : TypeOfLine;
-  WriteLocationOccupationsToFileFlag : Boolean;
   ZoomAmountStr : String;
 
   Hour, Min, Sec, MSec : Word;
+
+  PROCEDURE ProcessLocationOccupations(RebuildFlag, WriteToFileFlag : Boolean);
+  { Call the routine to do the writing }
+  BEGIN
+    Log('X Writing occupation window'
+           + IfThen(Rebuild,
+                    ', rebuilding occupations first')
+           + IfThen(WriteToFileFlag,
+                    ' and write them to file'));
+
+
+    IF Rebuild THEN BEGIN
+      DrawLineInLogFile(NoLocoChip, '*', '+', UnitRef);
+      SetUpAllLocationOccupationsAbInitio(NOT TimetableLoading, OK);
+      DrawLineInLogFile(NoLocoChip, '*', '+', UnitRef);
+    END;
+
+    IF LocationDataWindow.Visible THEN BEGIN
+      IF IncludeLocationOccupationStateFlag THEN BEGIN
+        IncludeLocationOccupationStateFlag := False;
+        WriteLocationOccupations(IncludeLocationOccupationStateFlag, WriteToFileFlag);
+      END ELSE BEGIN
+        IncludeLocationOccupationStateFlag := True;
+        WriteLocationOccupations(IncludeLocationOccupationStateFlag, WriteToFileFlag);
+      END;
+    END ELSE BEGIN
+      IncludeLocationOccupationStateFlag := False;
+      WriteLocationOccupations(IncludeLocationOccupationStateFlag, WriteToFileFlag);
+      LocationDataWindow.Show;
+    END;
+  END; { ProcessLocationOccupations }
 
   PROCEDURE ClearRoute(R : Integer);
   { Clear a route by brute force }
@@ -5166,7 +5198,7 @@ BEGIN { KeyPressedDown }
                 END;
               END;
           END; {CASE}
-        vk_F9:
+        vk_F9: { journeys }
           CASE ShiftKeys OF
             NoShiftKeys: {F9}
               BEGIN
@@ -5236,19 +5268,50 @@ BEGIN { KeyPressedDown }
                 END;
               END;
           END; {CASE}
-        vk_F10:
-          { note: F10 does not pass on the shift key state. (F10 is being intercepted by TFWPRailWindow.ApplicationMessage in Raildraw as otherwise it would do the same as
-            Alt, i.e. activate the menu bar). This doesn't work for any shifted keys as F10 processed by TFWPRailWindow.ApplicationMessage deosn't seem to notice what the
-            shift keys are ***.
-          }
-          BEGIN
-            HelpMsg := 'Compare Two Databases';
-            IF NOT HelpRequired THEN BEGIN
-//              CompareTwoLocationDatabases('LocationData', 'mdb', 'LocationData - Saved', 'mdb');
-//              CompareTwoLineDatabases('LineData', 'mdb', 'LineData - Saved', 'mdb');
-              CompareTwoSignalDatabases('SignalData', 'mdb', 'SignalData - saved', 'mdb');
-              CompareTwoPointDatabases('PointData', 'mdb', 'PointData - Saved', 'mdb');
-            END;
+        vk_F10: { Location occupations }
+          CASE ShiftKeys OF
+            NoShiftKeys: {F10}
+              BEGIN
+                HelpMsg := 'Write location occupations to screen';
+                IF NOT HelpRequired THEN
+                  ProcessLocationOccupations(NOT Rebuild, NOT WriteToFile);
+              END;
+            ShiftAlt: {F10}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
+            CtrlAlt: {F10}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
+            CtrlShift: {F10}
+              BEGIN
+                HelpMsg := 'Write location occupations to screen and file, rebuilding first';
+                IF NOT HelpRequired THEN
+                  ProcessLocationOccupations(Rebuild, WriteToFile);
+              END;
+            Shift: {F10}
+              BEGIN
+                HelpMsg := 'Write location occupations to screen and file';
+                IF NOT HelpRequired THEN
+                  ProcessLocationOccupations(NOT Rebuild, WriteToFile);
+              END;
+            Ctrl: {F10}
+              BEGIN
+                HelpMsg := 'Write location occupations to screen, rebuilding first';
+                IF NOT HelpRequired THEN
+                  ProcessLocationOccupations(Rebuild, NOT WriteToFile);
+              END;
+            Alt: {F10}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
           END;
         vk_F11: { Miscellaneous items }
           CASE ShiftKeys OF
@@ -5309,41 +5372,12 @@ BEGIN { KeyPressedDown }
               END;
             Ctrl: {F11}
               BEGIN
-                CASE ShiftKeys OF
-                  NoShiftKeys:
-                    HelpMsg := 'show occupation window';
-                  Ctrl:
-                    HelpMsg := 'show occupation window after rebuilding the location occupation array';
-                  Shift:
-                    HelpMsg := 'show occupation window and also write it to file';
-                END; {CASE}
-
+                HelpMsg := 'Compare Two Databases';
                 IF NOT HelpRequired THEN BEGIN
-                  Log('X Writing occupation window');
-                  DrawLineInLogFile(NoLocoChip, '*', '+', UnitRef);
-                  IF ShiftKeys = Ctrl THEN
-                    SetUpAllLocationOccupationsAbInitio(NOT TimetableLoading, OK);
-
-                  DrawLineInLogFile(NoLocoChip, '*', '+', UnitRef);
-
-                  IF ShiftKeys = Shift THEN
-                    WriteLocationOccupationsToFileFlag  := True
-                  ELSE
-                    WriteLocationOccupationsToFileFlag  := False;
-
-                  IF LocationDataWindow.Visible THEN BEGIN
-                    IF IncludeLocationOccupationStateFlag THEN BEGIN
-                      IncludeLocationOccupationStateFlag := False;
-                      WriteLocationOccupations(IncludeLocationOccupationStateFlag, WriteLocationOccupationsToFileFlag);
-                    END ELSE BEGIN
-                      IncludeLocationOccupationStateFlag := True;
-                      WriteLocationOccupations(IncludeLocationOccupationStateFlag, WriteLocationOccupationsToFileFlag);
-                    END;
-                  END ELSE BEGIN
-                    IncludeLocationOccupationStateFlag := False;
-                    WriteLocationOccupations(IncludeLocationOccupationStateFlag, WriteLocationOccupationsToFileFlag);
-                    LocationDataWindow.Show;
-                  END;
+    //              CompareTwoLocationDatabases('LocationData', 'mdb', 'LocationData - Saved', 'mdb');
+    //              CompareTwoLineDatabases('LineData', 'mdb', 'LineData - Saved', 'mdb');
+    //              CompareTwoSignalDatabases('SignalData', 'mdb', 'SignalData - saved', 'mdb');
+    //              CompareTwoPointDatabases('PointData', 'mdb', 'PointData - Saved', 'mdb');
                 END;
               END;
             Alt: {F11}
