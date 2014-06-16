@@ -892,10 +892,12 @@ BEGIN
                     FieldByName('LastTrainLength').AsString := IntToStr(Train_CurrentLengthInInches);
                 Post;
                 Edit;
-                IF Train_CurrentDirection = UnknownDirection THEN
-                  FieldByName('LastTrainDirection').AsString := ''
-                ELSE
-                  FieldByName('LastTrainDirection').AsString := DirectionToStr(Train_CurrentDirection);
+                IF Train_FixedDirection = UnknownDirection THEN BEGIN
+                  IF Train_CurrentDirection = UnknownDirection THEN
+                    FieldByName('LastTrainDirection').AsString := ''
+                  ELSE
+                    FieldByName('LastTrainDirection').AsString := DirectionToStr(Train_CurrentDirection);
+                END;
                 Post;
               END; {WITH}
             END;
