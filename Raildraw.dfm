@@ -1489,4 +1489,9 @@ object FWPRailWindow: TFWPRailWindow
       OnClick = DeleteLineMenuItemClick
     end
   end
+  object FWPRailApplicationEvents: TApplicationEvents
+    OnShortCut = FWPRailApplicationEventsShortCut
+    Left = 112
+    Top = 208
+  end
 end

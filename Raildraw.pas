@@ -11,7 +11,7 @@ UNIT Raildraw;
 INTERFACE
 
 USES Windows, Messages, SysUtils, Variants, Classes, Graphics, Forms, Dialogs, Menus, Initvars, StdCtrls, ComCtrls, ExtCtrls, Controls, ActnList, DB, ADODB, Buttons,
-     System.UITypes;
+     System.UITypes, Vcl.AppEvnts;
 
 TYPE
   TFWPRailWindow = CLASS(TForm)
@@ -30,6 +30,8 @@ TYPE
     DeleteLineMenuItem: TMenuItem;
     DeletePointMenuItem: TMenuItem;
     DeleteSignalMenuItem: TMenuItem;
+    FWPRailApplicationEvents: TApplicationEvents;
+    FWPRailWindowColourDialogue: TColorDialog;
     GeneralPopupBackgroundColour: TMenuItem;
     GeneralPopupBufferStopColours: TMenuItem;
     GeneralPopupChangeBackgroundColour: TMenuItem;
@@ -208,6 +210,8 @@ TYPE
     PROCEDURE DeleteLineMenuItemClick(Sender: TObject);
     PROCEDURE DeleteSignalMenuItemClick(Sender: TObject);
     PROCEDURE FlashTimerTick(Sender: TObject);
+    PROCEDURE FWPRailApplicationEventsShortCut(VAR Msg: TWMKey; VAR Handled: Boolean);
+    PROCEDURE FWPRailWindowClose(Sender: TObject; VAR Action: TCloseAction);
     PROCEDURE FWPRailWindowDestroy(Sender: TObject);
     PROCEDURE GeneralPopupChangeBackgroundColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangeBufferStopColourClick(Sender: TObject);
@@ -462,8 +466,6 @@ TYPE
     PROCEDURE TCPopupTrackCircuitNumberClick(Sender: TObject);
     procedure GeneralPopupChangeColoursClick(Sender: TObject);
     procedure GeneralPopupRestoreAllProgramDefaultSettingsClick(
-      Sender: TObject);
-    procedure GeneralPopupRestoreAllScreenDrawingDefaultSettingsClick(
       Sender: TObject);
 
   PRIVATE
@@ -3499,59 +3501,37 @@ BEGIN
   ShutDownProgram(UnitRef, 'FWPRailWindowExitClick');
 END; { FWPRailWindowExitClick }
 
-PROCEDURE TFWPRailWindow.FWPRailWindowShortCut(VAR Msg: TWMKey; VAR Handled: Boolean);
-VAR
-  ShiftState : TShiftState;
+PROCEDURE TFWPRailWindow.FWPRailWindowShortCut(VAR Msg: TWMKey; VAR Handled: Boolean); { Replaced by RailApplicationEventsShortuct 16/6/14 }
+//VAR
+//  ShiftState : TShiftState;
 
 BEGIN
   TRY
-    ShiftState := [];
-    IF GetKeyState(vk_Shift) < 0 THEN
-      ShiftState := [ssShift];
-    IF GetKeyState(vk_Control) < 0 THEN
-      ShiftState := ShiftState + [ssCtrl];
-    IF GetKeyState(vk_Menu) < 0 THEN
-      ShiftState := ShiftState + [ssAlt];
-
-    CASE Msg.CharCode OF
-      vk_Tab:
-        BEGIN
-          Handled := True;
-          KeyPressedDown(msg.Charcode, ShiftState);
-        END;
-      vk_Up: { up arrow key - need to handle specially in loco dialogue boxes }
-        IF LocoDialogueWindow.Visible
-        AND LocoDialogueWindow.LocoDialogueUpButton.Enabled
-        THEN BEGIN
-          LocoDialogueIncreaseSpeed;
-          Handled := True;
-        END;
-      vk_Down: { down arrow key - need to handle specially in loco dialogue boxes }
-        IF LocoDialogueWindow.Visible
-        AND LocoDialogueWindow.LocoDialogueDownButton.Enabled
-        THEN BEGIN
-          LocoDialogueDecreaseSpeed;
-          Handled := True;
-        END;
-      vk_Return: { enter key - need to handle specially in loco dialogue boxes }
-        IF LocoDialogueWindow.LocoDialogueLocoMaskEdit.Focused THEN BEGIN
-          LocoDialogueChangeOrSelectLoco;
-          Handled := True;
-        END;
-      vk_Space: { space bar - need to handle specially in loco dialogue boxes }
-        IF LocoDialogueWindow.Visible THEN
-          StopOrResumeAllOperations(DescribeKey(Msg.Charcode, ShiftState));
-      vk_F4:
-        BEGIN
-          KeyPressedDown(Msg.Charcode, ShiftState);
-          Handled := True;
-        END;
-      vk_F10:
-        BEGIN
-          KeyPressedDown(Msg.Charcode, ShiftState);
-          Handled := True;
-        END;
-    END; {CASE}
+//    ShiftState := [];
+//    IF GetKeyState(vk_Shift) < 0 THEN
+//      ShiftState := [ssShift];
+//    IF GetKeyState(vk_Control) < 0 THEN
+//      ShiftState := ShiftState + [ssCtrl];
+//    IF GetKeyState(vk_Menu) < 0 THEN
+//      ShiftState := ShiftState + [ssAlt];
+//
+//    CASE Msg.CharCode OF
+//      vk_Tab:
+//        BEGIN
+//          Handled := True;
+//          KeyPressedDown(msg.Charcode, ShiftState);
+//        END;
+//      vk_F4:
+//        BEGIN
+//          KeyPressedDown(Msg.Charcode, ShiftState);
+//          Handled := True;
+//        END;
+//      vk_F10:
+//        BEGIN
+//          KeyPressedDown(Msg.Charcode, ShiftState);
+//          Handled := True;
+//        END;
+//    END; {CASE}
   EXCEPT
     ON E : Exception DO
       Log('EG FWPRailWindowShortCut:' + E.ClassName + ' error raised, with message: '+ E.Message);
@@ -4337,6 +4317,71 @@ BEGIN
     END;
   END; {WITH}
 END; { PointPopupSetPointToManualClick }
+
+PROCEDURE TFWPRailWindow.FWPRailApplicationEventsShortCut(VAR Msg: TWMKey; VAR Handled: Boolean);
+{ This is called regardless of which window has focus }
+VAR
+  ShiftState : TShiftState;
+
+BEGIN
+  TRY
+    ShiftState := [];
+    IF GetKeyState(vk_Shift) < 0 THEN
+      ShiftState := [ssShift];
+    IF GetKeyState(vk_Control) < 0 THEN
+      ShiftState := ShiftState + [ssCtrl];
+    IF GetKeyState(vk_Menu) < 0 THEN
+      ShiftState := ShiftState + [ssAlt];
+
+    { Loco dialogue boxes need special treatment }
+    IF (LocoDialogueWindow <> NIL)
+    AND LocoDialogueWindow.Visible
+    AND LocoDialogueWindow.Focused
+    AND LocoDialogueWindow.LocoDialogueUpButton.Enabled
+    THEN BEGIN
+      CASE Msg.CharCode OF
+        vk_Up: { up arrow key - need to handle specially in loco dialogue boxes }
+          BEGIN
+            LocoDialogueIncreaseSpeed;
+            Handled := True;
+          END;
+        vk_Down: { down arrow key - need to handle specially in loco dialogue boxes }
+          BEGIN
+            LocoDialogueDecreaseSpeed;
+            Handled := True;
+          END;
+        vk_Space: { space bar - need to handle specially in loco dialogue boxes }
+          StopOrResumeAllOperations(DescribeKey(Msg.Charcode, ShiftState));
+        vk_Return: { enter key - need to handle specially in loco dialogue boxes }
+          IF LocoDialogueWindow.LocoDialogueLocoMaskEdit.Focused THEN BEGIN
+            LocoDialogueChangeOrSelectLoco;
+            Handled := True;
+          END;
+      END; {CASE}
+    END;
+
+    CASE Msg.CharCode OF
+      vk_Tab:
+        BEGIN
+          Handled := True;
+          KeyPressedDown(msg.Charcode, ShiftState);
+        END;
+      vk_F4:
+        BEGIN
+          KeyPressedDown(Msg.Charcode, ShiftState);
+          Handled := True;
+        END;
+      vk_F10:
+        BEGIN
+          KeyPressedDown(Msg.Charcode, ShiftState);
+          Handled := True;
+        END;
+    END; {CASE}
+  EXCEPT
+    ON E : Exception DO
+      Log('EG RailApplicationEventsShortCut:' + E.ClassName + ' error raised, with message: '+ E.Message);
+  END; {TRY}
+END; { RailApplicationEventsShortCut }
 
 PROCEDURE TFWPRailWindow.GeneralPopupChangePointLockedBySystemColourClick(Sender: TObject);
 BEGIN
