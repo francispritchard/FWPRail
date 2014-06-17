@@ -943,7 +943,7 @@ BEGIN
                                    ' (' + DisplayTrackCircuitsForLocation(Location) + ')')
                           + ' data not inserted: '
                           + ErrorMsg;
-              Log('EG ' + ErrorMsg + ' {INDENT=0} {WRAP=SCREENWIDTH}');
+              Log('E ' + ErrorMsg + ' {INDENT=0} {WRAP=SCREENWIDTH}');
             END ELSE BEGIN
               ErrorMsg := 'Start journey ' + IntToStr(JourneyA) + ': '
                           + TimeToHMStr(StartTime) + ' to ' + TimeToHMStr(EndTime) + ' at ' + LocationToStr(Location, ShortStringType)
@@ -952,7 +952,7 @@ BEGIN
                                    ' (' + DisplayTrackCircuitsForLocation(Location) + ')')
                           + ' data not inserted: '
                           + ErrorMsg;
-              Log(Train_LocoChipStr + ' EG ' + ErrorMsg + ' {INDENT=0} {WRAP=SCREENWIDTH}');
+              Log(Train_LocoChipStr + ' E ' + ErrorMsg + ' {INDENT=0} {WRAP=SCREENWIDTH}');
             END;
           END ELSE BEGIN
             IF T = 0 THEN BEGIN
