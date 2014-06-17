@@ -4,7 +4,7 @@ object LocationDataWindow: TLocationDataWindow
   Align = alClient
   Caption = 'LocationDataWindow'
   ClientHeight = 237
-  ClientWidth = 591
+  ClientWidth = 619
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -13,14 +13,12 @@ object LocationDataWindow: TLocationDataWindow
   Font.Style = []
   OldCreateOrder = False
   WindowState = wsMaximized
-  ExplicitWidth = 320
-  ExplicitHeight = 240
   PixelsPerInch = 96
   TextHeight = 13
   object LocationDataWindowGrid: TStringGrid
     Left = 0
     Top = 0
-    Width = 591
+    Width = 619
     Height = 237
     Align = alClient
     FixedColor = clHighlightText
@@ -30,6 +28,7 @@ object LocationDataWindow: TLocationDataWindow
     TabOrder = 0
     OnDrawCell = LocationDataWindowGridDrawCell
     OnKeyDown = LocationDataWindowGridKeyDown
+    ExplicitWidth = 591
     RowHeights = (
       24
       24
