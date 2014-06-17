@@ -1,5 +1,22 @@
 Things to do:
 
+14/6/14
+Pressing Enter doesn't do anything in Loco Dialogue
+Unsetting printing colours doesn't work
+
+11/6/14
+Contradiction of:
+"No routes to clear
+Routeing for express passenger trains
+Route setting-up failed (: L=UMA1 already locked by R=1: route setting failure)"
+
+8/6/14
+F5 showing trackcircuits - end of line ones are in a larger font
+
+Recheck journeys after Lenz is started
+
+Add function chips to loco database and cross-check. Also check non-loco field has a corresponding description.
+
 5/6/14
 Hold train outside platform if routeing to 9B if train would otherwise wait in 8A (as passengers would get annoyed)
 
