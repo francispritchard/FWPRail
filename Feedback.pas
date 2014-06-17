@@ -573,31 +573,36 @@ BEGIN { DecodeFeedback }
                     TrackCircuits[TC].TC_OccupationStartTime := 0;
 
                     IF NOT InAutoMode THEN BEGIN
-                      IF TrackCircuits[TC].TC_PreviousOccupationState = TCOutOfUseSetByUser THEN
+                      IF TrackCircuits[TC].TC_OccupationState = TCOutOfUseSetByUser THEN
                         SetTrackCircuitstate(NoLocoChip, TC, TCOutOfUseSetByUser)
                       ELSE
-                        SetTrackCircuitstate(TC, TCUnoccupied)
+                        IF TrackCircuits[TC].TC_OccupationState = TCPermanentOccupationSetByUser THEN
+                          SetTrackCircuitstate(NoLocoChip, TC, TCPermanentOccupationSetByUser)
+                        ELSE
+                          SetTrackCircuitstate(TC, TCUnoccupied)
                     END ELSE BEGIN
                       T := 0;
                       IF TrackCircuits[TC].TC_LocoChip <> UnknownLocoChip THEN
                         T := GetTrainRecord(TrackCircuits[TC].TC_LocoChip);
 
-                      IF TrackCircuits[TC].TC_PreviousOccupationState = TCOutOfUseSetByUser THEN
+                      IF TrackCircuits[TC].TC_OccupationState = TCOutOfUseSetByUser THEN
                         SetTrackCircuitstate(NoLocoChip, TC, TCOutOfUseSetByUser)
-                      ELSE BEGIN
-                        IF (T <= High(Trains))
-                        AND Trains[T].Train_UseTrailingTrackCircuits
-                        THEN
-                          SetTrackCircuitstate(TrackCircuits[TC].TC_LocoChip, TC, TCSystemOccupation)
+                      ELSE
+                        IF TrackCircuits[TC].TC_OccupationState = TCPermanentOccupationSetByUser THEN
+                          SetTrackCircuitstate(NoLocoChip, TC, TCPermanentOccupationSetByUser)
                         ELSE
-                          IF TrackCircuits[TC].TC_PreviousOccupationState <> TCSystemOccupation THEN
-                            SetTrackCircuitstate(NoLocoChip, TC, TCUnoccupied)
-                          ELSE BEGIN
-                            { the track circuit has probably been set then unset then set again - which may happen with bad contacts }
-                            TrackCircuits[TC].TC_LocoChip := TrackCircuits[TC].TC_PreviousLocoChip;
-                            SetTrackCircuitstate(TrackCircuits[TC].TC_LocoChip, TC, TCSystemOccupation);
-                          END;
-                      END;
+                          IF (T <= High(Trains))
+                          AND Trains[T].Train_UseTrailingTrackCircuits
+                          THEN
+                            SetTrackCircuitstate(TrackCircuits[TC].TC_LocoChip, TC, TCSystemOccupation)
+                          ELSE
+                            IF TrackCircuits[TC].TC_PreviousOccupationState <> TCSystemOccupation THEN
+                              SetTrackCircuitstate(NoLocoChip, TC, TCUnoccupied)
+                            ELSE BEGIN
+                              { the track circuit has probably been set then unset then set again - which may happen with bad contacts }
+                              TrackCircuits[TC].TC_LocoChip := TrackCircuits[TC].TC_PreviousLocoChip;
+                              SetTrackCircuitstate(TrackCircuits[TC].TC_LocoChip, TC, TCSystemOccupation);
+                            END;
                     END;
                   END;
                 END;
