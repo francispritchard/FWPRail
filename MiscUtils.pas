@@ -6371,6 +6371,10 @@ BEGIN { ShutDownProgram }
     Log('A! Shut down initiated');
     ProgramShuttingDown := True;
 
+    IF ScreenColoursSetForPrinting THEN
+      { we need to do this or the wrong colours are saved in the registry }
+      ResetScreenColoursAfterPrinting;
+
     { Close the station monitor web page if it exists }
     CloseStationMonitorsWebPage(OK);
     IF OK THEN
