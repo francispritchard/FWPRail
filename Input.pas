@@ -4313,6 +4313,7 @@ BEGIN { KeyPressedDown }
                     { Close the program after two consecutive escapes }
                     IF EscKeyStored THEN BEGIN
                       IF ScreenColoursSetForPrinting THEN
+                        { we need to do this or the wrong colours are saved in the registry }
                         ResetScreenColoursAfterPrinting;
                       Log('A Shutdown requested by user pressing Escape twice {BLANKLINEBEFORE}');
                       ShutDownProgram(UnitRef, 'KeyPressedDown');
@@ -4348,6 +4349,7 @@ BEGIN { KeyPressedDown }
                   { close the program after two consecutive escapes }
                   IF EscKeyStored THEN BEGIN
                     IF ScreenColoursSetForPrinting THEN
+                      { we need to do this or the wrong colours are saved in the registry }
                       ResetScreenColoursAfterPrinting;
                     Log('A Shutdown requested by user pressing Escape twice - log to be restored to previous state');
                     RestoreLogsToPreviousState := True;
@@ -5347,8 +5349,6 @@ BEGIN { KeyPressedDown }
                     ResetScreenColoursAfterPrinting
                   ELSE BEGIN
                     SetScreenColoursBeforePrinting;
-                    SaveBackgroundColourForPrinting := BackgroundColour;
-                    SaveForegroundColourForPrinting := ForegroundColour;
                     ScreenColoursSetForPrinting := True;
                     Debug('Screen colours set for printing - press ' + DescribeKey(KeyToTest, InputShiftState) + ' to reset');
                   END;
