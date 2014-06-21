@@ -2429,7 +2429,7 @@ BEGIN
                         END;
                       END;
                       Inc(Journey);
-                    END; { WHILE}
+                    END; {WHILE}
                   END;
                 END; {WITH}
               END;

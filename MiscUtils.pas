@@ -551,7 +551,7 @@ FUNCTION PointTypeToStr(PType : TypeOfPoint) : String;
 { Return the point type }
 
 PROCEDURE ReadOut(SoundStr : String);
-{ Uses system API sndPlaySound to read out the given text, by playing a .wav file. text is held in the system resource file, itself compiled by using "brcc32 -v rail.rc"
+{ Uses system API SndPlaySound to read out the given text, by playing a .wav file. text is held in the system resource file, itself compiled by using "brcc32 -v rail.rc"
   from the command prompt. The file "rail.rc" is the resource script file.
 }
 FUNCTION RemoveAllSpacesFromAString(Str : String) : String;

@@ -1,5 +1,5 @@
 UNIT Options;
-{ Allows options to be read in and writen to the Registry and to be changed bny means of a Value List Editor.
+{ Allows options to be read in and written to the Registry and to be changed by means of a Value List Editor.
 
   v.0.1 31/03/09 First written
   v.0.2 03/04/09 TValueListEditor found after TTreeView tried and did not do what was required

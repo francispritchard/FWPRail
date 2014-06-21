@@ -1277,7 +1277,7 @@ VAR
                                                     StopStr := RouteingException_StopStr + ' (Rule ' + IntToStr(Rule) + ')';
       END; {WITH}
       Inc(Rule);
-    END; { WHILE}
+    END; {WHILE}
 
     { otherwise it's ok }
     IF StopStr = '' THEN
@@ -1794,7 +1794,7 @@ BEGIN
         END;
       END;
 
-      { Copy point data too, and check for crossover ponts, three-way points and points potentially locked by catch points }
+      { Copy point data too, and check for crossover points, three-way points and points potentially locked by catch points }
       IF Pos('FP=', TempDraftRouteArray[TempDraftRouteArrayPos]) > 0 THEN BEGIN
         TempPoint := ExtractPointFromString(TempDraftRouteArray[TempDraftRouteArrayPos]);
 

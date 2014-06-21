@@ -3546,8 +3546,8 @@ PROCEDURE TFWPRailWindow.ApplicationMessage(VAR Msg: TMsg; VAR Handled: Boolean)
 BEGIN
   CASE Msg.Message OF
     WM_KEYDOWN:
-//      { The WM_KEYDOWN message is posted to the window with the keyboard focus when a nonsystem key is pressed. A nonsystem key is a key that is pressed when the Alt key
-//        is not pressed. Used by FWP to capture any key apart from the Alt key and the F10 key.
+//      { The WM_KEYDOWN message is posted to the window with the keyboard focus when a non-system key is pressed. A non-system key is a key that is pressed when the Alt
+//        key is not pressed. Used by FWP to capture any key apart from the Alt key and the F10 key.
 //      }
       CASE Msg.wParam OF
 //        vk_F12:
@@ -3652,7 +3652,7 @@ BEGIN
 //                END;
 //            END; {CASE}
 //    WM_KEYUP:
-//      { The WM_KEYUP message is posted to the window with the keyboard focus when a nonsystem key is released. A nonsystem key is a key that is pressed when the ALT key
+//      { The WM_KEYUP message is posted to the window with the keyboard focus when a non-system key is released. A non-system key is a key that is pressed when the ALT key
 //        is not pressed, or a keyboard key that is pressed when a window has the keyboard focus.
 //      };
 //    WM_ACTIVATE:

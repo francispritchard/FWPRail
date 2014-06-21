@@ -2414,7 +2414,7 @@ BEGIN
                     Log(Train_LocoChipStr + ' D ' + DisplayJourneyNumber(JourneyA)
                                           + 'not yet setting up a location occupation as a location allocation is pending')
                   ELSE BEGIN
-                    { Add the intervening locations, but first check they all work, except for omes that have already been set up. Do this in advance of inserting the data
+                    { Add the intervening locations, but first check they all work, except for ones that have already been set up. Do this in advance of inserting the data
                       in the array as we may want to change the location, which may affect the adjoining location if the train length means it will occupy that too, or if
                       we want to protect a train's access to its sub-platform.
                     }

@@ -1686,16 +1686,16 @@ BEGIN
               THEN
                 ShutDownProgram(UnitRef, 'ReadInTrackCircuitDataFromDatabase');
             END;
-          END; { WITH }
-        END; { WITH }
+          END; {WITH}
+        END; {WITH}
         TrackCircuitDataADOTable.Next;
-      END; { WHILE }
+      END; {WHILE}
 
       { Tidy up the database }
       TrackCircuitDataADOTable.Close;
       TrackCircuitDataADOConnection.Connected := False;
       Log('T Track circuit data table and connection closed');
-    END; { WITH }
+    END; {WITH}
 
     FOR TC := 0 TO High(TrackCircuits) DO BEGIN
       WITH TrackCircuits[TC] DO BEGIN
@@ -1728,7 +1728,7 @@ BEGIN
         TC_UserMustDrive := False;
 
         SetLength(TC_LineArray, 0);
-      END; { WITH }
+      END; {WITH}
 
       { Initialise track circuit lines and locations }
       TCLocationFound := False;
@@ -1749,8 +1749,8 @@ BEGIN
             TrackCircuits[TC].TC_Gradient := Lines[L].Line_Gradient;
         END;
         Inc(L);
-      END; { WHILE }
-    END; { FOR }
+      END; {WHILE}
+    END; {FOR}
 
     { Check that all track circuits have a TC_LineArray value }
     TC := 0;
@@ -1758,7 +1758,7 @@ BEGIN
       IF Length(TrackCircuits[TC].TC_LineArray) = 0 THEN
         Debug('!TC=' + IntToStr(TC) + ': has no entry in the LineData file');
       Inc(TC);
-    END; { WHILE }
+    END; {WHILE}
 
     { Work out how long individual locations are based on track circuit length. This can be overriden by a specific length given below, however. }
     FOR Location := 0 TO High(Locations) DO BEGIN
@@ -1772,10 +1772,10 @@ BEGIN
           END;
         END;
     END;
-  EXCEPT { TRY }
+  EXCEPT {TRY}
     ON E : Exception DO
       Log('EG ReadInTrackCircuitDataFromDatabase: ' + E.ClassName + ' error raised, with message: ' + E.Message);
-  END; { TRY }
+  END; {TRY}
 END; { ReadInTrackCircuitDataFromDatabase }
 
 PROCEDURE ReadInAreasDataFromDatabase;
@@ -1828,7 +1828,7 @@ BEGIN
           AreasADOTable.Post;
         END;
         AreasADOTable.Next;
-      END; { WHILE }
+      END; {WHILE}
 
       AreasADOTable.First;
       SetLength(Areas, 0);
@@ -1896,7 +1896,7 @@ BEGIN
                   ReversingAreas_ToFirstStationAreaDirection := UnknownDirection;
                   ReversingAreas_NearestToFirstStationArea := False;
                   ReversingAreas_TimeToFirstStationAreaInMinutes := 0;
-                END; { WITH }
+                END; {WITH}
               END;
             END;
 
@@ -1948,10 +1948,10 @@ BEGIN
               THEN
                 ShutDownProgram(UnitRef, 'ReadInAreasDataFromDatabase');
             END;
-          END; { WITH }
+          END; {WITH}
           AreasADOTable.Next;
-        END; { WHILE }
-      END; { WITH }
+        END; {WHILE}
+      END; {WITH}
 
       { Tidy up the database }
       AreasADOTable.Close;
@@ -1972,7 +1972,7 @@ BEGIN
               AppendToAreaArray(Area_AccessibleAreasUp, TempArea);
 
             Inc(I);
-          END; { WHILE }
+          END; {WHILE}
 
           SetLength(Area_AccessibleAreasDown, 0);
           I := 0;
@@ -1984,15 +1984,15 @@ BEGIN
               AppendToAreaArray(Area_AccessibleAreasDown, TempArea);
 
             Inc(I);
-          END; { WHILE }
+          END; {WHILE}
 
           IF NOT Area_IsHoldingArea AND (Length(Area_AccessibleAreasUp) = 0) AND (Length(Area_AccessibleAreasDown) = 0) THEN
             ErrorMsg := 'it has neither Possible Up Destinations or Possible Down Destinations';
-        END; { WITH }
+        END; {WITH}
 
         IF ErrorMsg = '' THEN
           Inc(A_Num);
-      END; { WHILE }
+      END; {WHILE}
 
       IF ErrorMsg <> '' THEN BEGIN
         IF MessageDialogueWithDefault('Error in creating Area=' + IntToStr(A_Num) + ' (' + Areas[A_Num].Area_LongStr + '): '
@@ -2003,11 +2003,11 @@ BEGIN
         THEN
           ShutDownProgram(UnitRef, 'ReadInAreasDataFromDatabase');
       END;
-    END; { WITH }
-  EXCEPT { TRY }
+    END; {WITH}
+  EXCEPT {TRY}
     ON E : Exception DO
       Log('EG ReadInAreasDataFromDatabase: ' + E.ClassName + ' error raised, with message: ' + E.Message);
-  END; { TRY }
+  END; {TRY}
 END; { ReadInAreasDataFromDatabase }
 
 PROCEDURE CalculateLocationPositions(ScaleFactor : Integer);
@@ -2021,7 +2021,7 @@ BEGIN
     WITH Locations[Location] DO
       Location_YScaled := MulDiv(FWPRailWindow.ClientHeight, Location_Y, ScaleFactor);
     Inc(Location);
-  END; { WHILE }
+  END; {WHILE}
 END; { CalculateLocationPositions }
 
 PROCEDURE ReadInLocationDataFromDatabase;
@@ -2088,7 +2088,7 @@ BEGIN
           LocationsADOTable.Post;
         END;
         LocationsADOTable.Next;
-      END; { WHILE }
+      END; {WHILE}
 
       LocationsADOTable.First;
       SetLength(Locations, 0);
@@ -2296,7 +2296,7 @@ BEGIN
                       AppendToAreaArray(Location_DestinationPriorityAreas, TempArea);
                   END;
                   Inc(I);
-                END; { WHILE }
+                END; {WHILE}
               END;
             END;
 
@@ -2402,17 +2402,17 @@ BEGIN
               THEN
                 ShutDownProgram(UnitRef, 'ReadInLocationDataFromDatabase 1');
             END;
-          END; { WITH }
+          END; {WITH}
 
           LocationsADOTable.Next;
-        END; { WHILE }
-      END; { WITH }
+        END; {WHILE}
+      END; {WITH}
 
       { Tidy up the database }
       LocationsADOTable.Close;
       LocationsADOConnection.Connected := False;
       Log('T Location Data table and connection closed');
-    END; { WITH }
+    END; {WITH}
 
     { And now test whether the locations referenced in the entries just read in are valid - this test cannot be carried out until all the locations are read in }
     Location := 0;
@@ -2433,7 +2433,7 @@ BEGIN
                 ErrorMsg := 'unknown adjoining platform "' + Location_AdjoiningPlatformStr;
             END;
             Inc(I);
-          END; { WHILE }
+          END; {WHILE}
         END;
 
         IF ErrorMsg = '' THEN BEGIN
@@ -2450,7 +2450,7 @@ BEGIN
                   ErrorMsg := 'unknown access platform "' + Location_PlatformOrFiddleyardAccessViaParallelPlatformOrFiddleyardStr;
               END;
               Inc(I);
-            END; { WHILE }
+            END; {WHILE}
           END;
         END;
 
@@ -2542,9 +2542,9 @@ BEGIN
             END; { FOR }
           END;
         END;
-      END; { WITH }
+      END; {WITH}
       Inc(Location);
-    END; { WHILE }
+    END; {WHILE}
 
     { And work out Y positions of locations - again, can't do this until all the locations are read in, and then we have to run through the list of locations until we build
       up all the missing Y values, as the list may not be in the correct order and locations may reference other locations which themselves haven't been initialised yet
@@ -2571,10 +2571,10 @@ BEGIN
                 END;
               END;
             END;
-          END; { WITH }
+          END; {WITH}
           Inc(Location);
           Inc(Iterations);
-        END; { WHILE }
+        END; {WHILE}
       UNTIL NOT MissingYValue OR (ErrorMsg <> '') OR (Iterations = 100000);
     END;
 
@@ -2593,10 +2593,10 @@ BEGIN
         ShutDownProgram(UnitRef, 'ReadInLocationDataFromDatabase 2');
     END;
 
-  EXCEPT { TRY }
+  EXCEPT {TRY}
     ON E : Exception DO
       Log('EG ReadInLocationDataFromDatabase: ' + E.ClassName + ' error raised, with message: ' + E.Message);
-  END; { TRY }
+  END; {TRY}
 END; { ReadInLocationDataFromDatabase }
 
 PROCEDURE WriteOutLocationDataToDatabase;
@@ -2642,24 +2642,24 @@ BEGIN
                     FieldByName('OutOfUse').AsBoolean := Location_OutOfUse;
                     Post;
                   END;
-                END; { WITH }
+                END; {WITH}
               END;
               Inc(Location);
             END;
-          END; { WITH }
+          END; {WITH}
           LocationsADOTable.Next;
-        END; { WHILE }
+        END; {WHILE}
 
         { Tidy up the database }
         LocationsADOTable.Close;
         LocationsADOConnection.Connected := False;
         Log('L Location Data table and connection closed after writing locations');
       END;
-    END; { WITH }
-  EXCEPT { TRY }
+    END; {WITH}
+  EXCEPT {TRY}
     ON E : Exception DO
       Log('EG WriteOutLocationDataToDatabase: ' + E.ClassName + ' error raised, with message: ' + E.Message);
-  END; { TRY }
+  END; {TRY}
 END; { WriteOutLocationDataToDatabase }
 
 PROCEDURE CalculateLinePositions(ScaleFactor : Integer);
@@ -2701,7 +2701,7 @@ BEGIN
                   END;
                 END;
               END;
-            END; { WITH }
+            END; {WITH}
           END; { FOR }
           Inc(Iterations);
         UNTIL NOT MissingXValue OR (Iterations = 10000);
@@ -2711,16 +2711,16 @@ BEGIN
       END;
       Inc(L);
       Inc(Iterations);
-    END; { WHILE }
+    END; {WHILE}
 
     L := 0;
     WHILE L <= High(Lines) DO BEGIN
       WITH Lines[L] DO BEGIN
         Line_UpX := MulDiv(FWPRailWindow.ClientWidth, Line_UpXAbsolute, ScaleFactor);
         Line_DownX := MulDiv(FWPRailWindow.ClientWidth, Line_DownXAbsolute, ScaleFactor);
-      END; { WITH }
+      END; {WITH}
       Inc(L);
-    END; { WHILE }
+    END; {WHILE}
 
     L := 0;
     WHILE L <= High(Lines) DO BEGIN
@@ -2786,9 +2786,9 @@ BEGIN
             END;
           END;
         END;
-      END; { WITH }
+      END; {WITH}
       Inc(L);
-    END; { WHILE }
+    END; {WHILE}
 
     L := 0;
     WHILE L <= High(Lines) DO BEGIN
@@ -2809,7 +2809,7 @@ BEGIN
               Top := Line_UpY - (TextHeight(Line_UpConnectionCh) DIV 2);
               Right := Line_UpX + (TextWidth(Line_UpConnectionCh) DIV 2);
               Bottom := Line_UpY + (TextHeight(Line_UpConnectionCh) DIV 2);
-            END; { WITH }
+            END; {WITH}
           END;
           IF Line_DownConnectionCh <> '' THEN BEGIN
             WITH Line_DownConnectionChRect DO BEGIN
@@ -2817,16 +2817,16 @@ BEGIN
               Top := Line_DownY - (TextHeight(Line_DownConnectionCh) DIV 2);
               Right := Line_DownX + (TextWidth(Line_DownConnectionCh) DIV 2);
               Bottom := Line_DownY + (TextHeight(Line_DownConnectionCh) DIV 2);
-            END; { WITH }
+            END; {WITH}
           END;
-        END; { WITH }
-      END; { WITH }
+        END; {WITH}
+      END; {WITH}
       Inc(L);
-    END; { WHILE }
-  EXCEPT { TRY }
+    END; {WHILE}
+  EXCEPT {TRY}
     ON E : Exception DO
       Log('EG CalculateLinePositions: ' + E.ClassName + ' error raised, with message: ' + E.Message);
-  END; { TRY }
+  END; {TRY}
 
 
   IF VerboseFlag THEN
@@ -2860,10 +2860,10 @@ BEGIN
         Top := BufferStop_Y1;
         Right := BufferStop_X + MulDiv(FWPRailWindow.ClientWidth, 5, ScaleFactor);
         Bottom := BufferStop_Y2;
-      END; { WITH }
-    END; { WITH }
+      END; {WITH}
+    END; {WITH}
     Inc(BufferStop);
-  END; { WHILE }
+  END; {WHILE}
 END; { CalculateBufferStopPositions }
 
 PROCEDURE ReadInLineDataFromDatabase;
@@ -2898,7 +2898,7 @@ VAR
       BufferStop_CurrentColour := BufferStopColour;
       BufferStop_Direction := BSDirection;
       BufferStop_Number := BSNumber;
-    END; { WITH }
+    END; {WITH}
   END; { CreateBufferStop }
 
 BEGIN
@@ -2935,7 +2935,7 @@ BEGIN
           LineDataADOTable.Post;
         END;
         LineDataADOTable.Next;
-      END; { WHILE }
+      END; {WHILE}
 
       LineDataADOTable.Sort := 'LineNum ASC';
       LineDataADOTable.First;
@@ -2991,7 +2991,7 @@ BEGIN
                 IF Line_Str = Lines[TempLine].Line_Str THEN
                   ErrorMsg := 'duplicate line name found';
                 Inc(TempLine);
-              END; { WHILE }
+              END; {WHILE}
 
               FieldName := 'Up X Line';
               Line_UpXLineStr := FieldByName(FieldName).AsString;
@@ -3108,7 +3108,7 @@ BEGIN
                 IF (Line_BufferStopNum <> UnknownBufferStop) AND (Line_BufferStopNum = Lines[TempLine].Line_BufferStopNum) THEN
                   ErrorMsg := 'duplicate buffer stop number ' + IntToStr(Line_BufferStopNum) + ' found';
                 Inc(TempLine);
-              END; { WHILE }
+              END; {WHILE}
             END;
 
             IF ErrorMsg = '' THEN BEGIN
@@ -3198,15 +3198,15 @@ BEGIN
                 ShutDownProgram(UnitRef, 'ReadInLineDataFromDatabase');
             END;
           END;
-        END; { WITH }
+        END; {WITH}
         LineDataADOTable.Next;
-      END; { WHILE }
+      END; {WHILE}
 
       { Tidy up the database }
       LineDataADOTable.Close;
       LineDataADOConnection.Connected := False;
       Log('T Line Data table and connection closed');
-    END; { WITH }
+    END; {WITH}
 
     { Now we have to do certain tests as some of the data was not be available while we read it in). }
     FOR L := 0 TO High(Lines) DO BEGIN
@@ -3219,7 +3219,7 @@ BEGIN
             THEN
               ShutDownProgram(UnitRef, 'ReadInLineDataFromDatabase');
         END;
-      END; { WITH }
+      END; {WITH}
     END; { FOR }
 
     { see if there are any duplicate connection characters }
@@ -3244,7 +3244,7 @@ BEGIN
               END;
           END;
         END; { FOR }
-      END; { WITH }
+      END; {WITH}
     END; { FOR }
 
     { Now work out the X and Y values }
@@ -3259,7 +3259,7 @@ BEGIN
           THEN
             ShutDownProgram(UnitRef, 'ReadInLineDataFromDatabase');
         END;
-      END; { WITH }
+      END; {WITH}
     END; { FOR }
 
     FOR L := 0 TO High(Lines) DO BEGIN
@@ -3316,7 +3316,7 @@ BEGIN
               ShutDownProgram(UnitRef, 'ReadInLineDataFromDatabase');
           END;
 
-      END; { WITH }
+      END; {WITH}
     END; { FOR }
 
     CalculateBufferStopPositions(1000);
@@ -3364,7 +3364,7 @@ BEGIN
             END;
           END;
         END;
-      END; { WITH }
+      END; {WITH}
     END; { FOR }
 
     { And check for lines which are declared but not initialised }
@@ -3385,10 +3385,10 @@ BEGIN
         END;
       SaveLine := L;
     END; { FOR }
-  EXCEPT { TRY }
+  EXCEPT {TRY}
     ON E : Exception DO
       Log('EG ReadInLineDataFromDatabase: ' + E.ClassName + ' error raised, with message: ' + E.Message);
-  END; { TRY }
+  END; {TRY}
 
 (* TP { This is left over from the Turbo Pascal version }
     DX := (X2 - X1) / AspectRatio;
@@ -3441,9 +3441,9 @@ BEGIN
                   FieldByName('Out Of Use').AsBoolean := True;
                   Post;
                 END;
-              END; { WITH }
+              END; {WITH}
               LineDataADOTable.Next;
-            END; { WHILE }
+            END; {WHILE}
             LineDataADOTable.Close;
           END ELSE
             IF (Line_OutOfUseState = InUse)
@@ -3457,14 +3457,14 @@ BEGIN
                     FieldByName('Out Of Use').AsBoolean := False;
                     Post;
                   END;
-                END; { WITH }
+                END; {WITH}
                 LineDataADOTable.Next;
-              END; { WHILE }
+              END; {WHILE}
               LineDataADOTable.Close;
             END;
-        END; { WITH }
+        END; {WITH}
         Inc(L);
-      END; { WHILE }
+      END; {WHILE}
 
 // LineDataADOTable.First;
 // WHILE NOT LineDataADOTable.EOF DO BEGIN
@@ -3498,11 +3498,11 @@ BEGIN
       LineDataADOTable.Close;
       LineDataADOConnection.Connected := False;
       Log('L Line Data table and connection closed after writing line data');
-    END; { WITH }
-  EXCEPT { TRY }
+    END; {WITH}
+  EXCEPT {TRY}
     ON E : Exception DO
       Log('EG WriteOutLineData: ' + E.ClassName + ' error raised, with message: ' + E.Message);
-  END; { TRY }
+  END; {TRY}
 END; { WriteOutLineDataToDatabase }
 
 PROCEDURE CalculateSignalPositions(ScaleFactor : Integer);
@@ -3585,7 +3585,7 @@ BEGIN
                       Bottom := Signal_LocationY - RailWindowBitmap.Canvas.Pen.Width;
                     END;
             END;
-          END; { WITH }
+          END; {WITH}
 
           { Initialise the route indicator mouse access rectangles }
           WITH Signal_IndicatorMouseRect DO BEGIN
@@ -3604,7 +3604,7 @@ BEGIN
                 Top := Signal_MouseRect.Top;
                 Right := Signal_MouseRect.Left;
                 Bottom := Signal_MouseRect.Bottom;
-              END; { WITH }
+              END; {WITH}
             END;
           END ELSE
             IF Signal_Direction = Down THEN BEGIN
@@ -3618,7 +3618,7 @@ BEGIN
                     Top := Signal_MouseRect.Top;
                     Right := Signal_MouseRect.Right + (MulDiv(IndicatorHorizontalSpacingScaled, 150, 100));
                     Bottom := Signal_MouseRect.Bottom;
-                  END; { WITH }
+                  END; {WITH}
                 END;
               END;
             END;
@@ -3638,15 +3638,15 @@ BEGIN
                 Right := Signal_LocationX - SignalRadiusScaled;
                 Bottom := Signal_LocationY + Signal_VerticalSpacing - RailWindowBitmapCanvasPenWidth;
               END;
-          END; { WITH }
+          END; {WITH}
         END;
-      END; { WITH }
+      END; {WITH}
       Inc(S);
-    END; { WHILE }
-  EXCEPT { TRY }
+    END; {WHILE}
+  EXCEPT {TRY}
     ON E : Exception DO
       Log('EG CalculateSignalPositions: ' + E.ClassName + ' error raised, with message: ' + E.Message);
-  END; { TRY }
+  END; {TRY}
 END; { CalculateSignalPositions }
 
 PROCEDURE CalculateTCAdjacentSignals;
@@ -3699,7 +3699,7 @@ BEGIN
                       + ' adjacent line ' +  LineToStr(Signals[S].Signal_AdjacentLine) + ' is already in use by another signal (S=' + IntToStr(S) + ')';
       END;
       Inc(S);
-    END; { WHILE }
+    END; {WHILE}
   END;
 END; { ValidateSignalAdjacentLine }
 
@@ -3836,9 +3836,9 @@ BEGIN
           ErrorMsg := 'ValidateJunctionIndicators2: identical signal/bufferstopdata (' + StrArray[I] + ') in indicator fields';
       END;
       Inc(J);
-    END; { WHILE }
+    END; {WHILE}
     Inc(I);
-  END; { WHILE }
+  END; {WHILE}
 
   IF ErrorMsg = '' THEN BEGIN
     IndicatorsFound := False;
@@ -3962,7 +3962,7 @@ BEGIN
         END ELSE
           AppendToLocationArray(Result, TempLocation);
         Inc(I);
-      END; { WHILE }
+      END; {WHILE}
     END;
   END;
 END; { ValidateSignalLocationsToMonitorArray }
@@ -4106,7 +4106,7 @@ BEGIN
       THEN
         Result := ' target for next signal if no indicator (S' + IntToStr(Signal_NextSignalIfNoIndicator) + ') is not a valid signal number';
     END; { FOR }
-  END; { WITH }
+  END; {WITH}
 END; { ValidateIndicatorDestinations }
 
 FUNCTION ValidateSignalDistantHomesArray(Str : String; OUT ErrorMsg : String) : IntegerArrayType;
@@ -4141,7 +4141,7 @@ BEGIN
         END;
       END;
       Inc(I);
-    END; { WHILE }
+    END; {WHILE}
   END;
 END; { ValidateSignalDistantHomesArray }
 
@@ -4186,7 +4186,7 @@ BEGIN
       EXCEPT
         ON E : Exception DO
           Log('EG ReadInSignalDataFromDatabase: ' + E.ClassName + ' error raised, with message: ' + E.Message);
-      END; { TRY }
+      END; {TRY}
 
       SignalsADOTable.Open;
 
@@ -4202,7 +4202,7 @@ BEGIN
           SignalsADOTable.Post;
         END;
         SignalsADOTable.Next;
-      END; { WHILE }
+      END; {WHILE}
 
       Log('S Signal data table and connection opened to initialise the signal data');
 
@@ -4400,14 +4400,14 @@ BEGIN
               Signal_OutOfUse := True;
           END;
           SignalsADOTable.Next;
-        END; { WITH }
-      END; { WHILE }
+        END; {WITH}
+      END; {WHILE}
 
       { Tidy up the database }
       SignalsADOTable.Close;
       SignalsADOConnection.Connected := False;
       Log('S Signal Data table and connection closed');
-    END; { WITH }
+    END; {WITH}
 
     { Check that signal numbers are valid. (We can only do this once all the signal details are read in). }
     S := 0;
@@ -4417,8 +4417,8 @@ BEGIN
         ErrorMsg := ValidateSignalNum(Signal_OppositePassingLoopSignal);
         IF ErrorMsg = '' THEN
           Inc(S);
-      END; { WITH }
-    END; { WHILE }
+      END; {WITH}
+    END; {WHILE}
 
     { Check that indicator destinations are valid. (We can only do this once all the signal details are read in, too). }
     IF ErrorMsg = '' THEN BEGIN
@@ -4427,7 +4427,7 @@ BEGIN
         ErrorMsg := ValidateIndicatorDestinations(S);
         IF ErrorMsg = '' THEN
           Inc(S);
-      END; { WHILE }
+      END; {WHILE}
     END;
 
     IF ErrorMsg <> '' THEN
@@ -4441,10 +4441,10 @@ BEGIN
 
     CalculateTCAdjacentSignals;
     CalculateSignalPositions(ZoomScalefactor);
-  EXCEPT { TRY }
+  EXCEPT {TRY}
     ON E : Exception DO
       Log('EG ReadInSignalDataFromDatabase: ' + E.ClassName + ' error raised, with message: ' + E.Message);
-  END; { TRY }
+  END; {TRY}
 END; { ReadInSignalDataFromDatabase }
 
 PROCEDURE AddNewRecordToSignalDatabase;
@@ -4477,10 +4477,10 @@ BEGIN
       SignalsADOConnection.Connected := False;
       Log('S Signal Data table and connection closed');
     END;
-  EXCEPT { TRY }
+  EXCEPT {TRY}
     ON E : Exception DO
       Log('EG AddNewRecordToSignalDatabase: ' + E.ClassName + ' error raised, with message: ' + E.Message);
-  END; { TRY }
+  END; {TRY}
 END; { AddNewRecordToSignalDatabase }
 
 FUNCTION DeleteRecordFromSignalDatabaseAndRenumberSignals(SignalNumToDelete : Integer) : Boolean;
@@ -4531,7 +4531,7 @@ BEGIN
             SignalsADOTable.Post;
 
             SignalsADOTable.Next;
-          END; { WHILE }
+          END; {WHILE}
         END;
         Log('S Recording in Signal database that signals S=' + IntToStr(SignalNumToDelete) + ' to S=' + IntToStr(S) + ' have been renumbered');
         Result := True;
@@ -4542,10 +4542,10 @@ BEGIN
       SignalsADOConnection.Connected := False;
       Log('S Signal Data table and connection closed');
     END;
-  EXCEPT { TRY }
+  EXCEPT {TRY}
     ON E : Exception DO
       Log('EG AddNewRecordToSignalDatabase: ' + E.ClassName + ' error raised, with message: ' + E.Message);
-  END; { TRY }
+  END; {TRY}
 END; { DeleteRecordFromSignalDatabaseAndRenumberSignals }
 
 PROCEDURE WriteOutSignalDataToDatabase;
@@ -4568,7 +4568,7 @@ BEGIN
         IF Signals[S].Signal_DataChanged THEN
           SignalDatabaseNeedsUpdating := True;
         Inc(S);
-      END; { WHILE }
+      END; {WHILE}
 
       IF SignalDatabaseNeedsUpdating THEN BEGIN
         IF NOT FileExists(PathToRailDataFiles + SignalDataFilename + '.' + SignalDataFilenameSuffix) THEN BEGIN
@@ -4828,21 +4828,21 @@ BEGIN
               SignalsADOTable.Edit;
               SignalsADOTable.FieldByName(Signal_XAdjustmentFieldName).AsString := IntToStr(Signal_XAdjustment);
               SignalsADOTable.Post;
-            END; { WITH }
+            END; {WITH}
           END;
           SignalsADOTable.Next;
-        END; { WHILE }
+        END; {WHILE}
 
         { Tidy up the database }
         SignalsADOTable.Close;
         SignalsADOConnection.Connected := False;
         Log('S Signal Data table and connection closed');
       END;
-    END; { WITH }
-  EXCEPT { TRY }
+    END; {WITH}
+  EXCEPT {TRY}
     ON E : Exception DO
       Log('EG WriteOutSignalDataToDatabase: ' + E.ClassName + ' error raised, with message: ' + E.Message);
-  END; { TRY }
+  END; {TRY}
 END; { WriteOutSignalDataToDatabase }
 
 FUNCTION GetLineAdjacentSignal(Line : Integer) : Integer;
@@ -4863,7 +4863,7 @@ BEGIN
     END
     ELSE
       Inc(S);
-  END; { WHILE }
+  END; {WHILE}
 END; { GetLineAdjacentSignal }
 
 PROCEDURE CalculatePointPositions;
@@ -5002,13 +5002,13 @@ BEGIN
               Bottom := Point_FarY;
             END;
           END;
-        END; { WITH }
-      END; { WITH }
+        END; {WITH}
+      END; {WITH}
     END; { FOR }
   EXCEPT
     ON E : Exception DO
       Log('E : ' + E.ClassName + ' error raised, with message: ' + E.Message);
-  END; { TRY }
+  END; {TRY}
 END; { CalculatePointPositions }
 
 FUNCTION ValidatePointStraightLineName(LineName : String; OUT ErrorMsg : String) : Integer;
@@ -5312,7 +5312,7 @@ BEGIN
                 PointsADOTable.Post;
               END;
               PointsADOTable.Next;
-            END; { WHILE }
+            END; {WHILE}
 
             { secondly we have to renumber any points that cross-refer to this point - allocate memory and assign where we are in the database to the bookmark }
             PointsADOTable.First;
@@ -5327,7 +5327,7 @@ BEGIN
                 PointsADOTable.Post;
               END;
               PointsADOTable.Next;
-            END; { WHILE }
+            END; {WHILE}
           FINALLY
             { and return whence we came }
             PointsADOTable.GotoBookmark(Bookmark);
@@ -5339,7 +5339,7 @@ BEGIN
           PointsADOTable.Post;
         END;
         PointsADOTable.Next;
-      END; { WHILE }
+      END; {WHILE}
 
       P := -1;
       PointsADOTable.Sort := 'PointNum ASC';
@@ -5470,18 +5470,18 @@ BEGIN
           END;
 
           PointsADOTable.Next;
-        END; { WITH }
-      END; { WHILE }
+        END; {WITH}
+      END; {WHILE}
 
       { Tidy up the database }
       PointsADOTable.Close;
       PointsADOConnection.Connected := False;
       Log('P Point data table and connection closed');
-    END; { WITH }
-  EXCEPT { TRY }
+    END; {WITH}
+  EXCEPT {TRY}
     ON E : Exception DO
       Log('EG ReadInPointDataFromDatabase: ' + E.ClassName + ' error raised, with message: ' + E.Message);
-  END; { TRY }
+  END; {TRY}
 
   CalculatePointPositions;
 END; { ReadInPointDataFromDatabase }
@@ -5510,9 +5510,9 @@ BEGIN
 
           IF NOT Point_ManualOperation AND (Point_LastFeedbackStateAsReadIn <> Point_PresentState) THEN
             PointDatabaseNeedsUpdating := True;
-        END; { WITH }
+        END; {WITH}
         Inc(P);
-      END; { WHILE }
+      END; {WHILE}
 
       IF PointDatabaseNeedsUpdating THEN BEGIN
         IF NOT FileExists(PathToRailDataFiles + PointDataFilename + '.' + PointDataFilenameSuffix) THEN BEGIN
@@ -5591,20 +5591,20 @@ BEGIN
               IF PointDebuggingMode THEN
                 Log('P Recording in point database that P=' + IntToStr(P) + '''s feedback state is now ' + PointStateToStr(Points[P].Point_PresentState));
             END;
-          END; { WITH }
+          END; {WITH}
           PointsADOTable.Next;
-        END; { WHILE }
+        END; {WHILE}
 
         { Tidy up the database }
         PointsADOTable.Close;
         PointsADOConnection.Connected := False;
         Log('P Point data table and connection closed');
       END;
-    END; { WITH }
-  EXCEPT { TRY }
+    END; {WITH}
+  EXCEPT {TRY}
     ON E : Exception DO
       Log('EG WriteOutPointDataToDatabase: ' + E.ClassName + ' error raised, with message: ' + E.Message);
-  END; { TRY }
+  END; {TRY}
 END; { WriteOutPointDataToDatabase }
 
 PROCEDURE CalculatePlatformPositions(ScaleFactor : Integer);
@@ -5645,8 +5645,8 @@ BEGIN
             Debug('Platform ' + IntToStr(P) + ': platform top value (' + IntToStr(Top) + ') > platform bottom value (' + IntToStr(Bottom) + ')');
         Top := Top + PlatformEdgeVerticalSpacingScaled;
         Bottom := Bottom - PlatformEdgeVerticalSpacingScaled;
-      END; { WITH }
-    END; { WITH }
+      END; {WITH}
+    END; {WITH}
   END; { FOR }
 END; { CalculatePlatformPositions }
 
@@ -5697,7 +5697,7 @@ BEGIN
           PlatformDataADOTable.Post;
         END;
         PlatformDataADOTable.Next;
-      END; { WHILE }
+      END; {WHILE}
 
       PlatformDataADOTable.Sort := 'RunningNumber ASC';
       PlatformDataADOTable.First;
@@ -5855,20 +5855,20 @@ BEGIN
               THEN
                 ShutDownProgram(UnitRef, 'ReadInPlatformDataFromDatabase');
             END;
-          END; { WITH }
-        END; { WITH }
+          END; {WITH}
+        END; {WITH}
         PlatformDataADOTable.Next;
-      END; { WHILE }
+      END; {WHILE}
 
       { Tidy up the database }
       PlatformDataADOTable.Close;
       PlatformDataADOConnection.Connected := False;
       Log('T Platform data table and connection closed');
-    END; { WITH }
-  EXCEPT { TRY }
+    END; {WITH}
+  EXCEPT {TRY}
     ON E : Exception DO
       Log('EG InitialisePlatformData: ' + E.ClassName + ' error raised, with message: ' + E.Message);
-  END; { TRY }
+  END; {TRY}
 
   CalculatePlatformPositions(1000);
 
@@ -5992,7 +5992,7 @@ BEGIN
                       ErrorMsg := 'unknown feedback type for Innput' + IntToStr(Input) + 'Type';
                   END;
                   Inc(Input);
-                END; { WHILE }
+                END; {WHILE}
               END;
             END;
 
@@ -6016,10 +6016,10 @@ BEGIN
                 ShutDownProgram(UnitRef, 'InitialiseFeedback');
             END;
 
-          END; { WITH }
-        END; { WITH }
+          END; {WITH}
+        END; {WITH}
         FeedbackUnitDataADOTable.Next;
-      END; { WHILE }
+      END; {WHILE}
 
       { Tidy up the database }
       FeedbackUnitDataADOTable.Close;
@@ -6027,11 +6027,11 @@ BEGIN
       Log('T Feedback unit data table and connection closed');
 
       Log('T Reading in feedback data from unit ' + IntToStr(FirstFeedbackUnit) + ' to unit ' + IntToStr(LastFeedbackUnit) + ' from database');
-    END; { WITH }
-  EXCEPT { TRY }
+    END; {WITH}
+  EXCEPT {TRY}
     ON E : Exception DO
       Log('EG ReadInFeedbackDataFromDatabase: ' + E.ClassName + ' error raised, with message: ' + E.Message);
-  END; { TRY }
+  END; {TRY}
 END; { ReadInFeedbackDataFromDatabase }
 
 PROCEDURE InitialiseLogFiles;
@@ -6118,7 +6118,7 @@ BEGIN
     SavePenMode := Pen.Mode;
     SavePenStyle := Pen.Style;
     SavePenWidth := Pen.Width;
-  END; { WITH }
+  END; {WITH}
 END; { SaveScreenDrawingVariables }
 
 PROCEDURE RestoreScreenDrawingVariables;
@@ -6135,7 +6135,7 @@ BEGIN
     Pen.Mode := SavePenMode;
     Pen.Style := SavePenStyle;
     Pen.Width := SavePenWidth;
-  END; { WITH }
+  END; {WITH}
 END; { RestoreScreenDrawingVariables }
 
 PROCEDURE InitialiseScreenDrawingVariables;
@@ -6152,7 +6152,7 @@ BEGIN
     Pen.Mode := pmCopy;
     Pen.Style := psSolid;
     Pen.Width := 1;
-  END; { WITH }
+  END; {WITH}
 END; { InitialiseScreenDrawingVariables }
 
 PROCEDURE InitialiseInitVarsUnit;
