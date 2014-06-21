@@ -32,10 +32,10 @@ PROCEDURE InitialiseOptionsUnit;
 { Initialises the unit }
 
 PROCEDURE ReadIniFile;
-{ Read in data from the .ini file or from the Registry, except for the trackcircuit data }
+{ Read in data from the .ini file or from the Registry, except for the track circuit data }
 
 PROCEDURE ReadIniFileForTrackCircuitData;
-{ Read in trackcircuit data from the .ini file or from the Registry }
+{ Read in track circuit data from the .ini file or from the Registry }
 
 PROCEDURE RestoreScreenDefaults;
 { Restore screen colours, fonts, etc. }
@@ -875,7 +875,7 @@ CONST
     PlatformColourStr = 'Platform Colour';
     PlatformNumberColourStr = 'Platform Number Colour';
 
-    { Colours for trackcircuits }
+    { Colours for track circuits }
     TCFeedbackDataInUseColourStr = 'TC Feedback Data In Use Colour';
     TCFeedbackDataOutOfUseColourStr = 'TC Feedback Data Out Of Use Colour';
     TCFeedbackOccupationColourStr = 'TC Feedback Occupation Colour';
@@ -1217,7 +1217,7 @@ BEGIN
   { Colours for lines }
   LineRoutedOverColour := DefaultLineRoutedOverColour;
 
-  { Colours for trackcircuits }
+  { Colours for track circuits }
   TCFeedbackDataInUseColour := DefaultTCFeedbackDataInUseColour;
   TCFeedbackDataOutOfUseColour := DefaultTCFeedbackDataOutOfUseColour;
   TCFeedbackOccupationColour := DefaultTCFeedbackOccupationColour;
@@ -1270,7 +1270,7 @@ BEGIN
 END; { RestoreScreenDefaults }
 
 PROCEDURE ReadIniFile; //MainProcedure(IniFile : TRegistryIniFile);
-{ Read in data from the .ini file or from the Registry, except for the trackcircuit data }
+{ Read in data from the .ini file or from the Registry, except for the track circuit data }
 VAR
   IniFile : TRegistryIniFile;
   TempStr : String;
@@ -1368,7 +1368,7 @@ BEGIN
       { Colours for lines }
       LineRoutedOverColour := StrToColour(ReadString(ColoursSectionStr, LineRoutedOverColourStr, ColourToStr(DefaultLineRoutedOverColour)));
 
-      { Colours for trackcircuits }
+      { Colours for track circuits }
       TCFeedbackDataInUseColour := StrToColour(ReadString(ColoursSectionStr, TCFeedbackDataInUseColourStr, ColourToStr(DefaultTCFeedbackDataInUseColour)));
       TCFeedbackDataOutOfUseColour := StrToColour(ReadString(ColoursSectionStr, TCFeedbackDataOutOfUseColourStr, ColourToStr(DefaultTCFeedbackDataOutOfUseColour)));
       TCFeedbackOccupationColour := StrToColour(ReadString(ColoursSectionStr, TCFeedbackOccupationColourStr, ColourToStr(DefaultTCFeedbackOccupationColour)));
@@ -1661,7 +1661,7 @@ BEGIN
 END; { ReadIniFileMainProcedure }
 
 PROCEDURE ReadIniFileForTrackCircuitData; //MainProcedure(IniFile : TRegistryIniFile);
-{ Read in trackcircuit data from the .ini file or from the Registry }
+{ Read in track circuit data from the .ini file or from the Registry }
 CONST
   Delimiter = ';';
 
@@ -1677,7 +1677,7 @@ BEGIN
     IniFile := TRegistryIniFile.Create('FWPRail');
 
     WITH IniFile DO BEGIN
-      { Now trackcircuit info. (Can't use SetTrackCircuitState here as it writes to the log file which is not yet open, as the log file name is held in the .ini file). }
+      { Now track circuit info. (Can't use SetTrackCircuitState here as it writes to the log file which is not yet open, as the log file name is held in the .ini file). }
       FOR TC := 0 TO High(TrackCircuits) DO BEGIN
         TempStr := ReadString(TrackCircuitsSectionStr, IntToStr(TC), '');
         REPEAT
@@ -1730,7 +1730,7 @@ BEGIN
     IniFile := TRegistryIniFile.Create('FWPRail');
 
     WITH IniFile DO BEGIN
-      { Now trackcircuits that are user designated as having special properties - delete when no longer special }
+      { Now track circuits that are user designated as having special properties - delete when no longer special }
       IF Length(TrackCircuits) > 0 THEN BEGIN
 //        IF (TrackCircuits[183].TC_OccupationState <> TCOutOfUseSetByUser)
 //        AND (TrackCircuits[183].TC_OccupationState <> TCOutOfUseAsNoFeedbackReceived)
@@ -1867,7 +1867,7 @@ BEGIN
       WriteString(ColoursSectionStr, PlatformColourStr, ColourToStr(PlatformColour));
       WriteString(ColoursSectionStr, PlatformNumberColourStr, ColourToStr(PlatformNumberColour));
 
-      { Colours for trackcircuits }
+      { Colours for track circuits }
       WriteString(ColoursSectionStr, TCFeedbackDataInUseColourStr, ColourToStr(TCFeedbackDataInUseColour));
       WriteString(ColoursSectionStr, TCFeedbackDataOutOfUseColourStr, ColourToStr(TCFeedbackDataOutOfUseColour));
       WriteString(ColoursSectionStr, TCFeedbackOccupationColourStr, ColourToStr(TCFeedbackOccupationColour));

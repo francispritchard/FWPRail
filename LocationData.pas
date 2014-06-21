@@ -1911,7 +1911,7 @@ BEGIN
 
         FindPossibleAlternatives(T, Journey, Area, OldLocation, MayReselectOldLocation, PossibleLocationsArray);
 
-        { Note any platforms/fiddleyards that are not possible to use - firstly ones that have trackcircuits that are out of use }
+        { Note any platforms/fiddleyards that are not possible to use - firstly ones that have track circuits that are out of use }
         PossibleLocationsCount := 0;
         WHILE PossibleLocationsCount <= High(PossibleLocationsArray) DO BEGIN
           IF PossibleLocationsArray[PossibleLocationsCount].PossibleLocation_Available THEN BEGIN
@@ -1920,7 +1920,7 @@ BEGIN
               PossibleLocationsArray[PossibleLocationsCount].PossibleLocation_Available := False;
               Log(Train_LocoChipStr + ' D ' + DisplayJourneyNumber(Journey)
                                     + LocationToStr(PossibleLocationsArray[PossibleLocationsCount].PossibleLocation_PlatformOrFiddleyardLocation)
-                                    + ' is out of use as some of its trackcircuits are out of use, e.g. TC=' + IntToStr(OutOfUseTC)
+                                    + ' is out of use as some of its track circuits are out of use, e.g. TC=' + IntToStr(OutOfUseTC)
                                     + ' is marked as ' + OutOfUseStr);
             END;
           END;

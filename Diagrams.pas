@@ -88,8 +88,8 @@ PROCEDURE CheckOccupiedLinesAndDiagrams;
 { (1) If a feedback occupation does not has a loco recorded as occupying it or adjacent to it, mark it as a query, and if a feedback occupation does not has a diagrammed
       train occupying it or adjacent to it, mark it as permanently occupied;
   (2) If a loco in the loco locations file does not a feedback occupation, note the fact;
-  (3) If a diagrammed train does not have a feedback occupation in any of its initial trackcircuits, ask if it actually exists (in case of faulty trackcircuits).  Also
-      check whether a diagrammed train has a feedback occupation in any of its initial trackcircuits, but is recorded in the loco locations file as being elsewhere.
+  (3) If a diagrammed train does not have a feedback occupation in any of its initial track circuits, ask if it actually exists (in case of faulty track circuits).  Also
+      check whether a diagrammed train has a feedback occupation in any of its initial track circuits, but is recorded in the loco locations file as being elsewhere.
 }
 PROCEDURE CreateJourney(VAR T : TrainElement; Journey : Integer; NewJourney: Boolean; StartArea, EndArea, StartLocation, EndLocation: Integer;
                         DiagrammedStartLocation, DiagrammedEndLocation, StartLine, EndLine: Integer;
@@ -142,7 +142,7 @@ PROCEDURE ResetDiagramsWindowSizeAndPosition;
 { Reset the window's size and position }
 
 PROCEDURE SetInitialTrackCircuits(T : TrainElement);
-{ Sets the initial trackcircuits for a given route }
+{ Sets the initial track circuits for a given route }
 
 PROCEDURE SuspendTrain(T : TrainElement; User : Boolean);
 { Suspend a given train - it can be reactivated in the diagrams window }
@@ -257,8 +257,8 @@ PROCEDURE CheckOccupiedLinesAndDiagrams;
 { (1) If a feedback occupation does not has a loco recorded as occupying it or adjacent to it, mark it as a query, and if a feedback occupation does not has a diagrammed
       train occupying it or adjacent to it, mark it as permanently occupied;
   (2) If a loco in the loco locations file does not a feedback occupation, note the fact;
-  (3) If a diagrammed train does not have a feedback occupation in any of its initial trackcircuits, ask if it actually exists (in case of faulty trackcircuits). Also
-      check whether a diagrammed train has a feedback occupation in any of its initial trackcircuits, but is recorded in the loco locations file as being elsewhere.
+  (3) If a diagrammed train does not have a feedback occupation in any of its initial track circuits, ask if it actually exists (in case of faulty track circuits). Also
+      check whether a diagrammed train has a feedback occupation in any of its initial track circuits, but is recorded in the loco locations file as being elsewhere.
 }
 VAR
   FoundTrainElement : TrainElement;
@@ -284,7 +284,7 @@ BEGIN
   IF SystemOnline THEN BEGIN
     FOR TC := 0 TO High(TrackCircuits) DO BEGIN
       IF TrackCircuits[TC].TC_OccupationState = TCFeedbackOccupation THEN BEGIN
-        { Is there a loco recorded as occupying this trackcircuit? }
+        { Is there a loco recorded as occupying this track circuit? }
         MatchingLocationFound := False;
         T := 0;
         WHILE (T <= High(Trains))
@@ -404,7 +404,7 @@ BEGIN
               END;
             END;
         END ELSE
-          { online - see if we can find a known trackcircuit from the Train_LastLocation }
+          { online - see if we can find a known track circuit from the Train_LastLocation }
           LocoTC := 0;
           OccupiedTrackCircuitFound := False;
           WHILE SystemOnline
@@ -489,8 +489,8 @@ BEGIN
     Inc(T);
   END; {WHILE}
 
-  { (3) If a diagrammed train does not have a feedback occupation in any of its initial trackcircuits, ask if it actually exists (in case of faulty trackcircuits). Also
-        check whether a diagrammed train has a feedback occupation in any of its initial trackcircuits, but is recorded in the loco locations file as being elsewhere.
+  { (3) If a diagrammed train does not have a feedback occupation in any of its initial track circuits, ask if it actually exists (in case of faulty track circuits). Also
+        check whether a diagrammed train has a feedback occupation in any of its initial track circuits, but is recorded in the loco locations file as being elsewhere.
   }
   IF SystemOnline THEN BEGIN
     T := 0;
@@ -533,7 +533,7 @@ BEGIN
 
               IF NOT LocationFound THEN BEGIN
                 CASE MessageDialogueWithDefault('Loco ' + Train_LocoChipStr
-                                                + ' has trackcircuits marked as having feedback occupation at '
+                                                + ' has track circuits marked as having feedback occupation at '
                                                 + LocationToStr(GetLocationFromTrackCircuit(Train_InitialTrackCircuits[1]))
                                                 + ',' + CRLF
                                                 + 'but the loco is recorded as being at ' + LocationToStr(Train_LastLocation)
@@ -551,11 +551,11 @@ BEGIN
                     END;
                   mrNo: { Change }
                     BEGIN
-                      { clear the trackcircuits set up from the loco locations file }
+                      { clear the track circuits set up from the loco locations file }
                       LocationTCs := GetTrackCircuitsForLocation(Train_LastLocation);
                       FOR I := 0 TO High(LocationTCs) DO BEGIN
                         SetTrackCircuitState(Train_LocoChip, LocationTCs[I], TCUnoccupied,
-                                             'Train has trackcircuits marked as having feedback occupation at '
+                                             'Train has track circuits marked as having feedback occupation at '
                                              + LocationToStr(GetLocationFromTrackCircuit(Train_InitialTrackCircuits[1]))
                                              + ' but the loco is recorded as being at ' + LocationToStr(Train_LastLocation));
                       END; {FOR}
@@ -566,7 +566,7 @@ BEGIN
                     END;
                   mrAbort: { Ignore }
                     BEGIN
-                      { clear the trackcircuits set up from the loco locations file }
+                      { clear the track circuits set up from the loco locations file }
                       LocationTCs := GetTrackCircuitsForLocation(Train_LastLocation);
                       FOR I := 0 TO High(LocationTCs) DO
                         SetTrackCircuitState(Train_LocoChip, LocationTCs[I], TCUnoccupied,
@@ -577,7 +577,7 @@ BEGIN
                       { and need to tell the loco locations file where we really are }
                       Train_LastLocation := GetLocationFromTrackCircuit(Train_InitialTrackCircuits[1]);
                       Train_CurrentTC := Train_InitialTrackCircuits[1];
-                      { and set up the proper trackcircuits }
+                      { and set up the proper track circuits }
                       FOR I := 1 TO 5 DO BEGIN
                         IF Train_InitialTrackCircuits[I] <> UnknownTrackCircuit THEN BEGIN
                           IF GetTrackCircuitState(Train_InitialTrackCircuits[I]) = TCPermanentFeedbackOccupation THEN BEGIN
@@ -606,11 +606,11 @@ BEGIN
                 CancelTrain(T, ByUser, NOT TrainExists);
               END ELSE
                 IF DoNotCancelTrainsWithNoFeedbackOccupation THEN
-                  Log(Train_LocoChipStr + ' DG No trackcircuits are marked as having feedback occupation but system occupation and diagrams entry not cancelled as'
+                  Log(Train_LocoChipStr + ' DG No track circuits are marked as having feedback occupation but system occupation and diagrams entry not cancelled as'
                                         + ' "Do Not Cancel trains With No Feedback Occupation" = ON')
                 ELSE BEGIN
                   { Turn off painting, or the dialogue is constantly refreshed and one cannot select either "yes" or "no" }
-                  IF MessageDialogueWithDefault('No trackcircuits are marked as having feedback occupation for loco ' + Train_LocoChipStr
+                  IF MessageDialogueWithDefault('No track circuits are marked as having feedback occupation for loco ' + Train_LocoChipStr
                                                 + CRLF
                                                 + 'Do you want to cancel this train or ignore the problem?',
                                                 StopTimer, mtError, [mbYes, mbNo], ['&Cancel', '&Ignore'], mbNo) = mrYes
@@ -740,7 +740,7 @@ BEGIN
 END; { DiscardDiagrams }
 
 PROCEDURE SetInitialTrackCircuits(T : TrainElement);
-{ Sets the initial trackcircuits for a given route }
+{ Sets the initial track circuits for a given route }
 VAR
   Done : Boolean;
   FoundEndOfLine : Boolean;
@@ -765,7 +765,7 @@ VAR
     WITH Trains[T] DO BEGIN
       { Now set initial track occupancy depending on the length of the train. Ignore the first circuit, as the train may only be occupying the last few yards of it }
       IF Train_InitialTrackCircuits[2] = UnknownTrackCircuit THEN
-        Log(Train_LocoChipStr + ' T! Problem with initial trackcircuits: second TC is an unknown TC - is the train direction correct?')
+        Log(Train_LocoChipStr + ' T! Problem with initial track circuits: second TC is an unknown TC - is the train direction correct?')
       ELSE BEGIN
         Set2nd := True;
 
@@ -817,7 +817,7 @@ VAR
             THEN BEGIN
               Set5th := True;
               Log(Train_LocoChipStr + ' T TrainLengthInInches=' + IntToStr(Train_CurrentLengthInInches)
-                                    + ' > 2nd, 3rd and 4th trackcircuit lengths=' + FloatToStr(TrackCircuits[Train_InitialTrackCircuits[2]].TC_LengthInInches
+                                    + ' > 2nd, 3rd and 4th track circuit lengths=' + FloatToStr(TrackCircuits[Train_InitialTrackCircuits[2]].TC_LengthInInches
                                                                                   + TrackCircuits[Train_InitialTrackCircuits[3]].TC_LengthInInches
                                                                                   + TrackCircuits[Train_InitialTrackCircuits[4]].TC_LengthInInches));
             END;
@@ -825,7 +825,7 @@ VAR
         END;
       END;
 
-      { Always set first and second trackcircuits }
+      { Always set first and second track circuits }
       TrackCircuits[Train_InitialTrackCircuits[1]].TC_LocoChip := Train_LocoChip;
       TrackCircuits[Train_InitialTrackCircuits[1]].TC_Headcode := Train_Headcode;
       IF Set2nd THEN BEGIN
@@ -868,7 +868,7 @@ VAR
       END;
 
       IF NOT Set3rd THEN
-        { initialise the trackcircuit if the train isn't occupying it }
+        { initialise the track circuit if the train isn't occupying it }
         Train_InitialTrackCircuits[3] := UnknownTrackCircuit
       ELSE BEGIN
         IF Train_UseTrailingTrackCircuits THEN BEGIN
@@ -883,7 +883,7 @@ VAR
               SetTrackCircuitState(Train_LocoChip, Train_InitialTrackCircuits[3], TCPermanentSystemOccupation);
           END;
         END ELSE
-          { see if the trackcircuit is actually occupied }
+          { see if the track circuit is actually occupied }
           IF (Train_InitialTrackCircuits[3] <> UnknownTrackCircuit)
           AND ((TrackCircuits[Train_InitialTrackCircuits[3]].TC_OccupationState = TCFeedbackOccupation)
                 OR (TrackCircuits[Train_InitialTrackCircuits[3]].TC_OccupationState = TCPermanentFeedbackOccupation))
@@ -894,7 +894,7 @@ VAR
        END;
 
       IF NOT Set4th THEN
-        { initialise the trackcircuit if the train isn't occupying it }
+        { initialise the track circuit if the train isn't occupying it }
         Train_InitialTrackCircuits[4] := UnknownTrackCircuit
       ELSE BEGIN
         IF Train_UseTrailingTrackCircuits THEN BEGIN
@@ -910,7 +910,7 @@ VAR
               SetTrackCircuitState(Train_LocoChip, Train_InitialTrackCircuits[4], TCPermanentSystemOccupation);
           END;
         END ELSE
-          { see if the trackcircuit is actually occupied }
+          { see if the track circuit is actually occupied }
           IF (Train_InitialTrackCircuits[4] <> UnknownTrackCircuit)
           AND ((TrackCircuits[Train_InitialTrackCircuits[4]].TC_OccupationState = TCFeedbackOccupation)
                 OR (TrackCircuits[Train_InitialTrackCircuits[4]].TC_OccupationState = TCPermanentFeedbackOccupation))
@@ -921,7 +921,7 @@ VAR
         END;
 
       IF NOT Set5th THEN
-        { initialise the trackcircuit if the train isn't occupying it }
+        { initialise the track circuit if the train isn't occupying it }
         Train_InitialTrackCircuits[5] := UnknownTrackCircuit
       ELSE BEGIN
         IF Train_UseTrailingTrackCircuits THEN BEGIN
@@ -936,7 +936,7 @@ VAR
               SetTrackCircuitState(Train_LocoChip, Train_InitialTrackCircuits[5], TCPermanentSystemOccupation);
           END;
         END ELSE
-          { see if the trackcircuit is actually occupied }
+          { see if the track circuit is actually occupied }
           IF (Train_InitialTrackCircuits[5] <> UnknownTrackCircuit)
           AND (TrackCircuits[Train_InitialTrackCircuits[5]].TC_OccupationState = TCFeedbackOccupation)
           THEN BEGIN
@@ -951,13 +951,13 @@ VAR
                                  OUT CurrentTrackCircuit : Integer;
                                  OUT FoundEndOfLine : Boolean;
                                  SearchDirection : DirectionType);
-  { Return the next trackcircuit up or down }
+  { Return the next track circuit up or down }
   VAR
     Done : Boolean;
     Next : NextLineRouteingType;
 
   BEGIN
-    { Find the first line which the trackcircuit is part of - it may be part of other adjacent lines too }
+    { Find the first line which the track circuit is part of - it may be part of other adjacent lines too }
     FoundEndOfLine := False;
     Done := False;
     CurrentTrackCircuit := Lines[CurrentLine].Line_TC;
@@ -998,14 +998,14 @@ BEGIN
     IF Train_CurrentSourceLocation = UnknownLocation THEN
       Log(Train_LocoChipStr + ' XG Cannot find initial track circuits when Train_CurrentSourceLocation = UnknownLocation')
     ELSE BEGIN
-      { Because not all routes have more than two trackcircuits }
+      { Because not all routes have more than two track circuits }
       Train_InitialTrackCircuits[1] := UnknownTrackCircuit;
       Train_InitialTrackCircuits[2] := UnknownTrackCircuit;
       Train_InitialTrackCircuits[3] := UnknownTrackCircuit;
       Train_InitialTrackCircuits[4] := UnknownTrackCircuit;
       Train_InitialTrackCircuits[5] := UnknownTrackCircuit;
 
-      { Find the first trackcircuit in the list of lines which is the same location }
+      { Find the first track circuit in the list of lines which is the same location }
       L := 0;
       Done := False;
       WHILE (L <= High(Lines))
@@ -1013,7 +1013,7 @@ BEGIN
       DO BEGIN
         TempL := L;
         IF Train_CurrentSourceLocation = Lines[TempL].Line_Location THEN BEGIN
-          { Now find the next trackcircuit }
+          { Now find the next track circuit }
           REPEAT
             IF Train_CurrentDirection = Up THEN
               FindNextTrackCircuit(TempL, PreviousLine, NextTC, FoundEndOfLine, Up)
@@ -1050,7 +1050,7 @@ BEGIN
         Inc(L);
       END; {WHILE}
 
-      { But see if the first initial trackcircuit is beyond a signal - that may cause the train in that trackcircuit to start
+      { But see if the first initial track circuit is beyond a signal - that may cause the train in that track circuit to start
         moving, as it is not immediately adjacent to a stop signal.
       }
       IF Train_CurrentStatus <> NonMoving THEN BEGIN
@@ -1059,7 +1059,8 @@ BEGIN
 
           { Try the preceding one }
           IF Length(TrackCircuits[Train_InitialTrackCircuits[2]].TC_AdjacentSignals) = 0 THEN BEGIN
-            Log(Train_LocoChipStr + ' EG Second initial TC=' + IntToStr(Train_InitialTrackCircuits[2]) + ' has no adjacent signal so initial trackcircuits cancelled and train cancelled');
+            Log(Train_LocoChipStr + ' EG Second initial TC=' + IntToStr(Train_InitialTrackCircuits[2]) + ' has no adjacent signal so initial track circuits cancelled and'
+                                  + ' train cancelled');
             CancelTrain(T, NOT ByUser, TrainExists);
           END ELSE BEGIN
             Log(Train_LocoChipStr + ' EG Second initial TC=' + IntToStr(Train_InitialTrackCircuits[2]) + ' has an adjacent signal so substituting it');
@@ -1933,6 +1934,11 @@ BEGIN
   END; {CASE}
 END; { DiagramsWindowGridKeyDown }
 
+PROCEDURE TDiagramsWindow.PopupDiscardCurrentDiagramsClick(Sender: TObject);
+BEGIN
+  DiscardDiagrams;
+END; { PopupDiscardCurrentDiagramsClick }
+
 PROCEDURE TDiagramsWindow.PopupDriveTrainClick(Sender: TObject);
 BEGIN
   IF NOT SystemOnline THEN
@@ -1977,12 +1983,14 @@ BEGIN
   IF DiagramsChosenTrain <> 0 THEN BEGIN
     WITH Trains[DiagramsChosenTrain] DO BEGIN
       IF (Train_CurrentStatus = Suspended) OR (Train_CurrentStatus = MissingAndSuspended) THEN BEGIN
-        IF Train_CurrentStatus = Suspended THEN
-          ChangeTrainStatus(DiagramsChosenTrain, Train_PreviousStatus)
-        ELSE
-          IF Train_CurrentStatus = MissingAndSuspended THEN
+        IF Train_CurrentStatus = Suspended THEN BEGIN
+          ChangeTrainStatus(DiagramsChosenTrain, Train_PreviousStatus);
+          Log(Train_LocoChipStr + ' DG Train has been unsuspended by user');
+        END ELSE
+          IF Train_CurrentStatus = MissingAndSuspended THEN BEGIN
             ChangeTrainStatus(DiagramsChosenTrain, Missing);
-        Log(Train_LocoChipStr + ' DG Train has been reactivated by user');
+            Log(Train_LocoChipStr + ' DG Train has been unsuspended by user but is still noted as being missing');
+          END;
         PopupSuspendTrain.Caption := 'Suspend Train ' + LocoChipToStr(Train_LocoChip);
       END ELSE BEGIN
         SuspendTrain(DiagramsChosenTrain, ByUser);
@@ -2347,7 +2355,7 @@ BEGIN
                   END ELSE BEGIN
                     Train_BeingAdvanced := True;
                     Log(Train_LocoChipStr + ' R Advancing train ' + Train_LocoChipStr + ' (loco ' + Train_LocoChipStr + ')');
-                    { for each click, move the train on by one trackcircuit }
+                    { for each click, move the train on by one track circuit }
                     SaveTrainBeingAdvancedTC := Train_BeingAdvancedTC;
                     IF Length(Train_TCsNotClearedArray) > 0 THEN BEGIN
                       SetTrackCircuitState(Train_LocoChip, ExtractTrackCircuitFromString(Train_TCsNotClearedArray[0]), TCFeedbackOccupation);
@@ -3056,7 +3064,7 @@ BEGIN
                   Inc(JourneyRouteArrayPos);
                 END; {WHILE}
 
-                { Now locate the first trackcircuit in the array }
+                { Now locate the first track circuit in the array }
                 I := 0;
                 FirstLineFound := False;
                 TrainJourney_FirstTC := UnknownTrackCircuit;
@@ -3956,13 +3964,13 @@ BEGIN
                             mrAbort:
                               BEGIN
                                 Train_LocatedAtStartup := False;
-                                ErrorMsg := 'Loco ' + Train_LocoChipStr + ' has trackcircuits marked as having feedback occupation at ' + LocationToStr(Train_Locations[0])
+                                ErrorMsg := 'Loco ' + Train_LocoChipStr + ' has track circuits marked as having feedback occupation at ' + LocationToStr(Train_Locations[0])
                                             + ', but the loco is recorded as being at ' + LocationToStr(Train_LastLocation) + ': user aborted startup';
                               END;
                           END; {CASE}
                         END ELSE BEGIN
                           IF MessageDialogueWithDefault('Loco ' + Train_LocoChipStr
-                                                        + ' has trackcircuits marked as having feedback occupation at ' + LocationToStr(Train_Locations[0])
+                                                        + ' has track circuits marked as having feedback occupation at ' + LocationToStr(Train_Locations[0])
                                                         + ',' + CRLF
                                                         + IfThen(Train_LastLocation <> UnknownLocation,
                                                                  'but the loco is recorded as being at ' + LocationToStr(Train_LastLocation),
@@ -3982,7 +3990,7 @@ BEGIN
                         END;
                       END;
 
-                      { See if any other loco is supposed to be occupying that trackcircuit }
+                      { See if any other loco is supposed to be occupying that track circuit }
                       TempT := 0;
                       WHILE TempT <= High(Trains) DO BEGIN
                         IF (Trains[TempT].Train_LocoChip <> UnknownLocoChip)
@@ -4557,7 +4565,7 @@ BEGIN
 
   //        SetInitialTrackCircuits(T);
   //        IF Train_InitialTrackcircuits[1] = UnknownTrackCircuit THEN
-  //          ErrorMsg := 'no initial trackcircuits found';
+  //          ErrorMsg := 'no initial track circuits found';
         END;
 
         IF (ErrorMsg = '')

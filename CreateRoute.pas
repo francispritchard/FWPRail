@@ -71,7 +71,7 @@ PROCEDURE FindRouteFromLineAToLineB(LocoChip, Journey, S, StartLine, EndLine : I
 { Uses line names to find a route from A to B }
 
 FUNCTION GetResettingTrackCircuit(LocoChip, S : Integer; SuppressMessage : Boolean) : Integer;
-{ Extract the resetting trackcircuit (if any) from the Locking Array }
+{ Extract the resetting track circuit (if any) from the Locking Array }
 
 PROCEDURE InitialiseCreateRouteDisplayColoursWindow;
 { Initialises the window }
@@ -1895,9 +1895,9 @@ BEGIN
           END;
         END;
 
-      { add trackcircuit data from lines }
+      { add track circuit data from lines }
       IF Pos('L=', TempDraftRouteArray[TempDraftRouteArrayPos]) > 0 THEN BEGIN
-        { see if there's any TC data - don't do this for the trackcircuit adjacent to the signal, or trains stopped at signals at the start of routes would not be allowed
+        { see if there's any TC data - don't do this for the track circuit adjacent to the signal, or trains stopped at signals at the start of routes would not be allowed
           to proceed, as that line section would always be marked as occupied. Look out for signals that both start and end a route, however (check for them by seeing if
           the signal is off or not).
         }
@@ -1925,7 +1925,7 @@ BEGIN
 
         TC := Lines[ExtractLineFromString(TempDraftRouteArray[TempDraftRouteArrayPos])].Line_TC;
         IF TC <> UnknownTrackCircuit THEN BEGIN
-          { the finding of the trackcircuit next to the first signal is recorded lest it also exists at the end of the route! }
+          { the finding of the track circuit next to the first signal is recorded lest it also exists at the end of the route! }
           IF FirstTrackCircuitFound OR (FirstLineTC <> TC) THEN BEGIN
             AppendToStringArray(LockingArray, 'TC=' + IntToStr(TC) + '*');
             { add the linename data too as it's used for drawing subroutes }
@@ -2080,11 +2080,11 @@ BEGIN
             HoldMarkerFound := False;
           END;
 
-          { Note where it is so we can move the trackcircuit data to the front }
+          { Note where it is so we can move the track circuit data to the front }
           TrackCircuitPos := High(RouteArray);
         END;
       END ELSE BEGIN
-        { Now see if there's a trackcircuit to be moved to the front of the subroute }
+        { Now see if there's a track circuit to be moved to the front of the subroute }
         IF ExtractTrackCircuitFromString(LockingArray[LockingArrayPos]) <> UnknownTrackCircuit THEN BEGIN
           Inc(TrackCircuitPos);
           InsertElementInStringArray(RouteArray, TrackCircuitPos, LockingArray[LockingArrayPos])
@@ -2371,7 +2371,7 @@ BEGIN
 END; { FindNearestSignalsToGivenSignal }
 
 FUNCTION GetResettingTrackCircuit(LocoChip, S : Integer; SuppressMessage : Boolean) : Integer;
-{ Extract the resetting trackcircuit (if any) from the locking array }
+{ Extract the resetting track circuit (if any) from the locking array }
 VAR
   LockingArrayPos : Integer;
   TrackCircuitFound : Boolean;
@@ -2388,7 +2388,7 @@ BEGIN
         IF Length(Signal_RouteLockingNeededArray) = 0 THEN
           Log('XG GetResettingSignal Routine Error: Locking array for S=' + IntToStr(S) + ' is empty')
         ELSE BEGIN
-          { work through the lock list seeking the first trackcircuit - but choose the second if the first is where we are currently }
+          { work through the lock list seeking the first track circuit - but choose the second if the first is where we are currently }
           IF Pos('TC=', Signal_RouteLockingNeededArray[LockingArrayPos]) > 0 THEN BEGIN
             Result := ExtractTrackCircuitFromString(Signal_RouteLockingNeededArray[LockingArrayPos]);
             IF Result <> Signals[S].Signal_AdjacentTC THEN BEGIN
@@ -2402,9 +2402,9 @@ BEGIN
       IF NOT Signals[S].Signal_FailMsgWritten THEN BEGIN
         IF TrackCircuitFound THEN BEGIN
           IF NOT SuppressMessage THEN
-            Log(LocoChipToStr(LocoChip) + ' S Resetting trackcircuit for S=' + IntToStr(S) + ' is TC=' + IntToStr(Result))
+            Log(LocoChipToStr(LocoChip) + ' S Resetting track circuit for S=' + IntToStr(S) + ' is TC=' + IntToStr(Result))
         END ELSE
-          Log('XG GetResettingSignal Routine Error: No resetting trackcircuit found for S=' + IntToStr(S));
+          Log('XG GetResettingSignal Routine Error: No resetting track circuit found for S=' + IntToStr(S));
       END;
     END; {WITH}
   EXCEPT {TRY}
@@ -2603,12 +2603,12 @@ BEGIN
       EndLine := UnknownLine;
 
       IF (NextSignal <> UnknownSignal) OR (NextBufferStop <> UnknownBufferStop) THEN
-        { Look for a specific signal and resetting trackcircuit }
+        { Look for a specific signal and resetting track circuit }
         CreateDraftRouteArray(NoLocoChip, RouteArray, StartLine, EndLine, RouteDirection, IndicatorState, UnknownTrainType, UnknownTrainLength, NextSignal, NextBufferStop,
                               NOT ReturnTheSpecifiedRoute, NOT ReturnAllRoutes, LookForNextSignalOrBufferStopOnly, LookForASpecificSignalOrBufferStop,
                               NOT IncludeOutOfUseLines, NOT LookForAllSignalsAndBufferStopsOnly, LinesNotAvailableStr, NOT EmergencyRouteing, RouteFound)
       ELSE
-        { Look for the next signal and resetting trackcircuit }
+        { Look for the next signal and resetting track circuit }
         CreateDraftRouteArray(NoLocoChip, RouteArray, StartLine, EndLine, RouteDirection, IndicatorState, UnknownTrainType, UnknownTrainLength, NextSignal, NextBufferStop,
                               NOT ReturnTheSpecifiedRoute, NOT ReturnAllRoutes, LookForNextSignalOrBufferStopOnly, NOT LookForASpecificSignalOrBufferStop,
                               NOT IncludeOutOfUseLines, NOT LookForAllSignalsAndBufferStopsOnly, LinesNotAvailableStr, NOT EmergencyRouteing, RouteFound);
@@ -3704,7 +3704,7 @@ BEGIN
                       Train_CurrentSourceLocation := TrainJourney_StartLocation;
                     TrainJourney_Route := NewRoute;
 
-                    { See if we need to work out which are the initial trackcircuits - if we're starting ab initio, or from a change of direction }
+                    { See if we need to work out which are the initial track circuits - if we're starting ab initio, or from a change of direction }
                     IF (JourneyCount = 0)
                     OR ((Train_JourneysArray[JourneyCount - 1].TrainJourney_StoppingOnArrival)
                        AND (Train_JourneysArray[JourneyCount - 1].TrainJourney_Direction <> Train_JourneysArray[JourneyCount].TrainJourney_Direction))
@@ -3712,15 +3712,15 @@ BEGIN
                       InitialTrackCircuitsRequired := True;
                       IF JourneyCount = 0 THEN
                         Log(Train_LocoChipStr + ' R J=' + IntToStr(JourneyCount) + ' R=' + IntToStr(NewRoute)
-                                              + ' JourneyCount=0 - initial trackcircuits required')
+                                              + ' JourneyCount=0 - initial track circuits required')
                       ELSE
                         Log(Train_LocoChipStr + ' R J=' + IntToStr(JourneyCount) + ' R=' + IntToStr(NewRoute)
                                               + ' change of direction to ' + DirectionToStr(Train_JourneysArray[JourneyCount].TrainJourney_Direction)
-                                              + ' - initial trackcircuits required');
+                                              + ' - initial track circuits required');
                     END ELSE BEGIN
                       InitialTrackCircuitsRequired := False;
                       Log(Train_LocoChipStr + ' R J=' + IntToStr(JourneyCount) + ' R=' + IntToStr(NewRoute)
-                                            + ' Initial trackcircuits not required');
+                                            + ' Initial track circuits not required');
                     END;
                   END;
                 END;
@@ -3857,7 +3857,7 @@ BEGIN
                 Inc(JourneyCount);
               END; {WHILE}
 
-              { Store the appropriate trackcircuits in the record that controls where we are }
+              { Store the appropriate track circuits in the record that controls where we are }
               FOR I := 0 TO High(FinalRouteArray) DO BEGIN
                 IF Pos('TC=', FinalRouteArray[I]) > 0 THEN BEGIN
                   { but check for duplicates }
@@ -3895,7 +3895,7 @@ BEGIN
               IF InitialTrackCircuitsRequired THEN BEGIN
                 SetInitialTrackCircuits(T);
                 IF Train_InitialTrackCircuits[1] = UnknownTrackCircuit THEN
-                  Log(Train_LocoChipStr + ' EG Initial trackcircuits not ok');
+                  Log(Train_LocoChipStr + ' EG Initial track circuits not ok');
               END;
             END;
           END;

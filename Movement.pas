@@ -20,7 +20,7 @@ TYPE
   END;
 
 PROCEDURE CheckTrainsHaveArrived;
-{ Runs through the list of trains, and sees if any have arrived in the route's final trackcircuit and have stopped; also sees whether to increment the journey number }
+{ Runs through the list of trains, and sees if any have arrived in the route's final track circuit and have stopped; also sees whether to increment the journey number }
 
 PROCEDURE CheckTrainsHaveDeparted;
 { Runs through the list of trains, and sees if any have departed at the start of a route }
@@ -133,7 +133,7 @@ VAR
                 IF (TrackCircuits[AdjoiningTCUp].TC_OccupationState = TCPermanentFeedbackOccupation)
                 OR (TrackCircuits[AdjoiningTCUp].TC_OccupationState = TCPermanentSystemOccupation)
                 THEN BEGIN
-                  { we need this exception, because it is unlikely that a stationary loco will stray, and because quite often adjoining trackcircuits are activated by
+                  { we need this exception, because it is unlikely that a stationary loco will stray, and because quite often adjoining track circuits are activated by
                     stationary locos which parked next to the adjoining track circuit
                   }
                   OK := True;
@@ -184,7 +184,7 @@ VAR
                 IF (TrackCircuits[AdjoiningTCDown].TC_OccupationState = TCPermanentFeedbackOccupation)
                 OR (TrackCircuits[AdjoiningTCDown].TC_OccupationState = TCPermanentSystemOccupation)
                 THEN BEGIN
-                  { we need this exception, because it is unlikely that a stationary loco will stray, and because quite often adjoining trackcircuits are activated by
+                  { we need this exception, because it is unlikely that a stationary loco will stray, and because quite often adjoining track circuits are activated by
                     stationary locos which parked next to the adjoining track circuit
                   }
                   OK := True;
@@ -550,7 +550,7 @@ PROCEDURE OldPruneTrainList;
 //      { Check its speed is zero, and, if not, stop it! }
 //      { ****** 12/10/03 }
 //      RemoveTrainFromDiagrams(L); { Take off the diagrams }
-//      { but, if it is not timetabled to leave again from the same place, set up trackcircuits so that we still know where its carriages or wagons are
+//      { but, if it is not timetabled to leave again from the same place, set up track circuits so that we still know where its carriages or wagons are
 //        ******** NOT FULLY TESTED 8/4/02
 //      }
 //
@@ -631,7 +631,7 @@ PROCEDURE MoveAllTrains;
     END; { SpeedAtSignal }
 
     PROCEDURE ClearTrailingTrackCircuits(T : TrainElement);
-    { Goes through the trackcircuits cleared list, adding up the lengths of the sections that are still marked as occupied, to see if any can be released, if the total
+    { Goes through the track circuits cleared list, adding up the lengths of the sections that are still marked as occupied, to see if any can be released, if the total
       exceeds the length of the train.
     }
     VAR
@@ -916,7 +916,7 @@ PROCEDURE MoveAllTrains;
       BEGIN
         WITH Trains[T] DO BEGIN
           IF Length(Train_TCsAndSignalsNotClearedArray) > 0 THEN BEGIN
-            { Look at the trackcircuits and junction signals up to a set distance ahead - allows for different speed restrictions in successive trackcircuits }
+            { Look at the track circuits and junction signals up to a set distance ahead - allows for different speed restrictions in successive track circuits }
             TempMaximumSpeedInMPH := Train_MaximumSpeedInMPH;
             SaveMaximumSpeedInMPH := Train_MaximumSpeedInMPH;
 
@@ -967,7 +967,7 @@ PROCEDURE MoveAllTrains;
                      OR (TrackCircuits[TCBeingChecked].TC_SpeedRestrictionDirection = Bidirectional))
                    OR (Train_CurrentDirection = Signals[S].Signal_Direction))
                 THEN BEGIN
-                  { if it's in range, or is the actual trackcircuit with the restriction, is the speed restricted? }
+                  { if it's in range, or is the actual track circuit with the restriction, is the speed restricted? }
                   IF (CurrentTC = TCBeingChecked) OR (DistanceToNextTCInInches <= 24) THEN BEGIN
                     Inc(MaximumSpeedCheckCount);
                     IF SpeedRestriction < TempMaximumSpeedInMPH THEN
@@ -1020,7 +1020,7 @@ PROCEDURE MoveAllTrains;
             IF CurrentTC <> Train_SaveCurrentTC THEN BEGIN
               Train_CurrentTC := CurrentTC;
 
-              { Now do some processing which is only done when we enter a new trackcircuit }
+              { Now do some processing which is only done when we enter a new track circuit }
               Log(Train_LocoChipStr + ' T ***** In TC=' + IntToStr(CurrentTC) + ' (' + DescribeLineNamesForTrackCircuit(Train_CurrentTC) + ')');
 
               WriteStringArrayToLog(Train_LocoChip, 'T', Train_TCsAndSignalsNotClearedArray, 2, 190);
@@ -1029,7 +1029,7 @@ PROCEDURE MoveAllTrains;
               IF Train_UseTrailingTrackCircuits THEN
                 ClearTrailingTrackCircuits(T);
 
-              { Check for possible maximum speeds - do this now, before we remove the current trackcircuit from the array }
+              { Check for possible maximum speeds - do this now, before we remove the current track circuit from the array }
               CheckForMaximumSpeeds(T, CurrentTC, TempMaximumSpeedInMPH);
 
               IF IsElementInStringArray(Train_TCsAndSignalsNotClearedArray, 'TC=' + IntToStr(CurrentTC) + '*', TCPos) THEN
@@ -1039,7 +1039,7 @@ PROCEDURE MoveAllTrains;
                 IF TrackCircuits[CurrentTC].TC_Journey <> UnknownJourney THEN
                   Train_CurrentRoute := Train_JourneysArray[TrackCircuits[CurrentTC].TC_Journey].TrainJourney_Route;
 
-              { If we were given some extra power for the previous trackcircuit, turn it off }
+              { If we were given some extra power for the previous track circuit, turn it off }
               Train_ExtraPowerAdjustment := 0;
 
               { Initialise some variables }
@@ -1055,7 +1055,7 @@ PROCEDURE MoveAllTrains;
                 Train_CurrentBufferStop := UnknownBufferStop;
               END;
 
-              { If we're in a trackcircuit following a signal, find the next signal or bufferstop }
+              { If we're in a track circuit following a signal, find the next signal or bufferstop }
               FindFirstFourOccurrencesInStringArray('FS=', Train_TCsAndSignalsNotClearedArray, FirstSignalPos, SecondSignalPos,
                                                     ThirdSignalPos, FourthSignalPos);
               IF FirstSignalPos > -1 THEN BEGIN
@@ -1131,8 +1131,8 @@ PROCEDURE MoveAllTrains;
                 Log(Train_LocoChipStr + ' X! Train_CurrentSignal = UnknownSignal and NextSignal = UnknownSignal'
                                       + ' and Train_CurrentBufferStop = UnknownBufferStop - something wrong here');
 
-              { Now work out how far away the next signals are - this needs to be recalculated each time the current trackcircuit changes; if the signal isn't at the start
-                of the array, calculate the distance to it, but ignore the first trackcircuit, as we may already be in that.
+              { Now work out how far away the next signals are - this needs to be recalculated each time the current track circuit changes; if the signal isn't at the start
+                of the array, calculate the distance to it, but ignore the first track circuit, as we may already be in that.
               }
               IF (Train_AtCurrentSignal = UnknownSignal)
               AND (Train_AtCurrentBufferStop = UnknownBufferStop)
@@ -1140,14 +1140,14 @@ PROCEDURE MoveAllTrains;
                 IF FirstSignalPos = -1 THEN BEGIN
                   { it may be we're at the route end, or it may be there's a buffer stop ahead }
                   IF BufferStopPos <> -1 THEN BEGIN
-                    { Now count up the lengths of all the trackcircuits preceding it }
+                    { Now count up the lengths of all the track circuits preceding it }
                     FOR I := 0 TO (BufferStopPos - 1) DO
                       IF ExtractTrackCircuitFromString(Train_TCsAndSignalsNotClearedArray[I]) <> UnknownTrackCircuit THEN
                         Train_DistanceToCurrentSignalOrBufferStop := Train_DistanceToCurrentSignalOrBufferStop
                                                                     + TrackCircuits[ExtractTrackCircuitFromString(Train_TCsAndSignalsNotClearedArray[I])].TC_LengthInInches;
                   END;
                 END ELSE BEGIN
-                  { Now count up the lengths of all the trackcircuits preceding it, ignoring subroute markers }
+                  { Now count up the lengths of all the track circuits preceding it, ignoring subroute markers }
                   FOR I := 0 TO (FirstSignalPos - 1) DO BEGIN
                     IF ExtractTrackCircuitFromString(Train_TCsAndSignalsNotClearedArray[I]) <> UnknownTrackCircuit THEN
                       Train_DistanceToCurrentSignalOrBufferStop := Train_DistanceToCurrentSignalOrBufferStop
@@ -1161,7 +1161,7 @@ PROCEDURE MoveAllTrains;
               IF SecondSignalPos = -1 THEN BEGIN
                 { it may be we're at the route end, or it may be there's a buffer stop ahead }
                 IF BufferStopPos <> -1 THEN BEGIN
-                  { Now count up the lengths of all the trackcircuits preceding it }
+                  { Now count up the lengths of all the track circuits preceding it }
                   FOR I := 0 TO (BufferStopPos - 1) DO BEGIN
                     IF ExtractTrackCircuitFromString(Train_TCsAndSignalsNotClearedArray[I]) <> UnknownTrackCircuit THEN
                       Train_DistanceToNextSignalOrBufferStop := Train_DistanceToNextSignalOrBufferStop
@@ -1170,7 +1170,7 @@ PROCEDURE MoveAllTrains;
                 END;
               END ELSE BEGIN
                 NextSignal := ExtractSignalFromString(Train_TCsAndSignalsNotClearedArray[SecondSignalPos]);
-                { Now count up the lengths of all the trackcircuits preceding it, ignoring subroute markers }
+                { Now count up the lengths of all the track circuits preceding it, ignoring subroute markers }
                 FOR I := (FirstSignalPos + 1) TO (SecondSignalPos - 1) DO
                   IF ExtractTrackCircuitFromString(Train_TCsAndSignalsNotClearedArray[I]) <> UnknownTrackCircuit THEN
                     Train_DistanceToNextSignalOrBufferStop := Train_DistanceToNextSignalOrBufferStop
@@ -1181,7 +1181,7 @@ PROCEDURE MoveAllTrains;
               IF ThirdSignalPos = -1 THEN BEGIN
                 { it may be we're at the route end, or it may be there's a buffer stop ahead }
                 IF BufferStopPos <> -1 THEN BEGIN
-                  { Now count up the lengths of all the trackcircuits preceding it }
+                  { Now count up the lengths of all the track circuits preceding it }
                   FOR I := 0 TO (BufferStopPos - 1) DO BEGIN
                     IF ExtractTrackCircuitFromString(Train_TCsAndSignalsNotClearedArray[I]) <> UnknownTrackCircuit THEN
                       Train_DistanceToNextSignalButOneOrBufferStop := Train_DistanceToNextSignalButOneOrBufferStop
@@ -1189,7 +1189,7 @@ PROCEDURE MoveAllTrains;
                   END;
                 END;
               END ELSE BEGIN
-                { Now count up the lengths of all the trackcircuits preceding it, ignoring subroute markers }
+                { Now count up the lengths of all the track circuits preceding it, ignoring subroute markers }
                 FOR I := 0 TO ThirdSignalPos - 1 DO
                   IF ExtractTrackCircuitFromString(Train_TCsAndSignalsNotClearedArray[I]) <> UnknownTrackCircuit THEN
                     Train_DistanceToNextSignalButOneOrBufferStop := Train_DistanceToNextSignalButOneOrBufferStop
@@ -1216,11 +1216,11 @@ PROCEDURE MoveAllTrains;
                   Log(Train_LocoChipStr + ' L *** At next bufferstop BS=' + IntToStr(Train_CurrentBufferStop));
                   DeleteElementFromStringArray(Train_TCsAndSignalsNotClearedArray, BufferStopPos);
                 END;
-            END; { Processing which is only done when we enter a new trackcircuit }
+            END; { Processing which is only done when we enter a new track circuit }
 
             { If the train is in the adjacent TC to an approach-controlled signal, make sure its speed is suitably reduced **** }
 
-            { Now continue processing whether we're in a new trackcircuit or not - a signal may change while we're traversing one. Our speed depends on the distance to
+            { Now continue processing whether we're in a new track circuit or not - a signal may change while we're traversing one. Our speed depends on the distance to
               next red aspect, if it's fairly close (i.e. YY, Y, R) or at a station we have to stop at it even if the adjacent aspect is not red. Set the minimum speed -
               bear in mind that scale mph and real mph are different - when speed-checking locos, it is the case that the minimum speed for most locos (i.e. before
               stalling) is 30mph.
@@ -1270,7 +1270,7 @@ PROCEDURE MoveAllTrains;
                   END;
               END;
         
-              { Now calculate the speed per trackcircuit }
+              { Now calculate the speed per track circuit }
               SaveTrainDesiredSpeedInMPH := Train_DesiredSpeedInMPH;
 
               { TCLineNames[0] is only one of a number of possible lines **** }
@@ -1682,7 +1682,7 @@ PROCEDURE MoveAllTrains;
                 END;
         END;
 
-        { If the train isn't going anywhere, don't process any movement - without this check, another train entering the next trackcircuit would be assumed by the system
+        { If the train isn't going anywhere, don't process any movement - without this check, another train entering the next track circuit would be assumed by the system
           to be our loco.
         }
         IF Train_DesiredLenzSpeed <> 0 THEN BEGIN
@@ -1714,7 +1714,7 @@ PROCEDURE MoveAllTrains;
 
               TrackCircuits[Train_CurrentTC].TC_LocoStalled := False;
               TrackCircuits[Train_PreviousTC].TC_LocoStalled := False;
-              { first remove it from the list of trackcircuits released, if it's there, in case we passed over it before and released it subsequently }
+              { first remove it from the list of track circuits released, if it's there, in case we passed over it before and released it subsequently }
               TCPos := 0;
               TCFound := False;
               IF Length(Train_TCsReleasedArray) > 0 THEN BEGIN
@@ -1744,7 +1744,7 @@ PROCEDURE MoveAllTrains;
                   { then empty the not cleared array }
                   SetLength(Train_TCsNotClearedArray, 0)
                 ELSE BEGIN
-                  { move the trackcircuits in the not cleared array down by one }
+                  { move the track circuits in the not cleared array down by one }
                   FOR I := 0 TO (High(Train_TCsNotClearedArray) - 1) DO
                     Train_TCsNotClearedArray[I] := Train_TCsNotClearedArray[I + 1];
                   SetLength(Train_TCsNotClearedArray, Length(Train_TCsNotClearedArray) - 1);
@@ -1760,7 +1760,7 @@ PROCEDURE MoveAllTrains;
 
             END ELSE
               IF SystemOnline THEN BEGIN
-                { Now see if we've strayed - if the trackcircuits we're supposed to be in are TCUnoccupied - it's maybe we're somewhere else by mistake }
+                { Now see if we've strayed - if the track circuits we're supposed to be in are TCUnoccupied - it's maybe we're somewhere else by mistake }
                 PossiblyMissing := True;
 
                 IF Train_PreviousTC <> UnknownTrackCircuit THEN
@@ -2013,7 +2013,7 @@ BEGIN
   WITH Trains[T] DO BEGIN
     Result := False;
     IF SystemOnline THEN BEGIN
-      { see if there's something in the trackcircuit we intend starting from - (can't tell what's there, unfortunately) - third, fourth and fifth initial ones may not
+      { see if there's something in the track circuit we intend starting from - (can't tell what's there, unfortunately) - third, fourth and fifth initial ones may not
         exist so need to test that first.
       }
       FOR InitialTrackCircuitCount := 1 TO 5 DO BEGIN
@@ -2204,7 +2204,7 @@ BEGIN
                 { We must also update the LocationOccupations array if we've departed }
                 SetUpTrainLocationOccupationsAbInitio(T, OK);
 
-                { If we're offline, then we will want to clear the initial trackcircuits automatically, as there is no moving train to clear them }
+                { If we're offline, then we will want to clear the initial track circuits automatically, as there is no moving train to clear them }
                 IF SystemSetOfflineByCommandLineParameter THEN BEGIN
                   IF Train_InitialTrackCircuits[1] <> UnknownTrackCircuit THEN BEGIN
                     SetTrackCircuitState(Train_LocoChip, Train_InitialTrackCircuits[1], TCUnoccupied);
@@ -2231,7 +2231,7 @@ BEGIN
 END; { CheckTrainsHaveDeparted }
 
 PROCEDURE CheckTrainsHaveArrived;
-{ Runs through the list of trains, and sees if any have arrived in the route's final trackcircuit and have stopped; also sees whether to increment the journey number }
+{ Runs through the list of trains, and sees if any have arrived in the route's final track circuit and have stopped; also sees whether to increment the journey number }
 CONST
   AppendToFile = True;
   Delayed = True;
@@ -2282,7 +2282,7 @@ BEGIN
               DebugStr := DebugStr + ' ToBeSet=';
               Log(Train_LocoChipStr + ' L ' + DebugStr);
 
-              { We can't clear the train's remaining system-occupied-trackcircuits here, as at this time they may still be marked as having feedback occupation (they take
+              { We can't clear the train's remaining system-occupied-track circuits here, as at this time they may still be marked as having feedback occupation (they take
                 some time to clear)
               }
               { See if there's additional loco chips - if so, switch direction on them so that both lights switch to red }
@@ -2298,7 +2298,7 @@ BEGIN
 
               ChangeTrainStatus(T, WaitingForRemovalFromDiagrams)
             END ELSE BEGIN
-              { Reset all the trackcircuit occupation arrays... }
+              { Reset all the track circuit occupation arrays... }
               Log(Train_LocoChipStr + ' T J=' + IntToStr(Train_CurrentJourney) + ': clearing track occupation arrays');
               SetLength(Train_TCsAndSignalsNotClearedArray, 0);
               SetLength(Train_TCsNotClearedArray, 0);

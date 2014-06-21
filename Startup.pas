@@ -132,7 +132,7 @@ BEGIN
           ELSE
             IF ParamString = 'ATCM' THEN BEGIN
               ShowAdjacentTrackCircuitMode := True;
-              Debug('Displaying adjacent trackcircuit mode = ON');
+              Debug('Displaying adjacent track circuit mode = ON');
             END ELSE
               OK := False;
       'C':

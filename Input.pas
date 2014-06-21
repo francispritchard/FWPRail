@@ -370,7 +370,7 @@ BEGIN
 
         IF ShowAdjacentTrackCircuitMode THEN BEGIN
           ShowAdjacentTrackCircuitMode := False;
-          WriteToStatusBarPanel(StatusBarPanel2, 'Showing adjacent trackcircuit mode = OFF');
+          WriteToStatusBarPanel(StatusBarPanel2, 'Showing adjacent track circuit mode = OFF');
           InvalidateScreen(UnitRef, 'InputDialogueBoxHide 4');
         END;
       END;
@@ -635,7 +635,7 @@ BEGIN
 END; { MissingTrainFoundByUser }
 
 PROCEDURE DoGeneralCheck;
-{ Debug check for various things including two different feedback units serving the same trackcircuit }
+{ Debug check for various things including two different feedback units serving the same track circuit }
 CONST
   IndicatorToBeSet = True;
   SuppressMessage = True;
@@ -676,22 +676,22 @@ BEGIN
   IF ErrorCount > 0 THEN
     Debug('Feedback check completed - report in LogFile with header ''FFFF'' includes ' + IntToStr(ErrorCount) + ' errors found')
   ELSE
-    Log('FFFF XG Feedback check completed - no feedback units serving more than one trackcircuit');
+    Log('FFFF XG Feedback check completed - no feedback units serving more than one track circuit');
 
-  { Also check for line sections trackcircuit numbers unused }
+  { Also check for line sections track circuit numbers unused }
   ErrorCount := 0;
-  Debug('Commencing trackcircuit check - please wait...');
+  Debug('Commencing track circuit check - please wait...');
   FOR TC := 0 TO High(TrackCircuits) DO BEGIN
     TCInUse := False;
     TCHasFeedback := False;
 
-    { see if the trackcircuit number is in use }
+    { see if the track circuit number is in use }
     FOR L := 0 TO High(Lines) DO BEGIN
       IF Lines[L].Line_TC = TC THEN
         TCInUse := True;
     END;
 
-    { now see if the trackcircuit has feedback }
+    { now see if the track circuit has feedback }
     FOR I := FirstFeedbackUnit TO LastFeedbackUnit DO BEGIN
       FOR J := 1 TO 8 DO BEGIN
         FeedbackData.Feedback_Unit := I;
@@ -724,9 +724,9 @@ BEGIN
   ELSE
     Log('TTTT XG Trackcircuit check completed - all feedback inputs accounted for');
 
-  { Also check for trackcircuit feedback inputs unused }
+  { Also check for track circuit feedback inputs unused }
   ErrorCount := 0;
-  Debug('Commencing trackcircuit feedback input check - please wait...');
+  Debug('Commencing track circuit feedback input check - please wait...');
   FOR I := FirstFeedbackUnit TO LastFeedbackUnit DO BEGIN
     FOR J := 1 TO 8 DO BEGIN
       FeedbackData.Feedback_Unit := I;
@@ -875,7 +875,7 @@ BEGIN
     END;
   END; {FOR}
 
-  { See if any trackcircuits have different line characteristics, i.e. TC=126 occuping both UFYU5 (classified as a main/goods line) and FYX5 (classified as a fiddleyard).
+  { See if any track circuits have different line characteristics, i.e. TC=126 occuping both UFYU5 (classified as a main/goods line) and FYX5 (classified as a fiddleyard).
     This causes a problem in terms of speeds for track circuits.
   }
   SaveLine := UnknownLine;
@@ -3210,7 +3210,7 @@ BEGIN { KeyPressedDown }
           CASE ShiftKeys OF
             NoShiftKeys: {T}
               BEGIN
-                HelpMsg := 'set trackcircuits on/off';
+                HelpMsg := 'set track circuits on/off';
                 IF NOT HelpRequired THEN BEGIN
                   InputDialogueBoxRequired := TrackCircuitDialogueBox;
                   InputDialogueBox.Show;
@@ -3231,7 +3231,7 @@ BEGIN { KeyPressedDown }
               END;
             CtrlAlt: {T}
               BEGIN
-                HelpMsg := 'switch flashing trackcircuits on/off';
+                HelpMsg := 'switch flashing track circuits on/off';
                 IF NOT HelpRequired THEN BEGIN
                   IF DisplayFlashingTrackCircuits THEN
                     DisplayFlashingTrackCircuits := False
@@ -3339,7 +3339,7 @@ BEGIN { KeyPressedDown }
           CASE ShiftKeys OF
             NoShiftKeys: {V}
               BEGIN
-                HelpMsg := 'switch flashing trackcircuits on/off';
+                HelpMsg := 'switch flashing track circuits on/off';
                 IF NOT HelpRequired THEN BEGIN
                   IF DisplayFlashingTrackCircuits THEN
                     DisplayFlashingTrackCircuits := False
@@ -4753,9 +4753,9 @@ BEGIN { KeyPressedDown }
               END;
             Shift: {F2}
               BEGIN
-                HelpMsg := 'show signal numbers and adjacent trackcircuits';
+                HelpMsg := 'show signal numbers and adjacent track circuits';
                 IF NOT HelpRequired THEN BEGIN
-                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing signal numbers and adjacent trackcircuits');
+                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing signal numbers and adjacent track circuits');
                   ShowSignalsWithAdjacentTrackCircuits := True;
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
@@ -4930,56 +4930,56 @@ BEGIN { KeyPressedDown }
           CASE ShiftKeys OF
             NoShiftKeys: {F5}
               BEGIN
-                HelpMsg := 'show trackcircuits';
+                HelpMsg := 'show track circuits';
                 IF NOT HelpRequired THEN BEGIN
-                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing trackcircuits');
+                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing track circuits');
                   ShowTrackCircuits := True;
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
               END;
             ShiftAlt: {F5}
               BEGIN
-                HelpMsg := 'toggle showing trackcircuits where user must drive';
+                HelpMsg := 'toggle showing track circuits where user must drive';
                 IF NOT HelpRequired THEN BEGIN
                   IF ShowTrackCircuitsWhereUserMustDrive THEN BEGIN
                     ShowTrackCircuitsWhereUserMustDrive := False;
-                    WriteToStatusBarPanel(StatusBarPanel2, 'Show trackcircuits where user must drive = OFF');
+                    WriteToStatusBarPanel(StatusBarPanel2, 'Show track circuits where user must drive = OFF');
                   END ELSE BEGIN
                     ShowTrackCircuitsWhereUserMustDrive := True;
-                    WriteToStatusBarPanel(StatusBarPanel2, 'Show trackcircuits where user must drive = ON');
+                    WriteToStatusBarPanel(StatusBarPanel2, 'Show track circuits where user must drive = ON');
                   END;
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
               END;
             CtrlAlt: {F5}
               BEGIN
-                HelpMsg := 'toggle show adjacent trackcircuit mode';
+                HelpMsg := 'toggle show adjacent track circuit mode';
                 IF NOT HelpRequired THEN BEGIN
                   IF ShowAdjacentTrackCircuitMode THEN BEGIN
                     ShowAdjacentTrackCircuitMode := False;
-                    WriteToStatusBarPanel(StatusBarPanel2, 'Showing adjacent trackcircuit mode = OFF');
+                    WriteToStatusBarPanel(StatusBarPanel2, 'Showing adjacent track circuit mode = OFF');
                   END ELSE BEGIN
                     ShowAdjacentTrackCircuitMode := True;
-                    WriteToStatusBarPanel(StatusBarPanel2, 'Showing adjacent trackcircuit mode = ON');
+                    WriteToStatusBarPanel(StatusBarPanel2, 'Showing adjacent track circuit mode = ON');
                   END;
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
               END;
             CtrlShift: {F5}
               BEGIN
-                HelpMsg := 'show trackcircuits routed over';
+                HelpMsg := 'show track circuits routed over';
                 IF NOT HelpRequired THEN BEGIN
                   ShowTrackCircuitsRoutedOver := True;
-                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing trackcircuits routed over');
+                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing track circuits routed over');
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
               END;
             Shift: {F5}
               BEGIN
-                HelpMsg := 'show trackcircuits lengths in inches';
+                HelpMsg := 'show track circuits lengths in inches';
                 IF NOT HelpRequired THEN BEGIN
                   ShowTrackCircuitLengths := True;
-                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing trackcircuit lengths in inches');
+                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing track circuit lengths in inches');
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
               END;
@@ -4996,10 +4996,10 @@ BEGIN { KeyPressedDown }
               END;
             Alt: {F5}
               BEGIN
-                HelpMsg := 'show lines without trackcircuits';
+                HelpMsg := 'show lines without track circuits';
                 IF NOT HelpRequired THEN BEGIN
                   ShowLinesWithoutTrackCircuits := True;
-                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing lines without trackcircuits');
+                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing lines without track circuits');
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
               END;
@@ -5123,9 +5123,9 @@ BEGIN { KeyPressedDown }
           CASE ShiftKeys OF
             NoShiftKeys: {F8}
               BEGIN
-                HelpMsg := 'show trackcircuit feedback data';
+                HelpMsg := 'show track circuit feedback data';
                 IF NOT HelpRequired THEN BEGIN
-                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing trackcircuit feedback data');
+                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing track circuit feedback data');
                   ShowTrackCircuitFeedbackDataInSeparateColours := True;
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
@@ -5164,10 +5164,9 @@ BEGIN { KeyPressedDown }
               END;
             Shift: {F8}
               BEGIN
-                HelpMsg := 'show trackcircuit feedback data (' + ColourToStrForUser(TCFeedbackDataOutOfUseColour) + ' = out of use)';
+                HelpMsg := 'show track circuit feedback data (' + ColourToStrForUser(TCFeedbackDataOutOfUseColour) + ' = out of use)';
                 IF NOT HelpRequired THEN BEGIN
-                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing trackcircuit feedback data'
-                                                                                               + ' (' + ColourToStrForUser(TCFeedbackDataOutOfUseColour) + ' = out of use)');
+                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing track circuit feedback data' + ' (' + ColourToStrForUser(TCFeedbackDataOutOfUseColour) + ' = out of use)');
                   ShowTrackCircuitFeedbackDataInUse := True;
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
@@ -5186,9 +5185,8 @@ BEGIN { KeyPressedDown }
                 HelpMsg := 'show point feedback data (' + ColourToStrForUser(PointFeedbackDataOutOfUseColour) + ' = out of use, '
                                                                                                        + ColourToStrForUser(PointsWithoutFeedbackColour) + ' = no feedback)';
                 IF NOT HelpRequired THEN BEGIN
-                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing point feedback data'
-                                                                                            + ' (' + ColourToStrForUser(PointFeedbackDataOutOfUseColour) + ' = out of use, '
-                                                                                            + ColourToStrForUser(PointsWithoutFeedbackColour) + ' = no feedback)');
+                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing point feedback data' + ' (' + ColourToStrForUser(PointFeedbackDataOutOfUseColour) + ' = out of use, '
+                                                         + ColourToStrForUser(PointsWithoutFeedbackColour) + ' = no feedback)');
                   ShowPointFeedbackDataInUse := True;
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;

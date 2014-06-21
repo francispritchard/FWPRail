@@ -544,13 +544,13 @@ PROCEDURE DrawSpeedRestrictions;
 { Draw speed restrictions next to lines - but only draw one sign per track circuit }
 
 PROCEDURE DrawTrackCircuit{1}(TC : Integer; TCColour : TColour); Overload;
-{ Draws a given trackcircuit }
+{ Draws a given track circuit }
 
 PROCEDURE DrawTrackCircuit{2}(TC : Integer; TCColour : TColour; TempLineText : String); Overload;
-{ Draws a given trackcircuit - this version is used by Replay to add train descriptions }
+{ Draws a given track circuit - this version is used by Replay to add train descriptions }
 
 PROCEDURE DrawTrackCircuitsWithAdjoiningTrackCircuits(TC : Integer; TCColour1, TCColour2 : TColour);
-{ Draw a trackcircuit and show which trackcircuits adjoin it }
+{ Draw a track circuit and show which track circuits adjoin it }
 
 PROCEDURE DrawTRSPlunger(Location : Integer; Pressed : Boolean);
 { Indicate on a platform that a train-ready-to-start plunger has been pressed }
@@ -839,7 +839,7 @@ VAR
   X, Y : Integer;
 
   PROCEDURE ShowTrackCircuitData;
-  { Display data relating to trackcircuits }
+  { Display data relating to track circuits }
   VAR
     ColourNum : Integer;
     FeedbackType : TypeOfFeedBackType;
@@ -941,7 +941,7 @@ VAR
           ShowOneFeedbackUnitOnly := False;
       END ELSE BEGIN
         FOR TC := 0 TO High(TrackCircuits) DO BEGIN
-          { Write out the trackcircuit number once only }
+          { Write out the track circuit number once only }
           L := 0;
           TrackCircuitNumbered := False;
           WHILE L <= High(Lines) DO BEGIN
@@ -1023,7 +1023,7 @@ VAR
                   { note: the following options are mutually exclusive, so it doesn't need to be IF THEN ELSE }
                   IF ShowTrackCircuitLengths THEN BEGIN
                     IF Line_TC <> UnknownTrackCircuit THEN BEGIN
-                      { how long (in inches) each trackcircuit is }
+                      { how long (in inches) each track circuit is }
                       IF TrackCircuits[Line_TC].TC_LengthInInches = 0.0 THEN
                         { a missing length }
                         Font.Color := clYellow
@@ -1111,7 +1111,7 @@ VAR
       FOR L := 0 TO High(Lines) DO BEGIN
         SegmentText := '';
         WITH Lines[L] DO BEGIN
-          { how which trackcircuits have routes set over them }
+          { how which track circuits have routes set over them }
           IF ShowTrackCircuitsRoutedOver THEN BEGIN
             IF Line_TC <> UnknownTrackCircuit THEN BEGIN
               Font.Color := clAqua;
@@ -2628,7 +2628,7 @@ BEGIN
             END;
           END;
 
-          { Draw this line in the colour of the adjacent lines if it is not trackcircuited }
+          { Draw this line in the colour of the adjacent lines if it is not track circuited }
           IF Lines[L].Line_TC = UnknownTrackCircuit THEN BEGIN
             IF (Line_NextUpLine <> UnknownLine)
             AND (Line_NextDownLine <> UnknownLine)
@@ -2692,7 +2692,7 @@ BEGIN
 
           { what if the line is not horizontal? *** }
 
-          { Draw adjacent lines if they are not trackcircuited }
+          { Draw adjacent lines if they are not track circuited }
           IF (Line_NextUpLine <> UnknownLine)
           AND (Line_NextDownLine <> UnknownLine)
           THEN BEGIN
@@ -2757,7 +2757,7 @@ BEGIN
 END; { DrawLine-2 }
 
 PROCEDURE DrawTrackCircuit{1}(TC : Integer; TCColour : TColour); Overload;
-{ Draws a given trackcircuit }
+{ Draws a given track circuit }
 CONST
   ActiveTrain = True;
 
@@ -2782,7 +2782,7 @@ BEGIN
 END; { DrawTrackCircuit-1 }
 
 PROCEDURE DrawTrackCircuit{2}(TC : Integer; TCColour : TColour; TempLineText : String); Overload;
-{ Draws a given trackcircuit - this version is used by Replay to add train descriptions }
+{ Draws a given track circuit - this version is used by Replay to add train descriptions }
 CONST
   ActiveTrain = True;
 
@@ -2807,13 +2807,13 @@ BEGIN
 END; { DrawTrackCircuit-2 }
 
 PROCEDURE DrawTrackCircuitsWithAdjoiningTrackCircuits(TC : Integer; TCColour1, TCColour2 : TColour);
-{ Draw a trackcircuit and show which trackcircuits adjoin it }
+{ Draw a track circuit and show which track circuits adjoin it }
 VAR
   AdjacentUpTC, AdjacentDownTC : Integer;
 
 BEGIN
   TRY
-    { Draw the original trackcircuit }
+    { Draw the original track circuit }
     DrawTrackCircuit(TC, TCColour1);
 
     FindAdjoiningTrackCircuits(TC, AdjacentUpTC, AdjacentDownTC);
@@ -3073,7 +3073,7 @@ BEGIN
                 FeedbackData.Feedback_Unit := I;
                 FOR J := 1 TO 8 DO BEGIN
                   FeedbackData.Feedback_Input := J;
-                  { extract what kind of feedback it is (FeedbackNum is only use for trackcircuits) }
+                  { extract what kind of feedback it is (FeedbackNum is only use for track circuits) }
                   ExtractDataFromFeedback(FeedbackData, TCAboveFeedbackUnit, FeedbackType, FeedbackNum);
                   IF FeedbackType = PointFeedbackDetector THEN BEGIN
                     IF (Point_FeedbackUnit = I)
@@ -3167,7 +3167,7 @@ BEGIN
         FOR J := 1 TO 8 DO BEGIN
           FeedbackData.Feedback_Unit := I;
           FeedbackData.Feedback_Input := J;
-          { extract what kind of feedback it is (FeedbackNum is only use for trackcircuits) }
+          { extract what kind of feedback it is (FeedbackNum is only use for track circuits) }
           ExtractDataFromFeedback(FeedbackData, TCAboveFeedbackUnit, FeedbackType, FeedbackNum);
           IF FeedbackType = PointFeedbackDetector THEN BEGIN
             FOR P := 0 TO High(Points) DO BEGIN
@@ -4334,19 +4334,23 @@ BEGIN
     { Loco dialogue boxes need special treatment }
     IF (LocoDialogueWindow <> NIL)
     AND LocoDialogueWindow.Visible
-    AND LocoDialogueWindow.Focused
-    AND LocoDialogueWindow.LocoDialogueUpButton.Enabled
+//    AND LocoDialogueWindow.Focused
+//    AND LocoDialogueWindow.ActiveControl
     THEN BEGIN
       CASE Msg.CharCode OF
         vk_Up: { up arrow key - need to handle specially in loco dialogue boxes }
           BEGIN
-            LocoDialogueIncreaseSpeed;
-            Handled := True;
+            IF LocoDialogueWindow.LocoDialogueUpButton.Enabled THEN BEGIN
+              LocoDialogueIncreaseSpeed;
+              Handled := True;
+            END;
           END;
         vk_Down: { down arrow key - need to handle specially in loco dialogue boxes }
           BEGIN
-            LocoDialogueDecreaseSpeed;
-            Handled := True;
+            IF LocoDialogueWindow.LocoDialogueDownButton.Enabled THEN BEGIN
+              LocoDialogueDecreaseSpeed;
+              Handled := True;
+            END;
           END;
         vk_Space: { space bar - need to handle specially in loco dialogue boxes }
           StopOrResumeAllOperations(DescribeKey(Msg.Charcode, ShiftState));
@@ -4576,7 +4580,7 @@ END; { TCPopupSetTrackCircuitOccupiedClick }
 
 PROCEDURE TFWPRailWindow.TCPopupSetTrackCircuitOutOfUseSetByUserClick(Sender: TObject);
 BEGIN
-  { Set the trackcircuit out of use, regardless of its current state }
+  { Set the track circuit out of use, regardless of its current state }
   WITH Lines[TrackCircuitPopupLine] DO BEGIN
     IF Line_TC <> UnknownTrackCircuit THEN BEGIN
       SetTrackCircuitState(Line_TC, TCOutOfUseSetByUser);
@@ -4588,7 +4592,7 @@ END; { TCPopupSetTrackCircuitOutOfUseClick }
 
 PROCEDURE TFWPRailWindow.TCPopupSetTrackCircuitToPermanentOccupationClick(Sender: TObject);
 BEGIN
-  { Set the trackcircuit permanently occupied, regardless of its current state }
+  { Set the track circuit permanently occupied, regardless of its current state }
   WITH Lines[TrackCircuitPopupLine] DO BEGIN
     IF Line_TC <> UnknownTrackCircuit THEN BEGIN
       IF GetTrackCircuitState(Line_TC) = TCFeedbackOccupation THEN
@@ -4634,7 +4638,7 @@ BEGIN
 END; { TCPopupTrackCircuitNumberClick }
 
 PROCEDURE ClearLocoFromTrackCircuit(TC : Integer);
-{ Clear a loco allocation from a given trackcircuit and other associated locations }
+{ Clear a loco allocation from a given track circuit and other associated locations }
 VAR
   I : Integer;
   T : TrainElement;
@@ -4649,7 +4653,7 @@ BEGIN
         Train_CurrentTC := UnknownTrackCircuit;
         Train_SavedLocation := UnknownLocation;
 
-        { and clear it from other location trackcircuits except the one we're at (are we right to use Train_LastLocation here? **** ) }
+        { and clear it from other location track circuits except the one we're at (are we right to use Train_LastLocation here? **** ) }
         TCArray := GetTrackCircuitsForLocation(Train_LastLocation);
         FOR I := 0 TO High(TCArray) DO BEGIN
           IF TCArray[I] <> TC THEN
@@ -4676,7 +4680,7 @@ BEGIN
 END; { TCPopupClearLocoAllocationFromTrackCircuitClick }
 
 PROCEDURE TFWPRailWindow.TCPopupAllocateLocoToTrackCircuitClick(Sender: TObject);
-{ Allocate (or remove) a loco chip number from a given trackcircuit }
+{ Allocate (or remove) a loco chip number from a given track circuit }
 CONST
   AllLocos = True;
 
@@ -4697,7 +4701,7 @@ BEGIN
     WITH Lines[TrackCircuitPopupLine] DO BEGIN
       { If we don't know which loco is on a particular line }
       IF Line_TC <> UnknownTrackCircuit THEN BEGIN
-        { save chip number previously allocated to this trackcircuit }
+        { save chip number previously allocated to this track circuit }
         PossibleLocoChip := TrackCircuits[Line_TC].TC_LocoChip;
         SavePossibleLocoChip := PossibleLocoChip;
 
@@ -4774,7 +4778,7 @@ BEGIN
 
                     SetTrackCircuitState(PossibleLocoChip, Line_TC, NewTrackCircuitState);
                     SetLength(TCArray, 0);
-                    { and any other adjacent trackcircuits in the same location, unless they're already occupied. First search up the line: }
+                    { and any other adjacent track circuits in the same location, unless they're already occupied. First search up the line: }
                     REPEAT
                       TC := AdjacentUpTC;
                       IF TC <> UnknownTrackCircuit THEN BEGIN
@@ -7248,7 +7252,7 @@ BEGIN { Main drawing procedure }
               END;
             FullScreenWithStatusBarMode:
               BEGIN
-                { Use for checking trackcircuits. etc., as displays trackcircuit number on the status bar }
+                { Use for checking track circuits. etc., as displays track circuit number on the status bar }
                 IF LineThicknessInFullScreenMode = 'Thin' THEN
                   ThinLineMode := True
                 ELSE
@@ -7429,7 +7433,7 @@ BEGIN { Main drawing procedure }
             IF ReplayMode THEN
               DrawLine(L, Line_OldColour, ActiveTrain)
             ELSE BEGIN
-              { If the line is not associated with a trackcircuit }
+              { If the line is not associated with a track circuit }
               IF Line_TC = UnknownTrackCircuit THEN BEGIN
                 IF Line_RouteSet <> UnknownRoute THEN
                   Line_CurrentColour := LineRoutedOverColour
@@ -7437,7 +7441,7 @@ BEGIN { Main drawing procedure }
                   Line_CurrentColour := SaveLineOldColour;
                 DrawLine(L, Line_CurrentColour, ActiveTrain);
               END ELSE BEGIN
-                { LineTC <> UnknownTrackCircuit - see if it's an occupied trackcircuit etc. If in auto mode, only highlight the bits that are routed over. }
+                { LineTC <> UnknownTrackCircuit - see if it's an occupied track circuit etc. If in auto mode, only highlight the bits that are routed over. }
                 IF NOT DisplayFlashingTrackCircuits OR TrackCircuits[Line_TC].TC_LitUp THEN
                   Line_CurrentColour := GetTrackCircuitStateColour(Line_TC)
                 ELSE

@@ -29,7 +29,7 @@ PROCEDURE ProcessApproachLockedSignals(Route : Integer);
 { Set up the signals we were unable to do because of approach control being in operation }
 
 PROCEDURE ReleaseSubRoutes;
-{ If train has cleared last (or only) trackcircuit in a subroute, subroute can be released }
+{ If train has cleared last (or only) track circuit in a subroute, subroute can be released }
 
 PROCEDURE SetUpASubRoute(Route : Integer);
 { Set up a subroute using the supplied route array }
@@ -560,9 +560,9 @@ BEGIN
               END;
             '*':
               BEGIN
-                { deals with specific trackcircuit occupations that might get in the way }
+                { deals with specific track circuit occupations that might get in the way }
                 IF (TrackCircuits[Device].TC_LockedForRoute <> UnknownRoute)
-                { if the trackcircuit that is occupied is the one where the subroute starts, ignore it }
+                { if the track circuit that is occupied is the one where the subroute starts, ignore it }
                 AND NOT IsElementInIntegerArray(TrackCircuits[Device].TC_AdjacentSignals, Routes_SubRouteStartSignals[Route, SettingSubRoute])
                 THEN BEGIN
                   IF TrackCircuits[Device].TC_LockedForRoute = Route THEN
@@ -573,7 +573,7 @@ BEGIN
                                 + ' R=' + IntToStr(TrackCircuits[Device].TC_LockedForRoute) + ': route setting failure'
                 END ELSE BEGIN
                   IF (TrackCircuits[Device].TC_OccupationState <> TCUnoccupied)
-                  { if the trackcircuit that is occupied is the one where the subroute starts, ignore it }
+                  { if the track circuit that is occupied is the one where the subroute starts, ignore it }
                   AND (NOT IsElementInIntegerArray(TrackCircuits[Device].TC_AdjacentSignals, Routes_SubRouteStartSignals[Route, SettingSubRoute]))
                   { and ignore it if it's already allocated to this train }
                   AND (TrackCircuits[Device].TC_LocoChip <> Routes_LocoChips[Route])
@@ -586,7 +586,7 @@ BEGIN
                     SaveTCLocoChip := TrackCircuits[Device].TC_LocoChip;
                     TrackCircuits[Device].TC_LocoChip := Routes_LocoChips[Route];
 
-                    { Set the trackcircuit journey }
+                    { Set the track circuit journey }
                     IF TCDebugStr <> '' THEN
                       TCDebugStr := TCDebugStr + ' ';
                     TCDebugStr := TCDebugStr + 'TC=' + IntToStr(Device)
@@ -815,12 +815,13 @@ log('x and L=' + LinetoStr(Signals[Routes_SubRouteStartSignals[Route, SettingSub
           Routes_RouteSettingByHand := False;
           Log(LocoChipStr + ' R R=' + IntToStr(Route) + ': route setting concluded');
 
-          IF (T <= High(Trains))
+          IF (T <> 0)
+          AND (T <= High(Trains))
           AND (Trains[T].Train_LocoChip <> UnknownLocoChip)
           THEN BEGIN
             { only set up hidden aspect signals if there's a train involved }
             WITH Trains[T] DO BEGIN
-              WITH Train_JourneysArray[Journey] DO BEGIN
+              WITH Train_JourneysArray[Journey] DO BEGIN { ************************************************************* from MS5 to IS2 }
                 TrainJourney_SetUp := True;
                 Log(LocoChipStr + ' R J=' + IntToStr(Journey) + ': journey set up');
 
@@ -969,7 +970,7 @@ log('x and L=' + LinetoStr(Signals[Routes_SubRouteStartSignals[Route, SettingSub
                     Lines[L].Line_LockFailureNotedInSubRouteUnit := False;
                   END;
                 '*':
-                  { and any trackcircuits }
+                  { and any track circuits }
                   IF TrackCircuits[Device].TC_LockedForRoute = Route THEN BEGIN
                     TrackCircuits[Device].TC_LockedForRoute := TrackCircuits[Device].TC_SaveRouteLocking;
                     TrackCircuits[Device].TC_LocoChip := SaveTCLocoChip;
@@ -1193,7 +1194,7 @@ BEGIN
           CASE ActionCh[1] OF
             '*':
               BEGIN
-                { check if the trackcircuit is locked - as it may already have been unlocked in SetTrackCircuitStateMainProc }
+                { check if the track circuit is locked - as it may already have been unlocked in SetTrackCircuitStateMainProc }
                 IF TrackCircuits[Device].TC_LockedForRoute = Route THEN
                   UnlockTrackCircuitRouteLocking(Device);
 
@@ -1396,8 +1397,8 @@ BEGIN
         Routes_RouteClearingsInProgress[Route] := False;
         Routes_RouteClearingsWithoutPointResetting[Route] := False;
 
-        { Mark the associated journeys as to be cleared too (we can't mark them as "cleared", as routes are cleared when the final trackcircuit is occupied, whereas
-          journeys are cleared when the following trackcircuit is occupied).
+        { Mark the associated journeys as to be cleared too (we can't mark them as "cleared", as routes are cleared when the final track circuit is occupied, whereas
+          journeys are cleared when the following track circuit is occupied).
         }
         IF Routes_LocoChips[Route] <> UnknownLocoChip THEN BEGIN
           IF Routes_Trains[Route] = 0 THEN BEGIN
@@ -1564,7 +1565,7 @@ BEGIN
 END; { ClearARoute }
 
 PROCEDURE ReleaseSubRoutes;
-{ If train has cleared all the trackcircuits in a subroute, subroute can be released }
+{ If train has cleared all the track circuits in a subroute, subroute can be released }
 CONST
   Undo = True;
 
@@ -1589,7 +1590,7 @@ BEGIN
           IF Routes_SubRouteStates[Route, SubRouteCount] = SubRouteSetUp THEN BEGIN
             { Extract the subroute }
             TestSubRoute := Routes_SubRouteSettingStrings[Route, SubRouteCount];
-            { Now find the last trackcircuit on the route }
+            { Now find the last track circuit on the route }
             FOR I := 0 TO High(TestSubRoute) DO
               IF ExtractTrackCircuitFromString(TestSubRoute[I]) <> UnknownTrackCircuit THEN
                 LastTCOnRoute := ExtractTrackCircuitFromString(TestSubRoute[I]);

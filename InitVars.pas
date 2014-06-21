@@ -855,7 +855,7 @@ TYPE
     Train_LocoName : String;
     Train_LocoTypeStr : String;
     Train_MaximumSpeedInMPH : MPHType;
-    Train_MinimumAccelerationTimeInSeconds : Integer; { needed as we only calculate it once when we enter a trackcircuit }
+    Train_MinimumAccelerationTimeInSeconds : Integer; { needed as we only calculate it once when we enter a track circuit }
     Train_MissingMessage : Boolean;
     Train_MissingNum : Integer;
     Train_NextTC : Integer;
@@ -1339,7 +1339,7 @@ PROCEDURE CalculatePointPositions;
 { Create where the points are on the screen }
 
 PROCEDURE CalculateTCAdjacentSignals;
-{ Work out which trackcircuits are next the signal }
+{ Work out which track circuits are next the signal }
 
 PROCEDURE CalculateSignalPositions(ScaleFactor : Integer);
 { Work out where the signals are on the screen }
@@ -1384,7 +1384,7 @@ PROCEDURE ReadInSignalDataFromDatabase(NewSignalData : Boolean);
 { Create entries for the signals }
 
 PROCEDURE ReadInTrackCircuitDataFromDatabase;
-{ Initialise the trackcircuit data which depends on lines being initialised first }
+{ Initialise the track circuit data which depends on lines being initialised first }
 
 PROCEDURE RestoreScreenDrawingVariables;
 { Restore the default screen drawing variables }
@@ -1575,7 +1575,7 @@ BEGIN
 END; { SetUpLineDrawingVars }
 
 PROCEDURE ReadInTrackCircuitDataFromDatabase;
-{ Initialise the trackcircuit data which depends on lines being initialised first.
+{ Initialise the track circuit data which depends on lines being initialised first.
 
   Interesting notes from the past here:
 
@@ -1730,7 +1730,7 @@ BEGIN
         SetLength(TC_LineArray, 0);
       END; { WITH }
 
-      { Initialise trackcircuit lines and locations }
+      { Initialise track circuit lines and locations }
       TCLocationFound := False;
       L := 0;
       WHILE (L < High(Lines)) AND NOT TCLocationFound DO BEGIN
@@ -1742,8 +1742,8 @@ BEGIN
           { also initialise the buffer stop data }
           TrackCircuits[TC].TC_AdjacentBufferStop := Lines[L].Line_AdjacentBufferStop;
 
-          { and the gradient - give the trackcircuit the benefit of the doubt so that if any line comprising it is not level, that gradient is the one recorded as being at
-            the trackcircuit
+          { and the gradient - give the track circuit the benefit of the doubt so that if any line comprising it is not level, that gradient is the one recorded as being at
+            the track circuit
           }
           IF Lines[L].Line_Gradient <> Level THEN
             TrackCircuits[TC].TC_Gradient := Lines[L].Line_Gradient;
@@ -2892,7 +2892,7 @@ VAR
       BufferStop_AdjacentLine := L;
       BufferStop_AdjacentTrackCircuit := Lines[BufferStop_AdjacentLine].Line_TC;
       IF (BufferStop_AdjacentTrackCircuit = UnknownTrackCircuit) AND ProgramStartup THEN
-        Log('E Buffer stop ' + IntToStr( High(BufferStops)) + ' (at line' + ' ' + Lines[BufferStop_AdjacentLine].Line_Str + ') has no adjacent trackcircuit');
+        Log('E Buffer stop ' + IntToStr( High(BufferStops)) + ' (at line' + ' ' + Lines[BufferStop_AdjacentLine].Line_Str + ') has no adjacent track circuit');
 
       BufferStop_AsTheatreDestination := BSTheatreDestination;
       BufferStop_CurrentColour := BufferStopColour;
@@ -3082,7 +3082,7 @@ BEGIN
                   ErrorMsg := 'invalid line TC integer "' + TempStr + '"'
                 ELSE
                   IF ((Line_TC < 0) AND (Line_TC > High(TrackCircuits))) OR (Line_TC = UnknownTrackCircuit) THEN
-                    ErrorMsg := 'trackcircuit number ' + IntToStr(Line_TC) + ' outside bounds';
+                    ErrorMsg := 'track circuit number ' + IntToStr(Line_TC) + ' outside bounds';
             END;
 
             IF ErrorMsg = '' THEN BEGIN
@@ -3650,7 +3650,7 @@ BEGIN
 END; { CalculateSignalPositions }
 
 PROCEDURE CalculateTCAdjacentSignals;
-{ Work out which trackcircuits are next the signal }
+{ Work out which track circuits are next the signal }
 VAR
   S : Integer;
   TC : Integer;
@@ -3992,11 +3992,11 @@ BEGIN
   ErrorMsg := '';
   Result := Flag;
 
-  { Note which lines and trackcircuits are next the signal }
+  { Note which lines and track circuits are next the signal }
   IF NOT Flag THEN BEGIN
     AdjacentTC := Lines[AdjacentLine].Line_TC;
     IF AdjacentTC = UnknownTrackCircuit THEN
-      ErrorMsg := 'ValidateSignalOutOfUse: S=' + IntToStr(S) + ' (adjacent to line' + ' ' + LineToStr(AdjacentLine) + ') has no adjacent trackcircuit';
+      ErrorMsg := 'ValidateSignalOutOfUse: S=' + IntToStr(S) + ' (adjacent to line' + ' ' + LineToStr(AdjacentLine) + ') has no adjacent track circuit';
 // ELSE
 // AppendToIntegerArray(TrackCircuits[Lines[AdjacentLine].Line_TC].TC_AdjacentSignals, S);
   END;

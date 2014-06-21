@@ -29,7 +29,7 @@ PROCEDURE CheckLineConnectionsAreOK;
 { To check each line has the requisite connection data, as locking depends on this }
 
 PROCEDURE FindAdjoiningTrackCircuits(TC : Integer; OUT AdjoiningUpTC, AdjoiningDownTC : Integer);
-{ Work out which are the adjacent trackcircuits. Does not trace along all lines, just the way points are set. }
+{ Work out which are the adjacent track circuits. Does not trace along all lines, just the way points are set. }
 
 FUNCTION GetBufferStopDirection(BufferStopNum : Integer) : DirectionType;
 { Return a buffer stop's direction }
@@ -56,16 +56,16 @@ PROCEDURE SetSignal(LocoChip, S : Integer; NewAspect : AspectType; LogSignalData
 { Set the state of a particular signal and draws it }
 
 PROCEDURE SetTrackCircuitState{1}(LocoChip : Integer; TC : Integer; NewState : TrackCircuitStateType); Overload;
-{ Set whether and how the trackcircuit is occupied, and mark it with a loco chip number }
+{ Set whether and how the track circuit is occupied, and mark it with a loco chip number }
 
 PROCEDURE SetTrackCircuitState{2}(LocoChip : Integer; TC : Integer; NewState : TrackCircuitStateType; Explanation : String); Overload;
-{ Set whether and how the trackcircuit is occupied, mark it with a loco chip number, and give an explanation }
+{ Set whether and how the track circuit is occupied, mark it with a loco chip number, and give an explanation }
 
 PROCEDURE SetTrackCircuitState{3}(TC : Integer; NewState : TrackCircuitStateType); Overload;
-{ Set whether and how the trackcircuit is occupied }
+{ Set whether and how the track circuit is occupied }
 
 PROCEDURE SetTrackCircuitState{4}(TC : Integer; NewState : TrackCircuitStateType; Explanation : String); Overload;
-{ Set whether and how the trackcircuit is occupied and give an explanation. Also see whether we want it recorded in the Location occupation array - this is to avoid
+{ Set whether and how the track circuit is occupied and give an explanation. Also see whether we want it recorded in the Location occupation array - this is to avoid
   duplicate recordings at startup.
 }
 PROCEDURE StartSystemTimer;
@@ -524,7 +524,7 @@ BEGIN
 END; { GetBufferStopDirection }
 
 PROCEDURE FindAdjoiningTrackCircuits(TC : Integer; OUT AdjoiningUpTC, AdjoiningDownTC : Integer);
-{ Work out which are the adjacent trackcircuits. Does not trace along all lines, just the way points are set. }
+{ Work out which are the adjacent track circuits. Does not trace along all lines, just the way points are set. }
 VAR
   L : Integer;
   Next : NextLineRouteingType;
@@ -532,7 +532,7 @@ VAR
   TCFound : Boolean;
 
   PROCEDURE FollowThatLine(CurrentLine : Integer; SearchDirection : DirectionType);
-  { Follow lines and points until we find a different trackcircuit }
+  { Follow lines and points until we find a different track circuit }
   VAR
     ExitFunction : Boolean;
 
@@ -722,7 +722,7 @@ BEGIN
 END; { CheckLinesAreOK }
 
 PROCEDURE SetTrackCircuitStateMainProcedure(LocoChip : Integer; TC : Integer; NewState : TrackCircuitStateType; Explanation : String);
-{ Set whether and how the trackcircuit is occupied and give an explanation if any }
+{ Set whether and how the track circuit is occupied and give an explanation if any }
 CONST
   DoNotWriteMessage = True;
   DiagramsLoading = True;
@@ -863,7 +863,7 @@ BEGIN
               END;
             END;
 
-            { Is this a signal-resetting trackcircuit? If so, reset the signal. And put in a timing update here - for delays **** }
+            { Is this a signal-resetting track circuit? If so, reset the signal. And put in a timing update here - for delays **** }
             IF (NewState = TCFeedbackOccupation)
             AND (TC_ResettingSignal <> UnknownSignal)
             THEN BEGIN
@@ -900,7 +900,7 @@ BEGIN
               LocoFound := False;
               I := 0;
               J := 0;
-              { see if any adjacent trackcircuits are marked as occupied }
+              { see if any adjacent track circuits are marked as occupied }
               SetLength(AdjacentTrackCircuits, 0);
               IF AdjacentUptc <> UnknownTrackCircuit THEN
                 AppendToIntegerArray(AdjacentTrackCircuits, AdjacentUpTC);
@@ -969,7 +969,7 @@ BEGIN
 END; { SetTrackCircuitStateMainProcedure }
 
 PROCEDURE SetTrackCircuitState{1}(LocoChip : Integer; TC : Integer; NewState : TrackCircuitStateType); Overload;
-{ Set whether and how the trackcircuit is occupied, and mark it with a loco chip number }
+{ Set whether and how the track circuit is occupied, and mark it with a loco chip number }
 CONST
   Explanation = '';
 
@@ -978,13 +978,13 @@ BEGIN
 END; { SetTrackCircuitState-1 }
 
 PROCEDURE SetTrackCircuitState{2}(LocoChip : Integer; TC : Integer; NewState : TrackCircuitStateType; Explanation : String); Overload;
-{ Set whether and how the trackcircuit is occupied, mark it with a loco chip number, and give an explanation }
+{ Set whether and how the track circuit is occupied, mark it with a loco chip number, and give an explanation }
 BEGIN
   SetTrackCircuitStateMainProcedure(LocoChip, TC, NewState, Explanation);
 END; { SetTrackCircuitState-2 }
 
 PROCEDURE SetTrackCircuitState{3}(TC : Integer; NewState : TrackCircuitStateType); Overload;
-{ Set whether and how the trackcircuit is occupied }
+{ Set whether and how the track circuit is occupied }
 CONST
   Explanation = '';
 
@@ -1022,7 +1022,7 @@ BEGIN
 END; { SetTrackCircuitState-3 }
 
 PROCEDURE SetTrackCircuitState{4}(TC : Integer; NewState : TrackCircuitStateType; Explanation : String); Overload;
-{ Set whether and how the trackcircuit is occupied and give an explanation. Also see whether we want it recorded in the Location occupation array - this is to avoid
+{ Set whether and how the track circuit is occupied and give an explanation. Also see whether we want it recorded in the Location occupation array - this is to avoid
   duplicate recordings at startup.
 }
 BEGIN
@@ -1357,7 +1357,7 @@ VAR
       IF (SystemStatus.EmergencyOff
       AND NOT SaveSystemStatusEmergencyOff)
       THEN BEGIN
-        Log('E Emergency - saving trackcircuit settings');
+        Log('E Emergency - saving track circuit settings');
         FOR TC := 0 TO High(TrackCircuits) DO BEGIN
           TrackCircuits[TC].TC_EmergencyState := TrackCircuits[TC].TC_OccupationState;
           TrackCircuits[TC].TC_EmergencyLocoChip := TrackCircuits[TC].TC_LocoChip;
@@ -1383,13 +1383,13 @@ VAR
       AND NOT SystemStatus.EmergencyOff
       AND NOT SystemStatus.EmergencyStop
       THEN BEGIN
-        { Emergency over - can now reload trackcircuit data after a short wait, then restart trains slowly }
+        { Emergency over - can now reload track circuit data after a short wait, then restart trains slowly }
         IF SaveSystemStatusEmergencyOff THEN BEGIN
           SaveSystemStatusEmergencyOff := False;
           EmergencyStopMsgDisplayed := False;
           StartSystemTimer;
 
-          { The problem is that, after a restart, the trackcircuit info comes in automatically - we want to check it only once it has arrived - as there is no way to tell
+          { The problem is that, after a restart, the track circuit info comes in automatically - we want to check it only once it has arrived - as there is no way to tell
             when it has finished arriving, the answer seems to be to allow a five second delay.
           }
           PostEmergencyTime := IncSecond(Time, 5);
@@ -1400,11 +1400,11 @@ VAR
       IF PostEmergencyTimeSet
       AND (Time >= PostEmergencyTime)
       THEN BEGIN
-        { Restore the trackcircuit data after an emergency (but wait a short time before doing so, as the feedback system will read in the feedback data again after a system
+        { Restore the track circuit data after an emergency (but wait a short time before doing so, as the feedback system will read in the feedback data again after a system
           reset, and we need to restore our data after that). Do we need to save and restore other TC data (like PreviousTCstate)? ****
         }
         PostEmergencyTimeSet := False;
-        Log('EG Emergency over - restoring trackcircuit data');
+        Log('EG Emergency over - restoring track circuit data');
         FOR TC := 0 TO High(TrackCircuits) DO BEGIN
           IF (TrackCircuits[TC].TC_OccupationState <> TrackCircuits[TC].TC_EmergencyState)
           THEN BEGIN
@@ -1632,7 +1632,7 @@ BEGIN
       DoCheckForUnexpectedData(UnitRef, 'MainTimerTick 10');
       MoveAllTrains;
 
-      { If any train has passed each trackcircuit, the subroute can be released }
+      { If any train has passed each track circuit, the subroute can be released }
       ReleaseSubRoutes;
 
       DoCheckForUnexpectedData(UnitRef, 'MainTimerTick 11');

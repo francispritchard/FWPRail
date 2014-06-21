@@ -90,7 +90,7 @@ PROCEDURE PullSignal{2}(LocoChip, S : Integer; NewIndicatorState : IndicatorStat
 
 PROCEDURE PullSignal{3}(LocoChip, S : Integer; NewIndicatorState : IndicatorStateType; Route, SubRoute : Integer; PlatformOrFiddleyardLine : Integer; ResetTC : Integer;
                         User : Boolean; OUT OK : Boolean); Overload;
-{ Changes the state of a signal if legal. This version is only used by signals resetting trackcircuits, which can happen even if the signal is locked by a route,}
+{ Changes the state of a signal if legal. This version is only used by signals resetting track circuits, which can happen even if the signal is locked by a route,}
 
 PROCEDURE PullSignal{4}(LocoChip, S : Integer; NewIndicatorState : IndicatorStateType; Route, SubRoute : Integer; PlatformOrFiddleyardLine : Integer; SettingString : String;
                         TrainTypeForRouteing : TypeOfTrainType; User : Boolean; OUT OK : Boolean); Overload;
@@ -1194,7 +1194,7 @@ PROCEDURE PullSignalMainProcedure(LocoChip, S : Integer; NewIndicatorState : Ind
                       END;
                   END;
                 '*':
-                  { trackcircuit unoccupied - unless it's the one next the signal }
+                  { track circuit unoccupied - unless it's the one next the signal }
                   IF (TrackCircuits[Device].TC_OccupationState <> TCUnoccupied)
                   AND (Lines[Signals[S].Signal_AdjacentLine].Line_TC <> Device)
                   THEN BEGIN
@@ -1330,7 +1330,7 @@ BEGIN
             Forbid;
           END;
         END ELSE BEGIN
-          { Check that both the signals and the trackcircuit occupation resetting them, if locked, are locked by the same route }
+          { Check that both the signals and the track circuit occupation resetting them, if locked, are locked by the same route }
           IF LockingMode
           AND (ResetTC <> UnknownTrackCircuit)
           THEN BEGIN
@@ -1715,7 +1715,7 @@ END; { PullSignal-2 }
 
 PROCEDURE PullSignal{3}(LocoChip, S : Integer; NewIndicatorState : IndicatorStateType; Route, SubRoute : Integer; PlatformOrFiddleyardLine : Integer; ResetTC : Integer;
                         User : Boolean; OUT OK : Boolean); Overload;
-{ Changes the state of a signal if legal. This version is only used by signals resetting trackcircuits, which can happen even if the signal is locked by a route }
+{ Changes the state of a signal if legal. This version is only used by signals resetting track circuits, which can happen even if the signal is locked by a route }
 CONST
   NoSettingString = '';
 
@@ -2070,7 +2070,7 @@ PROCEDURE CheckRouteAheadLocking(T : TrainElement; RouteArray : StringArrayType;
   END; { PointIsLockedByAnySignal }
 
   FUNCTION TrackCircuitLocked(LocoChip, TC : Integer; OUT LockingMsg : String) : Boolean;
-  { Returns true if the trackcircuit is locked by anything other than the given loco }
+  { Returns true if the track circuit is locked by anything other than the given loco }
   BEGIN
     Result := False;
     LockingMsg := 'not locked';

@@ -920,7 +920,7 @@ BEGIN
                   TypeOfLogChar := 'A';
                 END; {CASE}
               66..78:
-                TypeOfLogChar := 'T'; { trackcircuit }
+                TypeOfLogChar := 'T'; { track circuit }
               198..230:
                 TypeOfLogChar := 'L'; { loco }
             ELSE
@@ -3494,6 +3494,7 @@ BEGIN
       Points[P].Point_RequiredState := Points[P].Point_PresentState;
 
   GetInitialFeedback(OK);
+  CheckOccupiedLinesAndDiagrams;
 
   IF OK THEN BEGIN
     SystemOnline := True;

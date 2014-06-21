@@ -168,7 +168,7 @@ BEGIN
       Train_LocoName := '';
       Train_LocoTypeStr := '';
       Train_MaximumSpeedInMPH := MPH0;
-      Train_MinimumAccelerationTimeInSeconds := 0; { needed as we only calculate it once when we enter a trackcircuit }
+      Train_MinimumAccelerationTimeInSeconds := 0; { needed as we only calculate it once when we enter a track circuit }
       Train_MissingMessage := False;
       Train_MissingNum := 0; { set if train missing, and used to restart train if found }
       Train_NextTC := UnknownTrackCircuit;
@@ -827,7 +827,7 @@ BEGIN
             END ELSE BEGIN
               WITH Trains[T] DO BEGIN
 
-                { Add the current trackcircuit }
+                { Add the current track circuit }
                 IF Train_CurrentTC = UnknownTrackCircuit THEN
                   Train_CurrentTC := Train_LastTC;
 
@@ -841,7 +841,7 @@ BEGIN
                   FieldByName('LastTC').AsInteger := Train_CurrentTC;
                 Post;
 
-                { And the loco's current location, taken from its current trackcircuit }
+                { And the loco's current location, taken from its current track circuit }
                 LineFound := False;
                 IF Train_CurrentTC = UnknownTrackCircuit THEN BEGIN
                   Edit;
@@ -854,7 +854,7 @@ BEGIN
                     FieldByName('LastLocation').AsString := LocationStr;
                     Post;
                   END ELSE BEGIN
-                    { this may be one of those trackcircuits that's attached to more than one line, not all of which have a named location }
+                    { this may be one of those track circuits that's attached to more than one line, not all of which have a named location }
                     L := 0;
                     WHILE (L <= High(Lines))
                     AND NOT LineFound

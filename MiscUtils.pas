@@ -176,7 +176,7 @@ FUNCTION DescribeJourneyAndRoute(Args: ARRAY OF Integer) : String;
 { Return a description of the route (and subroute if requested) }
 
 FUNCTION DescribeLineNamesForTrackCircuit(TC : Integer) : String;
-{ Return the line names for a trackcircuit }
+{ Return the line names for a track circuit }
 
 FUNCTION DescribeSubRoute(Route, SubRoute : Integer) : String;
 { Return a description of the subroute }
@@ -191,7 +191,7 @@ FUNCTION DisplayJourneyNumbers(T : TrainElement; FirstJourney, SecondJourney : I
 { Return the supplied journey numbers with an indent in a form that makes the debug output easier to read }
 
 FUNCTION DisplayTrackCircuitsForLocation(Location : Integer) : String;
-{ Write out which trackcircuits the given location contains }
+{ Write out which track circuits the given location contains }
 
 FUNCTION DescribeTrainList{1} : String; Overload;
 { Return the contents of the train list }
@@ -251,7 +251,7 @@ PROCEDURE ExtractSubStringsFromString(Str : String; DelimiterCh : Char; OUT StrA
 { Goes through a given string, extracting substrings delimited by the given delimiter character }
 
 FUNCTION ExtractTrackCircuitFromString(Str : String): Integer;
-{ Returns a trackcircuit number from a given string }
+{ Returns a track circuit number from a given string }
 
 FUNCTION FeedbackUnitTypeToStr(FeedbackType : TypeOfFeedBackType) : String;
 { Convert a feedback unit type to a string }
@@ -279,10 +279,10 @@ FUNCTION GetLineTypeColour(T : TypeOfLine) : TColour;
 { Return the colour for a specific line type }
 
 FUNCTION GetLinesForTrackCircuit(TC : Integer) : LineArrayType;
-{ Return all the lines on a given trackcircuit }
+{ Return all the lines on a given track circuit }
 
 FUNCTION GetLocationFromTrackCircuit(TC : Integer) : Integer;
-{ Return a location given a trackcircuit number }
+{ Return a location given a track circuit number }
 
 FUNCTION GetMidPos(I1, I2 : Integer) : Integer;
 { Return the mid position between two given values }
@@ -312,13 +312,13 @@ FUNCTION GetStationNumFromStationMonitorsDisplayOrderNum(StationMonitorsDisplayO
 { Return the station monitors' display order number from the description of the Area }
 
 FUNCTION GetTrackCircuitsForLocation(Location : Integer) : IntegerArrayType;
-{ Return all the trackcircuits for a given location }
+{ Return all the track circuits for a given location }
 
 FUNCTION GetTrackCircuitStateColour(TC : Integer) : TColour;
-{ Return whether and how the trackcircuit is occupied }
+{ Return whether and how the track circuit is occupied }
 
 FUNCTION GetTrackCircuitState(TC : Integer) : TrackCircuitStateType;
-{ Return whether and how the trackcircuit is occupied }
+{ Return whether and how the track circuit is occupied }
 
 FUNCTION GetTrainRecord{1}(LocoChip : Integer): TrainElement; Overload;
 { Look for a matching train record given a locochip }
@@ -450,7 +450,7 @@ FUNCTION LocationOccupied(Location : Integer) : Boolean;
 { Returns true if the given location has a feedback occupation }
 
 FUNCTION LocationOutOfUse(Location : Integer; OUT OutOfUseTC : Integer; OUT OutOfUseStr : String) : Boolean;
-{ Returns true if the given location is out of use because of an out-of-use trackcircuit occupation }
+{ Returns true if the given location is out of use because of an out-of-use track circuit occupation }
 
 FUNCTION LocationToStr{1}(Location : Integer) : String; Overload;
 { Return a location as a long string }
@@ -729,13 +729,13 @@ FUNCTION TimeToHMSZStr(Time : TDateTime) : String;
 { Return a time string as hh:mm:ss:zzz }
 
 FUNCTION TrackCircuitStateIsPermanentlyOccupied(State : TrackCircuitStateType) : Boolean;
-{ Returns true if a given trackcircuit state is not set as permanently occupied }
+{ Returns true if a given track circuit state is not set as permanently occupied }
 
 FUNCTION TrackCircuitStateIsTemporarilyOccupied(State : TrackCircuitStateType) : Boolean;
-{ Returns true if a given trackcircuit state is set as temporarily occupied }
+{ Returns true if a given track circuit state is set as temporarily occupied }
 
 FUNCTION TrackCircuitStateToStr(State : TrackCircuitStateType) : String;
-{ Describe the current state of a given trackcircuit }
+{ Describe the current state of a given track circuit }
 
 FUNCTION TrackCircuitToStr(TrackCircuit : Integer) : String;
 { Return the track circuit number as a string }
@@ -2596,7 +2596,7 @@ BEGIN
 END; { DescribeIntegerArray }
 
 FUNCTION DescribeLineNamesForTrackCircuit(TC : Integer) : String;
-{ Return the line names for a trackcircuit }
+{ Return the line names for a track circuit }
 VAR
   L : Integer;
 
@@ -2746,7 +2746,7 @@ BEGIN
 END; { DisplayJourneyNumbers }
 
 FUNCTION DisplayTrackCircuitsForLocation(Location : Integer) : String;
-{ Write out which trackcircuits the given location contains }
+{ Write out which track circuits the given location contains }
 VAR
   I : Integer;
   TrackCircuitArray : IntegerArrayType;
@@ -2971,7 +2971,7 @@ BEGIN
 END; { ExtractSubStringsFromString }
 
 FUNCTION ExtractTrackCircuitFromString(Str : String): Integer;
-{ Returns a trackcircuit number from a given string }
+{ Returns a track circuit number from a given string }
 VAR
   Str2 : String;
 
@@ -3237,7 +3237,7 @@ BEGIN
 END; { GetLineTypeColour }
 
 FUNCTION GetLinesForTrackCircuit(TC : Integer) : LineArrayType;
-{ Return all the lines on a given trackcircuit }
+{ Return all the lines on a given track circuit }
 VAR
   L : Integer;
 
@@ -3278,7 +3278,7 @@ BEGIN
 END; { GetLastLogLine }
 
 FUNCTION GetLocationFromTrackCircuit(TC : Integer) : Integer;
-{ Return a location given a trackcircuit number }
+{ Return a location given a track circuit number }
 VAR
   L : Integer;
   LocationFound : Boolean;
@@ -3360,7 +3360,7 @@ BEGIN
 END; { GetSignalAspect }
 
 FUNCTION GetTrackCircuitsForLocation(Location : Integer) : IntegerArrayType;
-{ Return all the trackcircuits for a given location }
+{ Return all the track circuits for a given location }
 VAR
   L : Integer;
 
@@ -3379,7 +3379,7 @@ BEGIN
 END; { GetTrackCircuitsForLocation }
 
 FUNCTION GetTrackCircuitStateColour(TC : Integer) : TColour;
-{ Return whether and how the trackcircuit is occupied }
+{ Return whether and how the track circuit is occupied }
 BEGIN
   IF TC = UnknownTrackCircuit THEN
     GetTrackCircuitStateColour := TCUnoccupiedColour
@@ -3413,7 +3413,7 @@ BEGIN
 END; { GetTrackCircuitStateColour }
 
 FUNCTION GetTrackCircuitState(TC : Integer) : TrackCircuitStateType;
-{ Return whether and how the trackcircuit is occupied }
+{ Return whether and how the track circuit is occupied }
 BEGIN
   IF TC = UnknownTrackCircuit THEN
     Result := TCUnoccupied
@@ -3900,7 +3900,7 @@ BEGIN
 END; { MulDiv }
 
 FUNCTION LocationOutOfUse(Location : Integer; OUT OutOfUseTC : Integer; OUT OutOfUseStr : String) : Boolean;
-{ Returns true if the given location is out of use because of an out-of-use or similar trackcircuit occupation }
+{ Returns true if the given location is out of use because of an out-of-use or similar track circuit occupation }
 VAR
   I : Integer;
   LocationTCs : IntegerArrayType;
@@ -7419,7 +7419,7 @@ BEGIN
 END; { TimeToHMSZStr }
 
 FUNCTION TrackCircuitStateIsPermanentlyOccupied(State : TrackCircuitStateType) : Boolean;
-{ Returns true if a given trackcircuit state is not set as permanently occupied }
+{ Returns true if a given track circuit state is not set as permanently occupied }
 BEGIN
   CASE State OF
     TCOutOfUseSetByUser, TCOutOfUseAsNoFeedbackReceived, TCLocoOutOfPlaceOccupation, TCPermanentFeedbackOccupation, TCPermanentOccupationSetByUser,
@@ -7432,7 +7432,7 @@ BEGIN
 END; { TrackCircuitStateIsPermanentlyOccupied }
 
 FUNCTION TrackCircuitStateIsTemporarilyOccupied(State : TrackCircuitStateType) : Boolean;
-{ Returns true if a given trackcircuit state is set as temporarily occupied }
+{ Returns true if a given track circuit state is set as temporarily occupied }
 
 BEGIN
   CASE State OF
@@ -7445,7 +7445,7 @@ BEGIN
 END; { TrackCircuitStateIsTemporarilyOccupied }
 
 FUNCTION TrackCircuitStateToStr(State : TrackCircuitStateType) : String;
-{ Describe the current state of a given trackcircuit }
+{ Describe the current state of a given track circuit }
 BEGIN
   CASE State OF
     TCFeedbackOccupation:

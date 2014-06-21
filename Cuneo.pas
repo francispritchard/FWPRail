@@ -157,7 +157,7 @@ BEGIN
       ZoomRect.Right := X;
       ZoomRect.Bottom := Y;
 
-      { Only change the cursor if we start drawing a recangle }
+      { Only change the cursor if we start drawing a rectangle }
       IF (MouseX <> X)
       AND (MouseY <> Y)
       THEN
@@ -192,7 +192,7 @@ BEGIN
         MouseX := X + ScrollBarXAdjustment;
         MouseY := Y + ScrollBarYAdjustment;
 
-        { Clear any debugging trackcircuit occupations }
+        { Clear any debugging track circuit occupations }
         FOR S := 0 TO High(Signals) DO BEGIN
           WITH Signals[S] DO BEGIN
             IF PtInRect(Signal_MouseRect, Point(MouseX, MouseY)) THEN BEGIN
@@ -465,7 +465,7 @@ BEGIN
 
               { Debug('Up=' +  LineToStr(Lines[L].Line_NextUpLine) + ' Down=' + LineToStr(Lines[L].Line_NextDownLine)); }
 
-              { Look for trackcircuits }
+              { Look for track circuits }
               IF (Lines[L].Line_TC <> UnknownTrackCircuit) THEN BEGIN
                 IF TrackCircuits[Lines[L].Line_TC].TC_LocoChip <> UnknownLocoChip THEN BEGIN
                   T := GetTrainRecord(TrackCircuits[Lines[L].Line_TC].TC_LocoChip);
@@ -515,7 +515,7 @@ BEGIN
 
                 IF TrackCircuits[Lines[L].Line_TC].TC_LockedForRoute <> UnknownRoute THEN BEGIN
                   TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' [R=' + IntToStr(TrackCircuits[Lines[L].Line_TC].TC_LockedForRoute)
-                                                                   + '(' + LocoChipToStr(Routes_LocoChips[TrackCircuits[Lines[L].Line_TC].TC_LockedForRoute]);
+                                                                   + ' (' + LocoChipToStr(Routes_LocoChips[TrackCircuits[Lines[L].Line_TC].TC_LockedForRoute]) + ')';
                   IF TrackCircuits[Lines[L].Line_TC].TC_Journey = UnknownJourney THEN
                     TempStatusBarPanel1Str := TempStatusBarPanel1Str + ']'
                   ELSE
@@ -1093,7 +1093,7 @@ VAR
   END; { ChangeTRSPlunger }
 
 //  FUNCTION ActivateTrackCircuit(L : Integer; HelpRequired : Boolean) : Boolean;
-//  { This activates or de-activates a trackcircuit. More fancy things are done via a pop menu produced by a shift key. }
+//  { This activates or de-activates a track circuit. More fancy things are done via a pop menu produced by a shift key. }
 //  VAR
 //    AdjacentTrackCircuitUp, AdjacentTrackCircuitDown : Integer;
 //    T : TrainElement;
@@ -1103,7 +1103,7 @@ VAR
 //    WITH Lines[L] DO BEGIN
 //      IF Line_TC <> UnknownTrackCircuit THEN BEGIN
 //        IF ShowAdjacentTrackCircuitMode THEN BEGIN
-//          { Draw a trackcircuit and its adjoining trackcircuits }
+//          { Draw a track circuit and its adjoining track circuits }
 //          FindAdjoiningTrackCircuits(Lines[L].Line_TC, AdjacentTrackCircuitUp, AdjacentTrackCircuitDown);
 //          IF TCAdjoiningTCsDrawnNum = UnknownTrackCircuit THEN BEGIN
 //            { one hasn't been drawn before }

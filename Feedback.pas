@@ -30,10 +30,10 @@ VAR
   FeedbackWindow: TFeedbackWindow;
 
 PROCEDURE DecodeFeedback(FeedbackData : FeedbackRec);
-{ Sets trackcircuits on or off from feedback data supplied }
+{ Sets track circuits on or off from feedback data supplied }
 
 PROCEDURE ExtractDataFromFeedback(Data : FeedbackRec; OUT TCAboveFeedbackUnit : Integer; OUT FeedbackType : TypeOfFeedBackType; OUT Num : Integer);
-{ For trackcircuits only, returns the trackcircuit number - otherwise returns other data }
+{ For track circuits only, returns the track circuit number - otherwise returns other data }
 
 PROCEDURE InitialiseLocoSpeedTiming(LocoChip : Integer);
 { Set up the variables for timing locos to ascertain speed in MPH }
@@ -68,7 +68,7 @@ BEGIN
 END; { Log }
 
 PROCEDURE ExtractDataFromFeedback(Data : FeedbackRec; OUT TCAboveFeedbackUnit : Integer; OUT FeedbackType : TypeOfFeedBackType; OUT Num : Integer);
-{ For trackcircuits only, returns the trackcircuit number - otherwise returns other data }
+{ For track circuits only, returns the track circuit number - otherwise returns other data }
 VAR
   F : Integer;
   FeedbackUnitFound : Boolean;
