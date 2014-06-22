@@ -437,7 +437,7 @@ BEGIN { SetDesiredTrainSpeed }
           Train_CurrentLenzSpeed := 0;
         END;
       END ELSE BEGIN
-        SetLenzSpeed(Train_LocoChip, Train_DoubleHeaderLocoChip, 0, Train_CurrentDirection, NOT QuickStop, OK);
+        SetLenzSpeed(Train_LocoChip, Train_DoubleHeaderLocoChip, 0, Train_CurrentDirection, OK);
         DrawDiagramsSpeedCell(T);
       END;
       Train_CurrentLenzSpeed := 0;
@@ -473,7 +473,7 @@ BEGIN { SetDesiredTrainSpeed }
             AND (Train_DesiredLenzSpeed = 0)
             THEN BEGIN
               { we want an immediate stop }
-              SetLenzSpeed(Train_LocoChip, Train_DoubleHeaderLocoChip, 0, Train_CurrentDirection, QuickStop, OK);
+              SetLenzSpeed(Train_LocoChip, Train_DoubleHeaderLocoChip, QuickStop, Train_CurrentDirection, OK);
               Train_CurrentLenzSpeed := 0;
               Train_CurrentSpeedInMPH := Stop;
               Log(Train_LocoChipStr + ' L Immediate stop required');
@@ -499,12 +499,12 @@ BEGIN { SetDesiredTrainSpeed }
     IF Train_PullingDapolCleaningWagon THEN BEGIN
       IF Train_DesiredLenzSpeed > 0 THEN BEGIN
         IF NOT DapolCleaningWagonLocoChipRunning THEN BEGIN
-          SetLenzSpeed(DapolCleaningWagonLocoChip, 0, 8, Up, NOT QuickStop, OK);
+          SetLenzSpeed(DapolCleaningWagonLocoChip, 0, 8, Up, OK);
           DapolCleaningWagonLocoChipRunning := True;
         END;
       END ELSE BEGIN
         IF DapolCleaningWagonLocoChipRunning THEN BEGIN
-          SetLenzSpeed(DapolCleaningWagonLocoChip, 0, 0, Up, QuickStop, OK);
+          SetLenzSpeed(DapolCleaningWagonLocoChip, 0, QuickStop, Up, OK);
           DapolCleaningWagonLocoChipRunning := False;
         END;
       END;

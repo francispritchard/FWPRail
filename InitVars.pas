@@ -109,7 +109,7 @@ CONST
   ForcePoint = True;
   HelpRequired = True;
   Highlight = True;
-  QuickStop = True;
+  QuickStop = -1;
   StopTimer = True;
   TrainExists = True;
   UnknownArea = 99999;
