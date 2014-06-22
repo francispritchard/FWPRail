@@ -332,7 +332,9 @@ VAR
                 SpeedStep := 1;
                 Log(Train_LocoChipStr + ' L Emergency speed step of 1 in use');
               END;
-              Train_CurrentLenzSpeed := AdjustLenzSpeed(Train_LocoChip, Train_DoubleHeaderLocoChip, SpeedStep, Train_CurrentDirection, OK);
+              Train_CurrentLenzSpeed := AdjustLenzSpeed(Train_LocoChip, SpeedStep, Train_CurrentDirection, OK);
+              IF Train_DoubleHeaderLocoChip <> UnknownLocoChip THEN
+                Train_CurrentLenzSpeed := AdjustLenzSpeed(Train_DoubleHeaderLocoChip, SpeedStep, Train_CurrentDirection, OK);
 
               IF Train_CurrentLenzSpeed < Train_DesiredLenzSpeed THEN
                 Log(Train_LocoChipStr + ' L AdjustSpeed routine: speed increased by ' + IntToStr(SpeedStep) + ' to ' + IntToStr(Train_CurrentLenzSpeed)
@@ -345,7 +347,9 @@ VAR
               DrawDiagramsSpeedCell(T);
             END ELSE
               IF Train_DesiredLenzSpeed < Train_CurrentLenzSpeed THEN BEGIN
-                Train_CurrentLenzSpeed := AdjustLenzSpeed(Train_LocoChip, Train_DoubleHeaderLocoChip, -SpeedStep, Train_CurrentDirection, OK);
+                Train_CurrentLenzSpeed := AdjustLenzSpeed(Train_LocoChip, -SpeedStep, Train_CurrentDirection, OK);
+                IF Train_DoubleHeaderLocoChip <> UnknownLocoChip THEN
+                  Train_CurrentLenzSpeed := AdjustLenzSpeed(Train_DoubleHeaderLocoChip, -SpeedStep, Train_CurrentDirection, OK);
 
                 DrawDiagramsSpeedCell(T);
                 Log(Train_LocoChipStr + ' L AdjustSpeed routine: speed decreased by ' + IntToStr(SpeedStep) + ' to ' + IntToStr(Train_CurrentLenzSpeed)
@@ -402,14 +406,20 @@ VAR
 
       { Make the first adjustment without delay }
       IF Train_Accelerating THEN BEGIN
-        Train_CurrentLenzSpeed := AdjustLenzSpeed(Train_LocoChip, Train_DoubleHeaderLocoChip, 1, Train_CurrentDirection, OK);
+        Train_CurrentLenzSpeed := AdjustLenzSpeed(Train_LocoChip, 1, Train_CurrentDirection, OK);
+        IF Train_DoubleHeaderLocoChip <> UnknownLocoChip THEN
+          Train_CurrentLenzSpeed := AdjustLenzSpeed(Train_DoubleHeaderLocoChip, 1, Train_CurrentDirection, OK);
+
         DrawDiagramsSpeedCell(T);
         Log(Train_LocoChipStr + ' L First adjustment in Train_Accelerating to '
                               + IntToStr(Train_DesiredLenzSpeed)
                               +  ' (' + MPHToStr(Train_DesiredSpeedInMPH) + ' mph)');
       END ELSE BEGIN
         { decelerating }
-        Train_CurrentLenzSpeed := AdjustLenzSpeed(Train_LocoChip, Train_DoubleHeaderLocoChip, -1, Train_CurrentDirection, OK);
+        Train_CurrentLenzSpeed := AdjustLenzSpeed(Train_LocoChip, -1, Train_CurrentDirection, OK);
+        IF Train_DoubleHeaderLocoChip <> UnknownLocoChip THEN
+          Train_CurrentLenzSpeed := AdjustLenzSpeed(Train_DoubleHeaderLocoChip, -1, Train_CurrentDirection, OK);
+
         DrawDiagramsSpeedCell(T);
         Log(Train_LocoChipStr + ' L First adjustment in Train_Decelerating to '
                               + IntToStr(Train_DesiredLenzSpeed)
@@ -437,7 +447,9 @@ BEGIN { SetDesiredTrainSpeed }
           Train_CurrentLenzSpeed := 0;
         END;
       END ELSE BEGIN
-        SetLenzSpeed(Train_LocoChip, Train_DoubleHeaderLocoChip, 0, Train_CurrentDirection, OK);
+        SetLenzSpeedAndDirection(Train_LocoChip, 0, Train_CurrentDirection, OK);
+        IF Train_DoubleHeaderLocoChip <> UnknownLocoChip THEN
+          SetLenzSpeedAndDirection(Train_DoubleHeaderLocoChip, 0, Train_CurrentDirection, OK);
         DrawDiagramsSpeedCell(T);
       END;
       Train_CurrentLenzSpeed := 0;
@@ -473,7 +485,10 @@ BEGIN { SetDesiredTrainSpeed }
             AND (Train_DesiredLenzSpeed = 0)
             THEN BEGIN
               { we want an immediate stop }
-              SetLenzSpeed(Train_LocoChip, Train_DoubleHeaderLocoChip, QuickStop, Train_CurrentDirection, OK);
+              SetLenzSpeedAndDirection(Train_LocoChip, QuickStop, Train_CurrentDirection, OK);
+              IF Train_DoubleHeaderLocoChip <> UnknownLocoChip THEN
+                SetLenzSpeedAndDirection(Train_DoubleHeaderLocoChip, QuickStop, Train_CurrentDirection, OK);
+
               Train_CurrentLenzSpeed := 0;
               Train_CurrentSpeedInMPH := Stop;
               Log(Train_LocoChipStr + ' L Immediate stop required');
@@ -499,12 +514,12 @@ BEGIN { SetDesiredTrainSpeed }
     IF Train_PullingDapolCleaningWagon THEN BEGIN
       IF Train_DesiredLenzSpeed > 0 THEN BEGIN
         IF NOT DapolCleaningWagonLocoChipRunning THEN BEGIN
-          SetLenzSpeed(DapolCleaningWagonLocoChip, 0, 8, Up, OK);
+          SetLenzSpeedAndDirection(DapolCleaningWagonLocoChip, 8, Up, OK);
           DapolCleaningWagonLocoChipRunning := True;
         END;
       END ELSE BEGIN
         IF DapolCleaningWagonLocoChipRunning THEN BEGIN
-          SetLenzSpeed(DapolCleaningWagonLocoChip, 0, QuickStop, Up, OK);
+          SetLenzSpeedAndDirection(DapolCleaningWagonLocoChip, QuickStop, Up, OK);
           DapolCleaningWagonLocoChipRunning := False;
         END;
       END;

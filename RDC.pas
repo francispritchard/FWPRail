@@ -700,7 +700,9 @@ BEGIN
     THEN BEGIN
       { emergency brake }
       IF PresentSpeedNum <> 0 THEN BEGIN
-        SetLenzSpeed(Train_LocoChip, Train_DoubleHeaderLocoChip, QuickStop, Train_CurrentDirection, OK);
+        SetLenzSpeedAndDirection(Train_LocoChip, QuickStop, Train_CurrentDirection, OK);
+        IF Train_DoubleHeaderLocoChip <> UnknownLocoChip THEN
+          SetLenzSpeedAndDirection(Train_DoubleHeaderLocoChip, QuickStop, Train_CurrentDirection, OK);
         Log('A Emergency brake applied');
         EmergencyBrakeApplied := True;
       END;

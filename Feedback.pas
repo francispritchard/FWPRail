@@ -414,7 +414,7 @@ VAR
       AND (LocoTimingSlowingTime <> 0)
       AND (Time > IncSecond(LocoTimingSlowingTime, LocoTimingTimeBeforeAutoStopInSeconds))
       THEN BEGIN
-        SetLenzSpeed(LocoChip, UnknownLocoChip, QuickStop, Up, OK);
+        SetLenzSpeedAndDirection(LocoChip, QuickStop, Up, OK);
         Log(LocoChipStr + ' L Loco speed test concluded as loco timing has taken more than '
                         + IntToStr(LocoTimingTimeBeforeAutoStopInSeconds) + ' seconds');
         Debug('+Loco speed test concluded as loco timing has taken more than ' + IntToStr(LocoTimingTimeBeforeAutoStopInSeconds) + ' seconds');
@@ -429,7 +429,7 @@ VAR
         THEN BEGIN
           LocoTimingInProgress := True;
           LocoTimingSlowingTime := Time;
-          SetLenzSpeed(LocoChip, UnknownLocoChip, LocoTimingLenzSpeed, Up, OK);
+          SetLenzSpeedAndDirection(LocoChip, LocoTimingLenzSpeed, Up, OK);
           LocoDialogueWindow.LocoDialogueSpeedDisplay.Color := clYellow;
 //          LocoDialogueWindow.LocoDialogueSpeedButtons.Position := LocoTimingLenzSpeed;
           LocoDialogueWindow.LocoDialogueSpeedDisplay.Caption := IntToStr(LocoTimingLenzSpeed);
@@ -475,7 +475,7 @@ VAR
                   Log(LocoChipStr + ' L LocoTimingCircleSpeed saved as ' + IntToStr(LocoTimingLenzSpeed));
                 END ELSE BEGIN
                   { set a default speed }
-                  SetLenzSpeed(LocoChip, UnknownLocoChip, DefaultLocoSpeed, Up, OK);
+                  SetLenzSpeedAndDirection(LocoChip, DefaultLocoSpeed, Up, OK);
                   LocoDialogueWindow.LocoDialogueSpeedDisplay.Color := clRed;
 //                  LocoDialogueWindow.LocoDialogueSpeedButtons.Position := DefaultLocoSpeed;
                   LocoDialogueWindow.LocoDialogueSpeedDisplay.Caption := IntToStr(DefaultLocoSpeed);
@@ -483,7 +483,7 @@ VAR
                   Log(LocoChipStr + ' L Speed set to ' + IntToStr(DefaultLocoSpeed));
                 END;
               END ELSE BEGIN
-                SetLenzSpeed(LocoChip, UnknownLocoChip, LocoTimingCircleSpeed, Up, OK);
+                SetLenzSpeedAndDirection(LocoChip, LocoTimingCircleSpeed, Up, OK);
                 Log(LocoChipStr + ' L Speed set to LocoTimingCircleSpeed (' + IntToStr(LocoTimingCircleSpeed) + ')');
                 LocoDialogueWindow.LocoDialogueSpeedDisplay.Color := clRed;
 //                LocoDialogueWindow.LocoDialogueSpeedButtons.Position := LocoTimingCircleSpeed;

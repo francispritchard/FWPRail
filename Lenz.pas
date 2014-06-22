@@ -50,7 +50,7 @@ TYPE
 VAR
   LenzWindow: TLenzWindow;
 
-FUNCTION AdjustLenzSpeed(LocoChip, DoubleHeaderLocoChip : Integer; Value : Integer; TrainDirection : DirectionType; OUT OK : Boolean) : Integer;
+FUNCTION AdjustLenzSpeed(LocoChip : Integer; Value : Integer; LocoDirection : DirectionType; OUT OK : Boolean) : Integer;
 { Increase or decrease the speed by given amount }
 
 PROCEDURE DoCheckForUnexpectedData(UnitRef : String; CallingStr : String);
@@ -101,7 +101,7 @@ FUNCTION ReturnFeedbackData(UnitNum : Byte; Input : Integer) : Boolean;
 PROCEDURE ReturnSystemStatus(VAR L : LenzSystemRec);
 { Return the present System status }
 
-PROCEDURE SetLenzSpeed(LocoChip, DoubleHeaderLocoChip : Integer; LenzSpeed : Integer; TrainDirection : DirectionType; VAR OK : Boolean);
+PROCEDURE SetLenzSpeedAndDirection(LocoChip : Integer; LenzSpeed : Integer; LocoDirection : DirectionType; VAR OK : Boolean);
 { Sets the speed by changing bits 4 - 0 - if quickstop, don't bother to read in the loco details first, as we're not interested in what the speed used to be }
 
 PROCEDURE SetSignalFunction(LocoChip, S : Integer);
@@ -1964,11 +1964,10 @@ BEGIN
   END;
 END; { RequestProgrammingModeCV }
 
-PROCEDURE SetLenzSpeed(LocoChip, DoubleHeaderLocoChip : Integer; LenzSpeed : Integer; TrainDirection : DirectionType; VAR OK : Boolean);
+PROCEDURE SetLenzSpeedAndDirection(LocoChip : Integer; LenzSpeed : Integer; LocoDirection : DirectionType; VAR OK : Boolean);
 { Sets the speed by changing bits 4 - 0 - if quickstop, don't bother to read in the loco details first, as we're not interested in what the speed used to be }
 VAR
   DebugStr : String;
-  DoubleHeaderT : TrainElement;
   T : TrainElement;
   TempSpeedByte : Byte;
 
@@ -1988,15 +1987,6 @@ BEGIN
             Log(LocoChipToStr(LocoChip) + ' XG  Fatal Error: Lenz speed ' + IntToStr(LenzSpeed) + ' supplied');
             OK := False;
           END;
-          IF DoubleHeaderLocoChip <> UnknownLocoChip THEN BEGIN
-            DoubleHeaderT := GetTrainRecord(DoubleHeaderLocoChip);
-            IF (Trains[DoubleHeaderT].Train_SpeedStepMode = 28)
-            AND (LenzSpeed > 28)
-            THEN BEGIN
-              Log(LocoChipToStr(DoubleHeaderLocoChip) + ' XG Fatal Error: Lenz speed ' + IntToStr(LenzSpeed) + ' supplied');
-              OK := False;
-            END;
-          END;
 
           IF OK THEN BEGIN
             IF NOT SystemOnline THEN BEGIN
@@ -2004,9 +1994,6 @@ BEGIN
                 Debug('Speed for loco ' + LocoChipToStr(LocoChip) + ' would be set to 0 with quick stop set')
               ELSE
                 Debug('Speed for loco ' + LocoChipToStr(LocoChip) + ' would be set to ' + IntToStr(LenzSpeed));
-              IF DoubleHeaderLocoChip <> UnknownLocoChip THEN
-                Debug('Speed for loco ' + LocoChipToStr(LocoChip) + ' and for double header loco ' + LocoChipToStr(DoubleHeaderLocoChip)
-                      + ' would be set to ' + IntToStr(LenzSpeed))
             END ELSE BEGIN
               DebugStr := '';
               OK := False;
@@ -2044,7 +2031,7 @@ BEGIN
               END;
 
               { set top bit for direction }
-              IF TrainDirection = Up THEN BEGIN
+              IF LocoDirection = Up THEN BEGIN
                 TempSpeedByte := TempSpeedByte OR 128; { 1000 000 }
                 DebugStr := ' Up'
               END ELSE BEGIN
@@ -2063,13 +2050,6 @@ BEGIN
                 Log(LocoChipToStr(LocoChip) + ' LG Data for loco ' + LocoChipToStr(LocoChip) + ' not written');
 
               IF OK THEN BEGIN
-                IF DoubleHeaderLocoChip <> UnknownLocoChip THEN BEGIN
-                  { this makes use of the calculations above - we may have to do them again for the double header loco **** 11/10/06 }
-                  Log(LocoChipToStr(DoubleHeaderLocoChip) + ' L Writing speed data ' + IntToStr(LenzSpeed) + ' [' + DoBitPattern(TempSpeedByte) + ']' + DebugStr);
-                  WriteLocoSpeedOrDirection(DoubleHeaderLocoChip, TempSpeedByte, OK);
-                  IF NOT OK THEN
-                    Log(LocoChipToStr(DoubleHeaderLocoChip) + ' LG Data for loco ' + LocoChipToStr(DoubleHeaderLocoChip) + ' not written');
-                END;
                 IF LenzSpeed = QuickStop THEN
                   Train_CurrentLenzSpeed := 0
                 ELSE
@@ -2078,8 +2058,8 @@ BEGIN
                 { Need to update the loco direction variable, as there may well not have been an explicit direction change by means of SetDirection, rather a speed change
                   with the direction bit set differently.
                 }
-                IF TrainDirection <> Train_CurrentDirection THEN
-                  Train_CurrentDirection := TrainDirection;
+                IF LocoDirection <> Train_CurrentDirection THEN
+                  Train_CurrentDirection := LocoDirection;
               END;
             END;
           END;
@@ -2092,7 +2072,7 @@ BEGIN
   END; {TRY}
 END; { SetLenzSpeed }
 
-FUNCTION AdjustLenzSpeed(LocoChip, DoubleHeaderLocoChip : Integer; Value : Integer; TrainDirection : DirectionType; OUT OK : Boolean) : Integer;
+FUNCTION AdjustLenzSpeed(LocoChip : Integer; Value : Integer; LocoDirection : DirectionType; OUT OK : Boolean) : Integer;
 { Increase or decrease the speed by given amount }
 VAR
   NewSpeed : Integer;
@@ -2100,16 +2080,12 @@ VAR
 BEGIN
   NewSpeed := 0;
   IF NOT SystemOnline THEN BEGIN
-    IF Value > 0 THEN BEGIN
-      Debug('Speed for ' + IntToStr(LocoChip) + ' would be increased by ' + IntToStr(Value));
-      IF DoubleHeaderLocoChip = UnknownLocoChip THEN
-        Debug('Speed for ' + IntToStr(DoubleHeaderLocoChip) + ' would also be increased by ' + IntToStr(Value));
-    END ELSE
-      IF Value < 0 THEN BEGIN
-        Debug('Speed for ' + IntToStr(LocoChip) + ' would be decreased by ' + IntToStr(Abs(Value)));
-        IF DoubleHeaderLocoChip <> UnknownLocoChip THEN
-          Debug('Speed for ' + IntToStr(DoubleHeaderLocoChip) + ' would be also decreased by ' + IntToStr(Value));
-      END ELSE BEGIN
+    IF Value > 0 THEN
+      Debug('Speed for ' + IntToStr(LocoChip) + ' would be increased by ' + IntToStr(Value))
+    ELSE
+      IF Value < 0 THEN
+        Debug('Speed for ' + IntToStr(LocoChip) + ' would be decreased by ' + IntToStr(Abs(Value)))
+      ELSE BEGIN
         Debug('val=0');
         Log(LocoChipToStr(LocoChip) + ' L Can''t increase or decrease by zero');
       END;
@@ -2129,13 +2105,13 @@ BEGIN
         IF NewSpeed < LocoMinSpeed THEN
           NewSpeed := LocoMinSpeed;
 
-      SetLenzSpeed(LocoChip, DoubleHeaderLocoChip, NewSpeed, TrainDirection, OK);
+      SetLenzSpeedAndDirection(LocoChip, NewSpeed, LocoDirection, OK);
     END;
   END;
   Result := NewSpeed;
 END; { AdjustLenzSpeed }
 
-PROCEDURE SetDirection(LocoChip, DoubleHeaderLocoChip : Integer; DirectionRequired : DirectionType; OUT OK : Boolean);
+PROCEDURE SetDirection(LocoChip : Integer; DirectionRequired : DirectionType; OUT OK : Boolean);
 { Sets/resets bit 7 - up is (arbitrarily) on }
 VAR
   DebugStr : String;
@@ -2199,16 +2175,6 @@ BEGIN
           END;
 
           IF OK THEN BEGIN
-            IF DoubleHeaderLocoChip <> UnknownLocoChip THEN BEGIN
-              WriteLocoSpeedOrDirection(DoubleHeaderLocoChip, TempSpeedByte, OK);
-              IF NOT OK THEN BEGIN
-                StopAllLocomotives(OK);
-                MakeSound(1);
-                TurnAutoModeOff(NOT ByUser);
-                Showmessage('Data for loco ' + LocoChipToStr(DoubleHeaderLocoChip) + ' not written - auto mode suspended');
-              END;
-            END;
-
             Log(LocoChipToStr(LocoChip) + ' L Loco direction changed to ' + DebugStr);
             Trains[T].Train_SpeedByte := TempSpeedByte;
           END ELSE
@@ -2237,7 +2203,9 @@ BEGIN
         ReadInLocoDetails(Train_LocoChip, TempSpeedByte, OK);
 
       IF (DirectionRequired <> Train_CurrentDirection) OR ForceWrite THEN BEGIN
-        SetDirection(Train_LocoChip, Train_DoubleHeaderLocoChip, DirectionRequired, OK);
+        SetDirection(Train_LocoChip, DirectionRequired, OK);
+        IF OK AND (Train_DoubleHeaderLocoChip <> UnknownLocoChip) THEN
+          SetDirection(Train_DoubleHeaderLocoChip, DirectionRequired, OK);
         IF OK THEN
           Train_CurrentDirection := DirectionRequired;
       END;

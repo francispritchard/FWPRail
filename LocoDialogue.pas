@@ -626,7 +626,10 @@ BEGIN
   IF LocoDialogueTrainRecord <> 0 THEN BEGIN
     WITH LocoDialogueWindow DO BEGIN
       LocoDialogueDownButton.Enabled := False;
-      SetLenzSpeed(LocoDialogueSelectedLocoChip, LocoDialogueSelectedDHLocoChip, QuickStop, Trains[LocoDialogueTrainRecord].Train_CurrentDirection, OK);
+      SetLenzSpeedAndDirection(LocoDialogueSelectedLocoChip, QuickStop, Trains[LocoDialogueTrainRecord].Train_CurrentDirection, OK);
+      IF LocoDialogueSelectedDHLocoChip <> UnknownLocoChip THEN
+        SetLenzSpeedAndDirection(LocoDialogueSelectedDHLocoChip, QuickStop, Trains[LocoDialogueTrainRecord].Train_CurrentDirection, OK);
+
       LocoDialogueSelectedLocoSpeed := GetLenzSpeed(LocoDialogueSelectedLocoChip, ForceARead);
       IF LocoDialogueSelectedLocoSpeed <> 0 THEN
         Log('XG Emergency stop - speed is still ' + IntToStr(LocoDialogueSelectedLocoSpeed));
@@ -1250,9 +1253,11 @@ BEGIN
           IF (WheelDelta < 0) AND (LocoDialogueDownButton.Enabled) THEN
             DecrementSpeedInMPH;
 
-        IF SaveLocoSpeed <> LocoDialogueSelectedLocoSpeed THEN
-          SetLenzSpeed(LocoDialogueSelectedLocoChip, LocoDialogueSelectedDHLocoChip, LocoDialogueSelectedLocoSpeed, Trains[LocoDialogueTrainRecord].Train_CurrentDirection,
-                       OK);
+        IF SaveLocoSpeed <> LocoDialogueSelectedLocoSpeed THEN BEGIN
+          SetLenzSpeedAndDirection(LocoDialogueSelectedLocoChip, LocoDialogueSelectedLocoSpeed, Trains[LocoDialogueTrainRecord].Train_CurrentDirection, OK);
+          IF LocoDialogueSelectedDHLocoChip <> UnknownLocoChip THEN
+            SetLenzSpeedAndDirection(LocoDialogueSelectedDHLocoChip, LocoDialogueSelectedLocoSpeed, Trains[LocoDialogueTrainRecord].Train_CurrentDirection, OK);
+        END;
       END ELSE BEGIN
         SaveLocoSpeed := LocoDialogueSelectedLocoSpeed;
 
@@ -1280,9 +1285,11 @@ BEGIN
           IF LocoDialogueSelectedLocoSpeed > 28 THEN
             LocoDialogueSelectedLocoSpeed := 28;
 
-        IF SaveLocoSpeed <> LocoDialogueSelectedLocoSpeed THEN
-          SetLenzSpeed(LocoDialogueSelectedLocoChip, LocoDialogueSelectedDHLocoChip, LocoDialogueSelectedLocoSpeed, Trains[LocoDialogueTrainRecord].Train_CurrentDirection,
-                       OK);
+        IF SaveLocoSpeed <> LocoDialogueSelectedLocoSpeed THEN BEGIN
+          SetLenzSpeedAndDirection(LocoDialogueSelectedLocoChip, LocoDialogueSelectedLocoSpeed, Trains[LocoDialogueTrainRecord].Train_CurrentDirection, OK);
+          IF LocoDialogueSelectedDHLocoChip <> UnknownLocoChip THEN
+            SetLenzSpeedAndDirection(LocoDialogueSelectedDHLocoChip, LocoDialogueSelectedLocoSpeed, Trains[LocoDialogueTrainRecord].Train_CurrentDirection, OK);
+        END;
 
         IF OK THEN BEGIN
           IF LocoDialogueSelectedLocoSpeed = 0 THEN BEGIN
@@ -1457,14 +1464,16 @@ BEGIN
       LocoDialogueSelectedLocoSpeed := TrainSpeedInMPHToLenzSpeed(LocoDialogueTrainRecord, LocoDialogueSelectedLocoSpeedInMPH);
 
       { Now we have to separate out the two locos, as they may well have different Lenz speeds }
-      SetLenzSpeed(LocoDialogueSelectedLocoChip, NoLocoChip, LocoDialogueSelectedLocoSpeed, Trains[LocoDialogueTrainRecord].Train_CurrentDirection, OK);
+      SetLenzSpeedAndDirection(LocoDialogueSelectedLocoChip, LocoDialogueSelectedLocoSpeed, Trains[LocoDialogueTrainRecord].Train_CurrentDirection, OK);
       IF LocoDialogueSelectedDHLocoChip <> NoLocoChip THEN BEGIN
         TempDHLocoSpeed := TrainSpeedInMPHToLenzSpeed(LocoDialogueDoubleHeaderTrainRecord, LocoDialogueSelectedLocoSpeedInMPH);
-        SetLenzSpeed(LocoDialogueSelectedDHLocoChip, NoLocoChip, TempDHLocoSpeed, Trains[LocoDialogueTrainRecord].Train_CurrentDirection, OK);
+        SetLenzSpeedAndDirection(LocoDialogueSelectedDHLocoChip, TempDHLocoSpeed, Trains[LocoDialogueTrainRecord].Train_CurrentDirection, OK);
       END;
     END ELSE BEGIN
       Inc(LocoDialogueSelectedLocoSpeed);
-      SetLenzSpeed(LocoDialogueSelectedLocoChip, LocoDialogueSelectedDHLocoChip, LocoDialogueSelectedLocoSpeed, Trains[LocoDialogueTrainRecord].Train_CurrentDirection, OK);
+      SetLenzSpeedAndDirection(LocoDialogueSelectedLocoChip, LocoDialogueSelectedLocoSpeed, Trains[LocoDialogueTrainRecord].Train_CurrentDirection, OK);
+      IF LocoDialogueSelectedDHLocoChip <> UnknownLocoChip THEN
+        SetLenzSpeedAndDirection(LocoDialogueSelectedDHLocoChip, LocoDialogueSelectedLocoSpeed, Trains[LocoDialogueTrainRecord].Train_CurrentDirection, OK);
 
       IF LocoDialogueSelectedLocoSpeed > 0 THEN BEGIN
         LocoDialogueDownButton.Enabled := True;
@@ -1485,7 +1494,7 @@ BEGIN
 
     { Deal with the cleaning wagon - if any }
     IF (Trains[LocoDialogueTrainRecord].Train_PullingDapolCleaningWagon) AND (DapolCleaningWagonLocoChip <> unknownLocoChip) THEN
-      SetLenzSpeed(DapolCleaningWagonLocoChip, 0, 8, Up, OK)
+      SetLenzSpeedAndDirection(DapolCleaningWagonLocoChip, 8, Up, OK)
   END; {WITH}
 END; { LocoDialogueIncreaseSpeed }
 
@@ -1512,7 +1521,7 @@ END; { LocoDialogueUpButtonMouseUp }
 
 PROCEDURE TLocoDialogueWindow.LocoDialogueMouseDownTimerTick(Sender: TObject);
 BEGIN
-  IF (MilliSecondsBetween(Time, LocoDialogueMouseDownTime) >= 2000) AND (MilliSecondsBetween(Time, LocoDialogueMouseDownTime) < 4000)  THEN
+  IF (MilliSecondsBetween(Time, LocoDialogueMouseDownTime) >= 2000) AND (MilliSecondsBetween(Time, LocoDialogueMouseDownTime) < 4000) THEN
     LocoDialogueMouseDownTimer.Interval := 500;
 
   IF MilliSecondsBetween(Time, LocoDialogueMouseDownTime) >= 4000 THEN
@@ -1542,16 +1551,17 @@ BEGIN
       LocoDialogueSelectedLocoSpeed := TrainSpeedInMPHToLenzSpeed(LocoDialogueTrainRecord, LocoDialogueSelectedLocoSpeedInMPH);
 
       { Now we have to separate out the two locos, as they may well have different Lenz speeds }
-      SetLenzSpeed(LocoDialogueSelectedLocoChip, NoLocoChip, LocoDialogueSelectedLocoSpeed, Trains[LocoDialogueTrainRecord].Train_CurrentDirection, OK);
-      IF LocoDialogueSelectedDHLocoChip <> NoLocoChip THEN BEGIN
+      SetLenzSpeedAndDirection(LocoDialogueSelectedLocoChip, LocoDialogueSelectedLocoSpeed, Trains[LocoDialogueTrainRecord].Train_CurrentDirection, OK);
+      IF LocoDialogueSelectedDHLocoChip <> UnknownLocoChip THEN BEGIN
         TempDHLocoSpeed := TrainSpeedInMPHToLenzSpeed(LocoDialogueDoubleHeaderTrainRecord, LocoDialogueSelectedLocoSpeedInMPH);
-        SetLenzSpeed(LocoDialogueSelectedDHLocoChip, NoLocoChip, TempDHLocoSpeed, Trains[LocoDialogueTrainRecord].Train_CurrentDirection, OK);
+        SetLenzSpeedAndDirection(LocoDialogueSelectedDHLocoChip, TempDHLocoSpeed, Trains[LocoDialogueTrainRecord].Train_CurrentDirection, OK);
       END;
     END ELSE BEGIN
       IF LocoDialogueSelectedLocoSpeed > 0 THEN BEGIN
         Dec(LocoDialogueSelectedLocoSpeed);
-        SetLenzSpeed(LocoDialogueSelectedLocoChip, LocoDialogueSelectedDHLocoChip, LocoDialogueSelectedLocoSpeed, Trains[LocoDialogueTrainRecord].Train_CurrentDirection,
-                     OK);
+        SetLenzSpeedAndDirection(LocoDialogueSelectedLocoChip, LocoDialogueSelectedLocoSpeed, Trains[LocoDialogueTrainRecord].Train_CurrentDirection, OK);
+        IF LocoDialogueSelectedDHLocoChip <> UnknownLocoChip THEN
+          SetLenzSpeedAndDirection(LocoDialogueSelectedDHLocoChip, LocoDialogueSelectedLocoSpeed, Trains[LocoDialogueTrainRecord].Train_CurrentDirection, OK);
       END;
 
       IF LocoDialogueSelectedLocoSpeed <= 0 THEN BEGIN
@@ -1575,7 +1585,7 @@ BEGIN
     { Deal with the cleaning wagon - if any }
     IF (Trains[LocoDialogueTrainRecord].Train_PullingDapolCleaningWagon) AND (DapolCleaningWagonLocoChip <> unknownLocoChip) THEN
       IF LocoDialogueSelectedLocoSpeed = 0 THEN
-        SetLenzSpeed(DapolCleaningWagonLocoChip, 0, QuickStop, Up, OK);
+        SetLenzSpeedAndDirection(DapolCleaningWagonLocoChip, QuickStop, Up, OK);
   END; {WITH}
 END; { LocoDialogueDecreaseSpeed }
 
