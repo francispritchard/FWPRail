@@ -503,7 +503,7 @@ BEGIN
                   THEN
                     { note there's a problem but allow the train record to be used, as the new diagram may fix it }
                     Log(Train_LocoChipStr + ' X! NB Discrepancy in train direction: ' + ' fixed direction is ' + FieldByName('FixedTrainDirection').AsString
-                                + ' whereas last train direction was ' + FieldByName('LastTrainDirection').AsString);
+                                          + ' whereas last train direction was ' + FieldByName('LastTrainDirection').AsString);
 
                   Train_SavedLocation := Train_LastLocation;
                 END;
