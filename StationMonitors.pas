@@ -469,54 +469,56 @@ BEGIN
     StationMonitorsWindow.Width := Screen.DeskTopWidth;
     StationMonitorsWindow.Height := Screen.DeskTopHeight;
 
-    WITH StationMonitorsWindow.Canvas DO BEGIN
-      { Now draw it to the timetable screen }
-      Font.Color := clWhite;
+    IF StationMonitorsWindow <> NIL THEN BEGIN
+      WITH StationMonitorsWindow.Canvas DO BEGIN
+        { Now draw it to the timetable screen }
+        Font.Color := clWhite;
 
-      IF StationMonitorDisplay = StationClockDisplay THEN BEGIN
+        IF StationMonitorDisplay = StationClockDisplay THEN BEGIN
 
-      END ELSE BEGIN
-        IF RecordingMonitorScreens THEN BEGIN
-          DrawLineinLogFile(NoLocoChip, 'D', 'T', UnitRef);
-          Log('T ' + GetStationNameFromArea(Area) + ' {NOUNITREF}');
-        END;
+        END ELSE BEGIN
+          IF RecordingMonitorScreens THEN BEGIN
+            DrawLineinLogFile(NoLocoChip, 'D', 'T', UnitRef);
+            Log('T ' + GetStationNameFromArea(Area) + ' {NOUNITREF}');
+          END;
 
-        CurrentTimeStr := TimeToHMStr(CurrentRailwayTime);
+          CurrentTimeStr := TimeToHMStr(CurrentRailwayTime);
 
-        CASE StationMonitorDisplay OF
-          StationArrivalsDisplay:
-            BEGIN
-              IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN
-                StationMonitorsWebPage.Add('<div class="container" style="top:5%">');
-              ShowArrivals(Area);
-              IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN
-                StationMonitorsWebPage.Add('</div>');
-            END;
-          StationDeparturesDisplay:
-            BEGIN
-              IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN
-                StationMonitorsWebPage.Add('<div class="container" style="top:5%">');
-              ShowDepartures(Area);
-              IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN
-                StationMonitorsWebPage.Add('</div>');
-            END;
-          StationArrivalsAndDeparturesDisplay:
-            BEGIN
-              IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN
-                StationMonitorsWebPage.Add('<div class="container" style="top:5%">');
-              ShowArrivals(Area);
-              IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN BEGIN
-                StationMonitorsWebPage.Add('</div>');
-                StationMonitorsWebPage.Add('<div class="container" style="top:50%">');
+          CASE StationMonitorDisplay OF
+            StationArrivalsDisplay:
+              BEGIN
+                IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN
+                  StationMonitorsWebPage.Add('<div class="container" style="top:5%">');
+                ShowArrivals(Area);
+                IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN
+                  StationMonitorsWebPage.Add('</div>');
               END;
-              ShowDepartures(Area);
-              IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN
-                StationMonitorsWebPage.Add('</div>');
-            END;
-        END; {CASE}
+            StationDeparturesDisplay:
+              BEGIN
+                IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN
+                  StationMonitorsWebPage.Add('<div class="container" style="top:5%">');
+                ShowDepartures(Area);
+                IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN
+                  StationMonitorsWebPage.Add('</div>');
+              END;
+            StationArrivalsAndDeparturesDisplay:
+              BEGIN
+                IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN
+                  StationMonitorsWebPage.Add('<div class="container" style="top:5%">');
+                ShowArrivals(Area);
+                IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN BEGIN
+                  StationMonitorsWebPage.Add('</div>');
+                  StationMonitorsWebPage.Add('<div class="container" style="top:50%">');
+                END;
+                ShowDepartures(Area);
+                IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN
+                  StationMonitorsWebPage.Add('</div>');
+              END;
+          END; {CASE}
 
-        IF RecordingMonitorScreens THEN
-          DrawLineinLogFile(NoLocoChip, 'D', 'T', UnitRef);
+          IF RecordingMonitorScreens THEN
+            DrawLineinLogFile(NoLocoChip, 'D', 'T', UnitRef);
+        END;
       END;
     END; {WITH}
 
