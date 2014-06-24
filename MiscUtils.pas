@@ -996,8 +996,8 @@ VAR
 
       LogStrWithRichEditCommands := IfThen(CurrentTimeStr = '',
                                            '',
-                                           CurrentTimeStr)
-                                    + ' ' + CurrentRailwayTimeStr
+                                           CurrentTimeStr + ' ')
+                                    + CurrentRailwayTimeStr
                                     + ' ' + TypeOfLog
                                     + ' ' + IfThen(LocoChipStr = '',
                                                    '    ',
@@ -1008,8 +1008,8 @@ VAR
 
       LogStrWithOutRichEditCommands := IfThen(CurrentTimeStr = '',
                                               '',
-                                              CurrentTimeStr)
-                                       + ' ' + CurrentRailwayTimeStr
+                                              CurrentTimeStr + ' ')
+                                       + CurrentRailwayTimeStr
                                        + ' ' + TypeOfLog
                                        + ' ' + IfThen(LocoChipStr = '',
                                                       '    ',
