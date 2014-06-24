@@ -1953,11 +1953,8 @@ BEGIN
   END;
 END; { PopupDriveTrainClick }
 
-PROCEDURE SuspendTrain(T : TrainElement; User : Boolean);
+PROCEDURE SuspendTrain(T : TrainElement; User : Boolean; SuspendMsg : String);
 { Suspend a given train - it can be reactivated in the diagrams window }
-VAR
-  DebugStr : String;
-
 BEGIN
   WITH Trains[T] DO BEGIN
     IF Train_CurrentStatus = Missing THEN
@@ -1965,12 +1962,7 @@ BEGIN
     ELSE
       ChangeTrainStatus(T, Suspended);
 
-    IF User THEN
-      DebugStr := 'has been suspended by user - stop request pending'
-    ELSE
-      DebugStr := 'has been suspended by the system - stop request pending';
-
-    Log(Train_LocoChipStr + ' DG ' + DebugStr);
+    Log(Train_LocoChipStr + ' DG has been suspended - stop request pending - because ' + SuspendMsg);
     { and set its speed to zero }
 
     IF SystemOnline THEN
@@ -1993,7 +1985,7 @@ BEGIN
           END;
         PopupSuspendTrain.Caption := 'Suspend Train ' + LocoChipToStr(Train_LocoChip);
       END ELSE BEGIN
-        SuspendTrain(DiagramsChosenTrain, ByUser);
+        SuspendTrain(DiagramsChosenTrain, ByUser, 'user suspended it');
         PopupSuspendTrain.Caption := 'Activate Suspended Train ' + LocoChipToStr(Train_LocoChip);
       END;
       DiagramsChosenTrain := 0;

@@ -699,7 +699,7 @@ BEGIN { DecodeFeedback }
                               IF (Trains[T].Train_CurrentStatus <> Suspended)
                               AND (Trains[T].Train_CurrentStatus <> MissingAndSuspended)
                               THEN BEGIN
-                                SuspendTrain(T, NOT ByUser);
+                                SuspendTrain(T, NOT ByUser, 'point ' + PointToStr(P) + ' has moved');
 
                                 IF NOT Point_MovedWhenLocked THEN BEGIN
                                   Point_MovedWhenLocked := True;
