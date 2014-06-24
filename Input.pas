@@ -1467,8 +1467,8 @@ BEGIN { KeyPressedDown }
                 DrawLine(L, Lines[L].Line_OldColour, NOT ActiveTrain);
             END;
 
-            IF CreateRouteDisplayColoursWindow.Visible THEN
-              CreateRouteDisplayColoursWindow.Visible := False;
+            IF DisplayColoursWindow.Visible THEN
+              DisplayColoursWindow.Visible := False;
 
             IF ShowSignalsWhereRouteingCanBeHeldAndThoseNotUsedForRouteing THEN
               FOR S := 0 TO High(Signals) DO
@@ -4730,12 +4730,12 @@ BEGIN { KeyPressedDown }
                   ShowSignalsWhereRouteingCanBeHeldAndThoseNotUsedForRouteing := True;
 
                   { List the colours for the forgetful }
-                  CreateRouteDisplayColoursWindow.Visible := True;
-                  AddRichLine(CreateRouteDisplayColoursWindow.CreateRouteDisplayColoursWindowRichedit,
+                  DisplayColoursWindow.Visible := True;
+                  AddRichLine(DisplayColoursWindow.DisplayColoursWindowRichedit,
                                                                        '<colour=' + ColourToStr(clLime) + '>' + ColourToStr(clLime) + '= station start hold' + '</colour>');
-                  AddRichLine(CreateRouteDisplayColoursWindow.CreateRouteDisplayColoursWindowRichedit,
+                  AddRichLine(DisplayColoursWindow.DisplayColoursWindowRichedit,
                                                                            '<colour=' + ColourToStr(clYellow) + '>' + ColourToStr(clYellow) + '= route hold' + '</colour>');
-                  AddRichLine(CreateRouteDisplayColoursWindow.CreateRouteDisplayColoursWindowRichedit,
+                  AddRichLine(DisplayColoursWindow.DisplayColoursWindowRichedit,
                                                                   '<colour=' + ColourToStr(clAqua) + '>' + ColourToStr(clAqua) + '= not in use for routeing' + '</colour>');
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
@@ -4860,13 +4860,23 @@ BEGIN { KeyPressedDown }
                   WriteToStatusBarPanel(StatusBarPanel2, 'Showing line detail');
                   IF NOT ScreenColoursSetForPrinting THEN BEGIN
                     { List the line colours for the forgetful (added this bit 12/12/07 because FWP forgot which was which!) }
-                    CreateRouteDisplayColoursWindow.Visible := True;
-                    CreateRouteDisplayColoursWindow.CreateRouteDisplayColoursWindowRichedit.Clear;
-                    FOR XTypeOfLine := FirstTypeOfLine TO LastTypeOfLine DO
-                      AddRichLine(CreateRouteDisplayColoursWindow.CreateRouteDisplayColoursWindowRichedit, ('<colour=' + ColourToStr(GetLineTypeColour(XTypeOfLine)) + '>'
-                                                                                                                       + ColourToStrForUser(GetLineTypeColour(XTypeOfLine))
-                                                                                                                       + ' = ' + TypeOfLineToStr(XTypeOfLine)
-                                                                                                                       + '</colour>'));
+                    DisplayColoursWindowHeight := 0;
+                    DisplayColoursWindow.Width := 0;
+                    DisplayColoursWindow.Visible := True;
+                    DisplayColoursWindow.DisplayColoursWindowRichedit.Clear;
+                    FOR XTypeOfLine := FirstTypeOfLine TO LastTypeOfLine DO BEGIN
+                      WITH DisplayColoursWindow.Canvas DO BEGIN
+                        Str := ColourToStrForUser(GetLineTypeColour(XTypeOfLine)) + ' = ' + TypeOfLineToStr(XTypeOfLine);
+
+                        IF TextWidth(Str) > DisplayColoursWindow.Width THEN
+                          DisplayColoursWindow.Width := TextWidth(Str);
+                      //  DisplayColoursWindow.Width := DisplayColoursWindow.Width + MulDiv(FWPRailWindow.ClientWidth, 45, 1000);
+                        AddRichLine(DisplayColoursWindow.DisplayColoursWindowRichedit,
+                                    '<colour=' + ColourToStr(GetLineTypeColour(XTypeOfLine)) + '>'
+                                    + Str
+                                     + '</colour>');
+                      END; {WITH}
+                    END; {FOR}
                     InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                   END;
                 END;

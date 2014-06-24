@@ -47,18 +47,6 @@ VAR
   OptionsWindow: TOptionsWindow;
 
   { Windows variables first - these are all initialised in InitialiseInitVarsUnit }
-  DefaultCreateRouteDisplayColoursWindowHeight : Integer;
-  CreateRouteDisplayColoursWindowHeight : Integer;
-
-  DefaultCreateRouteDisplayColoursWindowTop : Integer;
-  CreateRouteDisplayColoursWindowTop : Integer;
-
-  DefaultCreateRouteDisplayColoursWindowLeft : Integer;
-  CreateRouteDisplayColoursWindowLeft : Integer;
-
-  DefaultCreateRouteDisplayColoursWindowWidth : Integer;
-  CreateRouteDisplayColoursWindowWidth : Integer;
-
   DefaultDebuggingOptionsWindowLeft : Integer = 785; { these shouldn't be magic numbers *** }
   DebuggingOptionsWindowLeft : Integer = 785; { these shouldn't be magic numbers *** }
 
@@ -91,6 +79,18 @@ VAR
 
   DefaultDiagramsLargeWindowWidth : Integer;
   DiagramsLargeWindowWidth : Integer;
+
+  DefaultDisplayColoursWindowHeight : Integer;
+  DisplayColoursWindowHeight : Integer;
+
+  DefaultDisplayColoursWindowTop : Integer;
+  DisplayColoursWindowTop : Integer;
+
+  DefaultDisplayColoursWindowLeft : Integer;
+  DisplayColoursWindowLeft : Integer;
+
+  DefaultDisplayColoursWindowWidth : Integer;
+  DisplayColoursWindowWidth : Integer;
 
   DefaultEditWindowHeight : Integer;
   EditWindowHeight : Integer;
@@ -1107,10 +1107,10 @@ CONST
     FWPRailWindowClientWidthStr = 'Main Window Client Width';
     FWPRailWindowClientHeightStr = 'Main Window Client Height';
 
-    CreateRouteDisplayColoursWindowHeightStr = 'CreateRoute DisplayColours Window Height';
-    CreateRouteDisplayColoursWindowLeftStr = 'CreateRoute DisplayColours Window Left';
-    CreateRouteDisplayColoursWindowTopStr = 'CreateRoute DisplayColours Window Top';
-    CreateRouteDisplayColoursWindowWidthStr = 'CreateRoute DisplayColours Window Width';
+    DisplayColoursWindowHeightStr = 'CreateRoute DisplayColours Window Height';
+    DisplayColoursWindowLeftStr = 'CreateRoute DisplayColours Window Left';
+    DisplayColoursWindowTopStr = 'CreateRoute DisplayColours Window Top';
+    DisplayColoursWindowWidthStr = 'CreateRoute DisplayColours Window Width';
 
     EditWindowHeightStr = 'Edit Window Height';
     EditWindowLeftStr = 'Edit Window Left';
@@ -1468,10 +1468,10 @@ BEGIN
       FWPRailWindowWidth := ReadInteger(WindowsSectionStr, FWPRailWindowWidthStr, DefaultFWPRailWindowWidth);
       FWPRailWindowHeight := ReadInteger(WindowsSectionStr, FWPRailWindowHeightStr, DefaultFWPRailWindowHeight);
 
-      CreateRouteDisplayColoursWindowTop := ReadInteger(WindowsSectionStr, CreateRouteDisplayColoursWindowTopStr, DefaultCreateRouteDisplayColoursWindowTop);
-      CreateRouteDisplayColoursWindowLeft := ReadInteger(WindowsSectionStr, CreateRouteDisplayColoursWindowLeftStr, DefaultCreateRouteDisplayColoursWindowLeft);
-      CreateRouteDisplayColoursWindowWidth := ReadInteger(WindowsSectionStr, CreateRouteDisplayColoursWindowWidthStr, DefaultCreateRouteDisplayColoursWindowWidth);
-      CreateRouteDisplayColoursWindowHeight := ReadInteger(WindowsSectionStr, CreateRouteDisplayColoursWindowHeightStr, DefaultCreateRouteDisplayColoursWindowHeight);
+      DisplayColoursWindowTop := ReadInteger(WindowsSectionStr, DisplayColoursWindowTopStr, DefaultDisplayColoursWindowTop);
+      DisplayColoursWindowLeft := ReadInteger(WindowsSectionStr, DisplayColoursWindowLeftStr, DefaultDisplayColoursWindowLeft);
+      DisplayColoursWindowWidth := ReadInteger(WindowsSectionStr, DisplayColoursWindowWidthStr, DefaultDisplayColoursWindowWidth);
+      DisplayColoursWindowHeight := ReadInteger(WindowsSectionStr, DisplayColoursWindowHeightStr, DefaultDisplayColoursWindowHeight);
 
       DebugWindowTop := ReadInteger(WindowsSectionStr, DebugWindowTopStr, DefaultDebugWindowTop);
       DebugWindowLeft := ReadInteger(WindowsSectionStr, DebugWindowLeftStr, DefaultDebugWindowLeft);
@@ -1964,11 +1964,11 @@ BEGIN
       WriteInteger(WindowsSectionStr, FWPRailWindowClientWidthStr, FWPRailWindow.ClientWidth);
       WriteInteger(WindowsSectionStr, FWPRailWindowClientHeightStr, FWPRailWindow.ClientHeight);
 
-      IF CreateRouteDisplayColoursWindow <> NIL THEN BEGIN
-        WriteInteger(WindowsSectionStr, CreateRouteDisplayColoursWindowHeightStr, CreateRouteDisplayColoursWindow.Height);
-        WriteInteger(WindowsSectionStr, CreateRouteDisplayColoursWindowLeftStr, CreateRouteDisplayColoursWindow.Left);
-        WriteInteger(WindowsSectionStr, CreateRouteDisplayColoursWindowTopStr, CreateRouteDisplayColoursWindow.Top);
-        WriteInteger(WindowsSectionStr, CreateRouteDisplayColoursWindowWidthStr, CreateRouteDisplayColoursWindow.Width);
+      IF DisplayColoursWindow <> NIL THEN BEGIN
+        WriteInteger(WindowsSectionStr, DisplayColoursWindowHeightStr, DisplayColoursWindow.Height);
+        WriteInteger(WindowsSectionStr, DisplayColoursWindowLeftStr, DisplayColoursWindow.Left);
+        WriteInteger(WindowsSectionStr, DisplayColoursWindowTopStr, DisplayColoursWindow.Top);
+        WriteInteger(WindowsSectionStr, DisplayColoursWindowWidthStr, DisplayColoursWindow.Width);
       END;
 
       IF DebugWindow <> NIL THEN BEGIN

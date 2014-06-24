@@ -167,10 +167,10 @@ BEGIN
       RouteWindow := TRouteWindow.Create(Application);
       RouteWindow.Update;
     END;
-    IF CreateRouteDisplayColoursWindow = NIL THEN BEGIN
-      CreateRouteDisplayColoursWindow := TCreateRouteDisplayColoursWindow.Create(Application);
-      CreateRouteDisplayColoursWindow.Update;
-      CreateRouteDisplayColoursWindow.Visible := False;
+    IF DisplayColoursWindow = NIL THEN BEGIN
+      DisplayColoursWindow := TDisplayColoursWindow.Create(Application);
+      DisplayColoursWindow.Update;
+      DisplayColoursWindow.Visible := False;
     END;
     IF TestUnitForm = NIL THEN BEGIN
       TestUnitForm := TTestUnitForm.Create(Application);
@@ -239,7 +239,7 @@ BEGIN
     InitialiseLenzUnit;
     IF RDCMode THEN
       StartRailDriver;
-    InitialiseCreateRouteDisplayColoursWindow;
+    InitialiseDisplayColoursWindow;
   EXCEPT
     ON E : Exception DO
       Log('EG MainWindowCreate:' + E.ClassName + ' error raised, with message: ' + E.Message);

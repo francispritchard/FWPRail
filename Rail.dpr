@@ -33,7 +33,7 @@ USES
   Movement IN 'Movement.pas' {MovementWindow},
   Route IN 'Route.pas' {RouteWindow},
   Splash IN 'Splash.pas' {Splash},
-  CreateRoute IN 'CreateRoute.pas' {CreateRouteDisplayColoursWindow},
+  CreateRoute IN 'CreateRoute.pas' {DisplayColoursWindow},
   TestUnit IN 'TestUnit.pas' {TestUnitForm},
   StationMonitors IN 'StationMonitors.pas' {StationMonitorsWindow},
   ProgressBar IN 'ProgressBar.pas' {RoutesWritingProgressBarWindow},

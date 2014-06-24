@@ -6171,11 +6171,6 @@ BEGIN
   DefaultFWPRailWindowHeight := MulDiv(Screen.WorkAreaHeight, DefaultFWPRailWindowHeight, 100);
   DefaultFWPRailWindowWidth := Screen.DeskTopWidth;
 
-  DefaultCreateRouteDisplayColoursWindowHeight := MulDiv(Screen.WorkAreaHeight, 200, 1000);
-  DefaultCreateRouteDisplayColoursWindowTop := MulDiv(Screen.WorkAreaHeight, 500, 1000);
-  DefaultCreateRouteDisplayColoursWindowLeft := 0;
-  DefaultCreateRouteDisplayColoursWindowWidth := MulDiv(Screen.WorkAreaHeight, 200, 1000);
-
   DefaultDebugWindowHeight := MulDiv(Screen.WorkAreaHeight, 200, 1000);
   DefaultDebugWindowTop := MulDiv(Screen.WorkAreaHeight, 800, 1000);
   DefaultDebugWindowLeft := MulDiv(Screen.WorkAreaWidth, 500, 1000);
@@ -6186,6 +6181,11 @@ BEGIN
   DefaultDiagramsWindowLeft := 0;
   DefaultDiagramsSmallWindowWidth := MulDiv(Screen.WorkAreaWidth, 500, 1000);
   DefaultDiagramsLargeWindowWidth := Screen.WorkAreaWidth;
+
+  DefaultDisplayColoursWindowHeight := MulDiv(Screen.WorkAreaHeight, 200, 1000);
+  DefaultDisplayColoursWindowTop := MulDiv(Screen.WorkAreaHeight, 500, 1000);
+  DefaultDisplayColoursWindowLeft := 0;
+  DefaultDisplayColoursWindowWidth := MulDiv(Screen.WorkAreaHeight, 200, 1000);
 
   DefaultEditWindowHeight := MulDiv(Screen.WorkAreaHeight, 200, 1000);
   DefaultEditWindowTop := MulDiv(Screen.WorkAreaHeight, 800, 1000);

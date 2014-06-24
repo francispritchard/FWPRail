@@ -13,12 +13,12 @@ INTERFACE
 USES InitVars, RailDraw, Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, Dialogs, Grids, StdCtrls, ComCtrls, ExtCtrls, DB, ADODB;
 
 TYPE
-  TCreateRouteDisplayColoursWindow = CLASS(TForm)
-    CreateRouteDisplayColoursWindowRichEdit: TRichEdit;
+  TDisplayColoursWindow = CLASS(TForm)
+    DisplayColoursWindowRichEdit: TRichEdit;
     RouteingExceptionDataADOConnection: TADOConnection;
     RouteingExceptionDataADOTable: TADOTable;
     RouteingExceptionDataSource: TDataSource;
-    PROCEDURE CreateRouteDisplayColoursWindowRichEditKeyDown(Sender: TObject; VAR Key: Word; Shift: TShiftState);
+    PROCEDURE DisplayColoursWindowRichEditKeyDown(Sender: TObject; VAR Key: Word; Shift: TShiftState);
   PRIVATE
     { Private declarations }
   PUBLIC
@@ -26,7 +26,7 @@ TYPE
   END;
 
 VAR
-  CreateRouteDisplayColoursWindow : TCreateRouteDisplayColoursWindow;
+  DisplayColoursWindow : TDisplayColoursWindow;
 
 PROCEDURE CreateClearingSubRouteArray(Route, SubRoute : Integer);
 { Takes the subroute setting up array and converts it to clear the subroute }
@@ -73,7 +73,7 @@ PROCEDURE FindRouteFromLineAToLineB(LocoChip, Journey, S, StartLine, EndLine : I
 FUNCTION GetResettingTrackCircuit(LocoChip, S : Integer; SuppressMessage : Boolean) : Integer;
 { Extract the resetting track circuit (if any) from the Locking Array }
 
-PROCEDURE InitialiseCreateRouteDisplayColoursWindow;
+PROCEDURE InitialiseDisplayColoursWindow;
 { Initialises the window }
 
 PROCEDURE ReadInRouteingExceptionsFromDatabase;
@@ -117,7 +117,7 @@ BEGIN
   TRY
     Log('A INITIALISING ROUTEING EXCEPTIONS {BLANKLINEBEFORE}');
 
-    WITH CreateRouteDisplayColoursWindow DO BEGIN
+    WITH DisplayColoursWindow DO BEGIN
       IF NOT FileExists(PathToRailDataFiles + RouteingExceptionDataFilename + '.' + RouteingExceptionDataFilenameSuffix) THEN BEGIN
         IF MessageDialogueWithDefault('Routeing Exceptions database file "' + PathToRailDataFiles + RouteingExceptionDataFilename + '.' + RouteingExceptionDataFilenameSuffix + '"'
                                       + ' cannot be located'
@@ -3908,22 +3908,22 @@ BEGIN
   END; {TRY}
 END; { CreateRouteArraysForTrain }
 
-PROCEDURE InitialiseCreateRouteDisplayColoursWindow;
+PROCEDURE InitialiseDisplayColoursWindow;
 { Initialises the window }
 BEGIN
-  CreateRouteDisplayColoursWindow.Height := CreateRouteDisplayColoursWindowHeight;
-  CreateRouteDisplayColoursWindow.Width := CreateRouteDisplayColoursWindowWidth;
-  CreateRouteDisplayColoursWindow.Top := CreateRouteDisplayColoursWindowTop;
-  CreateRouteDisplayColoursWindow.Left := CreateRouteDisplayColoursWindowLeft;
-END; { InitialiseCreateRouteDisplayColoursWindow }
+  DisplayColoursWindow.Height := DisplayColoursWindowHeight;
+  DisplayColoursWindow.Width := DisplayColoursWindowWidth;
+  DisplayColoursWindow.Top := DisplayColoursWindowTop;
+  DisplayColoursWindow.Left := DisplayColoursWindowLeft;
+END; { InitialiseDisplayColoursWindow }
 
-PROCEDURE TCreateRouteDisplayColoursWindow.CreateRouteDisplayColoursWindowRichEditKeyDown(Sender: TObject; VAR Key: Word; Shift: TShiftState);
+PROCEDURE TDisplayColoursWindow.DisplayColoursWindowRichEditKeyDown(Sender: TObject; VAR Key: Word; Shift: TShiftState);
 BEGIN
   CASE Key OF
     vk_Escape, vk_Return:
-      CreateRouteDisplayColoursWindow.Hide;
+      DisplayColoursWindow.Hide;
   END; {CASE}
-END; { CreateRouteDisplayColoursWindowRicheditKeyDown }
+END; { DisplayColoursWindowRicheditKeyDown }
 
 INITIALIZATION
 

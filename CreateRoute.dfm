@@ -1,7 +1,7 @@
-object CreateRouteDisplayColoursWindow: TCreateRouteDisplayColoursWindow
+object DisplayColoursWindow: TDisplayColoursWindow
   Left = 0
   Top = 0
-  Caption = 'CreateRouteDisplayColoursWindow'
+  Caption = 'DisplayColoursWindow'
   ClientHeight = 539
   ClientWidth = 600
   Color = clBtnFace
@@ -14,7 +14,7 @@ object CreateRouteDisplayColoursWindow: TCreateRouteDisplayColoursWindow
   OldCreateOrder = False
   PixelsPerInch = 96
   TextHeight = 13
-  object CreateRouteDisplayColoursWindowRichEdit: TRichEdit
+  object DisplayColoursWindowRichEdit: TRichEdit
     Left = 0
     Top = 0
     Width = 600
@@ -28,9 +28,8 @@ object CreateRouteDisplayColoursWindow: TCreateRouteDisplayColoursWindow
     Font.Style = []
     ParentFont = False
     ReadOnly = True
-    ScrollBars = ssBoth
     TabOrder = 0
-    OnKeyDown = CreateRouteDisplayColoursWindowRichEditKeyDown
+    OnKeyDown = DisplayColoursWindowRichEditKeyDown
   end
   object RouteingExceptionDataSource: TDataSource
     Left = 308
