@@ -744,8 +744,8 @@ BEGIN
                                                          ': P=' + IntToStr(Device) + ' already ' + PointStateToStr(Points[Device].Point_RequiredState)
                                                          + ' is now locked for routeing');
                   END ELSE BEGIN
-                    PullPoint(Device, LocoChip, Route, SettingSubRoute, NOT ForcePoint, NOT ByUser,
-                              Routes_SettingUpFailuresMsgWrittenArray[Route], PointResultPending, DebugStr, OK);
+                    PullPoint(Device, LocoChip, Route, SettingSubRoute, NOT ForcePoint, NOT ByUser, Routes_SettingUpFailuresMsgWrittenArray[Route], PointResultPending,
+                              DebugStr, OK);
                     IF OK THEN BEGIN
                       IF PointResultPending THEN BEGIN
                         Routes_PointResultPendingPoint[Route] := Device;

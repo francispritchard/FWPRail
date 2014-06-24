@@ -264,7 +264,9 @@ BEGIN
         { See if the point is affected by an adjoining catch point }
         CatchPoint := 0;
         WHILE CatchPoint <= High(Points) DO BEGIN
-          IF (Points[CatchPoint].Point_Type = CatchPointUp) OR (Points[CatchPoint].Point_Type = CatchPointDown) THEN BEGIN
+          IF ((Points[CatchPoint].Point_Type = CatchPointUp)
+          OR (Points[CatchPoint].Point_Type = CatchPointDown))
+          THEN BEGIN
             IF Points[CatchPoint].Point_OtherPoint = P THEN BEGIN
               IF Points[CatchPoint].Point_PresentState <> Diverging THEN BEGIN
                 IF LockingMsg = '' THEN
@@ -277,7 +279,9 @@ BEGIN
         END; {WHILE}
 
         { And see if a catch point is locked by its adjoining point }
-        IF (Points[P].Point_Type = CatchPointUp) OR (Points[P].Point_Type = CatchPointDown) THEN BEGIN
+        IF (Points[P].Point_Type = CatchPointUp)
+        OR (Points[P].Point_Type = CatchPointDown)
+        THEN BEGIN
           IF Points[Points[P].Point_OtherPoint].Point_PresentState = Straight THEN BEGIN
             IF LockingMsg = '' THEN
               LockingMsg := 'locked:';
@@ -286,7 +290,7 @@ BEGIN
         END;
 
         { Also check if crossover points can change }
-        IF CheckCrossOverPoint THEN
+        IF CheckCrossOverPoint THEN BEGIN
           { pass false as a second argument to prevent PointIsLocked from being called recursively in an infinite loop }
           IF (Points[P].Point_Type = CrossOverPoint) AND PointIsLocked(Points[P].Point_OtherPoint, TempLockingMsg, False) THEN BEGIN
             { but also allow a cross-over point to change to be in agreement with its locked partner }
@@ -296,6 +300,7 @@ BEGIN
               LockingMsg := LockingMsg + ' cross-over point''s corresponding point P=' + PointToStr(Points[P].Point_OtherPoint) + ' is locked';
             END;
           END;
+        END;
       END;
 
       IF Points[P].Point_LockedByUser THEN BEGIN
