@@ -1,11 +1,14 @@
 ; List of files to zip	
-C:\doc\RAD Studio\Projects\Rail\*.*
-C:\doc\RAD Studio\Projects\Rail Data Files\*.mdb
-C:\doc\RAD Studio\Projects\Rail Data Files\*.csv
-C:\doc\RAD Studio\Projects\Rail Data Files\*.sav
-C:\doc\RAD Studio\Projects\Rail Data Files\*.ico
-C:\doc\RAD Studio\Projects\Rail Data Files\*.dll
-C:\doc\RAD Studio\Projects\Rail Data Files\*.ini
-C:\doc\RAD Studio\Projects\Rail Data Files\*.txt
-C:\doc\RAD Studio\Projects\StationTimetable\*.*
-C:\doc\RAD Studio\Projects\RailZip\*.*
+C:\Doc\Google Drive\RAD Studio\Projects\Rail\*.*
+C:\Doc\Google Drive\RAD Studio\Projects\Rail\Rail Data Files\*.css
+C:\Doc\Google Drive\RAD Studio\Projects\Rail\Rail Data Files\*.mdb
+C:\Doc\Google Drive\RAD Studio\Projects\Rail\Rail Data Files\*.exe
+C:\Doc\Google Drive\RAD Studio\Projects\Rail\Rail Data Files\*.mdb
+C:\Doc\Google Drive\RAD Studio\Projects\Rail\Rail Data Files\*.csv
+C:\Doc\Google Drive\RAD Studio\Projects\Rail\Rail Data Files\*.sav
+C:\Doc\Google Drive\RAD Studio\Projects\Rail\Rail Data Files\*.ico
+C:\Doc\Google Drive\RAD Studio\Projects\Rail\Rail Data Files\*.dll
+C:\Doc\Google Drive\RAD Studio\Projects\Rail\Rail Data Files\*.ini
+C:\Doc\Google Drive\RAD Studio\Projects\Rail\Rail Data Files\*.txt
+C:\Doc\Google Drive\RAD Studio\Projects\Rail\StationTimetable\*.*
+C:\Doc\Google Drive\RAD Studio\Projects\Rail\RailZip\*.*
