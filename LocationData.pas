@@ -737,7 +737,7 @@ BEGIN
           IF NOT AlternativeAreaOrLocationAvailable(T, JourneyA, TrainJourney_EndArea, TrainJourney_EndLocation, NewLocation, NewOccupationStartTime, NOT PreRouteing,
                                                     NOT CurrentlyRouteing, OmitLocoTypeRestriction, FindNextAvailableLocation, MayReselectOldLocation, ErrorMsg, SuccessMsg)
           THEN
-            SuspendTrain(T, NOT ByUser, ' J=' + IntToStr(JourneyA) + 'no alternative area or location available to replace ' + LocationToStr(TrainJourney_EndLocation))
+            SuspendTrain(T, NOT ByUser, ' J=' + IntToStr(JourneyA) + ' no alternative area or location available to replace ' + LocationToStr(TrainJourney_EndLocation))
           ELSE BEGIN
             Log(Train_LocoChipStr + ' D J-' + IntToStr(JourneyA)
                                   + ': problem with occupation at ' + LocationToStr(TrainJourney_EndLocation)

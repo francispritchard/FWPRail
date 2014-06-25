@@ -1,5 +1,8 @@
 Things to do:
 
+24/6/14
+Weird error msg: 06:30:00 T 0072 TC=99999 [] not set to TCPermanentFeedbackOccupation as train is marked as ready for creation [Diagrams]
+
 14/6/14
 Pressing Enter doesn't do anything in Loco Dialogue
 Unsetting printing colours doesn't work

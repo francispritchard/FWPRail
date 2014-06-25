@@ -7068,8 +7068,8 @@ BEGIN
     WITH FWPRailWindow DO BEGIN
       LoadIcons;
 
-      { Intercept messages to be able to use the tab key! }
-      Application.OnMessage := ApplicationMessage;
+//      { Intercept messages to be able to use the tab key! }
+//      Application.OnMessage := ApplicationMessage;
 
       { initialize parameters }
       Screen.Cursors[crCrossHair] := LoadCursor(HInstance, 'CrossHair');
