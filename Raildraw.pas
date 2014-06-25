@@ -210,6 +210,7 @@ TYPE
     PROCEDURE DeleteSignalMenuItemClick(Sender: TObject);
     PROCEDURE FlashTimerTick(Sender: TObject);
     PROCEDURE FWPRailApplicationEventsShortCut(VAR Msg: TWMKey; VAR Handled: Boolean);
+    PROCEDURE FWPRailWindowCreate(Sender: TObject);
     PROCEDURE FWPRailWindowClose(Sender: TObject; VAR Action: TCloseAction);
     PROCEDURE FWPRailWindowDestroy(Sender: TObject);
     PROCEDURE FWPRailWindowDragDrop(Sender, Source: TObject; X, Y: Integer);
@@ -471,6 +472,9 @@ TYPE
     PROCEDURE ApplicationMessage(VAR Msg: TMsg; VAR Handled: Boolean);
     { Intercept messages - only way of getting at the tab key! Now replaced by ShortCut above Sept 2009 }
 
+    PROCEDURE ApplicationRestore(Sender: TObject);
+    { First of three routines which allow the program to be minimised by pressing the "minimize" button and then maximised from the taskbar }
+
     PROCEDURE WMCopyData(VAR Msg : TWMCopyData); Message WM_COPYDATA;
     { Receives data from the Watchdog program }
 
@@ -484,6 +488,8 @@ TYPE
     { Added to allow interception of scroll bar events }
     PROCEDURE WMVScroll(VAR ScrollData: TMessage); MESSAGE wm_VScroll;
     { Added to allow interception of scroll bar events }
+    PROCEDURE WMSysCommand(VAR Msg: TWMSysCommand); MESSAGE WM_SYSCOMMAND;
+    { Third of three routines which allow the program to be minimised by pressing the "minimize" button and then maximised from the taskbar }
   END;
 
 procedure CanvasTextOutAngle(x,y: Integer; d: Word; s: string);
@@ -3788,7 +3794,7 @@ BEGIN
     IF FWPRailWindowInitialised THEN BEGIN
       { Resize is called when we start up, so don't set ResizeMap then }
       ResizeMap := True;
-        FWPRailWindow.FWPRailWindowStatusBar.Visible := True;
+      FWPRailWindow.FWPRailWindowStatusBar.Visible := True;
 
       IF (ScreenMode = DefaultWindowedScreenMode) OR (ScreenMode = CustomWindowedScreenMode) THEN BEGIN
         ScreenMode := CustomWindowedScreenMode;
@@ -4034,6 +4040,43 @@ BEGIN
       Log('EG FlashTimerTick:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { FlashTimerTick }
+
+PROCEDURE TFWPRailWindow.ApplicationRestore(Sender: TObject);
+{ First of three routines which allow the program to be minimised by pressing the "minimize" button and then maximised from the taskbar }
+BEGIN
+ IF FWPRailWindow <> NIL THEN
+   FWPRailWindow.WindowState := wsNormal;
+ IF DebugWindow <> NIL THEN
+   DebugWindow.WindowState := wsNormal;
+ IF DiagramsWindow <> NIL THEN
+   DiagramsWindow.WindowState := wsNormal;
+END;
+
+PROCEDURE TFWPRailWindow.FWPRailWindowCreate(Sender: TObject);
+{ Second of three routines which allow the program to be minimised by pressing the "minimize" button and then maximised from the taskbar }
+BEGIN
+  Application.OnRestore := ApplicationRestore;
+END; { FWPRailWindowCreate }
+
+PROCEDURE TFWPRailWindow.WMSysCommand;
+{ Third of three routines which allow the program to be minimised by pressing the "minimize" button and then maximised from the taskbar }
+BEGIN
+   CASE Msg.CmdType OF
+     SC_MINIMIZE:
+       BEGIN
+         IF FWPRailWindow <> NIL THEN
+           FWPRailWindow.WindowState := wsMinimized;
+         IF DebugWindow <> NIL THEN
+           DebugWindow.WindowState := wsMinimized;
+         IF DiagramsWindow <> NIL THEN
+           DiagramsWindow.WindowState := wsMinimized;
+       END;
+   END; {CASE}
+
+   { This would be called if we wished normal minimising/maximising to continue too
+   DefaultHandler(Msg);
+   }
+END; { WMSysCommand }
 
 PROCEDURE TFWPRailWindow.FWPRailWindowDestroy(Sender: TObject);
 BEGIN
