@@ -144,7 +144,7 @@ PROCEDURE ResetDiagramsWindowSizeAndPosition;
 PROCEDURE SetInitialTrackCircuits(T : TrainElement);
 { Sets the initial track circuits for a given route }
 
-PROCEDURE SuspendTrain(T : TrainElement; User : Boolean);
+PROCEDURE SuspendTrain(T : TrainElement; User : Boolean; SuspendMsg : String);
 { Suspend a given train - it can be reactivated in the diagrams window }
 
 FUNCTION TrainFoundInDiagrams(LocoChip : Integer) : TrainElement;
@@ -675,7 +675,8 @@ END; { DeleteAllRoutesForTrain }
 { Throw away the current diagrams, and do appropriate tidying up }
 VAR
   DiscardOK : Boolean;
-  T : Train;
+  OK : Boolean;
+  T : TrainElement;
   TrainFound : Boolean;
 
 BEGIN
@@ -694,12 +695,12 @@ BEGIN
     ELSE
       Log('AG Discarding diagrams');
 
-    T := TrainList;
+    T := 0;
     TrainFound := False;
-    WHILE (T <> NIL)
+    WHILE (T <= High(Trains))
     AND NOT TrainFound
     DO BEGIN
-      WITH T^ DO BEGIN
+      WITH Trains[T] DO BEGIN
         IF (Train_LocoChip <> UnknownLocoChip)
         AND Train_DiagramFound
         THEN BEGIN
@@ -726,7 +727,7 @@ BEGIN
           END;
         END;
       END; {WITH}
-      T := T^.Train_NextRecord;
+      Inc(T);
     END; {WHILE}
 
     { And clear the diagrams }
