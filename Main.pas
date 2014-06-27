@@ -1266,7 +1266,7 @@ BEGIN
                           Point_RequiredState := Straight
                         ELSE
                           Point_RequiredState := Diverging;
-                        PullPoint(P, Point_RouteLockedByLocoChip, NoRoute, NoSubRoute, NOT ForcePoint, ByUser, NOT ErrorMessageRequired,
+                        PullPoint(P, Point_RouteLockedByLocoChip, NoRoute, NoSubRoute, {NOT} ForcePoint, ByUser, NOT ErrorMessageRequired,
                                   PointResultPending, DebugStr, OK);
                       END;
                     mrAbort: { Ignore }
