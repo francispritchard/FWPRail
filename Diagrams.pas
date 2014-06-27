@@ -40,7 +40,6 @@ TYPE
     PROCEDURE DiagramsWindowGridKeyDown(Sender: TObject; VAR Key: Word; ShiftState: TShiftState);
     PROCEDURE DiagramsWindowGridMouseDown(Sender: TObject; Button: TMouseButton; ShiftState: TShiftState; X, Y: Integer);
     PROCEDURE DiagramsWindowGridMouseMove(Sender: TObject; ShiftState: TShiftState; X, Y: Integer);
-    PROCEDURE DiagramsWindowGridSelectCell(Sender: TObject; ACol, ARow: Integer; VAR CanSelect: Boolean);
     PROCEDURE DiagramsWindowHide(Sender: TObject);
     PROCEDURE DiagramsWindowResize(Sender: TObject);
     PROCEDURE DiagramsWindowShow(Sender: TObject);
@@ -672,10 +671,10 @@ BEGIN
   END; {WITH}
 END; { DeleteAllRoutesForTrain }
 
+PROCEDURE DiscardDiagrams(CheckIfOk : Boolean);
 { Throw away the current diagrams, and do appropriate tidying up }
 VAR
   DiscardOK : Boolean;
-  OK : Boolean;
   T : TrainElement;
   TrainFound : Boolean;
 
@@ -1933,11 +1932,6 @@ BEGIN
     KeyPressedDown(Key, ShiftState);
   END; {CASE}
 END; { DiagramsWindowGridKeyDown }
-
-PROCEDURE TDiagramsWindow.PopupDiscardCurrentDiagramsClick(Sender: TObject);
-BEGIN
-  DiscardDiagrams;
-END; { PopupDiscardCurrentDiagramsClick }
 
 PROCEDURE TDiagramsWindow.PopupDriveTrainClick(Sender: TObject);
 BEGIN
