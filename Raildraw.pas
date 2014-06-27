@@ -3505,12 +3505,13 @@ BEGIN
   ShutDownProgram(UnitRef, 'FWPRailWindowExitClick');
 END; { FWPRailWindowExitClick }
 
-PROCEDURE TFWPRailWindow.FWPRailWindowShortCut(VAR Msg: TWMKey; VAR Handled: Boolean); { Replaced by RailApplicationEventsShortuct 16/6/14 }
+PROCEDURE TFWPRailWindow.FWPRailWindowShortCut(VAR Msg: TWMKey; VAR Handled: Boolean);
+{ Replaced by RailApplicationEventsShortcut 16/6/14 }
 //VAR
 //  ShiftState : TShiftState;
 
 BEGIN
-  TRY
+//  TRY
 //    ShiftState := [];
 //    IF GetKeyState(vk_Shift) < 0 THEN
 //      ShiftState := [ssShift];
@@ -3536,10 +3537,10 @@ BEGIN
 //          Handled := True;
 //        END;
 //    END; {CASE}
-  EXCEPT
-    ON E : Exception DO
-      Log('EG FWPRailWindowShortCut:' + E.ClassName + ' error raised, with message: '+ E.Message);
-  END; {TRY}
+//  EXCEPT
+//    ON E : Exception DO
+//      Log('EG FWPRailWindowShortCut:' + E.ClassName + ' error raised, with message: '+ E.Message);
+//  END; {TRY}
 END; { FWPRailWindowShortCut }
 
 //  PROCEDURE TFWPRailWindow.ApplicationMessage(VAR Msg: TMsg; VAR Handled: Boolean);
