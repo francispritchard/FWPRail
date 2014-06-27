@@ -364,8 +364,7 @@ BEGIN
           TrackCircuits[TC].TC_OccupationState := TCPermanentFeedbackOccupation;
           Log(LocoChipToStr(TrackCircuits[TC].TC_LocoChip) + ' T TC=' + IntToStr(TC)
                                                            + ' [' + DescribeLineNamesForTrackCircuit(TC) + ']'
-                                                           + ' set to TCPermanentFeedbackOccupation'
-                                                           + ' as no diagrammed train occupying it');
+                                                           + ' set to TCPermanentFeedbackOccupation as no diagrammed train occupying it');
         END;
       END;
     END; {FOR}
@@ -4544,11 +4543,11 @@ BEGIN
 
         IF ErrorMsg = '' THEN BEGIN
           { this part is both for all trains, moving and non-moving, and those with pending locations too }
-    //      Train_Headcode := GetHeadcode(Train_LocoChip, Train_TypeNum, Train_FinalEndStationName);
+//          Train_Headcode := GetHeadcode(Train_LocoChip, Train_TypeNum, Train_FinalEndStationName);
 
-  //        SetInitialTrackCircuits(T);
-  //        IF Train_InitialTrackcircuits[1] = UnknownTrackCircuit THEN
-  //          ErrorMsg := 'no initial track circuits found';
+//          SetInitialTrackCircuits(T);
+//          IF Train_InitialTrackcircuits[1] = UnknownTrackCircuit THEN
+//             ErrorMsg := 'no initial track circuits found';
         END;
 
         IF (ErrorMsg = '')
