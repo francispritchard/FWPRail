@@ -469,8 +469,8 @@ TYPE
 
   PRIVATE
     { Private declarations }
-    PROCEDURE ApplicationMessage(VAR Msg: TMsg; VAR Handled: Boolean);
-    { Intercept messages - only way of getting at the tab key! Now replaced by ShortCut above Sept 2009 }
+//    PROCEDURE ApplicationMessage(VAR Msg: TMsg; VAR Handled: Boolean);
+//    { Intercept messages - only way of getting at the tab key! Now replaced by ShortCut above Sept 2009 }
 
     PROCEDURE ApplicationRestore(Sender: TObject);
     { First of three routines which allow the program to be minimised by pressing the "minimize" button and then maximised from the taskbar }
@@ -3542,20 +3542,20 @@ BEGIN
   END; {TRY}
 END; { FWPRailWindowShortCut }
 
-PROCEDURE TFWPRailWindow.ApplicationMessage(VAR Msg: TMsg; VAR Handled: Boolean);
-{ Intercept messages - only way of getting at the tab key! Now replaced by ShortCut above Sept 2009 }
-//VAR
-//  Button: TUDBtnType;
-//  OK : Boolean;
-//  ApplicationMessageShiftState : TShiftState = [];
-
-BEGIN
-  CASE Msg.Message OF
-    WM_KEYDOWN:
+//  PROCEDURE TFWPRailWindow.ApplicationMessage(VAR Msg: TMsg; VAR Handled: Boolean);
+//  { Intercept messages - only way of getting at the tab key! Now replaced by ShortCut above Sept 2009 }
+//  VAR
+//    Button: TUDBtnType;
+//    OK : Boolean;
+//    ApplicationMessageShiftState : TShiftState = [];
+//
+//BEGIN
+//  CASE Msg.Message OF
+//    WM_KEYDOWN:
 //      { The WM_KEYDOWN message is posted to the window with the keyboard focus when a non-system key is pressed. A non-system key is a key that is pressed when the Alt
 //        key is not pressed. Used by FWP to capture any key apart from the Alt key and the F10 key.
 //      }
-      CASE Msg.wParam OF
+//      CASE Msg.wParam OF
 //        vk_F12:
 //          ;
 //        vk_Up: { up arrow key - need to handle specially in loco dialogue boxes }
@@ -3592,8 +3592,8 @@ BEGIN
 //            ApplicationMessageShiftState := [];
 //            Handled := True;
 //          END;
-        vk_Space: { space bar - need to handle specially in loco dialogue boxes }
-          debug;
+//        vk_Space: { space bar - need to handle specially in loco dialogue boxes }
+//          debug;
 //          IF LocoDialogueWindow.Visible THEN BEGIN
 //            IF ssShift IN ApplicationMessageShiftState THEN BEGIN
 //              IF MessageDialogueWithDefault('Resume operations?', NOT StopTimer, mtConfirmation, [mbOK, mbAbort],
@@ -3624,7 +3624,7 @@ BEGIN
 //            { set Handled to false in case a form wants to process the tab instead }
 //            Handled := False;
 //          END;
-      END; {CASE}
+//      END; {CASE}
 //    WM_SYSKEYDOWN:
 //      { The WM_SYSKEYDOWN message is posted to the window with the keyboard focus when the user presses the F10 key (which activates the menu bar) or holds down the
 //         ALT key and then presses another key. It also occurs when no window currently has the keyboard focus; in this case, the WM_SYSKEYDOWN message is sent to the
@@ -3697,8 +3697,8 @@ BEGIN
 //         occurs when no window currently has the keyboard focus; in this case, the WM_SYSKEYUP message is sent to the active window. The window that receives the message
 //         can distinguish between these two contexts by checking the context code in the lParam parameter. A window receives this message through its WindowProc function.
 //       };
-  END; {CASE}
-END; { ApplicationMessage }
+//  END; {CASE}
+//END; { ApplicationMessage }
 
 PROCEDURE TFWPRailWindow.FWPRailWindowMouseMove(Sender: TObject; ShiftState: TShiftState; X, Y: Integer);
 { If the mouse moves into the main window, move the focus there, except from the Debug Window. (We can't use Activate as the main window remains activated until we click
