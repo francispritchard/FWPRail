@@ -1491,10 +1491,6 @@ BEGIN
       LocoDialogueSpeedDisplay.Caption := IntToStr(LocoDialogueSelectedLocoSpeed);
       LocoDialogueSpeedDisplay.Font.Color := clBtnText;
     END;
-
-    { Deal with the cleaning wagon - if any }
-    IF (Trains[LocoDialogueTrainRecord].Train_PullingDapolCleaningWagon) AND (DapolCleaningWagonLocoChip <> unknownLocoChip) THEN
-      SetLenzSpeedAndDirection(DapolCleaningWagonLocoChip, 8, Up, OK)
   END; {WITH}
 END; { LocoDialogueIncreaseSpeed }
 
@@ -1581,11 +1577,6 @@ BEGIN
       LocoDialogueSpeedDisplay.Caption := IntToStr(LocoDialogueSelectedLocoSpeed);
       LocoDialogueSpeedDisplay.Font.Color := clBtnText;
     END;
-
-    { Deal with the cleaning wagon - if any }
-    IF (Trains[LocoDialogueTrainRecord].Train_PullingDapolCleaningWagon) AND (DapolCleaningWagonLocoChip <> unknownLocoChip) THEN
-      IF LocoDialogueSelectedLocoSpeed = 0 THEN
-        SetLenzSpeedAndDirection(DapolCleaningWagonLocoChip, QuickStop, Up, OK);
   END; {WITH}
 END; { LocoDialogueDecreaseSpeed }
 

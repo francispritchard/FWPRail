@@ -1989,11 +1989,21 @@ BEGIN
           END;
 
           IF OK THEN BEGIN
+            IF LocoChip = DapolCleaningWagonLocoChip THEN BEGIN
+              { it's a special case - if it's non-zero set it to eight }
+              IF LenzSpeed > 0 THEN
+                LenzSpeed := 8;
+            END;
+
             IF NOT SystemOnline THEN BEGIN
               IF LenzSpeed = QuickStop THEN
                 Debug('Speed for loco ' + LocoChipToStr(LocoChip) + ' would be set to 0 with quick stop set')
-              ELSE
-                Debug('Speed for loco ' + LocoChipToStr(LocoChip) + ' would be set to ' + IntToStr(LenzSpeed));
+              ELSE BEGIN
+                IF LocoChip = DapolCleaningWagonLocoChip THEN
+                  Debug('Speed for Dapol Cleaning Wagon ' + LocoChipToStr(LocoChip) + ' would be set to ' + IntToStr(LenzSpeed))
+                ELSE
+                  Debug('Speed for loco ' + LocoChipToStr(LocoChip) + ' would be set to ' + IntToStr(LenzSpeed));
+              END;
             END ELSE BEGIN
               DebugStr := '';
               OK := False;
@@ -2039,10 +2049,17 @@ BEGIN
                 DebugStr := ' Down';
               END;
 
-              IF LenzSpeed = QuickStop THEN
-                Log(LocoChipToStr(LocoChip) + ' L Writing speed data 0 (with quick stop set) [' + DoBitPattern(TempSpeedByte) + ']' + DebugStr)
-              ELSE
-                Log(LocoChipToStr(LocoChip) + ' L Writing speed data ' + IntToStr(LenzSpeed) + ' [' + DoBitPattern(TempSpeedByte) + ']' + DebugStr);
+              IF LenzSpeed = QuickStop THEN BEGIN
+                IF LocoChip = DapolCleaningWagonLocoChip THEN
+                  Log(LocoChipToStr(LocoChip) + ' L Dapol Cleaning Wagon - writing speed data 0 (with quick stop set) [' + DoBitPattern(TempSpeedByte) + ']' + DebugStr)
+                ELSE
+                  Log(LocoChipToStr(LocoChip) + ' L Writing speed data 0 (with quick stop set) [' + DoBitPattern(TempSpeedByte) + ']' + DebugStr);
+              END ELSE BEGIN
+                IF LocoChip = DapolCleaningWagonLocoChip THEN
+                  Log(LocoChipToStr(LocoChip) + ' L Dapol Cleaning Wagon - writing speed data ' + IntToStr(LenzSpeed) + ' [' + DoBitPattern(TempSpeedByte) + ']' + DebugStr)
+                ELSE
+                  Log(LocoChipToStr(LocoChip) + ' L Writing speed data ' + IntToStr(LenzSpeed) + ' [' + DoBitPattern(TempSpeedByte) + ']' + DebugStr);
+              END;
 
               { now write the byte back }
               WriteLocoSpeedOrDirection(LocoChip, TempSpeedByte, OK);
@@ -2070,7 +2087,7 @@ BEGIN
     ON E : Exception DO
       Log('EG SetLenzSpeed: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
-END; { SetLenzSpeed }
+END; { SetLenzSpeedAndDirection }
 
 FUNCTION AdjustLenzSpeed(LocoChip : Integer; Value : Integer; LocoDirection : DirectionType; OUT OK : Boolean) : Integer;
 { Increase or decrease the speed by given amount }
@@ -2625,7 +2642,7 @@ VAR
   S : Integer;
 
 BEGIN
-  IF OneTimeCodeBeingExecuted THEN    { **** use sempahores - not thread safe - DJW }
+  IF OneTimeCodeBeingExecuted THEN    { **** use semaphores - not thread safe - DJW }
     Exit
   ELSE
     OneTimeCodeBeingExecuted := True;

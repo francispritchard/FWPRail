@@ -6668,19 +6668,8 @@ BEGIN
       StopAParticularLocomotive(Train_LocoChip, OK);
       IF Train_DoubleHeaderLocoChip <> UnknownLocoChip THEN BEGIN
         StopAParticularLocomotive(Train_DoubleHeaderLocoChip, OK);
-        DebugStr := DebugStr + '. DH Loco ' + LocoChipToStr(Train_DoubleHeaderLocoChip);
+        DebugStr := DebugStr + '. DH Loco ' + LocoChipToStr(Train_DoubleHeaderLocoChip) + ' also stopped';
       END;
-
-      IF Train_PullingDapolCleaningWagon THEN BEGIN
-        StopAParticularLocomotive(DapolCleaningWagonLocoChip, OK);
-//        SetLenzSpeed(DapolCleaningWagonLocoChip, 0, 0, Up, QuickStop, OK);
-        DapolCleaningWagonLocoChipRunning := False;
-        Log(Train_LocoChipStr + ' L Dapol cleaning wagon stopped too');
-        DebugStr := DebugStr + '. Dapol cleaning wagon ' + LocoChipToStr(DapolCleaningWagonLocoChip);
-      END;
-
-      IF (Train_DoubleHeaderLocoChip <> UnknownLocoChip) OR Train_PullingDapolCleaningWagon THEN
-        DebugStr := DebugStr + ' also stopped';
 
       Log(Train_LocoChipStr + ' L ' + DebugStr);
     END;

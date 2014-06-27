@@ -180,7 +180,6 @@ BEGIN
       Train_PreviouslyControlledByProgram := False;
       Train_PreviousStatus := ReadyForCreation;
       Train_PreviousTC := UnknownTrackCircuit;
-      Train_PullingDapolCleaningWagon := False;
       Train_Reversing := False;
       Train_ReversingDelayInSeconds := 0;
       Train_ReversingStartTime := 0;

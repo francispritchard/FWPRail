@@ -509,21 +509,6 @@ BEGIN { SetDesiredTrainSpeed }
       Train_UserPowerAdjustment := 0;
       Log(Train_LocoChipStr + ' L Train desired speed = 0 so user increased speed setting turned off');
     END;
-
-    { Finally deal with the cleaning wagon - if attached } { need to check if covered by emergency stops elsewhere ******* }
-    IF Train_PullingDapolCleaningWagon THEN BEGIN
-      IF Train_DesiredLenzSpeed > 0 THEN BEGIN
-        IF NOT DapolCleaningWagonLocoChipRunning THEN BEGIN
-          SetLenzSpeedAndDirection(DapolCleaningWagonLocoChip, 8, Up, OK);
-          DapolCleaningWagonLocoChipRunning := True;
-        END;
-      END ELSE BEGIN
-        IF DapolCleaningWagonLocoChipRunning THEN BEGIN
-          SetLenzSpeedAndDirection(DapolCleaningWagonLocoChip, QuickStop, Up, OK);
-          DapolCleaningWagonLocoChipRunning := False;
-        END;
-      END;
-    END;
   END; {WITH}
 END; { SetDesiredTrainSpeed }
 

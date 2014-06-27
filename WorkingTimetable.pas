@@ -2358,7 +2358,6 @@ VAR
   LightsOnTime : TDateTime;
   LightsRemainOn : Boolean;
   NotForPublicUseArray : BooleanArrayType;
-  PullingDapolCleaningWagon : Boolean;
   StartLocationStr : String;
   StartOfRepeatJourney : Boolean;
   StoppingArray : BooleanArrayType;
@@ -2408,7 +2407,6 @@ BEGIN
         ELSE
           AppendToBooleanArray(NotForPublicUseArray, False);
 
-        PullingDapolCleaningWagon := Trains[T].Train_PullingDapolCleaningWagon;
         LengthOfTrainInCarriages := Trains[T].Train_CurrentLengthInInches DIV 12;
         StartLocationStr := AreaToStr(WorkingTimetable_FirstStationArea);
         TypeOfTrainNum := WorkingTimetable_TrainTypeNum;
@@ -2438,7 +2436,7 @@ BEGIN
 
         UpdateTrainRecordForDiagram(WorkingTimetable_LocoChip, DoubleHeaderLocoChip, JourneyCount, UserSpecifiedDepartureTimesArray, LightsOnTime, EndLocationsStrArray,
                                     DirectionsArray, LightsRemainOn, TrainNonMoving, NotForPublicUseArray, StartLocationStr, StoppingArray, LengthOfTrainInCarriages,
-                                    TypeOfTrainNum, UserDriving, UserRequiresInstructions, StartOfRepeatJourney, PullingDapolCleaningWagon);
+                                    TypeOfTrainNum, UserDriving, UserRequiresInstructions, StartOfRepeatJourney);
 
         Log('W W=' + WorkingTimetable_EntryNumStr + ': ' +  LocoChipToStr(WorkingTimetable_LocoChip)
                + ' ' + StartLocationStr + ' to ' + EndLocationsStrArray[High(EndLocationsStrArray)]

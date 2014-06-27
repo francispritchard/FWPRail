@@ -154,7 +154,7 @@ FUNCTION UpdateTrainRecordForDiagram(LocoChip, DoubleHeaderLocoChip, JourneyCoun
                                      EndLocationsStrArray : StringArrayType; DirectionsArray : DirectionArrayType; LightsRemainOn : Boolean; TrainNonMoving : Boolean;
                                      NotForPublicUseArray : BooleanArrayType; StartLocationStr : String; StoppingArray : BooleanArrayType;
                                      LengthOfTrainInCarriages : Integer; TypeOfTrainNum : Integer;
-                                     UserDriving, UserRequiresInstructions, StartOfRepeatJourney, PullingDapolCleaningWagon : Boolean)
+                                     UserDriving, UserRequiresInstructions, StartOfRepeatJourney : Boolean)
                                     : TrainElement;
 { Updates a train record to add to the diagram - NB the array parameters being passed are open array parameters and therefore start at zero }
 
@@ -1589,7 +1589,7 @@ BEGIN
                 ELSE
                   SetUpDiagramsGridCell(T, HeadcodeCol, TempGridRowCount, IntToStr(Train_CurrentLengthInInches), NormalStyle);
 
-                IF Train_PullingDapolCleaningWagon THEN
+                IF Train_DoubleHeaderLocoChip = DapolCleaningWagonLocoChip THEN
                   SetUpDiagramsGridCell(T, LocoClassCol, TempGridRowCount, DescribeClass(Train_LocoClassStr) + ' + C', NormalStyle)
                 ELSE
                   SetUpDiagramsGridCell(T, LocoClassCol, TempGridRowCount, DescribeClass(Train_LocoClassStr), NormalStyle);
@@ -3545,7 +3545,7 @@ FUNCTION UpdateTrainRecordForDiagram(LocoChip, DoubleHeaderLocoChip, JourneyCoun
                                      EndLocationsStrArray : StringArrayType; DirectionsArray : DirectionArrayType; LightsRemainOn : Boolean; TrainNonMoving : Boolean;
                                      NotForPublicUseArray : BooleanArrayType; StartLocationStr : String; StoppingArray : BooleanArrayType;
                                      LengthOfTrainInCarriages : Integer; TypeOfTrainNum : Integer;
-                                     UserDriving, UserRequiresInstructions, StartOfRepeatJourney, PullingDapolCleaningWagon : Boolean)
+                                     UserDriving, UserRequiresInstructions, StartOfRepeatJourney : Boolean)
                                     : TrainElement;
 { Updates a train record to add to the diagram - NB the array parameters being passed are open array parameters and therefore start at zero }
 CONST
@@ -3738,15 +3738,6 @@ BEGIN
 
         Train_TypeNum := TypeOfTrainNum;
         Train_Type := TrainTypeNumToTrainType(Train_TypeNum);
-
-        IF PullingDapolCleaningWagon THEN BEGIN
-          IF DapolCleaningWagonLocoChip = UnknownLocoChip THEN
-            Log(Train_LocoChipStr + ' XG cannot be noted as pulling Dapol Cleaning wagon as there is no locochip for it')
-          ELSE BEGIN
-            Train_PullingDapolCleaningWagon := True;
-            Log(Train_LocoChipStr + ' L pulling Dapol Cleaning wagon');
-          END;
-        END;
 
         { Find out where this loco is in the loco data table - the routine returns -1 if the loco is not in the loco table }
         IF (Train_CurrentStatus = NonMoving)
@@ -4650,7 +4641,6 @@ VAR
   T_StoppingArray : BooleanArrayType;
   T_TrainActive : Boolean;
   T_TrainLengthInCarriages : Integer;
-  T_TrainPullingDapolCleaningWagon : Boolean;
   T_TrainTypeNum : Integer;
   T_UserDriving : Boolean;
   T_UserRequiresInstructions : Boolean;
@@ -4722,7 +4712,6 @@ BEGIN
           T_TrainActive := FieldByName('TrainActive').AsBoolean;
           T_NonMoving := FieldByName('NonMoving').AsBoolean;
           T_LocoChip := FieldByName('LocoChip').AsInteger;
-          T_TrainPullingDapolCleaningWagon := False;
 
           IF T_TrainActive
           AND T_NonMoving
@@ -4771,10 +4760,6 @@ BEGIN
             END;
 
             IF ErrorMsg = '' THEN BEGIN
-              { Is the loco pulling a Dapol cleaning wagon? }
-              IF FieldByName('PullingDapolCleaningWagon').AsBoolean THEN
-                T_TrainPullingDapolCleaningWagon := True;
-
               IF FieldByName('TrainLength').AsString = '' THEN
                 T_TrainLengthInCarriages := 0
               ELSE
@@ -4904,8 +4889,7 @@ BEGIN
               { Now process it to create a train - or a succession, if they are repeats }
               T := UpdateTrainRecordForDiagram(T_LocoChip, T_DoubleHeaderLocoChip, JourneyCount, T_DepartureTimesArray, T_LightsOnTime, T_DestinationAreaOrLocationsStrArray,
                                                T_DirectionsArray, T_LightsRemainOn, T_NonMoving, T_NotForPublicUseArray, T_StartAreaOrLocationStr, T_StoppingArray,
-                                               T_TrainLengthInCarriages, T_TrainTypeNum, T_UserDriving, T_UserRequiresInstructions, NOT StartOfRepeatJourney,
-                                               T_TrainPullingDapolCleaningWagon);
+                                               T_TrainLengthInCarriages, T_TrainTypeNum, T_UserDriving, T_UserRequiresInstructions, NOT StartOfRepeatJourney);
 
               IF NOT T_NonMoving
               AND (T_RepeatUntilTime <> 0)
@@ -4985,7 +4969,7 @@ BEGIN
                     T := UpdateTrainRecordForDiagram(T_LocoChip, T_DoubleHeaderLocoChip, JourneyCount, T_DepartureTimesArray, T_LightsOnTime,
                                                      T_DestinationAreaOrLocationsStrArray, T_DirectionsArray, T_LightsRemainOn, T_NonMoving, T_NotForPublicUseArray,
                                                      T_StartAreaOrLocationStr, T_StoppingArray, T_TrainLengthInCarriages, T_TrainTypeNum, T_UserDriving,
-                                                     T_UserRequiresInstructions, StartOfRepeatJourney, T_TrainPullingDapolCleaningWagon);
+                                                     T_UserRequiresInstructions, StartOfRepeatJourney);
                   END; {WHILE}
 
                   { And if there's a stored journey, add it now }
@@ -5010,7 +4994,7 @@ BEGIN
                     T := UpdateTrainRecordForDiagram(T_LocoChip, T_DoubleHeaderLocoChip, JourneyCount, T_DepartureTimesArray, T_LightsOnTime,
                                                      T_DestinationAreaOrLocationsStrArray, T_DirectionsArray, T_LightsRemainOn, T_NonMoving, T_NotForPublicUseArray,
                                                      T_StartAreaOrLocationStr, T_StoppingArray, T_TrainLengthInCarriages, T_TrainTypeNum, T_UserDriving,
-                                                     T_UserRequiresInstructions, NOT StartOfRepeatJourney, T_TrainPullingDapolCleaningWagon);
+                                                     T_UserRequiresInstructions, NOT StartOfRepeatJourney);
                   END;
                 END;
               END;

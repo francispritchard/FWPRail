@@ -865,7 +865,6 @@ TYPE
     Train_NotLocatedAtStartupMsgWritten : Boolean;
     Train_PossibleRerouteTime : TDateTime;
     Train_PreviouslyControlledByProgram : Boolean;
-    Train_PullingDapolCleaningWagon : Boolean;
     Train_PreviousStatus : TrainStatusType;
     Train_PreviousTC : Integer;
     Train_Reversing : Boolean;
