@@ -381,7 +381,7 @@ END; { LocoDialogueDHLocoMaskEditChange }
 PROCEDURE LocoDialogueReturnFunctionState;
 { Reads in the function states for the chip. Does not need ForceRead as a loco speed read has recently been done }
 VAR
-  FunctionsArray : Array[0..12] OF Boolean;
+  FunctionsArray : ARRAY[0..12] OF Boolean;
   OK : Boolean;
 
 BEGIN
@@ -1832,7 +1832,7 @@ BEGIN
     LocoDialogueTurnLightsOnOrOffButton.Enabled := True;
     LocoDialogueSpeedInMPHButton.Enabled := True;
     IF Trains[LocoDialogueDoubleHeaderTrainRecord].Train_SpeedSettingsMissing THEN
-      { can't allow double heading where we don;t know that the two locos have compatible speed settings }
+      { can't allow double heading where we don't know that the two locos have compatible speed settings }
       LocoDialogueSpeedInMPHButton.Enabled := False
     ELSE BEGIN
       { but if the speed settings are different for the two locos, we have to use MPH speeds as running the locos with different Lenz speed settings will cause problems }
