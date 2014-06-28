@@ -1089,124 +1089,129 @@ CONST
     ToMinute : Integer;
 
   BEGIN
-    WITH Trains[T] DO BEGIN
-      SuccessMsg := '';
+    TRY
+      WITH Trains[T] DO BEGIN
+        SuccessMsg := '';
       
-      IF DebuggingMode THEN
-        Log(Train_LocoChipStr + ' D ' + DisplayJourneyNumber(Journey) + 'Finding next available location:');
+        IF DebuggingMode THEN
+          Log(Train_LocoChipStr + ' D ' + DisplayJourneyNumber(Journey) + 'Finding next available location:');
 
-      { Clear the array first }
-      FOR I := 0 TO EndOfDayInMinutes DO
-        MinutesOccupiedArray[I] := False;
+        { Clear the array first }
+        FOR I := 0 TO EndOfDayInMinutes DO
+          MinutesOccupiedArray[I] := False;
 
-      { Now add the occupations to an array of each minute in the day }
-      LocationOccupationArrayPos := 0;
-      WHILE LocationOccupationArrayPos <= High(LocationOccupations[MainLocation]) DO BEGIN
-        FromMinute := GetMinuteFromTime(LocationOccupations[MainLocation, LocationOccupationArrayPos].LocationOccupation_StartTime);
-        ToMinute := GetMinuteFromTime(LocationOccupations[MainLocation, LocationOccupationArrayPos].LocationOccupation_EndTime);
-
-        FOR I := FromMinute TO ToMinute DO
-          MinutesOccupiedArray[I] := True;
-
-        Inc(LocationOccupationArrayPos);
-      END; {WHILE}
-
-      IF AdjoiningLocationRequired THEN BEGIN
+        { Now add the occupations to an array of each minute in the day }
         LocationOccupationArrayPos := 0;
-        WHILE LocationOccupationArrayPos <= High(LocationOccupations[AdjoiningLocation]) DO BEGIN
-          FromMinute := GetMinuteFromTime(LocationOccupations[AdjoiningLocation, LocationOccupationArrayPos].LocationOccupation_StartTime);
-          ToMinute := GetMinuteFromTime(LocationOccupations[AdjoiningLocation, LocationOccupationArrayPos].LocationOccupation_EndTime);
+        WHILE LocationOccupationArrayPos <= High(LocationOccupations[MainLocation]) DO BEGIN
+          FromMinute := GetMinuteFromTime(LocationOccupations[MainLocation, LocationOccupationArrayPos].LocationOccupation_StartTime);
+          ToMinute := GetMinuteFromTime(LocationOccupations[MainLocation, LocationOccupationArrayPos].LocationOccupation_EndTime);
 
           FOR I := FromMinute TO ToMinute DO
             MinutesOccupiedArray[I] := True;
 
           Inc(LocationOccupationArrayPos);
         END; {WHILE}
-      END;
 
-      SaveMinuteOccupationState := MinutesOccupiedArray[0];
-      FOR I := 0  TO EndOfDayInMinutes DO BEGIN
-        IF MinutesOccupiedArray[I] <> SaveMinuteOccupationState THEN BEGIN
-          { the start of an availability }
-          SaveMinuteOccupationState := MinutesOccupiedArray[I];
-          SetLength(AvailabilityArray, Length(AvailabilityArray) + 1);
-          IF MinutesOccupiedArray[I] THEN
-            AvailabilityArray[High(AvailabilityArray)].LocationOccupation_EndTime := GetTimeFromMinute(I - 1)
-          ELSE BEGIN
-            AvailabilityArray[High(AvailabilityArray)].LocationOccupation_StartTime := GetTimeFromMinute(I);
+        IF AdjoiningLocationRequired THEN BEGIN
+          LocationOccupationArrayPos := 0;
+          WHILE LocationOccupationArrayPos <= High(LocationOccupations[AdjoiningLocation]) DO BEGIN
+            FromMinute := GetMinuteFromTime(LocationOccupations[AdjoiningLocation, LocationOccupationArrayPos].LocationOccupation_StartTime);
+            ToMinute := GetMinuteFromTime(LocationOccupations[AdjoiningLocation, LocationOccupationArrayPos].LocationOccupation_EndTime);
+
+            FOR I := FromMinute TO ToMinute DO
+              MinutesOccupiedArray[I] := True;
+
+            Inc(LocationOccupationArrayPos);
+          END; {WHILE}
+        END;
+
+        SaveMinuteOccupationState := MinutesOccupiedArray[0];
+        FOR I := 0  TO EndOfDayInMinutes DO BEGIN
+          IF MinutesOccupiedArray[I] <> SaveMinuteOccupationState THEN BEGIN
+            { the start of an availability }
+            SaveMinuteOccupationState := MinutesOccupiedArray[I];
+            SetLength(AvailabilityArray, Length(AvailabilityArray) + 1);
+            IF MinutesOccupiedArray[I] THEN
+              AvailabilityArray[High(AvailabilityArray)].LocationOccupation_EndTime := GetTimeFromMinute(I - 1)
+            ELSE BEGIN
+              AvailabilityArray[High(AvailabilityArray)].LocationOccupation_StartTime := GetTimeFromMinute(I);
+            END;
           END;
         END;
-      END;
 
-      IF DebuggingMode THEN
-        FOR AvailabilityArrayPos := 0 TO High(AvailabilityArray) DO
-          Log('X ' + TimeToHMStr(AvailabilityArray[AvailabilityArrayPos].LocationOccupation_StartTime)
-                 + 'to' + TimeToHMStr(AvailabilityArray[AvailabilityArrayPos].LocationOccupation_EndTime));
+        IF DebuggingMode THEN
+          FOR AvailabilityArrayPos := 0 TO High(AvailabilityArray) DO
+            Log('X ' + TimeToHMStr(AvailabilityArray[AvailabilityArrayPos].LocationOccupation_StartTime)
+                   + 'to' + TimeToHMStr(AvailabilityArray[AvailabilityArrayPos].LocationOccupation_EndTime));
 
-      ReturnedStartTime := 0;
-      WITH Locationoccupations[MainLocation][LocationOccupationArrayPos] DO BEGIN
-        IF RequiredDurationInMinutes = -1 THEN
-          DebugStr := LocationToStr(MainLocation)
-                      + IfThen(AdjoiningLocationRequired,
-                               '/' + LocationToStr(AdjoiningLocation), '')
-                      + ': looking for occupation from ' + TimeToHMStr(RequestedStartTime) + ' until 23:59'
-        ELSE
-          DebugStr := LocationToStr(MainLocation)
-                      + IfThen(AdjoiningLocationRequired,
-                               '/' + LocationToStr(AdjoiningLocation), '')
-                      + ': looking for ' + IntToStr(RequiredDurationInMinutes) + ' mins at ' + TimeToHMStr(RequestedStartTime);
-      END; {WITH}
+        ReturnedStartTime := 0;
+        WITH LocationOccupations[MainLocation][LocationOccupationArrayPos] DO BEGIN
+          IF RequiredDurationInMinutes = -1 THEN
+            DebugStr := LocationToStr(MainLocation)
+                        + IfThen(AdjoiningLocationRequired,
+                                 '/' + LocationToStr(AdjoiningLocation), '')
+                        + ': looking for occupation from ' + TimeToHMStr(RequestedStartTime) + ' until 23:59'
+          ELSE
+            DebugStr := LocationToStr(MainLocation)
+                        + IfThen(AdjoiningLocationRequired,
+                                 '/' + LocationToStr(AdjoiningLocation), '')
+                        + ': looking for ' + IntToStr(RequiredDurationInMinutes) + ' mins at ' + TimeToHMStr(RequestedStartTime);
+        END; {WITH}
 
-      FromMinute := GetMinuteFromTime(RequestedStartTime);
-      AvailabilityFound := False;
-      MinuteCounter := 0;
-      SavedMinute := 0;
+        FromMinute := GetMinuteFromTime(RequestedStartTime);
+        AvailabilityFound := False;
+        MinuteCounter := 0;
+        SavedMinute := 0;
 
-      I := FromMinute;
-      WHILE (I <= EndOfDayInMinutes)
-      AND NOT AvailabilityFound
-      DO BEGIN
-        { See if the minute is occupied }
-        IF NOT MinutesOccupiedArray[I] THEN BEGIN
-          IF SavedMinute = 0 THEN BEGIN
-            IF DebuggingMode THEN
-              Log('X found gap at ' + TimeToHMStr(GetTimeFromMinute(I)));
-            SavedMinute := I;
-          END;
+        I := FromMinute;
+        WHILE (I <= EndOfDayInMinutes)
+        AND NOT AvailabilityFound
+        DO BEGIN
+          { See if the minute is occupied }
+          IF NOT MinutesOccupiedArray[I] THEN BEGIN
+            IF SavedMinute = 0 THEN BEGIN
+              IF DebuggingMode THEN
+                Log('X found gap at ' + TimeToHMStr(GetTimeFromMinute(I)));
+              SavedMinute := I;
+            END;
 
-          Inc(MinuteCounter);
-          IF (RequiredDurationInMinutes <> 0)
-          AND (MinuteCounter = RequiredDurationInMinutes + 1)
-          THEN BEGIN
-            ReturnedStartTime := GetTimeFromMinute(SavedMinute);
-            Log(Train_LocoChipStr + ' D ' + DisplayJourneyNumber(Journey)
-                                  + DebugStr + ' - returned time=' + TimeToHMStr(ReturnedStartTime));
-            AvailabilityFound := True;
-            SuccessMsg := 'substituted time=' + TimeToHMStr(ReturnedStartTime);
-          END ELSE
-            IF I = EndOfDayInMinutes THEN BEGIN
+            Inc(MinuteCounter);
+            IF (RequiredDurationInMinutes <> 0)
+            AND (MinuteCounter = RequiredDurationInMinutes + 1)
+            THEN BEGIN
               ReturnedStartTime := GetTimeFromMinute(SavedMinute);
               Log(Train_LocoChipStr + ' D ' + DisplayJourneyNumber(Journey)
                                     + DebugStr + ' - returned time=' + TimeToHMStr(ReturnedStartTime));
               AvailabilityFound := True;
               SuccessMsg := 'substituted time=' + TimeToHMStr(ReturnedStartTime);
-            END;
-        END ELSE BEGIN
-          { the minute is occupied }
-          MinuteCounter := 0;
-          SavedMinute := 0;
+            END ELSE
+              IF I = EndOfDayInMinutes THEN BEGIN
+                ReturnedStartTime := GetTimeFromMinute(SavedMinute);
+                Log(Train_LocoChipStr + ' D ' + DisplayJourneyNumber(Journey)
+                                      + DebugStr + ' - returned time=' + TimeToHMStr(ReturnedStartTime));
+                AvailabilityFound := True;
+                SuccessMsg := 'substituted time=' + TimeToHMStr(ReturnedStartTime);
+              END;
+          END ELSE BEGIN
+            { the minute is occupied }
+            MinuteCounter := 0;
+            SavedMinute := 0;
+          END;
+
+          Inc(I);
+        END; {WHILE}
+
+        IF AvailabilityFound THEN
+          OK := True
+        ELSE BEGIN
+          OK := False;
+          Log(Train_LocoChipStr + ' D ' + DisplayJourneyNumber(Journey) + DebugStr + ' - no availability found');
         END;
-
-        Inc(I);
-      END; {WHILE}
-
-      IF AvailabilityFound THEN
-        OK := True
-      ELSE BEGIN
-        OK := False;
-        Log(Train_LocoChipStr + ' D ' + DisplayJourneyNumber(Journey) + DebugStr + ' - no availability found');
-      END;
-    END; {WITH}
+      END; {WITH}
+    EXCEPT
+      ON E : Exception DO
+        Log('EG FindNextAvailabilityForLocation: ' + E.ClassName + ' error raised, with message: '+ E.Message);
+    END; {TRY}
   END; { FindNextAvailabilityForLocation }
 
   PROCEDURE DeleteElementFromPossibleLocationsArray(VAR PossibleLocationsArray : PossibleLocationsArrayType; Position : Integer);
@@ -1215,10 +1220,15 @@ CONST
     I : Integer;
 
   BEGIN
-    { Move all existing elements down one }
-    FOR I := Position TO (Length(PossibleLocationsArray) - 2) DO
-      PossibleLocationsArray[I] := PossibleLocationsArray[I + 1];
-    SetLength(PossibleLocationsArray, Length(PossibleLocationsArray) - 1);
+    TRY
+      { Move all existing elements down one }
+      FOR I := Position TO (Length(PossibleLocationsArray) - 2) DO
+        PossibleLocationsArray[I] := PossibleLocationsArray[I + 1];
+      SetLength(PossibleLocationsArray, Length(PossibleLocationsArray) - 1);
+    EXCEPT
+      ON E : Exception DO
+        Log('EG DeleteElementFromPossibleLocationsArray: ' + E.ClassName + ' error raised, with message: '+ E.Message);
+    END; {TRY}
   END; { DeleteElementFromPossibleLocationsArray }
 
   PROCEDURE FindPossibleAlternatives(T : TrainElement; Journey : Integer; Area : Integer; OldLocation : Integer; MayReselectOldLocation : Boolean;
