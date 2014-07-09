@@ -633,7 +633,7 @@ VAR
   ErrorMsg : String;
   FieldName : String;
   I : Integer;
-  T : TrainElement;
+  T : TrainIndex;
   TempStr : String;
   TempStrArray : StringArrayType;
 
@@ -1007,7 +1007,7 @@ BEGIN
 
     IF OK THEN BEGIN
        { now work out the route }
-      FindRouteFromLineAToLineB(NoLocoChip, NoJourney, UnknownSignal, StartLine, EndLine, Direction, TrainTypeNumToTrainType(TrainTypeNum), TrainLength,
+      FindRouteFromLineAToLineB(UnknownLocoChipStr, NoJourney, UnknownSignal, StartLine, EndLine, Direction, TrainTypeNumToTrainType(TrainTypeNum), TrainLength,
                                 UseEmergencyRouteing, NOT IncludeOutOfUseLines, RouteArray, LinesNotAvailableStr, ErrorMsg, OK);
       IF NOT OK THEN
         Log('W W=' + EntryNumStr + ':    '
@@ -1068,7 +1068,7 @@ END; { GetRouteDirection }
 FUNCTION WhichTrainsAreAvailableAtRequiredTime(EntryNumStr : String; Area : Integer; DepartureTime : TDateTime) : IntegerArrayType;
 { See which of the locos are in the right starting place and if they are available at the required departure time for the required journey time }
 VAR
-  T : TrainElement;
+  T : TrainIndex;
 
 BEGIN
   SetLength(Result, 0);
@@ -1119,7 +1119,7 @@ FUNCTION WhichAvailableTrainsAreSuitable(EntryNumStr : String; AllTrains : Integ
     MaxTrainLength : Real;
     SortedTrainsArray : IntegerArrayType;
     TempPos : Integer;
-    T : TrainElement;
+    T : TrainIndex;
     UnsortedTrainsArray : IntegerArrayType;
 
   BEGIN
@@ -1140,18 +1140,24 @@ FUNCTION WhichAvailableTrainsAreSuitable(EntryNumStr : String; AllTrains : Integ
           TempPos := -1;
           MaxTrainLength := 999;
           FOR J := 0 TO High(UnsortedTrainsArray) DO BEGIN
-            T := GetTrainRecord(UnsortedTrainsArray[J]);
-            WITH Trains[T] DO BEGIN
-              IF Train_FixedLengthInInches <> 0 THEN
-                Train_CurrentLengthInInches := Train_FixedLengthInInches
-              ELSE
-                Train_CurrentLengthInInches := Train_LastLengthInInches;
+            T := GetTrainIndexFromLocoChip(UnsortedTrainsArray[J]);
+            IF T = UnknownTrainIndex THEN
+              UnknownTrainRecordFound('SortTrainsInIntegerArrayByLength')
+            ELSE BEGIN
+              IF T <> UnknownTrainIndex THEN BEGIN
+                WITH Trains[T] DO BEGIN
+                  IF Train_FixedLengthInInches <> 0 THEN
+                    Train_CurrentLengthInInches := Train_FixedLengthInInches
+                  ELSE
+                    Train_CurrentLengthInInches := Train_LastLengthInInches;
 
-              IF Train_CurrentLengthInInches < MaxTrainLength THEN BEGIN
-                MaxTrainLength := Train_CurrentLengthInInches;
-                TempPos := J;
+                  IF Train_CurrentLengthInInches < MaxTrainLength THEN BEGIN
+                    MaxTrainLength := Train_CurrentLengthInInches;
+                    TempPos := J;
+                  END;
+                END; {WITH}
               END;
-            END; {WITH}
+            END;
           END; {FOR}
 
           SetLength(SortedTrainsArray, Length(SortedTrainsArray) + 1);
@@ -1186,10 +1192,10 @@ VAR
 //    InaccessibleTrainFound : Boolean;
   PossiblySuitableTrains : IntegerArrayType;
   SuitableTrainsCount : Integer;
-  T : TrainElement;
+  T : TrainIndex;
   TempArray1 : IntegerArrayType;
   TempArray2 : IntegerArrayType;
-  TempLocoChip : Integer;
+  TempLocoChip : LocoChipType;
 //    TrainCount : Integer;
   TrainsSelected : Integer;
   UnsuitableClassArray : IntegerArrayType;
@@ -1210,24 +1216,26 @@ BEGIN { WhichAvailableTrainsAreSuitable }
     SetLength(TempArray2, 0);
 
     WHILE SuitableTrainsCount <= High(AllTrains) DO BEGIN
-      T := GetTrainRecord(AllTrains[SuitableTrainsCount]);
-      WITH Trains[T] DO BEGIN
-        IF Train_LocoClassStr <> PossibleLocoClasses[ClassCount] THEN
-          AppendToIntegerArray(UnsuitableClassArray, Train_LocoChip)
-        ELSE
-          IF (Train_CurrentLengthInInches > MaxLength)
-          OR (Train_FixedLengthInInches > MaxLength)
-          OR (Train_LastLengthInInches > MaxLength)
-          THEN BEGIN
-            AppendToIntegerArray(UnsuitableLengthArray, Train_LocoChip);
-            Log('W W=' + EntryNumStr + ':    '
-                   + LocoChipToStr(Train_LocoChip) + ' is from class ' + PossibleLocoClasses[ClassCount] + ' but is too long');
-          END ELSE BEGIN
-            Inc(TrainsSelected);
-            AppendToIntegerArray(TempArray1, AllTrains[SuitableTrainsCount]);
-            AppendToIntegerArray(TempArray2, AllTrains[SuitableTrainsCount]);
-          END;
-        Inc(SuitableTrainsCount);
+      T := GetTrainIndexFromLocoChip(AllTrains[SuitableTrainsCount]);
+      IF T <> UnknownTrainIndex THEN BEGIN
+        WITH Trains[T] DO BEGIN
+          IF Train_LocoClassStr <> PossibleLocoClasses[ClassCount] THEN
+            AppendToIntegerArray(UnsuitableClassArray, Train_LocoChip)
+          ELSE
+            IF (Train_CurrentLengthInInches > MaxLength)
+            OR (Train_FixedLengthInInches > MaxLength)
+            OR (Train_LastLengthInInches > MaxLength)
+            THEN BEGIN
+              AppendToIntegerArray(UnsuitableLengthArray, Train_LocoChip);
+              Log('W W=' + EntryNumStr + ':    '
+                     + LocoChipToStr(Train_LocoChip) + ' is from class ' + PossibleLocoClasses[ClassCount] + ' but is too long');
+            END ELSE BEGIN
+              Inc(TrainsSelected);
+              AppendToIntegerArray(TempArray1, AllTrains[SuitableTrainsCount]);
+              AppendToIntegerArray(TempArray2, AllTrains[SuitableTrainsCount]);
+            END;
+          Inc(SuitableTrainsCount);
+        END;
       END; {WITH}
     END; {WHILE}
 
@@ -1282,7 +1290,7 @@ BEGIN { WhichAvailableTrainsAreSuitable }
 //        TrainCount := 0;
 //        WHILE TrainCount <= High(PossiblySuitableTrains) DO BEGIN
 //          InaccessibleTrainFound := False;
-//          T := GetTrainRecord(PossiblySuitableTrains[TrainCount]);
+//          T := GetTrainIndex(PossiblySuitableTrains[TrainCount]);
 //          IF T^.Train_WorkingTimetableLastArrivalArea = UnknownArea THEN BEGIN
 //            { We can only use last location if the train hasn't been relocated as part of this process }
 //            IF T^.Train_LastLocation <> UnknownLocation THEN
@@ -1320,7 +1328,7 @@ FUNCTION GetFirstTrainCurrentlyInUse(EntryNumStr : String; SuitableTrains : Inte
 VAR
   I : Integer;
   InUseTrainFound : Boolean;
-  T : TrainElement;
+  T : TrainIndex;
 
 BEGIN
   Result := UnknownLocoChip;
@@ -1330,8 +1338,8 @@ BEGIN
   WHILE (I <= High(SuitableTrains))
   AND NOT InUseTrainFound
   DO BEGIN
-    T := GetTrainRecord(SuitableTrains[I]);
-    IF Trains[T].Train_WorkingTimetableLastArrivalTime <> 0 THEN BEGIN
+    T := GetTrainIndexFromLocoChip(SuitableTrains[I]);
+    IF (T <> UnknownTrainIndex) AND (Trains[T].Train_WorkingTimetableLastArrivalTime <> 0) THEN BEGIN
       InUseTrainFound := True;
       Result := SuitableTrains[I];
       Log('W W=' + EntryNumStr + ': '
@@ -1403,7 +1411,7 @@ TYPE
   { See whether the areas with trains can directly access the given area, i.e. without changing direction }
   VAR
     I, J : Integer;
-    T : TrainElement;
+    T : TrainIndex;
     TempLengthInInches : Real;
 
   BEGIN
@@ -1418,30 +1426,32 @@ TYPE
             { See if any of the supplied trains are not able to leave in this direction - use the record of the train's last resting place to find this out }
             J := 0;
             WHILE J <= High(AreasWithTrains_SuitableTrains) DO BEGIN
-              T := GetTrainRecord(AreasWithTrains_SuitableTrains[J]);
-              WITH Trains[T] DO BEGIN
-                IF Train_WorkingTimetableLastArrivalArea = UnknownArea THEN BEGIN
-                  { We can only use last location if the train hasn't been relocated as part of this process }
-                  IF Train_LastLocation <> UnknownLocation THEN
-                    IF Locations[Train_LastLocation].Location_LineAtUpIsEndOfLine
-                    AND (RouteDirection = Up)
-                    THEN BEGIN
-                      Log('W W=' + EntryNumStr + ':    '
-                             + 'train ' + LocochipToStr(AreasWithTrains_SuitableTrains[J])
-                             + ' invalid as route direction is up and train''s exit from last location is down only');
-                      DeleteElementFromIntegerArray(AreasWithTrains_SuitableTrains, J);
-                      Dec(J);
-                  END ELSE
-                    IF Locations[Train_LastLocation].Location_LineAtDownIsEndOfLine
-                    AND (RouteDirection = Down)
-                    THEN BEGIN
-                      Log('W W=' + EntryNumStr + ':    '
-                             + 'train ' + LocochipToStr(AreasWithTrains_SuitableTrains[J])
-                             + ' invalid as route direction is down and train''s exit from last location is up only');
-                      DeleteElementFromIntegerArray(AreasWithTrains_SuitableTrains, J);
-                      Dec(J);
-                    END;
-                END; {WITH}
+              T := GetTrainIndexFromLocoChip(AreasWithTrains_SuitableTrains[J]);
+              IF T <> UnknownTrainIndex THEN BEGIN
+                WITH Trains[T] DO BEGIN
+                  IF Train_WorkingTimetableLastArrivalArea = UnknownArea THEN BEGIN
+                    { We can only use last location if the train hasn't been relocated as part of this process }
+                    IF Train_LastLocation <> UnknownLocation THEN
+                      IF Locations[Train_LastLocation].Location_LineAtUpIsEndOfLine
+                      AND (RouteDirection = Up)
+                      THEN BEGIN
+                        Log('W W=' + EntryNumStr + ':    '
+                               + 'train ' + LocochipToStr(AreasWithTrains_SuitableTrains[J])
+                               + ' invalid as route direction is up and train''s exit from last location is down only');
+                        DeleteElementFromIntegerArray(AreasWithTrains_SuitableTrains, J);
+                        Dec(J);
+                    END ELSE
+                      IF Locations[Train_LastLocation].Location_LineAtDownIsEndOfLine
+                      AND (RouteDirection = Down)
+                      THEN BEGIN
+                        Log('W W=' + EntryNumStr + ':    '
+                               + 'train ' + LocochipToStr(AreasWithTrains_SuitableTrains[J])
+                               + ' invalid as route direction is down and train''s exit from last location is up only');
+                        DeleteElementFromIntegerArray(AreasWithTrains_SuitableTrains, J);
+                        Dec(J);
+                      END;
+                  END; {WITH}
+                END;
               END;
               Inc(J);
             END; {WHILE}
@@ -1492,7 +1502,7 @@ VAR
   NearestReversingAreaToFirstStationDirection : DirectionType;
   NearestReversingAreaToFirstStationTravelTimeInMinutes : Integer;
   RequiredTime : TDateTime;
-  T : TrainElement;
+  T : TrainIndex;
   TempAccessibleAreas : IntegerArrayType;
   TempDirection : DirectionType;
   TempLengthInInches : Real;
@@ -1598,15 +1608,17 @@ BEGIN { FindAdditionalTrains }
                   SuitableAdditionalTrains_DepartureTime2 := 0;
                   SuitableAdditionalTrains_DepartureTime3 := 0;
 
-                  T := GetTrainRecord(AreasWithTrains_SuitableTrains[J]);
-                  WITH Trains[T] DO BEGIN
-                    IF Train_FixedLengthInInches <> 0 THEN
-                      SuitableAdditionalTrains_LengthInInches := Train_FixedLengthInInches
-                    ELSE
-                      SuitableAdditionalTrains_LengthInInches := Train_LastLengthInInches;
-                    SuitableAdditionalTrains_NumberOfCarriages := Train_NumberOfCarriages;
-                    SuitableAdditionalTrains_InUse := (Train_WorkingTimetableLastArrivalTime <> 0);
-                  END; {WITH}
+                  T := GetTrainIndexFromLocoChip(AreasWithTrains_SuitableTrains[J]);
+                  IF T <> UnknownTrainIndex THEN BEGIN
+                    WITH Trains[T] DO BEGIN
+                      IF Train_FixedLengthInInches <> 0 THEN
+                        SuitableAdditionalTrains_LengthInInches := Train_FixedLengthInInches
+                      ELSE
+                        SuitableAdditionalTrains_LengthInInches := Train_LastLengthInInches;
+                      SuitableAdditionalTrains_NumberOfCarriages := Train_NumberOfCarriages;
+                      SuitableAdditionalTrains_InUse := (Train_WorkingTimetableLastArrivalTime <> 0);
+                    END; {WITH}
+                  END;
                 END; {WITH}
 
                 Log('W W=' + EntryNumStr + 'A:    '
@@ -1830,27 +1842,29 @@ BEGIN { FindAdditionalTrains }
                         SuitableAdditionalTrains_Weighting := 0;
                         SuitableAdditionalTrains_WeightingStr:= '';
 
-                        T := GetTrainRecord(AreasWithTrains_SuitableTrains[J]);
-                        WITH Trains[T] DO BEGIN
-                          IF Train_FixedLengthInInches <> 0 THEN
-                            SuitableAdditionalTrains_LengthInInches := Train_FixedLengthInInches
-                          ELSE
-                            SuitableAdditionalTrains_LengthInInches := Train_LastLengthInInches;
-                          SuitableAdditionalTrains_NumberOfCarriages := Train_NumberOfCarriages;
-                          SuitableAdditionalTrains_InUse := (Train_WorkingTimetableLastArrivalTime <> 0);
+                        T := GetTrainIndexFromLocoChip(AreasWithTrains_SuitableTrains[J]);
+                        IF T <> UnknownTrainIndex THEN BEGIN
+                          WITH Trains[T] DO BEGIN
+                            IF Train_FixedLengthInInches <> 0 THEN
+                              SuitableAdditionalTrains_LengthInInches := Train_FixedLengthInInches
+                            ELSE
+                              SuitableAdditionalTrains_LengthInInches := Train_LastLengthInInches;
+                            SuitableAdditionalTrains_NumberOfCarriages := Train_NumberOfCarriages;
+                            SuitableAdditionalTrains_InUse := (Train_WorkingTimetableLastArrivalTime <> 0);
 
-                          Log('W W=' + EntryNumStr + 'B:    '
-                                 + 'adding ' + LocoChipToStr(SuitableAdditionalTrains[J].SuitableAdditionalTrains_LocoChip) + ' to list of suitable additional trains: '
-                                 + AreaToStr(SuitableAdditionalTrains_StartArea)
-                                 + ' ' + DirectionToStr(SuitableAdditionalTrains_Direction1)
-                                 + ' to ' + AreaToStr(SuitableAdditionalTrains_EndArea1)
-                                 + ' at ' + TimeToHMStr(SuitableAdditionalTrains_DepartureTime1)
-                                 + ' (' + IntToStr(SuitableAdditionalTrains_TravelTimeInMinutes1) + ' mins)'
-                                 + ' ' + DirectionToStr(SuitableAdditionalTrains_Direction2)
-                                 + ' to ' + AreaToStr(SuitableAdditionalTrains_EndArea2)
-                                 + ' at ' + TimeToHMStr(SuitableAdditionalTrains_DepartureTime2)
-                                 + ' (' + IntToStr(SuitableAdditionalTrains_TravelTimeInMinutes2) + ' mins)');
-                        END; {WITH}
+                            Log('W W=' + EntryNumStr + 'B:    '
+                                   + 'adding ' + LocoChipToStr(SuitableAdditionalTrains[J].SuitableAdditionalTrains_LocoChip) + ' to list of suitable additional trains: '
+                                   + AreaToStr(SuitableAdditionalTrains_StartArea)
+                                   + ' ' + DirectionToStr(SuitableAdditionalTrains_Direction1)
+                                   + ' to ' + AreaToStr(SuitableAdditionalTrains_EndArea1)
+                                   + ' at ' + TimeToHMStr(SuitableAdditionalTrains_DepartureTime1)
+                                   + ' (' + IntToStr(SuitableAdditionalTrains_TravelTimeInMinutes1) + ' mins)'
+                                   + ' ' + DirectionToStr(SuitableAdditionalTrains_Direction2)
+                                   + ' to ' + AreaToStr(SuitableAdditionalTrains_EndArea2)
+                                   + ' at ' + TimeToHMStr(SuitableAdditionalTrains_DepartureTime2)
+                                   + ' (' + IntToStr(SuitableAdditionalTrains_TravelTimeInMinutes2) + ' mins)');
+                          END; {WITH}
+                        END;
                       END; {WITH}
                       Inc(J);
                     END {WHILE}
@@ -2035,31 +2049,33 @@ BEGIN { FindAdditionalTrains }
                           SuitableAdditionalTrains_Weighting := 0;
                           SuitableAdditionalTrains_WeightingStr:= '';
 
-                          T := GetTrainRecord(AreasWithTrains_SuitableTrains[J]);
-                          WITH Trains[T] DO BEGIN
-                            IF Train_FixedLengthInInches <> 0 THEN
-                              SuitableAdditionalTrains_LengthInInches := Train_FixedLengthInInches
-                            ELSE
-                              SuitableAdditionalTrains_LengthInInches := Train_LastLengthInInches;
-                            SuitableAdditionalTrains_NumberOfCarriages := Train_NumberOfCarriages;
-                            SuitableAdditionalTrains_InUse := (Train_WorkingTimetableLastArrivalTime <> 0);
+                          T := GetTrainIndexFromLocoChip(AreasWithTrains_SuitableTrains[J]);
+                          IF T <> UnknownTrainIndex THEN BEGIN
+                            WITH Trains[T] DO BEGIN
+                              IF Train_FixedLengthInInches <> 0 THEN
+                                SuitableAdditionalTrains_LengthInInches := Train_FixedLengthInInches
+                              ELSE
+                                SuitableAdditionalTrains_LengthInInches := Train_LastLengthInInches;
+                              SuitableAdditionalTrains_NumberOfCarriages := Train_NumberOfCarriages;
+                              SuitableAdditionalTrains_InUse := (Train_WorkingTimetableLastArrivalTime <> 0);
 
-                            Log('W W=' + EntryNumStr + 'C:    '
-                                   + 'adding ' + LocoChipToStr(SuitableAdditionalTrains[J].SuitableAdditionalTrains_LocoChip) + ' to list of suitable additional trains: '
-                                   + AreaToStr(SuitableAdditionalTrains_StartArea, ShortStringType)
-                                   + ' ' + DirectionToStr(SuitableAdditionalTrains_Direction1)
-                                   + ' to ' + AreaToStr(SuitableAdditionalTrains_EndArea1, ShortStringType)
-                                   + ' at ' + TimeToHMStr(SuitableAdditionalTrains_DepartureTime1)
-                                   + ' (' + IntToStr(SuitableAdditionalTrains_TravelTimeInMinutes1) + ' mins)'
-                                   + ' ' + DirectionToStr(SuitableAdditionalTrains_Direction2)
-                                   + ' to ' + AreaToStr(SuitableAdditionalTrains_EndArea2, ShortStringType)
-                                   + ' at ' + TimeToHMStr(SuitableAdditionalTrains_DepartureTime2)
-                                   + ' (' + IntToStr(SuitableAdditionalTrains_TravelTimeInMinutes2) + ' mins)'
-                                   + ' ' + DirectionToStr(SuitableAdditionalTrains_Direction3)
-                                   + ' to ' + AreaToStr(SuitableAdditionalTrains_EndArea3, ShortStringType)
-                                   + ' at ' + TimeToHMStr(SuitableAdditionalTrains_DepartureTime3)
-                                   + ' (' + IntToStr(SuitableAdditionalTrains_TravelTimeInMinutes3) + ' mins)');
-                          END; {WITH}
+                              Log('W W=' + EntryNumStr + 'C:    '
+                                     + 'adding ' + LocoChipToStr(SuitableAdditionalTrains[J].SuitableAdditionalTrains_LocoChip) + ' to list of suitable additional trains: '
+                                     + AreaToStr(SuitableAdditionalTrains_StartArea, ShortStringType)
+                                     + ' ' + DirectionToStr(SuitableAdditionalTrains_Direction1)
+                                     + ' to ' + AreaToStr(SuitableAdditionalTrains_EndArea1, ShortStringType)
+                                     + ' at ' + TimeToHMStr(SuitableAdditionalTrains_DepartureTime1)
+                                     + ' (' + IntToStr(SuitableAdditionalTrains_TravelTimeInMinutes1) + ' mins)'
+                                     + ' ' + DirectionToStr(SuitableAdditionalTrains_Direction2)
+                                     + ' to ' + AreaToStr(SuitableAdditionalTrains_EndArea2, ShortStringType)
+                                     + ' at ' + TimeToHMStr(SuitableAdditionalTrains_DepartureTime2)
+                                     + ' (' + IntToStr(SuitableAdditionalTrains_TravelTimeInMinutes2) + ' mins)'
+                                     + ' ' + DirectionToStr(SuitableAdditionalTrains_Direction3)
+                                     + ' to ' + AreaToStr(SuitableAdditionalTrains_EndArea3, ShortStringType)
+                                     + ' at ' + TimeToHMStr(SuitableAdditionalTrains_DepartureTime3)
+                                     + ' (' + IntToStr(SuitableAdditionalTrains_TravelTimeInMinutes3) + ' mins)');
+                            END; {WITH}
+                          END;
                         END; {WITH}
                         Inc(J);
                       END {WHILE}
@@ -2350,7 +2366,6 @@ PROCEDURE SetUpTrainDiagramsRecordFromWorkingTimetable(WorkingTimetableRec : Wor
 { Now create the diagrams record }
 VAR
   DirectionsArray : DirectionArrayType;
-  DoubleHeaderLocoChip : Integer;
   EndLocationsStrArray : StringArrayType;
   I : Integer;
   JourneyCount : Integer;
@@ -2361,7 +2376,7 @@ VAR
   StartLocationStr : String;
   StartOfRepeatJourney : Boolean;
   StoppingArray : BooleanArrayType;
-  T : TrainElement;
+  T : TrainIndex;
   TrainNonMoving : Boolean;
   TypeOfTrainNum : Integer;
   UserDriving : Boolean;
@@ -2386,15 +2401,14 @@ BEGIN
     END;
 
     IF OK THEN BEGIN
-      T := GetTrainRecord(WorkingTimetable_LocoChip);
-      IF T = 0 THEN BEGIN
+      T := GetTrainIndexFromLocoChip(WorkingTimetable_LocoChip);
+      IF T = UnknownTrainIndex THEN BEGIN
         OK := False;
         Log('W W=' + WorkingTimetable_EntryNumStr + ': NO TRAIN RECORD FOR LOCO ' + LocoChipToStr(WorkingTimetable_LocoChip) + ' - DIAGRAM NOT CREATED');
       END ELSE BEGIN
         { Create the diagram }
         Log('W W=' + WorkingTimetable_EntryNumStr + ': CREATING DIAGRAM ENTRY for ' + LocoChipToStr(WorkingTimetable_LocoChip));
 
-        DoubleHeaderLocoChip := UnknownLocoChip;
         JourneyCount := 0;
         LightsOnTime := 0;
         LightsRemainOn := True;
@@ -2434,9 +2448,9 @@ BEGIN
         END;
         AppendToStringArray(EndLocationsStrArray, AreaToStr(WorkingTimetable_LastStationArea));
 
-        UpdateTrainRecordForDiagram(WorkingTimetable_LocoChip, DoubleHeaderLocoChip, JourneyCount, UserSpecifiedDepartureTimesArray, LightsOnTime, EndLocationsStrArray,
-                                    DirectionsArray, LightsRemainOn, TrainNonMoving, NotForPublicUseArray, StartLocationStr, StoppingArray, LengthOfTrainInCarriages,
-                                    TypeOfTrainNum, UserDriving, UserRequiresInstructions, StartOfRepeatJourney);
+        UpdateTrainRecordForDiagram(T, JourneyCount, UserSpecifiedDepartureTimesArray, LightsOnTime, EndLocationsStrArray, DirectionsArray, LightsRemainOn, TrainNonMoving,
+                                    NotForPublicUseArray, StartLocationStr, StoppingArray, LengthOfTrainInCarriages, TypeOfTrainNum, UserDriving, UserRequiresInstructions,
+                                    StartOfRepeatJourney);
 
         Log('W W=' + WorkingTimetable_EntryNumStr + ': ' +  LocoChipToStr(WorkingTimetable_LocoChip)
                + ' ' + StartLocationStr + ' to ' + EndLocationsStrArray[High(EndLocationsStrArray)]
@@ -2463,7 +2477,7 @@ VAR
   DebugStr : String;
   I : Integer;
   OK : Boolean;
-  T : TrainElement;
+  T : TrainIndex;
   WorkingTimetableCount : Integer;
 
 BEGIN { ProcessWorkingTimetable }
@@ -2478,7 +2492,7 @@ BEGIN { ProcessWorkingTimetable }
 
     WorkingTimetableCount := 0;
     WHILE WorkingTimetableCount <= High(WorkingTimetableRecArray) DO BEGIN
-      DrawLineInLogFile(NoLocoChip, 'W', '~~', UnitRef);
+      DrawLineInLogFile(UnknownLocoChipAsZeroesStr, 'W', '~~', UnitRef);
 
       WITH WorkingTimetableRecArray[WorkingTimetableCount] DO BEGIN
       END; {WITH}
@@ -2499,11 +2513,11 @@ BEGIN { ProcessWorkingTimetable }
           IF WorkingTimetable_Status = EntryCancelled THEN
             Log('W W=' + WorkingTimetable_EntryNumStr + ': Entry cancelled')
           ELSE BEGIN
-            T := GetTrainRecord(WorkingTimetable_LocoChip);
-            WITH Trains[T] DO BEGIN
-              IF T = 0 THEN
-                Log('W W=' + WorkingTimetable_EntryNumStr + ': no train record')
-              ELSE BEGIN
+            T := GetTrainIndexFromLocoChip(WorkingTimetable_LocoChip);
+            IF T = UnknownTrainIndex THEN
+              Log('W W=' + WorkingTimetable_EntryNumStr + ': no train record')
+            ELSE BEGIN
+              WITH Trains[T] DO BEGIN
                 Log('W W=' + WorkingTimetable_EntryNumStr + ': LocoChip=' + LocoChipToStr(WorkingTimetable_LocoChip));
                 Log('W W=' + WorkingTimetable_EntryNumStr + ': Direction=' + DirectionToStr(WorkingTimetable_Direction));
                 Log('W W=' + WorkingTimetable_EntryNumStr + ': FirstStationArea=' + AreaToStr(WorkingTimetable_FirstStationArea));
@@ -2521,7 +2535,7 @@ BEGIN { ProcessWorkingTimetable }
                 Log('W W=' + WorkingTimetable_EntryNumStr + ': TravelTimeInMinutes=' + IntToStr(WorkingTimetable_TravelTimeInMinutes));
                 Log('W W=' + WorkingTimetable_EntryNumStr + ': T^.Train_WorkingTimetableLastArrivalTime=' + TimeToHMStr(Train_WorkingTimetableLastArrivalTime));
                 Log('W W=' + WorkingTimetable_EntryNumStr + ': T^.Train_WorkingTimetableLastArrivalArea=' + AreaToStr(Train_WorkingTimetableLastArrivalArea));
-                DrawLineInLogFile(NoLocoChip, 'W', '-', UnitRef);
+                DrawLineInLogFile(UnknownLocoChipAsZeroesStr, 'W', '-', UnitRef);
               END; {WITH}
             END;
 

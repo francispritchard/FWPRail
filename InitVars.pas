@@ -109,6 +109,8 @@ CONST
   ForcePoint = True;
   HelpRequired = True;
   Highlight = True;
+  LightLoco = True;
+  NonMovingLoco = True;
   QuickStop = -1;
   StopTimer = True;
   TrainExists = True;
@@ -117,18 +119,20 @@ CONST
   UnknownJourney = 99999;
   UnknownLine = 99999;
   UnknownLocation = 99999;
-  UnknownLocoChip = 0;
+  UnknownLocoChip = 99999;
+  UnknownLocoIndex = 99999;
   UnknownLocoClass = 99999;
   UnknownSubRoute = 99999;
   UnknownPoint = 99999;
   UnknownRoute = 99999;
   UnknownSignal = 99999;
   UnknownTrackCircuit = 99999;
+  UnknownTrainIndex = 99999;
   UnknownTrainLength = 99999;
   UnknownTrainTypeNum = 99999;
+  UserMsgRequired = True;
   NoTC = UnknownTrackCircuit;
 
-  NoLocoChip = UnknownLocoChip;
   NoRoute = UnknownRoute;
   NoSubRoute = UnknownSubRoute;
 
@@ -157,6 +161,8 @@ CONST
   UnknownBufferStopStr = '[unknown buffer stop]';
   UnknownColourStr = 'Unknown Colour';
   UnknownLineStr = '[unknown line]';
+  UnknownLocoChipStr = '[unknown loco chip]';
+  UnknownLocoChipAsZeroesStr = '0000';
   UnknownJourneyStr = '[unknown journey]';
   UnknownLocationStr = '[unknown location]';
   UnknownPointStr = '[unknown point]';
@@ -202,11 +208,6 @@ TYPE
     Area_Type : AreaType;
   END;
 
-  InfoRec = RECORD
-    LocoChip : Integer;
-    InfoString : String;
-  END;
-
 TYPE
   BufferStopRec = RECORD
     BufferStop_AdjacentLine : Integer;
@@ -247,6 +248,67 @@ TYPE
   NextLineRouteingType = (EndOfLineIsNext, LineIsNext, PointIsNext, UnknownNextLineRouteingType);
   OutOfUseState = (InUse, OutOfUse);
   PointStateType = (Diverging, Straight, PointOutOfAction, PointStateUnknown);
+
+  LightsType = (NoLights, HeadlightsAndTailLightsConnected, HeadlightsAndTailLightsSeparatelySwitched, ExpressModelsSeparateHeadlights, LightsOperatedByTwoChips,
+                LightsShouldBeDimmed, CustomLightingKit);
+  LightsColourType = (Red, White);
+
+  LocoChipType = Integer;
+  LocoIndex = Integer;
+
+  LocoRec = RECORD
+    Loco_LocoChip : LocoChipType;
+
+    Loco_Accelerating : Boolean;
+    Loco_AccelerationAdjustRange : Integer;
+    Loco_AccelerationStartTime : TDateTime;
+    Loco_AccelerationStr : String;
+    Loco_AccelerationTimeInterval : Real;
+    Loco_Active : Boolean;
+    Loco_ActualNumStr : String;
+    Loco_CurrentDirection : DirectionType;
+    Loco_CurrentLenzSpeed : Integer;
+    Loco_Decelerating : Boolean;
+    Loco_DesiredLenzSpeed : Integer;
+    Loco_Description : String;
+    Loco_DiagramFound : Boolean;
+    Loco_FixedDirection : DirectionType;
+    Loco_FixedLengthInInches : Integer;
+    Loco_Functions : ARRAY [0..12] OF Boolean;
+    Loco_Functions0To4Byte : Byte;
+    Loco_Functions5To12Byte : Byte;
+    Loco_LastTC : Integer;
+    Loco_HasCabLights : Boolean;
+    Loco_HomeArea : Integer;
+    Loco_LastLengthInInches : Integer;
+    Loco_LastLocation : Integer;
+    Loco_LightingChipDown : Integer;
+    Loco_LightingChipDownIndex : LocoIndex;
+    Loco_LightingChipUp : Integer;
+    Loco_LightingChipUpIndex : LocoIndex;
+    Loco_LightingChipRecordForChip : Integer;
+    Loco_LightsMsg : String;
+    Loco_LightsOn : Boolean;
+    Loco_LightsType : LightsType;
+    Loco_LocoChipStr : String;
+    Loco_LocoClassStr : String;
+    Loco_LocoName : String;
+    Loco_LocoTypeStr : String;
+    Loco_MaximumSpeedInMPH : MPHType;
+    Loco_NumberOfCarriages : Integer;
+    Loco_SavedDirection : DirectionType;
+    Loco_SaveDesiredLenzSpeed : Integer;
+    Loco_Speed10, Loco_Speed20, Loco_Speed30, Loco_Speed40, Loco_Speed50, Loco_Speed60 : Integer;
+    Loco_Speed70, Loco_Speed80, Loco_Speed90, Loco_Speed100, Loco_Speed110, Loco_Speed120 : Integer;
+    Loco_SpeedArray : ARRAY [1..12] OF Integer;
+    Loco_SpeedByte : Byte;
+    Loco_SpeedByteReadIn : Boolean;
+    Loco_SpeedSettingsMissing : Boolean;
+    Loco_SpeedStepMode : Integer;
+    Loco_SpeedString : String;
+    Loco_TrainIndex : Integer;
+    Loco_UseTrailingTrackCircuits : Boolean;
+  END;
 
   LineRec = RECORD
     Line_AdjacentBufferStop : Integer;
@@ -303,10 +365,6 @@ TYPE
     Line_UpYLocation : Integer;
     Line_UpYLocationStr : String;
   END;
-
-  LightsType = (NoLights, HeadlightsAndTailLightsConnected, HeadlightsAndTailLightsSeparatelySwitched, ExpressModelsSeparateHeadlights, LightsOperatedByTwoChips,
-                LightsShouldBeDimmed, CustomLightingKit);
-  LightsColourType = (Red, White);
 
   DirectionPriorityType = (PreferablyUp, UpOnly, TerminatingAtUp, PreferablyDown, DownOnly, TerminatingAtDown, NoDirectionPriority);
   ThroughLocationStateType = (ThroughLocation, NonThroughLocation, UnknownThroughLocationState);
@@ -367,7 +425,7 @@ TYPE
     LocationOccupation_EndTime : TDateTime;
     LocationOccupation_JourneyA : Integer;
     LocationOccupation_JourneyB : Integer;
-    LocationOccupation_LocoChip : Integer;
+    LocationOccupation_LocoChip : LocoChipType;
     LocationOccupation_StartTime : TDateTime;
     LocationOccupation_State : LocationOccupationStateType;
   END;
@@ -472,7 +530,7 @@ TYPE
     Point_PreviousState : PointStateType;
     Point_RequiredState : PointStateType;
     Point_ResettingTime : TDateTime;
-    Point_RouteLockedByLocoChip : Integer;
+    Point_RouteLockedByLocoChip : LocoChipType;
     Point_TCAtHeel : Integer;
     Point_Type : TypeOfPoint;
     Point_SecondAttempt : Boolean;
@@ -654,7 +712,7 @@ TYPE
     SuitableAdditionalTrains_EndArea3 : Integer;
     SuitableAdditionalTrains_InUse : Boolean;
     SuitableAdditionalTrains_LengthInInches : Integer;
-    SuitableAdditionalTrains_LocoChip : Integer;
+    SuitableAdditionalTrains_LocoChip : LocoChipType;
     SuitableAdditionalTrains_NumberOfCarriages : Integer;
     SuitableAdditionalTrains_StartArea : Integer;
     SuitableAdditionalTrains_TravelTimeInMinutes1 : Integer;
@@ -690,7 +748,7 @@ TYPE
   TrackCircuitRec = RECORD
     TC_AdjacentBufferStop : Integer;
     TC_AdjacentSignals : IntegerArrayType;
-    TC_EmergencyLocoChip : Integer;
+    TC_EmergencyLocoChip : LocoChipType;
     TC_EmergencyState : TrackCircuitStateType;
     TC_FeedbackInput : Integer;
     TC_FeedbackUnit : Integer;
@@ -705,13 +763,13 @@ TYPE
     TC_Location : Integer;
     TC_LockedForRoute : Integer;
     TC_LockFailureNotedInSubRouteUnit : Boolean;
-    TC_LocoChip : Integer;
+    TC_LocoChip : LocoChipType;
     TC_LocoStalled : Boolean;
     TC_MissingTrainNoted : Boolean;
     TC_MysteriouslyOccupied : Boolean;
     TC_OccupationStartTime : TDateTime;
     TC_OccupationState : TrackCircuitStateType;
-    TC_PreviousLocoChip : Integer;
+    TC_PreviousLocoChip : LocoChipType;
     TC_PreviousOccupationState : TrackCircuitStateType;
     TC_ResettingSignal : Integer;
     TC_SaveRouteLocking : Integer;
@@ -722,8 +780,8 @@ TYPE
   END;
 
   { Train-related type declarations }
-  TypeOfTrainType = (LightLoco, ExpressPassenger, OrdinaryPassenger, ExpressFreight, Freight75mph, EmptyCoachingStock, Freight60mph, Freight45mph, Freight35mph,
-                     International, UnknownTrainType);
+  TypeOfTrainType = (LightLocoType, ExpressPassengerType, OrdinaryPassengerType, ExpressFreightType, Freight75mphType, EmptyCoachingStockType, Freight60mphType,
+                     Freight45mphType, Freight35mphType, InternationalType, UnknownTrainType);
   TrainTypeArray = ARRAY OF TypeOfTrainType;
 
   TrainJourneyRec = RECORD
@@ -773,25 +831,29 @@ TYPE
   TrainStatusType = (ReadyForCreation, WaitingForLightsOn, WaitingForSignalHiddenAspectToClear, WaitingForRouteing, InLightsOnTime, ReadyForRouteing, CommencedRouteing,
                      ReadyToDepart, Departed, RouteingWhileDeparted, RouteCompleted, WaitingForRemovalFromDiagrams, ToBeRemovedFromDiagrams, RemovedFromDiagrams,
                      Missing, MissingAndSuspended, Suspended, NonMoving, Cancelled, UnknownTrainStatus);
-  TrainElement = Integer;
+  TrainIndex = Integer;
 
   TrainRec = RECORD
-    Train_LocoChip : Integer;
-    Train_DoubleHeaderLocoChip : Integer;
+    Train_LocoChip : LocoChipType;
+    Train_DoubleHeaderLocoChip : LocoChipType;
+    Train_LocoChipStr : String; { from loco record }
+    Train_DoubleHeaderLocoChipStr : String; { from loco record }
+    Train_LocoIndex : LocoIndex;
+    Train_DoubleHeaderLocoIndex : LocoIndex;
 
-    Train_Accelerating : Boolean;
-    Train_AccelerationAdjustRange : Integer;
-    Train_AccelerationStartTime : TDateTime;
-    Train_AccelerationStr : String;
+//    Train_Accelerating : Boolean;
+//    Train_AccelerationAdjustRange : Integer;
+//    Train_AccelerationStartTime : TDateTime;
+//    Train_AccelerationStr : String;
     Train_AccelerationTimeInSeconds : Real;
-    Train_AccelerationTimeInterval : Real;
-    Train_Active : Boolean;
-    Train_ActualNumStr : String;
+//    Train_AccelerationTimeInterval : Real;
+    Train_ActualNumStr : String; { from loco record }
     Train_AtCurrentBufferStop : Integer;
     Train_AtCurrentSignal : Integer;
     Train_AtHiddenAspectSignal : Integer;
     Train_BeingAdvanced : Boolean;
     Train_BeingAdvancedTC : Integer;
+    Train_CabLightsAreOn : Boolean;
     Train_CabLightsHaveBeenOn : Boolean;
     Train_ControlledByProgram : Boolean;
     Train_ControlledByRDC : Boolean;
@@ -800,16 +862,14 @@ TYPE
     Train_CurrentDirection : DirectionType;
     Train_CurrentJourney : Integer;
     Train_CurrentLengthInInches : Integer;
-    Train_CurrentLenzSpeed : Integer;
     Train_CurrentRoute : Integer;
     Train_CurrentSignal : Integer;
     Train_CurrentSourceLocation : Integer;
     Train_CurrentSpeedInMPH : MPHType;
     Train_CurrentStatus : TrainStatusType;
     Train_CurrentTC : Integer;
-    Train_Decelerating : Boolean;
+//    Train_Decelerating : Boolean;
     Train_Description : String;
-    Train_DesiredLenzSpeed : Integer;
     Train_DesiredSpeedInMPH : MPHType;
     Train_DiagramFound : Boolean;
     Train_DiagramsGridRowNums : IntegerArrayType;
@@ -820,40 +880,31 @@ TYPE
     Train_ExtraPowerAdjustment : Integer; { used temporarily to increase the train speed where necessary }
     Train_FirstStationSpecifiedStartTime : TDateTime;
     Train_FixedDirection : DirectionType;
-    Train_FixedLengthInInches : Integer;
-    Train_Functions : ARRAY [0..12] OF Boolean;
-    Train_Functions0To4Byte : Byte;
-    Train_Functions5To12Byte : Byte;
+    Train_FixedLengthInInches : Integer; { from loco record }
+//    Train_Functions : ARRAY [0..12] OF Boolean;
+//    Train_Functions0To4Byte : Byte;
+//    Train_Functions5To12Byte : Byte;
     Train_GradientSpeedAdjustment : Integer;
     Train_GradientSpeedAdjustmentMsgWritten : Boolean;
-    Train_HasCabLights : Boolean;
+    Train_HasLights : Boolean;
     Train_Headcode : String;
-    Train_HomeArea : Integer;
     Train_InitialTrackCircuits : ARRAY [1..5] OF Integer;
     Train_InLightsOnTime : Boolean; { train inactive but for lights being on }
     Train_JourneysArray : TrainJourneyRecArrayType;
-    Train_LastLengthInInches : Integer;
+    Train_LastLengthInInches : Integer; { from loco record }
     Train_LastLocation : Integer;
     Train_LastMissingTC : Integer;
     Train_LastRouteLockedMsgStr : String;
     Train_LastSignal : Integer;
-    Train_LastTC : Integer;
-    Train_LightingChipDown : Integer;
-    Train_LightingChipDownAddress: TrainElement;
-    Train_LightingChipUp : Integer;
-    Train_LightingChipUpAddress: TrainElement;
-    Train_LightingChipRecordForChip : Integer;
-    Train_LightsMsg : String;
+    Train_LastTC : Integer; { from loco record }
     Train_LightsOn : Boolean;
     Train_LightsOnTime : TDateTime;
     Train_LightsRemainOnWhenJourneysComplete : Boolean;
-    Train_LightsType : LightsType;
     Train_LocatedAtStartup : Boolean;
     Train_Locations : IntegerArrayType;
-    Train_LocoChipStr : String;
-    Train_LocoClassStr : String;
-    Train_LocoName : String;
-    Train_LocoTypeStr : String;
+    Train_LocoClassStr : String; { from loco record }
+    Train_LocoName : String; { from loco record }
+    Train_LocoTypeStr : String; { from loco record }
     Train_MaximumSpeedInMPH : MPHType;
     Train_MinimumAccelerationTimeInSeconds : Integer; { needed as we only calculate it once when we enter a track circuit }
     Train_MissingMessage : Boolean;
@@ -861,8 +912,8 @@ TYPE
     Train_NextTC : Integer;
     Train_NextButOneTC : Integer;
     Train_NotInPlaceMsgWritten : Boolean;
-    Train_NumberOfCarriages : Integer;
     Train_NotLocatedAtStartupMsgWritten : Boolean;
+    Train_NumberOfCarriages : Integer;
     Train_PossibleRerouteTime : TDateTime;
     Train_PreviouslyControlledByProgram : Boolean;
     Train_PreviousStatus : TrainStatusType;
@@ -880,7 +931,6 @@ TYPE
     Train_RouteCreationReleasedMsg : String;
     Train_RouteingHeldAtSignal : Integer;
     Train_SaveCurrentTC : Integer;
-    Train_SaveDesiredLenzSpeed : Integer;
     Train_SavedLocation : Integer;
     Train_SavedRoute : Integer;
     Train_SaveSpeedInFiddleyardMsg : String;
@@ -888,13 +938,6 @@ TYPE
     Train_SaveTCsForReleaseStr : String;
     Train_SaveTCsOccupiedStr : String;
     Train_SectionStartTime : TDateTime;
-    Train_Speed10, Train_Speed20, Train_Speed30, Train_Speed40, Train_Speed50, Train_Speed60 : Integer;
-    Train_Speed70, Train_Speed80, Train_Speed90, Train_Speed100, Train_Speed110, Train_Speed120 : Integer;
-    Train_SpeedArray : ARRAY [1..12] OF Integer;
-    Train_SpeedByte : Byte;
-    Train_SpeedByteReadIn : Boolean;
-    Train_SpeedSettingsMissing : Boolean;
-    Train_SpeedStepMode : Integer;
     Train_SpeedString : String;
     Train_StalledMsgWritten : Boolean;
     Train_SubRouteAheadCheckedTime : TDateTime;
@@ -916,7 +959,7 @@ TYPE
     Train_UserDriving : Boolean;
     Train_UserPowerAdjustment : Integer; { used by the user to increase or decrease the train speed where necessary }
     Train_UserRequiresInstructions : Boolean;
-    Train_UserRequiresInstructionMsg : String;
+    Train_UserSpeedInstructionMsg : String;
     Train_UseTrailingTrackCircuits : Boolean;
     { where a train doesn't have lights at both ends, it may need artificial track-circuit activation }
     Train_WaitingForHiddenAspectStartTime : TDateTime;
@@ -953,7 +996,7 @@ TYPE
   END;
 
   LightsToBeSwitchedOnRec = RECORD
-    LightsToBeSwitchedOn_Train: TrainElement;
+    LightsToBeSwitchedOn_Train: TrainIndex;
     LightsToBeSwitchedOn_ColourStr1 : String;
     LightsToBeSwitchedOn_ColourStr2 : String;
     LightsToBeSwitchedOn_Direction1 : DirectionType;
@@ -973,7 +1016,7 @@ TYPE
     WorkingTimetable_FirstStationArea : Integer;
     WorkingTimetable_FirstStationDepartureTime : TDateTime;
     WorkingTimetable_LastStationArea : Integer;
-    WorkingTimetable_LocoChip : Integer;
+    WorkingTimetable_LocoChip : LocoChipType;
     WorkingTimetable_PossibleLocoClasses : StringArrayType;
     WorkingTimetable_PreferredNumberOfCarriages : Integer;
     WorkingTimetable_Status : WorkingTimetableStatusType;
@@ -983,6 +1026,11 @@ TYPE
   END;
 
   WorkingTimetableRecArrayType = ARRAY OF WorkingTimetableRecType;
+
+  InfoRec = RECORD
+    LocoChip : LocoChipType;
+    InfoString : String;
+  END;
 
   { Miscellaneous type declarations }
   ArrivalOrDepartureType = (Arrival, Departure);
@@ -994,7 +1042,7 @@ TYPE
   StationMonitorsType = (StationArrivalsDisplay, StationArrivalsAndDeparturesDisplay, StationDeparturesDisplay, StationClockDisplay);
   StatusBarStateType = (Visible, Hidden);
   StringType = (LongStringType, ShortStringType, VeryShortStringType);
-  TrainArrayType = ARRAY OF TrainElement;
+  TrainArrayType = ARRAY OF TrainIndex;
 
   LenzSystemRec = RECORD
                 EmergencyStop : Boolean;
@@ -1052,7 +1100,7 @@ VAR
   BreakPointRequiredInMakeSoundRoutine : Boolean = False;
   BufferStops : ARRAY OF BufferStopRec;
   CrossHairCursor : TCursor;
-  DapolCleaningWagonLocoChip : Integer = 0;
+  DapolCleaningWagonLocoChip : LocoChipType = UnknownLocoChip;
   DapolCleaningWagonLocoChipRunning : Boolean = False;
   DayTimeSetByUser : Boolean = False;
   DebuggingMode : Boolean = False;
@@ -1083,6 +1131,7 @@ VAR
   LockDebuggingMode : Boolean = False;
   LockingMode : Boolean = True;
   LocationOccupations : ARRAY OF ARRAY OF LocationOccupationRec;
+  Locos : ARRAY OF LocoRec;
   LocoSpeedTimingMode : Boolean = False;
   LocosStopped : Boolean = True;
   LogsCurrentlyKept : Boolean; { initialised by LogsKeptMode - allows LogsKeptMode to be changed without affecting the current logging }
@@ -1156,7 +1205,7 @@ VAR
   SystemOnline : Boolean = False;
   SystemSetOfflineByCommandLineParameter : Boolean = False;
   SystemStatusStr : String = '';
-  TempTrainArray : ARRAY OF TrainElement;
+  TempTrainArray : ARRAY OF TrainIndex;
   TerminatingSpeedReductionMode : Boolean = False;
   TestingMode : Boolean = False;
   TextWindowHeight : Word;
@@ -2039,7 +2088,7 @@ VAR
   Location : Integer;
   LocationExceptions : IntegerArrayType;
   LocationExceptionsStrArray : StringArrayType;
-  LocoChip : Integer;
+  LocoChip : LocoChipType;
   MissingYValue : Boolean;
   NewLocation : Integer;
   OK : Boolean;
@@ -2666,7 +2715,7 @@ PROCEDURE CalculateLinePositions(ScaleFactor : Integer);
 VAR
   ErrorMsg : String;
   Iterations : Integer;
-  L, L2 : Integer;
+  Line, Line2 : Integer;
   MissingXValue : Boolean;
   ObliquePos : Integer;
   TempLocation1 : Integer;
@@ -2676,15 +2725,15 @@ VAR
 
 BEGIN
   TRY
-    L := 0;
+    Line := 0;
     Iterations := 0;
-    WHILE (L <= High(Lines)) AND (Iterations <= 10000) DO BEGIN
-      WITH Lines[L] DO BEGIN
+    WHILE (Line <= High(Lines)) AND (Iterations <= 10000) DO BEGIN
+      WITH Lines[Line] DO BEGIN
         MissingXValue := False;
         REPEAT
           { read in the values until one is found }
-          FOR L2 := 0 TO High(Lines) DO BEGIN
-            WITH Lines[L2] DO BEGIN
+          FOR Line2 := 0 TO High(Lines) DO BEGIN
+            WITH Lines[Line2] DO BEGIN
               IF Line_UpXAbsolute = 0 THEN BEGIN
                 IF Lines[StrToLine(Line_UpXLineStr)].Line_DownXAbsolute = 0 THEN
                   MissingXValue := True
@@ -2708,22 +2757,22 @@ BEGIN
         IF Iterations >= 10000 THEN
           Debug('Too many iterations in CalculateLinePositions');
       END;
-      Inc(L);
+      Inc(Line);
       Inc(Iterations);
     END; {WHILE}
 
-    L := 0;
-    WHILE L <= High(Lines) DO BEGIN
-      WITH Lines[L] DO BEGIN
+    Line := 0;
+    WHILE Line <= High(Lines) DO BEGIN
+      WITH Lines[Line] DO BEGIN
         Line_UpX := MulDiv(FWPRailWindow.ClientWidth, Line_UpXAbsolute, ScaleFactor);
         Line_DownX := MulDiv(FWPRailWindow.ClientWidth, Line_DownXAbsolute, ScaleFactor);
       END; {WITH}
-      Inc(L);
+      Inc(Line);
     END; {WHILE}
 
-    L := 0;
-    WHILE L <= High(Lines) DO BEGIN
-      WITH Lines[L] DO BEGIN
+    Line := 0;
+    WHILE Line <= High(Lines) DO BEGIN
+      WITH Lines[Line] DO BEGIN
         IF Line_UpYAbsolute <> 0 THEN
           Line_UpY := MulDiv(FWPRailWindow.ClientHeight, Line_UpYAbsolute, ScaleFactor)
         ELSE BEGIN
@@ -2786,12 +2835,12 @@ BEGIN
           END;
         END;
       END; {WITH}
-      Inc(L);
+      Inc(Line);
     END; {WHILE}
 
-    L := 0;
-    WHILE L <= High(Lines) DO BEGIN
-      WITH Lines[L] DO BEGIN
+    Line := 0;
+    WHILE Line <= High(Lines) DO BEGIN
+      WITH Lines[Line] DO BEGIN
         Line_MousePolygon[0] := Point(Line_UpX, Line_UpY + MouseRectangleEdgeVerticalSpacingScaled);
         Line_MousePolygon[1] := Point(Line_UpX, Line_UpY - MouseRectangleEdgeVerticalSpacingScaled);
         Line_MousePolygon[2] := Point(Line_DownX, Line_DownY - MouseRectangleEdgeVerticalSpacingScaled);
@@ -2820,7 +2869,7 @@ BEGIN
           END;
         END; {WITH}
       END; {WITH}
-      Inc(L);
+      Inc(Line);
     END; {WHILE}
   EXCEPT {TRY}
     ON E : Exception DO
@@ -2829,8 +2878,8 @@ BEGIN
 
 
   IF VerboseFlag THEN
-    FOR L := 0 TO High(Lines) DO
-      WITH Lines[L] DO
+    FOR Line := 0 TO High(Lines) DO
+      WITH Lines[Line] DO
         Log('X ' + Line_Str +  ' UpX=' + IntToStr(Line_UpX) + ' UpY=' + IntToStr(Line_UpY) + ' DownX=' + IntToStr(Line_DownX) + ' DownY=' + IntToStr(Line_DownY));
 END; { CalculateLinePositions }
 
@@ -3468,10 +3517,10 @@ BEGIN
 // LineDataADOTable.First;
 // WHILE NOT LineDataADOTable.EOF DO BEGIN
 // WITH LineDataADOTable DO BEGIN
-// L := 0;
-// WHILE L <= High(Lines) DO BEGIN
-// WITH Lines[L] DO BEGIN
-// debug(inttostr(l));
+// Line := 0;
+// WHILE Line <= High(Lines) DO BEGIN
+// WITH Lines[Line] DO BEGIN
+// debug(inttostr(line));
 // IF FieldByName('Line').AsString = Line_Str THEN BEGIN
 // IF (Line_Location <> UnknownLocation)
 // AND Locations[Line_Location].Location_OutOfUse
@@ -3487,7 +3536,7 @@ BEGIN
 // END;
 // END; {WITH}
 // END;
-// Inc(L);
+// Inc(Line);
 // END;
 // END; {WITH}
 // LineDataADOTable.Next;

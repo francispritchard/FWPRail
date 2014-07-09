@@ -132,13 +132,13 @@ CONST
 VAR
   B, P, S : Integer;
   DebugStr : String;
-  L : Integer;
+  Line : Integer;
   LockingFailureString : String;
   ObjectFound : Boolean;
   SaveRecordLineDrawingMode : Boolean;
   StatusBarPanel1Str : String;
   StatusBarPanel2Str : String;
-  T : TrainElement;
+  T : TrainIndex;
   TC : Integer;
   TempDraftRouteArray : StringArrayType;
   TempLinesNotAvailableStr : String;
@@ -212,8 +212,8 @@ BEGIN
                 IF NOT FindNextSignalOrBufferStop(S, UnknownSignal, UnknownBufferStop, NOT IndicatorToBeSet, TempLinesNotAvailableStr, TempDraftRouteArray) THEN
                   TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'No RTC'
                 ELSE BEGIN
-                  CreateLockingArrayFromDraftRouteArray(NoLocoChip, TempDraftRouteArray, Signals[S].Signal_RouteLockingNeededArray);
-                  TC := GetResettingTrackCircuit(NoLocoChip, S, SuppressMessage);
+                  CreateLockingArrayFromDraftRouteArray(UnknownLocoChipStr, TempDraftRouteArray, Signals[S].Signal_RouteLockingNeededArray);
+                  TC := GetResettingTrackCircuit(UnknownLocoChipStr, S, SuppressMessage);
                   TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'RTC=' + IntToStr(TC);
                 END;
               END;
@@ -294,8 +294,8 @@ BEGIN
                                 IF NOT FindNextSignalOrBufferStop(S, UnknownSignal, UnknownBufferStop, IndicatorToBeSet, TempLinesNotAvailableStr, TempDraftRouteArray) THEN
                                   TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'No RTC'
                                 ELSE BEGIN
-                                  CreateLockingArrayFromDraftRouteArray(NoLocoChip, TempDraftRouteArray, Signals[S].Signal_RouteLockingNeededArray);
-                                  TC := GetResettingTrackCircuit(NoLocoChip, S, SuppressMessage);
+                                  CreateLockingArrayFromDraftRouteArray(UnknownLocoChipStr, TempDraftRouteArray, Signals[S].Signal_RouteLockingNeededArray);
+                                  TC := GetResettingTrackCircuit(UnknownLocoChipStr, S, SuppressMessage);
                                   TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'RTC=' + IntToStr(TC);
                                 END;
                               END;
@@ -441,24 +441,24 @@ BEGIN
         END;
 
         { See if the mouse pointer is within lines rectangle - note: no guarantee that MX1 < MX2 }
-        FOR L := 0 TO High(Lines) DO BEGIN
-          WITH Lines[L] DO BEGIN
+        FOR Line := 0 TO High(Lines) DO BEGIN
+          WITH Lines[Line] DO BEGIN
             IF PointInPolygon(Line_MousePolygon, Point(MouseX, MouseY)) THEN BEGIN
               ObjectFound := True;
 
               { Write out the line name }
-              TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' (' + LineToStr(L) + ' [' + LocationToStr(Lines[L].Line_Location, ShortStringType) + ']';
-              IF Lines[L].Line_RouteLockingForDrawing <> UnknownRoute THEN
-                TempStatusBarPanel1Str := TempStatusBarPanel1Str + '[R=' + IntToStr(Lines[L].Line_RouteLockingForDrawing) + ']';
+              TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' (' + LineToStr(Line) + ' [' + LocationToStr(Lines[Line].Line_Location, ShortStringType) + ']';
+              IF Lines[Line].Line_RouteLockingForDrawing <> UnknownRoute THEN
+                TempStatusBarPanel1Str := TempStatusBarPanel1Str + '[R=' + IntToStr(Lines[Line].Line_RouteLockingForDrawing) + ']';
               TempStatusBarPanel1Str := TempStatusBarPanel1Str + ')';
-              LineFoundNum := L;
+              LineFoundNum := Line;
 
               IF Line_OutOfUseState = OutOfUse THEN BEGIN
-                IF (Lines[L].Line_Location <> UnknownLocation)
-                AND (Locations[Lines[L].Line_Location].Location_OutOfUse)
+                IF (Lines[Line].Line_Location <> UnknownLocation)
+                AND (Locations[Lines[Line].Line_Location].Location_OutOfUse)
                 THEN
                   { it's not necessarily the line itself that's out of use }
-                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + '[location ' + LocationToStr(Lines[L].Line_Location, ShortStringType) + ' out of use]'
+                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + '[location ' + LocationToStr(Lines[Line].Line_Location, ShortStringType) + ' out of use]'
                 ELSE
                   TempStatusBarPanel1Str := TempStatusBarPanel1Str + '[line out of use]';
               END;
@@ -466,10 +466,10 @@ BEGIN
               { Debug('Up=' +  LineToStr(Lines[L].Line_NextUpLine) + ' Down=' + LineToStr(Lines[L].Line_NextDownLine)); }
 
               { Look for track circuits }
-              IF (Lines[L].Line_TC <> UnknownTrackCircuit) THEN BEGIN
-                IF TrackCircuits[Lines[L].Line_TC].TC_LocoChip <> UnknownLocoChip THEN BEGIN
-                  T := GetTrainRecord(TrackCircuits[Lines[L].Line_TC].TC_LocoChip);
-                  IF T <= High(Trains) THEN BEGIN
+              IF (Lines[Line].Line_TC <> UnknownTrackCircuit) THEN BEGIN
+                IF TrackCircuits[Lines[Line].Line_TC].TC_LocoChip <> UnknownLocoChip THEN BEGIN
+                  T := GetTrainIndexFromLocoChip(TrackCircuits[Lines[Line].Line_TC].TC_LocoChip);
+                  IF T <> UnknownTrainIndex THEN BEGIN
                     WITH Trains[T] DO BEGIN
                       ObjectFound := True;
                       StatusBarPanel2Str := LocoChipToStr(Train_LocoChip) + ': ' + TrainStatusToStr(Train_CurrentStatus);
@@ -481,45 +481,45 @@ BEGIN
                                                                  + IfThen(Train_RouteCreationReleasedMsg <> '',
                                                                           ' - ' + Train_RouteCreationReleasedMsg));
 
-                        IF Train_CurrentRoute < High(Train_JourneysArray) THEN
-                          IF Train_CurrentRoute < Length(Routes_RoutesSettingUpStalledMsgArray) THEN
-                            IF Routes_RoutesSettingUpStalledMsgArray[Train_CurrentRoute] <> '' THEN
-                                 StatusBarPanel2Str := StatusBarPanel2Str + ' - R=' + IntToStr(Train_CurrentRoute) + ' stalled '
-                                                                          + Routes_RoutesSettingUpStalledMsgArray[Train_CurrentRoute];
+                      IF Train_CurrentRoute < High(Train_JourneysArray) THEN
+                        IF Train_CurrentRoute < Length(Routes_RoutesSettingUpStalledMsgArray) THEN
+                          IF Routes_RoutesSettingUpStalledMsgArray[Train_CurrentRoute] <> '' THEN
+                            StatusBarPanel2Str := StatusBarPanel2Str + ' - R=' + IntToStr(Train_CurrentRoute) + ' stalled '
+                                                                     + Routes_RoutesSettingUpStalledMsgArray[Train_CurrentRoute];
                     END;
                   END;
                 END;
 
-                TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' TC=' + IntToStr(Lines[L].Line_TC);
-                IF TrackCircuits[Lines[L].Line_TC].TC_Headcode <> '' THEN
-                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' ' + TrackCircuits[Lines[L].Line_TC].TC_Headcode;
-                IF TrackCircuits[Lines[L].Line_TC].TC_SpeedRestrictionInMPH <> NoSpecifiedSpeed THEN BEGIN
-                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' ' + ' max:' + MPHToStr(TrackCircuits[Lines[L].Line_TC].TC_SpeedRestrictionInMPH);
-                  IF TrackCircuits[Lines[L].Line_TC].TC_SpeedRestrictionDirection <> Bidirectional THEN
-                    IF TrackCircuits[Lines[L].Line_TC].TC_SpeedRestrictionDirection = Up THEN
+                TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' TC=' + IntToStr(Lines[Line].Line_TC);
+                IF TrackCircuits[Lines[Line].Line_TC].TC_Headcode <> '' THEN
+                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' ' + TrackCircuits[Lines[Line].Line_TC].TC_Headcode;
+                IF TrackCircuits[Lines[Line].Line_TC].TC_SpeedRestrictionInMPH <> NoSpecifiedSpeed THEN BEGIN
+                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' ' + ' max:' + MPHToStr(TrackCircuits[Lines[Line].Line_TC].TC_SpeedRestrictionInMPH);
+                  IF TrackCircuits[Lines[Line].Line_TC].TC_SpeedRestrictionDirection <> Bidirectional THEN
+                    IF TrackCircuits[Lines[Line].Line_TC].TC_SpeedRestrictionDirection = Up THEN
                       TempStatusBarPanel1Str := TempStatusBarPanel1Str + '<'
                     ELSE
                       { TrackCircuits[Lines[L].Line_TC].TC_SpeedRestrictionDirection = Down }
                       TempStatusBarPanel1Str := TempStatusBarPanel1Str + '>';
                 END;
-                IF TrackCircuits[Lines[L].Line_TC].TC_UserMustDrive THEN
+                IF TrackCircuits[Lines[Line].Line_TC].TC_UserMustDrive THEN
                   TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' {U}';
 
-                TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' [' + TrackCircuitStateToStr(TrackCircuits[Lines[L].Line_TC].TC_OccupationState);
-                IF (TrackCircuits[Lines[L].Line_TC].TC_LocoChip <> UnknownLocoChip)
-                AND (TrackCircuits[Lines[L].Line_TC].TC_OccupationState <> TCUnoccupied)
+                TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' [' + TrackCircuitStateToStr(TrackCircuits[Lines[Line].Line_TC].TC_OccupationState);
+                IF (TrackCircuits[Lines[Line].Line_TC].TC_LocoChip <> UnknownLocoChip)
+                AND (TrackCircuits[Lines[Line].Line_TC].TC_OccupationState <> TCUnoccupied)
                 THEN
-                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' by ' + IntToStr(TrackCircuits[Lines[L].Line_TC].TC_LocoChip);
+                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' by ' + IntToStr(TrackCircuits[Lines[Line].Line_TC].TC_LocoChip);
 
                 TempStatusBarPanel1Str := TempStatusBarPanel1Str + ']';
 
-                IF TrackCircuits[Lines[L].Line_TC].TC_LockedForRoute <> UnknownRoute THEN BEGIN
-                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' [R=' + IntToStr(TrackCircuits[Lines[L].Line_TC].TC_LockedForRoute)
-                                                                   + ' (' + LocoChipToStr(Routes_LocoChips[TrackCircuits[Lines[L].Line_TC].TC_LockedForRoute]) + ')';
-                  IF TrackCircuits[Lines[L].Line_TC].TC_Journey = UnknownJourney THEN
+                IF TrackCircuits[Lines[Line].Line_TC].TC_LockedForRoute <> UnknownRoute THEN BEGIN
+                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' [R=' + IntToStr(TrackCircuits[Lines[Line].Line_TC].TC_LockedForRoute)
+                                                                   + ' (' + LocoChipToStr(Routes_LocoChips[TrackCircuits[Lines[Line].Line_TC].TC_LockedForRoute]) + ')';
+                  IF TrackCircuits[Lines[Line].Line_TC].TC_Journey = UnknownJourney THEN
                     TempStatusBarPanel1Str := TempStatusBarPanel1Str + ']'
                   ELSE
-                    TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' (J=' + IntToStr(TrackCircuits[Lines[L].Line_TC].TC_Journey) + ')]';
+                    TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' (J=' + IntToStr(TrackCircuits[Lines[Line].Line_TC].TC_Journey) + ')]';
                 END;
 
               END;
@@ -527,41 +527,41 @@ BEGIN
               IF LineDebuggingMode THEN BEGIN
                 SaveRecordLineDrawingMode := RecordLineDrawingMode;
                 RecordLineDrawingMode := False;
-                WITH Lines[L] DO BEGIN
-                  CASE Lines[L].Line_NextUpType OF
+                WITH Lines[Line] DO BEGIN
+                  CASE Lines[Line].Line_NextUpType OF
                     EndOfLineIsNext:
-                      IF Lines[L].Line_NextUpIsEndOfLine = BufferStopAtUp THEN BEGIN
+                      IF Lines[Line].Line_NextUpIsEndOfLine = BufferStopAtUp THEN BEGIN
                         SaveUpBufferStop := Line_AdjacentBufferStop;
                         DrawBufferStop(Line_AdjacentBufferStop, clLime);
                       END;
                     PointIsNext:
                       BEGIN
-                        SaveNextUpPoint := Lines[L].Line_NextUpPoint;
-                        DrawPoint(Lines[L].Line_NextUpPoint, clLime);
+                        SaveNextUpPoint := Lines[Line].Line_NextUpPoint;
+                        DrawPoint(Lines[Line].Line_NextUpPoint, clLime);
                       END;
                     LineIsNext:
                       BEGIN
                         SaveNextUpLine := Line_NextUpLine;
                         SaveNextUpLineColour := Lines[Line_NextUpLine].Line_CurrentColour;
-                        DrawLine(Lines[L].Line_NextUpLine, clLime, NOT ActiveTrain);
+                        DrawLine(Lines[Line].Line_NextUpLine, clLime, NOT ActiveTrain);
                       END;
                   END; {CASE}
 
-                  SaveLine := L;
-                  SaveLineColour := Lines[L].Line_CurrentColour;
-                  DrawLine(L, clYellow, NOT ActiveTrain);
+                  SaveLine := Line;
+                  SaveLineColour := Lines[Line].Line_CurrentColour;
+                  DrawLine(Line, clYellow, NOT ActiveTrain);
 
-                  IF Lines[L].Line_NextDownIsEndOfLine = BufferStopAtDown THEN BEGIN
-                    SaveDownBufferStop := Lines[L].Line_AdjacentBufferStop;
-                    DrawBufferStop(Lines[L].Line_AdjacentBufferStop, clRed)
+                  IF Lines[Line].Line_NextDownIsEndOfLine = BufferStopAtDown THEN BEGIN
+                    SaveDownBufferStop := Lines[Line].Line_AdjacentBufferStop;
+                    DrawBufferStop(Lines[Line].Line_AdjacentBufferStop, clRed)
                   END ELSE
-                    IF Lines[L].Line_NextDownPoint <> UnknownPoint THEN BEGIN
-                      SaveNextDownPoint := Lines[L].Line_NextDownPoint;
-                      DrawPoint(Lines[L].Line_NextDownPoint, clRed);
+                    IF Lines[Line].Line_NextDownPoint <> UnknownPoint THEN BEGIN
+                      SaveNextDownPoint := Lines[Line].Line_NextDownPoint;
+                      DrawPoint(Lines[Line].Line_NextDownPoint, clRed);
                     END ELSE BEGIN
                       SaveNextDownLine := Line_NextDownLine;
                       SaveNextDownLineColour := Lines[Line_NextDownLine].Line_CurrentColour;
-                      DrawLine(Lines[L].Line_NextDownLine, clRed, NOT ActiveTrain);
+                      DrawLine(Lines[Line].Line_NextDownLine, clRed, NOT ActiveTrain);
                     END;
                 END; {WITH}
                 RecordLineDrawingMode := SaveRecordLineDrawingMode;
@@ -584,13 +584,13 @@ BEGIN
         END;
 
         { Is it a line-end character? - if so, highlight the corresponding line-end } { move this to Raildraw? ********* }
-        FOR L := 0 TO High(Lines) DO BEGIN
-          WITH Lines[L] DO BEGIN
+        FOR Line := 0 TO High(Lines) DO BEGIN
+          WITH Lines[Line] DO BEGIN
             WITH RailWindowBitmap.Canvas DO BEGIN
               IF PtInRect(Line_UpConnectionChRect, Point(MouseX, MouseY)) THEN
-                UpLineEndCharacterLine := L;
+                UpLineEndCharacterLine := Line;
               IF PtInRect(Line_DownConnectionChRect, Point(MouseX, MouseY)) THEN
-                DownLineEndCharacterLine := L;
+                DownLineEndCharacterLine := Line;
             END; {WITH}
           END; {WITH}
         END; {FOR}
@@ -669,29 +669,29 @@ CONST
   Bold = True;
 
 VAR
-  L : Integer;
+  Line : Integer;
   TempInt : Integer;
 
 BEGIN
   TRY
-    L := 0;
-    WHILE L <= High(Lines) DO BEGIN
-      IF Lines[L].Line_UpConnectionChBold THEN BEGIN
-        Lines[L].Line_UpConnectionChBold := False;
-        DrawConnectionCh(L, Up);
+    Line := 0;
+    WHILE Line <= High(Lines) DO BEGIN
+      IF Lines[Line].Line_UpConnectionChBold THEN BEGIN
+        Lines[Line].Line_UpConnectionChBold := False;
+        DrawConnectionCh(Line, Up);
         InvalidateScreen(UnitRef, 'MouseButtonReleased');
       END;
-      Inc(L);
+      Inc(Line);
     END;
 
-    L := 0;
-    WHILE L <= High(Lines) DO BEGIN
-      IF Lines[L].Line_DownConnectionChBold THEN BEGIN
-        Lines[L].Line_DownConnectionChBold := False;
-        DrawConnectionCh(L, Down);
+    Line := 0;
+    WHILE Line <= High(Lines) DO BEGIN
+      IF Lines[Line].Line_DownConnectionChBold THEN BEGIN
+        Lines[Line].Line_DownConnectionChBold := False;
+        DrawConnectionCh(Line, Down);
         InvalidateScreen(UnitRef, 'MouseButtonReleased');
       END;
-      Inc(L);
+      Inc(Line);
     END;
 
     { Ending a zoomed screen mouse move }
@@ -790,14 +790,14 @@ VAR
   TheatreIndicatorFoundNum : Integer;
   TRSPlungerFoundLocation : Integer;
 
-  PROCEDURE UpLineEndCharacterSelected(L : Integer; HelpRequired : Boolean);
+  PROCEDURE UpLineEndCharacterSelected(Line : Integer; HelpRequired : Boolean);
   { Find the corresponding line end }
   CONST
     Bold = True;
 
   VAR
     ConnectionChFound : Boolean;
-    L2 : Integer;
+    Line2 : Integer;
 
   BEGIN
     IF HelpRequired THEN BEGIN
@@ -806,28 +806,28 @@ VAR
       AddRichLine(HelpWindow.HelpRichEdit, '  <B>Left Mouse</B> - indicate where the other end of the line is');
     END ELSE BEGIN
       ConnectionChFound := False;
-      L2 := 0;
-      WHILE (L2 <= High(Lines))
+      Line2 := 0;
+      WHILE (Line2 <= High(Lines))
       AND NOT ConnectionChFound
       DO BEGIN
-        IF Lines[L2].Line_DownConnectionCh = Lines[L].Line_UpConnectionCh THEN BEGIN
+        IF Lines[Line2].Line_DownConnectionCh = Lines[Line].Line_UpConnectionCh THEN BEGIN
           ConnectionChFound := True;
-          Lines[L2].Line_DownConnectionChBold := True;
-          DrawConnectionCh(L2, Down);
+          Lines[Line2].Line_DownConnectionChBold := True;
+          DrawConnectionCh(Line2, Down);
         END;
-        Inc(L2);
+        Inc(Line2);
       END; {WHILE}
     END;
   END; { UpLineEndCharacterSelected }
 
-  PROCEDURE DownLineEndCharacterSelected(L : Integer; HelpRequired : Boolean);
+  PROCEDURE DownLineEndCharacterSelected(Line : Integer; HelpRequired : Boolean);
   { Find the corresponding line end }
   CONST
     Bold = True;
 
   VAR
     ConnectionChFound : Boolean;
-    L2 : Integer;
+    Line2 : Integer;
 
   BEGIN
     IF HelpRequired THEN BEGIN
@@ -837,16 +837,16 @@ VAR
     END ELSE BEGIN
       { Find the corresponding line end }
       ConnectionChFound := False;
-      L2 := 0;
-      WHILE (L2 <= High(Lines))
+      Line2 := 0;
+      WHILE (Line2 <= High(Lines))
       AND NOT ConnectionChFound
       DO BEGIN
-        IF Lines[L2].Line_UpConnectionCh = Lines[L].Line_DownConnectionCh THEN BEGIN
+        IF Lines[Line2].Line_UpConnectionCh = Lines[Line].Line_DownConnectionCh THEN BEGIN
           ConnectionChFound := True;
-          Lines[L2].Line_UpConnectionChBold := True;
-          DrawConnectionCh(L2, Up);
+          Lines[Line2].Line_UpConnectionChBold := True;
+          DrawConnectionCh(Line2, Up);
         END;
-        Inc(L2);
+        Inc(Line2);
       END; {WHILE}
     END;
   END; { DownLineEndCharacterSelected }
@@ -898,7 +898,7 @@ VAR
               { Force the signal to move even if it's locked }
               LockingMode := False;
               Log('SG Locking mode suspended by user when changing S=' + IntToStr(S) + ' {BLANKLINEBEFORE}');
-              PullSignal(NoLocoChip, S, NoIndicatorLit, NoRoute, NoSubRoute, UnknownLine, UnknownTrainType, ByUser, OK);
+              PullSignal(UnknownLocoChipStr, S, NoIndicatorLit, NoRoute, NoSubRoute, UnknownLine, UnknownTrainType, ByUser, OK);
             END ELSE
               IF ssAlt IN ShiftState THEN BEGIN
                 { Remove route locking from a signal }
@@ -924,7 +924,7 @@ VAR
                 END ELSE
                   BEGIN
                     { no shift keys pressed }
-                    PullSignal(NoLocoChip, S, NoIndicatorLit, NoRoute, NoSubRoute, UnknownLine, UnknownTrainType, ByUser, OK);
+                    PullSignal(UnknownLocoChipStr, S, NoIndicatorLit, NoRoute, NoSubRoute, UnknownLine, UnknownTrainType, ByUser, OK);
 //                    IF TheatreSignalSetting THEN
 //                      TheatreSignalSetting := False;
                   END;
@@ -972,12 +972,12 @@ VAR
             AND (Signals[S].Signal_IndicatorState <> NoIndicatorLit)
             THEN
               { signal is off and indicator is illuminated }
-              PullSignal(NoLocoChip, S, NoIndicatorLit, NoRoute, NoSubRoute, UnknownLine, UnknownTrainType, ByUser, OK)
+              PullSignal(UnknownLocoChipStr, S, NoIndicatorLit, NoRoute, NoSubRoute, UnknownLine, UnknownTrainType, ByUser, OK)
             ELSE
               IF (Signals[S].Signal_IndicatorState <> NoIndicatorLit) THEN BEGIN
                 { indicator illumination has been cancelled }
                 Log('S User cancelling S=' + IntToStr(S) + ' indicator');
-                SetIndicator(NoLocoChip, S, NoIndicatorLit, '', NoRoute, ByUser);
+                SetIndicator(UnknownLocoChipStr, S, NoIndicatorLit, '', NoRoute, ByUser);
                 UnlockPointsLockedBySignal(S);
                 UnlockSignalLockedByUser(S);
               END ELSE
@@ -1008,7 +1008,7 @@ VAR
                         IndicatorLit := LowerRightIndicatorLit;
                     END; {CASE}
 
-                    PullSignal(NoLocoChip, S, IndicatorLit, NoRoute, NoSubRoute, UnknownLine, UnknownTrainType, ByUser, OK);
+                    PullSignal(UnknownLocoChipStr, S, IndicatorLit, NoRoute, NoSubRoute, UnknownLine, UnknownTrainType, ByUser, OK);
                   END;
 
         END;
@@ -1050,19 +1050,19 @@ VAR
 
             IF ssShift IN ShiftState THEN
               { Force the point to move }
-              PullPoint(P, NoLocoChip, NoRoute, NoSubRoute, ForcePoint, ByUser, ErrorMessageRequired, PointResultPending, DebugStr, Result)
+              PullPoint(UnknownLocoChipStr, P, NoRoute, NoSubRoute, ForcePoint, ByUser, ErrorMessageRequired, PointResultPending, DebugStr, Result)
             ELSE
               IF ssCtrl IN ShiftState THEN BEGIN
                 { Force the point to move even if it's locked }
                 SaveLockingMode := LockingMode;
                 LockingMode := False;
                 Log('P Locking mode suspended when changing point ' + IntToStr(P) + ' {BLANKLINEBEFORE}');
-                PullPoint(P, NoLocoChip, NoRoute, NoSubRoute, ForcePoint, ByUser, ErrorMessageRequired, PointResultPending,
+                PullPoint(UnknownLocoChipStr, P, NoRoute, NoSubRoute, ForcePoint, ByUser, ErrorMessageRequired, PointResultPending,
                           DebugStr, Result);
                 LockingMode := SaveLockingMode;
               END ELSE
                 { move it normally }
-                PullPoint(P, NoLocoChip, NoRoute, NoSubRoute, NOT ForcePoint, ByUser, ErrorMessageRequired, PointResultPending,
+                PullPoint(UnknownLocoChipStr, P, NoRoute, NoSubRoute, NOT ForcePoint, ByUser, ErrorMessageRequired, PointResultPending,
                           DebugStr, Result);
           END; {WITH}
         END;
@@ -1096,27 +1096,27 @@ VAR
 //  { This activates or de-activates a track circuit. More fancy things are done via a pop menu produced by a shift key. }
 //  VAR
 //    AdjacentTrackCircuitUp, AdjacentTrackCircuitDown : Integer;
-//    T : TrainElement;
+//    T : TrainIndex;
 //
 //  BEGIN
 //    Result := False;
-//    WITH Lines[L] DO BEGIN
+//    WITH Lines[Line] DO BEGIN
 //      IF Line_TC <> UnknownTrackCircuit THEN BEGIN
 //        IF ShowAdjacentTrackCircuitMode THEN BEGIN
 //          { Draw a track circuit and its adjoining track circuits }
-//          FindAdjoiningTrackCircuits(Lines[L].Line_TC, AdjacentTrackCircuitUp, AdjacentTrackCircuitDown);
+//          FindAdjoiningTrackCircuits(Lines[Line].Line_TC, AdjacentTrackCircuitUp, AdjacentTrackCircuitDown);
 //          IF TCAdjoiningTCsDrawnNum = UnknownTrackCircuit THEN BEGIN
 //            { one hasn't been drawn before }
-//            DrawTrackCircuitsWithAdjoiningTrackCircuits(Lines[L].Line_TC, clRed, clYellow);
-//            TCAdjoiningTCsDrawnNum := Lines[L].Line_TC;
+//            DrawTrackCircuitsWithAdjoiningTrackCircuits(Lines[Line].Line_TC, clRed, clYellow);
+//            TCAdjoiningTCsDrawnNum := Lines[Line].Line_TC;
 //          END ELSE BEGIN
 //            { We've previously drawn one, so undraw that one before drawing the new one }
 //            DrawTrackCircuitsWithAdjoiningTrackCircuits(TCAdjoiningTCsDrawnNum, ForegroundColour, ForegroundColour);
-//            IF TCAdjoiningTCsDrawnNum = Lines[L].Line_TC THEN
+//            IF TCAdjoiningTCsDrawnNum = Lines[Line].Line_TC THEN
 //              TCAdjoiningTCsDrawnNum := UnknownTrackCircuit
 //            ELSE BEGIN
-//              DrawTrackCircuitsWithAdjoiningTrackCircuits(Lines[L].Line_TC, clRed, clYellow);
-//              TCAdjoiningTCsDrawnNum := Lines[L].Line_TC;
+//              DrawTrackCircuitsWithAdjoiningTrackCircuits(Lines[Line].Line_TC, clRed, clYellow);
+//              TCAdjoiningTCsDrawnNum := Lines[Line].Line_TC;
 //            END;
 //          END;
 //        END ELSE
@@ -1130,7 +1130,7 @@ VAR
 //            ELSE BEGIN
 //              IF TrackCircuits[Line_TC].TC_LocoChip <> UnknownLocoChip THEN BEGIN
 //                Debug('Locochip ' + LocoChipToStr(TrackCircuits[Line_TC].TC_LocoChip) + ' cleared from TC=' + IntToStr(Line_TC));
-//                T := GetTrainRecord(TrackCircuits[Line_TC].TC_LocoChip);
+//                T := GetTrainIndex(TrackCircuits[Line_TC].TC_LocoChip);
 //                IF T <= High(Trains) THEN
 //                  T^.Train_SavedLocation := UnknownLocation;
 //              END;
@@ -1189,7 +1189,7 @@ VAR
     StartSignal, EndSignal : Integer;
     TempBufferStop: Integer;
     TempSignal : Integer;
-    T : TrainElement;
+    T : TrainIndex;
     TrainLengthInInchesForRouteing : Integer;
     TrainTypeForRouteing : TypeOfTrainType;
 
@@ -1209,7 +1209,6 @@ VAR
       T := 0;
       TrainLengthInInchesForRouteing := UnknownTrainLength;
       TrainTypeForRouteing := UnknownTrainType;
-
 
       IF HelpRequired THEN BEGIN
         AddRichLine(HelpWindow.HelpRichEdit, '');
@@ -1355,7 +1354,7 @@ VAR
                   AND (Signals[S].Signal_IndicatorState = TheatreIndicatorLit)
                   THEN BEGIN
                     { pressing a theatre indicator to put the signal on }
-                    PullSignal(NoLocoChip, S, NoIndicatorLit, Route, NoSubRoute, UnknownLine, UnknownTrainType, ByUser, OK);
+                    PullSignal(UnknownLocoChipSTr, S, NoIndicatorLit, Route, NoSubRoute, UnknownLine, UnknownTrainType, ByUser, OK);
                     Exit;
                   END ELSE
                     IF GetSignalAspect(S) <> RedAspect THEN BEGIN
@@ -1364,13 +1363,13 @@ VAR
                     END ELSE BEGIN
                       Log('S Theatre indicator setting request initiated by user - signal post ' + IntToStr(S) + ' pressed');
                       Routes_TheatreIndicatorSettingInitiated := True;
-                      SetIndicator(UnknownLocoChip, S, QueryIndicatorLit, '', NoRoute, ByUser);
+                      SetIndicator(UnknownLocoChipStr, S, QueryIndicatorLit, '', NoRoute, ByUser);
                       Log('S User setting theatre indicator for S=' + IntToStr(S) + ' to Query');
                     END;
                 END;
 
             { Start setting up routes - see if a loco has been selected from the timetable, as that will give us data about train type, etc. }
-            IF GetTrainClickedOn = 0 THEN BEGIN
+            IF GetTrainClickedOn = UnknownTrainIndex THEN BEGIN
               TrainTypeForRouteing := UnknownTrainType;
               TrainLengthInInchesForRouteing := UnknownTrainLength;
             END ELSE BEGIN
@@ -1382,25 +1381,25 @@ VAR
             IF (ssShift IN ShiftState)
             AND (ssAlt IN ShiftState)
             THEN BEGIN
-              TrainTypeForRouteing := ExpressPassenger;
+              TrainTypeForRouteing := ExpressPassengerType;
               EmergencyRouteingStored := True;
               Debug('Emergency routeing for express passenger trains');
             END ELSE
               IF ssShift IN ShiftState THEN BEGIN
-                TrainTypeForRouteing := ExpressPassenger;
+                TrainTypeForRouteing := ExpressPassengerType;
                 Debug('Routeing for express passenger trains');
               END ELSE
                 IF (ssCtrl IN ShiftState) AND (ssAlt IN ShiftState) THEN BEGIN
-                  TrainTypeForRouteing := OrdinaryPassenger;
+                  TrainTypeForRouteing := OrdinaryPassengerType;
                   EmergencyRouteingStored := True;
                   Debug('Emergency routeing for ordinary passenger trains');
                 END ELSE
                   IF ssCtrl IN ShiftState THEN BEGIN
-                    TrainTypeForRouteing := OrdinaryPassenger;
+                    TrainTypeForRouteing := OrdinaryPassengerType;
                     Debug('Routeing for ordinary passenger trains');
                   END ELSE
                     IF ssAlt IN ShiftState THEN BEGIN
-                      TrainTypeForRouteing := ExpressFreight;
+                      TrainTypeForRouteing := ExpressFreightType;
                       Debug('Routeing for express freight trains');
                     END;
 
@@ -1457,7 +1456,7 @@ VAR
                     Routes_TheatreIndicatorSettingInitiated := False;
                     RouteFindingCancelled := True;
                     { and remove the query indication }
-                    SetIndicator(UnknownLocoChip, S, NoIndicatorLit, '', NoRoute, ByUser);
+                    SetIndicator(UnknownLocoChipStr, S, NoIndicatorLit, '', NoRoute, ByUser);
                   END ELSE
                     IF Routes_NearestSignalTestingInitiated THEN BEGIN
                       Log('S NextJunctionSignalTest cancelled by user - signal post ' + IntToStr(S) + ' pressed a second time');
@@ -1500,13 +1499,13 @@ VAR
                   IF OK THEN BEGIN
                     IF Routes_RouteSettingByHand THEN BEGIN
                       Log('R Route setting request by user concluded - BS=' + IntToStr(BS) + ' pressed');
-                      FindRouteFromLineAToLineB(UnknownLocoChip, UnknownJourney, S, Signals[StartSignal].Signal_AdjacentLine, BufferStops[BS].BufferStop_AdjacentLine,
+                      FindRouteFromLineAToLineB(UnknownLocoChipStr, UnknownJourney, S, Signals[StartSignal].Signal_AdjacentLine, BufferStops[BS].BufferStop_AdjacentLine,
                                                 Signals[StartSignal].Signal_Direction, TrainTypeForRouteing, TrainLengthInInchesForRouteing, EmergencyRouteingStored,
                                                 NOT IncludeOutOfUseLinesOn, DraftRouteArray, LinesNotAvailableStr, ErrorMsg, RouteFoundOK);
                       EndLine := BufferStops[BS].BufferStop_AdjacentLine;
                     END ELSE BEGIN
                       Log('S Theatre indicator route setting request by user concluded - BS=' + IntToStr(BS) + ' pressed');
-                      FindRouteFromLineAToLineB(UnknownLocoChip, UnknownJourney, S, Signals[StartSignal].Signal_AdjacentLine, BufferStops[BS].BufferStop_AdjacentLine,
+                      FindRouteFromLineAToLineB(UnknownLocoChipStr, UnknownJourney, S, Signals[StartSignal].Signal_AdjacentLine, BufferStops[BS].BufferStop_AdjacentLine,
                                                 Signals[StartSignal].Signal_Direction, TrainTypeForRouteing, TrainLengthInInchesForRouteing, EmergencyRouteingStored,
                                                 NOT IncludeOutOfUseLinesOn, DraftRouteArray, LinesNotAvailableStr, ErrorMsg, RouteFoundOK);
                       AppendToStringArray(DraftRouteArray, 'BS=' + IntToStr(BS));
@@ -1526,14 +1525,14 @@ VAR
                   IF OK THEN BEGIN
                     IF Routes_RouteSettingByHand THEN BEGIN
                       Log('R User Route setting request concluded - signal post ' + IntToStr(S) + ' pressed');
-                      FindRouteFromLineAToLineB(UnknownLocoChip, UnknownJourney, S, Signals[StartSignal].Signal_AdjacentLine, Signals[EndSignal].Signal_AdjacentLine,
+                      FindRouteFromLineAToLineB(UnknownLocoChipStr, UnknownJourney, S, Signals[StartSignal].Signal_AdjacentLine, Signals[EndSignal].Signal_AdjacentLine,
                                                 Signals[StartSignal].Signal_Direction, TrainTypeForRouteing, TrainLengthInInchesForRouteing, EmergencyRouteingStored,
                                                 NOT IncludeOutOfUseLinesOn, DraftRouteArray, LinesNotAvailableStr, ErrorMsg, RouteFoundOK);
                       EndLine := Signals[EndSignal].Signal_AdjacentLine;
                     END ELSE BEGIN
                       Log('S User Theatre indicator route setting request concluded'
                              + ' - signal post ' + IntToStr(StartSignal) + ' pressed');
-                      FindRouteFromLineAToLineB(UnknownLocoChip, UnknownJourney, S, Signals[StartSignal].Signal_AdjacentLine, Signals[EndSignal].Signal_AdjacentLine,
+                      FindRouteFromLineAToLineB(UnknownLocoChipStr, UnknownJourney, S, Signals[StartSignal].Signal_AdjacentLine, Signals[EndSignal].Signal_AdjacentLine,
                                                 Signals[StartSignal].Signal_Direction, TrainTypeForRouteing, TrainLengthInInchesForRouteing, EmergencyRouteingStored,
                                                 NOT IncludeOutOfUseLinesOn, DraftRouteArray, LinesNotAvailableStr, ErrorMsg, RouteFoundOK);
                       AppendToStringArray(DraftRouteArray, 'FS=' + IntToStr(EndSignal));
@@ -1576,12 +1575,12 @@ VAR
 
                 IF Routes_TheatreIndicatorSettingInitiated THEN BEGIN
                   Routes_TheatreIndicatorSettingInitiated := False;
-                  PullSignal(UnknownLocoChip, StartSignal, TheatreIndicatorLit, Route, NoSubRoute, EndLine, TrainTypeForRouteing, ByUser, OK);
+                  PullSignal(UnknownLocoChipStr, StartSignal, TheatreIndicatorLit, Route, NoSubRoute, EndLine, TrainTypeForRouteing, ByUser, OK);
                 END ELSE
                   IF Routes_RouteSettingByHand THEN BEGIN
 
                     { Now set up the locking }
-                    CreateLockingArrayFromDraftRouteArray(UnknownLocoChip, DraftRouteArray, LockingArray);
+                    CreateLockingArrayFromDraftRouteArray(UnknownLocoChipStr, DraftRouteArray, LockingArray);
 
                     { Now create the route array }
                     CreateRouteArrayFromLockingArray(Routes_RouteCounter, LockingArray, RouteArray);
@@ -1590,16 +1589,16 @@ VAR
                     CreateInitialRouteRelatedArrays(T, UnknownLocoChip, RouteArray, InAutoMode, StartSignal, EndSignal, BS, StartLine, EndLine);
 
                     IF TestingMode THEN BEGIN
-                      WriteStringArrayToLog(UnknownLocoChip, 'R', 'Draft Route Array to set up R=' + IntToStr(Routes_RouteCounter)
+                      WriteStringArrayToLog(UnknownLocoChipStr, 'R', 'Draft Route Array to set up R=' + IntToStr(Routes_RouteCounter)
                                                                       + ' ' + DescribeStartAndEndOfRoute(Routes_RouteCounter) + ':',
                                                                       DraftRouteArray,
                                                                       2, 190, 'SR=');
-                      WriteStringArrayToLog(UnknownLocoChip, 'R', 'Locking Array to set up R=' + IntToStr(Routes_RouteCounter)
+                      WriteStringArrayToLog(UnknownLocoChipStr, 'R', 'Locking Array to set up R=' + IntToStr(Routes_RouteCounter)
                                                                       + ' ' + DescribeStartAndEndOfRoute(Routes_RouteCounter) + ':',
                                                                       LockingArray,
                                                                       2, 190, 'SR=');
                       FOR I := 0 TO (Routes_TotalSubRoutes[Routes_RouteCounter] - 1) DO
-                        WriteStringArrayToLog(UnknownLocoChip, 'R', 'Final Route Array to set up'
+                        WriteStringArrayToLog(UnknownLocoChipStr, 'R', 'Final Route Array to set up'
                                                                         +' R=' + IntToStr(Routes_RouteCounter)
                                                                         + '/' + IntToStr(I) + ' '
                                                                         + DescribeSubRoute(Routes_RouteCounter, I) + ':',
@@ -1802,7 +1801,7 @@ BEGIN
 
     { See if the loco dialogue is visible, and if a train is being controlled }
     IF LocoDialogueWindow.Visible
-    AND (GetLocoDialogueSelectedLocoSpeed > 0)
+    AND (GetLocoDialogueLocoSpeed > 0)
     AND (Button = mbRight)
     THEN
       CheckEmergencyStop(Button, ShiftState)

@@ -117,12 +117,12 @@ CONST
   StopTimer = True;
 
 BEGIN
-  DrawLineInLogFile(NoLocoChip, 'X', '-', UnitRef);
+  DrawLineInLogFile(UnknownLocoChipStr, 'X', '-', UnitRef);
 
   IF MessageDialogueWithDefault('Read loco address from programming track?', StopTimer, mtError, [mbYes, mbNo], mbNo) = mrYes THEN
     ShowMessage(RequestProgrammingModeCV(1));
 
-  DrawLineInLogFile(NoLocoChip, 'X', '-', UnitRef);
+  DrawLineInLogFile(UnknownLocoChipStr, 'X', '-', UnitRef);
 END; { IdentifyLocoOnProgrammingTrack }
 
 PROCEDURE THelpWindow.HelpRichEditKeyDown(Sender: TObject; VAR Key: Word; ShiftState: TShiftState);

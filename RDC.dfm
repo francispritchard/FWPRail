@@ -16,8 +16,6 @@ object RailDriverWindow: TRailDriverWindow
   Position = poScreenCenter
   OnClose = RailDriverWindowClose
   OnKeyDown = RailDriverWindowKeyDown
-  ExplicitWidth = 320
-  ExplicitHeight = 240
   PixelsPerInch = 96
   TextHeight = 13
   object ThreeWayA: TLabel

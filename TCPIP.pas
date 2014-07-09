@@ -69,7 +69,7 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES Lenz;
+USES Lenz, Options;
 
 VAR
   UnitRef : String = 'TCPIP';
@@ -232,7 +232,7 @@ BEGIN
   ConnectTS := GetTickCount;
   TCPSocket1 := Socket1;
   MSGMemo.Lines.Add('*** 1 Connected');
-  Log('A TCPClient 1 Connected');
+  Log('A& TCPClient 1 Connected');
   IF LenzConnection = EthernetConnection THEN BEGIN
     EthernetConnectButton.Enabled := True;
     EthernetConnectButton.Caption := 'TCP 1 Disconnect';
@@ -351,7 +351,8 @@ BEGIN
           S := S + ByteToHex(Buffer[I]);
 
         TCPBuf1 :=  S;
-        Log('X Data Received: ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : ' + S + ' {BlankLineBefore}');
+        IF LogCurrentTimeMode THEN
+          Log('X Data Received: ' + FillSpace(IntToStr(GetTickCount - ConnectTS), 8) + 'ms : ' + S + ' {BlankLineBefore}');
 
         { If there's more than one response or broadcast received in one go, separate the data to create strings consisting of hex digits - bear in mind that the data may
           be a mixture of responses and broadcasts

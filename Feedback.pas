@@ -35,7 +35,7 @@ PROCEDURE DecodeFeedback(FeedbackData : FeedbackRec);
 PROCEDURE ExtractDataFromFeedback(Data : FeedbackRec; OUT TCAboveFeedbackUnit : Integer; OUT FeedbackType : TypeOfFeedBackType; OUT Num : Integer);
 { For track circuits only, returns the track circuit number - otherwise returns other data }
 
-PROCEDURE InitialiseLocoSpeedTiming(LocoChip : Integer);
+PROCEDURE InitialiseLocoSpeedTiming(L : LocoIndex);
 { Set up the variables for timing locos to ascertain speed in MPH }
 
 PROCEDURE WriteDataToFeedbackWindow{1}(FeedbackString : String); Overload;
@@ -304,13 +304,13 @@ BEGIN
   END; {WITH}
 END; { WriteFeedbackDataToDebugWindow }
 
-PROCEDURE InitialiseLocoSpeedTiming(LocoChip : Integer);
+PROCEDURE InitialiseLocoSpeedTiming(L : LocoIndex);
 { Set up the variables for timing locos to ascertain speed in MPH }
 BEGIN
   DefaultLocoSpeedSet := False;
   LocoSpeedTimingMode := True;
   LocoTimingSlowingTime := 0;
-  LocoTimingLenzSpeed := GetLenzSpeed(LocoChip, ForceARead);
+  LocoTimingLenzSpeed := GetLenzSpeed(L, ForceARead);
 END; { InitialiseLocoSpeedTiming }
 
 PROCEDURE DecodeFeedback(FeedbackData : FeedbackRec);
@@ -324,18 +324,17 @@ VAR
   DebugStr : String;
   DecodedFeedbackNum : Integer;
   FeedbackType : TypeOfFeedBackType;
-  L : Integer;
+  Line : Integer;
   LineFeedbackFound : Boolean;
   LineFound : Boolean;
   LockingFailureString : String;
-  LocoChip : Integer;
   LocoTimingSlowingTC : Integer;
   LocoTimingStartTC : Integer;
   LocoTimingStopTC : Integer;
   OK : Boolean;
   P : Integer;
   PointFeedbackFound : Boolean;
-  T: TrainElement;
+  T: TrainIndex;
   TC : Integer;
   TCAboveFeedbackUnit : Integer;
   TempMPHSpeed : Real;
@@ -382,114 +381,117 @@ VAR
   PROCEDURE ProcessSpeedTiming;
   VAR
     I : Integer;
+    L : LocoIndex;
     InterveningTrackCircuitFeedbackDetectorsArray : IntegerArrayType;
     InterveningTrackCircuitFeedbackDetectorsTotalLengthInInches : Real;
-    LocoChipStr : String;
 
   BEGIN
     InterveningTrackCircuitFeedbackDetectorsTotalLengthInInches := 0;
 
-    LocoChip := GetLocoDialogueLocoChip;
-    IF LocoChip <> UnknownLocoChip THEN BEGIN
-      LocoChipStr := LocoChipToStr(LocoChip);
-      LocoTimingSlowingTC := 18;
-      LocoTimingStartTC := 20;
-      LocoTimingStopTC := 107;
+    L := GetLocoIndexFromLocoChip(GetLocoDialogueLocoChip);
+    IF L = UnknownLocoIndex THEN
+      UnknownLocoRecordFound('ProcessSpeedTiming')
+    ELSE BEGIN
+      WITH Locos[L] DO BEGIN
+        LocoTimingSlowingTC := 18;
+        LocoTimingStartTC := 20;
+        LocoTimingStopTC := 107;
 
-      SetLength(InterveningTrackCircuitFeedbackDetectorsArray, 7);
-      InterveningTrackCircuitFeedbackDetectorsArray[0] := 20;
-      InterveningTrackCircuitFeedbackDetectorsArray[1] := 145;
-      InterveningTrackCircuitFeedbackDetectorsArray[2] := 71;
-      InterveningTrackCircuitFeedbackDetectorsArray[3] := 223;
-      InterveningTrackCircuitFeedbackDetectorsArray[4] := 224;
-      InterveningTrackCircuitFeedbackDetectorsArray[5] := 102;
-      InterveningTrackCircuitFeedbackDetectorsArray[6] := 40;
+        SetLength(InterveningTrackCircuitFeedbackDetectorsArray, 7);
+        InterveningTrackCircuitFeedbackDetectorsArray[0] := 20;
+        InterveningTrackCircuitFeedbackDetectorsArray[1] := 145;
+        InterveningTrackCircuitFeedbackDetectorsArray[2] := 71;
+        InterveningTrackCircuitFeedbackDetectorsArray[3] := 223;
+        InterveningTrackCircuitFeedbackDetectorsArray[4] := 224;
+        InterveningTrackCircuitFeedbackDetectorsArray[5] := 102;
+        InterveningTrackCircuitFeedbackDetectorsArray[6] := 40;
 
-      FOR I := 0 TO 6 DO
-        InterveningTrackCircuitFeedbackDetectorsTotalLengthInInches := InterveningTrackCircuitFeedbackDetectorsTotalLengthInInches
-                                                                       + TrackCircuits[InterveningTrackCircuitFeedbackDetectorsArray[I]].TC_LengthInInches;
+        FOR I := 0 TO 6 DO
+          InterveningTrackCircuitFeedbackDetectorsTotalLengthInInches := InterveningTrackCircuitFeedbackDetectorsTotalLengthInInches
+                                                                         + TrackCircuits[InterveningTrackCircuitFeedbackDetectorsArray[I]].TC_LengthInInches;
 
-      { First, see if we've been speed testing for too long }
-      IF LocoTimingInProgress
-      AND (LocoTimingSlowingTime <> 0)
-      AND (Time > IncSecond(LocoTimingSlowingTime, LocoTimingTimeBeforeAutoStopInSeconds))
-      THEN BEGIN
-        SetLenzSpeedAndDirection(LocoChip, QuickStop, Up, OK);
-        Log(LocoChipStr + ' L Loco speed test concluded as loco timing has taken more than '
-                        + IntToStr(LocoTimingTimeBeforeAutoStopInSeconds) + ' seconds');
-        Debug('+Loco speed test concluded as loco timing has taken more than ' + IntToStr(LocoTimingTimeBeforeAutoStopInSeconds) + ' seconds');
-//        LocoDialogueBox.LocoDialogueSpeedButtons.Position := 0;
-        LocoDialogueWindow.LocoDialogueSpeedDisplay.Color := clBtnFace;
-        LocoDialogueWindow.LocoDialogueSpeedDisplay.Caption := '0';
-        LocoSpeedTimingMode := False;
-      END ELSE
-        { To time loco down the fast straight, then circle the layout }
-        IF (TC = LocoTimingSlowingTC)
-        AND NOT LocoTimingStarted
+        { First, see if we've been speed testing for too long }
+        IF LocoTimingInProgress
+        AND (LocoTimingSlowingTime <> 0)
+        AND (Time > IncSecond(LocoTimingSlowingTime, LocoTimingTimeBeforeAutoStopInSeconds))
         THEN BEGIN
-          LocoTimingInProgress := True;
-          LocoTimingSlowingTime := Time;
-          SetLenzSpeedAndDirection(LocoChip, LocoTimingLenzSpeed, Up, OK);
-          LocoDialogueWindow.LocoDialogueSpeedDisplay.Color := clYellow;
-//          LocoDialogueWindow.LocoDialogueSpeedButtons.Position := LocoTimingLenzSpeed;
-          LocoDialogueWindow.LocoDialogueSpeedDisplay.Caption := IntToStr(LocoTimingLenzSpeed);
-          Log(LocoChipStr + ' L At LocoTimingSlowingTC TC=' + IntToStr(TC) + ' speed set to ' + IntToStr(LocoTimingLenzSpeed));
+          SetLenzSpeedAndDirection(L, QuickStop, Up, OK);
+          Log(Loco_LocoChipStr + ' L Loco speed test concluded as loco timing has taken more than '
+                               + IntToStr(LocoTimingTimeBeforeAutoStopInSeconds) + ' seconds');
+          Debug('+Loco speed test concluded as loco timing has taken more than ' + IntToStr(LocoTimingTimeBeforeAutoStopInSeconds) + ' seconds');
+  //        LocoDialogueBox.LocoDialogueSpeedButtons.Position := 0;
+          LocoDialogueWindow.LocoDialogueSpeedDisplay.Color := clBtnFace;
+          LocoDialogueWindow.LocoDialogueSpeedDisplay.Caption := '0';
+          LocoSpeedTimingMode := False;
         END ELSE
-          IF (TC = LocoTimingStartTC)
+          { To time loco down the fast straight, then circle the layout }
+          IF (TC = LocoTimingSlowingTC)
           AND NOT LocoTimingStarted
           THEN BEGIN
-            LocoTimingStarted := True;
-            LocoTimingStartTime := Time;
-            Log(LocoChipStr + ' L At LocoTimingStartTC TC=' + IntToStr(TC));
-            LocoDialogueWindow.LocoDialogueSpeedDisplay.Color := clLime;
+            LocoTimingInProgress := True;
+            LocoTimingSlowingTime := Time;
+            SetLenzSpeedAndDirection(L, LocoTimingLenzSpeed, Up, OK);
+            LocoDialogueWindow.LocoDialogueSpeedDisplay.Color := clYellow;
+  //          LocoDialogueWindow.LocoDialogueSpeedButtons.Position := LocoTimingLenzSpeed;
+            LocoDialogueWindow.LocoDialogueSpeedDisplay.Caption := IntToStr(LocoTimingLenzSpeed);
+            Log(Loco_LocoChipStr + ' L At LocoTimingSlowingTC TC=' + IntToStr(TC) + ' speed set to ' + IntToStr(LocoTimingLenzSpeed));
           END ELSE
-            IF (TC = LocoTimingStopTC)
-            AND LocoTimingStarted
+            IF (TC = LocoTimingStartTC)
+            AND NOT LocoTimingStarted
             THEN BEGIN
-              Log(LocoChipStr + ' L At LocoTimingStopTC TC=' + IntToStr(TC));
-              LocoTimingInProgress := False;
-              LocoTimingStarted := False;
+              LocoTimingStarted := True;
+              LocoTimingStartTime := Time;
+              Log(Loco_LocoChipStr + ' L At LocoTimingStartTC TC=' + IntToStr(TC));
+              LocoDialogueWindow.LocoDialogueSpeedDisplay.Color := clLime;
+            END ELSE
+              IF (TC = LocoTimingStopTC)
+              AND LocoTimingStarted
+              THEN BEGIN
+                Log(Loco_LocoChipStr + ' L At LocoTimingStopTC TC=' + IntToStr(TC));
+                LocoTimingInProgress := False;
+                LocoTimingStarted := False;
 
-              LocoTimingStopTime := Time;
-              LocoTimingLenzSpeed := GetLenzSpeed(LocoChip, ForceRead);
-              TempMPHSpeed := CalculateTrueSpeed(LocoTimingLenzSpeed, LocoTimingStartTC, LocoTimingStopTC, InterveningTrackCircuitFeedbackDetectorsTotalLengthInInches,
-                                                 LocoTimingStartTime, LocoTimingStopTime);
+                LocoTimingStopTime := Time;
+                LocoTimingLenzSpeed := GetLenzSpeed(L, ForceRead);   { &&&&& }
+                TempMPHSpeed := CalculateTrueSpeed(LocoTimingLenzSpeed, LocoTimingStartTC, LocoTimingStopTC, InterveningTrackCircuitFeedbackDetectorsTotalLengthInInches,
+                                                   LocoTimingStartTime, LocoTimingStopTime);
 
-              Log(LocoChipStr + ' * TC=' + IntToStr(LocoTimingStartTC) + ' to TC=' + IntToStr(LocoTimingStopTC) + ': '
-                              + IntToStr(MilliSecondsBetween(LocoTimingStopTime, LocoTimingStartTime)) + 'ms, '
-                              + FloatToStr(TempMPHSpeed) + ' mph, speed='
-                              + IntToStr(LocoTimingLenzSpeed)
-                              + ' {NOUNITREF}');
+                Log(Loco_LocoChipStr + ' * TC=' + IntToStr(LocoTimingStartTC) + ' to TC=' + IntToStr(LocoTimingStopTC) + ': '
+                                     + IntToStr(MilliSecondsBetween(LocoTimingStopTime, LocoTimingStartTime)) + 'ms, '
+                                     + FloatToStr(TempMPHSpeed) + ' mph, speed='
+                                     + IntToStr(LocoTimingLenzSpeed)
+                                     + ' {NOUNITREF}');
 
-              { Now reduce the speed for the next run }
-              Dec(LocoTimingLenzSpeed);
-              IF LocoTimingLenzSpeed > -1 THEN
-                Log(LocoChipStr + ' LG Speed reduced to ' + IntToStr(LocoTimingLenzSpeed));
+                { Now reduce the speed for the next run }
+                Dec(LocoTimingLenzSpeed);
+                IF LocoTimingLenzSpeed > -1 THEN
+                  Log(Loco_LocoChipStr + ' LG Speed reduced to ' + IntToStr(LocoTimingLenzSpeed));
 
-              { Store a reasonable speed setting for circling the layout before the next timing run begins }
-              IF LocoTimingCircleSpeed = 0 THEN BEGIN
-                IF (TempMPHSpeed > 70)
-                AND (TempMPHSpeed < 80)
-                THEN BEGIN
-                  LocoTimingCircleSpeed := LocoTimingLenzSpeed;
-                  Log(LocoChipStr + ' L LocoTimingCircleSpeed saved as ' + IntToStr(LocoTimingLenzSpeed));
+                { Store a reasonable speed setting for circling the layout before the next timing run begins }
+                IF LocoTimingCircleSpeed = 0 THEN BEGIN
+                  IF (TempMPHSpeed > 70)
+                  AND (TempMPHSpeed < 80)
+                  THEN BEGIN
+                    LocoTimingCircleSpeed := LocoTimingLenzSpeed;
+                    Log(Loco_LocoChipStr + ' L LocoTimingCircleSpeed saved as ' + IntToStr(LocoTimingLenzSpeed));
+                  END ELSE BEGIN
+                    { set a default speed }
+                    SetLenzSpeedAndDirection(L, DefaultLocoSpeed, Up, OK);
+                    LocoDialogueWindow.LocoDialogueSpeedDisplay.Color := clRed;
+  //                  LocoDialogueWindow.LocoDialogueSpeedButtons.Position := DefaultLocoSpeed;
+                    LocoDialogueWindow.LocoDialogueSpeedDisplay.Caption := IntToStr(DefaultLocoSpeed);
+                    DefaultLocoSpeedSet := True;
+                    Log(Loco_LocoChipStr + ' L Speed set to ' + IntToStr(DefaultLocoSpeed));
+                  END;
                 END ELSE BEGIN
-                  { set a default speed }
-                  SetLenzSpeedAndDirection(LocoChip, DefaultLocoSpeed, Up, OK);
+                  SetLenzSpeedAndDirection(L, LocoTimingCircleSpeed, Up, OK);
+                  Log(Loco_LocoChipStr + ' L Speed set to LocoTimingCircleSpeed (' + IntToStr(LocoTimingCircleSpeed) + ')');
                   LocoDialogueWindow.LocoDialogueSpeedDisplay.Color := clRed;
-//                  LocoDialogueWindow.LocoDialogueSpeedButtons.Position := DefaultLocoSpeed;
-                  LocoDialogueWindow.LocoDialogueSpeedDisplay.Caption := IntToStr(DefaultLocoSpeed);
-                  DefaultLocoSpeedSet := True;
-                  Log(LocoChipStr + ' L Speed set to ' + IntToStr(DefaultLocoSpeed));
+  //                LocoDialogueWindow.LocoDialogueSpeedButtons.Position := LocoTimingCircleSpeed;
+                  LocoDialogueWindow.LocoDialogueSpeedDisplay.Caption := IntToStr(LocoTimingCircleSpeed);
                 END;
-              END ELSE BEGIN
-                SetLenzSpeedAndDirection(LocoChip, LocoTimingCircleSpeed, Up, OK);
-                Log(LocoChipStr + ' L Speed set to LocoTimingCircleSpeed (' + IntToStr(LocoTimingCircleSpeed) + ')');
-                LocoDialogueWindow.LocoDialogueSpeedDisplay.Color := clRed;
-//                LocoDialogueWindow.LocoDialogueSpeedButtons.Position := LocoTimingCircleSpeed;
-                LocoDialogueWindow.LocoDialogueSpeedDisplay.Caption := IntToStr(LocoTimingCircleSpeed);
               END;
-            END;
+      END;
     END;
   END; { ProcessSpeedTiming }
 
@@ -574,22 +576,23 @@ BEGIN { DecodeFeedback }
 
                     IF NOT InAutoMode THEN BEGIN
                       IF TrackCircuits[TC].TC_OccupationState = TCOutOfUseSetByUser THEN
-                        SetTrackCircuitstate(NoLocoChip, TC, TCOutOfUseSetByUser)
+                        SetTrackCircuitstate(UnknownLocoChip, TC, TCOutOfUseSetByUser)
                       ELSE
                         IF TrackCircuits[TC].TC_OccupationState = TCPermanentOccupationSetByUser THEN
-                          SetTrackCircuitstate(NoLocoChip, TC, TCPermanentOccupationSetByUser)
+                          SetTrackCircuitstate(UnknownLocoChip, TC, TCPermanentOccupationSetByUser)
                         ELSE
                           SetTrackCircuitstate(TC, TCUnoccupied)
                     END ELSE BEGIN
-                      T := 0;
                       IF TrackCircuits[TC].TC_LocoChip <> UnknownLocoChip THEN
-                        T := GetTrainRecord(TrackCircuits[TC].TC_LocoChip);
+                        T := GetTrainIndexFromLocoChip(TrackCircuits[TC].TC_LocoChip)
+                      ELSE
+                        T := UnknownTrainIndex;
 
                       IF TrackCircuits[TC].TC_OccupationState = TCOutOfUseSetByUser THEN
-                        SetTrackCircuitstate(NoLocoChip, TC, TCOutOfUseSetByUser)
+                        SetTrackCircuitstate(UnknownLocoChip, TC, TCOutOfUseSetByUser)
                       ELSE
                         IF TrackCircuits[TC].TC_OccupationState = TCPermanentOccupationSetByUser THEN
-                          SetTrackCircuitstate(NoLocoChip, TC, TCPermanentOccupationSetByUser)
+                          SetTrackCircuitstate(UnknownLocoChip, TC, TCPermanentOccupationSetByUser)
                         ELSE
                           IF (T <= High(Trains))
                           AND Trains[T].Train_UseTrailingTrackCircuits
@@ -597,7 +600,7 @@ BEGIN { DecodeFeedback }
                             SetTrackCircuitstate(TrackCircuits[TC].TC_LocoChip, TC, TCSystemOccupation)
                           ELSE
                             IF TrackCircuits[TC].TC_PreviousOccupationState <> TCSystemOccupation THEN
-                              SetTrackCircuitstate(NoLocoChip, TC, TCUnoccupied)
+                              SetTrackCircuitstate(UnknownLocoChip, TC, TCUnoccupied)
                             ELSE BEGIN
                               { the track circuit has probably been set then unset then set again - which may happen with bad contacts }
                               TrackCircuits[TC].TC_LocoChip := TrackCircuits[TC].TC_PreviousLocoChip;
@@ -615,28 +618,28 @@ BEGIN { DecodeFeedback }
             BEGIN
               LineFeedbackFound := False;
               WITH FeedbackData DO BEGIN
-                L := 0;
+                Line := 0;
                 LineFound := False;
-                WHILE (L <= High(Lines))
+                WHILE (Line <= High(Lines))
                 AND NOT LineFound
                 DO BEGIN
-                  WITH Lines[L] DO BEGIN
+                  WITH Lines[Line] DO BEGIN
                     IF Line_InUseFeedbackUnit = Feedback_Unit THEN BEGIN
                       IF Line_InUseFeedbackInput = Feedback_Input THEN BEGIN
                         LineFeedbackFound := True;
                         IF Feedback_InputOn THEN BEGIN
                           Line_OutOfUseState := InUse;
-                          DebugStr := DebugStr + ' (L=' + LineToStr(L) + ')' + ' [line in use]';
+                          DebugStr := DebugStr + ' (Line=' + LineToStr(Line) + ')' + ' [line in use]';
                         END ELSE BEGIN
                           Line_OutOfUseState := OutOfUse;
-                          DebugStr := DebugStr + ' (L=' + LineToStr(L) + ')' + ' [line not in use]';
+                          DebugStr := DebugStr + ' (Line=' + LineToStr(Line) + ')' + ' [line not in use]';
                         END;
                         Log('T ' + DebugStr);
                         IF NOT ProgramStartup THEN
                           DrawMap;
                       END;
                     END;
-                  Inc(L);
+                  Inc(Line);
                   END; {WITH}
                 END; {WHILE}
               END; {WITH}
@@ -695,19 +698,21 @@ BEGIN { DecodeFeedback }
                                 Point_MovedWhenLocked := False;
                               END;
                             END ELSE BEGIN
-                              T := GetTrainRecord(Point_RouteLockedByLocochip);
-                              IF (Trains[T].Train_CurrentStatus <> Suspended)
-                              AND (Trains[T].Train_CurrentStatus <> MissingAndSuspended)
-                              THEN BEGIN
-                                SuspendTrain(T, NOT ByUser, 'point ' + PointToStr(P) + ' has moved');
+                              T := GetTrainIndexFromLocoChip(Point_RouteLockedByLocochip);
+                              IF T <> UnknownTrainIndex THEN BEGIN
+                                IF (Trains[T].Train_CurrentStatus <> Suspended)
+                                AND (Trains[T].Train_CurrentStatus <> MissingAndSuspended)
+                                THEN BEGIN
+                                  SuspendTrain(T, NOT ByUser, 'point ' + PointToStr(P) + ' has moved');
 
-                                IF NOT Point_MovedWhenLocked THEN BEGIN
-                                  Point_MovedWhenLocked := True;
-                                  MakeSound(1);
-                                  Log('X! Serious error: P=' + IntToStr(P) + ' (Lenz=' + IntToStr(Point_LenzNum) + ')'
-                                          + ' [' + DescribeLineNamesForTrackCircuit(Point_TCAtHeel) + '] has changed to ' + PointStateToStr(Point_PresentState)
-                                          + ' even though ' + LockingFailureString + ':' + 'loco ' + LocoChipToStr(Point_RouteLockedByLocoChip) + ' has been suspended');
-                                  Point_MovedWhenLocked := False;
+                                  IF NOT Point_MovedWhenLocked THEN BEGIN
+                                    Point_MovedWhenLocked := True;
+                                    MakeSound(1);
+                                    Log('X! Serious error: P=' + IntToStr(P) + ' (Lenz=' + IntToStr(Point_LenzNum) + ')'
+                                            + ' [' + DescribeLineNamesForTrackCircuit(Point_TCAtHeel) + '] has changed to ' + PointStateToStr(Point_PresentState)
+                                            + ' even though ' + LockingFailureString + ':' + 'loco ' + LocoChipToStr(Point_RouteLockedByLocoChip) + ' has been suspended');
+                                    Point_MovedWhenLocked := False;
+                                  END;
                                 END;
                               END;
                             END;

@@ -478,7 +478,7 @@ BEGIN
 
         END ELSE BEGIN
           IF RecordingMonitorScreens THEN BEGIN
-            DrawLineinLogFile(NoLocoChip, 'D', 'T', UnitRef);
+            DrawLineinLogFile(UnknownLocoChipAsZeroesStr, 'D', 'T', UnitRef);
             Log('T ' + GetStationNameFromArea(Area) + ' {NOUNITREF}');
           END;
 
@@ -517,7 +517,7 @@ BEGIN
           END; {CASE}
 
           IF RecordingMonitorScreens THEN
-            DrawLineinLogFile(NoLocoChip, 'D', 'T', UnitRef);
+            DrawLineinLogFile(UnknownLocoChipAsZeroesStr, 'D', 'T', UnitRef);
         END;
       END;
     END; {WITH}
@@ -570,7 +570,7 @@ BEGIN
       IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) AND NOT ProgramShuttingDown THEN BEGIN
         Line := ' ';
         WHILE ClientSocket.Connected AND (Line <> '') DO BEGIN
-          Line := String(ClientSocket.ReceiveLn());
+          Line := String(ClientSocket.ReceiveLn);
 
           IF InitVarsWindow <> NIL THEN
             AddLineToStationMonitorsWebDiagnosticsMemo('Rec''d: ' + Line);

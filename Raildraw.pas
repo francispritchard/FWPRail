@@ -509,16 +509,16 @@ PROCEDURE DrawBufferStop(BufferStopNum : Integer; Colour : TColour);
 PROCEDURE DrawBufferStopData(BufferStopNum : Integer; BufferStopText : String; Colour : TColor);
 { Put the bufferstop name or other supplied data on the diagram }
 
-PROCEDURE DrawConnectionCh(L : Integer; Direction : DirectionType);
+PROCEDURE DrawConnectionCh(Line : Integer; Direction : DirectionType);
 { Draw character at line starts/ends to indicate where lines are going when they disappear off the screen }
 
 PROCEDURE DrawFailure(Device : Integer; ActionCh : String);
 { Describes the offending items in the status bar }
 
-PROCEDURE DrawLine{1}(L : Integer; NewLineColour : Integer; ActiveTrain : Boolean); Overload;
+PROCEDURE DrawLine{1}(Line : Integer; NewLineColour : Integer; ActiveTrain : Boolean); Overload;
 { Draw an individual line, with headcode if required, and store the line colour }
 
-PROCEDURE DrawLine{2}(L : Integer; NewLineColour : Integer; ActiveTrain : Boolean; TempLineText : String); Overload;
+PROCEDURE DrawLine{2}(Line : Integer; NewLineColour : Integer; ActiveTrain : Boolean; TempLineText : String); Overload;
 { Draw an individual line, with headcode if required, and store the line colour }
 
 PROCEDURE DrawMap;
@@ -838,7 +838,7 @@ VAR
   FeedbackData : FeedbackRec;
   FeedbackNum : Integer;
   FeedbackUnitFound : Boolean;
-  L : Integer;
+  Line : Integer;
   LineNameWidth : Word;
   SegmentText : String;
   TrackCircuitNumbered : Boolean;
@@ -850,7 +850,7 @@ VAR
     ColourNum : Integer;
     FeedbackType : TypeOfFeedBackType;
     I, J, K : Integer;
-    L : Integer;
+    Line : Integer;
     LineDrawn : Boolean;
     P : Integer;
     Pos : Word;
@@ -862,8 +862,8 @@ VAR
     WITH RailWindowBitmap.Canvas DO BEGIN
       { First clear existing line detail, as it may obscure the data we're writing out }
       ShowLineOccupationDetail := False;
-      FOR L := 0 TO High(Lines) DO
-        DrawLine(L, Lines[L].Line_CurrentColour, False);
+      FOR Line := 0 TO High(Lines) DO
+        DrawLine(Line, Lines[Line].Line_CurrentColour, False);
 
       IF ShowOneFeedbackUnitOnly OR ShowTrackCircuitFeedbackDataInSeparateColours THEN BEGIN
           { show which Lenz feedback unit is being used }
@@ -930,8 +930,8 @@ VAR
                 THEN BEGIN
                   SegmentText := IntToStr(I) + IntToStr(J);
                   IF Length(TrackCircuits[FeedbackNum].TC_LineArray) > 0 THEN BEGIN
-                    L := TrackCircuits[FeedbackNum].TC_LineArray[0];
-                    WITH Lines[L] DO
+                    Line := TrackCircuits[FeedbackNum].TC_LineArray[0];
+                    WITH Lines[Line] DO
                       TextOut(Line_UpX + (Line_DownX - Line_UpX) DIV 2 - TextWidth(SegmentText) DIV 2 - ScrollBarXAdjustment,
                               (Line_UpY + (Line_DownY - Line_UpY) DIV 2) - TextHeight(SegmentText) DIV 2 - ScrollBarYAdjustment,
                               SegmentText);
@@ -948,18 +948,18 @@ VAR
       END ELSE BEGIN
         FOR TC := 0 TO High(TrackCircuits) DO BEGIN
           { Write out the track circuit number once only }
-          L := 0;
+          Line := 0;
           TrackCircuitNumbered := False;
-          WHILE L <= High(Lines) DO BEGIN
-            IF Lines[L].Line_TC = TC THEN BEGIN
+          WHILE Line <= High(Lines) DO BEGIN
+            IF Lines[Line].Line_TC = TC THEN BEGIN
               { Draw vertical lines as separators }
-              IF (Lines[L].Line_NextUpLine <> UnknownLine)
-              AND (Lines[Lines[L].Line_NextUpLine].Line_TC <> TC)
+              IF (Lines[Line].Line_NextUpLine <> UnknownLine)
+              AND (Lines[Lines[Line].Line_NextUpLine].Line_TC <> TC)
               THEN BEGIN
                 Pen.Color := clWhite;
                 Pen.Style := psSolid;
                 FOR Pos := 0 TO 10 DO BEGIN
-                  WITH Lines[L] DO BEGIN
+                  WITH Lines[Line] DO BEGIN
                     X := Line_UpX + MulDiv(Line_DownX - Line_UpX, Pos, 10);
                     Y := Line_UpY + MulDiv(Line_DownY - Line_UpY, Pos, 10);
                     IF Pos = 0 THEN BEGIN
@@ -972,42 +972,42 @@ VAR
 
               IF NOT ShowTrackCircuits THEN
                 { want TCs coloured all the same }
-                DrawLine(L, TCUnoccupiedColour, NOT ActiveTrain)
+                DrawLine(Line, TCUnoccupiedColour, NOT ActiveTrain)
               ELSE BEGIN
                 { colour TCs differently to distinguish them }
                 LineDrawn := False;
-                IF Lines[L].Line_NextUpLine <> UnknownLine THEN BEGIN
-                  IF Lines[Lines[L].Line_NextUpLine].Line_TC <> TC THEN BEGIN
-                    IF Lines[Lines[L].Line_NextUpLine].Line_CurrentColour <> clLime THEN BEGIN
-                      DrawLine(L, clLime, NOT ActiveTrain);
+                IF Lines[Line].Line_NextUpLine <> UnknownLine THEN BEGIN
+                  IF Lines[Lines[Line].Line_NextUpLine].Line_TC <> TC THEN BEGIN
+                    IF Lines[Lines[Line].Line_NextUpLine].Line_CurrentColour <> clLime THEN BEGIN
+                      DrawLine(Line, clLime, NOT ActiveTrain);
                       LineDrawn := True;
                       Font.Color := clLime;
                     END ELSE
-                      IF Lines[Lines[L].Line_NextUpLine].Line_CurrentColour <> clRed THEN BEGIN
-                        DrawLine(L, clRed, NOT ActiveTrain);
+                      IF Lines[Lines[Line].Line_NextUpLine].Line_CurrentColour <> clRed THEN BEGIN
+                        DrawLine(Line, clRed, NOT ActiveTrain);
                         LineDrawn := True;
                         Font.Color := clRed;
                       END ELSE BEGIN
-                        DrawLine(L, clYellow, NOT ActiveTrain);
+                        DrawLine(Line, clYellow, NOT ActiveTrain);
                         LineDrawn := True;
                         Font.Color := clYellow;
                       END;
                   END;
                 END;
 
-                IF Lines[L].Line_NextDownLine <> UnknownLine THEN BEGIN
-                  IF Lines[Lines[L].Line_NextDownLine].Line_TC <> TC THEN BEGIN
-                    IF Lines[Lines[L].Line_NextDownLine].Line_CurrentColour <> clLime THEN BEGIN
-                      DrawLine(L, clLime, NOT ActiveTrain);
+                IF Lines[Line].Line_NextDownLine <> UnknownLine THEN BEGIN
+                  IF Lines[Lines[Line].Line_NextDownLine].Line_TC <> TC THEN BEGIN
+                    IF Lines[Lines[Line].Line_NextDownLine].Line_CurrentColour <> clLime THEN BEGIN
+                      DrawLine(Line, clLime, NOT ActiveTrain);
                       LineDrawn := True;
                       Font.Color := clLime;
                     END ELSE
-                      IF Lines[Lines[L].Line_NextDownLine].Line_CurrentColour <> clRed THEN BEGIN
-                        DrawLine(L, clRed, NOT ActiveTrain);
+                      IF Lines[Lines[Line].Line_NextDownLine].Line_CurrentColour <> clRed THEN BEGIN
+                        DrawLine(Line, clRed, NOT ActiveTrain);
                         LineDrawn := True;
                         Font.Color := clRed;
                       END ELSE BEGIN
-                        DrawLine(L, clYellow, NOT ActiveTrain);
+                        DrawLine(Line, clYellow, NOT ActiveTrain);
                         LineDrawn := True;
                         Font.Color := clYellow;
                       END;
@@ -1015,13 +1015,13 @@ VAR
                 END;
 
                 IF NOT LineDrawn THEN BEGIN
-                  DrawLine(L, clYellow, NOT ActiveTrain);
+                  DrawLine(Line, clYellow, NOT ActiveTrain);
                   Font.Color := clYellow;
                 END;
               END;
 
               IF NOT TrackCircuitNumbered OR (ScreenMode = FullScreenMode) OR (ScreenMode = FullScreenWithStatusBarMode) THEN BEGIN
-                WITH Lines[L] DO BEGIN
+                WITH Lines[Line] DO BEGIN
                   Font.Style := [fsBold];
                   IF ShowTrackCircuits THEN
                     SegmentText := IntToStr(TC);
@@ -1088,7 +1088,7 @@ VAR
                 TrackCircuitNumbered := True;
               END;
             END;
-            Inc(L);
+            Inc(Line);
           END; {WHILE}
         END; {FOR}
       END;
@@ -1100,7 +1100,7 @@ VAR
   { show various line display options }
   VAR
     ElementPos : Integer;
-    L : Integer;
+    Line : Integer;
     Pos : Integer;
     SaveLineFontName : String;
     TempLocationArray : IntegerArrayType;
@@ -1111,12 +1111,12 @@ VAR
       ShowLineOccupationDetail := False;
       SetLength(TempLocationArray, 0);
 
-      FOR L := 0 TO High(Lines) DO
-        DrawLine(L, Lines[L].Line_CurrentColour, False);
+      FOR Line := 0 TO High(Lines) DO
+        DrawLine(Line, Lines[Line].Line_CurrentColour, False);
 
-      FOR L := 0 TO High(Lines) DO BEGIN
+      FOR Line := 0 TO High(Lines) DO BEGIN
         SegmentText := '';
-        WITH Lines[L] DO BEGIN
+        WITH Lines[Line] DO BEGIN
           { how which track circuits have routes set over them }
           IF ShowTrackCircuitsRoutedOver THEN BEGIN
             IF Line_TC <> UnknownTrackCircuit THEN BEGIN
@@ -1129,50 +1129,50 @@ VAR
           IF ShowLineDetail THEN BEGIN
             { show the internal name for each track segment }
             Font.Color := GetLineTypeColour(Line_TypeOfLine);
-            LineNameWidth := TextWidth(LineToStr(L));
+            LineNameWidth := TextWidth(LineToStr(Line));
             IF Line_DownX > Line_UpX THEN BEGIN
               IF (Line_DownX - Line_UpX) > LineNameWidth THEN
-                SegmentText := LineToStr(L)
+                SegmentText := LineToStr(Line)
               ELSE
-                SegmentText := Copy(LineToStr(L), Length(LineToStr(L)), 1);
+                SegmentText := Copy(LineToStr(Line), Length(LineToStr(Line)), 1);
             END ELSE BEGIN
               IF (Line_UpX - Line_DownX) > LineNameWidth THEN
-                SegmentText := LineToStr(L)
+                SegmentText := LineToStr(Line)
               ELSE
-                SegmentText := Copy(LineToStr(L), Length(LineToStr(L)), 1);
+                SegmentText := Copy(LineToStr(Line), Length(LineToStr(Line)), 1);
             END;
           END;
 
           IF ShowLineNumbers THEN BEGIN
             { show the internal numbers for each track segment }
             Font.Color := GetLineTypeColour(Line_TypeOfLine);
-            LineNameWidth := TextWidth(IntToStr(L));
+            LineNameWidth := TextWidth(IntToStr(Line));
             IF Line_DownX > Line_UpX THEN BEGIN
               IF (Line_DownX - Line_UpX) > LineNameWidth THEN
-                SegmentText := IntToStr(L)
+                SegmentText := IntToStr(Line)
               ELSE
-                SegmentText := Copy(IntToStr(L), Length(IntToStr(L)), 1);
+                SegmentText := Copy(IntToStr(Line), Length(IntToStr(Line)), 1);
             END ELSE BEGIN
               IF (Line_UpX - Line_DownX) > LineNameWidth THEN
-                SegmentText := LineToStr(L)
+                SegmentText := LineToStr(Line)
               ELSE
-                SegmentText := Copy(IntToStr(L), Length(IntToStr(L)), 1);
+                SegmentText := Copy(IntToStr(Line), Length(IntToStr(Line)), 1);
             END;
           END;
 
           IF ShowLinesWhereUpXValueSpecified THEN BEGIN
             Font.Color := GetLineTypeColour(Line_TypeOfLine);
-            LineNameWidth := TextWidth(LineToStr(L));
+            LineNameWidth := TextWidth(LineToStr(Line));
             IF Line_UpXValueSpecified THEN
-              SegmentText := LineToStr(L)
+              SegmentText := LineToStr(Line)
             ELSE
               SegmentText := '';
           END;
 
           IF ShowLineDirectionDetail THEN BEGIN
             { Indicate lines that are not designated as through lines }
-            IF Lines[L].Line_Location <> UnknownLocation THEN BEGIN
-              CASE Locations[Lines[L].Line_Location].Location_ThroughLocationState OF
+            IF Lines[Line].Line_Location <> UnknownLocation THEN BEGIN
+              CASE Locations[Lines[Line].Line_Location].Location_ThroughLocationState OF
                 NonThroughLocation:
                   BEGIN
                     Font.Color := clRed;
@@ -1182,7 +1182,7 @@ VAR
                   BEGIN
                     { if the line direction is one way, which way it is }
                     Font.Color := clAqua;
-                    IF Lines[L].Line_Direction = Up THEN BEGIN
+                    IF Lines[Line].Line_Direction = Up THEN BEGIN
                       IF Line_UpY = Line_DownY THEN
                         SegmentText := '¬' { left arrow }
                       ELSE
@@ -1191,7 +1191,7 @@ VAR
                         ELSE
                           SegmentText := '­'; { up arrow }
                     END ELSE
-                      IF Lines[L].Line_Direction = Down THEN BEGIN
+                      IF Lines[Line].Line_Direction = Down THEN BEGIN
                         IF Line_UpY = Line_DownY THEN
                           SegmentText := '®' { right arrow }
                         ELSE
@@ -1214,12 +1214,12 @@ VAR
           END;
 
           IF ShowLocationLengthDetail THEN BEGIN
-            IF Lines[L].Line_Location <> UnknownLocation THEN BEGIN
-              IF NOT IsElementInLocationArray(TempLocationArray, Lines[L].Line_Location, ElementPos) THEN BEGIN
+            IF Lines[Line].Line_Location <> UnknownLocation THEN BEGIN
+              IF NOT IsElementInLocationArray(TempLocationArray, Lines[Line].Line_Location, ElementPos) THEN BEGIN
                 { only display the length once for each location }
-                AppendToLocationArray(TempLocationArray, Lines[L].Line_Location);
+                AppendToLocationArray(TempLocationArray, Lines[Line].Line_Location);
                 Font.Color := clAqua;
-                SegmentText := LocationToStr(Lines[L].Line_Location, ShortStringType) + ' ' + FloatToStr(Locations[Lines[L].Line_Location].Location_LengthInInches);
+                SegmentText := LocationToStr(Lines[Line].Line_Location, ShortStringType) + ' ' + FloatToStr(Locations[Lines[Line].Line_Location].Location_LengthInInches);
               END;
             END;
           END;
@@ -1227,7 +1227,7 @@ VAR
           IF ShowLineGradients THEN BEGIN
             { Indicate lines which are marked as being on a gradient }
             Font.Color := clLime;
-            IF Lines[L].Line_Gradient = RisingIfDown THEN BEGIN
+            IF Lines[Line].Line_Gradient = RisingIfDown THEN BEGIN
               IF Line_Direction = Down THEN
                 SegmentText := '­' { up arrow }
               ELSE
@@ -1237,7 +1237,7 @@ VAR
                   IF Line_Direction = Bidirectional THEN
                     SegmentText := '­¯' { Up and down arrows }
             END ELSE BEGIN
-              IF Lines[L].Line_Gradient = RisingIfUp THEN BEGIN
+              IF Lines[Line].Line_Gradient = RisingIfUp THEN BEGIN
                 IF Line_Direction = Up THEN
                   SegmentText := '­' { up arrow }
                 ELSE
@@ -1252,14 +1252,14 @@ VAR
 
           IF ShowLocations THEN BEGIN
             Font.Color := clLime;
-            IF Lines[L].Line_Location <> UnknownLocation THEN
+            IF Lines[Line].Line_Location <> UnknownLocation THEN
               SegmentText := LocationToStr(Line_Location, ShortStringType)
             ELSE
               SegmentText := '?';
           END;
 
           IF ShowAreas THEN BEGIN
-            IF Lines[L].Line_Location <> UnknownLocation THEN BEGIN
+            IF Lines[Line].Line_Location <> UnknownLocation THEN BEGIN
               IF Locations[Line_Location].Location_Area <> UnknownArea THEN BEGIN
                 IF (Areas[Locations[Line_Location].Location_Area].Area_IsHoldingArea)
                 AND (Areas[Locations[Line_Location].Location_Area].Area_IsReversingArea)
@@ -1331,18 +1331,18 @@ BEGIN
         ShowTrackCircuitData;
 
       IF ShowLinesWithoutTrackCircuits THEN BEGIN
-        L := 0;
-        WHILE L <= High(Lines) DO BEGIN
-          IF Lines[L].Line_TC = UnknownTrackCircuit THEN BEGIN
+        Line := 0;
+        WHILE Line <= High(Lines) DO BEGIN
+          IF Lines[Line].Line_TC = UnknownTrackCircuit THEN BEGIN
             Font.Color := LinesWithoutTrackCircuitsColour;
             SegmentText := 'X';
-            WITH Lines[L] DO BEGIN
+            WITH Lines[Line] DO BEGIN
               TextOut(Line_UpX + (Line_DownX - Line_UpX) DIV 2 - TextWidth(SegmentText) DIV 2 - ScrollBarXAdjustment,
                      (Line_UpY + (Line_DownY - Line_UpY) DIV 2) - TextHeight(SegmentText) DIV 2 - ScrollBarYAdjustment,
                       SegmentText);
             END; {WITH}
           END;
-          Inc(L);
+          Inc(Line);
         END; {WHILE}
       END;
 
@@ -1503,7 +1503,7 @@ CONST
 VAR
   I : Integer;
   Indicator : JunctionIndicatorType;
-  L : Integer;
+  Line : Integer;
   HorizontalArrowAdjustment : Integer;
   LeftArrowNeeded : Boolean;
   NorthArrowNeededOnLeft : Boolean; { we need to use North/South to avoid confusion with the railway's normal Up/Down directions }
@@ -1526,8 +1526,8 @@ BEGIN
         Font.Name := 'Symbol';
         Font.Height := -MulDiv(FWPRailWindow.ClientHeight, LineFontHeight, ZoomScalefactor);
 
-        FOR L := 0 TO High(Lines) DO BEGIN
-          WITH Lines[L] DO BEGIN
+        FOR Line := 0 TO High(Lines) DO BEGIN
+          WITH Lines[Line] DO BEGIN
             IF (Line_TC <> UnknownTrackCircuit)
             AND NOT IsElementInIntegerArray(TCArray, Line_TC)
             THEN BEGIN
@@ -1722,9 +1722,9 @@ BEGIN
         { initialise them to red - to force SetSignal to switch them on and draw them }
         IF NOT FWPRailWindowInitialised THEN BEGIN
           IF Signals[S].Signal_OutOfUse THEN
-            SetSignal(NoLocoChip, S, NoAspect, LogSignalData, NOT ForceAWrite)
+            SetSignal(UnknownLocoChipStr, S, NoAspect, LogSignalData, NOT ForceAWrite)
           ELSE
-            SetSignal(NoLocoChip, S, RedAspect, LogSignalData, NOT ForceAWrite);
+            SetSignal(UnknownLocoChipStr, S, RedAspect, LogSignalData, NOT ForceAWrite);
         END ELSE BEGIN
           { otherwise just draw them }
           DrawSignal(S);
@@ -2360,7 +2360,7 @@ BEGIN
   END; {TRY}
 END; { DrawSignal }
 
-PROCEDURE DrawConnectionCh(L : Integer; Direction : DirectionType);
+PROCEDURE DrawConnectionCh(Line : Integer; Direction : DirectionType);
 { Draw character at line starts/ends to indicate where lines are going when they disappear off the screen }
 VAR
   ConnectionCh : String;
@@ -2371,14 +2371,14 @@ BEGIN
     IF FWPRailWindow <> NIL THEN BEGIN
       WITH RailWindowBitmap.Canvas DO BEGIN
         IF Direction = Up THEN BEGIN
-          ConnectionCh := Lines[L].Line_UpConnectionCh;
-          ConnectionChRect := Lines[L].Line_UpConnectionChRect;
+          ConnectionCh := Lines[Line].Line_UpConnectionCh;
+          ConnectionChRect := Lines[Line].Line_UpConnectionChRect;
         END ELSE BEGIN
-          ConnectionCh := Lines[L].Line_DownConnectionCh;
-          ConnectionChRect := Lines[L].Line_DownConnectionChRect;
+          ConnectionCh := Lines[Line].Line_DownConnectionCh;
+          ConnectionChRect := Lines[Line].Line_DownConnectionChRect;
         END;
 
-        IF Lines[L].Line_UpConnectionChBold OR Lines[L].Line_DownConnectionChBold THEN BEGIN
+        IF Lines[Line].Line_UpConnectionChBold OR Lines[Line].Line_DownConnectionChBold THEN BEGIN
           { undraw the old character }
           Font.Color := BackgroundColour;
           TextOut(ConnectionChRect.Left - ScrollBarXAdjustment, ConnectionChRect.Top - ScrollBarYAdjustment, ConnectionCh);
@@ -2418,7 +2418,7 @@ BEGIN
   END; {TRY}
 END; { DrawConnectionCh }
 
-PROCEDURE DrawLineMainProcedure(L : Integer; NewLineColour : Integer; ActiveTrain : Boolean; TempLineText : String);
+PROCEDURE DrawLineMainProcedure(Line : Integer; NewLineColour : Integer; ActiveTrain : Boolean; TempLineText : String);
 { Draw an individual line, with headcode if required, and store the line colour }
 CONST
   Bold = True;
@@ -2428,7 +2428,7 @@ VAR
   DownLineColour : TColor;
   LineTextStr : String;
   LineTextStrRect : TRect;
-  T : TrainElement;
+  T : TrainIndex;
   UpLineColour : TColor;
   X1, X2, Y1, Y2 : Integer;
 
@@ -2470,7 +2470,7 @@ BEGIN
       LineTextStr := '';
       InitialiseScreenDrawingVariables;
       WITH RailWindowBitmap.Canvas DO BEGIN
-        WITH Lines[L] DO BEGIN
+        WITH Lines[Line] DO BEGIN
           IF Line_TypeOfLine = SidingLine THEN
             Pen.Style := SidingPenStyle
           ELSE
@@ -2482,7 +2482,7 @@ BEGIN
 
           { Work out what to display on the line }
           IF Line_TC <> UnknownTrackCircuit THEN BEGIN
-            WITH TrackCircuits[Lines[L].Line_TC] DO BEGIN
+            WITH TrackCircuits[Lines[Line].Line_TC] DO BEGIN
               CASE TC_OccupationState OF
                 TCFeedbackOccupationButOutOfUse:
                   BEGIN
@@ -2552,8 +2552,8 @@ BEGIN
                     END ELSE
                       IF DisplayRoutesAndJourneys THEN BEGIN
                         IF TC_LocoChip <> UnknownLocoChip THEN BEGIN
-                          T := GetTrainRecord(TC_LocoChip);
-                          IF T <= High(Trains) THEN
+                          T := GetTrainIndexFromLocoChip(TC_LocoChip);
+                          IF T <> UnknownTrainIndex THEN
                             LineTextStr := IntToStr(TrackCircuits[Line_TC].TC_LockedForRoute) + ',' + IntToStr(TC_Journey);
                         END;
                       END;
@@ -2577,14 +2577,14 @@ BEGIN
 
           IF Line_OutOfUseState = OutOfUse THEN BEGIN
             { Draw a red lamp and line across the track }
-            X1 := Lines[L].Line_UpX;
-            Y1 := Lines[L].Line_UpY - BufferStopVerticalSpacingScaled;
-            Y2 := Lines[L].Line_UpY + BufferStopVerticalSpacingScaled;
+            X1 := Lines[Line].Line_UpX;
+            Y1 := Lines[Line].Line_UpY - BufferStopVerticalSpacingScaled;
+            Y2 := Lines[Line].Line_UpY + BufferStopVerticalSpacingScaled;
             DrawRedLampAndVerticalLine(X1, Y1, Y2, ForegroundColour);
 
-            X1 := Lines[L].Line_DownX;
-            Y1 := Lines[L].Line_DownY - BufferStopVerticalSpacingScaled;
-            Y2 := Lines[L].Line_DownY + BufferStopVerticalSpacingScaled;
+            X1 := Lines[Line].Line_DownX;
+            Y1 := Lines[Line].Line_DownY - BufferStopVerticalSpacingScaled;
+            Y2 := Lines[Line].Line_DownY + BufferStopVerticalSpacingScaled;
             DrawRedLampAndVerticalLine(X1, Y1, Y2, ForegroundColour);
 
             Pen.Style := psDot;
@@ -2602,18 +2602,18 @@ BEGIN
             ELSE
               ActiveTrainText := 'N';
 
-            IF Lines[L].Line_TC <> UnknownTrackCircuit THEN
-              Log('T ' + StringOfChar(' ', 68) + '<<' + LineToStr(L) + ' (' + IntToStr(Lines[L].Line_TC) + ')'
+            IF Lines[Line].Line_TC <> UnknownTrackCircuit THEN
+              Log('T ' + StringOfChar(' ', 68) + '<<' + LineToStr(Line) + ' (' + IntToStr(Lines[Line].Line_TC) + ')'
                        + ' ' + ColourToStr(NewLineColour) + ' ' + LineTextStr + ' ' + ActiveTrainText + '>>')
             ELSE
-              Log('T ' + StringOfChar(' ', 68) + '<<' + LineToStr(L) + ' ' + ColourToStr(NewLineColour) + ' ' + LineTextStr
+              Log('T ' + StringOfChar(' ', 68) + '<<' + LineToStr(Line) + ' ' + ColourToStr(NewLineColour) + ' ' + LineTextStr
                        + ' ' + ActiveTrainText + '>>');
           END;
 
           IF LineTextStr = '' THEN BEGIN
             IF ShowTrackCircuitsWhereUserMustDrive THEN
-              IF Lines[L].Line_TC <> UnknownTrackCircuit THEN
-                IF TrackCircuits[Lines[L].Line_TC].TC_UserMustDrive THEN
+              IF Lines[Line].Line_TC <> UnknownTrackCircuit THEN
+                IF TrackCircuits[Lines[Line].Line_TC].TC_UserMustDrive THEN
                   LineTextStr := 'U';
           END;
 
@@ -2635,7 +2635,7 @@ BEGIN
           END;
 
           { Draw this line in the colour of the adjacent lines if it is not track circuited }
-          IF Lines[L].Line_TC = UnknownTrackCircuit THEN BEGIN
+          IF Lines[Line].Line_TC = UnknownTrackCircuit THEN BEGIN
             IF (Line_NextUpLine <> UnknownLine)
             AND (Line_NextDownLine <> UnknownLine)
             THEN BEGIN
@@ -2719,15 +2719,15 @@ BEGIN
           { Draw characters at line starts/ends to indicate where lines are going when they disappear off the screen. (Although it is unlikely that a line would have a
             character at both ends, this eventuality is catered for).
           }
-          IF (Lines[L].Line_UpConnectionCh <> '')
-          AND (Lines[L].Line_UpConnectionCh <> ' ')
+          IF (Lines[Line].Line_UpConnectionCh <> '')
+          AND (Lines[Line].Line_UpConnectionCh <> ' ')
           THEN
-            DrawConnectionCh(L, Up);
+            DrawConnectionCh(Line, Up);
 
-          IF (Lines[L].Line_DownConnectionCh <> '')
-          AND (Lines[L].Line_DownConnectionCh <> ' ')
+          IF (Lines[Line].Line_DownConnectionCh <> '')
+          AND (Lines[Line].Line_DownConnectionCh <> ' ')
           THEN
-            DrawConnectionCh(L, Down);
+            DrawConnectionCh(Line, Down);
 
           IF ShowMouseRectangles THEN BEGIN
             PolyLine(Line_MousePolygon);
@@ -2747,19 +2747,19 @@ BEGIN
   END; {TRY}
 END; { DrawLineMainProcedure }
 
-PROCEDURE DrawLine{1}(L : Integer; NewLineColour : Integer; ActiveTrain : Boolean); Overload;
+PROCEDURE DrawLine{1}(Line : Integer; NewLineColour : Integer; ActiveTrain : Boolean); Overload;
 { Draw an individual line, with headcode if required, and store the line colour }
 CONST
   TempLineText = '';
 
 BEGIN
-  DrawLineMainProcedure(L, NewLineColour, ActiveTrain, TempLineText);
+  DrawLineMainProcedure(Line, NewLineColour, ActiveTrain, TempLineText);
 END; { DrawLine-1 }
 
-PROCEDURE DrawLine{2}(L : Integer; NewLineColour : Integer; ActiveTrain : Boolean; TempLineText : String); Overload;
+PROCEDURE DrawLine{2}(Line : Integer; NewLineColour : Integer; ActiveTrain : Boolean; TempLineText : String); Overload;
 { Draw an individual line, with headcode if required, and store the line colour }
 BEGIN
-  DrawLineMainProcedure(L, NewLineColour, ActiveTrain, TempLineText);
+  DrawLineMainProcedure(Line, NewLineColour, ActiveTrain, TempLineText);
 END; { DrawLine-2 }
 
 PROCEDURE DrawTrackCircuit{1}(TC : Integer; TCColour : TColour); Overload;
@@ -2768,16 +2768,16 @@ CONST
   ActiveTrain = True;
 
 VAR
-  L : Integer;
+  Line : Integer;
 
 BEGIN
   TRY
     IF TC <> UnknownTrackCircuit THEN BEGIN
-      L := 0;
-      WHILE L <= High(Lines) DO BEGIN
-        IF Lines[L].Line_TC = TC THEN
-          DrawLine(L, TCColour, ActiveTrain);
-        Inc(L);
+      Line := 0;
+      WHILE Line <= High(Lines) DO BEGIN
+        IF Lines[Line].Line_TC = TC THEN
+          DrawLine(Line, TCColour, ActiveTrain);
+        Inc(Line);
       END;
     END;
     InvalidateScreen(UnitRef, 'DrawTrackCircuit-1');
@@ -2793,16 +2793,16 @@ CONST
   ActiveTrain = True;
 
 VAR
-  L : Integer;
+  Line : Integer;
 
 BEGIN
   TRY
     IF TC <> UnknownTrackCircuit THEN BEGIN
-      L := 0;
-      WHILE L <= High(Lines) DO BEGIN
-        IF Lines[L].Line_TC = TC THEN
-          DrawLine(L, TCColour, ActiveTrain, TempLineText);
-        Inc(L);
+      Line := 0;
+      WHILE Line <= High(Lines) DO BEGIN
+        IF Lines[Line].Line_TC = TC THEN
+          DrawLine(Line, TCColour, ActiveTrain, TempLineText);
+        Inc(Line);
       END;
     END;
     InvalidateScreen(UnitRef, 'DrawTrackCircuit-2');
@@ -4001,7 +4001,7 @@ CONST
   Bold = True;
 
 VAR
-  L : Integer;
+  Line : Integer;
   S : Integer;
 
 BEGIN
@@ -4014,22 +4014,22 @@ BEGIN
           OR (Signals[S].Signal_Aspect = FlashingDoubleYellowAspect)
           THEN BEGIN
             Signals[S].Signal_LampIsOn := NOT Signals[S].Signal_LampIsOn;
-            SetSignalFunction(NoLocoChip, S);
+            SetSignalFunction(UnknownLocoChipStr, S);
             InvalidateScreen(UnitRef, 'FlashTimerTick 1');
           END;
         END;
       END;
 
       { Also any lines set to flash }
-      FOR L := 0 TO High(Lines) DO BEGIN
-        IF Lines[L].Line_TC <> UnknownTrackCircuit THEN BEGIN
+      FOR Line := 0 TO High(Lines) DO BEGIN
+        IF Lines[Line].Line_TC <> UnknownTrackCircuit THEN BEGIN
           IF DisplayFlashingTrackCircuits
-          AND (TrackCircuits[Lines[L].Line_TC].TC_Flashing)
+          AND (TrackCircuits[Lines[Line].Line_TC].TC_Flashing)
           THEN BEGIN
-            IF TrackCircuits[Lines[L].Line_TC].TC_LitUp THEN BEGIN
-              TrackCircuits[Lines[L].Line_TC].TC_LitUp := False;
+            IF TrackCircuits[Lines[Line].Line_TC].TC_LitUp THEN BEGIN
+              TrackCircuits[Lines[Line].Line_TC].TC_LitUp := False;
             END ELSE BEGIN
-              TrackCircuits[Lines[L].Line_TC].TC_LitUp := True;
+              TrackCircuits[Lines[Line].Line_TC].TC_LitUp := True;
             END;
             InvalidateScreen(UnitRef, 'FlashTimerTick 2');
           END;
@@ -4651,13 +4651,13 @@ END; { TCPopupSetTrackCircuitToPermanentOccupationClick }
 
 PROCEDURE TFWPRailWindow.TCPopupShowLocosLastErrorMessageClick(Sender: TObject);
 VAR
-  T : TrainElement;
+  T : TrainIndex;
 
 BEGIN
   WITH Lines[TrackCircuitPopupLine] DO BEGIN
     IF Line_TC <> UnknownTrackCircuit THEN BEGIN
-      T := GetTrainRecord(TrackCircuits[Line_TC].TC_LocoChip);
-      IF T <= High(Trains) THEN BEGIN
+      T := GetTrainIndexFromLocoChip(TrackCircuits[Line_TC].TC_LocoChip);
+      IF T <> UnknownTrainIndex THEN BEGIN
         WITH Trains[T] DO BEGIN
           IF Train_LastRouteLockedMsgStr <> '' THEN
             Debug(Train_LocoChipStr + ': ' +  Train_LastRouteLockedMsgStr);
@@ -4685,14 +4685,14 @@ PROCEDURE ClearLocoFromTrackCircuit(TC : Integer);
 { Clear a loco allocation from a given track circuit and other associated locations }
 VAR
   I : Integer;
-  T : TrainElement;
+  T : TrainIndex;
   TCArray : IntegerArrayType;
 
 BEGIN
   TRY
     { no loco chip number has been entered, so clear any existing one }
-    T := GetTrainRecord(TrackCircuits[TC].TC_LocoChip);
-    IF T <= High(Trains) THEN BEGIN
+    T := GetTrainIndexFromLocoChip(TrackCircuits[TC].TC_LocoChip);
+    IF T <> UnknownTrainIndex THEN BEGIN
       WITH Trains[T] DO BEGIN
         Train_CurrentTC := UnknownTrackCircuit;
         Train_SavedLocation := UnknownLocation;
@@ -4734,9 +4734,9 @@ VAR
   I : Integer;
   InputQueryLocoChipStr : String;
   NewTrackCircuitState : TrackCircuitStateType;
-  PossibleLocoChip : Integer;
-  PossibleT : TrainElement;
-  SavePossibleLocoChip : Integer;
+  PossibleLocoChip : LocoChipType;
+  PossibleT : TrainIndex;
+  SavePossibleLocoChip : LocoChipType;
   TC : Integer;
   TCArray : IntegerArrayType;
 
@@ -4770,12 +4770,12 @@ BEGIN
               ClearLocoFromTrackCircuit(Line_TC);
           END ELSE BEGIN
             { see if it's recorded as being somewhere else - but see if that somewhere else is adjacent }
-            PossibleT := GetTrainRecord(PossibleLocoChip, AllLocos);
-            IF PossibleT = 0 THEN
+            PossibleT := GetTrainIndexFromLocoChip(PossibleLocoChip);
+            IF PossibleT = UnknownTrainIndex THEN
               Debug('!Loco ' + LocoChipToStr(PossibleLocoChip) + ' is not in the loco table')
-  //          ELSE
-  //            IF NOT PossibleT^.Train_Active THEN
-  //              Debug('!Loco ' + LocoChipToStr(PossibleLocoChip) + ' is in the loco table but is not active')
+            ELSE
+              IF NOT Locos[Trains[PossibleT].Train_LocoIndex].Loco_Active THEN
+                Debug('!Loco ' + LocoChipToStr(PossibleLocoChip) + ' is in the loco table but is not active')
               ELSE BEGIN
                 FindAdjoiningTrackCircuits(Line_TC, AdjacentUpTC, AdjacentDownTC);
                 IF (Trains[PossibleT].Train_CurrentTC <> UnknownTrackCircuit)
@@ -4875,8 +4875,8 @@ CONST
   NoValue = 0;
 
 VAR
-  LocoChip : Integer;
-  T : TrainElement;
+  L : LocoIndex;
+  LocoChip : LocoChipType;
 
 BEGIN
   TRY
@@ -4888,19 +4888,21 @@ BEGIN
                                         NOT StopTimer, mtWarning, [mbYes, mbNo], mbNo) <> mrYes THEN
             Debug('Cancelling change of loco ' + LocoChipToStr(LocoChip) + '''s internal direction changed to up')
           ELSE BEGIN
-            T := GetTrainRecord(LocoChip);
-            WITH Trains[T] DO BEGIN
-              IF Train_LightsType <> LightsOperatedByTwoChips THEN BEGIN
-                ProgramOnTheMain(LocoChip, ChangeDirectionToUp, NoValue);
-                Log(LocoChipToStr(LocoChip) + ' XG Internal direction changed to up');
-              END ELSE BEGIN
-                ProgramOnTheMain(Train_LightingChipUp, ChangeDirectionToUp, NoValue);
-                Log(LocoChipToStr(Train_LightingChipUp) + ' XG Internal direction changed to up');
+            L := GetLocoIndexFromLocoChip(LocoChip);
+            IF L <> UnknownLocoIndex THEN BEGIN
+              WITH Locos[L] DO BEGIN
+                IF Loco_LightsType <> LightsOperatedByTwoChips THEN BEGIN
+                  ProgramOnTheMain(L, ChangeDirectionToUp, NoValue);
+                  Log(LocoChipToStr(L) + ' XG Internal direction changed to up');
+                END ELSE BEGIN
+                  ProgramOnTheMain(Loco_LightingChipUpIndex, ChangeDirectionToUp, NoValue);
+                  Log(LocoChipToStr(Loco_LightingChipUpIndex) + ' XG Internal direction changed to up');
 
-                ProgramOnTheMain(Train_LightingChipDown, ChangeDirectionToUp, NoValue);
-                Log(LocoChipToStr(Train_LightingChipDown) + ' XG Internal direction changed to up');
-              END;
-            END; {WITH}
+                  ProgramOnTheMain(Loco_LightingChipDownIndex, ChangeDirectionToUp, NoValue);
+                  Log(LocoChipToStr(Loco_LightingChipDownIndex) + ' XG Internal direction changed to up');
+                END;
+              END; {WITH}
+            END;
           END;
         END;
       END;
@@ -4916,8 +4918,8 @@ CONST
   NoValue = 0;
 
 VAR
-  LocoChip : Integer;
-  T : TrainElement;
+  L : LocoIndex;
+  LocoChip : LocoChipType;
 
 BEGIN
   TRY
@@ -4929,19 +4931,21 @@ BEGIN
                                         NOT StopTimer, mtWarning, [mbYes, mbNo], mbNo) <> mrYes THEN
             Debug('Cancelling change of loco ' + LocoChipToStr(LocoChip) + '''s internal direction changed to down')
           ELSE BEGIN
-            T := GetTrainRecord(LocoChip);
-            WITH Trains[T] DO BEGIN
-              IF Train_LightsType <> LightsOperatedByTwoChips THEN BEGIN
-                ProgramOnTheMain(LocoChip, ChangeDirectionToDown, NoValue);
-                Log(LocoChipToStr(LocoChip) + ' XG Internal direction changed to down');
-              END ELSE BEGIN
-                ProgramOnTheMain(Train_LightingChipUp, ChangeDirectionToDown, NoValue);
-                Log(LocoChipToStr(Train_LightingChipUp) + ' XG Internal direction changed to down');
+            L := GetLocoIndexFromLocoChip(LocoChip);
+            IF L <> UnknownLocoIndex THEN BEGIN
+              WITH Locos[L] DO BEGIN
+                IF Loco_LightsType <> LightsOperatedByTwoChips THEN BEGIN
+                  ProgramOnTheMain(L, ChangeDirectionToDown, NoValue);
+                  Log(Loco_LocoChipStr + ' XG Internal direction changed to down');
+                END ELSE BEGIN
+                  ProgramOnTheMain(Loco_LightingChipUpIndex, ChangeDirectionToDown, NoValue);
+                  Log(LocoChipToStr(Loco_LightingChipUp) + ' XG Internal direction changed to down');
 
-                ProgramOnTheMain(Train_LightingChipDown, ChangeDirectionToDown, NoValue);
-                Log(LocoChipToStr(Train_LightingChipDown) + ' XG Internal direction changed to down');
-              END;
-            END; {WITH}
+                  ProgramOnTheMain(Loco_LightingChipDownIndex, ChangeDirectionToDown, NoValue);
+                  Log(LocoChipToStr(Loco_LightingChipDown) + ' XG Internal direction changed to down');
+                END;
+              END; {WITH}
+            END;
           END;
         END;
       END;
@@ -7135,7 +7139,7 @@ VAR
   DiagramsOK : Boolean;
   ShowPointNum : Boolean;
   ErrorMsg : String;
-  L, L2 : Integer;
+  Line, Line2 : Integer;
   LinesArray : LineArrayType;
   LocoDataTableOK : Boolean;
   P : Integer;
@@ -7468,14 +7472,14 @@ BEGIN { Main drawing procedure }
         END;
 
         { Draw the individual lines }
-        FOR L := 0 TO High(Lines) DO BEGIN
-          WITH Lines[L] DO BEGIN
+        FOR Line := 0 TO High(Lines) DO BEGIN
+          WITH Lines[Line] DO BEGIN
             { save the LineOldColour because otherwise DrawLine might update it erroneously }
             SaveLineOldColour := Line_OldColour;
-//if lines[l].line_str = 'BT1a' then
+//if Lines[Line].line_str = 'BT1a' then
 //debug(testcountstr);
             IF ReplayMode THEN
-              DrawLine(L, Line_OldColour, ActiveTrain)
+              DrawLine(Line, Line_OldColour, ActiveTrain)
             ELSE BEGIN
               { If the line is not associated with a track circuit }
               IF Line_TC = UnknownTrackCircuit THEN BEGIN
@@ -7483,7 +7487,7 @@ BEGIN { Main drawing procedure }
                   Line_CurrentColour := LineRoutedOverColour
                 ELSE
                   Line_CurrentColour := SaveLineOldColour;
-                DrawLine(L, Line_CurrentColour, ActiveTrain);
+                DrawLine(Line, Line_CurrentColour, ActiveTrain);
               END ELSE BEGIN
                 { LineTC <> UnknownTrackCircuit - see if it's an occupied track circuit etc. If in auto mode, only highlight the bits that are routed over. }
                 IF NOT DisplayFlashingTrackCircuits OR TrackCircuits[Line_TC].TC_LitUp THEN
@@ -7496,7 +7500,7 @@ BEGIN { Main drawing procedure }
                   IF Line_RouteSet <> UnknownRoute THEN
                     Line_CurrentColour := LineRoutedOverColour
                 END;
-                DrawLine(L, Line_CurrentColour, ActiveTrain);
+                DrawLine(Line, Line_CurrentColour, ActiveTrain);
               END;
 
               { Draw a rectangle around any line highlighted by the input procedure }
@@ -7507,27 +7511,27 @@ BEGIN { Main drawing procedure }
                { Draw a rectangle around any track circuit highlighted by the input procedure }
               IF TrackCircuitHighlighted <> UnknownLine THEN
                 LinesArray := GetLinesForTrackCircuit(TrackCircuitHighlighted);
-                L2 := 0;
-                WHILE L2 <= High(LinesArray) DO BEGIN
-                  DrawOutline(Lines[LinesArray[L2]].Line_MousePolygon, clWhite, NOT UndrawRequired, NOT UndrawToBeAutomatic);
-                  Inc(L2);
+                Line2 := 0;
+                WHILE Line2 <= High(LinesArray) DO BEGIN
+                  DrawOutline(Lines[LinesArray[Line2]].Line_MousePolygon, clWhite, NOT UndrawRequired, NOT UndrawToBeAutomatic);
+                  Inc(Line2);
                 END; {WHILE}
 
                 IF ShowAdjacentTrackCircuitMode THEN BEGIN
                   FindAdjoiningTrackCircuits(TrackCircuitHighlighted, AdjacentUpTC, AdjacentDownTC);
                   LinesArray := GetLinesForTrackCircuit(AdjacentUpTC);
-                  L2 := 0;
-                  WHILE L2 <= High(LinesArray) DO BEGIN
-                    DrawOutline(Lines[LinesArray[L2]].Line_MousePolygon, clAqua, NOT UndrawRequired, NOT UndrawToBeAutomatic);
-                    Inc(L2);
+                  Line2 := 0;
+                  WHILE Line2 <= High(LinesArray) DO BEGIN
+                    DrawOutline(Lines[LinesArray[Line2]].Line_MousePolygon, clAqua, NOT UndrawRequired, NOT UndrawToBeAutomatic);
+                    Inc(Line2);
                   END; {WHILE}
 
                   FindAdjoiningTrackCircuits(TrackCircuitHighlighted, AdjacentUpTC, AdjacentDownTC);
                   LinesArray := GetLinesForTrackCircuit(AdjacentDownTC);
-                  L2 := 0;
-                  WHILE L2 <= High(LinesArray) DO BEGIN
-                    DrawOutline(Lines[LinesArray[L2]].Line_MousePolygon, clYellow, NOT UndrawRequired, NOT UndrawToBeAutomatic);
-                    Inc(L2);
+                  Line2 := 0;
+                  WHILE Line2 <= High(LinesArray) DO BEGIN
+                    DrawOutline(Lines[LinesArray[Line2]].Line_MousePolygon, clYellow, NOT UndrawRequired, NOT UndrawToBeAutomatic);
+                    Inc(Line2);
                   END; {WHILE}
                 END;
             END;
@@ -7604,12 +7608,12 @@ BEGIN { Main drawing procedure }
 
                     { Also draw the associated area }
                     IF ShowArea THEN BEGIN
-                      FOR L := 0 TO High(Lines) DO BEGIN
+                      FOR Line := 0 TO High(Lines) DO BEGIN
                         SegmentText := '';
-                        WITH Lines[L] DO BEGIN
-                          IF GetLineAdjacentSignal(L) = S THEN BEGIN
+                        WITH Lines[Line] DO BEGIN
+                          IF GetLineAdjacentSignal(Line) = S THEN BEGIN
                             Font.Color := clLime;
-                            IF Lines[L].Line_Location <> UnknownLocation THEN BEGIN
+                            IF Lines[Line].Line_Location <> UnknownLocation THEN BEGIN
                               IF Locations[Line_Location].Location_Area <> UnknownArea THEN
                                 SegmentText := AreaToStr(Locations[Line_Location].Location_Area, ShortStringType);
                             END ELSE

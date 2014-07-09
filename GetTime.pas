@@ -246,8 +246,9 @@ END; { OKButtonClick }
 PROCEDURE TClockWindow.GetTimeTimerTick(Sender: TObject);
 VAR
   OK : Boolean;
-  T : TrainElement;
+  T : TrainIndex;
   TimeStr : String;
+  UserMsg : String;
 
 BEGIN
   TRY
@@ -263,19 +264,21 @@ BEGIN
         WHILE T <= High(Trains) DO BEGIN
           WITH Trains[T] DO BEGIN
             IF Train_DiagramFound THEN BEGIN
-              IF Train_LightsType = ExpressModelsSeparateHeadlights THEN BEGIN
-                IF Train_LightsOn THEN BEGIN
-                  { turning lights back on adjusts them to the new time }
-                  TurnLightsOff(Train_LocoChip);
-                  TurnLightsOn(Train_LocoChip, OK);
-                END;
-              END ELSE
-                IF Train_LightsType = CustomLightingKit THEN BEGIN
-                  IF Train_LightsOn THEN BEGIN
+              WITH Locos[Train_LocoIndex] DO BEGIN
+                IF Locos[Train_LocoIndex].Loco_LightsType = ExpressModelsSeparateHeadlights THEN BEGIN
+                  IF Loco_LightsOn THEN BEGIN
                     { turning lights back on adjusts them to the new time }
-
+                    TurnLocoLightsOff(Train_LocoIndex, NOT UserMsgRequired, UserMsg, OK);
+                    TurnLocoLightsOn(Train_LocoIndex, NOT NonMovingLoco, NOT LightLoco, NOT UserMsgRequired, UserMsg, OK);
                   END;
-                END;
+                END ELSE
+                  IF Loco_LightsType = CustomLightingKit THEN BEGIN
+                    IF Loco_LightsOn THEN BEGIN
+                      { turning lights back on adjusts them to the new time }
+
+                    END;
+                  END;
+              END; {WITH}
             END;
             Inc(T);
           END; {WITH}

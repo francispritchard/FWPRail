@@ -1392,6 +1392,7 @@ BEGIN
       TCUnoccupiedColour := StrToColour(ReadString(ColoursSectionStr, TCUnoccupiedColourStr, ColourToStr(DefaultTCUnoccupiedColour)));
       TrainActiveColour := StrToColour(ReadString(ColoursSectionStr, TrainActiveColourStr, ColourToStr(DefaultTrainActiveColour)));
       TrainInactiveColour := StrToColour(ReadString(ColoursSectionStr, TrainInactiveColourStr, ColourToStr(DefaultTrainInactiveColour)));
+
       { Miscellaneous colours }
       BackgroundColour := StrToColour(ReadString(ColoursSectionStr, BackgroundColourStr, ColourToStr(DefaultBackgroundColour)));
       ForegroundColour := StrToColour(ReadString(ColoursSectionStr, ForegroundColourStr, ColourToStr(DefaultForegroundColour)));

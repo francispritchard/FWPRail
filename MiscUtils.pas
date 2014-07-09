@@ -31,7 +31,7 @@ TYPE
 VAR
   DebugWindow: TDebugWindow;
 
-PROCEDURE AddLightsToLightsToBeSwitchedOnArray(T : TrainElement; DesiredDirection1, DesiredDirection2 : DirectionType; MinSeconds, MaxSeconds : Integer; LightsOnTime : TDateTime);
+PROCEDURE AddLightsToLightsToBeSwitchedOnArray(T : TrainIndex; DesiredDirection1, DesiredDirection2 : DirectionType; MinSeconds, MaxSeconds : Integer; LightsOnTime : TDateTime);
 { Set up a train's lights to switch on at a random time ahead }
 
 PROCEDURE AddRichLine(RichEdit: TRichEdit; StrToAdd: String);
@@ -43,7 +43,7 @@ FUNCTION AddSeparatorToTimeString(Str : String) : String;
 PROCEDURE AddStoredRichEditLoggingTextToLoggingWindow;
 { Add any stored rich-edit data to the logging window }
 
-FUNCTION AllJourneysComplete(T : TrainElement) : Boolean;
+FUNCTION AllJourneysComplete(T : TrainIndex) : Boolean;
 { Returns true if all a train's journeys are complete }
 
 PROCEDURE AppendIntegerArray2ToIntegerArray1(VAR IntegerArray1 : IntegerArrayType; IntegerArray2 : IntegerArrayType);
@@ -76,7 +76,7 @@ PROCEDURE AppendToLocationArray(VAR LocationArray : IntegerArrayType; NewElement
 PROCEDURE AppendToStringArray(VAR StringArray : StringArrayType; NewElement : String);
 { Appends a string value to the array }
 
-PROCEDURE AppendToTrainArray(VAR TrainArray : TrainArrayType; NewElement : TrainElement);
+PROCEDURE AppendToTrainArray(VAR TrainArray : TrainArrayType; NewElement : TrainIndex);
 { Appends a train value to the array }
 
 PROCEDURE AppendToTrainTypeArray(VAR TrainTypes : TrainTypeArray; NewElement : TypeOfTrainType);
@@ -106,13 +106,10 @@ FUNCTION ATSA(AreaArray : IntegerArrayType) : String;
 FUNCTION BufferStopToStr(BufferStop : Integer) : String;
 { Return the buffer stop number as a string }
 
-FUNCTION CabLightsAreOn(LocoChip : Integer) : Boolean;
-{ Returns true if cab lights are on. Assumes that the cab lights are operated by function one }
-
 FUNCTION CardinalMulDiv(A, B, C : Cardinal) : Cardinal;
 { Returns (A * B) / C; intermediate result is held double-length to avoid overflow. FWP version }
 
-PROCEDURE ChangeTrainStatus(T : TrainElement; NewStatus : TrainStatusType);
+PROCEDURE ChangeTrainStatus(T : TrainIndex; NewStatus : TrainStatusType);
 { Change the current train status and record it }
 
 PROCEDURE CloseOutputFile(VAR OutputFile : Text; Filename : String);
@@ -187,7 +184,7 @@ FUNCTION DescribeStartAndEndOfRoute(Route : Integer) : String;
 FUNCTION DisplayJourneyNumber(Journey : Integer) : String;
 { Return the supplied journey number with an indent in a form that makes the debug output easier to read }
 
-FUNCTION DisplayJourneyNumbers(T : TrainElement; FirstJourney, SecondJourney : Integer) : String;
+FUNCTION DisplayJourneyNumbers(T : TrainIndex; FirstJourney, SecondJourney : Integer) : String;
 { Return the supplied journey numbers with an indent in a form that makes the debug output easier to read }
 
 FUNCTION DisplayTrackCircuitsForLocation(Location : Integer) : String;
@@ -205,13 +202,13 @@ FUNCTION DirectionToStr{1}(Dir : DirectionType) : String; Overload;
 FUNCTION DirectionToStr{2}(Dir : DirectionType; LongOrShortString : StringType) : String; Overload;
 { Return the either the short or the long name of a direction }
 
-FUNCTION DirectionWillChangeAfterGivenJourney(T : TrainElement; CurrentJourney : Integer) : Boolean;
+FUNCTION DirectionWillChangeAfterGivenJourney(T : TrainIndex; CurrentJourney : Integer) : Boolean;
 { Returns true if the direction will change on the journey after the given journey }
 
 FUNCTION DirectionArrayToStr(DirectionsArray : DirectionArrayType) : String;
 { List the contents of an array }
 
-PROCEDURE DrawLineInLogFile(LocoChip : Integer; LogFileCh : Char; LineStr : String; OriginatingUnitRef : String);
+PROCEDURE DrawLineInLogFile(LocoChipStr : String; LogFileCh : Char; LineStr : String; OriginatingUnitRef : String);
 { Draw a line of a given character in the log file }
 
 FUNCTION EndOfLineToStr(E : EndOfLineType) : String;
@@ -256,7 +253,7 @@ FUNCTION ExtractTrackCircuitFromString(Str : String): Integer;
 FUNCTION FeedbackUnitTypeToStr(FeedbackType : TypeOfFeedBackType) : String;
 { Convert a feedback unit type to a string }
 
-FUNCTION FinalJourney(T : TrainElement; CurrentJourney : Integer) : Boolean;
+FUNCTION FinalJourney(T : TrainIndex; CurrentJourney : Integer) : Boolean;
 { Returns true if the current journey is the final one }
 
 FUNCTION FindButton(CONST Dlg: TForm; CONST ModalResult: Integer): TButton;
@@ -283,6 +280,12 @@ FUNCTION GetLinesForTrackCircuit(TC : Integer) : LineArrayType;
 
 FUNCTION GetLocationFromTrackCircuit(TC : Integer) : Integer;
 { Return a location given a track circuit number }
+
+FUNCTION GetLocoIndexFromLocoChip(LocoChip : Integer): LocoIndex;
+{ Look for a matching loco record given a loco chip number }
+
+FUNCTION GetLocoIndexFromTrainIndex(T : TrainIndex): LocoIndex;
+{ Look for a matching loco record given a train index }
 
 FUNCTION GetMidPos(I1, I2 : Integer) : Integer;
 { Return the mid position between two given values }
@@ -320,11 +323,8 @@ FUNCTION GetTrackCircuitStateColour(TC : Integer) : TColour;
 FUNCTION GetTrackCircuitState(TC : Integer) : TrackCircuitStateType;
 { Return whether and how the track circuit is occupied }
 
-FUNCTION GetTrainRecord{1}(LocoChip : Integer): TrainElement; Overload;
+FUNCTION GetTrainIndexFromLocoChip(LocoChip : Integer): TrainIndex;
 { Look for a matching train record given a locochip }
-
-FUNCTION GetTrainRecord{2}(LocoChip : Integer; AllLocos : Boolean): TrainElement; Overload;
-{ Look for a matching train record given a locochip; include non-active locos }
 
 FUNCTION GetTrainTypeFromLocoChip(LocoChip : Integer) : TypeOfTrainType;
 { Returns the train type given the loco number }
@@ -464,17 +464,20 @@ FUNCTION LocoChipToStr{1}(LocoChip : Integer) : String; Overload;
 FUNCTION LocoChipToStr{2}(LocoChip : Integer; UnknownAsZeroes : Boolean) : String; Overload;
 { Return the locomotive number as a string - if LocoChip less then 1000, add appropriate number of leading zeros }
 
-FUNCTION LTS(L : Integer) : String;
-{ Return a line as a string - routine designed only for use in debugging }
+FUNCTION LocoIndexToStr(L : LocoIndex) : String; Overload;
+{ Return the locomotive index as a string }
 
 FUNCTION LocTS(Location : Integer) : String;
 { Return a location as a long string - routine designed only for use in debugging }
 
-FUNCTION LTSA(LArray : IntegerArrayType) : String;
-{ Return lines as a string - routine designed for use in debugging }
-
 FUNCTION LocTSA(LocationArray : IntegerArrayType) : String;
 { Return locations as long strings - routine designed for use in debugging }
+
+FUNCTION LTS(L : Integer) : String;
+{ Return a line as a string - routine designed only for use in debugging }
+
+FUNCTION LTSA(LArray : IntegerArrayType) : String;
+{ Return lines as a string - routine designed for use in debugging }
 
 PROCEDURE MakeSound(SoundNum : Integer);
 { Make a warning sound }
@@ -581,7 +584,7 @@ PROCEDURE ResetTestCount;
 FUNCTION ReturnFixedLengthStr(Str : String; FixedLength : Integer) : String;
 { Return a short string of a fixed length }
 
-PROCEDURE ReturnTrainFromMissing(T : TrainElement);
+PROCEDURE ReturnTrainFromMissing(T : TrainIndex);
 { Set a train as being no longer missing }
 
 FUNCTION RoundTimeToNextWholeMinute(Time : TDateTime) : TDateTime;
@@ -598,10 +601,10 @@ FUNCTION SetDefaultButton(CONST Dlg: TForm; CONST ModalResult: Integer): Boolean
 { SetDefaultButton sets the default button in a Message Dialogue that has been created with the Dialogs.CreateMessageDialogue function. The result is a success indicator.
   The function only fails, if the specified button is not present in the dialogue [from uDialogsExt from Borland website]
 }
-PROCEDURE SetTrainControlledByProgram(T : TrainElement; ControlledByProgram : Boolean);
+PROCEDURE SetTrainControlledByProgram(T : TrainIndex; ControlledByProgram : Boolean);
 { Mark a given train as controlled either by the software or by the LH100 }
 
-PROCEDURE SetTwoLightingChips(LocoChip : Integer; LightsAtUp, LightsAtDown : DirectionType; LightsOn : Boolean);
+PROCEDURE SetTwoLightingChips(L : LocoIndex; LightsAtUp, LightsAtDown : DirectionType; LightsOn : Boolean);
 { When appropriate switch two lighting chips }
 
 PROCEDURE ShowMenus;
@@ -625,10 +628,13 @@ FUNCTION SignalToStr(Signal : Integer) : String;
 FUNCTION SignalTypeToStr(ST : TypeOfSignal; LongOrShortString : StringType) : String;
 { Return the type of a signal in words }
 
+FUNCTION SpeedInMPHToLocoLenzSpeed(L : LocoIndex; Speed : MPHType) : Integer;
+{ Return the appropriate Lenz speed for the given loco }
+
 PROCEDURE StartLocos(Restart : Boolean);
 { Restart all the locos that were running before the enforced stop }
 
-PROCEDURE StopAParticularTrain(T : TrainElement);
+PROCEDURE StopAParticularTrain(T : TrainIndex);
 { Stops just one train }
 
 PROCEDURE StopLocos(Msg : String);
@@ -740,12 +746,6 @@ FUNCTION TrackCircuitStateToStr(State : TrackCircuitStateType) : String;
 FUNCTION TrackCircuitToStr(TrackCircuit : Integer) : String;
 { Return the track circuit number as a string }
 
-FUNCTION TrainLightsAreOn(LocoChip : Integer) : Boolean;
-{ Returns true if a train's lights are on, i.e. if function zero is on }
-
-FUNCTION TrainSpeedInMPHToLenzSpeed(T : TrainElement; Speed : MPHType) : Integer;
-{ Return the appropriate Lenz speed number for the given loco }
-
 FUNCTION TrainStatusToStr(Status : TrainStatusType) : String;
 { Return the given train status as a string }
 
@@ -773,32 +773,29 @@ FUNCTION TTSZ(Time : TDateTime) : String;
 FUNCTION TTSA(TimesArray : DateTimeArrayType) : String;
 { Return time strings as hh:mm - abbreviated form of TimeToHMStr above with format 'hh:mm' for debugging }
 
-PROCEDURE TurnCabLightsOn(LocoChip : Integer);
-{ Turns cab lights on. Assumes that the cab lights are operated by function one }
-
-PROCEDURE TurnCabLightsOff(LocoChip : Integer);
+PROCEDURE TurnLocoCabLightsOff(L : LocoIndex; UserMsgRequired : Boolean; OUT UserMsg : String; OUT OK : Boolean);
 { Turns cab lights off. Assumes that the cab lights are operated by function one }
 
-PROCEDURE TurnHeadLightsOff(LocoChip : Integer; UserDriving, UserRequiresInstruction : Boolean; OUT OK : Boolean);
+PROCEDURE TurnLocoCabLightsOn(L : LocoIndex; UserMsgRequired : Boolean; OUT UserMsg : String; OUT OK : Boolean);
+{ Turns cab lights off. Assumes that the cab lights are operated by function one }
+
+PROCEDURE TurnLocoHeadLightsOff(L : LocoIndex; UserMsgRequired : Boolean; OUT UserMsg : String; OUT OK : Boolean);
 { Turn off a loco's headlights }
 
-PROCEDURE TurnHeadLightsOn(LocoChip : Integer; Direction : DirectionType; UserDriving, UserRequiresInstruction : Boolean);
-{ Turn on a loco's headlights, and tail light if they are connected }
-
-PROCEDURE TurnTailLightsOnAtOneEnd(LocoChip : Integer; Direction : DirectionType; UserDriving, UserRequiresInstruction : Boolean);
-{ Turn on a loco's tail lights at one particular end }
-
-PROCEDURE TurnTailLightsOnAtBothEnds(LocoChip : Integer; UserDriving, UserRequiresInstruction : Boolean);
-{ Turn on a loco's tail lights at both ends - used for stationary locos }
-
-PROCEDURE TurnLightsOff(LocoChip : Integer);
+PROCEDURE TurnLocoLightsOff(L : LocoIndex; UserMsgRequired : Boolean; OUT UserMsg : String; OUT OK : Boolean);
 { Turns the lights off by changing functions on the loco chip and optional second chip }
 
-PROCEDURE TurnLightsOn(LocoChip : Integer; OUT OK : Boolean);
+PROCEDURE TurnLocoLightsOn(L : LocoIndex; NonMoving, LightLoco : Boolean; UserMsgRequired : Boolean; OUT UserMsg : String; OUT OK : Boolean);
 { Turns the lights on by changing functions on the loco chip and optional second chip }
 
 FUNCTION TypeOfLineToStr(T : TypeOfLine) : String;
 { Describe a line type }
+
+PROCEDURE UnknownLocoRecordFound(RoutineName : String);
+{ Called if an unknown loco record is found at the beginning of a subroutine }
+
+PROCEDURE UnknownTrainRecordFound(RoutineName : String);
+{ Called if an unknown train record is found at the beginning of a subroutine }
 
 FUNCTION WorkingTimetableStatusToStr(Status : WorkingTimetableStatusType) : String;
 { Return the given working timetable status as a string }
@@ -806,32 +803,32 @@ FUNCTION WorkingTimetableStatusToStr(Status : WorkingTimetableStatusType) : Stri
 PROCEDURE WriteNextLineDetailToDebugWindow(L : Integer; HelpRequired : Boolean);
 { Indicate what the next line status is for the given line }
 
-PROCEDURE WriteStringArrayToLog{1}(LocoChip : Integer; TypeOfLogChar : Char; StringArray : StringArrayType;
+PROCEDURE WriteStringArrayToLog{1}(LocoChipStr : String; TypeOfLogChar : Char; StringArray : StringArrayType;
                                    Indent, WrapNum : Integer); Overload;
 { Write the contents of an array to the replay file, wrapping it at Wrapnum and indenting it by Indent: this version is not preceded by an explanatory string. }
 
-PROCEDURE WriteStringArrayToLog{2}(LocoChip : Integer; TypeOfLogChar : Char; Str: String; StringArray : StringArrayType; Indent, WrapNum : Integer); Overload;
+PROCEDURE WriteStringArrayToLog{2}(LocoChipStr : String; TypeOfLogChar : Char; Str: String; StringArray : StringArrayType; Indent, WrapNum : Integer); Overload;
 { Write the contents of an array to the replay file, wrapping it at Wrapnum and indenting it by Indent: this version is preceded by an explanatory string. }
 
-PROCEDURE WriteStringArrayToLog{3}(LocoChip : Integer; TypeOfLogChar : Char; Str: String; StringArray : StringArrayType; Indent, WrapNum : Integer; BreakOnStr : String);
+PROCEDURE WriteStringArrayToLog{3}(LocoChipStr : String; TypeOfLogChar : Char; Str: String; StringArray : StringArrayType; Indent, WrapNum : Integer; BreakOnStr : String);
                                    Overload;
 { Write the contents of an array to the replay file, wrapping it at Wrapnum and indenting it by Indent: this version is preceded by an explanatory string }
 
-PROCEDURE WriteStringArrayToLog{4}(LocoChip : Integer; TypeOfLogChar : Char; StringArray : StringArrayType; Indent, WrapNum : Integer; BreakOnStr : String); Overload;
+PROCEDURE WriteStringArrayToLog{4}(LocoChipStr : String; TypeOfLogChar : Char; StringArray : StringArrayType; Indent, WrapNum : Integer; BreakOnStr : String); Overload;
 { Write the contents of an array to the replay file, wrapping it at Wrapnum and indenting it by Indent: this version is not preceded by an explanatory string. If the
   BreakOnStr string appears in the text, start a new line before it.
 }
-PROCEDURE WriteStringArrayToLog{5}(LocoChip : Integer; TypeOfLogChar : Char; StringArray : StringArrayType); Overload;
+PROCEDURE WriteStringArrayToLog{5}(LocoChipStr : String; TypeOfLogChar : Char; StringArray : StringArrayType); Overload;
 { Write the contents of an array to the replay file, wrapping it by default at 88 and indenting it by two - this version is not preceded by an explanatory string. }
 
-PROCEDURE WriteStringArrayToLog{6}(LocoChip : Integer; TypeOfLogChar : Char; Str: String; StringArray : StringArrayType); Overload;
+PROCEDURE WriteStringArrayToLog{6}(LocoChipStr : String; TypeOfLogChar : Char; Str: String; StringArray : StringArrayType); Overload;
 { Write the contents of an array to the replay file, wrapping it by default at 88 and indenting it by two - this version is preceded by an explanatory string. }
 
-PROCEDURE WriteStringArrayToLog{7}(LocoChip : Integer; TypeOfLogChar : Char; Str : String; StringArray : StringArrayType; NumberElements : Boolean); Overload;
+PROCEDURE WriteStringArrayToLog{7}(LocoChipStr : String; TypeOfLogChar : Char; Str : String; StringArray : StringArrayType; NumberElements : Boolean); Overload;
 { Write the contents of an array to the replay file, wrapping it by default at 88 and indenting it by two - this version is preceded by an explanatory string. If
   NumberElements is true, add number in array to each element.
 }
-PROCEDURE WriteStringArrayToLog{8}(LocoChip : Integer; TypeOfLogChar : Char; Str : String; StringArray : StringArrayType; NumberElements : Boolean; BreakOnStr : String);
+PROCEDURE WriteStringArrayToLog{8}(LocoChipStr : String; TypeOfLogChar : Char; Str : String; StringArray : StringArrayType; NumberElements : Boolean; BreakOnStr : String);
                                    Overload;
 { Write the contents of an array to the replay file, wrapping it by default at 150 and indenting it by two - this version is preceded by an explanatory string. If
   NumberElements is true, add number in array to each element. If the BreakOnStr string appears in the text, start a new line before it.
@@ -858,7 +855,7 @@ IMPLEMENTATION
 {$R *.dfm}
 
 USES GetTime, Lenz, Diagrams, RailDraw, Types, LocoUtils, Math {sic}, IDGlobal, StrUtils, Feedback, RDC, CreateRoute, IniFiles, DateUtils, Startup, Cuneo, Movement,
-     LocoDialogue, FWPShowMessageUnit, Options, Registry, Help, MMSystem, ADODB, TCPIP, Main, StationMonitors;
+     LocoDialogue, FWPShowMessageUnit, Options, Registry, Help, MMSystem, ADODB, TCPIP, Main, StationMonitors, Train;
 
 CONST
   UnitRef = 'MiscUtils';
@@ -1329,16 +1326,25 @@ BEGIN { WriteToLogFile }
       { See how the arguments are constituted }
       IF NOT ReplayMode THEN BEGIN
         { First look for locochip number }
-        IF TryStrToInt(Copy(LogStr, 1, 4), TempInt) OR (Copy(LogStr, 1, 4) = '----') THEN BEGIN
-          IF Copy(LogStr, 5, 1) <> ' ' THEN BEGIN
-            WriteOutError('No space after loco number in "' + LogStr + '"');
-            Exit;
-          END ELSE BEGIN
-            IF Copy(LogStr, 1, 4) = '----' THEN
-              LocoChipStr := '    '
-            ELSE
-              LocoChipStr := Copy(LogStr, 1, 4);
-            LogStr := Copy(LogStr, 6);
+        I := Pos(UnknownLocoChipStr, LogStr);
+        IF I = 1 THEN BEGIN
+          { replace the unknown loco chip string with four spaces in the log file so that it formats correctly }
+          IF Copy(LogStr, 1, Length(UnknownLocoChipStr)) = UnknownLocoChipStr THEN BEGIN
+            LogStr := Copy(LogStr, Length(UnknownLocoChipStr) + 2);
+            LocoChipStr := '    ';
+          END;
+        END ELSE BEGIN
+          IF TryStrToInt(Copy(LogStr, 1, 4), TempInt) OR (Copy(LogStr, 1, 4) = '----') THEN BEGIN
+            IF Copy(LogStr, 5, 1) <> ' ' THEN BEGIN
+              WriteOutError('No space after loco number in "' + LogStr + '"');
+              Exit;
+            END ELSE BEGIN
+              IF Copy(LogStr, 1, 4) = '----' THEN
+                LocoChipStr := '    '
+              ELSE
+                LocoChipStr := Copy(LogStr, 1, 4);
+              LogStr := Copy(LogStr, 6);
+            END;
           END;
         END;
 
@@ -1662,7 +1668,7 @@ BEGIN
   WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
 
-PROCEDURE WriteStringArrayToLogMainProcedure(LocoChip : Integer; TypeOfLogChar : Char; InitStr : String; StringArray : StringArrayType; Indent, WrapNum : Integer;
+PROCEDURE WriteStringArrayToLogMainProcedure(LocoChipStr : String; TypeOfLogChar : Char; InitStr : String; StringArray : StringArrayType; Indent, WrapNum : Integer;
                                              NumberEachElement : Boolean; BreakOnStr : String);
 { Write the contents of an array to the log file, wrapping it at Wrapnum and indenting it by Indent }
 CONST
@@ -1679,7 +1685,7 @@ BEGIN
 
   { if there's an introductory string, write it first }
   IF InitStr <> '' THEN
-    Log(LocoChipToStr(LocoChip, UnknownAsZeroes) + ' ' + TypeOfLogChar + ' ' + InitStr);
+    Log(UnknownLocoChipAsZeroesStr + ' ' + TypeOfLogChar + ' ' + InitStr);
 
   DebugStr := '';
   BreakFound := False;
@@ -1690,9 +1696,9 @@ BEGIN
       BreakFound := True;
       IF DebugStr <> '' THEN BEGIN
         IF NOT SaveBreak THEN
-          Log(LocoChipToStr(LocoChip, UnknownAsZeroes) + ' ' + TypeOfLogChar + StringOfChar(' ', Indent + 1) + ': ' + DebugStr + ' {NOUNITREF}')
+          Log(UnknownLocoChipAsZeroesStr + ' ' + TypeOfLogChar + StringOfChar(' ', Indent + 1) + ': ' + DebugStr + ' {NOUNITREF}')
         ELSE BEGIN
-          Log(LocoChipToStr(LocoChip, UnknownAsZeroes) + ' ' + TypeOfLogChar + StringOfChar(' ', Indent + 1) + ': ' + StringOfChar(' ', 5) + DebugStr + ' {NOUNITREF}');
+          Log(UnknownLocoChipAsZeroesStr + ' ' + TypeOfLogChar + StringOfChar(' ', Indent + 1) + ': ' + StringOfChar(' ', 5) + DebugStr + ' {NOUNITREF}');
           SaveBreak := False;
         END;
         DebugStr := '';
@@ -1703,9 +1709,9 @@ BEGIN
     AND (Length(DebugStr) > WrapNum)
     THEN BEGIN
       IF NOT BreakFound THEN
-        Log(LocoChipToStr(LocoChip, UnknownAsZeroes) + ' ' + TypeOfLogChar + StringOfChar(' ', Indent + 1) + ': ' + StringOfChar(' ', 5) + DebugStr + ' {NOUNITREF}')
+        Log(UnknownLocoChipAsZeroesStr + ' ' + TypeOfLogChar + StringOfChar(' ', Indent + 1) + ': ' + StringOfChar(' ', 5) + DebugStr + ' {NOUNITREF}')
       ELSE BEGIN
-        Log(LocoChipToStr(LocoChip, UnknownAsZeroes) + ' ' + TypeOfLogChar + StringOfChar(' ', Indent + 1) + ': ' + DebugStr + ' {NOUNITREF}');
+        Log(UnknownLocoChipAsZeroesStr + ' ' + TypeOfLogChar + StringOfChar(' ', Indent + 1) + ': ' + DebugStr + ' {NOUNITREF}');
         SaveBreak := True;
         BreakFound := False;
       END;
@@ -1719,43 +1725,43 @@ BEGIN
   { and tidy up }
   IF DebugStr <> '' THEN BEGIN
     IF NOT BreakFound THEN
-      Log(LocoChipToStr(LocoChip, UnknownAsZeroes) + ' ' + TypeOfLogChar + StringOfChar(' ', Indent + 1) + ': ' + StringOfChar(' ', 5) + DebugStr + ' {NOUNITREF}')
+      Log(UnknownLocoChipAsZeroesStr + ' ' + TypeOfLogChar + StringOfChar(' ', Indent + 1) + ': ' + StringOfChar(' ', 5) + DebugStr + ' {NOUNITREF}')
     ELSE
-      Log(LocoChipToStr(LocoChip, UnknownAsZeroes) + ' ' + TypeOfLogChar + StringOfChar(' ', Indent + 1) + ': ' + DebugStr + ' {NOUNITREF}');
+      Log(UnknownLocoChipAsZeroesStr + ' ' + TypeOfLogChar + StringOfChar(' ', Indent + 1) + ': ' + DebugStr + ' {NOUNITREF}');
   END;
 END; { WriteStringArrayToLogMainProcedure }
 
-PROCEDURE WriteStringArrayToLog{1}(LocoChip : Integer; TypeOfLogChar : Char; StringArray : StringArrayType; Indent, WrapNum : Integer); Overload;
+PROCEDURE WriteStringArrayToLog{1}(LocoChipStr : String; TypeOfLogChar : Char; StringArray : StringArrayType; Indent, WrapNum : Integer); Overload;
 { Write the contents of an array to the replay file, wrapping it at Wrapnum and indenting it by Indent: this version isn't preceded by an explanatory string }
 CONST
   NoBreakOnStr = '';
   NumberElements = True;
 
 BEGIN
-  WriteStringArrayToLogMainProcedure(LocoChip, TypeOfLogChar, '', StringArray, Indent, WrapNum, NOT NumberElements, NoBreakOnStr);
+  WriteStringArrayToLogMainProcedure(LocoChipStr, TypeOfLogChar, '', StringArray, Indent, WrapNum, NOT NumberElements, NoBreakOnStr);
 END; { WriteStringArrayToLogFile - 1}
 
-PROCEDURE WriteStringArrayToLog{2}(LocoChip : Integer; TypeOfLogChar : Char; Str: String; StringArray : StringArrayType; Indent, WrapNum : Integer); Overload;
+PROCEDURE WriteStringArrayToLog{2}(LocoChipStr : String; TypeOfLogChar : Char; Str: String; StringArray : StringArrayType; Indent, WrapNum : Integer); Overload;
 { Write the contents of an array to the replay file, wrapping it at Wrapnum and indenting it by Indent: this version is preceded by an explanatory string }
 CONST
   NoBreakOnStr = '';
   NumberElements = True;
 
 BEGIN
-  WriteStringArrayToLogMainProcedure(LocoChip, TypeOfLogChar, Str, StringArray, Indent, WrapNum, NOT NumberElements, NoBreakOnStr);
+  WriteStringArrayToLogMainProcedure(LocoChipStr, TypeOfLogChar, Str, StringArray, Indent, WrapNum, NOT NumberElements, NoBreakOnStr);
 END; { WriteStringArrayToLogFile - 2}
 
-PROCEDURE WriteStringArrayToLog{3}(LocoChip : Integer; TypeOfLogChar : Char; Str: String; StringArray : StringArrayType; Indent, WrapNum : Integer; BreakOnStr : String);
+PROCEDURE WriteStringArrayToLog{3}(LocoChipStr : String; TypeOfLogChar : Char; Str: String; StringArray : StringArrayType; Indent, WrapNum : Integer; BreakOnStr : String);
                                    Overload;
 { Write the contents of an array to the replay file, wrapping it at Wrapnum and indenting it by Indent: this version is preceded by an explanatory string }
 CONST
   NumberElements = True;
 
 BEGIN
-  WriteStringArrayToLogMainProcedure(LocoChip, TypeOfLogChar, Str, StringArray, Indent, WrapNum, NOT NumberElements, BreakOnStr);
+  WriteStringArrayToLogMainProcedure(LocoChipStr, TypeOfLogChar, Str, StringArray, Indent, WrapNum, NOT NumberElements, BreakOnStr);
 END; { WriteStringArrayToLogFile - 3}
 
-PROCEDURE WriteStringArrayToLog{4}(LocoChip : Integer; TypeOfLogChar : Char; StringArray : StringArrayType; Indent, WrapNum : Integer; BreakOnStr : String); Overload;
+PROCEDURE WriteStringArrayToLog{4}(LocoChipStr : String; TypeOfLogChar : Char; StringArray : StringArrayType; Indent, WrapNum : Integer; BreakOnStr : String); Overload;
 { Write the contents of an array to the replay file, wrapping it at Wrapnum and indenting it by Indent: this version is not preceded by an explanatory string. If the
   BreakOnStr string appears in the text, start a new line before it.
 }
@@ -1763,10 +1769,10 @@ CONST
   NumberElements = True;
 
 BEGIN
-  WriteStringArrayToLogMainProcedure(LocoChip, TypeOfLogChar, '', StringArray, Indent, WrapNum, NOT NumberElements, BreakOnStr);
+  WriteStringArrayToLogMainProcedure(LocoChipStr, TypeOfLogChar, '', StringArray, Indent, WrapNum, NOT NumberElements, BreakOnStr);
 END; { WriteStringArrayToLogFile - 4}
 
-PROCEDURE WriteStringArrayToLog{5}(LocoChip : Integer; TypeOfLogChar : Char; StringArray : StringArrayType); Overload;
+PROCEDURE WriteStringArrayToLog{5}(LocoChipStr : String; TypeOfLogChar : Char; StringArray : StringArrayType); Overload;
 { Write the contents of an array to the replay file, wrapping it at WrapNum and indenting it by two - this version is not preceded by an explanatory string }
 CONST
   NoBreakOnStr = '';
@@ -1774,10 +1780,10 @@ CONST
   WrapNum = 190;
 
 BEGIN
-  WriteStringArrayToLogMainProcedure(LocoChip, TypeOfLogChar, '', StringArray, 2, WrapNum, NOT NumberElements, NoBreakOnStr);
+  WriteStringArrayToLogMainProcedure(LocoChipStr, TypeOfLogChar, '', StringArray, 2, WrapNum, NOT NumberElements, NoBreakOnStr);
 END; { WriteStringArrayToLogFile - 5}
 
-PROCEDURE WriteStringArrayToLog{6}(LocoChip : Integer; TypeOfLogChar : Char; Str: String; StringArray : StringArrayType); Overload;
+PROCEDURE WriteStringArrayToLog{6}(LocoChipStr : String; TypeOfLogChar : Char; Str: String; StringArray : StringArrayType); Overload;
 { Write the contents of an array to the replay file, wrapping it by default at 140 and indenting it by two - this version is preceded by an explanatory string }
 CONST
   NoBreakOnStr = '';
@@ -1785,10 +1791,10 @@ CONST
   WrapNum = 190;
 
 BEGIN
-  WriteStringArrayToLogMainProcedure(LocoChip, TypeOfLogChar, Str, StringArray, 2, WrapNum, NOT NumberElements, NoBreakOnStr);
+  WriteStringArrayToLogMainProcedure(LocoChipStr, TypeOfLogChar, Str, StringArray, 2, WrapNum, NOT NumberElements, NoBreakOnStr);
 END; { WriteStringArrayToLogFile - 6}
 
-PROCEDURE WriteStringArrayToLog{7}(LocoChip : Integer; TypeOfLogChar : Char; Str : String; StringArray : StringArrayType;  NumberElements : Boolean); Overload;
+PROCEDURE WriteStringArrayToLog{7}(LocoChipStr : String; TypeOfLogChar : Char; Str : String; StringArray : StringArrayType;  NumberElements : Boolean); Overload;
 { Write the contents of an array to the replay file, wrapping it at 140 and indenting it by two - this version is preceded by an explanatory string. If NumberElements is
   true, add number in array to each element
 }
@@ -1797,10 +1803,10 @@ CONST
   WrapNum = 190;
 
 BEGIN
-  WriteStringArrayToLogMainProcedure(LocoChip, TypeOfLogChar, Str, StringArray, 2, WrapNum, NumberElements, NoBreakOnStr);
+  WriteStringArrayToLogMainProcedure(LocoChipStr, TypeOfLogChar, Str, StringArray, 2, WrapNum, NumberElements, NoBreakOnStr);
 END; { WriteStringArrayToLogFile - 7}
 
-PROCEDURE WriteStringArrayToLog{8}(LocoChip : Integer; TypeOfLogChar : Char; Str : String; StringArray : StringArrayType; NumberElements : Boolean; BreakOnStr : String);
+PROCEDURE WriteStringArrayToLog{8}(LocoChipStr : String; TypeOfLogChar : Char; Str : String; StringArray : StringArrayType; NumberElements : Boolean; BreakOnStr : String);
                                    Overload;
 { Write the contents of an array to the replay file, wrapping it at 140 and indenting it by two - this version is preceded by an explanatory string. If NumberElements is
   true, add number in array to each element. If the BreakOnStr string appears in the text, start a new line before it.
@@ -1809,7 +1815,7 @@ CONST
   WrapNum = 190;
 
 BEGIN
-  WriteStringArrayToLogMainProcedure(LocoChip, TypeOfLogChar, Str, StringArray, 2, WrapNum, NumberElements, BreakOnStr);
+  WriteStringArrayToLogMainProcedure(LocoChipStr, TypeOfLogChar, Str, StringArray, 2, WrapNum, NumberElements, BreakOnStr);
 END; { WriteStringArrayToLogFile - 8}
 
 PROCEDURE WriteStringArrayToLog{9}(TypeOfLogChar : Char; Str: String; StringArray : StringArrayType; Indent, WrapNum : Integer; BreakOnStr : String); Overload;
@@ -1818,7 +1824,7 @@ CONST
   NumberElements = True;
 
 BEGIN
-  WriteStringArrayToLogMainProcedure(NoLocoChip, TypeOfLogChar, Str, StringArray, Indent, WrapNum, NOT NumberElements, BreakOnStr);
+  WriteStringArrayToLogMainProcedure(UnknownLocoChipStr, TypeOfLogChar, Str, StringArray, Indent, WrapNum, NOT NumberElements, BreakOnStr);
 END; { WriteStringArrayToLogFile - 3}
 
 PROCEDURE WriteTimeToLog(Num : Integer);
@@ -1831,22 +1837,45 @@ BEGIN
   PreviousLogTime := Time;
 END; { WriteTimeToLog }
 
-FUNCTION AllJourneysComplete(T : TrainElement) : Boolean;
+PROCEDURE UnknownLocoRecordFound(RoutineName : String);
+{ Called if an unknown loco record is found at the beginning of a subroutine }
+BEGIN
+  Log('X! Unknown loco record found in routine ' + RoutineName);
+  ASM
+    Int 3
+  END; {ASM}
+END; { UnknownLocoRecordFound }
+
+PROCEDURE UnknownTrainRecordFound(RoutineName : String);
+{ Called if an unknown train record is found at the beginning of a subroutine }
+BEGIN
+  Log('X! Unknown train record found in routine ' + RoutineName);
+  ASM
+    Int 3
+  END; {ASM}
+END; { UnknownTrainRecordFound }
+
+FUNCTION AllJourneysComplete(T : TrainIndex) : Boolean;
 { Returns true if all a train's journeys are complete }
 VAR
   JourneyCount : Integer;
 
 BEGIN
   Result := True;
-  JourneyCount := 0;
-  WHILE JourneyCount <= High(Trains[T].Train_JourneysArray) DO BEGIN
-    IF NOT Trains[T].Train_JourneysArray[JourneyCount].TrainJourney_Cleared THEN
-      Result := False;
-    Inc(JourneyCount);
-  END; {WHILE}
+
+  IF T = UnknownTrainIndex THEN
+    UnknownTrainRecordFound('AllJourneysComplete')
+  ELSE BEGIN
+    JourneyCount := 0;
+    WHILE JourneyCount <= High(Trains[T].Train_JourneysArray) DO BEGIN
+      IF NOT Trains[T].Train_JourneysArray[JourneyCount].TrainJourney_Cleared THEN
+        Result := False;
+      Inc(JourneyCount);
+    END; {WHILE}
+  END;
 END; { AllJourneysComplete }
 
-PROCEDURE AddLightsToLightsToBeSwitchedOnArray(T : TrainElement; DesiredDirection1, DesiredDirection2 : DirectionType; MinSeconds, MaxSeconds : Integer; LightsOnTime : TDateTime);
+PROCEDURE AddLightsToLightsToBeSwitchedOnArray(T : TrainIndex; DesiredDirection1, DesiredDirection2 : DirectionType; MinSeconds, MaxSeconds : Integer; LightsOnTime : TDateTime);
 { Set up a train's lights to switch on at a random time ahead }
 VAR
   DebugStr : String;
@@ -1854,37 +1883,41 @@ VAR
   SwitchOnTime : TDateTime;
 
 BEGIN
-  SetLength(LightsToBeSwitchedOnArray, Length(LightsToBeSwitchedOnArray) + 1);
-  WITH LightsToBeSwitchedOnArray[High(LightsToBeSwitchedOnArray)] DO BEGIN
-    LightsToBeSwitchedOn_Direction1 := DesiredDirection1;
-    LightsToBeSwitchedOn_Direction2 := DesiredDirection2;
-    IF DesiredDirection2 = UnknownDirection THEN
-      DebugStr := 'L Switch on time for ' + DirectionToStr(DesiredDirection1) + ' lights'
-    ELSE BEGIN
-      IF DesiredDirection1 = Up THEN
-        LightsToBeSwitchedOn_ColourStr1 := 'white'
-      ELSE
-        LightsToBeSwitchedOn_ColourStr1 := 'red';
-      IF DesiredDirection2 = Up THEN
-        LightsToBeSwitchedOn_ColourStr2 := 'red'
-      ELSE
-        LightsToBeSwitchedOn_ColourStr2 := 'white';
+  IF T = UnknownTrainIndex THEN
+    UnknownTrainRecordFound('AddLightsToLightsToBeSwitchedOnArray')
+  ELSE BEGIN
+    SetLength(LightsToBeSwitchedOnArray, Length(LightsToBeSwitchedOnArray) + 1);
+    WITH LightsToBeSwitchedOnArray[High(LightsToBeSwitchedOnArray)] DO BEGIN
+      LightsToBeSwitchedOn_Direction1 := DesiredDirection1;
+      LightsToBeSwitchedOn_Direction2 := DesiredDirection2;
+      IF DesiredDirection2 = UnknownDirection THEN
+        DebugStr := 'L Switch on time for ' + DirectionToStr(DesiredDirection1) + ' lights'
+      ELSE BEGIN
+        IF DesiredDirection1 = Up THEN
+          LightsToBeSwitchedOn_ColourStr1 := 'white'
+        ELSE
+          LightsToBeSwitchedOn_ColourStr1 := 'red';
+        IF DesiredDirection2 = Up THEN
+          LightsToBeSwitchedOn_ColourStr2 := 'red'
+        ELSE
+          LightsToBeSwitchedOn_ColourStr2 := 'white';
 
-      DebugStr := 'L Switch on time for ' + LightsToBeSwitchedOn_ColourStr1 + ' lights at up' + ' and ' + LightsToBeSwitchedOn_ColourStr2 + ' lights at down';
-    END;
+        DebugStr := 'L Switch on time for ' + LightsToBeSwitchedOn_ColourStr1 + ' lights at up' + ' and ' + LightsToBeSwitchedOn_ColourStr2 + ' lights at down';
+      END;
 
-    Seconds := MaxSeconds - MinSeconds;
-    Seconds := Random(Seconds);
-    Seconds := Seconds + MinSeconds;
+      Seconds := MaxSeconds - MinSeconds;
+      Seconds := Random(Seconds);
+      Seconds := Seconds + MinSeconds;
 
-    SwitchOnTime := IncSecond(LightsOnTime, Seconds);
-    DebugStr := DebugStr + ' set to ' + TimeToHMSStr(SwitchOnTime) + ' (' + IntToStr(Seconds) + ' = between ' + IntToStr(MinSeconds)
-                + ' and ' + IntToStr(MaxSeconds) + ' seconds of ' + TimeToHMSStr(LightsOnTime) + ')';
-    Log(Trains[T].Train_LocoChipStr + ' X ' + DebugStr);
+      SwitchOnTime := IncSecond(LightsOnTime, Seconds);
+      DebugStr := DebugStr + ' set to ' + TimeToHMSStr(SwitchOnTime) + ' (' + IntToStr(Seconds) + ' = between ' + IntToStr(MinSeconds)
+                  + ' and ' + IntToStr(MaxSeconds) + ' seconds of ' + TimeToHMSStr(LightsOnTime) + ')';
+      Log(Trains[T].Train_LocoChipStr + ' X ' + DebugStr);
 
-    LightsToBeSwitchedOn_SwitchOnTime := SwitchOnTime;
-    LightsToBeSwitchedOn_Train := T;
-  END; {WITH}
+      LightsToBeSwitchedOn_SwitchOnTime := SwitchOnTime;
+      LightsToBeSwitchedOn_Train := T;
+    END; {WITH}
+  END;
 END; { AddLightsToLightsToBeSwitchedOnArray }
 
 PROCEDURE AddRichLine(RichEdit: TRichEdit; StrToAdd : String);
@@ -2110,7 +2143,7 @@ BEGIN
   StringArray[High(StringArray)] := NewElement;
 END; { AppendToStringArray }
 
-PROCEDURE AppendToTrainArray(VAR TrainArray : TrainArrayType; NewElement : TrainElement);
+PROCEDURE AppendToTrainArray(VAR TrainArray : TrainArrayType; NewElement : TrainIndex);
 { Appends a given train array value to the array }
 BEGIN
   SetLength(TrainArray, Length(TrainArray) + 1);
@@ -2184,21 +2217,6 @@ BEGIN
     END; { CASE }
   END;
 END; { AspectToStr-2 }
-
-FUNCTION CabLightsAreOn(LocoChip : Integer) : Boolean;
-{ Returns true if cab lights are on. Assumes that the cab lights are operated by function one }
-CONST
-  ForceRead = True;
-
-VAR
-  OK : Boolean;
-
-BEGIN
-  IF SingleLocoFunctionIsOn(LocoChip, Function1, NOT ForceRead, OK) THEN
-    Result := True
-  ELSE
-    Result := False;
-END; { CabLightsAreOn }
 
 FUNCTION CardinalMulDiv(A, B, C : Cardinal) : Cardinal;
 { Returns (A * B) / C; intermediate result is held double-length to avoid overflow }
@@ -2688,15 +2706,21 @@ BEGIN
   END;
 END; { DescribeJourneyAndRoute }
 
-FUNCTION DirectionWillChangeAfterGivenJourney(T : TrainElement; CurrentJourney : Integer) : Boolean;
+FUNCTION DirectionWillChangeAfterGivenJourney(T : TrainIndex; CurrentJourney : Integer) : Boolean;
 { Returns true if the direction will change on the journey after the current journey }
 BEGIN
-  WITH Trains[T] DO BEGIN
-    IF FinalJourney(T, CurrentJourney) THEN
-      Result := False
-    ELSE
-      Result := Train_JourneysArray[CurrentJourney].TrainJourney_Direction <> Train_JourneysArray[CurrentJourney + 1].TrainJourney_Direction;
-  END; {WITH}
+  Result := False;
+
+  IF T = UnknownTrainIndex THEN
+    UnknownTrainRecordFound('DirectionWillChangeAfterGivenJourney')
+  ELSE BEGIN
+    WITH Trains[T] DO BEGIN
+      IF FinalJourney(T, CurrentJourney) THEN
+        Result := False
+      ELSE
+        Result := Train_JourneysArray[CurrentJourney].TrainJourney_Direction <> Train_JourneysArray[CurrentJourney + 1].TrainJourney_Direction;
+    END; {WITH}
+  END;
 END; { DirectionWillChangeAfterGivenJourney }
 
 FUNCTION DirectionArrayToStr(DirectionsArray : DirectionArrayType) : String;
@@ -2726,23 +2750,28 @@ BEGIN
   Result := Result + StringOfChar(' ', 8 - Length(Result)) + ': ';
 END; { DisplayJourneyNumber }
 
-FUNCTION DisplayJourneyNumbers(T : TrainElement; FirstJourney, SecondJourney : Integer) : String; Overload;
+FUNCTION DisplayJourneyNumbers(T : TrainIndex; FirstJourney, SecondJourney : Integer) : String; Overload;
 { Return the supplied journey numbers with an indent in a form that makes the debug output easier to read }
 BEGIN
-  IF FirstJourney = UnknownJourney THEN
-    Result := 'J=-'
-  ELSE
-    IF FirstJourney = SecondJourney THEN BEGIN
-      IF FirstJourney = UnknownJourney THEN
-        Result := 'J=- J=-'
-      ELSE
-        Result := 'J=' + IntToStr(FirstJourney)
-    END ELSE
-      IF (SecondJourney > High(Trains[T].Train_JourneysArray)) OR (SecondJourney = UnknownJourney) THEN
-        Result := 'J=' + IntToStr(FirstJourney)
-      ELSE
-        Result := 'J=' + IntToStr(FirstJourney) + '/' + IntToStr(SecondJourney);
-    Result := Result + StringOfChar(' ', 8 - Length(Result)) + ': ';
+  IF T = UnknownTrainIndex THEN
+    UnknownTrainRecordFound('DisplayJourneyNumbers')
+  ELSE BEGIN
+    IF FirstJourney = UnknownJourney THEN
+      Result := 'J=-'
+    ELSE BEGIN
+      IF FirstJourney = SecondJourney THEN BEGIN
+        IF FirstJourney = UnknownJourney THEN
+          Result := 'J=- J=-'
+        ELSE
+          Result := 'J=' + IntToStr(FirstJourney)
+      END ELSE
+        IF (SecondJourney > High(Trains[T].Train_JourneysArray)) OR (SecondJourney = UnknownJourney) THEN
+          Result := 'J=' + IntToStr(FirstJourney)
+        ELSE
+          Result := 'J=' + IntToStr(FirstJourney) + '/' + IntToStr(SecondJourney);
+      Result := Result + StringOfChar(' ', 8 - Length(Result)) + ': ';
+    END;
+  END;
 END; { DisplayJourneyNumbers }
 
 FUNCTION DisplayTrackCircuitsForLocation(Location : Integer) : String;
@@ -2762,16 +2791,16 @@ BEGIN
   END;
 END; { DisplayTrackCircuitsForLocation }
 
-PROCEDURE DrawLineInLogFile(LocoChip : Integer; LogFileCh : Char; LineStr : String; OriginatingUnitRef : String);
+PROCEDURE DrawLineInLogFile(LocoChipStr : String; LogFileCh : Char; LineStr : String; OriginatingUnitRef : String);
 { Draw a line of a given character in the log file }
 CONST
   UnknownAsZeroes = True;
 
 BEGIN
   IF LineStr = '-' THEN
-    Log(LocoChipToStr(LocoChip, UnknownAsZeroes) + ' ' + LogFileCh + ' ' + ' {LINE} {UNITSUBSTITUTE=' + OriginatingUnitRef + '}')
+    Log(LocoChipStr + ' ' + LogFileCh + ' ' + ' {LINE} {UNITSUBSTITUTE=' + OriginatingUnitRef + '}')
   ELSE
-    Log(LocoChipToStr(LocoChip, UnknownAsZeroes) + ' ' + LogFileCh + ' ' + ' {LINE=' + LineStr + '} {UNITSUBSTITUTE=' + OriginatingUnitRef + '}');
+    Log(LocoChipStr + ' ' + LogFileCh + ' ' + ' {LINE=' + LineStr + '} {UNITSUBSTITUTE=' + OriginatingUnitRef + '}');
 END; { DrawLineInLogFile }
 
 FUNCTION ExtractBufferStopFromString(Str : String): Integer;
@@ -3041,15 +3070,16 @@ BEGIN
   END; {CASE}
 END; { EndOfLineToStr }
 
-FUNCTION FinalJourney(T : TrainElement; CurrentJourney : Integer) : Boolean;
+FUNCTION FinalJourney(T : TrainIndex; CurrentJourney : Integer) : Boolean;
 { Returns true if the current journey is the final one }
 BEGIN
-  WITH Trains[T] DO BEGIN
-    IF CurrentJourney = High(Train_JourneysArray) THEN
-      Result := True
-    ELSE
-      Result := False;
-  END; {WITH}
+  Result := False;
+
+  IF T = UnknownTrainIndex THEN
+    UnknownTrainRecordFound('FinalJourney')
+  ELSE
+    IF CurrentJourney = High(Trains[T].Train_JourneysArray) THEN
+      Result := True;
 END; { FinalJourney }
 
 PROCEDURE GetProjectVersionInfo(AVersionList: TStrings; AFileName: String = '');
@@ -3280,24 +3310,24 @@ END; { GetLastLogLine }
 FUNCTION GetLocationFromTrackCircuit(TC : Integer) : Integer;
 { Return a location given a track circuit number }
 VAR
-  L : Integer;
+  Line : Integer;
   LocationFound : Boolean;
 
 BEGIN
-  L := 0;
+  Line := 0;
   Result := UnknownLocation;
 
   LocationFound := False;
-  WHILE (L <= High(Lines))
+  WHILE (Line <= High(Lines))
   AND NOT LocationFound
   DO BEGIN
-    IF Lines[L].Line_TC = TC THEN BEGIN
-      IF Lines[L].Line_Location <> UnknownLocation THEN BEGIN
+    IF Lines[Line].Line_TC = TC THEN BEGIN
+      IF Lines[Line].Line_Location <> UnknownLocation THEN BEGIN
         LocationFound := True;
-        Result := Lines[L].Line_Location;
+        Result := Lines[Line].Line_Location;
       END;
     END;
-    Inc(L);
+    Inc(Line);
   END; {WHILE}
 END; { GetLocationFromTrackCircuit }
 
@@ -3922,52 +3952,109 @@ BEGIN
   END; {WHILE}
 END; { LocationOutOfUse }
 
-FUNCTION GetTrainRecord{1}(LocoChip : Integer): TrainElement; Overload;
-{ Look for a matching train record given a locochip }
+FUNCTION GetLocoIndexFromLocoChip(LocoChip : Integer) : LocoIndex;
+{ Look for a matching loco record given a loco chip number }
 VAR
-  T : TrainElement;
+  L : LocoIndex;
+  LocoFound : Boolean;
+
+BEGIN
+  Result := UnknownLocoIndex;
+  TRY
+    IF LocoChip = UnknownLocoChip THEN
+      Exit
+    ELSE BEGIN
+      L := 0;
+      LocoFound := False;
+      WHILE (L <= High(Locos))
+      AND NOT LocoFound
+      DO BEGIN
+        { run through the train list, to find our train }
+        IF Locos[L].Loco_LocoChip = LocoChip THEN
+          LocoFound := True
+        ELSE
+          Inc(L);
+      END; {WHILE}
+
+      IF LocoFound THEN
+        Result := L
+      ELSE
+        Result := UnknownLocoIndex;
+    END;
+  EXCEPT
+    ON E : Exception DO
+      Log('EG GetLocoIndexFromLocoChip: ' + E.ClassName + ' error raised, with message: ' + E.Message);
+  END; {TRY}
+END; { GetLocoIndexFromLocoChip }
+
+FUNCTION GetLocoIndexFromTrainIndex(T : TrainIndex) : LocoIndex;  { should this include DG chips? &&&& }
+{ Look for a matching loco record given a train index }
+VAR
+  L : LocoIndex;
+  LocoFound : Boolean;
+
+BEGIN
+  Result := UnknownLocoIndex;
+  TRY
+    IF T = UnknownTrainIndex THEN BEGIN
+      UnknownTrainRecordFound('GetLocoIndexFromTrainIndex');
+      Exit;
+    END ELSE BEGIN
+      L := 0;
+      LocoFound := False;
+      WHILE (L <= High(Locos))
+      AND NOT LocoFound
+      DO BEGIN
+        { run through the train list, to find our train }
+        IF Locos[L].Loco_LocoChip = Trains[T].Train_LocoChip THEN
+          LocoFound := True
+        ELSE
+          Inc(L);
+      END; {WHILE}
+
+      IF LocoFound THEN
+        Result := L
+      ELSE
+        Result := UnknownLocoIndex;
+    END;
+  EXCEPT
+    ON E : Exception DO
+      Log('EG GetLocoIndexFromTrainIndex: ' + E.ClassName + ' error raised, with message: ' + E.Message);
+  END; {TRY}
+END; { GetLocoIndexFromTrainIndex }
+
+FUNCTION GetTrainIndexFromLocoChip(LocoChip : Integer) : TrainIndex;
+{ Look for a matching train index given a locochip }
+VAR
+  T : TrainIndex;
   TrainFound : Boolean;
 
 BEGIN
-  Result := 0;
-  T := 0;
-  TrainFound := False;
-  WHILE (T <= High(Trains))
-  AND NOT TrainFound
-  DO BEGIN
-    { run through the train list, to find our train }
-    IF Trains[T].Train_LocoChip = LocoChip THEN BEGIN
-      TrainFound := True;
-      Result := T;
-    END ELSE
-      Inc(T);
-  END; {WHILE}
-END; { GetTrainRecord-1 }
+  Result := UnknownTrainIndex;
+  TRY
+    IF LocoChip = UnknownLocoChip THEN
+      Exit
+    ELSE BEGIN
+      T := 0;
+      TrainFound := False;
+      WHILE (T <= High(Trains))
+      AND NOT TrainFound
+      DO BEGIN
+        { run through the train list, to find our train }
+        IF Trains[T].Train_LocoChip = LocoChip THEN
+          TrainFound := True
+        ELSE
+          Inc(T);
+      END; {WHILE}
 
-FUNCTION GetTrainRecord{2}(LocoChip : Integer; AllLocos : Boolean): TrainElement; Overload;
-{ Look for a matching train record given a locochip; include non-active locos }
-VAR
-  T : TrainElement;
-  TrainFound : Boolean;
-
-BEGIN                                                                        
-  Result := 0;
-  T := 0;
-  TrainFound := False;
-  WHILE (T <= High(Trains))
-  AND NOT TrainFound
-  DO BEGIN
-    { run through the train list, to find our train }
-    IF AllLocos OR Trains[T].Train_Active THEN BEGIN
-
-      IF Trains[T].Train_LocoChip = LocoChip THEN BEGIN
-        TrainFound := True;
+      IF TrainFound THEN
         Result := T;
-      END ELSE
-        Inc(T);
     END;
-  END; {WHILE}
-END; { GetTrainRecord-2 }
+  EXCEPT
+    ON E : Exception DO
+      Log('EG GetTrainIndexFromLocoChip: ' + E.ClassName + ' error raised, with message: ' + E.Message);
+  END; {TRY}
+END; { GetTrainIndexFromLocoChip }
 
 FUNCTION IntToMPH(Speed : Integer) : MPHType;
 { Returns the given integer as an MPH value }
@@ -4049,7 +4136,7 @@ FUNCTION GetTrainTypeFromLocoChip(LocoChip : Integer) : TypeOfTrainType;
 { Returns the train type given the loco number }
 VAR
   LocoChipFound : Boolean;
-  T : TrainElement;
+  T : TrainIndex;
 
 BEGIN
   Result := UnknownTrainType;
@@ -4572,7 +4659,7 @@ BEGIN
     IF UnknownAsZeroes THEN
       Result := '----'
     ELSE
-      Result := '[unknown loco chip]';
+      Result := UnknownLocoChipStr;
   END ELSE
     IF LocoChip < 10 THEN
       Result := '000' + IntToStr(LocoChip)
@@ -4585,6 +4672,12 @@ BEGIN
         ELSE
           Result := IntToStr(LocoChip);
 END; { LocoChipToStr-2 }
+
+FUNCTION LocoIndexToStr(L : LocoIndex) : String;
+{ Return the locomotive index as a string }
+BEGIN
+  Result := IntToStr(L);
+END; { LocoIndexToStr }
 
 FUNCTION PointToStr(Point : Integer) : String;
 { Return the point number as a string }
@@ -5324,11 +5417,11 @@ BEGIN
   AND (Length(DuplicateElements) > 0)
   THEN BEGIN
     Log('X Have removed the following duplicate elements');
-    WriteStringArrayToLog(NoLocoChip, 'X', DuplicateElements);
+    WriteStringArrayToLog(UnknownLocoChipStr, 'X', DuplicateElements);
     Log('X from the following string array');
-    WriteStringArrayToLog(NoLocoChip, 'X', SaveStringArray);
+    WriteStringArrayToLog(UnknownLocoChipStr, 'X', SaveStringArray);
     Log('X so it is now:');
-    WriteStringArrayToLog(NoLocoChip, 'X', StringArray);
+    WriteStringArrayToLog(UnknownLocoChipStr, 'X', StringArray);
   END;
 END; { RemoveDuplicateElementsFromStringArrayMainProcedure }
 
@@ -5967,53 +6060,58 @@ BEGIN
   END;
 END; { StopOrResumeAllOperations }
 
-PROCEDURE ChangeTrainStatus(T : TrainElement; NewStatus : TrainStatusType);
-{ Change the current train status and record it }
+PROCEDURE ChangeTrainStatus(T : TrainIndex; NewStatus : TrainStatusType);
+ { Change the current train status and record it }
 VAR
   DebugStr : String;
+  OK : Boolean;
 
 BEGIN
   DebugStr := '';
 
-  WITH Trains[T] DO BEGIN
-    { we need to make special provision for missing trains, as their status can switch back and fore continuously from Missing to MissingAndSuspended }
-    IF (Train_CurrentStatus = Missing) OR (Train_CurrentStatus = MissingAndSuspended) THEN
-      DebugStr := ' (immediate previous status was ' + TrainStatusToStr(Train_CurrentStatus) + ')'
-    ELSE
-      Train_PreviousStatus := Train_CurrentStatus;
+  IF T = UnknownTrainIndex THEN
+    UnknownTrainRecordFound('ChangeTrainStatus')
+  ELSE BEGIN
+    WITH Trains[T] DO BEGIN
+      { we need to make special provision for missing trains, as their status can switch back and fore continuously from Missing to MissingAndSuspended }
+      IF (Train_CurrentStatus = Missing) OR (Train_CurrentStatus = MissingAndSuspended) THEN
+        DebugStr := ' (immediate previous status was ' + TrainStatusToStr(Train_CurrentStatus) + ')'
+      ELSE
+        Train_PreviousStatus := Train_CurrentStatus;
 
-    Train_CurrentStatus := NewStatus;
-    Log(Train_LocoChipStr + ' L Current status: ' + TrainStatusToStr(Train_CurrentStatus)
-                          + '; previous status: ' + TrainStatusToStr(Train_PreviousStatus) + DebugStr);
-    { update the diagrams window }
-    DrawDiagramsStatusCell(T, Normalstyle);
+      Train_CurrentStatus := NewStatus;
+      Log(Train_LocoChipStr + ' L New status: ' + TrainStatusToStr(Train_CurrentStatus)
+                            + '; previous status: ' + TrainStatusToStr(Train_PreviousStatus) + DebugStr);
+      { update the diagrams window }
+      DrawDiagramsStatusCell(T, Normalstyle);
 
-    { And make any necessary changes to the train record, etc. }
-    CASE Train_CurrentStatus OF
-      ToBeRemovedFromDiagrams:
-        BEGIN
-          { Take it off the diagram grid }
-          RemoveTrainFromDiagrams(T);
-          ChangeTrainStatus(T, RemovedFromDiagrams);
-          DrawDiagrams(UnitRef, 'Change Train Status');
+      { And make any necessary changes to the train record, etc. }
+      CASE Train_CurrentStatus OF
+        ToBeRemovedFromDiagrams:
+          BEGIN
+            { Take it off the diagram grid }
+            RemoveTrainFromDiagrams(T);
+            ChangeTrainStatus(T, RemovedFromDiagrams);
+            DrawDiagrams(UnitRef, 'Change Train Status');
 
-          { Deal with the loco's lights (if any) }
-          IF NOT Train_LightsRemainOnWhenJourneysComplete THEN
-            TurnLightsOff(Train_LocoChip);
+            { Deal with the loco's lights (if any) }
+            IF NOT Train_LightsRemainOnWhenJourneysComplete THEN
+              TurnTrainLightsOff(T, OK);
 
-          IF Train_HasCablights
-          AND CabLightsAreOn(Train_LocoChip)
-          THEN
-            TurnCabLightsOff(Train_LocoChip);
-        END;
-    END; {CASE}
-  END; {WITH}
+            IF TrainHasCablights(T)
+            AND Train_CabLightsAreOn
+            THEN
+              TurnTrainCabLightsOff(T, OK);
+          END;
+      END; {CASE}
+    END; {WITH}
+  END;
 END; { ChangeTrainStatus }
 
 FUNCTION DescribeTrainList{1} : String; Overload;
 { Describe the contents of the train list, the full list of locos and trains if DescribeFullTrainList is set }
 VAR
-  T : TrainElement;
+  T : TrainIndex;
 
 BEGIN
   Result := '';
@@ -6030,7 +6128,7 @@ END; { DescribeTrainList-1 }
 FUNCTION DescribeTrainList{2}(Sort : SortOrder; DescribeFullTrainList : Boolean) : String; Overload;
 { Describe the contents of the train list, the full list of locos and trains if DescribeFullTrainList is set }
 VAR
-  T : TrainElement;
+  T : TrainIndex;
 
 BEGIN
   Result := '';
@@ -6180,7 +6278,7 @@ BEGIN
 //  EXCEPT {TRY}
 //    ON E : Exception DO BEGIN
 //      Debug('LoadLocationData: ' + E.ClassName + ' error raised, with message: '+ E.Message);
-//      Log(NoLocoChip, 'E LoadLocationData: ' + E.ClassName + ' error raised, with message: '+ E.Message);
+//      Log(UnknownLocoChip, 'E LoadLocationData: ' + E.ClassName + ' error raised, with message: '+ E.Message);
 //    END;
 //  END; {TRY}
 END; { ReadInDataFromExcelFile }
@@ -6191,35 +6289,39 @@ BEGIN
   Result := Str + StringOfChar(' ', 4 - Length(Str))
 END; { ReturnFixedLengthStr }
 
-PROCEDURE ReturnTrainFromMissing(T : TrainElement);
+PROCEDURE ReturnTrainFromMissing(T : TrainIndex);
 { Set a train as being no longer missing }
 VAR
   TC : Integer;
 
 BEGIN
-  WITH Trains[T] DO BEGIN
-    IF Train_CurrentStatus = MissingAndSuspended THEN
-      ChangeTrainStatus(T, Suspended)
-    ELSE
-      IF Train_CurrentStatus = Missing THEN
-        ChangeTrainStatus(T, Train_PreviousStatus);
+  IF T = UnknownTrainIndex THEN
+    UnknownTrainRecordFound('ReturnTrainFromMissing')
+  ELSE BEGIN
+    WITH Trains[T] DO BEGIN
+      IF Train_CurrentStatus = MissingAndSuspended THEN
+        ChangeTrainStatus(T, Suspended)
+      ELSE
+        IF Train_CurrentStatus = Missing THEN
+          ChangeTrainStatus(T, Train_PreviousStatus);
 
-    Train_MissingMessage := False;
-    Train_LastMissingTC := Train_CurrentTC;
-    Dec(MissingTrainCounter);
+      Train_MissingMessage := False;
+      Train_LastMissingTC := Train_CurrentTC;
+      Dec(MissingTrainCounter);
 
-    FOR TC := 0 TO High(TrackCircuits) DO BEGIN
-      IF (TrackCircuits[TC].TC_LocoChip = Train_LocoChip)
-      AND (TrackCircuits[TC].TC_OccupationState = TCMissingOccupation)
-      THEN BEGIN
-        TrackCircuits[TC].TC_MissingTrainNoted := False;
-        SetTrackCircuitState(Train_LocoChip, TC, TCFeedbackOccupation);
+      FOR TC := 0 TO High(TrackCircuits) DO BEGIN
+        IF (TrackCircuits[TC].TC_LocoChip = Train_LocoChip)
+        AND (TrackCircuits[TC].TC_OccupationState = TCMissingOccupation)
+        THEN BEGIN
+          TrackCircuits[TC].TC_MissingTrainNoted := False;
+          SetTrackCircuitState(Train_LocoChip, TC, TCFeedbackOccupation);
+        END;
       END;
-    END;
 
-    Log(Train_LocoChipStr + ' LG Train has been restarted');
-    DrawDiagramsStatusCell(T, NormalStyle);
-  END; {WITH}
+      Log(Train_LocoChipStr + ' LG Train has been restarted');
+      DrawDiagramsStatusCell(T, NormalStyle);
+    END; {WITH}
+  END;
 END; { ReturnTrainFromMissing }
 
 FUNCTION SameTimeInHoursAndMinutesOnly(Time1, Time2 : TDateTime) : Boolean;
@@ -6263,72 +6365,76 @@ BEGIN
     Dlg.ActiveControl := DefButton;
 END; { SetDefaultButton }
 
-PROCEDURE SetTrainControlledByProgram(T : TrainElement; ControlledByProgram : Boolean);
+PROCEDURE SetTrainControlledByProgram(T : TrainIndex; ControlledByProgram : Boolean);
 { Mark a given train as controlled either by the software or by the LH100 }
 BEGIN
-  WITH Trains[T] DO BEGIN
-    Train_PreviouslyControlledByProgram := Train_ControlledByProgram;
-    Train_ControlledByProgram := ControlledByProgram;
+  IF T = UnknownTrainIndex THEN
+    UnknownTrainRecordFound('SetTrainControlledByProgram')
+  ELSE BEGIN
+    WITH Trains[T] DO BEGIN
+      Train_PreviouslyControlledByProgram := Train_ControlledByProgram;
+      Train_ControlledByProgram := ControlledByProgram;
 
-    { Also mark the additional lighting chips if any as controlled. Note: the address of the additional chip may be NIL if it's the same as the loco chip }
-    IF Train_LightingChipUp <> UnknownLocoChip THEN
-      IF Train_LightingChipUpAddress <> 0 THEN
-        Trains[Train_LightingChipUpAddress].Train_ControlledByProgram := ControlledByProgram;
-
-    IF Train_LightingChipDown <> UnknownLocoChip THEN
-      IF Train_LightingChipDownAddress <> 0 THEN
-        Trains[Train_LightingChipDownAddress].Train_ControlledByProgram := ControlledByProgram;
+      { Also mark the additional lighting chips if any as controlled. Note: the address of the additional chip may be NIL if it's the same as the loco chip }
+//      IF Train_LightingChipUp <> UnknownLocoChip THEN
+//        IF Train_LightingChipUpAddress <> 0 THEN
+//          Trains[Train_LightingChipUpAddress].Train_ControlledByProgram := ControlledByProgram;
+//
+//      IF Train_LightingChipDown <> UnknownLocoChip THEN
+//        IF Train_LightingChipDownAddress <> 0 THEN
+//          Trains[Train_LightingChipDownAddress].Train_ControlledByProgram := ControlledByProgram; &&&&&
+    END;
   END;
 END; { SetTrainControlledByProgram }
 
-PROCEDURE SetTwoLightingChips(LocoChip : Integer; LightsAtUp, LightsAtDown : DirectionType; LightsOn : Boolean);
+PROCEDURE SetTwoLightingChips(L : LocoIndex; LightsAtUp, LightsAtDown : DirectionType; LightsOn : Boolean);
 { When appropriate switch two lighting chips }
 VAR
   DebugStr : String;
   OK : Boolean;
-  T : TrainElement;
+  UserMsg : String;
 
 BEGIN
-  IF LocoChip <> UnknownLocoChip THEN BEGIN
-    T := GetTrainRecord(LocoChip);
-    IF T <= High(Trains) THEN BEGIN
-      WITH Trains[T] DO BEGIN
-        IF NOT LightsOn THEN BEGIN
-          TurnLightsOff(Train_LocoChip);
-          Log(Train_LocoChipStr + ' L Up and down lights turned off');
-        END ELSE BEGIN
-          IF NOT Train_LightsOn THEN    { ************* }
-            TurnLightsOn(Train_LocoChip, OK);
+  IF L = UnknownLocoIndex THEN
+    UnknownLocoRecordFound('SetTwoLightingChips')
+  ELSE BEGIN
+    WITH Locos[L] DO BEGIN
+      IF NOT LightsOn THEN BEGIN
+        TurnLocoLightsOff(L, NOT UserMsgRequired, UserMsg, OK);
+        Log(Loco_LocoChipStr + ' L Up and down lights turned off');
+      END ELSE BEGIN
+        IF NOT Loco_LightsOn THEN
+          TurnLocoLightsOn(L, NOT NonMovingLoco, NOT LightLoco, NOT UserMsgRequired, UserMsg, OK);
 
-            IF Train_LightingChipUp = Train_LocoChip THEN BEGIN
-              IF Train_CurrentDirection <> LightsAtUp THEN
-                SetTrainDirection(T, LightsAtUp, NOT ForceAWrite, OK)
-            END ELSE
-              IF Train_LightingChipUpAddress <> 0 THEN BEGIN
-                IF Trains[Train_LightingChipUpAddress].Train_CurrentDirection <> LightsAtUp THEN
-                  SetTrainDirection(Train_LightingChipUpAddress, LightsAtUp, NOT ForceAWrite, OK);
-              END;
-            IF Train_LightingChipDown = Train_LocoChip THEN BEGIN
-              IF Train_CurrentDirection <> LightsAtDown THEN
-                SetTrainDirection(T, LightsAtDown, NOT ForceAWrite, OK)
-            END ELSE
-              IF Train_LightingChipDownAddress <> 0 THEN
-                IF Trains[Train_LightingChipDownAddress].Train_CurrentDirection <> LightsAtDown THEN
-                  SetTrainDirection(Train_LightingChipDownAddress, LightsAtDown, NOT ForceAWrite, OK);
+          IF Loco_LightingChipUp = Loco_LocoChip THEN BEGIN
+            IF Loco_CurrentDirection <> LightsAtUp THEN
+              SetLocoDirection(L, LightsAtUp, OK)
+          END ELSE
+            IF Loco_LightingChipUpIndex <> UnknownLocoIndex THEN BEGIN
+              IF Locos[Loco_LightingChipUpIndex].Loco_CurrentDirection <> LightsAtUp THEN
+                SetLocoDirection(Loco_LightingChipUpIndex, LightsAtUp, OK);
+            END;
 
-          DebugStr := 'Lights at Up set to ' + IfThen(LightsAtUp = Up,
-                                                      'White',
-                                                      'Red') + '; '
-                      + 'Lights at Down set to ' + IfThen(LightsAtDown = Down,
-                                                         'White',
-                                                         'Red');
-          IF DebugStr <> Train_LightsMsg THEN BEGIN
-            Log(Train_LocoChipStr + ' L ' + DebugStr);
-            Train_LightsMsg := DebugStr;
-          END;
+          IF Loco_LightingChipDown = Loco_LocoChip THEN BEGIN
+            IF Loco_CurrentDirection <> LightsAtDown THEN
+              SetLocoDirection(L, LightsAtDown, OK)
+          END ELSE
+            IF Loco_LightingChipDownIndex <> UnknownLocoIndex THEN
+              IF Locos[Loco_LightingChipDownIndex].Loco_CurrentDirection <> LightsAtDown THEN
+                SetLocoDirection(Loco_LightingChipDownIndex, LightsAtDown, OK);
+
+        DebugStr := 'Lights at Up set to ' + IfThen(LightsAtUp = Up,
+                                                    'White',
+                                                    'Red') + '; '
+                    + 'Lights at Down set to ' + IfThen(LightsAtDown = Down,
+                                                       'White',
+                                                       'Red');
+        IF DebugStr <> Loco_LightsMsg THEN BEGIN
+          Log(Loco_LocoChipStr + ' L ' + DebugStr);
+          Loco_LightsMsg := DebugStr;
         END;
-      END; {WITH}
-    END;
+      END;
+    END; {WITH}
   END;
 END; { SetTwoLightingChips }
 
@@ -6360,7 +6466,7 @@ CONST
 
 VAR
   OK : Boolean;
-  T : TrainElement;
+  T : TrainIndex;
   WindowsTaskBar : HWND;
 
 BEGIN { ShutDownProgram }
@@ -6412,13 +6518,13 @@ BEGIN { ShutDownProgram }
         T := 0;
         WHILE T <= High(Trains) DO BEGIN
           WITH Trains[T] DO BEGIN
-            IF TrainFoundInDiagrams(Train_LocoChip) <> 0 THEN BEGIN
-              IF Train_LightsType <> NoLights THEN BEGIN
-                TurnLightsOff(Train_LocoChip);
-                IF Train_HasCabLights
-                AND CabLightsAreOn(Train_LocoChip)
+            IF TrainFoundInDiagrams(Train_LocoIndex) <> 0 THEN BEGIN
+              IF Train_HasLights THEN BEGIN
+                TurnTrainLightsOff(T, OK);
+                IF TrainHasCabLights(T)
+                AND Train_CabLightsAreOn
                 THEN
-                  TurnCabLightsOff(Train_LocoChip);
+                  TurnTrainCabLightsOff(T, OK);
               END;
             END;
           END; {WITH}
@@ -6594,7 +6700,7 @@ CONST
   LightsOn = True;
 
 VAR
-  T : TrainElement;
+  T : TrainIndex;
   OK : Boolean;
   TrainsRestarted : Boolean;
 
@@ -6614,32 +6720,38 @@ BEGIN
             { may want to read in saved data before setting direction - ******* }
             IF NOT Train_UserDriving THEN BEGIN
               SetTrainDirection(T, Up, NOT ForceAWrite, OK);
-              SetTwoLightingChips(Train_LocoChip, Up, Up, LightsOn);
+              SetTwoLightingChips(Train_LocoIndex, Up, Up, LightsOn);
             END ELSE BEGIN
-              IF Train_UserRequiresInstructions THEN
+              IF Train_UserDriving
+              AND Train_UserRequiresInstructions
+              THEN
                 Log(Train_LocoChipStr + ' L= User instructed to set direction to Up');
             END;
           END ELSE
             IF Train_CurrentDirection = Down THEN BEGIN
               IF NOT Train_UserDriving THEN BEGIN
                 SetTrainDirection(T, Down, NOT ForceAWrite, OK);
-                SetTwoLightingChips(Train_LocoChip, Down, Down, LightsOn);
+                SetTwoLightingChips(Train_LocoIndex, Down, Down, LightsOn);
               END ELSE BEGIN
-                IF Train_UserRequiresInstructions THEN
+                IF Train_UserDriving
+                AND Train_UserRequiresInstructions
+                THEN
                   Log(Train_LocoChipStr + ' L= User instructed to set direction to Down');
               END;
             END;
         END;
-        Train_Accelerating := True;
-        Train_AccelerationTimeInSeconds := 5.0;
-        Train_AccelerationStartTime := 0;
+//        Train_Accelerating := True;
+//        Train_AccelerationTimeInSeconds := 5.0;
+//        Train_AccelerationStartTime := 0; &&&&&
 
-        Train_Decelerating := False;
-        Train_DesiredLenzSpeed := Train_SaveDesiredLenzSpeed;
-        Train_SaveDesiredLenzSpeed := 0;
-        Train_CurrentLenzSpeed := 0;
+//        Train_Decelerating := False;
+//        Train_DesiredLenzSpeed := Train_SaveDesiredLenzSpeed;
+//        Train_SaveDesiredLenzSpeed := 0;
+//        Train_CurrentLenzSpeed := 0; &&&&&
 
-        SetDesiredTrainSpeed(T);
+        SetDesiredLocoLenzSpeed(Train_LocoIndex, 0, Train_UserDriving, Train_UserRequiresInstructions);
+        IF Train_DoubleHeaderLocoChip <> UnknownLocoChip THEN
+          SetDesiredLocoLenzSpeed(Train_DoubleHeaderLocoIndex, 0, Train_UserDriving, Train_UserRequiresInstructions);
         TrainsRestarted := True;
       END; {WITH}
     END;
@@ -6655,25 +6767,29 @@ BEGIN
       Log('AG No locos to restart');
 END; { StartLocos }
 
-PROCEDURE StopAParticularTrain(T : TrainElement);
+PROCEDURE StopAParticularTrain(T : TrainIndex);
 { Stops just one train }
 VAR
   DebugStr : String;
   OK : Boolean;
 
 BEGIN
-  WITH Trains[T] DO BEGIN
-    IF SystemOnline THEN BEGIN
-      DebugStr := 'Train stop requested';
-      StopAParticularLocomotive(Train_LocoChip, OK);
-      IF Train_DoubleHeaderLocoChip <> UnknownLocoChip THEN BEGIN
-        StopAParticularLocomotive(Train_DoubleHeaderLocoChip, OK);
-        DebugStr := DebugStr + '. DH Loco ' + LocoChipToStr(Train_DoubleHeaderLocoChip) + ' also stopped';
-      END;
+  IF T = UnknownTrainIndex THEN
+    UnknownTrainRecordFound('StopAParticularTrain')
+  ELSE BEGIN
+    WITH Trains[T] DO BEGIN
+      IF SystemOnline THEN BEGIN
+        DebugStr := 'Train stop requested';
+        StopAParticularLocomotive(Train_LocoIndex, OK);
+        IF Train_DoubleHeaderLocoChip <> UnknownLocoChip THEN BEGIN
+          StopAParticularLocomotive(Train_DoubleHeaderLocoIndex, OK);
+          DebugStr := DebugStr + '. DH Loco ' + LocoChipToStr(Train_DoubleHeaderLocoChip) + ' also stopped';
+        END;
 
-      Log(Train_LocoChipStr + ' L ' + DebugStr);
-    END;
-  END; {WITH}
+        Log(Train_LocoChipStr + ' L ' + DebugStr);
+      END;
+    END; {WITH}
+  END;
 END; { StopAParticularTrain }
 
 PROCEDURE StopLocos(Msg : String);
@@ -6681,7 +6797,7 @@ PROCEDURE StopLocos(Msg : String);
   an "emergency off" situation.
 }
 VAR
-  T : TrainElement;
+  T : TrainIndex;
 
 BEGIN
   Log('AG Stopping any locos - initiated by ' + Msg);
@@ -7013,7 +7129,7 @@ END; { StrToIndicatorType }
 FUNCTION StrToLine(Str : String) : Integer;
 { Convert a string to a line name }
 VAR
-  L : Integer;
+  Line : Integer;
   LineNameFound : Boolean;
 
 BEGIN
@@ -7021,15 +7137,15 @@ BEGIN
   Result := UnknownLine;
 
   LineNameFound := False;
-  L := 0;
-  WHILE (L <= High(Lines))
+  Line := 0;
+  WHILE (Line <= High(Lines))
   AND NOT LineNameFound And (Str <> '')
   DO BEGIN
-    IF Str = UpperCase(LineToStr(L)) THEN BEGIN
+    IF Str = UpperCase(LineToStr(Line)) THEN BEGIN
       LineNameFound := True;
-      Result := L;
+      Result := Line;
     END ELSE
-      Inc(L);
+      Inc(Line);
   END; {WHILE}
   IF NOT LineNameFound THEN BEGIN
     { ShowMessage('LineName not found');
@@ -7464,50 +7580,50 @@ BEGIN
   END; {CASE}
 END; { TrackCircuitStateToStr }
 
-FUNCTION TrainSpeedInMPHToLenzSpeed(T : TrainElement; Speed : MPHType) : Integer;
-{ Return the appropriate Lenz speed for the given loco as an MPH string }
+FUNCTION SpeedInMPHToLocoLenzSpeed(L : LocoIndex; Speed : MPHType) : Integer;
+{ Return the appropriate Lenz speed for the given loco }
 BEGIN
-  IF T = 0 THEN BEGIN
-    Log('X! Cannot return speed in MPH for non-existent train');
-    Result := 0;
-  END ELSE BEGIN
-    WITH Trains[T] DO BEGIN
-      CASE Speed OF
-        MPH0:
-          Result := 0;
-        MPH10:
-          Result := Train_Speed10;
-        MPH20:
-          Result := Train_Speed20;
-        MPH30:
-          Result := Train_Speed30;
-        MPH40:
-          Result := Train_Speed40;
-        MPH50:
-          Result := Train_Speed50;
-        MPH60:
-          Result := Train_Speed60;
-        MPH70:
-          Result := Train_Speed70;
-        MPH80:
-          Result := Train_Speed80;
-        MPH90:
-          Result := Train_Speed90;
-        MPH100:
-          Result := Train_Speed100;
-        MPH110:
-          Result := Train_Speed110;
-        MPH120:
-          Result := Train_Speed120;
-      ELSE
-        BEGIN
-          Result := 0;
+  Result := 0;
+
+  IF L = UnknownLocoIndex THEN
+   UnknownLocoRecordFound('SpeedInMPHToLocoLenzSpeed')
+  ELSE BEGIN
+    WITH Locos[L] DO BEGIN
+      IF L <> UnknownLocoIndex THEN BEGIN
+         CASE Speed OF
+          MPH0:
+            Result := 0;
+          MPH10:
+            Result := Loco_Speed10;
+          MPH20:
+            Result := Loco_Speed20;
+          MPH30:
+            Result := Loco_Speed30;
+          MPH40:
+            Result := Loco_Speed40;
+          MPH50:
+            Result := Loco_Speed50;
+          MPH60:
+            Result := Loco_Speed60;
+          MPH70:
+            Result := Loco_Speed70;
+          MPH80:
+            Result := Loco_Speed80;
+          MPH90:
+            Result := Loco_Speed90;
+          MPH100:
+            Result := Loco_Speed100;
+          MPH110:
+            Result := Loco_Speed110;
+          MPH120:
+            Result := Loco_Speed120;
+        ELSE
           Log('XG Unknown speed type found in GetLenzSpeed');
-        END;
-      END; {CASE}
-    END; {WITH}
+        END; {CASE}
+      END; {WITH}
+    END;
   END;
-END; { TrainSpeedInMPHToLenzSpeed }
+END; { SpeedInMPHToLocoLenzSpeed }
 
 FUNCTION TrainStatusToStr(Status : TrainStatusType) : String;
 { Return the given train status as a string }
@@ -7591,25 +7707,25 @@ FUNCTION TrainTypeToTrainTypeNum(TrainType : TypeOfTrainType) : Integer;
 { Returns the number for the kind of train it is; an up-to-date list as of 5/10/05 }
 BEGIN
   CASE TrainType OF
-    LightLoco:
+    LightLocoType:
       Result := 0;
-    ExpressPassenger:
+    ExpressPassengerType:
       Result := 1;
-    OrdinaryPassenger:
+    OrdinaryPassengerType:
       Result := 2;
-    ExpressFreight:
+    ExpressFreightType:
       Result := 3;
-    Freight75mph:
+    Freight75mphType:
       Result := 4;
-    EmptyCoachingStock:
+    EmptyCoachingStockType:
       Result := 5;
-    Freight60mph:
+    Freight60mphType:
       Result := 6;
-    Freight45mph:
+    Freight45mphType:
       Result := 7;
-    Freight35mph:
+    Freight35mphType:
       Result := 8;
-    International:
+    InternationalType:
       Result := 9;
   ELSE
     Result := -1;
@@ -7621,25 +7737,25 @@ FUNCTION TrainTypeNumToTrainType(TrainTypeNum : Integer) : TypeOfTrainType;
 BEGIN
   CASE TrainTypeNum OF
     0: { can also be supplied as 10 }
-      Result := LightLoco;
+      Result := LightLocoType;
     1:
-      Result := ExpressPassenger;
+      Result := ExpressPassengerType;
     2:
-      Result := OrdinaryPassenger;
+      Result := OrdinaryPassengerType;
     3:
-      Result := ExpressFreight;
+      Result := ExpressFreightType;
     4:
-      Result := Freight75mph;
+      Result := Freight75mphType;
     5:
-      Result := EmptyCoachingStock;
+      Result := EmptyCoachingStockType;
     6:
-      Result := Freight60mph;
+      Result := Freight60mphType;
     7:
-      Result := Freight45mph;
+      Result := Freight45mphType;
     8:
-      Result := Freight35mph;
+      Result := Freight35mphType;
     9:
-      Result := International;
+      Result := InternationalType;
   ELSE
     Result := UnknownTrainType;
   END; {CASE}
@@ -7712,51 +7828,27 @@ BEGIN
   END; {TRY}
 END; { TimeToHMSZStr }
 
-FUNCTION TrainLightsAreOn(LocoChip : Integer) : Boolean;
-{ Returns true if a train's lights are on, i.e. if function zero is on }
-CONST
-  ForceRead = True;
-
-VAR
-  OK : Boolean;
-  T : TrainElement;
-
-BEGIN
-//  LightsType = (NoLights, HeadlightsAndTailLightsConnected, HeadlightsAndTailLightsSeparatelySwitched, ExpressModelsSeparateHeadlights, LightsOperatedByTwoChips,
-//  LightsShouldBeDimmed, CustomLightingKit);
-  Result := False;
-
-  T := GetTrainRecord(LocoChip);
-  CASE Trains[T].Train_LightsType OF
-    NoLights:
-      Debug(LocoChipToStr(LocoChip) + ' does not have lights');
-    HeadlightsAndTailLightsConnected:
-      BEGIN
-        IF SingleLocoFunctionIsOn(LocoChip, Function0, ForceRead, OK) THEN
-          Result := True;
-      END;
-  END; {CASE}
-
-
-END; { TrainLightsAreOn }
-
-PROCEDURE TurnHeadLightsOff(LocoChip : Integer; UserDriving, UserRequiresInstruction : Boolean; OUT OK : Boolean);
+PROCEDURE TurnLocoHeadLightsOff(L : LocoIndex; UserMsgRequired : Boolean; OUT UserMsg : String; OUT OK : Boolean);
 { Turn off a loco's headlight }
 CONST
   LightsOff = False;
 
 BEGIN
-  IF UserDriving
-  AND UserRequiresInstruction
-  THEN
-    Log(LocoChipToStr(LocoChip) + ' L= User instructed to turn lights on by means of function 0')
+  IF L = UnknownLocoIndex THEN
+    UnknownLocoRecordFound('TurnLocoHeadLightsOff')
   ELSE BEGIN
-    Log(LocoChipToStr(LocoChip) + ' L Turning lights off');
-    SetSingleLocoFunction(LocoChip, Function0, LightsOff, OK);
+    WITH Locos[L] DO BEGIN
+      IF UserMsgRequired THEN
+        UserMsg := 'User instructed to turn lights on by means of function 0'
+      ELSE BEGIN
+         Log(Locos[L].Loco_LocoChipStr + ' L Turning lights off');
+         SetSingleLocoFunction(L, Function0, LightsOff, OK);
+      END;
+    END; {WITH}
   END;
-END; { TurnHeadLightsOff }
+END; { TurnLocoHeadLightsOff }
 
-PROCEDURE TurnHeadLightsOn(LocoChip : Integer; Direction : DirectionType; UserDriving, UserRequiresInstruction : Boolean);
+PROCEDURE TurnLocoHeadLightsOn(L : LocoIndex; Direction : DirectionType; UserMsgRequired : Boolean; OUT UserMsg : String; OUT OK : Boolean);
 { Turn on a loco's headlight, and tail light if they are connected }
 CONST
   ForceRead = True;
@@ -7765,327 +7857,333 @@ CONST
 
 VAR
   DebugStr : String;
-  OK : Boolean;
 
 BEGIN
-  IF UserDriving
-  AND UserRequiresInstruction
-  THEN BEGIN
-    Debug('=User: turn loco ' + LocoChipToStr(LocoChip) + '''s lights on - direction ' + DirectionToStr(Direction)
-           + ' - by means of function 0');
-    Log(LocoChipToStr(LocoChip) + ' L= User instructed to turn lights on - direction ' + DirectionToStr(Direction)
-                                + ' - by means of function 0');
-    OK := True;
-  END ELSE BEGIN
-    DebugStr := 'Turning lights on';
-    IF SingleLocoFunctionIsOn(LocoChip, Function0, NOT ForceRead, OK) THEN
-      DebugStr := DebugStr + ' is not necessary as lights are already on'
-    ELSE BEGIN
-      SetSingleLocoFunction(LocoChip, Function0, LightsOn, OK);
-      DebugStr := DebugStr + ' - direction ' + DirectionToStr(Direction);
-    END;
-    Log(LocoChipToStr(LocoChip) + ' L ' + DebugStr);
-  END;
-END; { TurnHeadLightsOn }
+  OK := True;
 
-PROCEDURE TurnTailLightsOnAtOneEnd(LocoChip : Integer; Direction : DirectionType; UserDriving, UserRequiresInstruction : Boolean);
+  IF L = UnknownLocoIndex THEN
+    UnknownLocoRecordFound('TurnLocoHeadLightsOn')
+  ELSE BEGIN
+    WITH Locos[L] DO BEGIN
+      DebugStr := 'Turning lights on';
+      IF L <> UnknownLocoIndex THEN BEGIN
+        IF SingleLocoFunctionIsOn(L, Function0, NOT ForceRead, OK) THEN BEGIN
+          IF UserMsgRequired THEN
+            UserMsg := 'User: no action is required as lights are already on';
+          DebugStr := DebugStr + ' is not necessary as lights are already on'
+        END ELSE
+          IF UserMsgRequired THEN
+            UserMsg := 'User: turn loco ' + Loco_LocoChipStr + '''s lights on - direction ' + DirectionToStr(Direction) + ' - by means of function 0'
+          ELSE BEGIN
+            SetSingleLocoFunction(L, Function0, LightsOn, OK);
+            DebugStr := DebugStr + ' - direction ' + DirectionToStr(Direction);
+          END;
+
+        Log(Loco_LocoChipStr + ' L ' + DebugStr);
+      END;
+    END; {WITH}
+  END;
+END; { TurnLocoHeadLightsOn }
+
+PROCEDURE TurnLocoTailLightsOnAtOneEnd(L : LocoIndex; Direction : DirectionType; UserMsgRequired : Boolean; OUT UserMsg : String; OUT OK : Boolean);
 { Turn on a loco's tail lights at one particular end }
 CONST
   ForceRead = True;
   LightsOn = True;
   LightsOff = False;
 
-VAR
-  LocoChipStr : String;
-  OK : Boolean;
-
 BEGIN
-  LocoChipStr := LocoChipToStr(LocoChip);
-
-  IF UserDriving
-  AND UserRequiresInstruction
-  THEN BEGIN
+  OK := True;
+  IF UserMsgRequired THEN BEGIN
     IF Direction = Up THEN
-      Log(LocoChipStr + ' L= User instructed to turn up tail lights on by setting function 1 on and function 2 off')
+      UserMsg := 'User: turn tail lights at up end on by setting function 1 on and function 2 off'
     ELSE
-      Log(LocoChipStr + ' L= User instructed to turn down tail lights on by setting function 1 off and function 2 on');
+      UserMsg := 'User: turn tail lights at down end on by setting function 1 off and function 2 on';
   END ELSE BEGIN
-    IF Direction = Up THEN BEGIN
-      Log(LocoChipStr + ' L Turning up tail lights on');
-      SetSingleLocoFunction(LocoChip, Function1, LightsOn, OK);
-      SetSingleLocoFunction(LocoChip, Function2, LightsOff, OK);
-    END ELSE BEGIN
-      Log(LocoChipStr + ' L Turning down tail lights on');
-      SetSingleLocoFunction(LocoChip, Function1, LightsOff, OK);
-      SetSingleLocoFunction(LocoChip, Function2, LightsOn, OK);
+    IF L = UnknownLocoIndex THEN
+      UnknownLocoRecordFound('TurnLocoTailLightsOnAtOneEnd')
+    ELSE BEGIN
+      WITH Locos[L] DO BEGIN
+        IF Direction = Up THEN BEGIN
+          Log(Loco_LocoChipStr + ' L Turning up tail lights on');
+          SetSingleLocoFunction(L, Function1, LightsOn, OK);
+          SetSingleLocoFunction(L, Function2, LightsOff, OK);
+        END ELSE BEGIN
+          Log(Loco_LocoChipStr + ' L Turning down tail lights on');
+          SetSingleLocoFunction(L, Function1, LightsOff, OK);
+          SetSingleLocoFunction(L, Function2, LightsOn, OK);
+        END;
+      END; {WITH}
     END;
   END;
-END; { TurnTailLightsOnAtOneEnd }
+END; { TurnLocoTailLightsOnAtOneEnd }
 
-PROCEDURE TurnTailLightsOnAtBothEnds(LocoChip : Integer; UserDriving, UserRequiresInstruction : Boolean);
+PROCEDURE TurnLocoTailLightsOnAtBothEnds(L : LocoIndex; UserMsgRequired : Boolean; OUT UserMsg : String; OUT OK : Boolean);
 { Turn on a loco's tail lights at both ends - used for stationary locos }
 CONST
   ForceRead = True;
   LightsOn = True;
   LightsOff = False;
 
-VAR
-  OK : Boolean;
-
 BEGIN
-  IF UserDriving
-  AND UserRequiresInstruction
-  THEN
-    Log(LocoChipToStr(LocoChip) + ' L= User instructed to turn tail lights on at both ends by setting functions 1 and 2 on')
-  ELSE BEGIN
-    Log(LocoChipToStr(LocoChip) + ' L Turning tail lights on at both ends');
-    SetSingleLocoFunction(LocoChip, Function1, LightsOn, OK);
-    SetSingleLocoFunction(LocoChip, Function2, LightsOn, OK);
-  END;
-END; { TurnTailLightsOnAtBothEnds }
+  OK := True;
 
-PROCEDURE TurnLightsOn(LocoChip : Integer; OUT OK : Boolean);
+  IF UserMsgRequired THEN
+    UserMsg := 'User: turn tail lights on at both ends by setting functions 1 and 2 on'
+  ELSE BEGIN
+    IF L = UnknownLocoIndex THEN
+      UnknownLocoRecordFound('TurnLocoTailLightsOnAtBothEnds')
+    ELSE BEGIN
+      WITH Locos[L] DO BEGIN
+        Log(Loco_LocoChipStr + ' L Turning tail lights on at both ends');
+        SetSingleLocoFunction(L, Function1, LightsOn, OK);
+        SetSingleLocoFunction(L, Function2, LightsOn, OK);
+      END; {WITH}
+    END;
+  END;
+END; { TurnLocoTailLightsOnAtBothEnds }
+
+PROCEDURE TurnLocoLightsOn(L : LocoIndex; NonMoving, LightLoco : Boolean; UserMsgRequired : Boolean; OUT UserMsg : String; OUT OK : Boolean);
 { Turns the lights on by changing functions on the loco chip and optional second chip }
 CONST
   ForceRead = True;
   LightsOn = True;
   LightsOff = False;
 
-VAR
-  T : TrainElement;
-
-  PROCEDURE TurnExpressModelsHeadlightsOn(LocoChip : Integer; Direction : DirectionType; UserDriving, UserRequiresInstruction : Boolean; OUT OK : Boolean);
+  PROCEDURE TurnExpressModelsLocoHeadlightsOn(L : LocoIndex; Direction : DirectionType; UserMsgRequired : Boolean; OUT UserMsg : String; OUT OK : Boolean);
   { Turn on a loco's head lights in day and night mode }
-  VAR
-    LocoChipStr : String;
-
   BEGIN
-    LocoChipStr := LocoChipToStr(LocoChip);
-
-    IF Direction = Up THEN BEGIN
-      { Is it daytime or night time? }
-      IF DayTime THEN BEGIN
-        IF UserDriving
-        AND UserRequiresInstruction
-        THEN
-          Log(LocoChipStr + ' L= User instructed to turn day-time up lights on by setting function 6 off and 7 on')
-        ELSE BEGIN
-          Log(LocoChipStr + ' L Turning day-time up lights on');
-          SetSingleLocoFunction(LocoChip, Function6, LightsOff, OK);
-          SetSingleLocoFunction(LocoChip, Function7, LightsOn, OK);
+    IF L <> UnknownLocoIndex THEN BEGIN
+      WITH Locos[L] DO BEGIN
+        IF Direction = Up THEN BEGIN
+          { Is it daytime or night time? }
+          IF DayTime THEN BEGIN
+            IF UserMsgRequired THEN
+              UserMsg := 'User: turn day-time up lights on by setting function 6 off and 7 on'
+            ELSE BEGIN
+              Log(Loco_LocoChipStr + ' L Turning day-time up lights on');
+              SetSingleLocoFunction(L, Function6, LightsOff, OK);
+              SetSingleLocoFunction(L, Function7, LightsOn, OK);
+            END;
+          END ELSE BEGIN
+            IF UserMsgRequired THEN
+              UserMsg := 'User: turn night-time up lights on by setting function 6 on and 7 off'
+            ELSE BEGIN
+              Log(Loco_LocoChipStr + ' L Turning night-time up lights on');
+              SetSingleLocoFunction(L, Function6, LightsOn, OK);
+              SetSingleLocoFunction(L, Function7, LightsOff, OK);
+            END;
+          END;
+        END ELSE BEGIN
+          { Direction = Down }
+          { Is it daytime or night time? }
+          IF DayTime THEN BEGIN
+            IF UserMsgRequired THEN
+              UserMsg := 'User: turn day-time down lights on by setting function 4 off and 5 on'
+            ELSE BEGIN
+              Log(Loco_LocoChipStr + ' L Turning day-time down lights on');
+              SetSingleLocoFunction(L, Function4, LightsOff, OK);
+              SetSingleLocoFunction(L, Function5, LightsOn, OK);
+            END;
+          END ELSE BEGIN
+            IF UserMsgRequired THEN
+              UserMsg := 'User instructed to turn night-time down lights on by setting function 4 on and 5 off'
+            ELSE BEGIN
+              Log(Loco_LocoChipStr + ' L Turning night-time down lights on');
+              SetSingleLocoFunction(L, Function4, LightsOn, OK);
+              SetSingleLocoFunction(L, Function5, LightsOff, OK);
+            END;
+          END;
         END;
-      END ELSE BEGIN
-        IF UserDriving
-        AND UserRequiresInstruction
-        THEN
-          Log(LocoChipStr + ' L= User instructed to turn night-time up lights on by setting function 6 on and 7 off')
-        ELSE BEGIN
-          Log(LocoChipStr + ' L Turning night-time up lights on');
-          SetSingleLocoFunction(LocoChip, Function6, LightsOn, OK);
-          SetSingleLocoFunction(LocoChip, Function7, LightsOff, OK);
-        END;
-      END;
-    END ELSE BEGIN
-      { Direction = Down }
-      { Is it daytime or night time? }
-      IF DayTime THEN BEGIN
-        IF UserDriving
-        AND UserRequiresInstruction
-        THEN
-          Log(LocoChipStr + ' L= User instructed to turn day-time down lights on by setting function 4 off and 5 on')
-        ELSE BEGIN
-          Log(LocoChipStr + ' L Turning day-time down lights on');
-          SetSingleLocoFunction(LocoChip, Function4, LightsOff, OK);
-          SetSingleLocoFunction(LocoChip, Function5, LightsOn, OK);
-        END;
-      END ELSE BEGIN
-        IF UserDriving
-        AND UserRequiresInstruction
-        THEN
-          Log(LocoChipStr + ' L User instructed to turn night-time down lights on by setting function 4 on and 5 off')
-        ELSE BEGIN
-          Log(LocoChipStr + ' L Turning night-time down lights on');
-          SetSingleLocoFunction(LocoChip, Function4, LightsOn, OK);
-          SetSingleLocoFunction(LocoChip, Function5, LightsOff, OK);
-        END;
-      END;
+      END; {WITH}
     END;
-  END; { TurnExpressModelsHeadlightsOn }
+  END; { TurnExpressModelsLocoHeadlightsOn }
 
 BEGIN
   OK := False;
   IF SystemOnline THEN BEGIN
-    IF LocoChip <> UnknownLocoChip THEN BEGIN
-      T := GetTrainRecord(LocoChip);
-      IF T <= High(Trains) THEN BEGIN
-        WITH Trains[T] DO BEGIN
-          IF Train_LightsType <> NoLights THEN BEGIN
-            IF Train_CurrentStatus = NonMoving THEN BEGIN
-              IF Train_LightsType = HeadlightsAndTailLightsConnected THEN
-                TurnHeadLightsOn(Train_LocoChip, Train_CurrentDirection, Train_UserDriving, Train_UserRequiresInstructions)
-              ELSE
-                IF Train_LightsType = LightsOperatedByTwoChips THEN BEGIN
-                  TurnHeadLightsOn(Train_LightingChipUp, Down, Train_UserDriving, Train_UserRequiresInstructions);
-                  TurnHeadLightsOn(Train_LightingChipDown, Up, Train_UserDriving, Train_UserRequiresInstructions);
-                END ELSE
-                  IF Train_TypeNum = 0 THEN
-                    { If train isn't moving, and is a light loco, needs red lights at both ends }
-                    TurnTailLightsOnAtBothEnds(Train_LocoChip, Train_UserDriving, Train_UserRequiresInstructions)
-                  ELSE BEGIN
-                    { If train isn't moving, and is not a light loco, needs a red light at the front }
-                    IF Train_CurrentDirection = Up THEN
-                      TurnTailLightsOnAtOneEnd(Train_LocoChip, Up, Train_UserDriving, Train_UserRequiresInstructions)
-                    ELSE
-                      TurnTailLightsOnAtOneEnd(Train_LocoChip, Down, Train_UserDriving, Train_UserRequiresInstructions);
-                  END;
-            END ELSE BEGIN
-              { a moving train }
-              IF (Train_LightsType = HeadlightsAndTailLightsConnected) THEN
-                TurnHeadLightsOn(Train_LocoChip, Train_CurrentDirection, Train_UserDriving, Train_UserRequiresInstructions)
-              ELSE
-                IF Train_LightsType = HeadlightsAndTailLightsSeparatelySwitched THEN BEGIN
-                  TurnHeadLightsOn(Train_LocoChip, Train_CurrentDirection, Train_UserDriving, Train_UserRequiresInstructions);
-                  { If train is a light loco, needs a red light at the rear }
-                  IF Train_TypeNum = 0 THEN BEGIN
-                    IF Train_CurrentDirection = Up THEN
-                      TurnTailLightsOnAtOneEnd(Train_LocoChip, Down, Train_UserDriving, Train_UserRequiresInstructions)
-                    ELSE
-                      TurnTailLightsOnAtOneEnd(Train_LocoChip, Up, Train_UserDriving, Train_UserRequiresInstructions)
-                  END;
-                END ELSE
-                  IF Train_LightsType = ExpressModelsSeparateHeadlights THEN
-                    TurnExpressModelsHeadlightsOn(Train_LocoChip, Train_CurrentDirection, Train_UserDriving, Train_UserRequiresInstructions, OK)
-                  ELSE
-                    IF Train_LightsType = LightsOperatedByTwoChips THEN BEGIN
-                      TurnHeadLightsOn(Train_LightingChipUp, Train_CurrentDirection, Train_UserDriving, Train_UserRequiresInstructions);
-                      TurnHeadLightsOn(Train_LightingChipDown, Train_CurrentDirection, Train_UserDriving, Train_UserRequiresInstructions);
-                    END ELSE
-                      IF Train_LightsType = CustomLightingKit THEN BEGIN
-                       { **** }
-                      END;
-            END;
-
-            IF Train_UserDriving THEN
-              Train_LightsOn := True
+    IF L = UnknownLocoIndex THEN
+      UnknownLocoRecordFound('TurnLocoLightsOn')
+    ELSE BEGIN
+      WITH Locos[L] DO BEGIN
+        IF Loco_LightsType <> NoLights THEN BEGIN
+          IF NonMoving THEN BEGIN
+            IF Loco_LightsType = HeadlightsAndTailLightsConnected THEN
+              TurnLocoHeadLightsOn(L, Loco_CurrentDirection, UserMsgRequired, UserMsg, OK)
             ELSE
-              IF OK THEN BEGIN
-                Train_LightsOn := True;
-                Log(Train_LocoChipStr + ' L Lights turned on');
+              IF Loco_LightsType = LightsOperatedByTwoChips THEN BEGIN
+                TurnLocoHeadLightsOn(L, Down, UserMsgRequired, UserMsg, OK);
+                TurnLocoHeadLightsOn(L, Up, UserMsgRequired, UserMsg, OK);
               END ELSE
-                Log(Train_LocoChipStr + ' L Lights did not turn on');
+                IF LightLoco THEN
+                  { If train isn't moving, and is a light loco, needs red lights at both ends }
+                  TurnLocoTailLightsOnAtBothEnds(L, UserMsgRequired, UserMsg, OK)
+                ELSE BEGIN
+                  { If train isn't moving, and is not a light loco, needs a red light at the front }
+                  IF Loco_CurrentDirection = Up THEN
+                    TurnLocoTailLightsOnAtOneEnd(L, Up, UserMsgRequired, UserMsg, OK)
+                  ELSE
+                    TurnLocoTailLightsOnAtOneEnd(L, Down, UserMsgRequired, UserMsg, OK);
+                END;
+          END ELSE BEGIN
+            { a moving Loco }
+            IF (Loco_LightsType = HeadlightsAndTailLightsConnected) THEN
+              TurnLocoHeadLightsOn(L, Loco_CurrentDirection, UserMsgRequired, UserMsg, OK)
+            ELSE
+              IF Loco_LightsType = HeadlightsAndTailLightsSeparatelySwitched THEN BEGIN
+                TurnLocoHeadLightsOn(L, Loco_CurrentDirection, UserMsgRequired, UserMsg, OK);
+                { If train is a light loco, needs a red light at the rear }
+                IF LightLoco THEN BEGIN
+                  IF Loco_CurrentDirection = Up THEN
+                    TurnLocoTailLightsOnAtOneEnd(L, Down, UserMsgRequired, UserMsg, OK)
+                  ELSE
+                    TurnLocoTailLightsOnAtOneEnd(L, Up, UserMsgRequired, UserMsg, OK);
+                END;
+              END ELSE
+                IF Loco_LightsType = ExpressModelsSeparateHeadlights THEN
+                  TurnExpressModelsLocoHeadlightsOn(L, Loco_CurrentDirection, UserMsgRequired, UserMsg, OK)
+                ELSE
+                  IF Loco_LightsType = LightsOperatedByTwoChips THEN BEGIN
+                    TurnLocoHeadLightsOn(L, Loco_CurrentDirection, UserMsgRequired, UserMsg, OK);
+                    TurnLocoHeadLightsOn(L, Loco_CurrentDirection, UserMsgRequired, UserMsg, OK);
+                  END ELSE
+                    IF Loco_LightsType = CustomLightingKit THEN BEGIN
+                     { **** }
+                    END;
           END;
         END;
-      END;
-    END; {WITH}
+      END; {WITH}
+    END;
   END;
-END; { TurnLightsOn }
+END; { TurnLocoLightsOn }
 
-PROCEDURE TurnTailLightsOff(LocoChip : Integer; UserDriving, UserRequiresInstruction : Boolean; OUT OK : Boolean);
+PROCEDURE TurnLocoTailLightsOff(L : LocoIndex; UserMsgRequired : Boolean; OUT UserMsg : String; OUT OK : Boolean);
 { Turn off a loco's tail lights }
 CONST
   LightsOff = True;
 
 BEGIN
-  IF UserDriving
-  AND UserRequiresInstruction
-  THEN
-    Log(LocoChipToStr(LocoChip) + ' L= User instructed to turn up tail lights off by setting functions 1 and 2 off')
+  IF UserMsgRequired THEN
+    UserMsg := 'User: turn up and down tail lights off by setting functions 1 and 2 off'
   ELSE BEGIN
-    Log(LocoChipToStr(LocoChip) + ' L Turning up and down tail lights off');
-    SetSingleLocoFunction(LocoChip, Function1, LightsOff, OK);
-    SetSingleLocoFunction(LocoChip, Function2, LightsOff, OK);
+    IF L = UnknownLocoIndex THEN
+      UnknownLocoRecordFound('TurnTailLightsOff')
+    ELSE BEGIN
+      Log(Locos[L].Loco_LocoChipStr + ' L Turning up and down tail lights off');
+      SetSingleLocoFunction(L, Function1, LightsOff, OK);
+      SetSingleLocoFunction(L, Function2, LightsOff, OK);
+    END;
   END;
 END; { TurnTailLightsOff }
 
-PROCEDURE TurnLightsOff(LocoChip : Integer);
+PROCEDURE TurnLocoLightsOff(L : LocoIndex; UserMsgRequired : Boolean; OUT UserMsg : String; OUT OK : Boolean);
 { Turns the lights off by changing functions on the loco chip and optional second chip }
 CONST
   LightsOn = True;
   LightsOff = True;
 
-VAR
-  OK : Boolean;
-  T : TrainElement;
-
-  PROCEDURE TurnExpressModelsHeadlightsOff(LocoChip : Integer; UserDriving, UserRequiresInstruction : Boolean);
+  PROCEDURE TurnExpressModelsLocoHeadlightsOff(L : LocoIndex; UserMsgRequired : Boolean; OUT UserMsg : String; OUT OK : Boolean);
   { Turn off a loco's head lights in day and night mode }
   BEGIN
-    IF UserDriving
-    AND UserRequiresInstruction
-    THEN
-      Log(LocoChipToStr(LocoChip) + ' L= User instructed to turn day-time and night-time lights off by setting functions 4-7 off')
+    IF UserMsgRequired THEN
+      UserMsg := 'User: turn day-time and night-time lights off by setting functions 4-7 off'
     ELSE BEGIN
-      Log(LocoChipToStr(LocoChip) + ' L Turning day-time and night-time down and up lights off');
-      SetSingleLocoFunction(LocoChip, Function4, LightsOff, OK);
-      SetSingleLocoFunction(LocoChip, Function5, LightsOff, OK);
-      SetSingleLocoFunction(LocoChip, Function6, LightsOff, OK);
-      SetSingleLocoFunction(LocoChip, Function7, LightsOff, OK);
-    END;
-  END; { TurnExpressModelsHeadlightsOff }
-
-BEGIN
-  IF SystemOnline THEN BEGIN
-    IF LocoChip <> UnknownLocoChip THEN BEGIN
-      T := GetTrainRecord(LocoChip);
-      IF T <= High(Trains) THEN BEGIN
-        WITH Trains[T] DO BEGIN
-          IF Train_LightsType <> NoLights THEN BEGIN
-            IF Train_LightsType = HeadlightsAndTailLightsConnected THEN
-              TurnHeadLightsOff(Train_LocoChip, Train_UserDriving, Train_UserRequiresInstructions, OK)
-            ELSE
-              IF Train_LightsType = HeadlightsAndTailLightsSeparatelySwitched THEN BEGIN
-                TurnHeadLightsOff(Train_LocoChip, Train_UserDriving, Train_UserRequiresInstructions, OK);
-                TurnTailLightsOff(Train_LocoChip, Train_UserDriving, Train_UserRequiresInstructions, OK);
-              END ELSE
-                IF Train_LightsType = ExpressModelsSeparateHeadlights THEN BEGIN
-                  TurnHeadLightsOff(Train_LocoChip, Train_UserDriving, Train_UserRequiresInstructions, OK);
-                  TurnTailLightsOff(Train_LocoChip, Train_UserDriving, Train_UserRequiresInstructions, OK);
-                  TurnExpressModelsHeadlightsOff(Train_LocoChip, Train_UserDriving, Train_UserRequiresInstructions);
-                END ELSE
-                  IF Train_LightsType = LightsOperatedByTwoChips THEN BEGIN
-                    TurnHeadLightsOff(Train_LightingChipUp, Train_UserDriving, Train_UserRequiresInstructions, Ok);
-                    TurnHeadLightsOff(Train_LightingChipDown, Train_UserDriving, Train_UserRequiresInstructions, Ok);
-                  END ELSE
-                    IF Train_LightsType = CustomLightingKit THEN BEGIN
-                    END;
-
-            IF OK THEN BEGIN
-              Train_LightsOn := False;
-              Log(Train_LocoChipStr + ' L Lights turned off');
-            END ELSE
-              Log(Train_LocoChipStr + ' L Lights did not turn off');
-          END;
+      IF L <> UnknownLocoIndex THEN BEGIN
+        WITH Locos[L] DO BEGIN
+          Log(Loco_LocoChipStr + ' L Turning day-time and night-time down and up lights off');
+          SetSingleLocoFunction(L, Function4, LightsOff, OK);
+          SetSingleLocoFunction(L, Function5, LightsOff, OK);
+          SetSingleLocoFunction(L, Function6, LightsOff, OK);
+          SetSingleLocoFunction(L, Function7, LightsOff, OK);
         END; {WITH}
       END;
     END;
-  END;
-END; { TurnLightsOff }
+  END; { TurnExpressModelsLocoHeadlightsOff }
 
-PROCEDURE TurnCabLightsOn(LocoChip : Integer);
+BEGIN
+  IF SystemOnline THEN BEGIN
+    IF L = UnknownLocoIndex THEN
+      UnknownLocoRecordFound('TurnLocoLightsOff')
+    ELSE BEGIN
+      WITH Locos[L] DO BEGIN
+        IF Loco_LightsType <> NoLights THEN BEGIN
+          IF Loco_LightsType = HeadlightsAndTailLightsConnected THEN
+            TurnLocoHeadLightsOff(L, UserMsgRequired, UserMsg, OK)
+          ELSE
+            IF Loco_LightsType = HeadlightsAndTailLightsSeparatelySwitched THEN BEGIN
+              TurnLocoHeadLightsOff(L, UserMsgRequired, UserMsg, OK);
+              TurnLocoTailLightsOff(L, UserMsgRequired, UserMsg, OK);
+            END ELSE
+              IF Loco_LightsType = ExpressModelsSeparateHeadlights THEN BEGIN
+                TurnLocoHeadLightsOff(L, UserMsgRequired, UserMsg, OK);
+                TurnLocoTailLightsOff(L, UserMsgRequired, UserMsg, OK);
+                TurnExpressModelsLocoHeadlightsOff(L, UserMsgRequired, UserMsg, OK);
+              END ELSE
+                IF Loco_LightsType = LightsOperatedByTwoChips THEN BEGIN
+                  TurnLocoHeadLightsOff(L, UserMsgRequired, UserMsg, OK);
+                  TurnLocoHeadLightsOff(L, UserMsgRequired, UserMsg, OK);
+                END ELSE
+                  IF Loco_LightsType = CustomLightingKit THEN BEGIN
+                  END;
+
+          IF OK THEN BEGIN
+            Loco_LightsOn := False;
+            Log(Loco_LocoChipStr + ' L Lights turned off');
+          END ELSE
+            Log(Loco_LocoChipStr + ' L Lights did not turn off');
+        END;
+      END; {WITH}
+    END;
+  END;
+END; { TurnLocoLightsOff }
+
+PROCEDURE TurnLocoCabLightsOn(L : LocoIndex; UserMsgRequired : Boolean; OUT UserMsg : String; OUT OK : Boolean);
 { Turns cab lights on or off. Assumes that the cab lights are operated by function one }
 CONST
   LightsOn = True;
 
-VAR
-  OK : Boolean;
-
 BEGIN
-  SetSingleLocoFunction(LocoChip, Function1, LightsOn, OK);
-  Log(LocoChipToStr(LocoChip) + ' L Cab lights turned on');
-END; { TurnCabLightsOn }
+  OK := False;
 
-PROCEDURE TurnCabLightsOff(LocoChip : Integer);
+  IF L = UnknownLocoIndex THEN
+    UnknownLocoRecordFound('TurnLocoCabLightsOn')
+  ELSE BEGIN
+    WITH Locos[L] DO BEGIN
+      IF Loco_HasCabLights THEN BEGIN
+        IF UserMsgRequired THEN
+          UserMsg := 'User: turn cab lights on by setting functions 1 on'
+        ELSE BEGIN
+          SetSingleLocoFunction(L, Function1, LightsOn, OK);
+          Log(Loco_LocoChipStr + ' L Cab lights turned on');
+        END;
+      END;
+    END; {WITH}
+  END;
+END; { TurnLocoCabLightsOn }
+
+PROCEDURE TurnLocoCabLightsOff(L : LocoIndex; UserMsgRequired : Boolean; OUT UserMsg : String; OUT OK : Boolean);
 { Turns cab lights off. Assumes that the cab lights are operated by function one }
 CONST
   LightsOn = True;
 
-VAR
-  OK : Boolean;
-
 BEGIN
-  SetSingleLocoFunction(LocoChip, Function1, NOT LightsOn, OK);
-  Log(LocoChipToStr(LocoChip) + ' L Cab lights turned off');
-END; { TurnCabLightsOff }
+  OK := False;
+
+  IF L = UnknownLocoIndex THEN
+    UnknownLocoRecordFound('TurnLocoCabLightsOff')
+  ELSE BEGIN
+    WITH Locos[L] DO BEGIN
+      IF Loco_HasCabLights THEN BEGIN
+        IF UserMsgRequired THEN
+          UserMsg := 'User: turn cab lights off by setting functions 1 off'
+        ELSE BEGIN
+          SetSingleLocoFunction(L, Function1, NOT LightsOn, OK);
+          Log(Loco_LocoChipStr + ' L Cab lights turned off');
+        END;
+      END;
+    END; {WITH}
+  END;
+END; { TurnLocoCabLightsOff }
 
 FUNCTION TypeOfLineToStr(T : TypeOfLine) : String;
 { Describe a line type }
@@ -8144,85 +8242,168 @@ END; { TrainStatusToStr }
 PROCEDURE WriteVariableDataToFile;
 { List some variable data to a given file }
 VAR
-  ActiveTrains : Boolean;
-  AllTrains : Boolean;
+  AllLocos : Boolean;
+  AllActiveLocos : Boolean;
   ErrorMsg : String;
   I : Integer;
-  OnlyTrainsInDiagram : Boolean;
-  T : TrainElement;
+  L : LocoIndex;
+  OnlyLocosInDiagram : Boolean;
+  T : TrainIndex;
   TempOutputFile : Text;
-
+                                                     { needs working on post change ********** &&&&& }
 BEGIN
   TRY
+    AllLocos := False;
+    AllActiveLocos := False;
+    OnlyLocosInDiagram := False;
+
     IF OpenOutputFileOK(TempOutputFile, PathToRailDataFiles + 'Rail Variable Data', ErrorMsg, NOT AppendToFile) THEN BEGIN
       Log('XG Beginning write of all variable data to file');
 
       { Train record first }
-      IF MessageDialogueWithDefault('All trains or only active trains?',
-                                    StopTimer, mtWarning, [mbOK, mbAbort], ['&All', '&Active'], mbAbort) = mrOK
-      THEN BEGIN
-        AllTrains := True;
-        ActiveTrains := False;
-        OnlyTrainsInDiagram := False;
-      END ELSE BEGIN
-        AllTrains := False;
-        IF MessageDialogueWithDefault('All active trains or just trains in the diagram?',
-                                      StopTimer, mtWarning, [mbOK, mbAbort], ['&Active', '&Diagram'], mbAbort) = mrOK
-        THEN BEGIN
-          ActiveTrains := True;
-          OnlyTrainsInDiagram := False;
-        END ELSE BEGIN
-          ActiveTrains := False;
-          OnlyTrainsInDiagram := True;
-        END;
-      END;
+      CASE MessageDialogueWithDefault('All locos, all locos marked as active, or only locos in the diagram?',
+                                      StopTimer, mtWarning, [mbYes, mbNo, mbAbort], ['&All', '&AllActive', '&Diagram'], mbAbort)
+      OF
+        mrYes:
+          AllLocos := True;
+        mrNo:
+          AllActiveLocos := True;
+        mrAbort:
+          OnlyLocosInDiagram := True;
+      END; {CASE}
 
-      WriteLn(TempOutputFile, 'Train Records: ' + IfThen(AllTrains,
-                                                         '(All Trains)',
-                                                         IfThen(ActiveTrains,
-                                                                '(only active trains',
-                                                                IfThen(OnlyTrainsInDiagram,
-                                                                      '(only trains in the current diagram)'))));
-      WriteLn(TempOutputFile);
+//      IF MessageDialogueWithDefault('All active trains or just trains in the diagram?',
+//                                    StopTimer, mtWarning, [mbOK, mbAbort], ['&Active', '&Diagram'], mbAbort) = mrOK
+//        THEN BEGIN
+//          ActiveTrains := True;
+//          OnlyTrainsInDiagram := False;
+//        END ELSE BEGIN
+//          ActiveTrains := False;
+//          OnlyTrainsInDiagram := True;
+//        END;
+//      END;
+
+      WriteLn(TempOutputFile, 'Loco Records: ' + IfThen(AllLocos,
+                                                         '(All Locos)',
+                                                         IfThen(AllActiveLocos,
+                                                                '(only active locos',
+                                                                IfThen(OnlyLocosInDiagram,
+                                                                      '(only locos in the current diagram)'))));
+
+      L := 0;
+      WHILE L <= High(Locos) DO BEGIN
+        WITH Locos[L] DO BEGIN
+          IF AllLocos OR (AllActiveLocos AND Loco_Active) OR (OnlyLocosInDiagram AND Loco_DiagramFound) THEN BEGIN
+            WriteLn(TempOutputFile);
+            WriteLn(TempOutputFile, 'Loco_LocoChip = ' + IntToStr(Loco_LocoChip));
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_Accelerating = ' + BoolToStr(Loco_Accelerating, True));
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_AccelerationAdjustRange = ' + IntToStr(Loco_AccelerationAdjustRange));
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_AccelerationStartTime = ' + TimeToHMSStr(Loco_AccelerationStartTime));
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_AccelerationStr = ' + Loco_AccelerationStr);
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_AccelerationTimeInterval = ' + FloatToStr(Loco_AccelerationTimeInterval));
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_Active = ' + BoolToStr(Loco_Active, True));
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_ActualNumStr = ' + Loco_ActualNumStr);
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_Decelerating = ' + BoolToStr(Loco_Decelerating, True));
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_Description = ' + Loco_Description);
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_DesiredLenzSpeed = ' + IntToStr(Loco_DesiredLenzSpeed));
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_DiagramFound = ' + BoolToStr(Loco_DiagramFound, True));
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_CurrentDirection = ' + DirectionToStr(Loco_CurrentDirection));
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_FixedDirection = ' + DirectionToStr(Loco_FixedDirection));
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_FixedLengthInInches = ' + IntToStr(Loco_FixedLengthInInches));
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_HasCabLights = ' + BoolToStr(Loco_HasCabLights, True));
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_HomeArea = ' + AreaToStr(Loco_HomeArea));
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_LastLengthInInches = ' + IntToStr(Loco_LastLengthInInches));
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_LastLocation = ' + LocationToStr(Loco_LastLocation));
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_LastTC = ' + TrackCircuitToStr(Loco_LastTC));
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_LightingChipDown = ' + LocoChipToStr(Loco_LightingChipDown));
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_LightingChipDownIndex = ' + LocoChipToStr(Loco_LightingChipDownIndex));
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_LightingChipUp = ' + LocoChipToStr(Loco_LightingChipUp));
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_LightingChipUpIndex = ' + LocoChipToStr(Loco_LightingChipUpIndex));
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_LightingChipRecordForChip = ' + IntToStr(Loco_LightingChipRecordForChip));
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_LightsMsg = ' + Loco_LightsMsg);
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_LightsOn = ' + BoolToStr(Loco_LightsOn, True));
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_LightsType = ' + LIghtsTypeToStr(Loco_LightsType));
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_LocoChipStr = ' + Loco_LocoChipStr);
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_LocoClassStr = ' + Loco_LocoClassStr);
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_LocoName = ' + Loco_LocoName);
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_LocoTypeStr = ' + Loco_LocoTypeStr);
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_MaximumSpeedInMPH = ' + MPHToStr(Loco_MaximumSpeedInMPH));
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_NumberOfCarriages = ' + IntToStr(Loco_NumberOfCarriages));
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_SaveDesiredLenzSpeed = ' + IntToStr(Loco_SaveDesiredLenzSpeed));
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_SavedDirection = ' + DirectionToStr(Loco_SavedDirection));
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_SpeedArray:');
+            FOR I := 1 TO 12 DO
+              WriteLn(TempOutputFile, Loco_LocoChipStr + ':   (' + IntToStr(I) + ') = ' + IntToStr(Loco_SpeedArray[I]));
+
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_Speed10 = ' + IntToStr(Loco_Speed10));
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_Speed20 = ' + IntToStr(Loco_Speed20));
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_Speed30 = ' + IntToStr(Loco_Speed30));
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_Speed40 = ' + IntToStr(Loco_Speed40));
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_Speed50 = ' + IntToStr(Loco_Speed50));
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_Speed60 = ' + IntToStr(Loco_Speed60));
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_Speed70 = ' + IntToStr(Loco_Speed70));
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_Speed80 = ' + IntToStr(Loco_Speed80));
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_Speed90 = ' + IntToStr(Loco_Speed90));
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_Speed100 = ' + IntToStr(Loco_Speed100));
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_Speed110 = ' + IntToStr(Loco_Speed110));
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_Speed120 = ' + IntToStr(Loco_Speed120));
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_SpeedByte = ' + IntToStr(Loco_SpeedByte));
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_SpeedByteReadIn = ' + BoolToStr(Loco_SpeedByteReadIn, True));
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_SpeedSettingsMissing = ' + BoolToStr(Loco_SpeedSettingsMissing, True));
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_SpeedStepMode = ' + IntToStr(Loco_SpeedStepMode));
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_SpeedString = ' + Loco_SpeedString);
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_TrainIndex = ' + IntToStr(Loco_TrainIndex));
+            WriteLn(TempOutputFile, Loco_LocoChipStr + ': Loco_UseTrailingTrackCircuits = ' + BoolToStr(Loco_UseTrailingTrackCircuits, True));
+          END;
+        END; {WITH}
+
+        Inc(L);
+      END; {WHILE}
+
+//      WriteLn(TempOutputFile, 'Train Records: ' + IfThen(AllTrains,
+//                                                         '(All Trains)',
+//                                                         IfThen(ActiveTrains,
+//                                                                '(only active trains',
+//                                                                IfThen(OnlyTrainsInDiagram,
+//                                                                      '(only trains in the current diagram)'))));
+
+      WriteLn(TempOutputFile, 'Train Records');
 
       T := 0;
       WHILE T <= High(Trains) DO BEGIN
         WITH Trains[T] DO BEGIN
-          IF AllTrains OR (ActiveTrains AND Train_Active) OR (OnlyTrainsInDiagram AND Train_DiagramFound) THEN BEGIN
+          //IF AllTrains OR (OnlyTrainsInDiagram AND Train_DiagramFound) THEN BEGIN
+            WriteLn(TempOutputFile);
             WriteLn(TempOutputFile, 'Train_LocoChip = ' + IntToStr(Train_LocoChip));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_DoubleHeaderLocoChip = ' + LocoChipToStr(Train_DoubleHeaderLocoChip));
+            WriteLn(TempOutputFile, 'Train_LocoChipStr = ' + Train_LocoChipStr);
+            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_DoubleHeaderLocoChipStr = ' + Train_DoubleHeaderLocoChipStr);
+            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_LocoIndex = ' + LocoIndexToStr(Train_LocoIndex));
+            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_DoubleHeaderLocoIndex = ' + LocoIndexToStr(Train_DoubleHeaderLocoIndex));
 
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_Accelerating = ' + BoolToStr(Train_Accelerating, True));
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_AccelerationAdjustRange = ' + IntToStr(Train_AccelerationAdjustRange));
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_AccelerationStartTime = ' + TimeToHMSStr(Train_AccelerationStartTime));
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_AccelerationStr = ' + Train_AccelerationStr);
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_AccelerationTimeInSeconds = ' + FloatToStr(Train_AccelerationTimeInSeconds));
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_AccelerationTimeInterval = ' + FloatToStr(Train_AccelerationTimeInterval));
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_Active = ' + BoolToStr(Train_Active, True));
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_ActualNumStr = ' + Train_ActualNumStr);
+            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_ActualNumStr (from loco record) = ' + Train_ActualNumStr);
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_AtCurrentBufferStop = ' + BufferStopToStr(Train_AtCurrentBufferStop));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_AtCurrentSignal = ' + SignalToStr(Train_AtCurrentSignal));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_AtHiddenAspectSignal = ' + SignalToStr(Train_AtHiddenAspectSignal));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_BeingAdvanced = ' + BoolToStr(Train_BeingAdvanced, True));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_BeingAdvancedTC = ' + TrackCircuitToStr(Train_BeingAdvancedTC));
+            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_CabLightsAreOn = ' + BoolToStr(Train_CabLightsAreOn, True));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_CabLightsHaveBeenOn = ' + BoolToStr(Train_CabLightsHaveBeenOn, True));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_ControlledByProgram = ' + BoolToStr(Train_ControlledByProgram, True));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_ControlledByRDC = ' + BoolToStr(Train_ControlledByRDC, True));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_CurrentArrivalTime = ' + TimeToHMSStr(Train_CurrentArrivalTime));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_CurrentBufferStop = ' + BufferStopToStr(Train_CurrentBufferStop));
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_CurrentDirection = ' + DirectionToStr(Train_CurrentDirection));
+            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_CurrentDirection (initially from loco record) = ' + DirectionToStr(Train_CurrentDirection));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_CurrentJourney = ' + IntToStr(Train_CurrentJourney));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_CurrentLengthInInches = ' + IntToStr(Train_CurrentLengthInInches));
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_CurrentLenzSpeed = ' + IntToStr(Train_CurrentLenzSpeed));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_CurrentRoute = ' + RouteToStr(Train_CurrentRoute));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_CurrentSignal = ' + SignalToStr(Train_CurrentSignal));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_CurrentSourceLocation = ' + LocationToStr(Train_CurrentSourceLocation));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_CurrentSpeedInMPH = ' + MPHToStr(Train_CurrentSpeedInMPH));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_CurrentStatus = ' + TrainStatusToStr(Train_CurrentStatus));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_CurrentTC = ' + TrackCircuitToStr(Train_CurrentTC));
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_Decelerating = ' + BoolToStr(Train_Decelerating, True));
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_Description = ' + Train_Description);
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_DesiredLenzSpeed = ' + IntToStr(Train_DesiredLenzSpeed));
+            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_Description (from loco record) = ' + Train_Description);
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_DesiredSpeedInMPH = ' + MPHToStr(Train_DesiredSpeedInMPH));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_DiagramFound = ' + BoolToStr(Train_DiagramFound, True));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_DiagramsGridRowNums = ' + IntegerArrayToStr(Train_DiagramsGridRowNums));
@@ -8234,63 +8415,55 @@ BEGIN
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_EmergencyRouteing = ' + BoolToStr(Train_EmergencyRouteing, True));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_ExtraPowerAdjustment = ' + IntToStr(Train_ExtraPowerAdjustment));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_FirstStationSpecifiedStartTime = ' + TimeToHMSStr(Train_FirstStationSpecifiedStartTime));
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_FixedDirection = ' + DirectionToStr(Train_FixedDirection));
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_FixedLengthInInches = ' + IntToStr(Train_FixedLengthInInches));
+            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_FixedDirection (from loco record) = ' + DirectionToStr(Train_FixedDirection));
+            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_FixedLengthInInches (from loco record) = ' + IntToStr(Train_FixedLengthInInches));
 
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_Functions:');
-            FOR I := 0 TO 12 DO
-              WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ':   (' + IntToStr(I) + ') = ' + BoolToStr(Train_Functions[I], True));
-
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_Functions0To4Byte = ' + IntToStr(Train_Functions0To4Byte));
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_Functions5To12Byte = ' + IntToStr(Train_Functions5To12Byte));
+//            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_Functions:');
+//            FOR I := 0 TO 12 DO
+//              WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ':   (' + IntToStr(I) + ') = ' + BoolToStr(Train_Functions[I], True));
+//
+//            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_Functions0To4Byte = ' + IntToStr(Train_Functions0To4Byte));
+//            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_Functions5To12Byte = ' + IntToStr(Train_Functions5To12Byte));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_GradientSpeedAdjustment = ' + IntToStr(Train_GradientSpeedAdjustment));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_GradientSpeedAdjustmentMsgWritten = '
                                                                                                                 + BoolToStr(Train_GradientSpeedAdjustmentMsgWritten, True));
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_HasCabLights = ' + BoolToStr(Train_HasCabLights, True));
+            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_HasLights = ' + BoolToStr(Train_HasLights, True));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_Headcode = ' + Train_Headcode);
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_HomeArea = ' + AreaToStr(Train_HomeArea));
-
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_InitialTrackCircuits:');
             FOR I := 1 TO 5 DO
               WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ':   (' + IntToStr(I) + ') = ' + TrackCircuitToStr(Train_InitialTrackCircuits[I]));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_InLightsOnTime = ' + BoolToStr(Train_InLightsOnTime, True));
 
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_LastLengthInInches = ' + IntToStr(Train_LastLengthInInches));
+            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_LastLengthInInches (from loco record) = ' + IntToStr(Train_LastLengthInInches));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_LastLocation = ' + LocationToStr(Train_LastLocation));
 
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_LastMissingTC = ' + TrackCircuitToStr(Train_LastMissingTC));
 
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_LastRouteLockedMsgStr = ' + Train_LastRouteLockedMsgStr);
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_LastSignal = ' + SignalToStr(Train_LastSignal));
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_LastTC = ' + TrackCircuitToStr(Train_LastTC));
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_LightingChipDown = ' + LocoChipToStr(Train_LightingChipDown));
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_LightingChipUp = ' + LocoChipToStr(Train_LightingChipUp));
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_LightingChipRecordForChip = ' + IntToStr(Train_LightingChipRecordForChip));
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_LightsMsg = ' + Train_LightsMsg);
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_LightsOn = ' + BoolToStr(Train_LightsOn, True));
+            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_LastTC (from loco record) = ' + TrackCircuitToStr(Train_LastTC));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_LightsOnTime = ' + TimeToHMSStr(Train_LightsOnTime));
+            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_LightsOn = ' + BoolToStr(Train_LightsOn, True));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_LightsRemainOnWhenJourneysComplete = '
                                                                                                                + BoolToStr(Train_LightsRemainOnWhenJourneysComplete, True));
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_LightsType = ' + LIghtsTypeToStr(Train_LightsType));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_LocatedAtStartup = ' + BoolToStr(Train_LocatedAtStartup, True));
-
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_Locations:');
             FOR I := 0 TO High(Train_Locations) DO
               WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ':   (' + IntToStr(I) + ') = ' + LocationToStr(Train_Locations[I]));
 
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_LocoChipStr = ' + Train_LocoChipStr);
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_LocoClassStr = ' + Train_LocoClassStr);
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_LocoName = ' + Train_LocoName);
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_LocoTypeStr = ' + Train_LocoTypeStr);
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_MaximumSpeedInMPH = ' + MPHToStr(Train_MaximumSpeedInMPH));
+            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_LocoChipStr (from loco record) = ' + Train_LocoChipStr);
+            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_LocoClassStr (from loco record) = ' + Train_LocoClassStr);
+            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_LocoName (from loco record) = ' + Train_LocoName);
+            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_LocoTypeStr (from loco record) = ' + Train_LocoTypeStr);
+            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_MaximumSpeedInMPH (from loco records) = ' + MPHToStr(Train_MaximumSpeedInMPH));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_MinimumAccelerationTimeInSeconds = ' + IntToStr(Train_MinimumAccelerationTimeInSeconds));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_MissingMessage = ' + BoolToStr(Train_MissingMessage, True));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_MissingNum = ' + IntToStr(Train_MissingNum));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_NextTC = ' + TrackCircuitToStr(Train_NextTC));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_NextButOneTC = ' + TrackCircuitToStr(Train_NextButOneTC));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_NotInPlaceMsgWritten = ' + BoolToStr(Train_NotInPlaceMsgWritten, True));
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_NumberOfCarriages = ' + IntToStr(Train_NumberOfCarriages));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_NotLocatedAtStartupMsgWritten = ' + BoolToStr(Train_NotLocatedAtStartupMsgWritten, True));
+            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_NumberOfCarriages (from loco record) = ' + IntToStr(Train_NumberOfCarriages));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_PossibleRerouteTime = ' + TimeToHMSStr(Train_PossibleRerouteTime));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_PreviouslyControlledByProgram = ' + BoolToStr(Train_PreviouslyControlledByProgram, True));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_PreviousStatus = ' + TrainStatusToStr(Train_PreviousStatus));
@@ -8312,7 +8485,6 @@ BEGIN
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_RouteCreationReleasedMsg = ' + Train_RouteCreationReleasedMsg);
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_RouteingHeldAtSignal = ' + SignalToStr(Train_RouteingHeldAtSignal));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_SaveCurrentTC = ' + TrackCircuitToStr(Train_SaveCurrentTC));
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_SaveDesiredLenzSpeed = ' + IntToStr(Train_SaveDesiredLenzSpeed));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_SavedLocation = ' + LocationToStr(Train_SavedLocation));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_SavedRoute = ' + RouteToStr(Train_SavedRoute));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_SaveSpeedInFiddleyardMsg = ' + Train_SaveSpeedInFiddleyardMsg);
@@ -8320,28 +8492,12 @@ BEGIN
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_SaveTCsForReleaseStr = ' + Train_SaveTCsForReleaseStr);
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_SaveTCsOccupiedStr = ' + Train_SaveTCsOccupiedStr);
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_SectionStartTime = ' + TimeToHMSStr(Train_SectionStartTime));
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_Speed10 = ' + IntToStr(Train_Speed10));
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_Speed20 = ' + IntToStr(Train_Speed20));
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_Speed30 = ' + IntToStr(Train_Speed30));
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_Speed40 = ' + IntToStr(Train_Speed40));
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_Speed50 = ' + IntToStr(Train_Speed50));
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_Speed60 = ' + IntToStr(Train_Speed60));
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_Speed70 = ' + IntToStr(Train_Speed70));
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_Speed80 = ' + IntToStr(Train_Speed80));
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_Speed90 = ' + IntToStr(Train_Speed90));
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_Speed100 = ' + IntToStr(Train_Speed100));
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_Speed110 = ' + IntToStr(Train_Speed110));
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_Speed120 = ' + IntToStr(Train_Speed120));
 
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_SpeedArray:');
-            FOR I := 1 TO 12 DO
-              WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ':   (' + IntToStr(I) + ') = ' + IntToStr(Train_SpeedArray[I]));
-
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_SpeedByte = ' + IntToStr(Train_SpeedByte));
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_SpeedByteReadIn = ' + BoolToStr(Train_SpeedByteReadIn, True));
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_SpeedSettingsMissing = ' + BoolToStr(Train_SpeedSettingsMissing, True));
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_SpeedStepMode = ' + IntToStr(Train_SpeedStepMode));
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_SpeedString = ' + Train_SpeedString);
+//            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_SpeedByte = ' + IntToStr(Train_SpeedByte));
+//            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_SpeedByteReadIn = ' + BoolToStr(Train_SpeedByteReadIn, True));
+//            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_SpeedSettingsMissing = ' + BoolToStr(Train_SpeedSettingsMissing, True));
+//            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_SpeedStepMode = ' + IntToStr(Train_SpeedStepMode));
+//            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_SpeedString = ' + Train_SpeedString);
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_StalledMsgWritten = ' + BoolToStr(Train_StalledMsgWritten, True));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_SubRouteAheadCheckedTime = ' + TimeToHMSStr(Train_SubRouteAheadCheckedTime));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_TakenOverByUserMsgWritten = ' + BoolToStr(Train_TakenOverByUserMsgWritten, True));
@@ -8363,8 +8519,8 @@ BEGIN
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_UserDriving = ' + BoolToStr(Train_UserDriving, True));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_UserPowerAdjustment = ' + IntToStr(Train_UserPowerAdjustment));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_UserRequiresInstructions = ' + BoolToStr(Train_UserRequiresInstructions, True));
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_UserRequiresInstructionMsg = ' + Train_UserRequiresInstructionMsg);
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_UseTrailingTrackCircuits = ' + BoolToStr(Train_UseTrailingTrackCircuits, True));
+            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_UserSpeedInstructionMsg = ' + Train_UserSpeedInstructionMsg);
+            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_UseTrailingTrackCircuits (from loco record) = ' + BoolToStr(Train_UseTrailingTrackCircuits, True));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_WaitingForHiddenAspectStartTime = ' + TimeToHMSStr(Train_WaitingForHiddenAspectStartTime));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_WorkingTimetableLastArrivalArea = ' + AreaToStr(Train_WorkingTimetableLastArrivalArea));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_WorkingTimetableLastArrivalTime = ' + TimeToHMSStr(Train_WorkingTimetableLastArrivalTime));
@@ -8437,9 +8593,9 @@ BEGIN
                   WriteLn(TempOutputFile);
                 END; {WITH}
               END; {FOR}
-            END; {WITH}
-          END; {FOR}
-        END;
+            END;
+          //END;
+        END; {WITH}
 
         Inc(T);
       END; {WHILE}
@@ -8838,7 +8994,7 @@ PROCEDURE TDebugWindow.DebugRichEditMouseDown(Sender: TObject; Button: TMouseBut
 { Used to change the memo's colours }
 BEGIN
   IF LocoDialogueWindow.Visible
-  AND (GetLocoDialogueSelectedLocoSpeed > 0) AND (Button = mbRight)
+  AND (GetLocoDialogueLocoSpeed > 0) AND (Button = mbRight)
   THEN BEGIN
     CheckEmergencyStop(Button, ShiftState);
     Exit;
@@ -8878,7 +9034,7 @@ END; { DebugRichEditPopupMenuOnPopup }
 PROCEDURE DummyProc;
 { Here just to be copied elsewhere }
 VAR
-  T : TrainElement;
+  T : TrainIndex;
 
 BEGIN
   T := 0;

@@ -52,13 +52,13 @@ PROCEDURE SaveSignalsCurrentState;
 PROCEDURE SetAllSignalsToDanger;
 { Sets all off signals to on }
 
-PROCEDURE SetSignal(LocoChip, S : Integer; NewAspect : AspectType; LogSignalData, ForceWriting : Boolean);
+PROCEDURE SetSignal(LocoChipStr : String; S : Integer; NewAspect : AspectType; LogSignalData, ForceWriting : Boolean);
 { Set the state of a particular signal and draws it }
 
-PROCEDURE SetTrackCircuitState{1}(LocoChip : Integer; TC : Integer; NewState : TrackCircuitStateType); Overload;
+PROCEDURE SetTrackCircuitState{1}(LocoChip : LocoChipType; TC : Integer; NewState : TrackCircuitStateType); Overload;
 { Set whether and how the track circuit is occupied, and mark it with a loco chip number }
 
-PROCEDURE SetTrackCircuitState{2}(LocoChip : Integer; TC : Integer; NewState : TrackCircuitStateType; Explanation : String); Overload;
+PROCEDURE SetTrackCircuitState{2}(LocoChip : LocoChipType; TC : Integer; NewState : TrackCircuitStateType; Explanation : String); Overload;
 { Set whether and how the track circuit is occupied, mark it with a loco chip number, and give an explanation }
 
 PROCEDURE SetTrackCircuitState{3}(TC : Integer; NewState : TrackCircuitStateType); Overload;
@@ -88,7 +88,7 @@ IMPLEMENTATION
 {$R *.dfm}
 
 USES GetTime, Raildraw, MiscUtils, Locks, LocationData, Feedback, Options, System.StrUtils, Lenz, System.DateUtils, TestUnit, Movement, FWPShowMessageUnit, CreateRoute,
-     Diagrams, Route, Replay, Startup, Cuneo, LocoUtils, StationMonitors, ProgressBar, LocoDialogue, Help, WorkingTimetable, Edit, RDC, Input;
+     Diagrams, Route, Replay, Startup, Cuneo, LocoUtils, StationMonitors, ProgressBar, LocoDialogue, Help, WorkingTimetable, Edit, RDC, Input, Train;
 
 CONST
   ConnectedViaUSBStr = 'via USB';
@@ -246,7 +246,7 @@ BEGIN
   END; {TRY}
 END; { MainWindowCreate }
 
-PROCEDURE SetSignal(LocoChip, S : Integer; NewAspect : AspectType; LogSignalData, ForceWriting : Boolean);
+PROCEDURE SetSignal(LocoChipStr : String; S : Integer; NewAspect : AspectType; LogSignalData, ForceWriting : Boolean);
 { Set the state of a particular signal and draws it }
 BEGIN
   TRY
@@ -256,7 +256,7 @@ BEGIN
         IF NOT ProgramStartup
         AND LogSignalData
         THEN
-          Log(LocoChipToStr(LocoChip) + ' S S=' + IntToStr(S) + ' successfully set to ' + AspectToStr(Signals[S].Signal_Aspect));
+          Log(LocoChipStr + ' S S=' + IntToStr(S) + ' successfully set to ' + AspectToStr(Signals[S].Signal_Aspect));
 
         IF SystemOnline
         AND NOT ResizeMap
@@ -265,14 +265,14 @@ BEGIN
             { uses LF100 decoders - bits usually set as follows:
               green is bit 1, red 2, single yellow 3, double yellow 3 + 4; the indicator is bit 4 (not necessarily on same decoder though)
             }
-            SetSignalFunction(LocoChip, S)
+            SetSignalFunction(LocoChipStr, S)
           ELSE
             IF Signal_AccessoryAddress <> 0 THEN
               { uses TrainTech SC3 units for controlling Dapol semaphores }
               IF NewAspect = RedAspect THEN
-                MakeSemaphoreSignalChange(LocoChip, S, Signal_AccessoryAddress, SignalOff)
+                MakeSemaphoreSignalChange(LocoChipStr, S, Signal_AccessoryAddress, SignalOff)
               ELSE
-                MakeSemaphoreSignalChange(LocoChip, S, Signal_AccessoryAddress, SignalOn);
+                MakeSemaphoreSignalChange(LocoChipStr, S, Signal_AccessoryAddress, SignalOn);
         END;
 
         IF NOT ProgramStartup THEN
@@ -296,9 +296,9 @@ BEGIN
     FOR S := 0 TO High(Signals) DO BEGIN
       IF NOT Signals[S].Signal_OutOfUse THEN BEGIN
         IF (GetSignalAspect(S) <> RedAspect) THEN
-          SetSignal(NoLocoChip, S, RedAspect, LogSignalData, NOT ForceAWrite);
+          SetSignal(UnknownLocoChipStr, S, RedAspect, LogSignalData, NOT ForceAWrite);
         IF Signals[S].Signal_IndicatorState <> NoIndicatorLit THEN
-          SetIndicator(NoLocoChip, S, NoIndicatorLit, '', NoRoute, NOT ByUser);
+          SetIndicator(UnknownLocoChipStr, S, NoIndicatorLit, '', NoRoute, NOT ByUser);
       END;
     END; {FOR}
   EXCEPT
@@ -481,9 +481,9 @@ VAR
 BEGIN
   TRY
     FOR S := 0 TO High(Signals) DO BEGIN
-      SetSignal(NoLocoChip, S, NoAspect, LogSignalData, NOT ForceAWrite);
+      SetSignal(UnknownLocoChipStr, S, NoAspect, LogSignalData, NOT ForceAWrite);
       IF Signals[S].Signal_IndicatorState <> NoIndicatorLit THEN
-        SetIndicator(NoLocoChip, S, NoIndicatorLit, '', NoRoute, NOT ByUser);
+        SetIndicator(UnknownLocoChipStr, S, NoIndicatorLit, '', NoRoute, NOT ByUser);
     END; {FOR}
   EXCEPT
     ON E : Exception DO
@@ -505,9 +505,9 @@ BEGIN
           { have to set state to NoAspect, or SetSignal won't redraw the SignalAspect/indicator }
           Signal_Aspect := NoAspect;
           Signal_IndicatorState := NoIndicatorLit;
-          SetSignal(NoLocoChip, S, Signal_PreviousAspect, LogSignalData, NOT ForceAWrite);
+          SetSignal(UnknownLocoChipStr, S, Signal_PreviousAspect, LogSignalData, NOT ForceAWrite);
           IF Signal_PreviousIndicatorState <> NoIndicatorLit THEN
-            SetIndicator(NoLocoChip, S, Signal_PreviousIndicatorState, Signal_PreviousTheatreIndicatorString, NoRoute, NOT ByUser);
+            SetIndicator(UnknownLocoChipStr, S, Signal_PreviousIndicatorState, Signal_PreviousTheatreIndicatorString, NoRoute, NOT ByUser);
         END;
       END; {WITH}
     END; {FOR}
@@ -526,7 +526,7 @@ END; { GetBufferStopDirection }
 PROCEDURE FindAdjoiningTrackCircuits(TC : Integer; OUT AdjoiningUpTC, AdjoiningDownTC : Integer);
 { Work out which are the adjacent track circuits. Does not trace along all lines, just the way points are set. }
 VAR
-  L : Integer;
+  Line : Integer;
   Next : NextLineRouteingType;
   NextPoint : Integer;
   TCFound : Boolean;
@@ -662,18 +662,18 @@ BEGIN
     AdjoiningDowntc := UnknownTrackCircuit;
 
     IF TC <> UnknownTrackCircuit THEN BEGIN
-      L := 0;
+      Line := 0;
       TCFound := False;
-      WHILE (L <= High(Lines))
+      WHILE (Line <= High(Lines))
       AND NOT TCFound
       DO BEGIN
-        IF Lines[L].Line_TC = TC THEN BEGIN
+        IF Lines[Line].Line_TC = TC THEN BEGIN
           TCFound := True;
 
-          FollowThatLine(L, Up);
-          FollowThatLine(L, Down);
+          FollowThatLine(Line, Up);
+          FollowThatLine(Line, Down);
         END;
-        Inc(L);
+        Inc(Line);
       END; {WHILE}
     END;
   EXCEPT
@@ -721,7 +721,7 @@ BEGIN
   END; {TRY}
 END; { CheckLinesAreOK }
 
-PROCEDURE SetTrackCircuitStateMainProcedure(LocoChip : Integer; TC : Integer; NewState : TrackCircuitStateType; Explanation : String);
+PROCEDURE SetTrackCircuitStateMainProcedure(LocoChip : LocoChipType; TC : Integer; NewState : TrackCircuitStateType; Explanation : String);
 { Set whether and how the track circuit is occupied and give an explanation if any }
 CONST
   DoNotWriteMessage = True;
@@ -739,7 +739,7 @@ VAR
   LocoFound : Boolean;
   OK : Boolean;
   P : Integer;
-  T : TrainElement;
+  T : TrainIndex;
 
 BEGIN
   TRY
@@ -759,11 +759,11 @@ BEGIN
 
           { If track circuit is now unoccupied, having been system occupied, see if part of a route needs clearing in advance of the full route tidying up in ClearARoute }
           IF NOT RedrawScreen THEN BEGIN
-            T := GetTrainRecord(TC_LocoChip);
+            T := GetTrainIndexFromLocoChip(TC_LocoChip);
             IF (TC_PreviousOccupationState = TCSystemOccupation)
-            OR ((T <= High(Trains))
-            AND NOT Trains[T].Train_UseTrailingTrackCircuits
-            AND (TC_PreviousOccupationState = TCFeedbackOccupation))
+            OR ((T <> UnknownTrainIndex)
+                AND NOT Trains[T].Train_UseTrailingTrackCircuits
+                AND (TC_PreviousOccupationState = TCFeedbackOccupation))
             THEN BEGIN
               TC_OccupationState := NewState;
               IF NewState = TCUnoccupied THEN BEGIN
@@ -823,19 +823,19 @@ BEGIN
                   { Store any locochip numbers now as we have to clear the array before we can reallocate them. (If we don't, it is possible that they will be reallocated
                     to the same, defunct, location.
                   }
-                  IF LocationOccupations[Location, LocationOccupationCount].LocationOccupation_LocoChip <> NoLocoChip THEN
+                  IF LocationOccupations[Location, LocationOccupationCount].LocationOccupation_LocoChip <> UnknownLocoChip THEN
                     AppendToIntegerArray(TempLocationLocoChips, LocationOccupations[Location, LocationOccupationCount].LocationOccupation_LocoChip);
                 END;
 
                 { Now mark the location out of use }
                 ClearLocationOccupationsForSpecificLocation(Location);
-                SetLocationOccupationAllDayState(NoLocoChip, Location, LocationOutOfUseOccupation, ErrorMsg, OK);
+                SetLocationOccupationAllDayState(UnknownLocoIndex, Location, LocationOutOfUseOccupation, ErrorMsg, OK);
               END;
 
               IF Length(TempLocationLocoChips) > 0 THEN BEGIN
                 FOR I := 0 TO High(TempLocationLocoChips) DO BEGIN
-                  T := GetTrainRecord(TempLocationLocoChips[I]);
-                  IF T <= High(Trains) THEN
+                  T := GetTrainIndexFromLocoChip(TempLocationLocoChips[I]);
+                  IF T <> UnknownTrainIndex THEN
                     SetUpTrainLocationOccupationsAbInitio(T, OK);
                 END;
               END;
@@ -869,7 +869,7 @@ BEGIN
             THEN BEGIN
               WITH Signals[TC_ResettingSignal] DO BEGIN
                 IF Signal_Aspect <> RedAspect THEN BEGIN
-                  PullSignal(NoLocoChip, TC_ResettingSignal, NoIndicatorLit, NoRoute, NoSubRoute, UnknownLine, TC, NOT ByUser, OK);
+                  PullSignal(UnknownLocoChipStr, TC_ResettingSignal, NoIndicatorLit, NoRoute, NoSubRoute, UnknownLine, TC, NOT ByUser, OK);
                   IF OK THEN BEGIN
                     Log('S S=' + IntToStr(TC_ResettingSignal) + ' reset by TC=' + IntToStr(TC));
                     { also reset any hidden aspects }
@@ -938,8 +938,8 @@ BEGIN
                     Log('E ... but no loco found in adjacent TCs')
                   ELSE BEGIN
                     TC_LocoChip := TrackCircuits[AdjacentTrackCircuits[I]].TC_LocoChip;
-                    T := GetTrainRecord(TC_LocoChip);
-                    IF T <= High(Trains) THEN
+                    T := GetTrainIndexFromLocoChip(TC_LocoChip);
+                    IF T <> UnknownTrainIndex THEN
                       Trains[T].Train_CurrentTC := TC;
                     Log(LocoChipToStr(TC_LocoChip) + ' E ...found loco in adjacent TC=' + IntToStr(AdjacentTrackCircuits[I])
                                                    + ' so assuming it has moved to TC=' + IntToStr(TC));
@@ -968,7 +968,7 @@ BEGIN
   END; {TRY}
 END; { SetTrackCircuitStateMainProcedure }
 
-PROCEDURE SetTrackCircuitState{1}(LocoChip : Integer; TC : Integer; NewState : TrackCircuitStateType); Overload;
+PROCEDURE SetTrackCircuitState{1}(LocoChip : LocoChipType; TC : Integer; NewState : TrackCircuitStateType); Overload;
 { Set whether and how the track circuit is occupied, and mark it with a loco chip number }
 CONST
   Explanation = '';
@@ -977,7 +977,7 @@ BEGIN
   SetTrackCircuitStateMainProcedure(LocoChip, TC, NewState, Explanation);
 END; { SetTrackCircuitState-1 }
 
-PROCEDURE SetTrackCircuitState{2}(LocoChip : Integer; TC : Integer; NewState : TrackCircuitStateType; Explanation : String); Overload;
+PROCEDURE SetTrackCircuitState{2}(LocoChip : LocoChipType; TC : Integer; NewState : TrackCircuitStateType; Explanation : String); Overload;
 { Set whether and how the track circuit is occupied, mark it with a loco chip number, and give an explanation }
 BEGIN
   SetTrackCircuitStateMainProcedure(LocoChip, TC, NewState, Explanation);
@@ -989,8 +989,8 @@ CONST
   Explanation = '';
 
 VAR
-  LocoChip : Integer;
-  T : TrainElement;
+  LocoChip : LocoChipType;
+  T : TrainIndex;
   TCFound : Boolean;
 
 BEGIN
@@ -1026,7 +1026,7 @@ PROCEDURE SetTrackCircuitState{4}(TC : Integer; NewState : TrackCircuitStateType
   duplicate recordings at startup.
 }
 BEGIN
-  SetTrackCircuitStateMainProcedure(NoLocoChip, TC, NewState, Explanation);
+  SetTrackCircuitStateMainProcedure(UnknownLocoChip, TC, NewState, Explanation);
 END; { SetTrackCircuitState-4 }
 
 PROCEDURE NoteOutOfUseFeedbackUnitTrackCircuitsAtStartup;
@@ -1163,7 +1163,7 @@ VAR
   RouteFound : Boolean;
   Route : Integer;
   SubRoute : Integer;
-  T : TrainElement;
+  T : TrainIndex;
   TempDivergingLineStr : String;
 
 BEGIN
@@ -1210,7 +1210,7 @@ BEGIN
                     { have one more attempt at making it switch }
                     Point_SecondAttempt := True;
                     Log(LocoChipStr + ' P Second attempt to switch P=' + IntToStr(P));
-                    PullPoint(P, Point_RouteLockedByLocoChip, NoRoute, NoSubRoute, NOT ForcePoint, ByUser, NOT ErrorMessageRequired, PointResultPending, DebugStr, OK);
+                    PullPoint(LocoChipToStr(Point_RouteLockedByLocoChip), P, NoRoute, NoSubRoute, NOT ForcePoint, ByUser, NOT ErrorMessageRequired, PointResultPending, DebugStr, OK);
                     Exit;
                   END;
 
@@ -1259,14 +1259,14 @@ BEGIN
                           Point_RequiredState := Straight
                         ELSE
                           Point_RequiredState := Diverging;
-                        PullPoint(P, Point_RouteLockedByLocoChip, NoRoute, NoSubRoute, ForcePoint, ByUser, NOT ErrorMessageRequired,
+                        PullPoint(LocoChipToStr(Point_RouteLockedByLocoChip), P, NoRoute, NoSubRoute, ForcePoint, ByUser, NOT ErrorMessageRequired,
                                   PointResultPending, DebugStr, OK);
 
                         IF Point_RequiredState = Diverging THEN
                           Point_RequiredState := Straight
                         ELSE
                           Point_RequiredState := Diverging;
-                        PullPoint(P, Point_RouteLockedByLocoChip, NoRoute, NoSubRoute, {NOT} ForcePoint, ByUser, NOT ErrorMessageRequired,
+                        PullPoint(LocoChipToStr(Point_RouteLockedByLocoChip), P, NoRoute, NoSubRoute, {NOT} ForcePoint, ByUser, NOT ErrorMessageRequired,
                                   PointResultPending, DebugStr, OK);
                       END;
                     mrAbort: { Ignore }
@@ -1301,8 +1301,8 @@ BEGIN
                               IF Routes_LocoChips[Route] <> UnknownLocoChip THEN BEGIN
                                 Log(LocoChipToStr(Routes_LocoChips[Route]) + ' DG System occupation and diagram entry cancelled by user');
                                 { look for our train }
-                                T := GetTrainRecord(Routes_LocoChips[Route]);
-                                IF T <= High(Trains) THEN
+                                T := GetTrainIndexFromLocoChip(Routes_LocoChips[Route]);
+                                IF T <> UnknownTrainIndex THEN
                                   CancelTrain(T, ByUser, TrainExists);
                               END;
                             END;
@@ -1342,7 +1342,7 @@ VAR
   LockingMsg : String;
   OK : Boolean;
   PointResultPending : Boolean;
-  T : TrainElement;
+  T : TrainIndex;
   TempRoute : Integer;
 
   PROCEDURE CheckSystemStatus;
@@ -1353,7 +1353,7 @@ VAR
 
   BEGIN
     TRY
-      ReturnSystemStatus(SystemStatus);
+      SystemStatus := ReturnSystemStatus;
       IF (SystemStatus.EmergencyOff
       AND NOT SaveSystemStatusEmergencyOff)
       THEN BEGIN
@@ -1575,7 +1575,7 @@ BEGIN
                   AND (CompareTime(IncSecond(Point_ResettingTime, 5), Time) < 0)
                   THEN BEGIN
                     Log('P Resetting P=' + IntToStr(PointResettingToDefaultStateArray[I]) + ' one minute after unlocking');
-                    PullPoint(PointResettingToDefaultStateArray[I], NoLocoChip, NoRoute, NoSubRoute, NOT ForcePoint, NOT ByUser,
+                    PullPoint(UnknownLocoChipStr, PointResettingToDefaultStateArray[I], NoRoute, NoSubRoute, NOT ForcePoint, NOT ByUser,
                               NOT ErrorMsgRequired, PointResultPending, ErrorMsg, OK);
 //                      IF OK THEN
 //                        LastPointResetTime := Time;
@@ -1602,13 +1602,13 @@ BEGIN
                                     + ' and ' + LightsToBeSwitchedOn_ColourStr2 + ' lights at down');
               SetTrainDirection(LightsToBeSwitchedOn_Train, LightsToBeSwitchedOn_Direction1, ForceAWrite, OK);
               IF LightsToBeSwitchedOn_Direction2 <> UnknownDirection THEN
-                SetTwoLightingChips(Train_LocoChip, LightsToBeSwitchedOn_Direction1, LightsToBeSwitchedOn_Direction2, LightsOn);
-              TurnLightsOn(Train_LocoChip, OK);
+                SetTwoLightingChips(Train_LocoIndex, LightsToBeSwitchedOn_Direction1, LightsToBeSwitchedOn_Direction2, LightsOn);
+              TurnTrainLightsOn(LightsToBeSwitchedOn_Train, OK);
 
-              IF Train_HasCabLights
-              AND CabLightsAreOn(Train_LocoChip)
+              IF TrainHasCabLights(LightsToBeSwitchedOn_Train)
+              AND Train_CabLightsAreOn
               THEN
-                TurnCablightsOff(Train_LocoChip);
+                TurnTrainCablightsOff(LightsToBeSwitchedOn_Train, OK);
 
               DeleteElementFromLightsToBeSwitchedOnArray(I);
             END;

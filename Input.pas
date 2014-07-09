@@ -54,7 +54,7 @@ IMPLEMENTATION
 {$R *.dfm}
 
 USES InitVars, Locks, RailDraw, MiscUtils, Cuneo, LocoUtils, Lenz, MaskUtils, Startup, Diagrams, GetTime, CreateRoute, Feedback, IDGlobal, RDC, Route, StrUtils, Menus,
-     DateUtils, TestUnit, StationMonitors, LocoDialogue, Help, LocationData, Replay, Options, Edit, WorkingTimetable, TCPIP, Logging, Main;
+     DateUtils, TestUnit, StationMonitors, LocoDialogue, Help, LocationData, Replay, Options, Edit, WorkingTimetable, TCPIP, Logging, Main, Train;
 
 CONST
   UnitRef = 'Input';
@@ -284,7 +284,7 @@ BEGIN
           { PresentState = Diverging or PointStateUnknown }
           Points[InputDialoguePoint].Point_RequiredState := Straight;
 
-        PullPoint(InputDialoguePoint, NoLocoChip, NoSubRoute, NoRoute, NOT ForcePoint, ByUser, ErrorMessageRequired, PointResultPending, 
+        PullPoint(UnknownLocoChipStr, InputDialoguePoint, NoSubRoute, NoRoute, NOT ForcePoint, ByUser, ErrorMessageRequired, PointResultPending,
                   DebugStr, OK);
 
         { Undraw the rectangle }
@@ -295,7 +295,7 @@ BEGIN
       END;
     SignalDialogueBox:
       BEGIN
-        PullSignal(NoLocoChip, InputDialogueSignal, NoIndicatorLit, NoRoute, NoSubRoute, UnknownLine, UnknownTrainType, NOT ByUser, OK);
+        PullSignal(UnknownLocoChipStr, InputDialogueSignal, NoIndicatorLit, NoRoute, NoSubRoute, UnknownLine, UnknownTrainType, NOT ByUser, OK);
         { and need to undraw the rectangle - this won't be needed when DrawSignal uses Invalidate }
         InvalidateScreen(UnitRef, 'InputDialogueChangeOrSelectButtonClick');
       END;
@@ -594,7 +594,7 @@ FUNCTION MissingTrainFoundByUser(KeyToTest : Integer) : Boolean;
 VAR
   I : Integer;
   FoundKey, FoundTrain : Boolean;
-  T : TrainElement;
+  T : TrainIndex;
 
 BEGIN
   Result := False;
@@ -868,8 +868,8 @@ BEGIN
         Log('S No resetting TC for S=' + IntToStr(S) + ' [' + LineToStr(Signals[S].Signal_AdjacentLine) + '] found as no next signal or bufferstop found but signal is '
                + 'marked as out of use');
     END ELSE BEGIN
-      CreateLockingArrayFromDraftRouteArray(NoLocoChip, TempDraftRouteArray, Signals[S].Signal_RouteLockingNeededArray);
-      TC := GetResettingTrackCircuit(NoLocoChip, S, SuppressMessage);
+      CreateLockingArrayFromDraftRouteArray(UnknownLocoChipStr, TempDraftRouteArray, Signals[S].Signal_RouteLockingNeededArray);
+      TC := GetResettingTrackCircuit(UnknownLocoChipStr, S, SuppressMessage);
       IF TC = UnknownTrackCircuit THEN
         Log('S No resetting TC for S=' + IntToStr(S) + ' [' + LineToStr(Signals[S].Signal_AdjacentLine) + '] found');
     END;
@@ -1279,7 +1279,7 @@ VAR
   ShiftKeys : ShiftKeysType;
   StatusBarPanelText : String;
   Str : String;
-  T : TrainElement;
+  T : TrainIndex;
   TC : Integer;
 //  TempKey : Word;
   XTypeOfLine : TypeOfLine;
@@ -1298,9 +1298,9 @@ VAR
 
 
     IF Rebuild THEN BEGIN
-      DrawLineInLogFile(NoLocoChip, '*', '+', UnitRef);
+      DrawLineInLogFile(UnknownLocoChipAsZeroesStr, '*', '+', UnitRef);
       SetUpAllLocationOccupationsAbInitio(NOT TimetableLoading, OK);
-      DrawLineInLogFile(NoLocoChip, '*', '+', UnitRef);
+      DrawLineInLogFile(UnknownLocoChipAsZeroesStr, '*', '+', UnitRef);
     END;
 
     IF LocationDataWindow.Visible THEN BEGIN
@@ -1706,7 +1706,7 @@ BEGIN { KeyPressedDown }
                 HelpMsg := 'insert line of asterisks into log';
                 IF NOT HelpRequired THEN BEGIN
                   WriteToLogFileAndTestFile := True;
-                  DrawLineInLogFile(NoLocoChip, 'X', '*', UnitRef);
+                  DrawLineInLogFile(UnknownLocoChipAsZeroesStr, 'X', '*', UnitRef);
                   WriteToLogFileAndTestFile := False;
                   Debug('!***');
                 END;
@@ -2480,8 +2480,8 @@ BEGIN { KeyPressedDown }
                     T := 0;
                     WHILE T <= High(Trains) DO BEGIN
                       WITH Trains[T] DO
-                        IF Train_LightsType <> NoLights THEN
-                          TurnLightsOff(Train_LocoChip);
+                        IF Train_HasLights THEN
+                          TurnTrainLightsOff(T, OK);
                       Inc(T);
                     END; {WHILE}
                   END;
@@ -2761,7 +2761,7 @@ BEGIN { KeyPressedDown }
                         ELSE
                           Points[P].Point_RequiredState := Straight;
 
-                        PullPoint(P, NoLocoChip, NoRoute, NoSubRoute, NOT ForcePoint, ByUser, ErrorMessageRequired, PointResultPending, DebugStr, OK);
+                        PullPoint(UnknownLocoChipStr, P, NoRoute, NoSubRoute, NOT ForcePoint, ByUser, ErrorMessageRequired, PointResultPending, DebugStr, OK);
 
                         IF NOT OK THEN
                           Log('*G P=' + IntToStr(P) + ' (Lenz=' + IntToStr(Points[P].Point_LenzNum) + ') not ok ' + PointStateToStr(Points[P].Point_RequiredState))
@@ -2792,7 +2792,7 @@ BEGIN { KeyPressedDown }
                             Points[P].Point_RequiredState := Straight;
                         END;
 
-                        PullPoint(P, NoLocoChip, NoRoute, NoSubRoute, NOT ForcePoint, ByUser,  ErrorMessageRequired, PointResultPending, DebugStr, OK);
+                        PullPoint(UnknownLocoChipStr, P, NoRoute, NoSubRoute, NOT ForcePoint, ByUser,  ErrorMessageRequired, PointResultPending, DebugStr, OK);
 
                         IF NOT OK THEN
                           Log('*G P=' + IntToStr(P) + ' (Lenz=' + IntToStr(Points[P].Point_LenzNum) + ') not ok ' + PointStateToStr(Points[P].Point_RequiredState))
@@ -2874,14 +2874,8 @@ BEGIN { KeyPressedDown }
           CASE ShiftKeys OF
             NoShiftKeys: {Q}
               BEGIN
-                HelpMsg := 'write all train records to .csv file';
+                HelpMsg := '';
                 IF NOT HelpRequired THEN BEGIN
-                  T := 0;
-                  WHILE T <= High(Trains) DO BEGIN
-                    WITH Trains[T] DO
-                      WriteTrainRecord(T);
-                    Inc(T);
-                  END; {WHILE}
                 END;
               END;
             ShiftAlt: {Q}
@@ -2904,14 +2898,8 @@ BEGIN { KeyPressedDown }
               END;
             Shift: {Q}
               BEGIN
-                HelpMsg := 'write train only records to .csv file';
+                HelpMsg := '';
                 IF NOT HelpRequired THEN BEGIN
-                  T := 0;
-                  WHILE T <= High(Trains) DO BEGIN
-                    IF Trains[T].Train_DiagramFound THEN
-                      WriteTrainRecord(T);
-                    Inc(T);
-                  END; {WHILE}
                 END;
               END;
             Ctrl: {Q}
@@ -4036,7 +4024,7 @@ BEGIN { KeyPressedDown }
                 HelpMsg := 'insert line of asterisks into log';
                 IF NOT HelpRequired THEN BEGIN
                   WriteToLogFileAndTestFile := True;
-                  DrawLineInLogFile(NoLocoChip, 'X', '*', UnitRef);
+                  DrawLineInLogFile(UnknownLocoChipAsZeroesStr, 'X', '*', UnitRef);
                   WriteToLogFileAndTestFile := False;
                   Debug('!***');
                 END;

@@ -7,8 +7,8 @@ PROGRAM Rail;
   V6.0  27/03/11 And now using Embarcadero Delphi XE Professional
   v7.0  16/01/14 Now using XE5
 
-  Note the lines below should appear before BEGIN in the body of the code - this has the extra two icons in it - but sometimes Delphi removed it when they appeared beneath
-  this comment
+  Note the lines below should appear before BEGIN in the body of the code - this has the extra two icons in it - but sometimes Delphi removed it when it appeared
+  immediately beneath this comment
 
 {$R RailResource.res}
 {$R Rail.res}
@@ -47,7 +47,8 @@ USES
   Edit IN 'Edit.pas' {EditWindow},
   WorkingTimetable IN 'WorkingTimetable.pas' {WorkingTimetableWindow},
   Logging IN 'Logging.pas' {LoggingWindow},
-  Main IN 'Main.pas' {MainWindow};
+  Main IN 'Main.pas' {MainWindow},
+  Train IN 'Train.pas' {TrainForm};
 
 VAR
   I : Integer;
@@ -74,6 +75,7 @@ BEGIN
   Application.MainFormOnTaskbar := False;
 
   Application.CreateForm(TMainWindow, MainWindow);
+  Application.CreateForm(TTrainForm, TrainForm);
   Application.Run;
 END { Rail }.
 

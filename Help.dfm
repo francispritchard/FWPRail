@@ -32,7 +32,6 @@ object HelpWindow: THelpWindow
     TabOrder = 0
     OnKeyDown = HelpRichEditKeyDown
     OnMouseDown = HelpRichEditMouseDown
-    ExplicitHeight = 644
   end
   object HelpWindowFindDialog: TFindDialog
     OnClose = HelpWindowFindDialogClose

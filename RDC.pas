@@ -116,7 +116,6 @@ VAR
   RailDriverReady : Boolean = False;
   RegulatorPos : Cardinal = 0;
   ReverserData, RegulatorData : Byte;
-  T : TrainElement = 0;
   ThreeWaySwitchAData, ThreeWaySwitchBData : Byte;
   TrainBrakeData : Byte;
   TrainBrakePos : Cardinal = 0;
@@ -124,7 +123,7 @@ VAR
 PROCEDURE CloseRailDriver;
 { Close the RailDriver unit down }
 
-PROCEDURE SetSpeedByRailDriverConsole(T : TrainElement);
+PROCEDURE SetSpeedByRailDriverConsole(L : LocoIndex);
 { Set the speed by using the console }
 
 PROCEDURE StartRailDriver;
@@ -135,7 +134,7 @@ PROCEDURE WriteToRailDriverLEDs(LEDStr : String);
 
 IMPLEMENTATION
 
-USES MiscUtils, GetTime, Startup, Lenz, StrUtils, LocoUtils, Diagrams, Input, DateUtils, Movement, FWPShowMessageUnit, Options;
+USES MiscUtils, GetTime, Startup, Lenz, StrUtils, LocoUtils, Diagrams, Input, DateUtils, Movement, FWPShowMessageUnit, Options, Train;
 
 TYPE
   ThreeWaySwitchPosType = (Left, Centre, Right);
@@ -558,178 +557,182 @@ BEGIN
   END;
 END; { GetTrainBrakePos }
 
-PROCEDURE SetSpeedByRailDriverConsole(T : TrainElement);
+PROCEDURE SetSpeedByRailDriverConsole(L : LocoIndex);
 { Set the speed by using the console }
 VAR
   OK : Boolean;
   PresentSpeedNum : Integer;
+  UserMsg : String;
 
 BEGIN
-  WITH Trains[T] DO BEGIN
-    { Get current speed }
-    IF SystemOnline THEN
-      PresentSpeedNum := GetLenzSpeed(Train_LocoChip, NOT ForceARead)
-    ELSE
-      PresentSpeedNum := TrainSpeedInMPHToLenzSpeed(T, Train_CurrentSpeedInMPH);
+  IF L <> UnknownLocoIndex THEN BEGIN
+    WITH Locos[L] DO BEGIN
+      { Get current speed }
+      IF SystemOnline THEN
+        PresentSpeedNum := GetLenzSpeed(L, NOT ForceARead)
+      ELSE
+  //      PresentSpeedNum := SpeedInMPHToLocoLenzSpeed(T, Loco_CurrentSpeedInMPH)
+  ;
 
-    IF NOT RegulatorInNeutral
-    AND (SaveSpeedNum <> PresentSpeedNum)
-    THEN BEGIN
-      IF LEDLongStr = '' THEN
-        { do not write anything else out if we're outputting a long string }
-        WriteToRailDriverLEDs(IntToStr(PresentSpeedNum));
-      SaveSpeedNum := PresentSpeedNum;
-    END;
-
-//  LightsType = (NoLights, HeadlightsAndTailLightsConnected, HeadlightsAndTailLightsSeparatelySwitched,
-//                ExpressModelsSeparateHeadlights, LightsOperatedByTwoChips, LightsShouldBeDimmed, CustomLightingKit);
-
-    IF Train_LightsType <> NoLights THEN BEGIN
-      CASE Train_LightsType OF
-        HeadlightsAndTailLightsConnected:
-          BEGIN
-            IF GetThreeWaySwitchAPos = Left THEN BEGIN
-              IF TrainLightsAreOn(Train_LocoChip) THEN
-                TurnLightsOff(Train_LocoChip);
-            END ELSE
-              IF GetThreeWaySwitchAPos = Centre THEN BEGIN
-                IF NOT TrainLightsAreOn(Train_LocoChip) THEN
-                  TurnLightsOn(Train_LocoChip, OK);
-              END;
-          END;
-//        LightsOperatedByTwoChips:
-//          BEGIN
-//            IF GetThreeWaySwitchAPos = Left THEN BEGIN
-//              IF Train_LightsOn THEN
-//                IF Train_CurrentDirection = Up THEN
-//                  TurnHeadLightsOff(Train_LocoChip, False, False);
-//            END ELSE
-//              IF GetThreeWaySwitchAPos = Centre THEN BEGIN
-//                IF NOT Train_LightsOn THEN
-//                  TurnLightsOn(Train_LocoChip);
-//              END;
-//
-//          END;
-      END; {CASE}
-    END;
-
-    { First check position of Reverser }
-    RegulatorInNeutral := False;
-    IF GetReverserDirection = Up THEN BEGIN
-      { Write out the direction to the LEDs }
-      IF (PresentSpeedNum = 0)
-      AND NOT DirectionWritten
+      IF NOT RegulatorInNeutral
+      AND (SaveSpeedNum <> PresentSpeedNum)
       THEN BEGIN
         IF LEDLongStr = '' THEN
           { do not write anything else out if we're outputting a long string }
-          WriteToRailDriverLEDs('Up');
-        DirectionWritten := True;
+          WriteToRailDriverLEDs(IntToStr(PresentSpeedNum));
+        SaveSpeedNum := PresentSpeedNum;
       END;
-      { change direction if necessary }
-      IF (Train_CurrentDirection = Down)
-      AND SystemOnline
-      THEN
-        SetTrainDirection(T, Up, ForceAwrite, OK);
-    END ELSE
-      IF GetReverserDirection = Down THEN BEGIN
+
+  //  LightsType = (NoLights, HeadlightsAndTailLightsConnected, HeadlightsAndTailLightsSeparatelySwitched,
+  //                ExpressModelsSeparateHeadlights, LightsOperatedByTwoChips, LightsShouldBeDimmed, CustomLightingKit);
+
+      IF Loco_LightsType <> NoLights THEN BEGIN
+        CASE Loco_LightsType OF
+          HeadlightsAndTailLightsConnected:
+            BEGIN
+              IF GetThreeWaySwitchAPos = Left THEN BEGIN
+                IF Loco_LightsOn THEN
+                  TurnLocoLightsOff(L, NOT UserMsgRequired, UserMsg, OK);
+              END ELSE
+                IF GetThreeWaySwitchAPos = Centre THEN BEGIN
+                  IF NOT Loco_LightsOn THEN
+                    TurnLocoLightsOn(L, NonMovingLoco, LightLoco, NOT UserMsgRequired, UserMsg, OK);
+                END;
+            END;
+          LightsOperatedByTwoChips:
+            BEGIN
+              IF GetThreeWaySwitchAPos = Left THEN BEGIN
+                IF Loco_LightsOn THEN
+                  IF Loco_CurrentDirection = Up THEN
+                    TurnLocoHeadLightsOff(L, NOT UserMsgRequired, UserMsg, OK);
+              END ELSE
+                IF GetThreeWaySwitchAPos = Centre THEN BEGIN
+                  IF NOT Loco_LightsOn THEN
+                    TurnLocoLightsOn(L, NonMovingLoco, LightLoco, NOT UserMsgRequired, UserMsg, OK);
+                END;
+
+            END;
+        END; {CASE}
+      END;
+
+      { First check position of Reverser }
+      RegulatorInNeutral := False;
+      IF GetReverserDirection = Up THEN BEGIN
         { Write out the direction to the LEDs }
         IF (PresentSpeedNum = 0)
         AND NOT DirectionWritten
         THEN BEGIN
           IF LEDLongStr = '' THEN
             { do not write anything else out if we're outputting a long string }
-            WriteToRailDriverLEDs('Dn');
+            WriteToRailDriverLEDs('Up');
           DirectionWritten := True;
         END;
         { change direction if necessary }
-        IF (Train_CurrentDirection = Up)
+        IF (Loco_CurrentDirection = Down)
         AND SystemOnline
         THEN
-          SetTrainDirection(T, Down, ForceAwrite, OK);
+          SetLocoDirection(L, Up, OK);
       END ELSE
-        { regulator in neutral }
-        IF RegulatorPos = 0 THEN BEGIN
-          RegulatorInNeutral := True;
-          IF LEDLongStr = '' THEN
-            { do not write anything else out if we're outputting a long string }
-            WriteToRailDriverLEDs('---');
-          DirectionWritten := False;
-        END;
+        IF GetReverserDirection = Down THEN BEGIN
+          { Write out the direction to the LEDs }
+          IF (PresentSpeedNum = 0)
+          AND NOT DirectionWritten
+          THEN BEGIN
+            IF LEDLongStr = '' THEN
+              { do not write anything else out if we're outputting a long string }
+              WriteToRailDriverLEDs('Dn');
+            DirectionWritten := True;
+          END;
+          { change direction if necessary }
+          IF (Loco_CurrentDirection = Up)
+          AND SystemOnline
+          THEN
+            SetLocoDirection(L, Down, OK);
+        END ELSE
+          { regulator in neutral }
+          IF RegulatorPos = 0 THEN BEGIN
+            RegulatorInNeutral := True;
+            IF LEDLongStr = '' THEN
+              { do not write anything else out if we're outputting a long string }
+              WriteToRailDriverLEDs('---');
+            DirectionWritten := False;
+          END;
 
-    IF RegulatorInNeutral THEN BEGIN
-      Train_DesiredSpeedInMPH := Stop;
-      Train_AccelerationTimeInSeconds := GetTrainBrakePos;
-    END ELSE BEGIN
-      Train_AccelerationTimeInSeconds := GetTrainBrakePos;
-      { So that we don't accelerate at one speed notch per 60 seconds! }
-      IF Train_Accelerating
-      AND (Train_AccelerationTimeInSeconds > 5.0)
-      THEN
-        Train_AccelerationTimeInSeconds := 5.0;
+      IF RegulatorInNeutral THEN BEGIN
+  //      Loco_DesiredSpeedInMPH := Stop;
+  //      Train_AccelerationTimeInSeconds := GetTrainBrakePos; &&&&&
+      END ELSE BEGIN
+  //      Train_AccelerationTimeInSeconds := GetTrainBrakePos;
+  //      { So that we don't accelerate at one speed notch per 60 seconds! }
+  //      IF Train_Accelerating
+  //      AND (Train_AccelerationTimeInSeconds > 5.0)
+  //      THEN
+  //        Train_AccelerationTimeInSeconds := 5.0; &&&&&
 
-      CASE GetRegulatorPos OF
-        0:
-          Train_DesiredSpeedInMPH := Stop;
-        1:
-          Train_DesiredSpeedInMPH := MPH20;
-        2:
-          Train_DesiredSpeedInMPH := MPH30;
-        3:
-          Train_DesiredSpeedInMPH := MPH40;
-        4:
-          Train_DesiredSpeedInMPH := MPH50;
-        5:
-          Train_DesiredSpeedInMPH := MPH60;
-        6:
-          Train_DesiredSpeedInMPH := MPH70;
-        7:
-          Train_DesiredSpeedInMPH := MPH80; { *** }
-        8:
-          Train_DesiredSpeedInMPH := MPH90; { *** }
-        9:
-          Train_DesiredSpeedInMPH := MPH100; { *** }
-        10:
-          Train_DesiredSpeedInMPH := MPH120; { *** }
-      ELSE
-        Log('AG Funny RegulatorPos from RD: ' + IntToStr(RegulatorPos));
-      END; {CASE}
-    END;
-
-    IF (TrainBrakeData >= RDCEmergencyBrakeMin)
-    AND (TrainBrakeData <= RDCEmergencyBrakeMax)
-    THEN BEGIN
-      { emergency brake }
-      IF PresentSpeedNum <> 0 THEN BEGIN
-        SetLenzSpeedAndDirection(Train_LocoChip, QuickStop, Train_CurrentDirection, OK);
-        IF Train_DoubleHeaderLocoChip <> UnknownLocoChip THEN
-          SetLenzSpeedAndDirection(Train_DoubleHeaderLocoChip, QuickStop, Train_CurrentDirection, OK);
-        Log('A Emergency brake applied');
-        EmergencyBrakeApplied := True;
+  //      CASE GetRegulatorPos OF
+  //        0:
+  //          Train_DesiredSpeedInMPH := Stop;
+  //        1:
+  //          Train_DesiredSpeedInMPH := MPH20;
+  //        2:
+  //          Train_DesiredSpeedInMPH := MPH30;
+  //        3:
+  //          Train_DesiredSpeedInMPH := MPH40;
+  //        4:
+  //          Train_DesiredSpeedInMPH := MPH50;
+  //        5:
+  //          Train_DesiredSpeedInMPH := MPH60;
+  //        6:
+  //          Train_DesiredSpeedInMPH := MPH70;
+  //        7:
+  //          Train_DesiredSpeedInMPH := MPH80; { *** }
+  //        8:
+  //          Train_DesiredSpeedInMPH := MPH90; { *** }
+  //        9:
+  //          Train_DesiredSpeedInMPH := MPH100; { *** }
+  //        10:
+  //          Train_DesiredSpeedInMPH := MPH120; { *** }
+  //      ELSE
+  //        Log('AG Funny RegulatorPos from RD: ' + IntToStr(RegulatorPos));
+  //      END; {CASE}
       END;
-    END ELSE BEGIN
-      IF PresentSpeedNum <> TrainSpeedInMPHToLenzSpeed(T, Train_DesiredSpeedInMPH) THEN
-        SetDesiredTrainSpeed(T);
-    END;
-(*
-    ELSE BEGIN
-      EmergencyBrakeApplied := False;
-      IF (Train_BrakeData >= RDCTrain_BrakeMin)
-      AND (Train_BrakeData <= RDCTrain_BrakeMax - 5)
+
+      IF (TrainBrakeData >= RDCEmergencyBrakeMin)
+      AND (TrainBrakeData <= RDCEmergencyBrakeMax)
       THEN BEGIN
-        { We're braking }
-        Range := (RDCTrain_BrakeMax - 3) - (RDCTrain_BrakeMin + 2);
-        Num := Train_BrakeData - RDCTrain_BrakeMin - 2;
-        IF Num < 0 THEN
-          Num := 0;
-        Train_BrakePos := MulDiv(Num, 6, Range);
-        IF NumberOfSecondsToDecelerate <> (Train_BrakePos + 1) THEN BEGIN
-          NumberOfSecondsToDecelerate := Train_BrakePos + 1;
-          Log('AG Braking: NumberOfSecondsToDecelerate = ' + FloatToStr(NumberOfSecondsToDecelerate)]);
+        { emergency brake }
+        IF PresentSpeedNum <> 0 THEN BEGIN
+          SetLenzSpeedAndDirection(L, QuickStop, Loco_CurrentDirection, OK);
+  //        IF Train_DoubleHeaderLocoIndex <> UnknownLocoIndex THEN
+  //          SetLenzSpeedAndDirection(Train_DoubleHeaderLocoIndex, QuickStop, Train_CurrentDirection, OK); &&&&&
+          Log('A Emergency brake applied');
+          EmergencyBrakeApplied := True;
+        END;
+      END ELSE BEGIN
+  //      IF PresentSpeedNum <> TrainSpeedInMPHToLenzSpeed(T, Train_DesiredSpeedInMPH) THEN
+  //        SetDesiredLocoLenzSpeed(Train_LocoIndex); &&&&&
+      END;
+  (*
+      ELSE BEGIN
+        EmergencyBrakeApplied := False;
+        IF (Train_BrakeData >= RDCTrain_BrakeMin)
+        AND (Train_BrakeData <= RDCTrain_BrakeMax - 5)
+        THEN BEGIN
+          { We're braking }
+          Range := (RDCTrain_BrakeMax - 3) - (RDCTrain_BrakeMin + 2);
+          Num := Train_BrakeData - RDCTrain_BrakeMin - 2;
+          IF Num < 0 THEN
+            Num := 0;
+          Train_BrakePos := MulDiv(Num, 6, Range);
+          IF NumberOfSecondsToDecelerate <> (Train_BrakePos + 1) THEN BEGIN
+            NumberOfSecondsToDecelerate := Train_BrakePos + 1;
+            Log('AG Braking: NumberOfSecondsToDecelerate = ' + FloatToStr(NumberOfSecondsToDecelerate)]);
+          END;
         END;
       END;
-    END;
-*)
-  END; {WITH}
+  *)
+    END; {WITH}
+  END;
 END; { SetSpeedByRailDriver }
 
 FUNCTION CheckRailDriverConsoleIsAttached : Integer;
@@ -1864,7 +1867,7 @@ VAR
   I : Integer;
   NewDigit : String;
   LocoChipByButtonAsInteger : Integer;
-  T : TrainElement;
+  T : TrainIndex;
 
 BEGIN
   T := 0;

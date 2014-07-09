@@ -40,7 +40,7 @@ PROCEDURE MoveAllTrains;
 PROCEDURE PruneTrainList;
 { Remove inactive trains from list }
 
-PROCEDURE SetDesiredTrainSpeed(T : TrainElement);
+PROCEDURE SetDesiredLocoLenzSpeed(L : LocoIndex; DesiredLenzSpeed : Integer; UserDriving, UserRequiresInstructions : Boolean);
 { Set the loco to accelerate/decelerate as required }
 
 VAR
@@ -50,7 +50,7 @@ VAR
 
 IMPLEMENTATION
 
-USES Locks, GetTime, Startup, MiscUtils, Diagrams, LocoUtils, IDGlobal, RDC, Route, DateUtils, RailDraw, Lenz, Input, StrUtils, LocationData, Options, Edit, Main;
+USES Locks, GetTime, Startup, MiscUtils, Diagrams, LocoUtils, IDGlobal, RDC, Route, DateUtils, RailDraw, Lenz, Input, StrUtils, LocationData, Options, Edit, Main, Train;
 
 CONST
   UnitRef = 'Movement';
@@ -85,7 +85,7 @@ VAR
   FUNCTION AdjoiningTrackCircuitsOK(AdjoiningTCUp, AdjoiningTCDown : Integer) : Boolean;
   { Checks the adjoining track circuits for signs of previous occupation }
   VAR
-    T : TrainElement;
+    T : TrainIndex;
 
   BEGIN
     OK := False;
@@ -94,9 +94,9 @@ VAR
       IF (TrackCircuits[TC].TC_PreviousLocoChip <> UnknownLocoChip)
       AND (TrackCircuits[TC].TC_PreviousLocoChip = TrackCircuits[AdjoiningTCUp].TC_LocoChip)
       THEN BEGIN
-        T := GetTrainRecord(TrackCircuits[TC].TC_PreviousLocoChip);
-        WITH Trains[T] DO BEGIN
-          IF T <= High(Trains) THEN BEGIN
+        T := GetTrainIndexFromLocoChip(TrackCircuits[TC].TC_PreviousLocoChip);
+        IF T <> UnknownTrainIndex THEN BEGIN
+          WITH Trains[T] DO BEGIN
             IF Train_CurrentDirection = Up THEN BEGIN
               { we can assume the occupation is the same as the previous one }
               OK := True;
@@ -113,10 +113,9 @@ VAR
       END;
 
       IF NOT OK THEN BEGIN
-        T := GetTrainRecord(TrackCircuits[AdjoiningTCUp].TC_LocoChip);
-        IF T <= High(Trains) THEN BEGIN
+        T := GetTrainIndexFromLocoChip(TrackCircuits[AdjoiningTCUp].TC_LocoChip);
+        IF T <> UnknownTrainIndex THEN BEGIN
           WITH Trains[T] DO BEGIN
-
             I := 1;
             WHILE (I <= Length(Train_InitialTrackCircuits))
             AND NOT OK
@@ -154,8 +153,8 @@ VAR
         IF (TrackCircuits[TC].TC_PreviousLocoChip <> UnknownLocoChip)
         AND (TrackCircuits[TC].TC_PreviousLocoChip = TrackCircuits[AdjoiningTCDown].TC_LocoChip)
         THEN BEGIN
-          T := GetTrainRecord(TrackCircuits[TC].TC_PreviousLocoChip);
-          IF T <= High(Trains) THEN BEGIN
+          T := GetTrainIndexFromLocoChip(TrackCircuits[TC].TC_PreviousLocoChip);
+          IF T <> UnknownTrainIndex THEN BEGIN
             IF Trains[T].Train_CurrentDirection = Down THEN BEGIN
               { we can assume the occupation is the same as the previous one }
               OK := True;
@@ -168,8 +167,8 @@ VAR
         END;
 
         IF NOT OK THEN BEGIN
-          T := GetTrainRecord(TrackCircuits[AdjoiningTCDown].TC_LocoChip);
-          IF T <= High(Trains) THEN BEGIN
+          T := GetTrainIndexFromLocoChip(TrackCircuits[AdjoiningTCDown].TC_LocoChip);
+          IF T <> UnknownTrainIndex THEN BEGIN
             I := 1;
             WHILE (I <= Length(Trains[T].Train_InitialTrackCircuits))
             AND NOT OK
@@ -251,276 +250,280 @@ BEGIN
   END;
 END; { LookOutForStrayingTrains }
 
-PROCEDURE SetDesiredTrainSpeed(T : TrainElement);
+PROCEDURE SetDesiredLocoLenzSpeed(L : LocoIndex; DesiredLenzSpeed : Integer; UserDriving, UserRequiresInstructions : Boolean);
 { Set the loco to accelerate/decelerate as required }
 VAR
   OK : Boolean;
 
-  PROCEDURE AdjustSpeed(T : TrainElement);
+  PROCEDURE AdjustSpeed(L : LocoIndex);
   { Adjusts the speed over the given time span (in seconds) }
 
-    FUNCTION CurrentLenzSpeedMatchesSpeedInMPH(T : TrainElement; CurrentLenzSpeed : Integer) : MPHType;
+    FUNCTION CurrentLenzSpeedMatchesSpeedInMPH(L : LocoIndex; CurrentLenzSpeed : Integer) : MPHType;
     { Returns true if the current Lenz speed number matches one of the defined speed steps }
     BEGIN
       Result := UnknownMPH;
-      WITH Trains[T] DO BEGIN
-        IF CurrentLenzSpeed = TrainSpeedInMPHToLenzSpeed(T, MPH0) THEN
-          Result := MPH0
-        ELSE
-          IF CurrentLenzSpeed = TrainSpeedInMPHToLenzSpeed(T, MPH10) THEN
-            Result := MPH10
+      IF L = UnknownLocoIndex THEN
+        UnknownLocoRecordFound('CurrentLenzSpeedMatchesSpeedInMPH')
+      ELSE BEGIN
+        WITH Locos[L] DO BEGIN
+          IF CurrentLenzSpeed = SpeedInMPHToLocoLenzSpeed(L, MPH0) THEN
+            Result := MPH0
           ELSE
-            IF CurrentLenzSpeed = TrainSpeedInMPHToLenzSpeed(T, MPH20) THEN
-              Result := MPH20
+            IF CurrentLenzSpeed = SpeedInMPHToLocoLenzSpeed(L, MPH10) THEN
+              Result := MPH10
             ELSE
-              IF CurrentLenzSpeed = TrainSpeedInMPHToLenzSpeed(T, MPH30) THEN
-                Result := MPH30
+              IF CurrentLenzSpeed = SpeedInMPHToLocoLenzSpeed(L, MPH20) THEN
+                Result := MPH20
               ELSE
-                IF CurrentLenzSpeed = TrainSpeedInMPHToLenzSpeed(T, MPH40) THEN
-                  Result := MPH40
+                IF CurrentLenzSpeed = SpeedInMPHToLocoLenzSpeed(L, MPH30) THEN
+                  Result := MPH30
                 ELSE
-                  IF CurrentLenzSpeed = TrainSpeedInMPHToLenzSpeed(T, MPH50) THEN
-                    Result := MPH50
+                  IF CurrentLenzSpeed = SpeedInMPHToLocoLenzSpeed(L, MPH40) THEN
+                    Result := MPH40
                   ELSE
-                    IF CurrentLenzSpeed = TrainSpeedInMPHToLenzSpeed(T, MPH60) THEN
-                      Result := MPH60
+                    IF CurrentLenzSpeed = SpeedInMPHToLocoLenzSpeed(L, MPH50) THEN
+                      Result := MPH50
                     ELSE
-                      IF CurrentLenzSpeed = TrainSpeedInMPHToLenzSpeed(T, MPH70) THEN
-                        Result := MPH70
+                      IF CurrentLenzSpeed = SpeedInMPHToLocoLenzSpeed(L, MPH60) THEN
+                        Result := MPH60
                       ELSE
-                        IF CurrentLenzSpeed = TrainSpeedInMPHToLenzSpeed(T, MPH80) THEN
-                          Result := MPH80
+                        IF CurrentLenzSpeed = SpeedInMPHToLocoLenzSpeed(L, MPH70) THEN
+                          Result := MPH70
                         ELSE
-                          IF CurrentLenzSpeed = TrainSpeedInMPHToLenzSpeed(T, MPH90) THEN
-                            Result := MPH90
+                          IF CurrentLenzSpeed = SpeedInMPHToLocoLenzSpeed(L, MPH80) THEN
+                            Result := MPH80
                           ELSE
-                            IF CurrentLenzSpeed = TrainSpeedInMPHToLenzSpeed(T, MPH100) THEN
-                              Result := MPH100
+                            IF CurrentLenzSpeed = SpeedInMPHToLocoLenzSpeed(L, MPH90) THEN
+                              Result := MPH90
                             ELSE
-                              IF CurrentLenzSpeed = TrainSpeedInMPHToLenzSpeed(T, MPH110) THEN
-                                Result := MPH110
+                              IF CurrentLenzSpeed = SpeedInMPHToLocoLenzSpeed(L, MPH100) THEN
+                                Result := MPH100
                               ELSE
-                                IF CurrentLenzSpeed = TrainSpeedInMPHToLenzSpeed(T, MPH120) THEN
-                                  Result := MPH120;
-      END; {WITH}
+                                IF CurrentLenzSpeed = SpeedInMPHToLocoLenzSpeed(L, MPH110) THEN
+                                  Result := MPH110
+                                ELSE
+                                  IF CurrentLenzSpeed = SpeedInMPHToLocoLenzSpeed(L, MPH120) THEN
+                                    Result := MPH120;
+        END; {WITH}
+      END;
     END; { CurrentLenzSpeedMatchesSpeedInMPH }
 
   VAR
-    NoOfSecondsTrain_Accelerating : Real;
+    NoOfSecondsLoco_Accelerating : Real;
     OK : Boolean;
     SpeedStep : Integer;
     SpeedStepInMPH : MPHType;
 
   BEGIN { AdjustSpeed }
     IF NOT LocosStopped THEN BEGIN
-      WITH Trains[T] DO BEGIN
-        SpeedStep := 1;
-        IF Train_Accelerating OR Train_Decelerating THEN BEGIN
-          NoOfSecondsTrain_Accelerating := SecondSpan(Train_AccelerationStartTime, Time);
-          IF NoOfSecondsTrain_Accelerating > Train_AccelerationTimeInterval THEN BEGIN
-            IF Train_AccelerationTimeInterval = 0.0 THEN
-              { one big speed step }
-              SpeedStep := Train_AccelerationAdjustRange
-            ELSE
-              IF Train_AccelerationTimeInSeconds <= 1.0 THEN
-                { we change the speed by number of speed steps }
-                SpeedStep := Train_AccelerationAdjustRange DIV 3;
+      IF L = UnknownLocoIndex THEN
+        UnknownLocoRecordFound('SetDesiredLocoLenzSpeed')
+      ELSE BEGIN
+        WITH Locos[L] DO BEGIN
+          WITH Trains[Loco_TrainIndex] DO BEGIN
+            SpeedStep := 1;
+            IF Loco_Accelerating OR Loco_Decelerating THEN BEGIN
+              NoOfSecondsLoco_Accelerating := SecondSpan(Loco_AccelerationStartTime, Time);
+              IF NoOfSecondsLoco_Accelerating > Loco_AccelerationTimeInterval THEN BEGIN
+                IF Loco_AccelerationTimeInterval = 0.0 THEN
+                  { one big speed step }
+                  SpeedStep := Loco_AccelerationAdjustRange
+                ELSE
+                  IF Train_AccelerationTimeInSeconds <= 1.0 THEN
+                    { we change the speed by number of speed steps }
+                    SpeedStep := Loco_AccelerationAdjustRange DIV 3;
 
-            IF Train_DesiredLenzSpeed > Train_CurrentLenzSpeed THEN BEGIN
-              IF SpeedStep = 0 THEN BEGIN
-                { this deals with cases where something's gone wrong - the speed step should never be 0, or we can't increase speed! }
-                SpeedStep := 1;
-                Log(Train_LocoChipStr + ' L Emergency speed step of 1 in use');
+              IF Loco_DesiredLenzSpeed > Loco_CurrentLenzSpeed THEN BEGIN
+                IF SpeedStep = 0 THEN BEGIN
+                  { this deals with cases where something's gone wrong - the speed step should never be 0, or we can't increase speed! }
+                  SpeedStep := 1;
+                  Log(Loco_LocoChipStr + ' L Emergency speed step of 1 in use');
+                END;
+                Loco_CurrentLenzSpeed := AdjustLenzSpeed(L, SpeedStep, Loco_CurrentDirection, OK);
+                IF Loco_CurrentLenzSpeed < Loco_DesiredLenzSpeed THEN
+                  Log(Loco_LocoChipStr + ' L AdjustSpeed routine: speed increased by ' + IntToStr(SpeedStep) + ' to ' + IntToStr(Loco_CurrentLenzSpeed)
+                                        + ' target=' + IntToStr(Loco_DesiredLenzSpeed) + ' acceleration time=' + FloatToStr(Loco_AccelerationTimeInterval))
+                ELSE BEGIN
+                  Loco_CurrentLenzSpeed := Loco_DesiredLenzSpeed;
+                  Log(Loco_LocoChipStr + ' L AdjustSpeed routine: final speed increase to ' + IntToStr(Loco_CurrentLenzSpeed)
+                                        + ' target=' + IntToStr(Loco_DesiredLenzSpeed) + ' acceleration time=' + FloatToStr(Loco_AccelerationTimeInterval));
+                END;
+              DrawDiagramsSpeedCell(Loco_TrainIndex);
+              END ELSE
+                IF Loco_DesiredLenzSpeed < Loco_CurrentLenzSpeed THEN BEGIN
+                  Loco_CurrentLenzSpeed := AdjustLenzSpeed(L, -SpeedStep, Loco_CurrentDirection, OK);
+                  DrawDiagramsSpeedCell(Loco_TrainIndex);
+                  Log(Loco_LocoChipStr + ' L AdjustSpeed routine: speed decreased by ' + IntToStr(SpeedStep) + ' to ' + IntToStr(Loco_CurrentLenzSpeed)
+                                        + ' target=' + IntToStr(Loco_DesiredLenzSpeed) + ' - deceleration time=' + FloatToStr(Train_AccelerationTimeInSeconds));
+                END;
+
+                IF OK THEN BEGIN
+    //              { See if the current Lenz speed number matches a known programmatical speed step, to keep CurrentSpeed current }
+    //              SpeedStepInMPH := CurrentLenzSpeedMatchesSpeedInMPH(L, Loco_CurrentLenzSpeed);
+    //              IF SpeedStepInMPH <> UnknownMPH THEN
+    //                Loco_CurrentSpeedInMPH := SpeedStepInMPH; &&&&&
+                END;
+                { Reset the start time }
+                Loco_AccelerationStartTime := Time;
               END;
-              Train_CurrentLenzSpeed := AdjustLenzSpeed(Train_LocoChip, SpeedStep, Train_CurrentDirection, OK);
-              IF Train_DoubleHeaderLocoChip <> UnknownLocoChip THEN
-                Train_CurrentLenzSpeed := AdjustLenzSpeed(Train_DoubleHeaderLocoChip, SpeedStep, Train_CurrentDirection, OK);
-
-              IF Train_CurrentLenzSpeed < Train_DesiredLenzSpeed THEN
-                Log(Train_LocoChipStr + ' L AdjustSpeed routine: speed increased by ' + IntToStr(SpeedStep) + ' to ' + IntToStr(Train_CurrentLenzSpeed)
-                                      + ' target=' + IntToStr(Train_DesiredLenzSpeed) + ' acceleration time=' + FloatToStr(Train_AccelerationTimeInterval))
-              ELSE BEGIN
-                Train_CurrentLenzSpeed := Train_DesiredLenzSpeed;
-                Log(Train_LocoChipStr + ' L AdjustSpeed routine: final speed increase to ' + IntToStr(Train_CurrentLenzSpeed)
-                                      + ' target=' + IntToStr(Train_DesiredLenzSpeed) + ' acceleration time=' + FloatToStr(Train_AccelerationTimeInterval));
-              END;
-              DrawDiagramsSpeedCell(T);
-            END ELSE
-              IF Train_DesiredLenzSpeed < Train_CurrentLenzSpeed THEN BEGIN
-                Train_CurrentLenzSpeed := AdjustLenzSpeed(Train_LocoChip, -SpeedStep, Train_CurrentDirection, OK);
-                IF Train_DoubleHeaderLocoChip <> UnknownLocoChip THEN
-                  Train_CurrentLenzSpeed := AdjustLenzSpeed(Train_DoubleHeaderLocoChip, -SpeedStep, Train_CurrentDirection, OK);
-
-                DrawDiagramsSpeedCell(T);
-                Log(Train_LocoChipStr + ' L AdjustSpeed routine: speed decreased by ' + IntToStr(SpeedStep) + ' to ' + IntToStr(Train_CurrentLenzSpeed)
-                                      + ' target=' + IntToStr(Train_DesiredLenzSpeed) + ' - deceleration time=' + FloatToStr(Train_AccelerationTimeInSeconds));
-              END;
-
-            IF OK THEN BEGIN
-              { See if the current Lenz speed number matches a known programmatical speed step, to keep CurrentSpeed current }
-              SpeedStepInMPH := CurrentLenzSpeedMatchesSpeedInMPH(T, Train_CurrentLenzSpeed);
-              IF SpeedStepInMPH <> UnknownMPH THEN
-                Train_CurrentSpeedInMPH := SpeedStepInMPH;
             END;
-            { Reset the start time }
-            Train_AccelerationStartTime := Time;
-          END;
-        END;
-      END; {WITH}
+          END; {WITH}
+        END; {WITH}
+      END;
     END;
   END; { AdjustSpeed }
 
-  PROCEDURE CalculateTimeInterval(T : TrainElement);
+  PROCEDURE CalculateTimeInterval(L : LocoIndex);
   { Calculate the time it should take to achieve the new speed }
   VAR
     OK : Boolean;
 
   BEGIN
-    WITH Trains[T] DO BEGIN
-      AccelerationElapsedTime := Time;
-      IF Train_DesiredLenzSpeed > Train_CurrentLenzSpeed THEN BEGIN
-        Train_Accelerating := True;
-        Train_Decelerating := False;
-      END ELSE
-        IF Train_DesiredLenzSpeed < Train_CurrentLenzSpeed THEN BEGIN
-          Train_Decelerating := True;
-          Train_Accelerating := False;
-        END;
+    IF L <> UnknownLocoIndex THEN BEGIN
+      WITH Locos[L] DO BEGIN
+        WITH Trains[Loco_TrainIndex] DO BEGIN
+          AccelerationElapsedTime := Time;
+          IF Loco_DesiredLenzSpeed > Loco_CurrentLenzSpeed THEN BEGIN
+            Loco_Accelerating := True;
+            Loco_Decelerating := False;
+          END ELSE
+            IF Loco_DesiredLenzSpeed < Loco_CurrentLenzSpeed THEN BEGIN
+              Loco_Decelerating := True;
+              Loco_Accelerating := False;
+            END;
 
-      { Calculate the range of the speed change - minus one, as the first speed change is about to happen }
-      Train_AccelerationAdjustRange := Abs(Train_DesiredLenzSpeed - Train_CurrentLenzSpeed - 1);
-      IF Train_AccelerationAdjustRange = 0 THEN
-        { If there's no change to make, schedule no time for it! (shouldn't get here ****) }
-        Train_AccelerationTimeInterval := 0.0
-      ELSE
-        IF Train_AccelerationTimeInSeconds > 1.0 THEN
-          { Speed is increased/decreased by one unit, over varying periods of time }
-          Train_AccelerationTimeInterval := Train_AccelerationTimeInSeconds / Train_AccelerationAdjustRange
-        ELSE
-          IF Train_AccelerationTimeInSeconds > 0.0 THEN
-            { speed is increased/decreased by a number of units in 2 steps }
-            Train_AccelerationTimeInterval := Train_AccelerationTimeInSeconds / 2
+          { Calculate the range of the speed change - minus one, as the first speed change is about to happen }
+          Loco_AccelerationAdjustRange := Abs(Loco_DesiredLenzSpeed - Loco_CurrentLenzSpeed - 1);
+          IF Loco_AccelerationAdjustRange = 0 THEN
+            { If there's no change to make, schedule no time for it! (shouldn't get here ****) }
+            Loco_AccelerationTimeInterval := 0.0
           ELSE
-            { an immediate stop }
-            Train_AccelerationTimeInterval := 0.0;
+            IF Train_AccelerationTimeInSeconds > 1.0 THEN
+              { Speed is increased/decreased by one unit, over varying periods of time }
+              Loco_AccelerationTimeInterval := Train_AccelerationTimeInSeconds / Loco_AccelerationAdjustRange
+            ELSE
+              IF Train_AccelerationTimeInSeconds > 0.0 THEN
+                { speed is increased/decreased by a number of units in 2 steps }
+                Loco_AccelerationTimeInterval := Train_AccelerationTimeInSeconds / 2
+              ELSE
+                { an immediate stop }
+                Loco_AccelerationTimeInterval := 0.0;
 
-      { Make the first adjustment without delay }
-      IF Train_Accelerating THEN BEGIN
-        Train_CurrentLenzSpeed := AdjustLenzSpeed(Train_LocoChip, 1, Train_CurrentDirection, OK);
-        IF Train_DoubleHeaderLocoChip <> UnknownLocoChip THEN
-          Train_CurrentLenzSpeed := AdjustLenzSpeed(Train_DoubleHeaderLocoChip, 1, Train_CurrentDirection, OK);
+          { Make the first adjustment without delay }
+          IF Loco_Accelerating THEN BEGIN
+            Loco_CurrentLenzSpeed := AdjustLenzSpeed(L, 1, Loco_CurrentDirection, OK);
+            DrawDiagramsSpeedCell(Loco_TrainIndex);
+            Log(Loco_LocoChipStr + ' L First adjustment in Loco_Accelerating to '
+                                  + IntToStr(Loco_DesiredLenzSpeed)
+    );
+    // &&&&&                              +  ' (' + MPHToStr(Loco_DesiredSpeedInMPH) + ' mph)');
+          END ELSE BEGIN
+            { decelerating }
+            Loco_CurrentLenzSpeed := AdjustLenzSpeed(L, -1, Loco_CurrentDirection, OK);
+            //        DrawDiagramsSpeedCell(T);
+            Log(Loco_LocoChipStr + ' L First adjustment in Train_Decelerating to '
+                                 + IntToStr(Loco_DesiredLenzSpeed)
+    );
+    // &&&&&                              +  ' (' + MPHToStr(Train_DesiredSpeedInMPH) + ' mph)');
+          END;
 
-        DrawDiagramsSpeedCell(T);
-        Log(Train_LocoChipStr + ' L First adjustment in Train_Accelerating to '
-                              + IntToStr(Train_DesiredLenzSpeed)
-                              +  ' (' + MPHToStr(Train_DesiredSpeedInMPH) + ' mph)');
-      END ELSE BEGIN
-        { decelerating }
-        Train_CurrentLenzSpeed := AdjustLenzSpeed(Train_LocoChip, -1, Train_CurrentDirection, OK);
-        IF Train_DoubleHeaderLocoChip <> UnknownLocoChip THEN
-          Train_CurrentLenzSpeed := AdjustLenzSpeed(Train_DoubleHeaderLocoChip, -1, Train_CurrentDirection, OK);
-
-        DrawDiagramsSpeedCell(T);
-        Log(Train_LocoChipStr + ' L First adjustment in Train_Decelerating to '
-                              + IntToStr(Train_DesiredLenzSpeed)
-                              +  ' (' + MPHToStr(Train_DesiredSpeedInMPH) + ' mph)');
-      END;
-
-      Log(Train_LocoChipStr + ' L Train_CurrentSpeedInMPH=' + IntToStr(Train_CurrentLenzSpeed)
-                            + ' Train_DesiredLenzSpeed=' + IntToStr(TrainSpeedInMPHToLenzSpeed(T, Train_DesiredSpeedInMPH))
-                            + ' (Train_DesiredSpeedInMPH=' + MPHToStr(Train_DesiredSpeedInMPH) + ' mph)'
-                            + ' AdjustRange=' + IntToStr(Train_AccelerationAdjustRange)
-                            + ' TimeInterval=' + FloatToStr(Train_AccelerationTimeInterval)
-                            + ' (AccelTime=' + FloatToStr(Train_AccelerationTimeInSeconds) + ')');
-      { Now start the timer }
-      Train_AccelerationStartTime := Time;
-    END; {WITH}
+          Log(Loco_LocoChipStr + ' L Loco_CurrentLenzSpeed=' + IntToStr(Loco_CurrentLenzSpeed)
+                               + ' Loco_DesiredLenzSpeed=' + IntToStr(Loco_DesiredLenzSpeed)
+    //                           + ' (Loco_DesiredSpeedInMPH=' + MPHToStr(Loco_DesiredSpeedInMPH) + ' mph)' &&&&&
+                               + ' AdjustRange=' + IntToStr(Loco_AccelerationAdjustRange)
+                               + ' TimeInterval=' + FloatToStr(Loco_AccelerationTimeInterval)
+                               + ' (AccelTime=' + FloatToStr(Train_AccelerationTimeInSeconds) + ')');
+          { Now start the timer }
+          Loco_AccelerationStartTime := Time;
+        END; {WITH}
+      END; {WITH}
+    END;
   END; { CalculateTimeInterval }
 
-BEGIN { SetDesiredTrainSpeed }
-  WITH Trains[T] DO BEGIN
-    IF LocosStopped THEN BEGIN
-      IF Train_UserDriving THEN BEGIN
-        IF Train_UserRequiresInstructions THEN BEGIN
-          Log(Train_LocoChipStr + ' L= User instructed to set speed to zero');
-          DrawDiagramsSpeedCell(T);
-          Train_CurrentLenzSpeed := 0;
-        END;
-      END ELSE BEGIN
-        SetLenzSpeedAndDirection(Train_LocoChip, 0, Train_CurrentDirection, OK);
-        IF Train_DoubleHeaderLocoChip <> UnknownLocoChip THEN
-          SetLenzSpeedAndDirection(Train_DoubleHeaderLocoChip, 0, Train_CurrentDirection, OK);
-        DrawDiagramsSpeedCell(T);
-      END;
-      Train_CurrentLenzSpeed := 0;
-      Train_CurrentSpeedInMPH := Stop;
-    END ELSE BEGIN
-      { If we've reached the desired speed: comparison has to be between Lenz speed numbers, as MPH90 could equal MPH125 in Lenz speed terms if MPH90 is the top speed }
-      IF Train_UserDriving THEN BEGIN
-        IF Train_UserRequiresInstructions THEN BEGIN
-          IF Train_CurrentLenzSpeed <> Train_DesiredLenzSpeed THEN BEGIN
-            Log(Train_LocoChipStr + ' L= User instructed to set speed to ' + IntToStr(Train_CurrentLenzSpeed));
-            DrawDiagramsSpeedCell(T);
-          END;
-        END;
-      END ELSE BEGIN
-        IF Train_CurrentLenzSpeed = Train_DesiredLenzSpeed THEN BEGIN
-          IF Train_Accelerating THEN BEGIN
-            Train_Accelerating := False;
-            Log(Train_LocoChipStr + ' L Elapsed time after acceleration=' + FloatToStr(SecondSpan(AccelerationElapsedTime, Time)))
-          END;
-          IF Train_Decelerating THEN BEGIN
-            Train_Decelerating := False;
-            Log(Train_LocoChipStr + ' L Elapsed time after deceleration=' + FloatToStr(SecondSpan(AccelerationElapsedTime, Time)));
-          END;
+BEGIN { SetDesiredLocoLenzSpeed }
+  IF L <> UnknownLocoIndex THEN BEGIN
+    WITH Locos[L] DO BEGIN
+      WITH Trains[Loco_TrainIndex] DO BEGIN
+        Loco_DesiredLenzSpeed := DesiredLenzSpeed;
 
-          { Display the speed }
-          DrawDiagramsSpeedCell(T);
+        IF LocosStopped THEN BEGIN
+          IF UserDriving THEN BEGIN
+            IF UserRequiresInstructions THEN BEGIN
+              Log(Loco_LocoChipStr + ' L= User instructed to set speed to zero');
+  //            DrawDiagramsSpeedCell(T);  &&&&&
+              Loco_CurrentLenzSpeed := 0;
+            END;
+          END ELSE BEGIN
+            SetLenzSpeedAndDirection(L, 0, Loco_CurrentDirection, OK);
+  //          DrawDiagramsSpeedCell(T);  &&&&&
+          END;
+          Loco_CurrentLenzSpeed := 0;
         END ELSE BEGIN
-          { Initiate a change in speed if the target speed has changed }
-          IF Train_SaveDesiredLenzSpeed = Train_DesiredLenzSpeed THEN
-            AdjustSpeed(T)
-          ELSE BEGIN
-            IF (Train_AccelerationTimeInSeconds = 0.0)
-            AND (Train_DesiredLenzSpeed = 0)
-            THEN BEGIN
-              { we want an immediate stop }
-              SetLenzSpeedAndDirection(Train_LocoChip, QuickStop, Train_CurrentDirection, OK);
-              IF Train_DoubleHeaderLocoChip <> UnknownLocoChip THEN
-                SetLenzSpeedAndDirection(Train_DoubleHeaderLocoChip, QuickStop, Train_CurrentDirection, OK);
+          { If we've reached the desired speed: comparison has to be between Lenz speed numbers, as MPH90 could equal MPH125 in Lenz speed terms if MPH90 is the top speed }
+          IF UserDriving THEN BEGIN
+            IF UserRequiresInstructions THEN BEGIN
+              IF Loco_CurrentLenzSpeed <> Loco_DesiredLenzSpeed THEN BEGIN
+                Log(Loco_LocoChipStr + ' L= User instructed to set speed to ' + IntToStr(Loco_CurrentLenzSpeed));
+  //               DrawDiagramsSpeedCell(T, L); &&&&&
+              END;
+            END;
+          END ELSE BEGIN
+            IF Loco_CurrentLenzSpeed = Loco_DesiredLenzSpeed THEN BEGIN
+              IF Loco_Accelerating THEN BEGIN
+                Loco_Accelerating := False;
+                Log(Loco_LocoChipStr + ' L Elapsed time after acceleration=' + FloatToStr(SecondSpan(AccelerationElapsedTime, Time)))
+              END;
+              IF Loco_Decelerating THEN BEGIN
+                Loco_Decelerating := False;
+                Log(Loco_LocoChipStr + ' L Elapsed time after deceleration=' + FloatToStr(SecondSpan(AccelerationElapsedTime, Time)));
+              END;
 
-              Train_CurrentLenzSpeed := 0;
-              Train_CurrentSpeedInMPH := Stop;
-              Log(Train_LocoChipStr + ' L Immediate stop required');
-              DrawDiagramsSpeedCell(T);
-            END ELSE
-              { calculate time between speed steps }
-              CalculateTimeInterval(T);
+  //            { Display the speed }
+  //            DrawDiagramsSpeedCell(T, L); &&&&&
+            END ELSE BEGIN
+              { Initiate a change in speed if the target speed has changed }
+              IF Loco_SaveDesiredLenzSpeed = Loco_DesiredLenzSpeed THEN
+                AdjustSpeed(L)
+              ELSE BEGIN
+                IF (Train_AccelerationTimeInSeconds = 0.0)
+                AND (Loco_DesiredLenzSpeed = 0)
+                THEN BEGIN
+                  { we want an immediate stop }
+                  SetLenzSpeedAndDirection(L, QuickStop, Loco_CurrentDirection, OK);
+                  Loco_CurrentLenzSpeed := 0;
+                  Log(Loco_LocoChipStr + ' L Immediate stop required');
+  //                DrawDiagramsSpeedCell(T, L); &&&&&
+                END ELSE
+                  { calculate time between speed steps }
+                  CalculateTimeInterval(L);
 
-            Train_SaveDesiredLenzSpeed := Train_DesiredLenzSpeed;
+                Loco_SaveDesiredLenzSpeed := Loco_DesiredLenzSpeed;
+              END;
+            END;
           END;
         END;
-      END;
-    END;
 
-    IF (Train_DesiredLenzSpeed = 0)
-    AND (Train_UserPowerAdjustment <> 0)
-    THEN BEGIN
-      Train_UserPowerAdjustment := 0;
-      Log(Train_LocoChipStr + ' L Train desired speed = 0 so user increased speed setting turned off');
-    END;
-  END; {WITH}
-END; { SetDesiredTrainSpeed }
+    //    IF (Train_DesiredLenzSpeed = 0)
+    //    AND (Train_UserPowerAdjustment <> 0)
+    //    THEN BEGIN
+    //      Train_UserPowerAdjustment := 0;
+    //      Log(Train_LocoChipStr + ' L Train desired speed = 0 so user increased speed setting turned off');
+    //    END; &&&&&
+      END; {WITH}
+    END; {WITH}
+  END;
+END; { SetDesiredLocoLenzSpeed }
 
 PROCEDURE PruneTrainList;
-{ Remove inactive trains from diagrams }
+{ Remove inactive trains from diagrams }  { can't work out if this in use or not! ***** 5/7/14 }
 VAR
-  T : TrainElement;
+  T : TrainIndex;
 
 BEGIN
   T := 0;
   WHILE T <= High(Trains) DO BEGIN
-//    IF T^.Train_CurrentStatus = ReadyForRemovalFromDiagrams THEN BEGIN
+    WITH Trains[T] DO BEGIN
+//    IF Train_CurrentStatus = ReadyForRemovalFromDiagrams THEN BEGIN
 //      { Take it off the diagram grid }
 //      RemoveTrainFromDiagrams(T);
 //      ChangeTrainStatus(T, RemovedFromDiagrams);
@@ -531,6 +534,7 @@ BEGIN
 //      IF NOT T^.Train_LightsRemainOnWhenJourneysComplete THEN
 //        TurnLightsOff(T^.Train_LocoChip);
 //    END;
+      END; {WITH}
     Inc(T);
   END; {WHILE}
 END; { PruneTrainList }
@@ -538,10 +542,10 @@ END; { PruneTrainList }
 PROCEDURE OldPruneTrainList;
 { Purge inactive trains from list - no longer in use as the train list is permanent, but might be useful for other lists in the future }
 
-//  PROCEDURE OldPrune(VAR L : TrainElement);
+//  PROCEDURE OldPrune(VAR L : TrainIndex);
 //  { Recursive prune of given list }
 //  VAR
-//    T : TrainElement;
+//    T : TrainIndex;
 //
 //  BEGIN
 //    WHILE (L <> NIL)
@@ -576,10 +580,10 @@ END; { OldPruneTrainList }
 PROCEDURE MoveAllTrains;
 { If in auto mode, move all active trains }
 
-  PROCEDURE CalculateTrainSpeed(T : TrainElement);
+  PROCEDURE CalculateTrainSpeedInMPH(T : TrainIndex);
   { Set the speed of the train appropriately }
 
-    FUNCTION SpeedAtSignal(VAR T : TrainElement; S : Integer; RedAspectSpeed, SingleYellowAspectSpeed, DoubleYellowAspectSpeed, GreenAspectSpeed : MPHType) : MPHType;
+    FUNCTION SpeedAtSignal(VAR T : TrainIndex; S : Integer; RedAspectSpeed, SingleYellowAspectSpeed, DoubleYellowAspectSpeed, GreenAspectSpeed : MPHType) : MPHType;
     { Returns the appropriate speed for a given signal, considering normal and hidden aspects }
     BEGIN
       Result := MPH0;
@@ -630,7 +634,7 @@ PROCEDURE MoveAllTrains;
         END; {WITH}
     END; { SpeedAtSignal }
 
-    PROCEDURE ClearTrailingTrackCircuits(T : TrainElement);
+    PROCEDURE ClearTrailingTrackCircuits(T : TrainIndex);
     { Goes through the track circuits cleared list, adding up the lengths of the sections that are still marked as occupied, to see if any can be released, if the total
       exceeds the length of the train.
     }
@@ -761,7 +765,7 @@ PROCEDURE MoveAllTrains;
       END; {WITH}
     END; { ClearTrailingTrackCircuits }
 
-    FUNCTION WaitBeforeReversing(T : TrainElement) : Boolean;
+    FUNCTION WaitBeforeReversing(T : TrainIndex) : Boolean;
     { Makes Thunderbird stop for a minimum time before changing direction ****. Not in use 9/4/14 }
     BEGIN
       Result := True;
@@ -835,8 +839,8 @@ PROCEDURE MoveAllTrains;
       END; {WHILE}
     END; { FindFirstFourOccurrencesInStringArray }
 
-    PROCEDURE CalculateDesiredSpeed(VAR T : TrainElement);
-    { Set loco speed depending on where we are }
+    PROCEDURE CalculateDesiredTrainSpeedInMPH(VAR T : TrainIndex);
+    { Set train speed depending on where we are }
     VAR
       BufferStopPos : Integer;
       CurrentTC : Integer;
@@ -851,7 +855,7 @@ PROCEDURE MoveAllTrains;
       TempMaximumSpeedInMPH : MPHType;
       TempStr : String;
 
-      PROCEDURE AdjustSpeedForGradient(T : TrainElement; TC : Integer);
+      PROCEDURE AdjustSpeedForGradient(T : TrainIndex; TC : Integer);
       { Adjust for rising or falling gradients }
       BEGIN
         WITH TrackCircuits[TC] DO BEGIN
@@ -878,7 +882,7 @@ PROCEDURE MoveAllTrains;
                 OR ((Train_CurrentDirection = Down)
                     AND (TC_Gradient = RisingIfDown))
                 THEN
-                  { uphill - increase speed by one Lenz number }
+                  { uphill - increase speed by one Lenz number } { should this not be by 10 mph? &&&&& }
                   Train_GradientSpeedAdjustment := 1
                 ELSE
                   IF ((Train_CurrentDirection = Up)
@@ -902,7 +906,7 @@ PROCEDURE MoveAllTrains;
         END; {WITH}
       END; { AdjustSpeedForGradient }
 
-      PROCEDURE CheckForMaximumSpeeds(T : TrainElement; CurrentTC : Integer; OUT TempMaximumSpeedInMPH : MPHType);
+      PROCEDURE CheckForMaximumSpeeds(T : TrainIndex; CurrentTC : Integer; OUT TempMaximumSpeedInMPH : MPHType);
       { Check for possible maximum speeds }
       VAR
         ArrayPos : Integer;
@@ -1010,7 +1014,7 @@ PROCEDURE MoveAllTrains;
         END; {WITH}
       END; { CheckForMaximumSpeeds }
 
-    BEGIN { CalculateDesiredSpeed }
+    BEGIN { CalculateDesiredTrainSpeedInMPH }
       TRY
         WITH Trains[T] DO BEGIN
           IF Length(Train_TCsAndSignalsNotClearedArray) > -1 THEN BEGIN
@@ -1023,7 +1027,7 @@ PROCEDURE MoveAllTrains;
               { Now do some processing which is only done when we enter a new track circuit }
               Log(Train_LocoChipStr + ' T ***** In TC=' + IntToStr(CurrentTC) + ' (' + DescribeLineNamesForTrackCircuit(Train_CurrentTC) + ')');
 
-              WriteStringArrayToLog(Train_LocoChip, 'T', Train_TCsAndSignalsNotClearedArray, 2, 190);
+              WriteStringArrayToLog(Train_LocoChipStr, 'T', Train_TCsAndSignalsNotClearedArray, 2, 190);
 
               { If the loco is marked as using trailing track circuits, clear them when the full train length allows }
               IF Train_UseTrailingTrackCircuits THEN
@@ -1081,7 +1085,7 @@ PROCEDURE MoveAllTrains;
               BufferStopPos := 0;
               IF Train_CurrentSignal <> UnknownSignal THEN BEGIN
                 Log(Train_LocoChipStr + ' L Train_CurrentSignal is S=' + IntToStr(Train_CurrentSignal));
-                WriteStringArrayToLog(Train_LocoChip, 'L', Train_TCsAndSignalsNotClearedArray, 2, 190)
+                WriteStringArrayToLog(Train_LocoChipStr, 'L', Train_TCsAndSignalsNotClearedArray, 2, 190)
               END ELSE BEGIN
                 { look for a bufferstop }
                 BufferStopPos := FindFirstOccurrenceInStringArray('BS=', Train_TCsAndSignalsNotClearedArray);
@@ -1199,16 +1203,16 @@ PROCEDURE MoveAllTrains;
               IF Train_AtCurrentSignal <> UnknownSignal THEN BEGIN
                 Log(Train_LocoChipStr + ' L At next signal S=' + IntToStr(Train_CurrentSignal));
                 Train_LastSignal := Train_CurrentSignal;
-                WriteStringArrayToLog(Train_LocoChip, 'L', Train_TCsAndSignalsNotClearedArray, 2, 190);
+                WriteStringArrayToLog(Train_LocoChipStr, 'L', Train_TCsAndSignalsNotClearedArray, 2, 190);
                 DeleteElementFromStringArray(Train_TCsAndSignalsNotClearedArray, FirstSignalPos);
-                WriteStringArrayToLog(Train_LocoChip, 'L', Train_TCsAndSignalsNotClearedArray, 2, 190);
+                WriteStringArrayToLog(Train_LocoChipStr, 'L', Train_TCsAndSignalsNotClearedArray, 2, 190);
 
                 { Also see if the next array element is the same signal - e.g. FS=99=, FS=99\ - if it is, then remove it too }
                 IF Length(Train_TCsAndSignalsNotClearedArray) > FirstSignalPos THEN BEGIN
                   IF ExtractSignalFromString(Train_TCsAndSignalsNotClearedArray[0]) = Train_CurrentSignal THEN BEGIN
                     Log(Train_LocoChipStr + ' L *** Deleting second occurrence of ' + IntToStr(Train_CurrentSignal));
                     DeleteElementFromStringArray(Train_TCsAndSignalsNotClearedArray, 0);
-                    WriteStringArrayToLog(Train_LocoChip, 'L', Train_TCsAndSignalsNotClearedArray, 2, 190);
+                    WriteStringArrayToLog(Train_LocoChipStr, 'L', Train_TCsAndSignalsNotClearedArray, 2, 190);
                   END;
                 END;
               END ELSE
@@ -1235,7 +1239,7 @@ PROCEDURE MoveAllTrains;
               { we shouldn't ever get here, but sometimes this happens, and the train creeps passed red signals }
               Log(Train_LocoChipStr + ' X! Train_CurrentSignal = UnknownSignal and NextSignal = UnknownSignal'
                                     + ' and Train_CurrentBufferStop = UnknownBufferStop - something wrong here');
-              WriteStringArrayToLog(Train_LocoChip, 'X', 'Train_TCsAndSignalsNotClearedArray', Train_TCsAndSignalsNotClearedArray, 2, 190);
+              WriteStringArrayToLog(Train_LocoChipStr, 'X', 'Train_TCsAndSignalsNotClearedArray', Train_TCsAndSignalsNotClearedArray, 2, 190);
               Train_DesiredSpeedInMPH := Stop;
             END ELSE BEGIN
               IF ((Train_AtCurrentSignal <> UnknownSignal)
@@ -1254,20 +1258,13 @@ PROCEDURE MoveAllTrains;
                 TempStr := IfThen(Train_CurrentSignal <> UnknownSignal,
                                   'S=' + IntToStr(Train_CurrentSignal),
                                   'BS=' + IntToStr(Train_CurrentBufferStop));
-                IF Train_DistanceToCurrentSignalOrBufferStop > 50.0 THEN BEGIN
-                  MinimumSpeedInMPH := MPH40;
-                  StopStr := 'MinimumSpeedInMPH = 40 (Lenz=' + IntToStr(TrainSpeedInMPHToLenzSpeed(T, MinimumSpeedInMPH))
-                             + ') as Train_DistanceToCurrentSignalOrBufferStop ' + TempStr + ' > 50.0';
-                END ELSE
-                  IF Train_DistanceToCurrentSignalOrBufferStop > 40.0 THEN BEGIN
-                    MinimumSpeedInMPH := MPH30;
-                    StopStr := 'MinimumSpeedInMPH = 30 (Lenz=' + IntToStr(TrainSpeedInMPHToLenzSpeed(T, MinimumSpeedInMPH))
-                               + ') as Train_DistanceToCurrentSignalOrBufferStop ' + TempStr + ' > 40.0';
-                  END ELSE BEGIN
+                IF Train_DistanceToCurrentSignalOrBufferStop > 50.0 THEN
+                  MinimumSpeedInMPH := MPH40
+                ELSE
+                  IF Train_DistanceToCurrentSignalOrBufferStop > 40.0 THEN
+                    MinimumSpeedInMPH := MPH30
+                  ELSE
                     MinimumSpeedInMPH := MPH20;
-                    StopStr := 'MinimumSpeedInMPH = 20 (Lenz=' + IntToStr(TrainSpeedInMPHToLenzSpeed(T, MinimumSpeedInMPH))
-                               + ') as Train_DistanceToCurrentSignalOrBufferStop ' + TempStr + ' <= 40.0';
-                  END;
               END;
         
               { Now calculate the speed per track circuit }
@@ -1281,7 +1278,7 @@ PROCEDURE MoveAllTrains;
                   AND ((Train_DistanceToNextSignalOrBufferStop = 0) OR (Train_DistanceToNextSignalOrBufferStop > 72.0))
                   AND ((Train_DistanceToNextSignalButOneOrBufferStop = 0) OR (Train_DistanceToNextSignalButOneOrBufferStop > 96.0))
                   THEN BEGIN
-                    IF (Train_Type = ExpressPassenger) OR (Train_Type = ExpressFreight) THEN BEGIN
+                    IF (Train_Type = ExpressPassengerType) OR (Train_Type = ExpressFreightType) THEN BEGIN
                       Train_DesiredSpeedInMPH := SpeedAtSignal(T, Train_CurrentSignal, MinimumSpeedInMPH, MPH50, MPH70, MPH120);
                       SpeedCalculationStr := 'To Current S/BS = 0 or > 36.0 (is ' + FloatToStr(Train_DistanceToCurrentSignalOrBufferStop) + ')'
                                              + ' To Next S/BS =0 or > 72.0 (is ' + FloatToStr(Train_DistanceToNextSignalOrBufferStop) + ')'
@@ -1300,7 +1297,7 @@ PROCEDURE MoveAllTrains;
                       OR (Train_DistanceToNextSignalOrBufferStop <= 72.0)
                       OR (Train_DistanceToNextSignalButOneOrBufferStop <= 96.0)
                     }
-                    IF (Train_Type = ExpressPassenger) OR (Train_Type = ExpressFreight) THEN BEGIN
+                    IF (Train_Type = ExpressPassengerType) OR (Train_Type = ExpressFreightType) THEN BEGIN
                       Train_DesiredSpeedInMPH := SpeedAtSignal(T, Train_CurrentSignal, MinimumSpeedInMPH, MPH40, MPH60, MPH120);
                       SpeedCalculationStr := 'To Current S/BS <= 36.0 (is ' + FloatToStr(Train_DistanceToCurrentSignalOrBufferStop) + ')'
                                              + ' To Next S/BS <= 72.0 (is ' + FloatToStr(Train_DistanceToNextSignalOrBufferStop) + ')'
@@ -1409,15 +1406,15 @@ PROCEDURE MoveAllTrains;
                 BEGIN
                   { in case we've forgotten a type of line }
                   { TCLineNames[0] is only one of a number of possible lines **** }
-                  Log(Train_LocoChipStr + ' XG Unknown line type found in CalculateDesiredSpeed - line=' + LineToStr(TrackCircuits[CurrentTC].TC_LineArray[0]));
+                  Log(Train_LocoChipStr + ' XG Unknown line type found in CalculateDesiredTrainSpeedInMPH- line=' + LineToStr(TrackCircuits[CurrentTC].TC_LineArray[0]));
                   Train_DesiredSpeedInMPH := SpeedAtSignal(T, Train_CurrentSignal, MinimumSpeedInMPH, MPH10, MPH20, MPH30);
                 END;
               END; {CASE}
 
               IF DebugStr <> Train_SaveSpeedInFiddleyardMsg THEN BEGIN
-                DrawLineInLogFile(Train_LocoChip, 'X', '_', UnitRef);
+                DrawLineInLogFile(Train_LocoChipStr, 'X', '_', UnitRef);
                 Log(Train_LocoChipStr + ' X ' + DebugStr);
-                DrawLineInLogFile(Train_LocoChip, 'X', '_', UnitRef);
+                DrawLineInLogFile(Train_LocoChipStr, 'X', '_', UnitRef);
                 Train_SaveSpeedInFiddleyardMsg := DebugStr;
               END;
 
@@ -1433,23 +1430,23 @@ PROCEDURE MoveAllTrains;
             END;
 
             { Now convert the speed to a Lenz speed number }
-            Train_DesiredLenzSpeed := TrainSpeedInMPHToLenzSpeed(T, Train_DesiredSpeedInMPH);
+//            Train_DesiredLenzSpeed := TrainSpeedInMPHToLenzSpeed(T, Train_DesiredSpeedInMPH); &&&&&
             { and add any extra necessary speed steps }
-            IF Train_DesiredLenzSpeed <> 0 THEN
-              Train_DesiredLenzSpeed := Train_DesiredLenzSpeed + Train_GradientSpeedAdjustment + Train_ExtraPowerAdjustment + Train_UserPowerAdjustment;
-            IF Train_DesiredLenzSpeed > 28 THEN
-              Train_DesiredLenzSpeed := 28
-            ELSE
-              IF Train_DesiredLenzSpeed < 0 THEN
-                Train_DesiredLenzSpeed := 0;
+//            IF Train_DesiredLenzSpeed <> 0 THEN
+//              Train_DesiredLenzSpeed := Train_DesiredLenzSpeed + Train_GradientSpeedAdjustment + Train_ExtraPowerAdjustment + Train_UserPowerAdjustment;
+//            IF Train_DesiredLenzSpeed > 28 THEN
+//              Train_DesiredLenzSpeed := 28
+//            ELSE
+//              IF Train_DesiredLenzSpeed < 0 THEN
+//                Train_DesiredLenzSpeed := 0; &&&&&
 
             IF Train_AccelerationTimeInSeconds = 0.0 THEN BEGIN
               { otherwise it might have been set by the maximum speed routine above }
-              IF Train_DesiredLenzSpeed = Train_CurrentLenzSpeed THEN
+              IF Train_DesiredSpeedInMPH = Train_CurrentSpeedInMPH THEN
                 { this shouldn't be necessary, but was needed on at least one occasion }
                 Train_AccelerationTimeInSeconds := 0.0
               ELSE
-                IF (Train_DesiredLenzSpeed > Train_CurrentLenzSpeed) THEN
+                IF (Train_DesiredSpeedInMPH > Train_CurrentSpeedInMPH) THEN
                   Train_AccelerationTimeInSeconds := 7.0
                 ELSE BEGIN
                   { If we're decelerating, set the rate based on the distances to the signal - the default rate first }
@@ -1462,30 +1459,15 @@ PROCEDURE MoveAllTrains;
                   THEN BEGIN
                     { set a very short acceleration/deceleration time if we're stopping, but see how long the stop section is }
                     IF TrackCircuits[Signals[Train_CurrentSignal].Signal_AdjacentTC].TC_LengthInInches > 40.0 THEN
-      begin
                       Train_AccelerationTimeInSeconds := 1.0
-      ;
-      // debug('at S=' + Inttostr(Train_AtCurrentSignal) + ' tc=' + inttostr(Signals[Train_CurrentSignal].Signal_AdjacentTC) + ' length > 40, time=' + FloatToStr(Train_AccelerationTimeInSeconds));
-      end
                     ELSE
                       IF TrackCircuits[Signals[Train_CurrentSignal].Signal_AdjacentTC].TC_LengthInInches > 30.0 THEN
-      begin
                         Train_AccelerationTimeInSeconds := 0.5
-      ;
-      // debug('at S=' + Inttostr(Train_AtCurrentSignal) + ' tc=' + inttostr(Signals[Train_CurrentSignal].Signal_AdjacentTC) + ' length > 30, time=' + FloatToStr(Train_AccelerationTimeInSeconds));
-      end
                       ELSE
                         IF TrackCircuits[Signals[Train_CurrentSignal].Signal_AdjacentTC].TC_LengthInInches > 20.0 THEN
-      begin
                           Train_AccelerationTimeInSeconds := 0.2
-      ;
-      // debug('at S=' + Inttostr(Train_AtCurrentSignal) + ' tc=' + inttostr(Signals[Train_CurrentSignal].Signal_AdjacentTC) + ' length > 20, time=' + FloatToStr(Train_AccelerationTimeInSeconds));
-      end
                         ELSE
-      begin
                           Train_AccelerationTimeInSeconds := 0.0;
-      // debug('at S=' + Inttostr(Train_AtCurrentSignal) + ' tc=' + inttostr(Signals[Train_CurrentSignal].Signal_AdjacentTC) + ' length <= 20, time=' + FloatToStr(Train_AccelerationTimeInSeconds));
-      end;
                   END ELSE
                     IF Train_AtCurrentBufferStop <> UnknownBufferStop THEN BEGIN
                       { set a very short acceleration/deceleration time if we're stopping, but see how long the stop section is }
@@ -1533,7 +1515,7 @@ PROCEDURE MoveAllTrains;
               AND (Train_DistanceToCurrentSignalOrBufferStop < 12.0)
               AND (Train_DesiredSpeedInMPH <> MPH0)
               THEN BEGIN
-                Dec(Train_DesiredLenzSpeed);
+                Dec(Train_DesiredSpeedInMPH);
                 IF NOT Train_TerminatingSpeedReductionMsgWritten THEN BEGIN
                   Train_TerminatingSpeedReductionMsgWritten := True;
                   Train_AccelerationTimeInSeconds := 1.0;
@@ -1545,7 +1527,6 @@ PROCEDURE MoveAllTrains;
 
             DebugStr := 'Desired speed at TC=' + IntToStr(CurrentTC)
                         + ' [' + DescribeLineNamesForTrackCircuit(CurrentTC) + ']'
-                        + ': ' + IntToStr(Train_DesiredLenzSpeed)
                         + IfThen(Train_ExtraPowerAdjustment > 0,
                                  ' [+' + IntToStr(Train_ExtraPowerAdjustment) + ']')
                         + IfThen(Train_UserPowerAdjustment > 0,
@@ -1611,9 +1592,9 @@ PROCEDURE MoveAllTrains;
         END;
       EXCEPT {TRY}
         ON E : Exception DO
-          Log('EG CalculateDesiredSpeed: ' + E.ClassName + ' error raised, with message: '+ E.Message);
+          Log('EG CalculateDesiredTrainSpeedInMPH: ' + E.ClassName + ' error raised, with message: '+ E.Message);
       END; {TRY}
-    END; { CalculateDesiredSpeed }
+    END; { CalculateDesiredTrainSpeedInMPH }
 
   CONST
     GoingForward = True;
@@ -1631,7 +1612,7 @@ PROCEDURE MoveAllTrains;
     TCFound : Boolean;
     TCPos : Integer;
 
-  BEGIN { CalculateTrainSpeed }
+  BEGIN { CalculateTrainSpeedInMPH }
     WITH Trains[T] DO BEGIN
       IF Train_CurrentStatus <> ToBeRemovedFromDiagrams THEN BEGIN
         { See if we've stalled - can only do so by timing gap between known sections }
@@ -1643,7 +1624,7 @@ PROCEDURE MoveAllTrains;
           Train_StalledMsgWritten := False
         ELSE BEGIN
           IF Train_ExtraPowerAdjustment = 0 THEN BEGIN
-            Log(Train_LocoChipStr + ' L Has loco stalled in TC=' + IntToStr(Train_CurrentTC) + '? Increasing speed by one speed step');
+            Log(Train_LocoChipStr + ' L Has loco stalled in TC=' + IntToStr(Train_CurrentTC) + '? Increasing speed by one step');
             Train_ExtraPowerAdjustment := 1;
 
             { Set acceleration to the minimum, to get an immediate increase in speed }
@@ -1655,7 +1636,7 @@ PROCEDURE MoveAllTrains;
             Log(Train_LocoChipStr + ' L TC=' + IntToStr(Train_CurrentTC) + ' StalledState 1');
           END ELSE
             IF Train_ExtraPowerAdjustment = 1 THEN BEGIN
-              Log(Train_LocoChipStr + ' L Has loco stalled in TC=' + IntToStr(Train_CurrentTC) + '? Increasing speed by a second speed step');
+              Log(Train_LocoChipStr + ' L Has loco stalled in TC=' + IntToStr(Train_CurrentTC) + '? Increasing speed by a second step');
               Train_ExtraPowerAdjustment := 2;
 
               { Set acceleration to the minimum, to get an immediate increase in speed }
@@ -1668,7 +1649,7 @@ PROCEDURE MoveAllTrains;
             END ELSE
               IF Train_ExtraPowerAdjustment = 2 THEN BEGIN
 
-                Log(Train_LocoChipStr + ' L Has loco stalled in TC=' + IntToStr(Train_CurrentTC) + '? Increasing speed by a third Lenz speed step');
+                Log(Train_LocoChipStr + ' L Has loco stalled in TC=' + IntToStr(Train_CurrentTC) + '? Increasing speed by a third step');
                 { Set acceleration to the minimum, to get an immediate increase in speed }
                 Train_AccelerationTimeInSeconds := 0.0;
                 Train_ExtraPowerAdjustment := 3;
@@ -1677,7 +1658,7 @@ PROCEDURE MoveAllTrains;
                 Log(Train_LocoChipStr + ' L TC=' + IntToStr(Train_CurrentTC) + ' StalledState 3');
               END ELSE
                 IF NOT Train_StalledMsgWritten THEN BEGIN
-                  Debug('+Has ' + Train_LocoChipStr + ' stalled? Speed has now been increased by three Lenz speed steps');
+                  Debug('+ Has ' + Train_LocoChipStr + ' stalled? Speed has now been increased by three steps');
                   Train_StalledMsgWritten := True;
                 END;
         END;
@@ -1685,7 +1666,7 @@ PROCEDURE MoveAllTrains;
         { If the train isn't going anywhere, don't process any movement - without this check, another train entering the next track circuit would be assumed by the system
           to be our loco.
         }
-        IF Train_DesiredLenzSpeed <> 0 THEN BEGIN
+        IF Train_DesiredSpeedInMPH <> MPH0 THEN BEGIN
           { Change the train's status if it has returned from missing }
           IF (Train_CurrentStatus = Missing)
           AND (Train_CurrentStatus = MissingAndSuspended)
@@ -1697,8 +1678,7 @@ PROCEDURE MoveAllTrains;
 
             { Finds the first of the list of train's sections to be occupied - has to be the next section expected, in case something else occupying it causes confusion }
             IF (TrackCircuits[TC].TC_OccupationState = TCFeedbackOccupation) THEN BEGIN
-              Log(Train_LocoChipStr + ' T TC=' + IntToStr(TC) + ' [' + DescribeLineNamesForTrackCircuit(TC) + ']'
-                                    + ' occupation recorded');
+              Log(Train_LocoChipStr + ' T TC=' + IntToStr(TC) + ' [' + DescribeLineNamesForTrackCircuit(TC) + ']' + ' occupation recorded');
 
               Train_PreviousTC := Train_CurrentTC;
               Train_CurrentTC := TC;
@@ -1810,7 +1790,6 @@ PROCEDURE MoveAllTrains;
         END;
 
         IF (Train_CurrentStatus = Missing) OR (Train_CurrentStatus = MissingAndSuspended) THEN BEGIN
-          Train_DesiredLenzSpeed := 0;
           Train_DesiredSpeedInMPH := MPH0;
           Train_AccelerationTimeInSeconds := 0;
 
@@ -1857,13 +1836,13 @@ PROCEDURE MoveAllTrains;
           END;
         END ELSE BEGIN
           { Not a wrong move - now set the speed depending on where we are }
-          CalculateDesiredSpeed(T);
+          CalculateDesiredTrainSpeedInMPH(T);
 
-          IF Train_CurrentLenzSpeed = 0 THEN
+          IF Train_CurrentSpeedInMPH = MPH0 THEN
             { as we're starting from scratch, set the timer to catch stalls }
             Train_SectionStartTime := Time;
 
-          IF Train_DesiredLenzSpeed = 0 THEN
+          IF Train_DesiredSpeedInMPH = MPH0 THEN
             Train_SectionStartTime := 0;
         END;
 
@@ -1875,7 +1854,7 @@ PROCEDURE MoveAllTrains;
         AND (DebugStr <> Train_TCsNotClearedStr)
         THEN BEGIN
           Log(Train_LocoChipStr + ' T TCnc:');
-          WriteStringArrayToLog(Train_LocoChip, 'T', Train_TCsNotClearedArray, 2, 190);
+          WriteStringArrayToLog(Train_LocoChipStr, 'T', Train_TCsNotClearedArray, 2, 190);
           Train_TCsNotClearedStr := DebugStr;
         END;
 
@@ -1886,7 +1865,7 @@ PROCEDURE MoveAllTrains;
         AND (DebugStr <> Train_TCsAndSignalsNotClearedStr)
         THEN BEGIN
           Log(Train_LocoChipStr + ' T TC&SGnc:');
-          WriteStringArrayToLog(Train_LocoChip, 'T', Train_TCsAndSignalsNotClearedArray, 2, 190, 'SR=');
+          WriteStringArrayToLog(Train_LocoChipStr, 'T', Train_TCsAndSignalsNotClearedArray, 2, 190, 'SR=');
           Train_TCsAndSignalsNotClearedStr := DebugStr;
         END;
 
@@ -1897,7 +1876,7 @@ PROCEDURE MoveAllTrains;
         AND (DebugStr <> Train_TCsOccupiedOrClearedStr)
         THEN BEGIN
           Log(Train_LocoChipStr + ' T TCo/c:');
-          WriteStringArrayToLog(Train_LocoChip, 'T', Train_TCsOccupiedOrClearedArray, 2, 190);
+          WriteStringArrayToLog(Train_LocoChipStr, 'T', Train_TCsOccupiedOrClearedArray, 2, 190);
           Train_TCsOccupiedOrClearedStr := DebugStr;
         END;
 
@@ -1908,46 +1887,63 @@ PROCEDURE MoveAllTrains;
         AND (DebugStr <> Train_TCsReleasedStr)
         THEN BEGIN
           Log(Train_LocoChipStr + ' T TCr:');
-          WriteStringArrayToLog(Train_LocoChip, 'T', Train_TCsReleasedArray, 2, 190);
+          WriteStringArrayToLog(Train_LocoChipStr, 'T', Train_TCsReleasedArray, 2, 190);
           Train_TCsReleasedStr := DebugStr;
         END;
       END;
     END; {WITH}
-  END; { CalculateTrainSpeed }
+  END; { CalculateTrainSpeedInMPH }
 
-  PROCEDURE MoveTrain(T : TrainElement);
+  PROCEDURE MoveTrain(T : TrainIndex);
   { Move a train along the track }
   CONST
     ForceDraw = True;
     Indent = True;
+    UserDriving = True;
+    UserRequiresInstructions = True;
 
   VAR
+    DesiredLocoLenzSpeed : Integer;
+    DesiredDHLocoLenzSpeed : Integer;
     TempDirectionStr : String;
-    TempUserRequiresInstructionMsg : String;
+    TempUserSpeedInstructionMsg : String;
 
   BEGIN
+    DesiredDHLocoLenzSpeed := 0;
+
     WITH Trains[T] DO BEGIN
       IF (Train_CurrentStatus <> Suspended)
       AND (Train_CurrentStatus <> MissingAndSuspended) AND (Train_CurrentStatus <> Cancelled)
       THEN BEGIN
         { see which trains are where - find out speeds required }
-        CalculateTrainSpeed(T);
+        CalculateTrainSpeedInMPH(T);
+
         { See if loco taken over by an user - could be requested in the timetable too }
         IF SystemOnline THEN BEGIN
-          IF NOT Train_UserDriving THEN
-            SetDesiredTrainSpeed(T)
-          ELSE BEGIN
+          { convert the train's desired speed in MPH to the loco's speed In Lenz units }
+          DesiredLocoLenzSpeed := SpeedInMPHToLocoLenzSpeed(Train_LocoIndex, Train_DesiredSpeedInMPH);
+          IF Train_DoubleHeaderLocoChip <> UnknownLocoChip THEN
+            DesiredDHLocoLenzSpeed := SpeedInMPHToLocoLenzSpeed(Train_DoubleHeaderLocoIndex, Train_DesiredSpeedInMPH);
+
+          IF NOT Train_UserDriving THEN BEGIN
+            SetDesiredLocoLenzSpeed(Train_LocoIndex, DesiredLocoLenzSpeed, NOT UserDriving, NOT UserRequiresInstructions);
+            DrawDiagramsSpeedCell(T);
+            IF Train_DoubleHeaderLocoChip <> UnknownLocoChip THEN
+              SetDesiredLocoLenzSpeed(Train_DoubleHeaderLocoIndex, DesiredDHLocoLenzSpeed, NOT UserDriving, NOT UserRequiresInstructions);
+          END ELSE BEGIN
             IF Train_UserRequiresInstructions THEN BEGIN
-              TempUserRequiresInstructionMsg := IntToStr(Train_DesiredLenzSpeed);
+              TempUserSpeedInstructionMsg := 'User instructed to set loco ' + Train_LocoChipStr + '''s speed to ' + IntToStr(DesiredLocoLenzSpeed);
+              IF Train_DoubleHeaderLocoChip <> UnknownLocoChip THEN
+                TempUserSpeedInstructionMsg := ' and loco ' + LocoChipToStr(Train_DoubleHeaderLocoChip) + '''s speed to ' + IntToStr(DesiredDHLocoLenzSpeed);
               TempDirectionStr := DirectionToStr(Train_CurrentDirection, ShortStringType);
               IF TempDirectionStr <> SaveTempDirectionStr THEN BEGIN
-                TempUserRequiresInstructionMsg := TempUserRequiresInstructionMsg + ' ' + TempDirectionStr;
+                TempUserSpeedInstructionMsg := TempUserSpeedInstructionMsg + ' ' + TempDirectionStr;
                 SaveTempDirectionStr := TempDirectionStr;
               END;
 
-              IF Train_UserRequiresInstructionMsg <> TempUserRequiresInstructionMsg THEN BEGIN
-                Log(Train_LocoChipStr + ' L= User instructed to set loco ' + Train_LocoChipStr + '''s speed to ' + TempUserRequiresInstructionMsg);
-                Train_UserRequiresInstructionMsg := TempUserRequiresInstructionMsg;
+              IF Train_UserSpeedInstructionMsg <> TempUserSpeedInstructionMsg THEN BEGIN
+                Log(Train_LocoChipStr + ' L= ' + TempUserSpeedInstructionMsg);
+                Train_UserSpeedInstructionMsg := TempUserSpeedInstructionMsg;
               END;
             END;
             IF RDCMode
@@ -1956,8 +1952,7 @@ PROCEDURE MoveAllTrains;
             AND Train_ControlledByRDC
             THEN BEGIN
               Train_DesiredSpeedInMPH := Stop;
-              Train_DesiredLenzSpeed := 0;
-              SetSpeedByRailDriverConsole(T);
+              SetSpeedByRailDriverConsole(Train_LocoIndex);
             END;
           END;
         END;
@@ -1966,7 +1961,7 @@ PROCEDURE MoveAllTrains;
   END; { MoveTrain }
 
 VAR
-  T : TrainElement;
+  T : TrainIndex;
 
 BEGIN
   IF NOT InAutoMode THEN BEGIN
@@ -2003,40 +1998,45 @@ BEGIN
   END;
 END; { MoveAllTrains }
 
-FUNCTION TrainIsInPlace(T : TrainElement) : Boolean;
+FUNCTION TrainIsInPlace(T : TrainIndex) : Boolean;
 { Returns true if a given train exists  - not in use 9/4/14 **** }
 VAR
   DebugStr : String;
   InitialTrackCircuitCount : Integer;
 
 BEGIN
-  WITH Trains[T] DO BEGIN
-    Result := False;
-    IF SystemOnline THEN BEGIN
-      { see if there's something in the track circuit we intend starting from - (can't tell what's there, unfortunately) - third, fourth and fifth initial ones may not
-        exist so need to test that first.
-      }
-      FOR InitialTrackCircuitCount := 1 TO 5 DO BEGIN
-        IF Train_InitialTrackCircuits[InitialTrackCircuitCount] <> UnknownTrackCircuit THEN
-          IF TrackCircuits[Train_InitialTrackCircuits[InitialTrackCircuitCount]].TC_OccupationState = TCFeedbackOccupation THEN
-            Result := True;
-      END; {FOR}
+  Result := False;
 
-      IF Result = False THEN BEGIN
-        IF NOT Train_NotInPlaceMsgWritten THEN BEGIN
-          Debug('!' + Train_LocoChipStr + ' not found in TC=' + IntToStr(Train_InitialTrackCircuits[1]));
+  IF T = UnknownTrainIndex THEN
+    UnknownTrainRecordFound('TrainIsInPlace')
+  ELSE BEGIN
+    WITH Trains[T] DO BEGIN
+      IF SystemOnline THEN BEGIN
+        { see if there's something in the track circuit we intend starting from - (can't tell what's there, unfortunately) - third, fourth and fifth initial ones may not
+          exist so need to test that first.
+        }
+        FOR InitialTrackCircuitCount := 1 TO 5 DO BEGIN
+          IF Train_InitialTrackCircuits[InitialTrackCircuitCount] <> UnknownTrackCircuit THEN
+            IF TrackCircuits[Train_InitialTrackCircuits[InitialTrackCircuitCount]].TC_OccupationState = TCFeedbackOccupation THEN
+              Result := True;
+        END; {FOR}
 
-          DebugStr := 'Train not found in TC=' + IntToStr(Train_InitialTrackCircuits[1]);
-          FOR InitialTrackCircuitCount := 2 TO 5 DO
-            IF Train_InitialTrackCircuits[InitialTrackCircuitCount] <> UnknownTrackCircuit THEN
-              DebugStr := DebugStr + ' or TC=' + IntToStr(Train_InitialTrackCircuits[InitialTrackCircuitCount]);
-          DebugStr := DebugStr + ' so not activating it yet';
-          Log(Train_LocoChipStr + ' L ' + DebugStr);
-          Train_NotInPlaceMsgWritten := True;
+        IF Result = False THEN BEGIN
+          IF NOT Train_NotInPlaceMsgWritten THEN BEGIN
+            Debug('!' + Train_LocoChipStr + ' not found in TC=' + IntToStr(Train_InitialTrackCircuits[1]));
+
+            DebugStr := 'Train not found in TC=' + IntToStr(Train_InitialTrackCircuits[1]);
+            FOR InitialTrackCircuitCount := 2 TO 5 DO
+              IF Train_InitialTrackCircuits[InitialTrackCircuitCount] <> UnknownTrackCircuit THEN
+                DebugStr := DebugStr + ' or TC=' + IntToStr(Train_InitialTrackCircuits[InitialTrackCircuitCount]);
+            DebugStr := DebugStr + ' so not activating it yet';
+            Log(Train_LocoChipStr + ' L ' + DebugStr);
+            Train_NotInPlaceMsgWritten := True;
+          END;
         END;
       END;
-    END;
-  END; {WITH}
+    END; {WITH}
+  END;
 END; { TrainIsInPlace }
 
 PROCEDURE CheckTrainsReadyToDepart;
@@ -2047,7 +2047,8 @@ CONST
   TimetableLoading = True;
 
 VAR
-  T : TrainElement;
+  OK : Boolean;
+  T : TrainIndex;
 
 BEGIN
   T := 0;
@@ -2090,7 +2091,7 @@ BEGIN
                 AND ((Train_CurrentStatus = ReadyForCreation) OR (Train_CurrentStatus = WaitingForLightsOn))
                 THEN BEGIN
                   ChangeTrainStatus(T, WaitingForRouteing);
-                  IF Train_LightsType <> NoLights THEN BEGIN
+                  IF Train_HasLights THEN BEGIN
                     { If we're changing ends, allow time for the driver to walk from one end of the train to the other }
                     IF (DirectionWillChangeAfterGivenJourney(T, Train_CurrentJourney))
                     AND (Train_CurrentLengthInInches > 36) { at least four carriage lengths to walk so increase the time }
@@ -2102,15 +2103,15 @@ BEGIN
                   END;
                 END;
 
-            IF Train_HasCablights
-            AND NOT CabLightsAreOn(Train_LocoChip)
+            IF TrainHasCablights(T)
+            AND NOT Train_CabLightsAreOn
             AND NOT Train_CabLightsHaveBeenOn
             THEN BEGIN
               IF ((Train_LightsOnTime <> 0)
                   AND (IncSecond(Train_LightsOnTime, -60) <= CurrentRailwayTime))
               OR (CurrentRailwayTime > IncSecond(TrainJourney_CurrentDepartureTime, -180))
               THEN BEGIN
-                TurnCabLightsOn(Train_LocoChip);
+                TurnTrainCabLightsOn(T, OK);
                 Train_CabLightsHaveBeenOn := True;
               END;
             END;
@@ -2163,7 +2164,7 @@ CONST
 
 VAR
   OK : Boolean;
-  T : TrainElement;
+  T : TrainIndex;
 
 BEGIN
   TRY
@@ -2192,7 +2193,7 @@ BEGIN
                 END;
               END;
 
-              IF Train_CurrentLenzSpeed <> 0 THEN BEGIN
+              IF Train_CurrentSpeedInMPH <> MPH0 THEN BEGIN
                 ChangeTrainStatus(T, Departed);
                 TrainJourney_ActualDepartureTime := CurrentRailwayTime;
                 RecalculateJourneyTimes(T, 'following departure from ' + LocationToStr(Train_JourneysArray[Train_CurrentJourney].TrainJourney_StartLocation));
@@ -2244,7 +2245,7 @@ VAR
   I : Integer;
   OccupiedOrClearedTC : Integer;
   OK : Boolean;
-  T : TrainElement;
+  T : TrainIndex;
   TCPos : Integer;
 
 BEGIN
@@ -2272,7 +2273,7 @@ BEGIN
             IF AllJourneysComplete(T) THEN BEGIN
               IF Length(Train_TCsNotClearedArray) = 0 THEN BEGIN
                 Log(Train_LocoChipStr + ' X Train_TCsNotClearedArray not empty but all journeys complete');
-                WriteStringArrayToLog(Train_LocoChip, 'T', 'Train_TCsNotClearedArray = ', Train_TCsNotClearedArray, 2, 190);
+                WriteStringArrayToLog(Train_LocoChipStr, 'T', 'Train_TCsNotClearedArray = ', Train_TCsNotClearedArray, 2, 190);
               END;
 
               DebugStr := 'now inactive:';
@@ -2286,13 +2287,13 @@ BEGIN
                 some time to clear)
               }
               { See if there's additional loco chips - if so, switch direction on them so that both lights switch to red }
-              IF Train_LightsType = LightsOperatedByTwoChips THEN
+              IF TrainHasLightsOperatedByTwoChips(T) THEN
                 AddLightsToLightsToBeSwitchedOnArray(T, Down, Up, 0, 5, CurrentRailwayTime);
 
-              IF Train_HasCablights
-              AND NOT CabLightsAreOn(Train_LocoChip)
+              IF TrainHasCablights(T)
+              AND NOT Train_CabLightsAreOn
               THEN BEGIN
-                TurnCabLightsOn(Train_LocoChip);
+                TurnTrainCabLightsOn(T, OK);
                 Train_CabLightsHaveBeenOn := True;
               END;
 
@@ -2320,7 +2321,7 @@ BEGIN
               FOR I := 0 TO High(Train_TCsOccupiedOrClearedArray) DO
                 DebugStr := DebugStr + ' TC=' + Train_TCsOccupiedOrClearedArray[I];
               Log(Train_LocoChipStr + ' T TCo/c:');
-              WriteStringArrayToLog(Train_LocoChip, 'L', Train_TCsOccupiedOrClearedArray, 2, 190);
+              WriteStringArrayToLog(Train_LocoChipStr, 'L', Train_TCsOccupiedOrClearedArray, 2, 190);
               Train_TCsOccupiedOrClearedStr := DebugStr;
 
               SetLength(Train_TCsReleasedArray, 0);
@@ -2368,7 +2369,7 @@ BEGIN
                   { See if there's additional loco chips - if so, switch direction on them so both lights switch to red - not necessarily immediately, though that sometimes
                     happens in real life
                   }
-                  IF Train_LightsType = LightsOperatedByTwoChips THEN
+                  IF TrainHasLightsOperatedByTwoChips(T) THEN
                     AddLightsToLightsToBeSwitchedOnArray(T, Down, Up, 0, 5, CurrentRailwayTime);
                 END;
 
