@@ -1827,17 +1827,21 @@ VAR
 BEGIN
   Result := False;
 
-  T := Locos[L].Loco_TrainIndex;
-  IF T = UnknownTrainIndex THEN
-    UnknownTrainRecordFound('LocoHasBeenTakenOverByProgram')
+  IF L = UnknownLocoIndex THEN
+    UnknownLocoRecordFound('LocoHasBeenTakenOverByProgram')
   ELSE BEGIN
-    WITH Trains[T] DO BEGIN
-      IF Train_ControlledByProgram THEN BEGIN
-        Train_PreviouslyControlledByProgram := False;
-        Train_TakenOverByUserMsgWritten := False;
-        Result := True;
-      END;
-    END; {WITH}
+    T := Locos[L].Loco_TrainIndex;
+    IF T = UnknownTrainIndex THEN
+      UnknownTrainRecordFound('LocoHasBeenTakenOverByProgram')
+    ELSE BEGIN
+      WITH Trains[T] DO BEGIN
+        IF Train_ControlledByProgram THEN BEGIN
+          Train_PreviouslyControlledByProgram := False;
+          Train_TakenOverByUserMsgWritten := False;
+          Result := True;
+        END;
+      END; {WITH}
+    END;
   END;
 END; { LocoHasBeenTakenOverByProgram }
 

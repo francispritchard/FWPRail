@@ -6518,7 +6518,9 @@ BEGIN { ShutDownProgram }
         T := 0;
         WHILE T <= High(Trains) DO BEGIN
           WITH Trains[T] DO BEGIN
-            IF TrainFoundInDiagrams(Train_LocoIndex) <> 0 THEN BEGIN
+            IF (Train_LocoIndex <> UnknownLocoIndex)
+            AND (TrainFoundInDiagrams(Train_LocoIndex) <> 0)
+            THEN BEGIN
               IF Train_HasLights THEN BEGIN
                 TurnTrainLightsOff(T, OK);
                 IF TrainHasCabLights(T)
@@ -8378,7 +8380,10 @@ BEGIN
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_DoubleHeaderLocoChip = ' + LocoChipToStr(Train_DoubleHeaderLocoChip));
             WriteLn(TempOutputFile, 'Train_LocoChipStr = ' + Train_LocoChipStr);
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_DoubleHeaderLocoChipStr = ' + Train_DoubleHeaderLocoChipStr);
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_LocoIndex = ' + LocoIndexToStr(Train_LocoIndex));
+            IF Train_LocoIndex <> unknownTrainIndex THEN
+              WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_LocoIndex = ' + LocoIndexToStr(Train_LocoIndex))
+            ELSE
+              WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_LocoIndex = Unknown Train Index');
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_DoubleHeaderLocoIndex = ' + LocoIndexToStr(Train_DoubleHeaderLocoIndex));
 
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_AccelerationTimeInSeconds = ' + FloatToStr(Train_AccelerationTimeInSeconds));

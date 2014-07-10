@@ -1354,57 +1354,59 @@ END; { LocoDialogueKeyUp }
 PROCEDURE TLocoDialogueWindow.LocoDialogueTimerTick(Sender: TObject);
 { If the loco is taken over, update the Dialogue box }
 BEGIN
-  IF LocoDialogueLocoIndex <> UnknownLocoIndex THEN BEGIN
-    IF LocoHasBeenTakenOverByUser(LocoDialogueLocoIndex) THEN
-      LocoTakenOver := True;
+  IF SystemOnline THEN BEGIN { needs to say something if we're offline ****** }
+    IF LocoDialogueLocoIndex <> UnknownLocoIndex THEN BEGIN
+      IF LocoHasBeenTakenOverByUser(LocoDialogueLocoIndex) THEN
+        LocoTakenOver := True;
 
-    IF LocoTakenOver <> SaveLocotakenOverState THEN BEGIN
-      IF LocoTakenOver = False THEN
-        LocoDialogueSpeedDisplay.Font.Color := clBtnText;
-      SaveLocotakenOverState := LocoTakenOver;
-    END;
+      IF LocoTakenOver <> SaveLocotakenOverState THEN BEGIN
+        IF LocoTakenOver = False THEN
+          LocoDialogueSpeedDisplay.Font.Color := clBtnText;
+        SaveLocotakenOverState := LocoTakenOver;
+      END;
 
-    IF LocoTakenOver THEN BEGIN
-      { update the speed info }
-      LocoDialogueLocoSpeed := GetLenzSpeed(LocoDialogueLocoIndex, ForceARead);
-      LocoDialogueSpeedDisplay.Caption := IntToStr(LocoDialogueLocoSpeed);
-      LocoDialogueSpeedDisplay.Font.Color := clBtnShadow;
+      IF LocoTakenOver THEN BEGIN
+        { update the speed info }
+        LocoDialogueLocoSpeed := GetLenzSpeed(LocoDialogueLocoIndex, ForceARead);
+        LocoDialogueSpeedDisplay.Caption := IntToStr(LocoDialogueLocoSpeed);
+        LocoDialogueSpeedDisplay.Font.Color := clBtnShadow;
 
-      { Update the direction info }
-      IF LocoDialogueLocoSpeed = 28 THEN
-        LocoDialogueUpButton.Enabled := False
-      ELSE
-        IF LocoDialogueLocoSpeed = 0 THEN BEGIN
-          LocoDialogueDownButton.Enabled := False;
+        { Update the direction info }
+        IF LocoDialogueLocoSpeed = 28 THEN
+          LocoDialogueUpButton.Enabled := False
+        ELSE
+          IF LocoDialogueLocoSpeed = 0 THEN BEGIN
+            LocoDialogueDownButton.Enabled := False;
 
-          LocoDialogueRightButton.Enabled := True;
-          LocoDialogueLeftButton.Enabled := True;
+            LocoDialogueRightButton.Enabled := True;
+            LocoDialogueLeftButton.Enabled := True;
 
-          IF Locos[LocoDialogueLocoIndex].Loco_CurrentDirection = Up THEN BEGIN
-            LocoDialogueLeftButton.Down := True;
-            LocoDialogueRightButton.Down := False;
+            IF Locos[LocoDialogueLocoIndex].Loco_CurrentDirection = Up THEN BEGIN
+              LocoDialogueLeftButton.Down := True;
+              LocoDialogueRightButton.Down := False;
+            END ELSE BEGIN
+              LocoDialogueLeftButton.Down := False;
+              LocoDialogueRightButton.Down := True;
+            END;
           END ELSE BEGIN
-            LocoDialogueLeftButton.Down := False;
-            LocoDialogueRightButton.Down := True;
+            LocoDialogueUpButton.Enabled := True;
+            LocoDialogueDownButton.Enabled := True;
+
+            LocoDialogueRightButton.Enabled := False;
+            LocoDialogueLeftButton.Enabled := False;
+
+            IF Locos[LocoDialogueLocoIndex].Loco_CurrentDirection = Up THEN BEGIN
+              LocoDialogueLeftButton.Down := True;
+              LocoDialogueRightButton.Down := False;
+            END ELSE BEGIN
+              LocoDialogueLeftButton.Down := False;
+              LocoDialogueRightButton.Down := True;
+            END;
           END;
-        END ELSE BEGIN
-          LocoDialogueUpButton.Enabled := True;
-          LocoDialogueDownButton.Enabled := True;
 
-          LocoDialogueRightButton.Enabled := False;
-          LocoDialogueLeftButton.Enabled := False;
-
-          IF Locos[LocoDialogueLocoIndex].Loco_CurrentDirection = Up THEN BEGIN
-            LocoDialogueLeftButton.Down := True;
-            LocoDialogueRightButton.Down := False;
-          END ELSE BEGIN
-            LocoDialogueLeftButton.Down := False;
-            LocoDialogueRightButton.Down := True;
-          END;
-        END;
-
-      { and the lights and function info }
-      LocoDialogueReturnFunctionState;
+        { and the lights and function info }
+        LocoDialogueReturnFunctionState;
+      END;
     END;
   END;
 END; { LocoDialogueTimerTick }

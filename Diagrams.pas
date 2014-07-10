@@ -227,23 +227,34 @@ VAR
   T : TrainIndex;
 
 BEGIN
-  T := 0;
-  TrainFound := False;
+  Result := UnknownTrainIndex;
 
-  WHILE (T <= High(Trains))
-  AND NOT TrainFound
-  DO BEGIN
-    IF Trains[T].Train_DiagramFound
-    AND (Trains[T].Train_LocoChip = Locos[L].Loco_LocoChip)
-    THEN
-      TrainFound := True
-    ELSE
-      Inc(T);
-  END; {WHILE}
+  TRY
+    IF L = UnknownTrainIndex THEN
+      UnknownTrainRecordFound('TrainFoundInDiagrams')
+    ELSE BEGIN
+      T := 0;
+      TrainFound := False;
 
-  Result := T;
-  IF TrainFound THEN
-    Log(Locos[L].Loco_LocoChipStr + ' D Train found in diagrams');
+      WHILE (T <= High(Trains))
+      AND NOT TrainFound
+      DO BEGIN
+        IF Trains[T].Train_DiagramFound
+        AND (Trains[T].Train_LocoChip = Locos[L].Loco_LocoChip)
+        THEN
+          TrainFound := True
+        ELSE
+          Inc(T);
+      END; {WHILE}
+
+      Result := T;
+      IF TrainFound THEN
+        Log(Locos[L].Loco_LocoChipStr + ' D Train found in diagrams');
+    END;
+  EXCEPT
+    ON E : Exception DO
+      Log('EG TrainFoundInDiagrams: ' + E.ClassName + ' error raised, with message: ' + E.Message);
+  END; {TRY}
 END; { TrainFoundInDiagrams }
 
 PROCEDURE CheckOccupiedLinesAndDiagrams;
@@ -290,7 +301,10 @@ BEGIN
               MatchingLocationFound := True;
               TrackCircuits[TC].TC_LocoChip := Train_LocoChip;
               { If a feedback occupation does not has a diagrammed train occupying or adjacent to it, mark it as permanently occupied }
-              FoundTrainIndex := TrainFoundInDiagrams(Train_LocoIndex);
+              FoundTrainIndex := UnknownTrainIndex;
+              IF (Train_LocoIndex <> UnknownLocoIndex) THEN
+                FoundTrainIndex := TrainFoundInDiagrams(Train_LocoIndex);
+
               IF FoundTrainIndex = UnknownTrainIndex THEN BEGIN
                 TrackCircuits[TC].TC_OccupationState := TCPermanentFeedbackOccupation;
                 Log(LocoChipToStr(TrackCircuits[TC].TC_LocoChip) + ' T recorded as being at TC=' + IntToStr(TC)
@@ -4384,8 +4398,10 @@ CONST
 
 VAR
   ActiveTrainCount : Integer;
+  DiagramEntryCount : Integer;
   ElementPos : Integer;
   I : Integer;
+  InLocoDatabase : Boolean;
   InputErrorMsg : String;
   InputFoundOrCancelled : Boolean;
   JourneyCount : Integer;
@@ -4398,14 +4414,19 @@ VAR
   SaveLastJourneyAreaOrDestinationStr : String;
   SaveLastJourneyDepartureTime : TDateTime;
   SaveLastJourneyDirection : DirectionType;
+  StationaryTrainFound : Boolean;
   T : TrainIndex;
   T_DepartureTimesArray : DateTimeArrayType;
   T_DestinationAreaOrLocationsStrArray : StringArrayType;
   T_DirectionsArray : DirectionArrayType;
   T_DoubleHeaderLocoChip : LocoChipType;
+  T_DoubleHeaderLocoChipStr : String;
+  T_DoubleHeaderLocoIndex : LocoChipType;
   T_LightsOnTime : TDateTime;
   T_LightsRemainOn : Boolean;
   T_LocoChip : LocoChipType;
+  T_LocoChipStr : String;
+  T_LocoIndex : LocoIndex;
   T_NonMoving : Boolean;
   T_NotForPublicUseArray : BooleanArrayType;
   T_RepeatFrequencyInMinutes : Integer;
@@ -4429,13 +4450,20 @@ BEGIN
       ErrorMsg := '';
       JourneyCount := -1;
       MoveToStablingAfterLastJourney := False;
+      DiagramEntryCount := 0;
       DiagramsOK := True;
       DiagramsMissing := False;
-      T_TrainLengthInCarriages := 0;
+      InLocoDatabase := True;
+      T_DoubleHeaderLocoChipStr := '';
+      T_DoubleHeaderLocoIndex := UnknownLocoIndex;
       T_LightsOnTime := 0;
       T_LightsRemainOn := True;
+      T_LocoChipStr := '';
+      T_LocoIndex := UnknownLocoIndex;
       T_RepeatFrequencyInMinutes := 0;
       T_RepeatUntilTime := 0;
+      StationaryTrainFound := False;
+      T_TrainLengthInCarriages := 0;
       T_TrainTypeNum := 0;
       T_UserDriving := False;
       T_UserRequiresInstructions := False;
@@ -4472,13 +4500,15 @@ BEGIN
       DiagramsADOTable.Open;
       Log('D Diagrams table and connection opened to create the diagrams');
 
-      DiagramsADOTable.Sort := 'LocoChip ASC, DepartureTime0 ASC';
+//      DiagramsADOTable.Sort := 'LocoChip ASC, DepartureTime0 ASC';
 
       DiagramsADOTable.First;
       WHILE DiagramsOK
       AND NOT DiagramsADOTable.EOF
       DO BEGIN
         WITH DiagramsADOTable DO BEGIN
+          Inc(DiagramEntryCount);
+
           OmitTrain := False;
           SetLength(T_DepartureTimesArray, 0);
           SetLength(T_DestinationAreaOrLocationsStrArray, 0);
@@ -4490,598 +4520,627 @@ BEGIN
           T_TrainActive := FieldByName('TrainActive').AsBoolean;
           T_NonMoving := FieldByName('NonMoving').AsBoolean;
           T_LocoChip := FieldByName('LocoChip').AsInteger;
+          IF T_LocoChip = 0 THEN
+            { convert the database's empty field to be the Unknown Loco Chip value }
+            T_LocoChip := UnknownLocoChip;
+          T_LocoChipStr := LocoChipToStr(T_LocoChip);
 
-          { Create a new train record }
-          SetLength(Trains, Length(Trains) + 1);
-          T := High(Trains);
-
-          WITH Trains[T] DO BEGIN
-            InitialiseTrainRecord(T);
-
-            Train_LocoChip := FieldByName('LocoChip').AsInteger;
-            Train_LocoIndex := GetLocoIndexFromTrainIndex(T);
-
-            WITH Locos[Train_LocoIndex] DO BEGIN
-              IF ErrorMsg = '' THEN BEGIN
-                { Now the data from the loco database }
-                Train_LocoChipStr := Loco_LocoChipStr;
-                Loco_TrainIndex := T;
-
-                Train_DoubleHeaderLocoChip := FieldByName('DoubleHeaderLocoChip').AsInteger;
-                IF Train_DoubleHeaderLocoChip = 0 THEN
-                  Train_DoubleHeaderLocoChip := UnknownLocoChip
-                ELSE BEGIN
-                  Train_DoubleHeaderLocoIndex := GetLocoIndexFromLocoChip(Train_DoubleHeaderLocoChip);
-                  Train_DoubleHeaderLocoChipStr := Locos[Train_DoubleHeaderLocoIndex].Loco_LocoChipStr;
-                END;
-
-                Train_ActualNumStr := Loco_ActualNumStr;
-                Train_LocoName := Loco_LocoName;
-                Train_LocoClassStr := Loco_LocoClassStr;
-                Train_LocoTypeStr := Loco_LocoTypeStr;
-
-                { Where the loco last stopped and how its last train was }
-                Train_LastTC := Loco_LastTC;
-                Train_CurrentTC := Train_LastTC;
-                Train_LastLocation := Loco_LastLocation;
-
-                Train_NumberOfCarriages := Loco_NumberOfCarriages;
-                Train_FixedLengthInInches := Loco_FixedLengthInInches;
-                Train_LastLengthInInches := Loco_LastLengthInInches;
-
-                { Note the fixed train direction (if any) which is needed for trains hauling coaches or wagons }
-                Train_FixedDirection := Loco_FixedDirection;
-                Train_CurrentDirection := Loco_SavedDirection;
-
-                IF (Train_FixedDirection <> UnknownDirection)
-                AND (Train_CurrentDirection <> UnknownDirection)
-                AND (Train_CurrentDirection <> Train_FixedDirection)
-                THEN
-                  { note there's a problem but allow the train record to be used, as the new diagram may fix it }
-                  Log(Train_LocoChipStr + ' X! NB Discrepancy in train direction: ' + ' fixed direction is ' + FieldByName('FixedTrainDirection').AsString
-                                        + ' whereas last train direction was ' + FieldByName('LastTrainDirection').AsString);
-
-//                { Make sure the double-heading loco is going the same way as the leading loco }
-//                IF (Train_FixedDirection <> UnknownDirection) THEN BEGIN
-//                  IF ((Train_DoubleHeaderLocoIndex <> UnknownLocoIndex)
-//                  AND (Locos[Train_DoubleHeaderLocoIndex].Loco_FixedDirection <> Loco_FixedDirection))
-//                  THEN
-//                    Log(Train_LocoChipStr + ' X! NB Discrepancy in train direction: '
-//                                          + ' fixed direction for the leading loco is ' + FieldByName('FixedTrainDirection').AsString
-//                                          + ' whereas fixed direction for the double-heading loco is ' + FieldByName('FixedTrainDirection').AsString);
-
-
-
-
-
-                Train_SavedLocation := Train_LastLocation;
-                Train_Description := Loco_Description;
-                Train_UseTrailingTrackCircuits := Loco_UseTrailingTrackCircuits;
-
-                IF (Loco_LightsType <> NoLights)
-                OR ((Train_DoubleHeaderLocoIndex <> UnknownLocoChip)
-                    AND (Locos[Train_DoubleHeaderLocoIndex].Loco_LightsType <> NoLights))
-                THEN
-                  Train_HasLights := True;
-
-                IF ((Train_DoubleHeaderLocoIndex <> UnknownLocoIndex)
-                AND (Locos[Train_DoubleHeaderLocoIndex].Loco_MaximumSpeedInMPH < Loco_MaximumSpeedInMPH))
-                THEN BEGIN
-                  Train_MaximumSpeedInMPH := Locos[Train_DoubleHeaderLocoIndex].Loco_MaximumSpeedInMPH;
-                  Log(Train_LocoChipStr + ' X Train_MaximumSpeedInMPH = ' + MPHToStr(Train_MaximumSpeedInMPH)
-                                        + ' because that is the double-heading loco''s maximum speed which is lower that the leading loco''s');
-                END ELSE
-                  Train_MaximumSpeedInMPH := Loco_MaximumSpeedInMPH;
-
-
-  //                END;
-begin
-
-  //                IF ErrorMsg = '' THEN BEGIN
-  //                  { The following are mutually exclusive - LightSettingCount is used to detect if more than one is selected }
-  //                  LightSettingCount := 0;
-  //
-  //                  IF FieldByName('OrdinaryLights').AsBoolean THEN BEGIN
-  //                    Train_LightsType := HeadlightsAndTailLightsConnected;
-  //                    Inc(LightSettingCount);
-  //                  END;
-  //
-  //                  IF FieldByName('LightsDimmed').AsBoolean THEN BEGIN
-  //                    Train_LightsType := LightsShouldBeDimmed;
-  //                    Inc(LightSettingCount);
-  //                  END;
-  //
-  //                  IF FieldByName('ExpressModelsKit').AsBoolean THEN BEGIN
-  //                    Train_LightsType := ExpressModelsSeparateHeadlights;
-  //                    Inc(LightSettingCount);
-  //                  END;
-  //
-  //                  IF FieldByName('TailLightsSwitched').AsBoolean THEN BEGIN
-  //                    Train_LightsType := HeadlightsAndTailLightsSeparatelySwitched;
-  //                    Inc(LightSettingCount);
-  //                  END;
-  //
-  //                  IF FieldByName('CustomLightingKit').AsBoolean THEN BEGIN
-  //                    Train_LightsType := CustomLightingkit;
-  //                    Inc(LightSettingCount);
-  //                  END;
-  //
-  //                  IF FieldByName('LightsFromTwoChips').AsBoolean THEN BEGIN
-  //                    Train_LightsType := LightsOperatedByTwoChips;
-  //                    TempStr := FieldByName('LightingChipUp').AsString;
-  //                    IF (TempStr = '') OR (TempStr = '0') THEN
-  //                      ErrorMsg := 'Error in database for loco ' + LocoChipToStr(Train_LocoChip) + ': ''Lights From Two Chips'' ticked but no chip number supplied'
-  //                    ELSE BEGIN
-  //                      Train_LightingChipUp := StrToInt(TempStr);
-  //                      TempStr := FieldByName('LightingChipDown').AsString;
-  //                      IF (TempStr = '') OR (TempStr = '0') THEN
-  //                        ErrorMsg := 'Error in database for loco ' + LocoChipToStr(Train_LocoChip) + ': ''Lights From Two Chips'' ticked but no chip number supplied'
-  //                      ELSE
-  //                        Train_LightingChipDown := StrToInt(TempStr);
-  //                    END;
-  //
-  //                    Inc(LightSettingCount);
-  //                  END ELSE BEGIN
-  //                    IF FieldByName('LightingChipUp').AsInteger > 0 THEN
-  //                      ErrorMsg := 'Error in database for loco ' + LocoChipToStr(Train_LocoChip)
-  //                                  + ': lighting chip number up ' + LocoChipToStr(FieldByName('LightingChipUp').AsInteger)
-  //                                  + ' supplied but ''Lights From Two Chips'' not ticked'
-  //                    ELSE
-  //                      IF FieldByName('LightingChipDown').AsInteger > 0 THEN
-  //                        ErrorMsg := 'Error in database for loco ' + LocoChipToStr(Train_LocoChip)
-  //                                    + ': lighting chip number down ' + LocoChipToStr(FieldByName('LightingChipDown').AsInteger)
-  //                                    + ' supplied but ''Lights From Two Chips'' not ticked';
-  //                  END;
-  //
-  //                  IF LightSettingCount > 1 THEN
-  //                    ErrorMsg := 'Error in database for loco ' + LocoChipToStr(Train_LocoChip) + ': more than one lighting option ticked';
-  //                END;
-
-  //                IF ErrorMsg = '' THEN BEGIN
-  //                  IF NOT FieldByName('Non-Loco').AsBoolean THEN BEGIN
-  //                    { Now deal with speed settings }
-  //                    Train_SpeedArray[1] := FieldByName('Speed10').AsInteger;
-  //                    FOR I := 2 TO 12 DO
-  //                      Train_SpeedArray[I] := FieldByName('Speed' + IntToStr(I) + '0').AsInteger;
-  //
-  //                    { First see if there any speeds here (speeds are added by hand to the database once the speed test is completed) by seeing if any of the speed settings are
-  //                      non-zero
-  //                    }
-  //                    TestInt := 0;
-  //                    FOR I := 1 TO 12 DO
-  //                      TestInt := TestInt + Train_SpeedArray[I];
-  //                    IF TestInt = 0 THEN BEGIN
-  //                      { there are no speeds in the database }
-  //                      Log(Train_LocoChipStr + ' L Loco has no speed settings in the loco database');
-  //                      Train_SpeedSettingsMissing := True;
-  //                    END ELSE BEGIN
-  //                      { Find the minimum speed and add to all lower speed settings }
-  //                      I := 1;
-  //                      SpeedFound := False;
-  //                      WHILE (I <= 12)
-  //                      AND NOT SpeedFound
-  //                      DO BEGIN
-  //                        IF Train_SpeedArray[I] <> 0 THEN BEGIN
-  //                          SpeedFound := True;
-  //                          { now add to all speed settings below }
-  //                          FOR J := 1 TO (I - 1) DO
-  //                            Train_SpeedArray[J] := Train_SpeedArray[I];
-  //                        END;
-  //                        Inc(I);
-  //                      END; {WHILE}
-  //
-  //                      { Find the maximum speed, and add to all higher speed settings }
-  //                      I := 12;
-  //                      SpeedFound := False;
-  //                      WHILE (I >= 1)
-  //                      AND NOT SpeedFound
-  //                      DO BEGIN
-  //                        IF Train_SpeedArray[I] <> 0 THEN BEGIN
-  //                          SpeedFound := True;
-  //                          { and store the maximum speed }
-  //                          CASE I OF
-  //                            1:
-  //                              Train_MaximumSpeedInMPH := MPH10;
-  //                            2:
-  //                              Train_MaximumSpeedInMPH := MPH20;
-  //                            3:
-  //                              Train_MaximumSpeedInMPH := MPH30;
-  //                            4:
-  //                              Train_MaximumSpeedInMPH := MPH40;
-  //                            5:
-  //                              Train_MaximumSpeedInMPH := MPH50;
-  //                            6:
-  //                              Train_MaximumSpeedInMPH := MPH60;
-  //                            7:
-  //                              Train_MaximumSpeedInMPH := MPH70;
-  //                            8:
-  //                              Train_MaximumSpeedInMPH := MPH80;
-  //                            9:
-  //                              Train_MaximumSpeedInMPH := MPH90;
-  //                            10:
-  //                              Train_MaximumSpeedInMPH := MPH100;
-  //                            11:
-  //                              Train_MaximumSpeedInMPH := MPH110;
-  //                            12:
-  //                              Train_MaximumSpeedInMPH := MPH120;
-  //                          END; {CASE}
-  //
-  //                          { now add to all speed settings below }
-  //                          FOR J := (I + 1) TO 12 DO
-  //                            Train_SpeedArray[J] := Train_SpeedArray[I];
-  //                        END;
-  //                        Dec(I);
-  //                      END; {WHILE}
-  //
-  //                      { But it might happen (has happened!) that, accidentally, an intervening speed setting is missing, or a speed step is lower than the one preceding it }
-  //                      I := 1;
-  //                      SpeedFound := True;
-  //                      WHILE (I <= 12)
-  //                      AND SpeedFound
-  //                      DO BEGIN
-  //                        IF Train_SpeedArray[I] = 0 THEN BEGIN
-  //                          SpeedFound := False;
-  //                          Log(Train_LocoChipStr + ' L Missing speed step at position ' + IntToStr(I - 1));
-  //                          ErrorMsg := 'Loco ' + LocoChipToStr(Train_LocoChip) + ': missing speed step at position ' + IntToStr(I - 1);
-  //                          Train_SpeedSettingsMissing := True;
-  //                        END ELSE
-  //                          IF (I > 1)
-  //                          AND (Train_SpeedArray[I] < Train_SpeedArray[I - 1])
-  //                          THEN BEGIN
-  //                            SpeedFound := False;
-  //                            Log(Train_LocoChipStr + ' L Speed step at position ' + IntToStr(I - 1) + ' is less than speed step at position ' + IntToStr(I - 2));
-  //                            ErrorMsg := 'Loco ' + LocoChipToStr(Train_LocoChip) + ': speed step at position ' + IntToStr(I - 1)
-  //                                                                                                                      + ' is less than speed step at position ' + IntToStr(I - 2);
-  //                            Train_SpeedSettingsMissing := True;
-  //                          END;
-  //                        Inc(I);
-  //                      END; {WHILE}
-  //                    END;
-  //                  END;
-  //                END;
-                END;
-              END;
-
-//              { Now add the speed settings to the appropriate MPH variable }
-//              IF ErrorMsg = '' THEN BEGIN
-//                Train_Speed10 := Train_SpeedArray[1];
-//                Train_Speed20 := Train_SpeedArray[2];
-//                Train_Speed30 := Train_SpeedArray[3];
-//                Train_Speed40 := Train_SpeedArray[4];
-//                Train_Speed50 := Train_SpeedArray[5];
-//                Train_Speed60 := Train_SpeedArray[6];
-//                Train_Speed70 := Train_SpeedArray[7];
-//                Train_Speed80 := Train_SpeedArray[8];
-//                Train_Speed90 := Train_SpeedArray[9];
-//                Train_Speed100 := Train_SpeedArray[10];
-//                Train_Speed110 := Train_SpeedArray[11];
-//                Train_Speed120 := Train_SpeedArray[12];
-//              END;
-
-              { Also add records for the additional lighting chips if any } { not sure if we need these 14/6/14 ****** }
-  //            IF (Train_LightingChipUp <> UnknownLocoChip)
-  //            AND (Train_LightingChipUp <> Train_LocoChip)
-  //            THEN BEGIN
-  //              New(UpLightsTrainRecord);
-  //              Train_LightingChipUpAddress := UpLightsTrainRecord;
-  //              InitialiseTrainRecord(UpLightsTrainRecord);
-  //              UpLightsTrainRecord^.Train_LocoChip := Train_LightingChipUp;
-  //              UpLightsTrainRecord^.Train_LocoChipStr := LocoChipToStr(UpLightsTrainRecord^.Train_LocoChip);
-  //              UpLightsTrainRecord^.Train_LightingChipRecordForChip := Train_LocoChip;
-  //              AddTrainToTrainList(UpLightsTrainRecord, DescribeFullTrainList);
-  //            END;
-
-  //            IF (Train_LightingChipDown <> UnknownLocoChip)
-  //            AND (Train_LightingChipDown <> Train_LocoChip)
-  //            THEN BEGIN
-  //              New(DownLightsTrainRecord);
-  //              Train_LightingChipDownAddress := DownLightsTrainRecord;
-  //              InitialiseTrainRecord(DownLightsTrainRecord);
-  //              DownLightsTrainRecord^.Train_LocoChip := Train_LightingChipDown;
-  //              DownLightsTrainRecord^.Train_LocoChipStr := LocoChipToStr(DownLightsTrainRecord^.Train_LocoChip);
-  //              DownLightsTrainRecord^.Train_LightingChipRecordForChip := Train_LocoChip;
-  //              AddTrainToTrainList(DownLightsTrainRecord, DescribeFullTrainList);
-  //            END;
-            END; {WITH}
-          END; {WITH}
-
-          IF T_TrainActive
-          AND T_NonMoving
+          { Only create a record if the train is either marked as being active or stationary }
+          IF NOT T_TrainActive
+          AND NOT T_NonMoving
           THEN BEGIN
-            IF MessageDialogueWithDefault('Loco ' + LocoChipToStr(T_LocoChip)
-                                          + ': cannot be both active and stationary'
-                                          + CRLF
-                                          + 'Please choose:',
-                                          StopTimer, mtError, [mbYes, mbNo], ['Active', 'Stationary'], mbYes) = mrYes
-            THEN
-              T_NonMoving := False
+            IF T_LocoChip <> UnknownLocoChip THEN
+              Log(T_LocoChipStr + ' D not creating a train record from diagram entry ' + IntToStr(DiagramEntryCount) + ' as neither marked as active nor as stationary')
             ELSE
-              T_TrainActive := False;
-          END;
-
-          IF T_TrainActive OR T_NonMoving THEN BEGIN
-            { Read in the data from the diagrams database }
-            T_DoubleHeaderLocoChip := FieldByName('DoubleHeaderLocoChip').AsInteger;
-
-            IF (T_LocoChip = UnknownLocoChip)
-            AND T_NonMoving
-            THEN
-
-            ELSE
-              IF (T_LocoChip < 0) OR (T_LocoChip > 9999) THEN
-                ErrorMsg := 'chip number is ' + IntToStr(T_LocoChip) + ': it must be between 1 and 9999';
-
-            IF ErrorMsg = '' THEN BEGIN
-              AppendToDirectionArray(T_DirectionsArray, StrToDirectionType(FieldByName('Direction0').AsString));
-              T_StartAreaOrLocationStr := FieldByName('Source').AsString;
-
-              TempSourceLocation := StrToLocation(T_StartAreaOrLocationStr);
-              IF TempSourceLocation <> UnknownLocation THEN BEGIN
-                IF (T_DirectionsArray[0] = Up)
-                AND (Locations[TempSourceLocation].Location_LineAtUp <> UnknownLine)
-                AND (Lines[Locations[TempSourceLocation].Location_LineAtUp].Line_NextUpType = EndOfLineIsnext)
-                THEN
-                  ErrorMsg := 'line up of source ' + T_StartAreaOrLocationStr + ' is marked as an end of line'
-                ELSE
-                  IF (T_DirectionsArray[0] = Down)
-                  AND (Locations[TempSourceLocation].Location_LineAtDown <> UnknownLine)
-                  AND (Lines[Locations[TempSourceLocation].Location_LineAtDown].Line_NextUpType = EndOfLineIsnext)
-                  THEN
-                    ErrorMsg := 'line down of source ' + T_StartAreaOrLocationStr + ' is marked as an end of line';
-              END;
-            END;
-
-            IF ErrorMsg = '' THEN BEGIN
-              IF FieldByName('TrainLength').AsString = '' THEN
-                T_TrainLengthInCarriages := 0
-              ELSE
-                IF NOT TryStrToInt(FieldByName('TrainLength').AsString, T_TrainLengthInCarriages) THEN
-                  ErrorMsg := 'length in carriages ''' + FieldByName('TrainLength').AsString + ''' is not an integer';
-
-              JourneyCount := -1;
-              IF NOT T_NonMoving THEN BEGIN
-                { We can work out how many journeys there are from how many destinations there are. Only load MaxJourneys at any one time, though, as that's the number of
-                  fields in the database.
-                }
-                NoDestination := False;
-                WHILE (JourneyCount < MaxJourneys)
-                AND NOT NoDestination
-                DO BEGIN
-                  IF NOT NoDestination THEN
-                    Inc(JourneyCount);
-                  IF FieldByName('Destination' + IntToStr(JourneyCount)).AsString = '' THEN BEGIN
-                    NoDestination := True;
-                    Dec(JourneyCount);
-                  END ELSE
-                    AppendToStringArray(T_DestinationAreaOrLocationsStrArray, FieldByName('Destination' + IntToStr(JourneyCount)).AsString);
-                END; {WHILE}
-
-                IF JourneyCount = -1 THEN
-                  { treat trains with no journeys as non-moving if they are not already recorded as that }
-                  T_NonMoving := True;
+              Log('D Not creating train record from diagram entry ' + IntToStr(DiagramEntryCount) + ' as train neither marked as active nor as stationary')
+          END ELSE BEGIN
+            IF T_TrainActive AND (T_LocoChip = UnknownLocoChip) THEN
+              Log('D! Not creating train record from diagram entry ' + IntToStr(DiagramEntryCount) + ' as a train with no loco can''t be active')
+            ELSE BEGIN
+              IF T_LocoChip = UnknownLocoChip THEN BEGIN
+                { there's no loco - but there might be a loco-less train standing there }
+                IF T_NonMoving THEN BEGIN
+                  StationaryTrainFound := True;
+                  Log('D! Creating train record from diagram entry ' + IntToStr(DiagramEntryCount) + ' for stationary train without a loco');
                 END;
-            END;
-
-            IF ErrorMsg = '' THEN BEGIN
-              IF NOT T_NonMoving THEN BEGIN
-                FOR I := 0 TO (JourneyCount - 1) DO
-                  { stopping can be true even if we haven't ticked the box, but initialise the array anyway }
-                  AppendToBooleanArray(T_StoppingArray, FieldByName('Stopping' + IntToStr(I)).AsBoolean);
-
-                { although we have to stop at the end of the last journey }
-                AppendToBooleanArray(T_StoppingArray, True);
-
-                { Deal with trains not for public use (e.g. coming from the sidings) }
-                FOR I := 0 TO JourneyCount DO
-                  AppendToBooleanArray(T_NotForPublicUseArray, FieldByName('NotForPublicUse' + IntToStr(I)).AsBoolean);
-
-                FOR I := 0 TO JourneyCount DO BEGIN
-                  { if we've been given a departure time, we have to stop before we can depart }
-                  AppendToDateTimeArray(T_DepartureTimesArray, FieldByName('DepartureTime' + IntToStr(I)).AsDateTime);
-                  IF (I > 0)
-                  AND (T_DepartureTimesArray[I] <> 0)
-                  THEN
-                    T_StoppingArray[I - 1] := True;
+              END ELSE BEGIN
+                T_LocoIndex := GetLocoIndexFromLocoChip(T_LocoChip);
+                IF T_LocoIndex = UnknownLocoIndex THEN BEGIN
+                  Log(LocoChipToStr(T_LocoChip) + ' D! not in loco database - not creating a train record');
+                  InLocoDatabase := False;
                 END;
-
-                T_LightsOnTime := FieldByName('LightsOnTime').AsDateTime;
-
-                T_RepeatUntilTime := FieldByName('RepeatUntilTime').AsDateTime;
-                T_RepeatFrequencyInMinutes := FieldByName('RepeatFrequencyInMinutes').AsInteger;
-                IF (T_RepeatUntilTime <> 0)
-                AND (T_RepeatFrequencyInMinutes = 0)
-                THEN
-                  ErrorMsg := 'repeat until time must also have frequency supplied'
-                ELSE
-                  IF (T_RepeatUntilTime = 0)
-                  AND (T_RepeatFrequencyInMinutes <> 0)
-                  THEN
-                    ErrorMsg := 'repeat until time must be supplied if frequency is supplied';
               END;
 
-              IF ErrorMsg = '' THEN BEGIN
-                { If we change direction, we have to stop before we can depart }
-                SaveDirection := T_DirectionsArray[0];
-                FOR I := 1 TO JourneyCount DO BEGIN
-                  { If there's no direction given, it's the same as the previous one }
-                  IF FieldByName('Direction' + IntToStr(I)).AsString = '' THEN
-                    AppendToDirectionArray(T_DirectionsArray, SaveDirection)
-                  ELSE BEGIN
-                    AppendToDirectionArray(T_DirectionsArray, StrToDirectionType(FieldByName('Direction' + IntToStr(I)).AsString));
-                    SaveDirection := StrToDirectionType(FieldByName('Direction' + IntToStr(I)).AsString);
+              T_DoubleHeaderLocoChip := FieldByName('DoubleHeaderLocoChip').AsInteger;
+              IF T_DoubleHeaderLocoChip = 0 THEN
+                { convert the database's empty field to be the "unknown loco chip"= value }
+                T_DoubleHeaderLocoChip := UnknownLocoChip
+              ELSE BEGIN
+                T_DoubleHeaderLocoIndex := GetLocoIndexFromLocoChip(T_DoubleHeaderLocoChip);
+                T_DoubleHeaderLocoChipStr := Locos[T_DoubleHeaderLocoIndex].Loco_LocoChipStr;
+                IF T_DoubleHeaderLocoIndex = UnknownLocoIndex THEN BEGIN
+                  Log(LocoChipToStr(T_DoubleHeaderLocoChip) + ' D! not in loco database - not creating a train record from diagram entry ' + IntToStr(DiagramEntryCount));
+                  InLocoDatabase := False;
+                END;
+              END;
+
+              IF InLocoDatabase OR StationaryTrainFound THEN BEGIN
+                { Create a new train record }
+                SetLength(Trains, Length(Trains) + 1);
+                T := High(Trains);
+
+                WITH Trains[T] DO BEGIN
+                  InitialiseTrainRecord(T);
+
+                  Train_LocoChip := T_LocoChip;
+                  Train_LocoChipStr := T_LocoChipStr;
+                  Train_LocoIndex := T_LocoIndex;
+
+                  IF NOT StationaryTrainFound THEN BEGIN
+                    WITH Locos[Train_LocoIndex] DO BEGIN
+                      { Now the data from the loco database }
+                      Loco_TrainIndex := T;
+
+                      Train_DoubleHeaderLocoChip := T_DoubleHeaderLocoChip;
+                      Train_DoubleHeaderLocoChipStr := T_DoubleHeaderLocoChipStr;
+                      Train_DoubleHeaderLocoIndex := T_DoubleHeaderLocoIndex;
+
+                      Train_ActualNumStr := Loco_ActualNumStr;
+                      Train_LocoName := Loco_LocoName;
+                      Train_LocoClassStr := Loco_LocoClassStr;
+                      Train_LocoTypeStr := Loco_LocoTypeStr;
+
+                      { Where the loco last stopped and how its last train was }
+                      Train_LastTC := Loco_LastTC;
+                      Train_CurrentTC := Train_LastTC;
+                      Train_LastLocation := Loco_LastLocation;
+
+                      Train_NumberOfCarriages := Loco_NumberOfCarriages;
+                      Train_FixedLengthInInches := Loco_FixedLengthInInches;
+                      Train_LastLengthInInches := Loco_LastLengthInInches;
+
+                      { Note the fixed train direction (if any) which is needed for trains hauling coaches or wagons }
+                      Train_FixedDirection := Loco_FixedDirection;
+                      Train_CurrentDirection := Loco_SavedDirection;
+
+                      IF (Train_FixedDirection <> UnknownDirection)
+                      AND (Train_CurrentDirection <> UnknownDirection)
+                      AND (Train_CurrentDirection <> Train_FixedDirection)
+                      THEN
+                        { note there's a problem but allow the train record to be used, as the new diagram may fix it }
+                        Log(Train_LocoChipStr + ' X! NB Discrepancy in train direction: ' + ' fixed direction is ' + FieldByName('FixedTrainDirection').AsString
+                                              + ' whereas last train direction was ' + FieldByName('LastTrainDirection').AsString);
+
+      //                { Make sure the double-heading loco is going the same way as the leading loco }
+      //                IF (Train_FixedDirection <> UnknownDirection) THEN BEGIN
+      //                  IF ((Train_DoubleHeaderLocoIndex <> UnknownLocoIndex)
+      //                  AND (Locos[Train_DoubleHeaderLocoIndex].Loco_FixedDirection <> Loco_FixedDirection))
+      //                  THEN
+      //                    Log(Train_LocoChipStr + ' X! NB Discrepancy in train direction: '
+      //                                          + ' fixed direction for the leading loco is ' + FieldByName('FixedTrainDirection').AsString
+      //                                          + ' whereas fixed direction for the double-heading loco is ' + FieldByName('FixedTrainDirection').AsString);
+
+
+
+
+
+                      Train_SavedLocation := Train_LastLocation;
+                      Train_Description := Loco_Description;
+                      Train_UseTrailingTrackCircuits := Loco_UseTrailingTrackCircuits;
+
+                      IF (Loco_LightsType <> NoLights)
+                      OR ((Train_DoubleHeaderLocoIndex <> UnknownLocoChip)
+                          AND (Locos[Train_DoubleHeaderLocoIndex].Loco_LightsType <> NoLights))
+                      THEN
+                        Train_HasLights := True;
+
+                      IF ((Train_DoubleHeaderLocoIndex <> UnknownLocoIndex)
+                      AND (Locos[Train_DoubleHeaderLocoIndex].Loco_MaximumSpeedInMPH < Loco_MaximumSpeedInMPH))
+                      THEN BEGIN
+                        Train_MaximumSpeedInMPH := Locos[Train_DoubleHeaderLocoIndex].Loco_MaximumSpeedInMPH;
+                        Log(Train_LocoChipStr + ' X Train_MaximumSpeedInMPH = ' + MPHToStr(Train_MaximumSpeedInMPH)
+                                              + ' because that is the double-heading loco''s maximum speed which is lower that the leading loco''s');
+                      END ELSE
+                        Train_MaximumSpeedInMPH := Loco_MaximumSpeedInMPH;
+
+
+        //                END;
+        //                IF ErrorMsg = '' THEN BEGIN
+        //                  { The following are mutually exclusive - LightSettingCount is used to detect if more than one is selected }
+        //                  LightSettingCount := 0;
+        //
+        //                  IF FieldByName('OrdinaryLights').AsBoolean THEN BEGIN
+        //                    Train_LightsType := HeadlightsAndTailLightsConnected;
+        //                    Inc(LightSettingCount);
+        //                  END;
+        //
+        //                  IF FieldByName('LightsDimmed').AsBoolean THEN BEGIN
+        //                    Train_LightsType := LightsShouldBeDimmed;
+        //                    Inc(LightSettingCount);
+        //                  END;
+        //
+        //                  IF FieldByName('ExpressModelsKit').AsBoolean THEN BEGIN
+        //                    Train_LightsType := ExpressModelsSeparateHeadlights;
+        //                    Inc(LightSettingCount);
+        //                  END;
+        //
+        //                  IF FieldByName('TailLightsSwitched').AsBoolean THEN BEGIN
+        //                    Train_LightsType := HeadlightsAndTailLightsSeparatelySwitched;
+        //                    Inc(LightSettingCount);
+        //                  END;
+        //
+        //                  IF FieldByName('CustomLightingKit').AsBoolean THEN BEGIN
+        //                    Train_LightsType := CustomLightingkit;
+        //                    Inc(LightSettingCount);
+        //                  END;
+        //
+        //                  IF FieldByName('LightsFromTwoChips').AsBoolean THEN BEGIN
+        //                    Train_LightsType := LightsOperatedByTwoChips;
+        //                    TempStr := FieldByName('LightingChipUp').AsString;
+        //                    IF (TempStr = '') OR (TempStr = '0') THEN
+        //                      ErrorMsg := 'Error in database for loco ' + LocoChipToStr(Train_LocoChip) + ': ''Lights From Two Chips'' ticked but no chip number supplied'
+        //                    ELSE BEGIN
+        //                      Train_LightingChipUp := StrToInt(TempStr);
+        //                      TempStr := FieldByName('LightingChipDown').AsString;
+        //                      IF (TempStr = '') OR (TempStr = '0') THEN
+        //                        ErrorMsg := 'Error in database for loco ' + LocoChipToStr(Train_LocoChip) + ': ''Lights From Two Chips'' ticked but no chip number supplied'
+        //                      ELSE
+        //                        Train_LightingChipDown := StrToInt(TempStr);
+        //                    END;
+        //
+        //                    Inc(LightSettingCount);
+        //                  END ELSE BEGIN
+        //                    IF FieldByName('LightingChipUp').AsInteger > 0 THEN
+        //                      ErrorMsg := 'Error in database for loco ' + LocoChipToStr(Train_LocoChip)
+        //                                  + ': lighting chip number up ' + LocoChipToStr(FieldByName('LightingChipUp').AsInteger)
+        //                                  + ' supplied but ''Lights From Two Chips'' not ticked'
+        //                    ELSE
+        //                      IF FieldByName('LightingChipDown').AsInteger > 0 THEN
+        //                        ErrorMsg := 'Error in database for loco ' + LocoChipToStr(Train_LocoChip)
+        //                                    + ': lighting chip number down ' + LocoChipToStr(FieldByName('LightingChipDown').AsInteger)
+        //                                    + ' supplied but ''Lights From Two Chips'' not ticked';
+        //                  END;
+        //
+        //                  IF LightSettingCount > 1 THEN
+        //                    ErrorMsg := 'Error in database for loco ' + LocoChipToStr(Train_LocoChip) + ': more than one lighting option ticked';
+        //                END;
+
+        //                IF ErrorMsg = '' THEN BEGIN
+        //                  IF NOT FieldByName('Non-Loco').AsBoolean THEN BEGIN
+        //                    { Now deal with speed settings }
+        //                    Train_SpeedArray[1] := FieldByName('Speed10').AsInteger;
+        //                    FOR I := 2 TO 12 DO
+        //                      Train_SpeedArray[I] := FieldByName('Speed' + IntToStr(I) + '0').AsInteger;
+        //
+        //                    { First see if there any speeds here (speeds are added by hand to the database once the speed test is completed) by seeing if any of the speed settings are
+        //                      non-zero
+        //                    }
+        //                    TestInt := 0;
+        //                    FOR I := 1 TO 12 DO
+        //                      TestInt := TestInt + Train_SpeedArray[I];
+        //                    IF TestInt = 0 THEN BEGIN
+        //                      { there are no speeds in the database }
+        //                      Log(Train_LocoChipStr + ' L Loco has no speed settings in the loco database');
+        //                      Train_SpeedSettingsMissing := True;
+        //                    END ELSE BEGIN
+        //                      { Find the minimum speed and add to all lower speed settings }
+        //                      I := 1;
+        //                      SpeedFound := False;
+        //                      WHILE (I <= 12)
+        //                      AND NOT SpeedFound
+        //                      DO BEGIN
+        //                        IF Train_SpeedArray[I] <> 0 THEN BEGIN
+        //                          SpeedFound := True;
+        //                          { now add to all speed settings below }
+        //                          FOR J := 1 TO (I - 1) DO
+        //                            Train_SpeedArray[J] := Train_SpeedArray[I];
+        //                        END;
+        //                        Inc(I);
+        //                      END; {WHILE}
+        //
+        //                      { Find the maximum speed, and add to all higher speed settings }
+        //                      I := 12;
+        //                      SpeedFound := False;
+        //                      WHILE (I >= 1)
+        //                      AND NOT SpeedFound
+        //                      DO BEGIN
+        //                        IF Train_SpeedArray[I] <> 0 THEN BEGIN
+        //                          SpeedFound := True;
+        //                          { and store the maximum speed }
+        //                          CASE I OF
+        //                            1:
+        //                              Train_MaximumSpeedInMPH := MPH10;
+        //                            2:
+        //                              Train_MaximumSpeedInMPH := MPH20;
+        //                            3:
+        //                              Train_MaximumSpeedInMPH := MPH30;
+        //                            4:
+        //                              Train_MaximumSpeedInMPH := MPH40;
+        //                            5:
+        //                              Train_MaximumSpeedInMPH := MPH50;
+        //                            6:
+        //                              Train_MaximumSpeedInMPH := MPH60;
+        //                            7:
+        //                              Train_MaximumSpeedInMPH := MPH70;
+        //                            8:
+        //                              Train_MaximumSpeedInMPH := MPH80;
+        //                            9:
+        //                              Train_MaximumSpeedInMPH := MPH90;
+        //                            10:
+        //                              Train_MaximumSpeedInMPH := MPH100;
+        //                            11:
+        //                              Train_MaximumSpeedInMPH := MPH110;
+        //                            12:
+        //                              Train_MaximumSpeedInMPH := MPH120;
+        //                          END; {CASE}
+        //
+        //                          { now add to all speed settings below }
+        //                          FOR J := (I + 1) TO 12 DO
+        //                            Train_SpeedArray[J] := Train_SpeedArray[I];
+        //                        END;
+        //                        Dec(I);
+        //                      END; {WHILE}
+        //
+        //                      { But it might happen (has happened!) that, accidentally, an intervening speed setting is missing, or a speed step is lower than the one preceding it }
+        //                      I := 1;
+        //                      SpeedFound := True;
+        //                      WHILE (I <= 12)
+        //                      AND SpeedFound
+        //                      DO BEGIN
+        //                        IF Train_SpeedArray[I] = 0 THEN BEGIN
+        //                          SpeedFound := False;
+        //                          Log(Train_LocoChipStr + ' L Missing speed step at position ' + IntToStr(I - 1));
+        //                          ErrorMsg := 'Loco ' + LocoChipToStr(Train_LocoChip) + ': missing speed step at position ' + IntToStr(I - 1);
+        //                          Train_SpeedSettingsMissing := True;
+        //                        END ELSE
+        //                          IF (I > 1)
+        //                          AND (Train_SpeedArray[I] < Train_SpeedArray[I - 1])
+        //                          THEN BEGIN
+        //                            SpeedFound := False;
+        //                            Log(Train_LocoChipStr + ' L Speed step at position ' + IntToStr(I - 1) + ' is less than speed step at position ' + IntToStr(I - 2));
+        //                            ErrorMsg := 'Loco ' + LocoChipToStr(Train_LocoChip) + ': speed step at position ' + IntToStr(I - 1)
+        //                                                                                                                      + ' is less than speed step at position ' + IntToStr(I - 2);
+        //                            Train_SpeedSettingsMissing := True;
+        //                          END;
+        //                        Inc(I);
+        //                      END; {WHILE}
+        //                    END;
+        //                  END;
+        //                END;
+
+      //              { Now add the speed settings to the appropriate MPH variable }
+      //              IF ErrorMsg = '' THEN BEGIN
+      //                Train_Speed10 := Train_SpeedArray[1];
+      //                Train_Speed20 := Train_SpeedArray[2];
+      //                Train_Speed30 := Train_SpeedArray[3];
+      //                Train_Speed40 := Train_SpeedArray[4];
+      //                Train_Speed50 := Train_SpeedArray[5];
+      //                Train_Speed60 := Train_SpeedArray[6];
+      //                Train_Speed70 := Train_SpeedArray[7];
+      //                Train_Speed80 := Train_SpeedArray[8];
+      //                Train_Speed90 := Train_SpeedArray[9];
+      //                Train_Speed100 := Train_SpeedArray[10];
+      //                Train_Speed110 := Train_SpeedArray[11];
+      //                Train_Speed120 := Train_SpeedArray[12];
+      //              END;
+
+                    { Also add records for the additional lighting chips if any } { not sure if we need these 14/6/14 ****** }
+        //            IF (Train_LightingChipUp <> UnknownLocoChip)
+        //            AND (Train_LightingChipUp <> Train_LocoChip)
+        //            THEN BEGIN
+        //              New(UpLightsTrainRecord);
+        //              Train_LightingChipUpAddress := UpLightsTrainRecord;
+        //              InitialiseTrainRecord(UpLightsTrainRecord);
+        //              UpLightsTrainRecord^.Train_LocoChip := Train_LightingChipUp;
+        //              UpLightsTrainRecord^.Train_LocoChipStr := LocoChipToStr(UpLightsTrainRecord^.Train_LocoChip);
+        //              UpLightsTrainRecord^.Train_LightingChipRecordForChip := Train_LocoChip;
+        //              AddTrainToTrainList(UpLightsTrainRecord, DescribeFullTrainList);
+        //            END;
+
+        //            IF (Train_LightingChipDown <> UnknownLocoChip)
+        //            AND (Train_LightingChipDown <> Train_LocoChip)
+        //            THEN BEGIN
+        //              New(DownLightsTrainRecord);
+        //              Train_LightingChipDownAddress := DownLightsTrainRecord;
+        //              InitialiseTrainRecord(DownLightsTrainRecord);
+        //              DownLightsTrainRecord^.Train_LocoChip := Train_LightingChipDown;
+        //              DownLightsTrainRecord^.Train_LocoChipStr := LocoChipToStr(DownLightsTrainRecord^.Train_LocoChip);
+        //              DownLightsTrainRecord^.Train_LightingChipRecordForChip := Train_LocoChip;
+        //              AddTrainToTrainList(DownLightsTrainRecord, DescribeFullTrainList);
+        //            END;
+                    END; {WITH}
                   END;
-                  IF T_DirectionsArray[I] <> T_DirectionsArray[I - 1] THEN
-                    T_StoppingArray[I - 1] := True;
-                END; {FOR}
+                END; {WITH}
 
-                T_LightsRemainOn := FieldByName('LightsRemainOn').AsBoolean;
-                T_TrainTypeNum := FieldByName('TrainTypeNum').AsInteger;
-                IF (T_TrainTypeNum < 0) OR (T_TrainTypeNum > 12) THEN
-                  ErrorMsg := 'train type number is ' + IntToStr(T_TrainTypeNum) + ' but it should be between 0 and 12';
-
-                T_UserDriving := FieldByName('UserDriving').AsBoolean;
-                T_UserRequiresInstructions := FieldByName('UserRequiresInstructions').AsBoolean;
-              END;
-            END; { not NonMoving }
-
-            IF ErrorMsg <> '' THEN BEGIN
-              IF MessageDialogueWithDefault('Loco ' + LocoChipToStr(T_LocoChip) + ': ' + ErrorMsg
-                                            + CRLF
-                                            + 'Do you wish to continue loading the Diagrams without it?',
-                                            StopTimer, mtError, [mbYes, mbNo], mbYes) = mrNo
-              THEN BEGIN
-                Log(LocoChipToStr(T_LocoChip) + ' D ' + ErrorMsg);
-                DiagramsOK := False;
-                Exit;
-              END;
-            END;
-
-            IF NOT OmitTrain THEN BEGIN
-              { If the final journey is just to move the train to a stabling point, and there are repeating journeys, only submit the final journey to
-                UpdateTrainRecordForDiagram when the final repeat is requested.
-              }
-              IF (JourneyCount > 1)
-              AND T_NotForPublicUseArray[High(T_NotForPublicUseArray)]
-              THEN BEGIN
-                IF (T_RepeatUntilTime <> 0)
-                AND (T_RepeatFrequencyInMinutes <> 0)
+                IF T_TrainActive
+                AND T_NonMoving
                 THEN BEGIN
-                  MoveToStablingAfterLastJourney := True;
-                  Dec(JourneyCount);
-
-                  SaveLastJourneyDepartureTime := T_DepartureTimesArray[High(T_DepartureTimesArray)];
-                  SetLength(T_DepartureTimesArray, Length(T_DepartureTimesArray) - 1);
-                  SaveLastJourneyAreaOrDestinationStr := T_DestinationAreaOrLocationsStrArray[High(T_DestinationAreaOrLocationsStrArray)];
-                  SetLength(T_DestinationAreaOrLocationsStrArray, Length(T_DestinationAreaOrLocationsStrArray) - 1);
-                  SaveLastJourneyDirection := T_DirectionsArray[High(T_DirectionsArray)];
-                  SetLength(T_DirectionsArray, Length(T_DirectionsArray) - 1);
-                END;
-              END;
-
-              { Now process it to create a train - or a succession, if they are repeats }
-              UpdateTrainRecordForDiagram(T, JourneyCount, T_DepartureTimesArray, T_LightsOnTime, T_DestinationAreaOrLocationsStrArray,
-                                          T_DirectionsArray, T_LightsRemainOn, T_NonMoving, T_NotForPublicUseArray, T_StartAreaOrLocationStr, T_StoppingArray,
-                                          T_TrainLengthInCarriages, T_TrainTypeNum, T_UserDriving, T_UserRequiresInstructions, NOT StartOfRepeatJourney);
-
-              IF NOT T_NonMoving
-              AND (T_RepeatUntilTime <> 0)
-              AND (T_RepeatFrequencyInMinutes <> 0)
-              THEN BEGIN
-                { Amend the repeat details if the first station start time is specified and the first journey is not for public use, i.e. is just to reach the first
-                  destination - thus what repeats are the subsequent journeys and not the first journey.
-                }
-                IF T_NotForPublicUseArray[0] THEN BEGIN
-                  IF (T_DepartureTimesArray[0] = 0)
-                  AND (T_DepartureTimesArray[1] <> 0)
-                  THEN BEGIN
-                    JourneyCount := JourneyCount -1;
-                    T_StartAreaOrLocationStr := T_DestinationAreaOrLocationsStrArray[0];
-
-                    { remove the first journey element from the other arrays }
-                    FOR I := 0 TO (High(T_DepartureTimesArray) - 1) DO
-                      T_DepartureTimesArray[I] := T_DepartureTimesArray[I + 1];
-                    SetLength(T_DepartureTimesArray, Length(T_DepartureTimesArray) - 1);
-
-                    FOR I := 0 TO (High(T_DestinationAreaOrLocationsStrArray) - 1) DO
-                      T_DestinationAreaOrLocationsStrArray[I] := T_DestinationAreaOrLocationsStrArray[I + 1];
-                    SetLength(T_DestinationAreaOrLocationsStrArray, Length(T_DestinationAreaOrLocationsStrArray) - 1);
-
-                    FOR I := 0 TO (High(T_DirectionsArray) - 1) DO
-                      T_DirectionsArray[I] := T_DirectionsArray[I + 1];
-                    SetLength(T_DirectionsArray, Length(T_DirectionsArray) - 1);
-
-                    FOR I := 0 TO (High(T_NotForPublicUseArray) - 1) DO
-                      T_NotForPublicUseArray[I] := T_NotForPublicUseArray[I + 1];
-                    SetLength(T_NotForPublicUseArray, Length(T_NotForPublicUseArray) -1);
-
-                    FOR I := 0 TO (High(T_StoppingArray) - 1) DO
-                      T_StoppingArray[I] := T_StoppingArray[I + 1];
-                    SetLength(T_StoppingArray, Length(T_StoppingArray) - 1);
-                  END;
-                END;
-
-                { See if the repeat is feasible in terms of destinations }
-                IF StrToArea(T_DestinationAreaOrLocationsStrArray[0]) = UnknownArea THEN
-                  ErrorMsg := 'cannot create a repeat journey for loco ' + LocoChipToStr(T_LocoChip)
-                              + ' as the source area  (' + T_StartAreaOrLocationStr + ') is unknown';
-
-                IF ErrorMsg = '' THEN BEGIN
-                  IF StrToArea(T_DestinationAreaOrLocationsStrArray[High(T_DestinationAreaOrLocationsStrArray)]) = UnknownArea THEN
-                    ErrorMsg := 'cannot create a repeat journey for loco ' + LocoChipToStr(T_LocoChip)
-                                + ' as the final destination area (' + T_DestinationAreaOrLocationsStrArray[High(T_DestinationAreaOrLocationsStrArray)] + ') is unknown';
-                END;
-
-                IF ErrorMsg = '' THEN BEGIN
-                  IF T_StartAreaOrLocationStr <> T_DestinationAreaOrLocationsStrArray[High(T_DestinationAreaOrLocationsStrArray)] THEN
-                    ErrorMsg := 'cannot create a repeat journey as the source area (' + T_StartAreaOrLocationStr
-                                + ') and final destination area (' + T_DestinationAreaOrLocationsStrArray[High(T_DestinationAreaOrLocationsStrArray)]
-                                + ') are not the same'
-                                + CRLF
-                                + '(which means the repeat train cannot start from where its previous instance stopped)';
-                END;
-
-                IF ErrorMsg <> '' THEN BEGIN
-                  IF MessageDialogueWithDefault('Loco ' + LocoChipToStr(T_LocoChip) + ': ' + ErrorMsg
+                  IF MessageDialogueWithDefault('Loco ' + LocoChipToStr(T_LocoChip)
+                                                + ': cannot be both active and stationary'
                                                 + CRLF
-                                                + 'Do you wish to continue loading the diagrams without it?',
-                                                StopTimer, mtError, [mbYes, mbNo], mbYes) = mrNo
-                  THEN BEGIN
-                    Log(LocoChipToStr(T_LocoChip) + ' D ' + ErrorMsg);
-                    DiagramsOK := False;
-                    Exit;
-                  END;
+                                                + 'Please choose:',
+                                                StopTimer, mtError, [mbYes, mbNo], ['Active', 'Stationary'], mbYes) = mrYes
+                  THEN
+                    T_NonMoving := False
+                  ELSE
+                    T_TrainActive := False;
                 END;
 
-                IF NOT OmitTrain THEN BEGIN
-                  { Now add the repeated journeys }
-                  WHILE T_RepeatUntilTime >= IncMinute(T_DepartureTimesArray[0], T_RepeatFrequencyInMinutes) DO BEGIN
-                    FOR I := 0 TO High(T_DepartureTimesArray) DO
-                      T_DepartureTimesArray[I] := IncMinute(T_DepartureTimesArray[I], T_RepeatFrequencyInMinutes);
+                IF T_TrainActive OR T_NonMoving THEN BEGIN
+                  IF ErrorMsg = '' THEN BEGIN
+                    AppendToDirectionArray(T_DirectionsArray, StrToDirectionType(FieldByName('Direction0').AsString));
+                    T_StartAreaOrLocationStr := FieldByName('Source').AsString;
 
-                    UpdateTrainRecordForDiagram(T, JourneyCount, T_DepartureTimesArray, T_LightsOnTime,
-                                                T_DestinationAreaOrLocationsStrArray, T_DirectionsArray, T_LightsRemainOn, T_NonMoving, T_NotForPublicUseArray,
-                                                T_StartAreaOrLocationStr, T_StoppingArray, T_TrainLengthInCarriages, T_TrainTypeNum, T_UserDriving,
-                                                T_UserRequiresInstructions, StartOfRepeatJourney);
-                  END; {WHILE}
-
-                  { And if there's a stored journey, add it now }
-                  IF MoveToStablingAfterLastJourney THEN BEGIN
-                    JourneyCount := 0;
-                    T_StartAreaOrLocationStr := T_DestinationAreaOrLocationsStrArray[High(T_DestinationAreaOrLocationsStrArray)];
-
-                    SetLength(T_DepartureTimesArray, 0);
-                    AppendToDateTimeArray(T_DepartureTimesArray, SaveLastJourneyDepartureTime);
-
-                    SetLength(T_DestinationAreaOrLocationsStrArray, 0);
-                    AppendToStringArray(T_DestinationAreaOrLocationsStrArray, SaveLastJourneyAreaOrDestinationStr);
-
-                    SetLength(T_NotForPublicUseArray, 0);
-                    AppendToBooleanArray(T_NotForPublicUseArray, True);
-
-                    SetLength(T_StoppingArray, 0);
-                    AppendToBooleanArray(T_StoppingArray, True);
-
-                    SetLength(T_DirectionsArray, 0);
-                    AppendToDirectionArray(T_DirectionsArray, SaveLastJourneyDirection);
-                    UpdateTrainRecordForDiagram(T, JourneyCount, T_DepartureTimesArray, T_LightsOnTime,
-                                                T_DestinationAreaOrLocationsStrArray, T_DirectionsArray, T_LightsRemainOn, T_NonMoving, T_NotForPublicUseArray,
-                                                T_StartAreaOrLocationStr, T_StoppingArray, T_TrainLengthInCarriages, T_TrainTypeNum, T_UserDriving,
-                                                T_UserRequiresInstructions, NOT StartOfRepeatJourney);
+                    TempSourceLocation := StrToLocation(T_StartAreaOrLocationStr);
+                    IF TempSourceLocation <> UnknownLocation THEN BEGIN
+                      IF (T_DirectionsArray[0] = Up)
+                      AND (Locations[TempSourceLocation].Location_LineAtUp <> UnknownLine)
+                      AND (Lines[Locations[TempSourceLocation].Location_LineAtUp].Line_NextUpType = EndOfLineIsnext)
+                      THEN
+                        ErrorMsg := 'line up of source ' + T_StartAreaOrLocationStr + ' is marked as an end of line'
+                      ELSE
+                        IF (T_DirectionsArray[0] = Down)
+                        AND (Locations[TempSourceLocation].Location_LineAtDown <> UnknownLine)
+                        AND (Lines[Locations[TempSourceLocation].Location_LineAtDown].Line_NextUpType = EndOfLineIsnext)
+                        THEN
+                          ErrorMsg := 'line down of source ' + T_StartAreaOrLocationStr + ' is marked as an end of line';
+                    END;
                   END;
-                END;
-              END;
 
-              IF DiagramsOK
-              AND (T <= High(Trains))
-              THEN BEGIN
-                { Increment the counters }
-                IF T_NonMoving THEN
-                  Inc(NonActiveTrainCount)
-                ELSE
-                  Inc(ActiveTrainCount);
+                  IF ErrorMsg = '' THEN BEGIN
+                    IF FieldByName('TrainLength').AsString = '' THEN
+                      T_TrainLengthInCarriages := 0
+                    ELSE
+                      IF NOT TryStrToInt(FieldByName('TrainLength').AsString, T_TrainLengthInCarriages) THEN
+                        ErrorMsg := 'length in carriages ''' + FieldByName('TrainLength').AsString + ''' is not an integer';
+
+                    JourneyCount := -1;
+                    IF NOT T_NonMoving THEN BEGIN
+                      { We can work out how many journeys there are from how many destinations there are. Only load MaxJourneys at any one time, though, as that's the number of
+                        fields in the database.
+                      }
+                      NoDestination := False;
+                      WHILE (JourneyCount < MaxJourneys)
+                      AND NOT NoDestination
+                      DO BEGIN
+                        IF NOT NoDestination THEN
+                          Inc(JourneyCount);
+                        IF FieldByName('Destination' + IntToStr(JourneyCount)).AsString = '' THEN BEGIN
+                          NoDestination := True;
+                          Dec(JourneyCount);
+                        END ELSE
+                          AppendToStringArray(T_DestinationAreaOrLocationsStrArray, FieldByName('Destination' + IntToStr(JourneyCount)).AsString);
+                      END; {WHILE}
+
+                      IF JourneyCount = -1 THEN
+                        { treat trains with no journeys as non-moving if they are not already recorded as that }
+                        T_NonMoving := True;
+                      END;
+                  END;
+
+                  IF ErrorMsg = '' THEN BEGIN
+                    IF NOT T_NonMoving THEN BEGIN
+                      FOR I := 0 TO (JourneyCount - 1) DO
+                        { stopping can be true even if we haven't ticked the box, but initialise the array anyway }
+                        AppendToBooleanArray(T_StoppingArray, FieldByName('Stopping' + IntToStr(I)).AsBoolean);
+
+                      { although we have to stop at the end of the last journey }
+                      AppendToBooleanArray(T_StoppingArray, True);
+
+                      { Deal with trains not for public use (e.g. coming from the sidings) }
+                      FOR I := 0 TO JourneyCount DO
+                        AppendToBooleanArray(T_NotForPublicUseArray, FieldByName('NotForPublicUse' + IntToStr(I)).AsBoolean);
+
+                      FOR I := 0 TO JourneyCount DO BEGIN
+                        { if we've been given a departure time, we have to stop before we can depart }
+                        AppendToDateTimeArray(T_DepartureTimesArray, FieldByName('DepartureTime' + IntToStr(I)).AsDateTime);
+                        IF (I > 0)
+                        AND (T_DepartureTimesArray[I] <> 0)
+                        THEN
+                          T_StoppingArray[I - 1] := True;
+                      END;
+
+                      T_LightsOnTime := FieldByName('LightsOnTime').AsDateTime;
+
+                      T_RepeatUntilTime := FieldByName('RepeatUntilTime').AsDateTime;
+                      T_RepeatFrequencyInMinutes := FieldByName('RepeatFrequencyInMinutes').AsInteger;
+                      IF (T_RepeatUntilTime <> 0)
+                      AND (T_RepeatFrequencyInMinutes = 0)
+                      THEN
+                        ErrorMsg := 'repeat until time must also have frequency supplied'
+                      ELSE
+                        IF (T_RepeatUntilTime = 0)
+                        AND (T_RepeatFrequencyInMinutes <> 0)
+                        THEN
+                          ErrorMsg := 'repeat until time must be supplied if frequency is supplied';
+                    END;
+
+                    IF ErrorMsg = '' THEN BEGIN
+                      { If we change direction, we have to stop before we can depart }
+                      SaveDirection := T_DirectionsArray[0];
+                      FOR I := 1 TO JourneyCount DO BEGIN
+                        { If there's no direction given, it's the same as the previous one }
+                        IF FieldByName('Direction' + IntToStr(I)).AsString = '' THEN
+                          AppendToDirectionArray(T_DirectionsArray, SaveDirection)
+                        ELSE BEGIN
+                          AppendToDirectionArray(T_DirectionsArray, StrToDirectionType(FieldByName('Direction' + IntToStr(I)).AsString));
+                          SaveDirection := StrToDirectionType(FieldByName('Direction' + IntToStr(I)).AsString);
+                        END;
+                        IF T_DirectionsArray[I] <> T_DirectionsArray[I - 1] THEN
+                          T_StoppingArray[I - 1] := True;
+                      END; {FOR}
+
+                      T_LightsRemainOn := FieldByName('LightsRemainOn').AsBoolean;
+                      T_TrainTypeNum := FieldByName('TrainTypeNum').AsInteger;
+                      IF (T_TrainTypeNum < 0) OR (T_TrainTypeNum > 12) THEN
+                        ErrorMsg := 'train type number is ' + IntToStr(T_TrainTypeNum) + ' but it should be between 0 and 12';
+
+                      T_UserDriving := FieldByName('UserDriving').AsBoolean;
+                      T_UserRequiresInstructions := FieldByName('UserRequiresInstructions').AsBoolean;
+                    END;
+                  END; { not NonMoving }
+
+                  IF ErrorMsg <> '' THEN BEGIN
+                    IF MessageDialogueWithDefault('Loco ' + LocoChipToStr(T_LocoChip) + ': ' + ErrorMsg
+                                                  + CRLF
+                                                  + 'Do you wish to continue loading the Diagrams without it?',
+                                                  StopTimer, mtError, [mbYes, mbNo], mbYes) = mrNo
+                    THEN BEGIN
+                      Log(LocoChipToStr(T_LocoChip) + ' D ' + ErrorMsg);
+                      DiagramsOK := False;
+                      Exit;
+                    END;
+                  END;
+
+                  IF NOT OmitTrain THEN BEGIN
+                    { If the final journey is just to move the train to a stabling point, and there are repeating journeys, only submit the final journey to
+                      UpdateTrainRecordForDiagram when the final repeat is requested.
+                    }
+                    IF (JourneyCount > 1)
+                    AND T_NotForPublicUseArray[High(T_NotForPublicUseArray)]
+                    THEN BEGIN
+                      IF (T_RepeatUntilTime <> 0)
+                      AND (T_RepeatFrequencyInMinutes <> 0)
+                      THEN BEGIN
+                        MoveToStablingAfterLastJourney := True;
+                        Dec(JourneyCount);
+
+                        SaveLastJourneyDepartureTime := T_DepartureTimesArray[High(T_DepartureTimesArray)];
+                        SetLength(T_DepartureTimesArray, Length(T_DepartureTimesArray) - 1);
+                        SaveLastJourneyAreaOrDestinationStr := T_DestinationAreaOrLocationsStrArray[High(T_DestinationAreaOrLocationsStrArray)];
+                        SetLength(T_DestinationAreaOrLocationsStrArray, Length(T_DestinationAreaOrLocationsStrArray) - 1);
+                        SaveLastJourneyDirection := T_DirectionsArray[High(T_DirectionsArray)];
+                        SetLength(T_DirectionsArray, Length(T_DirectionsArray) - 1);
+                      END;
+                    END;
+
+                    { Now process it to create a train - or a succession, if they are repeats }
+                    UpdateTrainRecordForDiagram(T, JourneyCount, T_DepartureTimesArray, T_LightsOnTime, T_DestinationAreaOrLocationsStrArray,
+                                                T_DirectionsArray, T_LightsRemainOn, T_NonMoving, T_NotForPublicUseArray, T_StartAreaOrLocationStr, T_StoppingArray,
+                                                T_TrainLengthInCarriages, T_TrainTypeNum, T_UserDriving, T_UserRequiresInstructions, NOT StartOfRepeatJourney);
+
+                    IF NOT T_NonMoving
+                    AND (T_RepeatUntilTime <> 0)
+                    AND (T_RepeatFrequencyInMinutes <> 0)
+                    THEN BEGIN
+                      { Amend the repeat details if the first station start time is specified and the first journey is not for public use, i.e. is just to reach the first
+                        destination - thus what repeats are the subsequent journeys and not the first journey.
+                      }
+                      IF T_NotForPublicUseArray[0] THEN BEGIN
+                        IF (T_DepartureTimesArray[0] = 0)
+                        AND (T_DepartureTimesArray[1] <> 0)
+                        THEN BEGIN
+                          JourneyCount := JourneyCount -1;
+                          T_StartAreaOrLocationStr := T_DestinationAreaOrLocationsStrArray[0];
+
+                          { remove the first journey element from the other arrays }
+                          FOR I := 0 TO (High(T_DepartureTimesArray) - 1) DO
+                            T_DepartureTimesArray[I] := T_DepartureTimesArray[I + 1];
+                          SetLength(T_DepartureTimesArray, Length(T_DepartureTimesArray) - 1);
+
+                          FOR I := 0 TO (High(T_DestinationAreaOrLocationsStrArray) - 1) DO
+                            T_DestinationAreaOrLocationsStrArray[I] := T_DestinationAreaOrLocationsStrArray[I + 1];
+                          SetLength(T_DestinationAreaOrLocationsStrArray, Length(T_DestinationAreaOrLocationsStrArray) - 1);
+
+                          FOR I := 0 TO (High(T_DirectionsArray) - 1) DO
+                            T_DirectionsArray[I] := T_DirectionsArray[I + 1];
+                          SetLength(T_DirectionsArray, Length(T_DirectionsArray) - 1);
+
+                          FOR I := 0 TO (High(T_NotForPublicUseArray) - 1) DO
+                            T_NotForPublicUseArray[I] := T_NotForPublicUseArray[I + 1];
+                          SetLength(T_NotForPublicUseArray, Length(T_NotForPublicUseArray) -1);
+
+                          FOR I := 0 TO (High(T_StoppingArray) - 1) DO
+                            T_StoppingArray[I] := T_StoppingArray[I + 1];
+                          SetLength(T_StoppingArray, Length(T_StoppingArray) - 1);
+                        END;
+                      END;
+
+                      { See if the repeat is feasible in terms of destinations }
+                      IF StrToArea(T_DestinationAreaOrLocationsStrArray[0]) = UnknownArea THEN
+                        ErrorMsg := 'cannot create a repeat journey for loco ' + LocoChipToStr(T_LocoChip)
+                                    + ' as the source area  (' + T_StartAreaOrLocationStr + ') is unknown';
+
+                      IF ErrorMsg = '' THEN BEGIN
+                        IF StrToArea(T_DestinationAreaOrLocationsStrArray[High(T_DestinationAreaOrLocationsStrArray)]) = UnknownArea THEN
+                          ErrorMsg := 'cannot create a repeat journey for loco ' + LocoChipToStr(T_LocoChip)
+                                      + ' as the final destination area (' + T_DestinationAreaOrLocationsStrArray[High(T_DestinationAreaOrLocationsStrArray)] + ') is unknown';
+                      END;
+
+                      IF ErrorMsg = '' THEN BEGIN
+                        IF T_StartAreaOrLocationStr <> T_DestinationAreaOrLocationsStrArray[High(T_DestinationAreaOrLocationsStrArray)] THEN
+                          ErrorMsg := 'cannot create a repeat journey as the source area (' + T_StartAreaOrLocationStr
+                                      + ') and final destination area (' + T_DestinationAreaOrLocationsStrArray[High(T_DestinationAreaOrLocationsStrArray)]
+                                      + ') are not the same'
+                                      + CRLF
+                                      + '(which means the repeat train cannot start from where its previous instance stopped)';
+                      END;
+
+                      IF ErrorMsg <> '' THEN BEGIN
+                        IF MessageDialogueWithDefault('Loco ' + LocoChipToStr(T_LocoChip) + ': ' + ErrorMsg
+                                                      + CRLF
+                                                      + 'Do you wish to continue loading the diagrams without it?',
+                                                      StopTimer, mtError, [mbYes, mbNo], mbYes) = mrNo
+                        THEN BEGIN
+                          Log(LocoChipToStr(T_LocoChip) + ' D ' + ErrorMsg);
+                          DiagramsOK := False;
+                          Exit;
+                        END;
+                      END;
+
+                      IF NOT OmitTrain THEN BEGIN
+                        { Now add the repeated journeys }
+                        WHILE T_RepeatUntilTime >= IncMinute(T_DepartureTimesArray[0], T_RepeatFrequencyInMinutes) DO BEGIN
+                          FOR I := 0 TO High(T_DepartureTimesArray) DO
+                            T_DepartureTimesArray[I] := IncMinute(T_DepartureTimesArray[I], T_RepeatFrequencyInMinutes);
+
+                          UpdateTrainRecordForDiagram(T, JourneyCount, T_DepartureTimesArray, T_LightsOnTime,
+                                                      T_DestinationAreaOrLocationsStrArray, T_DirectionsArray, T_LightsRemainOn, T_NonMoving, T_NotForPublicUseArray,
+                                                      T_StartAreaOrLocationStr, T_StoppingArray, T_TrainLengthInCarriages, T_TrainTypeNum, T_UserDriving,
+                                                      T_UserRequiresInstructions, StartOfRepeatJourney);
+                        END; {WHILE}
+
+                        { And if there's a stored journey, add it now }
+                        IF MoveToStablingAfterLastJourney THEN BEGIN
+                          JourneyCount := 0;
+                          T_StartAreaOrLocationStr := T_DestinationAreaOrLocationsStrArray[High(T_DestinationAreaOrLocationsStrArray)];
+
+                          SetLength(T_DepartureTimesArray, 0);
+                          AppendToDateTimeArray(T_DepartureTimesArray, SaveLastJourneyDepartureTime);
+
+                          SetLength(T_DestinationAreaOrLocationsStrArray, 0);
+                          AppendToStringArray(T_DestinationAreaOrLocationsStrArray, SaveLastJourneyAreaOrDestinationStr);
+
+                          SetLength(T_NotForPublicUseArray, 0);
+                          AppendToBooleanArray(T_NotForPublicUseArray, True);
+
+                          SetLength(T_StoppingArray, 0);
+                          AppendToBooleanArray(T_StoppingArray, True);
+
+                          SetLength(T_DirectionsArray, 0);
+                          AppendToDirectionArray(T_DirectionsArray, SaveLastJourneyDirection);
+                          UpdateTrainRecordForDiagram(T, JourneyCount, T_DepartureTimesArray, T_LightsOnTime,
+                                                      T_DestinationAreaOrLocationsStrArray, T_DirectionsArray, T_LightsRemainOn, T_NonMoving, T_NotForPublicUseArray,
+                                                      T_StartAreaOrLocationStr, T_StoppingArray, T_TrainLengthInCarriages, T_TrainTypeNum, T_UserDriving,
+                                                      T_UserRequiresInstructions, NOT StartOfRepeatJourney);
+                        END;
+                      END;
+                    END;
+
+                    IF DiagramsOK
+                    AND (T <= High(Trains))
+                    THEN BEGIN
+                      { Increment the counters }
+                      IF T_NonMoving THEN
+                        Inc(NonActiveTrainCount)
+                      ELSE
+                        Inc(ActiveTrainCount);
+                    END;
+                  END;
+                END; {WITH}
               END;
             END;
-          END; {WITH}
+          END;
           DiagramsADOTable.Next;
         END; {WHILE}
       END;
