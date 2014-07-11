@@ -1084,8 +1084,8 @@ PROCEDURE ListLocosByChip;
 VAR
   I : Integer;
   ColNum : Integer;
+  L : LocoIndex;
   RowNum : Integer;
-  T : TrainIndex;
   TempCell : String;
   WindowWidth : Integer;
 
@@ -1144,10 +1144,10 @@ BEGIN
       { note: these "notes" are automatically generated here and not taken from the database }
       AddItemToGrid('To note', ColNum, RowNum);
 
-      T := 0;
-      WHILE T <= High(Trains) DO BEGIN
-        WITH Trains[T] DO BEGIN
-          IF Train_LocoChip <> UnknownLocoChip THEN BEGIN
+      L := 0;
+      WHILE L <= High(Locos) DO BEGIN
+        WITH Locos[L] DO BEGIN
+          IF Loco_LocoChip <> UnknownLocoChip THEN BEGIN
             LocoStringGrid.RowCount := LocoStringGrid.RowCount + 1;
             Inc(RowNum);
 
@@ -1160,43 +1160,43 @@ BEGIN
             LocoStringGrid.ColWidths[0] := 0;
 
             Inc(ColNum);
-            AddItemToGrid(Train_LocoChipStr, ColNum, RowNum);
+            AddItemToGrid(Loco_LocoChipStr, ColNum, RowNum);
 
             Inc(ColNum);
-            AddItemToGrid(Train_ActualNumStr, ColNum, RowNum);
+            AddItemToGrid(Loco_ActualNumStr, ColNum, RowNum);
 
             Inc(ColNum);
-            AddItemToGrid(Train_LocoName, ColNum, RowNum);
+            AddItemToGrid(Loco_LocoName, ColNum, RowNum);
 
             Inc(ColNum);
-            AddItemToGrid(Train_LocoClassStr, ColNum, RowNum);
+            AddItemToGrid(Loco_LocoClassStr, ColNum, RowNum);
 
             Inc(ColNum);
-            AddItemToGrid(Train_LocoTypeStr, ColNum, RowNum);
+            AddItemToGrid(Loco_LocoTypeStr, ColNum, RowNum);
 
             Inc(ColNum);
-            AddItemToGrid(Train_Description, ColNum, RowNum);
+            AddItemToGrid(Loco_Description, ColNum, RowNum);
 
             Inc(ColNum);
-//            AddItemToGrid(IfThen(Train_LightingChipUp = UnknownLocoChip,
-//                                 '',
-//                                 IfThen(Train_LightingChipUp = Train_LocoChip,
-//                                        '[' + IntToStr(Train_LocoChip) + ']',
-//                                        IntToStr(Train_LightingChipUp))),
-//                          ColNum, RowNum);
-//
-//            Inc(ColNum);
-//            AddItemToGrid(IfThen(Train_LightingChipDown = UnknownLocoChip,
-//                                 '',
-//                                 IfThen(Train_LightingChipDown = Train_LocoChip,
-//                                        '[' + IntToStr(Train_LocoChip) + ']',
-//                                        IntToStr(Train_LightingChipDown))),
-//                          ColNum, RowNum); &&&&&
+            AddItemToGrid(IfThen(Loco_LightingChipUp = UnknownLocoChip,
+                                 '',
+                                 IfThen(Loco_LightingChipUp = Loco_LocoChip,
+                                        '[' + IntToStr(Loco_LocoChip) + ']',
+                                        IntToStr(Loco_LightingChipUp))),
+                          ColNum, RowNum);
+
+            Inc(ColNum);
+            AddItemToGrid(IfThen(Loco_LightingChipDown = UnknownLocoChip,
+                                 '',
+                                 IfThen(Loco_LightingChipDown = Loco_LocoChip,
+                                        '[' + IntToStr(Loco_LocoChip) + ']',
+                                        IntToStr(Loco_LightingChipDown))),
+                          ColNum, RowNum);
 
             Inc(ColNum);
           END;
         END; {WITH}
-        Inc(T);
+        Inc(L);
       END; {WHILE}
 
       { Resize the LocoStringGrid window }
