@@ -88,7 +88,7 @@ IMPLEMENTATION
 {$R *.dfm}
 
 USES GetTime, Raildraw, MiscUtils, Locks, LocationData, Feedback, Options, System.StrUtils, Lenz, System.DateUtils, TestUnit, Movement, FWPShowMessageUnit, CreateRoute,
-     Diagrams, Route, Replay, Startup, Cuneo, LocoUtils, StationMonitors, ProgressBar, LocoDialogue, Help, WorkingTimetable, Edit, RDC, Input, Train;
+     Diagrams, Route, Replay, Startup, Cuneo, LocoUtils, StationMonitors, ProgressBar, LocoDialogue, Help, WorkingTimetable, Edit, RDC, Input, Train, SyncObjs;
 
 CONST
   ConnectedViaUSBStr = 'via USB';
@@ -99,6 +99,7 @@ CONST
   UnitRef = 'Main';
 
 VAR
+  MainCriticalSection : TCriticalSection;
   NumbersArrayCounter : Integer = -1;
   SaveSystemStatusEmergencyOff : Boolean;
 
@@ -1465,197 +1466,204 @@ VAR
 
 BEGIN
   TRY
-    IF RunTestUnitOnStartup THEN BEGIN
-      Debug('Running test unit on startup');
-      TestProc(KeyOut);
-      RunTestUnitOnStartup := False;
-    END;
+    { TCriticalSection allows a thread in a multithreaded application to temporarily block other threads from accessing a block of code }
+    MainCriticalSection.Enter;
 
-//    { See if any rectangles need to be undrawn } { seems not to be in use (as TimeRectangleDrawn is not initialised 8/4/14 ********* }
-//    IF TimeRectangleDrawn > 0 THEN BEGIN
-//      IF ((GetTickCount - TimeRectangleDrawn) > MaxRectangleUndrawTime) THEN BEGIN
-//        DrawOutline(UndrawRect, SaveUndrawRectColour, UndrawRequired, NOT UndrawToBeAutomatic);
-//        TimeRectangleDrawn := 0;
-//      END;
-//    END;
-
-    CheckSystemStatus;
-
-    DoCheckForUnexpectedData(UnitRef, 'MainTimerTick 1');
-
-    IF InAutoMode THEN
-      MoveAllTrains;
-
-    { See if any point changes are pending - i.e. we're waiting for feedback that confirms the change }
-    CheckPointsAwaitingFeedback;
-
-    { See if any trains have strayed }
-    IF InAutoMode THEN
-      LookOutForStrayingTrains;
-
-    DoCheckForUnexpectedData(UnitRef, 'MainTimerTick 2');
-
-    IF InAutoMode THEN BEGIN
-      DoCheckForUnexpectedData(UnitRef, 'MainTimerTick 3');
-      MoveAllTrains;
-
-      DoCheckForUnexpectedData(UnitRef, 'MainTimerTick 4');
-      CheckTrainsHaveArrived;
-
-      DoCheckForUnexpectedData(UnitRef, 'MainTimerTick 5');
-      CheckTrainsHaveDeparted;
-
-      DoCheckForUnexpectedData(UnitRef, 'MainTimerTick 6');
-      MoveAllTrains;
-
-      DoCheckForUnexpectedData(UnitRef, 'MainTimerTick 7');
-      CheckTrainsReadyToDepart;
-    END;
-
-    { On each tick go through one of the routes currently active, and continue route setting if required }
-    IF NOT RouteingSuspendedWhenStopPressed
-    AND NOT RouteingSuspendedForModalDialogue
-    THEN BEGIN
-      IF Length(Routes_Routes) > 0 THEN BEGIN
-        { Work out which route we're doing on this iteration }
-        Inc(NumbersArrayCounter);
-        IF NumbersArrayCounter > High(Routes_Routes) THEN
-          { Reset the counter if it's too high }
-          NumbersArrayCounter := 0;
-        TempRoute := Routes_Routes[NumbersArrayCounter];
-
-        { Set up routes }
-        IF Routes_RouteSettingsInProgress[TempRoute] THEN
-          { there is some route setting to be done }
-          SetUpASubRoute(TempRoute);
-
-        IF InAutoMode THEN BEGIN
-          DoCheckForUnexpectedData(UnitRef, 'MainTimerTick 8');
-          MoveAllTrains;
-        END;
-
-        { Clear routes }
-        IF InAutoMode OR RouteingByUser OR True THEN
-          IF Routes_RouteClearingsInProgress[TempRoute] THEN
-            { there is some route clearing to be done }
-            ClearARoute(TempRoute);
-
-  //      IF InAutoMode THEN
-  //        TestClearARoute(TempRoute);
-
-        IF InAutoMode THEN BEGIN
-          DoCheckForUnexpectedData(UnitRef, 'MainTimerTick 9');
-          MoveAllTrains;
-        END;
-
-        { and set any signals needed because of approach control being in operation }
-        IF Routes_ApproachControlsSet[TempRoute] THEN
-          ProcessApproachLockedSignals(TempRoute);
+    TRY
+      IF RunTestUnitOnStartup THEN BEGIN
+        Debug('Running test unit on startup');
+        TestProc(KeyOut);
+        RunTestUnitOnStartup := False;
       END;
-    END;
 
-    { And see if any points need to be reset (this is done here as sometimes points do not otherwise reset, because although the route can be reset, the point may still be
-      locked at that stage).
-    }
-    IF InAutoMode OR ResetAllSwitchedPoints THEN BEGIN
-      IF NOT PointResettingMode THEN
-        SetLength(PointResettingToDefaultStateArray, 0)
-      ELSE BEGIN
+  //    { See if any rectangles need to be undrawn } { seems not to be in use (as TimeRectangleDrawn is not initialised 8/4/14 ********* }
+  //    IF TimeRectangleDrawn > 0 THEN BEGIN
+  //      IF ((GetTickCount - TimeRectangleDrawn) > MaxRectangleUndrawTime) THEN BEGIN
+  //        DrawOutline(UndrawRect, SaveUndrawRectColour, UndrawRequired, NOT UndrawToBeAutomatic);
+  //        TimeRectangleDrawn := 0;
+  //      END;
+  //    END;
+
+      CheckSystemStatus;
+
+      DoCheckForUnexpectedData(UnitRef, 'MainTimerTick 1');
+
+      IF InAutoMode THEN
+        MoveAllTrains;
+
+      { See if any point changes are pending - i.e. we're waiting for feedback that confirms the change }
+      CheckPointsAwaitingFeedback;
+
+      { See if any trains have strayed }
+      IF InAutoMode THEN
+        LookOutForStrayingTrains;
+
+      DoCheckForUnexpectedData(UnitRef, 'MainTimerTick 2');
+
+      IF InAutoMode THEN BEGIN
+        DoCheckForUnexpectedData(UnitRef, 'MainTimerTick 3');
+        MoveAllTrains;
+
+        DoCheckForUnexpectedData(UnitRef, 'MainTimerTick 4');
+        CheckTrainsHaveArrived;
+
+        DoCheckForUnexpectedData(UnitRef, 'MainTimerTick 5');
+        CheckTrainsHaveDeparted;
+
+        DoCheckForUnexpectedData(UnitRef, 'MainTimerTick 6');
+        MoveAllTrains;
+
+        DoCheckForUnexpectedData(UnitRef, 'MainTimerTick 7');
+        CheckTrainsReadyToDepart;
+      END;
+
+      { On each tick go through one of the routes currently active, and continue route setting if required }
+      IF NOT RouteingSuspendedWhenStopPressed
+      AND NOT RouteingSuspendedForModalDialogue
+      THEN BEGIN
+        IF Length(Routes_Routes) > 0 THEN BEGIN
+          { Work out which route we're doing on this iteration }
+          Inc(NumbersArrayCounter);
+          IF NumbersArrayCounter > High(Routes_Routes) THEN
+            { Reset the counter if it's too high }
+            NumbersArrayCounter := 0;
+          TempRoute := Routes_Routes[NumbersArrayCounter];
+
+          { Set up routes }
+          IF Routes_RouteSettingsInProgress[TempRoute] THEN
+            { there is some route setting to be done }
+            SetUpASubRoute(TempRoute);
+  // %%%%%
+          IF InAutoMode THEN BEGIN
+            DoCheckForUnexpectedData(UnitRef, 'MainTimerTick 8');
+            MoveAllTrains;
+          END;
+
+          { Clear routes }
+          IF InAutoMode OR RouteingByUser OR True THEN
+            IF Routes_RouteClearingsInProgress[TempRoute] THEN
+              { there is some route clearing to be done }
+              ClearARoute(TempRoute);
+
+    //      IF InAutoMode THEN
+    //        TestClearARoute(TempRoute);
+
+          IF InAutoMode THEN BEGIN
+            DoCheckForUnexpectedData(UnitRef, 'MainTimerTick 9');
+            MoveAllTrains;
+          END;
+
+          { and set any signals needed because of approach control being in operation }
+          IF Routes_ApproachControlsSet[TempRoute] THEN
+            ProcessApproachLockedSignals(TempRoute);
+        END;
+      END;
+
+      { And see if any points need to be reset (this is done here as sometimes points do not otherwise reset, because although the route can be reset, the point may still be
+        locked at that stage).
+      }
+      IF InAutoMode OR ResetAllSwitchedPoints THEN BEGIN
+        IF NOT PointResettingMode THEN
+          SetLength(PointResettingToDefaultStateArray, 0)
+        ELSE BEGIN
+          I := 0;
+          WHILE I <= High(PointResettingToDefaultStateArray) DO BEGIN
+            IF NOT PointIsLocked(PointResettingToDefaultStateArray[I], LockingMsg) THEN BEGIN
+              WITH Points[PointResettingToDefaultStateArray[I]] DO BEGIN
+                IF Point_PresentState = Point_RequiredState THEN
+                  DeleteElementFromIntegerArray(PointResettingToDefaultStateArray, I)
+                ELSE BEGIN
+                  IF Point_ResettingTime = 0 THEN
+                    Point_ResettingTime := Time
+                  ELSE
+                    IF (Point_ResettingTime <> 0)
+                    AND (CompareTime(IncSecond(Point_ResettingTime, 5), Time) < 0)
+                    THEN BEGIN
+                      Log('P Resetting P=' + IntToStr(PointResettingToDefaultStateArray[I]) + ' one minute after unlocking');
+                      PullPoint(UnknownLocoChipStr, PointResettingToDefaultStateArray[I], NoRoute, NoSubRoute, NOT ForcePoint, NOT ByUser,
+                                NOT ErrorMsgRequired, PointResultPending, ErrorMsg, OK);
+  //                      IF OK THEN
+  //                        LastPointResetTime := Time;
+
+                      Point_ResettingTime := 0;
+                      DeleteElementFromIntegerArray(PointResettingToDefaultStateArray, I);
+                    END;
+                END;
+              END; {WITH}
+            END;
+            Inc(I);
+          END; {WHILE}
+        END;
+      END;
+
+      IF InAutoMode THEN BEGIN
+        { See if any train lights are due to be switched on }
         I := 0;
-        WHILE I <= High(PointResettingToDefaultStateArray) DO BEGIN
-          IF NOT PointIsLocked(PointResettingToDefaultStateArray[I], LockingMsg) THEN BEGIN
-            WITH Points[PointResettingToDefaultStateArray[I]] DO BEGIN
-              IF Point_PresentState = Point_RequiredState THEN
-                DeleteElementFromIntegerArray(PointResettingToDefaultStateArray, I)
-              ELSE BEGIN
-                IF Point_ResettingTime = 0 THEN
-                  Point_ResettingTime := Time
-                ELSE
-                  IF (Point_ResettingTime <> 0)
-                  AND (CompareTime(IncSecond(Point_ResettingTime, 5), Time) < 0)
-                  THEN BEGIN
-                    Log('P Resetting P=' + IntToStr(PointResettingToDefaultStateArray[I]) + ' one minute after unlocking');
-                    PullPoint(UnknownLocoChipStr, PointResettingToDefaultStateArray[I], NoRoute, NoSubRoute, NOT ForcePoint, NOT ByUser,
-                              NOT ErrorMsgRequired, PointResultPending, ErrorMsg, OK);
-//                      IF OK THEN
-//                        LastPointResetTime := Time;
+        WHILE I <= High(LightsToBeSwitchedOnArray) DO BEGIN
+          WITH LightsToBeSwitchedOnArray[I] DO BEGIN
+            WITH Trains[LightsToBeSwitchedOn_Train] DO BEGIN
+              IF CurrentRailwayTime >= LightsToBeSwitchedOn_SwitchOnTime THEN BEGIN
+                Log(Train_LocoChipStr + ' L Now switching on ' + LightsToBeSwitchedOn_ColourStr1 + ' lights at up'
+                                      + ' and ' + LightsToBeSwitchedOn_ColourStr2 + ' lights at down');
+                SetTrainDirection(LightsToBeSwitchedOn_Train, LightsToBeSwitchedOn_Direction1, ForceAWrite, OK);
+                IF LightsToBeSwitchedOn_Direction2 <> UnknownDirection THEN
+                  SetTwoLightingChips(Train_LocoIndex, LightsToBeSwitchedOn_Direction1, LightsToBeSwitchedOn_Direction2, LightsOn);
+                TurnTrainLightsOn(LightsToBeSwitchedOn_Train, OK);
 
-                    Point_ResettingTime := 0;
-                    DeleteElementFromIntegerArray(PointResettingToDefaultStateArray, I);
-                  END;
+                IF TrainHasCabLights(LightsToBeSwitchedOn_Train)
+                AND Train_CabLightsAreOn
+                THEN
+                  TurnTrainCablightsOff(LightsToBeSwitchedOn_Train, OK);
+
+                DeleteElementFromLightsToBeSwitchedOnArray(I);
               END;
             END; {WITH}
-          END;
+          END; {WITH}
           Inc(I);
         END; {WHILE}
       END;
-    END;
 
-    IF InAutoMode THEN BEGIN
-      { See if any train lights are due to be switched on }
-      I := 0;
-      WHILE I <= High(LightsToBeSwitchedOnArray) DO BEGIN
-        WITH LightsToBeSwitchedOnArray[I] DO BEGIN
-          WITH Trains[LightsToBeSwitchedOn_Train] DO BEGIN
-            IF CurrentRailwayTime >= LightsToBeSwitchedOn_SwitchOnTime THEN BEGIN
-              Log(Train_LocoChipStr + ' L Now switching on ' + LightsToBeSwitchedOn_ColourStr1 + ' lights at up'
-                                    + ' and ' + LightsToBeSwitchedOn_ColourStr2 + ' lights at down');
-              SetTrainDirection(LightsToBeSwitchedOn_Train, LightsToBeSwitchedOn_Direction1, ForceAWrite, OK);
-              IF LightsToBeSwitchedOn_Direction2 <> UnknownDirection THEN
-                SetTwoLightingChips(Train_LocoIndex, LightsToBeSwitchedOn_Direction1, LightsToBeSwitchedOn_Direction2, LightsOn);
-              TurnTrainLightsOn(LightsToBeSwitchedOn_Train, OK);
+      IF InAutoMode THEN BEGIN
+        IF NOT RouteClearingOnlyMode
+        AND NOT RouteingSuspendedForModalDialogue
+        THEN BEGIN
+          { Create routes that need creating, but don't do so if RouteClearingOnly is on (mode whereby routes are automatically cleared when train pass, but no routes are
+            created - problem with the mode though - doesn't clear the system-occupied TCs when the train passes **** FWP 16/10/06)
+          }
+          FOR T := 0 TO High(Trains) DO
+            CreateRouteArraysForTrain(T);
+        END;
 
-              IF TrainHasCabLights(LightsToBeSwitchedOn_Train)
-              AND Train_CabLightsAreOn
-              THEN
-                TurnTrainCablightsOff(LightsToBeSwitchedOn_Train, OK);
+        DoCheckForUnexpectedData(UnitRef, 'MainTimerTick 10');
+        MoveAllTrains;
 
-              DeleteElementFromLightsToBeSwitchedOnArray(I);
-            END;
-          END; {WITH}
-        END; {WITH}
-        Inc(I);
-      END; {WHILE}
-    END;
+        { If any train has passed each track circuit, the subroute can be released }
+        ReleaseSubRoutes;
 
-    IF InAutoMode THEN BEGIN
-      IF NOT RouteClearingOnlyMode
-      AND NOT RouteingSuspendedForModalDialogue
-      THEN BEGIN
-        { Create routes that need creating, but don't do so if RouteClearingOnly is on (mode whereby routes are automatically cleared when train pass, but no routes are
-          created - problem with the mode though - doesn't clear the system-occupied TCs when the train passes **** FWP 16/10/06)
-        }
-        FOR T := 0 TO High(Trains) DO
-          CreateRouteArraysForTrain(T);
-      END;
+        DoCheckForUnexpectedData(UnitRef, 'MainTimerTick 11');
+        MoveAllTrains;
 
-      DoCheckForUnexpectedData(UnitRef, 'MainTimerTick 10');
-      MoveAllTrains;
+        DoCheckForUnexpectedData(UnitRef, 'MainTimerTick 12');
+        MoveAllTrains;
 
-      { If any train has passed each track circuit, the subroute can be released }
-      ReleaseSubRoutes;
+        DoCheckForUnexpectedData(UnitRef, 'MainTimerTick 13');
+        MoveAllTrains;
 
-      DoCheckForUnexpectedData(UnitRef, 'MainTimerTick 11');
-      MoveAllTrains;
-
-      DoCheckForUnexpectedData(UnitRef, 'MainTimerTick 12');
-      MoveAllTrains;
-
-      DoCheckForUnexpectedData(UnitRef, 'MainTimerTick 13');
-      MoveAllTrains;
-
-      IF ReplayMode THEN BEGIN
-        IF ReplayScrollDown THEN
-          AdvanceLogFileByOneLine
-        ELSE
-          IF ReplayScrollUp THEN
-            ReverseLogFileByOneLine
+        IF ReplayMode THEN BEGIN
+          IF ReplayScrollDown THEN
+            AdvanceLogFileByOneLine
           ELSE
-            IF ReplaySignalChangeSearch THEN
-              AdvanceLogFileByOneLine;
-      END;
+            IF ReplayScrollUp THEN
+              ReverseLogFileByOneLine
+            ELSE
+              IF ReplaySignalChangeSearch THEN
+                AdvanceLogFileByOneLine;
+        END;
 
-      CheckStationStartMode;
+        CheckStationStartMode;
+      END;
+    FINALLY
+      MainCriticalSection.Leave;
     END;
   EXCEPT
     ON E : Exception DO
@@ -1728,5 +1736,11 @@ BEGIN
 
   Log('A Main Unit initialised');
 END; { InitialiseGetTimeUnit }
+
+INITIALIZATION
+
+BEGIN
+  MainCriticalSection := TCriticalSection.Create;
+END;
 
 END { Main }.
