@@ -36,11 +36,11 @@ CONST
   UnitRef = 'StationMonitors';
 
 VAR
-  CriticalSection : TCriticalSection;
   ExpectedColumnStr : String;
   LocationColumnStr : String;
   LocoColumnStr : String;
   PlatformColumnStr : String;
+  StationMonitorsCriticalSection : TCriticalSection;
   StationMonitorsWebPage : TStringList;
   TimeColumnStr : String;
   WebIncludeLocoChipInStationMonitors : Boolean = False;
@@ -565,7 +565,7 @@ VAR
 BEGIN
   TRY
     { TCriticalSection allows a thread in a multithreaded application to temporarily block other threads from accessing a block of code }
-    CriticalSection.Enter;
+    StationMonitorsCriticalSection.Enter;
     TRY
       IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) AND NOT ProgramShuttingDown THEN BEGIN
         Line := ' ';
@@ -701,7 +701,7 @@ BEGIN
         ClientSocket.Close;
       END;
     FINALLY
-      CriticalSection.Leave;
+      StationMonitorsCriticalSection.Leave;
     END;
   EXCEPT
     ON E : Exception DO
@@ -722,7 +722,7 @@ END; { CloseStationMonitorsWebPage }
 INITIALIZATION
 
 BEGIN
-  CriticalSection := TCriticalSection.Create;
+  StationMonitorsCriticalSection := TCriticalSection.Create;
 END;
 
 END { StationMonitors }.
