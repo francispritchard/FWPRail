@@ -1850,26 +1850,31 @@ FUNCTION LocoHasBeenTakenOverByUser(L : LocoIndex) : Boolean;
 BEGIN
   Result := False;
 
-  IF L = UnknownLocoIndex THEN
-    UnknownLocoRecordFound('LocoHasBeenTakenOverByUser')
-  ELSE BEGIN
-    WITH Locos[L] DO BEGIN
-      IF Loco_TrainIndex <> UnknownTrainIndex THEN BEGIN
-        WITH Trains[Loco_TrainIndex] DO BEGIN
-          IF NOT Train_ControlledByProgram
-          AND Train_PreviouslyControlledByProgram
-          THEN BEGIN
-            Train_PreviouslyControlledByProgram := True; { &&&& does not not make sense }
-            IF NOT Train_TakenOverByUserMsgWritten THEN BEGIN
-              Log(Loco_LocoChipStr + ' LG taken over by user');
-              Train_TakenOverByUserMsgWritten := True;
+  TRY
+    IF L = UnknownLocoIndex THEN
+      UnknownLocoRecordFound('LocoHasBeenTakenOverByUser')
+    ELSE BEGIN
+      WITH Locos[L] DO BEGIN
+        IF Loco_TrainIndex <> UnknownTrainIndex THEN BEGIN
+          WITH Trains[Loco_TrainIndex] DO BEGIN
+            IF NOT Train_ControlledByProgram
+            AND Train_PreviouslyControlledByProgram
+            THEN BEGIN
+              Train_PreviouslyControlledByProgram := True; { &&&& does not not make sense }
+              IF NOT Train_TakenOverByUserMsgWritten THEN BEGIN
+                Log(Loco_LocoChipStr + ' LG taken over by user');
+                Train_TakenOverByUserMsgWritten := True;
+              END;
+              Result := True;
             END;
-            Result := True;
-          END;
-        END; {WITH}
-      END;
-    END; {WITH}
-  END;
+          END; {WITH}
+        END;
+      END; {WITH}
+    END;
+  EXCEPT
+    ON E : Exception DO
+      Log('EG LocoHasBeenTakenOver:' + E.ClassName + ' error raised, with message: '+ E.Message);
+  END; {TRY}
 END; { LocoHasBeenTakenOver }
 
 FUNCTION GetLenzSpeed(L : LocoIndex; ForceRead : Boolean) : Integer;
