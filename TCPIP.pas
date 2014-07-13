@@ -45,8 +45,11 @@ TYPE
     PROCEDURE ResponsesTCPSendText(S : String);
   END;
 
+FUNCTION ReadAndDeleteDataFromTCPIPList : String;
+{ Return string from data-read-in list and delete it from the list }
+
 FUNCTION ReadDataFromTCPIPList : String;
-{ Return string from data read in list }
+{ Return string from data-read-in list but do not delete it - used for testing }
 
 PROCEDURE StartLANUSBServer;
 { Start the server programatically }
@@ -290,8 +293,8 @@ BEGIN
   END;
 END; { BroadcastsTCPClientDisconnect }
 
-FUNCTION ReadDataFromTCPIPList : String;
-{ Return string from data-read-in list }
+FUNCTION ReadAndDeleteDataFromTCPIPList : String;
+{ Return string from data-read-in list and delete it from the list }
 BEGIN
   IF DataReadInList.Count < 1 THEN
     Result := ''
@@ -299,6 +302,15 @@ BEGIN
     Result := DataReadInList[0];
     DataReadInList.Delete(0);
   END;
+END; { ReadAndDeleteDataFromTCPIPList }
+
+FUNCTION ReadDataFromTCPIPList : String;
+{ Return string from data-read-in list but do not delete it - used for testing }
+BEGIN
+  IF DataReadInList.Count < 1 THEN
+    Result := ''
+  ELSE
+    Result := DataReadInList[0];
 END; { ReadDataFromTCPIPList }
 
 PROCEDURE TTCPIPForm.ResponsesTCPClientRead(Sender: TObject; Socket1 : TCustomWinSocket);

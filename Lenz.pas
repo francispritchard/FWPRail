@@ -808,6 +808,10 @@ BEGIN
               RetryFlag := True;
 
               DebugStr := 'timed out in wait for ExpectedReply of ' + ExpectedReplyToStr(ExpectedReply);
+              TempStr := ReadAndDeleteDataFromTCPIPList;
+              IF TempStr <> '' THEN
+                DebugStr := DebugStr + ' [' + TempStr + ']';
+
               Log('XG ' + DebugStr);
             END;
 
@@ -821,7 +825,7 @@ BEGIN
               Continue;
           END;
 
-          TempStr := ReadDataFromTCPIPList;
+          TempStr := ReadAndDeleteDataFromTCPIPList;
           IF TempStr = '' THEN BEGIN
             IF ExpectedReply = NoReplyExpected THEN
               Exit;
