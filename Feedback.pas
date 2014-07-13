@@ -688,7 +688,7 @@ BEGIN { DecodeFeedback }
                           Point_MovedWhenLocked := False
                         ELSE BEGIN
                           IF (Point_LockingState <> PointStateUnknown) AND (Point_PresentState <> Point_LockingState) THEN BEGIN
-                            IF Point_RouteLockedByLocoChip = UnknownLocoChip THEN BEGIN
+                            IF Point_LocoChipLockingTheRoute = UnknownLocoChip THEN BEGIN
                               IF NOT Point_MovedWhenLocked THEN BEGIN
                                 Point_MovedWhenLocked := True;
                                 MakeSound(1);
@@ -698,7 +698,7 @@ BEGIN { DecodeFeedback }
                                 Point_MovedWhenLocked := False;
                               END;
                             END ELSE BEGIN
-                              T := GetTrainIndexFromLocoChip(Point_RouteLockedByLocochip);
+                              T := GetTrainIndexFromLocoChip(Point_LocoChipLockingTheRoute);
                               IF T <> UnknownTrainIndex THEN BEGIN
                                 IF (Trains[T].Train_CurrentStatus <> Suspended)
                                 AND (Trains[T].Train_CurrentStatus <> MissingAndSuspended)
@@ -710,7 +710,7 @@ BEGIN { DecodeFeedback }
                                     MakeSound(1);
                                     Log('X! Serious error: P=' + IntToStr(P) + ' (Lenz=' + IntToStr(Point_LenzNum) + ')'
                                             + ' [' + DescribeLineNamesForTrackCircuit(Point_TCAtHeel) + '] has changed to ' + PointStateToStr(Point_PresentState)
-                                            + ' even though ' + LockingFailureString + ':' + 'loco ' + LocoChipToStr(Point_RouteLockedByLocoChip) + ' has been suspended');
+                                            + ' even though ' + LockingFailureString + ':' + 'loco ' + LocoChipToStr(Point_LocoChipLockingTheRoute) + ' has been suspended');
                                     Point_MovedWhenLocked := False;
                                   END;
                                 END;

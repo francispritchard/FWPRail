@@ -344,7 +344,8 @@ BEGIN
   Points[P].Point_LockingState := Points[P].Point_PresentState;
   IF NOT DoNotWriteMessage THEN
     Log(LocoChipToStr(LocoChip) + ' P P=' + IntToStr(P) + ' now locked ' + PointStateToStr(Points[P].Point_LockingState) + ' by R=' + IntToStr(Route));
-  Points[P].Point_RouteLockedByLocoChip := LocoChip;
+  Points[P].Point_LocoChipLockingTheRoute := LocoChip;
+  Points[P].Point_RouteLockedByLocoChip := Route;
 END; { LockPointByRoute }
 
 PROCEDURE UnlockPointsLockedBySignal(S : Integer);
@@ -397,7 +398,8 @@ BEGIN
     IF NOT DoNotWriteMessage THEN
       Log('P P=' + IntToStr(P) + ' now unlocked by R=' + IntToStr(Route));
   END;
-  Points[P].Point_RouteLockedByLocoChip := UnknownLocoChip;
+  Points[P].Point_LocoChipLockingTheRoute := UnknownLocoChip;
+  Points[P].Point_RouteLockedByLocoChip := UnknownRoute;
 END; { UnlockPointLockedBySpecificRoute }
 
 FUNCTION PointIsLockedByASpecificRoute(P, Route : Integer) : Boolean;

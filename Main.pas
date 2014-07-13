@@ -1220,7 +1220,8 @@ BEGIN
                     { have one more attempt at making it switch }
                     Point_SecondAttempt := True;
                     Log(LocoChipStr + ' P Second attempt to switch P=' + IntToStr(P));
-                    PullPoint(LocoChipToStr(Point_RouteLockedByLocoChip), P, NoRoute, NoSubRoute, NOT ForcePoint, ByUser, NOT ErrorMessageRequired, PointResultPending, DebugStr, OK);
+                    PullPoint(LocoChipToStr(Point_LocoChipLockingTheRoute), P, NoRoute, NoSubRoute, NOT ForcePoint, ByUser, NOT ErrorMessageRequired, PointResultPending,
+                              DebugStr, OK);
                     Exit;
                   END;
 
@@ -1269,15 +1270,15 @@ BEGIN
                           Point_RequiredState := Straight
                         ELSE
                           Point_RequiredState := Diverging;
-                        PullPoint(LocoChipToStr(Point_RouteLockedByLocoChip), P, NoRoute, NoSubRoute, ForcePoint, ByUser, NOT ErrorMessageRequired,
-                                  PointResultPending, DebugStr, OK);
+                        PullPoint(LocoChipToStr(Point_LocoChipLockingTheRoute), P, NoRoute, NoSubRoute, ForcePoint, ByUser, NOT ErrorMessageRequired,
+                                                PointResultPending, DebugStr, OK);
 
                         IF Point_RequiredState = Diverging THEN
                           Point_RequiredState := Straight
                         ELSE
                           Point_RequiredState := Diverging;
-                        PullPoint(LocoChipToStr(Point_RouteLockedByLocoChip), P, NoRoute, NoSubRoute, {NOT} ForcePoint, ByUser, NOT ErrorMessageRequired,
-                                  PointResultPending, DebugStr, OK);
+                        PullPoint(LocoChipToStr(Point_LocoChipLockingTheRoute), P, NoRoute, NoSubRoute, {NOT} ForcePoint, ByUser, NOT ErrorMessageRequired,
+                                                PointResultPending, DebugStr, OK);
                       END;
                     mrAbort: { Ignore }
                       { a major problem: cancel the route, and the train }

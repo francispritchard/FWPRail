@@ -530,6 +530,7 @@ TYPE
     Point_PreviousState : PointStateType;
     Point_RequiredState : PointStateType;
     Point_ResettingTime : TDateTime;
+    Point_LocoChipLockingTheRoute : LocoChipType;
     Point_RouteLockedByLocoChip : LocoChipType;
     Point_TCAtHeel : Integer;
     Point_Type : TypeOfPoint;
@@ -5414,6 +5415,7 @@ BEGIN
           Point_ForcedDelayMsg1Written := False;
           Point_ForcedDelayMsg2Written := False;
           Point_LastChangedTime := 0;
+          Point_LocoChipLockingTheRoute := UnknownLocoChip;
           Point_LockedByUser := False;
           Point_LockFailureNotedInLocksUnit := False;
           Point_LockFailureNotedInSubRouteUnit := False;
@@ -5423,7 +5425,7 @@ BEGIN
           Point_PresentState := PointStateUnknown;
           Point_RequiredState := PointStateUnknown;
           Point_ResettingTime := 0;
-          Point_RouteLockedByLocoChip := UnknownLocoChip;
+          Point_RouteLockedByLocoChip := UnknownRoute;
           Point_SecondAttempt := False;
           Point_SetASecondTime := False;
           Point_WaitTime := 0;
