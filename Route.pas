@@ -22,6 +22,9 @@ TYPE
 PROCEDURE ClearARoute(Route : Integer);
 { Use a string consisting of pairs of signal/point name then '/' or '-' etc. to clear the route }
 
+PROCEDURE ClearARouteByBruteForce(R : Integer);
+{ Clear a route by brute force - needed sometimes if the normal route clearing fails }
+
 PROCEDURE DescribeRouteingStatus;
 { Write to the log the current state of each route and subroute }
 
@@ -1052,6 +1055,81 @@ log('x and L=' + LinetoStr(Signals[Routes_SubRouteStartSignals[Route, SettingSub
       Log('EG SetUpASubRoute: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { SetUpASubRoute }
+
+PROCEDURE ClearARouteByBruteForce(R : Integer);
+{ Clear a route by brute force - needed sometimes if the normal route clearing fails }
+CONST
+  ErrorMessageRequired = True;
+
+VAR
+  L : Integer;
+  P : Integer;
+  S : Integer;
+  SubRoute : Integer;
+  T : integer;
+  TC : Integer;
+
+BEGIN
+  Log('A User clearing R=' + IntToStr(R));
+
+  FOR T := 0 To High(Trains) DO
+    IF Trains[T].Train_CurrentRoute = R THEN
+      Trains[T].Train_CurrentRoute := UnknownRoute;
+
+  { Set any signals locked by the route to on }
+  FOR S := 0 TO High(Signals) DO BEGIN
+    IF SignalIsLockedBySpecificRoute(S, R) THEN BEGIN
+      UnlockSignalLockedBySpecificRoute(S, R);
+      IF Signals[S].Signal_Aspect <> RedAspect THEN BEGIN
+        Signals[S].Signal_Aspect := RedAspect;
+        Signals[S].Signal_PreviousAspect := RedAspect;
+      END;
+      IF Signals[S].Signal_IndicatorState <> NoIndicatorLit THEN BEGIN
+        Signals[S].Signal_IndicatorState := NoIndicatorLit;
+        Signals[S].Signal_PreviousIndicatorState := NoIndicatorLit;
+      END;
+      UnlockPointsLockedBySignal(S);
+    END;
+  END; {FOR}
+
+  { Unlock anything else locked by the route }
+  FOR P := 0 TO High(Points) DO
+    UnlockPointLockedBySpecificRoute(P, R, ErrorMessageRequired);
+
+  FOR TC := 0 TO High(TrackCircuits) DO BEGIN
+    IF TrackCircuits[TC].TC_LockedForRoute = R THEN
+      UnlockTrackCircuitRouteLocking(TC);
+  END; {FOR}
+
+  { Clear the line highlighting too }
+  FOR L := 0 TO High(Lines) DO BEGIN
+    IF Lines[L].Line_RouteLockingForDrawing = R THEN BEGIN
+      Lines[L].Line_RouteLockingForDrawing := UnknownRoute;
+      Lines[L].Line_RouteSet := UnknownRoute;
+    END;
+  END; {FOR}
+
+//  IF (High(Routes_SubRouteStartSignals[R, 0]) > -1) AND (High(Routes_SubRouteStartSignals) <= R) THEN BEGIN
+    { and also clear the line just before the start of the subroute, which isn't in the array, but would have been highlighted to make the route clearer }
+    IF R <= Length(Routes_SubRouteStartSignals) THEN BEGIN
+      IF R <= High(Routes_SubRouteStartSignals) THEN
+        IF Routes_SubRouteStartSignals[R, 0] <> UnknownSignal THEN
+          Lines[Signals[Routes_SubRouteStartSignals[R, 0]].Signal_AdjacentLine].Line_RouteSet := UnknownRoute;
+    END;
+//  END;
+
+  IF (High(Routes_TotalSubRoutes) > -1) AND (High(Routes_TotalSubRoutes) <= R) THEN
+    FOR SubRoute := 0 TO (Routes_TotalSubRoutes[R] - 1) DO
+      Routes_SubRouteStates[R, SubRoute] := SubRouteCleared;
+
+  IF (High(Routes_RouteClearingsInProgress) > -1) AND (High(Routes_RouteClearingsInProgress) <= R) THEN
+    Routes_RouteClearingsInProgress[R] := False;
+  IF (High(Routes_Cleared) > -1) AND (High(Routes_Cleared) <= R) THEN
+    Routes_Cleared[R] := True;
+  Log('RG R=' + IntToStr(R) + ' has been cleared by the user');
+
+  InvalidateScreen(UnitRef, 'ClearRoute');
+END; { ClearARouteByBruteForce }
 
 PROCEDURE ClearARoute(Route : Integer);
 { Use a string consisting of pairs of signal/point name then '/' or '-' etc. to clear the route. (Most of the route may already have been cleared by the passage of the

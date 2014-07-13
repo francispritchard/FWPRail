@@ -1318,71 +1318,6 @@ VAR
     END;
   END; { ProcessLocationOccupations }
 
-  PROCEDURE ClearRoute(R : Integer);
-  { Clear a route by brute force }
-  CONST
-    ErrorMessageRequired = True;
-
-  VAR
-    L : Integer;
-    P : Integer;
-    S : Integer;
-    SubRoute : Integer;
-    TC : Integer;
-
-  BEGIN
-    Log('A User clearing R=' + IntToStr(R));
-
-    { Set any signals locked by the route to on }
-    FOR S := 0 TO High(Signals) DO BEGIN
-      IF SignalIsLockedBySpecificRoute(S, R) THEN BEGIN
-        UnlockSignalLockedBySpecificRoute(S, R);
-        IF Signals[S].Signal_Aspect <> RedAspect THEN BEGIN
-          Signals[S].Signal_Aspect := RedAspect;
-          Signals[S].Signal_PreviousAspect := RedAspect;
-        END;
-        IF Signals[S].Signal_IndicatorState <> NoIndicatorLit THEN BEGIN
-          Signals[S].Signal_IndicatorState := NoIndicatorLit;
-          Signals[S].Signal_PreviousIndicatorState := NoIndicatorLit;
-        END;
-        UnlockPointsLockedBySignal(S);
-      END;
-    END; {FOR}
-
-    { Unlock anything else locked by the route }
-    FOR P := 0 TO High(Points) DO
-      UnlockPointLockedBySpecificRoute(P, R, ErrorMessageRequired);
-
-    FOR TC := 0 TO High(TrackCircuits) DO BEGIN
-      IF TrackCircuits[TC].TC_LockedForRoute = R THEN
-        UnlockTrackCircuitRouteLocking(TC);
-    END; {FOR}
-
-    { Clear the line highlighting too }
-    FOR L := 0 TO High(Lines) DO BEGIN
-      IF Lines[L].Line_RouteLockingForDrawing = R THEN BEGIN
-        Lines[L].Line_RouteLockingForDrawing := UnknownRoute;
-        Lines[L].Line_RouteSet := UnknownRoute;
-      END;
-    END; {FOR}
-
-    { and also clear the line just before the start of the subroute, which isn't in the array, but would have been highlighted to make the route clearer }
-    IF R <= Length(Routes_SubRouteStartSignals) THEN BEGIN
-      IF R <= High(Routes_SubRouteStartSignals) THEN
-        IF Routes_SubRouteStartSignals[R, 0] <> UnknownSignal THEN
-          Lines[Signals[Routes_SubRouteStartSignals[R, 0]].Signal_AdjacentLine].Line_RouteSet := UnknownRoute;
-    END;
-
-    FOR SubRoute := 0 TO (Routes_TotalSubRoutes[R] - 1) DO
-      Routes_SubRouteStates[R, SubRoute] := SubRouteCleared;
-
-    Routes_RouteClearingsInProgress[R] := False;
-    Routes_Cleared[R] := True;
-    Log('RG R=' + IntToStr(R) + ' has been cleared by the user');
-
-    InvalidateScreen(UnitRef, 'ClearRoute');
-  END; { ClearRoute }
-
   { Main Loop }
 BEGIN { KeyPressedDown }
   HelpMsg := '';
@@ -1876,7 +1811,7 @@ BEGIN { KeyPressedDown }
                         ShowMessage('"' + Str + '" is not a valid integer')
                       ELSE
                         { clear the route by brute force }
-                        ClearRoute(R);
+                        ClearARouteByBruteForce(R);
                     END;
                   END;
                 END;
@@ -1895,38 +1830,30 @@ BEGIN { KeyPressedDown }
               END;
             Ctrl: {C}
               BEGIN
-                HelpMsg := 'clear a specific route';
+                HelpMsg := 'clear a specific route by brute force';
                 IF NOT HelpRequired THEN BEGIN
-                  IF Length(Routes_Routes) = 0 THEN
-                    Debug('!No routes to clear')
-                  ELSE BEGIN
-                    Str := '';
-                    IF InputQuery('Route Clearing', 'Enter the number of the route to be cleared', Str) THEN BEGIN
-                      IF NOT TryStrToInt(Str, R) THEN
-                        ShowMessage('"' + Str + '" is not a valid number')
-                      ELSE BEGIN
-                        IF NOT IsElementInIntegerArray(Routes_Routes, R) THEN
-                          ShowMessage('"' + Str + '" is not a valid route number')
-                        ELSE
-                          { clear the route by brute force }
-                          ClearRoute(R);
-                      END;
+                  Str := '';
+                  IF InputQuery('Route Clearing', 'Enter the number of the route to be cleared', Str) THEN BEGIN
+                    IF NOT TryStrToInt(Str, R) THEN
+                      ShowMessage('"' + Str + '" is not a valid number')
+                    ELSE BEGIN
+                      IF NOT IsElementInIntegerArray(Routes_Routes, R) THEN
+                        ShowMessage('"' + Str + '" is not a valid route number')
+                      ELSE
+                        { clear the route by brute force }
+                        ClearARouteByBruteForce(R);
                     END;
                   END;
                 END;
               END;
             Alt: {C}
               BEGIN
-                HelpMsg := 'clear all routes';
+                HelpMsg := 'clear all routes by brute force';
                 IF NOT HelpRequired THEN BEGIN
-                  IF Length(Routes_Routes) = 0 THEN
-                    Debug('!No routes to clear')
-                  ELSE BEGIN
-                    IF MessageDialogueWithDefault('Clear all routes?', NOT StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrYes THEN BEGIN
-                      DebugStr := 'Clearing all routes';
-                      FOR I := 0 TO High(Routes_Routes) DO
-                        ClearRoute(Routes_Routes[I]);
-                    END;
+                  IF MessageDialogueWithDefault('Clear all routes?', NOT StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrYes THEN BEGIN
+                    DebugStr := 'Clearing all routes';
+                    FOR I := 0 TO 999 DO { an arbitrary nunber! ***** }
+                      ClearARouteByBruteForce(I);
                   END;
                 END;
               END;
