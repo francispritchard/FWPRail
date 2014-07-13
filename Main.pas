@@ -71,6 +71,9 @@ PROCEDURE SetTrackCircuitState{4}(TC : Integer; NewState : TrackCircuitStateType
 PROCEDURE StartSystemTimer;
 { Starts the system timer only }
 
+PROCEDURE StopSystemTimer;
+{ Stops the system timer only }
+
 PROCEDURE TurnAllSignalsOff;
 { Turn off the LEDs in the signals }
 
@@ -451,6 +454,12 @@ PROCEDURE StartSystemTimer;
 BEGIN
   MainWindow.MainTimer.Enabled := True;
 END; { StartSystemTimer }
+
+PROCEDURE StopSystemTimer;
+{ Stops the system timer only }
+BEGIN
+  MainWindow.MainTimer.Enabled := False;
+END; { StopSystemTimer }
 
 PROCEDURE SaveSignalsCurrentState;
 { Save all the previous state of all signals }
@@ -1172,7 +1181,7 @@ BEGIN
     IF NOT ProgramStartup THEN BEGIN
       FOR P := 0 TO High(Points) DO BEGIN
         WITH Points[P] DO BEGIN
-          LocoChipStr := LocoChipToStr(Point_RouteLockedByLocoChip);
+          LocoChipStr := LocoChipToStr(Point_LocoChipLockingTheRoute);
           IF Point_FeedbackPending THEN BEGIN
             IF Point_PresentState = Point_RequiredState THEN BEGIN
               IF Point_ManualOperation THEN BEGIN
@@ -1468,6 +1477,7 @@ BEGIN
   TRY
     { TCriticalSection allows a thread in a multithreaded application to temporarily block other threads from accessing a block of code }
     MainCriticalSection.Enter;
+    StopSystemTimer;
 
     TRY
       IF RunTestUnitOnStartup THEN BEGIN
@@ -1663,6 +1673,7 @@ BEGIN
         CheckStationStartMode;
       END;
     FINALLY
+      StartSystemTimer;
       MainCriticalSection.Leave;
     END;
   EXCEPT

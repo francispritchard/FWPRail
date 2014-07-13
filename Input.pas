@@ -2932,7 +2932,7 @@ BEGIN { KeyPressedDown }
                       ReplayMode := True;
                       RestoreLogsToPreviousState := True;
                       ShutDownProgram(UnitRef, 'KeyPressedDown');
-                      MainWindow.MainTimer.Enabled := False;
+                      StopSystemTimer;
                       IF InAutoMode THEN
                         TurnAutoModeOff(NOT ByUser);
                       LogsCurrentlyKept := False;
@@ -3209,10 +3209,10 @@ BEGIN { KeyPressedDown }
                 HelpMsg := 'turn main timer off/on';
                 IF NOT HelpRequired THEN BEGIN
                   IF MainWindow.MainTimer.Enabled THEN BEGIN
-                    MainWindow.MainTimer.Enabled := False;
+                    StopSystemTimer;
                     Log('XG Main Timer tuned off by user');
                   END ELSE BEGIN
-                    MainWindow.MainTimer.Enabled := True;
+                    StartSystemTimer;
                     Log('XG Main Timer tuned on by user');
                   END;
                 END;

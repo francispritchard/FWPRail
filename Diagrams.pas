@@ -3609,7 +3609,8 @@ BEGIN
                   InputFoundOrCancelled := False;
                   NewLocationStr := '';
                   ErrorMsg := 'No feedback found for loco ' + LocoChipToStr(Train_LocoChip) + '. Please type in its present location or CANCEL to suspend it';
-                  MainWindow.MainTimer.Enabled := False;
+                  StopSystemTimer;
+
                   REPEAT
                     IF NOT InputQuery('Enter train location', ErrorMsg, NewLocationStr) THEN BEGIN
                       InputFoundOrCancelled := True;
@@ -3637,7 +3638,8 @@ BEGIN
                       END;
                     END;
                   UNTIL InputFoundOrCancelled;
-                  MainWindow.MainTimer.Enabled := True;
+
+                  StartSystemTimer;
                 END ELSE BEGIN
                   IF Train_LastLocation <> Train_Locations[0] THEN BEGIN
                     CASE MessageDialogueWithDefault('Possible diagrams error: loco ' + LocoChipToStr(Train_LocoChip) + ': ' + ErrorMsg
@@ -4089,7 +4091,7 @@ BEGIN
                 END;
               END ELSE
                 IF LengthOfTrainInCarriages = 0 THEN BEGIN
-                  MainWindow.MainTimer.Enabled := False;
+                  StopSystemTimer;
                   TempStr := InputBox('Caption',
                                       'Diagrams error: loco ' + LocoChipToStr(Train_LocoChip) + ':'
                                       + CRLF
@@ -4102,7 +4104,8 @@ BEGIN
                       ErrorMsg := 'No train length supplied in loco record or diagram record'
                     ELSE
                       Train_CurrentLengthInInches := LengthOfTrainInCarriages * CarriageLengthInInches;
-                  MainWindow.MainTimer.Enabled := True;
+
+                  StartSystemTimer;
                 END ELSE BEGIN
                   Train_CurrentLengthInInches := LengthOfTrainInCarriages * CarriageLengthInInches;
                   Log(Train_LocoChipStr + ' T Train_CurrentLengthInInches is ' + IntToStr(Train_CurrentLengthInInches)

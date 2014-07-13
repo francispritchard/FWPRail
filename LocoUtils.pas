@@ -409,7 +409,7 @@ BEGIN
                   OF
                     mrYes: { Amend }
                       BEGIN
-                        MainWindow.MainTimer.Enabled := False;
+                        StopSystemTimer;
                         InputFoundOrCancelled := False;
                         InputErrorMsg := 'Enter new location for loco ' + Loco_LocoChipStr;
                         REPEAT
@@ -443,7 +443,7 @@ BEGIN
                         IF Loco_LastLocation = UnknownLocation THEN
                           Log(Loco_LocoChipStr + ' LG Deleting last location record as location is marked as occupied by '
                                                 + LocoChipToStr(TempLocationsLocoChips[ElementPos]));
-                        MainWindow.MainTimer.Enabled := True;
+                        StartSystemTimer;
                       END;
                     mrNo: { Delete }
                       BEGIN

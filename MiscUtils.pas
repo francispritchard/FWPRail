@@ -5777,7 +5777,7 @@ VAR
 
 BEGIN
   IF StopTimer THEN
-    MainWindow.MainTimer.Enabled := False;
+    StopSystemTimer;
 
   Dialogue := CreateMessageDialog(DialogueText, DlgType, Buttons);
 
@@ -5847,7 +5847,7 @@ BEGIN
   Dialogue.Free;
 
   IF StopTimer THEN
-    MainWindow.MainTimer.Enabled := True;
+    StartSystemTimer;
 
   { and redraw the screen, or we are left with a dialogue-sized hole }
   InvalidateScreen(UnitRef, 'MessageDialogueWithDefault');
@@ -5865,7 +5865,7 @@ VAR
 
 BEGIN
   IF StopTimer THEN
-    MainWindow.MainTimer.Enabled := False;
+    StopSystemTimer;
 
   Dialogue := CreateMessageDialog(DialogueText, DlgType, Buttons);
 
@@ -5968,7 +5968,7 @@ BEGIN
   Dialogue.Free;
 
   IF StopTimer THEN
-    MainWindow.MainTimer.Enabled := True;
+    StartSystemTimer;
 
   { and redraw the screen, or we are left with a dialogue-sized hole }
   InvalidateScreen(UnitRef, 'MessageDialogueWithDefault');
@@ -6543,7 +6543,7 @@ BEGIN { ShutDownProgram }
         CloseRailDriver;
       END;
 
-      MainWindow.MainTimer.Enabled := False;
+      StopSystemTimer;
 
       { Write things back to the .ini file }
       IF NOT ReplayMode
