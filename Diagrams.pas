@@ -3401,7 +3401,6 @@ CONST
   UseEmergencyRouteing = True;
 
 VAR
-  DapolCleaningWagonFound : Boolean;
   DebugStr : String;
   DepartureTimesArray : DateTimeArrayType;
   DirectionFound : Boolean;
@@ -4614,18 +4613,16 @@ BEGIN
                         Log(Train_LocoChipStr + ' X! NB Discrepancy in train direction: ' + ' fixed direction is ' + FieldByName('FixedTrainDirection').AsString
                                               + ' whereas last train direction was ' + FieldByName('LastTrainDirection').AsString);
 
-      //                { Make sure the double-heading loco is going the same way as the leading loco }
-      //                IF (Train_FixedDirection <> UnknownDirection) THEN BEGIN
-      //                  IF ((Train_DoubleHeaderLocoIndex <> UnknownLocoIndex)
-      //                  AND (Locos[Train_DoubleHeaderLocoIndex].Loco_FixedDirection <> Loco_FixedDirection))
-      //                  THEN
-      //                    Log(Train_LocoChipStr + ' X! NB Discrepancy in train direction: '
-      //                                          + ' fixed direction for the leading loco is ' + FieldByName('FixedTrainDirection').AsString
-      //                                          + ' whereas fixed direction for the double-heading loco is ' + FieldByName('FixedTrainDirection').AsString);
-
-
-
-
+                      { Make sure the double-heading loco is going the same way as the leading loco }
+                      IF (Train_FixedDirection <> UnknownDirection) THEN BEGIN
+                        IF ((Train_DoubleHeaderLocoIndex <> UnknownLocoIndex)
+                        AND (Locos[Train_DoubleHeaderLocoIndex].Loco_FixedDirection <> Loco_FixedDirection))
+                        THEN
+                          Log(Train_LocoChipStr + ' X! NB Discrepancy in train direction: '
+                                                + ' fixed direction for the leading loco is ' + DirectionToStr(Loco_FixedDirection)
+                                                + ' whereas fixed direction for the double-heading loco is '
+                                                + DirectionToStr(Locos[Train_DoubleHeaderLocoIndex].Loco_FixedDirection));
+                      END;
 
                       Train_SavedLocation := Train_LastLocation;
                       Train_Description := Loco_Description;
@@ -4645,212 +4642,6 @@ BEGIN
                                               + ' because that is the double-heading loco''s maximum speed which is lower that the leading loco''s');
                       END ELSE
                         Train_MaximumSpeedInMPH := Loco_MaximumSpeedInMPH;
-
-
-        //                END;
-        //                IF ErrorMsg = '' THEN BEGIN
-        //                  { The following are mutually exclusive - LightSettingCount is used to detect if more than one is selected }
-        //                  LightSettingCount := 0;
-        //
-        //                  IF FieldByName('OrdinaryLights').AsBoolean THEN BEGIN
-        //                    Train_LightsType := HeadlightsAndTailLightsConnected;
-        //                    Inc(LightSettingCount);
-        //                  END;
-        //
-        //                  IF FieldByName('LightsDimmed').AsBoolean THEN BEGIN
-        //                    Train_LightsType := LightsShouldBeDimmed;
-        //                    Inc(LightSettingCount);
-        //                  END;
-        //
-        //                  IF FieldByName('ExpressModelsKit').AsBoolean THEN BEGIN
-        //                    Train_LightsType := ExpressModelsSeparateHeadlights;
-        //                    Inc(LightSettingCount);
-        //                  END;
-        //
-        //                  IF FieldByName('TailLightsSwitched').AsBoolean THEN BEGIN
-        //                    Train_LightsType := HeadlightsAndTailLightsSeparatelySwitched;
-        //                    Inc(LightSettingCount);
-        //                  END;
-        //
-        //                  IF FieldByName('CustomLightingKit').AsBoolean THEN BEGIN
-        //                    Train_LightsType := CustomLightingkit;
-        //                    Inc(LightSettingCount);
-        //                  END;
-        //
-        //                  IF FieldByName('LightsFromTwoChips').AsBoolean THEN BEGIN
-        //                    Train_LightsType := LightsOperatedByTwoChips;
-        //                    TempStr := FieldByName('LightingChipUp').AsString;
-        //                    IF (TempStr = '') OR (TempStr = '0') THEN
-        //                      ErrorMsg := 'Error in database for loco ' + LocoChipToStr(Train_LocoChip) + ': ''Lights From Two Chips'' ticked but no chip number supplied'
-        //                    ELSE BEGIN
-        //                      Train_LightingChipUp := StrToInt(TempStr);
-        //                      TempStr := FieldByName('LightingChipDown').AsString;
-        //                      IF (TempStr = '') OR (TempStr = '0') THEN
-        //                        ErrorMsg := 'Error in database for loco ' + LocoChipToStr(Train_LocoChip) + ': ''Lights From Two Chips'' ticked but no chip number supplied'
-        //                      ELSE
-        //                        Train_LightingChipDown := StrToInt(TempStr);
-        //                    END;
-        //
-        //                    Inc(LightSettingCount);
-        //                  END ELSE BEGIN
-        //                    IF FieldByName('LightingChipUp').AsInteger > 0 THEN
-        //                      ErrorMsg := 'Error in database for loco ' + LocoChipToStr(Train_LocoChip)
-        //                                  + ': lighting chip number up ' + LocoChipToStr(FieldByName('LightingChipUp').AsInteger)
-        //                                  + ' supplied but ''Lights From Two Chips'' not ticked'
-        //                    ELSE
-        //                      IF FieldByName('LightingChipDown').AsInteger > 0 THEN
-        //                        ErrorMsg := 'Error in database for loco ' + LocoChipToStr(Train_LocoChip)
-        //                                    + ': lighting chip number down ' + LocoChipToStr(FieldByName('LightingChipDown').AsInteger)
-        //                                    + ' supplied but ''Lights From Two Chips'' not ticked';
-        //                  END;
-        //
-        //                  IF LightSettingCount > 1 THEN
-        //                    ErrorMsg := 'Error in database for loco ' + LocoChipToStr(Train_LocoChip) + ': more than one lighting option ticked';
-        //                END;
-
-        //                IF ErrorMsg = '' THEN BEGIN
-        //                  IF NOT FieldByName('Non-Loco').AsBoolean THEN BEGIN
-        //                    { Now deal with speed settings }
-        //                    Train_SpeedArray[1] := FieldByName('Speed10').AsInteger;
-        //                    FOR I := 2 TO 12 DO
-        //                      Train_SpeedArray[I] := FieldByName('Speed' + IntToStr(I) + '0').AsInteger;
-        //
-        //                    { First see if there any speeds here (speeds are added by hand to the database once the speed test is completed) by seeing if any of the speed settings are
-        //                      non-zero
-        //                    }
-        //                    TestInt := 0;
-        //                    FOR I := 1 TO 12 DO
-        //                      TestInt := TestInt + Train_SpeedArray[I];
-        //                    IF TestInt = 0 THEN BEGIN
-        //                      { there are no speeds in the database }
-        //                      Log(Train_LocoChipStr + ' L Loco has no speed settings in the loco database');
-        //                      Train_SpeedSettingsMissing := True;
-        //                    END ELSE BEGIN
-        //                      { Find the minimum speed and add to all lower speed settings }
-        //                      I := 1;
-        //                      SpeedFound := False;
-        //                      WHILE (I <= 12)
-        //                      AND NOT SpeedFound
-        //                      DO BEGIN
-        //                        IF Train_SpeedArray[I] <> 0 THEN BEGIN
-        //                          SpeedFound := True;
-        //                          { now add to all speed settings below }
-        //                          FOR J := 1 TO (I - 1) DO
-        //                            Train_SpeedArray[J] := Train_SpeedArray[I];
-        //                        END;
-        //                        Inc(I);
-        //                      END; {WHILE}
-        //
-        //                      { Find the maximum speed, and add to all higher speed settings }
-        //                      I := 12;
-        //                      SpeedFound := False;
-        //                      WHILE (I >= 1)
-        //                      AND NOT SpeedFound
-        //                      DO BEGIN
-        //                        IF Train_SpeedArray[I] <> 0 THEN BEGIN
-        //                          SpeedFound := True;
-        //                          { and store the maximum speed }
-        //                          CASE I OF
-        //                            1:
-        //                              Train_MaximumSpeedInMPH := MPH10;
-        //                            2:
-        //                              Train_MaximumSpeedInMPH := MPH20;
-        //                            3:
-        //                              Train_MaximumSpeedInMPH := MPH30;
-        //                            4:
-        //                              Train_MaximumSpeedInMPH := MPH40;
-        //                            5:
-        //                              Train_MaximumSpeedInMPH := MPH50;
-        //                            6:
-        //                              Train_MaximumSpeedInMPH := MPH60;
-        //                            7:
-        //                              Train_MaximumSpeedInMPH := MPH70;
-        //                            8:
-        //                              Train_MaximumSpeedInMPH := MPH80;
-        //                            9:
-        //                              Train_MaximumSpeedInMPH := MPH90;
-        //                            10:
-        //                              Train_MaximumSpeedInMPH := MPH100;
-        //                            11:
-        //                              Train_MaximumSpeedInMPH := MPH110;
-        //                            12:
-        //                              Train_MaximumSpeedInMPH := MPH120;
-        //                          END; {CASE}
-        //
-        //                          { now add to all speed settings below }
-        //                          FOR J := (I + 1) TO 12 DO
-        //                            Train_SpeedArray[J] := Train_SpeedArray[I];
-        //                        END;
-        //                        Dec(I);
-        //                      END; {WHILE}
-        //
-        //                      { But it might happen (has happened!) that, accidentally, an intervening speed setting is missing, or a speed step is lower than the one preceding it }
-        //                      I := 1;
-        //                      SpeedFound := True;
-        //                      WHILE (I <= 12)
-        //                      AND SpeedFound
-        //                      DO BEGIN
-        //                        IF Train_SpeedArray[I] = 0 THEN BEGIN
-        //                          SpeedFound := False;
-        //                          Log(Train_LocoChipStr + ' L Missing speed step at position ' + IntToStr(I - 1));
-        //                          ErrorMsg := 'Loco ' + LocoChipToStr(Train_LocoChip) + ': missing speed step at position ' + IntToStr(I - 1);
-        //                          Train_SpeedSettingsMissing := True;
-        //                        END ELSE
-        //                          IF (I > 1)
-        //                          AND (Train_SpeedArray[I] < Train_SpeedArray[I - 1])
-        //                          THEN BEGIN
-        //                            SpeedFound := False;
-        //                            Log(Train_LocoChipStr + ' L Speed step at position ' + IntToStr(I - 1) + ' is less than speed step at position ' + IntToStr(I - 2));
-        //                            ErrorMsg := 'Loco ' + LocoChipToStr(Train_LocoChip) + ': speed step at position ' + IntToStr(I - 1)
-        //                                                                                                                      + ' is less than speed step at position ' + IntToStr(I - 2);
-        //                            Train_SpeedSettingsMissing := True;
-        //                          END;
-        //                        Inc(I);
-        //                      END; {WHILE}
-        //                    END;
-        //                  END;
-        //                END;
-
-      //              { Now add the speed settings to the appropriate MPH variable }
-      //              IF ErrorMsg = '' THEN BEGIN
-      //                Train_Speed10 := Train_SpeedArray[1];
-      //                Train_Speed20 := Train_SpeedArray[2];
-      //                Train_Speed30 := Train_SpeedArray[3];
-      //                Train_Speed40 := Train_SpeedArray[4];
-      //                Train_Speed50 := Train_SpeedArray[5];
-      //                Train_Speed60 := Train_SpeedArray[6];
-      //                Train_Speed70 := Train_SpeedArray[7];
-      //                Train_Speed80 := Train_SpeedArray[8];
-      //                Train_Speed90 := Train_SpeedArray[9];
-      //                Train_Speed100 := Train_SpeedArray[10];
-      //                Train_Speed110 := Train_SpeedArray[11];
-      //                Train_Speed120 := Train_SpeedArray[12];
-      //              END;
-
-                    { Also add records for the additional lighting chips if any } { not sure if we need these 14/6/14 ****** }
-        //            IF (Train_LightingChipUp <> UnknownLocoChip)
-        //            AND (Train_LightingChipUp <> Train_LocoChip)
-        //            THEN BEGIN
-        //              New(UpLightsTrainRecord);
-        //              Train_LightingChipUpAddress := UpLightsTrainRecord;
-        //              InitialiseTrainRecord(UpLightsTrainRecord);
-        //              UpLightsTrainRecord^.Train_LocoChip := Train_LightingChipUp;
-        //              UpLightsTrainRecord^.Train_LocoChipStr := LocoChipToStr(UpLightsTrainRecord^.Train_LocoChip);
-        //              UpLightsTrainRecord^.Train_LightingChipRecordForChip := Train_LocoChip;
-        //              AddTrainToTrainList(UpLightsTrainRecord, DescribeFullTrainList);
-        //            END;
-
-        //            IF (Train_LightingChipDown <> UnknownLocoChip)
-        //            AND (Train_LightingChipDown <> Train_LocoChip)
-        //            THEN BEGIN
-        //              New(DownLightsTrainRecord);
-        //              Train_LightingChipDownAddress := DownLightsTrainRecord;
-        //              InitialiseTrainRecord(DownLightsTrainRecord);
-        //              DownLightsTrainRecord^.Train_LocoChip := Train_LightingChipDown;
-        //              DownLightsTrainRecord^.Train_LocoChipStr := LocoChipToStr(DownLightsTrainRecord^.Train_LocoChip);
-        //              DownLightsTrainRecord^.Train_LightingChipRecordForChip := Train_LocoChip;
-        //              AddTrainToTrainList(DownLightsTrainRecord, DescribeFullTrainList);
-        //            END;
                     END; {WITH}
                   END;
                 END; {WITH}
