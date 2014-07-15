@@ -74,12 +74,6 @@ FUNCTION GetLenzSpeed(L : LocoIndex; ForceRead : Boolean) : Integer;
 PROCEDURE InitialiseLenzUnit;
 { Such routines as this allow us to initialises the units in the order we wish }
 
-FUNCTION LocoHasBeenTakenOverByProgram(L : LocoIndex) : Boolean; { &&&&& }
-{ Returns true if the loco has been taken over by the program }
-
-FUNCTION LocoHasBeenTakenOverByUser(L : LocoIndex) : Boolean;
-{ Returns true if the loco has been taken over by an LH100 }
-
 FUNCTION MakePointChange(LocoChipStr : String; P : Integer; Direction : PointStateType; VAR Count : Integer) : Boolean;
 { Select which decoder, which output and which direction (LS100/100 decoders have four outputs. Need to select then deselect after 200 ms! }
 
@@ -700,6 +694,7 @@ VAR
   ErrorFound : Boolean;
   ErrorMsg : String;
   I : Integer;
+  L : LocoIndex;
   LocoChip : LocoChipType;
   OK : Boolean;
   PortStr : String;
@@ -708,7 +703,6 @@ VAR
   RetryFlag : Boolean;
   S : String;
   StartTimer : Cardinal;
-  T : TrainIndex;
   TempByte : Byte;
   TempStr : String;
   TempInt : Integer;
@@ -1359,14 +1353,10 @@ BEGIN
                       LocoChip := GetLocoChipFromTwoBytes(ReadArray[2], ReadArray[3]);
 
                       { and record it }
-                      Log(LocoChipToStr(LocoChip) + ' L taken over');
-                      T := GetTrainIndexFromLocoChip(LocoChip);
-                      IF T = UnknownTrainIndex THEN
-                        UnknownTrainRecordFound('DataIOMainProcedure')
-                      ELSE BEGIN
-                        Trains[T].Train_PreviouslyControlledByProgram := True;
-                        SetTrainControlledByProgram(T, False);
-                      END;
+                      Log(LocoChipToStr(LocoChip) + ' L taken over by ' + ControlledByStateToStr(ControlledByUser));
+                      L := GetLocoIndexFromLocoChip(LocoChip);
+                      SetLocoControlledByState(L, ControlledByUser);
+                      Log(LocoChipToStr(LocoChip) + ' L taken over by ' + ControlledByStateToStr(ControlledByUser));
                     END;
                   80: { $50 }
                     { Function status response }
@@ -1631,7 +1621,6 @@ VAR
   IDByte : Byte;
   ReadArray, WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
   SpeedNum : Integer;
-  T : TrainIndex;
   TestByte : Byte;
 
 BEGIN { ReadInLocoDetails }
@@ -1670,18 +1659,13 @@ BEGIN { ReadInLocoDetails }
             BEGIN
               IDByte := ReadArray[1];
 
-              { See if loco controlled by another device **** }
-              T := GetTrainIndexFromLocoChip(Loco_LocoChip);
-              IF T = UnknownTrainIndex THEN
-                UnknownTrainRecordFound('ReadInLocoDetails')
-              ELSE BEGIN
-                IF (IDByte AND 8) = 8 THEN BEGIN
-                  { testing bit 3 - loco controlled by something else }
-                  SetTrainControlledByProgram(T, False);
-                  DebugStr := DebugStr + ' [previously taken over]';
-                END ELSE
-                  SetTrainControlledByProgram(T, True);
-              END;
+              { See if loco controlled by another device }
+              IF (IDByte AND 8) = 8 THEN BEGIN
+                { testing bit 3 - loco controlled by something else }
+                SetLocoControlledByState(L, ControlledByUnknownDevice);
+                DebugStr := DebugStr + ' [previously taken over by ' + ControlledByStateToStr(ControlledByUnknownDevice) + ']';
+              END ELSE
+                SetLocoControlledByState(L, ControlledByProgram);
 
               { get its speed step mode from bits 0-2 }
               IF (IDByte AND 4) = 4 THEN
@@ -1826,65 +1810,7 @@ BEGIN
     Debug('Not OK');
 END; { ReadInFunctionDecoderDetails }
 
-FUNCTION LocoHasBeenTakenOverByProgram(L : LocoIndex) : Boolean; { &&&&& }
-{ Returns true if the loco has been taken over by the program }
-VAR
-  T : TrainIndex;
-
-BEGIN
-  Result := False;
-
-  IF L = UnknownLocoIndex THEN
-    UnknownLocoRecordFound('LocoHasBeenTakenOverByProgram')
-  ELSE BEGIN
-    T := Locos[L].Loco_TrainIndex;
-    IF T = UnknownTrainIndex THEN
-      UnknownTrainRecordFound('LocoHasBeenTakenOverByProgram')
-    ELSE BEGIN
-      WITH Trains[T] DO BEGIN
-        IF Train_ControlledByProgram THEN BEGIN
-          Train_PreviouslyControlledByProgram := False;
-          Train_TakenOverByUserMsgWritten := False;
-          Result := True;
-        END;
-      END; {WITH}
-    END;
-  END;
-END; { LocoHasBeenTakenOverByProgram }
-
-FUNCTION LocoHasBeenTakenOverByUser(L : LocoIndex) : Boolean;
-{ Returns true if the loco has been taken over by an LH100 }
-BEGIN
-  Result := False;
-
-  TRY
-    IF L = UnknownLocoIndex THEN
-      UnknownLocoRecordFound('LocoHasBeenTakenOverByUser')
-    ELSE BEGIN
-      WITH Locos[L] DO BEGIN
-        IF Loco_TrainIndex <> UnknownTrainIndex THEN BEGIN
-          WITH Trains[Loco_TrainIndex] DO BEGIN
-            IF NOT Train_ControlledByProgram
-            AND Train_PreviouslyControlledByProgram
-            THEN BEGIN
-              Train_PreviouslyControlledByProgram := True; { &&&& does not not make sense }
-              IF NOT Train_TakenOverByUserMsgWritten THEN BEGIN
-                Log(Loco_LocoChipStr + ' LG taken over by user');
-                Train_TakenOverByUserMsgWritten := True;
-              END;
-              Result := True;
-            END;
-          END; {WITH}
-        END;
-      END; {WITH}
-    END;
-  EXCEPT
-    ON E : Exception DO
-      Log('EG LocoHasBeenTakenOver:' + E.ClassName + ' error raised, with message: '+ E.Message);
-  END; {TRY}
-END; { LocoHasBeenTakenOver }
-
-FUNCTION GetLenzSpeed(L : LocoIndex; ForceRead : Boolean) : Integer;
+FUNCTION GetLenzSpeed(LocoChip : LocoChipType; ForceRead : Boolean) : Integer;
 { Returns the given loco's speed - if ForceRead set, reads it in even if we think we know what it is }
 VAR
   OK : Boolean;
@@ -1900,7 +1826,9 @@ BEGIN
     UnknownLocoRecordFound('GetLenzSpeed')
   ELSE BEGIN
     WITH Locos[L] DO BEGIN
-      IF LocoHasBeenTakenOverByUser(L) OR ForceRead THEN BEGIN
+      IF (Loco_ControlledByState = ControlledByUser)
+      OR ForceRead
+      THEN BEGIN
         ReadInLocoDetails(L, TempSpeedByte, OK);
         IF NOT OK THEN
           Log(Loco_LocoChipStr + ' XG "GetLenzSpeed" routine failed');
@@ -1938,7 +1866,7 @@ BEGIN
       IF NOT OK THEN
         Log(Loco_LocoChipStr + ' L Data not acknowledged')
       ELSE BEGIN
-        SetTrainControlledByProgram(Locos[L].Loco_TrainIndex, True);
+        SetLocoControlledByState(L, ControlledByProgram);
         Locos[L].Loco_SpeedByte := TempSpeedByte;
       END;
       Log(Loco_LocoChipStr + ' L Data acknowledged');
@@ -2045,7 +1973,7 @@ BEGIN
               OK := False;
               { If we're controlling it, we know its speed }
               IF Loco_SpeedByteReadIn
-              AND NOT LocoHasBeenTakenOverByUser(L)
+              AND (Loco_ControlledByState = ControlledByProgram)
               THEN
                 TempSpeedByte := Loco_SpeedByte
               ELSE BEGIN
@@ -2194,7 +2122,7 @@ BEGIN
 
       IF SystemOnline THEN BEGIN
         IF Loco_SpeedByteReadIn
-        AND NOT LocoHasBeenTakenOverByUser(L)
+        AND (Loco_ControlledByState = ControlledByProgram)
         AND (Loco_CurrentDirection <> UnknownDirection)
         THEN
           TempSpeedByte := Loco_SpeedByte
@@ -2264,7 +2192,9 @@ BEGIN
     UnknownLocoRecordFound('GetLocoFunctions')
   ELSE BEGIN
     WITH Locos[L] DO BEGIN
-      IF LocoHasBeenTakenOverByuser(L) OR ForceRead THEN
+      IF (Loco_ControlledByState = ControlledByProgram)
+      OR ForceRead
+      THEN
         ReadInLocoDetails(L, TempSpeedByte, OK);
 
       FOR FunctionNum := 0 TO 12 DO BEGIN
@@ -2346,7 +2276,9 @@ BEGIN
     UnknownLocoRecordFound('SingleLocoFunctionIsOn')
   ELSE BEGIN
     WITH Locos[L] DO BEGIN
-      IF LocoHasBeenTakenOverByuser(L) OR ForceRead THEN
+      IF (Loco_ControlledByState = ControlledByProgram)
+      OR ForceRead
+      THEN
         ReadInLocoDetails(L, TempSpeedByte, OK);
 
       { Now see if a particular bit is set (different set of values for 9-12 from writing out functions) }
@@ -2427,7 +2359,7 @@ BEGIN
     UnknownLocoRecordFound('SetSingleLocoFunction')
   ELSE BEGIN
     WITH Locos[L] DO BEGIN
-      IF NOT Trains[Loco_TrainIndex].Train_ControlledByProgram THEN { &&&&& }
+      IF Loco_ControlledByState <> ControlledByProgram THEN
         ReadInLocoDetails(L, SpeedByte, OK);
 
       { Now can use stored function bytes whether read in just now or previously }
@@ -2504,7 +2436,7 @@ BEGIN
           DataIO('L', WriteArray, LocoAcknowledgment, OK);
 
           IF OK THEN BEGIN
-            SetTrainControlledByProgram(Loco_TrainIndex, True);
+            SetLocoControlledByState(L, ControlledByProgram);
             CASE FunctionNum OF
               0, 1, 2, 3, 4:
                 Loco_Functions0To4Byte := TestByte2;
@@ -3112,36 +3044,35 @@ BEGIN { MakePointChange }
   Result := OK;
 END; { MakePointChange }
 
-PROCEDURE SetUpDoubleHeader(LocoChip1, LocoChip2 : Word; VAR OK : Boolean);
+PROCEDURE SetUpDoubleHeader(L1, L2 : LocoIndex; VAR OK : Boolean);
 { Sets up a double header - needs both locos standing still, both have already been controlled, and were the most recent ones controlled by the computer. This procedure is
   not used by the rail program as the program deals with double heading by sending the speed commands to both named locos.
 }
 VAR
-  T1, T2: TrainIndex;
   WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
 
 BEGIN
-  Log(LocoChipToStr(LocoChip1) + ' L Requesting double header for locos ' + IntToStr(LocoChip1) + ' +' + IntToStr(LocoChip2) + ' {BLANKLINEBEFORE}');
-  WriteArray[0] := 229;
-  WriteArray[1] := 67;
-  WriteArray[2] := GetLocoChipHighByte(LocoChip1);
-  WriteArray[3] := GetLocoChipLowByte(LocoChip1);
-  WriteArray[4] := GetLocoChipHighByte(LocoChip2);
-  WriteArray[5] := GetLocoChipLowByte(LocoChip2);
+  IF L1 = UnknownLocoIndex THEN
+    UnknownLocoRecordFound('DissolveDoubleHeader')
+  ELSE BEGIN
+    WITH Locos[L1] DO BEGIN
+      Log(Loco_LocoChipStr + ' L Requesting double header for locos ' + Loco_LocoChipStr + ' +' + Locos[L2].Loco_LocoChipStr + ' {BLANKLINEBEFORE}');
+      WriteArray[0] := 229;
+      WriteArray[1] := 67;
+      WriteArray[2] := GetLocoChipHighByte(Loco_LocoChip);
+      WriteArray[3] := GetLocoChipLowByte(Loco_LocoChip);
+      WriteArray[4] := GetLocoChipHighByte(Locos[L2].Loco_LocoChip);
+      WriteArray[5] := GetLocoChipLowByte(Locos[L2].Loco_LocoChip);
 
-  DataIO('L', WriteArray, Acknowledgment, OK);
-  IF OK THEN BEGIN
-    T1 := GetTrainIndexFromLocoChip(LocoChip1);
-    T2 := GetTrainIndexFromLocoChip(LocoChip2);
-    IF (T1 <> UnknownTrainIndex)
-    AND (T2 <> UnknownTrainIndex)
-    THEN BEGIN
-      SetTrainControlledByProgram(T1, True);
-      SetTrainControlledByProgram(T2, True);
-      Log(LocoChipToStr(LocoChip1) + ' L Double header (locos ' + IntToStr(LocoChip1) + ' +' + IntToStr(LocoChip2) + ') set up')
+      DataIO('L', WriteArray, Acknowledgment, OK);
+      IF OK THEN BEGIN
+        SetLocoControlledByState(L1, ControlledByProgram);
+        SetLocoControlledByState(L2, ControlledByProgram);
+        Log(LocoChipToStr(Loco_LocoChip) + ' L Double header (locos ' + IntToStr(Loco_LocoChip) + ' +' + Locos[L2].Loco_LocoChipStr + ') set up')
+      END ELSE
+        Log(LocoChipToStr(Loco_LocoChip) + ' L Double header (locos ' + IntToStr(Loco_LocoChip) + ' +' + Locos[L2].Loco_LocoChipStr + ') not set up');
     END;
-  END ELSE
-    Log(LocoChipToStr(LocoChip1) + ' L Double header (locos ' + IntToStr(LocoChip1) + ' +' + IntToStr(LocoChip2) + ') not set up');
+  END;
 END; { SetUpDoubleHeader }
 
 PROCEDURE DissolveDoubleHeader(L : LocoIndex; VAR OK : Boolean);
@@ -3231,7 +3162,7 @@ BEGIN
 
       DataIO('L', WriteArray, Acknowledgment, OK);
       IF OK THEN
-        LocoHasBeenTakenOverByProgram(L);  { &&&&& should this be here? the function provides the answer }
+        SetLocoControlledByState(L, ControlledByProgram);
     END; {WITH}
   END;
 END; { StopAParticularLocomotive }

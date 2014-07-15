@@ -1946,10 +1946,11 @@ PROCEDURE MoveAllTrains;
                 Train_UserSpeedInstructionMsg := TempUserSpeedInstructionMsg;
               END;
             END;
+
             IF RDCMode
             AND RailDriverInitialised
             AND RailDriverCalibrated
-            AND Train_ControlledByRDC
+//            AND (Train_ControlledByState = ControlledByRDC)
             THEN BEGIN
               Train_DesiredSpeedInMPH := Stop;
               SetSpeedByRailDriverConsole(Train_LocoIndex);

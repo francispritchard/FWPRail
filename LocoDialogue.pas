@@ -357,6 +357,7 @@ BEGIN
           { found a loco }
           LocoDialogueDoubleHeaderLocoIndexFound := True;
           LocoDialogueDHLocoChangeOrSelectButton.Enabled := True;
+
           { now disable all the other functions until this loco is selected or the number cleared - this avoids the possibility of a number being entered but not selected }
           DisableFunctionBoxes;
           LocoDialogueChangeOrSelectButton.Enabled := False;
@@ -1357,59 +1358,57 @@ END; { LocoDialogueKeyUp }
 PROCEDURE TLocoDialogueWindow.LocoDialogueTimerTick(Sender: TObject);
 { If the loco is taken over, update the Dialogue box }
 BEGIN
-  IF SystemOnline THEN BEGIN { needs to say something if we're offline ****** }
+  IF SystemOnline THEN BEGIN { needs to do something if we're offline ****** }
     IF LocoDialogueLocoIndexFound THEN BEGIN
-      IF LocoHasBeenTakenOverByUser(LocoDialogueLocoIndex) THEN
-        LocoTakenOver := True;
-
-      IF LocoTakenOver <> SaveLocotakenOverState THEN BEGIN
-        IF LocoTakenOver = False THEN
+      WITH Locos[LocoDialogueLocoIndex] DO BEGIN
+        IF (Loco_ControlledByState = ControlledByUser)
+        AND (Loco_PreviouslyControlledByState <> ControlledByUser)
+        THEN
           LocoDialogueSpeedDisplay.Font.Color := clBtnText;
-        SaveLocotakenOverState := LocoTakenOver;
-      END;
 
-      IF LocoTakenOver THEN BEGIN
-        { update the speed info }
-        LocoDialogueLocoSpeed := GetLenzSpeed(LocoDialogueLocoIndex, ForceARead);
-        LocoDialogueSpeedDisplay.Caption := IntToStr(LocoDialogueLocoSpeed);
-        LocoDialogueSpeedDisplay.Font.Color := clBtnShadow;
+        IF (Loco_ControlledByState = ControlledByUser) THEN BEGIN
+          { update the speed info }
+          LocoDialogueLocoSpeed := GetLenzSpeed(LocoDialogueLocoIndex, ForceARead);
+          LocoDialogueSpeedDisplay.Caption := IntToStr(LocoDialogueLocoSpeed);
+          LocoDialogueSpeedDisplay.Font.Color := clBtnShadow;
 
-        { Update the direction info }
-        IF LocoDialogueLocoSpeed = 28 THEN
-          LocoDialogueUpButton.Enabled := False
-        ELSE
-          IF LocoDialogueLocoSpeed = 0 THEN BEGIN
-            LocoDialogueDownButton.Enabled := False;
+          { Update the direction info }
+          IF LocoDialogueLocoSpeed = 28 THEN
+            LocoDialogueUpButton.Enabled := False
+          ELSE
+            IF LocoDialogueLocoSpeed = 0 THEN BEGIN
+              LocoDialogueDownButton.Enabled := False;
 
-            LocoDialogueRightButton.Enabled := True;
-            LocoDialogueLeftButton.Enabled := True;
+              LocoDialogueRightButton.Enabled := True;
+              LocoDialogueLeftButton.Enabled := True;
 
-            IF Locos[LocoDialogueLocoIndex].Loco_CurrentDirection = Up THEN BEGIN
-              LocoDialogueLeftButton.Down := True;
-              LocoDialogueRightButton.Down := False;
+              IF Locos[LocoDialogueLocoIndex].Loco_CurrentDirection = Up THEN BEGIN
+                LocoDialogueLeftButton.Down := True;
+                LocoDialogueRightButton.Down := False;
+              END ELSE BEGIN
+                LocoDialogueLeftButton.Down := False;
+                LocoDialogueRightButton.Down := True;
+              END;
             END ELSE BEGIN
-              LocoDialogueLeftButton.Down := False;
-              LocoDialogueRightButton.Down := True;
+              LocoDialogueUpButton.Enabled := True;
+              LocoDialogueDownButton.Enabled := True;
+
+              LocoDialogueRightButton.Enabled := False;
+              LocoDialogueLeftButton.Enabled := False;
+
+              IF Locos[LocoDialogueLocoIndex].Loco_CurrentDirection = Up THEN BEGIN
+                LocoDialogueLeftButton.Down := True;
+                LocoDialogueRightButton.Down := False;
+              END ELSE BEGIN
+                LocoDialogueLeftButton.Down := False;
+                LocoDialogueRightButton.Down := True;
+              END;
             END;
-          END ELSE BEGIN
-            LocoDialogueUpButton.Enabled := True;
-            LocoDialogueDownButton.Enabled := True;
 
-            LocoDialogueRightButton.Enabled := False;
-            LocoDialogueLeftButton.Enabled := False;
-
-            IF Locos[LocoDialogueLocoIndex].Loco_CurrentDirection = Up THEN BEGIN
-              LocoDialogueLeftButton.Down := True;
-              LocoDialogueRightButton.Down := False;
-            END ELSE BEGIN
-              LocoDialogueLeftButton.Down := False;
-              LocoDialogueRightButton.Down := True;
-            END;
-          END;
-
-        { and the lights and function info }
-        LocoDialogueReturnFunctionState;
-      END;
+          { and the lights and function info }
+          LocoDialogueReturnFunctionState;
+        END;
+      END; {WITH}
     END;
   END;
 END; { LocoDialogueTimerTick }

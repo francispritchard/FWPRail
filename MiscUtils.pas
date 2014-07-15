@@ -127,6 +127,9 @@ PROCEDURE CompareTwoPointDatabases(Point1DataFilename, Point1DataFilenameSuffix,
 PROCEDURE CompareTwoSignalDatabases(Signal1DataFilename, Signal1DataFilenameSuffix, Signal2DataFilename, Signal2DataFilenameSuffix : String);
 { Compare two signal databases - used for testing }
 
+FUNCTION ControlledByStateToStr(ControlledByState : ControlledByStateType) : String;
+{ Return a string describing loco control }
+
 FUNCTION CountSubRoutes(RouteArray : StringArrayType) : Integer;
 { Return how many subroutes there are in a given route array }
 
@@ -601,8 +604,8 @@ FUNCTION SetDefaultButton(CONST Dlg: TForm; CONST ModalResult: Integer): Boolean
 { SetDefaultButton sets the default button in a Message Dialogue that has been created with the Dialogs.CreateMessageDialogue function. The result is a success indicator.
   The function only fails, if the specified button is not present in the dialogue [from uDialogsExt from Borland website]
 }
-PROCEDURE SetTrainControlledByProgram(T : TrainIndex; ControlledByProgram : Boolean);
-{ Mark a given train as controlled either by the software or by the LH100 }
+PROCEDURE SetLocoControlledByState(L : LocoIndex; ControlledByState : ControlledByStateType);
+{ Mark a given loco as controlled either by the software or by the LH100 or by the RDC }
 
 PROCEDURE SetTwoLightingChips(L : LocoIndex; LightsAtUp, LightsAtDown : DirectionType; LightsOn : Boolean);
 { When appropriate switch two lighting chips }
@@ -2266,6 +2269,21 @@ BEGIN
       Result := Copy(Result, 3);
   Result := LowerCase(Result);
 END; { ColourToStrForUser }
+
+FUNCTION ControlledByStateToStr(ControlledByState : ControlledByStateType) : String;
+{ Return a string describing loco control }
+BEGIN
+  CASE ControlledByState OF
+    ControlledByProgram:
+      Result := 'by program';
+    ControlledByUser:
+      Result := 'by user';
+    ControlledByRDC:
+      Result := 'by RDC';
+    ControlledByUnknownDevice:
+      Result := 'by UnknownDevice';
+  END; {CASE}
+END; { ControlledByStateToStr }
 
 FUNCTION CountSubRoutes(RouteArray : StringArrayType) : Integer;
 { Return how many subroutes there are in a given route array }
@@ -6365,27 +6383,27 @@ BEGIN
     Dlg.ActiveControl := DefButton;
 END; { SetDefaultButton }
 
-PROCEDURE SetTrainControlledByProgram(T : TrainIndex; ControlledByProgram : Boolean);
-{ Mark a given train as controlled either by the software or by the LH100 }
+PROCEDURE SetLocoControlledByState(L : LocoIndex; ControlledByState : ControlledByStateType);
+{ Mark a given loco as controlled either by the software or by the LH100 or by the RDC }
 BEGIN
-  IF T = UnknownTrainIndex THEN
-    UnknownTrainRecordFound('SetTrainControlledByProgram')
+  IF L = UnknownLocoIndex THEN
+    UnknownLocoRecordFound('SetTwoLightingChips')
   ELSE BEGIN
-    WITH Trains[T] DO BEGIN
-      Train_PreviouslyControlledByProgram := Train_ControlledByProgram;
-      Train_ControlledByProgram := ControlledByProgram;
+    WITH Locos[L] DO BEGIN
+      Loco_PreviouslyControlledByState := Loco_ControlledByState;
+      Loco_ControlledByState := ControlledByState;
 
       { Also mark the additional lighting chips if any as controlled. Note: the address of the additional chip may be NIL if it's the same as the loco chip }
-//      IF Train_LightingChipUp <> UnknownLocoChip THEN
-//        IF Train_LightingChipUpAddress <> 0 THEN
-//          Trains[Train_LightingChipUpAddress].Train_ControlledByProgram := ControlledByProgram;
-//
-//      IF Train_LightingChipDown <> UnknownLocoChip THEN
-//        IF Train_LightingChipDownAddress <> 0 THEN
-//          Trains[Train_LightingChipDownAddress].Train_ControlledByProgram := ControlledByProgram; &&&&&
+  //      IF Train_LightingChipUp <> UnknownLocoChip THEN
+  //        IF Train_LightingChipUpAddress <> 0 THEN
+  //          Trains[Train_LightingChipUpAddress].Train_ControlledByProgram := ControlledByProgram;
+  //
+  //      IF Train_LightingChipDown <> UnknownLocoChip THEN
+  //        IF Train_LightingChipDownAddress <> 0 THEN
+  //          Trains[Train_LightingChipDownAddress].Train_ControlledByProgram := ControlledByProgram; &&&&&
     END;
   END;
-END; { SetTrainControlledByProgram }
+END; { SetLocoControlledByState }
 
 PROCEDURE SetTwoLightingChips(L : LocoIndex; LightsAtUp, LightsAtDown : DirectionType; LightsOn : Boolean);
 { When appropriate switch two lighting chips }
@@ -8395,8 +8413,7 @@ BEGIN
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_BeingAdvancedTC = ' + TrackCircuitToStr(Train_BeingAdvancedTC));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_CabLightsAreOn = ' + BoolToStr(Train_CabLightsAreOn, True));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_CabLightsHaveBeenOn = ' + BoolToStr(Train_CabLightsHaveBeenOn, True));
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_ControlledByProgram = ' + BoolToStr(Train_ControlledByProgram, True));
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_ControlledByRDC = ' + BoolToStr(Train_ControlledByRDC, True));
+//            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_ControlledByState = ' + ControlledByStateToStr(Train_ControlledByState));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_CurrentArrivalTime = ' + TimeToHMSStr(Train_CurrentArrivalTime));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_CurrentBufferStop = ' + BufferStopToStr(Train_CurrentBufferStop));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_CurrentDirection (initially from loco record) = ' + DirectionToStr(Train_CurrentDirection));
@@ -8470,7 +8487,7 @@ BEGIN
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_NotLocatedAtStartupMsgWritten = ' + BoolToStr(Train_NotLocatedAtStartupMsgWritten, True));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_NumberOfCarriages (from loco record) = ' + IntToStr(Train_NumberOfCarriages));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_PossibleRerouteTime = ' + TimeToHMSStr(Train_PossibleRerouteTime));
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_PreviouslyControlledByProgram = ' + BoolToStr(Train_PreviouslyControlledByProgram, True));
+//            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_PreviouslyControlledByState = ' + ControlledByStateToStr(Train_PreviouslyControlledByState));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_PreviousStatus = ' + TrainStatusToStr(Train_PreviousStatus));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_PreviousTC = ' + TrackCircuitToStr(Train_PreviousTC));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_Reversing = ' + BoolToStr(Train_Reversing, True));

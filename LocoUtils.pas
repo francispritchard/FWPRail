@@ -100,6 +100,7 @@ BEGIN
   //      Train_AtHiddenAspectSignal := UnknownSignal;
   //      Train_BeingAdvanced := False;
   //      Train_BeingAdvancedTC := UnknownTrackCircuit;
+        Loco_ControlledByState := ControlledByProgram;
   //      Train_ControlledByProgram := False;
   //      Train_ControlledByRDC := False;
   //      Train_CurrentArrivalTime := 0;
@@ -181,6 +182,7 @@ BEGIN
         Loco_NumberOfCarriages := 0;
   //      Train_PossibleRerouteTime := 0;
   //      Train_PreviouslyControlledByProgram := False;
+        Loco_PreviouslyControlledByState := ControlledByProgram;
   //      Train_PreviousStatus := ReadyForCreation;
   //      Train_PreviousTC := UnknownTrackCircuit;
   //      Train_Reversing := False;

@@ -189,6 +189,8 @@ TYPE
   IntegerArrayType = ARRAY OF Integer;
   StringArrayType = ARRAY OF String;
 
+  ControlledByStateType = (ControlledByProgram, ControlledByRDC, ControlledByUser, ControlledByUnknownDevice);
+
   DirectionType = (Up, Down, Bidirectional, UnknownDirection);
   DirectionArrayType = ARRAY OF DirectionType;
 
@@ -266,6 +268,7 @@ TYPE
     Loco_AccelerationTimeInterval : Real;
     Loco_Active : Boolean;
     Loco_ActualNumStr : String;
+    Loco_ControlledByState : ControlledByStateType;
     Loco_CurrentDirection : DirectionType;
     Loco_CurrentLenzSpeed : Integer;
     Loco_Decelerating : Boolean;
@@ -296,6 +299,7 @@ TYPE
     Loco_LocoTypeStr : String;
     Loco_MaximumSpeedInMPH : MPHType;
     Loco_NumberOfCarriages : Integer;
+    Loco_PreviouslyControlledByState : ControlledByStateType;
     Loco_SavedDirection : DirectionType;
     Loco_SaveDesiredLenzSpeed : Integer;
     Loco_Speed10, Loco_Speed20, Loco_Speed30, Loco_Speed40, Loco_Speed50, Loco_Speed60 : Integer;
@@ -531,7 +535,7 @@ TYPE
     Point_RequiredState : PointStateType;
     Point_ResettingTime : TDateTime;
     Point_LocoChipLockingTheRoute : LocoChipType;
-    Point_RouteLockedByLocoChip : LocoChipType;
+    Point_RouteLockedByLocoChip : Integer;
     Point_TCAtHeel : Integer;
     Point_Type : TypeOfPoint;
     Point_SecondAttempt : Boolean;
@@ -856,8 +860,7 @@ TYPE
     Train_BeingAdvancedTC : Integer;
     Train_CabLightsAreOn : Boolean;
     Train_CabLightsHaveBeenOn : Boolean;
-    Train_ControlledByProgram : Boolean;
-    Train_ControlledByRDC : Boolean;
+//    Train_ControlledByState : ControlledByStateType;
     Train_CurrentArrivalTime : TDateTime;
     Train_CurrentBufferStop : Integer;
     Train_CurrentDirection : DirectionType;
@@ -916,7 +919,7 @@ TYPE
     Train_NotLocatedAtStartupMsgWritten : Boolean;
     Train_NumberOfCarriages : Integer;
     Train_PossibleRerouteTime : TDateTime;
-    Train_PreviouslyControlledByProgram : Boolean;
+//    Train_PreviouslyControlledByState : ControlledByStateType;
     Train_PreviousStatus : TrainStatusType;
     Train_PreviousTC : Integer;
     Train_Reversing : Boolean;

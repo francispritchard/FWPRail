@@ -91,8 +91,7 @@ BEGIN
         Train_BeingAdvancedTC := UnknownTrackCircuit;
         Train_CabLightsAreOn := False;
         Train_CabLightsHaveBeenOn := False;
-        Train_ControlledByProgram := False;
-        Train_ControlledByRDC := False;
+//        Train_ControlledByState := ControlledByProgram;
         Train_CurrentArrivalTime := 0;
         Train_CurrentBufferStop := UnknownBufferStop;
         Train_CurrentDirection := UnknownDirection;
@@ -152,7 +151,7 @@ BEGIN
         Train_NotLocatedAtStartupMsgWritten := False;
         Train_NumberOfCarriages := 0;
         Train_PossibleRerouteTime := 0;
-        Train_PreviouslyControlledByProgram := False;
+//        Train_PreviouslyControlledByState := ControlledByProgram;
         Train_PreviousStatus := ReadyForCreation;
         Train_PreviousTC := UnknownTrackCircuit;
         Train_Reversing := False;

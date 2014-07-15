@@ -2069,7 +2069,7 @@ BEGIN
         END;
 
         IF T <> 0 THEN BEGIN
-//          T^.Train_ControlledByRDC := True;
+//          T^.Train_ControlledByRDC := True; &&&&&
           SetSpeedByRailDriverConsole(T);
         END;
       END;
