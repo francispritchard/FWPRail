@@ -55,10 +55,10 @@ PROCEDURE SetAllSignalsToDanger;
 PROCEDURE SetSignal(LocoChipStr : String; S : Integer; NewAspect : AspectType; LogSignalData, ForceWriting : Boolean);
 { Set the state of a particular signal and draws it }
 
-PROCEDURE SetTrackCircuitState{1}(LocoChip : LocoChipType; TC : Integer; NewState : TrackCircuitStateType); Overload;
+PROCEDURE SetTrackCircuitState{1}(LocoChip : Integer; TC : Integer; NewState : TrackCircuitStateType); Overload;
 { Set whether and how the track circuit is occupied, and mark it with a loco chip number }
 
-PROCEDURE SetTrackCircuitState{2}(LocoChip : LocoChipType; TC : Integer; NewState : TrackCircuitStateType; Explanation : String); Overload;
+PROCEDURE SetTrackCircuitState{2}(LocoChip : Integer; TC : Integer; NewState : TrackCircuitStateType; Explanation : String); Overload;
 { Set whether and how the track circuit is occupied, mark it with a loco chip number, and give an explanation }
 
 PROCEDURE SetTrackCircuitState{3}(TC : Integer; NewState : TrackCircuitStateType); Overload;
@@ -731,7 +731,7 @@ BEGIN
   END; {TRY}
 END; { CheckLinesAreOK }
 
-PROCEDURE SetTrackCircuitStateMainProcedure(LocoChip : LocoChipType; TC : Integer; NewState : TrackCircuitStateType; Explanation : String);
+PROCEDURE SetTrackCircuitStateMainProcedure(LocoChip : Integer; TC : Integer; NewState : TrackCircuitStateType; Explanation : String);
 { Set whether and how the track circuit is occupied and give an explanation if any }
 CONST
   DoNotWriteMessage = True;
@@ -978,7 +978,7 @@ BEGIN
   END; {TRY}
 END; { SetTrackCircuitStateMainProcedure }
 
-PROCEDURE SetTrackCircuitState{1}(LocoChip : LocoChipType; TC : Integer; NewState : TrackCircuitStateType); Overload;
+PROCEDURE SetTrackCircuitState{1}(LocoChip : Integer; TC : Integer; NewState : TrackCircuitStateType); Overload;
 { Set whether and how the track circuit is occupied, and mark it with a loco chip number }
 CONST
   Explanation = '';
@@ -987,7 +987,7 @@ BEGIN
   SetTrackCircuitStateMainProcedure(LocoChip, TC, NewState, Explanation);
 END; { SetTrackCircuitState-1 }
 
-PROCEDURE SetTrackCircuitState{2}(LocoChip : LocoChipType; TC : Integer; NewState : TrackCircuitStateType; Explanation : String); Overload;
+PROCEDURE SetTrackCircuitState{2}(LocoChip : Integer; TC : Integer; NewState : TrackCircuitStateType; Explanation : String); Overload;
 { Set whether and how the track circuit is occupied, mark it with a loco chip number, and give an explanation }
 BEGIN
   SetTrackCircuitStateMainProcedure(LocoChip, TC, NewState, Explanation);
@@ -999,7 +999,7 @@ CONST
   Explanation = '';
 
 VAR
-  LocoChip : LocoChipType;
+  LocoChip : Integer;
   T : TrainIndex;
   TCFound : Boolean;
 

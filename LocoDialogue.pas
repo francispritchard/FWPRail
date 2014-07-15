@@ -159,13 +159,13 @@ VAR
   AltPressed : Boolean = False;
   CtrlPressed : Boolean = False;
   LocoDialogueCharValid : Boolean = False;
-  LocoDialogueDoubleHeaderLocoChip : LocoChipType = UnknownLocoChip;
+  LocoDialogueDoubleHeaderLocoChip : Integer = UnknownLocoChip;
   LocoDialogueDoubleHeaderLocoIndex : LocoIndex = UnknownLocoIndex;
   LocoDialogueDoubleHeaderLocoIndexFound : Boolean = False;
   LocoDialogueIncreaseSpeedFlag : Boolean = True;
   LocoDialogueLocoIndex : LocoIndex = UnknownLocoIndex;
   LocoDialogueLocoIndexFound : Boolean = False;
-  LocoDialogueLocoChip : LocoChipType = UnknownLocoChip;
+  LocoDialogueLocoChip : Integer = UnknownLocoChip;
   LocoDialogueLocoSpeed : Integer = 0;
   LocoDialogueLocoSpeedInMPH : MPHType = MPH0;
   LocoDialogueMouseDownTime : TDateTime = 0;
@@ -181,7 +181,7 @@ BEGIN
   WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
 
-FUNCTION GetLocoDialogueLocoChip : LocoChipType;
+FUNCTION GetLocoDialogueLocoChip : Integer;
 { Return the loco chip number that the dialogue has selected }
 BEGIN
   Result := LocoDialogueLocoChip;
@@ -1361,12 +1361,12 @@ BEGIN
   IF SystemOnline THEN BEGIN { needs to do something if we're offline ****** }
     IF LocoDialogueLocoIndexFound THEN BEGIN
       WITH Locos[LocoDialogueLocoIndex] DO BEGIN
-        IF (Loco_ControlledByState = ControlledByUser)
-        AND (Loco_PreviouslyControlledByState <> ControlledByUser)
+        IF (Loco_ControlState = ControlledByUser)
+        AND (Loco_PreviousControlState <> ControlledByUser)
         THEN
           LocoDialogueSpeedDisplay.Font.Color := clBtnText;
 
-        IF (Loco_ControlledByState = ControlledByUser) THEN BEGIN
+        IF (Loco_ControlState = ControlledByUser) THEN BEGIN
           { update the speed info }
           LocoDialogueLocoSpeed := GetLenzSpeed(LocoDialogueLocoIndex, ForceARead);
           LocoDialogueSpeedDisplay.Caption := IntToStr(LocoDialogueLocoSpeed);

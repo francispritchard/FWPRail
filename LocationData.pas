@@ -848,7 +848,7 @@ VAR
   DebugStr : String;
   I : Integer;
   LocationOccupationArrayPos : Integer;
-  LocoChip : LocoChipType;
+  LocoChip : Integer;
   LocoChipStr : String;
   NewLocationOccupationRecord : LocationOccupationRec;
   Position : Integer;

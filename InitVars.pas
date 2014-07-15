@@ -189,7 +189,7 @@ TYPE
   IntegerArrayType = ARRAY OF Integer;
   StringArrayType = ARRAY OF String;
 
-  ControlledByStateType = (ControlledByProgram, ControlledByRDC, ControlledByUser, ControlledByUnknownDevice);
+  LocoControlStateType = (ControlledByProgram, ControlledByRDC, ControlledByUser, ControlledByUnknownDevice);
 
   DirectionType = (Up, Down, Bidirectional, UnknownDirection);
   DirectionArrayType = ARRAY OF DirectionType;
@@ -255,11 +255,10 @@ TYPE
                 LightsShouldBeDimmed, CustomLightingKit);
   LightsColourType = (Red, White);
 
-  LocoChipType = Integer;
   LocoIndex = Integer;
 
   LocoRec = RECORD
-    Loco_LocoChip : LocoChipType;
+    Loco_LocoChip : Integer;
 
     Loco_Accelerating : Boolean;
     Loco_AccelerationAdjustRange : Integer;
@@ -268,7 +267,7 @@ TYPE
     Loco_AccelerationTimeInterval : Real;
     Loco_Active : Boolean;
     Loco_ActualNumStr : String;
-    Loco_ControlledByState : ControlledByStateType;
+    Loco_ControlState : LocoControlStateType;
     Loco_CurrentDirection : DirectionType;
     Loco_CurrentLenzSpeed : Integer;
     Loco_Decelerating : Boolean;
@@ -299,7 +298,7 @@ TYPE
     Loco_LocoTypeStr : String;
     Loco_MaximumSpeedInMPH : MPHType;
     Loco_NumberOfCarriages : Integer;
-    Loco_PreviouslyControlledByState : ControlledByStateType;
+    Loco_PreviousControlState : LocoControlStateType;
     Loco_SavedDirection : DirectionType;
     Loco_SaveDesiredLenzSpeed : Integer;
     Loco_Speed10, Loco_Speed20, Loco_Speed30, Loco_Speed40, Loco_Speed50, Loco_Speed60 : Integer;
@@ -429,7 +428,7 @@ TYPE
     LocationOccupation_EndTime : TDateTime;
     LocationOccupation_JourneyA : Integer;
     LocationOccupation_JourneyB : Integer;
-    LocationOccupation_LocoChip : LocoChipType;
+    LocationOccupation_LocoChip : Integer;
     LocationOccupation_StartTime : TDateTime;
     LocationOccupation_State : LocationOccupationStateType;
   END;
@@ -534,7 +533,7 @@ TYPE
     Point_PreviousState : PointStateType;
     Point_RequiredState : PointStateType;
     Point_ResettingTime : TDateTime;
-    Point_LocoChipLockingTheRoute : LocoChipType;
+    Point_LocoChipLockingTheRoute : Integer;
     Point_RouteLockedByLocoChip : Integer;
     Point_TCAtHeel : Integer;
     Point_Type : TypeOfPoint;
@@ -717,7 +716,7 @@ TYPE
     SuitableAdditionalTrains_EndArea3 : Integer;
     SuitableAdditionalTrains_InUse : Boolean;
     SuitableAdditionalTrains_LengthInInches : Integer;
-    SuitableAdditionalTrains_LocoChip : LocoChipType;
+    SuitableAdditionalTrains_LocoChip : Integer;
     SuitableAdditionalTrains_NumberOfCarriages : Integer;
     SuitableAdditionalTrains_StartArea : Integer;
     SuitableAdditionalTrains_TravelTimeInMinutes1 : Integer;
@@ -753,7 +752,7 @@ TYPE
   TrackCircuitRec = RECORD
     TC_AdjacentBufferStop : Integer;
     TC_AdjacentSignals : IntegerArrayType;
-    TC_EmergencyLocoChip : LocoChipType;
+    TC_EmergencyLocoChip : Integer;
     TC_EmergencyState : TrackCircuitStateType;
     TC_FeedbackInput : Integer;
     TC_FeedbackUnit : Integer;
@@ -768,13 +767,13 @@ TYPE
     TC_Location : Integer;
     TC_LockedForRoute : Integer;
     TC_LockFailureNotedInSubRouteUnit : Boolean;
-    TC_LocoChip : LocoChipType;
+    TC_LocoChip : Integer;
     TC_LocoStalled : Boolean;
     TC_MissingTrainNoted : Boolean;
     TC_MysteriouslyOccupied : Boolean;
     TC_OccupationStartTime : TDateTime;
     TC_OccupationState : TrackCircuitStateType;
-    TC_PreviousLocoChip : LocoChipType;
+    TC_PreviousLocoChip : Integer;
     TC_PreviousOccupationState : TrackCircuitStateType;
     TC_ResettingSignal : Integer;
     TC_SaveRouteLocking : Integer;
@@ -839,8 +838,8 @@ TYPE
   TrainIndex = Integer;
 
   TrainRec = RECORD
-    Train_LocoChip : LocoChipType;
-    Train_DoubleHeaderLocoChip : LocoChipType;
+    Train_LocoChip : Integer;
+    Train_DoubleHeaderLocoChip : Integer;
     Train_LocoChipStr : String; { from loco record }
     Train_DoubleHeaderLocoChipStr : String; { from loco record }
     Train_LocoIndex : LocoIndex;
@@ -860,7 +859,7 @@ TYPE
     Train_BeingAdvancedTC : Integer;
     Train_CabLightsAreOn : Boolean;
     Train_CabLightsHaveBeenOn : Boolean;
-//    Train_ControlledByState : ControlledByStateType;
+//    Train_ControlState : LocoControlStateType;
     Train_CurrentArrivalTime : TDateTime;
     Train_CurrentBufferStop : Integer;
     Train_CurrentDirection : DirectionType;
@@ -919,7 +918,7 @@ TYPE
     Train_NotLocatedAtStartupMsgWritten : Boolean;
     Train_NumberOfCarriages : Integer;
     Train_PossibleRerouteTime : TDateTime;
-//    Train_PreviouslyControlledByState : ControlledByStateType;
+//    Train_PreviousControlState : LocoControlStateType;
     Train_PreviousStatus : TrainStatusType;
     Train_PreviousTC : Integer;
     Train_Reversing : Boolean;
@@ -1020,7 +1019,7 @@ TYPE
     WorkingTimetable_FirstStationArea : Integer;
     WorkingTimetable_FirstStationDepartureTime : TDateTime;
     WorkingTimetable_LastStationArea : Integer;
-    WorkingTimetable_LocoChip : LocoChipType;
+    WorkingTimetable_LocoChip : Integer;
     WorkingTimetable_PossibleLocoClasses : StringArrayType;
     WorkingTimetable_PreferredNumberOfCarriages : Integer;
     WorkingTimetable_Status : WorkingTimetableStatusType;
@@ -1032,7 +1031,7 @@ TYPE
   WorkingTimetableRecArrayType = ARRAY OF WorkingTimetableRecType;
 
   InfoRec = RECORD
-    LocoChip : LocoChipType;
+    LocoChip : Integer;
     InfoString : String;
   END;
 
@@ -1104,7 +1103,7 @@ VAR
   BreakPointRequiredInMakeSoundRoutine : Boolean = False;
   BufferStops : ARRAY OF BufferStopRec;
   CrossHairCursor : TCursor;
-  DapolCleaningWagonLocoChip : LocoChipType = UnknownLocoChip;
+  DapolCleaningWagonLocoChip : Integer = UnknownLocoChip;
   DapolCleaningWagonLocoChipRunning : Boolean = False;
   DayTimeSetByUser : Boolean = False;
   DebuggingMode : Boolean = False;
@@ -2092,7 +2091,7 @@ VAR
   Location : Integer;
   LocationExceptions : IntegerArrayType;
   LocationExceptionsStrArray : StringArrayType;
-  LocoChip : LocoChipType;
+  LocoChip : Integer;
   MissingYValue : Boolean;
   NewLocation : Integer;
   OK : Boolean;

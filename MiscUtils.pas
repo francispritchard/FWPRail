@@ -127,7 +127,7 @@ PROCEDURE CompareTwoPointDatabases(Point1DataFilename, Point1DataFilenameSuffix,
 PROCEDURE CompareTwoSignalDatabases(Signal1DataFilename, Signal1DataFilenameSuffix, Signal2DataFilename, Signal2DataFilenameSuffix : String);
 { Compare two signal databases - used for testing }
 
-FUNCTION ControlledByStateToStr(ControlledByState : ControlledByStateType) : String;
+FUNCTION ControlledByStateToStr(ControlledByState : LocoControlStateType) : String;
 { Return a string describing loco control }
 
 FUNCTION CountSubRoutes(RouteArray : StringArrayType) : Integer;
@@ -604,7 +604,7 @@ FUNCTION SetDefaultButton(CONST Dlg: TForm; CONST ModalResult: Integer): Boolean
 { SetDefaultButton sets the default button in a Message Dialogue that has been created with the Dialogs.CreateMessageDialogue function. The result is a success indicator.
   The function only fails, if the specified button is not present in the dialogue [from uDialogsExt from Borland website]
 }
-PROCEDURE SetLocoControlledByState(L : LocoIndex; ControlledByState : ControlledByStateType);
+PROCEDURE SetLocoControlledByState(L : LocoIndex; ControlledByState : LocoControlStateType);
 { Mark a given loco as controlled either by the software or by the LH100 or by the RDC }
 
 PROCEDURE SetTwoLightingChips(L : LocoIndex; LightsAtUp, LightsAtDown : DirectionType; LightsOn : Boolean);
@@ -793,6 +793,9 @@ PROCEDURE TurnLocoLightsOn(L : LocoIndex; NonMoving, LightLoco : Boolean; UserMs
 
 FUNCTION TypeOfLineToStr(T : TypeOfLine) : String;
 { Describe a line type }
+
+PROCEDURE UnknownLocoChipFound(RoutineName : String);
+{ Called if an unknown loco chip is found at the beginning of a subroutine }
 
 PROCEDURE UnknownLocoRecordFound(RoutineName : String);
 { Called if an unknown loco record is found at the beginning of a subroutine }
@@ -1840,6 +1843,15 @@ BEGIN
   PreviousLogTime := Time;
 END; { WriteTimeToLog }
 
+PROCEDURE UnknownLocoChipFound(RoutineName : String);
+{ Called if an unknown loco chip is found at the beginning of a subroutine }
+BEGIN
+  Log('X! Unknown locochip found in routine ' + RoutineName);
+  ASM
+    Int 3
+  END; {ASM}
+END; { UnknownLocoChipFound }
+
 PROCEDURE UnknownLocoRecordFound(RoutineName : String);
 { Called if an unknown loco record is found at the beginning of a subroutine }
 BEGIN
@@ -2270,7 +2282,7 @@ BEGIN
   Result := LowerCase(Result);
 END; { ColourToStrForUser }
 
-FUNCTION ControlledByStateToStr(ControlledByState : ControlledByStateType) : String;
+FUNCTION ControlledByStateToStr(ControlledByState : LocoControlStateType) : String;
 { Return a string describing loco control }
 BEGIN
   CASE ControlledByState OF
@@ -6383,15 +6395,15 @@ BEGIN
     Dlg.ActiveControl := DefButton;
 END; { SetDefaultButton }
 
-PROCEDURE SetLocoControlledByState(L : LocoIndex; ControlledByState : ControlledByStateType);
+PROCEDURE SetLocoControlledByState(L : LocoIndex; ControlledByState : LocoControlStateType);
 { Mark a given loco as controlled either by the software or by the LH100 or by the RDC }
 BEGIN
   IF L = UnknownLocoIndex THEN
     UnknownLocoRecordFound('SetTwoLightingChips')
   ELSE BEGIN
     WITH Locos[L] DO BEGIN
-      Loco_PreviouslyControlledByState := Loco_ControlledByState;
-      Loco_ControlledByState := ControlledByState;
+      Loco_PreviousControlState := Loco_ControlState;
+      Loco_ControlState := ControlledByState;
 
       { Also mark the additional lighting chips if any as controlled. Note: the address of the additional chip may be NIL if it's the same as the loco chip }
   //      IF Train_LightingChipUp <> UnknownLocoChip THEN

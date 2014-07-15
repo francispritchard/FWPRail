@@ -31,7 +31,7 @@ VAR
 PROCEDURE CreateClearingSubRouteArray(Route, SubRoute : Integer);
 { Takes the subroute setting up array and converts it to clear the subroute }
 
-PROCEDURE CreateInitialRouteRelatedArrays(T : TrainIndex; LocoChip : LocoChipType; RouteArray : StringArrayType; AutoRouteSetting : Boolean;
+PROCEDURE CreateInitialRouteRelatedArrays(T : TrainIndex; LocoChip : Integer; RouteArray : StringArrayType; AutoRouteSetting : Boolean;
                                           StartSignal, EndSignal, EndBufferStop, StartLine, EndLine : Integer);
 { Set up the various route-related arrays }
 
@@ -2624,7 +2624,7 @@ BEGIN
   END; {TRY}
 END; { FindNextSignalOrBufferStop }
 
-PROCEDURE CreateInitialRouteRelatedArrays(T : TrainIndex; LocoChip : LocoChipType; RouteArray : StringArrayType; AutoRouteSetting : Boolean;
+PROCEDURE CreateInitialRouteRelatedArrays(T : TrainIndex; LocoChip : Integer; RouteArray : StringArrayType; AutoRouteSetting : Boolean;
                                           StartSignal, EndSignal, EndBufferStop, StartLine, EndLine : Integer);
 { Set up the various route-related arrays }
 VAR

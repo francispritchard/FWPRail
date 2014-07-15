@@ -4734,9 +4734,9 @@ VAR
   I : Integer;
   InputQueryLocoChipStr : String;
   NewTrackCircuitState : TrackCircuitStateType;
-  PossibleLocoChip : LocoChipType;
+  PossibleLocoChip : Integer;
   PossibleT : TrainIndex;
-  SavePossibleLocoChip : LocoChipType;
+  SavePossibleLocoChip : Integer;
   TC : Integer;
   TCArray : IntegerArrayType;
 
@@ -4876,7 +4876,7 @@ CONST
 
 VAR
   L : LocoIndex;
-  LocoChip : LocoChipType;
+  LocoChip : Integer;
 
 BEGIN
   TRY
@@ -4919,7 +4919,7 @@ CONST
 
 VAR
   L : LocoIndex;
-  LocoChip : LocoChipType;
+  LocoChip : Integer;
 
 BEGIN
   TRY

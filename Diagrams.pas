@@ -4421,12 +4421,12 @@ VAR
   T_DepartureTimesArray : DateTimeArrayType;
   T_DestinationAreaOrLocationsStrArray : StringArrayType;
   T_DirectionsArray : DirectionArrayType;
-  T_DoubleHeaderLocoChip : LocoChipType;
+  T_DoubleHeaderLocoChip : Integer;
   T_DoubleHeaderLocoChipStr : String;
-  T_DoubleHeaderLocoIndex : LocoChipType;
+  T_DoubleHeaderLocoIndex : Integer;
   T_LightsOnTime : TDateTime;
   T_LightsRemainOn : Boolean;
-  T_LocoChip : LocoChipType;
+  T_LocoChip : Integer;
   T_LocoChipStr : String;
   T_LocoIndex : LocoIndex;
   T_NonMoving : Boolean;

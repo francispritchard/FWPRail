@@ -222,7 +222,7 @@ BEGIN
   END;
 END; { GetLocoChipHighByte }
 
-FUNCTION GetLocoChipLowByte(LocoChip : LocoChipType) : Byte;
+FUNCTION GetLocoChipLowByte(LocoChip : Integer) : Byte;
 { Returns the low byte derived from the loco number }
 BEGIN
   IF LocoChip < 100 THEN
@@ -235,7 +235,7 @@ END; { GetLocoChipLowByte }
 FUNCTION GetLocoChipFromTwoBytes(HighByte, LowByte : Byte) : Word;
 { Given two bytes, return a loco number }
 VAR
-  TempLocoChip : LocoChipType;
+  TempLocoChip : Integer;
 
 BEGIN
   IF (HighByte AND $C0) = $C0 { 1100 0000 } THEN BEGIN
@@ -695,7 +695,7 @@ VAR
   ErrorMsg : String;
   I : Integer;
   L : LocoIndex;
-  LocoChip : LocoChipType;
+  LocoChip : Integer;
   OK : Boolean;
   PortStr : String;
   ResponseOrBroadcast : ResponseOrBroadcastType;
@@ -1810,7 +1810,7 @@ BEGIN
     Debug('Not OK');
 END; { ReadInFunctionDecoderDetails }
 
-FUNCTION GetLenzSpeed(LocoChip : LocoChipType; ForceRead : Boolean) : Integer;
+FUNCTION GetLenzSpeed(L : LocoIndex; ForceRead : Boolean) : Integer;
 { Returns the given loco's speed - if ForceRead set, reads it in even if we think we know what it is }
 VAR
   OK : Boolean;
@@ -1826,7 +1826,7 @@ BEGIN
     UnknownLocoRecordFound('GetLenzSpeed')
   ELSE BEGIN
     WITH Locos[L] DO BEGIN
-      IF (Loco_ControlledByState = ControlledByUser)
+      IF (Loco_ControlState = ControlledByUser)
       OR ForceRead
       THEN BEGIN
         ReadInLocoDetails(L, TempSpeedByte, OK);
@@ -1973,7 +1973,7 @@ BEGIN
               OK := False;
               { If we're controlling it, we know its speed }
               IF Loco_SpeedByteReadIn
-              AND (Loco_ControlledByState = ControlledByProgram)
+              AND (Loco_ControlState = ControlledByProgram)
               THEN
                 TempSpeedByte := Loco_SpeedByte
               ELSE BEGIN
@@ -2122,7 +2122,7 @@ BEGIN
 
       IF SystemOnline THEN BEGIN
         IF Loco_SpeedByteReadIn
-        AND (Loco_ControlledByState = ControlledByProgram)
+        AND (Loco_ControlState = ControlledByProgram)
         AND (Loco_CurrentDirection <> UnknownDirection)
         THEN
           TempSpeedByte := Loco_SpeedByte
@@ -2192,7 +2192,7 @@ BEGIN
     UnknownLocoRecordFound('GetLocoFunctions')
   ELSE BEGIN
     WITH Locos[L] DO BEGIN
-      IF (Loco_ControlledByState = ControlledByProgram)
+      IF (Loco_ControlState = ControlledByProgram)
       OR ForceRead
       THEN
         ReadInLocoDetails(L, TempSpeedByte, OK);
@@ -2276,7 +2276,7 @@ BEGIN
     UnknownLocoRecordFound('SingleLocoFunctionIsOn')
   ELSE BEGIN
     WITH Locos[L] DO BEGIN
-      IF (Loco_ControlledByState = ControlledByProgram)
+      IF (Loco_ControlState = ControlledByProgram)
       OR ForceRead
       THEN
         ReadInLocoDetails(L, TempSpeedByte, OK);
@@ -2359,7 +2359,7 @@ BEGIN
     UnknownLocoRecordFound('SetSingleLocoFunction')
   ELSE BEGIN
     WITH Locos[L] DO BEGIN
-      IF Loco_ControlledByState <> ControlledByProgram THEN
+      IF Loco_ControlState <> ControlledByProgram THEN
         ReadInLocoDetails(L, SpeedByte, OK);
 
       { Now can use stored function bytes whether read in just now or previously }

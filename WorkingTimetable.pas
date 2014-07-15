@@ -1195,7 +1195,7 @@ VAR
   T : TrainIndex;
   TempArray1 : IntegerArrayType;
   TempArray2 : IntegerArrayType;
-  TempLocoChip : LocoChipType;
+  TempLocoChip : Integer;
 //    TrainCount : Integer;
   TrainsSelected : Integer;
   UnsuitableClassArray : IntegerArrayType;

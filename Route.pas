@@ -82,7 +82,7 @@ VAR
   ItemToCheck : String;
   JunctionIndicatorState : IndicatorStateType;
   L : Integer;
-  LocoChip : LocoChipType;
+  LocoChip : Integer;
   LocoChipStr : String;
   NewAspect : AspectType;
   OK : Boolean;
@@ -315,7 +315,7 @@ VAR
   Journey : Integer;
   JunctionIndicatorState : IndicatorStateType;
   L : Integer;
-  LocoChip : LocoChipType;
+  LocoChip : Integer;
   LocoChipStr : String;
   NextRoute : Integer;
   OK : Boolean;
@@ -323,7 +323,7 @@ VAR
   RouteCount : Integer;
   RouteOK : Boolean;
   SaveSubRouteSettingPos : Integer;
-  SaveTCLocoChip : LocoChipType;
+  SaveTCLocoChip : Integer;
   SettingSubRouteArray : StringArrayType;
   SettingSubRoute : Integer;
   SubRouteCount : Integer;
@@ -1147,7 +1147,7 @@ VAR
   Device : Integer;
   EarlierRouteToBeClearedFound : Boolean;
   L : Integer;
-  LocoChip : LocoChipType;
+  LocoChip : Integer;
   LocoChipStr : String;
   OK : Boolean;
 //  PointResultPending : Boolean;
