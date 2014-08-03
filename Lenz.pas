@@ -25,6 +25,9 @@ UNIT Lenz;
   v3.0  03/08/03 revised for use & worked for the first time with Delphi 6
   v4.0  11/11/04 added read computer interface version command for use with LI101F
   v4.1  26/09/05 now compiled by Delphi2005
+  v5.0  02/03/14 serial interface replaced by Lenz LAN/USB
+  v5.1  01/04/14 ethernet interface also implemented
+  v5.2  22/07/14 full record now passed to routine rather than just index to locos array
 
   To remind FWP: OR sets bits; AND NOT resets them; XOR swaps values.
   IF (B and 96) = 96 (0110 0000) THEN - checks if bits 6 and 5 are set
@@ -50,7 +53,7 @@ TYPE
 VAR
   LenzWindow: TLenzWindow;
 
-FUNCTION AdjustLenzSpeed(L : LocoIndex; Value : Integer; LocoDirection : DirectionType; OUT OK : Boolean) : Integer;
+FUNCTION AdjustLenzSpeed(VAR Loco : LocoRec; Value : Integer; LocoDirection : DirectionType; OUT OK : Boolean) : Integer;
 { Increase or decrease the speed by given amount }
 
 PROCEDURE DoCheckForUnexpectedData(UnitRef : String; CallingStr : String);
@@ -65,10 +68,10 @@ PROCEDURE EmergencyDeselectSignal(S : Integer; VAR OK : Boolean);
 PROCEDURE GetInitialFeedback(OUT OK : Boolean);
 { Read in the feedback before we start, or after an interruption }
 
-PROCEDURE GetLocoFunctions(L : LocoIndex; ForceRead : Boolean; VAR FunctionArray : ARRAY OF Boolean; VAR OK : Boolean);
+PROCEDURE GetLocoFunctions(VAR Loco : LocoRec; ForceRead : Boolean; VAR FunctionArray : ARRAY OF Boolean; VAR OK : Boolean);
 { Read all the functions }
 
-FUNCTION GetLenzSpeed(L : LocoIndex; ForceRead : Boolean) : Integer;
+FUNCTION GetLenzSpeed(VAR Loco : LocoRec; ForceRead : Boolean) : Integer;
 { Returns the given loco's speed }
 
 PROCEDURE InitialiseLenzUnit;
@@ -80,7 +83,7 @@ FUNCTION MakePointChange(LocoChipStr : String; P : Integer; Direction : PointSta
 PROCEDURE MakeSemaphoreSignalChange(LocoChipStr : String; S, AccessoryAddress : Integer; OnOrOff : SignalStateType);
 { Pull a semaphore signal or or off using TrainTech's SC3 }
 
-PROCEDURE ProgramOnTheMain(L : LocoIndex; ProgramOnTheMainRequest : ProgramOnTheMainType; NewValue : Integer);
+PROCEDURE ProgramOnTheMain(VAR Loco : LocoRec; ProgramOnTheMainRequest : ProgramOnTheMainType; NewValue : Integer);
 { Program a loco anywhere on the layout (i.e. not on the programming track) }
 
 FUNCTION RequestProgrammingModeCV(CV : Integer) : String;
@@ -95,10 +98,10 @@ FUNCTION ReturnFeedbackData(UnitNum : Byte; Input : Integer) : Boolean;
 FUNCTION ReturnSystemStatus : LenzSystemRec;
 { Return the present System status }
 
-PROCEDURE SetLenzSpeedAndDirection(L : LocoIndex; LenzSpeed : Integer; LocoDirection : DirectionType; VAR OK : Boolean);
+PROCEDURE SetLenzSpeedAndDirection(VAR Loco : LocoRec; LenzSpeed : Integer; LocoDirection : DirectionType; VAR OK : Boolean);
 { Sets the speed by changing bits 4 - 0 - if quickstop, don't bother to read in the loco details first, as we're not interested in what the speed used to be }
 
-PROCEDURE SetLocoDirection(L : LocoIndex; DirectionRequired : DirectionType; OUT OK : Boolean);
+PROCEDURE SetLocoDirection(VAR Loco : LocoRec; DirectionRequired : DirectionType; OUT OK : Boolean);
 { Sets/resets bit 7 - up is (arbitrarily) on }
 
 PROCEDURE SetSignalFunction(LocoChipStr : String; S : Integer);
@@ -107,7 +110,7 @@ PROCEDURE SetSignalFunction(LocoChipStr : String; S : Integer);
 PROCEDURE SetSignalRouteFunction(LocoChipStr : String; S: Integer);
 { Set a numbered function on or off - used for LED signals controlled by LF100XF function only decoders }
 
-PROCEDURE SetSingleLocoFunction(L : LocoIndex; FunctionNum : Integer; TurnOn : Boolean; OUT OK : Boolean);
+PROCEDURE SetSingleLocoFunction(VAR Loco : LocoRec; FunctionNum : Integer; TurnOn : Boolean; OUT OK : Boolean);
 { Set a numbered function on or off }
 
 PROCEDURE SetSystemOffline(OfflineMsg : String);
@@ -116,13 +119,13 @@ PROCEDURE SetSystemOffline(OfflineMsg : String);
 FUNCTION SetSystemOnline : Boolean;
 { Change the caption and the icons to show we're online - needs a test to see if we are, actually, online *************** 6/2/14 }
 
-FUNCTION SingleLocoFunctionIsOn(L : LocoIndex; FunctionNum : Integer; ForceRead : Boolean; OUT OK : Boolean) : Boolean;
+FUNCTION SingleLocoFunctionIsOn(VAR Loco : LocoRec; FunctionNum : Integer; ForceRead : Boolean; OUT OK : Boolean) : Boolean;
 { Read whether a numbered function is on or off }
 
 PROCEDURE StopAllLocomotives(VAR OK : Boolean);
 { Emergency stops all trains, but leaves the power on }
 
-PROCEDURE StopAParticularLocomotive(L : LocoIndex; VAR OK : Boolean);
+PROCEDURE StopAParticularLocomotive(VAR Loco : LocoRec; VAR OK : Boolean);
 { Stops a particular loco }
 
 PROCEDURE StopOperations(OUT OK : Boolean);
@@ -532,6 +535,24 @@ BEGIN
   Result := TempCheck;
 END; { CheckSum }
 
+PROCEDURE SetLocoControlledByState(VAR Loco : LocoRec; ControlledByState : LocoControlStateType);
+{ Mark a given loco as controlled either by the software or by the LH100 or by the RDC }
+BEGIN
+  WITH Loco DO BEGIN
+    Loco_PreviousControlState := Loco_ControlState;
+    Loco_ControlState := ControlledByState;
+
+    { Also mark the additional lighting chips if any as controlled. Note: the address of the additional chip may be NIL if it's the same as the loco chip }
+//      IF Train_LightingChipUp <> UnknownLocoChip THEN
+//        IF Train_LightingChipUpAddress <> 0 THEN
+//          Trains[Train_LightingChipUpAddress].Train_ControlledByProgram := ControlledByProgram;
+//
+//      IF Train_LightingChipDown <> UnknownLocoChip THEN
+//        IF Train_LightingChipDownAddress <> 0 THEN
+//          Trains[Train_LightingChipDownAddress].Train_ControlledByProgram := ControlledByProgram; &&&&&
+  END;
+END; { SetLocoControlledByState }
+
 FUNCTION ByteArraysCompareOK(FirstArray : ARRAY OF Byte; SecondArray : ARRAY OF Byte) : Boolean;
 { Does a byte-by-byte comparison [not in use at present] }
 VAR
@@ -694,7 +715,7 @@ VAR
   ErrorFound : Boolean;
   ErrorMsg : String;
   I : Integer;
-  L : LocoIndex;
+  Loco : LocoRec;
   LocoChip : Integer;
   OK : Boolean;
   PortStr : String;
@@ -793,9 +814,7 @@ BEGIN
             ReadArray[I] := 0;
 
           { Time out stuff }
-          IF (ExpectedReply <> NoReplyExpected)
-          AND (ExpectedReply <> TrackPowerOffReply)
-          THEN BEGIN
+          IF (ExpectedReply <> NoReplyExpected) AND (ExpectedReply <> TrackPowerOffReply) THEN BEGIN
             TickCount := (GetTickCount - StartTimer);
             IF TickCount > 1000 THEN BEGIN
               TimedOut := True;
@@ -882,9 +901,7 @@ BEGIN
 
           IF OK THEN BEGIN
             { Reset the watchdog timer and the timer interval, as some data has arrived - ignore system status messages, as we use those to get a result from Lenz system }
-            IF (LenzWindow <> NIL)
-            AND (ReadArray[0] <> 98)
-            THEN BEGIN
+            IF (LenzWindow <> NIL) AND (ReadArray[0] <> 98) THEN BEGIN
               WatchdogTimerCount := 0;
 
               { this seems to reset the timer, though it's undocumented }
@@ -943,9 +960,7 @@ BEGIN
                   DebugStr := DebugStr + '[' + DoBitPattern(ReadArray[I]) + '] ';
                 Log('A ' + StringOfChar(' ', 64) + 'All bytes: ' + DebugStr); { 64 shouldn't be a magic number *** }
               END ELSE
-                IF (StrToInt(ShowByteParam) >= 0)
-                AND (StrToInt(ShowByteParam) <= 14)
-                THEN BEGIN
+                IF (StrToInt(ShowByteParam) >= 0) AND (StrToInt(ShowByteParam) <= 14) THEN BEGIN
                   { Write a single byte as bits }
                   IF StrToInt(ShowByteParam) > (CommandLen + 1) THEN
                     DebugStr := '---- ----'
@@ -1012,17 +1027,13 @@ BEGIN
                 END;
               66: { $42 }
                 BEGIN
-                  IF (ExpectedReply = NoReplyExpected)
-                  AND (WhatSortOfDecoderIsIt(ReadArray[1], ReadArray[2]) = AccessoryDecoderWithoutFeedbackStr)
-                  THEN BEGIN
+                  IF (ExpectedReply = NoReplyExpected) AND (WhatSortOfDecoderIsIt(ReadArray[1], ReadArray[2]) = AccessoryDecoderWithoutFeedbackStr) THEN BEGIN
                     { see if it's point data, as that seems to be an acknowledgment }
                     ExpectedDataReceived := True;
                     Log('T Feedback broadcast for point selection has arrived');
                   END ELSE
                     { see if we've asked for the data (during startup, for instance) }
-                    IF (ExpectedReply = FeedbackReply)
-                    AND (ExpectedFeedbackAddress = ReadArray[1])
-                    THEN BEGIN
+                    IF (ExpectedReply = FeedbackReply) AND (ExpectedFeedbackAddress = ReadArray[1]) THEN BEGIN
                       ExpectedDataReceived := True;
                       Log('T Requested feedback for unit ' + IntToStr(ReadArray[1] + 1) + ' has arrived');
                     END ELSE BEGIN
@@ -1354,9 +1365,10 @@ BEGIN
 
                       { and record it }
                       Log(LocoChipToStr(LocoChip) + ' L taken over by ' + ControlledByStateToStr(ControlledByUser));
-                      L := GetLocoIndexFromLocoChip(LocoChip);
-                      SetLocoControlledByState(L, ControlledByUser);
-                      Log(LocoChipToStr(LocoChip) + ' L taken over by ' + ControlledByStateToStr(ControlledByUser));
+                      IF GetLocoRecFromLocoChip(LocoChip, Loco) THEN BEGIN
+                        SetLocoControlledByState(Loco, ControlledByUser);
+                        Log(LocoChipToStr(LocoChip) + ' L taken over by ' + ControlledByStateToStr(ControlledByUser));
+                      END;
                     END;
                   80: { $50 }
                     { Function status response }
@@ -1491,68 +1503,64 @@ BEGIN
     DataIO;
 END; { DoCheckForUnexpectedData }
 
-PROCEDURE ProgramOnTheMain(L : LocoIndex; ProgramOnTheMainRequest : ProgramOnTheMainType; NewValue : Integer);
+PROCEDURE ProgramOnTheMain(VAR Loco : LocoRec; ProgramOnTheMainRequest : ProgramOnTheMainType; NewValue : Integer);
 { Program a loco anywhere on the layout (i.e. not on the programming track) }
 VAR
   OK : Boolean;
   WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
 
 BEGIN
-  IF L = UnknownLocoIndex THEN
-    UnknownLocoRecordFound('ProgramOnTheMain')
-  ELSE BEGIN
-    WITH Locos[L] DO BEGIN
-      WriteArray[0] := 230; { header byte }
-      WriteArray[1] := 48;  { identification byte }
-      WriteArray[2] := GetLocoChipHighByte(Loco_LocoChip); { data byte 1 - AH }
-      WriteArray[3] := GetLocoChipLowByte(Loco_LocoChip);  { data byte 2 - AL }
+  WITH Loco DO BEGIN
+    WriteArray[0] := 230; { header byte }
+    WriteArray[1] := 48;  { identification byte }
+    WriteArray[2] := GetLocoChipHighByte(Loco_LocoChip); { data byte 1 - AH }
+    WriteArray[3] := GetLocoChipLowByte(Loco_LocoChip);  { data byte 2 - AL }
 
-      CASE ProgramOnTheMainRequest OF
-        ChangeDirectionToUp:
-          BEGIN
-            Log(Loco_LocoChipStr + ' LG Programming on the Main : changing direction to up');
+    CASE ProgramOnTheMainRequest OF
+      ChangeDirectionToUp:
+        BEGIN
+          Log(Loco_LocoChipStr + ' LG Programming on the Main : changing direction to up');
 
-            { a bit mode write request: change of direction is CV 29 bit 0, so need to send 29-1, as CVs start here at 0 }
-            WriteArray[4] := 232; { data byte 3 : 1110 1000 (1110 10CC where CC is top two bits of CV 0-1023) }
-            WriteArray[5] := 28;  { data byte 4 : 0001 1100 - CCCC CCCC - remaining bits of CV }
-            WriteArray[6] := 240; { data byte 5 : 1111 0000 - 1111 WBBB - W=bit value 0 or 1, BBB=bit location (000=bit 0, 111=bit 7) }
-          END;
-        ChangeDirectionToDown:
-          BEGIN
-            Log(Loco_LocoChipStr + ' LG Programming on the Main : changing direction to down');
+          { a bit mode write request: change of direction is CV 29 bit 0, so need to send 29-1, as CVs start here at 0 }
+          WriteArray[4] := 232; { data byte 3 : 1110 1000 (1110 10CC where CC is top two bits of CV 0-1023) }
+          WriteArray[5] := 28;  { data byte 4 : 0001 1100 - CCCC CCCC - remaining bits of CV }
+          WriteArray[6] := 240; { data byte 5 : 1111 0000 - 1111 WBBB - W=bit value 0 or 1, BBB=bit location (000=bit 0, 111=bit 7) }
+        END;
+      ChangeDirectionToDown:
+        BEGIN
+          Log(Loco_LocoChipStr + ' LG Programming on the Main : changing direction to down');
 
-            { a bit mode write request: change of direction is CV 29 bit 0, so need to send 29-1, as CVs start here at 0 }
-            WriteArray[4] := 232; { data byte 3 : 1110 1000 (1110 10CC where CC is top two bits of CV 0-1023) }
-            WriteArray[5] := 28;  { data byte 4 : 0001 1100 - CCCC CCCC - remaining bits of CV }
-            WriteArray[6] := 248; { data byte 5 : 1111 1000 - 1111 WBBB - W=bit value 0 or 1, BBB=bit location (000=bit 0, 111=bit 7) }
-          END;
-        ChangeAcceleration:
-          { a byte mode write request: change of acceleration is CV 3, so need to send 3-1, as CVs start here at 0 }
-          BEGIN
-            Log(Loco_LocoChipStr + ' LG Programming on the Main : changing acceleration to ' + IntToStr(NewValue));
+          { a bit mode write request: change of direction is CV 29 bit 0, so need to send 29-1, as CVs start here at 0 }
+          WriteArray[4] := 232; { data byte 3 : 1110 1000 (1110 10CC where CC is top two bits of CV 0-1023) }
+          WriteArray[5] := 28;  { data byte 4 : 0001 1100 - CCCC CCCC - remaining bits of CV }
+          WriteArray[6] := 248; { data byte 5 : 1111 1000 - 1111 WBBB - W=bit value 0 or 1, BBB=bit location (000=bit 0, 111=bit 7) }
+        END;
+      ChangeAcceleration:
+        { a byte mode write request: change of acceleration is CV 3, so need to send 3-1, as CVs start here at 0 }
+        BEGIN
+          Log(Loco_LocoChipStr + ' LG Programming on the Main : changing acceleration to ' + IntToStr(NewValue));
 
-            WriteArray[4] := 236;      { data byte 3 : 1110 1100 (1110 11CC where CC is top two bits of CV 0-1023) }
-            WriteArray[5] := 2;        { data byte 4 : 0000 0010 - CCCC CCCC - remaining bits of CV }
-            WriteArray[6] := NewValue; { data byte 5 : the new value of the CV }
-          END;
-        ChangeDeceleration:
-          { a byte mode write request: change of acceleration is CV 4, so need to send 4-1, as CVs start here at 0 }
-          BEGIN
-            Log(Loco_LocoChipStr + ' LG Programming on the Main : changing deceleration to ' + IntToStr(NewValue));
+          WriteArray[4] := 236;      { data byte 3 : 1110 1100 (1110 11CC where CC is top two bits of CV 0-1023) }
+          WriteArray[5] := 2;        { data byte 4 : 0000 0010 - CCCC CCCC - remaining bits of CV }
+          WriteArray[6] := NewValue; { data byte 5 : the new value of the CV }
+        END;
+      ChangeDeceleration:
+        { a byte mode write request: change of acceleration is CV 4, so need to send 4-1, as CVs start here at 0 }
+        BEGIN
+          Log(Loco_LocoChipStr + ' LG Programming on the Main : changing deceleration to ' + IntToStr(NewValue));
 
-            WriteArray[4] := 236;      { data byte 3 : 1110 1100 (1110 11CC where CC is top two bits of CV 0-1023) }
-            WriteArray[5] := 3;        { data byte 4 : 0000 0011 - CCCC CCCC - remaining bits of CV }
-            WriteArray[6] := NewValue; { data byte 5 : the new value of the CV }
-          END;
-      END; {CASE}
+          WriteArray[4] := 236;      { data byte 3 : 1110 1100 (1110 11CC where CC is top two bits of CV 0-1023) }
+          WriteArray[5] := 3;        { data byte 4 : 0000 0011 - CCCC CCCC - remaining bits of CV }
+          WriteArray[6] := NewValue; { data byte 5 : the new value of the CV }
+        END;
+    END; {CASE}
 
-      DataIO('L', WriteArray, LocoAcknowledgment, OK);
-    END; {WITH}
-  END;
+    DataIO('L', WriteArray, LocoAcknowledgment, OK);
+  END; {WITH}
 END; { ProgramOnTheMain }
 
 {$O+}
-PROCEDURE ReadInLocoDetails(L : LocoIndex; VAR TempSpeedByte : Byte; OUT OK : Boolean);
+PROCEDURE ReadInLocoDetails(VAR Loco : LocoRec; VAR TempSpeedByte : Byte; OUT OK : Boolean);
 { Read in the supplied details of the specified loco - error if not }
 
   FUNCTION Decode128SpeedStep(TempSpeedByte : Byte) : Integer;
@@ -1626,153 +1634,147 @@ VAR
 BEGIN { ReadInLocoDetails }
   TestByte := 0;
 
-  IF L = UnknownLocoIndex THEN
-    UnknownLocoRecordFound('ReadInLocoDetails')
-  ELSE BEGIN
-    WITH Locos[L] DO BEGIN
-      Log(Loco_LocoChipStr + ' L Requesting loco details {BLANKLINEBEFORE}');
+  WITH Loco DO BEGIN
+    Log(Loco_LocoChipStr + ' L Requesting loco details {BLANKLINEBEFORE}');
 
-      WriteArray[0] := 227;
-      WriteArray[1] := 0;
-      WriteArray[2] := GetLocoChipHighByte(Loco_LocoChip);
-      WriteArray[3] := GetLocoChipLowByte(Loco_LocoChip);
+    WriteArray[0] := 227;
+    WriteArray[1] := 0;
+    WriteArray[2] := GetLocoChipHighByte(Loco_LocoChip);
+    WriteArray[3] := GetLocoChipLowByte(Loco_LocoChip);
 
-      DataIO('L', WriteArray, ReadArray, LocoReply, OK);
+    DataIO('L', WriteArray, ReadArray, LocoReply, OK);
 
-      IF OK THEN BEGIN
-        DebugStr := 'Received loco details:';
+    IF OK THEN BEGIN
+      DebugStr := 'Received loco details:';
 
-        CASE ReadArray[0] OF
-          226:
-            Log(Loco_LocoChipStr + ' L (Multi-unit address');
-              { but will need to store speed of multi-unit separately ? **** }
-          229:
-            Log(Loco_LocoChipStr + ' L (Loco forming part of a multi-unit with a multi-unit address of ' + IntToStr(ReadArray[5]) + ')');
-              { but will need to store speed of multi-unit separately ? **** }
-          230:
-            { report if forming part of a double header }
-            Log(Loco_LocoChipStr + ' L (Loco forming part of a double header with ' + IntToStr(GetLocoChipFromTwoBytes(ReadArray[5], ReadArray[6])) + ')');
-        END; {CASE}
+      CASE ReadArray[0] OF
+        226:
+          Log(Loco_LocoChipStr + ' L (Multi-unit address');
+            { but will need to store speed of multi-unit separately ? **** }
+        229:
+          Log(Loco_LocoChipStr + ' L (Loco forming part of a multi-unit with a multi-unit address of ' + IntToStr(ReadArray[5]) + ')');
+            { but will need to store speed of multi-unit separately ? **** }
+        230:
+          { report if forming part of a double header }
+          Log(Loco_LocoChipStr + ' L (Loco forming part of a double header with ' + IntToStr(GetLocoChipFromTwoBytes(ReadArray[5], ReadArray[6])) + ')');
+      END; {CASE}
 
-        CASE ReadArray[0] OF
-          226, 228..230:
-            BEGIN
-              IDByte := ReadArray[1];
+      CASE ReadArray[0] OF
+        226, 228..230:
+          BEGIN
+            IDByte := ReadArray[1];
 
-              { See if loco controlled by another device }
-              IF (IDByte AND 8) = 8 THEN BEGIN
-                { testing bit 3 - loco controlled by something else }
-                SetLocoControlledByState(L, ControlledByUnknownDevice);
-                DebugStr := DebugStr + ' [previously taken over by ' + ControlledByStateToStr(ControlledByUnknownDevice) + ']';
-              END ELSE
-                SetLocoControlledByState(L, ControlledByProgram);
+            { See if loco controlled by another device }
+            IF (IDByte AND 8) = 8 THEN BEGIN
+              { testing bit 3 - loco controlled by something else }
+              SetLocoControlledByState(Loco, ControlledByUnknownDevice);
+              DebugStr := DebugStr + ' [previously taken over by ' + ControlledByStateToStr(ControlledByUnknownDevice) + ']';
+            END ELSE
+              SetLocoControlledByState(Loco, ControlledByProgram);
 
-              { get its speed step mode from bits 0-2 }
-              IF (IDByte AND 4) = 4 THEN
-                Loco_SpeedStepMode := 128
+            { get its speed step mode from bits 0-2 }
+            IF (IDByte AND 4) = 4 THEN
+              Loco_SpeedStepMode := 128
+            ELSE
+              IF (IDByte AND 2) = 2 THEN
+                Loco_SpeedStepMode := 28
               ELSE
-                IF (IDByte AND 2) = 2 THEN
-                  Loco_SpeedStepMode := 28
+                IF (IDByte AND 1) = 1 THEN
+                  Loco_SpeedStepMode := 27
                 ELSE
-                  IF (IDByte AND 1) = 1 THEN
-                    Loco_SpeedStepMode := 27
-                  ELSE
-                    IF (IDByte AND 0) = 0 THEN
-                      Loco_SpeedStepMode := 14;
+                  IF (IDByte AND 0) = 0 THEN
+                    Loco_SpeedStepMode := 14;
 
-              IF (Loco_SpeedStepMode <> 128)
-              AND (Loco_SpeedStepMode <> 28)
-              THEN BEGIN
-                Debug('Error - using wrong speed mode!');
-                { what else **** }
-              END;
+            IF (Loco_SpeedStepMode <> 128) AND (Loco_SpeedStepMode <> 28) THEN BEGIN
+              Debug('Error - using wrong speed mode!');
+              { what else **** }
+            END;
 
-              TempSpeedByte := ReadArray[2];
-              Loco_SpeedByte := TempSpeedByte;
-              Loco_SpeedByteReadIn := True;
+            TempSpeedByte := ReadArray[2];
+            Loco_SpeedByte := TempSpeedByte;
+            Loco_SpeedByteReadIn := True;
 
-              { and now its speed }
-              IF Loco_SpeedStepMode = 28 THEN
-                SpeedNum := Decode28SpeedStep(TempSpeedByte)
-              ELSE
-                SpeedNum := Decode128SpeedStep(TempSpeedByte);
+            { and now its speed }
+            IF Loco_SpeedStepMode = 28 THEN
+              SpeedNum := Decode28SpeedStep(TempSpeedByte)
+            ELSE
+              SpeedNum := Decode128SpeedStep(TempSpeedByte);
 
-              Loco_CurrentLenzSpeed := SpeedNum;
+            Loco_CurrentLenzSpeed := SpeedNum;
 
-              DebugStr := DebugStr + ' speed=' + IntToStr(SpeedNum);
+            DebugStr := DebugStr + ' speed=' + IntToStr(SpeedNum);
 
-              { and direction of travel }
-              IF (TempSpeedByte AND 128) = 128 THEN BEGIN
-                Loco_CurrentDirection := Up;
-                DebugStr := DebugStr + ' Up'
-              END ELSE BEGIN
-                Loco_CurrentDirection := Down;
-                DebugStr := DebugStr + ' Down';
-              END;
+            { and direction of travel }
+            IF (TempSpeedByte AND 128) = 128 THEN BEGIN
+              Loco_CurrentDirection := Up;
+              DebugStr := DebugStr + ' Up'
+            END ELSE BEGIN
+              Loco_CurrentDirection := Down;
+              DebugStr := DebugStr + ' Down';
+            END;
 
-              { and loco functions set }
-              IF ReadArray[0] <> 226 THEN BEGIN
-                { add the data to the loco record - not applicable to multi-unit addresses *** ? *** }
-                Loco_Functions0To4Byte := ReadArray[3];
-                Loco_Functions5To12Byte := ReadArray[4];
-                FOR FunctionNum := 0 TO 4 DO BEGIN
-                  { see if particular bits are set }
-                  CASE FunctionNum OF
-                    0:
-                      TestByte := $10; { 0001 0000 }
-                    1:
-                      TestByte := $01; { 0000 0001 }
-                    2:
-                      TestByte := $02; { 0000 0010 }
-                    3:
-                      TestByte := $04; { 0000 0100 }
-                    4:
-                      TestByte := $08; { 0000 1000 }
-                  END; {CASE}
-                  IF ((Loco_Functions0To4Byte AND TestByte) = TestByte) THEN
-                    Loco_Functions[FunctionNum] := True
-                  ELSE
-                    Loco_Functions[FunctionNum] := False;
-                END; {FOR}
-                FOR FunctionNum := 5 TO 12 DO BEGIN
-                  CASE FunctionNum OF
-                    5:
-                      TestByte := $01; { 0000 0001 }
-                    6:
-                      TestByte := $02; { 0000 0010 }
-                    7:
-                      TestByte := $04; { 0000 0100 }
-                    8:
-                      TestByte := $08; { 0000 1000 }
-                    9:
-                      TestByte := $01; { 0000 0001 }
-                    10:
-                      TestByte := $02; { 0000 0010 }
-                    11:
-                      TestByte := $04; { 0000 0100 }
-                    12:
-                      TestByte := $08; { 0000 1000 }
-                  END; {CASE}
-                  IF ((Loco_Functions5To12Byte AND TestByte) = TestByte) THEN
-                    Loco_Functions[FunctionNum] := True
-                  ELSE
-                    Loco_Functions[FunctionNum] := False;
-                END; {FOR}
-              END;
-          END;
-        END; {CASE}
+            { and loco functions set }
+            IF ReadArray[0] <> 226 THEN BEGIN
+              { add the data to the loco record - not applicable to multi-unit addresses *** ? *** }
+              Loco_Functions0To4Byte := ReadArray[3];
+              Loco_Functions5To12Byte := ReadArray[4];
+              FOR FunctionNum := 0 TO 4 DO BEGIN
+                { see if particular bits are set }
+                CASE FunctionNum OF
+                  0:
+                    TestByte := $10; { 0001 0000 }
+                  1:
+                    TestByte := $01; { 0000 0001 }
+                  2:
+                    TestByte := $02; { 0000 0010 }
+                  3:
+                    TestByte := $04; { 0000 0100 }
+                  4:
+                    TestByte := $08; { 0000 1000 }
+                END; {CASE}
+                IF ((Loco_Functions0To4Byte AND TestByte) = TestByte) THEN
+                  Loco_Functions[FunctionNum] := True
+                ELSE
+                  Loco_Functions[FunctionNum] := False;
+              END; {FOR}
+              FOR FunctionNum := 5 TO 12 DO BEGIN
+                CASE FunctionNum OF
+                  5:
+                    TestByte := $01; { 0000 0001 }
+                  6:
+                    TestByte := $02; { 0000 0010 }
+                  7:
+                    TestByte := $04; { 0000 0100 }
+                  8:
+                    TestByte := $08; { 0000 1000 }
+                  9:
+                    TestByte := $01; { 0000 0001 }
+                  10:
+                    TestByte := $02; { 0000 0010 }
+                  11:
+                    TestByte := $04; { 0000 0100 }
+                  12:
+                    TestByte := $08; { 0000 1000 }
+                END; {CASE}
+                IF ((Loco_Functions5To12Byte AND TestByte) = TestByte) THEN
+                  Loco_Functions[FunctionNum] := True
+                ELSE
+                  Loco_Functions[FunctionNum] := False;
+              END; {FOR}
+            END;
+        END;
+      END; {CASE}
 
-        CASE ReadArray[0] OF
-          229:
-            { **** multi-unit address (between 1 and 99) is in byte 4 - speed and direction commands should be sent to the multi-unit address (function instructions to the
-              loco address 2.1.14.2)
-            }
-            ;
-        END; {CASE}
-        Log(Loco_LocoChipStr + ' L ' + DebugStr);
-      END;
-    END; {WITH}
-  END;
+      CASE ReadArray[0] OF
+        229:
+          { **** multi-unit address (between 1 and 99) is in byte 4 - speed and direction commands should be sent to the multi-unit address (function instructions to the
+            loco address 2.1.14.2)
+          }
+          ;
+      END; {CASE}
+      Log(Loco_LocoChipStr + ' L ' + DebugStr);
+    END;
+  END; {WITH}
 END; { ReadInLocoDetails }
 
 PROCEDURE ReadInFunctionDecoderDetails(DecoderNum : Integer; OUT TempF0_F4_Byte, TempF5_F12_Byte : Byte; VAR OK : Boolean);
@@ -1810,68 +1812,59 @@ BEGIN
     Debug('Not OK');
 END; { ReadInFunctionDecoderDetails }
 
-FUNCTION GetLenzSpeed(L : LocoIndex; ForceRead : Boolean) : Integer;
+FUNCTION GetLenzSpeed(VAR Loco : LocoRec; ForceRead : Boolean) : Integer;
 { Returns the given loco's speed - if ForceRead set, reads it in even if we think we know what it is }
 VAR
   OK : Boolean;
   TempSpeedByte : Byte;
 
 BEGIN
-  Result := 0;
-
   { First check whether it's been ever been asked for, whether it's been taken over by another controller and changed - otherwise no point continually asking the system for
     it.
   }
-  IF L = UnknownLocoIndex THEN
-    UnknownLocoRecordFound('GetLenzSpeed')
-  ELSE BEGIN
-    WITH Locos[L] DO BEGIN
-      IF (Loco_ControlState = ControlledByUser)
-      OR ForceRead
-      THEN BEGIN
-        ReadInLocoDetails(L, TempSpeedByte, OK);
-        IF NOT OK THEN
-          Log(Loco_LocoChipStr + ' XG "GetLenzSpeed" routine failed');
-      END;
+  WITH Loco DO BEGIN
+    IF (Loco_ControlState = ControlledByUser)
+    OR ForceRead
+    THEN BEGIN
+      ReadInLocoDetails(Loco, TempSpeedByte, OK);
+      IF NOT OK THEN
+        Log(Loco_LocoChipStr + ' XG "GetLenzSpeed" routine failed');
+    END;
 
-      { Either return the newly obtained speed, or the stored speed }
-      Result := Loco_CurrentLenzSpeed;
-    END; {WITH}
-  END;
+    { Either return the newly obtained speed, or the stored speed }
+    Result := Loco_CurrentLenzSpeed;
+  END; {WITH}
 END; { GetLenzSpeed }
 
-PROCEDURE WriteLocoSpeedOrDirection(L : LocoIndex; TempSpeedByte : Byte; VAR OK : Boolean);
+PROCEDURE WriteLocoSpeedOrDirection(VAR Loco : LocoRec; TempSpeedByte : Byte; VAR OK : Boolean);
 { Write out the speed or direction of a given locomotive }
 VAR
   WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
 
 BEGIN
-  IF L = UnknownLocoIndex THEN
-    UnknownLocoRecordFound('WriteLocoSpeedOrDirection')
-  ELSE BEGIN
-    WITH Locos[L] DO BEGIN
-      WriteArray[0] := 228;
-      IF Loco_SpeedStepMode = 28 THEN
-        WriteArray[1] := 18
-      ELSE
-        { 128 speed steps }
-        WriteArray[1] := 19;
-      WriteArray[2] := GetLocoChipHighByte(Loco_LocoChip);
-      WriteArray[3] := GetLocoChipLowByte(Loco_LocoChip);
-      WriteArray[4] := TempSpeedByte;
+  WITH Loco DO BEGIN
+    WriteArray[0] := 228;
+    IF Loco_SpeedStepMode = 28 THEN
+      WriteArray[1] := 18
+    ELSE
+      { 128 speed steps }
+      WriteArray[1] := 19;
 
-      { Now read details in - look for acknowledgment }
-      DataIO('L', WriteArray, LocoAcknowledgment, OK);
+    WriteArray[2] := GetLocoChipHighByte(Loco_LocoChip);
+    WriteArray[3] := GetLocoChipLowByte(Loco_LocoChip);
+    WriteArray[4] := TempSpeedByte;
 
-      IF NOT OK THEN
-        Log(Loco_LocoChipStr + ' L Data not acknowledged')
-      ELSE BEGIN
-        SetLocoControlledByState(L, ControlledByProgram);
-        Locos[L].Loco_SpeedByte := TempSpeedByte;
-      END;
-      Log(Loco_LocoChipStr + ' L Data acknowledged');
-    END; {WITH}
-  END;
+    { Now read details in - look for acknowledgment }
+    DataIO('L', WriteArray, LocoAcknowledgment, OK);
+
+    IF NOT OK THEN
+      Log(Loco_LocoChipStr + ' L Data not acknowledged')
+    ELSE BEGIN
+      SetLocoControlledByState(Loco, ControlledByProgram);
+      Loco_SpeedByte := TempSpeedByte;
+    END;
+    Log(Loco_LocoChipStr + ' L Data acknowledged');
+  END; {WITH}
 END; { WriteLocoSpeedOrDirection }
 
 FUNCTION ReadComputerInterfaceSoftwareVersion : Boolean;
@@ -1928,7 +1921,7 @@ BEGIN
   END;
 END; { RequestProgrammingModeCV }
 
-PROCEDURE SetLenzSpeedAndDirection(L : LocoIndex; LenzSpeed : Integer; LocoDirection : DirectionType; VAR OK : Boolean);
+PROCEDURE SetLenzSpeedAndDirection(VAR Loco : LocoRec; LenzSpeed : Integer; LocoDirection : DirectionType; VAR OK : Boolean);
 { Sets the speed by changing bits 4 - 0 - if quickstop, don't bother to read in the loco details first, as we're not interested in what the speed used to be }
 VAR
   DebugStr : String;
@@ -1938,169 +1931,152 @@ BEGIN
   TRY
     OK := True;
 
-    IF L = UnknownLocoIndex THEN
-      UnknownLocoRecordFound('SetLenzSpeedAndDirection')
-    ELSE BEGIN
-      WITH Locos[L] DO BEGIN
-        IF L = UnknownLocoIndex THEN
-          Log('No loco record for locochip ' + Loco_LocoChipStr)
-        ELSE BEGIN
-          IF (Loco_SpeedStepMode = 28)
-          AND (LenzSpeed > 28)
-          THEN BEGIN
-            Log(Loco_LocoChipStr + ' XG  Fatal Error: Lenz speed ' + IntToStr(LenzSpeed) + ' supplied');
-            OK := False;
+    WITH Loco DO BEGIN
+      IF (Loco_SpeedStepMode = 28) AND (LenzSpeed > 28) THEN BEGIN
+        Log(Loco_LocoChipStr + ' XG  Fatal Error: Lenz speed ' + IntToStr(LenzSpeed) + ' supplied');
+        OK := False;
+      END;
+
+      IF OK THEN BEGIN
+        IF Loco_LocoChip = DapolCleaningWagonLocoChip THEN BEGIN
+          { it's a special case - if it's non-zero set it to eight }
+          IF LenzSpeed > 0 THEN
+            LenzSpeed := 8;
+        END;
+
+        IF NOT SystemOnline THEN BEGIN
+          IF LenzSpeed = QuickStop THEN
+            Debug('Speed for loco ' + Loco_LocoChipStr + ' would be set to 0 with quick stop set')
+          ELSE BEGIN
+            IF Loco_LocoChip = DapolCleaningWagonLocoChip THEN
+              Debug('Speed for Dapol Cleaning Wagon ' + Loco_LocoChipStr + ' would be set to ' + IntToStr(LenzSpeed))
+            ELSE
+              Debug('Speed for loco ' + Loco_LocoChipStr + ' would be set to ' + IntToStr(LenzSpeed));
           END;
+        END ELSE BEGIN
+          DebugStr := '';
+          OK := False;
+          { If we're controlling it, we know its speed }
+          IF Loco_SpeedByteReadIn AND (Loco_ControlState = ControlledByProgram) THEN
+            TempSpeedByte := Loco_SpeedByte
+          ELSE BEGIN
+            ReadInLocoDetails(Loco, TempSpeedByte, OK);
+            IF NOT OK THEN
+              Log(Loco_LocoChipStr + ' XG Locoread not ok-'); { ****** }
+          END;
+
+          IF LenzSpeed = QuickStop THEN BEGIN
+            TempSpeedByte := Loco_SpeedByte;
+            { reset bits 1-6, leaving bit 7 as it indicates direction }
+            TempSpeedByte := TempSpeedByte AND NOT 126; { 0111 1110 }
+            { set bit 0 for emergency stop }
+            TempSpeedByte := TempSpeedByte OR 1; { 0000 0001 }
+          END ELSE BEGIN
+            { not quickstop - now set the appropriate bits }
+            IF Loco_SpeedStepMode = 28 THEN BEGIN
+              { first clear bits 0-4 }
+              TempSpeedByte := TempSpeedByte AND NOT $1F; { 0001 1111 }
+              { and set new ones }
+              TempSpeedByte := TempSpeedByte OR SpeedStep28Table[LenzSpeed];
+            END ELSE BEGIN
+              { SpeedStepMode = 128 }
+              { first clear bits 0-6 }
+              TempSpeedByte := TempSpeedByte AND NOT $7F; { 0111 1111 }
+              { and set new ones }
+              TempSpeedByte := TempSpeedByte OR (LenzSpeed + 1);
+            END;
+          END;
+
+          { set top bit for direction }
+          IF LocoDirection = Up THEN BEGIN
+            TempSpeedByte := TempSpeedByte OR 128; { 1000 000 }
+            DebugStr := ' Up'
+          END ELSE BEGIN
+            TempSpeedByte := TempSpeedByte AND NOT 128; { 0000 000 }
+            DebugStr := ' Down';
+          END;
+
+          IF LenzSpeed = QuickStop THEN BEGIN
+            IF Loco_LocoChip = DapolCleaningWagonLocoChip THEN
+              Log(Loco_LocoChipStr + ' L Dapol Cleaning Wagon - writing speed data 0 (with quick stop set) [' + DoBitPattern(TempSpeedByte) + ']' + DebugStr)
+            ELSE
+              Log(Loco_LocoChipStr + ' L Writing speed data 0 (with quick stop set) [' + DoBitPattern(TempSpeedByte) + ']' + DebugStr);
+          END ELSE BEGIN
+            IF Loco_LocoChip = DapolCleaningWagonLocoChip THEN
+              Log(Loco_LocoChipStr + ' L Dapol Cleaning Wagon - writing speed data ' + IntToStr(LenzSpeed) + ' [' + DoBitPattern(TempSpeedByte) + ']' + DebugStr)
+            ELSE
+              Log(Loco_LocoChipStr + ' L Writing speed data ' + IntToStr(LenzSpeed) + ' [' + DoBitPattern(TempSpeedByte) + ']' + DebugStr);
+          END;
+
+          { now write the byte back }
+          WriteLocoSpeedOrDirection(Loco, TempSpeedByte, OK);
+          IF NOT OK THEN
+            Log(Loco_LocoChipStr + ' LG Data for loco ' + Loco_LocoChipStr + ' not written');
 
           IF OK THEN BEGIN
-            IF Loco_LocoChip = DapolCleaningWagonLocoChip THEN BEGIN
-              { it's a special case - if it's non-zero set it to eight }
-              IF LenzSpeed > 0 THEN
-                LenzSpeed := 8;
-            END;
+            IF LenzSpeed = QuickStop THEN
+              Loco_CurrentLenzSpeed := 0
+            ELSE
+              Loco_CurrentLenzSpeed := LenzSpeed;
 
-            IF NOT SystemOnline THEN BEGIN
-              IF LenzSpeed = QuickStop THEN
-                Debug('Speed for loco ' + Loco_LocoChipStr + ' would be set to 0 with quick stop set')
-              ELSE BEGIN
-                IF Loco_LocoChip = DapolCleaningWagonLocoChip THEN
-                  Debug('Speed for Dapol Cleaning Wagon ' + Loco_LocoChipStr + ' would be set to ' + IntToStr(LenzSpeed))
-                ELSE
-                  Debug('Speed for loco ' + Loco_LocoChipStr + ' would be set to ' + IntToStr(LenzSpeed));
-              END;
-            END ELSE BEGIN
-              DebugStr := '';
-              OK := False;
-              { If we're controlling it, we know its speed }
-              IF Loco_SpeedByteReadIn
-              AND (Loco_ControlState = ControlledByProgram)
-              THEN
-                TempSpeedByte := Loco_SpeedByte
-              ELSE BEGIN
-                ReadInLocoDetails(L, TempSpeedByte, OK);
-                IF NOT OK THEN
-                  Log(Loco_LocoChipStr + ' XG Locoread not ok-'); { ****** }
-              END;
-
-              IF LenzSpeed = QuickStop THEN BEGIN
-                TempSpeedByte := Loco_SpeedByte;
-                { reset bits 1-6, leaving bit 7 as it indicates direction }
-                TempSpeedByte := TempSpeedByte AND NOT 126; { 0111 1110 }
-                { set bit 0 for emergency stop }
-                TempSpeedByte := TempSpeedByte OR 1; { 0000 0001 }
-              END ELSE BEGIN
-                { not quickstop - now set the appropriate bits }
-                IF Loco_SpeedStepMode = 28 THEN BEGIN
-                  { first clear bits 0-4 }
-                  TempSpeedByte := TempSpeedByte AND NOT $1F; { 0001 1111 }
-                  { and set new ones }
-                  TempSpeedByte := TempSpeedByte OR SpeedStep28Table[LenzSpeed];
-                END ELSE BEGIN
-                  { SpeedStepMode = 128 }
-                  { first clear bits 0-6 }
-                  TempSpeedByte := TempSpeedByte AND NOT $7F; { 0111 1111 }
-                  { and set new ones }
-                  TempSpeedByte := TempSpeedByte OR (LenzSpeed + 1);
-                END;
-              END;
-
-              { set top bit for direction }
-              IF LocoDirection = Up THEN BEGIN
-                TempSpeedByte := TempSpeedByte OR 128; { 1000 000 }
-                DebugStr := ' Up'
-              END ELSE BEGIN
-                TempSpeedByte := TempSpeedByte AND NOT 128; { 0000 000 }
-                DebugStr := ' Down';
-              END;
-
-              IF LenzSpeed = QuickStop THEN BEGIN
-                IF Loco_LocoChip = DapolCleaningWagonLocoChip THEN
-                  Log(Loco_LocoChipStr + ' L Dapol Cleaning Wagon - writing speed data 0 (with quick stop set) [' + DoBitPattern(TempSpeedByte) + ']' + DebugStr)
-                ELSE
-                  Log(Loco_LocoChipStr + ' L Writing speed data 0 (with quick stop set) [' + DoBitPattern(TempSpeedByte) + ']' + DebugStr);
-              END ELSE BEGIN
-                IF Loco_LocoChip = DapolCleaningWagonLocoChip THEN
-                  Log(Loco_LocoChipStr + ' L Dapol Cleaning Wagon - writing speed data ' + IntToStr(LenzSpeed) + ' [' + DoBitPattern(TempSpeedByte) + ']' + DebugStr)
-                ELSE
-                  Log(Loco_LocoChipStr + ' L Writing speed data ' + IntToStr(LenzSpeed) + ' [' + DoBitPattern(TempSpeedByte) + ']' + DebugStr);
-              END;
-
-              { now write the byte back }
-              WriteLocoSpeedOrDirection(L, TempSpeedByte, OK);
-              IF NOT OK THEN
-                Log(Loco_LocoChipStr + ' LG Data for loco ' + Loco_LocoChipStr + ' not written');
-
-              IF OK THEN BEGIN
-                IF LenzSpeed = QuickStop THEN
-                  Loco_CurrentLenzSpeed := 0
-                ELSE
-                  Loco_CurrentLenzSpeed := LenzSpeed;
-
-                { Need to update the loco direction variable, as there may well not have been an explicit direction change by means of SetDirection, rather a speed change
-                  with the direction bit set differently.
-                }
-                IF LocoDirection <> Loco_CurrentDirection THEN
-                  Loco_CurrentDirection := LocoDirection;
-              END;
-            END;
+            { Need to update the loco direction variable, as there may well not have been an explicit direction change by means of SetDirection, rather a speed change
+              with the direction bit set differently.
+            }
+            IF LocoDirection <> Loco_CurrentDirection THEN
+              Loco_CurrentDirection := LocoDirection;
           END;
         END;
-      END; {WITH}
-    END;
+      END;
+    END; {WITH}
   EXCEPT
     ON E : Exception DO
       Log('EG SetLenzSpeed: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { SetLenzSpeedAndDirection }
 
-FUNCTION AdjustLenzSpeed(L : LocoIndex; Value : Integer; LocoDirection : DirectionType; OUT OK : Boolean) : Integer;
+FUNCTION AdjustLenzSpeed(VAR Loco : LocoRec; Value : Integer; LocoDirection : DirectionType; OUT OK : Boolean) : Integer;
 { Increase or decrease the speed by given amount }
 VAR
   NewSpeed : Integer;
 
 BEGIN
   NewSpeed := 0;
-  Result := 0;
 
-  IF L = UnknownLocoIndex THEN
-    UnknownLocoRecordFound('AdjustLenzSpeed')
-  ELSE BEGIN
-    WITH Locos[L] DO BEGIN
-      IF NOT SystemOnline THEN BEGIN
-        IF Value > 0 THEN
-          Debug('Speed for ' + Loco_LocoChipStr + ' would be increased by ' + IntToStr(Value))
-        ELSE
-          IF Value < 0 THEN
-            Debug('Speed for ' + Loco_LocoChipStr + ' would be decreased by ' + IntToStr(Abs(Value)))
-          ELSE BEGIN
-            Debug('val=0');
-            Log(Loco_LocoChipStr + ' L Can''t increase or decrease by zero');
-          END;
-        OK := True;
-      END ELSE BEGIN
-        IF Value = 0 THEN BEGIN
-          { can't increase or decrease by zero }
+  WITH Loco DO BEGIN
+    IF NOT SystemOnline THEN BEGIN
+      IF Value > 0 THEN
+        Debug('Speed for ' + Loco_LocoChipStr + ' would be increased by ' + IntToStr(Value))
+      ELSE
+        IF Value < 0 THEN
+          Debug('Speed for ' + Loco_LocoChipStr + ' would be decreased by ' + IntToStr(Abs(Value)))
+        ELSE BEGIN
           Debug('val=0');
-          Log(Loco_LocoChipSTr + ' L Can''t increase or decrease by zero');
-        END ELSE BEGIN
-          NewSpeed := GetLenzSpeed(L, NOT ForceARead);
-          NewSpeed := NewSpeed + Value;
-
-          IF NewSpeed > LocoMaxSpeed THEN
-            NewSpeed := LocoMaxSpeed
-          ELSE
-            IF NewSpeed < LocoMinSpeed THEN
-              NewSpeed := LocoMinSpeed;
-
-          SetLenzSpeedAndDirection(L, NewSpeed, LocoDirection, OK);
+          Log(Loco_LocoChipStr + ' L Can''t increase or decrease by zero');
         END;
+      OK := True;
+    END ELSE BEGIN
+      IF Value = 0 THEN BEGIN
+        { can't increase or decrease by zero }
+        Debug('val=0');
+        Log(Loco_LocoChipSTr + ' L Can''t increase or decrease by zero');
+      END ELSE BEGIN
+        NewSpeed := GetLenzSpeed(Loco, NOT ForceARead);
+        NewSpeed := NewSpeed + Value;
+
+        IF NewSpeed > LocoMaxSpeed THEN
+          NewSpeed := LocoMaxSpeed
+        ELSE
+          IF NewSpeed < LocoMinSpeed THEN
+            NewSpeed := LocoMinSpeed;
+
+        SetLenzSpeedAndDirection(Loco, NewSpeed, LocoDirection, OK);
       END;
     END;
-    Result := NewSpeed;
-  END;
+  END; {WITH}
+  Result := NewSpeed;
 END; { AdjustLenzSpeed }
 
-PROCEDURE SetLocoDirection(L : LocoIndex; DirectionRequired : DirectionType; OUT OK : Boolean);
+PROCEDURE SetLocoDirection(VAR Loco : LocoRec; DirectionRequired : DirectionType; OUT OK : Boolean);
 { Sets/resets bit 7 - up is (arbitrarily) on }
 VAR
   DebugStr : String;
@@ -2110,74 +2086,67 @@ VAR
 BEGIN
   OK := True;
 
-  IF L = UnknownLocoIndex THEN
-    UnknownLocoRecordFound('SetLocoDirection')
-  ELSE BEGIN
-    WITH Locos[L] DO BEGIN
-      IF DirectionRequired = Up THEN
-        DebugStr := 'Setting loco direction to Up'
+  WITH Loco DO BEGIN
+    IF DirectionRequired = Up THEN
+      DebugStr := 'Setting loco direction to Up'
+    ELSE
+      DebugStr := 'Setting loco direction to Down';
+    Log(Loco_LocoChipStr + ' L ' + DebugStr);
+
+    IF SystemOnline THEN BEGIN
+      IF Loco_SpeedByteReadIn AND (Loco_ControlState = ControlledByProgram) AND (Loco_CurrentDirection <> UnknownDirection) THEN
+        TempSpeedByte := Loco_SpeedByte
       ELSE
-        DebugStr := 'Setting loco direction to Down';
-      Log(Loco_LocoChipStr + ' L ' + DebugStr);
+        ReadInLocoDetails(Loco, TempSpeedByte, OK);
 
-      IF SystemOnline THEN BEGIN
-        IF Loco_SpeedByteReadIn
-        AND (Loco_ControlState = ControlledByProgram)
-        AND (Loco_CurrentDirection <> UnknownDirection)
-        THEN
-          TempSpeedByte := Loco_SpeedByte
-        ELSE
-          ReadInLocoDetails(L, TempSpeedByte, OK);
+      TestByte := TempSpeedByte;
 
-        TestByte := TempSpeedByte;
+      { Needs to check loco is stationary first - check by looking at bits }
+      IF Loco_SpeedStepMode = 28 THEN
+        { clear the top 3 bits to do the test }
+        TestByte := TestByte AND NOT $E0 { 1110 0000 }
+      ELSE { SpeedStepMode = 128 }
+        { clear the top bit to do the test }
+        TestByte := TestByte AND NOT $80; { 1000 0000 }
 
-        { Needs to check loco is stationary first - check by looking at bits }
-        IF Locos[L].Loco_SpeedStepMode = 28 THEN
-          { clear the top 3 bits to do the test }
-          TestByte := TestByte AND NOT $E0 { 1110 0000 }
-        ELSE { SpeedStepMode = 128 }
-          { clear the top bit to do the test }
-          TestByte := TestByte AND NOT $80; { 1000 0000 }
-
-        IF (TestByte = 0) { stationary }
-        OR (TestByte = 1) { emergency stopped }
-        THEN BEGIN
-          { set top bit for direction }
-          IF DirectionRequired = Up THEN BEGIN
-            TempSpeedByte := TempSpeedByte OR 128; { 1000 000 }
-            DebugStr := 'Up'
-          END ELSE BEGIN
-            TempSpeedByte := TempSpeedByte AND NOT 128; { 0000 000 }
-            DebugStr := 'Down';
-          END;
-
-          WriteLocoSpeedOrDirection(L, TempSpeedByte, OK);
-          IF NOT OK THEN BEGIN
-            WriteLocoSpeedOrDirection(L, TempSpeedByte, OK);
-            IF NOT OK THEN BEGIN
-              StopAllLocomotives(OK);
-              MakeSound(1);
-              TurnAutoModeOff(NOT ByUser);
-              ShowMessage('Data for loco ' + Loco_LocoChipStr + ' not written - auto mode suspended');
-            END;
-          END;
-
-          IF OK THEN BEGIN
-            Loco_CurrentDirection := DirectionRequired;
-            Log(Loco_LocoChipStr + ' L Loco direction changed to ' + DebugStr);
-            Loco_SpeedByte := TempSpeedByte;
-          END ELSE
-            Log(Loco_LocoChipStr + ' L Loco direction not changed');
+      IF (TestByte = 0) { stationary }
+      OR (TestByte = 1) { emergency stopped }
+      THEN BEGIN
+        { set top bit for direction }
+        IF DirectionRequired = Up THEN BEGIN
+          TempSpeedByte := TempSpeedByte OR 128; { 1000 000 }
+          DebugStr := 'Up'
         END ELSE BEGIN
-          Log(Loco_LocoChipStr + ' LG Loco direction not changed - loco not stationary');
-          OK :=  False;
+          TempSpeedByte := TempSpeedByte AND NOT 128; { 0000 000 }
+          DebugStr := 'Down';
         END;
+
+        WriteLocoSpeedOrDirection(Loco, TempSpeedByte, OK);
+        IF NOT OK THEN BEGIN
+          WriteLocoSpeedOrDirection(Loco, TempSpeedByte, OK);
+          IF NOT OK THEN BEGIN
+            StopAllLocomotives(OK);
+            MakeSound(1);
+            TurnAutoModeOff(NOT ByUser);
+            ShowMessage('Data for loco ' + Loco_LocoChipStr + ' not written - auto mode suspended');
+          END;
+        END;
+
+        IF OK THEN BEGIN
+          Loco_CurrentDirection := DirectionRequired;
+          Log(Loco_LocoChipStr + ' L Loco direction changed to ' + DebugStr);
+          Loco_SpeedByte := TempSpeedByte;
+        END ELSE
+          Log(Loco_LocoChipStr + ' L Loco direction not changed');
+      END ELSE BEGIN
+        Log(Loco_LocoChipStr + ' LG Loco direction not changed - loco not stationary');
+        OK :=  False;
       END;
-    END; {WITH}
-  END;
+    END;
+  END; {WITH}
 END; { SetLocoDirection }
 
-PROCEDURE GetLocoFunctions(L : LocoIndex; ForceRead : Boolean; VAR FunctionArray : ARRAY OF Boolean; VAR OK : Boolean);
+PROCEDURE GetLocoFunctions(VAR Loco : LocoRec; ForceRead : Boolean; VAR FunctionArray : ARRAY OF Boolean; VAR OK : Boolean);
 { Read all the functions }
 VAR
   DebugStr : String;
@@ -2188,99 +2157,13 @@ VAR
 BEGIN
   TestByte := 0;
   OK := True;
-  IF L = UnknownLocoIndex THEN
-    UnknownLocoRecordFound('GetLocoFunctions')
-  ELSE BEGIN
-    WITH Locos[L] DO BEGIN
-      IF (Loco_ControlState = ControlledByProgram)
-      OR ForceRead
-      THEN
-        ReadInLocoDetails(L, TempSpeedByte, OK);
+  WITH Loco DO BEGIN
+    IF (Loco_ControlState = ControlledByProgram)
+    OR ForceRead
+    THEN
+      ReadInLocoDetails(Loco, TempSpeedByte, OK);
 
-      FOR FunctionNum := 0 TO 12 DO BEGIN
-        { Now see if a particular bit is set (different set of values for 9-12 from writing out functions) }
-        CASE FunctionNum OF
-          0:
-            TestByte := $10; { 0001 0000 }
-          1:
-            TestByte := $01; { 0000 0001 }
-          2:
-            TestByte := $02; { 0000 0010 }
-          3:
-            TestByte := $04; { 0000 0100 }
-          4:
-            TestByte := $08; { 0000 1000 }
-          5:
-            TestByte := $01; { 0000 0001 }
-          6:
-            TestByte := $02; { 0000 0010 }
-          7:
-            TestByte := $04; { 0000 0100 }
-          8:
-            TestByte := $08; { 0000 1000 }
-          9:
-            TestByte := $10; { 0001 0000 }
-          10:
-            TestByte := $20; { 0010 0000 }
-          11:
-            TestByte := $40; { 0100 0000 }
-          12:
-            TestByte := $80; { 1000 0000 }
-        END; {CASE}
-
-        CASE FunctionNum OF
-          0, 1, 2, 3, 4:
-           IF (TestByte AND Loco_Functions0To4Byte) <> TestByte THEN BEGIN
-             FunctionArray[FunctionNum] := False;
-             DebugStr := DebugStr + 'F' + IntToStr(FunctionNum) + ': off, '
-           END ELSE BEGIN
-             FunctionArray[FunctionNum] := True;
-             DebugStr := DebugStr + 'F' + IntToStr(FunctionNum) + ': on, '
-           END;
-
-          5, 6, 7, 8, 9, 10, 11, 12:
-           IF (TestByte AND Loco_Functions5To12Byte) <> TestByte THEN BEGIN
-             FunctionArray[FunctionNum] := False;
-             DebugStr := DebugStr + 'F' + IntToStr(FunctionNum) + ': off, '
-           END ELSE BEGIN
-             FunctionArray[FunctionNum] := True;
-             DebugStr := DebugStr + 'F' + IntToStr(FunctionNum) + ': on, '
-           END;
-        END; {CASE}
-      END; {FOR}
-
-      { remove trailing comma and space }
-      IF RightStr(DebugStr, 2) = ', ' THEN
-        DebugStr := Copy(DebugStr, 1, Length(DebugStr) - 2);
-
-      IF ForceRead THEN
-        DebugStr := DebugStr + ' [force read]';
-
-      Log(Loco_LocoChipStr + ' L ' + DebugStr);
-    END; {WITH}
-  END;
-END; { GetLocoFunctions }
-
-FUNCTION SingleLocoFunctionIsOn(L : LocoIndex; FunctionNum : Integer; ForceRead : Boolean; OUT OK : Boolean) : Boolean;
-{ Read whether a numbered function is on or off }
-VAR
-  DebugStr : String;
-  TempSpeedByte : Byte;
-  TestByte : Byte;
-
-BEGIN
-  Result := False;
-  TestByte := 0;
-  OK := True;
-  IF L = UnknownLocoIndex THEN
-    UnknownLocoRecordFound('SingleLocoFunctionIsOn')
-  ELSE BEGIN
-    WITH Locos[L] DO BEGIN
-      IF (Loco_ControlState = ControlledByProgram)
-      OR ForceRead
-      THEN
-        ReadInLocoDetails(L, TempSpeedByte, OK);
-
+    FOR FunctionNum := 0 TO 12 DO BEGIN
       { Now see if a particular bit is set (different set of values for 9-12 from writing out functions) }
       CASE FunctionNum OF
         0:
@@ -2311,31 +2194,108 @@ BEGIN
           TestByte := $80; { 1000 0000 }
       END; {CASE}
 
-      Result := False;
       CASE FunctionNum OF
         0, 1, 2, 3, 4:
-         IF (TestByte AND Loco_Functions0To4Byte) = TestByte THEN
-           Result := True;
+         IF (TestByte AND Loco_Functions0To4Byte) <> TestByte THEN BEGIN
+           FunctionArray[FunctionNum] := False;
+           DebugStr := DebugStr + 'F' + IntToStr(FunctionNum) + ': off, '
+         END ELSE BEGIN
+           FunctionArray[FunctionNum] := True;
+           DebugStr := DebugStr + 'F' + IntToStr(FunctionNum) + ': on, '
+         END;
+
         5, 6, 7, 8, 9, 10, 11, 12:
-         IF (TestByte AND Loco_Functions5To12Byte) = TestByte THEN
-           Result := True;
+         IF (TestByte AND Loco_Functions5To12Byte) <> TestByte THEN BEGIN
+           FunctionArray[FunctionNum] := False;
+           DebugStr := DebugStr + 'F' + IntToStr(FunctionNum) + ': off, '
+         END ELSE BEGIN
+           FunctionArray[FunctionNum] := True;
+           DebugStr := DebugStr + 'F' + IntToStr(FunctionNum) + ': on, '
+         END;
       END; {CASE}
+    END; {FOR}
 
-      IF ForceRead THEN BEGIN
-        IF Result = True THEN 
-          DebugStr := 'Function ' + IntToStr(FunctionNum) + ' is on'
-        ELSE
-          DebugStr := 'Function ' + IntToStr(FunctionNum) + ' is off';
+    { remove trailing comma and space }
+    IF RightStr(DebugStr, 2) = ', ' THEN
+      DebugStr := Copy(DebugStr, 1, Length(DebugStr) - 2);
 
-        DebugStr := DebugStr + ' [force read]';
+    IF ForceRead THEN
+      DebugStr := DebugStr + ' [force read]';
 
-        Log(Loco_LocoChipStr + ' L ' + DebugStr + '  {BLANKLINEBEFORE}');
-      END;
-    END; {WITH}
-  END;
+    Log(Loco_LocoChipStr + ' L ' + DebugStr);
+  END; {WITH}
+END; { GetLocoFunctions }
+
+FUNCTION SingleLocoFunctionIsOn(VAR Loco : LocoRec; FunctionNum : Integer; ForceRead : Boolean; OUT OK : Boolean) : Boolean;
+{ Read whether a numbered function is on or off }
+VAR
+  DebugStr : String;
+  TempSpeedByte : Byte;
+  TestByte : Byte;
+
+BEGIN
+  TestByte := 0;
+  OK := True;
+  WITH Loco DO BEGIN
+    IF (Loco_ControlState = ControlledByProgram)
+    OR ForceRead
+    THEN
+      ReadInLocoDetails(Loco, TempSpeedByte, OK);
+
+    { Now see if a particular bit is set (different set of values for 9-12 from writing out functions) }
+    CASE FunctionNum OF
+      0:
+        TestByte := $10; { 0001 0000 }
+      1:
+        TestByte := $01; { 0000 0001 }
+      2:
+        TestByte := $02; { 0000 0010 }
+      3:
+        TestByte := $04; { 0000 0100 }
+      4:
+        TestByte := $08; { 0000 1000 }
+      5:
+        TestByte := $01; { 0000 0001 }
+      6:
+        TestByte := $02; { 0000 0010 }
+      7:
+        TestByte := $04; { 0000 0100 }
+      8:
+        TestByte := $08; { 0000 1000 }
+      9:
+        TestByte := $10; { 0001 0000 }
+      10:
+        TestByte := $20; { 0010 0000 }
+      11:
+        TestByte := $40; { 0100 0000 }
+      12:
+        TestByte := $80; { 1000 0000 }
+    END; {CASE}
+
+    Result := False;
+    CASE FunctionNum OF
+      0, 1, 2, 3, 4:
+       IF (TestByte AND Loco_Functions0To4Byte) = TestByte THEN
+         Result := True;
+      5, 6, 7, 8, 9, 10, 11, 12:
+       IF (TestByte AND Loco_Functions5To12Byte) = TestByte THEN
+         Result := True;
+    END; {CASE}
+
+    IF ForceRead THEN BEGIN
+      IF Result = True THEN
+        DebugStr := 'Function ' + IntToStr(FunctionNum) + ' is on'
+      ELSE
+        DebugStr := 'Function ' + IntToStr(FunctionNum) + ' is off';
+
+      DebugStr := DebugStr + ' [force read]';
+
+      Log(Loco_LocoChipStr + ' L ' + DebugStr + '  {BLANKLINEBEFORE}');
+    END;
+  END; {WITH}
 END; { SingleLocoFunctionIsOn }
 
-PROCEDURE SetSingleLocoFunction(L : LocoIndex; FunctionNum : Integer; TurnOn : Boolean; OUT OK : Boolean);
+PROCEDURE SetSingleLocoFunction(VAR Loco : LocoRec; FunctionNum : Integer; TurnOn : Boolean; OUT OK : Boolean);
 { Set a numbered function on or off }
 VAR
   DebugStr : String;
@@ -2355,110 +2315,102 @@ BEGIN
   FunctionWasOff := False;
   TurnOff := NOT TurnOn;
 
-  IF L = UnknownLocoIndex THEN
-    UnknownLocoRecordFound('SetSingleLocoFunction')
-  ELSE BEGIN
-    WITH Locos[L] DO BEGIN
-      IF Loco_ControlState <> ControlledByProgram THEN
-        ReadInLocoDetails(L, SpeedByte, OK);
+  WITH Loco DO BEGIN
+    IF Loco_ControlState <> ControlledByProgram THEN
+      ReadInLocoDetails(Loco, SpeedByte, OK);
 
-      { Now can use stored function bytes whether read in just now or previously }
-      CASE FunctionNum OF
-        0, 1, 2, 3, 4:
-         TestByte2 := Loco_Functions0To4Byte;
-        5, 6, 7, 8, 9, 10, 11, 12:
-         TestByte2 := Loco_Functions5To12Byte;
-      END; {CASE}
+    { Now can use stored function bytes whether read in just now or previously }
+    CASE FunctionNum OF
+      0, 1, 2, 3, 4:
+       TestByte2 := Loco_Functions0To4Byte;
+      5, 6, 7, 8, 9, 10, 11, 12:
+       TestByte2 := Loco_Functions5To12Byte;
+    END; {CASE}
 
-      { Now see if a particular bit is set (different set of values for 9-12 from reading in functions) }
-      CASE FunctionNum OF
-        0:
-          TestByte1 := $10; { 0001 0000 }
-        1:
-          TestByte1 := $01; { 0000 0001 }
-        2:
-          TestByte1 := $02; { 0000 0010 }
-        3:
-          TestByte1 := $04; { 0000 0100 }
-        4:
-          TestByte1 := $08; { 0000 1000 }
-        5:
-          TestByte1 := $01; { 0000 0001 }
-        6:
-          TestByte1 := $02; { 0000 0010 }
-        7:
-          TestByte1 := $04; { 0000 0100 }
-        8:
-          TestByte1 := $08; { 0000 1000 }
-        9:
-          TestByte1 := $01; { 0000 0001 }
-        10:
-          TestByte1 := $02; { 0000 0010 }
-        11:
-          TestByte1 := $04; { 0000 0100 }
-        12:
-          TestByte1 := $08; { 0000 1000 }
-      END; {CASE}
+    { Now see if a particular bit is set (different set of values for 9-12 from reading in functions) }
+    CASE FunctionNum OF
+      0:
+        TestByte1 := $10; { 0001 0000 }
+      1:
+        TestByte1 := $01; { 0000 0001 }
+      2:
+        TestByte1 := $02; { 0000 0010 }
+      3:
+        TestByte1 := $04; { 0000 0100 }
+      4:
+        TestByte1 := $08; { 0000 1000 }
+      5:
+        TestByte1 := $01; { 0000 0001 }
+      6:
+        TestByte1 := $02; { 0000 0010 }
+      7:
+        TestByte1 := $04; { 0000 0100 }
+      8:
+        TestByte1 := $08; { 0000 1000 }
+      9:
+        TestByte1 := $01; { 0000 0001 }
+      10:
+        TestByte1 := $02; { 0000 0010 }
+      11:
+        TestByte1 := $04; { 0000 0100 }
+      12:
+        TestByte1 := $08; { 0000 1000 }
+    END; {CASE}
 
-      IF ((TestByte2 AND TestByte1) = TestByte1) THEN
-        FunctionWasOn := True
-      ELSE
-        FunctionWasOff := True;
+    IF ((TestByte2 AND TestByte1) = TestByte1) THEN
+      FunctionWasOn := True
+    ELSE
+      FunctionWasOff := True;
 
-      IF FunctionWasOn
-      AND TurnOn
-      THEN
-        DebugStr := 'Setting function ' + IntToStr(FunctionNum) + ' unnecessary: it is already on'
-      ELSE
-        IF FunctionWasOff
-        AND TurnOff
-        THEN
-          DebugStr := 'Setting function ' + IntToStr(FunctionNum) + ' unnecessary: it is already off'
-        ELSE BEGIN
-         { If the bit we're testing is set it's in the state we expect - now swap it }
-          TestByte2 := TestByte2 XOR TestByte1;
+    IF FunctionWasOn AND TurnOn THEN
+      DebugStr := 'Setting function ' + IntToStr(FunctionNum) + ' unnecessary: it is already on'
+    ELSE
+      IF FunctionWasOff AND TurnOff THEN
+        DebugStr := 'Setting function ' + IntToStr(FunctionNum) + ' unnecessary: it is already off'
+      ELSE BEGIN
+       { If the bit we're testing is set it's in the state we expect - now swap it }
+        TestByte2 := TestByte2 XOR TestByte1;
 
-          { Now write the data out }
+        { Now write the data out }
+        CASE FunctionNum OF
+          0, 1, 2, 3, 4:
+            IDByte := 32;
+          5, 6, 7, 8:
+            IDByte := 33;
+          9, 10, 11, 12:
+            IDByte := 34;
+        END; {CASE}
+        WriteArray[0] := 228;
+        WriteArray[1] := IDByte;
+        WriteArray[2] := GetLocoChipHighByte(Loco_LocoChip);
+        WriteArray[3] := GetLocoChipLowByte(Loco_LocoChip);
+        WriteArray[4] := TestByte2;
+
+        DataIO('L', WriteArray, LocoAcknowledgment, OK);
+
+        IF OK THEN BEGIN
+          SetLocoControlledByState(Loco, ControlledByProgram);
           CASE FunctionNum OF
             0, 1, 2, 3, 4:
-              IDByte := 32;
-            5, 6, 7, 8:
-              IDByte := 33;
-            9, 10, 11, 12:
-              IDByte := 34;
+              Loco_Functions0To4Byte := TestByte2;
+            5, 6, 7, 8, 9, 10, 11, 12:
+              Loco_Functions5To12Byte := TestByte2;
           END; {CASE}
-          WriteArray[0] := 228;
-          WriteArray[1] := IDByte;
-          WriteArray[2] := GetLocoChipHighByte(Loco_LocoChip);
-          WriteArray[3] := GetLocoChipLowByte(Loco_LocoChip);
-          WriteArray[4] := TestByte2;
 
-          DataIO('L', WriteArray, LocoAcknowledgment, OK);
-
-          IF OK THEN BEGIN
-            SetLocoControlledByState(L, ControlledByProgram);
-            CASE FunctionNum OF
-              0, 1, 2, 3, 4:
-                Loco_Functions0To4Byte := TestByte2;
-              5, 6, 7, 8, 9, 10, 11, 12:
-                Loco_Functions5To12Byte := TestByte2;
-            END; {CASE}
-
-            DebugStr := 'Function ' + IntToStr(FunctionNum);
-            IF Turnon THEN
-              DebugStr := DebugStr + ' was off - set to on'
-            ELSE
-              DebugStr := DebugStr + ' was on - set to off';
-          END ELSE BEGIN
-            DebugStr := 'Failure in setting function ' + IntToStr(FunctionNum);
-            IF Turnon THEN
-              DebugStr := DebugStr + ' on'
-            ELSE
-              DebugStr := DebugStr + ' off';
-          END;
+          DebugStr := 'Function ' + IntToStr(FunctionNum);
+          IF Turnon THEN
+            DebugStr := DebugStr + ' was off - set to on'
+          ELSE
+            DebugStr := DebugStr + ' was on - set to off';
+        END ELSE BEGIN
+          DebugStr := 'Failure in setting function ' + IntToStr(FunctionNum);
+          IF Turnon THEN
+            DebugStr := DebugStr + ' on'
+          ELSE
+            DebugStr := DebugStr + ' off';
         END;
-      Log(Loco_LocoChipStr + ' L ' + DebugStr + ' {BLANKLINEBEFORE}');
-    END;
+      END;
+    Log(Loco_LocoChipStr + ' L ' + DebugStr + ' {BLANKLINEBEFORE}');
   END; {WITH}
 END; { SetSingleLocoFunction }
 
@@ -2700,9 +2652,7 @@ BEGIN
         END ELSE
           IF Signal_Type = FourAspect THEN BEGIN
             { reset lowest four bits }
-            IF (Signal_DecoderNum >= FirstFunctionDecoder)
-            AND (Signal_DecoderNum <= LastFunctionDecoder)
-            THEN BEGIN
+            IF (Signal_DecoderNum >= FirstFunctionDecoder) AND (Signal_DecoderNum <= LastFunctionDecoder) THEN BEGIN
               DataByte := FunctionDecoderBytes[Signal_DecoderNum] AND NOT 15;
               DataByte := DataByte OR AspectByte;
               WriteSignalData(LocoChipStr, S, Signal_DecoderNum, DataByte, DecoderNumString, AspectString, OK);
@@ -3044,7 +2994,7 @@ BEGIN { MakePointChange }
   Result := OK;
 END; { MakePointChange }
 
-PROCEDURE SetUpDoubleHeader(L1, L2 : LocoIndex; VAR OK : Boolean);
+PROCEDURE SetUpDoubleHeader(Loco1, Loco2 : LocoRec; VAR OK : Boolean);
 { Sets up a double header - needs both locos standing still, both have already been controlled, and were the most recent ones controlled by the computer. This procedure is
   not used by the rail program as the program deals with double heading by sending the speed commands to both named locos.
 }
@@ -3052,30 +3002,26 @@ VAR
   WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
 
 BEGIN
-  IF L1 = UnknownLocoIndex THEN
-    UnknownLocoRecordFound('DissolveDoubleHeader')
-  ELSE BEGIN
-    WITH Locos[L1] DO BEGIN
-      Log(Loco_LocoChipStr + ' L Requesting double header for locos ' + Loco_LocoChipStr + ' +' + Locos[L2].Loco_LocoChipStr + ' {BLANKLINEBEFORE}');
-      WriteArray[0] := 229;
-      WriteArray[1] := 67;
-      WriteArray[2] := GetLocoChipHighByte(Loco_LocoChip);
-      WriteArray[3] := GetLocoChipLowByte(Loco_LocoChip);
-      WriteArray[4] := GetLocoChipHighByte(Locos[L2].Loco_LocoChip);
-      WriteArray[5] := GetLocoChipLowByte(Locos[L2].Loco_LocoChip);
+  WITH Loco1 DO BEGIN
+    Log(Loco_LocoChipStr + ' L Requesting double header for locos ' + Loco_LocoChipStr + ' +' + Loco2.Loco_LocoChipStr + ' {BLANKLINEBEFORE}');
+    WriteArray[0] := 229;
+    WriteArray[1] := 67;
+    WriteArray[2] := GetLocoChipHighByte(Loco_LocoChip);
+    WriteArray[3] := GetLocoChipLowByte(Loco_LocoChip);
+    WriteArray[4] := GetLocoChipHighByte(Loco2.Loco_LocoChip);
+    WriteArray[5] := GetLocoChipLowByte(Loco2.Loco_LocoChip);
 
-      DataIO('L', WriteArray, Acknowledgment, OK);
-      IF OK THEN BEGIN
-        SetLocoControlledByState(L1, ControlledByProgram);
-        SetLocoControlledByState(L2, ControlledByProgram);
-        Log(LocoChipToStr(Loco_LocoChip) + ' L Double header (locos ' + IntToStr(Loco_LocoChip) + ' +' + Locos[L2].Loco_LocoChipStr + ') set up')
-      END ELSE
-        Log(LocoChipToStr(Loco_LocoChip) + ' L Double header (locos ' + IntToStr(Loco_LocoChip) + ' +' + Locos[L2].Loco_LocoChipStr + ') not set up');
-    END;
+    DataIO('L', WriteArray, Acknowledgment, OK);
+    IF OK THEN BEGIN
+      SetLocoControlledByState(Loco1, ControlledByProgram);
+      SetLocoControlledByState(Loco2, ControlledByProgram);
+      Log(LocoChipToStr(Loco_LocoChip) + ' L Double header (locos ' + IntToStr(Loco_LocoChip) + ' +' + Loco2.Loco_LocoChipStr + ') set up')
+    END ELSE
+      Log(LocoChipToStr(Loco_LocoChip) + ' L Double header (locos ' + IntToStr(Loco_LocoChip) + ' +' + Loco2.Loco_LocoChipStr + ') not set up');
   END;
 END; { SetUpDoubleHeader }
 
-PROCEDURE DissolveDoubleHeader(L : LocoIndex; VAR OK : Boolean);
+PROCEDURE DissolveDoubleHeader(Loco : LocoRec; VAR OK : Boolean);
 { Dissolves a double header - needs both locos standing still. This procedure is not used by the rail program as the program deals with double heading by sending the speed
   commands to both named locos.
 }
@@ -3083,26 +3029,22 @@ VAR
   WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
 
 BEGIN
-  IF L = UnknownLocoIndex THEN
-    UnknownLocoRecordFound('DissolveDoubleHeader')
-  ELSE BEGIN
-    WITH Locos[L] DO BEGIN
-      Log(Loco_LocoChipStr + ' L Requesting double header for ' + IntToStr(Loco_LocoChip) + ' be dissolved {BLANKLINEBEFORE}');
-      WriteArray[0] := 229;
-      WriteArray[1] := 67;
-      WriteArray[2] := GetLocoChipHighByte(Loco_LocoChip);
-      WriteArray[3] := GetLocoChipLowByte(Loco_LocoChip);
-      WriteArray[4] := 0;
-      WriteArray[5] := 0;
+  WITH Loco DO BEGIN
+    Log(Loco_LocoChipStr + ' L Requesting double header for ' + IntToStr(Loco_LocoChip) + ' be dissolved {BLANKLINEBEFORE}');
+    WriteArray[0] := 229;
+    WriteArray[1] := 67;
+    WriteArray[2] := GetLocoChipHighByte(Loco_LocoChip);
+    WriteArray[3] := GetLocoChipLowByte(Loco_LocoChip);
+    WriteArray[4] := 0;
+    WriteArray[5] := 0;
 
-      DataIO('L', WriteArray, Acknowledgment, OK);
+    DataIO('L', WriteArray, Acknowledgment, OK);
 
-      IF OK THEN
-        Log(Loco_LocoChipStr + ' L Double header (including loco ' + IntToStr(Loco_LocoChip) + ') dissolved')
-      ELSE
-        Log(Loco_LocoChipStr + ' L Double header (including loco ' + IntToStr(Loco_LocoChip) + ') not dissolved');
-    END; {WITH}
-  END;
+    IF OK THEN
+      Log(Loco_LocoChipStr + ' L Double header (including loco ' + IntToStr(Loco_LocoChip) + ') dissolved')
+    ELSE
+      Log(Loco_LocoChipStr + ' L Double header (including loco ' + IntToStr(Loco_LocoChip) + ') not dissolved');
+  END; {WITH}
 END; { DissolveDoubleHeader }
 
 {$O+}
@@ -3145,26 +3087,22 @@ BEGIN
   DataIO('L', WriteArray, EmergencyStopReply, OK);
 END; { StopAllLocomotives }
 
-PROCEDURE StopAParticularLocomotive(L : LocoIndex; VAR OK : Boolean);
+PROCEDURE StopAParticularLocomotive(VAR Loco : LocoRec; VAR OK : Boolean);
 { Stops a particular loco }
 VAR
   WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
 
 BEGIN
-  IF L = UnknownLocoIndex THEN
-    UnknownLocoRecordFound('StopAParticularLocomotive')
-  ELSE BEGIN
-    WITH Locos[L] DO BEGIN
-      Log(Loco_LocoChipStr + ' L Requesting stop loco {BLANKLINEBEFORE}');
-      WriteArray[0] := 146;
-      WriteArray[1] := GetLocoChipHighByte(Loco_LocoChip);
-      WriteArray[2] := GetLocoChipLowByte(Loco_LocoChip);
+  WITH Loco DO BEGIN
+    Log(Loco_LocoChipStr + ' L Requesting stop loco {BLANKLINEBEFORE}');
+    WriteArray[0] := 146;
+    WriteArray[1] := GetLocoChipHighByte(Loco_LocoChip);
+    WriteArray[2] := GetLocoChipLowByte(Loco_LocoChip);
 
-      DataIO('L', WriteArray, Acknowledgment, OK);
-      IF OK THEN
-        SetLocoControlledByState(L, ControlledByProgram);
-    END; {WITH}
-  END;
+    DataIO('L', WriteArray, Acknowledgment, OK);
+    IF OK THEN
+      SetLocoControlledByState(Loco, ControlledByProgram);
+  END; {WITH}
 END; { StopAParticularLocomotive }
 
 FUNCTION ReturnSystemStatus : LenzSystemRec;
@@ -3250,12 +3188,9 @@ VAR
           DataIO('T', WriteArray, ReadArray, FeedbackReply, OK);
 
           { Check it's for the unit we specified, in case some unrequested feedback data comes in while we're starting up }
-          IF OK
-          AND (ReadArray[1] <> FeedbackAddress)
-          THEN
+          IF OK AND (ReadArray[1] <> FeedbackAddress) THEN
             Log('TG Feedback for ' + IntToStr(ReadArray[1] + 1) + ' arrived when feedback for ' + IntToStr(FeedbackAddress + 1) + ' expected');
-        UNTIL (OK
-               AND (ReadArray[1] = FeedbackAddress))
+        UNTIL (OK AND (ReadArray[1] = FeedbackAddress))
                OR NOT SystemOnline;
       END;
 
@@ -3305,8 +3240,7 @@ BEGIN
 //  UnitNum := FirstFeedbackUnit - 1;
 //  PortNum := -1;
 //
-//  WHILE (UnitNum <= (LastFeedbackUnit - 1))
-//  AND SystemOnline DO BEGIN
+//  WHILE (UnitNum <= (LastFeedbackUnit - 1)) AND SystemOnline DO BEGIN
 //    FeedbackData.Feedback_Unit := UnitNum + 1;
 //    ExtractDataFromFeedback(FeedbackData, FeedbackPort, TCAboveFeedbackUnit, FeedbackType, TempFeedbackNum);
 //    IF FeedbackType = FeedbackDetectorOutOfUse THEN
@@ -3487,11 +3421,7 @@ BEGIN
     T := 0;
     WHILE T <= High(Trains) DO BEGIN
       WITH Trains[T] DO BEGIN
-        IF (Train_LocoChip <> UnknownLocoChip)
-        AND Train_DiagramFound
-        AND (Train_CurrentStatus <> Cancelled)
-        AND (Train_CurrentStatus <> NonMoving)
-        THEN
+        IF (Train_LocoChip <> UnknownLocoChip) AND Train_DiagramFound AND (Train_CurrentStatus <> Cancelled) AND (Train_CurrentStatus <> NonMoving) THEN
           RecalculateJourneyTimes(T, 'as the system is now online');
 
         Inc(T);

@@ -173,72 +173,56 @@ BEGIN
 
     RichLineAdded := False;
     KeyPressedDown(TempKey, [], True, HelpMsg);
-    IF (HelpMsg <> '')
-    AND (HelpMsg <> SaveHelpMsg)
-    THEN BEGIN
+    IF (HelpMsg <> '') AND (HelpMsg <> SaveHelpMsg) THEN BEGIN
       AddRichLine(HelpWindow.HelpRichEdit, '<b>' + DescribeKey(TempKey, []) + '</b> - ' + HelpMsg);
       SaveHelpMsg := HelpMsg;
       RichLineAdded := True;
     END;
 
     KeyPressedDown(TempKey, [ssShift], True, HelpMsg);
-    IF (HelpMsg <> '')
-    AND (HelpMsg <> SaveHelpMsg)
-    THEN BEGIN
+    IF (HelpMsg <> '') AND (HelpMsg <> SaveHelpMsg) THEN BEGIN
       AddRichLine(HelpWindow.HelpRichEdit, '<b>' + DescribeKey(TempKey, [ssShift]) + '</b> - ' + HelpMsg);
       SaveHelpMsg := HelpMsg;
       RichLineAdded := True;
     END;
 
     KeyPressedDown(TempKey, [ssCtrl], True, HelpMsg);
-    IF (HelpMsg <> '')
-    AND (HelpMsg <> SaveHelpMsg)
-    THEN BEGIN
+    IF (HelpMsg <> '') AND (HelpMsg <> SaveHelpMsg) THEN BEGIN
       AddRichLine(HelpWindow.HelpRichEdit, '<b>' + DescribeKey(TempKey, [ssCtrl]) + '</b> - ' + HelpMsg);
       SaveHelpMsg := HelpMsg;
       RichLineAdded := True;
     END;
 
     KeyPressedDown(TempKey, [ssAlt], True, HelpMsg);
-    IF (HelpMsg <> '')
-    AND (HelpMsg <> SaveHelpMsg)
-    THEN BEGIN
+    IF (HelpMsg <> '') AND (HelpMsg <> SaveHelpMsg) THEN BEGIN
       AddRichLine(HelpWindow.HelpRichEdit, '<b>' + DescribeKey(TempKey, [ssAlt]) + '</b> - ' + HelpMsg);
       SaveHelpMsg := HelpMsg;
       RichLineAdded := True;
     END;
 
     KeyPressedDown(TempKey, [ssShift, ssAlt], True, HelpMsg);
-    IF (HelpMsg <> '')
-    AND (HelpMsg <> SaveHelpMsg)
-    THEN BEGIN
+    IF (HelpMsg <> '') AND (HelpMsg <> SaveHelpMsg) THEN BEGIN
       AddRichLine(HelpWindow.HelpRichEdit, '<b>' + DescribeKey(TempKey, [ssShift, ssAlt]) + '</b> - ' + HelpMsg);
       SaveHelpMsg := HelpMsg;
       RichLineAdded := True;
     END;
 
     KeyPressedDown(TempKey, [ssCtrl, ssAlt], True, HelpMsg);
-    IF (HelpMsg <> '')
-    AND (HelpMsg <> SaveHelpMsg)
-    THEN BEGIN
+    IF (HelpMsg <> '') AND (HelpMsg <> SaveHelpMsg) THEN BEGIN
       AddRichLine(HelpWindow.HelpRichEdit, '<b>' + DescribeKey(TempKey, [ssCtrl, ssAlt]) + '</b> - ' + HelpMsg);
       SaveHelpMsg := HelpMsg;
       RichLineAdded := True;
     END;
 
     KeyPressedDown(TempKey, [ssCtrl, ssShift], True, HelpMsg);
-    IF (HelpMsg <> '')
-    AND (HelpMsg <> SaveHelpMsg)
-    THEN BEGIN
+    IF (HelpMsg <> '') AND (HelpMsg <> SaveHelpMsg) THEN BEGIN
       AddRichLine(HelpWindow.HelpRichEdit, '<b>' + DescribeKey(TempKey, [ssCtrl, ssShift]) + '</b> - ' + HelpMsg);
       SaveHelpMsg := HelpMsg;
       RichLineAdded := True;
     END;
 
     KeyPressedDown(TempKey, [ssCtrl, ssShift, ssAlt], True, HelpMsg);
-    IF (HelpMsg <> '')
-    AND (HelpMsg <> SaveHelpMsg)
-    THEN BEGIN
+    IF (HelpMsg <> '') AND (HelpMsg <> SaveHelpMsg) THEN BEGIN
       SaveHelpMsg := HelpMsg;
       RichLineAdded := True;
     END;

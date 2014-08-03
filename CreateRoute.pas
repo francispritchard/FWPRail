@@ -464,7 +464,6 @@ PROCEDURE CreateDraftRouteArray(LocoChipStr : String; OUT DraftRouteArray : Stri
                                 EmergencyRouteing : Boolean; OUT RouteFound : Boolean);
 CONST
   Facing = True;
-  NumberElements = True;
 
 VAR
   PossibleRoutesArray : StringArrayType;
@@ -537,12 +536,8 @@ VAR
       PointFound := False;
       Result := PointStateUnknown;
       IF Length(DraftRouteArray) > 0 THEN BEGIN
-        WHILE (DraftRouteArrayPos < Length(DraftRouteArray))
-        AND NOT PointFound
-        DO BEGIN
-          IF (Pos('FP=', DraftRouteArray[DraftRouteArrayPos]) > 0)
-          AND (ExtractPointFromString(DraftRouteArray[DraftRouteArrayPos]) = P)
-          THEN BEGIN
+        WHILE (DraftRouteArrayPos < Length(DraftRouteArray)) AND NOT PointFound DO BEGIN
+          IF (Pos('FP=', DraftRouteArray[DraftRouteArrayPos]) > 0) AND (ExtractPointFromString(DraftRouteArray[DraftRouteArrayPos]) = P) THEN BEGIN
             PointFound := True;
             Result := ExtractPointStateFromString(DraftRouteArray[DraftRouteArrayPos]);
           END ELSE
@@ -581,11 +576,7 @@ VAR
     IF DraftRouteArrayPos = 0 THEN
       Result := False
     ELSE BEGIN
-      WHILE (DraftRouteArrayPos <= Length(DraftRouteArray))
-            AND (DraftRouteArrayPos > 0)
-            AND NOT PreviousPointFound
-            AND (Result = True)
-      DO BEGIN
+      WHILE (DraftRouteArrayPos <= Length(DraftRouteArray)) AND (DraftRouteArrayPos > 0) AND NOT PreviousPointFound AND (Result = True) DO BEGIN
         Dec(DraftRouteArrayPos);
         IF DraftRouteArrayPos = 0 THEN BEGIN
           Result := False;
@@ -618,10 +609,8 @@ VAR
               Debug('Unknown line in Backtrack');
 
             NextPointDummyState := ExtractPointStateFromString(DraftRouteArray[DraftRouteArrayPos]);
-            IF ((NextPointDummyState = Straight)
-               AND (IndicatorState = NoIndicatorLit))
-            OR ((NextPointDummyState = Diverging)
-               AND (IndicatorState <> NoIndicatorLit))
+            IF ((NextPointDummyState = Straight) AND (IndicatorState = NoIndicatorLit))
+            OR ((NextPointDummyState = Diverging) AND (IndicatorState <> NoIndicatorLit))
             THEN BEGIN
               { Write out the un-backtracked state }
               IF RouteBackTrackDebuggingMode THEN BEGIN
@@ -676,9 +665,7 @@ VAR
     BEGIN
       Result := False;
       I := 0;
-      WHILE (I < High(PossibleRoutesArray))
-      AND (Result = False)
-      DO BEGIN
+      WHILE (I < High(PossibleRoutesArray)) AND (Result = False) DO BEGIN
         IF ExtractSignalFromString(PossibleRoutesArray[I]) = Signal THEN
           Result := True;
         Inc(I);
@@ -688,7 +675,7 @@ VAR
     PROCEDURE RecordAndDrawFacingSignalOnRoute(S : Integer);
     { Record and draw the signals found on the route }
     BEGIN
-      IF NOT SignalAlreadyRecordedOnRoute(S) THEN BEGIN
+      IF NOT SignalAlreadyRecordedOnRoute(S) AND (Signals[S].Signal_Type <> SemaphoreDistant) THEN BEGIN
         { route setting }
         SetLength(PossibleRoutesArray, Length(PossibleRoutesArray) + 1);
         PossibleRoutesArray[High(PossibleRoutesArray)] := 'FS=' + IntToStr(S);
@@ -738,9 +725,8 @@ VAR
   BEGIN
     IF CurrentLine <> StartLine THEN BEGIN
       IF (GetLineAdjacentSignal(CurrentLine) <> UnknownSignal)
-
       AND NOT Signals[GetLineAdjacentSignal(CurrentLine)].Signal_NotUsedForRouteing
-//      AND NOT Signals[Lines[CurrentLine].Line_AdjacentSignal].Signal_OutOfUse
+      AND (Signals[GetLineAdjacentSignal(CurrentLine)].Signal_Type <> SemaphoreDistant)
       AND (Signals[GetLineAdjacentSignal(CurrentLine)].Signal_Direction = RouteDirection)
       THEN BEGIN
         FoundASignalOrBufferStop := 'FS=' + IntToStr(GetLineAdjacentSignal(CurrentLine));
@@ -813,13 +799,9 @@ VAR
 
     IF Lines[CurrentLine].Line_Location <> UnknownLocation THEN BEGIN
       IF Locations[Lines[CurrentLine].Line_Location].Location_ThroughLocationState = NonThroughLocation THEN BEGIN
-        IF (CurrentLine <> StartLine)
-        AND (CurrentLine <> EndLine)
-        THEN BEGIN
+        IF (CurrentLine <> StartLine) AND (CurrentLine <> EndLine) THEN BEGIN
           IF Lines[CurrentLine].Line_Location <> Lines[StartLine].Line_Location THEN BEGIN
-            IF (EndLine <> UnknownLine)
-            AND (Lines[CurrentLine].Line_Location <> Lines[EndLine].Line_Location)
-            THEN
+            IF (EndLine <> UnknownLine) AND (Lines[CurrentLine].Line_Location <> Lines[EndLine].Line_Location) THEN
               StopStr := 'line is not a through line (embedded rule)';
           END;
         END;
@@ -843,14 +825,10 @@ VAR
       StopStr := 'line out of use (embedded rule)';
 
     { See if the line is one way the other way }
-    IF (RouteDirection = Up)
-    AND (Lines[CurrentLine].Line_Direction = Down)
-    THEN
+    IF (RouteDirection = Up) AND (Lines[CurrentLine].Line_Direction = Down) THEN
       StopStr := 'Dir = Up and CurrentLine = Down (embedded rule)'
     ELSE
-      IF (RouteDirection = Down)
-      AND (Lines[CurrentLine].Line_Direction = Up)
-      THEN
+      IF (RouteDirection = Down) AND (Lines[CurrentLine].Line_Direction = Up) THEN
         StopStr := 'Dir = Down and CurrentLine = Up (embedded rule)';
 
     { If a line is permanently occupied by something which is out-of-use, do not route over it (unless we're allowed to do so)}
@@ -882,18 +860,14 @@ VAR
           StopStr := 'express should not go on goods (embedded rule)';
 
       { see we're not using sidings as through routes, unless a siding is the starting point or the destination }
-      IF (Lines[CurrentLine].Line_TypeOfLine = SidingLine)
-      AND (Lines[StartLine].Line_TypeOfLine <> SidingLine)
-      AND ((EndLine <> UnknownLine)
-           AND (Lines[EndLine].Line_TypeOfLine <> SidingLine))
+      IF (Lines[CurrentLine].Line_TypeOfLine = SidingLine) AND (Lines[StartLine].Line_TypeOfLine <> SidingLine)
+      AND ((EndLine <> UnknownLine) AND (Lines[EndLine].Line_TypeOfLine <> SidingLine))
       THEN
         StopStr := 'sidings as through routes (embedded rule)';
     END; { End of non-emergency Routeing }
 
     Rule := 0;
-    WHILE (Rule <= High(RouteingExceptions))
-    AND (StopStr = '')
-    DO BEGIN
+    WHILE (Rule <= High(RouteingExceptions)) AND (StopStr = '') DO BEGIN
       WITH RouteingExceptions[Rule] DO BEGIN
         CurrentLineCheck := False;
         EndLineCheck := False;
@@ -916,12 +890,8 @@ VAR
         IF Length(RouteingExceptions[Rule].RouteingException_CurrentLines) > 0 THEN BEGIN
           CurrentLineCheck := True;
           Count := 0;
-          WHILE (Count <= High(RouteingExceptions[Rule].RouteingException_CurrentLines))
-          AND NOT CurrentLineStop
-          DO BEGIN
-            IF (RouteingException_CurrentLines[Count] <> UnknownLine)
-            AND (RouteingException_CurrentLines[Count] = CurrentLine)
-            THEN
+          WHILE (Count <= High(RouteingExceptions[Rule].RouteingException_CurrentLines)) AND NOT CurrentLineStop DO BEGIN
+            IF (RouteingException_CurrentLines[Count] <> UnknownLine) AND (RouteingException_CurrentLines[Count] = CurrentLine) THEN
               CurrentLineStop := True;
             Inc(Count);
           END; {WHILE}
@@ -931,12 +901,8 @@ VAR
         IF Length(RouteingExceptions[Rule].RouteingException_PreviousLines) > 0 THEN BEGIN
           PreviousLineCheck := True;
           Count := 0;
-          WHILE (Count <= High(RouteingExceptions[Rule].RouteingException_PreviousLines))
-          AND NOT PreviousLineStop
-          DO BEGIN
-            IF (RouteingException_PreviousLines[Count] <> UnknownLine)
-            AND (RouteingException_PreviousLines[Count] = PreviousLine)
-            THEN
+          WHILE (Count <= High(RouteingExceptions[Rule].RouteingException_PreviousLines)) AND NOT PreviousLineStop DO BEGIN
+            IF (RouteingException_PreviousLines[Count] <> UnknownLine) AND (RouteingException_PreviousLines[Count] = PreviousLine) THEN
               PreviousLineStop := True;
             Inc(Count);
           END; {WHILE}
@@ -946,12 +912,8 @@ VAR
         IF Length(RouteingExceptions[Rule].RouteingException_StartLines) > 0 THEN BEGIN
           StartLineCheck := True;
           Count := 0;
-          WHILE (Count <= High(RouteingExceptions[Rule].RouteingException_StartLines))
-          AND NOT StartLineStop
-          DO BEGIN
-            IF (RouteingException_StartLines[Count] <> UnknownLine)
-            AND (RouteingException_StartLines[Count] = StartLine)
-            THEN
+          WHILE (Count <= High(RouteingExceptions[Rule].RouteingException_StartLines)) AND NOT StartLineStop DO BEGIN
+            IF (RouteingException_StartLines[Count] <> UnknownLine) AND (RouteingException_StartLines[Count] = StartLine) THEN
               StartLineStop := True;
             Inc(Count);
           END; {WHILE}
@@ -963,9 +925,7 @@ VAR
           StartLineExceptedStop := True;
           StartLineExceptedCheck := True;
           Count := 0;
-          WHILE (Count <= High(RouteingExceptions[Rule].RouteingException_StartLinesExcepted))
-          AND StartLineExceptedStop
-          DO BEGIN
+          WHILE (Count <= High(RouteingExceptions[Rule].RouteingException_StartLinesExcepted)) AND StartLineExceptedStop DO BEGIN
             IF (RouteingException_StartLinesExcepted[Count] <> UnknownArea)
             AND (StartLine <> UnknownLine)
             AND (Lines[StartLine].Line_Location <> UnknownLocation)
@@ -980,9 +940,7 @@ VAR
         IF Length(RouteingExceptions[Rule].RouteingException_StartLocations) > 0 THEN BEGIN
           StartLocationCheck := True;
           Count := 0;
-          WHILE (Count <= High(RouteingExceptions[Rule].RouteingException_StartLocations))
-          AND NOT StartLocationStop
-          DO BEGIN
+          WHILE (Count <= High(RouteingExceptions[Rule].RouteingException_StartLocations)) AND NOT StartLocationStop DO BEGIN
             IF (RouteingException_StartLocations[Count] <> UnknownLocation)
             AND (StartLine <> UnknownLine)
             AND (Lines[StartLine].Line_Location <> UnknownLocation)
@@ -999,9 +957,7 @@ VAR
           StartLocationExceptedStop := True;
           StartLocationExceptedCheck := True;
           Count := 0;
-          WHILE (Count <= High(RouteingExceptions[Rule].RouteingException_StartLocationsExcepted))
-          AND StartLocationExceptedStop
-          DO BEGIN
+          WHILE (Count <= High(RouteingExceptions[Rule].RouteingException_StartLocationsExcepted)) AND StartLocationExceptedStop DO BEGIN
             IF (RouteingException_StartLocationsExcepted[Count] <> UnknownArea)
             AND (StartLine <> UnknownLine)
             AND (Lines[StartLine].Line_Location <> UnknownLocation)
@@ -1016,9 +972,7 @@ VAR
         IF Length(RouteingExceptions[Rule].RouteingException_StartAreas) > 0 THEN BEGIN
           StartAreaCheck := True;
           Count := 0;
-          WHILE (Count <= High(RouteingExceptions[Rule].RouteingException_StartAreas))
-          AND NOT StartAreaStop
-          DO BEGIN
+          WHILE (Count <= High(RouteingExceptions[Rule].RouteingException_StartAreas)) AND NOT StartAreaStop DO BEGIN
             IF (RouteingException_StartAreas[Count] <> UnknownArea)
             AND (StartLine <> UnknownLine)
             AND (Lines[StartLine].Line_Location <> UnknownLocation)
@@ -1035,9 +989,7 @@ VAR
           StartAreaExceptedStop := True;
           StartAreaExceptedCheck := True;
           Count := 0;
-          WHILE (Count <= High(RouteingExceptions[Rule].RouteingException_StartAreasExcepted))
-          AND StartAreaExceptedStop
-          DO BEGIN
+          WHILE (Count <= High(RouteingExceptions[Rule].RouteingException_StartAreasExcepted)) AND StartAreaExceptedStop DO BEGIN
             IF (RouteingException_StartAreasExcepted[Count] <> UnknownArea)
             AND (StartLine <> UnknownLine)
             AND (Lines[StartLine].Line_Location <> UnknownLocation)
@@ -1052,12 +1004,8 @@ VAR
         IF Length(RouteingExceptions[Rule].RouteingException_EndLines) > 0 THEN BEGIN
           EndLineCheck := True;
           Count := 0;
-          WHILE (Count <= High(RouteingExceptions[Rule].RouteingException_EndLines))
-          AND NOT EndLineStop
-          DO BEGIN
-            IF (RouteingException_EndLines[Count] <> UnknownLine)
-            AND (RouteingException_EndLines[Count] = EndLine)
-            THEN
+          WHILE (Count <= High(RouteingExceptions[Rule].RouteingException_EndLines)) AND NOT EndLineStop DO BEGIN
+            IF (RouteingException_EndLines[Count] <> UnknownLine) AND (RouteingException_EndLines[Count] = EndLine) THEN
               EndLineStop := True;
             Inc(Count);
           END; {WHILE}
@@ -1069,9 +1017,7 @@ VAR
           EndLineExceptedStop := True;
           EndLineExceptedCheck := True;
           Count := 0;
-          WHILE (Count <= High(RouteingExceptions[Rule].RouteingException_EndLinesExcepted))
-          AND EndLineExceptedStop
-          DO BEGIN
+          WHILE (Count <= High(RouteingExceptions[Rule].RouteingException_EndLinesExcepted)) AND EndLineExceptedStop DO BEGIN
             IF (RouteingException_EndLinesExcepted[Count] <> UnknownArea)
             AND (EndLine <> UnknownLine)
             AND (Lines[EndLine].Line_Location <> UnknownLocation)
@@ -1086,9 +1032,7 @@ VAR
         IF Length(RouteingExceptions[Rule].RouteingException_EndLocations) > 0 THEN BEGIN
           EndLocationCheck := True;
           Count := 0;
-          WHILE (Count <= High(RouteingExceptions[Rule].RouteingException_EndLocations))
-          AND NOT EndLocationStop
-          DO BEGIN
+          WHILE (Count <= High(RouteingExceptions[Rule].RouteingException_EndLocations)) AND NOT EndLocationStop DO BEGIN
             IF (RouteingException_EndLocations[Count] <> UnknownLocation)
             AND (EndLine <> UnknownLine)
             AND (Lines[EndLine].Line_Location <> UnknownLocation)
@@ -1103,9 +1047,7 @@ VAR
         IF Length(RouteingExceptions[Rule].RouteingException_EndLocationsExcepted) > 0 THEN BEGIN
           EndLocationExceptedCheck := True;
           Count := 0;
-          WHILE (Count <= High(RouteingExceptions[Rule].RouteingException_EndLocationsExcepted))
-          AND NOT EndLocationExceptedStop
-          DO BEGIN
+          WHILE (Count <= High(RouteingExceptions[Rule].RouteingException_EndLocationsExcepted)) AND NOT EndLocationExceptedStop DO BEGIN
             IF (RouteingException_EndLocationsExcepted[Count] <> UnknownLocation)
             AND (EndLine <> UnknownLine)
             AND (Lines[EndLine].Line_Location <> UnknownLocation)
@@ -1122,9 +1064,7 @@ VAR
           EndLocationExceptedStop := True;
           EndLocationExceptedCheck := True;
           Count := 0;
-          WHILE (Count <= High(RouteingExceptions[Rule].RouteingException_EndLocationsExcepted))
-          AND EndLocationExceptedStop
-          DO BEGIN
+          WHILE (Count <= High(RouteingExceptions[Rule].RouteingException_EndLocationsExcepted)) AND EndLocationExceptedStop DO BEGIN
             IF (RouteingException_EndLocationsExcepted[Count] <> UnknownArea)
             AND (EndLine <> UnknownLine)
             AND (Lines[EndLine].Line_Location <> UnknownLocation)
@@ -1139,9 +1079,7 @@ VAR
         IF Length(RouteingExceptions[Rule].RouteingException_EndAreas) > 0 THEN BEGIN
           EndAreaCheck := True;
           Count := 0;
-          WHILE (Count <= High(RouteingExceptions[Rule].RouteingException_EndAreas))
-          AND NOT EndAreaStop
-          DO BEGIN
+          WHILE (Count <= High(RouteingExceptions[Rule].RouteingException_EndAreas)) AND NOT EndAreaStop DO BEGIN
             IF (RouteingException_EndAreas[Count] <> UnknownArea)
             AND (EndLine <> UnknownLine)
             AND (Lines[EndLine].Line_Location <> UnknownLocation)
@@ -1158,9 +1096,7 @@ VAR
           EndAreaExceptedStop := True;
           EndAreaExceptedCheck := True;
           Count := 0;
-          WHILE (Count <= High(RouteingExceptions[Rule].RouteingException_EndAreasExcepted))
-          AND EndAreaExceptedStop
-          DO BEGIN
+          WHILE (Count <= High(RouteingExceptions[Rule].RouteingException_EndAreasExcepted)) AND EndAreaExceptedStop DO BEGIN
             IF (RouteingException_EndAreasExcepted[Count] <> UnknownArea)
             AND (EndLine <> UnknownLine)
             AND (Lines[EndLine].Line_Location <> UnknownLocation)
@@ -1175,12 +1111,8 @@ VAR
         IF Length(RouteingExceptions[Rule].RouteingException_LinesRoutedOver) > 0 THEN BEGIN
           LineRoutedOverCheck := True;
           Count := 0;
-          WHILE (Count <= High(RouteingExceptions[Rule].RouteingException_LinesRoutedOver))
-          AND NOT LineRoutedOverStop
-          DO BEGIN
-            IF (RouteingException_LinesRoutedOver[Count] <> UnknownLine)
-            AND Lines[RouteingException_LinesRoutedOver[Count]].Line_RoutedOver
-            THEN
+          WHILE (Count <= High(RouteingExceptions[Rule].RouteingException_LinesRoutedOver)) AND NOT LineRoutedOverStop DO BEGIN
+            IF (RouteingException_LinesRoutedOver[Count] <> UnknownLine) AND Lines[RouteingException_LinesRoutedOver[Count]].Line_RoutedOver THEN
               LineRoutedOverStop := True;
             Inc(Count);
           END; {WHILE}
@@ -1190,12 +1122,8 @@ VAR
         IF Length(RouteingExceptions[Rule].RouteingException_TrainTypes) > 0 THEN BEGIN
           TrainTypeCheck := True;
           Count := 0;
-          WHILE (Count <= High(RouteingExceptions[Rule].RouteingException_TrainTypes))
-          AND NOT TrainTypeStop
-          DO BEGIN
-            IF (RouteingException_TrainTypes[Count] <> UnknownTrainType)
-            AND (RouteingException_TrainTypes[Count] = TrainType)
-            THEN
+          WHILE (Count <= High(RouteingExceptions[Rule].RouteingException_TrainTypes)) AND NOT TrainTypeStop DO BEGIN
+            IF (RouteingException_TrainTypes[Count] <> UnknownTrainType) AND (RouteingException_TrainTypes[Count] = TrainType) THEN
               TrainTypeStop := True;
             Inc(Count);
           END; {WHILE}
@@ -1203,68 +1131,52 @@ VAR
 
         IF NOT RouteingExceptions[Rule].RouteingException_AllowedInEmergency THEN
           IF NOT CurrentLineCheck
-          OR (CurrentLineCheck
-                 AND CurrentLineStop)
+          OR (CurrentLineCheck AND CurrentLineStop)
           THEN
             IF NOT PreviousLineCheck
-            OR (PreviousLineCheck
-                AND PreviousLineStop)
+            OR (PreviousLineCheck AND PreviousLineStop)
             THEN
               IF NOT StartLineCheck
-              OR (StartLineCheck
-                  AND StartLineStop)
+              OR (StartLineCheck AND StartLineStop)
               THEN
                 IF NOT StartLineExceptedCheck
-                OR (StartLineExceptedCheck
-                    AND StartLineExceptedStop)
+                OR (StartLineExceptedCheck AND StartLineExceptedStop)
                 THEN
                   IF NOT StartLocationCheck
-                  OR (StartLocationCheck
-                      AND StartLocationStop)
+                  OR (StartLocationCheck AND StartLocationStop)
                   THEN
                     IF NOT StartLocationExceptedCheck
-                    OR (StartLocationExceptedCheck
-                        AND StartLocationExceptedStop)
+                    OR (StartLocationExceptedCheck AND StartLocationExceptedStop)
                     THEN
                       IF NOT StartAreaCheck
-                      OR (StartAreaCheck
-                          AND StartAreaStop)
+                      OR (StartAreaCheck AND StartAreaStop)
                       THEN
                         IF NOT StartAreaExceptedCheck
-                        OR (StartAreaExceptedCheck
-                            AND StartAreaExceptedStop)
+                        OR (StartAreaExceptedCheck AND StartAreaExceptedStop)
                         THEN
                           IF NOT EndLineCheck
-                          OR (EndLineCheck
-                              AND EndLineStop)
+                          OR (EndLineCheck AND EndLineStop)
                           THEN
                             IF NOT EndLineExceptedCheck
-                            OR (EndLineExceptedCheck
-                                AND EndLineExceptedStop)
+                            OR (EndLineExceptedCheck AND EndLineExceptedStop)
                               THEN
                                 IF NOT EndLocationCheck
-                                OR (EndLocationCheck
-                                    AND EndLocationStop)
+                                OR (EndLocationCheck AND EndLocationStop)
                                 THEN
                                   IF NOT EndLocationExceptedCheck
-                                  OR (EndLocationExceptedCheck
-                                      AND EndLocationExceptedStop)
+                                  OR (EndLocationExceptedCheck AND EndLocationExceptedStop)
                                     THEN
                                       IF NOT EndAreaCheck
-                                      OR (EndAreaCheck
-                                          AND EndAreaStop)
+                                      OR (EndAreaCheck AND EndAreaStop)
                                       THEN
                                         IF NOT EndAreaExceptedCheck
-                                        OR (EndAreaExceptedCheck
-                                            AND EndAreaExceptedStop)
+                                        OR (EndAreaExceptedCheck AND EndAreaExceptedStop)
                                           THEN
                                             IF NOT LineRoutedOverCheck
-                                            OR (LineRoutedOverCheck
-                                                AND LineRoutedOverStop)
+                                            OR (LineRoutedOverCheck AND LineRoutedOverStop)
                                             THEN
                                               IF (RouteingExceptions[Rule].RouteingException_RouteDirection = UnknownDirection)
-                                              OR ((RouteingException_RouteDirection <> UnknownDirection)
-                                                   AND (RouteingException_RouteDirection = RouteDirection))
+                                              OR ((RouteingException_RouteDirection <> UnknownDirection) AND (RouteingException_RouteDirection = RouteDirection))
                                               THEN
                                                 IF (RouteingExceptions[Rule].RouteingException_MaxTrainLength = 0)
                                                 OR ((RouteingException_MaxTrainLength > 0)
@@ -1272,8 +1184,7 @@ VAR
                                                     AND (RouteingException_MaxTrainLength < TrainLength))
                                                 THEN
                                                   IF NOT TrainTypeCheck
-                                                  OR (TrainTypeCheck
-                                                      AND TrainTypeStop)
+                                                  OR (TrainTypeCheck AND TrainTypeStop)
                                                   THEN
                                                     StopStr := RouteingException_StopStr + ' (Rule ' + IntToStr(Rule) + ')';
       END; {WITH}
@@ -1332,8 +1243,7 @@ VAR
               { point is straight }
               IF StartLine <> CurrentLine THEN
                 RecordLine(CurrentLine, clYellow);
-              IF (NOT LookForASpecificSignalOrBufferStop
-                  AND LookForNextSignalOrBufferStopOnly)
+              IF (NOT LookForASpecificSignalOrBufferStop AND LookForNextSignalOrBufferStopOnly)
               OR ReturnAllRoutes
               THEN
                 LookOutForSignalsOrBufferStops(CurrentLine, FoundASignalOrBufferStop);
@@ -1499,9 +1409,7 @@ BEGIN
         Debug('Unknown line in main loop');
         ExitFunctionNum := 9999;
       END ELSE BEGIN
-        IF (StartLine <> EndLine)
-        AND (CurrentLine = EndLine)
-        THEN BEGIN
+        IF (StartLine <> EndLine) AND (CurrentLine = EndLine) THEN BEGIN
           { allow us to return whence we started, and not just sit there - used for FY to FY trips }
           ExitFunctionNum := 1;
           RouteFound := True;
@@ -1510,8 +1418,7 @@ BEGIN
             we need to backtrack
           }
           IF (Length(DraftRouteArray) > 1)
-          AND (((Pos('FP=', DraftRouteArray[High(DraftRouteArray) - 1]) = 0)
-               AND (Pos('TP=', DraftRouteArray[High(DraftRouteArray) - 1]) = 0)))
+          AND ((Pos('FP=', DraftRouteArray[High(DraftRouteArray) - 1]) = 0) AND (Pos('TP=', DraftRouteArray[High(DraftRouteArray) - 1]) = 0))
           THEN BEGIN
             IF CurrentLine <> ExtractLineFromString(DraftRouteArray[High(DraftRouteArray) - 1]) THEN BEGIN
               IF Lines[CurrentLine].Line_RoutedOver THEN BEGIN
@@ -1543,10 +1450,8 @@ BEGIN
             { Looking for a specific next signal or buffer stop }
             IF LookForASpecificSignalOrBufferStop THEN BEGIN
               IF (CurrentLine <> UnknownLine)
-              AND ((GetLineAdjacentSignal(CurrentLine) <> UnknownSignal)
-                   AND (GetLineAdjacentSignal(CurrentLine) = NextSignal))
-              OR ((Lines[CurrentLine].Line_AdjacentBufferStop <> UnknownBufferStop)
-                  AND (Lines[CurrentLine].Line_AdjacentBufferStop = NextBufferStop))
+              AND ((GetLineAdjacentSignal(CurrentLine) <> UnknownSignal) AND (GetLineAdjacentSignal(CurrentLine) = NextSignal))
+              OR ((Lines[CurrentLine].Line_AdjacentBufferStop <> UnknownBufferStop) AND (Lines[CurrentLine].Line_AdjacentBufferStop = NextBufferStop))
               THEN BEGIN
                 RouteFound := True;
                 { note where we are }
@@ -1584,9 +1489,7 @@ BEGIN
     { Finally remove the first "L=", inserted at the beginning of the procedure so we might backtrack to it }
     LineFound := False;
     DraftRouteArrayPos := 0;
-    WHILE (DraftRouteArrayPos < High(DraftRouteArray))
-    AND NOT LineFound
-    DO BEGIN
+    WHILE (DraftRouteArrayPos < High(DraftRouteArray)) AND NOT LineFound DO BEGIN
       IF Pos('L=', DraftRouteArray[DraftRouteArrayPos]) > 0 THEN BEGIN
         LineFound := True;
         DeleteElementFromStringArray(DraftRouteArray, DraftRouteArrayPos);
@@ -1605,7 +1508,7 @@ BEGIN
 
     { and record what's happening }
   //  WriteToLogFileAndTestFile := True;
-  //  WriteStringArrayToLog(NoLocoChip, 'X', 'Draft Route Array:', DraftRouteArray, NumberElements);
+//  WriteStringArrayToLog(UnknownLocoChipStr, 'X', 'Draft Route Array:', DraftRouteArray, NumberElements);
   //  WriteToLogFileAndTestFile := False;
   //  Debug;
   EXCEPT
@@ -1616,9 +1519,6 @@ END; { CreateDraftRouteArray }
 
 PROCEDURE CreateLockingArrayFromDraftRouteArray(LocoChipStr : string; DraftRouteArray : StringArrayType; OUT LockingArray : StringArrayType);
 { Creates locking based on the route previously found - adds the original line-name data as it's used in drawing the subroute }
-CONST
-  NumberElements = True;
-
 VAR
   BufferStopFound : Boolean;
   CrossOverPointStr : String;
@@ -1661,6 +1561,7 @@ BEGIN
 
     TempDraftRouteArrayPos := 0;
     WHILE (TempDraftRouteArrayPos < Length(TempDraftRouteArray)) DO BEGIN
+      { Look at signals first }
       IF (Pos('FS=', TempDraftRouteArray[TempDraftRouteArrayPos]) > 0)
       OR (Pos('BS=', TempDraftRouteArray[TempDraftRouteArrayPos]) > 0)
       THEN BEGIN
@@ -1682,15 +1583,9 @@ BEGIN
         { or a hold marker preceded by a signal }
         OR (TempDraftRouteArray[TempDraftRouteArrayPos + 1] = HoldMarker)
         THEN BEGIN
-           { ...the preceding signal should be on (as it concludes the subroute) unless we're pulling off a semaphore distant }
-          IF NOT BufferStopFound THEN BEGIN
-//            IF (FirstSignalFound <> unknownSignal)
-//            AND (Signals[FirstSignalFound].Signal_Type = SemaphoreDistant)
-//            THEN
-//              AppendToStringArray(LockingArray, TempDraftRouteArray[TempDraftRouteArrayPos] + '\')
-//            ELSE
-              AppendToStringArray(LockingArray, TempDraftRouteArray[TempDraftRouteArrayPos] + '=');
-          END;
+           { ...the following signal should be on (as it concludes the subroute) unless we're pulling off a semaphore distant }
+          IF NOT BufferStopFound THEN
+            AppendToStringArray(LockingArray, TempDraftRouteArray[TempDraftRouteArrayPos] + '=');
 
           { Now add the theatre destination }
           IF TheatreIndicatorPos <> 0 THEN BEGIN
@@ -1713,13 +1608,9 @@ BEGIN
               { there is a supplied next signal }
               I := TempDraftRouteArrayPos;
 
-              WHILE (I < Length(TempDraftRouteArray))
-              AND NOT SignalFound
-              DO BEGIN
+              WHILE (I < Length(TempDraftRouteArray)) AND NOT SignalFound DO BEGIN
                 { compare it against the next signal in the array }
-                IF (Pos('FS=', TempDraftRouteArray[I]) > 0)
-                AND (ExtractSignalFromString(TempDraftRouteArray[I]) <> TempSignal)
-                THEN BEGIN
+                IF (Pos('FS=', TempDraftRouteArray[I]) > 0) AND (ExtractSignalFromString(TempDraftRouteArray[I]) <> TempSignal) THEN BEGIN
                   SignalFound := True;
                   IF Signals[TempSignal].Signal_JunctionIndicators[UpperLeftIndicator].JunctionIndicator_TargetSignal = ExtractSignalFromString(TempDraftRouteArray[I])
                   THEN
@@ -1753,33 +1644,25 @@ BEGIN
                 Inc(I);
               END; {WHILE}
 
-              IF NOT SignalFound
-              AND (Pos('BS=', TempDraftRouteArray[High(TempDraftRouteArray)]) > 0)
-              THEN BEGIN
+              IF NOT SignalFound AND (Pos('BS=', TempDraftRouteArray[High(TempDraftRouteArray)]) > 0) THEN BEGIN
                 { there's a buffer stop instead }
                 TempBufferStop := ExtractBufferStopFromString(TempDraftRouteArray[High(TempDraftRouteArray)]);
-                IF Signals[TempSignal].Signal_JunctionIndicators[UpperLeftIndicator].JunctionIndicator_TargetBufferStop = TempBufferStop
-                THEN
+                IF Signals[TempSignal].Signal_JunctionIndicators[UpperLeftIndicator].JunctionIndicator_TargetBufferStop = TempBufferStop THEN
                   AppendToStringArray(LockingArray, 'FR=' + IntToStr(TempSignal) + 'UL|')
                 ELSE
-                  IF Signals[TempSignal].Signal_JunctionIndicators[MiddleLeftIndicator].JunctionIndicator_TargetBufferStop = TempBufferStop
-                  THEN
+                  IF Signals[TempSignal].Signal_JunctionIndicators[MiddleLeftIndicator].JunctionIndicator_TargetBufferStop = TempBufferStop THEN
                     AppendToStringArray(LockingArray, 'FR=' + IntToStr(TempSignal) + 'ML|')
                   ELSE
-                    IF Signals[TempSignal].Signal_JunctionIndicators[LowerLeftIndicator].JunctionIndicator_TargetBufferStop = TempBufferStop
-                    THEN
+                    IF Signals[TempSignal].Signal_JunctionIndicators[LowerLeftIndicator].JunctionIndicator_TargetBufferStop = TempBufferStop THEN
                       AppendToStringArray(LockingArray, 'FR=' + IntToStr(TempSignal) + 'LL|')
                     ELSE
-                      IF Signals[TempSignal].Signal_JunctionIndicators[UpperRightIndicator].JunctionIndicator_TargetBufferStop = TempBufferStop
-                      THEN
+                      IF Signals[TempSignal].Signal_JunctionIndicators[UpperRightIndicator].JunctionIndicator_TargetBufferStop = TempBufferStop THEN
                         AppendToStringArray(LockingArray, 'FR=' + IntToStr(TempSignal) + 'UR|')
                       ELSE
-                        IF Signals[TempSignal].Signal_JunctionIndicators[MiddleRightIndicator].JunctionIndicator_TargetBufferStop = TempBufferStop
-                        THEN
+                        IF Signals[TempSignal].Signal_JunctionIndicators[MiddleRightIndicator].JunctionIndicator_TargetBufferStop = TempBufferStop THEN
                           AppendToStringArray(LockingArray, 'FR=' + IntToStr(TempSignal) + 'MR|')
                         ELSE
-                          IF Signals[TempSignal].Signal_JunctionIndicators[LowerRightIndicator].JunctionIndicator_TargetBufferStop = TempBufferStop
-                          THEN
+                          IF Signals[TempSignal].Signal_JunctionIndicators[LowerRightIndicator].JunctionIndicator_TargetBufferStop = TempBufferStop THEN
                             AppendToStringArray(LockingArray, 'FR=' + IntToStr(TempSignal) + 'LR|')
                           ELSE
                             AppendToStringArray(LockingArray, 'FR=' + IntToStr(TempSignal) + '.');
@@ -1815,9 +1698,7 @@ BEGIN
             AppendToStringArray(LockingArray, 'FP=' + IntToStr(Points[TempPoint].Point_OtherPoint) + '/');
 
         { If we want a three-way point A to diverge }
-        IF (Points[TempPoint].Point_Type = ThreeWayPointA)
-        AND (RightStr(TempDraftRouteArray[TempDraftRouteArrayPos], 1) = '/')
-        THEN BEGIN
+        IF (Points[TempPoint].Point_Type = ThreeWayPointA) AND (RightStr(TempDraftRouteArray[TempDraftRouteArrayPos], 1) = '/') THEN BEGIN
           { we need to make sure that the B point is straight first }
           Log(LocoChipStr + ' P P=' + IntToStr(TempPoint) + ' is a three way A set to diverge, so three way B P=' + IntToStr(Points[TempPoint].Point_OtherPoint)
                                       + ' must be set straight first');
@@ -1826,9 +1707,7 @@ BEGIN
 
         AppendToStringArray(LockingArray, TempDraftRouteArray[TempDraftRouteArrayPos]);
         { and check on any crossover points that would cause a collision if there were an overrun }
-        IF (Points[TempPoint].Point_Type = CrossOverPoint)
-        AND (Points[TempPoint].Point_OtherPoint <> UnknownPoint)
-        THEN BEGIN
+        IF (Points[TempPoint].Point_Type = CrossOverPoint) AND (Points[TempPoint].Point_OtherPoint <> UnknownPoint) THEN BEGIN
           { Otherwise set it to its opposing point's state }
           IF ExtractPointStateFromString(TempDraftRouteArray[TempDraftRouteArrayPos]) = Straight THEN
             CrossOverPointStr := 'XP=' + IntToStr(Points[TempPoint].Point_OtherPoint) + '-'
@@ -1859,9 +1738,7 @@ BEGIN
 
           IF RouteDirection <> UnknownDirection THEN BEGIN
             { If we want a three-way point A to diverge }
-            IF (Points[TempPoint].Point_Type = ThreeWayPointA)
-            AND (RightStr(TempDraftRouteArray[TempDraftRouteArrayPos], 1) = '/')
-            THEN BEGIN
+            IF (Points[TempPoint].Point_Type = ThreeWayPointA) AND (RightStr(TempDraftRouteArray[TempDraftRouteArrayPos], 1) = '/') THEN BEGIN
               { we need to make sure that the B point is straight first }
               { Log(LocoChipStr + ' P P=' + IntToStr(TempPoint) + ' is a three way A set to diverge, so three way B P=' + IntToStr(Points[TempPoint].Point_OtherPoint)
                                 + ' must be set straight first');
@@ -1869,9 +1746,7 @@ BEGIN
               AppendToStringArray(LockingArray, 'FP=' + IntToStr(Points[TempPoint].Point_OtherPoint) + '-');
             END ELSE
               { If we want a three-way point B to diverge }
-              IF (Points[TempPoint].Point_Type = ThreeWayPointB)
-              AND (RightStr(TempDraftRouteArray[TempDraftRouteArrayPos], 1) = '/')
-              THEN BEGIN
+              IF (Points[TempPoint].Point_Type = ThreeWayPointB) AND (RightStr(TempDraftRouteArray[TempDraftRouteArrayPos], 1) = '/') THEN BEGIN
                 { we need to make sure that the A point is straight first }
                 { Log(LocoChipStr + ' P P=' + IntToStr(TempPoint) + ' is a three way B set to diverge, so three way A P=' + IntToStr(Points[TempPoint].Point_OtherPoint)
                                   + ' must be set straight first');
@@ -1881,22 +1756,20 @@ BEGIN
 
             AppendToStringArray(LockingArray, TempDraftRouteArray[TempDraftRouteArrayPos]);
             { and check on any crossover points that would cause a collision if there were an overrun }
-            IF (Points[TempPoint].Point_Type = CrossOverPoint)
-            AND (Points[TempPoint].Point_OtherPoint <> UnknownPoint)
-            THEN BEGIN
+            IF (Points[TempPoint].Point_Type = CrossOverPoint) AND (Points[TempPoint].Point_OtherPoint <> UnknownPoint) THEN BEGIN
               { Otherwise set it to its opposing point's state }
               IF ExtractPointStateFromString(TempDraftRouteArray[TempDraftRouteArrayPos]) = Straight THEN
                 CrossOverPointStr := 'XP=' + IntToStr(Points[TempPoint].Point_OtherPoint) + '-'
               ELSE
                 CrossOverPointStr := 'XP=' + IntToStr(Points[TempPoint].Point_OtherPoint) + '/'
             END;
-            
+
             IF CrossOverPointStr <> '' THEN
               AppendToStringArray(LockingArray, CrossOverPointStr);
           END;
         END;
 
-      { add track circuit data from lines }
+      { Add track circuit data from lines }
       IF Pos('L=', TempDraftRouteArray[TempDraftRouteArrayPos]) > 0 THEN BEGIN
         { see if there's any TC data - don't do this for the track circuit adjacent to the signal, or trains stopped at signals at the start of routes would not be allowed
           to proceed, as that line section would always be marked as occupied. Look out for signals that both start and end a route, however (check for them by seeing if
@@ -1905,13 +1778,9 @@ BEGIN
 
         { find the first signal in the array }
         TempArrayPos := -1;
-        WHILE (TempArrayPos < High(TempDraftRouteArray))
-        AND (FirstLineTC = UnknownTrackCircuit)
-        DO BEGIN
+        WHILE (TempArrayPos < High(TempDraftRouteArray)) AND (FirstLineTC = UnknownTrackCircuit) DO BEGIN
           Inc(TempArrayPos);
-          IF ((Pos('FS=', TempDraftRouteArray[TempArrayPos]) > 0)
-          AND (Pos('\', TempDraftRouteArray[TempArrayPos]) = 0))
-          THEN BEGIN
+          IF ((Pos('FS=', TempDraftRouteArray[TempArrayPos]) > 0) AND (Pos('\', TempDraftRouteArray[TempArrayPos]) = 0)) THEN BEGIN
             FirstSignalFound := ExtractSignalFromString(TempDraftRouteArray[TempArrayPos]);
             FirstLineTC := Lines[Signals[ExtractSignalFromString(TempDraftRouteArray[TempArrayPos])].Signal_AdjacentLine].Line_TC;
           END;
@@ -1932,34 +1801,31 @@ BEGIN
             { add the linename data too as it's used for drawing subroutes }
             AppendToStringArray(LockingArray, TempDraftRouteArray[TempDraftRouteArrayPos]);
           END ELSE
-            IF RouteDebuggingMode
-            AND NOT (Signals[FirstSignalFound].Signal_FailMsgWritten)
-            THEN
+            IF RouteDebuggingMode AND NOT (Signals[FirstSignalFound].Signal_FailMsgWritten) THEN
               Log(LocoChipStr + ' S Line ' + TempDraftRouteArray[TempDraftRouteArrayPos]
-                                           + ' is adjacent to S=' + IntToStr(FirstSignalFound)
-                                           + ' so first TC=' + IntToStr(FirstLineTC) + ' is ignored');
+                                           + ' is adjacent to S=' + IntToStr(FirstSignalFound) + ' so first TC=' + IntToStr(FirstLineTC) + ' is ignored');
           FirstTrackCircuitFound := True;
         END;
       END;
 
-      { add signal data for signals not going the same way we are - to check they're not off }
+      { Add signal data for signals not going the same way we are - to check they're not off }
       IF Pos('L=', TempDraftRouteArray[TempDraftRouteArrayPos]) > 0 THEN BEGIN
         FOR S := 0 TO High(Signals) DO BEGIN
-//          IF NOT Signals[S].Signal_OutOfUse THEN
-            IF Signals[S].Signal_AdjacentLine = ExtractLineFromString(TempDraftRouteArray[TempDraftRouteArrayPos]) THEN
-              IF Signals[S].Signal_Direction <> RouteDirection THEN
-                AppendToStringArray(LockingArray, 'TS=' + IntToStr(S) + '=');
+          IF Signals[S].Signal_AdjacentLine = ExtractLineFromString(TempDraftRouteArray[TempDraftRouteArrayPos]) THEN
+            IF Signals[S].Signal_Direction <> RouteDirection THEN
+              AppendToStringArray(LockingArray, 'TS=' + IntToStr(S) + '=');
         END;
       END;
-      { copy across journey data }
+
+      { Copy across journey data ... }
       IF Pos('J=', TempDraftRouteArray[TempDraftRouteArrayPos]) > 0 THEN
         AppendToStringArray(LockingArray, TempDraftRouteArray[TempDraftRouteArrayPos]);
 
-      { and the hold marker }
+      { ... and the hold marker }
       IF Pos(HoldMarker, TempDraftRouteArray[TempDraftRouteArrayPos]) > 0 THEN
         AppendToStringArray(LockingArray, TempDraftRouteArray[TempDraftRouteArrayPos]);
 
-      { subroute number data }
+      { Now subroute number data }
       IF Pos('SR=', TempDraftRouteArray[TempDraftRouteArrayPos]) > 0 THEN BEGIN
         AppendToStringArray(LockingArray, TempDraftRouteArray[TempDraftRouteArrayPos]);
         IF JourneyStr <> '' THEN BEGIN
@@ -1973,9 +1839,7 @@ BEGIN
       END;
 
       { and finally buffer stop data if any }
-      IF (Pos('BS=', TempDraftRouteArray[TempDraftRouteArrayPos]) > 0)
-      AND (LockingArray[High(LockingArray)] <> TempDraftRouteArray[TempDraftRouteArrayPos])
-      THEN
+      IF (Pos('BS=', TempDraftRouteArray[TempDraftRouteArrayPos]) > 0) AND (LockingArray[High(LockingArray)] <> TempDraftRouteArray[TempDraftRouteArrayPos]) THEN
         AppendToStringArray(LockingArray, TempDraftRouteArray[TempDraftRouteArrayPos]);
 
       Inc(TempDraftRouteArrayPos)
@@ -2027,9 +1891,7 @@ BEGIN
     LockingArrayPos := 0;
     Done := False;
     { Work through the locking array }
-    WHILE (LockingArrayPos <= High(LockingArray))
-    AND NOT Done
-    DO BEGIN
+    WHILE (LockingArrayPos <= High(LockingArray)) AND NOT Done DO BEGIN
       IF IsElementSubRouteMarker(LockingArray, LockingArrayPos) THEN BEGIN
         { save it }
         SaveSubRouteMarker := LockingArray[LockingArrayPos];
@@ -2130,7 +1992,6 @@ CONST
   LookForASpecificSignalOrBufferStop = True;
   LookForAllSignalsAndBufferStopsOnly = True;
   LookForNextSignalOrBufferStopOnly = True;
-  NumberElements = True;
   ReturnAllRoutes = True;
   ReturnTheSpecifiedRoute = True;
 
@@ -2212,6 +2073,8 @@ BEGIN
             IF (GetLineAdjacentSignal(CurrentLine) <> UnknownSignal)
     //        AND NOT Signals[Lines[CurrentLine].Line_AdjacentSignal].Signal_OutOfUse
             AND (Direction = Signals[GetLineAdjacentSignal(CurrentLine)].Signal_Direction)
+            { omit semaphore distants as we can't route from them, and they behave in a funny way }
+            AND (Signals[GetLineAdjacentSignal(CurrentLine)].Signal_Type <> SemaphoreDistant)
             THEN BEGIN
               Inc(I);
               InsertElementInStringArray(DraftRouteArray, I, 'FS=' + IntToStr(GetLineAdjacentSignal(CurrentLine)));
@@ -2447,8 +2310,8 @@ BEGIN
         IF ((Signals[GetLineAdjacentSignal(CurrentLine)].Signal_Indicator = TheatreIndicator)
            AND (Signals[GetLineAdjacentSignal(CurrentLine)].Signal_IndicatorState = TheatreIndicatorLit))
         OR (Signals[GetLineAdjacentSignal(CurrentLine)].Signal_Aspect <> RedAspect)
-        { include semaphore distants as they obey different rules }
-        OR (Signals[GetLineAdjacentSignal(CurrentLine)].Signal_Type = SemaphoreDistant)
+//        { include semaphore distants as they obey different rules }
+//        OR (Signals[GetLineAdjacentSignal(CurrentLine)].Signal_Type = SemaphoreDistant)
         THEN BEGIN
           Inc(SignalCount);
           CASE SignalCount OF
@@ -2503,9 +2366,7 @@ BEGIN
                   END;
               END ELSE BEGIN
                 { a trailing point - if it's not set in our direction, stop searching here }
-                IF (CurrentLine = Points[NextPoint].Point_StraightLine)
-                AND (Points[NextPoint].Point_PresentState = Straight)
-                THEN BEGIN
+                IF (CurrentLine = Points[NextPoint].Point_StraightLine) AND (Points[NextPoint].Point_PresentState = Straight) THEN BEGIN
                   CurrentLine := Points[NextPoint].Point_HeelLine;
                   IF LockDebuggingMode THEN
                     DrawPoint(NextPoint, clLime)
@@ -2513,9 +2374,7 @@ BEGIN
                     DrawPoint(NextPoint, ForegroundColour);
                   DebugStr := DebugStr + ' TP=' + IntToStr(NextPoint) + '-';
                 END ELSE
-                  IF (CurrentLine = Points[NextPoint].Point_DivergingLine)
-                  AND (Points[NextPoint].Point_PresentState = Diverging)
-                  THEN BEGIN
+                  IF (CurrentLine = Points[NextPoint].Point_DivergingLine) AND (Points[NextPoint].Point_PresentState = Diverging) THEN BEGIN
                     CurrentLine := Points[NextPoint].Point_HeelLine;
                     IF LockDebuggingMode THEN
                       DrawPoint(NextPoint, clLime)
@@ -2609,7 +2468,7 @@ BEGIN
       ELSE
         { Look for the next signal and resetting track circuit }
         CreateDraftRouteArray(UnknownLocoChipStr, RouteArray, StartLine, EndLine, RouteDirection, IndicatorState, UnknownTrainType, UnknownTrainLength, NextSignal,
-        NextBufferStop,       NOT ReturnTheSpecifiedRoute, NOT ReturnAllRoutes, LookForNextSignalOrBufferStopOnly, NOT LookForASpecificSignalOrBufferStop,
+                              NextBufferStop, NOT ReturnTheSpecifiedRoute, NOT ReturnAllRoutes, LookForNextSignalOrBufferStopOnly, NOT LookForASpecificSignalOrBufferStop,
                               NOT IncludeOutOfUseLines, NOT LookForAllSignalsAndBufferStopsOnly, LinesNotAvailableStr, NOT EmergencyRouteing, RouteFound);
 
       IF RouteFound THEN
@@ -2849,10 +2708,11 @@ BEGIN
     END; {WHILE}
 
     { Include start of subroute details in the diagnostics from the original setting-up subroute }
-    WriteStringArrayToLog(LocoChipToStr(Routes_LocoChips[Route]), 'R', 'Final Route Array to clear R=' + IntToStr(Route)
-                                                        + ', SR=' + IntToStr(SubRoute)
-                                                        + ' ' + DescribeSubRoute(Route, SubRoute)
-                                                        + ' :', Routes_SubRouteClearingStrings[Route, SubRoute], 2, 190, 'SR=');
+    WriteStringArrayToLog(UnknownLocoChipStr, 'R', 'Final Route Array to clear'
+                                                   +' R=' + IntToStr(Routes_RouteCounter)
+                                                   + '/' + IntToStr(SubRoute) + ' '
+                                                   + ' ' + DescribeSubRoute(Route, SubRoute)
+                                                   + ' :', Routes_SubRouteClearingStrings[Route, SubRoute], 2, 190, 'SR=');
   EXCEPT {TRY}
     ON E : Exception DO
       Log('EG CreateClearingSubRouteArray: ' + E.ClassName + ' error raised, with message: '+ E.Message);
@@ -2928,9 +2788,7 @@ BEGIN
         { Now checks if the route there is clear of obstructions - we don't care if the route is permanently locked or not }
         IF OK THEN BEGIN
           CheckRouteAheadLocking(T, DraftRouteArray, RouteCurrentlyLocked, RoutePermanentlyLocked, ErrorMsg);
-          IF NOT RouteCurrentlyLocked
-          AND NOT RoutePermanentlyLocked
-          THEN BEGIN
+          IF NOT RouteCurrentlyLocked AND NOT RoutePermanentlyLocked THEN BEGIN
             Log(Train_LocoChipStr + ' R J=' + IntToStr(Journey)
                                   + ': route ahead at S=' + IntToStr(S)
                                   + ' (' + LineToStr(StartLine) + ' to ' + LineToStr(EndLine) + ')' + ' is not locked');
@@ -3110,15 +2968,11 @@ BEGIN
 
               JourneyCount := -1;
               RouteCreationHeld := False;
-              WHILE (JourneyCount < High(Train_JourneysArray))
-              AND NOT RouteCreationHeld
-              DO BEGIN
+              WHILE (JourneyCount < High(Train_JourneysArray)) AND NOT RouteCreationHeld DO BEGIN
                 Inc(JourneyCount);
                 WITH Train_JourneysArray[JourneyCount] DO BEGIN
                   IF NOT TrainJourney_Created THEN BEGIN
-                    IF (Train_PossibleRerouteTime > 0)
-                    AND (CompareTime(CurrentRailwayTime, Train_PossibleRerouteTime) > 0)
-                    THEN BEGIN
+                    IF (Train_PossibleRerouteTime > 0) AND (CompareTime(CurrentRailwayTime, Train_PossibleRerouteTime) > 0) THEN BEGIN
                       makesound(5);
                       Train_PossibleRerouteTime := 0;
                     END;
@@ -3127,9 +2981,7 @@ BEGIN
                     RouteCreationHeld := False;
                     Train_RouteCreationHoldNum := 0;
                     OtherT := 0;
-                    WHILE (OtherT <= High(Trains))
-                    AND NOT RouteCreationHeld
-                    DO BEGIN
+                    WHILE (OtherT <= High(Trains)) AND NOT RouteCreationHeld DO BEGIN
                       IF (OtherT <> T)
                       AND Trains[OtherT].Train_DiagramFound
                       AND (Trains[OtherT].Train_CurrentStatus <> Cancelled)
@@ -3147,9 +2999,7 @@ BEGIN
                               IF TrainJourney_Direction = OtherTrainDirection THEN BEGIN
                                 IF CompareTime(TrainJourney_CurrentDepartureTime, OtherTrainDepartureTime) = 0 THEN BEGIN
                                   { give expresses priority }
-                                  IF (Train_Type <> ExpressPassengerType)
-                                  AND (Trains[OtherT].Train_Type = ExpressPassengerType)
-                                  THEN BEGIN
+                                  IF (Train_Type <> ExpressPassengerType) AND (Trains[OtherT].Train_Type = ExpressPassengerType) THEN BEGIN
                                     RouteCreationHeld := True;
                                     Train_RouteCreationHoldNum := 1;
                                     Train_RouteCreationReleasedMsg := '';
@@ -3164,9 +3014,7 @@ BEGIN
                                     END;
                                   END ELSE
                                     { this covers all other non-passenger types that we might be }
-                                    IF (Train_Type <> ExpressPassengerType)
-                                    AND (Train_Type <> OrdinaryPassengerType)
-                                    AND (Trains[OtherT].Train_Type = OrdinaryPassengerType)
+                                    IF (Train_Type <> ExpressPassengerType) AND (Train_Type <> OrdinaryPassengerType) AND (Trains[OtherT].Train_Type = OrdinaryPassengerType)
                                     THEN BEGIN
                                       RouteCreationHeld := True;
                                       Train_RouteCreationHoldNum := 2;
@@ -3225,9 +3073,7 @@ BEGIN
                     IF NOT RouteCreationHeld THEN BEGIN
                       TempRouteCounter := 0;
                       Train_RouteCreationHoldNum := 3;
-                      WHILE (TempRouteCounter <= High(Routes_LocoChips))
-                      AND NOT RouteCreationHeld
-                      DO BEGIN
+                      WHILE (TempRouteCounter <= High(Routes_LocoChips)) AND NOT RouteCreationHeld DO BEGIN
                         IF Routes_LocoChips[TempRouteCounter] = Train_LocoChip THEN BEGIN
                           IF NewRoute <> TempRouteCounter THEN BEGIN
                             IF NOT Routes_RouteSettingsCompleted[TempRouteCounter] THEN BEGIN
@@ -3247,9 +3093,7 @@ BEGIN
                         Inc(TempRouteCounter);
                       END; {WHILE}
 
-                      IF NOT RouteCreationHeld
-                      AND Train_RouteCreationHeldMsgWrittenArray[Train_RouteCreationHoldNum]
-                      THEN BEGIN
+                      IF NOT RouteCreationHeld AND Train_RouteCreationHeldMsgWrittenArray[Train_RouteCreationHoldNum] THEN BEGIN
                         Train_RouteCreationHoldMsg := ' ';
                         Train_RouteCreationReleasedMsg := 'J=' + IntToStr(JourneyCount) + ': '
                                                           + LineToStr(TrainJourney_StartLine) + ' to ' + LineToStr(TrainJourney_EndLine)
@@ -3334,9 +3178,7 @@ BEGIN
                           IF Length(Signals[S].Signal_LocationsToMonitorArray) > 0 THEN BEGIN
                             { we have to see what is happening in the supplied list of platforms }
                             DiagramsArrayPos := 0;
-                            WHILE (DiagramsArrayPos <= High(DiagramsArray))
-                            AND NOT RouteCreationHeld
-                            DO BEGIN
+                            WHILE (DiagramsArrayPos <= High(DiagramsArray)) AND NOT RouteCreationHeld DO BEGIN
                               OtherT := DiagramsArray[DiagramsArrayPos];
                               IF Train_LocoChip <> Trains[OtherT].Train_LocoChip THEN BEGIN
                                 IF Trains[OtherT].Train_DiagramFound
@@ -3399,9 +3241,7 @@ BEGIN
                           IF Length(Signals[S].Signal_LocationsToMonitorArray) > 0 THEN BEGIN
                             { we have to see what is happening in the supplied list of platforms }
                             DiagramsArrayPos := 0;
-                            WHILE (DiagramsArrayPos <= High(DiagramsArray))
-                            AND NOT RouteCreationHeld
-                            DO BEGIN
+                            WHILE (DiagramsArrayPos <= High(DiagramsArray)) AND NOT RouteCreationHeld DO BEGIN
                               OtherT := DiagramsArray[DiagramsArrayPos];
                               IF Train_LocoChip <> Trains[OtherT].Train_LocoChip THEN BEGIN
                                 IF Trains[OtherT].Train_DiagramFound
@@ -3452,9 +3292,7 @@ BEGIN
                         END;
                       END;
 
-                      IF NOT RouteCreationHeld
-                      AND Train_RouteCreationHeldMsgWrittenArray[Train_RouteCreationHoldNum]
-                      THEN BEGIN
+                      IF NOT RouteCreationHeld AND Train_RouteCreationHeldMsgWrittenArray[Train_RouteCreationHoldNum] THEN BEGIN
                         Train_RouteCreationHoldMsg := ' ';
                         Train_RouteCreationReleasedMsg := 'J=' + IntToStr(JourneyCount) + ': '
                                                           + LineToStr(TrainJourney_StartLine) + ' to ' + LineToStr(TrainJourney_EndLine)
@@ -3537,9 +3375,7 @@ BEGIN
                     { See if the earlier part of the route is set up - if so, we can proceed with this part }
                     IF NOT RouteCreationHeld THEN BEGIN
                       Train_RouteCreationHoldNum := 10;
-                      IF (JourneyCount > 0)
-                      AND (Length(DraftRouteArray) > 0)
-                      THEN BEGIN
+                      IF (JourneyCount > 0) AND (Length(DraftRouteArray) > 0) THEN BEGIN
                         RouteCreationHeld := True;
                         Train_RouteCreationReleasedMsg := '';
                         Train_RouteCreationHoldMsg := 'J=' + IntToStr(JourneyCount) + ': '
@@ -3566,9 +3402,7 @@ BEGIN
                     { If there's a hold marker, look at the route immediately ahead and see if it's clear }
                     IF NOT RouteCreationHeld THEN BEGIN
                       Train_RouteCreationHoldNum := 11;
-                      IF (Length(TrainJourney_RouteArray) = 0)
-                      AND NOT Train_RouteCreationHeldMsgWrittenArray[Train_RouteCreationHoldNum]
-                      THEN BEGIN
+                      IF (Length(TrainJourney_RouteArray) = 0) AND NOT Train_RouteCreationHeldMsgWrittenArray[Train_RouteCreationHoldNum] THEN BEGIN
                         Log(Train_LocoChipStr + ' RG J=' + IntToStr(JourneyCount) + ' TrainJourney_RouteArray is empty');
                         Train_RouteCreationHeldMsgWrittenArray[Train_RouteCreationHoldNum] := True;
                       END ELSE BEGIN
@@ -3630,9 +3464,7 @@ BEGIN
                                     + ' please inform the program''s author');
                       END;
 
-                      IF Train_JourneysArray[JourneyCount].TrainJourney_UserToDrive
-                      AND NOT Train_UserDriving
-                      THEN BEGIN
+                      IF Train_JourneysArray[JourneyCount].TrainJourney_UserToDrive AND NOT Train_UserDriving THEN BEGIN
                         RouteCreationHeld := True;
                         Train_RouteCreationReleasedMsg := '';
                         Train_RouteCreationHoldMsg := 'J=' + IntToStr(JourneyCount) + ': '
@@ -3644,9 +3476,7 @@ BEGIN
                           StartSignal := UnknownSignal;
                           SignalFound := False;
                           TrainJourneyRouteArrayPos := 0;
-                          WHILE (TrainJourneyRouteArrayPos <= High(TrainJourney_RouteArray))
-                          AND NOT SignalFound
-                          DO BEGIN
+                          WHILE (TrainJourneyRouteArrayPos <= High(TrainJourney_RouteArray)) AND NOT SignalFound DO BEGIN
                             IF ExtractSignalFromString(TrainJourney_RouteArray[TrainJourneyRouteArrayPos]) <> UnknownSignal THEN BEGIN
                               SignalFound := True;
                               StartSignal := ExtractSignalFromString(TrainJourney_RouteArray[TrainJourneyRouteArrayPos]);
@@ -3842,18 +3672,14 @@ BEGIN
                 JourneyCount := 0;
                 JourneyFound := False;
                 { See on which route the first journey is }
-                WHILE (JourneyCount <= High(Train_JourneysArray))
-                AND NOT JourneyFound
-                DO BEGIN
+                WHILE (JourneyCount <= High(Train_JourneysArray)) AND NOT JourneyFound DO BEGIN
                   IF Routes_RouteCounter = NewRoute THEN BEGIN
                     JourneyFound := True;
 
                     TCCount := 0;
                     TCFound := False;
                     { See which TC is the first on it }
-                    WHILE (TCCount <= High(FinalRouteArray))
-                    AND NOT TCFound
-                    DO BEGIN
+                    WHILE (TCCount <= High(FinalRouteArray)) AND NOT TCFound DO BEGIN
                       IF Pos('TC=', FinalRouteArray[TCCount]) > 0 THEN BEGIN
                         Log(Train_LocoChipStr + ' R Journey ' + IntToStr(JourneyCount)
                                               + ' 1st TC=' + IntToStr(ExtractTrackCircuitFromString(FinalRouteArray[TCCount])));
@@ -3883,10 +3709,7 @@ BEGIN
                     IF NOT IsElementInStringArray(Train_TCsAndSignalsNotClearedArray, LockingArray[I], ElementPos) THEN
                       AppendToStringArray(Train_TCsAndSignalsNotClearedArray, LockingArray[I]);
                   END ELSE
-                    IF ((Pos('FS=', LockingArray[I]) > 0)
-                         AND (Pos('FR', LockingArray[I]) = 0)
-                         AND (ExtractSignalFromString(LockingArray[I]) <> SaveSignal))
-                    THEN BEGIN
+                    IF ((Pos('FS=', LockingArray[I]) > 0) AND (Pos('FR', LockingArray[I]) = 0) AND (ExtractSignalFromString(LockingArray[I]) <> SaveSignal)) THEN BEGIN
                       SaveSignal := ExtractSignalFromString(LockingArray[I]);
                       { record the first signal to be found, if it's not there already }
                       IF NOT IsSignalInStringArray(Train_TCsAndSignalsNotClearedArray, SaveSignal) THEN

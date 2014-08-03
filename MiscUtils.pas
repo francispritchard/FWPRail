@@ -112,6 +112,9 @@ FUNCTION CardinalMulDiv(A, B, C : Cardinal) : Cardinal;
 PROCEDURE ChangeTrainStatus(T : TrainIndex; NewStatus : TrainStatusType);
 { Change the current train status and record it }
 
+PROCEDURE CheckSemaphoreDistantBeforeSemaphoreHomeCleared(S : Integer);
+{ Sees if semaphore distants need automatically to be reset to allow a semaphore home to be put on }
+
 PROCEDURE CloseOutputFile(VAR OutputFile : Text; Filename : String);
 { Close an output file, capturing the error message if any }
 
@@ -148,7 +151,7 @@ PROCEDURE Debug{1}; Overload;
 PROCEDURE Debug{2}(Str : String); Overload;
 { Write out debug text to the Debug Window }
 
-PROCEDURE Debug{3}(Str : String; DoNotWriteToStatusBarPanel : Boolean); Overload;
+PROCEDURE Debug{3}(Str : String; WriteToStatusBar : Boolean); Overload;
 { Write out debug text to the Debug Window }
 
 PROCEDURE DeleteElementFromDateTimeArray(VAR DateTimeArray : DateTimeArrayType; Position : Integer);
@@ -272,6 +275,9 @@ FUNCTION GetBuildInfoAsString : String;
 FUNCTION GetComputerNetName : String;
 { Return the local computer name (by Zarko Gajic, About.com) }
 
+FUNCTION GetElementPosInIntegerArray(IntegerArray : IntegerArrayType; Element : Integer) : Integer;
+{ Returns where, if at all, the given array element is found in an integer array }
+
 FUNCTION GetFollowingChars(Line: String; Str : String; EndStr : String) : String;
 { Return the characters after the given characters up to the delimiter supplied (or "CRLF" if it's at a line end) }
 
@@ -289,6 +295,9 @@ FUNCTION GetLocoIndexFromLocoChip(LocoChip : Integer): LocoIndex;
 
 FUNCTION GetLocoIndexFromTrainIndex(T : TrainIndex): LocoIndex;
 { Look for a matching loco record given a train index }
+
+FUNCTION GetLocoRecFromLocoChip(LocoChip : Integer; OUT Loco : LocoRec) : Boolean;
+{ Look for a matching loco record given a loco chip number }
 
 FUNCTION GetMidPos(I1, I2 : Integer) : Integer;
 { Return the mid position between two given values }
@@ -604,9 +613,6 @@ FUNCTION SetDefaultButton(CONST Dlg: TForm; CONST ModalResult: Integer): Boolean
 { SetDefaultButton sets the default button in a Message Dialogue that has been created with the Dialogs.CreateMessageDialogue function. The result is a success indicator.
   The function only fails, if the specified button is not present in the dialogue [from uDialogsExt from Borland website]
 }
-PROCEDURE SetLocoControlledByState(L : LocoIndex; ControlledByState : LocoControlStateType);
-{ Mark a given loco as controlled either by the software or by the LH100 or by the RDC }
-
 PROCEDURE SetTwoLightingChips(L : LocoIndex; LightsAtUp, LightsAtDown : DirectionType; LightsOn : Boolean);
 { When appropriate switch two lighting chips }
 
@@ -1193,15 +1199,11 @@ VAR
       { Drawing lines in the log file. First see if there is a drawn 'line after' immediately succeeding a 'line before' - avoid too many lines in the log }
       IF Pos('{LINE=', UpperCase(LogStr)) > 0 THEN BEGIN
         TempStr := GetFollowingChars(LogStr, '{LINE=', '}');
-        IF (UpperCase(TempStr) = 'BEFORE}')
-        AND NOT LineAfterJustDrawn
-        THEN BEGIN
+        IF (UpperCase(TempStr) = 'BEFORE}') AND NOT LineAfterJustDrawn THEN BEGIN
           DrawLineInLogFileBefore := True;
           LogStr := StringReplace(LogStr, '{LINE=BEFORE}', '', [rfIgnoreCase]);
         END ELSE
-          IF (UpperCase(TempStr) = 'BEFORE}')
-          AND LineAfterJustDrawn
-          THEN BEGIN
+          IF (UpperCase(TempStr) = 'BEFORE}') AND LineAfterJustDrawn THEN BEGIN
             DrawLineInLogFileBefore := False;
             LogStr := StringReplace(LogStr, '{LINE=BEFORE}', '', [rfIgnoreCase]);
           END ELSE
@@ -1300,9 +1302,7 @@ BEGIN { WriteToLogFile }
       END;
 
       { write out anything previous stored when the log file was not open }
-      IF LogFileOpen
-      AND (Length(LogArray) <> 0)
-      THEN BEGIN
+      IF LogFileOpen AND (Length(LogArray) <> 0) THEN BEGIN
         AddRichLine(LoggingWindow.LoggingWindowRichEdit, '--------------------------------------------------');
         AddRichLine(LoggingWindow.LoggingWindowRichEdit, 'Log strings stored before the log file was opened:');
         AddRichLine(LoggingWindow.LoggingWindowRichEdit, '');
@@ -1420,9 +1420,7 @@ BEGIN { WriteToLogFile }
           IdenticalLinesFound := False;
           J := 1;
           I := 1;
-          WHILE (I <= MaxSaveLogStrs)
-          AND NOT IdenticalLinesFound
-          DO BEGIN
+          WHILE (I <= MaxSaveLogStrs) AND NOT IdenticalLinesFound DO BEGIN
             IF LogStr <> SaveLogStrArray[I] THEN
               { reset the threshold }
               J := 1
@@ -1491,9 +1489,7 @@ BEGIN { WriteToLogFile }
               LineAfterJustDrawn := True;
           END;
 
-          IF NOT DrawLineInLogFileOnly
-          AND (LogStr <> ' ')
-          THEN BEGIN
+          IF NOT DrawLineInLogFileOnly AND (LogStr <> ' ') THEN BEGIN
             CurrentRailwayTimeStr := TimeToHMSStr(CurrentRailwayTime);
             IdenticalLineMsgWritten := False;
 
@@ -1516,9 +1512,7 @@ BEGIN { WriteToLogFile }
               IF (LocoChipStr = '    ') OR (LocoChipStr = '0000') THEN
                 LocoChipStr := '';
             END;
-            IF (Indent = 0)
-            AND (WrapNum = 0)
-            THEN BEGIN
+            IF (Indent = 0) AND (WrapNum = 0) THEN BEGIN
               { Add the time, and a UnitRef if supplied }
               WriteToEachLogFile(TypeOfLog[1],
                                  IfThen(LogCurrentTimeMode,
@@ -1552,9 +1546,7 @@ BEGIN { WriteToLogFile }
               IF Length(LogStr) > 1 THEN BEGIN
                 I := 1;
                 WHILE I < Length(LogStr) DO BEGIN
-                  IF (LogStr[I] = #13)
-                  AND (LogStr[I + 1] = #10)
-                  THEN BEGIN
+                  IF (LogStr[I] = #13) AND (LogStr[I + 1] = #10) THEN BEGIN
                     WriteToEachLogFile(TypeOfLog[1],
                                        IfThen(LogCurrentTimeMode,
                                               TimeToHMSZStr(Time),
@@ -1610,9 +1602,7 @@ BEGIN { WriteToLogFile }
           END;
 
           { If we're in TestingMode, write things out immediately so they can be checked }
-          IF TestingMode
-          AND LogFileOpen
-          THEN BEGIN
+          IF TestingMode AND LogFileOpen THEN BEGIN
             IF TypeOfLog <> ' ' THEN
               Flush(LargeLogFile);
             CASE TypeOfLog[1] OF
@@ -1711,9 +1701,7 @@ BEGIN
       END;
     END;
 
-    IF (DebugStr <> '')
-    AND (Length(DebugStr) > WrapNum)
-    THEN BEGIN
+    IF (DebugStr <> '') AND (Length(DebugStr) > WrapNum) THEN BEGIN
       IF NOT BreakFound THEN
         Log(UnknownLocoChipAsZeroesStr + ' ' + TypeOfLogChar + StringOfChar(' ', Indent + 1) + ': ' + StringOfChar(' ', 5) + DebugStr + ' {NOUNITREF}')
       ELSE BEGIN
@@ -1741,7 +1729,6 @@ PROCEDURE WriteStringArrayToLog{1}(LocoChipStr : String; TypeOfLogChar : Char; S
 { Write the contents of an array to the replay file, wrapping it at Wrapnum and indenting it by Indent: this version isn't preceded by an explanatory string }
 CONST
   NoBreakOnStr = '';
-  NumberElements = True;
 
 BEGIN
   WriteStringArrayToLogMainProcedure(LocoChipStr, TypeOfLogChar, '', StringArray, Indent, WrapNum, NOT NumberElements, NoBreakOnStr);
@@ -1751,7 +1738,6 @@ PROCEDURE WriteStringArrayToLog{2}(LocoChipStr : String; TypeOfLogChar : Char; S
 { Write the contents of an array to the replay file, wrapping it at Wrapnum and indenting it by Indent: this version is preceded by an explanatory string }
 CONST
   NoBreakOnStr = '';
-  NumberElements = True;
 
 BEGIN
   WriteStringArrayToLogMainProcedure(LocoChipStr, TypeOfLogChar, Str, StringArray, Indent, WrapNum, NOT NumberElements, NoBreakOnStr);
@@ -1760,9 +1746,6 @@ END; { WriteStringArrayToLogFile - 2}
 PROCEDURE WriteStringArrayToLog{3}(LocoChipStr : String; TypeOfLogChar : Char; Str: String; StringArray : StringArrayType; Indent, WrapNum : Integer; BreakOnStr : String);
                                    Overload;
 { Write the contents of an array to the replay file, wrapping it at Wrapnum and indenting it by Indent: this version is preceded by an explanatory string }
-CONST
-  NumberElements = True;
-
 BEGIN
   WriteStringArrayToLogMainProcedure(LocoChipStr, TypeOfLogChar, Str, StringArray, Indent, WrapNum, NOT NumberElements, BreakOnStr);
 END; { WriteStringArrayToLogFile - 3}
@@ -1771,9 +1754,6 @@ PROCEDURE WriteStringArrayToLog{4}(LocoChipStr : String; TypeOfLogChar : Char; S
 { Write the contents of an array to the replay file, wrapping it at Wrapnum and indenting it by Indent: this version is not preceded by an explanatory string. If the
   BreakOnStr string appears in the text, start a new line before it.
 }
-CONST
-  NumberElements = True;
-
 BEGIN
   WriteStringArrayToLogMainProcedure(LocoChipStr, TypeOfLogChar, '', StringArray, Indent, WrapNum, NOT NumberElements, BreakOnStr);
 END; { WriteStringArrayToLogFile - 4}
@@ -1782,7 +1762,6 @@ PROCEDURE WriteStringArrayToLog{5}(LocoChipStr : String; TypeOfLogChar : Char; S
 { Write the contents of an array to the replay file, wrapping it at WrapNum and indenting it by two - this version is not preceded by an explanatory string }
 CONST
   NoBreakOnStr = '';
-  NumberElements = True;
   WrapNum = 190;
 
 BEGIN
@@ -1793,7 +1772,6 @@ PROCEDURE WriteStringArrayToLog{6}(LocoChipStr : String; TypeOfLogChar : Char; S
 { Write the contents of an array to the replay file, wrapping it by default at 140 and indenting it by two - this version is preceded by an explanatory string }
 CONST
   NoBreakOnStr = '';
-  NumberElements = True;
   WrapNum = 190;
 
 BEGIN
@@ -1826,9 +1804,6 @@ END; { WriteStringArrayToLogFile - 8}
 
 PROCEDURE WriteStringArrayToLog{9}(TypeOfLogChar : Char; Str: String; StringArray : StringArrayType; Indent, WrapNum : Integer; BreakOnStr : String); Overload;
 { Write the contents of an array to the replay file, wrapping it at Wrapnum and indenting it by Indent: this version is preceded by an explanatory string }
-CONST
-  NumberElements = True;
-
 BEGIN
   WriteStringArrayToLogMainProcedure(UnknownLocoChipStr, TypeOfLogChar, Str, StringArray, Indent, WrapNum, NOT NumberElements, BreakOnStr);
 END; { WriteStringArrayToLogFile - 3}
@@ -2243,6 +2218,26 @@ BEGIN
   Result := X DIV C;
 END; { CardinalMulDiv }
 
+PROCEDURE CheckSemaphoreDistantBeforeSemaphoreHomeCleared(S : Integer);
+{ Sees if semaphore distants need automatically to be reset to allow a semaphore home to be put on }
+VAR
+  I : Integer;
+
+BEGIN
+  IF Signals[S].Signal_Type = SemaphoreHome THEN BEGIN
+    I := 0;
+    WHILE I <= High(Signals[Signals[S].Signal_SemaphoreDistantLocking].Signal_SemaphoreDistantHomesArray) DO BEGIN
+      { unlock the semaphore home signals }
+      IF Signals[Signals[Signals[S].Signal_SemaphoreDistantLocking].Signal_SemaphoreDistantHomesArray[I]].Signal_Aspect = RedAspect THEN
+        Signals[Signals[Signals[S].Signal_SemaphoreDistantLocking].Signal_SemaphoreDistantHomesArray[I]].Signal_LockedBySemaphoreDistant := False;
+      Inc(I);
+    END; {WHILE}
+
+    { and set the distant on }
+    Signals[Signals[S].Signal_SemaphoreDistantLocking].Signal_Aspect := RedAspect;
+  END;
+END; { CheckSemaphoreDistantBeforeSemaphoreHomeCleared }
+
 FUNCTION ColourToStr(Colour : TColour) : String;
 { Checks if it's a Delphi colour or an FWP one }
 BEGIN
@@ -2491,41 +2486,32 @@ BEGIN
       DebugWindow.DebugRichEdit.Perform(EM_SCROLLCARET, 0, 0);
 
       SaveStyle := DebugWindow.DebugRichEdit.SelAttributes.Style;
-      IF (Copy(Str, 1, 1) = '!')
-      AND NOT (Copy(Str, 1, 2) = '!!')
-      THEN BEGIN
+      IF (Copy(Str, 1, 1) = '!') AND NOT (Copy(Str, 1, 2) = '!!') THEN BEGIN
         { urgent error messages }
         AddRichLine(DebugWindow.DebugRichEdit, '{R}<color=clRed><b>' + Copy(Str, 2) + '</b>');
         IF MakeSoundWhenDebugWindowBoldTextAppears THEN
           MakeSound(1)
       END ELSE
-        IF (Copy(Str, 1, 1) = '&')
-        AND NOT (Copy(Str, 1, 2) = '&&')
-        THEN BEGIN
+        IF (Copy(Str, 1, 1) = '&') AND NOT (Copy(Str, 1, 2) = '&&') THEN BEGIN
           { urgent error messages }
           AddRichLine(DebugWindow.DebugRichEdit, '{R}<color=clGreen><b>' + Copy(Str, 2) + '</b>');
           IF MakeSoundWhenDebugWindowBoldTextAppears THEN
             MakeSound(1)
         END ELSE
-          IF (Copy(Str, 1, 1) = '+')
-          AND NOT (Copy(Str, 1, 2) = '++')
-          THEN BEGIN
+          IF (Copy(Str, 1, 1) = '+') AND NOT (Copy(Str, 1, 2) = '++') THEN BEGIN
             { warning messages }
             AddRichLine(DebugWindow.DebugRichEdit, '{R}<i>' + Copy(Str, 2) + '</i>');
             IF MakeSoundWhenDebugWindowBoldTextAppears THEN
               MakeSound(5);
           END ELSE
-            IF (Copy(Str, 1, 1) = '=')
-            AND NOT (Copy(Str, 1, 2) = '==')
-            THEN BEGIN
+            IF (Copy(Str, 1, 1) = '=') AND NOT (Copy(Str, 1, 2) = '==') THEN BEGIN
               { instructions to the user }
               AddRichLine(DebugWindow.DebugRichEdit, '{R}<b><i>' + Copy(Str, 2) + '</i></b>');
               IF MakeSoundWhenDebugWindowBoldTextAppears THEN
                 MakeSound(3);
             END ELSE
-              IF (Pos('<', Str) > 0)
-              AND ((Pos('>', Str) > 0)
-                   AND ((Pos('>', Str) > Pos('<', Str))))
+              IF (Pos('<', Str) > 0) AND ((Pos('>', Str) > 0)
+              AND ((Pos('>', Str) > Pos('<', Str))))
               THEN
                 AddRichLine(DebugWindow.DebugRichEdit, Str)
               ELSE BEGIN
@@ -2541,8 +2527,8 @@ BEGIN
   END;
 END; { Debug-2 }
 
-PROCEDURE Debug{3}(Str : String; DoNotWriteToStatusBarPanel : Boolean); Overload;
-{ Write out debug text to the Debug Window, but don't write it to the Status Panel too. (Is this ever called? ****) }
+PROCEDURE Debug{3}(Str : String; WriteToStatusBar : Boolean); Overload;
+{ Write out debug text to the Debug Window, and also write it to the Status Panel }
 BEGIN
   IF Str <> OldDebugStr THEN BEGIN
     { needs this to avoid filling the window with identical lines of text }
@@ -2553,6 +2539,8 @@ BEGIN
     END ELSE BEGIN
       DebugWindow.DebugRichEdit.Lines.Add(Str);
       OldDebugStr := Str;
+      IF WriteToStatusBar THEN
+        WriteToStatusBarPanel(StatusBarPanel2, Str);
     END;
   END;
 END; { Debug-3 }
@@ -2651,9 +2639,7 @@ VAR
 BEGIN
   Result := '';
   FOR L := 0 TO High(Lines) DO
-    IF (TC <> UnknownTrackCircuit)
-    AND (TC = Lines[L].Line_TC)
-    THEN
+    IF (TC <> UnknownTrackCircuit) AND (TC = Lines[L].Line_TC) THEN
       Result := Result + LineToStr(L) + ', ';
 
   IF RightStr(Result, 2) = ', ' THEN
@@ -2665,24 +2651,16 @@ FUNCTION DescribeStartAndEndOfRoute(Route : Integer) : String;
 BEGIN
   { Ended by a signal }
   IF Routes_EndSignals[Route] <> UnknownSignal THEN
-    Result := '(S' + IntToStr(Routes_StartSignals[Route])
-              + ' to S' + IntToStr(Routes_EndSignals[Route])
-              + ', ' + LineToStr(Routes_StartLines[Route])
-              + ' to ' + LineToStr(Routes_EndLines[Route])
-              + ', TC=' + IntToStr(Lines[Routes_StartLines[Route]].Line_TC)
-              + ' to TC=' + IntToStr(Lines[Routes_EndLines[Route]].Line_TC)
-              + ')'
+    Result := '(S' + IntToStr(Routes_StartSignals[Route]) + ' to S' + IntToStr(Routes_EndSignals[Route]) + ', '
+              + LineToStr(Routes_StartLines[Route]) + ' to ' + LineToStr(Routes_EndLines[Route]) + ', '
+              + 'TC' + IntToStr(Lines[Routes_StartLines[Route]].Line_TC) + ' to TC' + IntToStr(Lines[Routes_EndLines[Route]].Line_TC) + ')'
 
   ELSE
     IF Routes_EndBufferStops[Route] <> UnknownBufferStop THEN
       { or ended by a buffer stop }
-     Result := '(S' + IntToStr(Routes_StartSignals[Route])
-               + ' to BS' + IntToStr(Routes_EndBufferStops[Route])
-               + ', ' + LineToStr(Routes_StartLines[Route])
-               + ' to ' + LineToStr(Routes_EndLines[Route])
-               + ', TC=' + IntToStr(Lines[Routes_StartLines[Route]].Line_TC)
-               + ' to TC=' + IntToStr(Lines[Routes_EndLines[Route]].Line_TC)
-               + ')'
+     Result := '(S' + IntToStr(Routes_StartSignals[Route]) + ' to BS' + IntToStr(Routes_EndBufferStops[Route]) + ', '
+               + LineToStr(Routes_StartLines[Route]) + ' to ' + LineToStr(Routes_EndLines[Route]) + ', '
+               + 'TC' + IntToStr(Lines[Routes_StartLines[Route]].Line_TC) + ' to TC' + IntToStr(Lines[Routes_EndLines[Route]].Line_TC) + ')'
     ELSE
       Result := '';
 END; { DescribeStartAndEndOfRoute }
@@ -2695,19 +2673,17 @@ VAR
 BEGIN
   TRY
     IF SubRoute < (Routes_TotalSubRoutes[Route] - 1) THEN
-      EndSignalOrBufferStopStr := 'S=' + IntToStr(Routes_SubRouteStartSignals[Route, SubRoute + 1])
+      EndSignalOrBufferStopStr := 'S' + IntToStr(Routes_SubRouteStartSignals[Route, SubRoute + 1])
     ELSE
       IF Routes_EndSignals[Route] <> UnknownSignal THEN
-        EndSignalOrBufferStopStr := 'S=' + IntToStr(Routes_EndSignals[Route])
+        EndSignalOrBufferStopStr := 'S' + IntToStr(Routes_EndSignals[Route])
       ELSE
-        EndSignalOrBufferStopStr := 'BS=' + IntToStr(Routes_EndBufferStops[Route]);
+        EndSignalOrBufferStopStr := 'BS' + IntToStr(Routes_EndBufferStops[Route]);
 
-    Result := '(' + LineToStr(Routes_SubRouteStartLines[Route, SubRoute])
-               + ' to ' + LineToStr(Routes_SubRouteEndLines[Route, SubRoute])
-               + ')'
-               + '[S=' + IntToStr(Routes_SubRouteStartSignals[Route, SubRoute])
-               + ' to ' + EndSignalOrBufferStopStr
-               + ']';
+    Result :=  '(S' + IntToStr(Routes_SubRouteStartSignals[Route, SubRoute]) + ' to ' + EndSignalOrBufferStopStr + ', '
+               + LineToStr(Routes_SubRouteStartLines[Route, SubRoute]) + ' to ' + LineToStr(Routes_SubRouteEndLines[Route, SubRoute]) + ', '
+               + 'TC' + IntToStr(Lines[Routes_SubRouteStartLines[Route, SubRoute]].Line_TC)
+               + ' to TC' + IntToStr(Lines[Routes_SubRouteEndLines[Route, SubRoute]].Line_TC) + ')';
   EXCEPT
     ON E : Exception DO
       Log('EG DescribeSubRoute: ' + E.ClassName + ' error raised, with message: ' + E.Message);
@@ -2724,15 +2700,15 @@ BEGIN
   IF High(Args) = 0 THEN
     { 1 argument - just route }
     Result := IfThen(Routes_Journeys[Route] <> UnknownJourney,
-                     'J=' + IntToStr(Routes_Journeys[Route]) + ' ')
-              + 'R=' + IntToStr(Route) + ' ' + DescribeStartAndEndOfRoute(Route)
+                     'J' + IntToStr(Routes_Journeys[Route]) + ' ')
+              + 'R' + IntToStr(Route) + ' ' + DescribeStartAndEndOfRoute(Route)
   ELSE BEGIN
     { 2 arguments - route and subroute }
     SubRoute := Args[1];
     Result := IfThen(Routes_Journeys[Route] <> UnknownJourney,
-                     'J=' + IntToStr(Routes_Journeys[Route]) + ' ')
-              + 'R=' + IntToStr(Route) + '/' + IntToStr(SubRoute) + ' ' + DescribeStartAndEndOfRoute(Route)
-              + ': ' + DescribeSubRoute(Route, SubRoute);
+                     'J' + IntToStr(Routes_Journeys[Route]) + ' ')
+              + 'R' + IntToStr(Route) + ' ' + DescribeStartAndEndOfRoute(Route)
+              + ', SR' + IntToStr(SubRoute) + ' ' + DescribeSubRoute(Route, SubRoute);
   END;
 END; { DescribeJourneyAndRoute }
 
@@ -2957,11 +2933,7 @@ BEGIN
     IF JunctionIndicatorStrPos > 0 THEN
       Delete(Str, JunctionIndicatorStrPos, 2);
 
-    IF (Pos('FS=', Str) = 0)
-    AND (Pos('FR=', Str) = 0)
-    AND (Pos('TS=', Str) = 0)
-    AND (Pos('SS=', Str) = 0)
-    THEN BEGIN
+    IF (Pos('FS=', Str) = 0) AND (Pos('FR=', Str) = 0) AND (Pos('TS=', Str) = 0) AND (Pos('SS=', Str) = 0) THEN BEGIN
       IF Copy(Str, 1, 2) = 'S=' THEN
         Result := StrToInt(Copy(Str, 3, 255));
     END ELSE
@@ -3013,9 +2985,7 @@ BEGIN
 
   I := 1;
   WHILE I <= Length(Str) DO BEGIN
-    IF (Length(Str) > 0)
-    AND (Str[I] = DelimiterCh)
-    THEN BEGIN
+    IF (Length(Str) > 0) AND (Str[I] = DelimiterCh) THEN BEGIN
       AppendToStringArray(StrArray, Copy(Str, 1, I - 1));
       StrArray[High(StrArray)] := Trim(StrArray[High(StrArray)]);
       Delete(Str, 1, I);
@@ -3058,9 +3028,7 @@ BEGIN
   StringArrayPos := 0;
   SubRouteStartFound := False;
   SubRouteEndFound := False;
-  WHILE (StringArrayPos <= High(StringArray))
-  AND NOT SubRouteEndFound
-  DO BEGIN
+  WHILE (StringArrayPos <= High(StringArray)) AND NOT SubRouteEndFound DO BEGIN
     IF IsElementSubRouteMarker(StringArray, StringArrayPos) THEN BEGIN
       IF ExtractSubRouteFromString(StringArray[StringArrayPos]) = (SubRoute - 1) THEN
         { we've found the one we want }
@@ -3305,9 +3273,7 @@ BEGIN
   SetLength(Result, 0);
 
   FOR L := 0 TO High(Lines) DO
-    IF (TC <> UnknownTrackCircuit)
-    AND (TC = Lines[L].Line_TC)
-    THEN
+    IF (TC <> UnknownTrackCircuit) AND (TC = Lines[L].Line_TC) THEN
       AppendToLineArray(Result, L);
 END; { GetLinesForTrackCircuit }
 
@@ -3348,9 +3314,7 @@ BEGIN
   Result := UnknownLocation;
 
   LocationFound := False;
-  WHILE (Line <= High(Lines))
-  AND NOT LocationFound
-  DO BEGIN
+  WHILE (Line <= High(Lines)) AND NOT LocationFound DO BEGIN
     IF Lines[Line].Line_TC = TC THEN BEGIN
       IF Lines[Line].Line_Location <> UnknownLocation THEN BEGIN
         LocationFound := True;
@@ -3479,9 +3443,7 @@ BEGIN
     Result := TCUnoccupied
   ELSE BEGIN
     Result := TrackCircuits[TC].TC_OccupationState;
-    IF DisplayFlashingTrackCircuits
-    AND (TrackCircuits[TC].TC_Headcode = '?')
-    THEN
+    IF DisplayFlashingTrackCircuits AND (TrackCircuits[TC].TC_Headcode = '?') THEN
       { only mystery occupation flashes }
       TrackCircuits[TC].TC_Flashing := True
     ELSE BEGIN
@@ -3690,6 +3652,23 @@ BEGIN
   Result := Trim(Result);
 END; { IntegerArrayToStr }
 
+FUNCTION GetElementPosInIntegerArray(IntegerArray : IntegerArrayType; Element : Integer) : Integer;
+{ Returns where, if at all, the given array element is found in an integer array }
+VAR
+  I : Integer;
+
+BEGIN
+  Result := -1;
+
+  I := 0;
+  WHILE (I <= High(IntegerArray)) AND (Result = -1) DO BEGIN
+    IF Element <> IntegerArray[I] THEN
+      Inc(I)
+    ELSE
+      Result := I;
+  END; {WHILE}
+END; { GetElementPosInIntegerArray }
+
 FUNCTION IsElementInIntegerArray{1}(IntegerArray : IntegerArrayType; Element : Integer) : Boolean; Overload;
 { Returns whether the given array element is found in an integer array }
 VAR
@@ -3698,9 +3677,7 @@ VAR
 BEGIN
   I := 0;
   Result := False;
-  WHILE (I <= High(IntegerArray))
-  AND (Result = False)
-  DO BEGIN
+  WHILE (I <= High(IntegerArray)) AND (Result = False) DO BEGIN
     IF Element <> IntegerArray[I] THEN
       Inc(I)
     ELSE
@@ -3716,9 +3693,7 @@ VAR
 BEGIN
   I := 0;
   Result := False;
-  WHILE (I <= High(IntegerArray))
-  AND (Result = False)
-  DO BEGIN
+  WHILE (I <= High(IntegerArray)) AND (Result = False) DO BEGIN
     IF Element <> IntegerArray[I] THEN
       Inc(I)
     ELSE BEGIN
@@ -3736,9 +3711,7 @@ VAR
 BEGIN
   I := 0;
   Result := False;
-  WHILE (I <= High(LineArray))
-  AND (Result = False)
-  DO BEGIN
+  WHILE (I <= High(LineArray)) AND (Result = False) DO BEGIN
     IF Element = LineArray[I] THEN
       Result := True
     ELSE
@@ -3754,9 +3727,7 @@ VAR
 BEGIN
   I := 0;
   Result := False;
-  WHILE (I <= High(LocationArray))
-  AND (Result = False)
-  DO BEGIN
+  WHILE (I <= High(LocationArray)) AND (Result = False) DO BEGIN
     IF Element <> LocationArray[I] THEN
       Inc(I)
     ELSE BEGIN
@@ -3775,9 +3746,7 @@ BEGIN
   Result := False;
 
   I := 0;
-  WHILE (I <= High(StringArray))
-  AND (Result = False)
-  DO BEGIN
+  WHILE (I <= High(StringArray)) AND (Result = False) DO BEGIN
     IF Element = StringArray[I] THEN
       Result := True
     ELSE
@@ -3795,9 +3764,7 @@ BEGIN
   Result := False;
 
   I := 0;
-  WHILE (I <= High(StringArray))
-  AND (Result = False)
-  DO BEGIN
+  WHILE (I <= High(StringArray)) AND (Result = False) DO BEGIN
     IF Element = StringArray[I] THEN BEGIN
       Result := True;
       ElementPos := I;
@@ -3814,12 +3781,8 @@ VAR
 BEGIN
   I := 0;
   Result := False;
-  WHILE (I <= High(StringArray))
-  AND (Result = False)
-  DO BEGIN
-    IF (Signal <> UnknownSignal)
-    AND (Signal = ExtractSignalFromString(StringArray[I]))
-    THEN
+  WHILE (I <= High(StringArray)) AND (Result = False) DO BEGIN
+    IF (Signal <> UnknownSignal) AND (Signal = ExtractSignalFromString(StringArray[I])) THEN
       Result := True
     ELSE
       Inc(I);
@@ -3834,12 +3797,8 @@ VAR
 BEGIN
   I := 0;
   Result := False;
-  WHILE (I <= High(StringArray))
-  AND (Result = False)
-  DO BEGIN
-    IF (Point <> UnknownPoint)
-    AND (Point = ExtractPointFromString(StringArray[I]))
-    THEN
+  WHILE (I <= High(StringArray)) AND (Result = False) DO BEGIN
+    IF (Point <> UnknownPoint) AND (Point = ExtractPointFromString(StringArray[I])) THEN
       Result := True
     ELSE
       Inc(I);
@@ -3851,12 +3810,8 @@ FUNCTION IsTrackCircuitInStringArray(StringArray : StringArrayType; TC : Integer
 BEGIN
   Pos := 0;
   Result := False;
-  WHILE (Pos <= High(StringArray))
-  AND (Result = False)
-  DO BEGIN
-    IF (TC <> UnknownTrackCircuit)
-    AND (TC = ExtractTrackCircuitFromString(StringArray[Pos]))
-    THEN
+  WHILE (Pos <= High(StringArray)) AND (Result = False) DO BEGIN
+    IF (TC <> UnknownTrackCircuit) AND (TC = ExtractTrackCircuitFromString(StringArray[Pos])) THEN
       Result := True
     ELSE
       Inc(Pos);
@@ -3915,9 +3870,7 @@ BEGIN
   LocationTCs := GetTrackCircuitsForLocation(Location);
   Result := False;
   I := 0;
-  WHILE (I <= High(LocationTCs))
-  AND (Result <> True)
-  DO BEGIN
+  WHILE (I <= High(LocationTCs)) AND (Result <> True) DO BEGIN
     IF TrackCircuits[LocationTCs[I]].TC_OccupationState = TCFeedbackOccupation THEN
       Result := True
     ELSE
@@ -3969,9 +3922,7 @@ BEGIN
   LocationTCs := GetTrackCircuitsForLocation(Location);
   Result := False;
   I := 0;
-  WHILE (I <= High(LocationTCs))
-  AND (Result <> True)
-  DO BEGIN
+  WHILE (I <= High(LocationTCs)) AND (Result <> True) DO BEGIN
     IF TrackCircuitStateIsPermanentlyOccupied(TrackCircuits[LocationTCs[I]].TC_OccupationState) THEN BEGIN
       Result := True;
       { note one of the out of use track circuits for diagnostic purposes }
@@ -3981,6 +3932,40 @@ BEGIN
       Inc(I);
   END; {WHILE}
 END; { LocationOutOfUse }
+
+FUNCTION GetLocoRecFromLocoChip(LocoChip : Integer; OUT Loco : LocoRec) : Boolean;
+{ Look for a matching loco record given a loco chip number }
+VAR
+  L : LocoIndex;
+  LocoFound : Boolean;
+
+BEGIN
+  Result := False;
+
+  TRY
+    IF LocoChip = UnknownLocoChip THEN
+      Exit
+    ELSE BEGIN
+      L := 0;
+      LocoFound := False;
+      WHILE (L <= High(Locos)) AND NOT LocoFound DO BEGIN
+        { run through the train list, to find our train }
+        IF Locos[L].Loco_LocoChip = LocoChip THEN
+          LocoFound := True
+        ELSE
+          Inc(L);
+      END; {WHILE}
+
+      IF LocoFound THEN BEGIN
+        Loco := Locos[L];
+        Result := True;
+      END;
+    END;
+  EXCEPT
+    ON E : Exception DO
+      Log('EG GetLocoIndexFromLocoChip: ' + E.ClassName + ' error raised, with message: ' + E.Message);
+  END; {TRY}
+END; { GetLocoIndexFromLocoChip }
 
 FUNCTION GetLocoIndexFromLocoChip(LocoChip : Integer) : LocoIndex;
 { Look for a matching loco record given a loco chip number }
@@ -3996,9 +3981,7 @@ BEGIN
     ELSE BEGIN
       L := 0;
       LocoFound := False;
-      WHILE (L <= High(Locos))
-      AND NOT LocoFound
-      DO BEGIN
+      WHILE (L <= High(Locos)) AND NOT LocoFound DO BEGIN
         { run through the train list, to find our train }
         IF Locos[L].Loco_LocoChip = LocoChip THEN
           LocoFound := True
@@ -4032,9 +4015,7 @@ BEGIN
     END ELSE BEGIN
       L := 0;
       LocoFound := False;
-      WHILE (L <= High(Locos))
-      AND NOT LocoFound
-      DO BEGIN
+      WHILE (L <= High(Locos)) AND NOT LocoFound DO BEGIN
         { run through the train list, to find our train }
         IF Locos[L].Loco_LocoChip = Trains[T].Train_LocoChip THEN
           LocoFound := True
@@ -4067,9 +4048,7 @@ BEGIN
     ELSE BEGIN
       T := 0;
       TrainFound := False;
-      WHILE (T <= High(Trains))
-      AND NOT TrainFound
-      DO BEGIN
+      WHILE (T <= High(Trains)) AND NOT TrainFound DO BEGIN
         { run through the train list, to find our train }
         IF Trains[T].Train_LocoChip = LocoChip THEN
           TrainFound := True
@@ -4172,9 +4151,7 @@ BEGIN
   Result := UnknownTrainType;
   T := 0;
   LocoChipFound := False;
-  WHILE (T <= High(Trains))
-  AND NOT LocoChipFound
-  DO BEGIN
+  WHILE (T <= High(Trains)) AND NOT LocoChipFound DO BEGIN
     IF Trains[T].Train_LocoChip = LocoChip THEN BEGIN
       LocoChipFound := True;
       Result := Trains[T].Train_Type;
@@ -4258,9 +4235,7 @@ BEGIN
           END;
 
           IF Length(SoundStr) = 2 THEN BEGIN
-            IF (SoundStr[1] = '0')
-            AND (SoundStr[2] <> '0')
-            THEN BEGIN
+            IF (SoundStr[1] = '0') AND (SoundStr[2] <> '0') THEN BEGIN
               { avoid the problem of, e.g., "09" }
               SoundStr := Copy(SoundStr, 2);
             END;
@@ -4625,16 +4600,12 @@ VAR
 BEGIN
   I := 1;
   WHILE I <= Length(Str) DO BEGIN
-    IF (Length(Str) > 0)
-    AND (Str[I] = ' ')
-    THEN BEGIN
+    IF (Length(Str) > 0) AND (Str[I] = ' ') THEN BEGIN
       { note: Delete may need "System" as because of a "WITH" statement it could become a DataSet command }
       System.Delete(Str, I, 1);
       I := I - 1;
     END;
-    IF (Length(Str) > 3)
-    AND (Copy(Str, I, 3) = '%20')
-    THEN BEGIN
+    IF (Length(Str) > 3) AND (Copy(Str, I, 3) = '%20') THEN BEGIN
       { note: Delete may need "System" as because of a "WITH" statement it could become a DataSet command }
       System.Delete(Str, I, 3);
       I := I - 3;
@@ -4665,9 +4636,7 @@ END; { JourneyToStr }
 FUNCTION LineToStr(L : Integer) : String;
 { Return a line's name as a string }
 BEGIN
-  IF (L <> UnknownLine)
-  AND (Length(Lines) > 0)
-  THEN
+  IF (L <> UnknownLine) AND (Length(Lines) > 0) THEN
     Result := Lines[L].Line_Str
   ELSE
     Result := UnknownLineStr;
@@ -4787,9 +4756,7 @@ BEGIN
   Result := UnknownAreaStr;
   SearchArea := 0;
   FoundArea := False;
-  WHILE (SearchArea <= High(Areas))
-  AND NOT FoundArea
-  DO BEGIN
+  WHILE (SearchArea <= High(Areas)) AND NOT FoundArea DO BEGIN
     IF Area = SearchArea THEN BEGIN
       FoundArea := True;
       Result := Areas[Area].Area_LongStr
@@ -4808,9 +4775,7 @@ BEGIN
   Result := UnknownAreaStr;
   SearchArea := 0;
   FoundArea := False;
-  WHILE (SearchArea <= High(Areas))
-  AND NOT FoundArea
-  DO BEGIN
+  WHILE (SearchArea <= High(Areas)) AND NOT FoundArea DO BEGIN
     IF Area = SearchArea THEN BEGIN
       FoundArea := True;
       IF LongOrShortString = LongStringType THEN
@@ -4958,9 +4923,7 @@ BEGIN
   IF Length(Locations) > 0 THEN BEGIN
     SearchLocation := 0;
     FoundLocation := False;
-    WHILE (SearchLocation <= High(Locations))
-    AND NOT FoundLocation
-    DO BEGIN
+    WHILE (SearchLocation <= High(Locations)) AND NOT FoundLocation DO BEGIN
       IF Location = SearchLocation THEN BEGIN
         FoundLocation := True;
         IF LongOrShortString = LongStringType THEN
@@ -5443,9 +5406,7 @@ BEGIN
     Inc(I);
   END; {WHILE}
 
-  IF DebuggingMode
-  AND (Length(DuplicateElements) > 0)
-  THEN BEGIN
+  IF DebuggingMode AND (Length(DuplicateElements) > 0) THEN BEGIN
     Log('X Have removed the following duplicate elements');
     WriteStringArrayToLog(UnknownLocoChipStr, 'X', DuplicateElements);
     Log('X from the following string array');
@@ -5488,9 +5449,7 @@ BEGIN
     Inc(I);
   END; {WHILE}
 
-  IF DebuggingMode
-  AND (Length(DuplicateElements) > 0)
-  THEN BEGIN
+  IF DebuggingMode AND (Length(DuplicateElements) > 0) THEN BEGIN
     Debug('Have removed the following duplicate elements');
     Debug(DescribeIntegerArray(DuplicateElements));
     Debug('from the following Integer array');
@@ -5627,7 +5586,7 @@ BEGIN
   Rgn := CreatePolygonRgn(Polygon[0], Length(Polygon), WINDING);
   Result := PtInRegion(Rgn, Point.X, Point.Y);
   DeleteObject(Rgn);
-END; {  PointInPolygon }
+END; { PointInPolygon }
 
 FUNCTION PointIsCatchPoint(P : Integer) : Boolean;
 { Returns whether a given point is a catch point }
@@ -6128,9 +6087,7 @@ BEGIN
             IF NOT Train_LightsRemainOnWhenJourneysComplete THEN
               TurnTrainLightsOff(T, OK);
 
-            IF TrainHasCablights(T)
-            AND Train_CabLightsAreOn
-            THEN
+            IF TrainHasCablights(T) AND Train_CabLightsAreOn THEN
               TurnTrainCabLightsOff(T, OK);
           END;
       END; {CASE}
@@ -6288,9 +6245,7 @@ BEGIN
 //      Debug('fieldcount=' + IntToStr(LocationDataADOTable.FieldCount));
 //      FieldCount := LocationDataADOTable.FieldCount;
 //
-//      WHILE LocationDataOK
-//      AND NOT LocationDataADOTable.EOF
-//      DO BEGIN
+//      WHILE LocationDataOK AND NOT LocationDataADOTable.EOF DO BEGIN
 //        Debug('0: ' + LocationDataADOTable.Fields[0].asString);
 //        FOR I := 0 TO FieldCount - 1 DO
 //          Debug(IntToStr(I) + ': ' + LocationDataADOTable.Fields[I].asString);
@@ -6340,9 +6295,7 @@ BEGIN
       Dec(MissingTrainCounter);
 
       FOR TC := 0 TO High(TrackCircuits) DO BEGIN
-        IF (TrackCircuits[TC].TC_LocoChip = Train_LocoChip)
-        AND (TrackCircuits[TC].TC_OccupationState = TCMissingOccupation)
-        THEN BEGIN
+        IF (TrackCircuits[TC].TC_LocoChip = Train_LocoChip) AND (TrackCircuits[TC].TC_OccupationState = TCMissingOccupation) THEN BEGIN
           TrackCircuits[TC].TC_MissingTrainNoted := False;
           SetTrackCircuitState(Train_LocoChip, TC, TCFeedbackOccupation);
         END;
@@ -6385,37 +6338,13 @@ BEGIN
   I := 0;
   WHILE NextButton(Dlg, I, Btn) DO BEGIN
     Btn.Default := (Btn.ModalResult = ModalResult);
-    IF Btn.Default
-    AND NOT Assigned(DefButton)
-    THEN
+    IF Btn.Default AND NOT Assigned(DefButton) THEN
       DefButton := Btn;
   END; {WHILE}
   Result := Assigned(DefButton);
   IF Result THEN
     Dlg.ActiveControl := DefButton;
 END; { SetDefaultButton }
-
-PROCEDURE SetLocoControlledByState(L : LocoIndex; ControlledByState : LocoControlStateType);
-{ Mark a given loco as controlled either by the software or by the LH100 or by the RDC }
-BEGIN
-  IF L = UnknownLocoIndex THEN
-    UnknownLocoRecordFound('SetTwoLightingChips')
-  ELSE BEGIN
-    WITH Locos[L] DO BEGIN
-      Loco_PreviousControlState := Loco_ControlState;
-      Loco_ControlState := ControlledByState;
-
-      { Also mark the additional lighting chips if any as controlled. Note: the address of the additional chip may be NIL if it's the same as the loco chip }
-  //      IF Train_LightingChipUp <> UnknownLocoChip THEN
-  //        IF Train_LightingChipUpAddress <> 0 THEN
-  //          Trains[Train_LightingChipUpAddress].Train_ControlledByProgram := ControlledByProgram;
-  //
-  //      IF Train_LightingChipDown <> UnknownLocoChip THEN
-  //        IF Train_LightingChipDownAddress <> 0 THEN
-  //          Trains[Train_LightingChipDownAddress].Train_ControlledByProgram := ControlledByProgram; &&&&&
-    END;
-  END;
-END; { SetLocoControlledByState }
 
 PROCEDURE SetTwoLightingChips(L : LocoIndex; LightsAtUp, LightsAtDown : DirectionType; LightsOn : Boolean);
 { When appropriate switch two lighting chips }
@@ -6438,20 +6367,20 @@ BEGIN
 
           IF Loco_LightingChipUp = Loco_LocoChip THEN BEGIN
             IF Loco_CurrentDirection <> LightsAtUp THEN
-              SetLocoDirection(L, LightsAtUp, OK)
+              SetLocoDirection(Locos[L], LightsAtUp, OK)
           END ELSE
             IF Loco_LightingChipUpIndex <> UnknownLocoIndex THEN BEGIN
               IF Locos[Loco_LightingChipUpIndex].Loco_CurrentDirection <> LightsAtUp THEN
-                SetLocoDirection(Loco_LightingChipUpIndex, LightsAtUp, OK);
+                SetLocoDirection(Locos[Loco_LightingChipUpIndex], LightsAtUp, OK);
             END;
 
           IF Loco_LightingChipDown = Loco_LocoChip THEN BEGIN
             IF Loco_CurrentDirection <> LightsAtDown THEN
-              SetLocoDirection(L, LightsAtDown, OK)
+              SetLocoDirection(Locos[L], LightsAtDown, OK)
           END ELSE
             IF Loco_LightingChipDownIndex <> UnknownLocoIndex THEN
               IF Locos[Loco_LightingChipDownIndex].Loco_CurrentDirection <> LightsAtDown THEN
-                SetLocoDirection(Loco_LightingChipDownIndex, LightsAtDown, OK);
+                SetLocoDirection(Locos[Loco_LightingChipDownIndex], LightsAtDown, OK);
 
         DebugStr := 'Lights at Up set to ' + IfThen(LightsAtUp = Up,
                                                     'White',
@@ -6548,14 +6477,10 @@ BEGIN { ShutDownProgram }
         T := 0;
         WHILE T <= High(Trains) DO BEGIN
           WITH Trains[T] DO BEGIN
-            IF (Train_LocoIndex <> UnknownLocoIndex)
-            AND (TrainFoundInDiagrams(Train_LocoIndex) <> 0)
-            THEN BEGIN
+            IF (Train_LocoIndex <> UnknownLocoIndex) AND (TrainFoundInDiagrams(Train_LocoIndex) <> 0) THEN BEGIN
               IF Train_HasLights THEN BEGIN
                 TurnTrainLightsOff(T, OK);
-                IF TrainHasCabLights(T)
-                AND Train_CabLightsAreOn
-                THEN
+                IF TrainHasCabLights(T) AND Train_CabLightsAreOn THEN
                   TurnTrainCabLightsOff(T, OK);
               END;
             END;
@@ -6566,9 +6491,7 @@ BEGIN { ShutDownProgram }
 
       { Write then close the log file }
       WriteToLogFileAndTestFile := True;
-      IF RDCMode
-      AND RailDriverInitialised
-      THEN BEGIN
+      IF RDCMode AND RailDriverInitialised THEN BEGIN
         WriteToRailDriverLEDs('');
         CloseRailDriver;
       END;
@@ -6576,9 +6499,7 @@ BEGIN { ShutDownProgram }
       StopSystemTimer;
 
       { Write things back to the .ini file }
-      IF NOT ReplayMode
-      AND FWPRailWindowInitialised
-      THEN BEGIN
+      IF NOT ReplayMode AND FWPRailWindowInitialised THEN BEGIN
         Log('A Writing .ini file');
         FWPRailWindowInitialised := True;
         WriteIniFile;
@@ -6754,9 +6675,7 @@ BEGIN
               SetTrainDirection(T, Up, NOT ForceAWrite, OK);
               SetTwoLightingChips(Train_LocoIndex, Up, Up, LightsOn);
             END ELSE BEGIN
-              IF Train_UserDriving
-              AND Train_UserRequiresInstructions
-              THEN
+              IF Train_UserDriving AND Train_UserRequiresInstructions THEN
                 Log(Train_LocoChipStr + ' L= User instructed to set direction to Up');
             END;
           END ELSE
@@ -6765,9 +6684,7 @@ BEGIN
                 SetTrainDirection(T, Down, NOT ForceAWrite, OK);
                 SetTwoLightingChips(Train_LocoIndex, Down, Down, LightsOn);
               END ELSE BEGIN
-                IF Train_UserDriving
-                AND Train_UserRequiresInstructions
-                THEN
+                IF Train_UserDriving AND Train_UserRequiresInstructions THEN
                   Log(Train_LocoChipStr + ' L= User instructed to set direction to Down');
               END;
             END;
@@ -6790,9 +6707,7 @@ BEGIN
     Inc(T);
   END; {WHILE}
 
-  IF Restart
-  AND TrainsRestarted
-  THEN
+  IF Restart AND TrainsRestarted THEN
     Log('AG All locos restarted')
   ELSE
     IF Restart THEN
@@ -6812,9 +6727,9 @@ BEGIN
     WITH Trains[T] DO BEGIN
       IF SystemOnline THEN BEGIN
         DebugStr := 'Train stop requested';
-        StopAParticularLocomotive(Train_LocoIndex, OK);
+        StopAParticularLocomotive(Locos[Train_LocoIndex], OK);
         IF Train_DoubleHeaderLocoChip <> UnknownLocoChip THEN BEGIN
-          StopAParticularLocomotive(Train_DoubleHeaderLocoIndex, OK);
+          StopAParticularLocomotive(Locos[Train_DoubleHeaderLocoIndex], OK);
           DebugStr := DebugStr + '. DH Loco ' + LocoChipToStr(Train_DoubleHeaderLocoChip) + ' also stopped';
         END;
 
@@ -6868,9 +6783,7 @@ BEGIN
 
   DifferenceFound := False;
 
-  IF (Length(FirstArray) = 0)
-  AND (Length(SecondArray) = 0)
-  THEN
+  IF (Length(FirstArray) = 0) AND (Length(SecondArray) = 0) THEN
     ErrorMsg := 'Both arrays are empty'
   ELSE
     IF Length(FirstArray) = 0 THEN BEGIN
@@ -6889,9 +6802,7 @@ BEGIN
 
   IF NOT DifferenceFound THEN BEGIN
     I := 0;
-    WHILE (I <= High(FirstArray))
-    AND (I < MaxArrayLen) AND NOT DifferenceFound
-    DO BEGIN
+    WHILE (I <= High(FirstArray)) AND (I < MaxArrayLen) AND NOT DifferenceFound DO BEGIN
       IF FirstArray[I] <> SecondArray[I] THEN BEGIN
         DifferenceFound := True;
         ErrorMsg := 'First array differs from second array at position ' + IntToStr(I)
@@ -6901,9 +6812,7 @@ BEGIN
     END; {WHILE}
   END;
 
-  IF NOT DifferenceFound
-  AND (Length(FirstArray) = Length(SecondArray))
-  THEN BEGIN
+  IF NOT DifferenceFound AND (Length(FirstArray) = Length(SecondArray)) THEN BEGIN
     Result := True;
     ErrorMsg := 'Arrays compare ok';
   END ELSE
@@ -6948,9 +6857,7 @@ BEGIN
 
   Result := UnknownArea;
   Area := 0;
-  WHILE (Area <= High(Areas))
-  AND (Result = UnknownArea)
-  DO BEGIN
+  WHILE (Area <= High(Areas)) AND (Result = UnknownArea) DO BEGIN
     IF (Str = Trim(Areas[Area].Area_ShortStr))
     OR (Str = RemoveAllSpacesFromAString(Trim(UpperCase(Areas[Area].Area_LongStr))))
     OR (Str = RemoveAllSpacesFromAString(Trim(UpperCase(Areas[Area].Area_LongStr) + 'AREA')))
@@ -7170,9 +7077,7 @@ BEGIN
 
   LineNameFound := False;
   Line := 0;
-  WHILE (Line <= High(Lines))
-  AND NOT LineNameFound And (Str <> '')
-  DO BEGIN
+  WHILE (Line <= High(Lines)) AND NOT LineNameFound And (Str <> '') DO BEGIN
     IF Str = UpperCase(LineToStr(Line)) THEN BEGIN
       LineNameFound := True;
       Result := Line;
@@ -7200,9 +7105,7 @@ BEGIN
 
   Result := UnknownLocation;
   Location := 0;
-  WHILE (Location <= High(Locations))
-  AND (Result = UnknownLocation)
-  DO BEGIN
+  WHILE (Location <= High(Locations)) AND (Result = UnknownLocation) DO BEGIN
     TestStr1 := UpperCase(Locations[Location].Location_ShortStr);
     TestStr2 := UpperCase(Locations[Location].Location_LongStr);
     TestStr2 := RemoveAllSpacesFromAString(TestStr2);
@@ -7650,7 +7553,7 @@ BEGIN
           MPH120:
             Result := Loco_Speed120;
         ELSE
-          Log('XG Unknown speed type found in GetLenzSpeed');
+          Log('XG Unknown speed type found in SpeedInMPHToLocoLenzSpeed');
         END; {CASE}
       END; {WITH}
     END;
@@ -7873,8 +7776,8 @@ BEGIN
       IF UserMsgRequired THEN
         UserMsg := 'User instructed to turn lights on by means of function 0'
       ELSE BEGIN
-         Log(Locos[L].Loco_LocoChipStr + ' L Turning lights off');
-         SetSingleLocoFunction(L, Function0, LightsOff, OK);
+        Log(Locos[L].Loco_LocoChipStr + ' L Turning lights off');
+        SetSingleLocoFunction(Locos[L], Function0, LightsOff, OK);
       END;
     END; {WITH}
   END;
@@ -7899,7 +7802,7 @@ BEGIN
     WITH Locos[L] DO BEGIN
       DebugStr := 'Turning lights on';
       IF L <> UnknownLocoIndex THEN BEGIN
-        IF SingleLocoFunctionIsOn(L, Function0, NOT ForceRead, OK) THEN BEGIN
+        IF SingleLocoFunctionIsOn(Locos[L], Function0, NOT ForceRead, OK) THEN BEGIN
           IF UserMsgRequired THEN
             UserMsg := 'User: no action is required as lights are already on';
           DebugStr := DebugStr + ' is not necessary as lights are already on'
@@ -7907,7 +7810,7 @@ BEGIN
           IF UserMsgRequired THEN
             UserMsg := 'User: turn loco ' + Loco_LocoChipStr + '''s lights on - direction ' + DirectionToStr(Direction) + ' - by means of function 0'
           ELSE BEGIN
-            SetSingleLocoFunction(L, Function0, LightsOn, OK);
+            SetSingleLocoFunction(Locos[L], Function0, LightsOn, OK);
             DebugStr := DebugStr + ' - direction ' + DirectionToStr(Direction);
           END;
 
@@ -7938,12 +7841,12 @@ BEGIN
       WITH Locos[L] DO BEGIN
         IF Direction = Up THEN BEGIN
           Log(Loco_LocoChipStr + ' L Turning up tail lights on');
-          SetSingleLocoFunction(L, Function1, LightsOn, OK);
-          SetSingleLocoFunction(L, Function2, LightsOff, OK);
+          SetSingleLocoFunction(Locos[L], Function1, LightsOn, OK);
+          SetSingleLocoFunction(Locos[L], Function2, LightsOff, OK);
         END ELSE BEGIN
           Log(Loco_LocoChipStr + ' L Turning down tail lights on');
-          SetSingleLocoFunction(L, Function1, LightsOff, OK);
-          SetSingleLocoFunction(L, Function2, LightsOn, OK);
+          SetSingleLocoFunction(Locos[L], Function1, LightsOff, OK);
+          SetSingleLocoFunction(Locos[L], Function2, LightsOn, OK);
         END;
       END; {WITH}
     END;
@@ -7968,8 +7871,8 @@ BEGIN
     ELSE BEGIN
       WITH Locos[L] DO BEGIN
         Log(Loco_LocoChipStr + ' L Turning tail lights on at both ends');
-        SetSingleLocoFunction(L, Function1, LightsOn, OK);
-        SetSingleLocoFunction(L, Function2, LightsOn, OK);
+        SetSingleLocoFunction(Locos[L], Function1, LightsOn, OK);
+        SetSingleLocoFunction(Locos[L], Function2, LightsOn, OK);
       END; {WITH}
     END;
   END;
@@ -7994,16 +7897,16 @@ CONST
               UserMsg := 'User: turn day-time up lights on by setting function 6 off and 7 on'
             ELSE BEGIN
               Log(Loco_LocoChipStr + ' L Turning day-time up lights on');
-              SetSingleLocoFunction(L, Function6, LightsOff, OK);
-              SetSingleLocoFunction(L, Function7, LightsOn, OK);
+              SetSingleLocoFunction(Locos[L], Function6, LightsOff, OK);
+              SetSingleLocoFunction(Locos[L], Function7, LightsOn, OK);
             END;
           END ELSE BEGIN
             IF UserMsgRequired THEN
               UserMsg := 'User: turn night-time up lights on by setting function 6 on and 7 off'
             ELSE BEGIN
               Log(Loco_LocoChipStr + ' L Turning night-time up lights on');
-              SetSingleLocoFunction(L, Function6, LightsOn, OK);
-              SetSingleLocoFunction(L, Function7, LightsOff, OK);
+              SetSingleLocoFunction(Locos[L], Function6, LightsOn, OK);
+              SetSingleLocoFunction(Locos[L], Function7, LightsOff, OK);
             END;
           END;
         END ELSE BEGIN
@@ -8014,16 +7917,16 @@ CONST
               UserMsg := 'User: turn day-time down lights on by setting function 4 off and 5 on'
             ELSE BEGIN
               Log(Loco_LocoChipStr + ' L Turning day-time down lights on');
-              SetSingleLocoFunction(L, Function4, LightsOff, OK);
-              SetSingleLocoFunction(L, Function5, LightsOn, OK);
+              SetSingleLocoFunction(Locos[L], Function4, LightsOff, OK);
+              SetSingleLocoFunction(Locos[L], Function5, LightsOn, OK);
             END;
           END ELSE BEGIN
             IF UserMsgRequired THEN
               UserMsg := 'User instructed to turn night-time down lights on by setting function 4 on and 5 off'
             ELSE BEGIN
               Log(Loco_LocoChipStr + ' L Turning night-time down lights on');
-              SetSingleLocoFunction(L, Function4, LightsOn, OK);
-              SetSingleLocoFunction(L, Function5, LightsOff, OK);
+              SetSingleLocoFunction(Locos[L], Function4, LightsOn, OK);
+              SetSingleLocoFunction(Locos[L], Function5, LightsOff, OK);
             END;
           END;
         END;
@@ -8102,8 +8005,8 @@ BEGIN
       UnknownLocoRecordFound('TurnTailLightsOff')
     ELSE BEGIN
       Log(Locos[L].Loco_LocoChipStr + ' L Turning up and down tail lights off');
-      SetSingleLocoFunction(L, Function1, LightsOff, OK);
-      SetSingleLocoFunction(L, Function2, LightsOff, OK);
+      SetSingleLocoFunction(Locos[L], Function1, LightsOff, OK);
+      SetSingleLocoFunction(Locos[L], Function2, LightsOff, OK);
     END;
   END;
 END; { TurnTailLightsOff }
@@ -8123,10 +8026,10 @@ CONST
       IF L <> UnknownLocoIndex THEN BEGIN
         WITH Locos[L] DO BEGIN
           Log(Loco_LocoChipStr + ' L Turning day-time and night-time down and up lights off');
-          SetSingleLocoFunction(L, Function4, LightsOff, OK);
-          SetSingleLocoFunction(L, Function5, LightsOff, OK);
-          SetSingleLocoFunction(L, Function6, LightsOff, OK);
-          SetSingleLocoFunction(L, Function7, LightsOff, OK);
+          SetSingleLocoFunction(Locos[L], Function4, LightsOff, OK);
+          SetSingleLocoFunction(Locos[L], Function5, LightsOff, OK);
+          SetSingleLocoFunction(Locos[L], Function6, LightsOff, OK);
+          SetSingleLocoFunction(Locos[L], Function7, LightsOff, OK);
         END; {WITH}
       END;
     END;
@@ -8185,7 +8088,7 @@ BEGIN
         IF UserMsgRequired THEN
           UserMsg := 'User: turn cab lights on by setting functions 1 on'
         ELSE BEGIN
-          SetSingleLocoFunction(L, Function1, LightsOn, OK);
+          SetSingleLocoFunction(Locos[L], Function1, LightsOn, OK);
           Log(Loco_LocoChipStr + ' L Cab lights turned on');
         END;
       END;
@@ -8209,7 +8112,7 @@ BEGIN
         IF UserMsgRequired THEN
           UserMsg := 'User: turn cab lights off by setting functions 1 off'
         ELSE BEGIN
-          SetSingleLocoFunction(L, Function1, NOT LightsOn, OK);
+          SetSingleLocoFunction(Locos[L], Function1, NOT LightsOn, OK);
           Log(Loco_LocoChipStr + ' L Cab lights turned off');
         END;
       END;
@@ -8913,9 +8816,7 @@ BEGIN
   IF RightStr(TimeStr, 1) = '*' THEN
     TimeStr := Copy(TimeStr, 1, Length(TimeStr) - 1);
 
-  IF (Length(TimeStr) <> 5)
-  AND (Length(TimeStr) <> 8)
-  THEN
+  IF (Length(TimeStr) <> 5) AND (Length(TimeStr) <> 8) THEN
     OK := False;
 
   IF OK THEN BEGIN
@@ -8978,10 +8879,10 @@ END; { PopupDebugWindowCopyClick }
 PROCEDURE ResetDebugWindowSizeAndPosition;
 { Reset the window's size and position }
 BEGIN
-  DebugWindowHeight := MulDiv(Screen.WorkAreaHeight, 20, 100);
-  DebugWindowWidth := Screen.WorkAreaWidth DIV 2;
-  DebugWindowTop := MulDiv(Screen.WorkAreaHeight, 80, 100);
-  DebugWindowLeft := Screen.WorkAreaWidth DIV 2;
+  DebugWindowHeight := DefaultDebugWindowHeight;
+  DebugWindowWidth := DefaultDebugWindowWidth;
+  DebugWindowTop := DefaultDebugWindowTop;
+  DebugWindowLeft := DefaultDebugWindowLeft;
 
   DrawDebugWindow;
 END; { ResetDebugWindowSizeAndPosition }
@@ -8989,7 +8890,7 @@ END; { ResetDebugWindowSizeAndPosition }
 PROCEDURE TDebugWindow.PopupDebugWindowResetSizeAndPositionClick(Sender: TObject);
 BEGIN
   ResetDebugWindowSizeAndPosition;
-END; { ResetDebugWindowSizeClick }
+END; { PopupDebugWindowResetSizeAndPositionClick }
 
 PROCEDURE TDebugWindow.DebugWindowResize(Sender: TObject);
 BEGIN
@@ -9012,9 +8913,7 @@ BEGIN
     vk_Cancel { Ctrl-Break}, vk_Capital { Caps Lock }, vk_Back { Backspace }:
       { do nothing };
   ELSE
-    IF (Key = Ord('C'))
-    AND (ssCtrl IN ShiftState)
-    THEN BEGIN
+    IF (Key = Ord('C')) AND (ssCtrl IN ShiftState) THEN BEGIN
       DebugRichEdit.CopyToClipboard;
 
       { and hide the selection }
@@ -9027,15 +8926,11 @@ END; { DebugRichEditKeyDown }
 PROCEDURE TDebugWindow.DebugRichEditMouseDown(Sender: TObject; Button: TMouseButton; ShiftState: TShiftState; X, Y: Integer);
 { Used to change the memo's colours }
 BEGIN
-  IF LocoDialogueWindow.Visible
-  AND (GetLocoDialogueLocoSpeed > 0) AND (Button = mbRight)
-  THEN BEGIN
+  IF LocoDialogueWindow.Visible AND (GetLocoDialogueLocoSpeed > 0) AND (Button = mbRight) THEN BEGIN
     CheckEmergencyStop(Button, ShiftState);
     Exit;
   END ELSE
-    IF (Button = mbRight)
-    AND (ssShift IN ShiftState)
-    THEN BEGIN
+    IF (Button = mbRight) AND (ssShift IN ShiftState) THEN BEGIN
       { Show the default }
       DebugRichEditColourDialogue.Color := DebugRichEdit.Color;
       { Allow the user to change it }
@@ -9047,9 +8942,7 @@ END; { DebugRichEditMouseDown }
 PROCEDURE TDebugWindow.DebugRichEditMouseMove(Sender: TObject; ShiftState: TShiftState; X, Y: Integer);
 { If the mouse moves into the debug window, move the focus there }
 BEGIN
-  IF AutomaticallySetFocusWhenInDebugWindow
-  AND NOT KeyboardAndMouseLocked AND (DebugWindow <> NIL)
-  THEN BEGIN
+  IF AutomaticallySetFocusWhenInDebugWindow AND NOT KeyboardAndMouseLocked AND (DebugWindow <> NIL) THEN BEGIN
     IF NOT DebugWindow.Active THEN BEGIN
       DebugWindow.SetFocus;
       ChangeCursor(crIBeam);
@@ -9064,23 +8957,6 @@ BEGIN
   ELSE
     PopupDebugWindowResetSizeAndPosition.Enabled := False;
 END; { DebugRichEditPopupMenuOnPopup }
-
-PROCEDURE DummyProc;
-{ Here just to be copied elsewhere }
-VAR
-  T : TrainIndex;
-
-BEGIN
-  T := 0;
-  WHILE T <= High(Trains) DO BEGIN
-    WITH Trains[T] DO BEGIN
-      IF Trains[T].Train_DiagramFound THEN BEGIN
-
-      END;
-    END;
-    Inc(T);
-  END; {WHILE}
-END; { DummyProc }
 
 PROCEDURE CompareTwoPointDatabases(Point1DataFilename, Point1DataFilenameSuffix, Point2DataFilename, Point2DataFilenameSuffix : String);
 { Compare two point databases - used for testing }
@@ -9098,7 +8974,7 @@ VAR
   BEGIN
     IF UpperCase(Table1.FieldByName(FieldName).AsString) <> UpperCase(Table2.FieldByName(FieldName).AsString) THEN BEGIN
       IF NOT ErrorFound THEN BEGIN
-        Log('XG Comparison error found in point databases '
+        Log('XG Differences found in point databases '
                 + '"' + Point2DataFilename + '.' + Point2DataFilenameSuffix + '" and "' + Point1DataFilename + '.' + Point1DataFilenameSuffix + '"');
         ErrorFound := True;
       END;
@@ -9110,7 +8986,7 @@ VAR
   BEGIN
     IF Table1.FieldByName(FieldName).AsBoolean <> Table2.FieldByName(FieldName).AsBoolean THEN BEGIN
       IF NOT ErrorFound THEN BEGIN
-        Log('XG Comparison error found in point databases '
+        Log('XG Differences found in point databases '
                 + '"' + Point2DataFilename + '.' + Point2DataFilenameSuffix + '" and "' + Point1DataFilename + '.' + Point1DataFilenameSuffix + '"');
         ErrorFound := True;
       END;
@@ -9121,7 +8997,7 @@ VAR
 
 BEGIN
   TRY
-    Log('A INITIALISING Points {BlankLineBefore}');
+    Log('POINT SIGNAL DATABASES COMPARISON {BlankLineBefore}');
 
     WITH InitVarsWindow DO BEGIN
       IF NOT FileExists(PathToRailDataFiles + Point1DataFilename + '.' + Point1DataFilenameSuffix) THEN BEGIN
@@ -9143,7 +9019,7 @@ BEGIN
         PointsADOConnection.Connected := True;
       EXCEPT
         ON E:Exception DO
-          Log('EG InitialisePoints 1: ' + E.ClassName + ' error raised, with message: '+ E.Message);
+          Log('EG CompareTwoPointDatabases 1: ' + E.ClassName + ' error raised, with message: '+ E.Message);
       END; {TRY}
 
       PointsADOTable.Open;
@@ -9155,13 +9031,12 @@ BEGIN
         PointsADOConnection2.Connected := True;
       EXCEPT
         ON E:Exception DO
-          Log('EG InitialisePoints 2: ' + E.ClassName + ' error raised, with message: '+ E.Message);
+          Log('EG CompareTwoPointDatabases 2: ' + E.ClassName + ' error raised, with message: '+ E.Message);
       END; {TRY}
 
       PointsADOTable2.Open;
 
-      Log('S Point data table and connection opened to initialise the Point 1 data');
-      Log('S Point data table 2 and connection 2 opened to initialise the Point 2 data');
+      Log('S Point data table and connection opened to compare Point 1 data with Point 2 data');
 
       ErrorFound := False;
       P := -1;
@@ -9255,7 +9130,7 @@ VAR
   BEGIN
     IF UpperCase(Table1.FieldByName(FieldName).AsString) <> UpperCase(Table2.FieldByName(FieldName).AsString) THEN BEGIN
       IF NOT ErrorFound THEN BEGIN
-        Log('XG Comparison error found in signal databases '
+        Log('XG Differences found in signal databases '
                 + '"' + Signal2DataFilename + '.' + Signal2DataFilenameSuffix + '" and "' + Signal1DataFilename + '.' + Signal1DataFilenameSuffix + '"');
         ErrorFound := True;
       END;
@@ -9267,7 +9142,7 @@ VAR
   BEGIN
     IF Table1.FieldByName(FieldName).AsBoolean <> Table2.FieldByName(FieldName).AsBoolean THEN BEGIN
       IF NOT ErrorFound THEN BEGIN
-        Log('XG Comparison error found in signal databases '
+        Log('XG Differences found in signal databases '
                 + '"' + Signal2DataFilename + '.' + Signal2DataFilenameSuffix + '" and "' + Signal1DataFilename + '.' + Signal1DataFilenameSuffix + '"');
         ErrorFound := True;
       END;
@@ -9278,7 +9153,7 @@ VAR
 
 BEGIN
   TRY
-    Log('A INITIALISING SIGNALS {BlankLineBefore}');
+    Log('A SIGNAL DATABASES COMPARISON {BlankLineBefore}');
 
     WITH InitVarsWindow DO BEGIN
       IF NOT FileExists(PathToRailDataFiles + Signal1DataFilename + '.' + Signal1DataFilenameSuffix) THEN BEGIN
@@ -9300,7 +9175,7 @@ BEGIN
         SignalsADOConnection.Connected := True;
       EXCEPT
         ON E:Exception DO
-          Log('EG InitialiseSignals 1: ' + E.ClassName + ' error raised, with message: '+ E.Message);
+          Log('EG CompareTwoSignalDatabases 1: ' + E.ClassName + ' error raised, with message: '+ E.Message);
       END; {TRY}
 
       SignalsADOTable.Open;
@@ -9312,13 +9187,12 @@ BEGIN
         SignalsADOConnection2.Connected := True;
       EXCEPT
         ON E:Exception DO
-          Log('EG InitialiseSignals 2: ' + E.ClassName + ' error raised, with message: '+ E.Message);
+          Log('EG CompareTwoSignalDatabases 2: ' + E.ClassName + ' error raised, with message: '+ E.Message);
       END; {TRY}
 
       SignalsADOTable2.Open;
 
-      Log('S Signal data table and connection opened to initialise the signal 1 data');
-      Log('S Signal data table 2 and connection 2 opened to initialise the signal 2 data');
+      Log('S Signal data table and connection opened to compare signal 1 data with signal 2 data');
 
       ErrorFound := False;
       S := -1;

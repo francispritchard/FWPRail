@@ -100,9 +100,7 @@ END; { InputDialogueCancelButtonClick }
 PROCEDURE TInputDialogueBox.InputDialogueMouseMove(Sender: TObject; ShiftState: TShiftState; X, Y: Integer);
 { If the mouse moves into the input dialogue window, move the focus there }
 BEGIN
-  IF NOT KeyboardAndMouseLocked
-  AND (InputDialogueBox <> NIL)
-  THEN BEGIN
+  IF NOT KeyboardAndMouseLocked AND (InputDialogueBox <> NIL) THEN BEGIN
     IF NOT InputDialogueBox.Active THEN
       InputDialogueBox.SetFocus;
   END;
@@ -144,8 +142,7 @@ BEGIN
         IF InputDialogueMaskEdit.Text <> '' THEN BEGIN
           InputDialoguePoint := 0;
           InputDialoguePointFound := False;
-          WHILE (InputDialoguePoint <= High(Points))
-          AND NOT InputDialoguePointFound
+          WHILE (InputDialoguePoint <= High(Points)) AND NOT InputDialoguePointFound
           DO BEGIN
             IF InputDialoguePoint <> StrToInt(InputDialogueMaskEdit.Text) THEN BEGIN
               InputDialogueChangeOrSelectButton.Enabled := False;
@@ -175,9 +172,7 @@ BEGIN
         IF InputDialogueMaskEdit.Text <> '' THEN BEGIN
           InputDialogueSignal := 0;
           InputDialogueSignalFound := False;
-          WHILE (InputDialogueSignal <= High(Signals))
-          AND NOT InputDialogueSignalFound
-          DO BEGIN
+          WHILE (InputDialogueSignal <= High(Signals)) AND NOT InputDialogueSignalFound DO BEGIN
             IF InputDialogueSignal <> StrToInt(InputDialogueMaskEdit.Text) THEN BEGIN
               InputDialogueChangeOrSelectButton.Enabled := False;
               Inc(InputDialogueSignal);
@@ -207,9 +202,7 @@ BEGIN
         IF InputDialogueMaskEdit.Text <> '' THEN BEGIN
           InputDialogueLine := 0;
           InputDialogueLineFound := False;
-          WHILE (InputDialogueLine <= High(Lines))
-          AND NOT InputDialogueLineFound
-          DO BEGIN
+          WHILE (InputDialogueLine <= High(Lines)) AND NOT InputDialogueLineFound DO BEGIN
             IF UpperCase(LineToStr(InputDialogueLine)) <> UpperCase(InputDialogueMaskEdit.Text) THEN BEGIN
               InputDialogueChangeOrSelectButton.Enabled := False;
               Inc(InputDialogueLine);
@@ -238,9 +231,7 @@ BEGIN
         IF InputDialogueMaskEdit.Text <> '' THEN BEGIN
           InputDialogueTrackCircuit := 0;
           InputDialogueTrackCircuitFound := False;
-          WHILE (InputDialogueTrackCircuit <= High(TrackCircuits))
-          AND NOT InputDialogueTrackCircuitFound
-          DO BEGIN
+          WHILE (InputDialogueTrackCircuit <= High(TrackCircuits)) AND NOT InputDialogueTrackCircuitFound DO BEGIN
             IF InputDialogueTrackCircuit <> StrToInt(InputDialogueMaskEdit.Text) THEN BEGIN
               InputDialogueChangeOrSelectButton.Enabled := False;
               Inc(InputDialogueTrackCircuit);
@@ -600,19 +591,13 @@ BEGIN
   Result := False;
   I := 1;
   FoundKey := False;
-  WHILE (I <= 9)
-  AND NOT FoundKey
-  DO BEGIN
-    IF (MissingTrainArray[I] = True)
-    AND (KeyToTest = I)
-    THEN BEGIN
+  WHILE (I <= 9) AND NOT FoundKey DO BEGIN
+    IF (MissingTrainArray[I] = True) AND (KeyToTest = I) THEN BEGIN
       { we've found one }
       FoundKey := True;
       T := 0;
       FoundTrain := False;
-      WHILE (T <= High(Trains))
-      AND NOT FoundTrain
-      DO BEGIN
+      WHILE (T <= High(Trains)) AND NOT FoundTrain DO BEGIN
         WITH Trains[T] DO BEGIN
           IF Train_DiagramFound THEN BEGIN
             IF (Train_CurrentStatus = Missing) OR (Train_CurrentStatus = MissingAndSuspended) THEN BEGIN
@@ -704,9 +689,7 @@ BEGIN
       END;
     END;
 
-    IF NOT TCInUse
-    AND NOT TCHasFeedback
-    THEN BEGIN
+    IF NOT TCInUse AND NOT TCHasFeedback THEN BEGIN
       Inc(ErrorCount);
       Log('TTTT X TC=' + IntToStr(TC) + ' not in use (and has no feedback)');
     END ELSE
@@ -780,9 +763,7 @@ BEGIN
       IF FeedbackType = PointFeedbackDetector THEN BEGIN
         FeedbackNumFound := False;
         FOR P := 0 TO High(Points) DO BEGIN
-          IF (Points[P].Point_FeedbackUnit = I)
-          AND (Points[P].Point_FeedbackInput = J)
-          THEN
+          IF (Points[P].Point_FeedbackUnit = I) AND (Points[P].Point_FeedbackInput = J) THEN
             FeedbackNumFound := True;
         END; {FOR}
         IF NOT FeedbackNumFound THEN BEGIN
@@ -824,9 +805,7 @@ BEGIN
   ErrorCount := 0;
   I := 1000;
   PointCount := 0;
-  WHILE (I > 0)
-  AND (PointCount = 0)
-  DO BEGIN
+  WHILE (I > 0) AND (PointCount = 0) DO BEGIN
     J := 0;
     WHILE J <= High(Points) DO BEGIN
       IF Points[J].Point_LenzNum = I THEN
@@ -920,9 +899,7 @@ BEGIN
 
   Area := 0;
   FoundArea := False;
-  WHILE (Area <= High(Areas))
-  AND NOT FoundArea
-  DO BEGIN
+  WHILE (Area <= High(Areas)) AND NOT FoundArea DO BEGIN
     IF Areas[Area].Area_StationMonitorsDisplayOrderNum = DisplayOrderNum THEN BEGIN
       StationMonitorsCurrentArea := Area;
       FoundArea := True;
@@ -1195,25 +1172,16 @@ BEGIN
         Result := 'PgDn';
     END; {CASE}
 
-    IF (ssShift IN ShiftState)
-    AND (ssCtrl IN ShiftState)
-    AND (ssAlt IN ShiftState)
-    THEN
+    IF (ssShift IN ShiftState) AND (ssCtrl IN ShiftState) AND (ssAlt IN ShiftState) THEN
       Result := 'Ctrl Shift Alt ' + Result
     ELSE
-      IF (ssShift IN ShiftState)
-      AND (ssAlt IN ShiftState)
-      THEN
+      IF (ssShift IN ShiftState) AND (ssAlt IN ShiftState) THEN
         Result := 'Shift Alt ' + Result
       ELSE
-        IF (ssCtrl IN ShiftState)
-        AND (ssAlt IN ShiftState)
-        THEN
+        IF (ssCtrl IN ShiftState) AND (ssAlt IN ShiftState) THEN
           Result := 'Ctrl Alt ' + Result
         ELSE
-          IF (ssShift IN ShiftState)
-          AND (ssCtrl IN ShiftState)
-          THEN
+          IF (ssShift IN ShiftState) AND (ssCtrl IN ShiftState) THEN
             Result := 'Ctrl Shift ' + Result
           ELSE
             IF (ssShift IN ShiftState) THEN
@@ -1331,25 +1299,16 @@ BEGIN { KeyPressedDown }
 
     BEGIN
       ShiftKeys := NoShiftKeys;
-      IF (ssShift IN InputShiftState)
-      AND (ssCtrl IN InputShiftState)
-      AND (ssAlt IN InputShiftState)
-      THEN
+      IF (ssShift IN InputShiftState) AND (ssCtrl IN InputShiftState) AND (ssAlt IN InputShiftState) THEN
         ShiftKeys := CtrlAltShift
       ELSE
-        IF (ssShift IN InputShiftState)
-        AND (ssAlt IN InputShiftState)
-        THEN
+        IF (ssShift IN InputShiftState) AND (ssAlt IN InputShiftState) THEN
           ShiftKeys := ShiftAlt
         ELSE
-          IF (ssCtrl IN InputShiftState)
-          AND (ssAlt IN InputShiftState)
-          THEN
+          IF (ssCtrl IN InputShiftState) AND (ssAlt IN InputShiftState) THEN
             ShiftKeys := CtrlAlt
           ELSE
-            IF (ssShift IN InputShiftState)
-            AND (ssCtrl IN InputShiftState)
-            THEN
+            IF (ssShift IN InputShiftState) AND (ssCtrl IN InputShiftState) THEN
               ShiftKeys := CtrlShift
             ELSE
               IF (ssShift IN InputShiftState) THEN
@@ -1370,9 +1329,7 @@ BEGIN { KeyPressedDown }
       END;
 
     { See if we wish to close the program }
-    IF EscKeyStored
-    AND (KeyToTest <> vk_Escape)
-    THEN BEGIN
+    IF EscKeyStored AND (KeyToTest <> vk_Escape) THEN BEGIN
       EscKeyStored := False;
       Debug('Second key press was not the Escape key - close program cancelled');
     END;
@@ -2761,8 +2718,12 @@ BEGIN { KeyPressedDown }
                     Debug('Cannot load previous point settings if system online')
                   ELSE BEGIN
                     Debug('Loading previous point settings');
-                    FOR P := 0 TO High(Points) DO
-                      Points[P].Point_PresentState := Points[P].Point_LastFeedbackStateAsReadIn;
+                    FOR P := 0 TO High(Points) DO BEGIN
+                      IF Points[P].Point_ManualOperation THEN
+                        Points[P].Point_PresentState := Points[P].Point_LastManualStateAsReadIn
+                      ELSE
+                        Points[P].Point_PresentState := Points[P].Point_LastFeedbackStateAsReadIn;
+                    END; {FOR}
                     InvalidateScreen(UnitRef, 'Load latest point settings in offline mode');
                   END;
                 END;
@@ -3108,9 +3069,7 @@ BEGIN { KeyPressedDown }
                     WHILE T <= High(Trains) DO BEGIN
                       WITH Trains[T] DO BEGIN
                         IF Train_DiagramFound THEN BEGIN
-                          IF (Train_CurrentStatus <> Missing)
-                          AND (Train_CurrentStatus <> MissingAndSuspended)
-                          THEN
+                          IF (Train_CurrentStatus <> Missing) AND (Train_CurrentStatus <> MissingAndSuspended) THEN
                             ChangeTrainStatus(T, Suspended);
                         END;
                       END; {WITH}
@@ -5291,10 +5250,10 @@ BEGIN { KeyPressedDown }
               BEGIN
                 HelpMsg := 'Compare Two Databases';
                 IF NOT HelpRequired THEN BEGIN
-    //              CompareTwoLocationDatabases('LocationData', 'mdb', 'LocationData - Saved', 'mdb');
-    //              CompareTwoLineDatabases('LineData', 'mdb', 'LineData - Saved', 'mdb');
-    //              CompareTwoSignalDatabases('SignalData', 'mdb', 'SignalData - saved', 'mdb');
-    //              CompareTwoPointDatabases('PointData', 'mdb', 'PointData - Saved', 'mdb');
+    //              CompareTwoLocationDatabases('LocationData', 'mdb', 'LocationData - Copy', 'mdb');
+    //              CompareTwoLineDatabases('LineData', 'mdb', 'LineData - Copy', 'mdb');
+                  CompareTwoSignalDatabases('SignalData', 'mdb', 'SignalData - Copy', 'mdb');
+    //              CompareTwoPointDatabases('PointData', 'mdb', 'PointData - Copy', 'mdb');
                 END;
               END;
             Alt: {F11}
@@ -5312,12 +5271,7 @@ BEGIN { KeyPressedDown }
           END;
       END; {CASE}
 
-      IF NOT HelpRequired
-      AND (HelpMsg = '')
-      AND (KeyToTest <> vk_Shift)
-      AND (KeyToTest <> vk_Control)
-      AND (KeyToTest <> vk_Menu {Alt})
-      THEN
+      IF NOT HelpRequired AND (HelpMsg = '') AND (KeyToTest <> vk_Shift) AND (KeyToTest <> vk_Control) AND (KeyToTest <> vk_Menu {Alt}) THEN
         Debug('Please do not press that key again.');
     END;
   EXCEPT

@@ -413,14 +413,10 @@ BEGIN
   LeftToCentreMidPoint := RDCThreeWaySwitchALeftNum + (RDCThreeWaySwitchAMidNum - RDCThreeWaySwitchALeftNum) DIV 2;
   CentreToRightMidPoint := RDCThreeWaySwitchAMidNum + (RDCThreeWaySwitchARightNum - RDCThreeWaySwitchAMidNum) DIV 2;
 
-  IF (ThreeWaySwitchAData > 0)
-  AND (ThreeWaySwitchAData < LeftToCentreMidPoint)
-  THEN
+  IF (ThreeWaySwitchAData > 0) AND (ThreeWaySwitchAData < LeftToCentreMidPoint) THEN
     Result := Left
   ELSE
-    IF (ThreeWaySwitchAData > LeftToCentreMidPoint)
-    AND (ThreeWaySwitchAData < CentreToRightMidPoint)
-    THEN
+    IF (ThreeWaySwitchAData > LeftToCentreMidPoint) AND (ThreeWaySwitchAData < CentreToRightMidPoint) THEN
       Result := Centre
     ELSE
       Result := Right;
@@ -435,14 +431,10 @@ BEGIN
   LeftToCentreMidPoint := RDCThreeWaySwitchBLeftNum + (RDCThreeWaySwitchBMidNum - RDCThreeWaySwitchBLeftNum) DIV 2;
   CentreToRightMidPoint := RDCThreeWaySwitchBMidNum + (RDCThreeWaySwitchBRightNum - RDCThreeWaySwitchBMidNum) DIV 2;
 
-  IF (ThreeWaySwitchBData > 0)
-  AND (ThreeWaySwitchBData < LeftToCentreMidPoint)
-  THEN
+  IF (ThreeWaySwitchBData > 0) AND (ThreeWaySwitchBData < LeftToCentreMidPoint) THEN
     Result := Left
   ELSE
-    IF (ThreeWaySwitchBData > LeftToCentreMidPoint)
-    AND (ThreeWaySwitchBData < CentreToRightMidPoint)
-    THEN
+    IF (ThreeWaySwitchBData > LeftToCentreMidPoint) AND (ThreeWaySwitchBData < CentreToRightMidPoint) THEN
       Result := Centre
     ELSE
       Result := Right;
@@ -569,14 +561,12 @@ BEGIN
     WITH Locos[L] DO BEGIN
       { Get current speed }
       IF SystemOnline THEN
-        PresentSpeedNum := GetLenzSpeed(L, NOT ForceARead)
+        PresentSpeedNum := GetLenzSpeed(Locos[L], NOT ForceARead)
       ELSE
   //      PresentSpeedNum := SpeedInMPHToLocoLenzSpeed(T, Loco_CurrentSpeedInMPH)
   ;
 
-      IF NOT RegulatorInNeutral
-      AND (SaveSpeedNum <> PresentSpeedNum)
-      THEN BEGIN
+      IF NOT RegulatorInNeutral AND (SaveSpeedNum <> PresentSpeedNum) THEN BEGIN
         IF LEDLongStr = '' THEN
           { do not write anything else out if we're outputting a long string }
           WriteToRailDriverLEDs(IntToStr(PresentSpeedNum));
@@ -619,35 +609,27 @@ BEGIN
       RegulatorInNeutral := False;
       IF GetReverserDirection = Up THEN BEGIN
         { Write out the direction to the LEDs }
-        IF (PresentSpeedNum = 0)
-        AND NOT DirectionWritten
-        THEN BEGIN
+        IF (PresentSpeedNum = 0) AND NOT DirectionWritten THEN BEGIN
           IF LEDLongStr = '' THEN
             { do not write anything else out if we're outputting a long string }
             WriteToRailDriverLEDs('Up');
           DirectionWritten := True;
         END;
         { change direction if necessary }
-        IF (Loco_CurrentDirection = Down)
-        AND SystemOnline
-        THEN
-          SetLocoDirection(L, Up, OK);
+        IF (Loco_CurrentDirection = Down) AND SystemOnline THEN
+          SetLocoDirection(Locos[L], Up, OK);
       END ELSE
         IF GetReverserDirection = Down THEN BEGIN
           { Write out the direction to the LEDs }
-          IF (PresentSpeedNum = 0)
-          AND NOT DirectionWritten
-          THEN BEGIN
+          IF (PresentSpeedNum = 0) AND NOT DirectionWritten THEN BEGIN
             IF LEDLongStr = '' THEN
               { do not write anything else out if we're outputting a long string }
               WriteToRailDriverLEDs('Dn');
             DirectionWritten := True;
           END;
           { change direction if necessary }
-          IF (Loco_CurrentDirection = Up)
-          AND SystemOnline
-          THEN
-            SetLocoDirection(L, Down, OK);
+          IF (Loco_CurrentDirection = Up) AND SystemOnline THEN
+            SetLocoDirection(Locos[L], Down, OK);
         END ELSE
           { regulator in neutral }
           IF RegulatorPos = 0 THEN BEGIN
@@ -664,9 +646,7 @@ BEGIN
       END ELSE BEGIN
   //      Train_AccelerationTimeInSeconds := GetTrainBrakePos;
   //      { So that we don't accelerate at one speed notch per 60 seconds! }
-  //      IF Train_Accelerating
-  //      AND (Train_AccelerationTimeInSeconds > 5.0)
-  //      THEN
+  //      IF Train_Accelerating AND (Train_AccelerationTimeInSeconds > 5.0) THEN
   //        Train_AccelerationTimeInSeconds := 5.0; &&&&&
 
   //      CASE GetRegulatorPos OF
@@ -697,12 +677,10 @@ BEGIN
   //      END; {CASE}
       END;
 
-      IF (TrainBrakeData >= RDCEmergencyBrakeMin)
-      AND (TrainBrakeData <= RDCEmergencyBrakeMax)
-      THEN BEGIN
+      IF (TrainBrakeData >= RDCEmergencyBrakeMin) AND (TrainBrakeData <= RDCEmergencyBrakeMax) THEN BEGIN
         { emergency brake }
         IF PresentSpeedNum <> 0 THEN BEGIN
-          SetLenzSpeedAndDirection(L, QuickStop, Loco_CurrentDirection, OK);
+          SetLenzSpeedAndDirection(Locos[L], QuickStop, Loco_CurrentDirection, OK);
   //        IF Train_DoubleHeaderLocoIndex <> UnknownLocoIndex THEN
   //          SetLenzSpeedAndDirection(Train_DoubleHeaderLocoIndex, QuickStop, Train_CurrentDirection, OK); &&&&&
           Log('A Emergency brake applied');
@@ -715,9 +693,7 @@ BEGIN
   (*
       ELSE BEGIN
         EmergencyBrakeApplied := False;
-        IF (Train_BrakeData >= RDCTrain_BrakeMin)
-        AND (Train_BrakeData <= RDCTrain_BrakeMax - 5)
-        THEN BEGIN
+        IF (Train_BrakeData >= RDCTrain_BrakeMin) AND (Train_BrakeData <= RDCTrain_BrakeMax - 5) THEN BEGIN
           { We're braking }
           Range := (RDCTrain_BrakeMax - 3) - (RDCTrain_BrakeMin + 2);
           Num := Train_BrakeData - RDCTrain_BrakeMin - 2;
@@ -753,9 +729,7 @@ BEGIN
       DevicePID := DeviceData[I * 4];
       DeviceUP := DeviceData[I * 4 + 2];
       RailDriverDeviceHandle := deviceData[I * 4 + 3];
-      IF (DeviceUp = 12)
-      AND (DevicePID = 210)
-      THEN
+      IF (DeviceUp = 12) AND (DevicePID = 210) THEN
         { get the handle }
         EnumerateResult := SetupInterface(RailDriverDeviceHandle);
     END;
@@ -970,112 +944,72 @@ BEGIN
     { Calibrate reverser - forward }
     IF NOT ReverserForwardMinCalibrated THEN
       CalibrateMin(ReverserData, RDCReverserForwardMin, ReverserForwardMinCalibrated, 'Push the reverser to full forward');
-    IF ReverserForwardMinCalibrated
-    AND NOT ReverserForwardMaxCalibrated
-    THEN
+    IF ReverserForwardMinCalibrated AND NOT ReverserForwardMaxCalibrated THEN
       CalibrateMax(ReverserData, RDCReverserForwardMax, ReverserForwardMaxCalibrated,'Pull the reverser back almost to the neutral stop');
 
     { Calibrate reverser - reverse }
-    IF ReverserForwardMaxCalibrated
-    AND NOT ReverserReverseMaxCalibrated
-    THEN
+    IF ReverserForwardMaxCalibrated AND NOT ReverserReverseMaxCalibrated THEN
       CalibrateMax(ReverserData, RDCReverserReverseMax, ReverserReverseMaxCalibrated, 'Pull the reverser back to full reverse');
-    IF ReverserReverseMaxCalibrated
-    AND NOT ReverserReverseMinCalibrated
-    THEN
+    IF ReverserReverseMaxCalibrated AND NOT ReverserReverseMinCalibrated THEN
         CalibrateMin(ReverserData, RDCReverserReverseMin, ReverserReverseMinCalibrated, 'Push the reverser almost to the neutral stop');
 
     { Calibrate regulator - forward }
-    IF ReverserReverseMinCalibrated
-    AND NOT RegulatorForwardMinCalibrated
-    THEN
+    IF ReverserReverseMinCalibrated AND NOT RegulatorForwardMinCalibrated THEN
       CalibrateMin(RegulatorData, RDCRegulatorForwardMin, RegulatorForwardMinCalibrated, 'Push the regulator to full forward');
-    IF RegulatorForwardMinCalibrated
-    AND NOT RegulatorForwardMaxCalibrated
-    THEN
+    IF RegulatorForwardMinCalibrated AND NOT RegulatorForwardMaxCalibrated THEN
       CalibrateMax(RegulatorData, RDCRegulatorForwardMax, RegulatorForwardMaxCalibrated, 'Pull the regulator back to the neutral stop');
 
     { Calibrate regulator - reverse }
-    IF RegulatorForwardMaxCalibrated
-    AND NOT RegulatorReverseMaxCalibrated
-    THEN
+    IF RegulatorForwardMaxCalibrated AND NOT RegulatorReverseMaxCalibrated THEN
       CalibrateMax(RegulatorData, RDCRegulatorReverseMax, RegulatorReverseMaxCalibrated, 'Pull the regulator back to full reverse');
-    IF RegulatorReverseMaxCalibrated
-    AND NOT RegulatorReverseMinCalibrated
-    THEN
+    IF RegulatorReverseMaxCalibrated AND NOT RegulatorReverseMinCalibrated THEN
       CalibrateMin(RegulatorData, RDCRegulatorReverseMin, RegulatorReverseMinCalibrated, 'Push the regulator back to the neutral stop');
 
     { Calibrate train brake - full off }
-    IF RegulatorReverseMinCalibrated
-    AND NOT TrainBrakeMaxCalibrated
-    THEN
+    IF RegulatorReverseMinCalibrated AND NOT TrainBrakeMaxCalibrated THEN
       CalibrateMax(TrainBrakeData, RDCTrainBrakeMax, TrainBrakeMaxCalibrated, 'Pull the train brake back to full off');
     { Calibrate train brake - full on }
-    IF TrainBrakeMaxCalibrated
-    AND NOT TrainBrakeMinCalibrated
-    THEN
+    IF TrainBrakeMaxCalibrated AND NOT TrainBrakeMinCalibrated THEN
       CalibrateMin(TrainBrakeData, RDCTrainBrakeMin, TrainBrakeMinCalibrated, 'Push the train brake up to full on (not emergency)');
     { Calibrate train brake - emergency on }
     RDCEmergencyBrakeMax := RDCTrainBrakeMin - 1;
-    IF TrainBrakeMinCalibrated
-    AND NOT EmergencyBrakeCalibrated
-    THEN
+    IF TrainBrakeMinCalibrated AND NOT EmergencyBrakeCalibrated THEN
       CalibrateMin(TrainBrakeData, RDCEmergencyBrakeMin, EmergencyBrakeCalibrated, 'Push the train brake forward to emergency stop');
 
     { Calibrate loco brake }
-    IF EmergencyBrakeCalibrated
-    AND NOT LocoBrakeMaxCalibrated
-    THEN
+    IF EmergencyBrakeCalibrated AND NOT LocoBrakeMaxCalibrated THEN
       CalibrateMax(LocoBrakeData, RDCLocoBrakeMax, LocoBrakeMaxCalibrated, 'Pull the loco brake back to full off');
-    IF LocoBrakeMaxCalibrated
-    AND NOT LocoBrakeMinCalibrated
-    THEN
+    IF LocoBrakeMaxCalibrated AND NOT LocoBrakeMinCalibrated THEN
       CalibrateMin(LocoBrakeData, RDCLocoBrakeMin, LocoBrakeMinCalibrated, 'Push the loco brake up to full on');
 
     { Calibrate bail off }
-    IF LocoBrakeMinCalibrated
-    AND NOT BailOffMinCalibrated
-    THEN
+    IF LocoBrakeMinCalibrated AND NOT BailOffMinCalibrated THEN
       CalibrateMin(BailoffData, RDCBailOffMin, BailOffMinCalibrated, 'Leave the loco brake in the bail on position');
-    IF BailOffMinCalibrated
-    AND NOT BailOffMaxCalibrated
-    THEN
+    IF BailOffMinCalibrated AND NOT BailOffMaxCalibrated THEN
       CalibrateMax(BailOffData, RDCBailOffMax, BailOffMaxCalibrated, 'Push the loco brake across to bail off');
 
     { Calibrate 3 way switch A - left }
-    IF BailOffMaxCalibrated
-    AND NOT ThreeWaySwitchALeftNumCalibrated
-    THEN
+    IF BailOffMaxCalibrated AND NOT ThreeWaySwitchALeftNumCalibrated THEN
       CalibrateMin(ThreeWaySwitchAData, RDCThreeWaySwitchALeftNum, ThreeWaySwitchALeftNumCalibrated, 'Set the upper 3 way switch to the left position');
 
     { Calibrate 3 way switch A - centre }
-    IF ThreeWaySwitchALeftNumCalibrated
-    AND NOT ThreeWaySwitchAMidNumCalibrated
-    THEN
+    IF ThreeWaySwitchALeftNumCalibrated AND NOT ThreeWaySwitchAMidNumCalibrated THEN
       CalibrateMid(ThreeWaySwitchAData, RDCThreeWaySwitchAMidNum, ThreeWaySwitchAMidNumCalibrated, 'Set the upper 3 way switch to the centre position');
 
     { Calibrate 3 way switch A - right }
-    IF ThreeWaySwitchAMidNumCalibrated
-    AND NOT ThreeWaySwitchARightNumCalibrated
-    THEN
+    IF ThreeWaySwitchAMidNumCalibrated AND NOT ThreeWaySwitchARightNumCalibrated THEN
       CalibrateMax(ThreeWaySwitchAData, RDCThreeWaySwitchARightNum, ThreeWaySwitchARightNumCalibrated, 'Set the upper 3 way switch to the right position');
 
     { Calibrate 3 way switch B - left }
-    IF ThreeWaySwitchARightNumCalibrated
-    AND NOT ThreeWaySwitchBLeftNumCalibrated
-    THEN
+    IF ThreeWaySwitchARightNumCalibrated AND NOT ThreeWaySwitchBLeftNumCalibrated THEN
       CalibrateMin(ThreeWaySwitchBData, RDCThreeWaySwitchBLeftNum, ThreeWaySwitchBLeftNumCalibrated, 'Set the lower 3 way switch to the left position');
 
     { Calibrate 3 way switch B - centre }
-    IF ThreeWaySwitchBLeftNumCalibrated
-    AND NOT ThreeWaySwitchBMidNumCalibrated
-    THEN
+    IF ThreeWaySwitchBLeftNumCalibrated AND NOT ThreeWaySwitchBMidNumCalibrated THEN
       CalibrateMid(ThreeWaySwitchBData, RDCThreeWaySwitchBMidNum, ThreeWaySwitchBMidNumCalibrated, 'Set the lower 3 way switch to the centre position');
 
     { Calibrate 3 way switch B - right }
-    IF ThreeWaySwitchBMidNumCalibrated
-    AND NOT ThreeWaySwitchBRightNumCalibrated
-    THEN
+    IF ThreeWaySwitchBMidNumCalibrated AND NOT ThreeWaySwitchBRightNumCalibrated THEN
       CalibrateMax(ThreeWaySwitchBData, RDCThreeWaySwitchBRightNum, ThreeWaySwitchBRightNumCalibrated, 'Set the lower 3 way switch to the right position');
 
     { and tidy up }
@@ -1122,9 +1056,7 @@ BEGIN
         ButtonStateChanged[0] := True;
       END;
     END;
-    IF ButtonDown[0]
-    AND ButtonStateChanged[0]
-    THEN
+    IF ButtonDown[0] AND ButtonStateChanged[0] THEN
       ButtonPressed[0] := True;
 
     IF (Data[8] AND 2) = 2 THEN BEGIN
@@ -1138,9 +1070,7 @@ BEGIN
         ButtonStateChanged[1] := True;
       END;
     END;
-    IF ButtonDown[1]
-    AND ButtonStateChanged[1]
-    THEN
+    IF ButtonDown[1] AND ButtonStateChanged[1] THEN
       ButtonPressed[1] := True;
    
     IF (Data[8] AND 4) = 4 THEN BEGIN
@@ -1154,9 +1084,7 @@ BEGIN
         ButtonStateChanged[2] := True;
       END;
     END;
-    IF ButtonDown[2]
-    AND ButtonStateChanged[2]
-    THEN
+    IF ButtonDown[2] AND ButtonStateChanged[2] THEN
       ButtonPressed[2] := True;
 
     IF (Data[8] AND 8) = 8 THEN BEGIN
@@ -1170,9 +1098,7 @@ BEGIN
         ButtonStateChanged[3] := True;
       END;
     END;
-    IF ButtonDown[3]
-    AND ButtonStateChanged[3]
-    THEN
+    IF ButtonDown[3] AND ButtonStateChanged[3] THEN
       ButtonPressed[3] := True;
 
     IF (Data[8] AND 16) = 16 THEN BEGIN
@@ -1186,9 +1112,7 @@ BEGIN
         ButtonStateChanged[4] := True;
       END;
     END;
-    IF ButtonDown[4]
-    AND ButtonStateChanged[4]
-    THEN
+    IF ButtonDown[4] AND ButtonStateChanged[4] THEN
       ButtonPressed[4] := True;
 
     IF (Data[8] AND 32) = 32 THEN BEGIN
@@ -1202,9 +1126,7 @@ BEGIN
         ButtonStateChanged[5] := True;
       END;
     END;
-    IF ButtonDown[5]
-    AND ButtonStateChanged[5]
-    THEN
+    IF ButtonDown[5] AND ButtonStateChanged[5] THEN
       ButtonPressed[5] := True;
 
     IF (Data[8] AND 64) = 64 THEN BEGIN
@@ -1218,9 +1140,7 @@ BEGIN
         ButtonStateChanged[6] := True;
       END;
     END;
-    IF ButtonDown[6]
-    AND ButtonStateChanged[6]
-    THEN
+    IF ButtonDown[6] AND ButtonStateChanged[6] THEN
       ButtonPressed[6] := True;
 
     IF (Data[8] AND 128) = 128 THEN BEGIN
@@ -1234,9 +1154,7 @@ BEGIN
         ButtonStateChanged[7] := True;
       END;
     END;
-    IF ButtonDown[7]
-    AND ButtonStateChanged[7]
-    THEN
+    IF ButtonDown[7] AND ButtonStateChanged[7] THEN
       ButtonPressed[7] := True;
 
     IF (Data[9] AND 1) = 1 THEN BEGIN
@@ -1250,9 +1168,7 @@ BEGIN
         ButtonStateChanged[8] := True;
       END;
     END;
-    IF ButtonDown[8]
-    AND ButtonStateChanged[8]
-    THEN
+    IF ButtonDown[8] AND ButtonStateChanged[8] THEN
       ButtonPressed[8] := True;
 
     IF (Data[9] AND 2) = 2 THEN BEGIN
@@ -1266,9 +1182,7 @@ BEGIN
         ButtonStateChanged[9] := True;
       END;
     END;
-    IF ButtonDown[9]
-    AND ButtonStateChanged[9]
-    THEN
+    IF ButtonDown[9] AND ButtonStateChanged[9] THEN
       ButtonPressed[9] := True;
 
     IF (Data[9] AND 4) = 4 THEN BEGIN
@@ -1282,9 +1196,7 @@ BEGIN
         ButtonStateChanged[10] := True;
       END;
     END;
-    IF ButtonDown[10]
-    AND ButtonStateChanged[10]
-    THEN
+    IF ButtonDown[10] AND ButtonStateChanged[10] THEN
       ButtonPressed[10] := True;
 
     IF (Data[9] AND 8) = 8 THEN BEGIN
@@ -1298,9 +1210,7 @@ BEGIN
         ButtonStateChanged[11] := True;
       END;
     END;
-    IF ButtonDown[11]
-    AND ButtonStateChanged[11]
-    THEN
+    IF ButtonDown[11] AND ButtonStateChanged[11] THEN
       ButtonPressed[11] := True;
 
     IF (Data[9] AND 16) = 16 THEN BEGIN
@@ -1314,9 +1224,7 @@ BEGIN
         ButtonStateChanged[12] := True;
       END;
     END;
-    IF ButtonDown[12]
-    AND ButtonStateChanged[12]
-    THEN
+    IF ButtonDown[12] AND ButtonStateChanged[12] THEN
       ButtonPressed[12] := True;
 
     IF (Data[9] AND 32) = 32 THEN BEGIN
@@ -1330,9 +1238,7 @@ BEGIN
         ButtonStateChanged[13] := True;
       END;
     END;
-    IF ButtonDown[13]
-    AND ButtonStateChanged[13]
-    THEN
+    IF ButtonDown[13] AND ButtonStateChanged[13] THEN
       ButtonPressed[13] := True;
 
     IF (Data[9] AND 64) = 64 THEN BEGIN
@@ -1346,9 +1252,7 @@ BEGIN
         ButtonStateChanged[14] := True;
       END;
     END;
-    IF ButtonDown[14]
-    AND ButtonStateChanged[14]
-    THEN
+    IF ButtonDown[14] AND ButtonStateChanged[14] THEN
       ButtonPressed[14] := True;
 
     IF (Data[9] AND 128) = 128 THEN BEGIN
@@ -1362,9 +1266,7 @@ BEGIN
         ButtonStateChanged[15] := True;
       END;
     END;
-    IF ButtonDown[15]
-    AND ButtonStateChanged[15]
-    THEN
+    IF ButtonDown[15] AND ButtonStateChanged[15] THEN
       ButtonPressed[15] := True;
 
     IF (Data[10] AND 1) = 1 THEN BEGIN
@@ -1378,9 +1280,7 @@ BEGIN
         ButtonStateChanged[16] := True;
       END;
     END;
-    IF ButtonDown[16]
-    AND ButtonStateChanged[16]
-    THEN
+    IF ButtonDown[16] AND ButtonStateChanged[16] THEN
       ButtonPressed[16] := True;
 
     IF (Data[10] AND 2) = 2 THEN BEGIN
@@ -1394,9 +1294,7 @@ BEGIN
         ButtonStateChanged[17] := True;
       END;
     END;
-    IF ButtonDown[17]
-    AND ButtonStateChanged[17]
-    THEN
+    IF ButtonDown[17] AND ButtonStateChanged[17] THEN
       ButtonPressed[17] := True;
 
     IF (Data[10] AND 4) = 4 THEN BEGIN
@@ -1410,9 +1308,7 @@ BEGIN
         ButtonStateChanged[18] := True;
       END;
     END;
-    IF ButtonDown[18]
-    AND ButtonStateChanged[18]
-    THEN
+    IF ButtonDown[18] AND ButtonStateChanged[18] THEN
       ButtonPressed[18] := True;
 
     IF (Data[10] AND 8) = 8 THEN BEGIN
@@ -1426,9 +1322,7 @@ BEGIN
         ButtonStateChanged[19] := True;
       END;
     END;
-    IF ButtonDown[19]
-    AND ButtonStateChanged[19]
-    THEN
+    IF ButtonDown[19] AND ButtonStateChanged[19] THEN
       ButtonPressed[19] := True;
 
     IF (Data[10] AND 16) = 16 THEN BEGIN
@@ -1442,9 +1336,7 @@ BEGIN
         ButtonStateChanged[20] := True;
       END;
     END;
-    IF ButtonDown[20]
-    AND ButtonStateChanged[20]
-    THEN
+    IF ButtonDown[20] AND ButtonStateChanged[20] THEN
       ButtonPressed[20] := True;
 
     IF (Data[10] AND 32) = 32 THEN BEGIN
@@ -1458,9 +1350,7 @@ BEGIN
         ButtonStateChanged[21] := True;
       END;
     END;
-    IF ButtonDown[21]
-    AND ButtonStateChanged[21]
-    THEN
+    IF ButtonDown[21] AND ButtonStateChanged[21] THEN
       ButtonPressed[21] := True;
 
     IF (Data[10] AND 64) = 64 THEN BEGIN
@@ -1474,9 +1364,7 @@ BEGIN
         ButtonStateChanged[22] := True;
       END;
     END;
-    IF ButtonDown[22]
-    AND ButtonStateChanged[22]
-    THEN
+    IF ButtonDown[22] AND ButtonStateChanged[22] THEN
       ButtonPressed[22] := True;
 
     IF (Data[10] AND 128) = 128 THEN BEGIN
@@ -1490,9 +1378,7 @@ BEGIN
         ButtonStateChanged[23] := True;
       END;
     END;
-    IF ButtonDown[23]
-    AND ButtonStateChanged[23]
-    THEN
+    IF ButtonDown[23] AND ButtonStateChanged[23] THEN
       ButtonPressed[23] := True;
 
     IF (Data[11] AND 1) = 1 THEN BEGIN
@@ -1506,9 +1392,7 @@ BEGIN
         ButtonStateChanged[24] := True;
       END;
     END;
-    IF ButtonDown[24]
-    AND ButtonStateChanged[24]
-    THEN
+    IF ButtonDown[24] AND ButtonStateChanged[24] THEN
       ButtonPressed[24] := True;
 
     IF (Data[11] AND 2) = 2 THEN BEGIN
@@ -1522,9 +1406,7 @@ BEGIN
         ButtonStateChanged[25] := True;
       END;
     END;
-    IF ButtonDown[25]
-    AND ButtonStateChanged[25]
-    THEN
+    IF ButtonDown[25] AND ButtonStateChanged[25] THEN
       ButtonPressed[25] := True;
 
     IF (Data[11] AND 4) = 4 THEN BEGIN
@@ -1538,9 +1420,7 @@ BEGIN
         ButtonStateChanged[26] := True;
       END;
     END;
-    IF ButtonDown[26]
-    AND ButtonStateChanged[26]
-    THEN
+    IF ButtonDown[26] AND ButtonStateChanged[26] THEN
       ButtonPressed[26] := True;
 
     IF (Data[11] AND 8) = 8 THEN BEGIN
@@ -1554,9 +1434,7 @@ BEGIN
         ButtonStateChanged[27] := True;
       END;
     END;
-    IF ButtonDown[27]
-    AND ButtonStateChanged[27]
-    THEN
+    IF ButtonDown[27] AND ButtonStateChanged[27] THEN
       ButtonPressed[27] := True;
 
     IF (Data[11] AND 16) = 16 THEN BEGIN
@@ -1570,9 +1448,7 @@ BEGIN
         ButtonStateChanged[28] := True;
       END;
     END;
-    IF ButtonDown[28]
-    AND ButtonStateChanged[28]
-    THEN
+    IF ButtonDown[28] AND ButtonStateChanged[28] THEN
       ButtonPressed[28] := True;
 
     IF (Data[11] AND 32) = 32 THEN BEGIN
@@ -1586,9 +1462,7 @@ BEGIN
         ButtonStateChanged[29] := True;
       END;
     END;
-    IF ButtonDown[29]
-    AND ButtonStateChanged[29]
-    THEN
+    IF ButtonDown[29] AND ButtonStateChanged[29] THEN
       ButtonPressed[29] := True;
 
     IF (Data[11] AND 64) = 64 THEN BEGIN
@@ -1602,9 +1476,7 @@ BEGIN
         ButtonStateChanged[30] := True;
       END;
     END;
-    IF ButtonDown[30]
-    AND ButtonStateChanged[30]
-    THEN
+    IF ButtonDown[30] AND ButtonStateChanged[30] THEN
       ButtonPressed[30] := True;
 
     IF (Data[11] AND 128) = 128 THEN BEGIN
@@ -1618,9 +1490,7 @@ BEGIN
         ButtonStateChanged[31] := True;
       END;
     END;
-    IF ButtonDown[31]
-    AND ButtonStateChanged[31]
-    THEN
+    IF ButtonDown[31] AND ButtonStateChanged[31] THEN
       ButtonPressed[31] := True;
 
     IF (Data[12] AND 1) = 1 THEN BEGIN
@@ -1634,9 +1504,7 @@ BEGIN
         ButtonStateChanged[32] := True;
       END;
     END;
-    IF ButtonDown[32]
-    AND ButtonStateChanged[32]
-    THEN
+    IF ButtonDown[32] AND ButtonStateChanged[32] THEN
       ButtonPressed[32] := True;
 
     IF (Data[12] AND 2) = 2 THEN BEGIN
@@ -1650,9 +1518,7 @@ BEGIN
         ButtonStateChanged[33] := True;
       END;
     END;
-    IF ButtonDown[33]
-    AND ButtonStateChanged[33]
-    THEN
+    IF ButtonDown[33] AND ButtonStateChanged[33] THEN
       ButtonPressed[33] := True;
 
     IF (Data[12] AND 4) = 4 THEN BEGIN
@@ -1666,9 +1532,7 @@ BEGIN
         ButtonStateChanged[34] := True;
       END;
     END;
-    IF ButtonDown[34]
-    AND ButtonStateChanged[34]
-    THEN
+    IF ButtonDown[34] AND ButtonStateChanged[34] THEN
       ButtonPressed[34] := True;
 
     IF (Data[12] AND 8) = 8 THEN BEGIN
@@ -1682,9 +1546,7 @@ BEGIN
         ButtonStateChanged[35] := True;
       END;
     END;
-    IF ButtonDown[35]
-    AND ButtonStateChanged[35]
-    THEN
+    IF ButtonDown[35] AND ButtonStateChanged[35] THEN
       ButtonPressed[35] := True;
 
     IF (Data[12] AND 16) = 16 THEN BEGIN
@@ -1698,9 +1560,7 @@ BEGIN
         ButtonStateChanged[36] := True;
       END;
     END;
-    IF ButtonDown[36]
-    AND ButtonStateChanged[36]
-    THEN
+    IF ButtonDown[36] AND ButtonStateChanged[36] THEN
       ButtonPressed[36] := True;
 
     IF (Data[12] AND 32) = 32 THEN BEGIN
@@ -1714,9 +1574,7 @@ BEGIN
         ButtonStateChanged[37] := True;
       END;
     END;
-    IF ButtonDown[37]
-    AND ButtonStateChanged[37]
-    THEN
+    IF ButtonDown[37] AND ButtonStateChanged[37] THEN
       ButtonPressed[37] := True;
 
     IF (Data[12] AND 64) = 64 THEN BEGIN
@@ -1730,9 +1588,7 @@ BEGIN
         ButtonStateChanged[38] := True;
       END;
     END;
-    IF ButtonDown[38]
-    AND ButtonStateChanged[38]
-    THEN
+    IF ButtonDown[38] AND ButtonStateChanged[38] THEN
       ButtonPressed[38] := True;
 
     IF (Data[12] AND 128) = 128 THEN BEGIN
@@ -1746,9 +1602,7 @@ BEGIN
         ButtonStateChanged[39] := True;
       END;
     END;
-    IF ButtonDown[39]
-    AND ButtonStateChanged[39]
-    THEN
+    IF ButtonDown[39] AND ButtonStateChanged[39] THEN
       ButtonPressed[39] := True;
 
     IF (Data[13] AND 1) = 1 THEN BEGIN
@@ -1762,9 +1616,7 @@ BEGIN
         ButtonStateChanged[40] := True;
       END;
     END;
-    IF ButtonDown[40]
-    AND ButtonStateChanged[40]
-    THEN
+    IF ButtonDown[40] AND ButtonStateChanged[40] THEN
       ButtonPressed[40] := True;
 
     IF (Data[13] AND 2) = 2 THEN BEGIN
@@ -1778,9 +1630,7 @@ BEGIN
         ButtonStateChanged[41] := True;
       END;
     END;
-    IF ButtonDown[41]
-    AND ButtonStateChanged[41]
-    THEN
+    IF ButtonDown[41] AND ButtonStateChanged[41] THEN
       ButtonPressed[41] := True;
 
     IF (Data[13] AND 4) = 4 THEN BEGIN
@@ -1794,9 +1644,7 @@ BEGIN
         ButtonStateChanged[42] := True;
       END;
     END;
-    IF ButtonDown[42]
-    AND ButtonStateChanged[42]
-    THEN
+    IF ButtonDown[42] AND ButtonStateChanged[42] THEN
       ButtonPressed[42] := True;
 
     IF (Data[13] AND 8) = 8 THEN BEGIN
@@ -1810,9 +1658,7 @@ BEGIN
         ButtonStateChanged[43] := True;
       END;
     END;
-    IF ButtonDown[43]
-    AND ButtonStateChanged[43]
-    THEN
+    IF ButtonDown[43] AND ButtonStateChanged[43] THEN
       ButtonPressed[43] := True;
   END; {WITH}
 
@@ -1889,9 +1735,7 @@ BEGIN
     RegulatorData := DataReadIn[2];
     { Check the controls are in neutral so we're ready to start }
     IF NOT RailDriverReady THEN BEGIN
-      IF (GetReverserDirection = UnknownDirection)
-      AND (GetRegulatorDirection = UnknownDirection)
-      THEN BEGIN
+      IF (GetReverserDirection = UnknownDirection) AND (GetRegulatorDirection = UnknownDirection) THEN BEGIN
         RailDriverReady := True;
         { And reset any buttons that have been pressed before now }
         ResetAllButtons;
@@ -1963,10 +1807,8 @@ BEGIN
     IF RailDriverReady THEN BEGIN
       { otherwise process any data }
       { See if loco selection is cancelled }
-      IF ButtonPressed[39]
-      AND ButtonPressed[41]
-      AND (LocoSelectionInProgress
-           OR LocoSelected)
+      IF ButtonPressed[39] AND ButtonPressed[41]
+      AND (LocoSelectionInProgress OR LocoSelected)
       THEN BEGIN
         ResetButton(39);
         ResetButton(41);
@@ -1991,9 +1833,7 @@ BEGIN
       END ELSE BEGIN
         IF ButtonPressed[40] { OR (Length(Train_LocoChipByButton) = 4) } THEN BEGIN
           ResetButton(40);
-          IF NOT LocoSelectionInProgress
-          AND NOT LocoSelected
-          THEN BEGIN
+          IF NOT LocoSelectionInProgress AND NOT LocoSelected THEN BEGIN
             LocoSelectionInProgress := True;
             WriteToRailDriverLEDs('LS ');
             Debug('Selecting a loco by RDC:');
@@ -2011,9 +1851,7 @@ BEGIN
                 LocoChipByButtonAsInteger := StrToInt(LocoChipByButton);
                 T := 0;
                 LocoExists := False;
-                WHILE (T <= High(Trains))
-                AND NOT LocoExists
-                DO BEGIN
+                WHILE (T <= High(Trains)) AND NOT LocoExists DO BEGIN
                   IF Trains[T].Train_LocoChip = LocoChipByButtonAsInteger THEN
                     LocoExists := True
                   ELSE

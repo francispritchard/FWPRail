@@ -241,14 +241,14 @@ object InitVarsWindow: TInitVarsWindow
     Top = 8
   end
   object SignalsDataSource2: TDataSource
-    Left = 316
-    Top = 304
+    Left = 380
+    Top = 320
   end
   object SignalsADOTable2: TADOTable
     Connection = SignalsADOConnection2
     CursorType = ctStatic
     TableName = 'SignalTable'
-    Left = 412
+    Left = 492
     Top = 304
   end
   object SignalsADOConnection2: TADOConnection
@@ -260,8 +260,8 @@ object InitVarsWindow: TInitVarsWindow
     LoginPrompt = False
     Mode = cmShareDenyNone
     Provider = 'Microsoft.Jet.OLEDB.4.0'
-    Left = 364
-    Top = 308
+    Left = 500
+    Top = 356
   end
   object PointsADOTable2: TADOTable
     Connection = PointsADOConnection2

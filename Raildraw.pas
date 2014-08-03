@@ -667,6 +667,7 @@ VAR
   SavePanel3Str : String = '';
   ScrollBarXAdjustment : Integer = 0;
   ScrollBarYAdjustment : Integer = 0;
+  SignalDragging : Boolean = False;
   WatchdogActiveMsgFlag : Boolean = False;
   WatchdogErrorMsgFlag : Boolean = False;
   WindowsTaskbarDisabled : Boolean = False;
@@ -903,9 +904,7 @@ VAR
                 Font.Color := clAqua;
                 FOR P := 0 TO High(Points) DO BEGIN
                   WITH Points[P] DO BEGIN
-                    IF (Point_FeedbackUnit = I)
-                    AND (Point_FeedbackInput = J)
-                    THEN BEGIN
+                    IF (Point_FeedbackUnit = I) AND (Point_FeedbackInput = J) THEN BEGIN
                       SegmentText := IntToStr(I) + IntToStr(J);
                       WITH Point_MouseRect DO BEGIN
                         IF Point_FarY < Point_Y THEN
@@ -925,9 +924,7 @@ VAR
               IF FeedbackType = TrackCircuitFeedbackDetector THEN BEGIN
                 IF ShowOneFeedbackUnitOnly THEN
                   Font.Color := clYellow;
-                IF (FeedbackNum >= 0)
-                AND (FeedbackNum <= High(TrackCircuits))
-                THEN BEGIN
+                IF (FeedbackNum >= 0) AND (FeedbackNum <= High(TrackCircuits)) THEN BEGIN
                   SegmentText := IntToStr(I) + IntToStr(J);
                   IF Length(TrackCircuits[FeedbackNum].TC_LineArray) > 0 THEN BEGIN
                     Line := TrackCircuits[FeedbackNum].TC_LineArray[0];
@@ -953,9 +950,7 @@ VAR
           WHILE Line <= High(Lines) DO BEGIN
             IF Lines[Line].Line_TC = TC THEN BEGIN
               { Draw vertical lines as separators }
-              IF (Lines[Line].Line_NextUpLine <> UnknownLine)
-              AND (Lines[Lines[Line].Line_NextUpLine].Line_TC <> TC)
-              THEN BEGIN
+              IF (Lines[Line].Line_NextUpLine <> UnknownLine) AND (Lines[Lines[Line].Line_NextUpLine].Line_TC <> TC) THEN BEGIN
                 Pen.Color := clWhite;
                 Pen.Style := psSolid;
                 FOR Pos := 0 TO 10 DO BEGIN
@@ -1052,9 +1047,7 @@ VAR
                       SegmentText := '';
                       FeedbackUnitFound := False;
                       I := FirstFeedbackUnit;
-                      WHILE (I <= LastFeedbackUnit)
-                      AND NOT FeedbackUnitFound
-                      DO BEGIN
+                      WHILE (I <= LastFeedbackUnit) AND NOT FeedbackUnitFound DO BEGIN
                         FOR J := 1 TO 8 DO BEGIN
                           FeedbackData.Feedback_Unit := I;
                           FeedbackData.Feedback_Input := J;
@@ -1261,9 +1254,7 @@ VAR
           IF ShowAreas THEN BEGIN
             IF Lines[Line].Line_Location <> UnknownLocation THEN BEGIN
               IF Locations[Line_Location].Location_Area <> UnknownArea THEN BEGIN
-                IF (Areas[Locations[Line_Location].Location_Area].Area_IsHoldingArea)
-                AND (Areas[Locations[Line_Location].Location_Area].Area_IsReversingArea)
-                THEN
+                IF (Areas[Locations[Line_Location].Location_Area].Area_IsHoldingArea) AND (Areas[Locations[Line_Location].Location_Area].Area_IsReversingArea) THEN
                   Font.Color := clAqua
                 ELSE
                   IF Areas[Locations[Line_Location].Location_Area].Area_IsHoldingArea THEN
@@ -1372,51 +1363,13 @@ BEGIN
   TRY
     InitialiseScreenDrawingVariables;
 
-//    { If the timer is running on the automatic undrawing of a previous draw, undraw it now before we start the timer on another drawing }
-//    IF UndrawToBeAutomatic
-//    AND (TimeRectangleDrawn <> 0)
-//    THEN BEGIN
-//      TimeRectangleDrawn := 0;
-//      WITH RailWindowBitmap.Canvas DO BEGIN
-//        Pen.Color := SaveUndrawRectColour;
-//        Brush.Color := BackgroundColour;
-//        WITH UndrawRect DO
-//          Polyline([Point(Left - ScrollBarXAdjustment, Top - ScrollBarYAdjustment),
-//                    Point(Left - ScrollBarXAdjustment, Bottom - ScrollBarYAdjustment),
-//                    Point(Right - ScrollBarXAdjustment, Bottom - ScrollBarYAdjustment),
-//                    Point(Right - ScrollBarXAdjustment, Top - ScrollBarYAdjustment),
-//                    Point(Left - ScrollBarXAdjustment, Top - ScrollBarYAdjustment)]);
-//      END; {WITH}
-//    END;
-
-    { Now draw what we've been asked to do }
     WITH RailWindowBitmap.Canvas DO BEGIN
       IF UndrawRequired THEN
         Pen.Mode := pmNotXor;
       Pen.Color := Colour;
       Brush.Color := BackgroundColour;
-//pen.color := claqua;
-//  FWPPolygon[0] := Point(1050, 43);
-//  FWPPolygon[1] := Point(1050, 27);
-//  FWPPolygon[2] := Point(1086, 27);
-//  FWPPolygon[3] := Point(1086, 43);
-//  FWPPolygon[4] := FWPPolygon[0];
       Polyline(FWPPolygon);
-
-//IF FWPPolygon[0] = Point(1050, 43) THEN
-//      InvalidateScreen(UnitRef, 'xxx');
     END; {WITH}
-
-//  InvalidateScreen(UnitRef, 'PointDialogueBox');
-
-//    IF UndrawRequired
-//    AND UndrawToBeAutomatic
-//    THEN BEGIN
-//      { If automatic undraw required, do it after a set time }
-//      TimeRectangleDrawn := GetTickCount;
-//      UndrawRect := NewRect;
-//      SaveUndrawRectColour := Colour;
-//    END;
   EXCEPT
     ON E : Exception DO
       Log('EG DrawOutline:' + E.ClassName + ' error raised, with message: '+ E.Message);
@@ -1528,9 +1481,7 @@ BEGIN
 
         FOR Line := 0 TO High(Lines) DO BEGIN
           WITH Lines[Line] DO BEGIN
-            IF (Line_TC <> UnknownTrackCircuit)
-            AND NOT IsElementInIntegerArray(TCArray, Line_TC)
-            THEN BEGIN
+            IF (Line_TC <> UnknownTrackCircuit) AND NOT IsElementInIntegerArray(TCArray, Line_TC) THEN BEGIN
               { store the TC so that we don't draw the restriction on each part of the TC }
               AppendToIntegerArray(TCArray, Line_TC);
             
@@ -1841,7 +1792,6 @@ VAR
   SColour1, SColour2  : Integer;
   SignalBottom : Integer;
   SignalLeft : Integer;
-//  SignalPointA, SignalPointB, SignalPointC, SignalPointD : TPoint;
   SignalRight : Integer;
   SignalTop : Integer;
   TheatreIndicatorX1, TheatreIndicatorX2 : Integer;
@@ -1896,7 +1846,7 @@ VAR
       Polygon(PointArray);
   END; { DrawSemaphore }
 
-BEGIN
+BEGIN { DrawSignal }
   TRY
     TopAspectX := 0;
     IndicatorX := 0;
@@ -1919,6 +1869,7 @@ BEGIN
         { store the data for debugging }
 
         DrawSignalPost(S);
+//debug('s=' + inttostr(S) + ' x=' + Inttostr(signalx) + ' y=' + inttostr(signaly));
 
         IF RecordLineDrawingMode OR NOT FWPRailWindowInitialised OR Signal_StateChanged THEN
           Log('S S=' + IntToStr(S)
@@ -1934,6 +1885,9 @@ BEGIN
           Aspect := Signal_HiddenAspect;
 
         MoveTo(Signal_LocationX - ScrollBarXAdjustment, Signal_LocationY - ScrollBarYAdjustment);
+
+if s=34 then
+  Debug('Drawing at x=' + inttoStr(signal_locationX) + ' and y=' + inttostr(signal_locationy));
 
         IF Signal_Type = FourAspect THEN BEGIN
           IF Signal_Direction = Up THEN
@@ -2206,9 +2160,7 @@ BEGIN
         END;
 
         IF Signal_OutOfUse
-        OR ((Signal_AdjacentLine <> UnknownLine)
-        AND (Lines[Signal_AdjacentLine].Line_TC = UnknownTrackCircuit))
-        THEN BEGIN
+        OR ((Signal_AdjacentLine <> UnknownLine) AND (Lines[Signal_AdjacentLine].Line_TC = UnknownTrackCircuit)) THEN BEGIN
           { a safeguard - turn the signal off altogether! }
           SColour1 := SignalAspectUnlit;
           SColour2 := SignalAspectUnlit;
@@ -2332,15 +2284,11 @@ BEGIN
           END;
         END;
 
-//        DrawSignalPost(S);
-
         { Draw mouse access rectangles if required }
         IF ShowMouseRectangles THEN BEGIN
           DrawOutline(Signal_MouseRect, clYellow, NOT UndrawRequired, NOT UndrawToBeAutomatic);
           DrawOutline(Signal_PostMouseRect, clRed, NOT UndrawRequired, NOT UndrawToBeAutomatic);
-          IF (Signal_Indicator <> NoIndicator)
-          AND (Signal_Indicator <> JunctionIndicator)
-          THEN
+          IF (Signal_Indicator <> NoIndicator) AND (Signal_Indicator <> JunctionIndicator) THEN
             DrawOutline(Signal_IndicatorMouseRect, clAqua, NOT UndrawRequired, NOT UndrawToBeAutomatic);
 
           FOR Indicator := UpperLeftIndicator TO LowerRightIndicator DO
@@ -2567,9 +2515,7 @@ BEGIN
           ELSE
             Pen.Width := FullScreenPenWidth;
 
-          IF (TempLineText <> '')
-          AND (TempLineText <> ClearLineString)
-          THEN BEGIN
+          IF (TempLineText <> '') AND (TempLineText <> ClearLineString) THEN BEGIN
             { throw away the original line text and substitute the temporary text }
             LineTextStr := TempLineText;
             Font.Color := NewLineColour;
@@ -2619,9 +2565,7 @@ BEGIN
 
           { Clear any previous text away }
           IF (LineTextStr <> '') OR (TempLineText <> '') THEN BEGIN
-            IF (Line_UpY = Line_DownY)
-            AND ((Line_DownX - Line_UpX > TextWidth('---- ')) OR (Line_UpX - Line_DownX > TextWidth('---- ')))
-            THEN BEGIN
+            IF (Line_UpY = Line_DownY) AND ((Line_DownX - Line_UpX > TextWidth('---- ')) OR (Line_UpX - Line_DownX > TextWidth('---- '))) THEN BEGIN
               X1 := Line_UpX + ((Line_DownX - Line_UpX - TextWidth('MMMM')) DIV 2) - ScrollBarXAdjustment;
               Y1 := Line_UpY - (TextHeight('M') DIV 2) - ScrollBarYAdjustment;
               X2 := Line_DownX - ((Line_DownX - Line_UpX - TextWidth('MMMM')) DIV 2) - ScrollBarXAdjustment;
@@ -2636,14 +2580,10 @@ BEGIN
 
           { Draw this line in the colour of the adjacent lines if it is not track circuited }
           IF Lines[Line].Line_TC = UnknownTrackCircuit THEN BEGIN
-            IF (Line_NextUpLine <> UnknownLine)
-            AND (Line_NextDownLine <> UnknownLine)
-            THEN BEGIN
+            IF (Line_NextUpLine <> UnknownLine) AND (Line_NextDownLine <> UnknownLine) THEN BEGIN
               UpLineColour := Lines[Line_NextUpLine].Line_CurrentColour;
               DownLineColour := Lines[Line_NextDownLine].Line_CurrentColour;
-              IF (UpLineColour = DownLineColour)
-              AND (UpLineColour <> NewLineColour)
-              THEN
+              IF (UpLineColour = DownLineColour) AND (UpLineColour <> NewLineColour) THEN
                 NewLineColour := UpLineColour;
             END;
           END;
@@ -2669,14 +2609,10 @@ BEGIN
           END;
 
           { if there's some text and there's room for it, and the line is horizontal, then add it }
-          IF ShowLineOccupationDetail
-          AND (LineTextStr <> '')
-          AND (TempLineText <> ClearLineString)
-          THEN BEGIN
+          IF ShowLineOccupationDetail AND (LineTextStr <> '') AND (TempLineText <> ClearLineString) THEN BEGIN
             { needs text if there's room }
             IF (Line_UpY = Line_DownY)
-            AND ((Line_DownX - Line_UpX > TextWidth(LineTextStr))
-                 OR (Line_UpX - Line_DownX > TextWidth(LineTextStr)))
+            AND ((Line_DownX - Line_UpX > TextWidth(LineTextStr)) OR (Line_UpX - Line_DownX > TextWidth(LineTextStr)))
             THEN BEGIN
               { clear space for the text }
               Brush.Color := BackgroundColour;
@@ -2699,12 +2635,8 @@ BEGIN
           { what if the line is not horizontal? *** }
 
           { Draw adjacent lines if they are not track circuited }
-          IF (Line_NextUpLine <> UnknownLine)
-          AND (Line_NextDownLine <> UnknownLine)
-          THEN BEGIN
-            IF (Lines[Line_NextUpLine].Line_TC = UnknownTrackCircuit)
-            AND (Lines[Line_NextDownLine].Line_TC = UnknownTrackCircuit)
-            THEN BEGIN
+          IF (Line_NextUpLine <> UnknownLine) AND (Line_NextDownLine <> UnknownLine) THEN BEGIN
+            IF (Lines[Line_NextUpLine].Line_TC = UnknownTrackCircuit) AND (Lines[Line_NextDownLine].Line_TC = UnknownTrackCircuit) THEN BEGIN
               MoveTo(Lines[Line_NextUpLine].Line_UpX - ScrollBarXAdjustment,
                      Lines[Line_NextUpLine].Line_UpY - ScrollBarYAdjustment);
               LineTo(Lines[Line_NextUpLine].Line_DownX - ScrollBarXAdjustment,
@@ -2719,14 +2651,10 @@ BEGIN
           { Draw characters at line starts/ends to indicate where lines are going when they disappear off the screen. (Although it is unlikely that a line would have a
             character at both ends, this eventuality is catered for).
           }
-          IF (Lines[Line].Line_UpConnectionCh <> '')
-          AND (Lines[Line].Line_UpConnectionCh <> ' ')
-          THEN
+          IF (Lines[Line].Line_UpConnectionCh <> '') AND (Lines[Line].Line_UpConnectionCh <> ' ') THEN
             DrawConnectionCh(Line, Up);
 
-          IF (Lines[Line].Line_DownConnectionCh <> '')
-          AND (Lines[Line].Line_DownConnectionCh <> ' ')
-          THEN
+          IF (Lines[Line].Line_DownConnectionCh <> '') AND (Lines[Line].Line_DownConnectionCh <> ' ') THEN
             DrawConnectionCh(Line, Down);
 
           IF ShowMouseRectangles THEN BEGIN
@@ -2920,15 +2848,13 @@ BEGIN
                     ELSE
                       IF (Point_PresentState = Diverging)
                       AND (Lines[Point_DivergingLine].Line_TC = UnknownTrackCircuit)
-                      AND ((Lines[Point_HeelLine].Line_TC <> UnknownTrackCircuit)
-                           AND (TrackCircuits[Lines[Point_HeelLine].Line_TC].TC_OccupationState <> TCUnoccupied))
+                      AND ((Lines[Point_HeelLine].Line_TC <> UnknownTrackCircuit) AND (TrackCircuits[Lines[Point_HeelLine].Line_TC].TC_OccupationState <> TCUnoccupied))
                       THEN
                         Pen.Color := GetTrackCircuitStateColour(Lines[Point_HeelLine].Line_TC)
                       ELSE
                         IF (Point_PresentState = Straight)
                         AND (Lines[Point_StraightLine].Line_TC = UnknownTrackCircuit)
-                        AND ((Lines[Point_HeelLine].Line_TC <> UnknownTrackCircuit)
-                             AND (TrackCircuits[Lines[Point_HeelLine].Line_TC].TC_OccupationState <> TCUnoccupied))
+                        AND ((Lines[Point_HeelLine].Line_TC <> UnknownTrackCircuit) AND (TrackCircuits[Lines[Point_HeelLine].Line_TC].TC_OccupationState <> TCUnoccupied))
                         THEN
                           Pen.Color := GetTrackCircuitStateColour(Lines[Point_HeelLine].Line_TC)
                         ELSE
@@ -3082,9 +3008,7 @@ BEGIN
                   { extract what kind of feedback it is (FeedbackNum is only use for track circuits) }
                   ExtractDataFromFeedback(FeedbackData, TCAboveFeedbackUnit, FeedbackType, FeedbackNum);
                   IF FeedbackType = PointFeedbackDetector THEN BEGIN
-                    IF (Point_FeedbackUnit = I)
-                    AND (Point_FeedbackInput = J)
-                    THEN BEGIN
+                    IF (Point_FeedbackUnit = I) AND (Point_FeedbackInput = J) THEN BEGIN
                       NumberText := IntToStr(I) + IntToStr(J);
                       IF ScreenColoursSetForPrinting THEN
                         Font.Color := clBlack
@@ -3178,9 +3102,7 @@ BEGIN
           IF FeedbackType = PointFeedbackDetector THEN BEGIN
             FOR P := 0 TO High(Points) DO BEGIN
               WITH Points[P] DO BEGIN
-                IF (Point_FeedbackUnit = I)
-                AND (Point_FeedbackInput = J)
-                THEN BEGIN
+                IF (Point_FeedbackUnit = I) AND (Point_FeedbackInput = J) THEN BEGIN
                   NumberText := IntToStr(I) + IntToStr(J);
                   WITH Point_MouseRect DO BEGIN
                     IF Point_FarY < Point_Y THEN
@@ -3287,19 +3209,13 @@ BEGIN
     FOR P := 0 TO High(Points) DO BEGIN
       DrawPoint(P, PointColour);
 
-      IF ShowPointDetail
-      AND Points[P].Point_OutOfUse
-      THEN
+      IF ShowPointDetail AND Points[P].Point_OutOfUse THEN
         DrawPointNum(P, PointOutOfUseColour)
       ELSE
-        IF ShowPointDetail
-        AND (Points[P].Point_FacingDirection = Up)
-        THEN
+        IF ShowPointDetail AND (Points[P].Point_FacingDirection = Up) THEN
           DrawPointNum(P, PointUpFacingColour)
         ELSE
-          IF ShowPointDetail
-          AND (Points[P].Point_FacingDirection = Down)
-          THEN
+          IF ShowPointDetail AND (Points[P].Point_FacingDirection = Down) THEN
             DrawPointNum(P, PointDownFacingColour)
           ELSE
             IF ShowLenzPointNumbers THEN
@@ -3320,9 +3236,7 @@ BEGIN
                       IF ShowPointsThatAreLocked THEN
                         DrawPointNum(P, ShowPointLockedColour)
                       ELSE
-                        IF ShowPointDefaultState
-                        AND (Points[P].Point_DefaultState <> PointStateUnknown)
-                        THEN
+                        IF ShowPointDefaultState AND (Points[P].Point_DefaultState <> PointStateUnknown) THEN
                           { only draw the point number if the point has a default state }
                           DrawPointNum(P, ShowPointDefaultStateColour);
 
@@ -3576,9 +3490,7 @@ END; { FWPRailWindowShortCut }
 //            Handled := True;
 //          END;
 //        vk_Down: { down arrow key - need to handle specially in loco dialogue boxes }
-//          IF LocoDialogueWindow.Visible
-//          AND LocoDialogueWindow.LocoDialogueSpeedButtons.Enabled
-//          THEN BEGIN
+//          IF LocoDialogueWindow.Visible AND LocoDialogueWindow.LocoDialogueSpeedButtons.Enabled THEN BEGIN
 //            Button := btPrev;
 //            IF ssShift IN ApplicationMessageShiftState THEN BEGIN
 //              IF LocoDialogueWindow.LocoDialogueUpDownButton.Enabled THEN
@@ -3707,30 +3619,18 @@ PROCEDURE TFWPRailWindow.FWPRailWindowMouseMove(Sender: TObject; ShiftState: TSh
 }
 BEGIN
   TRY
-    IF NOT KeyboardAndMouseLocked
-    AND (FWPRailWindow <> NIL)
-    THEN BEGIN
+    IF NOT KeyboardAndMouseLocked AND (FWPRailWindow <> NIL) THEN BEGIN
       IF NOT FWPRailWindow.Active
-      AND NOT (ClockWindow.Active
-               OR ClockWindow.Visible)
-      AND NOT (DebuggingOptionsWindow.Active
-               OR DebuggingOptionsWindow.Visible)
-      AND NOT (FeedbackWindow.Active
-               OR FeedbackWindow.Visible)
-      AND NOT (HelpWindow.Active
-               OR HelpWindow.Visible)
-      AND NOT (LocationDataWindow.Active
-               OR LocationDataWindow.Visible)
-      AND NOT (LockListWindow.Active
-               OR LockListWindow.Visible)
-      AND NOT (LocoUtilsWindow.Active
-               OR LocoUtilsWindow.Visible)
-      AND NOT (RailDriverWindow.Active
-               OR RailDriverWindow.Visible)
-      AND NOT (OptionsWindow.Active
-               OR OptionsWindow.Visible)
-      AND NOT (LoggingWindow.Active
-               OR LoggingWindow.Visible)
+      AND NOT (ClockWindow.Active OR ClockWindow.Visible)
+      AND NOT (DebuggingOptionsWindow.Active OR DebuggingOptionsWindow.Visible)
+      AND NOT (FeedbackWindow.Active OR FeedbackWindow.Visible)
+      AND NOT (HelpWindow.Active OR HelpWindow.Visible)
+      AND NOT (LocationDataWindow.Active OR LocationDataWindow.Visible)
+      AND NOT (LockListWindow.Active OR LockListWindow.Visible)
+      AND NOT (LocoUtilsWindow.Active OR LocoUtilsWindow.Visible)
+      AND NOT (RailDriverWindow.Active OR RailDriverWindow.Visible)
+      AND NOT (OptionsWindow.Active OR OptionsWindow.Visible)
+      AND NOT (LoggingWindow.Active OR LoggingWindow.Visible)
       AND NOT TrackCircuitPopupMenuActive { a global variable, owing to the special nature of GeneralPopup menus which means one cannot normally detect whether they are
                                             "popped up" or not }
       THEN
@@ -3769,14 +3669,10 @@ BEGIN
       vk_Cancel {Ctrl-Break}, vk_Capital { Caps Lock }:
         { do nothing };
     ELSE {CASE}
-      IF (Key = vk_Escape)
-      AND LockListWindow.Visible
-      THEN
+      IF (Key = vk_Escape) AND LockListWindow.Visible THEN
         LockListWindow.Hide
       ELSE
-        IF (Key = vk_Return)
-        AND LocoDialogueWindow.Visible AND NOT InAutoMode
-        THEN
+        IF (Key = vk_Return) AND LocoDialogueWindow.Visible AND NOT InAutoMode THEN
           { we don't want the clock to start if Enter is accidentally pressed }
           EmergencyStopInLocoDialogue
         ELSE
@@ -4023,9 +3919,7 @@ BEGIN
       { Also any lines set to flash }
       FOR Line := 0 TO High(Lines) DO BEGIN
         IF Lines[Line].Line_TC <> UnknownTrackCircuit THEN BEGIN
-          IF DisplayFlashingTrackCircuits
-          AND (TrackCircuits[Lines[Line].Line_TC].TC_Flashing)
-          THEN BEGIN
+          IF DisplayFlashingTrackCircuits AND (TrackCircuits[Lines[Line].Line_TC].TC_Flashing) THEN BEGIN
             IF TrackCircuits[Lines[Line].Line_TC].TC_LitUp THEN BEGIN
               TrackCircuits[Lines[Line].Line_TC].TC_LitUp := False;
             END ELSE BEGIN
@@ -4376,11 +4270,7 @@ BEGIN
       ShiftState := ShiftState + [ssAlt];
 
     { Loco dialogue boxes need special treatment }
-    IF (LocoDialogueWindow <> NIL)
-    AND LocoDialogueWindow.Visible
-//    AND LocoDialogueWindow.Focused
-//    AND LocoDialogueWindow.ActiveControl
-    THEN BEGIN
+    IF (LocoDialogueWindow <> NIL) AND LocoDialogueWindow.Visible { AND LocoDialogueWindow.Focused AND LocoDialogueWindow.ActiveControl } THEN BEGIN
       CASE Msg.CharCode OF
         vk_Up: { up arrow key - need to handle specially in loco dialogue boxes }
           BEGIN
@@ -4507,8 +4397,7 @@ BEGIN
         ELSE
           TCPopupSetTrackCircuitOutOfUseSetByUser.Enabled := False;
 
-        IF (TrackCircuits[Line_TC].TC_OccupationState <> TCPermanentFeedbackOccupation)
-        AND (TrackCircuits[Line_TC].TC_OccupationState <> TCPermanentOccupationSetByUser)
+        IF (TrackCircuits[Line_TC].TC_OccupationState <> TCPermanentFeedbackOccupation) AND (TrackCircuits[Line_TC].TC_OccupationState <> TCPermanentOccupationSetByUser)
         THEN
           TCPopupSetTrackCircuitToPermanentOccupation.Enabled := True
         ELSE
@@ -4892,13 +4781,13 @@ BEGIN
             IF L <> UnknownLocoIndex THEN BEGIN
               WITH Locos[L] DO BEGIN
                 IF Loco_LightsType <> LightsOperatedByTwoChips THEN BEGIN
-                  ProgramOnTheMain(L, ChangeDirectionToUp, NoValue);
+                  ProgramOnTheMain(Locos[L], ChangeDirectionToUp, NoValue);
                   Log(LocoChipToStr(L) + ' XG Internal direction changed to up');
                 END ELSE BEGIN
-                  ProgramOnTheMain(Loco_LightingChipUpIndex, ChangeDirectionToUp, NoValue);
+                  ProgramOnTheMain(Locos[Loco_LightingChipUpIndex], ChangeDirectionToUp, NoValue);
                   Log(LocoChipToStr(Loco_LightingChipUpIndex) + ' XG Internal direction changed to up');
 
-                  ProgramOnTheMain(Loco_LightingChipDownIndex, ChangeDirectionToUp, NoValue);
+                  ProgramOnTheMain(Locos[Loco_LightingChipDownIndex], ChangeDirectionToUp, NoValue);
                   Log(LocoChipToStr(Loco_LightingChipDownIndex) + ' XG Internal direction changed to up');
                 END;
               END; {WITH}
@@ -4935,13 +4824,13 @@ BEGIN
             IF L <> UnknownLocoIndex THEN BEGIN
               WITH Locos[L] DO BEGIN
                 IF Loco_LightsType <> LightsOperatedByTwoChips THEN BEGIN
-                  ProgramOnTheMain(L, ChangeDirectionToDown, NoValue);
+                  ProgramOnTheMain(Locos[L], ChangeDirectionToDown, NoValue);
                   Log(Loco_LocoChipStr + ' XG Internal direction changed to down');
                 END ELSE BEGIN
-                  ProgramOnTheMain(Loco_LightingChipUpIndex, ChangeDirectionToDown, NoValue);
+                  ProgramOnTheMain(Locos[Loco_LightingChipUpIndex], ChangeDirectionToDown, NoValue);
                   Log(LocoChipToStr(Loco_LightingChipUp) + ' XG Internal direction changed to down');
 
-                  ProgramOnTheMain(Loco_LightingChipDownIndex, ChangeDirectionToDown, NoValue);
+                  ProgramOnTheMain(Locos[Loco_LightingChipDownIndex], ChangeDirectionToDown, NoValue);
                   Log(LocoChipToStr(Loco_LightingChipDown) + ' XG Internal direction changed to down');
                 END;
               END; {WITH}
@@ -6733,9 +6622,7 @@ BEGIN
   { This is a work-around to find out if the cursor is within status bar Panel 0 as the proper test:
     "IF Sender = FWPRailWindow.FWPRailWindowStatusBar.Panels[0] THEN..." does not work.
   }
-  IF (StatusBarX > 0)
-  AND (StatusBarX <= FWPRailWindowStatusBar.Panels[StatusBarPanel0].Width)
-  THEN
+  IF (StatusBarX > 0) AND (StatusBarX <= FWPRailWindowStatusBar.Panels[StatusBarPanel0].Width) THEN
     GetTime.ClockWindow.Visible := True;
 END; { FWPRailWindowStatusBarDblClick }
 
@@ -6881,9 +6768,7 @@ END; { ResetFWPRailWindowSizeClick }
 
 PROCEDURE TFWPRailWindow.FWPRailWindowMouseWheel(Sender: TObject; ShiftState: TShiftState; WheelDelta: Integer; MousePos: TPoint; VAR Handled: Boolean);
 BEGIN
-  IF (LocoDialogueWindow <> NIL)
-  AND (LocoDialogueWindow.Visible)
-  THEN
+  IF (LocoDialogueWindow <> NIL) AND (LocoDialogueWindow.Visible) THEN
     ControlSpeedByMouseWheel(WheelDelta, MousePos);
 END;
 
@@ -7227,9 +7112,7 @@ BEGIN { Main drawing procedure }
             CustomWindowedScreenMode:
               BEGIN
                 { If the screen has been restored to its normal size, restore the screen mode to default }
-                IF (Height = MulDiv(Screen.WorkAreaHeight, 80, 100))
-                AND (Width = Screen.WorkAreaWidth)
-                THEN BEGIN
+                IF (Height = MulDiv(Screen.WorkAreaHeight, 80, 100)) AND (Width = Screen.WorkAreaWidth) THEN BEGIN
                   ScreenMode := DefaultWindowedScreenMode;
                   WriteToStatusBarPanel(StatusBarPanel2, 'Screen restored to default size');
                   Log('A Main window restored to default size');
@@ -7395,7 +7278,7 @@ BEGIN { Main drawing procedure }
           CalculateBufferStopPositions(ZoomScaleFactor);
           CalculatePointPositions;
           CalculatePlatformPositions(ZoomScaleFactor);
-          CalculateSignalPositions(ZoomScaleFactor);
+          CalculateAllSignalPositions(ZoomScaleFactor);
 
           IF ReinitialiseFWPRailWindowVariables THEN
             ReinitialiseFWPRailWindowVariables := False;
@@ -7404,10 +7287,7 @@ BEGIN { Main drawing procedure }
   //TransparentColor := True;
         // Log('X (3a) ' + TimeToHMSZStr(Time));
         // PreviousDebugTime := Time;
-        IF NOT FWPRailWindowInitialised
-        AND NOT DiagramsCheckingInProgress
-        AND LocoDataTableOK
-        THEN BEGIN
+        IF NOT FWPRailWindowInitialised AND NOT DiagramsCheckingInProgress AND LocoDataTableOK THEN BEGIN
           { Load feedback data and the diagrams datat and compare the data (these routines are here, as the various windows are created by this stage) }
           DiagramsCheckingInProgress := True;
           // Log('X (3b) ' + TimeToHMSZStr(Time));
@@ -7424,9 +7304,7 @@ BEGIN { Main drawing procedure }
             Log('AG Starting without the working timetable - WorkingTimetableMode is not set {BLANKLINEBEFORE}')
           ELSE BEGIN
             LoadWorkingTimetableFromDatabase(WorkingTimetableMissing, WorkingTimetableOK);
-            IF NOT WorkingTimetableMissing
-            AND WorkingTimetableOK
-            THEN BEGIN
+            IF NOT WorkingTimetableMissing AND WorkingTimetableOK THEN BEGIN
               ProcessWorkingTimetable;
               ProcessDiagrams(ErrorMsg, DiagramsOK);
             END;
@@ -7441,9 +7319,7 @@ BEGIN { Main drawing procedure }
             END ELSE BEGIN
               InitialiseDiagramsUnit;
               ReadInDiagramsFromDatabase(ErrorMsg, DiagramsMissing, DiagramsOK);
-              IF DiagramsOK
-              AND NOT DiagramsMissing
-              THEN
+              IF DiagramsOK AND NOT DiagramsMissing THEN
                 ProcessDiagrams(ErrorMsg, DiagramsOK);
               IF NOT DiagramsOK THEN BEGIN
                 IF MessageDialogueWithDefault('The diagrams file ''' + DiagramsFilename + '.' + DiagramsFilenameSuffix
@@ -7633,6 +7509,7 @@ BEGIN { Main drawing procedure }
                   { the main calling point }
                   DrawAllSignals(NOT ShowNums, NOT ShowTheatreDestinationChar);
                   DrawAllBufferStopData(NOT ShowNums, NOT ShowTheatreDestinationChar);
+debug('called from drawmap ' + TestcOunTstr);
                 END;
 
         IF ShowLinesWhichLockPoints THEN BEGIN
@@ -7718,11 +7595,7 @@ BEGIN { Main drawing procedure }
           END; {FOR}
         END;
 
-        IF NOT ShowTrackCircuits
-        AND NOT ShowLineDetail
-        AND NOT ShowLineNumbers
-        AND NOT ShowLinesWhereUpXValueSpecified
-        THEN
+        IF NOT ShowTrackCircuits AND NOT ShowLineDetail AND NOT ShowLineNumbers AND NOT ShowLinesWhereUpXValueSpecified THEN
           DrawAllPoints;
 
         IF ResizeMap THEN

@@ -48,7 +48,7 @@ IMPLEMENTATION
 {$R *.dfm}
 
 USES RailDraw, Locks, Startup, Route, GetTime, Diagrams, MiscUtils, Movement, Lenz, Input, LocoUtils, Types, CreateRoute, LocoDialogue, LocationData, Help, StrUtils,
-     Options, Main;
+     Options, Main, DateUtils;
 
 CONST
   UnitRef = 'Cuneo';
@@ -147,6 +147,30 @@ VAR
 
 BEGIN
   TRY
+    IF EditMode AND NOT SignalDragging AND (DragSignalNum <> UnknownSignal) THEN BEGIN
+      { only start dragging after a short delay with the mouse held down }
+      IF GetKeyState(VK_LBUTTON) < 0 THEN BEGIN
+        IF MilliSecondsBetween(DragTime, Now) > 500 THEN BEGIN
+          ChangeCursor(crDrag);
+          SignalDragging := True;
+        END;
+
+        IF (DragSignalNum <> UnknownSignal) AND SignalDragging THEN BEGIN
+          WITH Signals[DragSignalNum] DO BEGIN
+            Signal_LocationX := X;
+            Signal_LocationY := Y;
+          END; {WITH}
+          CalculateSignalPosition(DragSignalNum, ZoomScaleFactor);
+
+          DrawSignal(DragSignalNum);
+          Log('XG Draw signal at x=' + inttostr(X) + ' and y=' + inttostr(y));
+          DrawMap;
+        END;
+      END;
+    END;
+
+//          DragSignal(X, Y);
+
     IF PreparingZoom THEN BEGIN
       { Draw and undraw the rectangle if any }
       DrawOutline(ZoomRect, clRed, UndrawRequired, NOT UndrawToBeAutomatic);
@@ -158,9 +182,7 @@ BEGIN
       ZoomRect.Bottom := Y;
 
       { Only change the cursor if we start drawing a rectangle }
-      IF (MouseX <> X)
-      AND (MouseY <> Y)
-      THEN
+      IF (MouseX <> X) AND (MouseY <> Y) THEN
         ChangeCursor(crSizeNWSE);
 
       DrawOutline(ZoomRect, clRed, UndrawRequired, NOT UndrawToBeAutomatic);
@@ -173,7 +195,7 @@ BEGIN
         MouseMovingX := X;
         MouseMovingY := Y;
       END ELSE BEGIN
-        IF Screen.Cursor <> crDefault THEN
+        IF NOT SignalDragging AND (Screen.Cursor <> crDefault) THEN
           ChangeCursor(crDefault);
 
         ObjectFound := False;
@@ -324,15 +346,13 @@ BEGIN
 
         PointFoundNum := UnknownPoint;
         P := 0;
-        WHILE (P <= High(Points))
-        AND (PointFoundNum = Unknownpoint)
-        DO BEGIN
+        WHILE (P <= High(Points)) AND (PointFoundNum = Unknownpoint) DO BEGIN
           WITH Points[P] DO BEGIN
             IF PtInRect(Point_MouseRect, Point(MouseX, MouseY)) THEN BEGIN
               ObjectFound := True;
 
               { Change the cursor as often points are difficult to focus on }
-              IF Screen.Cursor <> crCross THEN
+              IF NOT SignalDragging AND (Screen.Cursor <> crCross) THEN
                 ChangeCursor(crCross);
 
               TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'P' + IntToStr(P) + ' ';
@@ -418,9 +438,7 @@ BEGIN
         { Now with buffer stops }
         B := 0;
         BufferStopFoundNum := UnknownBufferStop;
-        WHILE (B <= High(BufferStops))
-        AND (BufferStopFoundNum = UnknownBufferStop)
-        DO BEGIN
+        WHILE (B <= High(BufferStops)) AND (BufferStopFoundNum = UnknownBufferStop) DO BEGIN
           WITH BufferStops[B] DO BEGIN
             IF PtInRect(BufferStop_MouseRect, Point(MouseX, MouseY)) THEN BEGIN
               ObjectFound := True;
@@ -454,9 +472,7 @@ BEGIN
               LineFoundNum := Line;
 
               IF Line_OutOfUseState = OutOfUse THEN BEGIN
-                IF (Lines[Line].Line_Location <> UnknownLocation)
-                AND (Locations[Lines[Line].Line_Location].Location_OutOfUse)
-                THEN
+                IF (Lines[Line].Line_Location <> UnknownLocation) AND (Locations[Lines[Line].Line_Location].Location_OutOfUse) THEN
                   { it's not necessarily the line itself that's out of use }
                   TempStatusBarPanel1Str := TempStatusBarPanel1Str + '[location ' + LocationToStr(Lines[Line].Line_Location, ShortStringType) + ' out of use]'
                 ELSE
@@ -506,9 +522,7 @@ BEGIN
                   TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' {U}';
 
                 TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' [' + TrackCircuitStateToStr(TrackCircuits[Lines[Line].Line_TC].TC_OccupationState);
-                IF (TrackCircuits[Lines[Line].Line_TC].TC_LocoChip <> UnknownLocoChip)
-                AND (TrackCircuits[Lines[Line].Line_TC].TC_OccupationState <> TCUnoccupied)
-                THEN
+                IF (TrackCircuits[Lines[Line].Line_TC].TC_LocoChip <> UnknownLocoChip) AND (TrackCircuits[Lines[Line].Line_TC].TC_OccupationState <> TCUnoccupied) THEN
                   TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' by ' + IntToStr(TrackCircuits[Lines[Line].Line_TC].TC_LocoChip);
 
                 TempStatusBarPanel1Str := TempStatusBarPanel1Str + ']';
@@ -598,9 +612,7 @@ BEGIN
       //  { Is it a TRS Plunger? }
       //  TRSPlungerFound := False;
       //  TRSPlungerLocation := FirstMainPlatformLocation;
-      //  WHILE (TRSPlungerLocation <= LastMainPlatformLocation)
-      //  AND NOT TRSPlungerFound
-      //  DO BEGIN
+      //  WHILE (TRSPlungerLocation <= LastMainPlatformLocation) AND NOT TRSPlungerFound DO BEGIN
       //    IF PtInRect(MainPlatformPlungers[TRSPlungerLocation].TRSPlunger_MouseRect, Point(MouseX, MouseY)) THEN BEGIN
       //      ObjectFound := True;
       //      TRSPlungerFound := True;
@@ -621,7 +633,7 @@ BEGIN
         END;
 
         IF NOT ObjectFound THEN
-          IF Screen.Cursor <> crDefault THEN
+          IF NOT SignalDragging AND (Screen.Cursor <> crDefault) THEN
             ChangeCursor(crDefault);
 
         IF DebuggingMode THEN
@@ -694,6 +706,13 @@ BEGIN
       Inc(Line);
     END;
 
+    { Ending a drag and drop }
+    IF SignalDragging THEN BEGIN
+      SignalDragging := False;
+      DragSignalNum := UnknownSignal;
+      ChangeCursor(crDefault);
+    END;
+
     { Ending a zoomed screen mouse move }
     IF MoveZoomWindowMode THEN BEGIN
       MoveZoomWindowMode := False;
@@ -705,9 +724,7 @@ BEGIN
 
         WITH ZoomRect DO BEGIN
           { First see if we've drawn a rectangle at all }
-          IF (Left = Right)
-          AND (Top = Bottom)
-          THEN
+          IF (Left = Right) AND (Top = Bottom) THEN
             { reinstate the status bar as we're  not drawing a rectangle }
             ShowStatusBarAndUpDownIndications
           ELSE BEGIN
@@ -807,9 +824,7 @@ VAR
     END ELSE BEGIN
       ConnectionChFound := False;
       Line2 := 0;
-      WHILE (Line2 <= High(Lines))
-      AND NOT ConnectionChFound
-      DO BEGIN
+      WHILE (Line2 <= High(Lines)) AND NOT ConnectionChFound DO BEGIN
         IF Lines[Line2].Line_DownConnectionCh = Lines[Line].Line_UpConnectionCh THEN BEGIN
           ConnectionChFound := True;
           Lines[Line2].Line_DownConnectionChBold := True;
@@ -838,9 +853,7 @@ VAR
       { Find the corresponding line end }
       ConnectionChFound := False;
       Line2 := 0;
-      WHILE (Line2 <= High(Lines))
-      AND NOT ConnectionChFound
-      DO BEGIN
+      WHILE (Line2 <= High(Lines)) AND NOT ConnectionChFound DO BEGIN
         IF Lines[Line2].Line_UpConnectionCh = Lines[Line].Line_DownConnectionCh THEN BEGIN
           ConnectionChFound := True;
           Lines[Line2].Line_UpConnectionChBold := True;
@@ -884,9 +897,7 @@ VAR
           Log('R! User cannot change signal S=' + IntToStr(S) + ' as it is out of use');
           Exit;
         END ELSE
-          IF (ssCtrl IN ShiftState)
-          AND (ssAlt IN ShiftState)
-          THEN BEGIN
+          IF (ssCtrl IN ShiftState) AND (ssAlt IN ShiftState) THEN BEGIN
             { allow the signal failure message to be written even if it's been previously turned off }
             Debug('S=' + IntToStr(S) + ': allowing fail message');
             IF Signals[S].Signal_FailMsgWritten THEN BEGIN
@@ -968,9 +979,7 @@ VAR
           IF Routes_RouteSettingByHand THEN
             Debug('!Cannot change indicator while route setting')
           ELSE BEGIN
-            IF (GetSignalAspect(S) <> RedAspect)
-            AND (Signals[S].Signal_IndicatorState <> NoIndicatorLit)
-            THEN
+            IF (GetSignalAspect(S) <> RedAspect) AND (Signals[S].Signal_IndicatorState <> NoIndicatorLit) THEN
               { signal is off and indicator is illuminated }
               PullSignal(UnknownLocoChipStr, S, NoIndicatorLit, NoRoute, NoSubRoute, UnknownLine, UnknownTrainType, ByUser, OK)
             ELSE
@@ -1228,389 +1237,387 @@ VAR
         AddRichLine(HelpWindow.HelpRichEdit, '  <B>Theatre indicator selection</B>');
         AddRichLine(HelpWindow.HelpRichEdit, '    <B>Right Mouse</B> - start or end signal theatre set up');
       END ELSE BEGIN
-        IF StationStartMode
-        AND (S <> UnknownSignal)
-        AND Signals[S].Signal_TRSHeld
+        IF (S <> UnknownSignal)
+        OR (BS <> UnknownBufferStop)
         THEN BEGIN
-          { we can't do any route-setting or theatre setting if there's a train waiting to be released }
-          Signals[S].Signal_PostColour := SignalPostStationStartModeColour;
-          DrawSignalPost(S);
-          Log('A S=' + IntToStr(S) + ' route-holding released');
-          Signals[S].Signal_TRSReleased := True;
-        END ELSE BEGIN
-          { If we're in the middle of processing a route, don't start another one }
-          IF NOT Routes_RouteSettingByHand
-          AND NOT Routes_TheatreIndicatorSettingInitiated
-          AND NOT Routes_NearestSignalTestingInitiated
-          THEN BEGIN
-            EmergencyRouteingStored := False;
-
-            IF BS = UnknownBufferStop THEN BEGIN
-              IF (ssShift IN ShiftState)
-              AND (ssAlt IN ShiftState)
-              AND (S < 0)
-              THEN BEGIN
-                Routes_NearestSignalTestingInitiated := True;
-                Signals[S].Signal_PostColour := clLime;
+          IF (S > 0) AND (S <> UnknownSignal) AND (Signals[S].Signal_Type = SemaphoreDistant) THEN
+            { routeing cannot be done starting from a semaphore distant as trains never stop at them }
+            Debug('Cannot use post as cannot route from a Semaphore Distant')
+          ELSE BEGIN
+            IF (S > 0) AND (S <> UnknownSignal) AND Signals[S].Signal_NotUsedForRouteing THEN
+              { routeing cannot be done starting from a semaphore distant as trains never stop at them }
+              Debug('Cannot use post as signal noted as not used for routeing')
+            ELSE BEGIN
+              IF StationStartMode AND (S > 0) AND (S <> UnknownSignal) AND Signals[S].Signal_TRSHeld THEN BEGIN
+                { we can't do any route-setting or theatre setting if there's a train waiting to be released }
+                Signals[S].Signal_PostColour := SignalPostStationStartModeColour;
+                DrawSignalPost(S);
+                Log('A S=' + IntToStr(S) + ' route-holding released');
+                Signals[S].Signal_TRSReleased := True;
               END ELSE BEGIN
-                RouteingByUser := True;
-                IF S > -1 THEN BEGIN
-                  PutativelyRouteSetting := True;
-                  Signals[Abs(S)].Signal_PostColour := SignalPostRouteSettingColour;
-                END ELSE
-                  { If the signal post number is negative, it's a theatre indicator setting }
-                  IF S < 0 THEN BEGIN
-                    PutativelyTheatreIndicatorSetting := True;
-                    S := Abs(S);
-                    IF Signals[S].Signal_Indicator <> TheatreIndicator THEN BEGIN
-                      Debug('Cannot set theatre indicator if signal (S=' + IntToStr(S) + ') does not have one');
-                      DrawFailure(S, 'T');
-                      Log('S User cannot set theatre indicator if signal does not have one (S=' + IntToStr(S) + ')');
-                      Signals[S].Signal_PostColour := SignalPostColour;
-                      Exit;
-                    END ELSE
-                      IF Signals[S].Signal_OutOfUse THEN BEGIN
-                        { Can't route if the signal is out of use }
-                        Log('R! User cannot set theatre indicator if signal is out of use (S=' + IntToStr(S) + ')');
-                        Signals[S].Signal_PostColour := SignalPostColour;
-                        Exit;
-                      END ELSE
-                        Signals[S].Signal_PostColour := SignalPostTheatreSettingColour;
-                  END ELSE
-                    IF (S = UnknownSignal)
-                    AND (BS = UnknownBufferStop)
-                    THEN BEGIN
-                      ShowMessage('Signal/Buffer Stop has no number');
-                      Exit;
-                    END;
+                { If we're in the middle of processing a route, don't start another one }
+                IF NOT Routes_RouteSettingByHand AND NOT Routes_TheatreIndicatorSettingInitiated AND NOT Routes_NearestSignalTestingInitiated THEN BEGIN
+                  EmergencyRouteingStored := False;
 
-                IF PutativelyRouteSetting THEN BEGIN
-                  { See if we're clearing an existing route }
-                  FOR RouteCount := 0 TO High(Routes_Routes) DO BEGIN
-                    Route := Routes_Routes[RouteCount];
-                    IF (Length(Routes_SubRouteSettingStrings[Route]) > 0)
-                    AND (Routes_StartSignals[Route] <> UnknownSignal)
-                    AND (Routes_SubRouteStates[Route, 0] = SubRouteSetUp)
-                    THEN BEGIN
-                      IF S = Routes_StartSignals[Route] THEN BEGIN
-                        { If route is set up, then we're clearing it }
-                        Log(LocoChipToStr(Routes_LocoChips[Route]) + ' R R=' + IntToStr(Route) + ': route clearing request from user'
-                                                                   + ' received - signal post ' + IntToStr(S) + ' pressed a second time');
-                        { Substitute the clearing route for the original setting up route }
-                        FOR SubRoute := 0 TO (Routes_TotalSubRoutes[Route] - 1) DO BEGIN
-                          IF Routes_SubRouteStates[Route, SubRoute] = SubRouteSetUp THEN BEGIN
-                            CreateClearingSubRouteArray(Route, SubRoute);
-                            Routes_SubRouteStates[Route, SubRoute] := SubRouteToBeCleared;
+                  IF BS = UnknownBufferStop THEN BEGIN
+                    IF (ssShift IN ShiftState) AND (ssAlt IN ShiftState) AND (S < 0) THEN BEGIN
+                      Routes_NearestSignalTestingInitiated := True;
+                      Signals[S].Signal_PostColour := clLime;
+                    END ELSE BEGIN
+                      RouteingByUser := True;
+                      IF S > -1 THEN BEGIN
+                        PutativelyRouteSetting := True;
+                        Signals[Abs(S)].Signal_PostColour := SignalPostRouteSettingColour;
+                      END ELSE
+                        { If the signal post number is negative, it's a theatre indicator setting }
+                        IF S < 0 THEN BEGIN
+                          PutativelyTheatreIndicatorSetting := True;
+                          S := Abs(S);
+                          IF Signals[S].Signal_Indicator <> TheatreIndicator THEN BEGIN
+                            Debug('Cannot set theatre indicator if signal (S=' + IntToStr(S) + ') does not have one');
+                            DrawFailure(S, 'T');
+                            Log('S User cannot set theatre indicator if signal does not have one (S=' + IntToStr(S) + ')');
+                            Signals[S].Signal_PostColour := SignalPostColour;
+                            Exit;
+                          END ELSE
+                            IF Signals[S].Signal_OutOfUse THEN BEGIN
+                              { Can't route if the signal is out of use }
+                              Log('R! User cannot set theatre indicator if signal is out of use (S=' + IntToStr(S) + ')');
+                              Signals[S].Signal_PostColour := SignalPostColour;
+                              Exit;
+                            END ELSE
+                              Signals[S].Signal_PostColour := SignalPostTheatreSettingColour;
+                        END ELSE
+                          IF (S = UnknownSignal) AND (BS = UnknownBufferStop) THEN BEGIN
+                            ShowMessage('Signal/Buffer Stop has no number');
+                            Exit;
+                          END;
+
+                      IF PutativelyRouteSetting THEN BEGIN
+                        { See if we're clearing an existing route }
+                        FOR RouteCount := 0 TO High(Routes_Routes) DO BEGIN
+                          Route := Routes_Routes[RouteCount];
+                          IF (Length(Routes_SubRouteSettingStrings[Route]) > 0)
+                          AND (Routes_StartSignals[Route] <> UnknownSignal)
+                          AND (Routes_SubRouteStates[Route, 0] = SubRouteSetUp)
+                          THEN BEGIN
+                            IF S = Routes_StartSignals[Route] THEN BEGIN
+                              { If route is set up, then we're clearing it }
+                              Log(LocoChipToStr(Routes_LocoChips[Route]) + ' R R=' + IntToStr(Route) + ': route clearing request from user'
+                                                                         + ' received - signal post ' + IntToStr(S) + ' pressed a second time');
+                              { Substitute the clearing route for the original setting up route }
+                              FOR SubRoute := 0 TO (Routes_TotalSubRoutes[Route] - 1) DO BEGIN
+                                IF Routes_SubRouteStates[Route, SubRoute] = SubRouteSetUp THEN BEGIN
+                                  CreateClearingSubRouteArray(Route, SubRoute);
+                                  Routes_SubRouteStates[Route, SubRoute] := SubRouteToBeCleared;
+                                END;
+                              END;
+
+                              Signals[S].Signal_PostColour := SignalPostColour;
+                              { and initiate the route clearing process }
+                              Routes_RouteClearingsInProgress[Route] := True;
+                              IF ssShift IN ShiftState THEN
+                                Routes_RouteClearingsWithoutPointResetting[Route] := True;
+                              { telling the system to start with the first subroute }
+                              Routes_CurrentClearingSubRoute[Route] := 0;
+                              { and leave this subroutine }
+                              Exit;
+                            END;
                           END;
                         END;
-
-                        Signals[S].Signal_PostColour := SignalPostColour;
-                        { and initiate the route clearing process }
-                        Routes_RouteClearingsInProgress[Route] := True;
-                        IF ssShift IN ShiftState THEN
-                          Routes_RouteClearingsWithoutPointResetting[Route] := True;
-                        { telling the system to start with the first subroute }
-                        Routes_CurrentClearingSubRoute[Route] := 0;
-                        { and leave this subroutine }
-                        Exit;
                       END;
                     END;
                   END;
-                END;
-              END;
-            END;
 
-            { Can't start a route with a buffer stop - (where would one go?) }
-            IF BS <> UnknownBufferStop THEN BEGIN
-              Log('R! User cannot start a route with a buffer stop (BS=' + IntToStr(BS) + ')');
-              { need to exit here from the route setting up now }
-              Exit;
-            END ELSE
-              IF PutativelyRouteSetting THEN BEGIN
-                IF Signals[S].Signal_OutOfUse THEN BEGIN
-                  { Can't route if the signal that is out of use }
-                  Log('R! User cannot start a route with a signal that is out of use (S=' + IntToStr(S) + ')');
-                  Signals[S].Signal_PostColour := SignalPostColour;
-                  Exit;
-                END ELSE
-                  IF GetSignalAspect(S) <> RedAspect THEN BEGIN
-                    { Can't route if the signal is off }
-                    Log('R! User cannot start a route with a signal that is off (S=' + IntToStr(S) + ')');
-                    Signals[S].Signal_PostColour := SignalPostColour;
+                  { Can't start a route with a buffer stop - (where would one go?) }
+                  IF BS <> UnknownBufferStop THEN BEGIN
+                    Log('R! User cannot start a route with a buffer stop (BS=' + IntToStr(BS) + ')');
+                    { need to exit here from the route setting up now }
                     Exit;
                   END ELSE
-                    IF IndicatorStateToStr(Signals[S].Signal_IndicatorState) <> 'N' THEN BEGIN
-                      { Can't route if the signal is off }
-                      Log('R! User cannot start a route with a signal whose indicator is off (S=' + IntToStr(S) + ')');
-                      Signals[S].Signal_PostColour := SignalPostColour;
-                      Exit;
-                    END ELSE BEGIN
-                      Routes_RouteSettingByHand := True;
-                      Log('R Route setting request initiated by user - signal post ' + IntToStr(S) + ' pressed');
-                    END;
-              END ELSE
-                IF PutativelyTheatreIndicatorSetting THEN BEGIN
-                  IF (GetSignalAspect(S) <> RedAspect)
-                  AND (Signals[S].Signal_IndicatorState = TheatreIndicatorLit)
+                    IF PutativelyRouteSetting THEN BEGIN
+                      IF Signals[S].Signal_OutOfUse THEN BEGIN
+                        { Can't route if the signal that is out of use }
+                        Log('R! User cannot start a route with a signal that is out of use (S=' + IntToStr(S) + ')');
+                        Signals[S].Signal_PostColour := SignalPostColour;
+                        Exit;
+                      END ELSE
+                        IF GetSignalAspect(S) <> RedAspect THEN BEGIN
+                          { Can't route if the signal is off }
+                          Log('R! User cannot start a route with a signal that is off (S=' + IntToStr(S) + ')');
+                          Signals[S].Signal_PostColour := SignalPostColour;
+                          Exit;
+                        END ELSE
+                          IF IndicatorStateToStr(Signals[S].Signal_IndicatorState) <> 'N' THEN BEGIN
+                            { Can't route if the signal is off }
+                            Log('R! User cannot start a route with a signal whose indicator is off (S=' + IntToStr(S) + ')');
+                            Signals[S].Signal_PostColour := SignalPostColour;
+                            Exit;
+                          END ELSE BEGIN
+                            Routes_RouteSettingByHand := True;
+                            Log('R Route setting request initiated by user - signal post ' + IntToStr(S) + ' pressed');
+                          END;
+                    END ELSE
+                      IF PutativelyTheatreIndicatorSetting THEN BEGIN
+                        IF (GetSignalAspect(S) <> RedAspect)
+                        AND (Signals[S].Signal_IndicatorState = TheatreIndicatorLit)
+                        THEN BEGIN
+                          { pressing a theatre indicator to put the signal on }
+                          PullSignal(UnknownLocoChipSTr, S, NoIndicatorLit, Route, NoSubRoute, UnknownLine, UnknownTrainType, ByUser, OK);
+                          Exit;
+                        END ELSE
+                          IF GetSignalAspect(S) <> RedAspect THEN BEGIN
+                            Log('S! User cannot set a theatre indicator if the signal is already off (S=' + IntToStr(S) + ')');
+                            Exit;
+                          END ELSE BEGIN
+                            Log('S Theatre indicator setting request initiated by user - signal post ' + IntToStr(S) + ' pressed');
+                            Routes_TheatreIndicatorSettingInitiated := True;
+                            SetIndicator(UnknownLocoChipStr, S, QueryIndicatorLit, '', NoRoute, ByUser);
+                            Log('S User setting theatre indicator for S=' + IntToStr(S) + ' to Query');
+                          END;
+                      END;
+
+                  { Start setting up routes - see if a loco has been selected from the timetable, as that will give us data about train type, etc. }
+                  IF GetTrainClickedOn = UnknownTrainIndex THEN BEGIN
+                    TrainTypeForRouteing := UnknownTrainType;
+                    TrainLengthInInchesForRouteing := UnknownTrainLength;
+                  END ELSE BEGIN
+                    TrainTypeForRouteing := Trains[GetTrainClickedOn].Train_Type;
+                    TrainLengthInInchesForRouteing := Trains[GetTrainClickedOn].Train_CurrentLengthInInches;
+                  END;
+
+                  { If Shift or Ctrl are pressed, we want to amend the train type }
+                  IF (ssShift IN ShiftState)
+                  AND (ssAlt IN ShiftState)
                   THEN BEGIN
-                    { pressing a theatre indicator to put the signal on }
-                    PullSignal(UnknownLocoChipSTr, S, NoIndicatorLit, Route, NoSubRoute, UnknownLine, UnknownTrainType, ByUser, OK);
-                    Exit;
+                    TrainTypeForRouteing := ExpressPassengerType;
+                    EmergencyRouteingStored := True;
+                    Debug('Emergency routeing for express passenger trains');
                   END ELSE
-                    IF GetSignalAspect(S) <> RedAspect THEN BEGIN
-                      Log('S! User cannot set a theatre indicator if the signal is already off (S=' + IntToStr(S) + ')');
-                      Exit;
-                    END ELSE BEGIN
-                      Log('S Theatre indicator setting request initiated by user - signal post ' + IntToStr(S) + ' pressed');
-                      Routes_TheatreIndicatorSettingInitiated := True;
-                      SetIndicator(UnknownLocoChipStr, S, QueryIndicatorLit, '', NoRoute, ByUser);
-                      Log('S User setting theatre indicator for S=' + IntToStr(S) + ' to Query');
-                    END;
-                END;
+                    IF ssShift IN ShiftState THEN BEGIN
+                      TrainTypeForRouteing := ExpressPassengerType;
+                      Debug('Routeing for express passenger trains');
+                    END ELSE
+                      IF (ssCtrl IN ShiftState) AND (ssAlt IN ShiftState) THEN BEGIN
+                        TrainTypeForRouteing := OrdinaryPassengerType;
+                        EmergencyRouteingStored := True;
+                        Debug('Emergency routeing for ordinary passenger trains');
+                      END ELSE
+                        IF ssCtrl IN ShiftState THEN BEGIN
+                          TrainTypeForRouteing := OrdinaryPassengerType;
+                          Debug('Routeing for ordinary passenger trains');
+                        END ELSE
+                          IF ssAlt IN ShiftState THEN BEGIN
+                            TrainTypeForRouteing := ExpressFreightType;
+                            Debug('Routeing for express freight trains');
+                          END;
 
-            { Start setting up routes - see if a loco has been selected from the timetable, as that will give us data about train type, etc. }
-            IF GetTrainClickedOn = UnknownTrainIndex THEN BEGIN
-              TrainTypeForRouteing := UnknownTrainType;
-              TrainLengthInInchesForRouteing := UnknownTrainLength;
-            END ELSE BEGIN
-              TrainTypeForRouteing := Trains[GetTrainClickedOn].Train_Type;
-              TrainLengthInInchesForRouteing := Trains[GetTrainClickedOn].Train_CurrentLengthInInches;
-            END;
-
-            { If Shift or Ctrl are pressed, we want to amend the train type }
-            IF (ssShift IN ShiftState)
-            AND (ssAlt IN ShiftState)
-            THEN BEGIN
-              TrainTypeForRouteing := ExpressPassengerType;
-              EmergencyRouteingStored := True;
-              Debug('Emergency routeing for express passenger trains');
-            END ELSE
-              IF ssShift IN ShiftState THEN BEGIN
-                TrainTypeForRouteing := ExpressPassengerType;
-                Debug('Routeing for express passenger trains');
-              END ELSE
-                IF (ssCtrl IN ShiftState) AND (ssAlt IN ShiftState) THEN BEGIN
-                  TrainTypeForRouteing := OrdinaryPassengerType;
-                  EmergencyRouteingStored := True;
-                  Debug('Emergency routeing for ordinary passenger trains');
-                END ELSE
-                  IF ssCtrl IN ShiftState THEN BEGIN
-                    TrainTypeForRouteing := OrdinaryPassengerType;
-                    Debug('Routeing for ordinary passenger trains');
-                  END ELSE
-                    IF ssAlt IN ShiftState THEN BEGIN
-                      TrainTypeForRouteing := ExpressFreightType;
-                      Debug('Routeing for express freight trains');
-                    END;
-
-            StartSignal := S;
-            IF Routes_RouteSettingByHand THEN BEGIN
-              IF TrainTypeForRouteing <> UnknownTrainType THEN
-                FindAndHighlightAllRoutes(Signals[S].Signal_AdjacentLine, Signals[S].Signal_Direction, TrainTypeForRouteing, TrainLengthInInchesForRouteing,
-                                          SavePossibleRoutesArray, OK)
-              ELSE
-                FindAndHighlightAllRoutes(Signals[S].Signal_AdjacentLine, Signals[S].Signal_Direction, UnknownTrainType, TrainLengthInInchesForRouteing,
-                                          SavePossibleRoutesArray, OK);
-              { and add the first signal }
-              InsertElementInStringArray(SavePossibleRoutesArray, 0, 'FS=' + IntToStr(StartSignal));
-            END ELSE
-              IF Routes_TheatreIndicatorSettingInitiated THEN BEGIN
-                FindAndHighlightNearestSignalsToTheatreIndicator(Signals[S].Signal_AdjacentLine, Signals[S].Signal_Direction, SavePossibleRoutesArray, OK);
-                InsertElementInStringArray(SavePossibleRoutesArray, 0, 'FS=' + IntToStr(StartSignal));
-              END ELSE
-                IF Routes_NearestSignalTestingInitiated THEN
-                  FindNearestSignalsToGivenSignal(Signals[S].Signal_AdjacentLine, Signals[S].Signal_Direction, SavePossibleRoutesArray, OK);
-
-            { Enable the flashing signal post timer }
-            CuneoWindow.CuneoTimer.Enabled := True;
-
-            SignalPostToBeFlashed := S;
-            DrawSignalPost(S);
-          END ELSE BEGIN
-            { Either RouteSettingByHandInitiated OR TheatreIndicatorSettingInitiated OR NextJunctionSignalTestingInitiated }
-            IF Length(SavePossibleRoutesArray) > 0 THEN BEGIN
-              { S may be negative if we're theatre setting }
-              S := Abs(S);
-
-              { It could be that we're cancelling the route selection or theatre indication }
-              IF (SavePossibleRoutesArray[0] = 'FS=' + IntToStr(S))
-              OR ((BS = UnknownBufferStop)
-              AND NotInArray(SavePossibleRoutesArray, 'FS=' + IntToStr(S)))
-              THEN BEGIN
-                { Cancel the route setting }
-                StartSignal := ExtractSignalFromString(SavePossibleRoutesArray[0]);
-                SignalPostToBeFlashed := UnknownSignal;
-
-                CuneoWindow.CuneoTimer.Enabled := False;
-                { De-highlight the start signal post }
-                Signals[S].Signal_PostColour := SignalPostColour;
-                DrawSignalPost(S);
-
-                IF Routes_RouteSettingByHand THEN BEGIN
-                  Log('R Route setting request cancelled by user - signal post ' + IntToStr(S) + ' pressed a second time');
-                  Routes_RouteSettingByHand := False;
-                  RouteFindingCancelled := True;
-                END ELSE
-                  IF Routes_TheatreIndicatorSettingInitiated THEN BEGIN
-                    Log('S Theatre route indicator setting request cancelled by user - signal post ' + IntToStr(S) + ' pressed a second time');
-                    Routes_TheatreIndicatorSettingInitiated := False;
-                    RouteFindingCancelled := True;
-                    { and remove the query indication }
-                    SetIndicator(UnknownLocoChipStr, S, NoIndicatorLit, '', NoRoute, ByUser);
-                  END ELSE
-                    IF Routes_NearestSignalTestingInitiated THEN BEGIN
-                      Log('S NextJunctionSignalTest cancelled by user - signal post ' + IntToStr(S) + ' pressed a second time');
-                      Routes_NearestSignalTestingInitiated := False;
-                      RouteFindingCancelled := True;
-                    END;
-
-                { and the possible end of route signal posts/buffer stops }
-                FOR I := 0 TO High(SavePossibleRoutesArray) DO BEGIN
-                  IF ExtractSignalFromString(SavePossibleRoutesArray[I]) <> UnknownSignal THEN BEGIN
-                    Signals[ExtractSignalFromString(SavePossibleRoutesArray[I])].Signal_PostColour := SignalPostColour;
-                    DrawSignalPost(ExtractSignalFromString(SavePossibleRoutesArray[I]));
-                  END ELSE
-                    IF ExtractBufferStopFromString(SavePossibleRoutesArray[I]) <> UnknownBufferStop THEN
-                      DrawBufferStop(ExtractBufferStopFromString(SavePossibleRoutesArray[I]), BufferStopColour);
-                END;
-
-                { and clear the array of possible routes }
-                SetLength(SavePossibleRoutesArray, 0);
-              END ELSE BEGIN
-                { Now we are setting up a route - selecting end of route - see which signal (or buffer stop) us and the station or fiddleyard already highlighted as a
-                  possibility we've clicked on.
-                }
-                OK := False;
-                StartSignal := ExtractSignalFromString(SavePossibleRoutesArray[0]);
-                StartLine := Signals[StartSignal].Signal_AdjacentLine;
-                EndSignal := S;
-                RouteingByUser := False;
-
-                IF BS <> UnknownBufferStop THEN BEGIN
-                  { we've chosen a buffer stop - check it's a proper selection }
-                  I := 0;
-                  WHILE ((I < Length(SavePossibleRoutesArray))
-                  AND NOT OK)
-                  DO BEGIN
-                    IF ExtractBufferStopFromString(SavePossibleRoutesArray[I]) = BS THEN
-                      OK := True;
-                    Inc(I);
-                  END; {WHILE}
-                  IF OK THEN BEGIN
-                    IF Routes_RouteSettingByHand THEN BEGIN
-                      Log('R Route setting request by user concluded - BS=' + IntToStr(BS) + ' pressed');
-                      FindRouteFromLineAToLineB(UnknownLocoChipStr, UnknownJourney, S, Signals[StartSignal].Signal_AdjacentLine, BufferStops[BS].BufferStop_AdjacentLine,
-                                                Signals[StartSignal].Signal_Direction, TrainTypeForRouteing, TrainLengthInInchesForRouteing, EmergencyRouteingStored,
-                                                NOT IncludeOutOfUseLinesOn, DraftRouteArray, LinesNotAvailableStr, ErrorMsg, RouteFoundOK);
-                      EndLine := BufferStops[BS].BufferStop_AdjacentLine;
-                    END ELSE BEGIN
-                      Log('S Theatre indicator route setting request by user concluded - BS=' + IntToStr(BS) + ' pressed');
-                      FindRouteFromLineAToLineB(UnknownLocoChipStr, UnknownJourney, S, Signals[StartSignal].Signal_AdjacentLine, BufferStops[BS].BufferStop_AdjacentLine,
-                                                Signals[StartSignal].Signal_Direction, TrainTypeForRouteing, TrainLengthInInchesForRouteing, EmergencyRouteingStored,
-                                                NOT IncludeOutOfUseLinesOn, DraftRouteArray, LinesNotAvailableStr, ErrorMsg, RouteFoundOK);
-                      AppendToStringArray(DraftRouteArray, 'BS=' + IntToStr(BS));
-                      EndLine := BufferStops[BS].BufferStop_AdjacentLine;
-                    END;
-                  END;
-                END ELSE BEGIN
-                  { we've chosen a signal - check it's a proper selection }
-                  I := 0;
-                  WHILE ((I < Length(SavePossibleRoutesArray))
-                  AND NOT OK)
-                  DO BEGIN
-                    IF ExtractSignalFromString(SavePossibleRoutesArray[I]) = EndSignal THEN
-                      OK := True;
-                    Inc(I);
-                  END; {WHILE}
-                  IF OK THEN BEGIN
-                    IF Routes_RouteSettingByHand THEN BEGIN
-                      Log('R User Route setting request concluded - signal post ' + IntToStr(S) + ' pressed');
-                      FindRouteFromLineAToLineB(UnknownLocoChipStr, UnknownJourney, S, Signals[StartSignal].Signal_AdjacentLine, Signals[EndSignal].Signal_AdjacentLine,
-                                                Signals[StartSignal].Signal_Direction, TrainTypeForRouteing, TrainLengthInInchesForRouteing, EmergencyRouteingStored,
-                                                NOT IncludeOutOfUseLinesOn, DraftRouteArray, LinesNotAvailableStr, ErrorMsg, RouteFoundOK);
-                      EndLine := Signals[EndSignal].Signal_AdjacentLine;
-                    END ELSE BEGIN
-                      Log('S User Theatre indicator route setting request concluded'
-                             + ' - signal post ' + IntToStr(StartSignal) + ' pressed');
-                      FindRouteFromLineAToLineB(UnknownLocoChipStr, UnknownJourney, S, Signals[StartSignal].Signal_AdjacentLine, Signals[EndSignal].Signal_AdjacentLine,
-                                                Signals[StartSignal].Signal_Direction, TrainTypeForRouteing, TrainLengthInInchesForRouteing, EmergencyRouteingStored,
-                                                NOT IncludeOutOfUseLinesOn, DraftRouteArray, LinesNotAvailableStr, ErrorMsg, RouteFoundOK);
-                      AppendToStringArray(DraftRouteArray, 'FS=' + IntToStr(EndSignal));
-                      EndLine := Signals[EndSignal].Signal_AdjacentLine;
-                    END;
-                  END;
-                END;
-              END;
-
-              IF NOT RouteFoundOK
-              AND NOT RouteFindingCancelled
-              THEN BEGIN
-                DebugStr := 'Route from S=' + IntToStr(StartSignal) + ' to ';
-                IF BS = UnknownBufferStop THEN
-                  DebugStr := DebugStr + 'S=' + IntToStr(EndSignal)
-                ELSE
-                  DebugStr := DebugStr + 'BS=' + IntToStr(BS);
-                DebugStr := DebugStr + ' not found';
-
-                Log('R! ' + DebugStr + ' (' + ErrorMsg + ')');
-              END ELSE BEGIN
-                { No more route finding, so reset the train type etc. ... }
-                TrainTypeForRouteing := UnknownTrainType;
-
-                { ....turn off the flashing signal post... }
-                SignalPostToBeFlashed := UnknownSignal;
-                CuneoWindow.CuneoTimer.Enabled := False;
-
-                { ...and de-highlight all the possible end of route buttons }
-                FOR I := 0 TO High(SavePossibleRoutesArray) DO BEGIN
-                  TempSignal := ExtractSignalFromString(SavePossibleRoutesArray[I]);
-                  IF TempSignal <> UnknownSignal THEN BEGIN
-                    Signals[TempSignal].Signal_PostColour := SignalPostColour;
-                    DrawSignalPost(TempSignal);
-                  END;
-                  TempBufferStop := ExtractBufferStopFromString(SavePossibleRoutesArray[I]);
-                  IF TempBufferStop <> UnknownBufferStop THEN
-                    DrawBufferStop(ExtractBufferStopFromString(SavePossibleRoutesArray[I]), BufferStopColour);
-                END;
-
-                IF Routes_TheatreIndicatorSettingInitiated THEN BEGIN
-                  Routes_TheatreIndicatorSettingInitiated := False;
-                  PullSignal(UnknownLocoChipStr, StartSignal, TheatreIndicatorLit, Route, NoSubRoute, EndLine, TrainTypeForRouteing, ByUser, OK);
-                END ELSE
+                  StartSignal := S;
                   IF Routes_RouteSettingByHand THEN BEGIN
+                    IF TrainTypeForRouteing <> UnknownTrainType THEN
+                      FindAndHighlightAllRoutes(Signals[S].Signal_AdjacentLine, Signals[S].Signal_Direction, TrainTypeForRouteing, TrainLengthInInchesForRouteing,
+                                                SavePossibleRoutesArray, OK)
+                    ELSE
+                      FindAndHighlightAllRoutes(Signals[S].Signal_AdjacentLine, Signals[S].Signal_Direction, UnknownTrainType, TrainLengthInInchesForRouteing,
+                                                SavePossibleRoutesArray, OK);
+                    { and add the first signal }
+                    InsertElementInStringArray(SavePossibleRoutesArray, 0, 'FS=' + IntToStr(StartSignal));
+                  END ELSE
+                    IF Routes_TheatreIndicatorSettingInitiated THEN BEGIN
+                      FindAndHighlightNearestSignalsToTheatreIndicator(Signals[S].Signal_AdjacentLine, Signals[S].Signal_Direction, SavePossibleRoutesArray, OK);
+                      InsertElementInStringArray(SavePossibleRoutesArray, 0, 'FS=' + IntToStr(StartSignal));
+                    END ELSE
+                      IF Routes_NearestSignalTestingInitiated THEN
+                        FindNearestSignalsToGivenSignal(Signals[S].Signal_AdjacentLine, Signals[S].Signal_Direction, SavePossibleRoutesArray, OK);
 
-                    { Now set up the locking }
-                    CreateLockingArrayFromDraftRouteArray(UnknownLocoChipStr, DraftRouteArray, LockingArray);
+                  { Enable the flashing signal post timer }
+                  CuneoWindow.CuneoTimer.Enabled := True;
 
-                    { Now create the route array }
-                    CreateRouteArrayFromLockingArray(Routes_RouteCounter, LockingArray, RouteArray);
+                  SignalPostToBeFlashed := S;
+                  DrawSignalPost(S);
+                END ELSE BEGIN
+                  { Either RouteSettingByHandInitiated OR TheatreIndicatorSettingInitiated OR NextJunctionSignalTestingInitiated }
+                  IF Length(SavePossibleRoutesArray) > 0 THEN BEGIN
+                    { S may be negative if we're theatre setting }
+                    S := Abs(S);
 
-                    { and the other route-related arrays }
-                    CreateInitialRouteRelatedArrays(T, UnknownLocoChip, RouteArray, InAutoMode, StartSignal, EndSignal, BS, StartLine, EndLine);
+                    { It could be that we're cancelling the route selection or theatre indication }
+                    IF (SavePossibleRoutesArray[0] = 'FS=' + IntToStr(S))
+                    OR ((BS = UnknownBufferStop) AND NotInArray(SavePossibleRoutesArray, 'FS=' + IntToStr(S)))
+                    THEN BEGIN
+                      { Cancel the route setting }
+                      StartSignal := ExtractSignalFromString(SavePossibleRoutesArray[0]);
+                      SignalPostToBeFlashed := UnknownSignal;
 
-                    IF TestingMode THEN BEGIN
-                      WriteStringArrayToLog(UnknownLocoChipStr, 'R', 'Draft Route Array to set up R=' + IntToStr(Routes_RouteCounter)
-                                                                      + ' ' + DescribeStartAndEndOfRoute(Routes_RouteCounter) + ':',
-                                                                      DraftRouteArray,
-                                                                      2, 190, 'SR=');
-                      WriteStringArrayToLog(UnknownLocoChipStr, 'R', 'Locking Array to set up R=' + IntToStr(Routes_RouteCounter)
-                                                                      + ' ' + DescribeStartAndEndOfRoute(Routes_RouteCounter) + ':',
-                                                                      LockingArray,
-                                                                      2, 190, 'SR=');
-                      FOR I := 0 TO (Routes_TotalSubRoutes[Routes_RouteCounter] - 1) DO
-                        WriteStringArrayToLog(UnknownLocoChipStr, 'R', 'Final Route Array to set up'
-                                                                        +' R=' + IntToStr(Routes_RouteCounter)
-                                                                        + '/' + IntToStr(I) + ' '
-                                                                        + DescribeSubRoute(Routes_RouteCounter, I) + ':',
-                                                                        Routes_SubRouteSettingStrings[Routes_RouteCounter, I],
-                                                                        2, 190, 'SR=');
+                      CuneoWindow.CuneoTimer.Enabled := False;
+                      { De-highlight the start signal post }
+                      Signals[S].Signal_PostColour := SignalPostColour;
+                      DrawSignalPost(S);
+
+                      IF Routes_RouteSettingByHand THEN BEGIN
+                        Log('R Route setting request cancelled by user - signal post ' + IntToStr(S) + ' pressed a second time');
+                        Routes_RouteSettingByHand := False;
+                        RouteFindingCancelled := True;
+                      END ELSE
+                        IF Routes_TheatreIndicatorSettingInitiated THEN BEGIN
+                          Log('S Theatre route indicator setting request cancelled by user - signal post ' + IntToStr(S) + ' pressed a second time');
+                          Routes_TheatreIndicatorSettingInitiated := False;
+                          RouteFindingCancelled := True;
+                          { and remove the query indication }
+                          SetIndicator(UnknownLocoChipStr, S, NoIndicatorLit, '', NoRoute, ByUser);
+                        END ELSE
+                          IF Routes_NearestSignalTestingInitiated THEN BEGIN
+                            Log('S NextJunctionSignalTest cancelled by user - signal post ' + IntToStr(S) + ' pressed a second time');
+                            Routes_NearestSignalTestingInitiated := False;
+                            RouteFindingCancelled := True;
+                          END;
+
+                      { and the possible end of route signal posts/buffer stops }
+                      FOR I := 0 TO High(SavePossibleRoutesArray) DO BEGIN
+                        IF ExtractSignalFromString(SavePossibleRoutesArray[I]) <> UnknownSignal THEN BEGIN
+                          Signals[ExtractSignalFromString(SavePossibleRoutesArray[I])].Signal_PostColour := SignalPostColour;
+                          DrawSignalPost(ExtractSignalFromString(SavePossibleRoutesArray[I]));
+                        END ELSE
+                          IF ExtractBufferStopFromString(SavePossibleRoutesArray[I]) <> UnknownBufferStop THEN
+                            DrawBufferStop(ExtractBufferStopFromString(SavePossibleRoutesArray[I]), BufferStopColour);
+                      END;
+
+                      { and clear the array of possible routes }
+                      SetLength(SavePossibleRoutesArray, 0);
+                    END ELSE BEGIN
+                      { Now we are setting up a route - selecting end of route - see which signal (or buffer stop) us and the station or fiddleyard already highlighted as a
+                        possibility we've clicked on.
+                      }
+                      OK := False;
+                      StartSignal := ExtractSignalFromString(SavePossibleRoutesArray[0]);
+                      StartLine := Signals[StartSignal].Signal_AdjacentLine;
+                      EndSignal := S;
+                      RouteingByUser := False;
+
+                      IF BS <> UnknownBufferStop THEN BEGIN
+                        { we've chosen a buffer stop - check it's a proper selection }
+                        I := 0;
+                        WHILE (I < Length(SavePossibleRoutesArray)) AND NOT OK DO BEGIN
+                          IF ExtractBufferStopFromString(SavePossibleRoutesArray[I]) = BS THEN
+                            OK := True;
+                          Inc(I);
+                        END; {WHILE}
+                        IF OK THEN BEGIN
+                          IF Routes_RouteSettingByHand THEN BEGIN
+                            Log('R Route setting request by user concluded - BS=' + IntToStr(BS) + ' pressed');
+                            FindRouteFromLineAToLineB(UnknownLocoChipStr, UnknownJourney, S, Signals[StartSignal].Signal_AdjacentLine, BufferStops[BS].BufferStop_AdjacentLine,
+                                                      Signals[StartSignal].Signal_Direction, TrainTypeForRouteing, TrainLengthInInchesForRouteing, EmergencyRouteingStored,
+                                                      NOT IncludeOutOfUseLinesOn, DraftRouteArray, LinesNotAvailableStr, ErrorMsg, RouteFoundOK);
+                            EndLine := BufferStops[BS].BufferStop_AdjacentLine;
+                          END ELSE BEGIN
+                            Log('S Theatre indicator route setting request by user concluded - BS=' + IntToStr(BS) + ' pressed');
+                            FindRouteFromLineAToLineB(UnknownLocoChipStr, UnknownJourney, S, Signals[StartSignal].Signal_AdjacentLine, BufferStops[BS].BufferStop_AdjacentLine,
+                                                      Signals[StartSignal].Signal_Direction, TrainTypeForRouteing, TrainLengthInInchesForRouteing, EmergencyRouteingStored,
+                                                      NOT IncludeOutOfUseLinesOn, DraftRouteArray, LinesNotAvailableStr, ErrorMsg, RouteFoundOK);
+                            AppendToStringArray(DraftRouteArray, 'BS=' + IntToStr(BS));
+                            EndLine := BufferStops[BS].BufferStop_AdjacentLine;
+                          END;
+                        END;
+                      END ELSE BEGIN
+                        { we've chosen a signal - check it's a proper selection }
+                        I := 0;
+                        WHILE (I < Length(SavePossibleRoutesArray)) AND NOT OK DO BEGIN
+                          IF ExtractSignalFromString(SavePossibleRoutesArray[I]) = EndSignal THEN
+                            OK := True;
+                          Inc(I);
+                        END; {WHILE}
+                        IF OK THEN BEGIN
+                          IF Routes_RouteSettingByHand THEN BEGIN
+                            Log('R User Route setting request concluded - signal post ' + IntToStr(S) + ' pressed');
+                            FindRouteFromLineAToLineB(UnknownLocoChipStr, UnknownJourney, S, Signals[StartSignal].Signal_AdjacentLine,
+                                                      Signals[EndSignal].Signal_AdjacentLine, Signals[StartSignal].Signal_Direction, TrainTypeForRouteing,
+                                                      TrainLengthInInchesForRouteing, EmergencyRouteingStored, NOT IncludeOutOfUseLinesOn, DraftRouteArray,
+                                                      LinesNotAvailableStr, ErrorMsg, RouteFoundOK);
+                            EndLine := Signals[EndSignal].Signal_AdjacentLine;
+                          END ELSE BEGIN
+                            Log('S User Theatre indicator route setting request concluded'
+                                   + ' - signal post ' + IntToStr(StartSignal) + ' pressed');
+                            FindRouteFromLineAToLineB(UnknownLocoChipStr, UnknownJourney, S, Signals[StartSignal].Signal_AdjacentLine,
+                                                      Signals[EndSignal].Signal_AdjacentLine, Signals[StartSignal].Signal_Direction, TrainTypeForRouteing,
+                                                      TrainLengthInInchesForRouteing, EmergencyRouteingStored, NOT IncludeOutOfUseLinesOn, DraftRouteArray,
+                                                      LinesNotAvailableStr, ErrorMsg, RouteFoundOK);
+                            AppendToStringArray(DraftRouteArray, 'FS=' + IntToStr(EndSignal));
+                            EndLine := Signals[EndSignal].Signal_AdjacentLine;
+                          END;
+                        END;
+                      END;
                     END;
 
-                    { and empty the route array }
-                    SetLength(SavePossibleRoutesArray, 0);
-                  END;
+                    IF NOT RouteFoundOK AND NOT RouteFindingCancelled THEN BEGIN
+                      DebugStr := 'Route from S=' + IntToStr(StartSignal) + ' to ';
+                      IF BS = UnknownBufferStop THEN
+                        DebugStr := DebugStr + 'S=' + IntToStr(EndSignal)
+                      ELSE
+                        DebugStr := DebugStr + 'BS=' + IntToStr(BS);
+                      DebugStr := DebugStr + ' not found';
+
+                      Log('R! ' + DebugStr + ' (' + ErrorMsg + ')');
+                    END ELSE BEGIN
+                      { No more route finding, so reset the train type etc. ... }
+                      TrainTypeForRouteing := UnknownTrainType;
+
+                      { ....turn off the flashing signal post... }
+                      SignalPostToBeFlashed := UnknownSignal;
+                      CuneoWindow.CuneoTimer.Enabled := False;
+
+                      { ...and de-highlight all the possible end of route buttons }
+                      FOR I := 0 TO High(SavePossibleRoutesArray) DO BEGIN
+                        TempSignal := ExtractSignalFromString(SavePossibleRoutesArray[I]);
+                        IF TempSignal <> UnknownSignal THEN BEGIN
+                          Signals[TempSignal].Signal_PostColour := SignalPostColour;
+                          DrawSignalPost(TempSignal);
+                        END;
+                        TempBufferStop := ExtractBufferStopFromString(SavePossibleRoutesArray[I]);
+                        IF TempBufferStop <> UnknownBufferStop THEN
+                          DrawBufferStop(ExtractBufferStopFromString(SavePossibleRoutesArray[I]), BufferStopColour);
+                      END;
+
+                      IF Routes_TheatreIndicatorSettingInitiated THEN BEGIN
+                        Routes_TheatreIndicatorSettingInitiated := False;
+                        PullSignal(UnknownLocoChipStr, StartSignal, TheatreIndicatorLit, Route, NoSubRoute, EndLine, TrainTypeForRouteing, ByUser, OK);
+                      END ELSE
+                        IF Routes_RouteSettingByHand THEN BEGIN
+
+                          { Now set up the locking }
+                          CreateLockingArrayFromDraftRouteArray(UnknownLocoChipStr, DraftRouteArray, LockingArray);
+
+                          { Now create the route array }
+                          CreateRouteArrayFromLockingArray(Routes_RouteCounter, LockingArray, RouteArray);
+
+                          { and the other route-related arrays }
+                          CreateInitialRouteRelatedArrays(T, UnknownLocoChip, RouteArray, InAutoMode, StartSignal, EndSignal, BS, StartLine, EndLine);
+
+                          IF TestingMode THEN BEGIN
+                            WriteStringArrayToLog(UnknownLocoChipStr, 'R', 'Draft Route Array to set up R=' + IntToStr(Routes_RouteCounter)
+                                                                            + ' ' + DescribeStartAndEndOfRoute(Routes_RouteCounter) + ':',
+                                                                            DraftRouteArray,
+                                                                            2, 190, 'SR=');
+                            WriteStringArrayToLog(UnknownLocoChipStr, 'R', 'Locking Array to set up R=' + IntToStr(Routes_RouteCounter)
+                                                                            + ' ' + DescribeStartAndEndOfRoute(Routes_RouteCounter) + ':',
+                                                                            LockingArray,
+                                                                            2, 190, 'SR=');
+                            FOR I := 0 TO (Routes_TotalSubRoutes[Routes_RouteCounter] - 1) DO
+                              WriteStringArrayToLog(UnknownLocoChipStr, 'R', 'Final Route Array to set up'
+                                                                              +' R=' + IntToStr(Routes_RouteCounter)
+                                                                              + '/' + IntToStr(I) + ' '
+                                                                              + DescribeSubRoute(Routes_RouteCounter, I) + ':',
+                                                                              Routes_SubRouteSettingStrings[Routes_RouteCounter, I],
+                                                                              2, 190, 'SR=');
+                          END;
+
+                          { and empty the route array }
+                          SetLength(SavePossibleRoutesArray, 0);
+                        END;
+                      END;
+                    END;
                 END;
               END;
+            END;
           END;
         END;
       END;
@@ -1658,11 +1665,19 @@ BEGIN
       { We get the FoundNum data from the WhatIsUnderMouse routine }
       IF EditMode THEN BEGIN
         IF ButtonPress = mbLeft THEN BEGIN
-          IF SignalFoundNum <> UnknownSignal THEN
-            DisplaySignalOptionsInValueList(SignalFoundNum)
-          ELSE
+          IF SignalFoundNum <> UnknownSignal THEN BEGIN
+            DisplaySignalOptionsInValueList(SignalFoundNum);
+            DragSignalNum := SignalFoundNum;
+            DragTime := Now;
+          END ELSE
             IF PointFoundNum <> UnknownPoint THEN
-              DisplayPointOptionsInValueList(PointFoundNum);
+              DisplayPointOptionsInValueList(PointFoundNum)
+            ELSE BEGIN
+              ClearValueList;
+
+              IF Zooming THEN
+                MoveZoomWindowMode := True;
+            END;
         END ELSE
           IF ButtonPress = mbRight THEN BEGIN
             SetSignalPopupNum(UnknownSignal);
@@ -1703,9 +1718,7 @@ BEGIN
                         Log('A Cannot change crossover point P=' + IntToStr(Points[PointFoundNum].Point_OtherPoint)
                                + ' as corresponding point P=' + IntToStr(PointFoundNum) + ' failed to change')
                       ELSE BEGIN
-                        IF NOT (ssShift IN ShiftState)
-                        AND NOT (ssAlt IN ShiftState)
-                        THEN
+                        IF NOT (ssShift IN ShiftState) AND NOT (ssAlt IN ShiftState) THEN
                           { this second test may seem superfluous but is needed if we're in a pause between switching LS150 points, when other mouse clicks might get
                             through and cause problems
                           }
@@ -1800,9 +1813,7 @@ BEGIN
     WriteToStatusBarPanel(StatusBarPanel2, '');
 
     { See if the loco dialogue is visible, and if a train is being controlled }
-    IF LocoDialogueWindow.Visible
-    AND (GetLocoDialogueLocoSpeed > 0)
-    AND (Button = mbRight)
+    IF LocoDialogueWindow.Visible AND (GetLocoDialogueLocoSpeed > 0) AND (Button = mbRight)
     THEN
       CheckEmergencyStop(Button, ShiftState)
     ELSE

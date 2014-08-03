@@ -219,7 +219,7 @@ BEGIN
         Loco_Speed120 := 0;
         FOR I := 1 TO 12 DO
           Loco_SpeedArray[I] := 0;
-                                                                Loco_SpeedByte := 0;
+        Loco_SpeedByte := 0;
         Loco_SpeedByteReadIn := False;
         Loco_SpeedSettingsMissing := False;
         Loco_SpeedStepMode := 28; { this is the default - it could be added to the loco database *** }
@@ -453,9 +453,7 @@ BEGIN
                             + ' LG Deleting last location record as location is marked as occupied by ' + Loco_LocoChipStr);
                         TempL := 0;
                         WHILE TempL <= High(Locos) DO BEGIN
-                          IF (ElementPos <= High(TempLocationsLocoChips))
-                          AND (Locos[TempL].Loco_LocoChip = TempLocationsLocoChips[ElementPos])
-                          THEN BEGIN
+                          IF (ElementPos <= High(TempLocationsLocoChips)) AND (Locos[TempL].Loco_LocoChip = TempLocationsLocoChips[ElementPos]) THEN BEGIN
                             DeleteElementFromIntegerArray(TempLocationsLocoChips, ElementPos);
                             DeleteElementFromIntegerArray(TempLocations, ElementPos);
                             ErrorMsg := '';
@@ -602,9 +600,7 @@ BEGIN
                       { Find the minimum speed and add to all lower speed settings }
                       I := 1;
                       SpeedFound := False;
-                      WHILE (I <= 12)
-                      AND NOT SpeedFound
-                      DO BEGIN
+                      WHILE (I <= 12) AND NOT SpeedFound DO BEGIN
                         IF Loco_SpeedArray[I] <> 0 THEN BEGIN
                           SpeedFound := True;
                           { now add to all speed settings below }
@@ -617,9 +613,7 @@ BEGIN
                       { Find the maximum speed, and add to all higher speed settings }
                       I := 12;
                       SpeedFound := False;
-                      WHILE (I >= 1)
-                      AND NOT SpeedFound
-                      DO BEGIN
+                      WHILE (I >= 1) AND NOT SpeedFound DO BEGIN
                         IF Loco_SpeedArray[I] <> 0 THEN BEGIN
                           SpeedFound := True;
                           { and store the maximum speed }
@@ -660,18 +654,14 @@ BEGIN
                       { But it might happen (has happened!) that, accidentally, an intervening speed setting is missing, or a speed step is lower than the one preceding it }
                       I := 1;
                       SpeedFound := True;
-                      WHILE (I <= 12)
-                      AND SpeedFound
-                      DO BEGIN
+                      WHILE (I <= 12) AND SpeedFound DO BEGIN
                         IF Loco_SpeedArray[I] = 0 THEN BEGIN
                           SpeedFound := False;
                           Log(Loco_LocoChipStr + ' L Missing speed step at position ' + IntToStr(I - 1));
                           ErrorMsg := 'Loco ' + Loco_LocoChipStr + ': missing speed step at position ' + IntToStr(I - 1);
                           Loco_SpeedSettingsMissing := True;
                         END ELSE
-                          IF (I > 1)
-                          AND (Loco_SpeedArray[I] < Loco_SpeedArray[I - 1])
-                          THEN BEGIN
+                          IF (I > 1) AND (Loco_SpeedArray[I] < Loco_SpeedArray[I - 1]) THEN BEGIN
                             SpeedFound := False;
                             Log(Loco_LocoChipStr + ' L Speed step at position ' + IntToStr(I - 1) + ' is less than speed step at position ' + IntToStr(I - 2));
                             ErrorMsg := 'Loco ' + Loco_LocoChipStr + ': speed step at position ' + IntToStr(I - 1)
@@ -777,9 +767,7 @@ BEGIN
           WITH LocoDataADOTable DO BEGIN
             L := 0;
             LocoFound := False;
-            WHILE (L <= High(Locos))
-            AND NOT LocoFound
-            DO BEGIN
+            WHILE (L <= High(Locos)) AND NOT LocoFound DO BEGIN
               IF FieldByName('LocoChip').AsInteger = Locos[L].Loco_LocoChip THEN
                 LocoFound := True;
 
@@ -817,9 +805,7 @@ BEGIN
                       END ELSE BEGIN
                         { this may be one of those track circuits that's attached to more than one line, not all of which have a named location }
                         TempLine := 0;
-                        WHILE (TempLine <= High(Lines))
-                        AND NOT LineFound
-                        DO BEGIN
+                        WHILE (TempLine <= High(Lines)) AND NOT LineFound DO BEGIN
                           IF Lines[TempLine].Line_TC = Train_CurrentTC THEN BEGIN
                             IF Lines[TempLine].Line_Location <> UnknownLocation THEN BEGIN
                               Edit;
@@ -885,9 +871,7 @@ BEGIN
       FOR I := FixedRows TO RowCount - 2 DO BEGIN { because last row has no next row }
         FOR J := I + 1 TO RowCount - 1 DO BEGIN { from next row to end }
           IF SortGridDirection = Up THEN BEGIN
-            IF (AnsiCompareText(Cells[SortCol, I], Cells[SortCol, J]) > 0)
-            AND (Cells[SortCol, J] <> '')
-            THEN BEGIN
+            IF (AnsiCompareText(Cells[SortCol, I], Cells[SortCol, J]) > 0) AND (Cells[SortCol, J] <> '') THEN BEGIN
               Temp.Assign(Rows[J]);
               Rows[J].Assign(Rows[I]);
               Rows[I].Assign(Temp);
@@ -996,13 +980,9 @@ PROCEDURE TLocoUtilsWindow.LocoStringGridKeyDown(Sender : TObject; VAR Key : Wor
   BEGIN
     TRY
       Done := False;
-      WHILE (RowNum < LocoStringGrid.RowCount)
-      AND NOT Done
-      DO BEGIN
+      WHILE (RowNum < LocoStringGrid.RowCount) AND NOT Done DO BEGIN
         ColNum := 0;
-        WHILE (ColNum < LocoStringGrid.ColCount)
-        AND NOT Done
-        DO BEGIN
+        WHILE (ColNum < LocoStringGrid.ColCount) AND NOT Done DO BEGIN
           IF Pos(UpperCase(SaveLocoStringGridSearchStr), UpperCase(LocoStringGrid.Cells[ColNum, RowNum])) > 0 THEN BEGIN
             LocoStringGrid.SetFocus;
             LocoStringGrid.Row := RowNum;
@@ -1060,9 +1040,7 @@ BEGIN
         { determine which column was clicked }
         FOR I := 0 TO ColCount - 1 DO BEGIN
           Rect := CellRect(I, 0);
-          IF (Rect.Left < X)
-          AND (Rect.Right > X)
-          THEN BEGIN
+          IF (Rect.Left < X) AND (Rect.Right > X) THEN BEGIN
             ColNum := I;
             Break;
           END;
@@ -1241,9 +1219,7 @@ BEGIN
     NumberFound1 := False;
     NumberToTest1 := 0;
     I := 2;
-    WHILE (I < Length(List[Index1]))
-    AND NOT NumberFound1
-    DO BEGIN
+    WHILE (I < Length(List[Index1])) AND NOT NumberFound1 DO BEGIN
       { look for the first space }
       IF List[Index1][I] = ' ' THEN BEGIN
         NumberFound1 := True;
@@ -1264,9 +1240,7 @@ BEGIN
     NumberFound2 := False;
     NumberToTest2 := 0;
     I := 2;
-    WHILE (I < Length(List[Index2]))
-    AND NOT NumberFound2
-    DO BEGIN
+    WHILE (I < Length(List[Index2])) AND NOT NumberFound2 DO BEGIN
       { look for the first space }
       IF List[Index2][I] = ' ' THEN BEGIN
         NumberFound2 := True;

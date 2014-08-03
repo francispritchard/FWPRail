@@ -6,6 +6,8 @@ UNIT Feedback;
   66, 71, 73-4, 77-8, 86-7, 88-90, 91-7, 100-101, 103-5, 108, 111, 114 10/3/06
   66-78, 80-2, 84-101, 103-114 11/3/06
   66-114 13/3/06
+
+  TC=39 not in use 12/7/14
 }
 
 INTERFACE
@@ -79,9 +81,7 @@ BEGIN
   TRY
     F := 0;
     FeedbackUnitFound := False;
-    WHILE (F <= High(FeedbackUnitData))
-    AND NOT FeedbackUnitFound
-    DO BEGIN
+    WHILE (F <= High(FeedbackUnitData)) AND NOT FeedbackUnitFound DO BEGIN
       IF FeedbackUnitData[F].Feedback_Unit = Data.Feedback_Unit THEN
         FeedbackUnitFound := True
       ELSE
@@ -89,9 +89,7 @@ BEGIN
     END; {WHILE}
 
     IF NOT FeedbackUnitFound THEN BEGIN
-      IF NOT FWPRailWindowInitialised
-      AND NOT GetDiagramsCheckingInProgress
-      THEN
+      IF NOT FWPRailWindowInitialised AND NOT GetDiagramsCheckingInProgress THEN
         Log('X Data received from unknown feedback unit ' + IntToStr(Data.Feedback_Unit) + ' ignored as feedback data not yet initialised')
       ELSE
         Log('XG Data received from unknown feedback unit ' + IntToStr(Data.Feedback_Unit));
@@ -105,9 +103,7 @@ BEGIN
           Num := UnknownTrackCircuit;
           TCFound := False;
           TC := 0;
-          WHILE (TC <= High(TrackCircuits))
-          AND NOT TCFound
-          DO BEGIN
+          WHILE (TC <= High(TrackCircuits)) AND NOT TCFound DO BEGIN
             IF TrackCircuits[TC].TC_FeedbackUnit = Data.Feedback_Unit THEN BEGIN
               IF TrackCircuits[TC].TC_FeedbackInput = Data.Feedback_Input THEN BEGIN
                 TCFound := True;
@@ -132,9 +128,7 @@ BEGIN
                     Num := UnknownTrackCircuit;
                     TCFound := False;
                     TC := 0;
-                    WHILE (TC <= High(TrackCircuits))
-                    AND NOT TCFound
-                    DO BEGIN
+                    WHILE (TC <= High(TrackCircuits)) AND NOT TCFound DO BEGIN
                       IF TrackCircuits[TC].TC_FeedbackUnit = Data.Feedback_Unit THEN BEGIN
                         IF TrackCircuits[TC].TC_FeedbackInput = Data.Feedback_Input THEN BEGIN
                           TCFound := True;
@@ -188,9 +182,7 @@ BEGIN
       ELSE
         FeedbackString := FeedbackString + ' ?';
 
-      IF (Input <> UnknownTrackCircuit)
-      AND (Feedback_Type = TrackCircuitFeedbackDetector)
-      THEN
+      IF (Input <> UnknownTrackCircuit) AND (Feedback_Type = TrackCircuitFeedbackDetector) THEN
         { TCLineArray[0] is only one of a number of possible lines **** }
         IF Length(TrackCircuits[Input].TC_LineArray) > 0 THEN
           FeedbackString := FeedbackString + ' (' + LineToStr(TrackCircuits[Input].TC_LineArray[0]) + ')'
@@ -310,7 +302,7 @@ BEGIN
   DefaultLocoSpeedSet := False;
   LocoSpeedTimingMode := True;
   LocoTimingSlowingTime := 0;
-  LocoTimingLenzSpeed := GetLenzSpeed(L, ForceARead);
+  LocoTimingLenzSpeed := GetLenzSpeed(Locos[L], ForceARead);
 END; { InitialiseLocoSpeedTiming }
 
 PROCEDURE DecodeFeedback(FeedbackData : FeedbackRec);
@@ -411,11 +403,8 @@ VAR
                                                                          + TrackCircuits[InterveningTrackCircuitFeedbackDetectorsArray[I]].TC_LengthInInches;
 
         { First, see if we've been speed testing for too long }
-        IF LocoTimingInProgress
-        AND (LocoTimingSlowingTime <> 0)
-        AND (Time > IncSecond(LocoTimingSlowingTime, LocoTimingTimeBeforeAutoStopInSeconds))
-        THEN BEGIN
-          SetLenzSpeedAndDirection(L, QuickStop, Up, OK);
+        IF LocoTimingInProgress AND (LocoTimingSlowingTime <> 0) AND (Time > IncSecond(LocoTimingSlowingTime, LocoTimingTimeBeforeAutoStopInSeconds)) THEN BEGIN
+          SetLenzSpeedAndDirection(Locos[L], QuickStop, Up, OK);
           Log(Loco_LocoChipStr + ' L Loco speed test concluded as loco timing has taken more than '
                                + IntToStr(LocoTimingTimeBeforeAutoStopInSeconds) + ' seconds');
           Debug('+Loco speed test concluded as loco timing has taken more than ' + IntToStr(LocoTimingTimeBeforeAutoStopInSeconds) + ' seconds');
@@ -425,34 +414,28 @@ VAR
           LocoSpeedTimingMode := False;
         END ELSE
           { To time loco down the fast straight, then circle the layout }
-          IF (TC = LocoTimingSlowingTC)
-          AND NOT LocoTimingStarted
-          THEN BEGIN
+          IF (TC = LocoTimingSlowingTC) AND NOT LocoTimingStarted THEN BEGIN
             LocoTimingInProgress := True;
             LocoTimingSlowingTime := Time;
-            SetLenzSpeedAndDirection(L, LocoTimingLenzSpeed, Up, OK);
+            SetLenzSpeedAndDirection(Locos[L], LocoTimingLenzSpeed, Up, OK);
             LocoDialogueWindow.LocoDialogueSpeedDisplay.Color := clYellow;
   //          LocoDialogueWindow.LocoDialogueSpeedButtons.Position := LocoTimingLenzSpeed;
             LocoDialogueWindow.LocoDialogueSpeedDisplay.Caption := IntToStr(LocoTimingLenzSpeed);
             Log(Loco_LocoChipStr + ' L At LocoTimingSlowingTC TC=' + IntToStr(TC) + ' speed set to ' + IntToStr(LocoTimingLenzSpeed));
           END ELSE
-            IF (TC = LocoTimingStartTC)
-            AND NOT LocoTimingStarted
-            THEN BEGIN
+            IF (TC = LocoTimingStartTC) AND NOT LocoTimingStarted THEN BEGIN
               LocoTimingStarted := True;
               LocoTimingStartTime := Time;
               Log(Loco_LocoChipStr + ' L At LocoTimingStartTC TC=' + IntToStr(TC));
               LocoDialogueWindow.LocoDialogueSpeedDisplay.Color := clLime;
             END ELSE
-              IF (TC = LocoTimingStopTC)
-              AND LocoTimingStarted
-              THEN BEGIN
+              IF (TC = LocoTimingStopTC) AND LocoTimingStarted THEN BEGIN
                 Log(Loco_LocoChipStr + ' L At LocoTimingStopTC TC=' + IntToStr(TC));
                 LocoTimingInProgress := False;
                 LocoTimingStarted := False;
 
                 LocoTimingStopTime := Time;
-                LocoTimingLenzSpeed := GetLenzSpeed(L, ForceRead);   { &&&&& }
+                LocoTimingLenzSpeed := GetLenzSpeed(Locos[L], ForceRead);
                 TempMPHSpeed := CalculateTrueSpeed(LocoTimingLenzSpeed, LocoTimingStartTC, LocoTimingStopTC, InterveningTrackCircuitFeedbackDetectorsTotalLengthInInches,
                                                    LocoTimingStartTime, LocoTimingStopTime);
 
@@ -469,14 +452,12 @@ VAR
 
                 { Store a reasonable speed setting for circling the layout before the next timing run begins }
                 IF LocoTimingCircleSpeed = 0 THEN BEGIN
-                  IF (TempMPHSpeed > 70)
-                  AND (TempMPHSpeed < 80)
-                  THEN BEGIN
+                  IF (TempMPHSpeed > 70) AND (TempMPHSpeed < 80) THEN BEGIN
                     LocoTimingCircleSpeed := LocoTimingLenzSpeed;
                     Log(Loco_LocoChipStr + ' L LocoTimingCircleSpeed saved as ' + IntToStr(LocoTimingLenzSpeed));
                   END ELSE BEGIN
                     { set a default speed }
-                    SetLenzSpeedAndDirection(L, DefaultLocoSpeed, Up, OK);
+                    SetLenzSpeedAndDirection(Locos[L], DefaultLocoSpeed, Up, OK);
                     LocoDialogueWindow.LocoDialogueSpeedDisplay.Color := clRed;
   //                  LocoDialogueWindow.LocoDialogueSpeedButtons.Position := DefaultLocoSpeed;
                     LocoDialogueWindow.LocoDialogueSpeedDisplay.Caption := IntToStr(DefaultLocoSpeed);
@@ -484,7 +465,7 @@ VAR
                     Log(Loco_LocoChipStr + ' L Speed set to ' + IntToStr(DefaultLocoSpeed));
                   END;
                 END ELSE BEGIN
-                  SetLenzSpeedAndDirection(L, LocoTimingCircleSpeed, Up, OK);
+                  SetLenzSpeedAndDirection(Locos[L], LocoTimingCircleSpeed, Up, OK);
                   Log(Loco_LocoChipStr + ' L Speed set to LocoTimingCircleSpeed (' + IntToStr(LocoTimingCircleSpeed) + ')');
                   LocoDialogueWindow.LocoDialogueSpeedDisplay.Color := clRed;
   //                LocoDialogueWindow.LocoDialogueSpeedButtons.Position := LocoTimingCircleSpeed;
@@ -501,9 +482,7 @@ BEGIN { DecodeFeedback }
 
     { Read in the stored data from all the units, in case some has changed whilst we've been busy elsewhere }
     WITH FeedbackData DO BEGIN
-      IF (Feedback_Unit >= FirstFeedbackUnit)
-      AND (Feedback_Unit <= LastFeedbackUnit + 1)
-      THEN BEGIN
+      IF (Feedback_Unit >= FirstFeedbackUnit) AND (Feedback_Unit <= LastFeedbackUnit + 1) THEN BEGIN
         ExtractDataFromFeedback(FeedbackData, TCAboveFeedbackUnit, FeedbackType, DecodedFeedbackNum);
 
         DebugStr := 'Feedback ' + IntToStr(Feedback_Unit) + ' Input ' + IntToStr(Feedback_Input);
@@ -553,9 +532,7 @@ BEGIN { DecodeFeedback }
                           SetTrackCircuitstate(TC, TCFeedbackOccupation);
                       END; {CASE}
                     END ELSE
-                      IF NOT ProgramStartup
-                      AND (TrackCircuits[TC].TC_LengthInInches <> 0.0)
-                      THEN
+                      IF NOT ProgramStartup AND (TrackCircuits[TC].TC_LengthInInches <> 0.0) THEN
                         TrackCircuits[TC].TC_OccupationStartTime := Time;
 
                     { mark it as occupied }
@@ -594,9 +571,7 @@ BEGIN { DecodeFeedback }
                         IF TrackCircuits[TC].TC_OccupationState = TCPermanentOccupationSetByUser THEN
                           SetTrackCircuitstate(UnknownLocoChip, TC, TCPermanentOccupationSetByUser)
                         ELSE
-                          IF (T <= High(Trains))
-                          AND Trains[T].Train_UseTrailingTrackCircuits
-                          THEN
+                          IF (T <= High(Trains)) AND Trains[T].Train_UseTrailingTrackCircuits THEN
                             SetTrackCircuitstate(TrackCircuits[TC].TC_LocoChip, TC, TCSystemOccupation)
                           ELSE
                             IF TrackCircuits[TC].TC_PreviousOccupationState <> TCSystemOccupation THEN
@@ -620,9 +595,7 @@ BEGIN { DecodeFeedback }
               WITH FeedbackData DO BEGIN
                 Line := 0;
                 LineFound := False;
-                WHILE (Line <= High(Lines))
-                AND NOT LineFound
-                DO BEGIN
+                WHILE (Line <= High(Lines)) AND NOT LineFound DO BEGIN
                   WITH Lines[Line] DO BEGIN
                     IF Line_InUseFeedbackUnit = Feedback_Unit THEN BEGIN
                       IF Line_InUseFeedbackInput = Feedback_Input THEN BEGIN
@@ -656,9 +629,7 @@ BEGIN { DecodeFeedback }
               WITH FeedbackData DO BEGIN
                 FOR P := 0 TO High(Points) DO BEGIN
                   WITH Points[P] DO BEGIN
-                    IF (Point_FeedbackUnit = Feedback_Unit)
-                    AND (Point_PresentState <> PointOutOfAction)
-                    THEN BEGIN
+                    IF (Point_FeedbackUnit = Feedback_Unit) AND (Point_PresentState <> PointOutOfAction) THEN BEGIN
                       IF Point_FeedbackInput = Feedback_Input THEN BEGIN
                         DecodedFeedbackNum := P;
                         IF Feedback_InputOn THEN BEGIN
@@ -700,9 +671,7 @@ BEGIN { DecodeFeedback }
                             END ELSE BEGIN
                               T := GetTrainIndexFromLocoChip(Point_LocoChipLockingTheRoute);
                               IF T <> UnknownTrainIndex THEN BEGIN
-                                IF (Trains[T].Train_CurrentStatus <> Suspended)
-                                AND (Trains[T].Train_CurrentStatus <> MissingAndSuspended)
-                                THEN BEGIN
+                                IF (Trains[T].Train_CurrentStatus <> Suspended) AND (Trains[T].Train_CurrentStatus <> MissingAndSuspended) THEN BEGIN
                                   SuspendTrain(T, NOT ByUser, 'point ' + PointToStr(P) + ' has moved');
 
                                   IF NOT Point_MovedWhenLocked THEN BEGIN
@@ -765,9 +734,7 @@ BEGIN { DecodeFeedback }
             END;
         END; {CASE}
 
-        IF FeedbackDebuggingMode
-        AND (FeedbackWindow <> NIL) AND NOT ProgramStartup
-        THEN
+        IF FeedbackDebuggingMode AND (FeedbackWindow <> NIL) AND NOT ProgramStartup THEN
           WriteDataToFeedbackWindow(FeedbackData, DecodedFeedbackNum)
         ELSE
           IF DisplayFeedbackStringsInDebugWindow THEN

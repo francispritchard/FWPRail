@@ -614,7 +614,7 @@ VAR
   SignalSemaphoreHeight : Integer;
   SignalSemaphoreHeightScaled : Integer;
 
-  DefaultSignalSemaphoreWidth : Integer = 50;
+  DefaultSignalSemaphoreWidth : Integer = 70;
   SignalSemaphoreWidth : Integer;
   SignalSemaphoreWidthScaled : Integer;
 
@@ -1603,23 +1603,17 @@ BEGIN
 
       { Time options }
       TempStr := ReadString(TimesSectionStr, ProgramStartTimeOptionStr, DefaultProgramStartTimeStr);
-      IF (TempStr <> '')
-      AND (TimeIsValid(TempStr))
-      THEN BEGIN
+      IF (TempStr <> '') AND (TimeIsValid(TempStr)) THEN BEGIN
         ProgramStartTime := StrToTime(TempStr);
         Log('A Program Start Time set to ' + TempStr);
       END;
 
       TempStr := ReadString(TimesSectionStr, DayLightStartTimeOptionStr, DefaultDayLightStartTimeStr);
-      IF (TempStr <> '')
-      AND (TimeIsValid(TempStr))
-      THEN
+      IF (TempStr <> '') AND (TimeIsValid(TempStr)) THEN
         DayLightStartTime := StrToTime(TempStr);
 
       TempStr := ReadString(TimesSectionStr, DayLightEndTimeOptionStr, DefaultDayLightEndTimeStr);
-      IF (TempStr <> '')
-      AND (TimeIsValid(TempStr))
-      THEN
+      IF (TempStr <> '') AND (TimeIsValid(TempStr)) THEN
         DayLightEndTime := StrToTime(TempStr);
 
       TempStr := ReadString(TimesSectionStr, CurrentRailwayDayOfTheWeekStr, DefaultCurrentRailwayDayOfTheWeek);
@@ -1733,9 +1727,7 @@ BEGIN
     WITH IniFile DO BEGIN
       { Now track circuits that are user designated as having special properties - delete when no longer special }
       IF Length(TrackCircuits) > 0 THEN BEGIN
-//        IF (TrackCircuits[183].TC_OccupationState <> TCOutOfUseSetByUser)
-//        AND (TrackCircuits[183].TC_OccupationState <> TCOutOfUseAsNoFeedbackReceived)
-//        THEN BEGIN
+//        IF (TrackCircuits[183].TC_OccupationState <> TCOutOfUseSetByUser) AND (TrackCircuits[183].TC_OccupationState <> TCOutOfUseAsNoFeedbackReceived) THEN BEGIN
 //          Log('X! .ini error!!! TC=183 not out of use');
 //          ASM
 //            Int 3
@@ -1749,9 +1741,7 @@ BEGIN
             IF TrackCircuits[TC].TC_OccupationState = TCPermanentOccupationSetByUser THEN
               TCString := TCString + TrackCircuitPermanentOccupationSetByUserStr + ';';
 
-            IF (TrackCircuits[TC].TC_SpeedRestrictionInMPH <> NoSpecifiedSpeed)
-            AND (TrackCircuits[TC].TC_SpeedRestrictionInMPH <> MPH0)
-            THEN
+            IF (TrackCircuits[TC].TC_SpeedRestrictionInMPH <> NoSpecifiedSpeed) AND (TrackCircuits[TC].TC_SpeedRestrictionInMPH <> MPH0) THEN
               TCString := TCString + TrackCircuitSpeedRestrictionStr
                                      + ' MPH=' + MPHToStr(TrackCircuits[TC].TC_SpeedRestrictionInMPH)
                                      + ' Dir=' + DirectionToStr(TrackCircuits[TC].TC_SpeedRestrictionDirection)
@@ -1763,9 +1753,7 @@ BEGIN
             IF TCString <> '' THEN
               WriteString(TrackCircuitsSectionStr, IntToStr(TC), TCString)
             ELSE
-              IF (TrackCircuits[TC].TC_OccupationState <> TCOutOfUseAsNoFeedbackReceived)
-              AND ValueExists(TrackCircuitsSectionStr, IntToStr(TC))
-              THEN
+              IF (TrackCircuits[TC].TC_OccupationState <> TCOutOfUseAsNoFeedbackReceived) AND ValueExists(TrackCircuitsSectionStr, IntToStr(TC)) THEN
                 DeleteKey(TrackCircuitsSectionStr, IntToStr(TC));
           END; {FOR }
 //        END;
@@ -2501,17 +2489,13 @@ PROCEDURE SaveOptionFromValueList(KeyName, NewKeyValue : String);
 
   BEGIN
     Result := False;
-    IF (OldValue <> '')
-    AND (NewValue = '')
-    THEN BEGIN
+    IF (OldValue <> '') AND (NewValue = '') THEN BEGIN
       IF MessageDialogueWithDefault(KeyName + ': do you want to delete ''' + OldValue + '''?',
                                     StopTimer, mtError, [mbYes, mbNo], mbNo) = mrYes
       THEN
         Result := True;
     END ELSE
-      IF (OldValue = '')
-      AND (NewValue <> '')
-      THEN BEGIN
+      IF (OldValue = '') AND (NewValue <> '') THEN BEGIN
         IF MessageDialogueWithDefault(KeyName + ': do you want to insert ''' + NewValue + '''?',
                                       StopTimer, mtError, [mbYes, mbNo], mbNo) = mrYes
         THEN
@@ -2532,16 +2516,12 @@ PROCEDURE SaveOptionFromValueList(KeyName, NewKeyValue : String);
 
   BEGIN
     WITH OptionsWindow.OptionsValueListEditor DO BEGIN
-      IF (KeyNameToTest = OriginalKeyName)
-      AND (NewKeyValue <> OriginalKeyValue)
-      THEN BEGIN
+      IF (KeyNameToTest = OriginalKeyName) AND (NewKeyValue <> OriginalKeyValue) THEN BEGIN
         { Check the confirmed values are allowed }
         ExtractSubStringsFromString(SetValues, ',', ValuesArray);
         I := 0;
         ValueFound := False;
-        WHILE (I <= High(ValuesArray))
-        AND NOT ValueFound
-        DO BEGIN
+        WHILE (I <= High(ValuesArray)) AND NOT ValueFound DO BEGIN
           IF UpperCase(NewKeyValue) = UpperCase(ValuesArray[I]) THEN BEGIN
             ValueFound := True;
             { ValuesArray[I] is used here as a replacement and not NewKeyValue, as ValuesArray[I] will have the correct case }
@@ -2567,9 +2547,7 @@ PROCEDURE SaveOptionFromValueList(KeyName, NewKeyValue : String);
   { Verify and replace a string value in a value list }
   BEGIN
     WITH OptionsWindow.OptionsValueListEditor DO BEGIN
-      IF (KeyNameToTest = OriginalKeyName)
-      AND (NewKeyValue <> OriginalKeyValue)
-      THEN BEGIN
+      IF (KeyNameToTest = OriginalKeyName) AND (NewKeyValue <> OriginalKeyValue) THEN BEGIN
         IF ConfirmValueListChange(OriginalKeyName, NewKeyValue, OriginalKeyValue) THEN
           OriginalKeyValue := NewKeyValue
         ELSE
@@ -2582,9 +2560,7 @@ PROCEDURE SaveOptionFromValueList(KeyName, NewKeyValue : String);
   { Verify and replace an integer value in a value list }
   BEGIN
     WITH OptionsWindow.OptionsValueListEditor DO BEGIN
-      IF (KeyNameToTest = OriginalKeyName)
-      AND (NewKeyValue <> IntToStr(OriginalKeyValue))
-      THEN BEGIN
+      IF (KeyNameToTest = OriginalKeyName) AND (NewKeyValue <> IntToStr(OriginalKeyValue)) THEN BEGIN
         IF NOT TryStrToInt(NewKeyValue, OriginalKeyValue) THEN BEGIN
           ShowMessage('Invalid integer value ''' + NewKeyValue + '');
           Values[OriginalKeyName] := IntToStr(OriginalKeyValue);
@@ -2594,15 +2570,13 @@ PROCEDURE SaveOptionFromValueList(KeyName, NewKeyValue : String);
   END; { CheckIntegerValueListValue }
 
   PROCEDURE CheckCardinalValueListValue(KeyNameToTest, OriginalKeyName, NewKeyValue : String; VAR OriginalKeyValue : Cardinal);
-  { Verify and replace an cardinal value in a value list  }
+  { Verify and replace an cardinal value in a value list }
   VAR
     TempInt : Integer;
 
   BEGIN
     WITH OptionsWindow.OptionsValueListEditor DO BEGIN
-      IF (KeyNameToTest = OriginalKeyName)
-      AND (NewKeyValue <> IntToStr(OriginalKeyValue))
-      THEN BEGIN
+      IF (KeyNameToTest = OriginalKeyName) AND (NewKeyValue <> IntToStr(OriginalKeyValue)) THEN BEGIN
         TempInt := OriginalKeyValue;
         IF NOT TryStrToInt(NewKeyValue, TempInt) THEN BEGIN
           ShowMessage('Invalid cardinal value ''' + NewKeyValue + '');
@@ -2616,9 +2590,7 @@ PROCEDURE SaveOptionFromValueList(KeyName, NewKeyValue : String);
   { Verify and replace a boolean value in a value list }
   BEGIN
     WITH OptionsWindow.OptionsValueListEditor DO BEGIN
-      IF (KeyNameToTest = OriginalKeyName)
-      AND (NewKeyValue <> BoolToStr(OriginalKeyValue))
-      THEN BEGIN
+      IF (KeyNameToTest = OriginalKeyName) AND (NewKeyValue <> BoolToStr(OriginalKeyValue)) THEN BEGIN
         IF NOT TryStrToBool(NewKeyValue, OriginalKeyValue) THEN BEGIN
           ShowMessage('Invalid boolean value ''' + NewKeyValue + '');
           Values[OriginalKeyName] := BoolToStr(OriginalKeyValue, True);
@@ -2665,9 +2637,7 @@ BEGIN
       CheckStringValueListValue(KeyName, WorkingTimetableFilenameSuffixStr, NewKeyValue, WorkingTimetableFilenameSuffix);
 
       { Full Screen }
-      IF (KeyName = ScreenModeStr)
-      AND (NewKeyValue <> ScreenModeStr)
-      THEN BEGIN
+      IF (KeyName = ScreenModeStr) AND (NewKeyValue <> ScreenModeStr) THEN BEGIN
         IF ScreenModeStr = DefaultWindowedScreenStr THEN
           ScreenMode := DefaultWindowedScreenMode
         ELSE
@@ -2715,9 +2685,7 @@ BEGIN
       CheckIntegerValueListValue(KeyName, TRSPlungerLengthStr, NewKeyValue, TRSPlungerLength);
 
       { Times }
-      IF (KeyName = ProgramStartTimeOptionStr)
-      AND (NewKeyValue <> ProgramStartTimeStr)
-      THEN BEGIN
+      IF (KeyName = ProgramStartTimeOptionStr) AND (NewKeyValue <> ProgramStartTimeStr) THEN BEGIN
         IF NOT TimeIsValid(NewKeyValue) THEN BEGIN
           ShowMessage('Invalid program start time: ' + NewKeyValue);
           Values[ProgramStartTimeOptionStr] := ProgramStartTimeStr;
@@ -2730,9 +2698,7 @@ BEGIN
         END;
       END;
 
-      IF (KeyName = DayLightEndTimeOptionStr)
-      AND (NewKeyValue <> DayLightEndTimeStr)
-      THEN BEGIN
+      IF (KeyName = DayLightEndTimeOptionStr) AND (NewKeyValue <> DayLightEndTimeStr) THEN BEGIN
         IF TimeIsValid(NewKeyValue) THEN
           DayLightEndTime := StrToTime(NewKeyValue)
         ELSE BEGIN
@@ -2741,9 +2707,7 @@ BEGIN
         END;
       END;
 
-      IF (KeyName = DayLightStartTimeOptionStr)
-      AND (NewKeyValue <> DayLightStartTimeStr)
-      THEN BEGIN
+      IF (KeyName = DayLightStartTimeOptionStr) AND (NewKeyValue <> DayLightStartTimeStr) THEN BEGIN
         IF TimeIsValid(NewKeyValue) THEN
           DayLightStartTime := StrToTime(NewKeyValue)
         ELSE BEGIN
@@ -2752,9 +2716,7 @@ BEGIN
         END;
       END;
 
-      IF (KeyName = CurrentRailwayDayOfTheWeekStr)
-      AND (NewKeyValue <> DayOfTheWeekToStr(CurrentRailwayDayOfTheWeek))
-      THEN BEGIN
+      IF (KeyName = CurrentRailwayDayOfTheWeekStr) AND (NewKeyValue <> DayOfTheWeekToStr(CurrentRailwayDayOfTheWeek)) THEN BEGIN
         IF StrToDayOfTheWeek(NewKeyValue) = UnknownDayOfTheWeek THEN BEGIN
           ShowMessage('Invalid day of the week: ' + NewKeyValue);
           Values[CurrentRailwayDayOfTheWeekStr] := DayOfTheWeekToStr(CurrentRailwayDayOfTheWeek);
@@ -2932,9 +2894,7 @@ BEGIN
     ELSE
       OptionsWindow.Hide;
   END ELSE BEGIN
-    IF (Key = Ord('F'))
-    AND (ssCtrl IN Shift)
-    THEN BEGIN
+    IF (Key = Ord('F')) AND (ssCtrl IN Shift) THEN BEGIN
       S := Chr(Key);
       SearchOptionsText(S);
     END;

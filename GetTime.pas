@@ -99,9 +99,7 @@ BEGIN
                 IF CurrentRailwayDayOfTheWeek = Sunday THEN
                   CurrentRailwayDayOfTheWeekStr := 'Sun';
 
-    IF WorkingTimetableMode
-    AND (CurrentRailwayDayOfTheWeekStr <> '')
-    THEN
+    IF WorkingTimetableMode AND (CurrentRailwayDayOfTheWeekStr <> '') THEN
       TimeStr := CurrentRailwayDayOfTheWeekStr + ' ' + CurrentRailwayTimeStr;
   END;
   WriteToStatusBarPanel(StatusBarPanel0, TimeStr);
@@ -324,9 +322,7 @@ BEGIN
       DecodeTime(ClockWindow.Clock.Time, Hour, Min, Sec, MSec);
 
       { If there's a small movement of the wheel (usually WheelDelta = 120 or -120), reduce the amount of speed increase/decrease }
-      IF (WheelDelta > -240)
-      AND (WheelDelta < 240)
-      THEN
+      IF (WheelDelta > -240) AND (WheelDelta < 240) THEN
         IF MilliSecondsBetween(Time, SaveWheelTime) < 200 THEN
           Exit;
 

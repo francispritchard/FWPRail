@@ -257,14 +257,10 @@ BEGIN
     WITH Signals[S] DO BEGIN
       IF (Signal_Aspect <> NewAspect) OR ForceWriting THEN BEGIN
         Signal_Aspect := NewAspect;
-        IF NOT ProgramStartup
-        AND LogSignalData
-        THEN
+        IF NOT ProgramStartup AND LogSignalData THEN
           Log(LocoChipStr + ' S S=' + IntToStr(S) + ' successfully set to ' + AspectToStr(Signals[S].Signal_Aspect));
 
-        IF SystemOnline
-        AND NOT ResizeMap
-        THEN BEGIN
+        IF SystemOnline AND NOT ResizeMap THEN BEGIN
           IF Signal_DecoderNum <> 0 THEN
             { uses LF100 decoders - bits usually set as follows:
               green is bit 1, red 2, single yellow 3, double yellow 3 + 4; the indicator is bit 4 (not necessarily on same decoder though)
@@ -341,8 +337,7 @@ BEGIN
                 Location_LineAtUp := L;
                 SaveUpX := Lines[L].Line_UpX;
               END ELSE
-                IF ((Lines[L].Line_AdjacentBufferStop <> UnknownBufferStop)
-                    AND (GetBufferStopDirection(Lines[L].Line_AdjacentBufferStop) = Up))
+                IF ((Lines[L].Line_AdjacentBufferStop <> UnknownBufferStop) AND (GetBufferStopDirection(Lines[L].Line_AdjacentBufferStop) = Up))
                 AND (BufferStops[Lines[L].Line_AdjacentBufferStop].BufferStop_X <= SaveUpX)
                 THEN
                   Location_LineAtUp := L
@@ -355,9 +350,8 @@ BEGIN
                     Location_LineAtDown := L;
                     SaveDownX := Lines[L].Line_DownX;
                   END ELSE
-                    IF ((Lines[L].Line_AdjacentBufferStop <> UnknownBufferStop)
+                    IF ((Lines[L].Line_AdjacentBufferStop <> UnknownBufferStop) AND (GetBufferStopDirection(Lines[L].Line_AdjacentBufferStop) = Down))
                     { remember that BufferStops array is dynamic and starts at zero }
-                        AND (GetBufferStopDirection(Lines[L].Line_AdjacentBufferStop) = Down))
                     AND (BufferStops[Lines[L].Line_AdjacentBufferStop].BufferStop_X >= SaveDownX)
                     THEN
                       Location_LineAtDown := L;
@@ -413,16 +407,12 @@ BEGIN
         END;
 
         { Now record if locations are cul-de-sacs }
-        IF (Locations[Location].Location_LineAtUp <> UnknownLine)
-        AND (Lines[Locations[Location].Location_LineAtUp].Line_NextUpIsEndOfLine <> NotEndOfLine)
-        THEN
+        IF (Locations[Location].Location_LineAtUp <> UnknownLine) AND (Lines[Locations[Location].Location_LineAtUp].Line_NextUpIsEndOfLine <> NotEndOfLine) THEN
           Locations[Location].Location_LineAtUpIsEndOfLine := True
         ELSE
           Locations[Location].Location_LineAtUpIsEndOfLine := False;
 
-        IF (Locations[Location].Location_LineAtDown <> UnknownLine)
-        AND (Lines[Locations[Location].Location_LineAtDown].Line_NextDownIsEndOfLine <> NotEndOfLine)
-        THEN
+        IF (Locations[Location].Location_LineAtDown <> UnknownLine) AND (Lines[Locations[Location].Location_LineAtDown].Line_NextDownIsEndOfLine <> NotEndOfLine) THEN
           Locations[Location].Location_LineAtDownIsEndOfLine := True
         ELSE
           Locations[Location].Location_LineAtDownIsEndOfLine := False;
@@ -550,9 +540,7 @@ VAR
     BEGIN
       Result := False;
       TRY
-        IF (Lines[CurrentLine].Line_TC <> UnknownTrackCircuit)
-        AND (Lines[CurrentLine].Line_TC <> TC)
-        THEN BEGIN
+        IF (Lines[CurrentLine].Line_TC <> UnknownTrackCircuit) AND (Lines[CurrentLine].Line_TC <> TC) THEN BEGIN
           Result := True;
           CASE SearchDirection OF
             Up:
@@ -610,9 +598,7 @@ VAR
                   END;
               END ELSE BEGIN
                 { a trailing point - if it's not set in our direction, stop searching here }
-                IF ((CurrentLine = Points[NextPoint].Point_StraightLine)
-                AND (Points[NextPoint].Point_PresentState = Straight))
-                THEN BEGIN
+                IF ((CurrentLine = Points[NextPoint].Point_StraightLine) AND (Points[NextPoint].Point_PresentState = Straight)) THEN BEGIN
                   CurrentLine := Points[NextPoint].Point_HeelLine;
                   IF (CurrentLine = UnknownLine) OR FoundAdjacenttrackCircuit(CurrentLine) THEN
                       ExitFunction := True;
@@ -622,9 +608,7 @@ VAR
                   ELSE
                     DrawPoint(NextPoint, ForegroundColour);
                 END ELSE
-                  IF ((CurrentLine = Points[NextPoint].Point_DivergingLine)
-                  AND (Points[NextPoint].Point_PresentState = Diverging))
-                  THEN BEGIN
+                  IF ((CurrentLine = Points[NextPoint].Point_DivergingLine) AND (Points[NextPoint].Point_PresentState = Diverging)) THEN BEGIN
                     CurrentLine := Points[NextPoint].Point_HeelLine;
                     IF (CurrentLine = UnknownLine) OR FoundAdjacenttrackCircuit(CurrentLine) THEN
                         ExitFunction := True;
@@ -674,9 +658,7 @@ BEGIN
     IF TC <> UnknownTrackCircuit THEN BEGIN
       Line := 0;
       TCFound := False;
-      WHILE (Line <= High(Lines))
-      AND NOT TCFound
-      DO BEGIN
+      WHILE (Line <= High(Lines)) AND NOT TCFound DO BEGIN
         IF Lines[Line].Line_TC = TC THEN BEGIN
           TCFound := True;
 
@@ -856,9 +838,7 @@ BEGIN
               TC_Headcode := '????'; { **** }
             END ELSE BEGIN
               { TC is now unoccupied - reset its loco occupation - but not if it's a system occupation }
-              IF (TC_LocoChip <> UnknownLocoChip)
-              AND (NewState = TCUnoccupied)
-              THEN BEGIN
+              IF (TC_LocoChip <> UnknownLocoChip) AND (NewState = TCUnoccupied) THEN BEGIN
                 Log('T TC=' + IntToStr(TC) + ' TC_LocoChip=' + LocoChipToStr(TC_LocoChip) + ' set to unknown loco Chip');
                 TC_LocoChip := UnknownLocoChip;
               END;
@@ -874,11 +854,11 @@ BEGIN
             END;
 
             { Is this a signal-resetting track circuit? If so, reset the signal. And put in a timing update here - for delays **** }
-            IF (NewState = TCFeedbackOccupation)
-            AND (TC_ResettingSignal <> UnknownSignal)
-            THEN BEGIN
+            IF (NewState = TCFeedbackOccupation) AND (TC_ResettingSignal <> UnknownSignal) THEN BEGIN
               WITH Signals[TC_ResettingSignal] DO BEGIN
                 IF Signal_Aspect <> RedAspect THEN BEGIN
+                  { check first for any semaphore homes locked by semaphore distants, which would block the homes being reset }
+                  CheckSemaphoreDistantBeforeSemaphoreHomeCleared(TC_ResettingSignal);
                   PullSignal(UnknownLocoChipStr, TC_ResettingSignal, NoIndicatorLit, NoRoute, NoSubRoute, UnknownLine, TC, NOT ByUser, OK);
                   IF OK THEN BEGIN
                     Log('S S=' + IntToStr(TC_ResettingSignal) + ' reset by TC=' + IntToStr(TC));
@@ -916,9 +896,7 @@ BEGIN
                 AppendToIntegerArray(AdjacentTrackCircuits, AdjacentUpTC);
               IF AdjacentDowntc <> UnknownTrackCircuit THEN
                 AppendToIntegerArray(AdjacentTrackCircuits, AdjacentDownTC);
-              WHILE (I <= High(AdjacentTrackCircuits))
-              AND NOT LocoFound
-              DO BEGIN
+              WHILE (I <= High(AdjacentTrackCircuits)) AND NOT LocoFound DO BEGIN
                 IF ((TrackCircuits[AdjacentTrackCircuits[I]].TC_OccupationState = TCFeedbackOccupation)
                     OR (TrackCircuits[AdjacentTrackCircuits[I]].TC_OccupationState = TCLocoOutOfPlaceOccupation))
                 AND (TrackCircuits[AdjacentTrackCircuits[I]].TC_LocoChip <> UnknownLocoChip)
@@ -1009,9 +987,7 @@ BEGIN
     LocoChip := UnknownLocoChip;
     TCFound := False;
     T := 0;
-    WHILE (T <= High(Trains))
-    AND NOT TCFound
-    DO BEGIN
+    WHILE (T <= High(Trains)) AND NOT TCFound DO BEGIN
       WITH Trains[T] DO BEGIN
         IF Train_DiagramFound THEN BEGIN
           IF Train_CurrentTC = TC THEN BEGIN
@@ -1124,9 +1100,7 @@ BEGIN
     RouteingSuspendedWhenStopPressed := False;
     InAutoMode := True;
 
-    IF NOT Restart
-    AND LogsCurrentlyKept
-    THEN BEGIN
+    IF NOT Restart AND LogsCurrentlyKept THEN BEGIN
       { First a replay command - this doesn't use Log, as we don;t want the time etc. }
       WriteLn(LargeLogFile, '{Replay Write}');
 
@@ -1285,9 +1259,7 @@ BEGIN
                       BEGIN
                         Route := 0;
                         RouteFound := False;
-                        WHILE (Route <= High(Routes_Routes))
-                        AND NOT RouteFound
-                        DO BEGIN
+                        WHILE (Route <= High(Routes_Routes)) AND NOT RouteFound DO BEGIN
                           IF Routes_PointResultPendingPoint[Route] <> UnknownPoint THEN BEGIN
                             Log(LocoChipToStr(Routes_LocoChips[Route]) + ' R P=' + IntToStr(Routes_PointResultPendingPoint[Route])
                                                                        + ' pending point change and R=' + IntToStr(Route)
@@ -1365,9 +1337,7 @@ VAR
   BEGIN
     TRY
       SystemStatus := ReturnSystemStatus;
-      IF (SystemStatus.EmergencyOff
-      AND NOT SaveSystemStatusEmergencyOff)
-      THEN BEGIN
+      IF (SystemStatus.EmergencyOff AND NOT SaveSystemStatusEmergencyOff) THEN BEGIN
         Log('E Emergency - saving track circuit settings');
         FOR TC := 0 TO High(TrackCircuits) DO BEGIN
           TrackCircuits[TC].TC_EmergencyState := TrackCircuits[TC].TC_OccupationState;
@@ -1377,9 +1347,9 @@ VAR
           SaveSystemStatusEmergencyOff := True;
       END;
 
-      IF (SystemStatus.EmergencyOff
-         OR SystemStatus.EmergencyStop)
-      AND NOT LocosStopped THEN BEGIN
+      IF (SystemStatus.EmergencyOff OR SystemStatus.EmergencyStop)
+      AND NOT LocosStopped
+      THEN BEGIN
         { And now stop all active trains }
         LocosStopped := True;
         TurnAutoModeOff(NOT ByUser);
@@ -1408,9 +1378,7 @@ VAR
           DrawMap;
         END;
       END;
-      IF PostEmergencyTimeSet
-      AND (Time >= PostEmergencyTime)
-      THEN BEGIN
+      IF PostEmergencyTimeSet AND (Time >= PostEmergencyTime) THEN BEGIN
         { Restore the track circuit data after an emergency (but wait a short time before doing so, as the feedback system will read in the feedback data again after a system
           reset, and we need to restore our data after that). Do we need to save and restore other TC data (like PreviousTCstate)? ****
         }
@@ -1457,9 +1425,7 @@ VAR
 //    Location : Integer;
 
   BEGIN
-    IF (StationStartModeSetUpTime <> 0)
-    AND (Time > IncSecond(StationStartModeSetUpTime, 5))
-    THEN BEGIN
+    IF (StationStartModeSetUpTime <> 0) AND (Time > IncSecond(StationStartModeSetUpTime, 5)) THEN BEGIN
       StationStartModeSetUpTime := 0;
       IF StationStartMode THEN BEGIN
         StationStartMode := False;
@@ -1529,9 +1495,7 @@ BEGIN
       END;
 
       { On each tick go through one of the routes currently active, and continue route setting if required }
-      IF NOT RouteingSuspendedWhenStopPressed
-      AND NOT RouteingSuspendedForModalDialogue
-      THEN BEGIN
+      IF NOT RouteingSuspendedWhenStopPressed AND NOT RouteingSuspendedForModalDialogue THEN BEGIN
         IF Length(Routes_Routes) > 0 THEN BEGIN
           { Work out which route we're doing on this iteration }
           Inc(NumbersArrayCounter);
@@ -1587,9 +1551,7 @@ BEGIN
                   IF Point_ResettingTime = 0 THEN
                     Point_ResettingTime := Time
                   ELSE
-                    IF (Point_ResettingTime <> 0)
-                    AND (CompareTime(IncSecond(Point_ResettingTime, 5), Time) < 0)
-                    THEN BEGIN
+                    IF (Point_ResettingTime <> 0) AND (CompareTime(IncSecond(Point_ResettingTime, 5), Time) < 0) THEN BEGIN
                       Log('P Resetting P=' + IntToStr(PointResettingToDefaultStateArray[I]) + ' one minute after unlocking');
                       PullPoint(UnknownLocoChipStr, PointResettingToDefaultStateArray[I], NoRoute, NoSubRoute, NOT ForcePoint, NOT ByUser,
                                 NOT ErrorMsgRequired, PointResultPending, ErrorMsg, OK);
@@ -1621,9 +1583,7 @@ BEGIN
                   SetTwoLightingChips(Train_LocoIndex, LightsToBeSwitchedOn_Direction1, LightsToBeSwitchedOn_Direction2, LightsOn);
                 TurnTrainLightsOn(LightsToBeSwitchedOn_Train, OK);
 
-                IF TrainHasCabLights(LightsToBeSwitchedOn_Train)
-                AND Train_CabLightsAreOn
-                THEN
+                IF TrainHasCabLights(LightsToBeSwitchedOn_Train) AND Train_CabLightsAreOn THEN
                   TurnTrainCablightsOff(LightsToBeSwitchedOn_Train, OK);
 
                 DeleteElementFromLightsToBeSwitchedOnArray(I);
@@ -1635,9 +1595,7 @@ BEGIN
       END;
 
       IF InAutoMode THEN BEGIN
-        IF NOT RouteClearingOnlyMode
-        AND NOT RouteingSuspendedForModalDialogue
-        THEN BEGIN
+        IF NOT RouteClearingOnlyMode AND NOT RouteingSuspendedForModalDialogue THEN BEGIN
           { Create routes that need creating, but don't do so if RouteClearingOnly is on (mode whereby routes are automatically cleared when train pass, but no routes are
             created - problem with the mode though - doesn't clear the system-occupied TCs when the train passes **** FWP 16/10/06)
           }

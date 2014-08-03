@@ -83,14 +83,10 @@ VAR
 
 BEGIN
   Start := 1;
-  WHILE (Start <= Length(Str))
-  AND (Str[Start] = ' ')
-  DO
+  WHILE (Start <= Length(Str)) AND (Str[Start] = ' ') DO
     Inc(Start);
   Finish := Start;
-  WHILE (Finish <= Length(Str))
-  AND (Str[Finish] <> ' ')
-  DO
+  WHILE (Finish <= Length(Str)) AND (Str[Finish] <> ' ') DO
     Inc(Finish);
 
   Word := Copy(Str, Start, Finish - Start);
@@ -112,9 +108,7 @@ BEGIN
   Ch := ParamString[1];
   HelpString := 'RAIL [options]';
 
-  IF (Ch = '/') OR (Ch = '-')
-  AND (Length(ParamString) > 1)
-  THEN BEGIN
+  IF (Ch = '/') OR (Ch = '-') AND (Length(ParamString) > 1) THEN BEGIN
     { advance beyond the '/' or '-' }
     ParamString := Copy(UpperCase(ParamString), 2, 255);
     Ch := ParamString[1];
@@ -325,8 +319,7 @@ BEGIN
         IF Copy(ParamString, 1, 2) = 'Y:' THEN BEGIN
           ShowByteParam := Copy(ParamString, 3, 255);
           IF (ShowByteParam = 'ALL')
-          OR ((ShowByteParam >= '0')
-              AND (ShowByteParam <= '9'))
+          OR ((ShowByteParam >= '0') AND (ShowByteParam <= '9'))
           THEN
             OK := False;
         END ELSE

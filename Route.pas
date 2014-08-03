@@ -101,9 +101,7 @@ BEGIN
   StopProcessingSignals := False;
 
   { Run through the list of signals waiting to be set - if there's one that stops the setting, then exit }
-  WHILE (Length(Routes_ApproachControlSignalsWaitingToBeSet[Route]) > 0)
-  AND NOT StopProcessingSignals
-  DO BEGIN
+  WHILE (Length(Routes_ApproachControlSignalsWaitingToBeSet[Route]) > 0) AND NOT StopProcessingSignals DO BEGIN
     OK := False;
     ActionCh := '';
     L := UnknownLine;
@@ -128,17 +126,13 @@ BEGIN
       PreviousSignalApproachLocked := Signals[Signals[S].Signal_PreviousSignal1].Signal_ApproachLocked;
     END;
 
-    IF (ApproachControlAspect = NoAspect)
-    AND (PreviousSignalApproachControlAspect <> SingleYellowAspect)
-    THEN BEGIN
+    IF (ApproachControlAspect = NoAspect) AND (PreviousSignalApproachControlAspect <> SingleYellowAspect) THEN BEGIN
       OK := True;
       { and reset the lock }
       Signals[S].Signal_ApproachLocked := False;
     END;
 
-    IF (ApproachControlAspect = RedAspect)
-    AND (PreviousSignalApproachControlAspect = SingleYellowAspect)
-    THEN BEGIN
+    IF (ApproachControlAspect = RedAspect) AND (PreviousSignalApproachControlAspect = SingleYellowAspect) THEN BEGIN
       IF NOT PreviousSignalApproachLocked THEN BEGIN
         IF NOT RouteIndicatorToBeSet OR AdjacentTCOccupied THEN BEGIN
           OK := True;
@@ -151,9 +145,7 @@ BEGIN
       END;
     END;
 
-    IF (ApproachControlAspect = RedAspect)
-    AND (PreviousSignalApproachControlAspect = NoAspect)
-    THEN BEGIN
+    IF (ApproachControlAspect = RedAspect) AND (PreviousSignalApproachControlAspect = NoAspect) THEN BEGIN
       IF NOT RouteIndicatorToBeSet OR AdjacentTCOccupied THEN BEGIN
         OK := True;
         Signals[S].Signal_ApproachLocked := False;
@@ -174,9 +166,7 @@ BEGIN
         OK := True;
     END;
 
-    IF (ApproachControlAspect = NoAspect)
-    AND (PreviousSignalApproachControlAspect = SingleYellowAspect)
-    THEN BEGIN
+    IF (ApproachControlAspect = NoAspect) AND (PreviousSignalApproachControlAspect = SingleYellowAspect) THEN BEGIN
       IF PreviousSignalApproachLocked THEN BEGIN
         OK := True;
         { and reset the lock }
@@ -245,9 +235,7 @@ BEGIN
             PullSignal(LocoChipStr, Device, TheatreIndicatorLit, Route, UnknownSubRoute, L, ItemToCheck,
                        GetTrainTypeFromLocoChip(LocoChip), NOT ByUser, OK);
             IF OK THEN BEGIN
-              IF NOT Routes_SettingUpFailuresMsgWrittenArray[Route]
-              AND NOT Routes_RoutesSettingUpStalledMsgWrittenArray[Route]
-              THEN
+              IF NOT Routes_SettingUpFailuresMsgWrittenArray[Route] AND NOT Routes_RoutesSettingUpStalledMsgWrittenArray[Route] THEN
                 Log(LocoChipToStr(LocoChip) + ' R Setting up route R=' + IntToStr(Route) + ': S=' + IntToStr(Device)
                                             + ': theatre indicator previously held by approach control now set to '
                                             + Signals[Device].Signal_TheatreIndicatorString);
@@ -289,11 +277,11 @@ VAR
   SubRouteCount : Integer;
 
 BEGIN
-  Log('R Current routeing status (CRS):');
+  Log('R Current routeing status:');
   FOR RouteCount := 0 TO High(Routes_Routes) DO BEGIN
     R := Routes_Routes[RouteCount];
     FOR SubRouteCount := 0 TO High(Routes_SubRouteStates[R]) DO BEGIN
-      Log(LocoChipToStr(Routes_LocoChips[R]) + ' R     R=' + IntToStr(R) + '/' + IntToStr(SubRouteCount)
+      Log(LocoChipToStr(Routes_LocoChips[R]) + ' R      R=' + IntToStr(R) + '/' + IntToStr(SubRouteCount)
                                              + IfThen(Routes_Journeys[R] <> UnknownJourney,
                                                       ' J=' + IntToStr(Routes_Journeys[R]))
                                              + ' ' + SubRouteStateToStr(Routes_SubRouteStates[R, SubRouteCount])
@@ -312,6 +300,7 @@ VAR
   DebugStr : String;
   Device : Integer;
   FailedMsg : String;
+  I, J : Integer;
   Journey : Integer;
   JunctionIndicatorState : IndicatorStateType;
   L : Integer;
@@ -322,8 +311,11 @@ VAR
   PointResultPending : Boolean;
   RouteCount : Integer;
   RouteOK : Boolean;
+  S : Integer;
   SaveSubRouteSettingPos : Integer;
   SaveTCLocoChip : Integer;
+  SemaphoreDistantToBeSetOff : Boolean;
+  SemaphoreHomeSignalsOff : Boolean;
   SettingSubRouteArray : StringArrayType;
   SettingSubRoute : Integer;
   SubRouteCount : Integer;
@@ -351,9 +343,7 @@ BEGIN
       T := GetTrainIndexFromLocoChip(LocoChip);
 
     IF (LocoChip = UnknownLocoChip)
-    OR ((T <> UnknownTrainIndex)
-        AND (Trains[T].Train_CurrentStatus <> Suspended)
-        AND (Trains[T].Train_CurrentStatus <> MissingAndSuspended))
+    OR ((T <> UnknownTrainIndex) AND (Trains[T].Train_CurrentStatus <> Suspended) AND (Trains[T].Train_CurrentStatus <> MissingAndSuspended))
     THEN BEGIN
       { Is the route able to be set up ? }
       IF (Routes_SubRouteStates[Route, SettingSubRoute] = SubRouteSetUp)
@@ -367,15 +357,11 @@ BEGIN
       { Check if there are any previous routes for the same loco not been set up }
       RouteCount := 0;
       RouteOK := False;
-      WHILE (RouteCount <= High(Routes_Routes))
-      AND NOT RouteOK
-      DO BEGIN
+      WHILE (RouteCount <= High(Routes_Routes)) AND NOT RouteOK DO BEGIN
         IF RouteCount = Route THEN
           RouteOK := True
         ELSE
-          IF (Routes_LocoChips[RouteCount] <> UnknownLocoChip)
-          AND (Routes_LocoChips[RouteCount] = Routes_LocoChips[Route])
-          THEN BEGIN
+          IF (Routes_LocoChips[RouteCount] <> UnknownLocoChip) AND (Routes_LocoChips[RouteCount] = Routes_LocoChips[Route]) THEN BEGIN
             IF Routes_RouteSettingsCompleted[RouteCount] THEN
               RouteOK := True
             ELSE BEGIN
@@ -393,9 +379,7 @@ BEGIN
 
       IF StationStartMode THEN BEGIN
         WITH Signals[Routes_StartSignals[Route]] DO BEGIN
-          IF Signal_TRSHeld
-          AND NOT Signal_TRSReleased
-          THEN BEGIN
+          IF Signal_TRSHeld AND NOT Signal_TRSReleased THEN BEGIN
             { the train is waiting to be released by the station supervisor }
             IF NOT Signal_TRSHeldMsgWritten THEN BEGIN
               Log(LocoChipStr + ' R= J='+ IntToStr(Routes_Journeys[Route]) + ' R=' +IntToStr(Route)
@@ -406,19 +390,14 @@ BEGIN
             Exit;
           END ELSE
             { supervisor has now released the train }
-            IF Signal_TRSHeld
-            AND Signal_TRSReleased
-            THEN BEGIN
+            IF Signal_TRSHeld AND Signal_TRSReleased THEN BEGIN
               IF NOT Signal_TRSReleasedMsgWritten THEN BEGIN
                 Log(LocoChipStr + ' RG R=' +IntToStr(Route) + ': station supervisor has released the route');
                 Signal_TRSReleasedMsgWritten := True;
               END;
             END ELSE
               { hold the train }
-              IF Signal_PossibleStationStartRouteHold
-              AND NOT Signal_TRSHeld
-              AND NOT Signal_TRSReleased
-              THEN BEGIN
+              IF Signal_PossibleStationStartRouteHold AND NOT Signal_TRSHeld AND NOT Signal_TRSReleased THEN BEGIN
                 Routes_SubRouteStates[Route, SettingSubRoute] := SubRouteSettingUpHeldByStationSupervisor;
                 Signal_TRSHeld := True;
                 Signal_PostColour := clFuchsia;
@@ -443,9 +422,7 @@ BEGIN
         ELSE
           Log(LocoChipStr + ' R ' + DescribeJourneyAndRoute([Route, SettingSubRoute]) + ': beginning set up');
         { and enter the subroute in the array of subroutes belonging to this route }
-        IF (Routes_SubRouteStates[Route, SettingSubRoute] <> SubRouteSettingUpStalled)
-        AND (Routes_SubRouteStates[Route, SettingSubRoute] <> SubRouteSettingUpReleased)
-        THEN
+        IF (Routes_SubRouteStates[Route, SettingSubRoute] <> SubRouteSettingUpStalled) AND (Routes_SubRouteStates[Route, SettingSubRoute] <> SubRouteSettingUpReleased) THEN
           Routes_SubRouteStates[Route, SettingSubRoute] := SubRouteNotYetSetUp;
       END;
 
@@ -464,9 +441,7 @@ BEGIN
         SubRouteSettingPos := 0;
 
       ActionCh := '';
-      WHILE OK
-      AND (SubRouteSettingPos <= High(SettingSubRouteArray))
-      DO BEGIN
+      WHILE OK AND (SubRouteSettingPos <= High(SettingSubRouteArray)) DO BEGIN
         ActionCh := '';
         DebugStr := '';
         Device := 99999; { covers all unknown devices }
@@ -540,9 +515,7 @@ BEGIN
               END;
             END;
 
-        IF OK
-        AND (ActionCh <> '')
-        THEN BEGIN
+        IF OK AND (ActionCh <> '') THEN BEGIN
           { the default state }
           CASE ActionCh[1] OF
             '>':
@@ -554,9 +527,7 @@ BEGIN
                     PullSignal(LocoChipStr, Device, TheatreIndicatorLit, Route, SettingSubRoute, L, SubRouteItemToCheck,
                                GetTrainTypeFromLocoChip(LocoChip), NOT ByUser, OK);
                     IF OK THEN BEGIN
-                      IF NOT Routes_SettingUpFailuresMsgWrittenArray[Route]
-                      AND NOT Routes_RoutesSettingUpStalledMsgWrittenArray[Route]
-                      THEN
+                      IF NOT Routes_SettingUpFailuresMsgWrittenArray[Route] AND NOT Routes_RoutesSettingUpStalledMsgWrittenArray[Route] THEN
                         WriteRouteInfoToLog(LocoChipStr, 'R', 'Setting up ' + DescribeJourneyAndRoute([Route, SettingSubRoute]),
                                                               ': theatre indicator for S=' + IntToStr(Device)
                                                               + ' set to ' + Signals[Device].Signal_TheatreIndicatorString);
@@ -595,42 +566,40 @@ BEGIN
                     { Set the track circuit journey }
                     IF TCDebugStr <> '' THEN
                       TCDebugStr := TCDebugStr + ' ';
+                    { what's TCDebugStr for? ***** 25/7/14 }
                     TCDebugStr := TCDebugStr + 'TC=' + IntToStr(Device)
-                                  + IfThen(TrackCircuits[Device].TC_Journey <> UnknownJourney,
+                                  + IfThen(TrackCircuits[Device].TC_Journey = UnknownJourney,
+                                           ' TCJourney ',
                                            ' TCJourney ' + IntToStr(TrackCircuits[Device].TC_Journey) + ' set to ' + IntToStr(Journey) + '; ');
                     TrackCircuits[Device].TC_Journey := Journey;
-                    DebugStr := ': TC=' + IntToStr(Device) + ' now locked by route ' + IntToStr(Route);
+                    DebugStr := ' : TC=' + IntToStr(Device) + ' now locked by R=' + IntToStr(Route);
                     OK := True;
                   END;
                 END;
 
-                IF NOT Routes_SettingUpFailuresMsgWrittenArray[Route]
-                AND Routes_RoutesSettingUpStalledMsgWrittenArray[Route]
-                THEN BEGIN
+                IF NOT Routes_SettingUpFailuresMsgWrittenArray[Route] AND Routes_RoutesSettingUpStalledMsgWrittenArray[Route] THEN BEGIN
                   WriteRouteInfoToLog(LocoChipStr, 'R', 'Setting up ' + DescribeJourneyAndRoute([Route, SettingSubRoute]), DebugStr);
                   Routes_SettingUpFailuresMsgWrittenArray[Route] := True;
                 END;
+
+                IF DebugStr <> '' THEN
+                  Log(LocoChipStr + ' R ' + DebugStr);
               END;
             '+':
               BEGIN
                 OK := True;
                 { deals with specific line occupations that might get in the way }
-                IF (Lines[L].Line_RouteLockingForDrawing <> UnknownRoute)
-                AND (Lines[L].Line_RouteLockingForDrawing <> Route)
-                THEN BEGIN
-                  DebugStr := ': L=' + LineToStr(L) + ' already locked by R=' + IntToStr(Lines[L].Line_RouteLockingForDrawing)
-                                 + ': route setting failure';
+                IF (Lines[L].Line_RouteLockingForDrawing <> UnknownRoute) AND (Lines[L].Line_RouteLockingForDrawing <> Route) THEN BEGIN
+                  DebugStr := ': L=' + LineToStr(L) + ' already locked by R=' + IntToStr(Lines[L].Line_RouteLockingForDrawing) + ': route setting failure';
                   OK := False;
                 END ELSE BEGIN
                   { check if last line segment in the subroute is two-way: if so, check that subsequent line segments are not locked, or we may end up with an impasse. }
     {***}
                   { success! }
                   Lines[L].Line_RouteLockingForDrawing := Route;
-                  DebugStr := ': L=' + LineToStr(L) + ' now locked for routeing';
+                  DebugStr := ': L=' + LineToStr(L) + ' now locked for routeing by R=' + IntToStr(Route);
                 END;
-                IF NOT Routes_SettingUpFailuresMsgWrittenArray[Route]
-                AND NOT Routes_RoutesSettingUpStalledMsgWrittenArray[Route]
-                THEN BEGIN
+                IF NOT Routes_SettingUpFailuresMsgWrittenArray[Route] AND NOT Routes_RoutesSettingUpStalledMsgWrittenArray[Route] THEN BEGIN
                   WriteRouteInfoToLog(LocoChipStr, 'R', 'Setting up ' + DescribeJourneyAndRoute([Route, SettingSubRoute]), DebugStr);
                   Routes_SettingUpFailuresMsgWrittenArray[Route] := True;
                 END;
@@ -640,26 +609,53 @@ BEGIN
                 OK := True;
                 IF ActionCh = '\' THEN BEGIN
                   IF GetSignalAspect(Device) <> RedAspect THEN BEGIN
-                    DebugStr := ': S=' + IntToStr(Device) +' already off';
+                    DebugStr := ': S=' + IntToStr(Device) + ' already off';
                   END ELSE BEGIN
-                    PullSignal(LocoChipStr, Device, NoIndicatorLit, Route, SettingSubRoute, UnknownLine, SubRouteItemToCheck, GetTrainTypeFromLocoChip(LocoChip), NOT ByUser,
-                               OK);
-                    IF OK THEN
-                      DebugStr := ': S=' + IntToStr(Device) +' off';
+                    PullSignal(LocoChipStr, Device, NoIndicatorLit, Route, SettingSubRoute, UnknownLine, SubRouteItemToCheck, GetTrainTypeFromLocoChip(LocoChip),
+                               NOT ByUser, OK);
+                    IF OK THEN BEGIN
+                      DebugStr := 'S=' + IntToStr(Device) + ' off';
+
+                      { Now see if a semaphore distant needs to be pulled off too - this check needs to be done each time a signal on the route is pulled off, as the
+                        distant may cover more than one subroute
+                      }
+                      IF Signals[Device].Signal_Type = SemaphoreHome THEN BEGIN
+                        SemaphoreHomeSignalsOff := False;
+                        { Check that all the semaphore homes are off before proceeding }
+                        FOR I := 0 TO High(Signals[Signals[Device].Signal_SemaphoreDistantLocking].Signal_SemaphoreDistantHomesArray) DO BEGIN
+                          IF Signals[Signals[Signals[Device].Signal_SemaphoreDistantLocking].Signal_SemaphoreDistantHomesArray[I]].Signal_Aspect <> RedAspect THEN
+                            SemaphoreHomeSignalsOff := True
+                          ELSE
+                            SemaphoreHomeSignalsOff := False;
+                        END; {FOR}
+
+                        IF SemaphoreHomeSignalsOff THEN BEGIN
+                          { lock the home signals }
+                          FOR I := 0 TO High(Signals[Signals[Device].Signal_SemaphoreDistantLocking].Signal_SemaphoreDistantHomesArray) DO
+                            Signals[Signals[Signals[Device].Signal_SemaphoreDistantLocking].Signal_SemaphoreDistantHomesArray[I]].Signal_LockedBySemaphoreDistant := True;
+
+                          { and set the distant off }
+                          Signals[Signals[Device].Signal_SemaphoreDistantLocking].Signal_Aspect := GreenAspect;
+                        END;
+                      END;
+                    END;
                   END;
                 END ELSE BEGIN
                   { ActionCh = '=' }
                   IF GetSignalAspect(Device) = RedAspect THEN BEGIN
-                    DebugStr := ': S=' + IntToStr(Device) +' already on';
+                    DebugStr := 'S=' + IntToStr(Device) +' already on';
                   END ELSE BEGIN
-                    PullSignal(LocoChipStr, Device, NoIndicatorLit, Route, SettingSubRoute, UnknownLine, SubRouteItemToCheck, GetTrainTypeFromLocoChip(LocoChip), NOT ByUser,
-                               OK);
+                    PullSignal(LocoChipStr, Device, NoIndicatorLit, Route, SettingSubRoute, UnknownLine, SubRouteItemToCheck, GetTrainTypeFromLocoChip(LocoChip),
+                               NOT ByUser, OK);
                     IF OK THEN
-                      DebugStr := ': S=' + IntToStr(Device) +' on';
+                      DebugStr := 'S=' + IntToStr(Device) + ' on';
                   END;
                 END;
                 IF OK THEN
                   Signals[Device].Signal_LockFailureNotedInRouteUnit := False;
+
+                IF DebugStr <> '' THEN
+                  Log(LocoChipStr + ' R ' + DebugStr);
               END;
             '|':
               BEGIN
@@ -675,9 +671,7 @@ BEGIN
                     PullSignal(LocoChipStr, Device, JunctionIndicatorState, Route, SettingSubRoute, UnknownLine, SubRouteItemToCheck, GetTrainTypeFromLocoChip(LocoChip),
                                NOT ByUser, OK);
                     IF OK THEN BEGIN
-                      IF NOT Routes_SettingUpFailuresMsgWrittenArray[Route]
-                      AND NOT Routes_RoutesSettingUpStalledMsgWrittenArray[Route]
-                      THEN
+                      IF NOT Routes_SettingUpFailuresMsgWrittenArray[Route] AND NOT Routes_RoutesSettingUpStalledMsgWrittenArray[Route] THEN
                         WriteRouteInfoToLog(LocoChipStr, 'R', 'Setting up ' + DescribeJourneyAndRoute([Route, SettingSubRoute]),
                                                               ': S=' + IntToStr(Device) + ' routed left')
                     END;
@@ -716,9 +710,7 @@ BEGIN
                     ELSE BEGIN
                       Routes_PointResultPendingPoint[Route] := UnknownPoint;
                       IF Points[Device].Point_PresentState <> Points[Device].Point_RequiredState THEN BEGIN
-                        IF NOT Routes_SettingUpFailuresMsgWrittenArray[Route]
-                        AND NOT Routes_RoutesSettingUpStalledMsgWrittenArray[Route]
-                        THEN BEGIN
+                        IF NOT Routes_SettingUpFailuresMsgWrittenArray[Route] AND NOT Routes_RoutesSettingUpStalledMsgWrittenArray[Route] THEN BEGIN
                           Debug('Setting up ' + DescribeJourneyAndRoute([Route, SettingSubRoute]) + ': P=' + IntToStr(Device)
                                 + ' (Lenz=' + IntToStr(Points[Device].Point_LenzNum) + ')'
                                 + ' result was pending: failed to change');
@@ -727,9 +719,7 @@ BEGIN
                           OK := False;
                         END;
                       END ELSE BEGIN
-                        IF NOT Routes_SettingUpFailuresMsgWrittenArray[Route]
-                        AND NOT Routes_RoutesSettingUpStalledMsgWrittenArray[Route]
-                        THEN BEGIN
+                        IF NOT Routes_SettingUpFailuresMsgWrittenArray[Route] AND NOT Routes_RoutesSettingUpStalledMsgWrittenArray[Route] THEN BEGIN
                           WriteRouteInfoToLog(LocoChipStr, 'R', 'Setting up ' + DescribeJourneyAndRoute([Route, SettingSubRoute]),
                                                                 ': P=' + IntToStr(Device) + ' result was pending: change was successful');
                           Routes_SettingUpFailuresMsgWrittenArray[Route] := True;
@@ -743,9 +733,7 @@ BEGIN
                   IF Points[Device].Point_PresentState = Points[Device].Point_RequiredState THEN BEGIN
                     { no need to set it, but must now lock it so that any subroute crossing knows not to change it }
                     LockPointByRoute(LocoChip, Device, Route, Routes_RoutesSettingUpStalledMsgWrittenArray[Route]);
-                    IF NOT Routes_SettingUpFailuresMsgWrittenArray[Route]
-                    AND NOT Routes_RoutesSettingUpStalledMsgWrittenArray[Route]
-                    THEN
+                    IF NOT Routes_SettingUpFailuresMsgWrittenArray[Route] AND NOT Routes_RoutesSettingUpStalledMsgWrittenArray[Route] THEN
                       WriteRouteInfoToLog(LocoChipStr, 'R', 'Setting up ' + DescribeJourneyAndRoute([Route, SettingSubRoute]),
                                                             ': P=' + IntToStr(Device) + ' already ' + PointStateToStr(Points[Device].Point_RequiredState)
                                                             + ' is now locked for routeing');
@@ -757,18 +745,14 @@ BEGIN
                         Routes_PointResultPendingPoint[Route] := Device;
                         { store how far we've got }
                         Routes_CurrentSubRouteSettingPos[Route] := SubRouteSettingPos;
-                        IF NOT Routes_SettingUpFailuresMsgWrittenArray[Route]
-                        AND NOT Routes_RoutesSettingUpStalledMsgWrittenArray[Route]
-                        THEN
+                        IF NOT Routes_SettingUpFailuresMsgWrittenArray[Route] AND NOT Routes_RoutesSettingUpStalledMsgWrittenArray[Route] THEN
                           WriteRouteInfoToLog(LocoChipStr, 'R', 'Setting up ' + DescribeJourneyAndRoute([Route, SettingSubRoute]),
                                                                 ': P=' + IntToStr(Device) + ' setting to ' + PointStateToStr(Points[Device].Point_RequiredState)
                                                                 + ' - result pending');
                         { and drop out of the While loop }
                         Exit;
                       END ELSE BEGIN
-                        IF NOT Routes_SettingUpFailuresMsgWrittenArray[Route]
-                        AND NOT Routes_RoutesSettingUpStalledMsgWrittenArray[Route]
-                        THEN
+                        IF NOT Routes_SettingUpFailuresMsgWrittenArray[Route] AND NOT Routes_RoutesSettingUpStalledMsgWrittenArray[Route] THEN
                           WriteRouteInfoToLog(LocoChipStr, 'R', 'Setting up ' + DescribeJourneyAndRoute([Route, SettingSubRoute]),
                                                                 ': P=' + IntToStr(Device) + ' set to ' + PointStateToStr(Points[Device].Point_RequiredState)
                                                                 + ' and locked for routeing');
@@ -778,6 +762,9 @@ BEGIN
                     END;
                   END;
                 END;
+
+                IF DebugStr <> '' THEN
+                  Log(LocoChipStr + ' R ' + DebugStr);
               END;
           END; {CASE}
         END;
@@ -787,7 +774,7 @@ BEGIN
       { Now deal with the result of the subroute setting }
       IF Routes_PointResultPendingPoint[Route] <> UnknownPoint THEN BEGIN
         IF NOT Routes_PointResultPendingPointMsgWrittenArray[Route] THEN BEGIN
-          Log(LocoChipStr + ' P P=' + IntToStr(Routes_PointResultPendingPoint[Route]) + ' : result pending: '
+          Log(LocoChipStr + ' P P=' + IntToStr(Routes_PointResultPendingPoint[Route]) + '  : result pending: '
                           + DescribeJourneyAndRoute([Route, SettingSubRoute]));
           Routes_PointResultPendingPointMsgWrittenArray[Route] := True;
         END;
@@ -795,21 +782,25 @@ BEGIN
 
       IF OK THEN BEGIN
         { Success - the subroute is set up - but note how far we've got }
-        Log(LocoChipStr + ' R Successfully set up ' + DescribeJourneyAndRoute([Route, SettingSubRoute]));
-        Log(LocoChipStr + ' R ' + TCDebugStr + ' {WRAP=190}');
+        Log(LocoChipToStr(Routes_LocoChips[Route]) + ' R R=' + IntToStr(Route) + '/' + IntToStr(SettingSubRoute) + ' successfuly set up'
+                                               + ' [' + DescribeJourneyAndRoute([Route, SettingSubRoute]) + ']');
 
         Routes_SubRouteStates[Route, SettingSubRoute] := SubRouteSetUp;
 
         { Mark the lines as being routed over so we can draw the subroute }
-        FOR SubRouteSettingPos := 0 TO High(SettingSubRouteArray) DO
-          IF Pos('L=', SettingSubRouteArray[SubRouteSettingPos]) > 0 THEN
-begin
+        DebugStr := 'Lines routed over: ';
+        FOR SubRouteSettingPos := 0 TO High(SettingSubRouteArray) DO BEGIN
+          IF Pos('L=', SettingSubRouteArray[SubRouteSettingPos]) > 0 THEN BEGIN
             Lines[ExtractLineFromString(SettingSubRouteArray[SubRouteSettingPos])].Line_RouteSet := Route;
-log('x L=' + LinetoStr(ExtractLineFromString(SettingSubRouteArray[SubRouteSettingPos])));
-end;
+            DebugStr := DebugStr + ' L=' + LinetoStr(ExtractLineFromString(SettingSubRouteArray[SubRouteSettingPos]));
+          END;
+        END; {FOR}
+
         { and also mark the line just before the start of the subroute, which isn't in the array, but which should be highlighted to make the route clearer }
         Lines[Signals[Routes_SubRouteStartSignals[Route, SettingSubRoute]].Signal_AdjacentLine].Line_RouteSet := Route;
-log('x and L=' + LinetoStr(Signals[Routes_SubRouteStartSignals[Route, SettingSubRoute]].Signal_AdjacentLine));
+        DebugStr := DebugStr + ' and L=' + LinetoStr(Signals[Routes_SubRouteStartSignals[Route, SettingSubRoute]].Signal_AdjacentLine);
+        Log(LocoChipStr + ' R ' + DebugStr);
+
         InvalidateScreen(UnitRef, 'SetUpASubRoute 1');
 
         { See if we've done the last subroute (Routes_SubRouteCount starts from 1) }
@@ -821,10 +812,7 @@ log('x and L=' + LinetoStr(Signals[Routes_SubRouteStartSignals[Route, SettingSub
           Routes_RouteSettingByHand := False;
           Log(LocoChipStr + ' R R=' + IntToStr(Route) + ': route setting concluded');
 
-          IF (T <> 0)
-          AND (T <= High(Trains))
-          AND (Trains[T].Train_LocoChip <> UnknownLocoChip)
-          THEN BEGIN
+          IF (T <> 0) AND (T <= High(Trains)) AND (Trains[T].Train_LocoChip <> UnknownLocoChip) THEN BEGIN
             { only set up hidden aspect signals if there's a train involved }
             WITH Trains[T] DO BEGIN
               WITH Train_JourneysArray[Journey] DO BEGIN { ************************************************************* from MS5 to IS2 }
@@ -835,8 +823,7 @@ log('x and L=' + LinetoStr(Signals[Routes_SubRouteStartSignals[Route, SettingSub
                   to stop there. Exclude signals where we change direction as we have no choice but to stop at them.
                 }
                 IF (Train_JourneysArray[Journey].TrainJourney_StoppingOnArrival)
-                AND ((Journey < Train_TotalJourneys)
-                    AND (Train_JourneysArray[Journey].TrainJourney_Direction = Train_JourneysArray[Journey + 1].TrainJourney_Direction))
+                AND ((Journey < Train_TotalJourneys) AND (Train_JourneysArray[Journey].TrainJourney_Direction = Train_JourneysArray[Journey + 1].TrainJourney_Direction))
                 THEN
                   SetHiddenAspectSignals(T, Train_JourneysArray[Journey].TrainJourney_EndSignal, Journey, Route);
               END;
@@ -901,7 +888,7 @@ log('x and L=' + LinetoStr(Signals[Routes_SubRouteStartSignals[Route, SettingSub
           IF NOT Routes_RoutesSettingUpStalledMsgWrittenArray[Route] THEN BEGIN
             Routes_RoutesSettingUpStalledMsgArray[Route] := ' (' + DebugStr +')';
             Log(LocoChipStr + ' R ' + DescribeJourneyAndRoute(Route)
-                               + ' : route setting-up stalled' + Routes_RoutesSettingUpStalledMsgArray[Route]);
+                            + '  : route setting-up stalled' + Routes_RoutesSettingUpStalledMsgArray[Route]);
             Routes_RoutesSettingUpStalledMsgWrittenArray[Route] := True;
             DescribeRouteingStatus;
           END;
@@ -948,29 +935,21 @@ log('x and L=' + LinetoStr(Signals[Routes_SubRouteStartSignals[Route, SettingSub
                   { now unlock the points just locked, if any }
                   IF PointIsLockedByASpecificRoute(Device, Route) THEN BEGIN
                     UnlockPointLockedBySpecificRoute(Device, Route, Routes_RoutesSettingUpStalledMsgWrittenArray[Route]);
-                    IF NOT Routes_SettingUpFailuresMsgWrittenArray[Route]
-                    AND NOT Routes_RoutesSettingUpStalledMsgWrittenArray[Route]
-                    THEN
-                      Log(LocoChipStr + ' R As cannot set up R=' + IntToStr(Route) + '/' + IntToStr(SettingSubRoute)
-                                      + ', P=' + IntToStr(Device) + ' locking cancelled');
+                    IF NOT Routes_SettingUpFailuresMsgWrittenArray[Route] AND NOT Routes_RoutesSettingUpStalledMsgWrittenArray[Route] THEN
+                      Log(LocoChipStr + ' R As cannot set up R=' + IntToStr(Route) + '/' + IntToStr(SettingSubRoute) + ', P=' + IntToStr(Device) + ' locking cancelled');
                   END;
                 '\', '=':
                   { now unlock the signals just locked, if any }
                   IF SignalIsLockedBySpecificRoute(Device, Route) THEN BEGIN
                     UnlockSignalLockedBySpecificRoute(Device, Route);
-                    IF NOT Routes_SettingUpFailuresMsgWrittenArray[Route]
-                    AND NOT Routes_RoutesSettingUpStalledMsgWrittenArray[Route]
-                    THEN
-                      Log(LocoChipStr + ' R As cannot set up R=' + IntToStr(Route) + '/' + IntToStr(SettingSubRoute)
-                                      + ', S=' + IntToStr(Device) + ' locking cancelled');
+                    IF NOT Routes_SettingUpFailuresMsgWrittenArray[Route] AND NOT Routes_RoutesSettingUpStalledMsgWrittenArray[Route] THEN
+                      Log(LocoChipStr + ' R As cannot set up R=' + IntToStr(Route) + '/' + IntToStr(SettingSubRoute) + ', S=' + IntToStr(Device) + ' locking cancelled');
                   END;
                 '+':
                   { check if the line is marked as displaying a route }
                   IF Lines[L].Line_RouteLockingForDrawing = Route THEN BEGIN
                     Lines[L].Line_RouteLockingForDrawing := UnknownRoute;
-                    IF NOT Routes_SettingUpFailuresMsgWrittenArray[Route]
-                    AND NOT Routes_RoutesSettingUpStalledMsgWrittenArray[Route]
-                    THEN
+                    IF NOT Routes_SettingUpFailuresMsgWrittenArray[Route] AND NOT Routes_RoutesSettingUpStalledMsgWrittenArray[Route] THEN
                       Log(LocoChipStr + ' R As cannot set up R=' + IntToStr(Route) + '/' + IntToStr(SettingSubRoute)
                                       + ', L=' + LineToStr(L) + ' route-locking drawing cancelled');
                     Lines[L].Line_LockFailureNotedInSubRouteUnit := False;
@@ -982,11 +961,8 @@ log('x and L=' + LinetoStr(Signals[Routes_SubRouteStartSignals[Route, SettingSub
                     TrackCircuits[Device].TC_LocoChip := SaveTCLocoChip;
                     TrackCircuits[Device].TC_Journey := UnknownJourney;
 
-                    IF NOT Routes_SettingUpFailuresMsgWrittenArray[Route]
-                    AND NOT Routes_RoutesSettingUpStalledMsgWrittenArray[Route]
-                    THEN
-                      Log(LocoChipStr + ' R As cannot set up R=' + IntToStr(Route) + '/' + IntToStr(SettingSubRoute)
-                                      + ', TC=' + IntToStr(Device) + ' locking cancelled');
+                    IF NOT Routes_SettingUpFailuresMsgWrittenArray[Route] AND NOT Routes_RoutesSettingUpStalledMsgWrittenArray[Route] THEN
+                      Log(LocoChipStr + ' R As cannot set up R=' + IntToStr(Route) + '/' + IntToStr(SettingSubRoute) + ', TC=' + IntToStr(Device) + ' locking cancelled');
                   END;
                 END; {CASE}
               END;
@@ -996,15 +972,11 @@ log('x and L=' + LinetoStr(Signals[Routes_SubRouteStartSignals[Route, SettingSub
       END;
 
       { Make a note of current routeing }
-      IF NOT Routes_SettingUpFailuresMsgWrittenArray[Route]
-      AND NOT Routes_RoutesSettingUpStalledMsgWrittenArray[Route]
-      THEN
+      IF NOT Routes_SettingUpFailuresMsgWrittenArray[Route] AND NOT Routes_RoutesSettingUpStalledMsgWrittenArray[Route] THEN
         DescribeRouteingStatus;
 
       IF NOT OK THEN BEGIN
-        IF NOT Routes_SettingUpFailuresMsgWrittenArray[Route]
-        AND NOT Routes_RoutesSettingUpStalledMsgWrittenArray[Route]
-        THEN BEGIN
+        IF NOT Routes_SettingUpFailuresMsgWrittenArray[Route] AND NOT Routes_RoutesSettingUpStalledMsgWrittenArray[Route] THEN BEGIN
           FailedMsg := DescribeJourneyAndRoute([Route, SettingSubRoute]) + ': setting up failed (' + DebugStr + ')';
           IF Routes_SubRouteStates[Route, SettingSubRoute] = SubRouteSettingUpFailed THEN BEGIN
             IF NOT Routes_SettingUpFailuresMsgWrittenArray[Route] THEN BEGIN
@@ -1014,8 +986,7 @@ log('x and L=' + LinetoStr(Signals[Routes_SubRouteStartSignals[Route, SettingSub
           END ELSE BEGIN
             IF Routes_RoutesSettingUpStalledMsgArray[Route] <> DebugStr THEN BEGIN
               Routes_RoutesSettingUpStalledMsgArray[Route] := ' (' + DebugStr +')';
-              Log(LocoChipStr + ' R ' + DescribeJourneyAndRoute(Route)
-                              + ' : route setting-up stalled' + Routes_RoutesSettingUpStalledMsgArray[Route]);
+              Log(LocoChipStr + ' R ' + DescribeJourneyAndRoute(Route) + '  : route setting-up stalled' + Routes_RoutesSettingUpStalledMsgArray[Route]);
               Routes_RoutesSettingUpStalledMsgWrittenArray[Route] := True;
             END;
           END;
@@ -1066,7 +1037,7 @@ VAR
   P : Integer;
   S : Integer;
   SubRoute : Integer;
-  T : integer;
+  T : Integer;
   TC : Integer;
 
 BEGIN
@@ -1146,41 +1117,36 @@ VAR
   DebugStr : String;
   Device : Integer;
   EarlierRouteToBeClearedFound : Boolean;
-  L : Integer;
   LocoChip : Integer;
   LocoChipStr : String;
   OK : Boolean;
-//  PointResultPending : Boolean;
-  P : Integer;
-  R : Integer;
-  S : Integer;
   SubRouteClearingPos : Integer;
   SubRouteCount : Integer;
   SubRouteItemToCheck, TheatreDestinationToConvert : String;
   SubRoutesClearedCount : Integer;
+  TempL : Integer;
+  TempP : Integer;
+  TempR : Integer;
+  TempS : Integer;
   TempRoute : Integer;
 
 BEGIN
-  R := 0; { we want this 0, not -1, as otherwise the test will operate even if this is the first route }
+  TempR := 0; { we want this 0, not -1, as otherwise the test will operate even if this is the first route }
   EarlierRouteToBeClearedFound := False;
-  WHILE (R < Route)
-  AND NOT EarlierRouteToBeClearedFound
-  DO BEGIN
-    IF (Routes_LocoChips[R] = Routes_LocoChips[Route])
-    AND (Routes_LocoChips[R] <> UnknownLocoChip)
-    THEN BEGIN
-      IF NOT Routes_Cleared[R] THEN BEGIN
-        Routes_RouteClearingsInProgress[R] := True;
+  WHILE (TempR < Route) AND NOT EarlierRouteToBeClearedFound DO BEGIN
+    IF (Routes_LocoChips[TempR] = Routes_LocoChips[Route]) AND (Routes_LocoChips[TempR] <> UnknownLocoChip) THEN BEGIN
+      IF NOT Routes_Cleared[TempR] THEN BEGIN
+        Routes_RouteClearingsInProgress[TempR] := True;
         EarlierRouteToBeClearedFound := True;
 
         IF NOT Routes_ClearingFailuresMsg1WrittenArray[Route] THEN BEGIN
-          Log(LocoChipToStr(Routes_LocoChips[R]) + ' RG R=' + IntToStr(R) + ' Routes_RouteClearingInProgress set to true,'
-                                                 + ' as later route R=' + IntToStr(Route) + ' has been set to be cleared');
+          Log(LocoChipToStr(Routes_LocoChips[TempR]) + ' RG R=' + IntToStr(TempR) + ' Routes_RouteClearingInProgress set to true,'
+                                                     + ' as later route R=' + IntToStr(Route) + ' has been set to be cleared');
           Routes_ClearingFailuresMsg1WrittenArray[Route] := True;
         END;
       END;
     END;
-    Inc(R);
+    Inc(TempR);
   END;
 
   IF NOT EarlierRouteToBeClearedFound THEN BEGIN
@@ -1188,7 +1154,7 @@ BEGIN
     ActionCh := '';
     Device := 0;
     OK := True;
-    L := UnknownLine;
+    TempL := UnknownLine;
     LocoChip := Routes_LocoChips[Route];
     LocoChipStr := LocoChipToStr(LocoChip);
 
@@ -1211,9 +1177,7 @@ BEGIN
       { no point continuing }
       Exit;
 
-    IF NOT Routes_ClearingFailuresMsg2WrittenArray[Route]
-    AND (Routes_PointResultPendingPoint[Route] = UnknownPoint)
-    THEN
+    IF NOT Routes_ClearingFailuresMsg2WrittenArray[Route] AND (Routes_PointResultPendingPoint[Route] = UnknownPoint) THEN
       Log(LocoChipStr + ' R Beginning final clearing of ' + DescribeJourneyAndRoute([Route, ClearingSubRoute]));
       
 
@@ -1223,17 +1187,13 @@ BEGIN
     ELSE
       SubRouteClearingPos := 0;
 
-    IF (Routes_SubRouteStates[Route, ClearingSubRoute] <> SubRouteSetUp)
-    AND (Routes_SubRouteStates[Route, ClearingSubRoute] <> SubRouteToBeCleared)
-    THEN BEGIN
+    IF (Routes_SubRouteStates[Route, ClearingSubRoute] <> SubRouteSetUp) AND (Routes_SubRouteStates[Route, ClearingSubRoute] <> SubRouteToBeCleared) THEN BEGIN
       { clearing, or cancelling if route not set up }
       Routes_SubRouteStates[Route, ClearingSubRoute] := SubRouteSettingUpCancelled;
       Routes_RouteingsCancelled[Route] := True;
     END;
 
-    WHILE (Routes_SubRouteStates[Route, ClearingSubRoute] <> SubRouteSettingUpCancelled)
-    AND (SubRouteClearingPos <= High(ClearingSubRouteArray))
-    DO BEGIN
+    WHILE (Routes_SubRouteStates[Route, ClearingSubRoute] <> SubRouteSettingUpCancelled) AND (SubRouteClearingPos <= High(ClearingSubRouteArray)) DO BEGIN
       ActionCh := '';
       Device := 0;
       DebugStr := '';
@@ -1254,19 +1214,17 @@ BEGIN
 
         TheatreDestinationToConvert := Copy(SubRouteItemToCheck, Pos('>', SubRouteItemToCheck) + 1, 255);
         IF Pos('FS=', TheatreDestinationToConvert) > 0 THEN
-          L := Signals[ExtractSignalFromString(TheatreDestinationToConvert)].Signal_AdjacentLine
+          TempL := Signals[ExtractSignalFromString(TheatreDestinationToConvert)].Signal_AdjacentLine
         ELSE
-          L := BufferStops[ExtractBufferStopFromString(TheatreDestinationToConvert)].BufferStop_AdjacentLine;
+          TempL := BufferStops[ExtractBufferStopFromString(TheatreDestinationToConvert)].BufferStop_AdjacentLine;
       END ELSE
         { Ignore items just there for subrouteing, and have no suffixes }
-        IF (Pos('J=', SubRouteItemToCheck) = 0)
-        AND (Pos('BS=', SubRouteItemToCheck) = 0)
-        AND (Pos('SR=', SubRouteItemToCheck) = 0) THEN BEGIN
+        IF (Pos('J=', SubRouteItemToCheck) = 0) AND (Pos('BS=', SubRouteItemToCheck) = 0) AND (Pos('SR=', SubRouteItemToCheck) = 0) THEN BEGIN
           ActionCh := Copy(SubRouteItemToCheck, Length(SubRouteItemToCheck), 1);
           IF (Pos('L=', SubRouteItemToCheck) = 0) THEN
             Device := StrToInt(Copy(SubRouteItemToCheck, 4, Length(SubRouteItemToCheck) - 4))
           ELSE
-            L := StrToLine(Copy(SubRouteItemToCheck, 3, Length(SubRouteItemToCheck) - 3));
+            TempL := StrToLine(Copy(SubRouteItemToCheck, 3, Length(SubRouteItemToCheck) - 3));
         END;
 
         IF ActionCh <> '' THEN BEGIN
@@ -1288,15 +1246,15 @@ BEGIN
 
             '+':
               { check if the line is locked }
-              IF Lines[L].Line_RouteLockingForDrawing = UnknownRoute THEN
+              IF Lines[TempL].Line_RouteLockingForDrawing = UnknownRoute THEN
                 OK := True
               ELSE
-                IF Lines[L].Line_RouteLockingForDrawing = Route THEN BEGIN
-                  Lines[L].Line_RouteLockingForDrawing := UnknownRoute;
+                IF Lines[TempL].Line_RouteLockingForDrawing = Route THEN BEGIN
+                  Lines[TempL].Line_RouteLockingForDrawing := UnknownRoute;
                   IF NOT Routes_ClearingFailuresMsg2WrittenArray[Route] THEN
                     WriteRouteInfoToLog(LocoChipStr, 'R', 'Clearing ' + DescribeJourneyAndRoute([Route, ClearingSubRoute]),
-                                                          ': L=' + LineToStr(L) + ' now unlocked by R=' + IntToStr(Route));
-                  Lines[L].Line_LockFailureNotedInSubRouteUnit := False;
+                                                          ': L=' + LineToStr(TempL) + ' now unlocked by R=' + IntToStr(Route));
+                  Lines[TempL].Line_LockFailureNotedInSubRouteUnit := False;
                   OK := True;
                 END;
 
@@ -1307,15 +1265,21 @@ BEGIN
                 IF SignalIsLockedBySpecificRoute(Device, Route) THEN
                   UnlockSignalLockedBySpecificRoute(Device, Route);
 
-                { then reset it }
+                { Now see if a semaphore distant needs to be put on too - this check needs to be done each time a signal on the route is put on, as the distant may
+                  cover more than one subroute
+                }
+                CheckSemaphoreDistantBeforeSemaphoreHomeCleared(Device);
+
+                { Now reset it }
                 IF NOT (GetSignalAspect(Device) = RedAspect) THEN BEGIN
-                  PullSignal(LocoChipStr, Device, NoIndicatorLit, Route, ClearingSubRoute, UnknownLine, GetTrainTypeFromLocoChip(LocoChip), NOT ByUser, OK);
+                  PullSignal(LocoChipStr, Device, NoIndicatorLit, Route, ClearingSubRoute, UnknownLine, '', NOT ByUser, OK);
                   IF OK THEN BEGIN
                     IF NOT Routes_ClearingFailuresMsg2WrittenArray[Route] THEN
                       WriteRouteInfoToLog(LocoChipStr, 'R', 'Clearing ' + DescribeJourneyAndRoute([Route, ClearingSubRoute]),
                                                             ': S=' + IntToStr(Device) + ' on' + ' and now unlocked by R=' + IntToStr(Route));
                   END;
                 END;
+
                 IF OK THEN BEGIN
                   Signals[Device].Signal_LockFailureNotedInRouteUnit := False;
                   { and reset approach locking if set (though this would normally be done by the train passing it) }
@@ -1389,9 +1353,7 @@ BEGIN
 //                    { now unlock it }
 //                    UnlockPointLockedBySpecificRoute(Device, Route, Routes_RoutesSettingUpStalledMsgWrittenArray[Route]);
 //                  END ELSE BEGIN
-//                    IF (Points[Device].Point_RequiredState <> PointStateUnknown)
-//                    AND NOT Routes_RouteClearingsWithoutPointResetting[Route]
-//                    THEN BEGIN
+//                    IF (Points[Device].Point_RequiredState <> PointStateUnknown) AND NOT Routes_RouteClearingsWithoutPointResetting[Route] THEN BEGIN
 //                      PullPoint(Device, LocoChip, Route, ClearingSubRoute, NOT ForcePoint, NOT ByUser,
 //                                Routes_ClearingFailuresMsg2WrittenArray[Route], PointResultPending, DebugStr, OK);
 //                      IF OK THEN BEGIN
@@ -1490,24 +1452,24 @@ BEGIN
               Log(Train_LocoChipStr + ' R R=' + IntToStr(Route) + ' cleared');
 
               { Remove any remaining route lockings - there shouldn't be any at this stage but occasionally there are some left over }
-              FOR P := 0 TO High(Points) DO BEGIN
-                IF PointIsLockedByASpecificRoute(P, Route) THEN BEGIN
-                  Log(Train_LocoChipStr + ' R P=' + IntToStr(P) + ' unlocked by R=' + IntToStr(Route));
-                  UnlockPointLockedBySpecificRoute(P, Route, NOT ErrorMsgRequired);
+              FOR TempP := 0 TO High(Points) DO BEGIN
+                IF PointIsLockedByASpecificRoute(TempP, Route) THEN BEGIN
+                  Log(Train_LocoChipStr + ' R P=' + IntToStr(TempP) + ' unlocked by R=' + IntToStr(Route));
+                  UnlockPointLockedBySpecificRoute(TempP, Route, NOT ErrorMsgRequired);
                 END;
               END; {FOR}
 
-              FOR S := 0 TO High(Signals) DO BEGIN
-                IF SignalIsLockedBySpecificRoute(S, Route) THEN BEGIN
-                  Log(Train_LocoChipStr + ' R S=' + IntToStr(S) + ' unlocked by R=' + IntToStr(Route));
-                  UnlockSignalLockedBySpecificRoute(S, Route);
+              FOR TempS := 0 TO High(Signals) DO BEGIN
+                IF SignalIsLockedBySpecificRoute(TempS, Route) THEN BEGIN
+                  Log(Train_LocoChipStr + ' R S=' + IntToStr(TempS) + ' unlocked by R=' + IntToStr(Route));
+                  UnlockSignalLockedBySpecificRoute(TempS, Route);
                 END;
               END; {FOR}
 
-              FOR L := 0 TO High(Lines) DO BEGIN
-                IF Lines[L].Line_RouteLockingForDrawing = Route THEN BEGIN
-                  Log(Train_LocoChipStr + ' R L=' + LineToStr(L) + ' unlocked by R=' + IntToStr(Route));
-                  Lines[L].Line_RouteLockingForDrawing := UnknownRoute;
+              FOR TempL := 0 TO High(Lines) DO BEGIN
+                IF Lines[TempL].Line_RouteLockingForDrawing = Route THEN BEGIN
+                  Log(Train_LocoChipStr + ' R L=' + LineToStr(TempL) + ' unlocked by R=' + IntToStr(Route));
+                  Lines[TempL].Line_RouteLockingForDrawing := UnknownRoute;
                 END;
               END; {FOR}
             END; {WITH}
@@ -1557,9 +1519,9 @@ BEGIN
           END;
 
         '+':
-          IF NOT Lines[L].Line_LockFailureNotedInSubRouteUnit THEN BEGIN
-            DebugStr := 'L=' + LineToStr(L) + ' is occupied or locked';
-            Lines[L].Line_LockFailureNotedInSubRouteUnit := True;
+          IF NOT Lines[TempL].Line_LockFailureNotedInSubRouteUnit THEN BEGIN
+            DebugStr := 'L=' + LineToStr(TempL) + ' is occupied or locked';
+            Lines[TempL].Line_LockFailureNotedInSubRouteUnit := True;
           END;
 
         '/', '-':
@@ -1588,9 +1550,9 @@ BEGIN
     DescribeRouteingStatus;
 
     { Now delete any routes cleared }
-    R := 0;
-    WHILE R <= High(Routes_Routes) DO BEGIN
-      TempRoute := Routes_Routes[R];
+    TempR := 0;
+    WHILE TempR <= High(Routes_Routes) DO BEGIN
+      TempRoute := Routes_Routes[TempR];
       SubRoutesClearedCount := 0;
       FOR SubRouteCount := 0 TO High(Routes_SubRouteStates[TempRoute]) DO BEGIN
         IF (Routes_SubRouteStates[TempRoute, SubRouteCount] = SubRouteCleared)
@@ -1601,7 +1563,7 @@ BEGIN
 
         IF SubRoutesClearedCount = Routes_TotalSubRoutes[TempRoute] THEN BEGIN
           { Delete the route number so we can't see it again }
-          DeleteElementFromIntegerArray(Routes_Routes, R);
+          DeleteElementFromIntegerArray(Routes_Routes, TempR);
           { and delete the route data stored in the multi-dimensional dynamic arrays }
           SetLength(Routes_SubRouteClearingStrings[TempRoute], 0);
           SetLength(Routes_SubRouteStartSignals[TempRoute], 0);
@@ -1640,7 +1602,7 @@ BEGIN
           END;
         END;
       END; {FOR}
-      Inc(R);
+      Inc(TempR);
     END; {WHILE}
   END;
 END; { ClearARoute }
