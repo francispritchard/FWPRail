@@ -11,6 +11,8 @@ object EditWindow: TEditWindow
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
+  PopupMenu = EditWindowPopupMenu
+  OnResize = EditWindowResize
   OnShow = EditWindowShow
   PixelsPerInch = 96
   TextHeight = 13
@@ -69,5 +71,14 @@ object EditWindow: TEditWindow
     Enabled = False
     TabOrder = 3
     OnClick = UndoChangesButtonClick
+  end
+  object EditWindowPopupMenu: TPopupMenu
+    OnPopup = EditWindowPopupMenuPopup
+    Left = 584
+    Top = 216
+    object PopupEditWindowResetSizeAndPosition: TMenuItem
+      Caption = 'Reset Window Size And Position'
+      OnClick = PopupEditWindowResetSizeAndPositionClick
+    end
   end
 end

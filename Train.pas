@@ -225,9 +225,9 @@ BEGIN
     ELSE BEGIN
       WITH Trains[T] DO BEGIN
         IF (DirectionRequired <> Train_CurrentDirection) OR ForceWrite THEN BEGIN
-          SetLocoDirection(Train_LocoIndex, DirectionRequired, OK);
+          SetLocoDirection(Locos[Train_LocoIndex], DirectionRequired, OK);
           IF OK AND (Train_DoubleHeaderLocoIndex <> UnknownLocoIndex) THEN
-            SetLocoDirection(Train_DoubleHeaderLocoIndex, DirectionRequired, OK);
+            SetLocoDirection(Locos[Train_DoubleHeaderLocoIndex], DirectionRequired, OK);
           IF OK THEN
             Train_CurrentDirection := DirectionRequired;
         END;

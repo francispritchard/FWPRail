@@ -605,7 +605,6 @@ TYPE
     Signal_DataChanged : Boolean;
     Signal_DecoderNum : Integer;
     Signal_Direction : DirectionType;
-    Signal_DistantHomesArray : IntegerArrayType; { needed to tell a semaphore distant which semaphore homes lock it }
     Signal_Energised : Boolean;
     Signal_EnergisedTime : TDateTime;
     Signal_FailedToResetFlag : Boolean;
@@ -628,6 +627,7 @@ TYPE
       etc. ahead that must be locked before a signal can be pulled off; Signal_LockedArray shows whether a signal is locked either by a specific route or by a user.
     }
     Signal_LockedArray : StringArrayType;
+    Signal_LockedBySemaphoreDistant : Boolean;
 
     Signal_LockFailureNotedInRouteUnit : Boolean;
     Signal_MouseRect : TRect; { mouse access rectangle for signal }
@@ -654,6 +654,8 @@ TYPE
     { see note above for Signal_LockedArray }
     Signal_RouteLockingNeededArray : StringArrayType;
 
+    Signal_SemaphoreDistantHomesArray : IntegerArrayType; { needed to tell a semaphore distant which semaphore homes lock it }
+    Signal_SemaphoreDistantLocking : Integer;
     Signal_StateChanged : Boolean;
     Signal_TheatreIndicatorString : String; { what this signal might display }
     Signal_TRSHeld : Boolean;
@@ -677,7 +679,6 @@ CONST
   Signal_AutomaticFieldName : String = 'Signal Automatic'; { not in use }
   Signal_DirectionFieldName : String = 'Signal Direction';
   Signal_DecoderNumFieldName : String = 'Signal Decoder Num';
-  Signal_DistantHomesArrayFieldName : String = 'Signal Distant Homes';
   Signal_IndicatorDecoderFunctionNumFieldName : String = 'Signal Indicator Decoder Function Num';
   Signal_IndicatorDecoderNumFieldName : String = 'Signal Indicator Decoder Num';
   Signal_IndicatorSpeedRestrictionFieldName : String = 'Signal Indicator Speed Restriction';
@@ -696,6 +697,7 @@ CONST
   Signal_PossibleRouteHoldFieldName : String = 'Signal Possible Route Hold';
   Signal_PossibleStationStartRouteHoldFieldName : String = 'Signal Possible Station Start Route Hold';
   Signal_QuadrantFieldName : String = 'Signal Quadrant';
+  Signal_SemaphoreDistantHomesArrayFieldName : String = 'Signal Distant Homes';
   Signal_TypeFieldName : String = 'Signal Type';
   Signal_UpDownFieldName : String = 'Signal Direction';
   Signal_UpperLeftIndicatorTargetFieldName : String = 'Signal Upper Left Indicator Target';
@@ -1392,11 +1394,14 @@ PROCEDURE CalculatePointPositions;
 PROCEDURE CalculateTCAdjacentSignals;
 { Work out which track circuits are next the signal }
 
-PROCEDURE CalculateSignalPositions(ScaleFactor : Integer);
-{ Work out where the signals are on the screen }
+PROCEDURE CalculateSignalPosition(S, ScaleFactor : Integer);
+{ Work out where a signal is on the screen }
 
-FUNCTION DeleteRecordFromSignalDatabaseAndRenumberSignals(SignalNumToDelete : Integer) : Boolean;
-{ Remove a record from the signal database }
+PROCEDURE CalculateAllSignalPositions(ScaleFactor : Integer);
+{ Work out where all the signals are on the screen }
+
+FUNCTION DeleteRecordFromSignalDatabaseAndRenumberSignals(SignalToDeleteNum : Integer) : Boolean;
+{ Remove a record from the signal database. (Checks have already been made in Edit as to whether ir can be deleted). }
 
 FUNCTION DescribeActualDateAndTime : String;
 { Return the current real date and time as a String }
@@ -1524,6 +1529,9 @@ FUNCTION ValidateSignalIndicatorDecoderFunctionNum(Str : String; AccessoryAddres
 FUNCTION ValidateSignalIndicatorDecoderNum(Str : String; AccessoryAddress : Integer; SignalType : TypeOfSignal; OUT ErrorMsg : String) : Integer;
 { Validates and if ok returns the decoder number for an indicator decoder. This check must be done after Accessory Address and Signal Type are validated. }
 
+FUNCTION ValidateSignalDistantHomesArray(S : Integer; Signal_Type : TypeOfSignal; Str : String; OUT ErrorMsg : String) : IntegerArrayType;
+{ Validates the home signal numbers supplied }
+
 FUNCTION ValidateSignalLocationsToMonitorArray(Str : String; PossibleRouteHold : Boolean; OUT ErrorMsg : String) : IntegerArrayType;
 { Validates and if ok returns the signal locations monitored when a route is held. This test must be done after Possible Route Hold is validated. }
 
@@ -1533,7 +1541,7 @@ FUNCTION ValidateSignalNum(SignalToTest : Integer) : String;
 FUNCTION ValidateSignalOppositePassingLoopSignal(Str : String; Init : Boolean; OUT ErrorMsg : String) : Integer;
 { Validates and if ok returns the other signal involved in a passing loop }
 
-FUNCTION ValidateSignalOutOfUseAndAddAdjacentTC(S : Integer; Flag : Boolean; AdjacentLine : Integer; OUT AdjacentTC : Integer; OUT ErrorMsg : String) : Boolean;
+FUNCTION ValidateSignalOutOfUseAndAddAdjacentTC(Flag : Boolean; AdjacentLine : Integer; OUT AdjacentTC : Integer; OUT ErrorMsg : String) : Boolean;
 { Validates and if ok returns true if a signal is marked as not in use. This test must be done after Adjacent Signal is validated. }
 
 FUNCTION ValidateSignalPossibleStationStartRouteHold(Flag : Boolean; PossibleRouteHold : Boolean; OUT ErrorMsg : String) : Boolean;
@@ -2581,9 +2589,7 @@ BEGIN
                 { Locate the locations }
                 IF TempArea <> UnknownArea THEN BEGIN
                   FOR NewLocation := 0 TO High(Locations) DO
-                    IF (Locations[NewLocation].Location_Area = TempArea)
-                    AND NOT IsElementInIntegerArray(LocationExceptions, NewLocation)
-                    THEN
+                    IF (Locations[NewLocation].Location_Area = TempArea) AND NOT IsElementInIntegerArray(LocationExceptions, NewLocation) THEN
                       AppendToIntegerArray(Location_AccessibleLocationsDown, NewLocation);
                 END
                 ELSE
@@ -3481,7 +3487,7 @@ BEGIN
       WHILE L <= High(Lines) DO BEGIN
         WITH Lines[L] DO BEGIN
           IF ((Line_OutOfUseState = OutOfUse)
-              OR ((Line_Location <> UnknownLocation) AND Locations[Line_Location].Location_OutOfUse))
+               OR ((Line_Location <> UnknownLocation) AND Locations[Line_Location].Location_OutOfUse))
           AND (Line_InitialOutOfUseState = InUse)
           THEN BEGIN
             LineDataADOTable.First;
@@ -3497,9 +3503,7 @@ BEGIN
             END; {WHILE}
             LineDataADOTable.Close;
           END ELSE
-            IF (Line_OutOfUseState = InUse)
-            AND (Line_InitialOutOfUseState = OutOfUse)
-            THEN BEGIN
+            IF (Line_OutOfUseState = InUse) AND (Line_InitialOutOfUseState = OutOfUse) THEN BEGIN
               LineDataADOTable.First;
               WHILE NOT LineDataADOTable.EOF DO BEGIN
                 WITH LineDataADOTable DO BEGIN
@@ -3556,8 +3560,145 @@ BEGIN
   END; {TRY}
 END; { WriteOutLineDataToDatabase }
 
-PROCEDURE CalculateSignalPositions(ScaleFactor : Integer);
-{ Work out where the signals are on the screen }
+PROCEDURE CalculateSignalPosition(S, ScaleFactor : Integer);
+{ Work out where a signal is on the screen }
+BEGIN
+  TRY
+    WITH Signals[S] DO BEGIN
+      IF Signal_AdjacentLine <> UnknownLine THEN BEGIN
+        IF Signal_Direction = Up THEN BEGIN
+//          Signal_LocationX := Lines[Signal_AdjacentLine].Line_UpX + SignalRadiusScaled;
+          IF Signal_Indicator <> NoIndicator THEN
+            Signal_LocationX := Signal_LocationX + SignalHorizontalSpacingScaled;
+          IF Signal_Type = FourAspect THEN
+            Signal_LocationX := Signal_LocationX + SignalHorizontalSpacingScaled;
+        END ELSE BEGIN
+          { Down }
+//          Signal_LocationX := Lines[Signal_AdjacentLine].Line_DownX - SignalRadiusScaled;
+          IF Signal_Indicator <> NoIndicator THEN
+            Signal_LocationX := Signal_LocationX - SignalHorizontalSpacingScaled;
+          IF Signal_Type = FourAspect THEN
+            Signal_LocationX := Signal_LocationX - SignalHorizontalSpacingScaled;
+        END;
+
+        { Adjust left or right if XAdjustment greater than or less than zero respectively }
+        IF Signal_XAdjustment > 0 THEN
+          Signal_LocationX := Signal_LocationX + MulDiv(FWPRailWindow.ClientWidth, Signal_XAdjustment, ScaleFactor)
+        ELSE
+          IF Signal_XAdjustment < 0 THEN
+            Signal_LocationX := Signal_LocationX - MulDiv(FWPRailWindow.ClientWidth, Abs(Signal_XAdjustment), ScaleFactor);
+
+//        Signal_LocationY := Lines[Signal_AdjacentLine].Line_UpY;
+
+        Signal_VerticalSpacing := SignalVerticalSpacingScaled;
+
+        IF Signal_Direction = Up THEN
+          Signal_LocationY := Signal_LocationY + Signal_VerticalSpacing
+        ELSE
+          IF Signal_Direction = Down THEN
+            Signal_LocationY := Signal_LocationY - Signal_VerticalSpacing;
+
+        { Set up mouse access rectangles }
+        WITH Signal_MouseRect DO BEGIN
+          RailWindowBitmap.Canvas.Pen.Width := WindowPenWidth;
+
+          IF (Signal_Type <> SemaphoreHome) AND (Signal_Type <> SemaphoreDistant) THEN BEGIN
+            { it covers the signal circles }
+            Left := Signal_LocationX - SignalRadiusScaled;
+            Top := Signal_LocationY - SignalRadiusScaled;
+            Right := Signal_LocationX + SignalRadiusScaled;
+            Bottom := Signal_LocationY + SignalRadiusScaled;
+          END ELSE BEGIN
+            { it covers the signal arms }
+            IF (Signal_Direction = Up) AND (Signal_Quadrant = UpperQuadrant) THEN BEGIN
+              Left := Signal_LocationX - SignalSemaphoreWidthScaled;
+              Top := Signal_LocationY + RailWindowBitmap.Canvas.Pen.Width;
+              Right := Signal_LocationX + (SignalSemaphoreHeightScaled * 2);
+              Bottom := Signal_LocationY + (SignalSemaphoreWidthScaled * 2);
+            END ELSE
+              IF (Signal_Direction = Up) AND (Signal_Quadrant = LowerQuadrant) THEN BEGIN
+                Left := Signal_LocationX;
+                Top := Signal_LocationY + RailWindowBitmap.Canvas.Pen.Width;
+                Right := Signal_LocationX + (SignalSemaphoreHeightScaled * 2) + SignalSemaphoreWidthScaled;
+                Bottom := Signal_LocationY + (SignalSemaphoreWidthScaled * 2);
+              END ELSE
+                IF (Signal_Direction = Down) AND (Signal_Quadrant = UpperQuadrant) THEN BEGIN
+                  Left := Signal_LocationX - SignalSemaphoreWidthScaled;
+                  Top := Signal_LocationY - (SignalSemaphoreWidthScaled * 2);
+                  Right := Signal_LocationX + (SignalSemaphoreHeightScaled * 2);
+                  Bottom := Signal_LocationY - RailWindowBitmap.Canvas.Pen.Width;
+                END ELSE
+                  IF (Signal_Direction = Down) AND (Signal_Quadrant = LowerQuadrant) THEN BEGIN
+                    Left := Signal_LocationX - (SignalSemaphoreHeightScaled * 2) - SignalSemaphoreWidthScaled;
+                    Top := Signal_LocationY - (SignalSemaphoreWidthScaled * 2);
+                    Right := Signal_LocationX;
+                    Bottom := Signal_LocationY - RailWindowBitmap.Canvas.Pen.Width;
+                  END;
+          END;
+        END; {WITH}
+
+        { Initialise the route indicator mouse access rectangles }
+        WITH Signal_IndicatorMouseRect DO BEGIN
+          Left := 0;
+          Top := 0;
+          Right := 0;
+          Bottom := 0;
+        END;
+
+        IF Signal_Direction = Up THEN BEGIN
+          IF Signal_Type = FourAspect THEN
+            Signal_MouseRect.Left := Signal_MouseRect.Left - SignalHorizontalSpacingScaled;
+          IF Signal_Indicator <> NoIndicator THEN BEGIN
+            WITH Signal_IndicatorMouseRect DO BEGIN
+              Left := Signal_MouseRect.Left - (MulDiv(IndicatorHorizontalSpacingScaled, 150, 100));
+              Top := Signal_MouseRect.Top;
+              Right := Signal_MouseRect.Left;
+              Bottom := Signal_MouseRect.Bottom;
+            END; {WITH}
+          END;
+        END ELSE
+          IF Signal_Direction = Down THEN BEGIN
+            { Signal_Direction = Down }
+            IF Signal_Type = FourAspect THEN
+              Signal_MouseRect.Right := Signal_MouseRect.Right + SignalHorizontalSpacingScaled;
+            IF Signal_Indicator <> NoIndicator THEN BEGIN
+              IF Signal_Indicator <> NoIndicator THEN BEGIN
+                WITH Signal_IndicatorMouseRect DO BEGIN
+                  Left := Signal_MouseRect.Right;
+                  Top := Signal_MouseRect.Top;
+                  Right := Signal_MouseRect.Right + (MulDiv(IndicatorHorizontalSpacingScaled, 150, 100));
+                  Bottom := Signal_MouseRect.Bottom;
+                END; {WITH}
+              END;
+            END;
+          END;
+
+        { Now the signal posts (used for routeing) }
+        WITH Signal_PostMouseRect DO BEGIN
+          IF Signal_Direction = Up THEN BEGIN
+            { pen.width is the width of the line outlining the signal }
+            Left := Signal_LocationX + SignalRadiusScaled;
+            Top := Signal_LocationY - SignalRadiusScaled;
+            Right := Signal_LocationX + SignalRadiusScaled + MulDiv(FWPRailWindow.ClientWidth, 10, ZoomScalefactor);
+            Bottom := Signal_LocationY + SignalRadiusScaled;
+          END ELSE
+            IF Signal_Direction = Down THEN BEGIN
+              Left := Signal_LocationX - SignalRadiusScaled - MulDiv(FWPRailWindow.ClientWidth, 10, ZoomScalefactor);
+              Top := Signal_LocationY - SignalRadiusScaled;
+              Right := Signal_LocationX - SignalRadiusScaled;
+              Bottom := Signal_LocationY + Signal_VerticalSpacing - RailWindowBitmapCanvasPenWidth;
+            END;
+        END; {WITH}
+      END;
+    END; {WITH}
+  EXCEPT {TRY}
+    ON E : Exception DO
+      Log('EG CalculateSignalPosition: ' + E.ClassName + ' error raised, with message: ' + E.Message);
+  END; {TRY}
+END; { CalculateSignalPosition }
+
+PROCEDURE CalculateAllSignalPositions(ScaleFactor : Integer);
+{ Work out where all the signals are on the screen }
 VAR
   S : Integer;
 
@@ -3567,138 +3708,24 @@ BEGIN
     WHILE S <= High(Signals) DO BEGIN
       WITH Signals[S] DO BEGIN
         IF Signal_AdjacentLine <> UnknownLine THEN BEGIN
-          IF Signal_Direction = Up THEN BEGIN
-            Signal_LocationX := Lines[Signal_AdjacentLine].Line_UpX + SignalRadiusScaled;
-            IF Signal_Indicator <> NoIndicator THEN
-              Signal_LocationX := Signal_LocationX + SignalHorizontalSpacingScaled;
-            IF Signal_Type = FourAspect THEN
-              Signal_LocationX := Signal_LocationX + SignalHorizontalSpacingScaled;
-          END ELSE BEGIN
+          IF Signal_Direction = Up THEN
+            Signal_LocationX := Lines[Signal_AdjacentLine].Line_UpX + SignalRadiusScaled
+          ELSE
             { Down }
             Signal_LocationX := Lines[Signal_AdjacentLine].Line_DownX - SignalRadiusScaled;
-            IF Signal_Indicator <> NoIndicator THEN
-              Signal_LocationX := Signal_LocationX - SignalHorizontalSpacingScaled;
-            IF Signal_Type = FourAspect THEN
-              Signal_LocationX := Signal_LocationX - SignalHorizontalSpacingScaled;
-          END;
-
-          { Adjust left or right if XAdjustment greater than or less than zero respectively }
-          IF Signal_XAdjustment > 0 THEN
-            Signal_LocationX := Signal_LocationX + MulDiv(FWPRailWindow.ClientWidth, Signal_XAdjustment, ScaleFactor)
-          ELSE
-            IF Signal_XAdjustment < 0 THEN
-              Signal_LocationX := Signal_LocationX - MulDiv(FWPRailWindow.ClientWidth, Abs(Signal_XAdjustment), ScaleFactor);
 
           Signal_LocationY := Lines[Signal_AdjacentLine].Line_UpY;
 
-          Signal_VerticalSpacing := SignalVerticalSpacingScaled;
-
-          IF Signal_Direction = Up THEN
-            Signal_LocationY := Signal_LocationY + Signal_VerticalSpacing
-          ELSE
-            IF Signal_Direction = Down THEN
-              Signal_LocationY := Signal_LocationY - Signal_VerticalSpacing;
-
-          { Set up mouse access rectangles }
-          WITH Signal_MouseRect DO BEGIN
-            RailWindowBitmap.Canvas.Pen.Width := WindowPenWidth;
-
-            IF (Signal_Type <> SemaphoreHome) AND (Signal_Type <> SemaphoreDistant) THEN BEGIN
-              { it covers the signal circles }
-              Left := Signal_LocationX - SignalRadiusScaled;
-              Top := Signal_LocationY - SignalRadiusScaled;
-              Right := Signal_LocationX + SignalRadiusScaled;
-              Bottom := Signal_LocationY + SignalRadiusScaled;
-            END ELSE BEGIN
-              { it covers the signal arms }
-              IF (Signal_Direction = Up) AND (Signal_Quadrant = UpperQuadrant) THEN BEGIN
-                Left := Signal_LocationX - SignalSemaphoreWidthScaled;
-                Top := Signal_LocationY + RailWindowBitmap.Canvas.Pen.Width;
-                Right := Signal_LocationX + (SignalSemaphoreHeightScaled * 2);
-                Bottom := Signal_LocationY + (SignalSemaphoreWidthScaled * 2);
-              END ELSE
-                IF (Signal_Direction = Up) AND (Signal_Quadrant = LowerQuadrant) THEN BEGIN
-                  Left := Signal_LocationX;
-                  Top := Signal_LocationY + RailWindowBitmap.Canvas.Pen.Width;
-                  Right := Signal_LocationX + (SignalSemaphoreHeightScaled * 2) + SignalSemaphoreWidthScaled;
-                  Bottom := Signal_LocationY + (SignalSemaphoreWidthScaled * 2);
-                END ELSE
-                  IF (Signal_Direction = Down) AND (Signal_Quadrant = UpperQuadrant) THEN BEGIN
-                    Left := Signal_LocationX - SignalSemaphoreWidthScaled;
-                    Top := Signal_LocationY - (SignalSemaphoreWidthScaled * 2);
-                    Right := Signal_LocationX + (SignalSemaphoreHeightScaled * 2);
-                    Bottom := Signal_LocationY - RailWindowBitmap.Canvas.Pen.Width;
-                  END ELSE
-                    IF (Signal_Direction = Down) AND (Signal_Quadrant = LowerQuadrant) THEN BEGIN
-                      Left := Signal_LocationX - (SignalSemaphoreHeightScaled * 2) - SignalSemaphoreWidthScaled;
-                      Top := Signal_LocationY - (SignalSemaphoreWidthScaled * 2);
-                      Right := Signal_LocationX;
-                      Bottom := Signal_LocationY - RailWindowBitmap.Canvas.Pen.Width;
-                    END;
-            END;
-          END; {WITH}
-
-          { Initialise the route indicator mouse access rectangles }
-          WITH Signal_IndicatorMouseRect DO BEGIN
-            Left := 0;
-            Top := 0;
-            Right := 0;
-            Bottom := 0;
-          END;
-
-          IF Signal_Direction = Up THEN BEGIN
-            IF Signal_Type = FourAspect THEN
-              Signal_MouseRect.Left := Signal_MouseRect.Left - SignalHorizontalSpacingScaled;
-            IF Signal_Indicator <> NoIndicator THEN BEGIN
-              WITH Signal_IndicatorMouseRect DO BEGIN
-                Left := Signal_MouseRect.Left - (MulDiv(IndicatorHorizontalSpacingScaled, 150, 100));
-                Top := Signal_MouseRect.Top;
-                Right := Signal_MouseRect.Left;
-                Bottom := Signal_MouseRect.Bottom;
-              END; {WITH}
-            END;
-          END ELSE
-            IF Signal_Direction = Down THEN BEGIN
-              { Signal_Direction = Down }
-              IF Signal_Type = FourAspect THEN
-                Signal_MouseRect.Right := Signal_MouseRect.Right + SignalHorizontalSpacingScaled;
-              IF Signal_Indicator <> NoIndicator THEN BEGIN
-                IF Signal_Indicator <> NoIndicator THEN BEGIN
-                  WITH Signal_IndicatorMouseRect DO BEGIN
-                    Left := Signal_MouseRect.Right;
-                    Top := Signal_MouseRect.Top;
-                    Right := Signal_MouseRect.Right + (MulDiv(IndicatorHorizontalSpacingScaled, 150, 100));
-                    Bottom := Signal_MouseRect.Bottom;
-                  END; {WITH}
-                END;
-              END;
-            END;
-
-          { Now the signal posts (used for routeing) }
-          WITH Signal_PostMouseRect DO BEGIN
-            IF Signal_Direction = Up THEN BEGIN
-              { pen.width is the width of the line outlining the signal }
-              Left := Signal_LocationX + SignalRadiusScaled;
-              Top := Signal_LocationY - SignalRadiusScaled;
-              Right := Signal_LocationX + SignalRadiusScaled + MulDiv(FWPRailWindow.ClientWidth, 10, ZoomScalefactor);
-              Bottom := Signal_LocationY + SignalRadiusScaled;
-            END ELSE
-              IF Signal_Direction = Down THEN BEGIN
-                Left := Signal_LocationX - SignalRadiusScaled - MulDiv(FWPRailWindow.ClientWidth, 10, ZoomScalefactor);
-                Top := Signal_LocationY - SignalRadiusScaled;
-                Right := Signal_LocationX - SignalRadiusScaled;
-                Bottom := Signal_LocationY + Signal_VerticalSpacing - RailWindowBitmapCanvasPenWidth;
-              END;
-          END; {WITH}
+          CalculateSignalPosition(S, ScaleFactor);
         END;
       END; {WITH}
       Inc(S);
     END; {WHILE}
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG CalculateSignalPositions: ' + E.ClassName + ' error raised, with message: ' + E.Message);
+      Log('EG CalculateAllSignalPositions: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
-END; { CalculateSignalPositions }
+END; { CalculateAllSignalPositions }
 
 PROCEDURE CalculateTCAdjacentSignals;
 { Work out which track circuits are next the signal }
@@ -4036,7 +4063,7 @@ BEGIN
   END;
 END; { ValidateSignalOppositePassingLoopSignal }
 
-FUNCTION ValidateSignalOutOfUseAndAddAdjacentTC(S : Integer; Flag : Boolean; AdjacentLine : Integer; OUT AdjacentTC : Integer; OUT ErrorMsg : String) : Boolean;
+FUNCTION ValidateSignalOutOfUseAndAddAdjacentTC(Flag : Boolean; AdjacentLine : Integer; OUT AdjacentTC : Integer; OUT ErrorMsg : String) : Boolean;
 { Validates and if ok returns true if a signal is marked as not in use. This test must be done after Adjacent Signal is validated. }
 BEGIN
 
@@ -4047,9 +4074,7 @@ BEGIN
   IF NOT Flag THEN BEGIN
     AdjacentTC := Lines[AdjacentLine].Line_TC;
     IF AdjacentTC = UnknownTrackCircuit THEN
-      ErrorMsg := 'ValidateSignalOutOfUse: S=' + IntToStr(S) + ' (adjacent to line' + ' ' + LineToStr(AdjacentLine) + ') has no adjacent track circuit';
-// ELSE
-// AppendToIntegerArray(TrackCircuits[Lines[AdjacentLine].Line_TC].TC_AdjacentSignals, S);
+      ErrorMsg := 'ValidateSignalOutOfUse: adjacent to line' + ' ' + LineToStr(AdjacentLine) + ') has no adjacent track circuit';
   END;
 END; { ValidateSignalOutOfUseAndAddAdjacentTC }
 
@@ -4150,20 +4175,16 @@ BEGIN
             Result := ' target for its ' + JunctionIndicatorTypeToStr(TempJunctionIndicator) + ' indicator'
                       + ' (BS' + IntToStr(Signal_JunctionIndicators[TempJunctionIndicator].JunctionIndicator_TargetBufferStop) + ')' + ' is not a valid buffer stop number';
 
-      IF (Signal_NextSignalIfNoIndicator <> UnknownSignal)
-      AND ((Signal_NextSignalIfNoIndicator < 0)
-           OR
-           (Signal_NextSignalIfNoIndicator > High(Signals)))
-      THEN
+      IF (Signal_NextSignalIfNoIndicator <> UnknownSignal) AND ((Signal_NextSignalIfNoIndicator < 0) OR (Signal_NextSignalIfNoIndicator > High(Signals))) THEN
         Result := ' target for next signal if no indicator (S' + IntToStr(Signal_NextSignalIfNoIndicator) + ') is not a valid signal number';
     END; { FOR }
   END; {WITH}
 END; { ValidateIndicatorDestinations }
 
-FUNCTION ValidateSignalDistantHomesArray(Str : String; OUT ErrorMsg : String) : IntegerArrayType;
-{ Validates the signal numbers supplied }
+FUNCTION ValidateSignalDistantHomesArray(S : Integer; Signal_Type : TypeOfSignal; Str : String; OUT ErrorMsg : String) : IntegerArrayType;
+{ Validates the home signal numbers supplied }
 VAR
-  I : Integer;
+  I, J : Integer;
   SignalDataOK : Boolean;
   TempSignal : Integer;
   TempSignalsStrArray : StringArrayType;
@@ -4172,27 +4193,52 @@ BEGIN
   ErrorMsg := '';
   SetLength(Result, 0);
 
-  IF Str <> '' THEN BEGIN
-    ExtractSubStringsFromString(Str, ',', TempSignalsStrArray);
-    I := 0;
-    SignalDataOK := True;
-    WHILE (I <= High(TempSignalsStrArray)) AND SignalDataOK DO BEGIN
-      IF Copy(TempSignalsStrArray[I], 1, 1) <> 'S' THEN
-        ErrorMsg := 'ValidateSignalDistantHomesArray: signal "' + TempSignalsStrArray[I] + '" not preceded by ''S'''
+  IF (Signal_Type <> SemaphoreDistant) AND (Str <> '') THEN
+    ErrorMsg := 'ValidateSignalDistantHomesArray: non-distant semaphore signal ' + IntToStr(S) + ' has home signals connected to it'
+  ELSE BEGIN
+    IF Signal_Type = SemaphoreDistant THEN BEGIN
+      IF Str = '' THEN
+        ErrorMsg := 'ValidateSignalDistantHomesArray: semaphore distant signal ' + IntToStr(S) + ' does not have any home signals connected to it'
       ELSE BEGIN
-        TempSignalsStrArray[I] := Copy(TempSignalsStrArray[I], 2);
-        IF NOT TryStrToInt(Trim(TempSignalsStrArray[I]), TempSignal) THEN
-          ErrorMsg := 'ValidateSignalDistantHomesArray: invalid signal integer string "' + TempSignalsStrArray[I] + '"'
-        ELSE BEGIN
-          IF ValidateSignalNum(TempSignal) = '' THEN BEGIN
-            SignalDataOK := False;
-            ErrorMsg := 'ValidateSignalDistantHomesArray: unknown signal "' + TempSignalsStrArray[I];
-          END ELSE
-            AppendToLocationArray(Result, TempSignal);
+        IF Str <> '' THEN BEGIN
+          ExtractSubStringsFromString(Str, ',', TempSignalsStrArray);
+          I := 0;
+          SignalDataOK := True;
+          WHILE (I <= High(TempSignalsStrArray)) AND SignalDataOK DO BEGIN
+            IF Copy(TempSignalsStrArray[I], 1, 1) <> 'S' THEN
+              ErrorMsg := 'ValidateSignalDistantHomesArray: signal "' + TempSignalsStrArray[I] + '" not preceded by ''S'''
+            ELSE BEGIN
+              TempSignalsStrArray[I] := Copy(TempSignalsStrArray[I], 2);
+              IF NOT TryStrToInt(Trim(TempSignalsStrArray[I]), TempSignal) THEN
+                ErrorMsg := 'ValidateSignalDistantHomesArray: invalid signal integer string "' + TempSignalsStrArray[I] + '"'
+              ELSE
+                { we need to validate the signal number too, but can't do that until all the signals are read in }
+                AppendToLocationArray(Result, TempSignal);
+            END;
+            Inc(I);
+          END; {WHILE}
+
+          { Now check that the supplied homes don't appear in any other DistantHomesArray as a home can't be attached to more than one distant }
+          FOR TempSignal := 0 TO High(Signals) DO BEGIN
+            IF TempSignal <> S THEN BEGIN
+              IF Signals[TempSignal].Signal_Type = SemaphoreDistant THEN BEGIN
+                I := 0;
+                WHILE (I <= High(Signals[TempSignal].Signal_SemaphoreDistantHomesArray)) AND (ErrorMsg = '') DO BEGIN
+                  J := 0;
+                  WHILE (J <= High(Result)) AND (ErrorMsg = '') DO BEGIN
+                    IF Signals[TempSignal].Signal_SemaphoreDistantHomesArray[I] = Result[J] THEN
+                      ErrorMsg := 'ValidateSignalDistantHomesArray: signal ' + IntToStr(Result[J])
+                                  + ' appears in both DistantHomesArray for S' + IntToStr(S) + ' and for S' +  IntToStr(TempSignal);
+                    Inc(J);
+                  END; {WHILE}
+                  Inc(I);
+                END; {WHILE}
+              END;
+            END;
+          END; {FOR}
         END;
       END;
-      Inc(I);
-    END; {WHILE}
+    END;
   END;
 END; { ValidateSignalDistantHomesArray }
 
@@ -4206,9 +4252,12 @@ CONST
   StopTimer = True;
 
 VAR
+  DistantFound : Boolean;
   ErrorMsg : String;
+  I : Integer;
   S : Integer;
   TempLineArray : LineArrayType;
+  TempS : Integer;
   TempStrArray : ARRAY [0..5] OF String;
 
 BEGIN
@@ -4282,7 +4331,7 @@ BEGIN
 
             Signal_Automatic := False; { not yet implemented }
             Signal_DataChanged := False;
-            SetLength(Signal_DistantHomesArray, 0);
+            SetLength(Signal_SemaphoreDistantHomesArray, 0);
             Signal_Energised := False;
             Signal_EnergisedTime := 0;
             Signal_FailedToResetFlag := False;
@@ -4291,6 +4340,7 @@ BEGIN
             Signal_HiddenAspect := NoAspect;
             Signal_IndicatorState := NoIndicatorLit;
             Signal_LampIsOn := True;
+            Signal_LockedBySemaphoreDistant := False;
             Signal_LockFailureNotedInRouteUnit := False;
             Signal_OutOfUseMsgWritten := False;
             SetLength(Signal_LocationsToMonitorArray, 0);
@@ -4303,6 +4353,7 @@ BEGIN
             Signal_PreviousHiddenAspectSignal2 := UnknownSignal;
             Signal_PreviousTheatreIndicatorString := '';
             Signal_ResettingTC := UnknownTrackCircuit;
+            Signal_SemaphoreDistantLocking := UnknownSignal;
             Signal_StateChanged := False;
             Signal_TheatreIndicatorString := '';
             Signal_TRSHeld := False;
@@ -4314,10 +4365,6 @@ BEGIN
 
           IF ErrorMsg = '' THEN
             Signal_Quadrant := ValidateSignalQuadrant(SignalsADOTable.FieldByName(Signal_QuadrantFieldName).AsString, ErrorMsg);
-
-          IF ErrorMsg = '' THEN
-            { this is to indicate which semaphore homes control the distant }
-            Signal_DistantHomesArray := ValidateSignalDistantHomesArray(SignalsADOTable.FieldByName(Signal_DistantHomesArrayFieldName).AsString, ErrorMsg);
 
           IF ErrorMsg = '' THEN BEGIN
             IF SignalsADOTable.FieldByName(Signal_TypeFieldName).AsString = '' THEN
@@ -4392,7 +4439,7 @@ BEGIN
             Signal_AsTheatreDestination := ValidateSignalAsTheatreDestination(SignalsADOTable.FieldByName(Signal_AsTheatreDestinationFieldName).AsString, ErrorMsg);
 
           IF ErrorMsg = '' THEN
-            Signal_OutOfUse := ValidateSignalOutOfUseAndAddAdjacentTC(S, SignalsADOTable.FieldByName(Signal_OutOfUseFieldName).AsBoolean, Signal_AdjacentLine,
+            Signal_OutOfUse := ValidateSignalOutOfUseAndAddAdjacentTC(SignalsADOTable.FieldByName(Signal_OutOfUseFieldName).AsBoolean, Signal_AdjacentLine,
                                                                       Signal_AdjacentTC, ErrorMsg);
           IF ErrorMsg = '' THEN
             Signal_Notes := SignalsADOTable.FieldByName(Signal_NotesFieldName).AsString;
@@ -4429,6 +4476,10 @@ BEGIN
           IF ErrorMsg = '' THEN
             Signal_Automatic := SignalsADOTable.FieldByName(Signal_AutomaticFieldName).AsBoolean;
 
+          IF ErrorMsg = '' THEN
+            Signals[S].Signal_SemaphoreDistantHomesArray := ValidateSignalDistantHomesArray(S, Signal_Type,
+                                                                                 SignalsADOTable.FieldByName(Signal_SemaphoreDistantHomesArrayFieldName).AsString, ErrorMsg);
+
           IF Signal_PossibleRouteHold AND Signal_PossibleStationStartRouteHold THEN
             { both shouldn't be ticked }
             ErrorMsg := 'route hold and station start route hold are both ticked';
@@ -4436,7 +4487,7 @@ BEGIN
           IF ErrorMsg = '' THEN BEGIN
             { The two following arrays sound similar but serve different purposes - RouteLockingNeededArray covers the lines, track circuits, points, etc. ahead that must
               be locked before a signal can be pulled off; Signal_LockedArray shows whether a signal is locked either by a specific route or by a user.
- }
+            }
             SetLength(Signal_RouteLockingNeededArray, 0);
             SetLength(Signal_LockedArray, 0);
           END ELSE BEGIN
@@ -4465,11 +4516,44 @@ BEGIN
     WHILE (S <= High(Signals)) AND (ErrorMsg = '') DO BEGIN
       WITH Signals[S] DO BEGIN
         ErrorMsg := ValidateSignalNum(Signal_NextSignalIfNoIndicator);
-        ErrorMsg := ValidateSignalNum(Signal_OppositePassingLoopSignal);
+
+        IF ErrorMsg = '' THEN
+          ErrorMsg := ValidateSignalNum(Signal_OppositePassingLoopSignal);
+
+        IF ErrorMsg = '' THEN BEGIN
+          { we also need to validate the signals held in the DistantHomesArrays }
+          I := 0;
+          WHILE (I <= High(Signals[S].Signal_SemaphoreDistantHomesArray)) AND (ErrorMsg = '') DO BEGIN
+            ErrorMsg := ValidateSignalNum(Signals[S].Signal_SemaphoreDistantHomesArray[I]);
+            Inc(I);
+          END; {WHILE}
+        END;
+
         IF ErrorMsg = '' THEN
           Inc(S);
       END; {WITH}
     END; {WHILE}
+
+    IF ErrorMsg = '' THEN BEGIN
+      { And add locking semaphore distants to records for semaphore homes }
+      S := 0;
+      WHILE S <= High(Signals) DO BEGIN
+        IF Signals[S].Signal_Type = SemaphoreHome THEN BEGIN
+          TempS := 0;
+          DistantFound := False;
+          WHILE (TempS <= High(Signals)) AND NOT DistantFound DO BEGIN
+            IF Signals[TempS].Signal_Type = SemaphoreDistant THEN BEGIN
+              IF IsElementInIntegerArray(Signals[TempS].Signal_SemaphoreDistantHomesArray, S) THEN BEGIN
+                Signals[S].Signal_SemaphoreDistantLocking := TempS;
+                DistantFound := True;
+              END;
+            END;
+            Inc(TempS);
+          END; {WHILE}
+        END;
+        Inc(S);
+      END; {WHILE}
+    END;
 
     { Check that indicator destinations are valid. (We can only do this once all the signal details are read in, too). }
     IF ErrorMsg = '' THEN BEGIN
@@ -4491,7 +4575,7 @@ BEGIN
         ShutDownProgram(UnitRef, 'ReadInSignalDataFromDatabase 2');
 
     CalculateTCAdjacentSignals;
-    CalculateSignalPositions(ZoomScalefactor);
+    CalculateAllSignalPositions(ZoomScalefactor);
   EXCEPT {TRY}
     ON E : Exception DO
       Log('EG ReadInSignalDataFromDatabase: ' + E.ClassName + ' error raised, with message: ' + E.Message);
@@ -4534,8 +4618,8 @@ BEGIN
   END; {TRY}
 END; { AddNewRecordToSignalDatabase }
 
-FUNCTION DeleteRecordFromSignalDatabaseAndRenumberSignals(SignalNumToDelete : Integer) : Boolean;
-{ Remove a record from the signal database }
+FUNCTION DeleteRecordFromSignalDatabaseAndRenumberSignals(SignalToDeleteNum : Integer) : Boolean;
+{ Remove a record from the signal database. (Checks have already been made in Edit as to whether ir can be deleted). }
 VAR
   S : Integer;
 
@@ -4558,22 +4642,24 @@ BEGIN
                                                + ';Persist Security Info=False';
       SignalsADOConnection.Connected := True;
       SignalsADOTable.Open;
-      IF NOT SignalsADOTable.Locate(Signal_NumberFieldName, IntToStr(SignalNumToDelete), []) THEN BEGIN
-        Log('S Signal data table and connection opened to delete S=' + IntToStr(SignalNumToDelete) + ' but it cannot be found');
+      IF NOT SignalsADOTable.Locate(Signal_NumberFieldName, IntToStr(SignalToDeleteNum), []) THEN BEGIN
+        Log('S Signal data table and connection opened to delete S=' + IntToStr(SignalToDeleteNum) + ' but it cannot be found');
       END ELSE BEGIN
-        Log('S Signal data table and connection opened to delete S=' + IntToStr(SignalNumToDelete));
+        Log('S Signal data table and connection opened to delete S=' + IntToStr(SignalToDeleteNum));
+
+        { Now delete the signal - we have already checked, in the Edit unit, whether deleting it is will cause knock-on problems with other signals }
         SignalsADOTable.Delete;
-        Log('SG S=' + IntToStr(SignalNumToDelete) + ' has been deleted');
+        Log('SG S=' + IntToStr(SignalToDeleteNum) + ' has been deleted');
 
         { Now renumber the rest }
         SignalsADOTable.Edit;
 
-        S := SignalNumToDelete + 1;
+        S := SignalToDeleteNum + 1;
         Log('S Signal data table and connection opened to write out signal data that has changed');
         IF NOT SignalsADOTable.Locate(Signal_NumberFieldName, IntToStr(S), []) THEN
           Log('SG Cannot renumber subsequent signals as there aren''t any')
         ELSE BEGIN
-          S := SignalNumToDelete - 1;
+          S := SignalToDeleteNum - 1;
           WHILE NOT SignalsADOTable.EOF DO BEGIN
             Inc(S);
 
@@ -4584,7 +4670,7 @@ BEGIN
             SignalsADOTable.Next;
           END; {WHILE}
         END;
-        Log('S Recording in Signal database that signals S=' + IntToStr(SignalNumToDelete) + ' to S=' + IntToStr(S) + ' have been renumbered');
+        Log('S Recording in Signal database that signals S=' + IntToStr(SignalToDeleteNum) + ' to S=' + IntToStr(S) + ' have been renumbered');
         Result := True;
       END;
 
@@ -4602,6 +4688,7 @@ END; { DeleteRecordFromSignalDatabaseAndRenumberSignals }
 PROCEDURE WriteOutSignalDataToDatabase;
 { If a Signal's data has been changed, record it in the database }
 VAR
+  DebugStr : String;
   I : Integer;
   JunctionIndicatorStr : String;
   S : Integer;
@@ -4671,6 +4758,20 @@ BEGIN
               SignalsADOTable.Edit;
               SignalsADOTable.FieldByName(Signal_ApproachControlAspectFieldName).AsString := TempStr;
               SignalsADOTable.Post;
+
+              DebugStr := '';
+              IF Length(Signals[S].Signal_SemaphoreDistantHomesArray) > 0 THEN BEGIN
+                DebugStr := 'S' + IntToStr(Signals[S].Signal_SemaphoreDistantHomesArray[0]);
+                IF Length(Signals[S].Signal_SemaphoreDistantHomesArray) > 1 THEN BEGIN
+                  FOR I := 1 TO High(Signals[S].Signal_SemaphoreDistantHomesArray) DO
+                    DebugStr := DebugStr + ', S' + IntToStr(Signals[S].Signal_SemaphoreDistantHomesArray[I]);
+                END;
+              END;
+              Log('S Recording in Signal database that S=' + IntToStr(S) + ' ' + Signal_SemaphoreDistantHomesArrayFieldName + ' contains ''' + DebugStr + '''');
+              SignalsADOTable.Edit;
+              SignalsADOTable.FieldByName(Signal_SemaphoreDistantHomesArrayFieldName).AsString := DebugStr;
+              SignalsADOTable.Post;
+
 
               Log('S Recording in Signal database that S=' + IntToStr(S) + ' ' + Signal_AsTheatreDestinationFieldName + ' is ''' + Signal_AsTheatreDestination + '''');
               SignalsADOTable.Edit;
@@ -4801,9 +4902,11 @@ BEGIN
               IF Length(Signal_LocationsToMonitorArray) > 0 THEN
                 FOR I := 0 TO High(Signal_LocationsToMonitorArray) DO
                   TempStr := TempStr + Locations[Signal_LocationsToMonitorArray[I]].Location_LongStr + ',';
+
               { and remove the comma at the end of the String, if any }
               IF Copy(TempStr, Length(TempStr), 1) = ',' THEN
                 TempStr := Copy(TempStr, 1, Length(TempStr) - 1);
+
               { also remove any spaces in the text - this will help to get around the 250 character length restriction in MSAccess fields }
               TempStr := ReplaceText(TempStr, ' ', '');
               Log('S Recording in Signal database that S=' + IntToStr(S) + ' ' + Signal_LocationsToMonitorFieldName + ' is ''' + TempStr + '''');
@@ -4811,11 +4914,13 @@ BEGIN
               SignalsADOTable.FieldByName(Signal_LocationsToMonitorFieldName).AsString := TempStr;
               SignalsADOTable.Post;
 
-              Log('S Recording in Signal database that S=' + IntToStr(S) + ' ' + Signal_NextSignalIfNoIndicatorFieldName
-                     + ' is ''' + IntToStr(Signal_NextSignalIfNoIndicator) + '''');
               TempStr := IntToStr(Signal_NextSignalIfNoIndicator);
               IF TempStr = IntToStr(UnknownSignal) THEN
-                TempStr := '';
+                { the database records unknown signal as a space in this field }
+                TempStr := ''
+              ELSE
+                TempStr := 'S' + TempStr;
+              Log('S Recording in Signal database that S=' + IntToStr(S) + ' ' + Signal_NextSignalIfNoIndicatorFieldName + ' is ''' + TempStr + '''');
               SignalsADOTable.Edit;
               SignalsADOTable.FieldByName(Signal_NextSignalIfNoIndicatorFieldName).AsString := TempStr;
               SignalsADOTable.Post;
@@ -4830,14 +4935,14 @@ BEGIN
               SignalsADOTable.Edit;
               SignalsADOTable.FieldByName(Signal_NotesFieldName).AsString := Signal_Notes;
               SignalsADOTable.Post;
-              Log('S Recording in Signal database that S=' + IntToStr(S) + ' ' + Signal_OppositePassingLoopSignalFieldName
-                     + ' is ''' + IntToStr(Signal_OppositePassingLoopSignal) + '''');
+
               TempStr := IntToStr(Signal_OppositePassingLoopSignal);
               IF TempStr = IntToStr(UnknownSignal) THEN
                 { the database records unknown signal as a space in this field }
                 TempStr := ''
               ELSE
                 TempStr := 'S' + TempStr;
+              Log('S Recording in Signal database that S=' + IntToStr(S) + ' ' + Signal_OppositePassingLoopSignalFieldName + ' is ''' + TempStr + '''');
               SignalsADOTable.Edit;
               SignalsADOTable.FieldByName(Signal_OppositePassingLoopSignalFieldName).AsString := TempStr;
               SignalsADOTable.Post;
@@ -4897,7 +5002,7 @@ BEGIN
 END; { WriteOutSignalDataToDatabase }
 
 FUNCTION GetLineAdjacentSignal(Line : Integer) : Integer;
-{ Return the signal nearest the line }
+{ Return the signal nearest the line, except for semphore distants as they are treated differently }
 VAR
   Found : Boolean;
   S : Integer;
@@ -4908,11 +5013,10 @@ BEGIN
 
   S := 0;
   WHILE (S <= High(Signals)) AND NOT Found DO BEGIN
-    IF Signals[S].Signal_AdjacentLine = Line THEN BEGIN
+    IF (Signals[S].Signal_Type <> SemaphoreDistant) AND (Signals[S].Signal_AdjacentLine = Line) THEN BEGIN
       Found := True;
       Result := S;
-    END
-    ELSE
+    END ELSE
       Inc(S);
   END; {WHILE}
 END; { GetLineAdjacentSignal }
@@ -5464,7 +5568,6 @@ BEGIN
           IF ErrorMsg = '' THEN
             Point_LastManualStateAsReadIn := ValidateLastPointManualStateAsReadIn(PointsADOTable.FieldByName(Point_LastManualStateAsReadInFieldName).AsString,
                                                                                   Point_ManualOperation, ErrorMsg);
-
           IF ErrorMsg = '' THEN
             Point_LenzNum := ValidatePointLenzNum(PointsADOTable.FieldByName(Point_LenzNumFieldName).AsString, Point_LastManualStateAsReadIn, Point_ManualOperation,
                                                   Point_PresentState, ErrorMsg);

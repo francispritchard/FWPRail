@@ -273,9 +273,7 @@ END; { EnableFunctionBoxes }
 PROCEDURE TLocoDialogueWindow.LocoDialogueWindowMouseMove(Sender: TObject; ShiftState: TShiftState; X, Y: Integer);
 { If the mouse moves into the dialogue window, move the focus there }
 BEGIN
-  IF NOT KeyboardAndMouseLocked
-  AND (LocoDialogueWindow <> NIL)
-  THEN BEGIN
+  IF NOT KeyboardAndMouseLocked AND (LocoDialogueWindow <> NIL) THEN BEGIN
     IF NOT LocoDialogueWindow.Active THEN
       LocoDialogueWindow.SetFocus;
   END;
@@ -312,9 +310,7 @@ BEGIN
 
     IF LocoDialogueLocoMaskEdit.Text <> '' THEN BEGIN
       LocoDialogueLocoIndex := 0;
-      WHILE (LocoDialogueLocoIndex <= High(Locos))
-      AND NOT (LocoDialogueLocoIndexFound)
-      DO BEGIN
+      WHILE (LocoDialogueLocoIndex <= High(Locos)) AND NOT (LocoDialogueLocoIndexFound) DO BEGIN
         IF Locos[LocoDialogueLocoIndex].Loco_LocoChip <> StrToInt(LocoDialogueLocoMaskEdit.Text) THEN BEGIN
           LocoDialogueChangeOrSelectButton.Enabled := False;
           Inc(LocoDialogueLocoIndex);
@@ -347,9 +343,7 @@ BEGIN
       LocoDialogueDownButton.Enabled := True;
     END ELSE BEGIN
       LocoDialogueDoubleHeaderLocoIndex := 0;
-      WHILE (LocoDialogueDoubleHeaderLocoIndex <= High(Locos))
-      AND NOT (LocoDialogueDoubleHeaderLocoIndexFound)
-      DO BEGIN
+      WHILE (LocoDialogueDoubleHeaderLocoIndex <= High(Locos)) AND NOT (LocoDialogueDoubleHeaderLocoIndexFound) DO BEGIN
         IF Locos[LocoDialogueDoubleHeaderLocoIndex].Loco_LocoChip <> StrToInt(LocoDialogueDHLocoMaskEdit.Text) THEN BEGIN
           LocoDialogueChangeOrSelectButton.Enabled := False;
           Inc(LocoDialogueDoubleHeaderLocoIndex);
@@ -393,7 +387,7 @@ BEGIN
         IF Loco_LightsType <> NoLights THEN
           LocoDialogueTurnLightsOnOrOffButton.Enabled := True;
 
-        GetLocoFunctions(LocoDialogueLocoIndex, NOT ForceARead, FunctionsArray, OK);
+        GetLocoFunctions(Locos[LocoDialogueLocoIndex], NOT ForceARead, FunctionsArray, OK);
 
         IF FunctionsArray[0] THEN BEGIN
           IF (Loco_LightsType = HeadlightsAndTailLightsConnected)
@@ -496,7 +490,7 @@ BEGIN
       IF LocoDialogueLocoIndexFound THEN BEGIN
         WITH Locos[LocoDialogueLocoIndex] dO BEGIN
           LocoDialogueLocoChip := Loco_LocoChip;
-          LocoDialogueLocoSpeed := GetLenzSpeed(LocoDialogueLocoIndex, ForceARead);
+          LocoDialogueLocoSpeed := GetLenzSpeed(Locos[LocoDialogueLocoIndex], ForceARead);
           IF (LocoDialogueLocoSpeed > 0) AND (LocoDialogueLocoSpeed < 29) THEN BEGIN
             LocoDialogueUpButton.Enabled := True;
             LocoDialogueDownButton.Enabled := True;
@@ -627,11 +621,14 @@ BEGIN
   IF LocoDialogueLocoIndexFound THEN BEGIN
     WITH LocoDialogueWindow DO BEGIN
       LocoDialogueDownButton.Enabled := False;
-      SetLenzSpeedAndDirection(LocoDialogueLocoIndex, QuickStop, Locos[LocoDialogueLocoIndex].Loco_CurrentDirection, OK);
+      WITH Locos[LocoDialogueLocoIndex] DO
+        SetLenzSpeedAndDirection(Locos[LocoDialogueLocoIndex], QuickStop, Loco_CurrentDirection, OK);
       IF LocoDialogueDoubleHeaderLocoIndexFound THEN
-        SetLenzSpeedAndDirection(LocoDialogueDoubleHeaderLocoIndex, QuickStop, Locos[LocoDialogueLocoIndex].Loco_CurrentDirection, OK);
+        WITH Locos[LocoDialogueDoubleHeaderLocoIndex] DO
+          SetLenzSpeedAndDirection(Locos[LocoDialogueDoubleHeaderLocoIndex], QuickStop, Loco_CurrentDirection, OK);
 
-      LocoDialogueLocoSpeed := GetLenzSpeed(LocoDialogueLocoIndex, ForceARead);
+      WITH Locos[LocoDialogueLocoIndex] DO
+        LocoDialogueLocoSpeed := GetLenzSpeed(Locos[LocoDialogueLocoIndex], ForceARead);
       IF LocoDialogueLocoSpeed <> 0 THEN
         Log('XG Emergency stop - speed is still ' + IntToStr(LocoDialogueLocoSpeed));
       IF NOT LocoDialogueSpeedInMPH THEN
@@ -724,9 +721,7 @@ BEGIN
 //  ClientHeight := 425;
 
   IF LocoDialogueLocoIndexFound THEN BEGIN
-    IF (SaveLocoDialogueMaskEditText <> '')
-    AND (StrToInt(SaveLocoDialogueMaskEditText) <> 0)
-    THEN BEGIN
+    IF (SaveLocoDialogueMaskEditText <> '') AND (StrToInt(SaveLocoDialogueMaskEditText) <> 0) THEN BEGIN
       { display the same number in the edit box }
       LocoDialogueLocoMaskEdit.Text := SaveLocoDialogueMaskEditText;
       LocoDialogueChangeOrSelectButton.Caption := 'Deselect &Loco 1';
@@ -773,7 +768,8 @@ BEGIN
   END; {CASE}
 END; { LocoDialogueDHLocoMaskEditKeyPress }
 
-PROCEDURE TLocoDialogueWindow.LocoDialogueFunction0CheckBoxClick(Sender: TObject);
+PROCEDURE FunctionCheckBoxClick(Checked : Boolean; FunctionNum : Integer);
+{ Deal with function check boxes being ticked }
 CONST
   TurnOn = True;
 
@@ -783,229 +779,82 @@ VAR
 BEGIN
   LocoTakenOver := False;
 
-  IF LocoDialogueFunction0CheckBox.Checked THEN
-    SetSingleLocoFunction(LocoDialogueLocoIndex, Function0, TurnOn, OK)
-  ELSE
-    SetSingleLocoFunction(LocoDialogueLocoIndex, Function0, NOT TurnOn, OK);
+  IF LocoDialogueLocoIndexFound THEN BEGIN
+    WITH Locos[LocoDialogueLocoIndex] DO BEGIN
+      IF Checked THEN
+        SetSingleLocoFunction(Locos[LocoDialogueLocoIndex], FunctionNum, TurnOn, OK)
+      ELSE
+        SetSingleLocoFunction(Locos[LocoDialogueLocoIndex], FunctionNum, NOT TurnOn, OK);
+    END; {WITH}
+  END;
 
-  LocoDialogueEmergencyStopButton.SetFocus;
-END; { LocoDialogueFunction0Click }
+  LocoDialogueWindow.LocoDialogueEmergencyStopButton.SetFocus;
+END; { FunctionCheckBoxClick }
+
+PROCEDURE TLocoDialogueWindow.LocoDialogueFunction0CheckBoxClick(Sender: TObject);
+BEGIN
+  FunctionCheckBoxClick(LocoDialogueFunction0CheckBox.Checked, Function0);
+END; { LocoDialogueFunction0CheckBoxClick }
 
 PROCEDURE TLocoDialogueWindow.LocoDialogueFunction1CheckBoxClick(Sender: TObject);
-CONST
-  TurnOn = True;
-
-VAR
-  OK : Boolean;
-
 BEGIN
-  LocoTakenOver := False;
-
-  IF LocoDialogueFunction1CheckBox.Checked THEN
-    SetSingleLocoFunction(LocoDialogueLocoIndex, Function1, TurnOn, OK)
-  ELSE
-    SetSingleLocoFunction(LocoDialogueLocoIndex, Function1, NOT TurnOn, OK);
-
-  LocoDialogueEmergencyStopButton.SetFocus;
-END; { LocoDialogueFunction1Click }
+  FunctionCheckBoxClick(LocoDialogueFunction1CheckBox.Checked, Function1);
+END; { LocoDialogueFunction1CheckBoxClick }
 
 PROCEDURE TLocoDialogueWindow.LocoDialogueFunction2CheckBoxClick(Sender: TObject);
-CONST
-  TurnOn = True;
-
-VAR
-  OK : Boolean;
-
 BEGIN
-  LocoTakenOver := False;
-
-  IF LocoDialogueFunction2CheckBox.Checked THEN
-    SetSingleLocoFunction(LocoDialogueLocoIndex, Function2, TurnOn, OK)
-  ELSE
-    SetSingleLocoFunction(LocoDialogueLocoIndex, Function2, NOT TurnOn, OK);
-
-  LocoDialogueEmergencyStopButton.SetFocus;
-END; { LocoDialogueFunction2Click }
+  FunctionCheckBoxClick(LocoDialogueFunction2CheckBox.Checked, Function2);
+END; { LocoDialogueFunction2CheckBoxClick }
 
 PROCEDURE TLocoDialogueWindow.LocoDialogueFunction3CheckBoxClick(Sender: TObject);
-CONST
-  TurnOn = True;
-
-VAR
-  OK : Boolean;
-
 BEGIN
-  LocoTakenOver := False;
-
-  IF LocoDialogueFunction3CheckBox.Checked THEN
-    SetSingleLocoFunction(LocoDialogueLocoIndex, Function3, TurnOn, OK)
-  ELSE
-    SetSingleLocoFunction(LocoDialogueLocoIndex, Function3, NOT TurnOn, OK);
-
-  LocoDialogueEmergencyStopButton.SetFocus;
-END; { LocoDialogueFunction3Click }
+  FunctionCheckBoxClick(LocoDialogueFunction3CheckBox.Checked, Function3);
+END; { LocoDialogueFunction3CheckBoxClick }
 
 PROCEDURE TLocoDialogueWindow.LocoDialogueFunction4CheckBoxClick(Sender: TObject);
-CONST
-  TurnOn = True;
-
-VAR
-  OK : Boolean;
-
 BEGIN
-  LocoTakenOver := False;
-
-  IF LocoDialogueFunction4CheckBox.Checked THEN
-    SetSingleLocoFunction(LocoDialogueLocoIndex, Function4, TurnOn, OK)
-  ELSE
-    SetSingleLocoFunction(LocoDialogueLocoIndex, Function4, NOT TurnOn, OK);
-
-  LocoDialogueEmergencyStopButton.SetFocus;
-END; { LocoDialogueFunction4Click }
+  FunctionCheckBoxClick(LocoDialogueFunction4CheckBox.Checked, Function4);
+END; { LocoDialogueFunction4CheckBoxClick }
 
 PROCEDURE TLocoDialogueWindow.LocoDialogueFunction5CheckBoxClick(Sender: TObject);
-CONST
-  TurnOn = True;
-
-VAR
-  OK : Boolean;
-
 BEGIN
-  LocoTakenOver := False;
-
-  IF LocoDialogueFunction5CheckBox.Checked THEN
-    SetSingleLocoFunction(LocoDialogueLocoIndex, Function5, TurnOn, OK)
-  ELSE
-    SetSingleLocoFunction(LocoDialogueLocoIndex, Function5, NOT TurnOn, OK);
-
-  LocoDialogueEmergencyStopButton.SetFocus;
-END; { LocoDialogueFunction5Click }
+  FunctionCheckBoxClick(LocoDialogueFunction5CheckBox.Checked, Function5);
+END; { LocoDialogueFunction5CheckBoxClick }
 
 PROCEDURE TLocoDialogueWindow.LocoDialogueFunction6CheckBoxClick(Sender: TObject);
-CONST
-  TurnOn = True;
-
-VAR
-  OK : Boolean;
-
 BEGIN
-  LocoTakenOver := False;
-
-  IF LocoDialogueFunction6CheckBox.Checked THEN
-    SetSingleLocoFunction(LocoDialogueLocoIndex, Function6, TurnOn, OK)
-  ELSE
-    SetSingleLocoFunction(LocoDialogueLocoIndex, Function6, NOT TurnOn, OK);
-
-  LocoDialogueEmergencyStopButton.SetFocus;
-END; { LocoDialogueFunction6Click }
+  FunctionCheckBoxClick(LocoDialogueFunction6CheckBox.Checked, Function6);
+END; { LocoDialogueFunction6CheckBoxClick }
 
 PROCEDURE TLocoDialogueWindow.LocoDialogueFunction7CheckBoxClick(Sender: TObject);
-CONST
-  TurnOn = True;
-
-VAR
-  OK : Boolean;
-
 BEGIN
-  LocoTakenOver := False;
-
-  IF LocoDialogueFunction7CheckBox.Checked THEN
-    SetSingleLocoFunction(LocoDialogueLocoIndex, Function7, TurnOn, OK)
-  ELSE
-    SetSingleLocoFunction(LocoDialogueLocoIndex, Function7, NOT TurnOn, OK);
-
-  LocoDialogueEmergencyStopButton.SetFocus;
-END; { LocoDialogueFunction7Click }
+  FunctionCheckBoxClick(LocoDialogueFunction7CheckBox.Checked, Function7);
+END; { LocoDialogueFunction7CheckBoxClick }
 
 PROCEDURE TLocoDialogueWindow.LocoDialogueFunction8CheckBoxClick(Sender: TObject);
-CONST
-  TurnOn = True;
-
-VAR
-  OK : Boolean;
-
 BEGIN
-  LocoTakenOver := False;
-
-  IF LocoDialogueFunction8CheckBox.Checked THEN
-    SetSingleLocoFunction(LocoDialogueLocoIndex, Function8, TurnOn, OK)
-  ELSE
-    SetSingleLocoFunction(LocoDialogueLocoIndex, Function8, NOT TurnOn, OK);
-
-  LocoDialogueEmergencyStopButton.SetFocus;
-END; { LocoDialogueFunction8Click }
+  FunctionCheckBoxClick(LocoDialogueFunction8CheckBox.Checked, Function8);
+END; { LocoDialogueFunction8CheckBoxClick }
 
 PROCEDURE TLocoDialogueWindow.LocoDialogueFunction9CheckBoxClick(Sender: TObject);
-CONST
-  TurnOn = True;
-
-VAR
-  OK : Boolean;
-
 BEGIN
-  LocoTakenOver := False;
-
-  IF LocoDialogueFunction9CheckBox.Checked THEN
-    SetSingleLocoFunction(LocoDialogueLocoIndex, Function9, TurnOn, OK)
-  ELSE
-    SetSingleLocoFunction(LocoDialogueLocoIndex, Function9, NOT TurnOn, OK);
-
-  LocoDialogueEmergencyStopButton.SetFocus;
-END; { LocoDialogueFunction9Click }
+  FunctionCheckBoxClick(LocoDialogueFunction9CheckBox.Checked, Function9);
+END; { LocoDialogueFunction9CheckBoxClick }
 
 PROCEDURE TLocoDialogueWindow.LocoDialogueFunction10CheckBoxClick(Sender: TObject);
-CONST
-  TurnOn = True;
-
-VAR
-  OK : Boolean;
-
 BEGIN
-  LocoTakenOver := False;
-
-  IF LocoDialogueFunction10CheckBox.Checked THEN
-    SetSingleLocoFunction(LocoDialogueLocoIndex, Function10, TurnOn, OK)
-  ELSE
-    SetSingleLocoFunction(LocoDialogueLocoIndex, Function10, NOT TurnOn, OK);
-
-  LocoDialogueEmergencyStopButton.SetFocus;
-END; { LocoDialogueFunction10Click }
+  FunctionCheckBoxClick(LocoDialogueFunction10CheckBox.Checked, Function10);
+END; { LocoDialogueFunction10CheckBoxClick }
 
 PROCEDURE TLocoDialogueWindow.LocoDialogueFunction11CheckBoxClick(Sender: TObject);
-CONST
-  TurnOn = True;
-
-VAR
-  OK : Boolean;
-
 BEGIN
-  LocoTakenOver := False;
-
-  IF LocoDialogueFunction11CheckBox.Checked THEN
-    SetSingleLocoFunction(LocoDialogueLocoIndex, Function11, TurnOn, OK)
-  ELSE
-    SetSingleLocoFunction(LocoDialogueLocoIndex, Function11, NOT TurnOn, OK);
-
-  LocoDialogueEmergencyStopButton.SetFocus;
-END; { LocoDialogueFunction11Click }
+  FunctionCheckBoxClick(LocoDialogueFunction11CheckBox.Checked, Function11);
+END; { LocoDialogueFunction11CheckBoxClick }
 
 PROCEDURE TLocoDialogueWindow.LocoDialogueFunction12CheckBoxClick(Sender: TObject);
-CONST
-  TurnOn = True;
-
-VAR
-  OK : Boolean;
-
 BEGIN
-  LocoTakenOver := False;
-
-  IF LocoDialogueFunction12CheckBox.Checked THEN
-    SetSingleLocoFunction(LocoDialogueLocoIndex, Function12, TurnOn, OK)
-  ELSE
-    SetSingleLocoFunction(LocoDialogueLocoIndex, Function12, NOT TurnOn, OK);
-
-  LocoDialogueEmergencyStopButton.SetFocus;
-END; { LocoDialogueFunction12Click }
+  FunctionCheckBoxClick(LocoDialogueFunction12CheckBox.Checked, Function12);
+END; { LocoDialogueFunction12CheckBoxClick }
 
 PROCEDURE IncrementSpeedInMPH;
 { Increase the speed in MPH and also check whether the maximum speed has been reached }
@@ -1234,8 +1083,7 @@ BEGIN
   WITH LocoDialogueWindow DO BEGIN
     { Only allow mouse speed changes if the loco-speed buttons are enabled }
     IF LocoDialogueLocoIndexFound
-    AND (LocoDialogueUpButton.Enabled
-         OR LocoDialogueDownButton.Enabled)
+    AND (LocoDialogueUpButton.Enabled OR LocoDialogueDownButton.Enabled)
     THEN BEGIN
       IF LocoDialogueSpeedInMPH THEN BEGIN
         SaveLocoSpeed := LocoDialogueLocoSpeed;
@@ -1243,9 +1091,7 @@ BEGIN
         { If there's a small movement of the wheel (usually WheelDelta = 120 or -120), reduce the amount of speed increase/decrease, or the loco speeds up or slows down
           too quickly.
         }
-        IF (WheelDelta > -240)
-        AND (WheelDelta < 240)
-        THEN
+        IF (WheelDelta > -240) AND (WheelDelta < 240) THEN
           IF MilliSecondsBetween(Time, SaveWheelTime) < 200 THEN
             Exit;
 
@@ -1258,9 +1104,11 @@ BEGIN
             DecrementSpeedInMPH;
 
         IF SaveLocoSpeed <> LocoDialogueLocoSpeed THEN BEGIN
-          SetLenzSpeedAndDirection(LocoDialogueLocoIndex, LocoDialogueLocoSpeed, Locos[LocoDialogueLocoIndex].Loco_CurrentDirection, OK);
+          WITH Locos[LocoDialogueLocoIndex] DO
+            SetLenzSpeedAndDirection(Locos[LocoDialogueLocoIndex], LocoDialogueLocoSpeed, Loco_CurrentDirection, OK);
           IF LocoDialogueDoubleHeaderLocoIndexFound THEN
-            SetLenzSpeedAndDirection(LocoDialogueDoubleHeaderLocoIndex, LocoDialogueLocoSpeed, Locos[LocoDialogueLocoIndex].Loco_CurrentDirection, OK);
+            WITH Locos[LocoDialogueDoubleHeaderLocoIndex] DO
+              SetLenzSpeedAndDirection(Locos[LocoDialogueDoubleHeaderLocoIndex], LocoDialogueLocoSpeed, Loco_CurrentDirection, OK);
         END;
       END ELSE BEGIN
         SaveLocoSpeed := LocoDialogueLocoSpeed;
@@ -1268,9 +1116,7 @@ BEGIN
         { If there's a small movement of the wheel (usually WheelDelta = 120 or -120), reduce the amount of speed increase/decrease, or the loco speeds up or slows down
           too quickly.
         }
-        IF (WheelDelta > -240)
-        AND (WheelDelta < 240)
-        THEN
+        IF (WheelDelta > -240) AND (WheelDelta < 240) THEN
           IF MilliSecondsBetween(Time, SaveWheelTime) < 200 THEN
             Exit;
 
@@ -1290,9 +1136,11 @@ BEGIN
             LocoDialogueLocoSpeed := 28;
 
         IF SaveLocoSpeed <> LocoDialogueLocoSpeed THEN BEGIN
-          SetLenzSpeedAndDirection(LocoDialogueLocoIndex, LocoDialogueLocoSpeed, Locos[LocoDialogueLocoIndex].Loco_CurrentDirection, OK);
+          WITH Locos[LocoDialogueLocoIndex] DO
+            SetLenzSpeedAndDirection(Locos[LocoDialogueLocoIndex], LocoDialogueLocoSpeed, Loco_CurrentDirection, OK);
           IF LocoDialogueDoubleHeaderLocoIndexFound THEN
-            SetLenzSpeedAndDirection(LocoDialogueDoubleHeaderLocoIndex, LocoDialogueLocoSpeed, Locos[LocoDialogueLocoIndex].Loco_CurrentDirection, OK);
+            WITH Locos[LocoDialogueDoubleHeaderLocoIndex] DO
+              SetLenzSpeedAndDirection(Locos[LocoDialogueDoubleHeaderLocoIndex], LocoDialogueLocoSpeed, Loco_CurrentDirection, OK);
         END;
 
         IF OK THEN BEGIN
@@ -1361,14 +1209,12 @@ BEGIN
   IF SystemOnline THEN BEGIN { needs to do something if we're offline ****** }
     IF LocoDialogueLocoIndexFound THEN BEGIN
       WITH Locos[LocoDialogueLocoIndex] DO BEGIN
-        IF (Loco_ControlState = ControlledByUser)
-        AND (Loco_PreviousControlState <> ControlledByUser)
-        THEN
+        IF (Loco_ControlState = ControlledByUser) AND (Loco_PreviousControlState <> ControlledByUser) THEN
           LocoDialogueSpeedDisplay.Font.Color := clBtnText;
 
         IF (Loco_ControlState = ControlledByUser) THEN BEGIN
           { update the speed info }
-          LocoDialogueLocoSpeed := GetLenzSpeed(LocoDialogueLocoIndex, ForceARead);
+          LocoDialogueLocoSpeed := GetLenzSpeed(Locos[LocoDialogueLocoIndex], ForceARead);
           LocoDialogueSpeedDisplay.Caption := IntToStr(LocoDialogueLocoSpeed);
           LocoDialogueSpeedDisplay.Font.Color := clBtnShadow;
 
@@ -1438,9 +1284,7 @@ END; { LocoDialogueMouseDown }
 PROCEDURE CheckEmergencyStop(Button: TMouseButton; ShiftState: TShiftState);
 { Sees if there's an emergency stop occasioned by the right mouse button being pressed }
 BEGIN
-  IF (Button = mbRight)
-  AND (ShiftState = [ssRight])
-  THEN
+  IF (Button = mbRight) AND (ShiftState = [ssRight]) THEN
     { it's an emergency stop }
     EmergencyStopInLocoDialogue;
 END; { CheckEmergencyStop }
@@ -1469,33 +1313,37 @@ BEGIN
         LocoDialogueLocoSpeed := SpeedInMPHToLocoLenzSpeed(LocoDialogueLocoIndex, LocoDialogueLocoSpeedInMPH);
 
         { Now we have to separate out the two locos, as they may well have different Lenz speeds }
-        SetLenzSpeedAndDirection(LocoDialogueLocoIndex, LocoDialogueLocoSpeed, Locos[LocoDialogueLocoIndex].Loco_CurrentDirection, OK);
+        WITH Locos[LocoDialogueLocoIndex] DO
+          SetLenzSpeedAndDirection(Locos[LocoDialogueLocoIndex], LocoDialogueLocoSpeed, Loco_CurrentDirection, OK);
         IF LocoDialogueDoubleHeaderLocoIndexFound THEN BEGIN
           TempDHLocoSpeed := SpeedInMPHToLocoLenzSpeed(LocoDialogueDoubleHeaderLocoIndex, LocoDialogueLocoSpeedInMPH);
-          SetLenzSpeedAndDirection(LocoDialogueDoubleHeaderLocoIndex, TempDHLocoSpeed, Locos[LocoDialogueLocoIndex].Loco_CurrentDirection, OK);
+          WITH Locos[LocoDialogueDoubleHeaderLocoIndex] DO
+            SetLenzSpeedAndDirection(Locos[LocoDialogueDoubleHeaderLocoIndex], TempDHLocoSpeed, Loco_CurrentDirection, OK);
         END;
       END ELSE BEGIN
         Inc(LocoDialogueLocoSpeed);
-        SetLenzSpeedAndDirection(LocoDialogueLocoIndex, LocoDialogueLocoSpeed, Locos[LocoDialogueLocoIndex].Loco_CurrentDirection, OK);
+        WITH Locos[LocoDialogueLocoIndex] DO
+        SetLenzSpeedAndDirection(Locos[LocoDialogueLocoIndex], LocoDialogueLocoSpeed, Loco_CurrentDirection, OK);
         IF LocoDialogueDoubleHeaderLocoIndexFound THEN
-          SetLenzSpeedAndDirection(LocoDialogueDoubleHeaderLocoIndex, LocoDialogueLocoSpeed, Locos[LocoDialogueLocoIndex].Loco_CurrentDirection, OK);
-
-        IF LocoDialogueLocoSpeed > 0 THEN BEGIN
-          LocoDialogueDownButton.Enabled := True;
-          IF NOT LocoDialogueLeftButton.Down THEN
-            LocoDialogueLeftButton.Enabled := False;
-          IF NOT LocoDialogueRightButton.Down THEN
-            LocoDialogueRightButton.Enabled := False;
-
-          IF LocoDialogueLocoSpeed = 28 THEN BEGIN
-            LocoDialogueUpButton.Enabled := False;
-            LocoDialogueMouseDownTimer.Enabled := False;
-          END;
-        END;
-
-        LocoDialogueSpeedDisplay.Caption := IntToStr(LocoDialogueLocoSpeed);
-        LocoDialogueSpeedDisplay.Font.Color := clBtnText;
+          WITH Locos[LocoDialogueDoubleHeaderLocoIndex] DO
+            SetLenzSpeedAndDirection(Locos[LocoDialogueDoubleHeaderLocoIndex], LocoDialogueLocoSpeed, Loco_CurrentDirection, OK);
       END;
+
+      IF LocoDialogueLocoSpeed > 0 THEN BEGIN
+        LocoDialogueDownButton.Enabled := True;
+        IF NOT LocoDialogueLeftButton.Down THEN
+          LocoDialogueLeftButton.Enabled := False;
+        IF NOT LocoDialogueRightButton.Down THEN
+          LocoDialogueRightButton.Enabled := False;
+
+        IF LocoDialogueLocoSpeed = 28 THEN BEGIN
+          LocoDialogueUpButton.Enabled := False;
+          LocoDialogueMouseDownTimer.Enabled := False;
+        END;
+      END;
+
+      LocoDialogueSpeedDisplay.Caption := IntToStr(LocoDialogueLocoSpeed);
+      LocoDialogueSpeedDisplay.Font.Color := clBtnText;
     END;
   END; {WITH}
 END; { LocoDialogueIncreaseSpeed }
@@ -1554,36 +1402,40 @@ BEGIN
         LocoDialogueLocoSpeed := SpeedInMPHToLocoLenzSpeed(LocoDialogueLocoIndex, LocoDialogueLocoSpeedInMPH);
 
         { Now we have to separate out the two locos, as they may well have different Lenz speeds }
-        SetLenzSpeedAndDirection(LocoDialogueLocoIndex, LocoDialogueLocoSpeed, Locos[LocoDialogueLocoIndex].Loco_CurrentDirection, OK);
+        WITH Locos[LocoDialogueLocoIndex] DO
+          SetLenzSpeedAndDirection(Locos[LocoDialogueLocoIndex], LocoDialogueLocoSpeed, Loco_CurrentDirection, OK);
         IF LocoDialogueDoubleHeaderLocoIndexFound THEN BEGIN
           TempDHLocoSpeed := SpeedInMPHToLocoLenzSpeed(LocoDialogueDoubleHeaderLocoIndex, LocoDialogueLocoSpeedInMPH);
-          SetLenzSpeedAndDirection(LocoDialogueDoubleHeaderLocoIndex, TempDHLocoSpeed, Locos[LocoDialogueLocoIndex].Loco_CurrentDirection, OK);
+          WITH Locos[LocoDialogueDoubleHeaderLocoIndex] DO
+            SetLenzSpeedAndDirection(Locos[LocoDialogueDoubleHeaderLocoIndex], TempDHLocoSpeed, Loco_CurrentDirection, OK);
         END;
       END ELSE BEGIN
         IF LocoDialogueLocoSpeed > 0 THEN BEGIN
           Dec(LocoDialogueLocoSpeed);
-          SetLenzSpeedAndDirection(LocoDialogueLocoIndex, LocoDialogueLocoSpeed, Locos[LocoDialogueLocoIndex].Loco_CurrentDirection, OK);
+          WITH Locos[LocoDialogueLocoIndex] DO
+            SetLenzSpeedAndDirection(Locos[LocoDialogueLocoIndex], LocoDialogueLocoSpeed, Loco_CurrentDirection, OK);
           IF LocoDialogueDoubleHeaderLocoIndexFound THEN
-            SetLenzSpeedAndDirection(LocoDialogueDoubleHeaderLocoIndex, LocoDialogueLocoSpeed, Locos[LocoDialogueLocoIndex].Loco_CurrentDirection, OK);
+            WITH Locos[LocoDialogueDoubleHeaderLocoIndex] DO
+              SetLenzSpeedAndDirection(Locos[LocoDialogueDoubleHeaderLocoIndex], LocoDialogueLocoSpeed, Loco_CurrentDirection, OK);
         END;
-
-        IF LocoDialogueLocoSpeed <= 0 THEN BEGIN
-          LocoDialogueDownButton.Enabled := False;
-          LocoDialogueLeftButton.Enabled := True;
-          LocoDialogueRightButton.Enabled := True;
-        END;
-
-        IF LocoDialogueLocoSpeed > 0 THEN BEGIN
-          LocoDialogueDownButton.Enabled := True;
-          IF NOT LocoDialogueLeftButton.Down THEN
-            LocoDialogueLeftButton.Enabled := False;
-          IF NOT LocoDialogueRightButton.Down THEN
-            LocoDialogueRightButton.Enabled := False;
-        END;
-
-        LocoDialogueSpeedDisplay.Caption := IntToStr(LocoDialogueLocoSpeed);
-        LocoDialogueSpeedDisplay.Font.Color := clBtnText;
       END;
+
+      IF LocoDialogueLocoSpeed <= 0 THEN BEGIN
+        LocoDialogueDownButton.Enabled := False;
+        LocoDialogueLeftButton.Enabled := True;
+        LocoDialogueRightButton.Enabled := True;
+      END;
+
+      IF LocoDialogueLocoSpeed > 0 THEN BEGIN
+        LocoDialogueDownButton.Enabled := True;
+        IF NOT LocoDialogueLeftButton.Down THEN
+          LocoDialogueLeftButton.Enabled := False;
+        IF NOT LocoDialogueRightButton.Down THEN
+          LocoDialogueRightButton.Enabled := False;
+      END;
+
+      LocoDialogueSpeedDisplay.Caption := IntToStr(LocoDialogueLocoSpeed);
+      LocoDialogueSpeedDisplay.Font.Color := clBtnText;
     END;
   END; {WITH}
 END; { LocoDialogueDecreaseSpeed }
@@ -1620,18 +1472,20 @@ BEGIN
   LocoTakenOver := False;
 
   IF LocoDialogueLocoIndexFound THEN BEGIN
-    IF Locos[LocoDialogueLocoIndex].Loco_CurrentDirection = Down THEN BEGIN
-      LocoDialogueLeftButton.Down := True;
+    WITH Locos[LocoDialogueLocoIndex] DO BEGIN
+      IF Loco_CurrentDirection = Down THEN BEGIN
+        LocoDialogueLeftButton.Down := True;
 
-     WITH Locos[LocoDialogueLocoIndex] DO BEGIN
-       SetLocoDirection(LocoDialogueLocoIndex, Up, OK);
+        SetLocoDirection(Locos[LocoDialogueLocoIndex], Up, OK);
+        IF NOT OK THEN
+          Log(Loco_LocoChipStr + ' LG Could not change direction to up')
+        ELSE
+          IF Loco_LightsType = LightsOperatedByTwoChips THEN
+            SetTwoLightingChips(LocoDialogueLocoIndex, Up, Up, Loco_LightsOn);
 
-        IF Loco_LightsType = LightsOperatedByTwoChips THEN
-          SetTwoLightingChips(LocoDialogueLocoIndex, Up, Up, Loco_LightsOn);
-      END; {WITH}
-
-      LocoDialogueEmergencyStopButton.SetFocus;
-    END;
+        LocoDialogueEmergencyStopButton.SetFocus;
+      END;
+    END; {WITH}
   END;
 END; { LocoDialogueLeftButtonMouseDown }
 
@@ -1646,18 +1500,20 @@ BEGIN
   LocoTakenOver := False;
 
   IF LocoDialogueLocoIndexFound THEN BEGIN
-    IF Locos[LocoDialogueLocoIndex].Loco_CurrentDirection = Up THEN BEGIN
-      LocoDialogueRightButton.Down := True;
+    WITH Locos[LocoDialogueLocoIndex] DO BEGIN
+      IF Loco_CurrentDirection = Up THEN BEGIN
+        LocoDialogueRightButton.Down := True;
 
-      WITH Locos[LocoDialogueLocoIndex] DO BEGIN
-        SetLocoDirection(LocoDialogueLocoIndex, Down, OK);
+        SetLocoDirection(Locos[LocoDialogueLocoIndex], Down, OK);
+        IF NOT OK THEN
+          Log(Loco_LocoChipStr + ' LG Could not change direction to down')
+        ELSE
+          IF Loco_LightsType = LightsOperatedByTwoChips THEN
+            SetTwoLightingChips(LocoDialogueLocoIndex, Down, Down, Loco_LightsOn);
 
-        IF Loco_LightsType = LightsOperatedByTwoChips THEN
-          SetTwoLightingChips(LocoDialogueLocoIndex, Down, Down, Loco_LightsOn);
-      END; {WITH}
-
-      LocoDialogueEmergencyStopButton.SetFocus;
-    END;
+        LocoDialogueEmergencyStopButton.SetFocus;
+      END;
+    END; {WITH}
   END;
 END; { LocoDialogueRightButtonMouseDown }
 
@@ -1724,13 +1580,15 @@ BEGIN
 
   LocoTakenOver := False;
 
-  IF LocoDialogueLocoIndexFound
-  OR (GetLenzSpeed(LocoDialogueLocoIndex, ForceARead) = 0)
-  THEN BEGIN
-    IF LocoDialogueSpeedInMPH THEN
-      SwitchMPHSpeedsOff
-    ELSE
-      SwitchMPHSpeedsOn;
+  IF LocoDialogueLocoIndexFound THEN BEGIN
+    WITH Locos[LocoDialogueLocoIndex] DO BEGIN
+      IF GetLenzSpeed(Locos[LocoDialogueLocoIndex], ForceARead) = 0 THEN BEGIN
+        IF LocoDialogueSpeedInMPH THEN
+          SwitchMPHSpeedsOff
+        ELSE
+          SwitchMPHSpeedsOn;
+      END;
+    END; {WITH}
   END;
 END; { LocoDialogueSpeedInMPHButtonMouseDown }
 
@@ -1817,9 +1675,7 @@ VAR
 BEGIN
   CheckEmergencyStop(Button, ShiftState);
 
-  IF LocoDialogueLocoIndexFound
-  AND LocoDialogueDoubleHeaderLocoIndexFound
-  THEN BEGIN
+  IF LocoDialogueLocoIndexFound AND LocoDialogueDoubleHeaderLocoIndexFound THEN BEGIN
     IF LocoDialogueDHLocoChangeOrSelectButton.Caption = 'Deselect Lo&co 2' THEN BEGIN
       { disable double heading items }
       LocoDialogueWindow.Caption := 'Select Loco';
