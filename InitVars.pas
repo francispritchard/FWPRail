@@ -1394,6 +1394,9 @@ PROCEDURE CalculatePointPositions;
 PROCEDURE CalculateTCAdjacentSignals;
 { Work out which track circuits are next the signal }
 
+PROCEDURE CalculateSignalMouseRectangles(S, ScaleFactor : Integer);
+{ Work out where the mouse rectangles are for a given signal }
+
 PROCEDURE CalculateSignalPosition(S, ScaleFactor : Integer);
 { Work out where a signal is on the screen }
 
@@ -3567,14 +3570,12 @@ BEGIN
     WITH Signals[S] DO BEGIN
       IF Signal_AdjacentLine <> UnknownLine THEN BEGIN
         IF Signal_Direction = Up THEN BEGIN
-//          Signal_LocationX := Lines[Signal_AdjacentLine].Line_UpX + SignalRadiusScaled;
           IF Signal_Indicator <> NoIndicator THEN
             Signal_LocationX := Signal_LocationX + SignalHorizontalSpacingScaled;
           IF Signal_Type = FourAspect THEN
             Signal_LocationX := Signal_LocationX + SignalHorizontalSpacingScaled;
         END ELSE BEGIN
           { Down }
-//          Signal_LocationX := Lines[Signal_AdjacentLine].Line_DownX - SignalRadiusScaled;
           IF Signal_Indicator <> NoIndicator THEN
             Signal_LocationX := Signal_LocationX - SignalHorizontalSpacingScaled;
           IF Signal_Type = FourAspect THEN
@@ -3588,8 +3589,6 @@ BEGIN
           IF Signal_XAdjustment < 0 THEN
             Signal_LocationX := Signal_LocationX - MulDiv(FWPRailWindow.ClientWidth, Abs(Signal_XAdjustment), ScaleFactor);
 
-//        Signal_LocationY := Lines[Signal_AdjacentLine].Line_UpY;
-
         Signal_VerticalSpacing := SignalVerticalSpacingScaled;
 
         IF Signal_Direction = Up THEN
@@ -3597,105 +3596,116 @@ BEGIN
         ELSE
           IF Signal_Direction = Down THEN
             Signal_LocationY := Signal_LocationY - Signal_VerticalSpacing;
-
-        { Set up mouse access rectangles }
-        WITH Signal_MouseRect DO BEGIN
-          RailWindowBitmap.Canvas.Pen.Width := WindowPenWidth;
-
-          IF (Signal_Type <> SemaphoreHome) AND (Signal_Type <> SemaphoreDistant) THEN BEGIN
-            { it covers the signal circles }
-            Left := Signal_LocationX - SignalRadiusScaled;
-            Top := Signal_LocationY - SignalRadiusScaled;
-            Right := Signal_LocationX + SignalRadiusScaled;
-            Bottom := Signal_LocationY + SignalRadiusScaled;
-          END ELSE BEGIN
-            { it covers the signal arms }
-            IF (Signal_Direction = Up) AND (Signal_Quadrant = UpperQuadrant) THEN BEGIN
-              Left := Signal_LocationX - SignalSemaphoreWidthScaled;
-              Top := Signal_LocationY + RailWindowBitmap.Canvas.Pen.Width;
-              Right := Signal_LocationX + (SignalSemaphoreHeightScaled * 2);
-              Bottom := Signal_LocationY + (SignalSemaphoreWidthScaled * 2);
-            END ELSE
-              IF (Signal_Direction = Up) AND (Signal_Quadrant = LowerQuadrant) THEN BEGIN
-                Left := Signal_LocationX;
-                Top := Signal_LocationY + RailWindowBitmap.Canvas.Pen.Width;
-                Right := Signal_LocationX + (SignalSemaphoreHeightScaled * 2) + SignalSemaphoreWidthScaled;
-                Bottom := Signal_LocationY + (SignalSemaphoreWidthScaled * 2);
-              END ELSE
-                IF (Signal_Direction = Down) AND (Signal_Quadrant = UpperQuadrant) THEN BEGIN
-                  Left := Signal_LocationX - SignalSemaphoreWidthScaled;
-                  Top := Signal_LocationY - (SignalSemaphoreWidthScaled * 2);
-                  Right := Signal_LocationX + (SignalSemaphoreHeightScaled * 2);
-                  Bottom := Signal_LocationY - RailWindowBitmap.Canvas.Pen.Width;
-                END ELSE
-                  IF (Signal_Direction = Down) AND (Signal_Quadrant = LowerQuadrant) THEN BEGIN
-                    Left := Signal_LocationX - (SignalSemaphoreHeightScaled * 2) - SignalSemaphoreWidthScaled;
-                    Top := Signal_LocationY - (SignalSemaphoreWidthScaled * 2);
-                    Right := Signal_LocationX;
-                    Bottom := Signal_LocationY - RailWindowBitmap.Canvas.Pen.Width;
-                  END;
-          END;
-        END; {WITH}
-
-        { Initialise the route indicator mouse access rectangles }
-        WITH Signal_IndicatorMouseRect DO BEGIN
-          Left := 0;
-          Top := 0;
-          Right := 0;
-          Bottom := 0;
-        END;
-
-        IF Signal_Direction = Up THEN BEGIN
-          IF Signal_Type = FourAspect THEN
-            Signal_MouseRect.Left := Signal_MouseRect.Left - SignalHorizontalSpacingScaled;
-          IF Signal_Indicator <> NoIndicator THEN BEGIN
-            WITH Signal_IndicatorMouseRect DO BEGIN
-              Left := Signal_MouseRect.Left - (MulDiv(IndicatorHorizontalSpacingScaled, 150, 100));
-              Top := Signal_MouseRect.Top;
-              Right := Signal_MouseRect.Left;
-              Bottom := Signal_MouseRect.Bottom;
-            END; {WITH}
-          END;
-        END ELSE
-          IF Signal_Direction = Down THEN BEGIN
-            { Signal_Direction = Down }
-            IF Signal_Type = FourAspect THEN
-              Signal_MouseRect.Right := Signal_MouseRect.Right + SignalHorizontalSpacingScaled;
-            IF Signal_Indicator <> NoIndicator THEN BEGIN
-              IF Signal_Indicator <> NoIndicator THEN BEGIN
-                WITH Signal_IndicatorMouseRect DO BEGIN
-                  Left := Signal_MouseRect.Right;
-                  Top := Signal_MouseRect.Top;
-                  Right := Signal_MouseRect.Right + (MulDiv(IndicatorHorizontalSpacingScaled, 150, 100));
-                  Bottom := Signal_MouseRect.Bottom;
-                END; {WITH}
-              END;
-            END;
-          END;
-
-        { Now the signal posts (used for routeing) }
-        WITH Signal_PostMouseRect DO BEGIN
-          IF Signal_Direction = Up THEN BEGIN
-            { pen.width is the width of the line outlining the signal }
-            Left := Signal_LocationX + SignalRadiusScaled;
-            Top := Signal_LocationY - SignalRadiusScaled;
-            Right := Signal_LocationX + SignalRadiusScaled + MulDiv(FWPRailWindow.ClientWidth, 10, ZoomScalefactor);
-            Bottom := Signal_LocationY + SignalRadiusScaled;
-          END ELSE
-            IF Signal_Direction = Down THEN BEGIN
-              Left := Signal_LocationX - SignalRadiusScaled - MulDiv(FWPRailWindow.ClientWidth, 10, ZoomScalefactor);
-              Top := Signal_LocationY - SignalRadiusScaled;
-              Right := Signal_LocationX - SignalRadiusScaled;
-              Bottom := Signal_LocationY + Signal_VerticalSpacing - RailWindowBitmapCanvasPenWidth;
-            END;
-        END; {WITH}
-      END;
+      END; {WITH}
     END; {WITH}
   EXCEPT {TRY}
     ON E : Exception DO
       Log('EG CalculateSignalPosition: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { CalculateSignalPosition }
+
+PROCEDURE CalculateSignalMouseRectangles(S, ScaleFactor : Integer);
+{ Work out where the mouse rectangles are for a given signal }
+BEGIN
+  TRY
+    WITH Signals[S] DO BEGIN
+      { Set up mouse access rectangles }
+      WITH Signal_MouseRect DO BEGIN
+        RailWindowBitmap.Canvas.Pen.Width := WindowPenWidth;
+
+        IF (Signal_Type <> SemaphoreHome) AND (Signal_Type <> SemaphoreDistant) THEN BEGIN
+          { it covers the signal circles }
+          Left := Signal_LocationX - SignalRadiusScaled;
+          Top := Signal_LocationY - SignalRadiusScaled;
+          Right := Signal_LocationX + SignalRadiusScaled;
+          Bottom := Signal_LocationY + SignalRadiusScaled;
+        END ELSE BEGIN
+          { it covers the signal arms }
+          IF (Signal_Direction = Up) AND (Signal_Quadrant = UpperQuadrant) THEN BEGIN
+            Left := Signal_LocationX - SignalSemaphoreWidthScaled;
+            Top := Signal_LocationY + RailWindowBitmap.Canvas.Pen.Width;
+            Right := Signal_LocationX + (SignalSemaphoreHeightScaled * 2);
+            Bottom := Signal_LocationY + (SignalSemaphoreWidthScaled * 2);
+          END ELSE
+            IF (Signal_Direction = Up) AND (Signal_Quadrant = LowerQuadrant) THEN BEGIN
+              Left := Signal_LocationX;
+              Top := Signal_LocationY + RailWindowBitmap.Canvas.Pen.Width;
+              Right := Signal_LocationX + (SignalSemaphoreHeightScaled * 2) + SignalSemaphoreWidthScaled;
+              Bottom := Signal_LocationY + (SignalSemaphoreWidthScaled * 2);
+            END ELSE
+              IF (Signal_Direction = Down) AND (Signal_Quadrant = UpperQuadrant) THEN BEGIN
+                Left := Signal_LocationX - SignalSemaphoreWidthScaled;
+                Top := Signal_LocationY - (SignalSemaphoreWidthScaled * 2);
+                Right := Signal_LocationX + (SignalSemaphoreHeightScaled * 2);
+                Bottom := Signal_LocationY - RailWindowBitmap.Canvas.Pen.Width;
+              END ELSE
+                IF (Signal_Direction = Down) AND (Signal_Quadrant = LowerQuadrant) THEN BEGIN
+                  Left := Signal_LocationX - (SignalSemaphoreHeightScaled * 2) - SignalSemaphoreWidthScaled;
+                  Top := Signal_LocationY - (SignalSemaphoreWidthScaled * 2);
+                  Right := Signal_LocationX;
+                  Bottom := Signal_LocationY - RailWindowBitmap.Canvas.Pen.Width;
+                END;
+        END;
+      END; {WITH}
+
+      { Initialise the route indicator mouse access rectangles }
+      WITH Signal_IndicatorMouseRect DO BEGIN
+        Left := 0;
+        Top := 0;
+        Right := 0;
+        Bottom := 0;
+      END;
+
+      IF Signal_Direction = Up THEN BEGIN
+        IF Signal_Type = FourAspect THEN
+          Signal_MouseRect.Left := Signal_MouseRect.Left - SignalHorizontalSpacingScaled;
+        IF Signal_Indicator <> NoIndicator THEN BEGIN
+          WITH Signal_IndicatorMouseRect DO BEGIN
+            Left := Signal_MouseRect.Left - (MulDiv(IndicatorHorizontalSpacingScaled, 150, 100));
+            Top := Signal_MouseRect.Top;
+            Right := Signal_MouseRect.Left;
+            Bottom := Signal_MouseRect.Bottom;
+          END; {WITH}
+        END;
+      END ELSE
+        IF Signal_Direction = Down THEN BEGIN
+          { Signal_Direction = Down }
+          IF Signal_Type = FourAspect THEN
+            Signal_MouseRect.Right := Signal_MouseRect.Right + SignalHorizontalSpacingScaled;
+          IF Signal_Indicator <> NoIndicator THEN BEGIN
+            IF Signal_Indicator <> NoIndicator THEN BEGIN
+              WITH Signal_IndicatorMouseRect DO BEGIN
+                Left := Signal_MouseRect.Right;
+                Top := Signal_MouseRect.Top;
+                Right := Signal_MouseRect.Right + (MulDiv(IndicatorHorizontalSpacingScaled, 150, 100));
+                Bottom := Signal_MouseRect.Bottom;
+              END; {WITH}
+            END;
+          END;
+        END;
+
+      { Now the signal posts (used for routeing) }
+      WITH Signal_PostMouseRect DO BEGIN
+        IF Signal_Direction = Up THEN BEGIN
+          { pen.width is the width of the line outlining the signal }
+          Left := Signal_LocationX + SignalRadiusScaled;
+          Top := Signal_LocationY - SignalRadiusScaled;
+          Right := Signal_LocationX + SignalRadiusScaled + MulDiv(FWPRailWindow.ClientWidth, 10, ZoomScalefactor);
+          Bottom := Signal_LocationY + SignalRadiusScaled;
+        END ELSE
+          IF Signal_Direction = Down THEN BEGIN
+            Left := Signal_LocationX - SignalRadiusScaled - MulDiv(FWPRailWindow.ClientWidth, 10, ZoomScalefactor);
+            Top := Signal_LocationY - SignalRadiusScaled;
+            Right := Signal_LocationX - SignalRadiusScaled;
+            Bottom := Signal_LocationY + Signal_VerticalSpacing - RailWindowBitmapCanvasPenWidth;
+          END;
+      END; {WITH}
+    END; {WITH}
+  EXCEPT {TRY}
+    ON E : Exception DO
+      Log('EG CalculateSignalPosition: ' + E.ClassName + ' error raised, with message: ' + E.Message);
+  END; {TRY}
+END; { CalculateSignalMouseRectangles }
 
 PROCEDURE CalculateAllSignalPositions(ScaleFactor : Integer);
 { Work out where all the signals are on the screen }
@@ -3717,6 +3727,7 @@ BEGIN
           Signal_LocationY := Lines[Signal_AdjacentLine].Line_UpY;
 
           CalculateSignalPosition(S, ScaleFactor);
+          CalculateSignalMouseRectangles(S, ScaleFactor);
         END;
       END; {WITH}
       Inc(S);
