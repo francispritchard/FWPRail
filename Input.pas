@@ -74,6 +74,7 @@ VAR
   InputDialogueTrackCircuit : Integer = 0;
   InputDialogueTrackCircuitFound : Boolean = False;
   LastKeyPressed : Integer;
+  ListLineColours : Boolean = False;
   PreviouslyDisplayedInputDialogueBox : InputDialogueBoxType;
   SaveDebugWindowDebugRichEditColour : TColor = clBlack;
   SaveTCSpeedRestrictionColour : TColour;
@@ -1407,7 +1408,6 @@ BEGIN { KeyPressedDown }
               HighlightTrackCircuitSpeedRestrictions := False;
               ShowAreas := False;
               ShowLenzPointNumbers := False;
-              ShowLineDetail := False;
               ShowLineDirectionDetail := False;
               ShowLineGradients := False;
               ShowLineNumbers := False;
@@ -1439,8 +1439,12 @@ BEGIN { KeyPressedDown }
               WriteToStatusBarPanel(StatusBarPanel2, '');
               InvalidateScreen(UnitRef, 'KeyPressedDown 1');
 
-              IF KeyToTest = vK_Escape THEN
+              IF KeyToTest = vK_Escape THEN BEGIN
+                IF ShowLineDetail THEN
+                  { this is a special case, as pressing F4 a second time adds the box which lists the colours }
+                  ShowLineDetail := False;
                 Exit;
+              END;
             END;
           END;
       END; {CASE}
@@ -4730,29 +4734,40 @@ BEGIN { KeyPressedDown }
               BEGIN
                 HelpMsg := 'show line detail';
                 IF NOT HelpRequired THEN BEGIN
-                  ShowLineDetail := True;
-                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing line detail');
-                  IF NOT ScreenColoursSetForPrinting THEN BEGIN
-                    { List the line colours for the forgetful (added this bit 12/12/07 because FWP forgot which was which!) }
+                  IF NOT ShowLineDetail THEN BEGIN
+                    ShowLineDetail := True;
+                    ListLineColours := False;
+                  END ELSE
+                    IF ShowLineDetail AND NOT ListLineColours THEN
+                      ListLineColours := True
+                    ELSE BEGIN
+                      ShowLineDetail := False;
+                      ListLineColours := False;
+                    END;
+
+                  { List the line colours for the forgetful (added this bit 12/12/07 because FWP forgot which was which!) }
+                  IF ListLineColours THEN BEGIN
+                    WriteToStatusBarPanel(StatusBarPanel2, 'Showing line detail');
                     DisplayColoursWindowHeight := 0;
                     DisplayColoursWindow.Width := 0;
                     DisplayColoursWindow.Visible := True;
                     DisplayColoursWindow.DisplayColoursWindowRichedit.Clear;
+
                     FOR XTypeOfLine := FirstTypeOfLine TO LastTypeOfLine DO BEGIN
                       WITH DisplayColoursWindow.Canvas DO BEGIN
                         Str := ColourToStrForUser(GetLineTypeColour(XTypeOfLine)) + ' = ' + TypeOfLineToStr(XTypeOfLine);
 
                         IF TextWidth(Str) > DisplayColoursWindow.Width THEN
                           DisplayColoursWindow.Width := TextWidth(Str);
-                      //  DisplayColoursWindow.Width := DisplayColoursWindow.Width + MulDiv(FWPRailWindow.ClientWidth, 45, 1000);
                         AddRichLine(DisplayColoursWindow.DisplayColoursWindowRichedit,
                                     '<colour=' + ColourToStr(GetLineTypeColour(XTypeOfLine)) + '>'
                                     + Str
                                      + '</colour>');
                       END; {WITH}
                     END; {FOR}
-                    InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                   END;
+
+                  InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
               END;
             ShiftAlt: {F4}
