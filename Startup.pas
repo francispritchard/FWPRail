@@ -474,14 +474,21 @@ BEGIN
 END; { HandleParameters }
 
 PROCEDURE TDebuggingOptionsWindow.Startup_DebuggingCheckBoxClick(Sender: TObject);
+VAR
+  TempStr : String;
+
 BEGIN
   WITH Startup_DebuggingCheckBox DO BEGIN
     IF Checked THEN BEGIN
       DebuggingMode := True;
-      Log('AG Debugging = ON');
+      WriteToStatusBarPanel(StatusBarPanel3, 'DEBUG ');
+      Log('A Debugging = ON');
     END ELSE BEGIN
       DebuggingMode := False;
-      Log('AG Debugging = OFF');
+      Log('A Debugging = OFF');
+      TempStr := FWPRailWindow.FWPRailWindowStatusBar.Panels[StatusBarPanel3].Text;
+      TempStr := StringReplace(TempStr, 'DEBUG', '', [rfIgnoreCase]);
+      WriteToStatusBarPanel(StatusBarPanel3, 'DEBUG ');
     END;
   END; {WITH}
 END; { Startup_DebuggingCheckBoxClick }
@@ -491,10 +498,10 @@ BEGIN
   WITH Startup_FeedbackDebuggingCheckBox DO BEGIN
     IF Checked THEN BEGIN
       FeedbackDebuggingMode := True;
-      Log('AG Feedback debugging = ON');
+      Log('A Feedback debugging = ON');
     END ELSE BEGIN
       FeedbackDebuggingMode := False;
-      Log('AG Feedback debugging = OFF');
+      Log('A Feedback debugging = OFF');
     END;
   END; {WITH}
 END; { Startup_FeedbackDebuggingCheckBoxClick }
@@ -504,7 +511,7 @@ BEGIN
   WITH Startup_LineDebuggingCheckBox DO BEGIN
     IF Checked THEN BEGIN
       LineDebuggingMode := True;
-      Log('AG Line debugging = ON');
+      Log('A Line debugging = ON');
 
       { mutually exclusive, as it gets v. confusing! }
       LockDebuggingMode := False;
@@ -514,7 +521,7 @@ BEGIN
       Startup_PointDebuggingCheckBox.State := cbUnchecked;
     END ELSE BEGIN
       LineDebuggingMode := False;
-      Log('AG Line debugging = OFF');
+      Log('A Line debugging = OFF');
     END;
   END; {WITH}
 END; { Startup_LineDebuggingCheckBoxClick }
@@ -524,7 +531,7 @@ BEGIN
   WITH Startup_LockDebuggingCheckBox DO BEGIN
     IF Checked THEN BEGIN
       LockDebuggingMode := True;
-      Log('AG Lock debugging = ON');
+      Log('A Lock debugging = ON');
 
       { mutually exclusive, as it gets v. confusing! }
       LineDebuggingMode := False;
@@ -534,7 +541,7 @@ BEGIN
       Startup_PointDebuggingCheckBox.State := cbUnchecked;
     END ELSE BEGIN
       LockDebuggingMode := False;
-     Log('AG Lock debugging = OF');
+     Log('A Lock debugging = OF');
     END;
   END; {WITH}
 END; { Startup_LockDebuggingCheckBoxClick }
@@ -544,7 +551,7 @@ BEGIN
   WITH Startup_PointDebuggingCheckBox DO BEGIN
     IF Checked THEN BEGIN
       PointDebuggingMode := True;
-      Log('AG Point debugging = ON');
+      Log('A Point debugging = ON');
 
       { mutually exclusive, as it gets v. confusing! }
       LineDebuggingMode := False;
@@ -554,7 +561,7 @@ BEGIN
       Startup_LockDebuggingCheckBox.State := cbUnchecked;
     END ELSE BEGIN
       PointDebuggingMode := False;
-      Log('AG Point debugging = OFF');
+      Log('A Point debugging = OFF');
     END;
   END; {WITH}
 END; { Startup_PointDebuggingCheckBoxClick }
@@ -564,10 +571,10 @@ BEGIN
   WITH Startup_RouteDebuggingCheckBox DO BEGIN
     IF Checked THEN BEGIN
       RouteDebuggingMode := True;
-      Log('AG Route debugging = ON');
+      Log('A Route debugging = ON');
     END ELSE BEGIN
       RouteDebuggingMode := False;
-      Log('AG Route debugging = OFF');
+      Log('A Route debugging = OFF');
     END;
   END; {WITH}
 END; { Startup_RouteDebuggingCheckBoxClick }
@@ -577,10 +584,10 @@ BEGIN
   WITH Startup_RouteBacktrackDebuggingCheckBox DO BEGIN
     IF Checked THEN BEGIN
       RouteBacktrackDebuggingMode := True;
-      Log('AG Route backtrack debugging = ON');
+      Log('A Route backtrack debugging = ON');
     END ELSE BEGIN
       RouteBacktrackDebuggingMode := False;
-      Log('AG Route backtrack debugging = OFF');
+      Log('A Route backtrack debugging = OFF');
     END;
   END; {WITH}
 END; { Startup_RouteBacktrackDebuggingCheckBoxClick }
@@ -590,10 +597,10 @@ BEGIN
   WITH Startup_AllRouteDebuggingCheckBox DO BEGIN
     IF Checked THEN BEGIN
       AllRouteDebuggingMode := True;
-      Log('AG All route debugging = ON');
+      Log('A All route debugging = ON');
     END ELSE BEGIN
       AllRouteDebuggingMode := False;
-      Log('AG All route debugging = OFF');
+      Log('A All route debugging = OFF');
     END;
   END; {WITH}
 END; { Startup_AllRouteDebuggingCheckBoxClick }
@@ -603,10 +610,10 @@ BEGIN
   WITH Startup_RouteDrawingCheckBox DO BEGIN
     IF Checked THEN BEGIN
       RouteDrawingMode := True;
-      Log('AG Route drawing = ON');
+      Log('A Route drawing = ON');
     END ELSE BEGIN
       RouteDrawingMode := False;
-      Log('AG Route drawing = OFF');
+      Log('A Route drawing = OFF');
     END;
   END; {WITH}
 END; { Startup_RouteDrawingCheckBoxClick }
@@ -616,10 +623,10 @@ BEGIN
   WITH Startup_TestingCheckBox DO BEGIN
     IF Checked THEN BEGIN
       TestingMode := True;
-      Log('AG Testing = ON');
+      Log('A Testing = ON');
     END ELSE BEGIN
       TestingMode := False;
-      Log('AG Testing = OFF');
+      Log('A Testing = OFF');
     END;
   END; {WITH}
 END; { Startup_TestingCheckBoxClick }
@@ -629,10 +636,10 @@ BEGIN
   WITH Startup_RecordLineDrawingCheckBox DO BEGIN
     IF Checked THEN BEGIN
       RecordLineDrawingMode := True;
-      Log('AG Record Line Drawing = ON');
+      Log('A Record Line Drawing = ON');
     END ELSE BEGIN
       RecordLineDrawingMode := False;
-      Log('AG Record Line Drawing = OF');
+      Log('A Record Line Drawing = OF');
     END;
   END; {WITH}
 END; { Startup_RecordLineDrawingCheckBoxClick }
@@ -642,10 +649,10 @@ BEGIN
   WITH Startup_LockingCheckBox DO BEGIN
     IF Checked THEN BEGIN
       LockingMode := False;
-      Log('AG Locking = OFF');
+      Log('A Locking = OFF');
     END ELSE BEGIN
       LockingMode := True;
-      Log('AG Locking = ON');
+      Log('A Locking = ON');
     END;
   END; {WITH}
 END; { Startup_LockingCheckBoxClick }
@@ -655,10 +662,10 @@ BEGIN
   WITH Startup_LogsKeptCheckBox DO BEGIN
     IF Checked THEN BEGIN
       LogsCurrentlyKept := True;
-      Log('AG Logs Kept= ON');
+      Log('A Logs Kept= ON');
     END ELSE BEGIN
       LogsCurrentlyKept := True;
-      Log('AG Logs Kept = OFF');
+      Log('A Logs Kept = OFF');
     END;
   END; {WITH}
 END; { LogsKeptCheckBoxClick }

@@ -11,6 +11,7 @@ object DebuggingOptionsWindow: TDebuggingOptionsWindow
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Font.Style = []
+  FormStyle = fsStayOnTop
   KeyPreview = True
   OldCreateOrder = False
   OnHide = DebuggingOptionsWindowHide
@@ -20,7 +21,7 @@ object DebuggingOptionsWindow: TDebuggingOptionsWindow
   TextHeight = 13
   object Startup_DebuggingCheckBox: TCheckBox
     Left = 28
-    Top = 16
+    Top = 17
     Width = 161
     Height = 17
     Alignment = taLeftJustify
