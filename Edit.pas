@@ -61,6 +61,12 @@ PROCEDURE DisplaySignalOptionsInValueList(S : Integer);
 PROCEDURE DisplayPointOptionsInValueList(P : Integer);
 { Create a value list in the edit window with the appropriate values }
 
+PROCEDURE DragSignal(S, MouseX, MouseY : Integer);
+{ Allows a signal to be moved by the mouse }
+
+PROCEDURE DropSignal;
+{ Drops the signal at the nearest adjacent line }
+
 PROCEDURE InitialiseEditUnit;
 { Initialises the unit }
 
@@ -74,12 +80,15 @@ PROCEDURE TurnEditModeOff;
 { Turn edit Mode off }
 
 VAR
+  DragSignalNum : Integer = UnknownSignal;
+  DragTime : TDateTime = 0;
   EditWindow: TEditWindow;
 
 IMPLEMENTATION
 
 {$R *.dfm}
-USES Diagrams, Input, Cuneo, Lenz;
+
+USES Diagrams, Input, Cuneo, Lenz, DateUtils;
 
 CONST
   UnitRef = 'Edit';
@@ -147,9 +156,6 @@ END; { Log }
 
 PROCEDURE InitialiseSavedSignalVariables(S : Integer);
 { Initialise the temporary variables, so that we can later undo any changes we've made }
-VAR
-  HomeSignalPos : Integer;
-
 BEGIN
   WITH Signals[S] DO BEGIN
     SaveSignalAccessoryAddress := Signal_AccessoryAddress;
@@ -439,7 +445,6 @@ CONST
 
 VAR
   ErrorMsg : String;
-  HomeSignalPos : Integer;
   JunctionIndicatorFound : Boolean;
   TempJunctionIndicator : JunctionIndicatorType;
   TempStrArray : ARRAY [0..5] OF String;
@@ -1747,5 +1752,73 @@ BEGIN
       Log('EG DeletePoint: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { DeletePoint }
+
+PROCEDURE DragSignal(S, MouseX, MouseY : Integer);
+{ Allows a signal to be moved by the mouse }
+BEGIN
+  { Only start dragging after a short delay with the mouse held down }
+  IF NOT SignalDragging THEN BEGIN
+    IF GetKeyState(vk_LButton) < 0 THEN BEGIN
+      IF MilliSecondsBetween(DragTime, Now) > 500 THEN BEGIN
+        ChangeCursor(crDrag);
+        SignalDragging := True;
+        FWPRailWindow.Repaint;
+      END;
+    END;
+  END;
+
+  IF (DragSignalNum <> UnknownSignal) AND SignalDragging THEN BEGIN
+    WITH Signals[DragSignalNum] DO BEGIN
+      Signal_LocationX := MouseX;
+      Signal_LocationY := MouseY;
+    END; {WITH}
+
+    CalculateSignalMouseRectangles(DragSignalNum, ZoomScaleFactor);
+
+    DrawSignal(DragSignalNum);
+
+    FWPRailWindow.Repaint;
+  END;
+END; { DragSignal }
+
+PROCEDURE DropSignal;
+{ Drops the signal at the nearest adjacent line }
+VAR
+  Line : Integer;
+  NearestAdjacentLine : Integer;
+  NearnessToAdjacentLine : Integer;
+
+BEGIN
+  SignalDragging := False;
+  ChangeCursor(crDefault);
+
+  WITH Signals[DragSignalNum] DO BEGIN
+    NearnessToAdjacentLine := 99999;
+    NearestAdjacentLine := UnknownLine;
+    FOR Line := 0 TO High(Lines) DO BEGIN
+      IF (Signal_LocationX >= Lines[Line].Line_UpX) AND (Signal_LocationX <= Lines[Line].Line_DownX) THEN BEGIN
+        { see which line we're closest to (on the y axis) - only choose horizontal lines, though }
+        IF (Signal_LocationY < Lines[Line].Line_UpY)
+        AND (Lines[Line].Line_UpY = Lines[Line].Line_DownY)
+        AND ((Lines[Line].Line_UpY - Signal_LocationY) <= NearnessToAdjacentLine)
+        THEN BEGIN
+          NearnessToAdjacentLine := Lines[Line].Line_UpY - Signal_LocationY;
+          NearestAdjacentLine := Line;
+        END;
+      END;
+    END; {FOR}
+
+    IF NearestAdjacentLine <> UnknownLine THEN BEGIN
+      Signal_LocationY := Lines[NearestAdjacentLine].Line_UpY;
+
+      CalculateSignalPosition(DragSignalNum, ZoomScaleFactor);
+      CalculateSignalMouseRectangles(DragSignalNum, ZoomScaleFactor);
+      DrawSignal(DragSignalNum);
+      DragSignalNum := UnknownSignal;
+
+      FWPRailWindow.Repaint;
+    END;
+  END; {WITH}
+END; { DropSignal }
 
 END { Edit }.

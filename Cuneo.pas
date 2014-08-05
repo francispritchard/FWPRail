@@ -48,7 +48,7 @@ IMPLEMENTATION
 {$R *.dfm}
 
 USES RailDraw, Locks, Startup, Route, GetTime, Diagrams, MiscUtils, Movement, Lenz, Input, LocoUtils, Types, CreateRoute, LocoDialogue, LocationData, Help, StrUtils,
-     Options, Main, DateUtils;
+     Options, Main;
 
 CONST
   UnitRef = 'Cuneo';
@@ -147,502 +147,482 @@ VAR
 
 BEGIN
   TRY
-    IF EditMode AND NOT SignalDragging AND (DragSignalNum <> UnknownSignal) THEN BEGIN
-      { only start dragging after a short delay with the mouse held down }
-      IF GetKeyState(VK_LBUTTON) < 0 THEN BEGIN
-        IF MilliSecondsBetween(DragTime, Now) > 500 THEN BEGIN
-          ChangeCursor(crDrag);
-          SignalDragging := True;
-        END;
+    ObjectFound := False;
+    PointFoundNum := UnknownPoint;
+    SignalFoundNum := UnknownSignal;
+    IndicatorFoundNum := UnknownSignal;
+    IndicatorFoundType := UnknownJunctionIndicator;
+    SignalPostFoundNum := UnknownSignal;
+    TheatreIndicatorFoundNum := UnknownSignal;
+    TRSPlungerFoundLocation := UnknownLocation;
+    LineFoundNum := UnknownLine;
+    UpLineEndCharacterLine := UnknownLine;
+    DownLineEndCharacterLine := UnknownLine;
 
-        IF (DragSignalNum <> UnknownSignal) AND SignalDragging THEN BEGIN
-          WITH Signals[DragSignalNum] DO BEGIN
-            Signal_LocationX := X;
-            Signal_LocationY := Y;
-          END; {WITH}
-          CalculateSignalPosition(DragSignalNum, ZoomScaleFactor);
+    StatusBarPanel1Str := '';
 
-          DrawSignal(DragSignalNum);
-          Log('XG Draw signal at x=' + inttostr(X) + ' and y=' + inttostr(y));
-          DrawMap;
-        END;
-      END;
-    END;
+    IF EditMode AND (DragSignalNum <> UnknownSignal) THEN
+      DragSignal(DragSignalNum, X, Y)
+    ELSE
+      IF PreparingZoom THEN BEGIN
+        { Draw and undraw the rectangle if any }
+        DrawOutline(ZoomRect, clRed, UndrawRequired, NOT UndrawToBeAutomatic);
 
-//          DragSignal(X, Y);
+        { and set up and draw the new rectangle }
+        ZoomRect.Left := MouseX;
+        ZoomRect.Top := MouseY;
+        ZoomRect.Right := X;
+        ZoomRect.Bottom := Y;
 
-    IF PreparingZoom THEN BEGIN
-      { Draw and undraw the rectangle if any }
-      DrawOutline(ZoomRect, clRed, UndrawRequired, NOT UndrawToBeAutomatic);
+        { Only change the cursor if we start drawing a rectangle }
+        IF (MouseX <> X) AND (MouseY <> Y) THEN
+          ChangeCursor(crSizeNWSE);
 
-      { and set up and draw the new rectangle }
-      ZoomRect.Left := MouseX;
-      ZoomRect.Top := MouseY;
-      ZoomRect.Right := X;
-      ZoomRect.Bottom := Y;
-
-      { Only change the cursor if we start drawing a rectangle }
-      IF (MouseX <> X) AND (MouseY <> Y) THEN
-        ChangeCursor(crSizeNWSE);
-
-      DrawOutline(ZoomRect, clRed, UndrawRequired, NOT UndrawToBeAutomatic);
-    END ELSE BEGIN
-      IF MoveZoomWindowMode THEN BEGIN
-        HideStatusBarAndUpDownIndications;
-
-        FWPRailWindow.HorzScrollBar.Position := FWPRailWindow.HorzScrollBar.Position + MouseMovingX - X;
-        FWPRailWindow.VertScrollBar.Position := FWPRailWindow.VertScrollBar.Position + MouseMovingY - Y;
-        MouseMovingX := X;
-        MouseMovingY := Y;
+        DrawOutline(ZoomRect, clRed, UndrawRequired, NOT UndrawToBeAutomatic);
       END ELSE BEGIN
-        IF NOT SignalDragging AND (Screen.Cursor <> crDefault) THEN
-          ChangeCursor(crDefault);
+        IF MoveZoomWindowMode THEN BEGIN
+          HideStatusBarAndUpDownIndications;
 
-        ObjectFound := False;
-        PointFoundNum := UnknownPoint;
-        SignalFoundNum := UnknownSignal;
-        IndicatorFoundNum := UnknownSignal;
-        IndicatorFoundType := UnknownJunctionIndicator;
-        SignalPostFoundNum := UnknownSignal;
-        TheatreIndicatorFoundNum := UnknownSignal;
-        TRSPlungerFoundLocation := UnknownLocation;
-        LineFoundNum := UnknownLine;
-        UpLineEndCharacterLine := UnknownLine;
-        DownLineEndCharacterLine := UnknownLine;
-
-        StatusBarPanel1Str := '';
-        MouseX := X + ScrollBarXAdjustment;
-        MouseY := Y + ScrollBarYAdjustment;
-
-        { Clear any debugging track circuit occupations }
-        FOR S := 0 TO High(Signals) DO BEGIN
-          WITH Signals[S] DO BEGIN
-            IF PtInRect(Signal_MouseRect, Point(MouseX, MouseY)) THEN BEGIN
-              ObjectFound := True;
-              TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'S' + IntToStr(S) + ' ';
-              SignalFoundNum := S;
-
-              IF SignalIsLocked(S, LockingFailureString) THEN
-                TempStatusBarPanel1Str := TempStatusBarPanel1Str + '[' + LockingFailureString + '] ';
-              IF Signals[S].Signal_OutOfUse THEN
-                TempStatusBarPanel1Str := TempStatusBarPanel1Str + '(X) ';
-              IF Signal_HiddenAspect <> NoAspect THEN
-                TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'HA=' + AspectToStr(Signal_HiddenAspect, ShortStringType);
-
-              { Show the track circuit which resets the signal }
-              IF ShowSignalResettingTrackCircuitsInStatusBar THEN BEGIN
-                IF NOT FindNextSignalOrBufferStop(S, UnknownSignal, UnknownBufferStop, NOT IndicatorToBeSet, TempLinesNotAvailableStr, TempDraftRouteArray) THEN
-                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'No RTC'
-                ELSE BEGIN
-                  CreateLockingArrayFromDraftRouteArray(UnknownLocoChipStr, TempDraftRouteArray, Signals[S].Signal_RouteLockingNeededArray);
-                  TC := GetResettingTrackCircuit(UnknownLocoChipStr, S, SuppressMessage);
-                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'RTC=' + IntToStr(TC);
-                END;
-              END;
-            END ELSE
-              IF PtInRect(Signal_JunctionIndicators[UpperLeftIndicator].JunctionIndicator_MouseRect, Point(MouseX, MouseY))
-              AND ((Signal_JunctionIndicators[UpperLeftIndicator].JunctionIndicator_MouseRect.Left <> 0)
-                    AND (Signal_JunctionIndicators[UpperLeftIndicator].JunctionIndicator_MouseRect.Bottom <> 0))
-              THEN BEGIN
-                ObjectFound := True;
-                TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'ULI for S' + IntToStr(S) + ' ';
-                IndicatorFoundNum := S;
-                IndicatorFoundType := UpperLeftIndicator;
-              END ELSE
-                IF PtInRect(Signal_JunctionIndicators[MiddleLeftIndicator].JunctionIndicator_MouseRect, Point(MouseX, MouseY))
-                AND ((Signal_JunctionIndicators[MiddleLeftIndicator].JunctionIndicator_MouseRect.Left <> 0)
-                      AND (Signal_JunctionIndicators[MiddleLeftIndicator].JunctionIndicator_MouseRect.Bottom <> 0))
-                THEN BEGIN
-                  ObjectFound := True;
-                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'MLI for S' + IntToStr(S) + ' ';
-                  IndicatorFoundNum := S;
-                  IndicatorFoundType := MiddleLeftIndicator;
-                END ELSE
-                  IF PtInRect(Signal_JunctionIndicators[LowerLeftIndicator].JunctionIndicator_MouseRect, Point(MouseX, MouseY))
-                  AND ((Signal_JunctionIndicators[LowerLeftIndicator].JunctionIndicator_MouseRect.Left <> 0)
-                        AND (Signal_JunctionIndicators[LowerLeftIndicator].JunctionIndicator_MouseRect.Bottom <> 0))
-                  THEN BEGIN
-                    ObjectFound := True;
-                    TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'LLI for S' + IntToStr(S) + ' ';
-                    IndicatorFoundNum := S;
-                    IndicatorFoundType := LowerLeftIndicator;
-                  END ELSE
-                    IF PtInRect(Signal_JunctionIndicators[UpperRightIndicator].JunctionIndicator_MouseRect, Point(MouseX, MouseY))
-                    AND ((Signal_JunctionIndicators[UpperRightIndicator].JunctionIndicator_MouseRect.Left <> 0)
-                          AND (Signal_JunctionIndicators[UpperRightIndicator].JunctionIndicator_MouseRect.Bottom <> 0))
-                    THEN BEGIN
-                      ObjectFound := True;
-                      TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'URI for S' + IntToStr(S) + ' ';
-                      IndicatorFoundNum := S;
-                      IndicatorFoundType := UpperRightIndicator;
-                    END ELSE
-                      IF PtInRect(Signal_JunctionIndicators[MiddleRightIndicator].JunctionIndicator_MouseRect, Point(MouseX, MouseY))
-                      AND ((Signal_JunctionIndicators[MiddleRightIndicator].JunctionIndicator_MouseRect.Left <> 0)
-                            AND (Signal_JunctionIndicators[MiddleRightIndicator].JunctionIndicator_MouseRect.Bottom <> 0))
-                      THEN BEGIN
-                        ObjectFound := True;
-                        TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'MRI for S' + IntToStr(S) + ' ';
-                        IndicatorFoundNum := S;
-                        IndicatorFoundType := MiddleRightIndicator;
-                      END ELSE
-                        IF PtInRect(Signal_JunctionIndicators[LowerRightIndicator].JunctionIndicator_MouseRect, Point(MouseX, MouseY))
-                        AND ((Signal_JunctionIndicators[LowerRightIndicator].JunctionIndicator_MouseRect.Left <> 0)
-                              AND (Signal_JunctionIndicators[LowerRightIndicator].JunctionIndicator_MouseRect.Bottom <> 0))
-                        THEN BEGIN
-                          ObjectFound := True;
-                          TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'LRI for S' + IntToStr(S) + ' ';
-                          IndicatorFoundNum := S;
-                          IndicatorFoundType := LowerRightIndicator;
-                        END ELSE
-                          IF PtInRect(Signal_PostMouseRect, Point(MouseX, MouseY))
-                          AND ((Signal_PostMouseRect.Left <> 0)
-                               AND (Signal_PostMouseRect.Bottom <> 0))
-                          THEN BEGIN
-                            ObjectFound := True;
-                            TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'SP for S' + IntToStr(S) + ' ';
-                            SignalPostFoundNum := S;
-                        END ELSE
-                          IF PtInRect(Signal_IndicatorMouseRect, Point(MouseX, MouseY))
-                          AND ((Signal_IndicatorMouseRect.Left <> 0)
-                               AND (Signal_IndicatorMouseRect.Bottom <> 0))
-                          THEN BEGIN
-                            ObjectFound := True;
-                            TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'T for S' + IntToStr(S) + ' ';
-                            TheatreIndicatorFoundNum := S;
-
-                            { Show the track circuit which resets the signal if the indicator is on }
-                            IF ShowSignalResettingTrackCircuitsInStatusBar THEN BEGIN
-                              IF Signals[S].Signal_Indicator <> NoIndicator THEN BEGIN
-                                IF NOT FindNextSignalOrBufferStop(S, UnknownSignal, UnknownBufferStop, IndicatorToBeSet, TempLinesNotAvailableStr, TempDraftRouteArray) THEN
-                                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'No RTC'
-                                ELSE BEGIN
-                                  CreateLockingArrayFromDraftRouteArray(UnknownLocoChipStr, TempDraftRouteArray, Signals[S].Signal_RouteLockingNeededArray);
-                                  TC := GetResettingTrackCircuit(UnknownLocoChipStr, S, SuppressMessage);
-                                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'RTC=' + IntToStr(TC);
-                                END;
-                              END;
-                            END;
-                          END;
-          END; {WITH}
-        END;
-
-        StatusBarPanel1Str := TempStatusBarPanel1Str;
-        TempStatusBarPanel1Str := '';
-
-        { Deal with points }
-        IF PointDebuggingMode THEN BEGIN
-          SaveRecordLineDrawingMode := RecordLineDrawingMode;
-          RecordLineDrawingMode := False;
-          IF SaveHeelLine <> UnknownLine THEN
-            DrawLine(SaveHeelLine, SaveHeelLineColour, NOT ActiveTrain);
-          IF SaveStraightLine <> UnknownLine THEN
-            DrawLine(SaveStraightLine, SaveStraightLineColour, NOT ActiveTrain);
-          IF SaveDivergingLine <> UnknownLine THEN
-            DrawLine(SaveDivergingLine, SaveDivergingLineColour, NOT ActiveTrain);
-          IF SavePoint <> UnknownPoint THEN
-            DrawPoint(SavePoint, BackgroundColour);
-          RecordLineDrawingMode := SaveRecordLineDrawingMode;
-        END;
-
-        PointFoundNum := UnknownPoint;
-        P := 0;
-        WHILE (P <= High(Points)) AND (PointFoundNum = Unknownpoint) DO BEGIN
-          WITH Points[P] DO BEGIN
-            IF PtInRect(Point_MouseRect, Point(MouseX, MouseY)) THEN BEGIN
-              ObjectFound := True;
-
-              { Change the cursor as often points are difficult to focus on }
-              IF NOT SignalDragging AND (Screen.Cursor <> crCross) THEN
-                ChangeCursor(crCross);
-
-              TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'P' + IntToStr(P) + ' ';
-              IF PointIsLocked(P, LockingFailureString) THEN
-                TempStatusBarPanel1Str := TempStatusBarPanel1Str + '[' + LockingFailureString + '] ';
-              IF Point_ManualOperation THEN
-                TempStatusBarPanel1Str := TempStatusBarPanel1Str + '[manual] ';
-              IF Point_OutOfUse THEN
-                TempStatusBarPanel1Str := TempStatusBarPanel1Str + '[out of use] ';
-
-              IF ShowLinesWhichLockPoints THEN BEGIN
-                IF Points[P].Point_LockedIfHeelTCOccupied THEN
-                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'Heel line = ' + LineToStr(Points[P].Point_HeelLine) + ' ';
-
-                IF Points[P].Point_LockedIfNonHeelTCsOccupied THEN BEGIN
-                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'Straight line = ' + LineToStr(Points[P].Point_StraightLine) + ' ';
-                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'Diverging line = ' + LineToStr(Points[P].Point_DivergingLine) + ' ';
-                END;
-              END;
-
-              PointFoundNum := P;
-              IF PointDebuggingMode THEN BEGIN
-                SaveRecordLineDrawingMode := RecordLineDrawingMode;
-                RecordLineDrawingMode := SaveRecordLineDrawingMode;
-                DrawPoint(P, clAqua);
-                SavePoint := P;
-                SaveHeelLine := Point_HeelLine;
-                SaveHeelLineColour := Lines[Point_HeelLine].Line_CurrentColour;
-                DrawLine(Point_HeelLine, PointHeelLineColour, NOT ActiveTrain);
-                DebugStr := 'H=' + LineToStr(Point_HeelLine);
-
-                SaveStraightLine := Point_StraightLine;
-                SaveStraightLineColour := Lines[Point_StraightLine].Line_CurrentColour;
-                DrawLine(Point_StraightLine, PointStraightLineColour, NOT ActiveTrain);
-                DebugStr := DebugStr + ' S=' + LineToStr(Point_StraightLine);
-
-                SaveDivergingLine := Point_DivergingLine;
-                SaveDivergingLineColour := Lines[Point_DivergingLine].Line_CurrentColour;
-                DrawLine(Point_DivergingLine, PointDivergingLineColour, NOT ActiveTrain);
-                RecordLineDrawingMode := SaveRecordLineDrawingMode;
-                DebugStr := DebugStr + ' D=' + LineToStr(Point_DivergingLine);
-
-                Debug(DebugStr);
-              END;
-            END;
-          END; {WITH}
-          Inc(P);
-        END; {WHILE}
-
-        IF TempStatusBarPanel1Str <> '' THEN BEGIN
-          IF StatusBarPanel1Str <> '' THEN
-            { add a separator }
-            StatusBarPanel1Str := StatusBarPanel1Str + ';' + TempStatusBarPanel1Str
-          ELSE
-            StatusBarPanel1Str := TempStatusBarPanel1Str;
-          TempStatusBarPanel1Str := '';
-        END;
-
-        { Look for line related things }
-        IF LockDebuggingMode THEN BEGIN
-          IF SaveNextUpPoint <> UnknownPoint THEN
-            DrawPoint(SaveNextUpPoint, BackgroundColour);
-          IF SaveNextDownPoint <> UnknownPoint THEN
-            DrawPoint(SaveNextDownPoint, BackgroundColour);
-        END;
-
-        IF LockDebuggingMode OR LineDebuggingMode THEN BEGIN
-          SaveRecordLineDrawingMode := RecordLineDrawingMode;
-          RecordLineDrawingMode := False;
-          IF SaveLine <> UnknownLine THEN
-            DrawLine(SaveLine, SaveLineColour, NOT ActiveTrain);
-          IF SaveUpBufferStop <> UnknownBufferStop THEN
-            DrawBufferStop(SaveUpBufferStop, BufferStopColour);
-          IF SaveDownBufferStop <> UnknownBufferStop THEN
-            DrawBufferStop(SaveDownBufferStop, BufferStopColour);
-          IF SaveNextUpLine <> UnknownLine THEN
-            DrawLine(SaveNextUpLine, TCUnoccupiedColour, NOT ActiveTrain);
-          IF SaveNextDownLine <> UnknownLine THEN
-            DrawLine(SaveNextDownLine, TCUnoccupiedColour, NOT ActiveTrain);
-          RecordLineDrawingMode := SaveRecordLineDrawingMode;
-        END;
-
-        { Now with buffer stops }
-        B := 0;
-        BufferStopFoundNum := UnknownBufferStop;
-        WHILE (B <= High(BufferStops)) AND (BufferStopFoundNum = UnknownBufferStop) DO BEGIN
-          WITH BufferStops[B] DO BEGIN
-            IF PtInRect(BufferStop_MouseRect, Point(MouseX, MouseY)) THEN BEGIN
-              ObjectFound := True;
-              BufferStopFoundNum := B;
-              TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'B' + IntToStr(B) + ' ';
-            END;
-          END; {WITH}
-          Inc(B);
-        END; {WHILE}
-
-        IF TempStatusBarPanel1Str <> '' THEN BEGIN
-          IF StatusBarPanel1Str <> '' THEN
-            { add a separator }
-            StatusBarPanel1Str := StatusBarPanel1Str + ';' + TempStatusBarPanel1Str
-          ELSE
-            StatusBarPanel1Str := TempStatusBarPanel1Str;
-          TempStatusBarPanel1Str := '';
-        END;
-
-        { See if the mouse pointer is within lines rectangle - note: no guarantee that MX1 < MX2 }
-        FOR Line := 0 TO High(Lines) DO BEGIN
-          WITH Lines[Line] DO BEGIN
-            IF PointInPolygon(Line_MousePolygon, Point(MouseX, MouseY)) THEN BEGIN
-              ObjectFound := True;
-
-              { Write out the line name }
-              TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' (' + LineToStr(Line) + ' [' + LocationToStr(Lines[Line].Line_Location, ShortStringType) + ']';
-              IF Lines[Line].Line_RouteLockingForDrawing <> UnknownRoute THEN
-                TempStatusBarPanel1Str := TempStatusBarPanel1Str + '[R=' + IntToStr(Lines[Line].Line_RouteLockingForDrawing) + ']';
-              TempStatusBarPanel1Str := TempStatusBarPanel1Str + ')';
-              LineFoundNum := Line;
-
-              IF Line_OutOfUseState = OutOfUse THEN BEGIN
-                IF (Lines[Line].Line_Location <> UnknownLocation) AND (Locations[Lines[Line].Line_Location].Location_OutOfUse) THEN
-                  { it's not necessarily the line itself that's out of use }
-                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + '[location ' + LocationToStr(Lines[Line].Line_Location, ShortStringType) + ' out of use]'
-                ELSE
-                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + '[line out of use]';
-              END;
-
-              { Debug('Up=' +  LineToStr(Lines[L].Line_NextUpLine) + ' Down=' + LineToStr(Lines[L].Line_NextDownLine)); }
-
-              { Look for track circuits }
-              IF (Lines[Line].Line_TC <> UnknownTrackCircuit) THEN BEGIN
-                IF TrackCircuits[Lines[Line].Line_TC].TC_LocoChip <> UnknownLocoChip THEN BEGIN
-                  T := GetTrainIndexFromLocoChip(TrackCircuits[Lines[Line].Line_TC].TC_LocoChip);
-                  IF T <> UnknownTrainIndex THEN BEGIN
-                    WITH Trains[T] DO BEGIN
-                      ObjectFound := True;
-                      StatusBarPanel2Str := LocoChipToStr(Train_LocoChip) + ': ' + TrainStatusToStr(Train_CurrentStatus);
-                      IF Train_RouteCreationHoldMsg <> '' THEN
-                        StatusBarPanel2Str := StatusBarPanel2Str + IfThen(Train_RouteCreationHeldJourney = Train_CurrentJourney,
-                                                                          { only display route creation hold messages if the journey is the current one }
-                                                                          IfThen(Train_RouteCreationHoldMsg <> '',
-                                                                                 ' - ' + Train_RouteCreationHoldMsg)
-                                                                 + IfThen(Train_RouteCreationReleasedMsg <> '',
-                                                                          ' - ' + Train_RouteCreationReleasedMsg));
-
-                      IF Train_CurrentRoute < High(Train_JourneysArray) THEN
-                        IF Train_CurrentRoute < Length(Routes_RoutesSettingUpStalledMsgArray) THEN
-                          IF Routes_RoutesSettingUpStalledMsgArray[Train_CurrentRoute] <> '' THEN
-                            StatusBarPanel2Str := StatusBarPanel2Str + ' - R=' + IntToStr(Train_CurrentRoute) + ' stalled '
-                                                                     + Routes_RoutesSettingUpStalledMsgArray[Train_CurrentRoute];
-                    END;
-                  END;
-                END;
-
-                TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' TC=' + IntToStr(Lines[Line].Line_TC);
-                IF TrackCircuits[Lines[Line].Line_TC].TC_Headcode <> '' THEN
-                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' ' + TrackCircuits[Lines[Line].Line_TC].TC_Headcode;
-                IF TrackCircuits[Lines[Line].Line_TC].TC_SpeedRestrictionInMPH <> NoSpecifiedSpeed THEN BEGIN
-                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' ' + ' max:' + MPHToStr(TrackCircuits[Lines[Line].Line_TC].TC_SpeedRestrictionInMPH);
-                  IF TrackCircuits[Lines[Line].Line_TC].TC_SpeedRestrictionDirection <> Bidirectional THEN
-                    IF TrackCircuits[Lines[Line].Line_TC].TC_SpeedRestrictionDirection = Up THEN
-                      TempStatusBarPanel1Str := TempStatusBarPanel1Str + '<'
-                    ELSE
-                      { TrackCircuits[Lines[L].Line_TC].TC_SpeedRestrictionDirection = Down }
-                      TempStatusBarPanel1Str := TempStatusBarPanel1Str + '>';
-                END;
-                IF TrackCircuits[Lines[Line].Line_TC].TC_UserMustDrive THEN
-                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' {U}';
-
-                TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' [' + TrackCircuitStateToStr(TrackCircuits[Lines[Line].Line_TC].TC_OccupationState);
-                IF (TrackCircuits[Lines[Line].Line_TC].TC_LocoChip <> UnknownLocoChip) AND (TrackCircuits[Lines[Line].Line_TC].TC_OccupationState <> TCUnoccupied) THEN
-                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' by ' + IntToStr(TrackCircuits[Lines[Line].Line_TC].TC_LocoChip);
-
-                TempStatusBarPanel1Str := TempStatusBarPanel1Str + ']';
-
-                IF TrackCircuits[Lines[Line].Line_TC].TC_LockedForRoute <> UnknownRoute THEN BEGIN
-                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' [R=' + IntToStr(TrackCircuits[Lines[Line].Line_TC].TC_LockedForRoute)
-                                                                   + ' (' + LocoChipToStr(Routes_LocoChips[TrackCircuits[Lines[Line].Line_TC].TC_LockedForRoute]) + ')';
-                  IF TrackCircuits[Lines[Line].Line_TC].TC_Journey = UnknownJourney THEN
-                    TempStatusBarPanel1Str := TempStatusBarPanel1Str + ']'
-                  ELSE
-                    TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' (J=' + IntToStr(TrackCircuits[Lines[Line].Line_TC].TC_Journey) + ')]';
-                END;
-
-              END;
-
-              IF LineDebuggingMode THEN BEGIN
-                SaveRecordLineDrawingMode := RecordLineDrawingMode;
-                RecordLineDrawingMode := False;
-                WITH Lines[Line] DO BEGIN
-                  CASE Lines[Line].Line_NextUpType OF
-                    EndOfLineIsNext:
-                      IF Lines[Line].Line_NextUpIsEndOfLine = BufferStopAtUp THEN BEGIN
-                        SaveUpBufferStop := Line_AdjacentBufferStop;
-                        DrawBufferStop(Line_AdjacentBufferStop, clLime);
-                      END;
-                    PointIsNext:
-                      BEGIN
-                        SaveNextUpPoint := Lines[Line].Line_NextUpPoint;
-                        DrawPoint(Lines[Line].Line_NextUpPoint, clLime);
-                      END;
-                    LineIsNext:
-                      BEGIN
-                        SaveNextUpLine := Line_NextUpLine;
-                        SaveNextUpLineColour := Lines[Line_NextUpLine].Line_CurrentColour;
-                        DrawLine(Lines[Line].Line_NextUpLine, clLime, NOT ActiveTrain);
-                      END;
-                  END; {CASE}
-
-                  SaveLine := Line;
-                  SaveLineColour := Lines[Line].Line_CurrentColour;
-                  DrawLine(Line, clYellow, NOT ActiveTrain);
-
-                  IF Lines[Line].Line_NextDownIsEndOfLine = BufferStopAtDown THEN BEGIN
-                    SaveDownBufferStop := Lines[Line].Line_AdjacentBufferStop;
-                    DrawBufferStop(Lines[Line].Line_AdjacentBufferStop, clRed)
-                  END ELSE
-                    IF Lines[Line].Line_NextDownPoint <> UnknownPoint THEN BEGIN
-                      SaveNextDownPoint := Lines[Line].Line_NextDownPoint;
-                      DrawPoint(Lines[Line].Line_NextDownPoint, clRed);
-                    END ELSE BEGIN
-                      SaveNextDownLine := Line_NextDownLine;
-                      SaveNextDownLineColour := Lines[Line_NextDownLine].Line_CurrentColour;
-                      DrawLine(Lines[Line].Line_NextDownLine, clRed, NOT ActiveTrain);
-                    END;
-                END; {WITH}
-                RecordLineDrawingMode := SaveRecordLineDrawingMode;
-              END;
-
-              { If the mouse has moved away from a line, this will clear the panel }
-  //            IF MainWindow.MainWindowStatusBar.Panels[StatusBarPanel2].Text <> '' THEN
-  //              WriteToStatusBarPanel(StatusBarPanel2, '');
-            END;
-          END; {WITH}
-        END;
-
-        IF TempStatusBarPanel1Str <> '' THEN BEGIN
-          IF StatusBarPanel1Str <> '' THEN
-            { add a separator }
-            StatusBarPanel1Str := StatusBarPanel1Str + ';' + TempStatusBarPanel1Str
-          ELSE
-            StatusBarPanel1Str := TempStatusBarPanel1Str;
-          TempStatusBarPanel1Str := '';
-        END;
-
-        { Is it a line-end character? - if so, highlight the corresponding line-end } { move this to Raildraw? ********* }
-        FOR Line := 0 TO High(Lines) DO BEGIN
-          WITH Lines[Line] DO BEGIN
-            WITH RailWindowBitmap.Canvas DO BEGIN
-              IF PtInRect(Line_UpConnectionChRect, Point(MouseX, MouseY)) THEN
-                UpLineEndCharacterLine := Line;
-              IF PtInRect(Line_DownConnectionChRect, Point(MouseX, MouseY)) THEN
-                DownLineEndCharacterLine := Line;
-            END; {WITH}
-          END; {WITH}
-        END; {FOR}
-
-      //  { Is it a TRS Plunger? }
-      //  TRSPlungerFound := False;
-      //  TRSPlungerLocation := FirstMainPlatformLocation;
-      //  WHILE (TRSPlungerLocation <= LastMainPlatformLocation) AND NOT TRSPlungerFound DO BEGIN
-      //    IF PtInRect(MainPlatformPlungers[TRSPlungerLocation].TRSPlunger_MouseRect, Point(MouseX, MouseY)) THEN BEGIN
-      //      ObjectFound := True;
-      //      TRSPlungerFound := True;
-      //      TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'TRSPlunger for ' + MainPlatformPlungers[TRSPlungerLocation].TRSPlunger_PlatformNumStr + ' ';
-      //      TRSPlungerFoundLocation := TRSPlungerLocation;
-      //    END ELSE
-      //      Inc(TRSPlungerLocation);
-      //  END; {WHILE}
-
-        { Write out the description if we've found something to describe }
-        IF StatusBarPanel1Str <> '' THEN BEGIN
-          WriteToStatusBarPanel(StatusBarPanel1, StatusBarPanel1Str);
-          StatusBarPanel1Str := '';
-        END;
-        IF StatusBarPanel2Str <> '' THEN BEGIN
-          WriteToStatusBarPanel(StatusBarPanel2, StatusBarPanel2Str);
-          StatusBarPanel2Str := '';
-        END;
-
-        IF NOT ObjectFound THEN
+          FWPRailWindow.HorzScrollBar.Position := FWPRailWindow.HorzScrollBar.Position + MouseMovingX - X;
+          FWPRailWindow.VertScrollBar.Position := FWPRailWindow.VertScrollBar.Position + MouseMovingY - Y;
+          MouseMovingX := X;
+          MouseMovingY := Y;
+        END ELSE BEGIN
           IF NOT SignalDragging AND (Screen.Cursor <> crDefault) THEN
             ChangeCursor(crDefault);
 
-        IF DebuggingMode THEN
-          { Display mouse co-ordinates }
-          WriteToStatusBarPanel(StatusBarPanel2, IntToStr(X) + ',' + IntToStr(Y) + '; '
-                                + IntToStr(MulDiv(1000, X, FWPRailWindow.ClientWidth)) + '/1000,'
-                                + IntToStr(MulDiv(1000, Y, FWPRailWindow.ClientHeight)) +'/1000');
+          MouseX := X + ScrollBarXAdjustment;
+          MouseY := Y + ScrollBarYAdjustment;
+
+          { Clear any debugging track circuit occupations }
+          FOR S := 0 TO High(Signals) DO BEGIN
+            WITH Signals[S] DO BEGIN
+              IF PtInRect(Signal_MouseRect, Point(MouseX, MouseY)) THEN BEGIN
+                ObjectFound := True;
+                TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'S' + IntToStr(S) + ' ';
+                SignalFoundNum := S;
+
+                IF SignalIsLocked(S, LockingFailureString) THEN
+                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + '[' + LockingFailureString + '] ';
+                IF Signals[S].Signal_OutOfUse THEN
+                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + '(X) ';
+                IF Signal_HiddenAspect <> NoAspect THEN
+                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'HA=' + AspectToStr(Signal_HiddenAspect, ShortStringType);
+
+                { Show the track circuit which resets the signal }
+                IF ShowSignalResettingTrackCircuitsInStatusBar THEN BEGIN
+                  IF NOT FindNextSignalOrBufferStop(S, UnknownSignal, UnknownBufferStop, NOT IndicatorToBeSet, TempLinesNotAvailableStr, TempDraftRouteArray) THEN
+                    TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'No RTC'
+                  ELSE BEGIN
+                    CreateLockingArrayFromDraftRouteArray(UnknownLocoChipStr, TempDraftRouteArray, Signals[S].Signal_RouteLockingNeededArray);
+                    TC := GetResettingTrackCircuit(UnknownLocoChipStr, S, SuppressMessage);
+                    TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'RTC=' + IntToStr(TC);
+                  END;
+                END;
+              END ELSE
+                IF PtInRect(Signal_JunctionIndicators[UpperLeftIndicator].JunctionIndicator_MouseRect, Point(MouseX, MouseY))
+                AND ((Signal_JunctionIndicators[UpperLeftIndicator].JunctionIndicator_MouseRect.Left <> 0)
+                      AND (Signal_JunctionIndicators[UpperLeftIndicator].JunctionIndicator_MouseRect.Bottom <> 0))
+                THEN BEGIN
+                  ObjectFound := True;
+                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'ULI for S' + IntToStr(S) + ' ';
+                  IndicatorFoundNum := S;
+                  IndicatorFoundType := UpperLeftIndicator;
+                END ELSE
+                  IF PtInRect(Signal_JunctionIndicators[MiddleLeftIndicator].JunctionIndicator_MouseRect, Point(MouseX, MouseY))
+                  AND ((Signal_JunctionIndicators[MiddleLeftIndicator].JunctionIndicator_MouseRect.Left <> 0)
+                        AND (Signal_JunctionIndicators[MiddleLeftIndicator].JunctionIndicator_MouseRect.Bottom <> 0))
+                  THEN BEGIN
+                    ObjectFound := True;
+                    TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'MLI for S' + IntToStr(S) + ' ';
+                    IndicatorFoundNum := S;
+                    IndicatorFoundType := MiddleLeftIndicator;
+                  END ELSE
+                    IF PtInRect(Signal_JunctionIndicators[LowerLeftIndicator].JunctionIndicator_MouseRect, Point(MouseX, MouseY))
+                    AND ((Signal_JunctionIndicators[LowerLeftIndicator].JunctionIndicator_MouseRect.Left <> 0)
+                          AND (Signal_JunctionIndicators[LowerLeftIndicator].JunctionIndicator_MouseRect.Bottom <> 0))
+                    THEN BEGIN
+                      ObjectFound := True;
+                      TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'LLI for S' + IntToStr(S) + ' ';
+                      IndicatorFoundNum := S;
+                      IndicatorFoundType := LowerLeftIndicator;
+                    END ELSE
+                      IF PtInRect(Signal_JunctionIndicators[UpperRightIndicator].JunctionIndicator_MouseRect, Point(MouseX, MouseY))
+                      AND ((Signal_JunctionIndicators[UpperRightIndicator].JunctionIndicator_MouseRect.Left <> 0)
+                            AND (Signal_JunctionIndicators[UpperRightIndicator].JunctionIndicator_MouseRect.Bottom <> 0))
+                      THEN BEGIN
+                        ObjectFound := True;
+                        TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'URI for S' + IntToStr(S) + ' ';
+                        IndicatorFoundNum := S;
+                        IndicatorFoundType := UpperRightIndicator;
+                      END ELSE
+                        IF PtInRect(Signal_JunctionIndicators[MiddleRightIndicator].JunctionIndicator_MouseRect, Point(MouseX, MouseY))
+                        AND ((Signal_JunctionIndicators[MiddleRightIndicator].JunctionIndicator_MouseRect.Left <> 0)
+                              AND (Signal_JunctionIndicators[MiddleRightIndicator].JunctionIndicator_MouseRect.Bottom <> 0))
+                        THEN BEGIN
+                          ObjectFound := True;
+                          TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'MRI for S' + IntToStr(S) + ' ';
+                          IndicatorFoundNum := S;
+                          IndicatorFoundType := MiddleRightIndicator;
+                        END ELSE
+                          IF PtInRect(Signal_JunctionIndicators[LowerRightIndicator].JunctionIndicator_MouseRect, Point(MouseX, MouseY))
+                          AND ((Signal_JunctionIndicators[LowerRightIndicator].JunctionIndicator_MouseRect.Left <> 0)
+                                AND (Signal_JunctionIndicators[LowerRightIndicator].JunctionIndicator_MouseRect.Bottom <> 0))
+                          THEN BEGIN
+                            ObjectFound := True;
+                            TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'LRI for S' + IntToStr(S) + ' ';
+                            IndicatorFoundNum := S;
+                            IndicatorFoundType := LowerRightIndicator;
+                          END ELSE
+                            IF PtInRect(Signal_PostMouseRect, Point(MouseX, MouseY))
+                            AND ((Signal_PostMouseRect.Left <> 0)
+                                 AND (Signal_PostMouseRect.Bottom <> 0))
+                            THEN BEGIN
+                              ObjectFound := True;
+                              TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'SP for S' + IntToStr(S) + ' ';
+                              SignalPostFoundNum := S;
+                          END ELSE
+                            IF PtInRect(Signal_IndicatorMouseRect, Point(MouseX, MouseY))
+                            AND ((Signal_IndicatorMouseRect.Left <> 0)
+                                 AND (Signal_IndicatorMouseRect.Bottom <> 0))
+                            THEN BEGIN
+                              ObjectFound := True;
+                              TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'T for S' + IntToStr(S) + ' ';
+                              TheatreIndicatorFoundNum := S;
+
+                              { Show the track circuit which resets the signal if the indicator is on }
+                              IF ShowSignalResettingTrackCircuitsInStatusBar THEN BEGIN
+                                IF Signals[S].Signal_Indicator <> NoIndicator THEN BEGIN
+                                  IF NOT FindNextSignalOrBufferStop(S, UnknownSignal, UnknownBufferStop, IndicatorToBeSet, TempLinesNotAvailableStr, TempDraftRouteArray) THEN
+                                    TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'No RTC'
+                                  ELSE BEGIN
+                                    CreateLockingArrayFromDraftRouteArray(UnknownLocoChipStr, TempDraftRouteArray, Signals[S].Signal_RouteLockingNeededArray);
+                                    TC := GetResettingTrackCircuit(UnknownLocoChipStr, S, SuppressMessage);
+                                    TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'RTC=' + IntToStr(TC);
+                                  END;
+                                END;
+                              END;
+                            END;
+            END; {WITH}
+          END;
+
+          StatusBarPanel1Str := TempStatusBarPanel1Str;
+          TempStatusBarPanel1Str := '';
+
+          { Deal with points }
+          IF PointDebuggingMode THEN BEGIN
+            SaveRecordLineDrawingMode := RecordLineDrawingMode;
+            RecordLineDrawingMode := False;
+            IF SaveHeelLine <> UnknownLine THEN
+              DrawLine(SaveHeelLine, SaveHeelLineColour, NOT ActiveTrain);
+            IF SaveStraightLine <> UnknownLine THEN
+              DrawLine(SaveStraightLine, SaveStraightLineColour, NOT ActiveTrain);
+            IF SaveDivergingLine <> UnknownLine THEN
+              DrawLine(SaveDivergingLine, SaveDivergingLineColour, NOT ActiveTrain);
+            IF SavePoint <> UnknownPoint THEN
+              DrawPoint(SavePoint, BackgroundColour);
+            RecordLineDrawingMode := SaveRecordLineDrawingMode;
+          END;
+
+          PointFoundNum := UnknownPoint;
+          P := 0;
+          WHILE (P <= High(Points)) AND (PointFoundNum = Unknownpoint) DO BEGIN
+            WITH Points[P] DO BEGIN
+              IF PtInRect(Point_MouseRect, Point(MouseX, MouseY)) THEN BEGIN
+                ObjectFound := True;
+
+                { Change the cursor as often points are difficult to focus on }
+                IF NOT SignalDragging AND (Screen.Cursor <> crCross) THEN
+                  ChangeCursor(crCross);
+
+                TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'P' + IntToStr(P) + ' ';
+                IF PointIsLocked(P, LockingFailureString) THEN
+                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + '[' + LockingFailureString + '] ';
+                IF Point_ManualOperation THEN
+                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + '[manual] ';
+                IF Point_OutOfUse THEN
+                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + '[out of use] ';
+
+                IF ShowLinesWhichLockPoints THEN BEGIN
+                  IF Points[P].Point_LockedIfHeelTCOccupied THEN
+                    TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'Heel line = ' + LineToStr(Points[P].Point_HeelLine) + ' ';
+
+                  IF Points[P].Point_LockedIfNonHeelTCsOccupied THEN BEGIN
+                    TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'Straight line = ' + LineToStr(Points[P].Point_StraightLine) + ' ';
+                    TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'Diverging line = ' + LineToStr(Points[P].Point_DivergingLine) + ' ';
+                  END;
+                END;
+
+                PointFoundNum := P;
+                IF PointDebuggingMode THEN BEGIN
+                  SaveRecordLineDrawingMode := RecordLineDrawingMode;
+                  RecordLineDrawingMode := SaveRecordLineDrawingMode;
+                  DrawPoint(P, clAqua);
+                  SavePoint := P;
+                  SaveHeelLine := Point_HeelLine;
+                  SaveHeelLineColour := Lines[Point_HeelLine].Line_CurrentColour;
+                  DrawLine(Point_HeelLine, PointHeelLineColour, NOT ActiveTrain);
+                  DebugStr := 'H=' + LineToStr(Point_HeelLine);
+
+                  SaveStraightLine := Point_StraightLine;
+                  SaveStraightLineColour := Lines[Point_StraightLine].Line_CurrentColour;
+                  DrawLine(Point_StraightLine, PointStraightLineColour, NOT ActiveTrain);
+                  DebugStr := DebugStr + ' S=' + LineToStr(Point_StraightLine);
+
+                  SaveDivergingLine := Point_DivergingLine;
+                  SaveDivergingLineColour := Lines[Point_DivergingLine].Line_CurrentColour;
+                  DrawLine(Point_DivergingLine, PointDivergingLineColour, NOT ActiveTrain);
+                  RecordLineDrawingMode := SaveRecordLineDrawingMode;
+                  DebugStr := DebugStr + ' D=' + LineToStr(Point_DivergingLine);
+
+                  Debug(DebugStr);
+                END;
+              END;
+            END; {WITH}
+            Inc(P);
+          END; {WHILE}
+
+          IF TempStatusBarPanel1Str <> '' THEN BEGIN
+            IF StatusBarPanel1Str <> '' THEN
+              { add a separator }
+              StatusBarPanel1Str := StatusBarPanel1Str + ';' + TempStatusBarPanel1Str
+            ELSE
+              StatusBarPanel1Str := TempStatusBarPanel1Str;
+            TempStatusBarPanel1Str := '';
+          END;
+
+          { Look for line related things }
+          IF LockDebuggingMode THEN BEGIN
+            IF SaveNextUpPoint <> UnknownPoint THEN
+              DrawPoint(SaveNextUpPoint, BackgroundColour);
+            IF SaveNextDownPoint <> UnknownPoint THEN
+              DrawPoint(SaveNextDownPoint, BackgroundColour);
+          END;
+
+          IF LockDebuggingMode OR LineDebuggingMode THEN BEGIN
+            SaveRecordLineDrawingMode := RecordLineDrawingMode;
+            RecordLineDrawingMode := False;
+            IF SaveLine <> UnknownLine THEN
+              DrawLine(SaveLine, SaveLineColour, NOT ActiveTrain);
+            IF SaveUpBufferStop <> UnknownBufferStop THEN
+              DrawBufferStop(SaveUpBufferStop, BufferStopColour);
+            IF SaveDownBufferStop <> UnknownBufferStop THEN
+              DrawBufferStop(SaveDownBufferStop, BufferStopColour);
+            IF SaveNextUpLine <> UnknownLine THEN
+              DrawLine(SaveNextUpLine, TCUnoccupiedColour, NOT ActiveTrain);
+            IF SaveNextDownLine <> UnknownLine THEN
+              DrawLine(SaveNextDownLine, TCUnoccupiedColour, NOT ActiveTrain);
+            RecordLineDrawingMode := SaveRecordLineDrawingMode;
+          END;
+
+          { Now with buffer stops }
+          B := 0;
+          BufferStopFoundNum := UnknownBufferStop;
+          WHILE (B <= High(BufferStops)) AND (BufferStopFoundNum = UnknownBufferStop) DO BEGIN
+            WITH BufferStops[B] DO BEGIN
+              IF PtInRect(BufferStop_MouseRect, Point(MouseX, MouseY)) THEN BEGIN
+                ObjectFound := True;
+                BufferStopFoundNum := B;
+                TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'B' + IntToStr(B) + ' ';
+              END;
+            END; {WITH}
+            Inc(B);
+          END; {WHILE}
+
+          IF TempStatusBarPanel1Str <> '' THEN BEGIN
+            IF StatusBarPanel1Str <> '' THEN
+              { add a separator }
+              StatusBarPanel1Str := StatusBarPanel1Str + ';' + TempStatusBarPanel1Str
+            ELSE
+              StatusBarPanel1Str := TempStatusBarPanel1Str;
+            TempStatusBarPanel1Str := '';
+          END;
+
+          { See if the mouse pointer is within lines rectangle - note: no guarantee that MX1 < MX2 }
+          FOR Line := 0 TO High(Lines) DO BEGIN
+            WITH Lines[Line] DO BEGIN
+              IF PointInPolygon(Line_MousePolygon, Point(MouseX, MouseY)) THEN BEGIN
+                ObjectFound := True;
+
+                { Write out the line name }
+                TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' (' + LineToStr(Line) + ' [' + LocationToStr(Lines[Line].Line_Location, ShortStringType) + ']';
+                IF Lines[Line].Line_RouteLockingForDrawing <> UnknownRoute THEN
+                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + '[R=' + IntToStr(Lines[Line].Line_RouteLockingForDrawing) + ']';
+                TempStatusBarPanel1Str := TempStatusBarPanel1Str + ')';
+                LineFoundNum := Line;
+
+                IF Line_OutOfUseState = OutOfUse THEN BEGIN
+                  IF (Lines[Line].Line_Location <> UnknownLocation) AND (Locations[Lines[Line].Line_Location].Location_OutOfUse) THEN
+                    { it's not necessarily the line itself that's out of use }
+                    TempStatusBarPanel1Str := TempStatusBarPanel1Str + '[location ' + LocationToStr(Lines[Line].Line_Location, ShortStringType) + ' out of use]'
+                  ELSE
+                    TempStatusBarPanel1Str := TempStatusBarPanel1Str + '[line out of use]';
+                END;
+
+                { Debug('Up=' +  LineToStr(Lines[L].Line_NextUpLine) + ' Down=' + LineToStr(Lines[L].Line_NextDownLine)); }
+
+                { Look for track circuits }
+                IF (Lines[Line].Line_TC <> UnknownTrackCircuit) THEN BEGIN
+                  IF TrackCircuits[Lines[Line].Line_TC].TC_LocoChip <> UnknownLocoChip THEN BEGIN
+                    T := GetTrainIndexFromLocoChip(TrackCircuits[Lines[Line].Line_TC].TC_LocoChip);
+                    IF T <> UnknownTrainIndex THEN BEGIN
+                      WITH Trains[T] DO BEGIN
+                        ObjectFound := True;
+                        StatusBarPanel2Str := LocoChipToStr(Train_LocoChip) + ': ' + TrainStatusToStr(Train_CurrentStatus);
+                        IF Train_RouteCreationHoldMsg <> '' THEN
+                          StatusBarPanel2Str := StatusBarPanel2Str + IfThen(Train_RouteCreationHeldJourney = Train_CurrentJourney,
+                                                                            { only display route creation hold messages if the journey is the current one }
+                                                                            IfThen(Train_RouteCreationHoldMsg <> '',
+                                                                                   ' - ' + Train_RouteCreationHoldMsg)
+                                                                   + IfThen(Train_RouteCreationReleasedMsg <> '',
+                                                                            ' - ' + Train_RouteCreationReleasedMsg));
+
+                        IF Train_CurrentRoute < High(Train_JourneysArray) THEN
+                          IF Train_CurrentRoute < Length(Routes_RoutesSettingUpStalledMsgArray) THEN
+                            IF Routes_RoutesSettingUpStalledMsgArray[Train_CurrentRoute] <> '' THEN
+                              StatusBarPanel2Str := StatusBarPanel2Str + ' - R=' + IntToStr(Train_CurrentRoute) + ' stalled '
+                                                                       + Routes_RoutesSettingUpStalledMsgArray[Train_CurrentRoute];
+                      END;
+                    END;
+                  END;
+
+                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' TC=' + IntToStr(Lines[Line].Line_TC);
+                  IF TrackCircuits[Lines[Line].Line_TC].TC_Headcode <> '' THEN
+                    TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' ' + TrackCircuits[Lines[Line].Line_TC].TC_Headcode;
+                  IF TrackCircuits[Lines[Line].Line_TC].TC_SpeedRestrictionInMPH <> NoSpecifiedSpeed THEN BEGIN
+                    TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' ' + ' max:' + MPHToStr(TrackCircuits[Lines[Line].Line_TC].TC_SpeedRestrictionInMPH);
+                    IF TrackCircuits[Lines[Line].Line_TC].TC_SpeedRestrictionDirection <> Bidirectional THEN
+                      IF TrackCircuits[Lines[Line].Line_TC].TC_SpeedRestrictionDirection = Up THEN
+                        TempStatusBarPanel1Str := TempStatusBarPanel1Str + '<'
+                      ELSE
+                        { TrackCircuits[Lines[L].Line_TC].TC_SpeedRestrictionDirection = Down }
+                        TempStatusBarPanel1Str := TempStatusBarPanel1Str + '>';
+                  END;
+                  IF TrackCircuits[Lines[Line].Line_TC].TC_UserMustDrive THEN
+                    TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' {U}';
+
+                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' [' + TrackCircuitStateToStr(TrackCircuits[Lines[Line].Line_TC].TC_OccupationState);
+                  IF (TrackCircuits[Lines[Line].Line_TC].TC_LocoChip <> UnknownLocoChip) AND (TrackCircuits[Lines[Line].Line_TC].TC_OccupationState <> TCUnoccupied) THEN
+                    TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' by ' + IntToStr(TrackCircuits[Lines[Line].Line_TC].TC_LocoChip);
+
+                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + ']';
+
+                  IF TrackCircuits[Lines[Line].Line_TC].TC_LockedForRoute <> UnknownRoute THEN BEGIN
+                    TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' [R=' + IntToStr(TrackCircuits[Lines[Line].Line_TC].TC_LockedForRoute)
+                                                                     + ' (' + LocoChipToStr(Routes_LocoChips[TrackCircuits[Lines[Line].Line_TC].TC_LockedForRoute]) + ')';
+                    IF TrackCircuits[Lines[Line].Line_TC].TC_Journey = UnknownJourney THEN
+                      TempStatusBarPanel1Str := TempStatusBarPanel1Str + ']'
+                    ELSE
+                      TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' (J=' + IntToStr(TrackCircuits[Lines[Line].Line_TC].TC_Journey) + ')]';
+                  END;
+
+                END;
+
+                IF LineDebuggingMode THEN BEGIN
+                  SaveRecordLineDrawingMode := RecordLineDrawingMode;
+                  RecordLineDrawingMode := False;
+                  WITH Lines[Line] DO BEGIN
+                    CASE Lines[Line].Line_NextUpType OF
+                      EndOfLineIsNext:
+                        IF Lines[Line].Line_NextUpIsEndOfLine = BufferStopAtUp THEN BEGIN
+                          SaveUpBufferStop := Line_AdjacentBufferStop;
+                          DrawBufferStop(Line_AdjacentBufferStop, clLime);
+                        END;
+                      PointIsNext:
+                        BEGIN
+                          SaveNextUpPoint := Lines[Line].Line_NextUpPoint;
+                          DrawPoint(Lines[Line].Line_NextUpPoint, clLime);
+                        END;
+                      LineIsNext:
+                        BEGIN
+                          SaveNextUpLine := Line_NextUpLine;
+                          SaveNextUpLineColour := Lines[Line_NextUpLine].Line_CurrentColour;
+                          DrawLine(Lines[Line].Line_NextUpLine, clLime, NOT ActiveTrain);
+                        END;
+                    END; {CASE}
+
+                    SaveLine := Line;
+                    SaveLineColour := Lines[Line].Line_CurrentColour;
+                    DrawLine(Line, clYellow, NOT ActiveTrain);
+
+                    IF Lines[Line].Line_NextDownIsEndOfLine = BufferStopAtDown THEN BEGIN
+                      SaveDownBufferStop := Lines[Line].Line_AdjacentBufferStop;
+                      DrawBufferStop(Lines[Line].Line_AdjacentBufferStop, clRed)
+                    END ELSE
+                      IF Lines[Line].Line_NextDownPoint <> UnknownPoint THEN BEGIN
+                        SaveNextDownPoint := Lines[Line].Line_NextDownPoint;
+                        DrawPoint(Lines[Line].Line_NextDownPoint, clRed);
+                      END ELSE BEGIN
+                        SaveNextDownLine := Line_NextDownLine;
+                        SaveNextDownLineColour := Lines[Line_NextDownLine].Line_CurrentColour;
+                        DrawLine(Lines[Line].Line_NextDownLine, clRed, NOT ActiveTrain);
+                      END;
+                  END; {WITH}
+                  RecordLineDrawingMode := SaveRecordLineDrawingMode;
+                END;
+
+                { If the mouse has moved away from a line, this will clear the panel }
+    //            IF MainWindow.MainWindowStatusBar.Panels[StatusBarPanel2].Text <> '' THEN
+    //              WriteToStatusBarPanel(StatusBarPanel2, '');
+              END;
+            END; {WITH}
+          END;
+
+          IF TempStatusBarPanel1Str <> '' THEN BEGIN
+            IF StatusBarPanel1Str <> '' THEN
+              { add a separator }
+              StatusBarPanel1Str := StatusBarPanel1Str + ';' + TempStatusBarPanel1Str
+            ELSE
+              StatusBarPanel1Str := TempStatusBarPanel1Str;
+            TempStatusBarPanel1Str := '';
+          END;
+
+          { Is it a line-end character? - if so, highlight the corresponding line-end } { move this to Raildraw? ********* }
+          FOR Line := 0 TO High(Lines) DO BEGIN
+            WITH Lines[Line] DO BEGIN
+              WITH RailWindowBitmap.Canvas DO BEGIN
+                IF PtInRect(Line_UpConnectionChRect, Point(MouseX, MouseY)) THEN
+                  UpLineEndCharacterLine := Line;
+                IF PtInRect(Line_DownConnectionChRect, Point(MouseX, MouseY)) THEN
+                  DownLineEndCharacterLine := Line;
+              END; {WITH}
+            END; {WITH}
+          END; {FOR}
+
+        //  { Is it a TRS Plunger? }
+        //  TRSPlungerFound := False;
+        //  TRSPlungerLocation := FirstMainPlatformLocation;
+        //  WHILE (TRSPlungerLocation <= LastMainPlatformLocation) AND NOT TRSPlungerFound DO BEGIN
+        //    IF PtInRect(MainPlatformPlungers[TRSPlungerLocation].TRSPlunger_MouseRect, Point(MouseX, MouseY)) THEN BEGIN
+        //      ObjectFound := True;
+        //      TRSPlungerFound := True;
+        //      TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'TRSPlunger for ' + MainPlatformPlungers[TRSPlungerLocation].TRSPlunger_PlatformNumStr + ' ';
+        //      TRSPlungerFoundLocation := TRSPlungerLocation;
+        //    END ELSE
+        //      Inc(TRSPlungerLocation);
+        //  END; {WHILE}
+
+          { Write out the description if we've found something to describe }
+          IF StatusBarPanel1Str <> '' THEN BEGIN
+            WriteToStatusBarPanel(StatusBarPanel1, StatusBarPanel1Str);
+            StatusBarPanel1Str := '';
+          END;
+          IF StatusBarPanel2Str <> '' THEN BEGIN
+            WriteToStatusBarPanel(StatusBarPanel2, StatusBarPanel2Str);
+            StatusBarPanel2Str := '';
+          END;
+
+          IF NOT ObjectFound THEN
+            IF NOT SignalDragging AND (Screen.Cursor <> crDefault) THEN
+              ChangeCursor(crDefault);
+
+          IF DebuggingMode THEN
+            { Display mouse co-ordinates }
+            WriteToStatusBarPanel(StatusBarPanel2, IntToStr(X) + ',' + IntToStr(Y) + '; '
+                                  + IntToStr(MulDiv(1000, X, FWPRailWindow.ClientWidth)) + '/1000,'
+                                  + IntToStr(MulDiv(1000, Y, FWPRailWindow.ClientHeight)) +'/1000');
+        END;
       END;
-    END;
   EXCEPT {TRY}
     ON E : Exception DO
       Log('EG WhatIsUnderMouse: ' + E.ClassName + ' error raised, with message: '+ E.Message);
@@ -706,11 +686,10 @@ BEGIN
       Inc(Line);
     END;
 
-    { Ending a drag and drop }
+    { Ending an actual or a potential drag and drop }
     IF SignalDragging THEN BEGIN
-      SignalDragging := False;
+      DropSignal;
       DragSignalNum := UnknownSignal;
-      ChangeCursor(crDefault);
     END;
 
     { Ending a zoomed screen mouse move }
@@ -1649,14 +1628,14 @@ VAR
 BEGIN
   TRY
     IF HelpRequired THEN BEGIN
+      ChangePoint(IrrelevantNum, IrrelevantShiftState, HelpRequired);
       ChangeSignal(IrrelevantNum, IrrelevantShiftState, HelpRequired);
       ChangeSignalIndicator(IrrelevantNum, UnknownJunctionIndicator, IrrelevantShiftState, HelpRequired);
+      ChangeTRSPlunger(IrrelevantLocation, HelpRequired);
+      DownLineEndCharacterSelected(IrrelevantLine, HelpRequired);
       SignalPostSelected(IrrelevantNum, IrrelevantNum, IrrelevantShiftState, HelpRequired);
-      ChangePoint(IrrelevantNum, IrrelevantShiftState, HelpRequired);
       TheatreIndicatorSelected(IrrelevantNum, IrrelevantNum, IrrelevantShiftState, HelpRequired);
       UpLineEndCharacterSelected(IrrelevantLine, HelpRequired);
-      DownLineEndCharacterSelected(IrrelevantLine, HelpRequired);
-      ChangeTRSPlunger(IrrelevantLocation, HelpRequired);
       WriteNextLineDetailToDebugWindow(LineFoundNum, HelpRequired);
     END ELSE
       WhatIsUnderMouse(X, Y, ShiftState, BufferStopFoundNum, IndicatorFoundNum, IndicatorFoundType, PointFoundNum, SignalFoundNum, SignalPostFoundNum,
@@ -1696,6 +1675,7 @@ BEGIN
             FWPRailWindow.CreateOrDeleteItemPopupMenu.Popup(MouseX, MouseY);
           END;
       END ELSE BEGIN
+        { Not Edit Mode }
         IF ButtonPress = mbLeft THEN BEGIN
           IF SignalFoundNum <> UnknownSignal THEN
             ChangeSignal(SignalFoundNum, ShiftState, HelpRequired)
