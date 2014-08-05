@@ -78,7 +78,7 @@ object EditWindow: TEditWindow
     Top = 216
     object PopupEditWindowResetSizeAndPosition: TMenuItem
       Caption = 'Reset Window Size And Position'
-      OnClick = PopupEditWindowResetSizeAndPositionClick
+      OnClick = EditWindowPopupResetSizeAndPositionClick
     end
   end
 end

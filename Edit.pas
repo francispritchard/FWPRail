@@ -27,10 +27,10 @@ TYPE
     PROCEDURE EditValueListEditorStringsChange(Sender: TObject);
     PROCEDURE EditValueListEditorValidate(Sender: TObject; ACol, ARow: Integer; CONST KeyName, KeyValue: String);
     PROCEDURE EditWindowPopupMenuPopup(Sender: TObject);
+    PROCEDURE EditWindowPopupResetSizeAndPositionClick(Sender: TObject);
     PROCEDURE EditWindowResize(Sender: TObject);
     PROCEDURE EditWindowShow(Sender: TObject);
     PROCEDURE ExitWithoutSavingButtonClick(Sender: TObject);
-    PROCEDURE PopupEditWindowResetSizeAndPositionClick(Sender: TObject);
     PROCEDURE SaveChangesButtonClick(Sender: TObject);
     PROCEDURE SignalImageMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     PROCEDURE UndoChangesButtonClick(Sender: TObject);
@@ -1306,10 +1306,10 @@ BEGIN
   EditWindow.Invalidate;
 END; { ResetEditWindowSizeAndPosition }
 
-PROCEDURE TEditWindow.PopupEditWindowResetSizeAndPositionClick(Sender: TObject);
+PROCEDURE TEditWindow.EditWindowPopupResetSizeAndPositionClick(Sender: TObject);
 BEGIN
   ResetEditWindowSizeAndPosition;
-END; { PopupEditWindowResetSizeAndPositionClick }
+END; { EditWindowPopupResetSizeAndPositionClick }
 
 PROCEDURE TEditWindow.EditWindowPopupMenuPopup(Sender: TObject);
 BEGIN
