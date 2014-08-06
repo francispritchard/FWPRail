@@ -1659,20 +1659,31 @@ BEGIN
             END;
         END ELSE
           IF ButtonPress = mbRight THEN BEGIN
-            SetSignalPopupNum(UnknownSignal);
+            SetSignalPopupNum(UnknownLine);
             SetPointPopupNum(UnknownPoint);
             SetLinePopupNum(UnknownLine);
+            SetBufferStopPopupNum(UnknownLine);
 
-            IF SignalFoundNum <> UnknownSignal THEN
-              SetSignalPopupNum(SignalFoundNum)
-            ELSE
-              IF PointFoundNum <> UnknownPoint THEN
-                SetPointPopupNum(PointFoundNum)
-              ELSE
-                IF LineFoundNum <> UnknownLine THEN
+            IF SignalFoundNum <> UnknownSignal THEN BEGIN
+              SetSignalPopupNum(SignalFoundNum);
+              FWPRailWindow.SignalPopupMenu.Popup(MouseX, MouseY);
+              SignalFoundNum := UnknownSignal;
+            END ELSE
+              IF PointFoundNum <> UnknownPoint THEN BEGIN
+                SetPointPopupNum(PointFoundNum);
+                FWPRailWindow.PointPopupMenu.Popup(MouseX, MouseY);
+                PointFoundNum := UnknownPoint;
+              END ELSE
+                IF LineFoundNum <> UnknownLine THEN BEGIN
                   SetLinePopupNum(LineFoundNum);
-
-            FWPRailWindow.CreateOrDeleteItemPopupMenu.Popup(MouseX, MouseY);
+                  FWPRailWindow.LinePopupMenu.Popup(MouseX, MouseY);
+                  LineFoundNum := UnknownLine;
+                END ELSE
+                  IF BufferStopFoundNum <> UnknownBufferStop THEN BEGIN
+                    SetBufferStopPopupNum(BufferStopFoundNum);
+                    FWPRailWindow.BufferStopPopupMenu.Popup(MouseX, MouseY);
+                    BufferStopFoundNum := UnknownBufferStop;
+                  END;
           END;
       END ELSE BEGIN
         { Not Edit Mode }
@@ -1752,8 +1763,8 @@ BEGIN
                         IF ssShift IN ShiftState THEN
                           WriteNextLineDetailToDebugWindow(LineFoundNum, HelpRequired)
                         ELSE BEGIN
-                          SetTrackCircuitPopupLine(LineFoundNum);
-                          FWPRailWindow.TCPopupMenu.Popup(MouseX, MouseY);
+                          SetLinePopupNum(LineFoundNum);
+                          FWPRailWindow.LinePopupMenu.Popup(MouseX, MouseY);
                           LineFoundNum := UnknownLine;
                         END;
                       END ELSE

@@ -16,10 +16,7 @@ USES Windows, Messages, SysUtils, Variants, Classes, Graphics, Forms, Dialogs, M
 TYPE
   TFWPRailWindow = CLASS(TForm)
     FlashTimer: TTimer;
-
-    BufferStopPopupBufferStopNum: TMenuItem;
     BufferStopPopupMenu: TPopupMenu;
-    BufferStopPopupRuler: TMenuItem;
     ChangePoint: TMenuItem;
     ChangeSignal: TMenuItem;
     CreateLineMenuItem: TMenuItem;
@@ -132,6 +129,7 @@ TYPE
     GeneralPopupTCPermanentSystemOccupation: TMenuItem;
     GeneralPopupTCSpeedRestrictionColour: TMenuItem;
     GeneralPopupTrainColours: TMenuItem;
+    LinePopupMenu: TPopupMenu;
     MainClockMenu: TMenuItem;
     MainClockMenuRunClockFastest: TMenuItem;
     MainClockMenuRunTimeFaster: TMenuItem;
@@ -161,45 +159,13 @@ TYPE
     MainRunMenu: TMenuItem;
     MainRunMenuHaltOperations: TMenuItem;
     MainRunMenuResumeOperations: TMenuItem;
-    PointPopupEditPointDetails: TMenuItem;
-    PointPopupLockPoint: TMenuItem;
     PointPopupMenu: TPopupMenu;
-    PointPopupPointNum: TMenuItem;
-    PointPopupRuler1: TMenuItem;
-    PointPopupRuler2: TMenuItem;
-    PointPopupSetPointBackInUse: TMenuItem;
-    PointPopupSetPointOutOfUse: TMenuItem;
-    PointPopupSetPointToAutomatic: TMenuItem;
-    PointPopupSetPointToManual: TMenuItem;
     RestorePointFeedbackDataInUseColour: TMenuItem;
     SetDaylightEnd: TMenuItem;
     SetDayLightStart: TMenuItem;
-    SignalPopupEditSignalDetails: TMenuItem;
     SignalPopupMenu: TPopupMenu;
-    SignalPopupRuler1: TMenuItem;
-    SignalPopupRuler2: TMenuItem;
-    SignalPopupSetSignalBackInUse: TMenuItem;
-    SignalPopupSetSignalOutOfUse: TMenuItem;
-    SignalPopupSignalNum: TMenuItem;
-    TCPopupAllocateLocoToTrackCircuit: TMenuItem;
-    TCPopupChangeInternalLocoDirectionToDown: TMenuItem;
-    TCPopupChangeInternalLocoDirectionToUp: TMenuItem;
-    TCPopupClearLocoAllocationFromTrackCircuit: TMenuItem;
-    TCPopupClearTrackCircuitSpeedRestriction: TMenuItem;
-    TCPopupMenu: TPopupMenu;
-    TCPopupRuler2: TMenuItem;
-    TCPopupRuler3: TMenuItem;
-    TCPopupSetLineOutOfUse: TMenuItem;
-    TCPopupSetLocationOutOfUse: TMenuItem;
-    TCPopupSetTrackCircuitOutOfUseSetByUser: TMenuItem;
-    TCPopupSetTrackCircuitSpeedRestriction: TMenuItem;
-    TCPopupSetTrackCircuitToFeedbackOccupation: TMenuItem;
-    TCPopupSetTrackCircuitToPermanentOccupation: TMenuItem;
-    TCPopupSetTrackCircuitToSystemOccupation: TMenuItem;
-    TCPopupSetTrackCircuitToUserDriving: TMenuItem;
-    TCPopupSetTrackCircuitUnoccupied: TMenuItem;
-    TCPopupTrackCircuitNumber: TMenuItem;
 
+    PROCEDURE BufferStopPopupItemClick(Sender: TObject);
     PROCEDURE BufferStopMenuOnPopup(Sender: TObject);
     PROCEDURE CreateLineMenuItemClick(Sender: TObject);
     PROCEDURE CreateOrDeleteItemMenuOnPopup(Sender: TObject);
@@ -422,6 +388,8 @@ TYPE
     PROCEDURE GeneralPopupTCPermanentSystemOccupationPenStyleInsideFrameClick(Sender: TObject);
     PROCEDURE GeneralPopupTCPermanentSystemOccupationPenStyleSolidClick(Sender: TObject);
     PROCEDURE HelpMenuAboutClick(Sender: TObject);
+    PROCEDURE LinePopupItemClick(Sender: TObject);
+    PROCEDURE LineMenuOnPopup(Sender: TObject);
     PROCEDURE LocoInfoMenuItemClick(Sender: TObject);
     PROCEDURE MainDisplayMenuDebugClick(Sender: TObject);
     PROCEDURE MainDisplayMenuDiagramsWindowClick(Sender: TObject);
@@ -431,41 +399,17 @@ TYPE
     PROCEDURE MainHelpMenuRailHelpClick(Sender: TObject);
     PROCEDURE MainOperationsMenuDriveLocomotiveClick(Sender: TObject);
     PROCEDURE MainRunMenuResumeOperationsClick(Sender: TObject);
-    PROCEDURE PointPopupEditPointDetailsClick(Sender: TObject);
-    PROCEDURE PointPopupLockPointClick(Sender: TObject);
     PROCEDURE PointPopupMenuOnPopup(Sender: TObject);
-    PROCEDURE PointPopupSetPointBackInUseClick(Sender: TObject);
-    PROCEDURE PointPopupSetPointOutOfUseClick(Sender: TObject);
-    PROCEDURE PointPopupSetPointToAutomaticClick(Sender: TObject);
-    PROCEDURE PointPopupSetPointToManualClick(Sender: TObject);
+    PROCEDURE PointPopupItemClick(Sender: TObject);
     PROCEDURE SetCurrentRailwayTime(Sender: TObject);
     PROCEDURE SetDaylightEndTime(Sender: TObject);
     PROCEDURE SetDaylightStartTime(Sender: TObject);
     PROCEDURE SetProgramStartTime(Sender: TObject);
     PROCEDURE ShowStatusBarClick(Sender: TObject);
-    PROCEDURE SignalPopupEditSignalDetailsClick(Sender: TObject);
+    PROCEDURE SignalPopupItemClick(Sender: TObject);
     PROCEDURE SignalPopupMenuOnPopup(Sender: TObject);
-    PROCEDURE SignalPopupSetSignalBackInUseClick(Sender: TObject);
-    PROCEDURE SignalPopupSetSignalOutOfUseClick(Sender: TObject);
     PROCEDURE StartClock(Sender: TObject);
     PROCEDURE StopClock(Sender: TObject);
-    PROCEDURE TCPopupAllocateLocoToTrackCircuitClick(Sender: TObject);
-    PROCEDURE TCPopupChangeInternalLocoDirectionToDownClick(Sender: TObject);
-    PROCEDURE TCPopupChangeInternalLocoDirectionToUpClick(Sender: TObject);
-    PROCEDURE TCPopupClearLocoAllocationFromTrackCircuitClick(Sender: TObject);
-    PROCEDURE TCPopupClearTrackCircuitSpeedRestrictionClick(Sender: TObject);
-    PROCEDURE TCPopupMenuOnPopup(Sender: TObject);
-    PROCEDURE TCPopupSetLineOutOfUseClick(Sender: TObject);
-    PROCEDURE TCPopupSetLocationOutOfUseClick(Sender: TObject);
-    PROCEDURE TCPopupSetTrackCircuitOutOfUseSetByUserClick(Sender: TObject);
-    PROCEDURE TCPopupSetTrackCircuitSpeedRestrictionClick(Sender: TObject);
-    PROCEDURE TCPopupSetTrackCircuitToFeedbackOccupationClick(Sender: TObject);
-    PROCEDURE TCPopupSetTrackCircuitToPermanentOccupationClick(Sender: TObject);
-    PROCEDURE TCPopupSetTrackCircuitToSystemOccupationClick(Sender: TObject);
-    PROCEDURE TCPopupSetTrackCircuitToUserDrivingClick(Sender: TObject);
-    PROCEDURE TCPopupSetTrackCircuitUnoccupiedClick(Sender: TObject);
-    PROCEDURE TCPopupShowLocosLastErrorMessageClick(Sender: TObject);
-    PROCEDURE TCPopupTrackCircuitNumberClick(Sender: TObject);
 
   PRIVATE
     { Private declarations }
@@ -606,9 +550,6 @@ PROCEDURE SetScreenColoursBeforePrinting;
 PROCEDURE ShowStatusBarAndUpDownIndications;
 { After a zoomed screen move, restore the status bar and the "up" and "down" markers }
 
-PROCEDURE SetTrackCircuitPopupLine(L : Integer);
-{ Set the TrackCircuitPopupLine variable state }
-
 PROCEDURE WriteToStatusBarPanel(PanelNum : Integer; Str : String);
 { Write the text in the chosen panel }
 
@@ -734,12 +675,6 @@ PROCEDURE SetSignalPopupNum(Num : Integer);
 BEGIN
   SignalPopupNum := Num;
 END; { SetSignalPopupNum }
-
-PROCEDURE SetTrackCircuitPopupLine(L : Integer);
-{ Set the TrackCircuitPopupLine variable state }
-BEGIN
-  TrackCircuitPopupLine := L;
-END; { TrackCircuitPopupLine }
 
 FUNCTION GetDiagramsCheckingInProgress : Boolean;
 { Return the DiagramsCheckingInProgress variable state }
@@ -1885,9 +1820,6 @@ BEGIN { DrawSignal }
           Aspect := Signal_HiddenAspect;
 
         MoveTo(Signal_LocationX - ScrollBarXAdjustment, Signal_LocationY - ScrollBarYAdjustment);
-
-if s=34 then
-  Debug('Drawing at x=' + inttoStr(signal_locationX) + ' and y=' + inttostr(signal_locationy));
 
         IF Signal_Type = FourAspect THEN BEGIN
           IF Signal_Direction = Up THEN
@@ -3397,12 +3329,31 @@ BEGIN
 END; { DrawTRSPlunger }
 
 PROCEDURE TFWPRailWindow.FWPRailWindowPaint(Sender: TObject);
+{ Notes on methods of screen drawing taken from http://stackoverflow.com/questions/1251009/whats-the-difference-between-refresh-update-repaint 4/8/14
+
+  Refresh - Repaints the control on the screen.
+
+  Call Refresh method to repaint the control immediately. Refresh calls the Repaint method. Use the Refresh and Repaint methods interchangeably.
+
+  Repaint - Forces the control to repaint its image on the screen.
+
+  Call Repaint to force the control to repaint its image immediately. If the ControlStyle property includes csOpaque, the control paints itself directly. Otherwise, the
+  Repaint method calls the Invalidate method and then the Update method so that any visible portions of controls beneath the control will be repainted as well.
+
+  Update - Processes any pending paint messages immediately.
+
+  Call Update to force the control to be repainted before any more, possibly time-consuming, processing takes place. Use Update to provide immediate feedback to the user
+  that cannot wait for the Windows paint message to arrive.
+
+  Update does not invalidate the control, but simply forces a repaint of any regions that have already been invalidated. Call Repaint instead to invalidate the control
+  as well.
+}
 BEGIN
   IF MainWindow.MainTimer.Enabled THEN
     DrawMap;
 
   { And copy the the bitmap image to the screen }
-  Canvas.Draw(0,0, RailWindowBitmap);
+  Canvas.Draw(0, 0, RailWindowBitmap);
 
   IF IsSplashFormVisible THEN BEGIN
     HideSplashForm;
@@ -4105,154 +4056,714 @@ BEGIN
 
 END; { DeleteLineMenuItemClick }
 
+PROCEDURE AddMenuItem(PopupMenu : TPopupMenu; Caption : String; Tag : Integer; Enabled : Boolean; Click : TNotifyEvent);
+{ Add a dynamic menu item }
+VAR
+  TempMenuItem : TMenuItem;
+
+BEGIN
+  TempMenuItem := TMenuItem.Create(PopupMenu);
+  PopupMenu.Items.Add(TempMenuItem);
+  TempMenuItem.Caption := Caption;
+  TempMenuItem.Enabled := Enabled;
+  TempMenuItem.OnClick := Click;
+  TempMenuItem.Tag := Tag;
+END; { AddMenuItem }
+
+PROCEDURE TFWPRailWindow.SignalPopupItemClick(Sender: TObject) ;
+BEGIN
+  WITH Signals[SignalPopupNum] DO BEGIN
+    WITH Sender AS TMenuItem DO BEGIN
+      CASE Tag OF
+        1:
+          BEGIN
+            IF NOT Signal_OutOfUse THEN
+              Signal_OutOfUse := True
+            ELSE BEGIN
+              Signal_OutOfUse := False;
+              Signal_Aspect := RedAspect;
+            END;
+            Signal_DataChanged := True;
+            InvalidateScreen(UnitRef, 'SignalPopupItemClick 1');
+          END;
+        2:
+         TurnEditModeOn(SignalPopupNum, UnknownPoint);
+      ELSE {CASE}
+        Log('SG Invalid tag ' + IntToStr(Tag) + ' in SignalPopupItemClick');
+      END; {CASE}
+    END; {WITH}
+  END; {WITH}
+END; { SignalPopupItemClick }
+
 PROCEDURE TFWPRailWindow.SignalPopupMenuOnPopup(Sender: TObject);
 BEGIN
   WITH Signals[SignalPopupNum] DO BEGIN
-    IF SignalPopupNum = UnknownSignal THEN BEGIN
-      SignalPopupSignalNum.Caption := '';
-      SignalPopupSignalNum.Enabled := False;
-    END ELSE BEGIN
-      SignalPopupSignalNum.Caption := 'Signal ' + IntToStr(SignalPopupNum);
-      SignalPopupSignalNum.Enabled := True;
-    END;
+    SignalPopupMenu.Items.Clear;
 
-    IF Signal_OutOfUse THEN BEGIN
-      SignalPopupSetSignalOutOfUse.Enabled := False;
-      SignalPopupSetSignalBackInUse.Enabled := True;
+    IF NOT EditMode THEN BEGIN
+      IF SignalPopupNum = UnknownSignal THEN
+        Caption := 'Signals'
+      ELSE
+        Caption := 'Signal ' + IntToStr(SignalPopupNum);
+      AddMenuItem(SignalPopupMenu, Caption, -1, NOT Enabled, NIL);
+
+      AddMenuItem(SignalPopupMenu, '-', -1, Enabled, NIL);
+
+      IF NOT Signal_OutOfUse THEN
+        AddMenuItem(SignalPopupMenu, 'Set Signal Out Of Use', 1, Enabled, SignalPopupItemClick)
+      ELSE
+        AddMenuItem(SignalPopupMenu, 'Set Signal Back In Use', 1, Enabled, SignalPopupItemClick);
+
+      AddMenuItem(SignalPopupMenu, '-', -1, Enabled, NIL);
+      AddMenuItem(SignalPopupMenu, 'Edit Signal Details', 2, Enabled, SignalPopupItemClick);
     END ELSE BEGIN
-      SignalPopupSetSignalOutOfUse.Enabled := True;
-      SignalPopupSetSignalBackInUse.Enabled := False;
+      { EditMode }
+
+      IF SignalPopupNum = UnknownSignal THEN
+        Caption := 'Editing Signals'
+      ELSE
+        Caption := 'Editing Signal ' + IntToStr(SignalPopupNum);
+      AddMenuItem(SignalPopupMenu, Caption, -1, Enabled, NIL);
     END;
   END; {WITH}
 END; { SignalPopupMenuOnPopup }
 
-PROCEDURE TFWPRailWindow.SignalPopupSetSignalOutOfUseClick(Sender: TObject);
+PROCEDURE TFWPRailWindow.PointPopupItemClick(Sender: TObject) ;
 BEGIN
-  WITH Signals[SignalPopupNum] DO BEGIN
-    IF NOT Signal_OutOfUse THEN BEGIN
-      Signal_OutOfUse := True;
-      Signal_DataChanged := True;
-      InvalidateScreen(UnitRef, 'SignalPopupSetSignalOutOfUseClick');
-    END;
+  WITH Points[PointPopupNum] DO BEGIN
+    WITH Sender AS TMenuItem DO BEGIN
+      CASE Tag OF
+        1:
+          BEGIN
+            IF NOT Point_OutOfUse THEN
+              Point_OutOfUse := True
+            ELSE
+              Point_OutOfUse := False;
+            InvalidateScreen(UnitRef, 'PointPopupItemClick 1');
+          END;
+        2:
+          BEGIN
+            IF NOT Point_ManualOperation THEN
+              Point_ManualOperation := True
+            ELSE
+              Point_ManualOperation := False;
+            Point_DataChanged := True;
+            InvalidateScreen(UnitRef, 'PointPopupItemClick 2');
+          END;
+        3:
+          BEGIN
+            IF Point_LockedByUser THEN
+              Point_LockedByUser := False
+            ELSE
+              Point_LockedByUser := True;
+            Point_DataChanged := True;
+            InvalidateScreen(UnitRef, 'PointPopupLockPointClick 3');
+          END;
+        4:
+          TurnEditModeOn(UnknownSignal, PointPopupNum);
+      ELSE {CASE}
+        Log('PG Invalid tag ' + IntToStr(Tag) + ' in PointPopupItemClick');
+      END; {CASE}
+    END; {WITH}
   END; {WITH}
-END; { SignalPopupSetSignalOutOfUseClick }
-
-PROCEDURE TFWPRailWindow.SignalPopupSetSignalBackInUseClick(Sender: TObject);
-BEGIN
-  WITH Signals[SignalPopupNum] DO BEGIN
-    IF Signal_OutOfUse THEN BEGIN
-      Signal_OutOfUse := False;
-      Signal_DataChanged := True;
-      Signal_Aspect := RedAspect;
-      InvalidateScreen(UnitRef, 'SignalPopupSetSignalBackInUseClick');
-    END;
-  END; {WITH}
-END; { SignalPopupSetSignalBackInUseClick }
-
-PROCEDURE TFWPRailWindow.SignalPopupEditSignalDetailsClick(Sender: TObject);
-BEGIN
-  TurnEditModeOn(SignalPopupNum, UnknownPoint);
-END; { SignalPopupEditSignalDetailsClick }
-
-PROCEDURE TFWPRailWindow.BufferStopMenuOnPopup(Sender: TObject);
-BEGIN
-  WITH BufferStops[BufferStopPopupNum] DO BEGIN
-    IF BufferStopPopupNum = UnknownBufferStop THEN BEGIN
-      BufferStopPopupBufferStopNum.Caption := '';
-      BufferStopPopupBufferStopNum.Enabled := False;
-    END ELSE BEGIN
-      BufferStopPopupBufferStopNum.Caption := 'BufferStop ' + IntToStr(BufferStopPopupNum);
-      BufferStopPopupBufferStopNum.Enabled := True;
-    END;
-  END; {WITH}
-END; { BufferStopMenuOnPopup }
+END; { PointPopupItemClick }
 
 PROCEDURE TFWPRailWindow.PointPopupMenuOnPopup(Sender: TObject);
 BEGIN
   WITH Points[PointPopupNum] DO BEGIN
-    IF PointPopupNum = Unknownpoint THEN BEGIN
-      PointPopupPointNum.Caption := '';
-      PointPopupPointNum.Enabled := False;
-    END ELSE BEGIN
-      PointPopupPointNum.Caption := 'Point ' + IntToStr(PointPopupNum);
-      PointPopupPointNum.Enabled := True;
-    END;
+    PointPopupMenu.Items.Clear;
 
-    IF Point_OutOfUse THEN BEGIN
-      PointPopupSetPointOutOfUse.Enabled := False;
-      PointPopupSetPointBackInUse.Enabled := True;
-    END ELSE BEGIN
-      PointPopupSetPointOutOfUse.Enabled := True;
-      PointPopupSetPointBackInUse.Enabled := False;
-    END;
+    IF NOT EditMode THEN BEGIN
+      IF PointPopupNum = UnknownPoint THEN
+        Caption := 'Points'
+      ELSE
+        Caption := 'Point ' + IntToStr(PointPopupNum);
+      AddMenuItem(PointPopupMenu, Caption, -1, NOT Enabled, NIL);
 
-    IF Point_ManualOperation THEN BEGIN
-      PointPopupSetPointToManual.Enabled := False;
-      PointPopupSetPointToAutomatic.Enabled := True;
-    END ELSE BEGIN
-      PointPopupSetPointToManual.Enabled := True;
-      PointPopupSetPointToAutomatic.Enabled := False;
-    END;
+      AddMenuItem(PointPopupMenu, '-', -1, Enabled, NIL);
 
-    IF Point_LockedByUser THEN
-      PointPopupLockPoint.Caption := 'Unlock Point'
-    ELSE
-      PointPopupLockPoint.Caption := 'Lock Point';
+      IF Point_OutOfUse THEN
+        AddMenuItem(PointPopupMenu, 'Set Point Back In Use', 1, Enabled, PointPopupItemClick)
+      ELSE
+        AddMenuItem(PointPopupMenu, 'Set Point Out Of Use', 1, Enabled, PointPopupItemClick);
+
+      IF Point_ManualOperation THEN
+        AddMenuItem(PointPopupMenu, 'Set Point To Manual', 2, Enabled, PointPopupItemClick)
+      ELSE
+        AddMenuItem(PointPopupMenu, 'Set Point To Automatic', 2, Enabled, PointPopupItemClick);
+
+      IF Point_LockedByUser THEN
+        AddMenuItem(PointPopupMenu, 'Unlock Point', 3, Enabled, PointPopupItemClick)
+      ELSE
+        AddMenuItem(PointPopupMenu, 'Lock Point', 3, Enabled, PointPopupItemClick);
+
+      AddMenuItem(PointPopupMenu, 'Edit Point', 4, Enabled, PointPopupItemClick);
+    END ELSE BEGIN
+      { EditMode }
+
+    END;
   END; {WITH}
 END; { PointPopupMenuOnPopup }
 
-PROCEDURE TFWPRailWindow.PointPopupEditPointDetailsClick(Sender: TObject);
+PROCEDURE TFWPRailWindow.BufferStopPopupItemClick(Sender: TObject);
 BEGIN
-  TurnEditModeOn(UnknownSignal, PointPopupNum);
-END; { PointPopupEditPointDetailsClick }
+  WITH BufferStops[BufferStopPopupNum] DO BEGIN
+    WITH Sender AS TMenuItem DO BEGIN
+      CASE Tag OF
+        1:
+          TurnEditModeOn(UnknownSignal, BufferStopPopupNum);
+      ELSE {CASE}
+        Log('BG Invalid tag ' + IntToStr(Tag) + ' in BufferStopPopupItemClick');
+      END; {CASE}
+    END; {WITH}
+  END; {WITH}
+END; { BufferStopPopupItemClick }
 
-PROCEDURE TFWPRailWindow.PointPopupLockPointClick(Sender: TObject);
+PROCEDURE TFWPRailWindow.BufferStopMenuOnPopup(Sender: TObject);
 BEGIN
-  WITH Points[PointPopupNum] DO BEGIN
-    IF Point_LockedByUser THEN BEGIN
-      Point_LockedByUser := False;
-      Point_DataChanged := True;
-      PointPopupLockPoint.Caption := 'Lock Point';
+  WITH BufferStops[BufferStopPopupNum] DO BEGIN
+    BufferStopPopupMenu.Items.Clear;
+
+    IF NOT EditMode THEN BEGIN
+      IF BufferStopPopupNum = UnknownBufferStop THEN
+        Caption := 'BufferStops'
+      ELSE
+        Caption := 'BufferStop ' + IntToStr(BufferStopPopupNum);
+      AddMenuItem(BufferStopPopupMenu, Caption, -1, NOT Enabled, NIL);
+
+      AddMenuItem(BufferStopPopupMenu, '-', -1, Enabled, NIL);
+
+      AddMenuItem(BufferStopPopupMenu, 'Edit BufferStop', 1, Enabled, BufferStopPopupItemClick)
     END ELSE BEGIN
-      Point_LockedByUser := True;
-      Point_DataChanged := True;
-      PointPopupLockPoint.Caption := 'Unlock Point';
-    END;
-    InvalidateScreen(UnitRef, 'PointPopupLockPointClick');
-  END; {WITH}
-END; { PointPopupLockPointClick }
+      { EditMode }
 
-PROCEDURE TFWPRailWindow.PointPopupSetPointOutOfUseClick(Sender: TObject);
-BEGIN
-  WITH Points[PointPopupNum] DO BEGIN
-    IF NOT Point_OutOfUse THEN BEGIN
-      Point_OutOfUse := True;
-      Point_DataChanged := True;
-      InvalidateScreen(UnitRef, 'PointPopupSetPointOutOfUseClick');
     END;
   END; {WITH}
-END; { PointPopupSetPointOutOfUseClick }
+END; { BufferStopMenuOnPopup }
 
-PROCEDURE TFWPRailWindow.PointPopupSetPointBackInUseClick(Sender: TObject);
-BEGIN
-  WITH Points[PointPopupNum] DO BEGIN
-    IF Point_OutOfUse THEN BEGIN
-      Point_OutOfUse := False;
-      Point_DataChanged := True;
-      InvalidateScreen(UnitRef, 'PointPopupSetPointBackInUseClick');
-    END;
-  END; {WITH}
-END; { PointPopupSetPointBackInUseClick }
+PROCEDURE SetOrClearTrackCircuitSpeedRestriction(Line : Integer);
+VAR
+  DefaultDirectionStr : String;
+  DefaultSpeedStr : String;
+  Direction : DirectionType;
+  DirectionStr : String;
+  OK : Boolean;
+  Speed : Integer;
+  SpeedStr : String;
 
-PROCEDURE TFWPRailWindow.PointPopupSetPointToManualClick(Sender: TObject);
 BEGIN
-  WITH Points[PointPopupNum] DO BEGIN
-    IF NOT Point_ManualOperation THEN BEGIN
-      Point_ManualOperation := True;
-      InvalidateScreen(UnitRef, 'PointPopupSetPointToManualClick');
+  TRY
+    OK := False;
+    DirectionStr := '';
+
+    WITH Lines[Line] DO BEGIN
+      IF Line_TC <> UnknownTrackCircuit THEN BEGIN
+        WITH TrackCircuits[Line_TC] DO BEGIN
+          IF TC_SpeedRestrictionInMPH <> NoSpecifiedSpeed THEN BEGIN
+            IF MessageDialogueWithDefault('Do you wish to clear the ' + MPHToStr(TC_SpeedRestrictionInMPH) + ' mph speed restriction at TC=' + IntToStr(Line_TC) + '?',
+                                          NOT StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
+            THEN BEGIN
+              DefaultSpeedStr := MPHTOStr(TC_SpeedRestrictionInMPH);
+              DirectionStr := DirectionToStr(TC_SpeedRestrictionDirection);
+            END ELSE BEGIN
+              TC_SpeedRestrictionInMPH := NoSpecifiedSpeed;
+              TC_SpeedRestrictionDirection := UnknownDirection;
+            END;
+          END ELSE BEGIN
+            DefaultSpeedStr := MPHTOStr(TC_SpeedRestrictionInMPH);
+            DefaultDirectionStr := DirectionToStr(TC_SpeedRestrictionDirection);
+
+            SpeedStr := InputBox('Speed Restriction at TrackCircuit Occupation', 'Maximum Speed?', DefaultSpeedStr);
+            IF NOT TryStrToInt(SpeedStr, Speed) THEN
+              ShowMessage('"' + SpeedStr + '" is not a valid speed')
+            ELSE BEGIN
+              CASE Speed OF
+                10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120:
+                  OK := True;
+                ELSE
+                  ShowMessage('"' + SpeedStr + '" is not a valid speed');
+              END; {CASE}
+            END;
+
+            IF OK THEN BEGIN
+              DirectionStr := InputBox('Direction of Speed Restriction', 'Restriction Direction (U[p], D[own] or B[idirectional])?', DefaultDirectionStr);
+              Direction := StrToDirectionType(DirectionStr);
+              IF Direction = UnknownDirection THEN
+                ShowMessage('"' + DirectionStr + '" is not a valid direction')
+              ELSE BEGIN
+                { success! }
+                TC_SpeedRestrictionInMPH := IntToMPH(Speed);
+                TC_SpeedRestrictionDirection := Direction;
+                CASE Direction OF
+                  Up:
+                    Log('T TC=' + IntToStr(Line_TC) + ' set to ' + IntToStr(Speed) + ' mph Up');
+                  Down:
+                    Log('T TC=' + IntToStr(Line_TC) + ' set to ' + IntToStr(Speed) + ' mph Down');
+                  Bidirectional:
+                    Log('T TC=' + IntToStr(Line_TC) + ' set to ' + IntToStr(Speed) + ' mph in both directions');
+                END; {CASE}
+              END;
+            END;
+          END;
+        END; {WITH}
+        InvalidateScreen(UnitRef, 'SetOrClearTrackCircuitSpeedRestriction');
+      END;
+    END; {WITH}
+  EXCEPT
+    ON E : Exception DO
+      Log('EG SetOrClearTrackCircuitSpeedRestriction:' + E.ClassName + ' error raised, with message: '+ E.Message);
+  END; {TRY}
+END; { SetOrClearTrackCircuitSpeedRestriction }
+
+PROCEDURE ClearLocoFromTrackCircuit(TC : Integer);
+{ Clear a loco allocation from a given track circuit and other associated locations }
+VAR
+  T : TrainIndex;
+
+BEGIN
+  TRY
+    T := GetTrainIndexFromLocoChip(TrackCircuits[TC].TC_LocoChip);
+    IF T <> UnknownTrainIndex THEN BEGIN
+      WITH Trains[T] DO BEGIN
+        Train_CurrentTC := UnknownTrackCircuit;
+        Train_SavedLocation := UnknownLocation;
+
+        Log(LocoChipToStr(TrackCircuits[TC].TC_LocoChip) + ' DG Loco chip cleared from TC' + IntToStr(TC));
+        InvalidateScreen(UnitRef, 'ClearLocoFromTrackCircuit');
+      END; {WITH}
+    END;
+
+    TrackCircuits[TC].TC_LocoChip := UnknownLocoChip;
+    TrackCircuits[TC].TC_OccupationState := TrackCircuits[TC].TC_PreviousOccupationState;
+  EXCEPT
+    ON E : Exception DO
+      Log('EG ClearLocoFromTrackCircuit:' + E.ClassName + ' error raised, with message: '+ E.Message);
+  END; {TRY}
+END; { ClearLocoFromTrackCircuit }
+
+PROCEDURE AllocateLocoToTrackCircuit(Line : Integer);
+{ Allocate (or remove) a loco chip number from a given track circuit }
+CONST
+  AllLocos = True;
+
+VAR
+  AdjacentUpTC, AdjacentDownTC : Integer;
+  DebugStr : String;
+  I : Integer;
+  InputQueryLocoChipStr : String;
+  NewTrackCircuitState : TrackCircuitStateType;
+  PossibleLocoChip : Integer;
+  PossibleT : TrainIndex;
+  SavePossibleLocoChip : Integer;
+  TC : Integer;
+  TCArray : IntegerArrayType;
+
+BEGIN
+  TRY
+    WITH Lines[Line] DO BEGIN
+      { If we don't know which loco is on a particular line }
+      IF Line_TC <> UnknownTrackCircuit THEN BEGIN
+        { save chip number previously allocated to this track circuit }
+        PossibleLocoChip := TrackCircuits[Line_TC].TC_LocoChip;
+        SavePossibleLocoChip := PossibleLocoChip;
+
+        InputQueryLocoChipStr := IntToStr(PossibleLocoChip);
+        IF InputQueryLocoChipStr = IntToStr(UnknownLocoChip) THEN
+          InputQueryLocoChipStr := '';
+        IF InputQuery('TrackCircuit Occupation', 'Loco chip no?', InputQueryLocoChipStr)THEN BEGIN
+          IF InputQueryLocoChipStr = '' THEN
+            { we're presumably clearing the loco chip from the occupation }
+            PossibleLocoChip := UnknownLocoChip
+          ELSE
+            IF NOT TryStrToInt(InputQueryLocoChipStr, PossibleLocoChip) THEN BEGIN
+              Debug('!Invalid number');
+              PossibleLocoChip := UnknownLocoChip;
+            END;
+
+          IF PossibleLocoChip = UnknownLocoChip THEN BEGIN
+            IF SavePossibleLocoChip = UnknownLocoChip THEN
+              { no number was there to start with }
+              ShowMessage('No loco chip number added to TC=' + IntToStr(Line_TC))
+            ELSE
+              ClearLocoFromTrackCircuit(Line_TC);
+          END ELSE BEGIN
+            { see if it's recorded as being somewhere else - but see if that somewhere else is adjacent }
+            PossibleT := GetTrainIndexFromLocoChip(PossibleLocoChip);
+            IF PossibleT = UnknownTrainIndex THEN
+              Debug('!Loco ' + LocoChipToStr(PossibleLocoChip) + ' is not in the loco table')
+            ELSE
+              IF NOT Locos[Trains[PossibleT].Train_LocoIndex].Loco_Active THEN
+                Debug('!Loco ' + LocoChipToStr(PossibleLocoChip) + ' is in the loco table but is not active')
+              ELSE BEGIN
+                FindAdjoiningTrackCircuits(Line_TC, AdjacentUpTC, AdjacentDownTC);
+                IF (Trains[PossibleT].Train_CurrentTC <> UnknownTrackCircuit)
+                AND (Trains[PossibleT].Train_CurrentTC <> Line_TC)
+                AND (TrackCircuits[Trains[PossibleT].Train_CurrentTC].TC_LocoChip <> UnknownLocoChip)
+                AND (Trains[PossibleT].Train_CurrentTC <> AdjacentUpTC)
+                AND (Trains[PossibleT].Train_CurrentTC <> AdjacentDownTC)
+                AND (TrackCircuits[Line_TC].TC_OccupationState <> TCSystemOccupation)
+                AND (MessageDialogueWithDefault('Loco ' + IntToStr(PossibleLocoChip) + ' is already recorded as being at TC=' + IntToStr(Trains[PossibleT].Train_CurrentTC)
+                                                + ': has it moved?',
+                                                NOT StopTimer, mtWarning, [mbYes, mbNo], mbNo) = mrNo)
+                THEN
+                  ShowMessage('Loco ' + IntToStr(PossibleLocoChip) + ' not be allocated to TC=' + IntToStr(Line_TC))
+                ELSE BEGIN
+                  { otherwise change the allocation, unless it's a system allocation }
+                  IF TrackCircuits[Line_TC].TC_OccupationState = TCSystemOccupation THEN BEGIN
+                    TrackCircuits[Line_TC].TC_LocoChip := PossibleLocoChip;
+                    InvalidateScreen(UnitRef, 'AllocateLocoToTrackCircuit');
+                    Log(LocoChipToStr(PossibleLocoChip) + ' T System allocated to TC=' + IntToStr(Line_TC) + ' by user');
+                  END ELSE BEGIN
+                    Trains[PossibleT].Train_CurrentTC := Line_TC;
+
+                    CASE GetTrackCircuitState(Line_TC) OF
+                      TCFeedbackOccupation, TCLocoOutOfPlaceOccupation, TCPermanentFeedbackOccupation:
+                        NewTrackCircuitState := TCPermanentFeedbackOccupation;
+                      TCPermanentSystemOccupation:
+                        NewTrackCircuitState := TCPermanentSystemOccupation;
+                      TCUnoccupied, TCPermanentOccupationSetByUser:
+                        NewTrackCircuitState := TCPermanentOccupationSetByUser;
+                    ELSE
+                      NewTrackCircuitState := TCUnoccupied;
+                    END; {CASE}
+
+                    { and de-allocate it from where it was }
+                    FOR TC := 0 TO High(TrackCircuits) DO BEGIN
+                      IF TC <> Line_TC THEN BEGIN
+                        IF TrackCircuits[TC].TC_LocoChip = Trains[PossibleT].Train_LocoChip THEN BEGIN
+                          TrackCircuits[TC].TC_LocoChip := UnknownLocoChip;
+                          IF NOT TrackCircuitStateIsPermanentlyOccupied(TrackCircuits[TC].TC_OccupationState) THEN
+                            SetTrackCircuitState(TC, TCUnoccupied);
+                        END;
+                      END;
+                    END; {FOR}
+
+                    SetTrackCircuitState(PossibleLocoChip, Line_TC, NewTrackCircuitState);
+                    SetLength(TCArray, 0);
+                    { and any other adjacent track circuits in the same location, unless they're already occupied. First search up the line: }
+                    REPEAT
+                      TC := AdjacentUpTC;
+                      IF TC <> UnknownTrackCircuit THEN BEGIN
+                        IF TrackCircuits[AdjacentUpTC].TC_OccupationState = TCFeedbackOccupation THEN BEGIN
+                          SetTrackCircuitState(PossibleLocoChip, TC, NewTrackCircuitState);
+                          AppendToIntegerArray(TCArray, TC);
+                        END;
+                        FindAdjoiningTrackCircuits(TC, AdjacentUpTC, AdjacentDownTC);
+                      END;
+                    UNTIL (AdjacentUpTC = UnknownTrackCircuit) OR (TrackCircuits[AdjacentUpTC].TC_OccupationState = TCUnoccupied);
+
+                    { and then down: }
+                    FindAdjoiningTrackCircuits(Line_TC, AdjacentUpTC, AdjacentDownTC);
+                    REPEAT
+                      TC := AdjacentDownTC;
+                      IF TC <> UnknownTrackCircuit THEN BEGIN
+                        IF TrackCircuits[AdjacentDownTC].TC_OccupationState = TCFeedbackOccupation THEN BEGIN
+                          SetTrackCircuitState(PossibleLocoChip, TC, NewTrackCircuitState);
+                          AppendToIntegerArray(TCArray, TC);
+                        END;
+                        FindAdjoiningTrackCircuits(TC, AdjacentUpTC, AdjacentDownTC);
+                      END;
+                    UNTIL (AdjacentDownTC = UnknownTrackCircuit) OR (TrackCircuits[AdjacentDownTC].TC_OccupationState = TCUnoccupied);
+
+                    InvalidateScreen(UnitRef, 'AllocateLocoToTrackCircuit');
+                    DebugStr := 'Loco ' + IntToStr(PossibleLocoChip) + ' allocated to TC=' + IntToStr(Line_TC);
+                    IF Length(TCArray) > 0 THEN BEGIN
+                      DebugStr := DebugStr + ' and also allocated to TC=' + IntToStr(TCArray[0]);
+                      IF Length(TCArray) > 1 THEN BEGIN
+                        FOR I := 1 TO High(TCArray) DO
+                          DebugStr := DebugStr + ', TC=' + IntToStr(TCArray[I]);
+                      END;
+                    END;
+                    Log(LocoChipToStr(PossibleLocoChip) + ' TG ' + DebugStr);
+                  END;
+                END;
+              END;
+          END;
+        END;
+      END;
+    END; {WITH}
+  EXCEPT
+    ON E : Exception DO
+      Log('EG AllocateLocoToTrackCircuit:' + E.ClassName + ' error raised, with message: '+ E.Message);
+  END; {TRY}
+END; { AllocateLocoToTrackCircuit }
+
+PROCEDURE ChangeInternalLocoDirectionToUp(LocoChip : Integer);
+CONST
+  NoValue = 0;
+
+VAR
+  L : LocoIndex;
+
+BEGIN
+  TRY
+    IF MessageDialogueWithDefault('Change loco ' + LocoChipToStr(LocoChip) + '''s internal direction to up - are you sure?',
+                                  NOT StopTimer, mtWarning, [mbYes, mbNo], mbNo) <> mrYes THEN
+      Debug('Cancelling change of loco ' + LocoChipToStr(LocoChip) + '''s internal direction changed to up')
+    ELSE BEGIN
+      L := GetLocoIndexFromLocoChip(LocoChip);
+      IF L <> UnknownLocoIndex THEN BEGIN
+        WITH Locos[L] DO BEGIN
+          IF Loco_LightsType <> LightsOperatedByTwoChips THEN BEGIN
+            ProgramOnTheMain(Locos[L], ChangeDirectionToUp, NoValue);
+            Log(LocoChipToStr(L) + ' XG Internal direction changed to up');
+          END ELSE BEGIN
+            ProgramOnTheMain(Locos[Loco_LightingChipUpIndex], ChangeDirectionToUp, NoValue);
+            Log(LocoChipToStr(Loco_LightingChipUpIndex) + ' XG Internal direction changed to up');
+
+            ProgramOnTheMain(Locos[Loco_LightingChipDownIndex], ChangeDirectionToUp, NoValue);
+            Log(LocoChipToStr(Loco_LightingChipDownIndex) + ' XG Internal direction changed to up');
+          END;
+        END; {WITH}
+      END;
+    END; {WITH}
+  EXCEPT
+    ON E : Exception DO
+      Log('EG ChangeLocoDirectionToUp:' + E.ClassName + ' error raised, with message: '+ E.Message);
+  END; {TRY}
+END; { ChangeInternalLocoDirectionToUp }
+
+PROCEDURE ChangeInternalLocoDirectionToDown(LocoChip : Integer);
+CONST
+  NoValue = 0;
+
+VAR
+  L : LocoIndex;
+
+BEGIN
+  TRY
+    IF MessageDialogueWithDefault('Change loco ' + LocoChipToStr(LocoChip) + '''s internal direction to down - are you sure?',
+                                  NOT StopTimer, mtWarning, [mbYes, mbNo], mbNo) <> mrYes THEN
+      Debug('Cancelling change of loco ' + LocoChipToStr(LocoChip) + '''s internal direction changed to down')
+    ELSE BEGIN
+      L := GetLocoIndexFromLocoChip(LocoChip);
+      IF L <> UnknownLocoIndex THEN BEGIN
+        WITH Locos[L] DO BEGIN
+          IF Loco_LightsType <> LightsOperatedByTwoChips THEN BEGIN
+            ProgramOnTheMain(Locos[L], ChangeDirectionToDown, NoValue);
+            Log(Loco_LocoChipStr + ' XG Internal direction changed to down');
+          END ELSE BEGIN
+            ProgramOnTheMain(Locos[Loco_LightingChipUpIndex], ChangeDirectionToDown, NoValue);
+            Log(LocoChipToStr(Loco_LightingChipUp) + ' XG Internal direction changed to down');
+
+            ProgramOnTheMain(Locos[Loco_LightingChipDownIndex], ChangeDirectionToDown, NoValue);
+            Log(LocoChipToStr(Loco_LightingChipDown) + ' XG Internal direction changed to down');
+          END;
+        END; {WITH}
+      END;
+    END; {WITH}
+  EXCEPT
+    ON E : Exception DO
+      Log('EG ChangeLocoDirectionToDown:' + E.ClassName + ' error raised, with message: '+ E.Message);
+  END; {TRY}
+END; { ChangeInternalLocoDirectionToDown }
+
+PROCEDURE TFWPRailWindow.LinePopupItemClick(Sender: TObject);
+VAR
+  LineCount : Integer;
+  T : TrainIndex;
+
+BEGIN
+  WITH Lines[LinePopupNum] DO BEGIN
+    WITH Sender AS TMenuItem DO BEGIN
+      CASE Tag OF
+        1:
+          IF Line_TC <> UnknownTrackCircuit THEN BEGIN
+            SetTrackCircuitState(Line_TC, TCUnoccupied);
+            InvalidateScreen(UnitRef, 'LinePopupItemClick 1');
+          END;
+        2:
+          IF Line_TC <> UnknownTrackCircuit THEN BEGIN
+            SetTrackCircuitState(Line_TC, TCFeedbackOccupation);
+            InvalidateScreen(UnitRef, 'LinePopupItemClick 2');
+          END;
+        3:
+          IF Line_TC <> UnknownTrackCircuit THEN BEGIN
+            SetTrackCircuitState(Line_TC, TCSystemOccupation);
+            InvalidateScreen(UnitRef, 'LinePopupItemClick 3');
+          END;
+        4:
+          IF Line_TC <> UnknownTrackCircuit THEN BEGIN
+            SetTrackCircuitState(Line_TC, TCPermanentOccupationSetByUser);
+            InvalidateScreen(UnitRef, 'LinePopupItemClick 3');
+          END;
+        5:
+          IF Line_TC <> UnknownTrackCircuit THEN BEGIN
+            SetTrackCircuitState(Line_TC, TCOutOfUseSetByUser);
+            InvalidateScreen(UnitRef, 'LinePopupItemClick 3');
+          END;
+        6:
+          IF Line_TC <> UnknownTrackCircuit THEN
+            SetOrClearTrackCircuitSpeedRestriction(LinePopupNum);
+        7:
+          BEGIN
+            IF TrackCircuits[Line_TC].TC_UserMustDrive THEN BEGIN
+              TrackCircuits[Line_TC].TC_UserMustDrive := False;
+              Log('T TC=' + IntToStr(Line_TC) + ' set to automatic operation');
+            END ELSE BEGIN
+              TrackCircuits[Line_TC].TC_UserMustDrive := True;
+              Log('T TC=' + IntToStr(Line_TC) + ' set to manual operation');
+            END;
+
+            IF ShowTrackCircuitsWhereUserMustDrive THEN
+              InvalidateScreen(UnitRef, 'LinePopupItemClick 7');
+          END;
+        8:
+          BEGIN
+            IF Line_OutOfUseState = OutOfUse THEN
+              Line_OutOfUseState := InUse
+            ELSE
+              Line_OutOfUseState := OutOfUse;
+            InvalidateScreen(UnitRef, 'LinePopupItemClick 9');
+          END;
+        9:
+          IF Line_Location <> UnknownLocation THEN BEGIN
+            WITH Locations[Line_Location] DO BEGIN
+              IF Location_OutOfUse THEN BEGIN
+                Location_OutOfUse := False;
+
+                { Now restore all the lines within the location to their previous state }
+                FOR LineCount := 0 TO High(Lines) DO BEGIN
+                  IF Lines[LineCount].Line_Location = Line_Location THEN BEGIN
+                    IF Lines[LineCount].Line_SaveOutOfUseState = OutOfUse THEN
+                      Lines[LineCount].Line_OutOfUseState := OutOfUse
+                    ELSE
+                      Lines[LineCount].Line_OutOfUseState := InUse;
+                  END;
+                END;
+              END ELSE BEGIN
+                Location_OutOfUse := True;
+
+                { Now set all the lines within the location to out of use too }
+                FOR LineCount := 0 TO High(Lines) DO BEGIN
+                  IF Lines[LineCount].Line_Location = Line_Location THEN BEGIN
+                    Lines[LineCount].Line_SaveOutOfUseState := Lines[LineCount].Line_OutOfUseState;
+                    Lines[LineCount].Line_OutOfUseState := OutOfUse;
+                  END;
+                END;
+              END;
+              InvalidateScreen(UnitRef, 'LinePopupItemClick 8');
+            END; {WITH}
+          END;
+        10:
+          IF TrackCircuits[Line_TC].TC_LocoChip = UnknownLocoChip THEN
+            AllocateLocoToTrackCircuit(LinePopupNum)
+          ELSE
+            ClearLocoFromTrackCircuit(Line_TC);
+        11:
+          IF TrackCircuits[Line_TC].TC_LocoChip = UnknownLocoChip THEN
+            ChangeInternalLocoDirectionToUp(TrackCircuits[Line_TC].TC_LocoChip);
+        12:
+          IF TrackCircuits[Line_TC].TC_LocoChip = UnknownLocoChip THEN
+            ChangeInternalLocoDirectionToDown(TrackCircuits[Line_TC].TC_LocoChip);
+        13:
+          IF Line_TC <> UnknownTrackCircuit THEN BEGIN
+            T := GetTrainIndexFromLocoChip(TrackCircuits[Line_TC].TC_LocoChip);
+            IF T <> UnknownTrainIndex THEN BEGIN
+              WITH Trains[T] DO BEGIN
+                IF Train_LastRouteLockedMsgStr <> '' THEN
+                  Debug(Train_LocoChipStr + ': ' +  Train_LastRouteLockedMsgStr);
+                IF Train_RouteCreationHoldMsg <> '' THEN
+                  Debug(Train_LocoChipStr + ': ' + Train_RouteCreationHoldMsg);
+              END;
+            END;
+          END;
+        14:
+          TurnEditModeOn(UnknownSignal, LinePopupNum);
+      ELSE {CASE}
+        Log('BG Invalid tag ' + IntToStr(Tag) + ' in LinePopupItemClick');
+      END; {CASE}
+    END; {WITH}
+  END; {WITH}
+END; { LinePopupItemClick }
+
+PROCEDURE TFWPRailWindow.LineMenuOnPopup(Sender: TObject);
+VAR
+  WhetherEnabled : Boolean;
+
+BEGIN
+  WITH Lines[LinePopupNum] DO BEGIN
+    LinePopupMenu.Items.Clear;
+
+    IF NOT EditMode THEN BEGIN
+      IF LinePopupNum = UnknownLine THEN
+        Caption := 'Lines'
+      ELSE
+        Caption := 'Line ' + LineToStr(LinePopupNum) + ' ' + IfThen(Line_TC <> UnknownTrackCircuit,
+                                                                    'TC' + IntToStr(Line_TC));
+      AddMenuItem(LinePopupMenu, Caption, -1, Enabled, NIL);
+
+      AddMenuItem(LinePopupMenu, '-', -1, Enabled, NIL);
+
+      WhetherEnabled := TrackCircuits[Line_TC].TC_OccupationState <> TCUnOccupied;
+      AddMenuItem(LinePopupMenu, 'Set Track Circuit To Unoccupied', 1, WhetherEnabled, LinePopupItemClick);
+
+      WhetherEnabled := TrackCircuits[Line_TC].TC_OccupationState <> TCFeedbackOccupation;
+      AddMenuItem(LinePopupMenu, 'Set Track Circuit To Feedback Occupation', 2, WhetherEnabled, LinePopupItemClick);
+
+      WhetherEnabled := TrackCircuits[Line_TC].TC_OccupationState <> TCSystemOccupation;
+      AddMenuItem(LinePopupMenu, 'Set Track Circuit To System Occupation', 3, WhetherEnabled, LinePopupItemClick);
+
+      WhetherEnabled := (TrackCircuits[Line_TC].TC_OccupationState <> TCPermanentFeedbackOccupation)
+                                                                                          AND (TrackCircuits[Line_TC].TC_OccupationState <> TCPermanentOccupationSetByUser);
+      AddMenuItem(LinePopupMenu, 'Set Track Circuit To Permanent Occupation', 4, WhetherEnabled, LinePopupItemClick);
+
+      WhetherEnabled := TrackCircuits[Line_TC].TC_OccupationState <> TCOutOfUseSetByUser;
+      AddMenuItem(LinePopupMenu, 'Set Track Circuit Out Of Use', 5, WhetherEnabled, LinePopupItemClick);
+
+      IF TrackCircuits[Line_TC].TC_SpeedRestrictionInMPH = NoSpecifiedSpeed THEN
+        AddMenuItem(LinePopupMenu, 'Set Track Circuit Speed Restriction', 6, Enabled, LinePopupItemClick)
+      ELSE
+        AddMenuItem(LinePopupMenu, 'Clear Track Circuit Speed Restriction', 6, Enabled, LinePopupItemClick);
+
+      IF NOT TrackCircuits[Line_TC].TC_UserMustDrive THEN
+        AddMenuItem(LinePopupMenu, 'Set Track Circuit To User Must Drive', 7, Enabled, LinePopupItemClick) { how do we show this is in effect? ****** 6/8/14 }
+      ELSE
+        AddMenuItem(LinePopupMenu, 'Set Track Circuit To Auto', 7, Enabled, LinePopupItemClick);
+
+      AddMenuItem(LinePopupMenu, '-', -1, Enabled, NIL);
+
+      { Can't have both locations and lines out of use at the same time }
+      IF (Line_Location <> UnknownLocation) AND Locations[Line_Location].Location_OutOfUse THEN BEGIN
+        AddMenuItem(LinePopupMenu, 'Put Line ''' + LineToStr(Line_TC) + ''' Out Of Use', 8, NOT Enabled, LinePopupItemClick);
+        AddMenuItem(LinePopupMenu, 'Return Location ''' + LocationToStr(Line_Location) + ''' To Use', 9, Enabled, LinePopupItemClick);
+      END ELSE
+        IF Line_OutOfUseState = OutOfUse THEN BEGIN
+          AddMenuItem(LinePopupMenu, 'Return Line ''' + LineToStr(Line_TC) + ''' To Use', 8, Enabled, LinePopupItemClick);
+          AddMenuItem(LinePopupMenu, 'Put Location ''' + LocationToStr(Line_Location) + ''' Out Of Use', 9, NOT Enabled, LinePopupItemClick);
+        END ELSE BEGIN
+          AddMenuItem(LinePopupMenu, 'Put Line ''' + LineToStr(Line_TC) + ''' Out Of Use', 8, Enabled, LinePopupItemClick);
+          AddMenuItem(LinePopupMenu, 'Put Location ''' + LocationToStr(Line_Location) + ''' Out Of Use', 9, Enabled, LinePopupItemClick);
+        END;
+
+      AddMenuItem(LinePopupMenu, '-', -1, Enabled, NIL);
+
+      IF TrackCircuits[Line_TC].TC_LocoChip = UnknownLocoChip THEN
+        AddMenuItem(LinePopupMenu, 'Allocate Loco To Track Circuit', 10, Enabled, LinePopupItemClick)
+      ELSE
+        AddMenuItem(LinePopupMenu, 'Clear Loco Allocation From Track Circuit', 10, Enabled, LinePopupItemClick);
+
+      IF (Line_TC = UnknownTrackCircuit) OR (TrackCircuits[Line_TC].TC_LocoChip = UnknownLocoChip) THEN BEGIN
+        AddMenuItem(LinePopupMenu, 'Change Internal Loco Chip Direction to Up', 11, Enabled, LinePopupItemClick);
+        AddMenuItem(LinePopupMenu, 'Change Internal Loco Chip Direction to Down', 12, Enabled, LinePopupItemClick);
+      END ELSE BEGIN
+        AddMenuItem(LinePopupMenu, 'Change ' + LocoChipToStr(TrackCircuits[Line_TC].TC_LocoChip) + '''s Internal Loco Chip Direction to Up',
+                                                                                                                                           11, Enabled, LinePopupItemClick);
+        AddMenuItem(LinePopupMenu, 'Change ' + LocoChipToStr(TrackCircuits[Line_TC].TC_LocoChip) + '''s Internal Loco Chip Direction to Down',
+                                                                                                                                           12, Enabled, LinePopupItemClick);
+      END;
+      WhetherEnabled := TrackCircuits[Line_TC].TC_LocoChip <> UnknownLocoChip;
+      AddMenuItem(LinePopupMenu, 'Show Loco''s Last Error Message', 13, WhetherEnabled, LinePopupItemClick);
+
+      AddMenuItem(LinePopupMenu, '-', -1, Enabled, NIL);
+
+      AddMenuItem(LinePopupMenu, 'Edit Line', 14, Enabled, LinePopupItemClick)
+    END ELSE BEGIN
+      { EditMode }
+
     END;
   END; {WITH}
-END; { PointPopupSetPointToManualClick }
+END; { LineMenuOnPopup }
 
 PROCEDURE TFWPRailWindow.FWPRailApplicationEventsShortCut(VAR Msg: TWMKey; VAR Handled: Boolean);
 { This is called regardless of which window has focus }
@@ -4352,694 +4863,6 @@ BEGIN
   PointLockedByUserColour := DefaultPointLockedByUserColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestorePointLockedByUserColourClick');
 END; { GeneralPopupRestorePointLockedByUserColourClick }
-
-PROCEDURE TFWPRailWindow.PointPopupSetPointToAutomaticClick(Sender: TObject);
-BEGIN
-  WITH Points[PointPopupNum] DO BEGIN
-    IF Point_ManualOperation THEN BEGIN
-      Point_ManualOperation := False;
-      InvalidateScreen(UnitRef, 'PointPopupSetPointToAutomaticClick');
-    END;
-  END; {WITH}
-END; { PointPopupSetPointToAutomaticClick }
-
-PROCEDURE TFWPRailWindow.TCPopupMenuOnPopup(Sender: TObject);
-BEGIN
-  TRY
-    WITH Lines[TrackCircuitPopupLine] DO BEGIN
-      IF Line_TC = UnknownTrackCircuit THEN BEGIN
-        TCPopupTrackCircuitNumber.Caption := 'Track Circuit Number';
-        TCPopupTrackCircuitNumber.Enabled := False;
-        TCPopupAllocateLocoToTrackCircuit.Enabled := False;
-        TCPopupClearLocoAllocationFromTrackCircuit.Enabled := False;
-        TCPopupClearTrackCircuitSpeedRestriction.Enabled := False;
-        TCPopupSetLineOutOfUse.Enabled := False;
-        TCPopupSetLocationOutOfUse.Enabled := False;
-        TCPopupSetTrackCircuitOutOfUseSetByUser.Enabled := False;
-        TCPopupSetTrackCircuitToPermanentOccupation.Enabled := False;
-        TCPopupSetTrackCircuitSpeedRestriction.Enabled := False;
-        TCPopupSetTrackCircuitToSystemOccupation.Enabled := False;
-        TCPopupSetTrackCircuitToFeedbackOccupation.Enabled := False;
-        TCPopupSetTrackCircuitToUserDriving.Enabled := False;
-        TCPopupSetTrackCircuitUnoccupied.Enabled := False;
-        TCPopupChangeInternalLocoDirectionToUp.Enabled := False;
-        TCPopupChangeInternalLocoDirectionToDown.Enabled := False;
-        TCPopupChangeInternalLocoDirectionToUp.Caption := 'Change Internal Loco Direction to Up';
-        TCPopupChangeInternalLocoDirectionToDown.caption := 'Change Internal Loco Direction to Down';
-      END ELSE BEGIN
-        TCPopupTrackCircuitNumber.Enabled := True;
-
-        TCPopupSetTrackCircuitToUserDriving.Enabled := True;
-        TCPopupSetTrackCircuitSpeedRestriction.Enabled := True;
-
-        IF TrackCircuits[Line_TC].TC_OccupationState <> TCOutOfUseSetByUser THEN
-          TCPopupSetTrackCircuitOutOfUseSetByUser.Enabled := True
-        ELSE
-          TCPopupSetTrackCircuitOutOfUseSetByUser.Enabled := False;
-
-        IF (TrackCircuits[Line_TC].TC_OccupationState <> TCPermanentFeedbackOccupation) AND (TrackCircuits[Line_TC].TC_OccupationState <> TCPermanentOccupationSetByUser)
-        THEN
-          TCPopupSetTrackCircuitToPermanentOccupation.Enabled := True
-        ELSE
-          TCPopupSetTrackCircuitToPermanentOccupation.Enabled := False;
-
-        IF TrackCircuits[Line_TC].TC_OccupationState <> TCUnoccupied THEN
-          TCPopupSetTrackCircuitUnoccupied.Enabled := True
-        ELSE
-          TCPopupSetTrackCircuitUnoccupied.Enabled := False;
-
-        IF TrackCircuits[Line_TC].TC_OccupationState <> TCFeedbackOccupation THEN
-          TCPopupSetTrackCircuitToFeedbackOccupation.Enabled := True
-        ELSE
-          TCPopupSetTrackCircuitToFeedbackOccupation.Enabled := False;
-
-        IF TrackCircuits[Line_TC].TC_OccupationState <> TCSystemOccupation THEN
-          TCPopupSetTrackCircuitToSystemOccupation.Enabled := True
-        ELSE
-          TCPopupSetTrackCircuitToSystemOccupation.Enabled := False;
-
-        TCPopupAllocateLocoToTrackCircuit.Enabled := True;
-
-        IF TrackCircuits[Line_TC].TC_LocoChip = UnknownLocoChip THEN BEGIN
-          TCPopupTrackCircuitNumber.Caption := 'Track Circuit ' + IntToStr(Line_TC) + ' (' + LineToStr(TrackCircuitPopupLine) + ') '
-                                               + LocationToStr(Lines[TrackCircuitPopupLine].Line_Location, ShortStringType);
-          TCPopupChangeInternalLocoDirectionToUp.Enabled := False;
-          TCPopupChangeInternalLocoDirectionToDown.Enabled := False;
-          TCPopupChangeInternalLocoDirectionToUp.Caption := 'Change Loco''s Internal Direction to Up';
-          TCPopupChangeInternalLocoDirectionToDown.caption := 'Change Loco''s Internal Direction to Down';
-        END ELSE BEGIN
-          TCPopupTrackCircuitNumber.Caption := 'Track Circuit ' + IntToStr(Line_TC) + ' (' + LineToStr(TrackCircuitPopupLine) + ') '
-                                               + 'occupied by Loco ' + LocoChipToStr(TrackCircuits[Line_TC].TC_LocoChip);
-          TCPopupClearLocoAllocationFromTrackCircuit.Enabled := True;
-
-          TCPopupChangeInternalLocoDirectionToUp.Enabled := True;
-          TCPopupChangeInternalLocoDirectionToUp.Caption := 'Change Internal Direction For Loco ' + LocoChipToStr(TrackCircuits[Line_TC].TC_LocoChip) + ' To Up';
-          TCPopupChangeInternalLocoDirectionToDown.Enabled := True;
-          TCPopupChangeInternalLocoDirectionToDown.caption := 'Change Internal Direction For Loco ' + LocoChipToStr(TrackCircuits[Line_TC].TC_LocoChip) + ' To Down';
-        END;
-
-        IF TrackCircuits[Line_TC].TC_UserMustDrive THEN
-          TCPopupSetTrackCircuitToUserDriving.Caption := 'Set Track Circuit To Auto'
-        ELSE
-          TCPopupSetTrackCircuitToUserDriving.Caption := 'Set Track Circuit To User Must Drive';
-
-        IF TrackCircuits[Line_TC].TC_SpeedRestrictionInMPH = NoSpecifiedSpeed THEN BEGIN
-          TCPopupSetTrackCircuitSpeedRestriction.Caption := 'Set Track Circuit Speed Restriction';
-          TCPopupClearTrackCircuitSpeedRestriction.Enabled := False;
-        END ELSE BEGIN
-          TCPopupSetTrackCircuitSpeedRestriction.Caption := 'Change Track Circuit Speed Restriction';
-          TCPopupClearTrackCircuitSpeedRestriction.Enabled := True;
-        END;
-
-        IF (Line_Location = UnknownLocation) OR NOT Locations[Line_Location].Location_OutOfUse THEN BEGIN
-          TCPopupSetLineOutOfUse.Enabled := True;
-          IF Lines[TrackCircuitPopupLine].Line_OutOfUseState = OutOfUse THEN
-            TCPopupSetLineOutOfUse.Caption := 'Return Line ''' + LineToStr(TrackCircuitPopupLine) + ''' to use'
-          ELSE
-            TCPopupSetLineOutOfUse.Caption := 'Put Line ''' + LineToStr(TrackCircuitPopupLine) + ''' out of use';
-
-          IF Line_Location = UnknownLocation THEN BEGIN
-            TCPopupSetLocationOutOfUse.Caption := 'Unknown Location';
-            TCPopupSetLocationOutOfUse.Enabled := False;
-          END ELSE BEGIN
-            TCPopupSetLocationOutOfUse.Caption := 'Put Location ''' + LocationToStr(Lines[TrackCircuitPopupLine].Line_Location) + ''' out of use';
-            TCPopupSetLocationOutOfUse.Enabled := True;
-          END;
-        END ELSE BEGIN
-          TCPopupSetLocationOutOfUse.Enabled := True;
-          TCPopupSetLocationOutOfUse.Caption := 'Return Location ''' + LocationToStr(Lines[TrackCircuitPopupLine].Line_Location) + ''' to use';
-          TCPopupSetLineOutOfUse.Enabled := False;
-        END;
-      END;
-    END; {WITH}
-  EXCEPT
-    ON E : Exception DO
-      Log('EG TCPopupMenuOnPopup:' + E.ClassName + ' error raised, with message: '+ E.Message);
-  END; {TRY}
-END; { TCPopupMenuOnPopup }
-
-PROCEDURE TFWPRailWindow.TCPopupSetTrackCircuitToSystemOccupationClick(Sender: TObject);
-BEGIN
-  WITH Lines[TrackCircuitPopupLine] DO BEGIN
-    IF Line_TC <> UnknownTrackCircuit THEN BEGIN
-      SetTrackCircuitState(Line_TC, TCSystemOccupation);
-      TCPopupSetTrackCircuitToSystemOccupation.Enabled := False;
-      InvalidateScreen(UnitRef, 'TCPopupSetTrackCircuitToFeedbackOccupationClick');
-    END;
-  END; {WITH}
-END; { TCPopupSetTrackCircuitToSystemOccupationClick }
-
-PROCEDURE TFWPRailWindow.TCPopupSetTrackCircuitToFeedbackOccupationClick(Sender: TObject);
-BEGIN
-  WITH Lines[TrackCircuitPopupLine] DO BEGIN
-    IF Line_TC <> UnknownTrackCircuit THEN BEGIN
-      SetTrackCircuitState(Line_TC, TCFeedbackOccupation);
-      TCPopupSetTrackCircuitToFeedbackOccupation.Enabled := False;
-      InvalidateScreen(UnitRef, 'TCPopupSetTrackCircuitToFeedbackOccupationClick');
-    END;
-  END; {WITH}
-END; { TCPopupSetTrackCircuitToFeedbackOccupationClick }
-
-PROCEDURE TFWPRailWindow.TCPopupSetTrackCircuitUnoccupiedClick(Sender: TObject);
-BEGIN
-  WITH Lines[TrackCircuitPopupLine] DO BEGIN
-    IF Line_TC <> UnknownTrackCircuit THEN BEGIN
-      SetTrackCircuitState(Line_TC, TCUnoccupied);
-      TCPopupSetTrackCircuitUnoccupied.Enabled := False;
-      InvalidateScreen(UnitRef, 'TCPopupSetTrackCircuitOccupiedClick');
-    END;
-  END; {WITH}
-END; { TCPopupSetTrackCircuitOccupiedClick }
-
-PROCEDURE TFWPRailWindow.TCPopupSetTrackCircuitOutOfUseSetByUserClick(Sender: TObject);
-BEGIN
-  { Set the track circuit out of use, regardless of its current state }
-  WITH Lines[TrackCircuitPopupLine] DO BEGIN
-    IF Line_TC <> UnknownTrackCircuit THEN BEGIN
-      SetTrackCircuitState(Line_TC, TCOutOfUseSetByUser);
-      TCPopupSetTrackCircuitOutOfUseSetByUser.Enabled := False;
-      InvalidateScreen(UnitRef, 'TCPopupSetTrackCircuitOutOfUseClick');
-    END;
-  END;
-END; { TCPopupSetTrackCircuitOutOfUseClick }
-
-PROCEDURE TFWPRailWindow.TCPopupSetTrackCircuitToPermanentOccupationClick(Sender: TObject);
-BEGIN
-  { Set the track circuit permanently occupied, regardless of its current state }
-  WITH Lines[TrackCircuitPopupLine] DO BEGIN
-    IF Line_TC <> UnknownTrackCircuit THEN BEGIN
-      IF GetTrackCircuitState(Line_TC) = TCFeedbackOccupation THEN
-        SetTrackCircuitState(Line_TC, TCPermanentFeedbackOccupation)
-      ELSE
-        SetTrackCircuitState(Line_TC, TCPermanentOccupationSetByUser);
-      TCPopupSetTrackCircuitToPermanentOccupation.Enabled := False;
-      InvalidateScreen(UnitRef, 'TCPopupSetTrackCircuitOutOfUseClick');
-    END;
-  END; {WITH}
-END; { TCPopupSetTrackCircuitToPermanentOccupationClick }
-
-PROCEDURE TFWPRailWindow.TCPopupShowLocosLastErrorMessageClick(Sender: TObject);
-VAR
-  T : TrainIndex;
-
-BEGIN
-  WITH Lines[TrackCircuitPopupLine] DO BEGIN
-    IF Line_TC <> UnknownTrackCircuit THEN BEGIN
-      T := GetTrainIndexFromLocoChip(TrackCircuits[Line_TC].TC_LocoChip);
-      IF T <> UnknownTrainIndex THEN BEGIN
-        WITH Trains[T] DO BEGIN
-          IF Train_LastRouteLockedMsgStr <> '' THEN
-            Debug(Train_LocoChipStr + ': ' +  Train_LastRouteLockedMsgStr);
-          IF Train_RouteCreationHoldMsg <> '' THEN
-            Debug(Train_LocoChipStr + ': ' + Train_RouteCreationHoldMsg);
-        END;
-      END;
-    END;
-  END; {WITH}
-END;
-{ ShowLocosLastErrorMessageClick }
-
-PROCEDURE TFWPRailWindow.TCPopupTrackCircuitNumberClick(Sender: TObject);
-BEGIN
-  WITH Lines[TrackCircuitPopupLine] DO
-    IF TrackCircuits[Line_TC].TC_LocoChip = UnknownLocoChip THEN
-      Log('X User clicked on TC=' + IntToStr(Line_TC) + ' (' + LineToStr(TrackCircuitPopupLine) + ') '
-                                                      + LocationToStr(Lines[TrackCircuitPopupLine].Line_Location, ShortStringType) + ' in TCPopup')
-    ELSE
-      Log('X User clicked on TC=' + IntToStr(Line_TC) + ' (' + LineToStr(TrackCircuitPopupLine) + ') '
-                                                      + 'occupied by Loco ' + LocoChipToStr(TrackCircuits[Line_TC].TC_LocoChip) + ' in TCPopup');
-END; { TCPopupTrackCircuitNumberClick }
-
-PROCEDURE ClearLocoFromTrackCircuit(TC : Integer);
-{ Clear a loco allocation from a given track circuit and other associated locations }
-VAR
-  I : Integer;
-  T : TrainIndex;
-  TCArray : IntegerArrayType;
-
-BEGIN
-  TRY
-    { no loco chip number has been entered, so clear any existing one }
-    T := GetTrainIndexFromLocoChip(TrackCircuits[TC].TC_LocoChip);
-    IF T <> UnknownTrainIndex THEN BEGIN
-      WITH Trains[T] DO BEGIN
-        Train_CurrentTC := UnknownTrackCircuit;
-        Train_SavedLocation := UnknownLocation;
-
-        { and clear it from other location track circuits except the one we're at (are we right to use Train_LastLocation here? **** ) }
-        TCArray := GetTrackCircuitsForLocation(Train_LastLocation);
-        FOR I := 0 TO High(TCArray) DO BEGIN
-          IF TCArray[I] <> TC THEN
-            SetTrackCircuitState(Train_LocoChip, TCArray[I], TCUnoccupied);
-        END;
-        Log('DG Loco chip number has been cleared from ' + LocationToStr(Train_LastLocation));
-        InvalidateScreen(UnitRef, 'ClearLocoFromTrackCircuit');
-      END; {WITH}
-    END;
-
-    TrackCircuits[TC].TC_LocoChip := UnknownLocoChip;
-  EXCEPT
-    ON E : Exception DO
-      Log('EG ClearLocoFromTrackCircuit:' + E.ClassName + ' error raised, with message: '+ E.Message);
-  END; {TRY}
-END; { ClearLocoFromTrackCircuit }
-
-PROCEDURE TFWPRailWindow.TCPopupClearLocoAllocationFromTrackCircuitClick(Sender: TObject);
-BEGIN
-  WITH Lines[TrackCircuitPopupLine] DO BEGIN
-    IF TrackCircuits[Line_TC].TC_LocoChip <> UnknownLocoChip THEN
-      ClearLocoFromTrackCircuit(Line_TC);
-  END;
-END; { TCPopupClearLocoAllocationFromTrackCircuitClick }
-
-PROCEDURE TFWPRailWindow.TCPopupAllocateLocoToTrackCircuitClick(Sender: TObject);
-{ Allocate (or remove) a loco chip number from a given track circuit }
-CONST
-  AllLocos = True;
-
-VAR
-  AdjacentUpTC, AdjacentDownTC : Integer;
-  DebugStr : String;
-  I : Integer;
-  InputQueryLocoChipStr : String;
-  NewTrackCircuitState : TrackCircuitStateType;
-  PossibleLocoChip : Integer;
-  PossibleT : TrainIndex;
-  SavePossibleLocoChip : Integer;
-  TC : Integer;
-  TCArray : IntegerArrayType;
-
-BEGIN
-  TRY
-    WITH Lines[TrackCircuitPopupLine] DO BEGIN
-      { If we don't know which loco is on a particular line }
-      IF Line_TC <> UnknownTrackCircuit THEN BEGIN
-        { save chip number previously allocated to this track circuit }
-        PossibleLocoChip := TrackCircuits[Line_TC].TC_LocoChip;
-        SavePossibleLocoChip := PossibleLocoChip;
-
-        InputQueryLocoChipStr := IntToStr(PossibleLocoChip);
-        IF InputQueryLocoChipStr = IntToStr(UnknownLocoChip) THEN
-          InputQueryLocoChipStr := '';
-        IF InputQuery('TrackCircuit Occupation', 'Loco chip no?', InputQueryLocoChipStr)THEN BEGIN
-          IF InputQueryLocoChipStr = '' THEN
-            { we're presumably clearing the loco chip from the occupation }
-            PossibleLocoChip := UnknownLocoChip
-          ELSE
-            IF NOT TryStrToInt(InputQueryLocoChipStr, PossibleLocoChip) THEN BEGIN
-              Debug('!Invalid number');
-              PossibleLocoChip := UnknownLocoChip;
-            END;
-
-          IF PossibleLocoChip = UnknownLocoChip THEN BEGIN
-            IF SavePossibleLocoChip = UnknownLocoChip THEN
-              { no number was there to start with }
-              ShowMessage('No loco chip number added to TC=' + IntToStr(Line_TC))
-            ELSE
-              ClearLocoFromTrackCircuit(Line_TC);
-          END ELSE BEGIN
-            { see if it's recorded as being somewhere else - but see if that somewhere else is adjacent }
-            PossibleT := GetTrainIndexFromLocoChip(PossibleLocoChip);
-            IF PossibleT = UnknownTrainIndex THEN
-              Debug('!Loco ' + LocoChipToStr(PossibleLocoChip) + ' is not in the loco table')
-            ELSE
-              IF NOT Locos[Trains[PossibleT].Train_LocoIndex].Loco_Active THEN
-                Debug('!Loco ' + LocoChipToStr(PossibleLocoChip) + ' is in the loco table but is not active')
-              ELSE BEGIN
-                FindAdjoiningTrackCircuits(Line_TC, AdjacentUpTC, AdjacentDownTC);
-                IF (Trains[PossibleT].Train_CurrentTC <> UnknownTrackCircuit)
-                AND (Trains[PossibleT].Train_CurrentTC <> Line_TC)
-                AND (TrackCircuits[Trains[PossibleT].Train_CurrentTC].TC_LocoChip <> UnknownLocoChip)
-                AND (Trains[PossibleT].Train_CurrentTC <> AdjacentUpTC)
-                AND (Trains[PossibleT].Train_CurrentTC <> AdjacentDownTC)
-                AND (TrackCircuits[Line_TC].TC_OccupationState <> TCSystemOccupation)
-                AND (MessageDialogueWithDefault('Loco ' + IntToStr(PossibleLocoChip) + ' is already recorded as being at TC=' + IntToStr(Trains[PossibleT].Train_CurrentTC)
-                                                + ': has it moved?',
-                                                NOT StopTimer, mtWarning, [mbYes, mbNo], mbNo) = mrNo)
-                THEN
-                  ShowMessage('Loco ' + IntToStr(PossibleLocoChip) + ' not be allocated to TC=' + IntToStr(Line_TC))
-                ELSE BEGIN
-                  { otherwise change the allocation, unless it's a system allocation }
-                  IF TrackCircuits[Line_TC].TC_OccupationState = TCSystemOccupation THEN BEGIN
-                    TrackCircuits[Line_TC].TC_LocoChip := PossibleLocoChip;
-                    InvalidateScreen(UnitRef, 'TCPopupAllocateLocoToTrackCircuitClick');
-                    Log(LocoChipToStr(PossibleLocoChip) + ' T System allocated to TC=' + IntToStr(Line_TC) + ' by user');
-                  END ELSE BEGIN
-                    Trains[PossibleT].Train_CurrentTC := Line_TC;
-
-                    CASE GetTrackCircuitState(Line_TC) OF
-                      TCFeedbackOccupation, TCLocoOutOfPlaceOccupation, TCPermanentFeedbackOccupation:
-                        NewTrackCircuitState := TCPermanentFeedbackOccupation;
-                      TCPermanentSystemOccupation:
-                        NewTrackCircuitState := TCPermanentSystemOccupation;
-                      TCUnoccupied, TCPermanentOccupationSetByUser:
-                        NewTrackCircuitState := TCPermanentOccupationSetByUser;
-                    ELSE
-                      NewTrackCircuitState := TCUnoccupied;
-                    END; {CASE}
-
-                    { and de-allocate it from where it was }
-                    FOR TC := 0 TO High(TrackCircuits) DO BEGIN
-                      IF TC <> Line_TC THEN BEGIN
-                        IF TrackCircuits[TC].TC_LocoChip = Trains[PossibleT].Train_LocoChip THEN BEGIN
-                          TrackCircuits[TC].TC_LocoChip := UnknownLocoChip;
-                          IF NOT TrackCircuitStateIsPermanentlyOccupied(TrackCircuits[TC].TC_OccupationState) THEN
-                            SetTrackCircuitState(TC, TCUnoccupied);
-                        END;
-                      END;
-                    END; {FOR}
-
-                    SetTrackCircuitState(PossibleLocoChip, Line_TC, NewTrackCircuitState);
-                    SetLength(TCArray, 0);
-                    { and any other adjacent track circuits in the same location, unless they're already occupied. First search up the line: }
-                    REPEAT
-                      TC := AdjacentUpTC;
-                      IF TC <> UnknownTrackCircuit THEN BEGIN
-                        IF TrackCircuits[AdjacentUpTC].TC_OccupationState = TCFeedbackOccupation THEN BEGIN
-                          SetTrackCircuitState(PossibleLocoChip, TC, NewTrackCircuitState);
-                          AppendToIntegerArray(TCArray, TC);
-                        END;
-                        FindAdjoiningTrackCircuits(TC, AdjacentUpTC, AdjacentDownTC);
-                      END;
-                    UNTIL (AdjacentUpTC = UnknownTrackCircuit) OR (TrackCircuits[AdjacentUpTC].TC_OccupationState = TCUnoccupied);
-
-                    { and then down: }
-                    FindAdjoiningTrackCircuits(Line_TC, AdjacentUpTC, AdjacentDownTC);
-                    REPEAT
-                      TC := AdjacentDownTC;
-                      IF TC <> UnknownTrackCircuit THEN BEGIN
-                        IF TrackCircuits[AdjacentDownTC].TC_OccupationState = TCFeedbackOccupation THEN BEGIN
-                          SetTrackCircuitState(PossibleLocoChip, TC, NewTrackCircuitState);
-                          AppendToIntegerArray(TCArray, TC);
-                        END;
-                        FindAdjoiningTrackCircuits(TC, AdjacentUpTC, AdjacentDownTC);
-                      END;
-                    UNTIL (AdjacentDownTC = UnknownTrackCircuit) OR (TrackCircuits[AdjacentDownTC].TC_OccupationState = TCUnoccupied);
-
-                    InvalidateScreen(UnitRef, 'TCPopupAllocateLocoToTrackCircuitClick');
-                    DebugStr := 'Loco ' + IntToStr(PossibleLocoChip) + ' allocated to TC=' + IntToStr(Line_TC);
-                    IF Length(TCArray) > 0 THEN BEGIN
-                      DebugStr := DebugStr + ' and also allocated to TC=' + IntToStr(TCArray[0]);
-                      IF Length(TCArray) > 1 THEN BEGIN
-                        FOR I := 1 TO High(TCArray) DO
-                          DebugStr := DebugStr + ', TC=' + IntToStr(TCArray[I]);
-                      END;
-                    END;
-                    Log(LocoChipToStr(PossibleLocoChip) + ' TG ' + DebugStr);
-                  END;
-                END;
-              END;
-          END;
-        END;
-      END;
-    END; {WITH}
-  EXCEPT
-    ON E : Exception DO
-      Log('EG TCPopupAllocateLocoToTrackCircuitClick:' + E.ClassName + ' error raised, with message: '+ E.Message);
-  END; {TRY}
-END; { TCPopupAllocateLocoToTrackCircuitClick }
-
-PROCEDURE TFWPRailWindow.TCPopupChangeInternalLocoDirectionToUpClick(Sender: TObject);
-CONST
-  NoValue = 0;
-
-VAR
-  L : LocoIndex;
-  LocoChip : Integer;
-
-BEGIN
-  TRY
-    WITH Lines[TrackCircuitPopupLine] DO BEGIN
-      IF Line_TC <> UnknownTrackCircuit THEN BEGIN
-        LocoChip := TrackCircuits[Line_TC].TC_LocoChip;
-        IF LocoChip <> UnknownLocoChip THEN BEGIN
-          IF MessageDialogueWithDefault('Change loco ' + LocoChipToStr(LocoChip) + '''s internal direction to up - are you sure?',
-                                        NOT StopTimer, mtWarning, [mbYes, mbNo], mbNo) <> mrYes THEN
-            Debug('Cancelling change of loco ' + LocoChipToStr(LocoChip) + '''s internal direction changed to up')
-          ELSE BEGIN
-            L := GetLocoIndexFromLocoChip(LocoChip);
-            IF L <> UnknownLocoIndex THEN BEGIN
-              WITH Locos[L] DO BEGIN
-                IF Loco_LightsType <> LightsOperatedByTwoChips THEN BEGIN
-                  ProgramOnTheMain(Locos[L], ChangeDirectionToUp, NoValue);
-                  Log(LocoChipToStr(L) + ' XG Internal direction changed to up');
-                END ELSE BEGIN
-                  ProgramOnTheMain(Locos[Loco_LightingChipUpIndex], ChangeDirectionToUp, NoValue);
-                  Log(LocoChipToStr(Loco_LightingChipUpIndex) + ' XG Internal direction changed to up');
-
-                  ProgramOnTheMain(Locos[Loco_LightingChipDownIndex], ChangeDirectionToUp, NoValue);
-                  Log(LocoChipToStr(Loco_LightingChipDownIndex) + ' XG Internal direction changed to up');
-                END;
-              END; {WITH}
-            END;
-          END;
-        END;
-      END;
-    END; {WITH}
-  EXCEPT
-    ON E : Exception DO
-      Log('EG TCPopupChangeLocoDirectionToUpClick:' + E.ClassName + ' error raised, with message: '+ E.Message);
-  END; {TRY}
-END; { TCPopupChangeLocoDirectionToUpClick }
-
-PROCEDURE TFWPRailWindow.TCPopupChangeInternalLocoDirectionToDownClick(Sender: TObject);
-CONST
-  NoValue = 0;
-
-VAR
-  L : LocoIndex;
-  LocoChip : Integer;
-
-BEGIN
-  TRY
-    WITH Lines[TrackCircuitPopupLine] DO BEGIN
-      IF Line_TC <> UnknownTrackCircuit THEN BEGIN
-        LocoChip := TrackCircuits[Line_TC].TC_LocoChip;
-        IF LocoChip <> UnknownLocoChip THEN BEGIN
-          IF MessageDialogueWithDefault('Change loco ' + LocoChipToStr(LocoChip) + '''s internal direction to down - are you sure?',
-                                        NOT StopTimer, mtWarning, [mbYes, mbNo], mbNo) <> mrYes THEN
-            Debug('Cancelling change of loco ' + LocoChipToStr(LocoChip) + '''s internal direction changed to down')
-          ELSE BEGIN
-            L := GetLocoIndexFromLocoChip(LocoChip);
-            IF L <> UnknownLocoIndex THEN BEGIN
-              WITH Locos[L] DO BEGIN
-                IF Loco_LightsType <> LightsOperatedByTwoChips THEN BEGIN
-                  ProgramOnTheMain(Locos[L], ChangeDirectionToDown, NoValue);
-                  Log(Loco_LocoChipStr + ' XG Internal direction changed to down');
-                END ELSE BEGIN
-                  ProgramOnTheMain(Locos[Loco_LightingChipUpIndex], ChangeDirectionToDown, NoValue);
-                  Log(LocoChipToStr(Loco_LightingChipUp) + ' XG Internal direction changed to down');
-
-                  ProgramOnTheMain(Locos[Loco_LightingChipDownIndex], ChangeDirectionToDown, NoValue);
-                  Log(LocoChipToStr(Loco_LightingChipDown) + ' XG Internal direction changed to down');
-                END;
-              END; {WITH}
-            END;
-          END;
-        END;
-      END;
-    END; {WITH}
-  EXCEPT
-    ON E : Exception DO
-      Log('EG TCPopupChangeLocoDirectionToDownClick:' + E.ClassName + ' error raised, with message: '+ E.Message);
-  END; {TRY}
-END; { TCPopupChangeLocoDirectionToDownClick }
-
-PROCEDURE TFWPRailWindow.TCPopupSetTrackCircuitToUserDrivingClick(Sender: TObject);
-BEGIN
-  TRY
-    WITH Lines[TrackCircuitPopupLine] DO BEGIN
-      IF TrackCircuits[Line_TC].TC_UserMustDrive THEN BEGIN
-        TrackCircuits[Line_TC].TC_UserMustDrive := False;
-        Log('T TC=' + IntToStr(Line_TC) + ' set to automatic operation');
-        TCPopupSetTrackCircuitToUserDriving.Caption := 'Set Track Circuit To User Must Drive';
-      END ELSE BEGIN
-        TrackCircuits[Line_TC].TC_UserMustDrive := True;
-        Log('T TC=' + IntToStr(Line_TC) + ' set to manual operation');
-        TCPopupSetTrackCircuitToUserDriving.Caption := 'Set Track Circuit To Auto';
-      END;
-
-      IF ShowTrackCircuitsWhereUserMustDrive THEN
-        InvalidateScreen(UnitRef, 'TCPopupSetTrackCircuitToUserDrivingClick');
-    END; {WITH}
-  EXCEPT
-    ON E : Exception DO
-      Log('EG TCPopupSetTrackCircuitToUserDrivingClick:' + E.ClassName + ' error raised, with message: '+ E.Message);
-  END; {TRY}
-END; { TCPopupSetTrackCircuitToUserDrivingClick }
-
-PROCEDURE TFWPRailWindow.TCPopupSetTrackCircuitSpeedRestrictionClick(Sender: TObject);
-VAR
-  ClearRestriction : Boolean;
-  DefaultDirectionStr : String;
-  DefaultSpeedStr : String;
-  Direction : DirectionType;
-  DirectionStr : String;
-  OK : Boolean;
-  Speed : Integer;
-  SpeedStr : String;
-
-BEGIN
-  TRY
-    ClearRestriction := False;
-    OK := False;
-    DirectionStr := '';
-
-    WITH Lines[TrackCircuitPopupLine] DO BEGIN
-      IF Line_TC <> UnknownTrackCircuit THEN BEGIN
-        WITH TrackCircuits[Line_TC] DO BEGIN
-          IF TC_SpeedRestrictionInMPH = NoSpecifiedSpeed THEN BEGIN
-            DefaultSpeedStr := '';
-            DefaultDirectionStr := DirectionToStr(Line_Direction);
-          END ELSE BEGIN
-            DefaultSpeedStr := MPHTOStr(TC_SpeedRestrictionInMPH);
-            DefaultDirectionStr := DirectionToStr(TC_SpeedRestrictionDirection);
-          END;
-
-          SpeedStr := InputBox('Speed Restriction at TrackCircuit Occupation', 'Maximum Speed?', DefaultSpeedStr);
-          IF NOT TryStrToInt(SpeedStr, Speed) THEN
-            ShowMessage('"' + SpeedStr + '" is not a valid speed')
-          ELSE BEGIN
-            CASE Speed OF
-              0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120:
-                OK := True;
-              ELSE
-                ShowMessage('"' + SpeedStr + '" is not a valid speed');
-            END; {CASE}
-          END;
-          IF OK THEN BEGIN
-            IF Speed = 0 THEN BEGIN
-              IF TC_SpeedRestrictionInMPH = NoSpecifiedSpeed THEN
-                Exit
-              ELSE BEGIN
-                IF MessageDialogueWithDefault('Do you wish to clear the ' + MPHToStr(TC_SpeedRestrictionInMPH) + ' mph speed restriction at TC=' + IntToStr(Line_TC) + '?',
-                                              NOT StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
-                THEN BEGIN
-                  DefaultSpeedStr := MPHTOStr(TC_SpeedRestrictionInMPH);
-                  DirectionStr := DirectionToStr(TC_SpeedRestrictionDirection);
-                END ELSE BEGIN
-                  TC_SpeedRestrictionInMPH := NoSpecifiedSpeed;
-                  TC_SpeedRestrictionDirection := UnknownDirection;
-                  ClearRestriction := True;
-                END;
-              END;
-            END;
-
-            IF NOT ClearRestriction THEN BEGIN
-              DirectionStr := InputBox('Direction of Speed Restriction', 'Restriction Direction (U[p], D[own] or B[idirectional])?', DefaultDirectionStr);
-              Direction := StrToDirectionType(DirectionStr);
-              IF Direction = UnknownDirection THEN
-                ShowMessage('"' + DirectionStr + '" is not a valid direction')
-              ELSE BEGIN
-                { success! }
-                TC_SpeedRestrictionInMPH := IntToMPH(Speed);
-                TC_SpeedRestrictionDirection := Direction;
-                CASE Direction OF
-                  Up:
-                    Log('T TC=' + IntToStr(Line_TC) + ' set to ' + IntToStr(Speed) + ' mph Up');
-                  Down:
-                    Log('T TC=' + IntToStr(Line_TC) + ' set to ' + IntToStr(Speed) + ' mph Down');
-                  Bidirectional:
-                    Log('T TC=' + IntToStr(Line_TC) + ' set to ' + IntToStr(Speed) + ' mph in both directions');
-                END; {CASE}
-              END;
-            END;
-          END;
-        END; {WITH}
-        InvalidateScreen(UnitRef, 'TCPopupSetTCSpeedRestrictionClick');
-      END;
-    END; {WITH}
-  EXCEPT
-    ON E : Exception DO
-      Log('EG TCPopupSetTCSpeedRestrictionClick:' + E.ClassName + ' error raised, with message: '+ E.Message);
-  END; {TRY}
-END; { TCPopupSetTCSpeedRestrictionClick }
-
-PROCEDURE TFWPRailWindow.TCPopupClearTrackCircuitSpeedRestrictionClick(Sender: TObject);
-BEGIN
-  TRY
-    WITH Lines[TrackCircuitPopupLine] DO BEGIN
-      IF Line_TC <> UnknownTrackCircuit THEN BEGIN
-        WITH TrackCircuits[Line_TC] DO BEGIN
-          IF TC_SpeedRestrictionInMPH <> NoSpecifiedSpeed THEN BEGIN
-             IF MessageDialogueWithDefault('Do you wish to clear the ' + MPHToStr(TC_SpeedRestrictionInMPH) + ' mph speed restriction at TC=' + IntToStr(Line_TC) + '?',
-                                           NOT StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrYes
-            THEN BEGIN
-              TC_SpeedRestrictionInMPH := NoSpecifiedSpeed;
-              TC_SpeedRestrictionDirection := UnknownDirection;
-            END;
-          END;
-        END; {WITH}
-      END;
-    END; {WITH}
-  EXCEPT
-    ON E : Exception DO
-      Log('EG ClearTrackCircuitSpeedRestrictionClick:' + E.ClassName + ' error raised, with message: '+ E.Message);
-  END; {TRY}
-END; { ClearTrackCircuitSpeedRestrictionClick }
-
-PROCEDURE TFWPRailWindow.TCPopupSetLineOutOfUseClick(Sender: TObject);
-BEGIN
-  TRY
-    WITH Lines[TrackCircuitPopupLine] DO BEGIN
-      IF Line_OutOfUseState = OutOfUse THEN BEGIN
-        TCPopupSetLineOutOfUse.Caption := 'Put Line ''' + LineToStr(TrackCircuitPopupLine) + ''' out of use';
-        Line_OutOfUseState := InUse;
-      END ELSE BEGIN
-        TCPopupSetLineOutOfUse.Caption := 'Return Line ''' + LineToStr(TrackCircuitPopupLine) + ''' to use';
-        Line_OutOfUseState := OutOfUse;
-      END;
-      InvalidateScreen(UnitRef, 'TCPopupSetLineOutOfUseClick');
-    END; {WITH}
-  EXCEPT
-    ON E : Exception DO
-      Log('EG TCPopupSetLineOutOfUseClick:' + E.ClassName + ' error raised, with message: '+ E.Message);
-  END; {TRY}
-END; { TCPopupSetLineOutOfUseClick }
-
-PROCEDURE TFWPRailWindow.TCPopupSetLocationOutOfUseClick(Sender: TObject);
-VAR
-  LineCount : Integer;
-
-BEGIN
-  TRY
-    WITH Lines[TrackCircuitPopupLine] DO BEGIN
-      IF Line_Location <> UnknownLocation THEN BEGIN
-        WITH Locations[Line_Location] DO BEGIN
-          IF Location_OutOfUse THEN BEGIN
-            TCPopupSetLocationOutOfUse.Caption := 'Put Location ''' + LineToStr(TrackCircuitPopupLine) + ''' out of use';
-            Location_OutOfUse := False;
-
-            { Now restore all the lines within the location to their previous state }
-            FOR LineCount := 0 TO High(Lines) DO BEGIN
-              IF Lines[LineCount].Line_Location = Line_Location THEN BEGIN
-                IF Lines[LineCount].Line_SaveOutOfUseState = OutOfUse THEN
-                  Lines[LineCount].Line_OutOfUseState := OutOfUse
-                ELSE
-                  Lines[LineCount].Line_OutOfUseState := InUse;
-              END;
-            END;
-          END ELSE BEGIN
-            TCPopupSetLocationOutOfUse.Caption := 'Return Location ''' + LineToStr(TrackCircuitPopupLine) + ''' to use';
-            Location_OutOfUse := True;
-
-            { Now set all the lines within the location to out of use too }
-            FOR LineCount := 0 TO High(Lines) DO BEGIN
-              IF Lines[LineCount].Line_Location = Line_Location THEN BEGIN
-                Lines[LineCount].Line_SaveOutOfUseState := Lines[LineCount].Line_OutOfUseState;
-                Lines[LineCount].Line_OutOfUseState := OutOfUse;
-              END;
-            END;
-          END;
-          InvalidateScreen(UnitRef, 'TCPopupSetLineOutOfUseClick');
-        END; {WITH}
-      END;
-    END; {WITH}
-  EXCEPT
-    ON E : Exception DO
-      Log('EG TCPopupSetLocationOutOfUseClick:' + E.ClassName + ' error raised, with message: '+ E.Message);
-  END; {TRY}
-END; { TCPopupSetLocationOutOfUseClick }
 
 PROCEDURE TFWPRailWindow.GeneralPopupChangeDefaultPointColourClick(Sender: TObject);
 BEGIN
@@ -7352,8 +7175,7 @@ BEGIN { Main drawing procedure }
           WITH Lines[Line] DO BEGIN
             { save the LineOldColour because otherwise DrawLine might update it erroneously }
             SaveLineOldColour := Line_OldColour;
-//if Lines[Line].line_str = 'BT1a' then
-//debug(testcountstr);
+
             IF ReplayMode THEN
               DrawLine(Line, Line_OldColour, ActiveTrain)
             ELSE BEGIN
@@ -7509,7 +7331,7 @@ BEGIN { Main drawing procedure }
                   { the main calling point }
                   DrawAllSignals(NOT ShowNums, NOT ShowTheatreDestinationChar);
                   DrawAllBufferStopData(NOT ShowNums, NOT ShowTheatreDestinationChar);
-debug('called from drawmap ' + TestcOunTstr);
+//debug('called from drawmap ' + TestcOunTstr);
                 END;
 
         IF ShowLinesWhichLockPoints THEN BEGIN

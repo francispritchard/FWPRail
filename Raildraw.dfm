@@ -1302,158 +1302,83 @@ object FWPRailWindow: TFWPRailWindow
     Left = 436
     Top = 49
   end
-  object TCPopupMenu: TPopupMenu
-    OnPopup = TCPopupMenuOnPopup
+  object LinePopupMenu: TPopupMenu
+    OnPopup = LineMenuOnPopup
     Left = 336
     Top = 108
     object TCPopupTrackCircuitNumber: TMenuItem
       Caption = 'TrackCircuit Number'
-      OnClick = TCPopupTrackCircuitNumberClick
     end
     object TCPopupRuler1: TMenuItem
       Caption = '-'
     end
     object TCPopupSetTrackCircuitToFeedbackOccupation: TMenuItem
       Caption = 'Set Track Circuit to Feedback Occupation'
-      OnClick = TCPopupSetTrackCircuitToFeedbackOccupationClick
     end
     object TCPopupSetTrackCircuitUnoccupied: TMenuItem
       Caption = 'Set Track Circuit Unoccupied'
-      OnClick = TCPopupSetTrackCircuitUnoccupiedClick
     end
     object TCPopupSetTrackCircuitOutOfUseSetByUser: TMenuItem
       Caption = 'Set Track Circuit Out Of Use'
-      OnClick = TCPopupSetTrackCircuitOutOfUseSetByUserClick
     end
     object TCPopupSetTrackCircuitToSystemOccupation: TMenuItem
       Caption = 'Set Track Circuit to System Occupation'
-      OnClick = TCPopupSetTrackCircuitToSystemOccupationClick
     end
     object TCPopupSetTrackCircuitToPermanentOccupation: TMenuItem
       Caption = 'Set Track Circuit to Permanent Occupation'
-      OnClick = TCPopupSetTrackCircuitToPermanentOccupationClick
     end
     object TCPopupSetTrackCircuitSpeedRestriction: TMenuItem
       Caption = 'Set Track Circuit Speed Restriction'
-      OnClick = TCPopupSetTrackCircuitSpeedRestrictionClick
     end
     object TCPopupClearTrackCircuitSpeedRestriction: TMenuItem
       Caption = 'Clear Track Circuit Speed Restriction'
-      OnClick = TCPopupClearTrackCircuitSpeedRestrictionClick
     end
     object TCPopupSetTrackCircuitToUserDriving: TMenuItem
       Caption = 'Set Track Circuit to User Must Drive'
-      OnClick = TCPopupSetTrackCircuitToUserDrivingClick
     end
     object TCPopupRuler2: TMenuItem
       Caption = '-'
     end
     object TCPopupSetLineOutOfUse: TMenuItem
       Caption = 'Set Line Out Of Use'
-      OnClick = TCPopupSetLineOutOfUseClick
     end
     object TCPopupSetLocationOutOfUse: TMenuItem
       Caption = 'Set Location Out Of Use'
-      OnClick = TCPopupSetLocationOutOfUseClick
     end
     object TCPopupRuler3: TMenuItem
       Caption = '-'
     end
     object TCPopupAllocateLocoToTrackCircuit: TMenuItem
       Caption = 'Allocate Loco to TrackCircuit'
-      OnClick = TCPopupAllocateLocoToTrackCircuitClick
     end
     object TCPopupClearLocoAllocationFromTrackCircuit: TMenuItem
       Caption = 'Clear Loco Allocation From Track Circuit'
       Enabled = False
-      OnClick = TCPopupClearLocoAllocationFromTrackCircuitClick
     end
     object TCPopupRuler4: TMenuItem
       Caption = '-'
     end
     object TCPopupChangeInternalLocoDirectionToUp: TMenuItem
       Caption = 'Change Internal Loco Direction to Up'
-      OnClick = TCPopupChangeInternalLocoDirectionToUpClick
     end
     object TCPopupChangeInternalLocoDirectionToDown: TMenuItem
       Caption = 'Change Internal Loco Direction to Down'
-      OnClick = TCPopupChangeInternalLocoDirectionToDownClick
     end
   end
   object PointPopupMenu: TPopupMenu
     OnPopup = PointPopupMenuOnPopup
     Left = 336
     Top = 168
-    object PointPopupPointNum: TMenuItem
-      Caption = 'Point '
-    end
-    object PointPopupRuler1: TMenuItem
-      Caption = '-'
-    end
-    object PointPopupSetPointOutOfUse: TMenuItem
-      Caption = 'Set Point Out Of Use'
-      OnClick = PointPopupSetPointOutOfUseClick
-    end
-    object PointPopupSetPointBackInUse: TMenuItem
-      Caption = 'Set Point Back In Use'
-      OnClick = PointPopupSetPointBackInUseClick
-    end
-    object PointPopupSetPointToManual: TMenuItem
-      Caption = 'Set Point To Manual'
-      OnClick = PointPopupSetPointtoManualClick
-    end
-    object PointPopupSetPointToAutomatic: TMenuItem
-      Caption = 'Set Point To Automatic'
-      OnClick = PointPopupSetPointToAutomaticClick
-    end
-    object PointPopupLockPoint: TMenuItem
-      Caption = 'Lock Point'
-      OnClick = PointPopupLockPointClick
-    end
-    object PointPopupRuler2: TMenuItem
-      Caption = '-'
-    end
-    object PointPopupEditPointDetails: TMenuItem
-      Caption = 'Edit Point Details'
-      OnClick = PointPopupEditPointDetailsClick
-    end
   end
   object SignalPopupMenu: TPopupMenu
     OnPopup = SignalPopupMenuOnPopup
     Left = 336
     Top = 216
-    object SignalPopupSignalNum: TMenuItem
-      Caption = 'Signals'
-    end
-    object SignalPopupRuler1: TMenuItem
-      Caption = '-'
-    end
-    object SignalPopupSetSignalOutOfUse: TMenuItem
-      Caption = 'Set Signal Out Of Use'
-      OnClick = SignalPopupSetSignalOutOfUseClick
-    end
-    object SignalPopupSetSignalBackInUse: TMenuItem
-      Caption = 'Set Signal Back In Use'
-      OnClick = SignalPopupSetSignalBackInUseClick
-    end
-    object SignalPopupRuler2: TMenuItem
-      Caption = '-'
-    end
-    object SignalPopupEditSignalDetails: TMenuItem
-      Caption = 'Edit Signal Details'
-      OnClick = SignalPopupEditSignalDetailsClick
-    end
   end
   object BufferStopPopupMenu: TPopupMenu
     OnPopup = BufferStopMenuOnPopup
     Left = 480
     Top = 112
-    object BufferStopPopupBufferStopNum: TMenuItem
-      Caption = 'Buffer Stop'
-    end
-    object BufferStopPopupRuler: TMenuItem
-      Caption = '-'
-    end
   end
   object CreateOrDeleteItemPopupMenu: TPopupMenu
     OnPopup = CreateOrDeleteItemMenuOnPopup
@@ -1494,5 +1419,9 @@ object FWPRailWindow: TFWPRailWindow
     OnShortCut = FWPRailApplicationEventsShortCut
     Left = 112
     Top = 208
+  end
+  object TCPopupMenu: TPopupMenu
+    Left = 256
+    Top = 132
   end
 end

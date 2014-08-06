@@ -1049,7 +1049,7 @@ VAR
               WriteLn(WorkingTimetableLogFile, LogStrWithoutRichEditCommands);
             END;
           END;
-        'P', 'p', 'S', 's', 'T', 't':
+        'P', 'p', 'B', 'b', 'S', 's', 'T', 't':
           BEGIN
             IF StoreRichEditLoggingText THEN
               AppendToStringArray(StoredRichEditLoggingTextArray, LogStrWithRichEditCommands)
@@ -1362,7 +1362,7 @@ BEGIN { WriteToLogFile }
         END ELSE BEGIN
           CASE LogStr[1] OF
             'A', 'a', '$',
-            'P', 'p', 'S', 's', 'T', 't',
+            'P', 'p', 'B', 'b', 'S', 's', 'T', 't',
             'L', 'l',
             'R', 'r',
             'D', 'd',
@@ -1618,7 +1618,7 @@ BEGIN { WriteToLogFile }
                   Flush(DiagramsLogFile);
                   Flush(WorkingTimetableLogFile);
                 END;
-              'P', 'p', 'S', 's', 'T', 't' :
+              'P', 'p', 'B', 'b', 'S', 's', 'T', 't' :
                 IF MultipleLogFilesRequired THEN
                   Flush(SignalPointAndTCLogFile);
               'L', 'l':
