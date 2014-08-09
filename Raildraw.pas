@@ -722,7 +722,7 @@ BEGIN
       DrawRedLampAndVerticalLine(BufferStop_X, BufferStop_Y1, BufferStop_Y2, Colour);
 
       IF ShowMouseRectangles THEN
-        DrawOutline(BufferStop_MouseRect, clFWPOrange, NOT UndrawRequired,NOT UndrawToBeAutomatic);
+        DrawOutline(BufferStop_MouseRect, clFWPOrange, NOT UndrawRequired, NOT UndrawToBeAutomatic);
     END; {WITH}
   END; {WITH}
 END; { DrawBufferStop }
@@ -1303,6 +1303,16 @@ BEGIN
         Pen.Mode := pmNotXor;
       Pen.Color := Colour;
       Brush.Color := BackgroundColour;
+
+      FWPPolygon[0].X := FWPPolygon[0].X - ScrollBarXAdjustment;
+      FWPPolygon[0].Y := FWPPolygon[0].Y - ScrollBarYAdjustment;
+      FWPPolygon[1].X := FWPPolygon[1].X - ScrollBarXAdjustment;
+      FWPPolygon[1].Y := FWPPolygon[1].Y - ScrollBarYAdjustment;
+      FWPPolygon[2].X := FWPPolygon[2].X - ScrollBarXAdjustment;
+      FWPPolygon[2].Y := FWPPolygon[2].Y - ScrollBarYAdjustment;
+      FWPPolygon[3].X := FWPPolygon[3].X - ScrollBarXAdjustment;
+      FWPPolygon[3].Y := FWPPolygon[3].Y - ScrollBarYAdjustment;
+      FWPPolygon[4] := FWPPolygon[0];
       Polyline(FWPPolygon);
     END; {WITH}
   EXCEPT
@@ -2589,15 +2599,8 @@ BEGIN
           IF (Lines[Line].Line_DownConnectionCh <> '') AND (Lines[Line].Line_DownConnectionCh <> ' ') THEN
             DrawConnectionCh(Line, Down);
 
-          IF ShowMouseRectangles THEN BEGIN
-            PolyLine(Line_MousePolygon);
-//            IF Line_UpY = Line_DownY THEN
-//              { horizontal lines }
-//              DrawOutline(Line_MouseRect, clGreen, NOT UndrawRequired, NOT UndrawToBeAutomatic)
-//            ELSE
-//              { diagonal lines }
-//              DrawOutline(Line_MouseRect, clLime, NOT UndrawRequired, NOT UndrawToBeAutomatic);
-          END;
+          IF ShowMouseRectangles THEN
+            DrawOutline(Line_MousePolygon, clGreen, NOT UndrawRequired, NOT UndrawToBeAutomatic);
         END; {WITH}
       END; {WITH}
     END;
