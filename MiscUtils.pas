@@ -443,6 +443,9 @@ FUNCTION JunctionIndicatorTypeToStr(J : JunctionIndicatorType) : String;
 FUNCTION LenzConnectionToStr(LenzConnection : LenzConnectionType) : String;
 { Return the kind of connection }
 
+FUNCTION LATS(LineArray : IntegerArrayType) : String;
+{ Return lines as a string - routine designed for use in debugging }
+
 FUNCTION LightsTypeToStr(TypeOfLights : LightsType) : String;
 { Return the type of lights the train has }
 
@@ -473,6 +476,9 @@ FUNCTION LocationToStr{2}(Location : Integer; LongOrShortString : StringType) : 
 FUNCTION LocoChipToStr{1}(LocoChip : Integer) : String; Overload;
 { Return the locomotive number as a string - if LocoChip less then 1000, add appropriate number of leading zeroes }
 
+FUNCTION LocATS(LocationArray : IntegerArrayType) : String;
+{ Return locations as long strings - routine designed for use in debugging }
+
 FUNCTION LocoChipToStr{2}(LocoChip : Integer; UnknownAsZeroes : Boolean) : String; Overload;
 { Return the locomotive number as a string - if LocoChip less then 1000, add appropriate number of leading zeros }
 
@@ -482,14 +488,8 @@ FUNCTION LocoIndexToStr(L : LocoIndex) : String; Overload;
 FUNCTION LocTS(Location : Integer) : String;
 { Return a location as a long string - routine designed only for use in debugging }
 
-FUNCTION LocTSA(LocationArray : IntegerArrayType) : String;
-{ Return locations as long strings - routine designed for use in debugging }
-
 FUNCTION LTS(L : Integer) : String;
 { Return a line as a string - routine designed only for use in debugging }
-
-FUNCTION LTSA(LArray : IntegerArrayType) : String;
-{ Return lines as a string - routine designed for use in debugging }
 
 PROCEDURE MakeSound(SoundNum : Integer);
 { Make a warning sound }
@@ -4895,22 +4895,22 @@ BEGIN
     Result := Lines[L].Line_Str;
 END; { LTS }
 
-FUNCTION LTSA(LArray : IntegerArrayType) : String;
+FUNCTION LATS(LineArray : IntegerArrayType) : String;
 { Return lines as a string - routine designed for use in debugging }
 VAR
   I : Integer;
 
 BEGIN
   Result := '';
-  IF Length(LArray) > 0 THEN BEGIN
-    FOR I := 0 TO High(LArray) DO BEGIN
+  IF Length(LineArray) > 0 THEN BEGIN
+    FOR I := 0 TO High(LineArray) DO BEGIN
       IF I = 0 THEN
-        Result := LineToStr(LArray[I])
+        Result := LineToStr(LineArray[I])
       ELSE
-        Result := Result + ', ' + LineToStr(LArray[I]);
+        Result := Result + ', ' + LineToStr(LineArray[I]);
     END;
   END;
-END; { LTSA }
+END; { LATS }
 
 FUNCTION LocationToStrMainProcedure(Location : Integer; LongOrShortString : StringType) : String;
 { Return a location as a string }
@@ -4948,7 +4948,7 @@ BEGIN
     Result := LocationToStrMainProcedure(Location, LongOrShortString);
 END; { LocTS }
 
-FUNCTION LocTSA(LocationArray : IntegerArrayType) : String;
+FUNCTION LocATS(LocationArray : IntegerArrayType) : String;
 { Return locations as a string - routine designed for use in debugging }
 CONST
   LongOrShortString = LongStringType;
@@ -4966,7 +4966,7 @@ BEGIN
         Result := Result + ', ' + LocationToStrMainProcedure(LocationArray[I], LongOrShortString);
     END;
   END;
-END; { LocTSA }
+END; { LocATS }
 
 FUNCTION LocationToStr{1}(Location : Integer) : String; Overload;
 { Return a location as a long string }
@@ -9296,8 +9296,8 @@ INITIALIZATION
 
   AppendToIntegerArray(TempIntegerArray, 1);
   ATSA(TempIntegerArray);
-  LTSA(TempIntegerArray);
-  LocTSA(TempIntegerArray);
+  LATS(TempIntegerArray);
+  LocATS(TempIntegerArray);
 
   AppendToDateTimeArray(TempTimeArray, StrToTime('08:00'));
   TTSA(TempTimeArray);
