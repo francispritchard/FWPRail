@@ -59,7 +59,8 @@ object FWPRailWindow: TFWPRailWindow
       item
         Width = 50
       end>
-    OnDblClick = FWPRailWindowStatusBarDblClick
+    SizeGrip = False
+    OnClick = FWPRailWindowStatusBarClick
     OnMouseMove = FWPRailWindowStatusBarMouseMove
   end
   object FWPRailWindowMenu: TMainMenu

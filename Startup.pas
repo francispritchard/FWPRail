@@ -56,13 +56,10 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES LocoUtils, MiscUtils, Input, RailDraw, RDC, DateUtils, Feedback, CreateRoute, Diagrams, StrUtils, LocationData, Options;
+USES LocoUtils, MiscUtils, Input, RailDraw, RDCUnit, DateUtils, Feedback, CreateRoute, Diagrams, StrUtils, LocationData, Options;
 
 CONST
   UnitRef = 'Startup';
-
-VAR
-  AllRouteDebuggingMode : Boolean = False;
 
 PROCEDURE Log(Str : String);
 { For ease of debugging, adds the unit name }
@@ -118,14 +115,14 @@ BEGIN
         WriteLn('Test');
       'A':
         IF ParamString = 'A-' THEN
-          AnonymousOccupationMode := False
+          SetMode(AnonymousOccupation, TurnOff)
         ELSE
-          IF ParamString = 'A' THEN
+          IF ParamString = 'ARD' THEN
           { used for development }
-            AllRouteDebuggingMode := True
+            SetMode(AllRouteDebugging, TurnOn)
           ELSE
             IF ParamString = 'ATCM' THEN BEGIN
-              ShowAdjacentTrackCircuitMode := True;
+              SetMode(ShowAdjacentTrackCircuit, TurnOn);
               Debug('Displaying adjacent track circuit mode = ON');
             END ELSE
               OK := False;
@@ -154,16 +151,15 @@ BEGIN
           END ELSE
             IF ParamString = 'Debug' THEN
               { used for development }
-              DebuggingMode := True
+              SetMode(GeneralDebugging, TurnOn)
             ELSE
               OK := False;
       'F':
         IF ParamString = 'FD' THEN
-          FeedbackDebuggingMode := True
+          SetFeedbackDebuggingModeOn('FeedbackDebuggingMode=ON', NOT ReadOutAdjacentSignalNumber, NOT ReadOutTCInFull, NOT ReadOutTCOnce, NOT ReadOutDecoderNumber)
         ELSE
           IF ParamString = 'FDS' THEN BEGIN
-            FeedbackDebuggingMode := True;
-            ReadOutTCInFull := True;
+            SetFeedbackDebuggingModeOn('FeedbackDebuggingMode=ON', NOT ReadOutAdjacentSignalNumber, ReadOutTCInFull, NOT ReadOutTCOnce, NOT ReadOutDecoderNumber)
           END ELSE
             IF ParamString = 'FSS' THEN
               ScreenMode := FullScreenWithStatusBarMode
@@ -181,7 +177,7 @@ BEGIN
       'I':
         IF ParamString = 'I' THEN
           { used for development }
-          LineDebuggingMode := True
+          SetMode(LineDebugging, TurnOn)
         ELSE
           IF ParamString = 'IL=OFF' THEN
             CheckForIdenticalLinesInLog := False
@@ -193,10 +189,10 @@ BEGIN
       'K':
         IF ParamString = 'O' THEN
           { used for development }
-          LockDebuggingMode := True;
+          SetMode(LockDebugging, TurnOn);
       'L':
         IF ParamString = 'L' THEN
-          LockingMode := False
+          SetMode(Locking, TurnOff)
         ELSE
           { need to alter below to cope with suffixes **** }
           IF Copy(ParamString, 1, 7) = 'LOGFILE' THEN BEGIN
@@ -241,26 +237,26 @@ BEGIN
         ELSE
           IF ParamString = 'PD' THEN
             { used for development }
-            PointDebuggingMode := True
+            SetMode(PointDebugging, TurnOn)
           ELSE
             OK := False;
       'R':
         IF ParamString = 'RDC=ON' THEN BEGIN
-          RDCMode := True
+          SetMode(RDC, TurnOn)
           // RailDriverWindow.RailDriverWindowTimer.Enabled := True;
         END ELSE
           IF ParamString = 'RDC=OFF' THEN
             { this is not necessary, but it's easier to turn it on or off in the parameter string this way }
-            RDCMode := False
+            SetMode(RDC, TurnOff)
           ELSE
             IF ParamString = 'RD' THEN
-              RouteDebuggingMode := True
+              SetMode(RouteDebugging, TurnOn)
             ELSE
               IF ParamString = 'RS' THEN
-                RouteDrawingMode := True
+                SetMode(RouteDrawing, TurnOn)
               ELSE
                 IF ParamString = 'RB' THEN
-                  RouteBacktrackDebuggingMode := True
+                  SetMode(RouteBacktrackDebugging, TurnOn)
                 ELSE
                   IF Copy(ParamString, 1, 10) = 'REPLAYFILE' THEN BEGIN
                     IF Length(ParamString) > 11 THEN
@@ -272,7 +268,7 @@ BEGIN
                       OK := False;
       'S':
         IF ParamString = 'S' THEN
-          StationStartMode := True
+          SetMode(StationStart, TurnOn)
         ELSE
           OK := False;
       'T':
@@ -284,10 +280,10 @@ BEGIN
             OK := False;
         END ELSE
           IF ParamString = 'TR' THEN
-            RecordingMonitorScreens := True
+            SetMode(RecordingMonitorScreens, TurnOn)
           ELSE
             IF ParamString = 'TEST' THEN
-              TestingMode := True
+              SetMode(Testing, TurnOn)
             ELSE
               OK := False;
       'W':
@@ -442,8 +438,8 @@ BEGIN
         IF ReadOutAdjacentSignalNumber THEN
           Log('AG Read Out Adjacent Signal Number OFF {INDENT=2}');
 
-  IF RecordingMonitorScreens THEN
-    Log('AG Recording Monitor Screens is ON {INDENT=2}');
+  IF RecordingMonitorScreensMode THEN
+    Log('AG RecordingMonitorScreensMode is ON {INDENT=2}');
 
   IF NOT RecordLineDrawingMode THEN
     Log('AG Record Line Drawing Mode OFF {INDENT=2}');
@@ -474,187 +470,124 @@ BEGIN
 END; { HandleParameters }
 
 PROCEDURE TDebuggingOptionsWindow.Startup_DebuggingCheckBoxClick(Sender: TObject);
-VAR
-  TempStr : String;
-
 BEGIN
-  WITH Startup_DebuggingCheckBox DO BEGIN
-    IF Checked THEN BEGIN
-      DebuggingMode := True;
-      WriteToStatusBarPanel(StatusBarPanel3, 'DEBUG ');
-      Log('A Debugging = ON');
-    END ELSE BEGIN
-      DebuggingMode := False;
-      Log('A Debugging = OFF');
-      TempStr := FWPRailWindow.FWPRailWindowStatusBar.Panels[StatusBarPanel3].Text;
-      TempStr := StringReplace(TempStr, 'DEBUG', '', [rfIgnoreCase]);
-      WriteToStatusBarPanel(StatusBarPanel3, 'DEBUG ');
-    END;
-  END; {WITH}
+  IF Startup_DebuggingCheckBox.Checked THEN
+    SetMode(GeneralDebugging, TurnOn)
+  ELSE
+    SetMode(GeneralDebugging, TurnOff);
 END; { Startup_DebuggingCheckBoxClick }
 
 PROCEDURE TDebuggingOptionsWindow.Startup_FeedbackDebuggingCheckBoxClick(Sender: TObject);
 BEGIN
-  WITH Startup_FeedbackDebuggingCheckBox DO BEGIN
-    IF Checked THEN BEGIN
-      FeedbackDebuggingMode := True;
-      Log('A Feedback debugging = ON');
-    END ELSE BEGIN
-      FeedbackDebuggingMode := False;
-      Log('A Feedback debugging = OFF');
-    END;
-  END; {WITH}
+  IF Startup_FeedbackDebuggingCheckBox.Checked THEN
+    SetFeedbackDebuggingModeOn('Feedback debugging = ON',
+                               NOT ReadOutAdjacentSignalNumber, NOT ReadOutTCInFull, ReadOutTCOnce, NOT ReadOutDecoderNumber)
+  ELSE
+    SetFeedbackDebuggingModeOff('Feedback debugging = OFF')
 END; { Startup_FeedbackDebuggingCheckBoxClick }
 
 PROCEDURE TDebuggingOptionsWindow.Startup_LineDebuggingCheckBoxClick(Sender: TObject);
 BEGIN
-  WITH Startup_LineDebuggingCheckBox DO BEGIN
-    IF Checked THEN BEGIN
-      LineDebuggingMode := True;
-      Log('A Line debugging = ON');
+  IF NOT Startup_LineDebuggingCheckBox.Checked THEN
+    SetMode(LineDebugging, TurnOff)
+  ELSE BEGIN
+    SetMode(LineDebugging, TurnOn);
 
-      { mutually exclusive, as it gets v. confusing! }
-      LockDebuggingMode := False;
-      Startup_LockDebuggingCheckBox.State := cbUnchecked;
+    { mutually exclusive, as it gets v. confusing! }
+    SetMode(LockDebugging, TurnOff);
+    Startup_LockDebuggingCheckBox.State := cbUnchecked;
 
-      PointDebuggingMode := False;
-      Startup_PointDebuggingCheckBox.State := cbUnchecked;
-    END ELSE BEGIN
-      LineDebuggingMode := False;
-      Log('A Line debugging = OFF');
-    END;
-  END; {WITH}
+    SetMode(PointDebugging, TurnOff);
+    Startup_PointDebuggingCheckBox.State := cbUnchecked;
+  END;
 END; { Startup_LineDebuggingCheckBoxClick }
 
 PROCEDURE TDebuggingOptionsWindow.Startup_LockDebuggingCheckBoxClick(Sender: TObject);
 BEGIN
-  WITH Startup_LockDebuggingCheckBox DO BEGIN
-    IF Checked THEN BEGIN
-      LockDebuggingMode := True;
-      Log('A Lock debugging = ON');
+  IF NOT Startup_LockDebuggingCheckBox.Checked THEN
+    SetMode(LockDebugging, TurnOff)
+  ELSE BEGIN
+    SetMode(LockDebugging, TurnOn);
 
-      { mutually exclusive, as it gets v. confusing! }
-      LineDebuggingMode := False;
-      Startup_LineDebuggingCheckBox.State := cbUnchecked;
+    { mutually exclusive, as it gets v. confusing! }
+    SetMode(LineDebugging, TurnOff);
+    Startup_LineDebuggingCheckBox.State := cbUnchecked;
 
-      PointDebuggingMode := False;
-      Startup_PointDebuggingCheckBox.State := cbUnchecked;
-    END ELSE BEGIN
-      LockDebuggingMode := False;
-     Log('A Lock debugging = OF');
-    END;
-  END; {WITH}
+    SetMode(PointDebugging, TurnOff);
+    Startup_PointDebuggingCheckBox.State := cbUnchecked;
+  END;
 END; { Startup_LockDebuggingCheckBoxClick }
 
 PROCEDURE TDebuggingOptionsWindow.Startup_PointDebuggingCheckBoxClick(Sender: TObject);
 BEGIN
-  WITH Startup_PointDebuggingCheckBox DO BEGIN
-    IF Checked THEN BEGIN
-      PointDebuggingMode := True;
-      Log('A Point debugging = ON');
+  IF NOT Startup_PointDebuggingCheckBox.Checked THEN
+    SetMode(PointDebugging, TurnOff)
+  ELSE BEGIN
+    SetMode(PointDebugging, TurnOn);
 
-      { mutually exclusive, as it gets v. confusing! }
-      LineDebuggingMode := False;
-      Startup_LineDebuggingCheckBox.State := cbUnchecked;
+    { mutually exclusive, as it gets v. confusing! }
+    SetMode(LineDebugging, TurnOff);
+    Startup_LineDebuggingCheckBox.State := cbUnchecked;
 
-      LockDebuggingMode := False;
-      Startup_LockDebuggingCheckBox.State := cbUnchecked;
-    END ELSE BEGIN
-      PointDebuggingMode := False;
-      Log('A Point debugging = OFF');
-    END;
-  END; {WITH}
+    SetMode(LockDebugging, TurnOff);
+    Startup_LockDebuggingCheckBox.State := cbUnchecked;
+  END;
 END; { Startup_PointDebuggingCheckBoxClick }
 
 PROCEDURE TDebuggingOptionsWindow.Startup_RouteDebuggingCheckBoxClick(Sender: TObject);
 BEGIN
-  WITH Startup_RouteDebuggingCheckBox DO BEGIN
-    IF Checked THEN BEGIN
-      RouteDebuggingMode := True;
-      Log('A Route debugging = ON');
-    END ELSE BEGIN
-      RouteDebuggingMode := False;
-      Log('A Route debugging = OFF');
-    END;
-  END; {WITH}
+  IF Startup_RouteDebuggingCheckBox.Checked THEN
+    SetMode(RouteDebugging, TurnOn)
+  ELSE
+    SetMode(RouteDebugging, TurnOff);
 END; { Startup_RouteDebuggingCheckBoxClick }
 
 PROCEDURE TDebuggingOptionsWindow.Startup_RouteBacktrackDebuggingCheckBoxClick(Sender: TObject);
 BEGIN
-  WITH Startup_RouteBacktrackDebuggingCheckBox DO BEGIN
-    IF Checked THEN BEGIN
-      RouteBacktrackDebuggingMode := True;
-      Log('A Route backtrack debugging = ON');
-    END ELSE BEGIN
-      RouteBacktrackDebuggingMode := False;
-      Log('A Route backtrack debugging = OFF');
-    END;
-  END; {WITH}
+  IF Startup_RouteBacktrackDebuggingCheckBox.Checked THEN
+    SetMode(RouteBacktrackDebugging, TurnOn)
+  ELSE
+    SetMode(RouteBacktrackDebugging, TurnOff);
 END; { Startup_RouteBacktrackDebuggingCheckBoxClick }
 
 PROCEDURE TDebuggingOptionsWindow.Startup_AllRouteDebuggingCheckBoxClick(Sender: TObject);
 BEGIN
-  WITH Startup_AllRouteDebuggingCheckBox DO BEGIN
-    IF Checked THEN BEGIN
-      AllRouteDebuggingMode := True;
-      Log('A All route debugging = ON');
-    END ELSE BEGIN
-      AllRouteDebuggingMode := False;
-      Log('A All route debugging = OFF');
-    END;
-  END; {WITH}
+  IF Startup_AllRouteDebuggingCheckBox.Checked THEN
+    SetMode(AllRouteDebugging, TurnOn)
+  ELSE
+    SetMode(AllRouteDebugging, TurnOff);
 END; { Startup_AllRouteDebuggingCheckBoxClick }
 
 PROCEDURE TDebuggingOptionsWindow.Startup_RouteDrawingCheckBoxClick(Sender: TObject);
 BEGIN
-  WITH Startup_RouteDrawingCheckBox DO BEGIN
-    IF Checked THEN BEGIN
-      RouteDrawingMode := True;
-      Log('A Route drawing = ON');
-    END ELSE BEGIN
-      RouteDrawingMode := False;
-      Log('A Route drawing = OFF');
-    END;
-  END; {WITH}
+  IF Startup_RouteDrawingCheckBox.Checked THEN
+    SetMode(RouteDrawing, TurnOn)
+  ELSE
+    SetMode(RouteDrawing, TurnOff);
 END; { Startup_RouteDrawingCheckBoxClick }
 
 PROCEDURE TDebuggingOptionsWindow.Startup_TestingCheckBoxClick(Sender: TObject);
 BEGIN
-  WITH Startup_TestingCheckBox DO BEGIN
-    IF Checked THEN BEGIN
-      TestingMode := True;
-      Log('A Testing = ON');
-    END ELSE BEGIN
-      TestingMode := False;
-      Log('A Testing = OFF');
-    END;
-  END; {WITH}
+  IF Startup_TestingCheckBox.Checked THEN
+    SetMode(Testing, TurnOn)
+  ELSE
+    SetMode(Testing, TurnOff);
 END; { Startup_TestingCheckBoxClick }
 
 PROCEDURE TDebuggingOptionsWindow.Startup_RecordLineDrawingCheckBoxClick(Sender: TObject);
 BEGIN
-  WITH Startup_RecordLineDrawingCheckBox DO BEGIN
-    IF Checked THEN BEGIN
-      RecordLineDrawingMode := True;
-      Log('A Record Line Drawing = ON');
-    END ELSE BEGIN
-      RecordLineDrawingMode := False;
-      Log('A Record Line Drawing = OF');
-    END;
-  END; {WITH}
+  IF Startup_RecordLineDrawingCheckBox.Checked THEN
+    SetMode(RecordLineDrawing, TurnOn)
+  ELSE
+    SetMode(RecordLineDrawing, TurnOff);
 END; { Startup_RecordLineDrawingCheckBoxClick }
 
 PROCEDURE TDebuggingOptionsWindow.Startup_LockingCheckBoxClick(Sender: TObject);
 BEGIN
-  WITH Startup_LockingCheckBox DO BEGIN
-    IF Checked THEN BEGIN
-      LockingMode := False;
-      Log('A Locking = OFF');
-    END ELSE BEGIN
-      LockingMode := True;
-      Log('A Locking = ON');
-    END;
-  END; {WITH}
+  IF Startup_LockingCheckBox.Checked THEN
+    SetMode(Locking, TurnOff)
+  ELSE
+    SetMode(Locking, TurnOn);
 END; { Startup_LockingCheckBoxClick }
 
 PROCEDURE TDebuggingOptionsWindow.Startup_LogsKeptCheckBoxClick(Sender: TObject);

@@ -1591,7 +1591,7 @@ BEGIN
                                                                                                                DefaultStationOppositeDirectionExitMinimumWaitTimeInMinutes);
       StationSameDirectionExitMinimumWaitTimeInMinutes := ReadInteger(OtherOptionsSectionStr, StationSameDirectionExitMinimumWaitTimeInMinutesStr,
                                                                                                                    DefaultStationSameDirectionExitMinimumWaitTimeInMinutes);
-      StationStartMode := ReadBool(OtherOptionsSectionStr, StationStartModeStr, DefaultStationStartMode);
+      SetMode(StationStart, ReadBool(OtherOptionsSectionStr, StationStartModeStr, DefaultStationStartMode));
       StationStartOfDayPassengerBoardingTimeInMinutes := ReadInteger(OtherOptionssectionStr, StationStartOfDayPassengerBoardingTimeInMinutesStr,
                                                                                                                     DefaultStationStartOfDayPassengerBoardingTimeInMinutes);
       StopAllLocosAtShutDown := ReadBool(OtherOptionsSectionStr, StopAllLocosAtShutDownStr, DefaultStopAllLocosAtShutDown);

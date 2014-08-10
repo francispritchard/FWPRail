@@ -114,6 +114,8 @@ CONST
   QuickStop = -1;
   StopTimer = True;
   TrainExists = True;
+  TurnOn = True;
+  TurnOff = False;
   UnknownArea = 99999;
   UnknownBufferStop = 99999;
   UnknownJourney = 99999;
@@ -140,6 +142,7 @@ CONST
   StatusBarPanel0 = 0;
   StatusBarPanel1 = 1;
   StatusBarPanel2 = 2;
+  StatusBarPanel3 = 3;
 
   Function0 = 0;
   Function1 = 1;
@@ -190,6 +193,10 @@ TYPE
   StringArrayType = ARRAY OF String;
 
   LocoControlStateType = (ControlledByProgram, ControlledByRDC, ControlledByUser, ControlledByUnknownDevice);
+
+  { Various modes }
+  ModeType = (AllRouteDebugging, AnonymousOccupation, GeneralDebugging, LineDebugging, LockDebugging, Locking, PointDebugging, RDC, RecordingMonitorScreens,
+              RecordLineDrawing, RouteDebugging, RouteBacktrackDebugging, RouteDrawing, ShowAdjacentTrackCircuit, StationStart, Testing);
 
   DirectionType = (Up, Down, Bidirectional, UnknownDirection);
   DirectionArrayType = ARRAY OF DirectionType;
@@ -1098,6 +1105,7 @@ CONST
   LogSignalData = True;
 
 VAR
+  AllRouteDebuggingMode : Boolean = False;
   AllSignalsSwitchedOff : Boolean = False;
   AnonymousOccupationMode : Boolean = True;
   Areas : ARRAY OF AreaRec;
@@ -1164,12 +1172,12 @@ VAR
   RailDriverCalibrationStarted : Boolean = False;
   RailDriverInitialised : Boolean = False;
   RDCMode : Boolean = False;
-  ReadOutDecoderNumber : Boolean = False;
   ReadOutAdjacentSignalNumber : Boolean = False;
+  ReadOutDecoderNumber : Boolean = False;
   ReadOutTCInFull : Boolean = False;
   ReadOutTCOnce : Boolean = False;
   RecordLineDrawingMode : Boolean = False;
-  RecordingMonitorScreens : Boolean = False;
+  RecordingMonitorScreensMode : Boolean = False;
   RedrawScreen : Boolean = False;
   ReinitialiseFWPRailWindowVariables : Boolean = False;
   ReplayMode : Boolean = False;

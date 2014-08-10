@@ -19,7 +19,6 @@ USES
   Raildraw IN 'Raildraw.pas' {FWPRailWindow},
   Diagrams IN 'Diagrams.pas' {DiagramsWindow},
   MiscUtils IN 'MiscUtils.pas' {DebugWindow},
-  RDC IN 'RDC.pas',
   Input IN 'Input.pas' {InputDialogueBox},
   Feedback IN 'Feedback.pas' {FeedbackWindow},
   Startup IN 'Startup.pas' {DebuggingOptionsWindow},

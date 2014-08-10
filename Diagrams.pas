@@ -1723,7 +1723,7 @@ BEGIN
       { redraw it erasing the window first }
       DrawStationMonitorsWindow(StationMonitorsCurrentArea)
     ELSE BEGIN
-      IF RecordingMonitorScreens THEN BEGIN
+      IF RecordingMonitorScreensMode THEN BEGIN
         { ***** I'm not convenced this works now as the areas are defined in an Access database 7/5/14 }
         DrawStationMonitorsWindow(StrToArea('IslandStationArea'));
         DrawStationMonitorsWindow(StrToArea('MainStationArea'));

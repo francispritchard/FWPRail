@@ -91,7 +91,7 @@ IMPLEMENTATION
 {$R *.dfm}
 
 USES GetTime, Raildraw, MiscUtils, Locks, LocationData, Feedback, Options, System.StrUtils, Lenz, System.DateUtils, TestUnit, Movement, FWPShowMessageUnit, CreateRoute,
-     Diagrams, Route, Replay, Startup, Cuneo, LocoUtils, StationMonitors, ProgressBar, LocoDialogue, Help, WorkingTimetable, Edit, RDC, Input, Train, SyncObjs;
+     Diagrams, Route, Replay, Startup, Cuneo, LocoUtils, StationMonitors, ProgressBar, LocoDialogue, Help, WorkingTimetable, Edit, RDCUnit, Input, Train, SyncObjs;
 
 CONST
   ConnectedViaUSBStr = 'via USB';
@@ -1427,12 +1427,10 @@ VAR
   BEGIN
     IF (StationStartModeSetUpTime <> 0) AND (Time > IncSecond(StationStartModeSetUpTime, 5)) THEN BEGIN
       StationStartModeSetUpTime := 0;
-      IF StationStartMode THEN BEGIN
-        StationStartMode := False;
-        Log('AG Station Start Mode = off');
-      END ELSE BEGIN
-        StationStartMode := True;
-        Log('A! Station Start Mode = on');
+      IF StationStartMode THEN
+        SetMode(StationStart, TurnOff)
+      ELSE BEGIN
+        SetMode(StationStart, TurnOn);
         { and set all button presses to false }
 //        FOR Location := FirstMainPlatformLocation TO LastMainPlatformLocation DO
 //          MainPlatformPlungers[Location].TRSPlunger_Pressed := False;

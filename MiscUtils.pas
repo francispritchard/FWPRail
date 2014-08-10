@@ -613,6 +613,15 @@ FUNCTION SetDefaultButton(CONST Dlg: TForm; CONST ModalResult: Integer): Boolean
 { SetDefaultButton sets the default button in a Message Dialogue that has been created with the Dialogs.CreateMessageDialogue function. The result is a success indicator.
   The function only fails, if the specified button is not present in the dialogue [from uDialogsExt from Borland website]
 }
+PROCEDURE SetFeedbackDebuggingModeOn(DebugStr : String; AdjacentSignalNumber, DecoderNumber, TCInFull, TCOnce : Boolean);
+{ Turn on feedback debugging mode, updating the fourth status panel }
+
+PROCEDURE SetFeedbackDebuggingModeOff(DebugStr : String);
+{ Turn off feedback debugging mode, updating the fourth status panel }
+
+PROCEDURE SetMode(TypeOfMode : ModeType; OnOrOff : Boolean);
+{ Set up one of the various modes, updating the fourth status panel }
+
 PROCEDURE SetTwoLightingChips(L : LocoIndex; LightsAtUp, LightsAtDown : DirectionType; LightsOn : Boolean);
 { When appropriate switch two lighting chips }
 
@@ -866,7 +875,7 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES GetTime, Lenz, Diagrams, RailDraw, Types, LocoUtils, Math {sic}, IDGlobal, StrUtils, Feedback, RDC, CreateRoute, IniFiles, DateUtils, Startup, Cuneo, Movement,
+USES GetTime, Lenz, Diagrams, RailDraw, Types, LocoUtils, Math {sic}, IDGlobal, StrUtils, Feedback, RDCUnit, CreateRoute, IniFiles, DateUtils, Startup, Cuneo, Movement,
      LocoDialogue, FWPShowMessageUnit, Options, Registry, Help, MMSystem, ADODB, TCPIP, Main, StationMonitors, Train;
 
 CONST
@@ -6325,6 +6334,264 @@ BEGIN
     IF Min1 = Min2 THEN
       Result := True;
 END; { SameTimeInHoursAndMinutesOnly }
+
+PROCEDURE SetMode(TypeOfMode : ModeType; OnOrOff : Boolean);
+{ Set up one of the various modes, updating the fourth status panel }
+
+  PROCEDURE RemoveStringFromStatusPanel(Str : String);
+  VAR
+    TempStr : String;
+
+  BEGIN
+    { and remove from the status panel }
+    TempStr := FWPRailWindow.FWPRailWindowStatusBar.Panels[StatusBarPanel3].Text;
+    TempStr := StringReplace(TempStr, Str, '', [rfIgnoreCase]);
+    WriteToStatusBarPanel(StatusBarPanel3, TempStr);
+  END; { RemoveStringFromStatusPanel }
+
+BEGIN
+  IF OnOrOff = TurnOn THEN BEGIN
+    CASE TypeOfMode OF
+      AllRouteDebugging:
+        IF NOT AllRouteDebuggingMode THEN BEGIN
+          AllRouteDebuggingMode := True;
+          Log('A All Route Debugging Mode = ON');
+          WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' ALLROUTE');
+        END;
+      AnonymousOccupation:
+        IF NOT AnonymousOccupationMode THEN BEGIN
+          AnonymousOccupationMode := True;
+          Log('A Anonymous Occupation Mode = ON');
+          WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' ANON');
+        END;
+      GeneralDebugging:
+        IF NOT DebuggingMode THEN BEGIN
+          DebuggingMode := True;
+          Log('A Debugging Mode = ON');
+          WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' DEBUG ');
+        END;
+      LineDebugging:
+        IF NOT LineDebuggingMode THEN BEGIN
+          LineDebuggingMode := True;
+          Log('A Line Debugging Mode = ON');
+          WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' LINE');
+        END;
+      LockDebugging:
+        IF NOT LockDebuggingMode THEN BEGIN
+          LockDebuggingMode := True;
+          Log('A Lock Debugging Mode = ON');
+          WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' LOCK');
+        END;
+      Locking:
+        IF NOT LockingMode THEN BEGIN
+          LockingMode := True;
+          Log('A Locking Mode = ON');
+          WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' LOCK');
+        END;
+      PointDebugging:
+        IF NOT PointDebuggingMode THEN BEGIN
+          PointDebuggingMode := True;
+          Log('A Point Debugging Mode = ON');
+          WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' POINT');
+        END;
+      RDC:
+        IF NOT RDCMode THEN BEGIN
+          RDCMode := True;
+          Log('A RDC Mode = ON');
+          WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' RDC');
+        END;
+      RecordingMonitorScreens:
+        IF NOT RecordingMonitorScreensMode THEN BEGIN
+          RecordingMonitorScreensMode := True;
+          Log('A Recording MonitorScreens Mode = ON');
+          WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' RECORDING');
+        END;
+      RecordLineDrawing:
+        IF NOT RecordLineDrawingMode THEN BEGIN
+          RecordLineDrawingMode := True;
+          Log('A Record Line Drawing = ON');
+          WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' LINEDRAWING');
+        END;
+      RouteDebugging:
+        IF NOT RouteDebuggingMode THEN BEGIN
+          RouteDebuggingMode := True;
+          Log('A Route Debugging Mode = ON');
+          WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' ROUTE');
+        END;
+      RouteBacktrackDebugging:
+        IF NOT RouteBacktrackDebuggingMode THEN BEGIN
+          RouteBacktrackDebuggingMode := True;
+          Log('A RouteBacktrack Debugging Mode = ON');
+          WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' BACKTRACK');
+        END;
+      RouteDrawing:
+        IF NOT RouteDrawingMode THEN BEGIN
+          RouteDrawingMode := True;
+          Log('A Route Drawing Mode = ON');
+          WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' DRAWING');
+        END;
+      ShowAdjacentTrackCircuit:
+        IF NOT ShowAdjacentTrackCircuitMode THEN BEGIN
+          ShowAdjacentTrackCircuitMode := True;
+          Log('A Show Adjacent Track Circuit Mode = ON');
+          WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' ADJ');
+        END;
+      StationStart:
+        IF NOT StationStartMode THEN BEGIN
+          StationStartMode := True;
+          Log('A Station Start Mode = ON');
+          WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' SS');
+        END;
+      Testing:
+        IF NOT TestingMode THEN BEGIN
+          TestingMode := True;
+          Log('A Test Mode = ON');
+          WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' TEST');
+        END;
+    ELSE {CASE}
+      Log('XG Unknown mode type found');
+    END; {CASE}
+  END ELSE BEGIN
+    CASE TypeOfMode OF
+      AllRouteDebugging:
+        IF AllRouteDebuggingMode THEN BEGIN
+          AllRouteDebuggingMode := False;
+          Log('A All Route Debugging Mode = OFF');
+          RemoveStringFromStatusPanel('ALLROUTE');
+        END;
+      AnonymousOccupation:
+        IF AnonymousOccupationMode THEN BEGIN
+          AnonymousOccupationMode := False;
+          Log('A Anonymous Occupation Mode = OFF');
+          RemoveStringFromStatusPanel('ANON');
+        END;
+      GeneralDebugging:
+        IF DebuggingMode THEN BEGIN
+          DebuggingMode := False;
+          Log('A Debugging Mode = OFF');
+          RemoveStringFromStatusPanel('DEBUG');
+        END;
+      LineDebugging:
+        IF LineDebuggingMode THEN BEGIN
+          LineDebuggingMode := False;
+          Log('A Line Debugging Mode = OFF');
+          RemoveStringFromStatusPanel('LINE');
+        END;
+      LockDebugging:
+        IF LockDebuggingMode THEN BEGIN
+          LockDebuggingMode := False;
+          Log('A Lock Debugging Mode = OFF');
+          RemoveStringFromStatusPanel('LOCK');
+        END;
+      Locking:
+        IF LockingMode THEN BEGIN
+          LockingMode := False;
+          Log('A Locking Mode = OFF');
+          RemoveStringFromStatusPanel('LOCKING OFF');
+        END;
+      PointDebugging:
+        IF PointDebuggingMode THEN BEGIN
+          PointDebuggingMode := False;
+          Log('A Point Debugging Mode = OFF');
+          RemoveStringFromStatusPanel('POINTDEBUG');
+        END;
+      RDC:
+        IF RDCMode THEN BEGIN
+          RDCMode := False;
+          Log('A RDC Mode = OFF');
+          RemoveStringFromStatusPanel('RDC');
+        END;
+      RecordingMonitorScreens:
+        IF RecordingMonitorScreensMode THEN BEGIN
+          RecordingMonitorScreensMode := False;
+          Log('A Recording Monitor Screens Mode = OFF');
+          RemoveStringFromStatusPanel('RECORDING');
+        END;
+      RecordLineDrawing:
+        IF RecordLineDrawingMode THEN BEGIN
+          RecordLineDrawingMode := False;
+          Log('A Record Line Drawing Mode = OFF');
+          RemoveStringFromStatusPanel('LINEDRAWING');
+        END;
+      RouteDebugging:
+        IF RouteDebuggingMode THEN BEGIN
+          RouteDebuggingMode := False;
+          Log('A Route Debugging Mode = OFF');
+          RemoveStringFromStatusPanel('ROUTE');
+        END;
+      RouteBacktrackDebugging:
+        IF RouteBacktrackDebuggingMode THEN BEGIN
+          RouteBacktrackDebuggingMode := False;
+          Log('A RouteBacktrack Debugging Mode = OFF');
+          RemoveStringFromStatusPanel('BACKTRACK');
+        END;
+      RouteDrawing:
+        IF RouteDrawingMode THEN BEGIN
+          RouteDrawingMode := False;
+          Log('A Route Drawing Mode = OFF');
+          RemoveStringFromStatusPanel('DRAWING');
+        END;
+      ShowAdjacentTrackCircuit:
+        IF ShowAdjacentTrackCircuitMode THEN BEGIN
+          ShowAdjacentTrackCircuitMode := False;
+          Log('A Show Adjacent Trackj Circuit Mode Mode = OFF');
+          RemoveStringFromStatusPanel('ADJ');
+        END;
+      StationStart:
+        IF StationStartMode THEN BEGIN
+          StationStartMode := False;
+          Log('A Station Start Mode = OFF');
+          RemoveStringFromStatusPanel('SS');
+        END;
+      Testing:
+        IF TestingMode THEN BEGIN
+          TestingMode := False;
+          Log('A Test Mode = OFF');
+          RemoveStringFromStatusPanel('TEST');
+        END;
+    ELSE {CASE}
+      Log('XG Unknown mode type found');
+    END; {CASE}
+  END;
+END; { SetMode }
+
+PROCEDURE SetFeedbackDebuggingModeOn(DebugStr : String; AdjacentSignalNumber, DecoderNumber, TCInFull, TCOnce : Boolean);
+{ Turn on feedback debugging mode, updating the fourth status panel }
+BEGIN
+  FeedbackDebuggingMode := True;
+  Debug(DebugStr);
+  WriteDataToFeedbackWindow(DebugStr);
+  WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' FEEDBACK');
+
+  ReadOutAdjacentSignalNumber := AdjacentSignalNumber;
+  ReadOutTCInFull := TCInFull;
+  ReadOutTCOnce := TCOnce;
+  ReadOutDecoderNumber := DecoderNumber;
+END; { SetFeedbackDebuggingModeOn }
+
+PROCEDURE SetFeedbackDebuggingModeOff(DebugStr : String);
+{ Turn off feedback debugging mode, updating the fourth status panel }
+VAR
+  TempStr : String;
+
+BEGIN
+  FeedbackDebuggingMode := False;
+  Debug(DebugStr);
+  WriteDataToFeedbackWindow(DebugStr);
+
+  ReadOutAdjacentSignalNumber := False;
+  ReadOutTCInFull := False;
+  ReadOutTCOnce := False;
+  ReadOutDecoderNumber := False;
+
+  { The timer is used to clear the on-screen message and then switches itself off }
+  FeedbackWindow.FeedbackWindowTimer.Enabled := True;
+
+  { and remove from the status panel }
+  TempStr := FWPRailWindow.FWPRailWindowStatusBar.Panels[StatusBarPanel3].Text;
+  TempStr := StringReplace(TempStr, 'FEEDBACK', '', [rfIgnoreCase]);
+  WriteToStatusBarPanel(StatusBarPanel3, TempStr);
+END; { SetFeedbackDebuggingModeOff }
 
 FUNCTION SetDefaultButton(CONST Dlg: TForm; CONST ModalResult: Integer): Boolean;
 { Sets the button to be the Active Control on the dialogue form - so gets the focus and is the default }

@@ -886,13 +886,13 @@ VAR
           END ELSE
             IF ssShift IN ShiftState THEN BEGIN
               { Force the signal to move even if it's locked }
-              LockingMode := False;
+              SetMode(Locking, TurnOff);
               Log('SG Locking mode suspended by user when changing S=' + IntToStr(S) + ' {BLANKLINEBEFORE}');
               PullSignal(UnknownLocoChipStr, S, NoIndicatorLit, NoRoute, NoSubRoute, UnknownLine, UnknownTrainType, ByUser, OK);
             END ELSE
               IF ssAlt IN ShiftState THEN BEGIN
                 { Remove route locking from a signal }
-                LockingMode := False;
+                SetMode(Locking, TurnOff);
                 Debug('S=' + IntToStr(S) + ': removing locking');
                 IF SignalIsLockedByAnyRoute(S, RouteLockingArray) THEN BEGIN
                   FOR I := 0 TO High(RouteLockingArray) DO BEGIN
@@ -951,7 +951,7 @@ VAR
         WITH Signals[S] DO BEGIN
           SaveLockingMode := LockingMode;
           IF ssShift IN ShiftState THEN BEGIN
-            LockingMode := False;
+            SetMode(Locking, TurnOff);
             Log('S Locking mode suspended when changing signal indicator ' + IntToStr(S) + ' {BLANKLINEBEFORE}');
           END;
 
@@ -1043,7 +1043,7 @@ VAR
               IF ssCtrl IN ShiftState THEN BEGIN
                 { Force the point to move even if it's locked }
                 SaveLockingMode := LockingMode;
-                LockingMode := False;
+                SetMode(Locking, TurnOff);
                 Log('P Locking mode suspended when changing point ' + IntToStr(P) + ' {BLANKLINEBEFORE}');
                 PullPoint(UnknownLocoChipStr, P, NoRoute, NoSubRoute, ForcePoint, ByUser, ErrorMessageRequired, PointResultPending,
                           DebugStr, Result);

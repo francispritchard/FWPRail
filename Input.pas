@@ -53,7 +53,7 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES InitVars, Locks, RailDraw, MiscUtils, Cuneo, LocoUtils, Lenz, MaskUtils, Startup, Diagrams, GetTime, CreateRoute, Feedback, IDGlobal, RDC, Route, StrUtils, Menus,
+USES InitVars, Locks, RailDraw, MiscUtils, Cuneo, LocoUtils, Lenz, MaskUtils, Startup, Diagrams, GetTime, CreateRoute, Feedback, IDGlobal, RDCUnit, Route, StrUtils, Menus,
      DateUtils, TestUnit, StationMonitors, LocoDialogue, Help, LocationData, Replay, Options, Edit, WorkingTimetable, TCPIP, Logging, Main, Train;
 
 CONST
@@ -1953,20 +1953,10 @@ BEGIN { KeyPressedDown }
               BEGIN
                 HelpMsg := 'switch feedback debugging mode on/off';
                 IF NOT HelpRequired THEN BEGIN
-                  IF NOT FeedbackDebuggingMode THEN BEGIN
-                    FeedbackDebuggingMode := True;
-                    Debug('Feedback debugging ON');
-                    WriteDataToFeedbackWindow('Feedback ON');
-                  END ELSE BEGIN
-                    ReadOutTCInFull := False;
-                    ReadOutTCOnce := False;
-                    ReadOutDecoderNumber := False;
-
-                    WriteDataToFeedbackWindow('Feedback OFF');
-                    FeedbackDebuggingMode := False;
-                    Debug('Feedback debugging OFF');
-                    FeedbackWindow.FeedbackWindowTimer.Enabled := True;
-                  END;
+                  IF NOT FeedbackDebuggingMode THEN
+                    SetFeedbackDebuggingModeOn('Feedback debugging ON', NOT ReadOutAdjacentSignalNumber, NOT ReadOutTCInFull, NOT ReadOutTCOnce, NOT ReadOutDecoderNumber)
+                  ELSE
+                    SetFeedbackDebuggingModeOff('Feedback debugging OFF');
                 END;
               END;
             ShiftAlt: {F}
@@ -1979,91 +1969,44 @@ BEGIN { KeyPressedDown }
                BEGIN
                 HelpMsg := 'Read out the feedback once per unit on/off with adjacent signal data';
                 IF NOT HelpRequired THEN BEGIN
-                  IF NOT ReadOutAdjacentSignalNumber THEN BEGIN
-                    FeedbackDebuggingMode := True;
-                    ReadOutTCOnce := True;
-                    ReadOutDecoderNumber := False;
-                    ReadOutAdjacentSignalNumber := True;
-
-                    Debug('Read out the feedback (with adjacent signal) once ON');
-                    WriteDataToFeedbackWindow('Read out the feedback (with adjacent signal) once ON)');
-                  END ELSE BEGIN
-                    ReadOutTCOnce := False;
-                    ReadOutAdjacentSignalNumber := False;
-                    FeedbackDebuggingMode := False;
-
-                    WriteDataToFeedbackWindow('Read out the feedback (with adjacent signal) once OFF)');
-                    Debug('Read out the feedback (with adjacent signal) once OFF');
-                    FeedbackWindow.FeedbackWindowTimer.Enabled := True;
-                  END;
+                  IF NOT ReadOutAdjacentSignalNumber THEN
+                    SetFeedbackDebuggingModeOn('Read out the feedback (with adjacent signal) once ON',
+                                               ReadOutAdjacentSignalNumber, NOT ReadOutTCInFull, ReadOutTCOnce, NOT ReadOutDecoderNumber)
+                  ELSE
+                    SetFeedbackDebuggingModeOff('Read out the feedback (with adjacent signal) once OFF');
                 END;
               END;
             CtrlShift: {F}
               BEGIN
                 HelpMsg := 'Read out all feedback from units on/off';
                 IF NOT HelpRequired THEN BEGIN
-                  IF NOT ReadOutTCInFull THEN BEGIN
-                    FeedbackDebuggingMode := True;
-                    ReadOutTCInFull := True;
-                    ReadOutTCOnce := False;
-                    ReadOutDecoderNumber := False;
-                    ReadOutAdjacentSignalNumber := False;
-
-                    Debug('Read out all feedback ON');
-                    WriteDataToFeedbackWindow('Read out all feedback ON)');
-                  END ELSE BEGIN
-                    ReadOutTCInFull := False;
-                    FeedbackDebuggingMode := False;
-
-                    WriteDataToFeedbackWindow('Read out all feedback OFF)');
-                    Debug('Feedback with read out TC OFF');
-                    FeedbackWindow.FeedbackWindowTimer.Enabled := True;
-                  END;
+                  IF NOT ReadOutTCInFull THEN
+                    SetFeedbackDebuggingModeOn('Read out all feedback ON',
+                                               NOT ReadOutAdjacentSignalNumber, ReadOutTCInFull, NOT ReadOutTCOnce, NOT ReadOutDecoderNumber)
+                  ELSE
+                    SetFeedbackDebuggingModeOff('Read out all feedback OFF');
                 END;
               END;
             Shift: {F}
                BEGIN
                 HelpMsg := 'Read out the feedback once per unit on/off';
                 IF NOT HelpRequired THEN BEGIN
-                  IF NOT ReadOutTCOnce THEN BEGIN
-                    FeedbackDebuggingMode := True;
-                    ReadOutTCOnce := True;
-                    ReadOutDecoderNumber := False;
-                    ReadOutAdjacentSignalNumber := False;
-
-                    Debug('Read out the feedback once ON');
-                    WriteDataToFeedbackWindow('Read out the feedback once ON)');
-                  END ELSE BEGIN
-                    ReadOutTCOnce := False;
-                    FeedbackDebuggingMode := False;
-
-                    WriteDataToFeedbackWindow('Read out the feedback once OFF)');
-                    Debug('Read out the feedback once OFF');
-                    FeedbackWindow.FeedbackWindowTimer.Enabled := True;
-                  END;
+                  IF NOT ReadOutTCOnce THEN
+                    SetFeedbackDebuggingModeOn('Read out the feedback once ON',
+                                               NOT ReadOutAdjacentSignalNumber, NOT ReadOutTCInFull, ReadOutTCOnce, NOT ReadOutDecoderNumber)
+                  ELSE
+                    SetFeedbackDebuggingModeOff('Read out the feedback once OFF');
                 END;
               END;
            Alt: {F}
               BEGIN
                 HelpMsg := 'Read out decoder unit number on/off';
                 IF NOT HelpRequired THEN BEGIN
-                  IF NOT ReadOutDecoderNumber THEN BEGIN
-                    FeedbackDebuggingMode := True;
-                    ReadOutTCInFull := False;
-                    ReadOutTCOnce := False;
-                    ReadOutDecoderNumber := True;
-                    ReadOutAdjacentSignalNumber := False;
-
-                    Debug('Read out decoder number ON');
-                    WriteDataToFeedbackWindow('Read out decoder number ON');
-                  END ELSE BEGIN
-                    ReadOutDecoderNumber := False;
-                    FeedbackDebuggingMode := False;
-
-                    WriteDataToFeedbackWindow('Read out decoder number OFF');
-                    Debug('Read out decoder number OFF');
-                    FeedbackWindow.FeedbackWindowTimer.Enabled := True;
-                  END;
+                  IF NOT ReadOutDecoderNumber THEN
+                    SetFeedbackDebuggingModeOn('Read out decoder number ON',
+                                               NOT ReadOutAdjacentSignalNumber, NOT ReadOutTCInFull, NOT ReadOutTCOnce, ReadOutDecoderNumber)
+                  ELSE
+                    SetFeedbackDebuggingModeOff('Read out decoder number OFF');
                 END;
               END;
             Ctrl: {F}
@@ -2399,13 +2342,10 @@ BEGIN { KeyPressedDown }
               BEGIN
                 HelpMsg := 'point/signal locking on/off';
                 IF NOT HelpRequired THEN BEGIN
-                  IF LockingMode THEN BEGIN
-                    LockingMode := False;
-                    Log('AG Locking = OFF');
-                  END ELSE BEGIN
-                    LockingMode := True;
-                    Log('AG Locking = ON');
-                  END;
+                  IF LockingMode THEN
+                    SetMode(Locking, TurnOff)
+                  ELSE
+                    SetMode(Locking, TurnOff);
                 END;
               END;
             Ctrl: {L}
@@ -4987,13 +4927,11 @@ BEGIN { KeyPressedDown }
               BEGIN
                 HelpMsg := 'RDC Mode on/off';
                 IF NOT HelpRequired THEN BEGIN
-                  IF RDCMode THEN BEGIN
-                    RDCMode := False;
-                    Log('AG RDC Mode off');
-                  END ELSE BEGIN
-                    RDCMode := True;
+                  IF RDCMode THEN
+                    SetMode(RDC, TurnOff)
+                  ELSE BEGIN
+                    SetMode(RDC, TurnOn);
                     StartRailDriver;
-                    Log('AG RDC Mode on');
                   END;
                 END;
               END;

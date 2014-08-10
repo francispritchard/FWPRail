@@ -190,7 +190,7 @@ TYPE
     PROCEDURE FWPRailWindowPaint(Sender: TObject);
     PROCEDURE FWPRailWindowResize(Sender: TObject);
     PROCEDURE FWPRailWindowShortCut(VAR Msg: TWMKey; VAR Handled: Boolean);
-    PROCEDURE FWPRailWindowStatusBarDblClick(Sender: TObject);
+    PROCEDURE FWPRailWindowStatusBarClick(Sender: TObject);
     PROCEDURE FWPRailWindowStatusBarMouseMove(Sender: TObject; ShiftState: TShiftState; X, Y: Integer);
     PROCEDURE GeneralPopupChangeBackgroundColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangeBufferStopColourClick(Sender: TObject);
@@ -602,10 +602,10 @@ VAR
   SaveTRSPlungerColourForPrinting : TColor;
   SaveTRSPlungerOutlineColourForPrinting : TColor;
   SaveTRSPlungerPressedColourForPrinting : TColor;
-  SavePanel0Str : String = '';
-  SavePanel1Str : String = '';
-  SavePanel2Str : String = '';
-  SavePanel3Str : String = '';
+  SaveStatusPanel0Str : String = '';
+  SaveStatusPanel1Str : String = '';
+  SaveStatusPanel2Str : String = '';
+  SaveStatusPanel3Str : String = '';
   ScrollBarXAdjustment : Integer = 0;
   ScrollBarYAdjustment : Integer = 0;
   SignalDragging : Boolean = False;
@@ -621,7 +621,7 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES MiscUtils, Startup, Lenz, Input, Locks, Cuneo, Movement, GetTime, CreateRoute, Diagrams, RDC, Types, Feedback, Route, LocoUtils, IniFiles, LocoDialogue,
+USES MiscUtils, Startup, Lenz, Input, Locks, Cuneo, Movement, GetTime, CreateRoute, Diagrams, RDCUnit, Types, Feedback, Route, LocoUtils, IniFiles, LocoDialogue,
      StrUtils, Help, Math {sic}, LocationData, FWPShowMessageUnit, Replay, TestUnit, WorkingTimetable, Options, Registry, Edit, Logging, Main, Splash;
 
 CONST
@@ -1345,23 +1345,30 @@ CONST
 BEGIN
   TRY
     IF FWPRailWindow <> NIL THEN BEGIN
-      CASE PanelNum OF
-        0:
-          IF SavePanel0Str <> Str THEN BEGIN
-            FWPRailWindow.FWPRailWindowStatusBar.Panels[StatusBarPanel0].Text := Str;
-            SavePanel0Str := Str;
-          END;
-        1:
-          IF SavePanel1Str <> Str THEN BEGIN
-            FWPRailWindow.FWPRailWindowStatusBar.Panels[StatusBarPanel1].Text := Str;
-            SavePanel1Str := Str;
-          END;
-        2:
-          IF SavePanel2Str <> Str THEN BEGIN
-            FWPRailWindow.FWPRailWindowStatusBar.Panels[StatusBarPanel2].Text := Str;
-            SavePanel2Str := Str;
-          END;
-      END; {CASE}
+      WITH FWPRailWindow.FWPRailWindowStatusBar DO BEGIN
+        CASE PanelNum OF
+          0:
+            IF SaveStatusPanel0Str <> Str THEN BEGIN
+              Panels[StatusBarPanel0].Text := Str;
+              SaveStatusPanel0Str := Str;
+            END;
+          1:
+            IF SaveStatusPanel1Str <> Str THEN BEGIN
+              Panels[StatusBarPanel1].Text := Str;
+              SaveStatusPanel1Str := Str;
+            END;
+          2:
+            IF SaveStatusPanel2Str <> Str THEN BEGIN
+              Panels[StatusBarPanel2].Text := Str;
+              SaveStatusPanel2Str := Str;
+            END;
+          3:
+            IF SaveStatusPanel3Str <> Str THEN BEGIN
+              Panels[StatusBarPanel3].Text := Str;
+              SaveStatusPanel3Str := Str;
+            END;
+        END; {CASE}
+      END; {WITH}
     END;
   EXCEPT
     ON E : Exception DO
@@ -6443,14 +6450,26 @@ BEGIN
   StatusBarY := X;
 END; { FWPRailWindowStatusBarMouseMove }
 
-PROCEDURE TFWPRailWindow.FWPRailWindowStatusBarDblClick(Sender: TObject);
+PROCEDURE TFWPRailWindow.FWPRailWindowStatusBarClick(Sender: TObject);
+VAR
+  Panel3X : Integer;
+
 BEGIN
   { This is a work-around to find out if the cursor is within status bar Panel 0 as the proper test:
-    "IF Sender = FWPRailWindow.FWPRailWindowStatusBar.Panels[0] THEN..." does not work.
+    "IF Sender = FWPRailWindow.FWPRailWindowStatusBar.Panels[n] THEN..." does not work.
   }
   IF (StatusBarX > 0) AND (StatusBarX <= FWPRailWindowStatusBar.Panels[StatusBarPanel0].Width) THEN
-    GetTime.ClockWindow.Visible := True;
-END; { FWPRailWindowStatusBarDblClick }
+    GetTime.ClockWindow.Visible := True
+  ELSE BEGIN
+    { Work out where panel 3 is }
+    WITH FWPRailWindowStatusBar DO BEGIN
+      Panel3X := Panels[StatusBarPanel0].Width + Panels[StatusBarPanel1].Width + Panels[StatusBarPanel2].Width;
+      IF (StatusBarX > 0) AND (StatusBarX >= Panel3X) THEN BEGIN
+        null;
+      END;
+    END; {WITH}
+  END;
+END; { FWPRailWindowStatusBarClick }
 
 PROCEDURE TFWPRailWindow.SetCurrentRailwayTime(Sender: TObject);
 { The result from this action is picked up in the TClockWindow.OKButtonClick routine in the GetTime unit }
@@ -6808,10 +6827,15 @@ BEGIN
       FWPRailWindowInitialised := False;
       ResizeMap := False;
 
-      { Set up the status bar panels }
-      FWPRailWindowStatusBar.Panels[StatusBarPanel0].Width := (MulDiv(Screen.WorkAreaWidth, 50, ZoomScaleFactor));
-      FWPRailWindowStatusBar.Panels[StatusBarPanel1].Width := (MulDiv(Screen.WorkAreaWidth, 447, ZoomScaleFactor));
-      FWPRailWindowStatusBar.Panels[StatusBarPanel2].Width := (MulDiv(Screen.WorkAreaWidth, 503, ZoomScaleFactor));
+      { Set up the status bar panels - the combined width should be 100% of the screen width }
+      WITH FWPRailWindowStatusBar DO BEGIN
+        Panels[StatusBarPanel0].Width := (MulDiv(Screen.WorkAreaWidth, 50, ZoomScaleFactor));
+        Panels[StatusBarPanel1].Width := (MulDiv(Screen.WorkAreaWidth, 447, ZoomScaleFactor));
+        Panels[StatusBarPanel2].Width := (MulDiv(Screen.WorkAreaWidth, 403, ZoomScaleFactor));
+        Panels[StatusBarPanel3].Width := (MulDiv(Screen.WorkAreaWidth, 100, ZoomScaleFactor));
+        { and right justify the third panel }
+        Panels[StatusBarPanel3].Alignment := taRightJustify;
+      END; {WITH}
 
       { Set up menus - hide them until they are requested }
       MainClockMenu.Visible := False;
