@@ -3519,13 +3519,12 @@ BEGIN
                       Train_RouteCreationHoldMsg := '';
                       TrainJourney_Created := True;
 
-                      IF TestingMode THEN
-                        WriteStringArrayToLog(Train_LocoChipStr, 'R', 'J=' + IntToStr(JourneyCount)
-                                                                   + ': Temp Draft Route Array to set up'
-                                                                   + ' R=' + IntToStr(NewRoute) + ' '
-                                                                   + LineToStr(TrainJourney_StartLine) + ' to ' + LineToStr(TrainJourney_EndLine)
-                                                                   + ' released at ' + TimeToHMSStr(CurrentRailwayTime)
-                                                                   + ': ', TrainJourney_RouteArray, 2, 190, 'SR=');
+                      WriteStringArrayToLog(Train_LocoChipStr, 'R', 'J=' + IntToStr(JourneyCount)
+                                                               + ': Temp Draft Route Array to set up'
+                                                               + ' R=' + IntToStr(NewRoute) + ' '
+                                                               + LineToStr(TrainJourney_StartLine) + ' to ' + LineToStr(TrainJourney_EndLine)
+                                                               + ' released at ' + TimeToHMSStr(CurrentRailwayTime)
+                                                               + ': ', TrainJourney_RouteArray, 2, 190, 'SR=');
                       { Insert the journey number after the subroute numbers }
                       TrainJourneyRouteArrayPos := 0;
                       WHILE TrainJourneyRouteArrayPos < Length(TrainJourney_RouteArray) DO BEGIN
@@ -3648,23 +3647,21 @@ BEGIN
                 { ...and which way it's heading }
                 AppendToDirectionArray(Routes_Directions, Train_CurrentDirection);
 
-                IF TestingMode THEN BEGIN
-                  WriteStringArrayToLog(Train_LocoChipStr, 'R', 'Draft Route Array to set up R=' + IntToStr(Routes_RouteCounter)
-                                                             + ' ' + DescribeStartAndEndOfRoute(Routes_RouteCounter),
-                                        DraftRouteArray,
-                                        2, 190, 'SR=');
-                  WriteStringArrayToLog(Train_LocoChipStr, 'R', 'Locking Array to set up R=' + IntToStr(Routes_RouteCounter)
-                                                             + ' ' + DescribeStartAndEndOfRoute(Routes_RouteCounter),
-                                        LockingArray,
-                                        2, 190, 'SR=');
+                WriteStringArrayToLog(Train_LocoChipStr, 'R', 'Draft Route Array to set up R=' + IntToStr(Routes_RouteCounter)
+                                                           + ' ' + DescribeStartAndEndOfRoute(Routes_RouteCounter),
+                                      DraftRouteArray,
+                                      2, 190, 'SR=');
+                WriteStringArrayToLog(Train_LocoChipStr, 'R', 'Locking Array to set up R=' + IntToStr(Routes_RouteCounter)
+                                                           + ' ' + DescribeStartAndEndOfRoute(Routes_RouteCounter),
+                                      LockingArray,
+                                      2, 190, 'SR=');
 
-                  FOR I := 0 TO (Routes_TotalSubRoutes[Routes_RouteCounter] - 1) DO
-                    WriteStringArrayToLog(Train_LocoChipStr, 'R', 'Final Route Array to set up R='
-                                                               + IntToStr(Routes_RouteCounter) + '/' + IntToStr(I)
-                                                               + ' ' + DescribeSubRoute(Routes_RouteCounter, I),
-                                          Routes_SubRouteSettingStrings[Routes_RouteCounter, I],
-                                          2, 190, 'SR=');
-                END;
+                FOR I := 0 TO (Routes_TotalSubRoutes[Routes_RouteCounter] - 1) DO
+                  WriteStringArrayToLog(Train_LocoChipStr, 'R', 'Final Route Array to set up R='
+                                                             + IntToStr(Routes_RouteCounter) + '/' + IntToStr(I)
+                                                             + ' ' + DescribeSubRoute(Routes_RouteCounter, I),
+                                        Routes_SubRouteSettingStrings[Routes_RouteCounter, I],
+                                        2, 190, 'SR=');
 
                 { See which is the first TC - store it in the journey record to use to work out which journey we are in. NB: some routes span more than one journey, if the
                   journeys cover intermediate stations at which we do not stop, but that does not matter as we only need the data to work out when to start a journey.
