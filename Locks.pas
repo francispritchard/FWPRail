@@ -52,8 +52,8 @@ VAR
 PROCEDURE CheckRouteAheadLocking(T : TrainIndex; RouteArray : StringArrayType; OUT RouteCurrentlyLocked, RoutePermanentlyLocked : Boolean; OUT LockingMsg : String);
 { Tests a given route array to see if anything on it is locked }
 
-PROCEDURE ClearHiddenAspectSignals(T : TrainIndex; HiddenAspectSignal : Integer);
-{ Clear the hidden aspects of a given signal }
+PROCEDURE ClearHiddenStationSignalAspectSignals(T : TrainIndex; HiddenStationSignalAspectSignal : Integer);
+{ Clear the hidden station aspects of a given signal }
 
 PROCEDURE Forbid;
 { Complains if user tries something stupid - no need if in auto mode }
@@ -99,8 +99,8 @@ PROCEDURE PullSignal{4}(LocoChipStr: String; S : Integer; NewIndicatorState : In
 FUNCTION RouteAheadOutOfUse(RouteArray : StringArrayType; OUT LockingMsg : String) : Boolean;
 { Tests a given route locking array to see if anything on it is out of use }
 
-PROCEDURE SetHiddenAspectSignals(T : TrainIndex; HiddenAspectSignal, Journey, Route : Integer);
-{ Find and set current and previous hidden aspects }
+PROCEDURE SetHiddenStationSignalAspectSignals(T : TrainIndex; HiddenStationSignalAspectSignal, Journey, Route : Integer);
+{ Find and set current and previous hidden station aspects }
 
 PROCEDURE SetIndicator(LocoChipStr : String; S : Integer; IndicatorState : IndicatorStateType; TheatreIndicatorString : String; Route : Integer; User : Boolean);
 { Turn the indicator of a particular signal on or off }
@@ -587,10 +587,10 @@ BEGIN
   END;
 END; { UnlockSignalLockedBySpecificRoute }
 
-PROCEDURE SetHiddenAspectSignals(T : TrainIndex; HiddenAspectSignal, Journey, Route : Integer);
-{ Find and set current and previous hidden aspects }
+PROCEDURE SetHiddenStationSignalAspectSignals(T : TrainIndex; HiddenStationSignalAspectSignal, Journey, Route : Integer);
+{ Find and set current and previous hidden station aspects }
 
-  PROCEDURE FindPreviousHiddenAspectSignals(RouteArray : StringArrayType; CurrentSignal : Integer; VAR PreviousSignal1, PreviousSignal2 : Integer);
+  PROCEDURE FindPreviousHiddenStationSignalAspectSignals(RouteArray : StringArrayType; CurrentSignal : Integer; VAR PreviousSignal1, PreviousSignal2 : Integer);
   { Look through a journey to see if any previous aspects need to be set too }
   VAR
     Done : Boolean;
@@ -619,18 +619,18 @@ PROCEDURE SetHiddenAspectSignals(T : TrainIndex; HiddenAspectSignal, Journey, Ro
       END;
       Dec(RouteArrayPos)
     END; {WHILE}
-  END; { FindPreviousHiddenAspectSignals }
+  END; { FindPreviousHiddenStationSignalAspectSignals }
 
 VAR
-  PreviousHiddenAspectSignal1 : Integer;
-  PreviousHiddenAspectSignal2 : Integer;
+  PreviousHiddenStationSignalAspectSignal1 : Integer;
+  PreviousHiddenStationSignalAspectSignal2 : Integer;
   TempJourneyCount : Integer;
   TempLocoChipStr : String;
 
 BEGIN
   WITH RailWindowBitmap.Canvas DO BEGIN
     IF T = UnknownTrainIndex THEN
-      UnknownTrainRecordFound('SetHiddenAspectSignals')
+      UnknownTrainRecordFound('SetHiddenStationSignalAspectSignals')
     ELSE BEGIN
       WITH Trains[T] DO BEGIN
         IF T <= High(Trains) THEN
@@ -638,74 +638,75 @@ BEGIN
         ELSE
           TempLocoChipStr := '';
 
-        IF Signals[HiddenAspectSignal].Signal_Aspect <> RedAspect THEN
-          Log(TempLocoChipStr + ' X+ S=' + IntToStr(HiddenAspectSignal) + ': cannot set hidden aspect as signal is off')
+        IF Signals[HiddenStationSignalAspectSignal].Signal_Aspect <> RedAspect THEN
+          Log(TempLocoChipStr + ' X+ S=' + IntToStr(HiddenStationSignalAspectSignal) + ': cannot set hidden station aspect as signal is off')
         ELSE BEGIN
-          Signals[HiddenAspectSignal].Signal_HiddenAspect := RedAspect;
+          Signals[HiddenStationSignalAspectSignal].Signal_HiddenStationSignalAspect := RedAspect;
 
           Log(TempLocoChipStr + ' R J=' + IntToStr(Journey) + ' R=' + IntToStr(Route)
-                              + ' S=' + IntToStr(HiddenAspectSignal) + ': hidden aspect set to red');
-          IF ShowSignalHiddenAspects THEN
-            DrawSignal(HiddenAspectSignal);
+                              + ' S=' + IntToStr(HiddenStationSignalAspectSignal) + ': hidden station aspect set to red');
+          IF ShowSignalHiddenStationSignalAspects THEN
+            DrawSignal(HiddenStationSignalAspectSignal);
 
-          PreviousHiddenAspectSignal1 := UnknownSignal;
-          PreviousHiddenAspectSignal2 := UnknownSignal;
+          PreviousHiddenStationSignalAspectSignal1 := UnknownSignal;
+          PreviousHiddenStationSignalAspectSignal2 := UnknownSignal;
           TempJourneyCount := Journey;
           IF TempLocoChipStr <> '' THEN BEGIN
-            WHILE ((PreviousHiddenAspectSignal1 = UnknownSignal) OR (PreviousHiddenAspectSignal2 = UnknownSignal))
+            WHILE ((PreviousHiddenStationSignalAspectSignal1 = UnknownSignal) OR (PreviousHiddenStationSignalAspectSignal2 = UnknownSignal))
             AND (TempJourneyCount > -1) AND NOT Train_JourneysArray[TempJourneyCount].TrainJourney_Cleared
             DO BEGIN
-              FindPreviousHiddenAspectSignals(Train_JourneysArray[TempJourneyCount].TrainJourney_RouteArray, HiddenAspectSignal, PreviousHiddenAspectSignal1,
-                                                                                                                                               PreviousHiddenAspectSignal2);
+              FindPreviousHiddenStationSignalAspectSignals(Train_JourneysArray[TempJourneyCount].TrainJourney_RouteArray,
+                                                     HiddenStationSignalAspectSignal, PreviousHiddenStationSignalAspectSignal1,
+                                                     PreviousHiddenStationSignalAspectSignal2);
               Dec(TempJourneyCount);
             END; {WHILE}
           END;
 
-          Signals[HiddenAspectSignal].Signal_PreviousHiddenAspectSignal1 := PreviousHiddenAspectSignal1;
-          Signals[HiddenAspectSignal].Signal_PreviousHiddenAspectSignal2 := PreviousHiddenAspectSignal2;
+          Signals[HiddenStationSignalAspectSignal].Signal_PreviousHiddenStationSignalAspectSignal1 := PreviousHiddenStationSignalAspectSignal1;
+          Signals[HiddenStationSignalAspectSignal].Signal_PreviousHiddenStationSignalAspectSignal2 := PreviousHiddenStationSignalAspectSignal2;
 
-          { If this signal has a hidden aspect that's on, make sure previous signals are included }
-          IF (PreviousHiddenAspectSignal1 <> UnknownSignal) AND (Signals[PreviousHiddenAspectSignal1].Signal_Type = FourAspect) THEN BEGIN
-            Signals[PreviousHiddenAspectSignal1].Signal_HiddenAspect := SingleYellowAspect;
+          { If this signal has a hidden station aspect that's on, make sure previous signals are included }
+          IF (PreviousHiddenStationSignalAspectSignal1 <> UnknownSignal) AND (Signals[PreviousHiddenStationSignalAspectSignal1].Signal_Type = FourAspect) THEN BEGIN
+            Signals[PreviousHiddenStationSignalAspectSignal1].Signal_HiddenStationSignalAspect := SingleYellowAspect;
             Log(TempLocoChipStr + ' R J=' + IntToStr(Journey) + ' R=' + IntToStr(Route)
-                                + ' S=' + IntToStr(HiddenAspectSignal) + '''s previous signal S='
-                                + IntToStr(PreviousHiddenAspectSignal1) + ': hidden aspect set to single yellow');
-            IF ShowSignalHiddenAspects THEN
-              DrawSignal(Signals[HiddenAspectSignal].Signal_PreviousHiddenAspectSignal1);
+                                + ' S=' + IntToStr(HiddenStationSignalAspectSignal) + '''s previous signal S='
+                                + IntToStr(PreviousHiddenStationSignalAspectSignal1) + ': hidden station aspect set to single yellow');
+            IF ShowSignalHiddenStationSignalAspects THEN
+              DrawSignal(Signals[HiddenStationSignalAspectSignal].Signal_PreviousHiddenStationSignalAspectSignal1);
 
-            IF (PreviousHiddenAspectSignal2 <> UnknownSignal)
-            AND ((Signals[PreviousHiddenAspectSignal2].Signal_Type = FourAspect) OR (Signals[PreviousHiddenAspectSignal2].Signal_Type = ThreeAspect))
+            IF (PreviousHiddenStationSignalAspectSignal2 <> UnknownSignal)
+            AND ((Signals[PreviousHiddenStationSignalAspectSignal2].Signal_Type = FourAspect) OR (Signals[PreviousHiddenStationSignalAspectSignal2].Signal_Type = ThreeAspect))
             THEN BEGIN
-              Signals[PreviousHiddenAspectSignal2].Signal_HiddenAspect := DoubleYellowAspect;
+              Signals[PreviousHiddenStationSignalAspectSignal2].Signal_HiddenStationSignalAspect := DoubleYellowAspect;
               Log(TempLocoChipStr + ' R J=' + IntToStr(Journey) + ' R=' + IntToStr(Route)
-                                  + ' S=' + IntToStr(HiddenAspectSignal) + '''s previous signal but one S='
-                                  + IntToStr(PreviousHiddenAspectSignal2) + ': hidden aspect set to double yellow');
-              IF ShowSignalHiddenAspects THEN
-                DrawSignal(Signals[HiddenAspectSignal].Signal_PreviousHiddenAspectSignal2);
+                                  + ' S=' + IntToStr(HiddenStationSignalAspectSignal) + '''s previous signal but one S='
+                                  + IntToStr(PreviousHiddenStationSignalAspectSignal2) + ': hidden station aspect set to double yellow');
+              IF ShowSignalHiddenStationSignalAspects THEN
+                DrawSignal(Signals[HiddenStationSignalAspectSignal].Signal_PreviousHiddenStationSignalAspectSignal2);
             END;
           END ELSE
-            IF (PreviousHiddenAspectSignal1 <> UnknownSignal) AND (Signals[PreviousHiddenAspectSignal1].Signal_Type = ThreeAspect) THEN BEGIN
-              Signals[PreviousHiddenAspectSignal1].Signal_HiddenAspect := SingleYellowAspect;
+            IF (PreviousHiddenStationSignalAspectSignal1 <> UnknownSignal) AND (Signals[PreviousHiddenStationSignalAspectSignal1].Signal_Type = ThreeAspect) THEN BEGIN
+              Signals[PreviousHiddenStationSignalAspectSignal1].Signal_HiddenStationSignalAspect := SingleYellowAspect;
               Log(TempLocoChipStr + ' R J=' + IntToStr(Journey) + ' R=' + IntToStr(Route)
-                                  + ' S=' + IntToStr(HiddenAspectSignal) + '''s previous signal S='
-                                  + IntToStr(PreviousHiddenAspectSignal1) + ' hidden aspect set to single yellow');
-              IF ShowSignalHiddenAspects THEN
-                DrawSignal(Signals[HiddenAspectSignal].Signal_PreviousHiddenAspectSignal1);
+                                  + ' S=' + IntToStr(HiddenStationSignalAspectSignal) + '''s previous signal S='
+                                  + IntToStr(PreviousHiddenStationSignalAspectSignal1) + ' hidden station aspect set to single yellow');
+              IF ShowSignalHiddenStationSignalAspects THEN
+                DrawSignal(Signals[HiddenStationSignalAspectSignal].Signal_PreviousHiddenStationSignalAspectSignal1);
             END;
         END;
       END; {WITH}
     END;
   END; {WITH}
-END; { SetHiddenAspectSignals }
+END; { SetHiddenStationSignalAspectSignals }
 
-PROCEDURE ClearHiddenAspectSignals(T : TrainIndex; HiddenAspectSignal : Integer);
-{ Clear the hidden aspects of a given signal }
+PROCEDURE ClearHiddenStationSignalAspectSignals(T : TrainIndex; HiddenStationSignalAspectSignal : Integer);
+{ Clear the hidden station aspects of a given signal }
 VAR
   TempLocoChipStr : String;
 
 BEGIN
   IF T = UnknownTrainIndex THEN
-    UnknownTrainRecordFound('ClearHiddenAspectSignals')
+    UnknownTrainRecordFound('ClearHiddenStationSignalAspectSignals')
   ELSE BEGIN
     WITH Trains[T] DO BEGIN
       IF T <= High(Trains) THEN
@@ -713,36 +714,36 @@ BEGIN
       ELSE
         TempLocoChipStr := '';
 
-      Signals[HiddenAspectSignal].Signal_HiddenAspect := NoAspect;
-      IF ShowSignalHiddenAspects THEN
-        DrawSignal(HiddenAspectSignal);
-      Log(TempLocoChipStr + ' R S=' + IntToStr(HiddenAspectSignal) + ' hidden aspect set to no aspect');
+      Signals[HiddenStationSignalAspectSignal].Signal_HiddenStationSignalAspect := NoAspect;
+      IF ShowSignalHiddenStationSignalAspects THEN
+        DrawSignal(HiddenStationSignalAspectSignal);
+      Log(TempLocoChipStr + ' R S=' + IntToStr(HiddenStationSignalAspectSignal) + ' hidden station aspect set to no aspect');
 
-      { and also reset any previous hidden aspect signals }
-      IF (Signals[HiddenAspectSignal].Signal_PreviousHiddenAspectSignal1 <> UnknownSignal)
-      AND (Signals[Signals[HiddenAspectSignal].Signal_PreviousHiddenAspectSignal1].Signal_HiddenAspect <> NoAspect)
+      { and also reset any previous hidden station signal aspect signals }
+      IF (Signals[HiddenStationSignalAspectSignal].Signal_PreviousHiddenStationSignalAspectSignal1 <> UnknownSignal)
+      AND (Signals[Signals[HiddenStationSignalAspectSignal].Signal_PreviousHiddenStationSignalAspectSignal1].Signal_HiddenStationSignalAspect <> NoAspect)
       THEN BEGIN
-        Signals[Signals[HiddenAspectSignal].Signal_PreviousHiddenAspectSignal1].Signal_HiddenAspect := NoAspect;
-        Log(TempLocoChipStr + ' R S=' + IntToStr(HiddenAspectSignal) + '''s previous signal S='
-                            + IntToStr(Signals[HiddenAspectSignal].Signal_PreviousHiddenAspectSignal1)
-                            + ' hidden aspect set to no aspect');
-        IF ShowSignalHiddenAspects THEN
-          DrawSignal(Signals[HiddenAspectSignal].Signal_PreviousHiddenAspectSignal1);
+        Signals[Signals[HiddenStationSignalAspectSignal].Signal_PreviousHiddenStationSignalAspectSignal1].Signal_HiddenStationSignalAspect := NoAspect;
+        Log(TempLocoChipStr + ' R S=' + IntToStr(HiddenStationSignalAspectSignal) + '''s previous signal S='
+                            + IntToStr(Signals[HiddenStationSignalAspectSignal].Signal_PreviousHiddenStationSignalAspectSignal1)
+                            + ' hidden station aspect set to no aspect');
+        IF ShowSignalHiddenStationSignalAspects THEN
+          DrawSignal(Signals[HiddenStationSignalAspectSignal].Signal_PreviousHiddenStationSignalAspectSignal1);
       END;
 
-      IF (Signals[HiddenAspectSignal].Signal_PreviousHiddenAspectSignal2 <> UnknownSignal)
-      AND (Signals[Signals[HiddenAspectSignal].Signal_PreviousHiddenAspectSignal2].Signal_HiddenAspect <> NoAspect)
+      IF (Signals[HiddenStationSignalAspectSignal].Signal_PreviousHiddenStationSignalAspectSignal2 <> UnknownSignal)
+      AND (Signals[Signals[HiddenStationSignalAspectSignal].Signal_PreviousHiddenStationSignalAspectSignal2].Signal_HiddenStationSignalAspect <> NoAspect)
       THEN BEGIN
-        Signals[Signals[HiddenAspectSignal].Signal_PreviousHiddenAspectSignal2].Signal_HiddenAspect := NoAspect;
-        Log(TempLocoChipStr + ' R S=' + IntToStr(HiddenAspectSignal) + '''s previous signal but one S='
-                            + IntToStr(Signals[HiddenAspectSignal].Signal_PreviousHiddenAspectSignal2)
-                            + ' hidden aspect set to no aspect');
-        IF ShowSignalHiddenAspects THEN
-          DrawSignal(Signals[HiddenAspectSignal].Signal_PreviousHiddenAspectSignal2);
+        Signals[Signals[HiddenStationSignalAspectSignal].Signal_PreviousHiddenStationSignalAspectSignal2].Signal_HiddenStationSignalAspect := NoAspect;
+        Log(TempLocoChipStr + ' R S=' + IntToStr(HiddenStationSignalAspectSignal) + '''s previous signal but one S='
+                            + IntToStr(Signals[HiddenStationSignalAspectSignal].Signal_PreviousHiddenStationSignalAspectSignal2)
+                            + ' hidden station aspect set to no aspect');
+        IF ShowSignalHiddenStationSignalAspects THEN
+          DrawSignal(Signals[HiddenStationSignalAspectSignal].Signal_PreviousHiddenStationSignalAspectSignal2);
        END;
     END; {WITH}
   END;
-END; { ClearHiddenAspectSignals }
+END; { ClearHiddenStationSignalAspectSignals }
 
 PROCEDURE SetPreviousSignals(LocoChipStr : String; S : Integer);
 { Sees what previous signals are set to, and resets aspects accordingly. PreviousSignal1 is the nearer and PreviousSignal2 the further }
@@ -925,8 +926,8 @@ PROCEDURE PullSignalMainProcedure(LocoChipStr : String; S : Integer; NewIndicato
     Log('S S=' + IntToStr(S) + ' now locked by user');
   END; { LockSignalByUser }
 
-  PROCEDURE FindPreviousHiddenAspectSignals(RouteArray : StringArrayType; CurrentSignal : Integer; VAR PreviousSignal1, PreviousSignal2 : Integer);
-  { Look through a journey to see if any previous aspects need to be set too }
+  PROCEDURE FindPreviousHiddenStationSignalAspectSignals(RouteArray : StringArrayType; CurrentSignal : Integer; VAR PreviousSignal1, PreviousSignal2 : Integer);
+  { Look through a journey to see if any previous hidden station aspects need to be set too }
   VAR
     Done : Boolean;
     RouteArrayPos : Integer;
@@ -954,7 +955,7 @@ PROCEDURE PullSignalMainProcedure(LocoChipStr : String; S : Integer; NewIndicato
       END;
       Dec(RouteArrayPos)
     END; {WHILE}
-  END; { FindPreviousHiddenAspectSignals }
+  END; { FindPreviousHiddenStationSignalAspectSignals }
 
   FUNCTION SignalLockingOK(LocoChipStr : String; S : Integer; LockList : StringArrayType; ShowError : Boolean) : Boolean;
   { Accepts a string containing a list of locking requirements, consisting of pairs of points or signal names then '/' or '-', or '\' or '=' respectively. Also checks

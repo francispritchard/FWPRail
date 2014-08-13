@@ -48,7 +48,7 @@ IMPLEMENTATION
 {$R *.dfm}
 
 USES RailDraw, Locks, Startup, Route, GetTime, Diagrams, MiscUtils, Movement, Lenz, Input, LocoUtils, Types, CreateRoute, LocoDialogue, LocationData, Help, StrUtils,
-     Options, Main;
+     Options, Main, DateUtils;
 
 CONST
   UnitRef = 'Cuneo';
@@ -60,9 +60,9 @@ TYPE
 
 VAR
   ButtonPress : MouseButton;
-  LineFoundNum : Integer = UnknownLine;
   DownLineEndCharacterLine : Integer = UnknownLine;
   EmergencyRouteingStored : Boolean = False;
+  LineFoundNum : Integer = UnknownLine;
   MouseMovingX : Integer;
   MouseMovingY : Integer;
   MouseX : Integer;
@@ -206,8 +206,8 @@ BEGIN
                   TempStatusBarPanel1Str := TempStatusBarPanel1Str + '[' + LockingFailureString + '] ';
                 IF Signals[S].Signal_OutOfUse THEN
                   TempStatusBarPanel1Str := TempStatusBarPanel1Str + '(X) ';
-                IF Signal_HiddenAspect <> NoAspect THEN
-                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'HA=' + AspectToStr(Signal_HiddenAspect, ShortStringType);
+                IF Signal_HiddenStationSignalAspect <> NoAspect THEN
+                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'HA=' + AspectToStr(Signal_HiddenStationSignalAspect, ShortStringType);
 
                 { Show the track circuit which resets the signal }
                 IF ShowSignalResettingTrackCircuitsInStatusBar THEN BEGIN
@@ -616,11 +616,6 @@ BEGIN
             IF NOT SignalDragging AND (Screen.Cursor <> crDefault) THEN
               ChangeCursor(crDefault);
 
-          IF DebuggingMode THEN
-            { Display mouse co-ordinates }
-            WriteToStatusBarPanel(StatusBarPanel2, IntToStr(X) + ',' + IntToStr(Y) + '; '
-                                  + IntToStr(MulDiv(1000, X, FWPRailWindow.ClientWidth)) + '/1000,'
-                                  + IntToStr(MulDiv(1000, Y, FWPRailWindow.ClientHeight)) +'/1000');
         END;
       END;
   EXCEPT {TRY}
@@ -630,7 +625,7 @@ BEGIN
 END; { WhatIsUnderMouseMainProc }
 
 PROCEDURE WhatIsUnderMouse(X, Y : Integer; ShiftState : TShiftState); Overload;
-{{ Returns the current mouse position }
+{ Returns the current mouse position }
 VAR
   BufferStopFoundNum : Integer;
   IndicatorFoundNum : Integer;
@@ -736,7 +731,7 @@ BEGIN
   END; {TRY}
 END; { MouseButtonReleased }
 
-PROCEDURE TCuneoWindow.CuneoTimerTick(Sender: TObject);
+PROCEDURE TCuneoWindow.SignalPostFlashingTimerTick(Sender: TObject);
 { This timer is used to flash the route starting signal post while route setting is being done by the user }
 BEGIN
   IF Routes_RouteSettingByHand OR Routes_TheatreIndicatorSettingInitiated OR Routes_NearestSignalTestingInitiated THEN BEGIN
@@ -759,10 +754,10 @@ BEGIN
             Signals[SignalPostToBeFlashed].Signal_PostColour := clRed;
       DrawSignalPost(SignalPostToBeFlashed);
       SignalPostDrawn := True;
-      InvalidateScreen(UnitRef, 'CuneoTimerTick');
+      InvalidateScreen(UnitRef, 'SignalPostFlashingTimerTick');
     END;
   END;
-END; { CuneoTimerTick }
+END; { SignalPostFlashingTimerTick }
 
 PROCEDURE ChangeStateOfWhatIsUnderMouse(X, Y : Integer; ShiftState : TShiftState; HelpRequired : Boolean);
 { See what the mouse is currently pointing at something, and change its state if appropriate }
@@ -864,8 +859,8 @@ VAR
       AddRichLine(HelpWindow.HelpRichEdit, '  <B>Left Mouse</B> - change signal');
       AddRichLine(HelpWindow.HelpRichEdit, '  <B>Alt + Left Mouse</B> - remove route locking from signal');
       AddRichLine(HelpWindow.HelpRichEdit, '  <B>Shift + Left Mouse</B> - force signal to change even if locked');
-      AddRichLine(HelpWindow.HelpRichEdit, '  <B>Ctrl + Left Mouse</B> - change a signal''s hidden aspect');
-      AddRichLine(HelpWindow.HelpRichEdit, '  <B>Ctrl + Left Mouse</B> - set hidden aspect of signal to red');
+      AddRichLine(HelpWindow.HelpRichEdit, '  <B>Ctrl + Left Mouse</B> - change a signal''s hidden station signal aspect');
+      AddRichLine(HelpWindow.HelpRichEdit, '  <B>Ctrl + Left Mouse</B> - set hidden station signal aspect of signal to red');
       AddRichLine(HelpWindow.HelpRichEdit, '  <B>Ctrl + Alt + Left Mouse</B> - reset signal failure message');
     END ELSE
       IF Routes_RouteSettingByHand THEN
@@ -902,13 +897,13 @@ VAR
                 END;
               END ELSE
                 IF ssCtrl IN ShiftState THEN BEGIN
-                  { Change the hidden signal aspect }
-                  IF Signals[S].Signal_HiddenAspect = NoAspect THEN BEGIN
-                    SetHiddenAspectSignals(NoTrainRecord, S, UnknownJourney, UnknownRoute);
-                    Log('SG User setting S=' + IntToStr(S) + ' hidden aspect to Red');
+                  { Change the hidden station signal aspect }
+                  IF Signals[S].Signal_HiddenStationSignalAspect = NoAspect THEN BEGIN
+                    SetHiddenStationSignalAspectSignals(NoTrainRecord, S, UnknownJourney, UnknownRoute);
+                    Log('SG User setting S=' + IntToStr(S) + ' hidden station aspect to Red');
                   END ELSE BEGIN
-                    ClearHiddenAspectSignals(NoTrainRecord, S);
-                    Log('SG User clearing hidden aspect of S=' + IntToStr(S));
+                    ClearHiddenStationSignalAspectSignals(NoTrainRecord, S);
+                    Log('SG User clearing hidden station signal aspect of S=' + IntToStr(S));
                   END;
                   DrawSignal(S);
                 END ELSE
@@ -1410,7 +1405,7 @@ VAR
                         FindNearestSignalsToGivenSignal(Signals[S].Signal_AdjacentLine, Signals[S].Signal_Direction, SavePossibleRoutesArray, OK);
 
                   { Enable the flashing signal post timer }
-                  CuneoWindow.CuneoTimer.Enabled := True;
+                  CuneoWindow.SignalPostFlashingTimer.Enabled := True;
 
                   SignalPostToBeFlashed := S;
                   DrawSignalPost(S);
@@ -1428,7 +1423,7 @@ VAR
                       StartSignal := ExtractSignalFromString(SavePossibleRoutesArray[0]);
                       SignalPostToBeFlashed := UnknownSignal;
 
-                      CuneoWindow.CuneoTimer.Enabled := False;
+                      CuneoWindow.SignalPostFlashingTimer.Enabled := False;
                       { De-highlight the start signal post }
                       Signals[S].Signal_PostColour := SignalPostColour;
                       DrawSignalPost(S);
@@ -1542,7 +1537,7 @@ VAR
 
                       { ....turn off the flashing signal post... }
                       SignalPostToBeFlashed := UnknownSignal;
-                      CuneoWindow.CuneoTimer.Enabled := False;
+                      CuneoWindow.SignalPostFlashingTimer.Enabled := False;
 
                       { ...and de-highlight all the possible end of route buttons }
                       FOR I := 0 TO High(SavePossibleRoutesArray) DO BEGIN
@@ -1571,24 +1566,21 @@ VAR
                           { and the other route-related arrays }
                           CreateInitialRouteRelatedArrays(T, UnknownLocoChip, RouteArray, InAutoMode, StartSignal, EndSignal, BS, StartLine, EndLine);
 
-                          IF TestingMode THEN BEGIN
-                            WriteStringArrayToLog(UnknownLocoChipStr, 'R', 'Draft Route Array to set up R=' + IntToStr(Routes_RouteCounter)
-                                                                            + ' ' + DescribeStartAndEndOfRoute(Routes_RouteCounter) + ':',
-                                                                            DraftRouteArray,
-                                                                            2, 190, 'SR=');
-                            WriteStringArrayToLog(UnknownLocoChipStr, 'R', 'Locking Array to set up R=' + IntToStr(Routes_RouteCounter)
-                                                                            + ' ' + DescribeStartAndEndOfRoute(Routes_RouteCounter) + ':',
-                                                                            LockingArray,
-                                                                            2, 190, 'SR=');
-                            FOR I := 0 TO (Routes_TotalSubRoutes[Routes_RouteCounter] - 1) DO
-                              WriteStringArrayToLog(UnknownLocoChipStr, 'R', 'Final Route Array to set up'
-                                                                              +' R=' + IntToStr(Routes_RouteCounter)
-                                                                              + '/' + IntToStr(I) + ' '
-                                                                              + DescribeSubRoute(Routes_RouteCounter, I) + ':',
-                                                                              Routes_SubRouteSettingStrings[Routes_RouteCounter, I],
-                                                                              2, 190, 'SR=');
-                          END;
-
+                          WriteStringArrayToLog(UnknownLocoChipStr, 'R', 'Draft Route Array to set up R=' + IntToStr(Routes_RouteCounter)
+                                                                         + ' ' + DescribeStartAndEndOfRoute(Routes_RouteCounter) + ':',
+                                                                         DraftRouteArray,
+                                                                         2, 190, 'SR=');
+                          WriteStringArrayToLog(UnknownLocoChipStr, 'R', 'Locking Array to set up R=' + IntToStr(Routes_RouteCounter)
+                                                                         + ' ' + DescribeStartAndEndOfRoute(Routes_RouteCounter) + ':',
+                                                                         LockingArray,
+                                                                         2, 190, 'SR=');
+                          FOR I := 0 TO (Routes_TotalSubRoutes[Routes_RouteCounter] - 1) DO
+                            WriteStringArrayToLog(UnknownLocoChipStr, 'R', 'Final Route Array to set up'
+                                                                           +' R=' + IntToStr(Routes_RouteCounter)
+                                                                           + '/' + IntToStr(I) + ' '
+                                                                           + DescribeSubRoute(Routes_RouteCounter, I) + ':',
+                                                                           Routes_SubRouteSettingStrings[Routes_RouteCounter, I],
+                                                                           2, 190, 'SR=');
                           { and empty the route array }
                           SetLength(SavePossibleRoutesArray, 0);
                         END;

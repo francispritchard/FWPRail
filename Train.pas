@@ -86,7 +86,7 @@ BEGIN
         Train_ActualNumStr := '';
         Train_AtCurrentBufferStop := UnknownBufferStop;
         Train_AtCurrentSignal := UnknownSignal;
-        Train_AtHiddenAspectSignal := UnknownSignal;
+        Train_AtHiddenStationSignalAspectSignal := UnknownSignal;
         Train_BeingAdvanced := False;
         Train_BeingAdvancedTC := UnknownTrackCircuit;
         Train_CabLightsAreOn := False;
@@ -203,7 +203,7 @@ BEGIN
         Train_UserSpeedInstructionMsg := '';
         Train_UseTrailingTrackCircuits := False; { where a train doesn't have lights at both ends, it may need artificial track circuit activation to allow the whole length
                                                    of the train to be detected }
-        Train_WaitingForHiddenAspectStartTime := 0;
+        Train_WaitingForHiddenStationSignalAspectStartTime := 0;
         Train_WorkingTimetableLastArrivalArea := UnknownArea;
         Train_WorkingTimetableLastArrivalTime := 0;
         Train_WorkingTimetableLastEntryNumStr := '';

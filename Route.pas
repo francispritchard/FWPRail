@@ -813,19 +813,19 @@ BEGIN
           Log(LocoChipStr + ' R R=' + IntToStr(Route) + ': route setting concluded');
 
           IF (T <> 0) AND (T <= High(Trains)) AND (Trains[T].Train_LocoChip <> UnknownLocoChip) THEN BEGIN
-            { only set up hidden aspect signals if there's a train involved }
+            { only set up hidden station signal aspect signals if there's a train involved }
             WITH Trains[T] DO BEGIN
               WITH Train_JourneysArray[Journey] DO BEGIN { ************************************************************* from MS5 to IS2 }
                 TrainJourney_SetUp := True;
                 Log(LocoChipStr + ' R J=' + IntToStr(Journey) + ': journey set up');
 
-                { Now the journey is set up, see if we need to set any hidden signal aspects - to stop trains at signals that otherwise would be off, if we have actually
-                  to stop there. Exclude signals where we change direction as we have no choice but to stop at them.
+                { Now the journey is set up, see if we need to set any hidden station signal aspects - to stop trains at signals that otherwise would be off, if we have
+                  actually to stop there. Exclude signals where we change direction as we have no choice but to stop at them.
                 }
                 IF (Train_JourneysArray[Journey].TrainJourney_StoppingOnArrival)
                 AND ((Journey < Train_TotalJourneys) AND (Train_JourneysArray[Journey].TrainJourney_Direction = Train_JourneysArray[Journey + 1].TrainJourney_Direction))
                 THEN
-                  SetHiddenAspectSignals(T, Train_JourneysArray[Journey].TrainJourney_EndSignal, Journey, Route);
+                  SetHiddenStationSignalAspectSignals(T, Train_JourneysArray[Journey].TrainJourney_EndSignal, Journey, Route);
               END;
             END; {WITH}
           END; {WITH}

@@ -862,9 +862,9 @@ BEGIN
                   PullSignal(UnknownLocoChipStr, TC_ResettingSignal, NoIndicatorLit, NoRoute, NoSubRoute, UnknownLine, TC, NOT ByUser, OK);
                   IF OK THEN BEGIN
                     Log('S S=' + IntToStr(TC_ResettingSignal) + ' reset by TC=' + IntToStr(TC));
-                    { also reset any hidden aspects }
-                    IF Signals[TC_ResettingSignal].Signal_HiddenAspect <> RedAspect THEN BEGIN
-                      Signals[TC_ResettingSignal].Signal_HiddenAspect := NoAspect;
+                    { also reset any hidden station signal aspects }
+                    IF Signals[TC_ResettingSignal].Signal_HiddenStationSignalAspect <> RedAspect THEN BEGIN
+                      Signals[TC_ResettingSignal].Signal_HiddenStationSignalAspect := NoAspect;
                     END;
                   END ELSE BEGIN
                     IF NOT Signal_FailedToResetFlag THEN BEGIN

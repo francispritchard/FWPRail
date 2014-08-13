@@ -2350,14 +2350,14 @@ BEGIN { DiagramsWindowGridMouseDown }
                             IF Train_JourneysArray[Journey].TrainJourney_StoppingOnArrival THEN BEGIN
                               Log(Train_LocoChipStr + ' D J=' + IntToStr(Journey) + ': changed by user to not stopping on arrival');
                               Train_JourneysArray[Journey].TrainJourney_StoppingOnArrival := False;
-                              ClearHiddenAspectSignals(T, Train_JourneysArray[Journey].TrainJourney_EndSignal);
+                              ClearHiddenStationSignalAspectSignals(T, Train_JourneysArray[Journey].TrainJourney_EndSignal);
                             END ELSE BEGIN
                               IF Signals[Train_JourneysArray[Journey].TrainJourney_EndSignal].Signal_Aspect <> RedAspect THEN
                                 Debug('!J=' + IntToStr(Journey)
-                                      + ': cannot be changed by user to stopping on arrival as hidden aspect signal S='
+                                      + ': cannot be changed by user to stopping on arrival as hidden station signal aspect signal S='
                                       + IntToStr(Train_JourneysArray[Journey].TrainJourney_EndSignal) + ' is already off')
                               ELSE BEGIN
-                                SetHiddenAspectSignals(T, Train_JourneysArray[Journey].TrainJourney_EndSignal, Journey, NoRoute);
+                                SetHiddenStationSignalAspectSignals(T, Train_JourneysArray[Journey].TrainJourney_EndSignal, Journey, NoRoute);
                                 Log(Train_LocoChipStr + ' D J=' + IntToStr(Journey) + ': changed by user to stopping on arrival');
                                 Train_JourneysArray[Journey].TrainJourney_StoppingOnArrival := True;
                               END;
@@ -2934,7 +2934,7 @@ BEGIN
                 ELSE
                   TrainJourney_EndLine := Locations[EndLocation].Location_LineAtDown;
 
-            { So we can set the signal's hidden aspect in due course - to make sure the train stops even if the signal is off }
+            { So we can set the signal's hidden station signal aspect in due course - to make sure the train stops even if the signal is off }
             IF TrainJourney_StartLine = UnknownLine THEN
               TrainJourney_StartSignal := UnknownSignal
             ELSE

@@ -436,7 +436,6 @@ TYPE
     { Third of three routines which allow the program to be minimised by pressing the "minimize" button and then maximised from the taskbar }
   END;
 
-procedure CanvasTextOutAngle(x,y: Integer; d: Word; s: string);
  PopupTypes = (NoClickPopupType, SignalOutOfUsePopupType, SignalEditPopupType, SignalChangeDirectionPopupType, SignalPositionRevertPopupType, PointOutOfUsePopupType,
                PointToManualPopupType, PointUnlockPopupType, PointEditPopupType, BufferStopEditPopupType, LineTCUnoccupiedPopupType, LineTCFeedbackOccupationPopupType,
                LineTCSystemOccupationPopupType, LineTCPermanentOccupationPopupType, LineTCSpeedRestrictionPopupType, LineTCUserMustDrivePopupType,
@@ -1685,10 +1684,10 @@ BEGIN
                       Signal_LocationX + SignalRadiusScaled + MulDiv(FWPRailWindow.ClientWidth, 10, ZoomScalefactor) - ScrollBarXAdjustment,
                       Signal_LocationY + SignalRadiusScaled - ScrollBarYAdjustment);
 
-            IF Signals[S].Signal_HiddenAspect = RedAspect THEN
+            IF Signals[S].Signal_HiddenStationSignalAspect = RedAspect THEN
               Pen.Color := clRed
             ELSE
-              IF (Signals[S].Signal_HiddenAspect = SingleYellowAspect) OR (Signals[S].Signal_HiddenAspect = DoubleYellowAspect) THEN
+              IF (Signals[S].Signal_HiddenStationSignalAspect = SingleYellowAspect) OR (Signals[S].Signal_HiddenStationSignalAspect = DoubleYellowAspect) THEN
                 Pen.Color := clYellow
               ELSE
                 IF Signals[S].Signal_ApproachLocked THEN
@@ -1717,10 +1716,10 @@ BEGIN
                         Signal_LocationX - SignalRadiusScaled - ScrollBarXAdjustment,
                         Signal_LocationY + Signal_VerticalSpacing - RailWindowBitmapCanvasPenWidth - ScrollBarYAdjustment);
 
-              IF Signals[S].Signal_HiddenAspect = NoAspect THEN
+              IF Signals[S].Signal_HiddenStationSignalAspect = NoAspect THEN
                 Pen.Color := Signal_PostColour
               ELSE
-                IF Signals[S].Signal_HiddenAspect = RedAspect THEN
+                IF Signals[S].Signal_HiddenStationSignalAspect = RedAspect THEN
                   Pen.Color := clRed
                 ELSE
                   Pen.Color := clYellow;
@@ -1849,10 +1848,10 @@ BEGIN { DrawSignal }
         IF Signal_StateChanged THEN
           Signal_StateChanged := False;
 
-        IF NOT ShowSignalHiddenAspects THEN
+        IF NOT ShowSignalHiddenStationSignalAspects THEN
           Aspect := Signal_Aspect
         ELSE
-          Aspect := Signal_HiddenAspect;
+          Aspect := Signal_HiddenStationSignalAspect;
 
         MoveTo(Signal_LocationX - ScrollBarXAdjustment, Signal_LocationY - ScrollBarYAdjustment);
 
@@ -6680,8 +6679,8 @@ END;
 ////  Debug('PopMenu closed');
 //END; { CM_MenuClosed }
 
-PROCEDURE CanvasTextOutAngle(X, Y : Integer; D : Word; S : string);
-{ d is in tenths if a degree - i.e. 450 - 45 degrees } { This is not used, but might come in useful }
+PROCEDURE CanvasTextOutAngle(X, Y : Integer; D : Word; S : String);
+{ D is in tenths if a degree - i.e. 450 - 45 degrees. This is not used, but might come in useful }
 VAR
   LogRec: TLOGFONT;     {* Storage area for font information *}
   OldFontHandle,        {* The old font handle *}

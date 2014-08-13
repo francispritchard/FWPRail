@@ -7869,8 +7869,8 @@ BEGIN
       Result := 'waiting for removal from diagrams';
     WaitingForRouteing:
       Result := 'waiting for routeing';
-    WaitingForSignalHiddenAspectToClear:
-      Result := 'waiting for signal hidden aspect to clear';
+    WaitingForHiddenStationSignalAspectToClear:
+      Result := 'waiting for station hidden signal aspect to clear';
   ELSE
     Result := UnknownTrainStatusStr;
   END; {CASE}
@@ -8590,7 +8590,7 @@ BEGIN
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_ActualNumStr (from loco record) = ' + Train_ActualNumStr);
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_AtCurrentBufferStop = ' + BufferStopToStr(Train_AtCurrentBufferStop));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_AtCurrentSignal = ' + SignalToStr(Train_AtCurrentSignal));
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_AtHiddenAspectSignal = ' + SignalToStr(Train_AtHiddenAspectSignal));
+            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_AtHiddenStationSignalAspectSignal = ' + SignalToStr(Train_AtHiddenStationSignalAspectSignal));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_BeingAdvanced = ' + BoolToStr(Train_BeingAdvanced, True));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_BeingAdvancedTC = ' + TrackCircuitToStr(Train_BeingAdvancedTC));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_CabLightsAreOn = ' + BoolToStr(Train_CabLightsAreOn, True));
@@ -8724,8 +8724,10 @@ BEGIN
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_UserPowerAdjustment = ' + IntToStr(Train_UserPowerAdjustment));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_UserRequiresInstructions = ' + BoolToStr(Train_UserRequiresInstructions, True));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_UserSpeedInstructionMsg = ' + Train_UserSpeedInstructionMsg);
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_UseTrailingTrackCircuits (from loco record) = ' + BoolToStr(Train_UseTrailingTrackCircuits, True));
-            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_WaitingForHiddenAspectStartTime = ' + TimeToHMSStr(Train_WaitingForHiddenAspectStartTime));
+            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_UseTrailingTrackCircuits (from loco record) = '
+                                                                                                                         + BoolToStr(Train_UseTrailingTrackCircuits, True));
+            WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_WaitingForHiddenStationSignalAspectStartTime = '
+                                                                                                              + TimeToHMSStr(Train_WaitingForHiddenStationSignalAspectStartTime));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_WorkingTimetableLastArrivalArea = ' + AreaToStr(Train_WorkingTimetableLastArrivalArea));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_WorkingTimetableLastArrivalTime = ' + TimeToHMSStr(Train_WorkingTimetableLastArrivalTime));
             WriteLn(TempOutputFile, LocoChipToStr(Train_LocoChip) + ': Train_WorkingTimetableLastEntryNumStr = ' + Train_WorkingTimetableLastEntryNumStr);

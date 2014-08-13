@@ -567,7 +567,7 @@ PROCEDURE MoveAllTrains;
   { Set the speed of the train appropriately }
 
     FUNCTION SpeedAtSignal(VAR T : TrainIndex; S : Integer; RedAspectSpeed, SingleYellowAspectSpeed, DoubleYellowAspectSpeed, GreenAspectSpeed : MPHType) : MPHType;
-    { Returns the appropriate speed for a given signal, considering normal and hidden aspects }
+    { Returns the appropriate speed for a given signal, considering normal and hidden station signal aspects }
     BEGIN
       Result := MPH0;
       IF S = UnknownSignal THEN
@@ -576,7 +576,7 @@ PROCEDURE MoveAllTrains;
       ELSE
         WITH Signals[S] DO BEGIN
           { can't use a CASE statement here as considering two cases each time so that the aspect which is the more serious takes priority }
-          IF (Signal_Aspect = RedAspect) OR (Signal_HiddenAspect = RedAspect) THEN BEGIN
+          IF (Signal_Aspect = RedAspect) OR (Signal_HiddenStationSignalAspect = RedAspect) THEN BEGIN
             IF Signal_ApproachLocked THEN
               { it will shortly change, so this avoids the train stopping then having to start from stop immediately }
               Result := SingleYellowAspectSpeed
@@ -585,13 +585,13 @@ PROCEDURE MoveAllTrains;
           END ELSE
             IF (Signal_Aspect = SingleYellowAspect)
             OR (Signal_Aspect = FlashingSingleYellowAspect)
-            OR (Signal_HiddenAspect = SingleYellowAspect)
+            OR (Signal_HiddenStationSignalAspect = SingleYellowAspect)
             THEN
               Result := SingleYellowAspectSpeed
             ELSE
               IF (Signal_Aspect = DoubleYellowAspect)
               OR (Signal_Aspect = FlashingDoubleYellowAspect)
-              OR (Signal_HiddenAspect = DoubleYellowAspect)
+              OR (Signal_HiddenStationSignalAspect = DoubleYellowAspect)
               THEN
                 Result := DoubleYellowAspectSpeed
               ELSE
@@ -1074,7 +1074,7 @@ PROCEDURE MoveAllTrains;
               NextSignal := UnknownSignal;
               Train_AtCurrentSignal := UnknownSignal;
               Train_AtCurrentBufferStop := UnknownBufferStop;
-              Train_AtHiddenAspectSignal := UnknownSignal;
+              Train_AtHiddenStationSignalAspectSignal := UnknownSignal;
 
               IF Train_CurrentSignal = UnknownSignal THEN BEGIN
                 IF Train_CurrentBufferStop <> UnknownBufferStop THEN
@@ -1089,13 +1089,13 @@ PROCEDURE MoveAllTrains;
                 IF Train_AtCurrentSignal <> UnknownSignal THEN BEGIN
                   IF (Train_CurrentJourney <> UnknownJourney)
                   AND (((Train_CurrentSignal = Train_JourneysArray[Train_CurrentJourney].TrainJourney_StartSignal)
-                       AND (Signals[Train_JourneysArray[Train_CurrentJourney].TrainJourney_StartSignal].Signal_HiddenAspect = RedAspect))
+                       AND (Signals[Train_JourneysArray[Train_CurrentJourney].TrainJourney_StartSignal].Signal_HiddenStationSignalAspect = RedAspect))
                   OR ((Train_CurrentSignal = Train_JourneysArray[Train_CurrentJourney].TrainJourney_EndSignal)
-                       AND (Signals[Train_JourneysArray[Train_CurrentJourney].TrainJourney_EndSignal].Signal_HiddenAspect = RedAspect)))
+                       AND (Signals[Train_JourneysArray[Train_CurrentJourney].TrainJourney_EndSignal].Signal_HiddenStationSignalAspect = RedAspect)))
                   AND ((Train_CurrentJourney < Train_TotalJourneys)
                       AND (Train_JourneysArray[Train_CurrentJourney].TrainJourney_Direction = Train_JourneysArray[Train_CurrentJourney + 1].TrainJourney_Direction))
                   THEN
-                    Train_AtHiddenAspectSignal := Train_AtCurrentSignal;
+                    Train_AtHiddenStationSignalAspectSignal := Train_AtCurrentSignal;
                 END;
               END;
 
@@ -1206,9 +1206,9 @@ PROCEDURE MoveAllTrains;
               Train_DesiredSpeedInMPH := Stop;
             END ELSE BEGIN
               IF ((Train_AtCurrentSignal <> UnknownSignal) AND (Signals[Train_AtCurrentSignal].Signal_Aspect = RedAspect))
-              OR ((Train_AtHiddenAspectSignal <> UnknownSignal)
+              OR ((Train_AtHiddenStationSignalAspectSignal <> UnknownSignal)
                   AND ((Train_JourneysArray[Train_CurrentJourney].TrainJourney_EndSignal <> UnknownSignal)
-                  AND (Signals[Train_JourneysArray[Train_CurrentJourney].TrainJourney_EndSignal].Signal_HiddenAspect = RedAspect)))
+                  AND (Signals[Train_JourneysArray[Train_CurrentJourney].TrainJourney_EndSignal].Signal_HiddenStationSignalAspect = RedAspect)))
               OR (Train_AtCurrentBufferStop <> UnknownBufferStop)
               THEN BEGIN
                 MinimumSpeedInMPH := Stop;
@@ -1401,7 +1401,7 @@ PROCEDURE MoveAllTrains;
                   Train_AccelerationTimeInSeconds := 5.0;
 
                   IF (Train_AtCurrentSignal <> UnknownSignal) AND (Train_CurrentSignal <> UnknownSignal)
-                  AND ((Signals[Train_CurrentSignal].Signal_Aspect = RedAspect) OR (Signals[Train_CurrentSignal].Signal_HiddenAspect = RedAspect))
+                  AND ((Signals[Train_CurrentSignal].Signal_Aspect = RedAspect) OR (Signals[Train_CurrentSignal].Signal_HiddenStationSignalAspect = RedAspect))
                   THEN BEGIN
                     { set a very short acceleration/deceleration time if we're stopping, but see how long the stop section is }
                     IF TrackCircuits[Signals[Train_CurrentSignal].Signal_AdjacentTC].TC_LengthInInches > 40.0 THEN
@@ -1429,7 +1429,7 @@ PROCEDURE MoveAllTrains;
                             Train_AccelerationTimeInSeconds := 0.0;
                     END ELSE BEGIN
                       IF (Train_CurrentSignal <> UnknownSignal)
-                      AND ((Signals[Train_CurrentSignal].Signal_Aspect = RedAspect) OR (Signals[Train_CurrentSignal].Signal_HiddenAspect = RedAspect))
+                      AND ((Signals[Train_CurrentSignal].Signal_Aspect = RedAspect) OR (Signals[Train_CurrentSignal].Signal_HiddenStationSignalAspect = RedAspect))
                       OR (Train_CurrentBufferStop <> UnknownBufferStop)
                       THEN BEGIN
                         IF Train_DistanceToCurrentSignalOrBufferStop > 60.0 THEN
@@ -1456,7 +1456,7 @@ PROCEDURE MoveAllTrains;
             IF TerminatingSpeedReductionMode THEN BEGIN
               IF (Train_AtCurrentSignal = UnknownSignal)
               AND (Train_CurrentSignal <> UnknownSignal)
-              AND ((Signals[Train_CurrentSignal].Signal_Aspect = RedAspect) OR (Signals[Train_CurrentSignal].Signal_HiddenAspect = RedAspect))
+              AND ((Signals[Train_CurrentSignal].Signal_Aspect = RedAspect) OR (Signals[Train_CurrentSignal].Signal_HiddenStationSignalAspect = RedAspect))
               AND (Train_DistanceToCurrentSignalOrBufferStop < 12.0)
               AND (Train_DesiredSpeedInMPH <> MPH0)
               THEN BEGIN
@@ -1493,8 +1493,8 @@ PROCEDURE MoveAllTrains;
               DebugStr := DebugStr + IfThen(Train_CurrentSignal = UnknownSignal,
                                             ' [CS=-',
                                             ' [CS=' + IntToStr(Train_CurrentSignal) + ' a:' + AspectToStr(Signals[Train_CurrentSignal].Signal_Aspect, ShortStringType));
-              IF Signals[Train_CurrentSignal].Signal_HiddenAspect <> NoAspect THEN
-                DebugStr := DebugStr + ' ha=' + AspectToStr(Signals[Train_CurrentSignal].Signal_HiddenAspect, ShortStringType);
+              IF Signals[Train_CurrentSignal].Signal_HiddenStationSignalAspect <> NoAspect THEN
+                DebugStr := DebugStr + ' ha=' + AspectToStr(Signals[Train_CurrentSignal].Signal_HiddenStationSignalAspect, ShortStringType);
               DebugStr := DebugStr + ' sl=' + LineToStr(GetSignalAdjacentLine(Train_CurrentSignal)) + ']'
                                    + ' CSInd=' + IndicatorStateToStr(Signals[Train_CurrentSignal].Signal_IndicatorState);
             END;
@@ -1995,11 +1995,11 @@ BEGIN
       THEN BEGIN
         WITH Train_JourneysArray[Train_CurrentJourney] DO BEGIN
           IF TrainJourney_ActualDepartureTime = 0 THEN BEGIN
-            IF Train_CurrentStatus = WaitingForSignalHiddenAspectToClear THEN BEGIN
-              IF (CurrentRailwayTime > IncMinute(Train_WaitingForHiddenAspectStartTime, StationSameDirectionExitMinimumWaitTimeInMinutes))
+            IF Train_CurrentStatus = WaitingForHiddenStationSignalAspectToClear THEN BEGIN
+              IF (CurrentRailwayTime > IncMinute(Train_WaitingForHiddenStationSignalAspectStartTime, StationSameDirectionExitMinimumWaitTimeInMinutes))
               AND (CurrentRailwayTime > IncMinute(TrainJourney_CurrentDepartureTime, -1))
               THEN BEGIN
-                ClearHiddenAspectSignals(T, Train_AtHiddenAspectSignal);
+                ClearHiddenStationSignalAspectSignals(T, Train_AtHiddenStationSignalAspectSignal);
 
                 { Now change the train's status }
                 IF (Train_CurrentJourney < Train_TotalJourneys) AND NOT Train_JourneysArray[Train_CurrentJourney + 1].TrainJourney_Created THEN
@@ -2160,7 +2160,7 @@ CONST
 
 VAR
   DebugStr : String;
-  HiddenAspectSignal : Integer;
+  HiddenStationSignalAspectSignal : Integer;
   I : Integer;
   OccupiedOrClearedTC : Integer;
   OK : Boolean;
@@ -2241,16 +2241,16 @@ BEGIN
 
               SetLength(Train_TCsReleasedArray, 0);
 
-              IF (Train_AtHiddenAspectSignal = UnknownSignal)
-              OR (Signals[Train_JourneysArray[Train_CurrentJourney].TrainJourney_EndSignal].Signal_HiddenAspect <> RedAspect)
+              IF (Train_AtHiddenStationSignalAspectSignal = UnknownSignal)
+              OR (Signals[Train_JourneysArray[Train_CurrentJourney].TrainJourney_EndSignal].Signal_HiddenStationSignalAspect <> RedAspect)
               THEN
                 ChangeTrainStatus(T, WaitingForLightsOn)
               ELSE BEGIN
-                { we're at a hidden aspect }
-                ChangeTrainStatus(T, WaitingForSignalHiddenAspectToClear);
-                Train_WaitingForHiddenAspectStartTime := CurrentRailwayTime;
-                HiddenAspectSignal := Train_JourneysArray[Train_CurrentJourney].TrainJourney_EndSignal;
-                Log(Train_LocoChipStr + ' R Waiting for S=' + IntToStr(HiddenAspectSignal) + ' hidden aspect to clear');
+                { we're at a hidden station signal aspect }
+                ChangeTrainStatus(T, WaitingForHiddenStationSignalAspectToClear);
+                Train_WaitingForHiddenStationSignalAspectStartTime := CurrentRailwayTime;
+                HiddenStationSignalAspectSignal := Train_JourneysArray[Train_CurrentJourney].TrainJourney_EndSignal;
+                Log(Train_LocoChipStr + ' R Waiting for S=' + IntToStr(HiddenStationSignalAspectSignal) + ' hidden station signal aspect to clear');
               END;
             END;
 

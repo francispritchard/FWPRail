@@ -1385,7 +1385,7 @@ BEGIN
           Signal_FailMsgWritten := False;
           Signal_FailedToResetFlag := False;
           Signal_FindNextSignalBufferStopMsgWritten := False;
-          Signal_HiddenAspect := NoAspect;
+          Signal_HiddenStationSignalAspect := NoAspect;
           Signal_Indicator := NoIndicator;
           Signal_IndicatorDecoderFunctionNum := 0;
           Signal_IndicatorDecoderNum := 0;
@@ -1410,8 +1410,8 @@ BEGIN
           Signal_PossibleStationStartRouteHold := False;
           Signal_PostColour := ForegroundColour;
           Signal_PreviousAspect := NoAspect;
-          Signal_PreviousHiddenAspectSignal1 := UnknownSignal;
-          Signal_PreviousHiddenAspectSignal2 := UnknownSignal;
+          Signal_PreviousHiddenStationSignalAspectSignal1 := UnknownSignal;
+          Signal_PreviousHiddenStationSignalAspectSignal2 := UnknownSignal;
           Signal_PreviousIndicatorState := NoIndicatorLit;
           Signal_PreviousSignal1 := UnknownSignal;
           Signal_PreviousSignal2 := UnknownSignal;

@@ -617,7 +617,7 @@ TYPE
     Signal_FailedToResetFlag : Boolean;
     Signal_FailMsgWritten : Boolean;
     Signal_FindNextSignalBufferStopMsgWritten : Boolean;
-    Signal_HiddenAspect : AspectType; { used to force stopping at stations where signal is potentially off }
+    Signal_HiddenStationSignalAspect : AspectType; { used to force stopping at stations where signal is potentially off }
     Signal_Indicator : IndicatorType;
     Signal_IndicatorDecoderNum : Integer;
     Signal_IndicatorDecoderFunctionNum : Integer;
@@ -646,15 +646,18 @@ TYPE
     Signal_OutOfUseMsgWritten : Boolean;
     Signal_PossibleRouteHold : Boolean;
     Signal_PossibleStationStartRouteHold : Boolean;
+    Signal_PostColour : TColour;
+    Signal_PostMouseRect : TRect; { mouse access rectangle for signal posts }
     Signal_PreviousAspect : AspectType;
     Signal_PreviousIndicatorState : IndicatorStateType;
     Signal_PreviousTheatreIndicatorString : String;
     Signal_PreviousSignal1 : Integer;
     Signal_PreviousSignal2 : Integer;
-    Signal_PreviousHiddenAspectSignal1 : Integer;
-    Signal_PreviousHiddenAspectSignal2 : Integer;
-    Signal_PostColour : TColour;
-    Signal_PostMouseRect : TRect; { mouse access rectangle for signal posts }
+    Signal_PreviousHiddenStationSignalAspectSignal1 : Integer;
+    Signal_PreviousHiddenStationSignalAspectSignal2 : Integer;
+    Signal_PreviousLineX : Integer;
+    Signal_PreviousLineY : Integer;
+    Signal_PreviousLineWithVerticalSpacingY : Integer;
     Signal_Quadrant : QuadrantType;
     Signal_ResettingTC : Integer;
 
@@ -841,9 +844,9 @@ TYPE
   { Note: we need Missing, Suspended, and MissingAndSuspended as otherwise the status can oscillate between Missing and Suspended if a train is suspended while missing - in
     that case, unsuspending renders it missing even though it may no longer be missing, and it's then a status we can't get out of.
   }
-  TrainStatusType = (ReadyForCreation, WaitingForLightsOn, WaitingForSignalHiddenAspectToClear, WaitingForRouteing, InLightsOnTime, ReadyForRouteing, CommencedRouteing,
-                     ReadyToDepart, Departed, RouteingWhileDeparted, RouteCompleted, WaitingForRemovalFromDiagrams, ToBeRemovedFromDiagrams, RemovedFromDiagrams,
-                     Missing, MissingAndSuspended, Suspended, NonMoving, Cancelled, UnknownTrainStatus);
+  TrainStatusType = (ReadyForCreation, WaitingForLightsOn, WaitingForHiddenStationSignalAspectToClear, WaitingForRouteing, InLightsOnTime, ReadyForRouteing,
+                     CommencedRouteing, ReadyToDepart, Departed, RouteingWhileDeparted, RouteCompleted, WaitingForRemovalFromDiagrams, ToBeRemovedFromDiagrams,
+                     RemovedFromDiagrams, Missing, MissingAndSuspended, Suspended, NonMoving, Cancelled, UnknownTrainStatus);
   TrainIndex = Integer;
 
   TrainRec = RECORD
@@ -863,7 +866,7 @@ TYPE
     Train_ActualNumStr : String; { from loco record }
     Train_AtCurrentBufferStop : Integer;
     Train_AtCurrentSignal : Integer;
-    Train_AtHiddenAspectSignal : Integer;
+    Train_AtHiddenStationSignalAspectSignal : Integer; { to stop trains at signals that otherwise would be off }
     Train_BeingAdvanced : Boolean;
     Train_BeingAdvancedTC : Integer;
     Train_CabLightsAreOn : Boolean;
@@ -974,7 +977,7 @@ TYPE
     Train_UserSpeedInstructionMsg : String;
     Train_UseTrailingTrackCircuits : Boolean;
     { where a train doesn't have lights at both ends, it may need artificial track-circuit activation }
-    Train_WaitingForHiddenAspectStartTime : TDateTime;
+    Train_WaitingForHiddenStationSignalAspectStartTime : TDateTime;
     Train_WorkingTimetableLastArrivalArea : Integer;
     Train_WorkingTimetableLastArrivalTime : TDateTime;
     Train_WorkingTimetableLastEntryNumStr : String;
@@ -1327,7 +1330,7 @@ VAR
   ShowPointsThatAreLocked : Boolean = False;
   ShowPointType : Boolean = False;
   ShowSignalAndBufferStopNums : Boolean = False;
-  ShowSignalHiddenAspects : Boolean = False;
+  ShowSignalHiddenStationSignalAspects : Boolean = False;
   ShowSignalJunctionDestinations : Boolean = False;
   ShowSignalResettingTrackCircuitsInStatusBar : Boolean = False;
   ShowSignalsAndBufferStopsWithTheatreDestinations : Boolean = False;
@@ -4356,7 +4359,7 @@ BEGIN
             Signal_FailedToResetFlag := False;
             Signal_FailMsgWritten := False;
             Signal_FindNextSignalBufferStopMsgWritten := False;
-            Signal_HiddenAspect := NoAspect;
+            Signal_HiddenStationSignalAspect := NoAspect;
             Signal_IndicatorState := NoIndicatorLit;
             Signal_LampIsOn := True;
             Signal_LockedBySemaphoreDistant := False;
@@ -4368,8 +4371,8 @@ BEGIN
             Signal_PreviousIndicatorState := NoIndicatorLit;
             Signal_PreviousSignal1 := UnknownSignal;
             Signal_PreviousSignal2 := UnknownSignal;
-            Signal_PreviousHiddenAspectSignal1 := UnknownSignal;
-            Signal_PreviousHiddenAspectSignal2 := UnknownSignal;
+            Signal_PreviousHiddenStationSignalAspectSignal1 := UnknownSignal;
+            Signal_PreviousHiddenStationSignalAspectSignal2 := UnknownSignal;
             Signal_PreviousTheatreIndicatorString := '';
             Signal_ResettingTC := UnknownTrackCircuit;
             Signal_SemaphoreDistantLocking := UnknownSignal;
@@ -4496,7 +4499,7 @@ BEGIN
             Signal_Automatic := SignalsADOTable.FieldByName(Signal_AutomaticFieldName).AsBoolean;
 
           IF ErrorMsg = '' THEN
-            Signals[S].Signal_SemaphoreDistantHomesArray := ValidateSignalDistantHomesArray(S, Signal_Type,
+            Signal_SemaphoreDistantHomesArray := ValidateSignalDistantHomesArray(S, Signal_Type,
                                                                                  SignalsADOTable.FieldByName(Signal_SemaphoreDistantHomesArrayFieldName).AsString, ErrorMsg);
 
           IF Signal_PossibleRouteHold AND Signal_PossibleStationStartRouteHold THEN

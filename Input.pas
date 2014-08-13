@@ -5084,8 +5084,14 @@ BEGIN { KeyPressedDown }
               END;
             Ctrl: {F9}
               BEGIN
-                HelpMsg := '';
+                HelpMsg := 'show full journey record window';
                 IF NOT HelpRequired THEN BEGIN
+                  T := 0;
+                  WHILE T <= High(Trains) DO BEGIN
+                    IF Trains[T].Train_DiagramFound THEN
+                      WriteTrainJourneysRecordToLockListWindow(T, NOT FullRecord);
+                    Inc(T);
+                  END; {WHILE}
                 END;
               END;
             Alt: {F9}
