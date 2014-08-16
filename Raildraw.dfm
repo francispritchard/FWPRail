@@ -2,6 +2,7 @@ object FWPRailWindow: TFWPRailWindow
   Left = 606
   Top = 560
   HorzScrollBar.Tracking = True
+  VertScrollBar.Smooth = True
   VertScrollBar.Tracking = True
   Caption = 'FWP'#39's Railway Program'
   ClientHeight = 303

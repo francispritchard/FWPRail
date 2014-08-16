@@ -181,6 +181,9 @@ FUNCTION DescribeJourneyAndRoute(Args: ARRAY OF Integer) : String;
 FUNCTION DescribeLineNamesForTrackCircuit(TC : Integer) : String;
 { Return the line names for a track circuit }
 
+FUNCTION DescribePolygon(CONST Polygon: ARRAY OF TPoint) : String;
+{ Returns the points comprising a polygon as a string }
+
 FUNCTION DescribeSubRoute(Route, SubRoute : Integer) : String;
 { Return a description of the subroute }
 
@@ -1388,7 +1391,7 @@ BEGIN { WriteToLogFile }
                   { we've found a debug character }
                   TempStr := LogStr[2];
                   CASE TempStr[1] OF
-                    'G':
+                    'G', 'g':
                       BEGIN
                         LogStr := Copy(LogStr, 4);
                         RemoveGeneralInstructionsFromLogStr(LogStr);
@@ -5586,16 +5589,28 @@ BEGIN
   Result := nnNow - nnThen;
 END; { NewMilliSecondsBetween }
 
-FUNCTION PointInPolygon(CONST Polygon: ARRAY OF TPoint; Point: TPoint): Boolean;
+FUNCTION PointInPolygon(CONST Polygon: ARRAY OF TPoint; Point: TPoint) : Boolean;
 { Returns true if a point is in a defined region }
 VAR
-  Rgn: HRGN;
+  Rgn : HRGN;
 
 BEGIN
   Rgn := CreatePolygonRgn(Polygon[0], Length(Polygon), WINDING);
   Result := PtInRegion(Rgn, Point.X, Point.Y);
   DeleteObject(Rgn);
 END; { PointInPolygon }
+
+FUNCTION DescribePolygon(CONST Polygon: ARRAY OF TPoint) : String;
+{ Returns the points comprising a polygon as a string }
+VAR
+  I : Integer;
+
+BEGIN
+  Result := 'X=' + IntToStr(Polygon[0].X) + ' Y=' + IntToStr(Polygon[0].Y);
+
+  FOR I := 1 TO High(Polygon) DO
+    Result := Result + ', X=' + IntToStr(Polygon[I].X) + ' Y=' + IntToStr(Polygon[I].Y);
+END; { DescribePolygon }
 
 FUNCTION PointIsCatchPoint(P : Integer) : Boolean;
 { Returns whether a given point is a catch point }
@@ -6380,7 +6395,6 @@ BEGIN
         IF NOT LockDebuggingMode THEN BEGIN
           LockDebuggingMode := True;
           Log('A Lock Debugging Mode = ON');
-          WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' LOCK');
         END;
       Locking:
         IF NOT LockingMode THEN BEGIN
@@ -6487,7 +6501,7 @@ BEGIN
         IF LockingMode THEN BEGIN
           LockingMode := False;
           Log('A Locking Mode = OFF');
-          RemoveStringFromStatusPanel('LOCKING OFF');
+          RemoveStringFromStatusPanel('LOCKING=OFF');
         END;
       PointDebugging:
         IF PointDebuggingMode THEN BEGIN
@@ -7870,7 +7884,7 @@ BEGIN
     WaitingForRouteing:
       Result := 'waiting for routeing';
     WaitingForHiddenStationSignalAspectToClear:
-      Result := 'waiting for station hidden signal aspect to clear';
+      Result := 'waiting for hidden station signal aspect to clear';
   ELSE
     Result := UnknownTrainStatusStr;
   END; {CASE}
@@ -9484,6 +9498,7 @@ BEGIN
         END ELSE BEGIN
           WITH Signals[S] DO BEGIN
             CheckString(Signal_AdjacentLineFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CheckString(Signal_AdjacentLineXOffsetFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
             CheckString(Signal_ApproachControlAspectFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
             CheckString(Signal_AsTheatreDestinationFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
             CheckString(Signal_IndicatorFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
@@ -9508,7 +9523,6 @@ BEGIN
             CheckString(Signal_DecoderNumFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
             CheckString(Signal_TypeFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
             CheckString(Signal_DirectionFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
-            CheckString(Signal_XAdjustmentFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
           END; {WITH}
         END;
 
