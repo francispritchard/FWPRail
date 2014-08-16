@@ -6,8 +6,10 @@ USES Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, 
 
 TYPE
   TCuneoWindow = CLASS(TForm)
-    CuneoTimer: TTimer;
-    PROCEDURE CuneoTimerTick(Sender: TObject);
+    MouseButtonDownTimer: TTimer;
+    SignalPostFlashingTimer: TTimer;
+    PROCEDURE MouseButtonDownTimerTick(Sender: TObject);
+    PROCEDURE SignalPostFlashingTimerTick(Sender: TObject);
   PRIVATE
     { Private declarations }
   PUBLIC
@@ -134,6 +136,7 @@ VAR
   DebugStr : String;
   Line : Integer;
   LockingFailureString : String;
+  NearestLine : Integer;
   ObjectFound : Boolean;
   SaveRecordLineDrawingMode : Boolean;
   StatusBarPanel1Str : String;
@@ -143,27 +146,40 @@ VAR
   TempDraftRouteArray : StringArrayType;
   TempLinesNotAvailableStr : String;
   TempStatusBarPanel1Str : String;
+  TooNearSignal : Integer;
 //  TRSPlungerFound : Boolean;
 
 BEGIN
   TRY
     ObjectFound := False;
-    PointFoundNum := UnknownPoint;
-    SignalFoundNum := UnknownSignal;
     IndicatorFoundNum := UnknownSignal;
     IndicatorFoundType := UnknownJunctionIndicator;
+    LineFoundNum := UnknownLine;
+    PointFoundNum := UnknownPoint;
+    SignalFoundNum := UnknownSignal;
     SignalPostFoundNum := UnknownSignal;
     TheatreIndicatorFoundNum := UnknownSignal;
     TRSPlungerFoundLocation := UnknownLocation;
-    LineFoundNum := UnknownLine;
     UpLineEndCharacterLine := UnknownLine;
     DownLineEndCharacterLine := UnknownLine;
 
     StatusBarPanel1Str := '';
 
-    IF EditMode AND (DragSignalNum <> UnknownSignal) THEN
-      DragSignal(DragSignalNum, X, Y)
-    ELSE
+    IF DebuggingMode THEN
+      { Display mouse co-ordinates }
+      WriteToStatusBarPanel(StatusBarPanel2, IntToStr(X) + ',' + IntToStr(Y) + '; '
+                            + IntToStr(MulDiv(1000, X, FWPRailWindow.ClientWidth)) + '/1000,'
+                            + IntToStr(MulDiv(1000, Y, FWPRailWindow.ClientHeight)) + '/1000');
+
+    IF EditMode AND (DragSignalNum <> UnknownSignal) THEN BEGIN
+      IF SignalDragging THEN BEGIN
+        DragSignal(DragSignalNum, X, Y, NearestLine, TooNearSignal);
+        IF (NearestLine = UnknownLine) OR (TooNearSignal <> UnknownLine) THEN
+          ChangeCursor(crNoDrop)
+        ELSE
+          ChangeCursor(crDrag);
+      END;
+    END ELSE
       IF PreparingZoom THEN BEGIN
         { Draw and undraw the rectangle if any }
         DrawOutline(ZoomRect, clRed, UndrawRequired, NOT UndrawToBeAutomatic);
@@ -650,87 +666,6 @@ BEGIN
                            TheatreIndicatorFoundNum, TRSPlungerFoundLocation);
 END; { WhatIsUnderMouse }
 
-PROCEDURE MouseButtonReleased(Button : TMouseButton; X, Y : Integer; ShiftState : TShiftState);
-{ Button released - only used for a few processes }
-CONST
-  Bold = True;
-
-VAR
-  Line : Integer;
-  TempInt : Integer;
-
-BEGIN
-  TRY
-    Line := 0;
-    WHILE Line <= High(Lines) DO BEGIN
-      IF Lines[Line].Line_UpConnectionChBold THEN BEGIN
-        Lines[Line].Line_UpConnectionChBold := False;
-        DrawConnectionCh(Line, Up);
-        InvalidateScreen(UnitRef, 'MouseButtonReleased');
-      END;
-      Inc(Line);
-    END;
-
-    Line := 0;
-    WHILE Line <= High(Lines) DO BEGIN
-      IF Lines[Line].Line_DownConnectionChBold THEN BEGIN
-        Lines[Line].Line_DownConnectionChBold := False;
-        DrawConnectionCh(Line, Down);
-        InvalidateScreen(UnitRef, 'MouseButtonReleased');
-      END;
-      Inc(Line);
-    END;
-
-    { Ending an actual or a potential drag and drop }
-    IF SignalDragging THEN BEGIN
-      DropSignal;
-      DragSignalNum := UnknownSignal;
-    END;
-
-    { Ending a zoomed screen mouse move }
-    IF MoveZoomWindowMode THEN BEGIN
-      MoveZoomWindowMode := False;
-      ShowStatusBarAndUpDownIndications;
-    END ELSE
-      { Setting up a zoom rectangle }
-      IF PreparingZoom THEN BEGIN
-        PreparingZoom := False;
-
-        WITH ZoomRect DO BEGIN
-          { First see if we've drawn a rectangle at all }
-          IF (Left = Right) AND (Top = Bottom) THEN
-            { reinstate the status bar as we're  not drawing a rectangle }
-            ShowStatusBarAndUpDownIndications
-          ELSE BEGIN
-            { Allow for the user starting to draw the rectangle from a different corner }
-            IF ZoomRect.Left > ZoomRect.Right THEN BEGIN
-              TempInt := ZoomRect.Right;
-              ZoomRect.Right := ZoomRect.Left;
-              ZoomRect.Left := TempInt
-            END;
-
-            IF ZoomRect.Top > ZoomRect.Bottom THEN BEGIN
-              TempInt := ZoomRect.Bottom;
-              ZoomRect.Bottom := ZoomRect.Top;
-              ZoomRect.Top := TempInt;
-            END;
-
-            ZoomScaleFactor := 750;
-            SetCaption(FWPRailWindow, 'Zoom level 130%');
-            Zooming := True;
-            InvalidateScreen(UnitRef, 'MouseButtonReleased');
-          END;
-        END;
-
-        { Undraw the rectangle that's left }
-        DrawOutline(ZoomRect, clRed, UndrawRequired, NOT UndrawToBeAutomatic);
-      END;
-  EXCEPT {TRY}
-    ON E : Exception DO
-      Log('EG MouseButtonReleased: ' + E.ClassName + ' error raised, with message: '+ E.Message);
-  END; {TRY}
-END; { MouseButtonReleased }
-
 PROCEDURE TCuneoWindow.SignalPostFlashingTimerTick(Sender: TObject);
 { This timer is used to flash the route starting signal post while route setting is being done by the user }
 BEGIN
@@ -766,14 +701,16 @@ CONST
   IrrelevantLine = UnknownLine;
   IrrelevantLocation = UnknownLocation;
   IrrelevantNum : Integer = 0;
+  SaveVariables = True;
   StartButton = True;
   Undo = True;
 
 VAR
-  IrrelevantShiftState : TShiftState;
   BufferStopFoundNum : Integer;
+  CursorXY : TPoint;
   IndicatorFoundNum : Integer;
   IndicatorFoundType : JunctionIndicatorType;
+  IrrelevantShiftState : TShiftState;
   PointFoundNum : Integer;
   PointChangedOK : Boolean;
   SignalFoundNum : Integer;
@@ -901,9 +838,11 @@ VAR
                   IF Signals[S].Signal_HiddenStationSignalAspect = NoAspect THEN BEGIN
                     SetHiddenStationSignalAspectSignals(NoTrainRecord, S, UnknownJourney, UnknownRoute);
                     Log('SG User setting S=' + IntToStr(S) + ' hidden station aspect to Red');
+                    Signals[S].Signal_PostColour := clRed;
                   END ELSE BEGIN
                     ClearHiddenStationSignalAspectSignals(NoTrainRecord, S);
                     Log('SG User clearing hidden station signal aspect of S=' + IntToStr(S));
+                    Signals[S].Signal_PostColour := SignalPostColour;
                   END;
                   DrawSignal(S);
                 END ELSE
@@ -1637,12 +1576,17 @@ BEGIN
       IF EditMode THEN BEGIN
         IF ButtonPress = mbLeft THEN BEGIN
           IF SignalFoundNum <> UnknownSignal THEN BEGIN
-            DisplaySignalOptionsInValueList(SignalFoundNum);
-            DragSignalNum := SignalFoundNum;
-            DragTime := Now;
+            IF (EditedSignal <> UnknownSignal) AND (EditedSignal <> SignalFoundNum) THEN BEGIN
+              GetCursorPos(CursorXY);
+              CheckWhetherEditedSignalDataHasChanged;
+              SetCursorPos(CursorXY.X, CursorXY.Y);
+            END ELSE BEGIN
+              DisplaySignalOptionsInValueList(SignalFoundNum, SaveVariables);
+              DragSignalNum := SignalFoundNum;
+            END;
           END ELSE
             IF PointFoundNum <> UnknownPoint THEN
-              DisplayPointOptionsInValueList(PointFoundNum)
+              DisplayPointOptionsInValueList(PointFoundNum, SaveVariables)
             ELSE BEGIN
               ClearValueList;
 
@@ -1769,12 +1713,117 @@ BEGIN
   END; {TRY}
 END; { ChangeStateOfWhatIsUnderMouse }
 
+PROCEDURE TCuneoWindow.MouseButtonDownTimerTick(Sender: TObject);
+BEGIN
+  IF EditMode AND (DragSignalNum <> UnknownSignal) THEN BEGIN
+    { only start dragging after a short delay with the mouse held down }
+    IF NOT SignalDragging THEN BEGIN
+      ChangeCursor(crDrag);
+      SignalDragging := True;
+
+      WITH Signals[DragSignalNum] DO BEGIN
+        SaveDragX := Signal_LineX;
+        SaveDragY := Signal_LineWithVerticalSpacingY;
+      END; {WITH}
+    END;
+
+    CuneoWindow.MouseButtonDownTimer.Enabled := False;
+  END;
+END; { MouseButtonDownTimerTick }
+
+PROCEDURE MouseButtonReleased(Button : TMouseButton; X, Y : Integer; ShiftState : TShiftState);
+{ Button released - only used for a few processes }
+CONST
+  Bold = True;
+
+VAR
+  Line : Integer;
+  TempInt : Integer;
+
+BEGIN
+  TRY
+    { Reset the timer }
+    CuneoWindow.MouseButtonDownTimer.Enabled := False;
+
+    Line := 0;
+    WHILE Line <= High(Lines) DO BEGIN
+      IF Lines[Line].Line_UpConnectionChBold THEN BEGIN
+        Lines[Line].Line_UpConnectionChBold := False;
+        DrawConnectionCh(Line, Up);
+        InvalidateScreen(UnitRef, 'MouseButtonReleased');
+      END;
+      Inc(Line);
+    END;
+
+    Line := 0;
+    WHILE Line <= High(Lines) DO BEGIN
+      IF Lines[Line].Line_DownConnectionChBold THEN BEGIN
+        Lines[Line].Line_DownConnectionChBold := False;
+        DrawConnectionCh(Line, Down);
+        InvalidateScreen(UnitRef, 'MouseButtonReleased');
+      END;
+      Inc(Line);
+    END;
+
+    { Ending an actual or a potential drag and drop }
+    IF SignalDragging THEN
+      DropSignal;
+    DragSignalNum := UnknownSignal;
+
+    { Ending a zoomed screen mouse move }
+    IF MoveZoomWindowMode THEN BEGIN
+      MoveZoomWindowMode := False;
+      ShowStatusBarAndUpDownIndications;
+    END ELSE
+      { Setting up a zoom rectangle }
+      IF PreparingZoom THEN BEGIN
+        PreparingZoom := False;
+
+        WITH ZoomRect DO BEGIN
+          { First see if we've drawn a rectangle at all }
+          IF (Left = Right) AND (Top = Bottom) THEN
+            { reinstate the status bar as we're  not drawing a rectangle }
+            ShowStatusBarAndUpDownIndications
+          ELSE BEGIN
+            { Allow for the user starting to draw the rectangle from a different corner }
+            IF ZoomRect.Left > ZoomRect.Right THEN BEGIN
+              TempInt := ZoomRect.Right;
+              ZoomRect.Right := ZoomRect.Left;
+              ZoomRect.Left := TempInt
+            END;
+
+            IF ZoomRect.Top > ZoomRect.Bottom THEN BEGIN
+              TempInt := ZoomRect.Bottom;
+              ZoomRect.Bottom := ZoomRect.Top;
+              ZoomRect.Top := TempInt;
+            END;
+
+            ZoomScaleFactor := 750;
+            SetCaption(FWPRailWindow, 'Zoom level 130%');
+            Zooming := True;
+            InvalidateScreen(UnitRef, 'MouseButtonReleased');
+          END;
+        END;
+
+        { Undraw the rectangle that's left }
+        DrawOutline(ZoomRect, clRed, UndrawRequired, NOT UndrawToBeAutomatic);
+      END;
+  EXCEPT {TRY}
+    ON E : Exception DO
+      Log('EG MouseButtonReleased: ' + E.ClassName + ' error raised, with message: '+ E.Message);
+  END; {TRY}
+END; { MouseButtonReleased }
+
 PROCEDURE MouseButtonPressed(Button : TMouseButton; X, Y : Integer; ShiftState : TShiftState);
 { Button pressed }
 CONST
   HelpRequired = True;
 
 BEGIN
+  { Start the timer - switching it off and on seems to reset it, though it's undocumented }
+  CuneoWindow.MouseButtonDownTimer.Enabled := False;
+  CuneoWindow.MouseButtonDownTimer.Enabled := True;
+
   { See if we're in the middle of an exit sequence, and, if so, abort it }
   IF EscKeyStored THEN BEGIN
     EscKeyStored := False;

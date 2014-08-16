@@ -15,11 +15,17 @@ object CuneoWindow: TCuneoWindow
   OldCreateOrder = False
   PixelsPerInch = 96
   TextHeight = 13
-  object CuneoTimer: TTimer
+  object SignalPostFlashingTimer: TTimer
     Enabled = False
     Interval = 500
-    OnTimer = CuneoTimerTick
+    OnTimer = SignalPostFlashingTimerTick
     Left = 224
     Top = 16
+  end
+  object MouseButtonDownTimer: TTimer
+    Interval = 500
+    OnTimer = MouseButtonDownTimerTick
+    Left = 224
+    Top = 144
   end
 end

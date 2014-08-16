@@ -20,7 +20,7 @@ TYPE
     EditWindowPopupMenu: TPopupMenu;
     ExitWithoutSavingButton: TButton;
     PopupEditWindowResetSizeAndPosition: TMenuItem;
-    SaveChangesButton: TButton;
+    SaveChangesAndExitButton: TButton;
     UndoChangesButton: TButton;
     PROCEDURE EditValueListEditorEditButtonClick(Sender: TObject);
     PROCEDURE EditValueListEditorExit(Sender: TObject);
@@ -31,7 +31,7 @@ TYPE
     PROCEDURE EditWindowResize(Sender: TObject);
     PROCEDURE EditWindowShow(Sender: TObject);
     PROCEDURE ExitWithoutSavingButtonClick(Sender: TObject);
-    PROCEDURE SaveChangesButtonClick(Sender: TObject);
+    PROCEDURE SaveChangesAndExitButtonClick(Sender: TObject);
     PROCEDURE SignalImageMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     PROCEDURE UndoChangesButtonClick(Sender: TObject);
   PRIVATE
@@ -39,6 +39,9 @@ TYPE
   PUBLIC
     { Public declarations }
   END;
+
+PROCEDURE CheckWhetherEditedSignalDataHasChanged;
+{ Ask whether we want to save any amended data before selecting another signal }
 
 PROCEDURE ClearValueList;
 { Empty the value list so as not to display anyting if we click on an unrecognised item, or a blank bit of screen }
@@ -55,14 +58,14 @@ PROCEDURE CreateSignal;
 PROCEDURE DeleteSignal(SignalToDeleteNum : Integer);
 { Delete a signal after appropriate checks }
 
-PROCEDURE DisplaySignalOptionsInValueList(S : Integer);
+PROCEDURE DisplaySignalOptionsInValueList(S : Integer; SaveVariables : Boolean);
 { Create a value list in the edit window with the appropriate values }
 
-PROCEDURE DisplayPointOptionsInValueList(P : Integer);
+PROCEDURE DisplayPointOptionsInValueList(P : Integer; SaveVariables : Boolean);
 { Create a value list in the edit window with the appropriate values }
 
-PROCEDURE DragSignal(S, MouseX, MouseY : Integer);
-{ Allows a signal to be moved by the mouse }
+PROCEDURE DragSignal(S, MouseX, MouseY : Integer; OUT NearestLine, TooNearSignal : Integer);
+{ { Allows a signal to be moved by the mouse }
 
 PROCEDURE DropSignal;
 { Drops the signal at the nearest adjacent line }
@@ -70,10 +73,16 @@ PROCEDURE DropSignal;
 PROCEDURE InitialiseEditUnit;
 { Initialises the unit }
 
+PROCEDURE MoveObjectLeft;
+{ Moves whatever is currently being edited to the left }
+
+PROCEDURE MoveObjectRight;
+{ Moves whatever is currently being edited to the right }
+
 PROCEDURE ProcessSignalLocationsToMonitorCheckListBoxChecks;
 { See which locations are ticked and update the array }
 
-PROCEDURE TurnEditModeOn(SignalNum, PointNum : Integer);
+PROCEDURE TurnEditModeOn(SignalNum, PointNum, BufferStopNum, LineNum, TrackCircuitNum : Integer);
 { Turn edit Mode on }
 
 PROCEDURE TurnEditModeOff;
@@ -81,27 +90,32 @@ PROCEDURE TurnEditModeOff;
 
 VAR
   DragSignalNum : Integer = UnknownSignal;
-  DragTime : TDateTime = 0;
+  EditedLine : Integer = UnknownLine;
+  EditedPoint : Integer = UnknownPoint;
+  EditedSignal : Integer = UnknownSignal;
+  EditedTrackCircuit : Integer = UnknownTrackCircuit;
   EditWindow: TEditWindow;
+  SaveDragX : Integer = 0;
+  SaveDragY : Integer = 0;
 
 IMPLEMENTATION
 
 {$R *.dfm}
 
-USES Diagrams, Input, Cuneo, Lenz, DateUtils;
+USES Diagrams, Input, Cuneo, Lenz, Types;
 
 CONST
   UnitRef = 'Edit';
 
 VAR
   SaveEvent : TNotifyEvent;
-
-  SaveSignalFoundNum : Integer = UnknownSignal;
-  CreateNewSignalRecord : Boolean = False;
   SaveSystemOnlineState : Boolean;
+  ValueListToBeCleared : Boolean = False;
 
+  CreateNewSignalRecord : Boolean = False;
   SaveSignalAccessoryAddress : Integer;
   SaveSignalAdjacentLine : Integer;
+  SaveSignalAdjacentLineXOffset : Integer;
   SaveSignalApproachControlAspect : AspectType;
   SaveSignalAsTheatreDestination : String;
   SaveSignalAutomatic : Boolean;
@@ -122,11 +136,9 @@ VAR
   SaveSignalPossibleStationStartRouteHold : Boolean;
   SaveSignalSemaphoreDistantHomesArray : IntegerArrayType;
   SaveSignalType : TypeOfSignal;
-  SaveSignalXAdjustment : Integer;
 
-  SavePointFoundNum : Integer = UnknownPoint;
   CreateNewPointRecord : Boolean = False;
-
+  SavePointFoundNum : Integer = UnknownPoint;
   SavePointDivergingLine : Integer;
   SavePointHeelLine : Integer;
   SavePointStraightLine : Integer;
@@ -154,12 +166,13 @@ BEGIN
   WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
 
-PROCEDURE InitialiseSavedSignalVariables(S : Integer);
-{ Initialise the temporary variables, so that we can later undo any changes we've made }
+PROCEDURE SaveSignalVariables(S : Integer);
+{ Save the signal data in temporary variables, so that we can later undo any changes we've made }
 BEGIN
   WITH Signals[S] DO BEGIN
     SaveSignalAccessoryAddress := Signal_AccessoryAddress;
     SaveSignalAdjacentLine := Signal_AdjacentLine;
+    SaveSignalAdjacentLineXOffset := Signal_AdjacentLineXOffset;
     SaveSignalApproachControlAspect := Signal_ApproachControlAspect;
     SaveSignalAsTheatreDestination := Signal_AsTheatreDestination;
     SaveSignalAutomatic := Signal_Automatic;
@@ -186,12 +199,11 @@ BEGIN
     SaveSignalSemaphoreDistantHomesArray := Signal_SemaphoreDistantHomesArray;
 
     SaveSignalType := Signal_Type;
-    SaveSignalXAdjustment := Signal_XAdjustment;
   END; {WITH}
-END; { InitialiseSavedSignalVariables; }
+END; { SaveSignalVariables; }
 
-PROCEDURE InitialiseSavedPointVariables(P : Integer);
-{ Initialise the temporary variables, so that we can later undo any changes we've made }
+PROCEDURE SavePointVariables(P : Integer);
+{ Save the point data in temporary variables, so that we can later undo any changes we've made }
 BEGIN
   WITH Points[P] DO BEGIN
     SavePointDivergingLine := Point_DivergingLine;
@@ -216,26 +228,32 @@ BEGIN
     SavePointNotes := Point_Notes;
     SavePointLastManualStateAsReadIn := Point_LastManualStateAsReadIn;
   END; {WITH}
-END; { InitialiseSavedPointVariables }
+END; { SavePointVariables }
 
-PROCEDURE TurnEditModeOn(SignalNum, PointNum : Integer);
+PROCEDURE TurnEditModeOn(SignalNum, PointNum, BufferStopNum, LineNum, TrackCircuitNum : Integer);
 { Turn edit Mode on }
 BEGIN
   IF NOT EditMode THEN BEGIN
     EditMode := True;
+    IF SignalNum <> UnknownSignal THEN
+      EditedSignal := SignalNum;
+    IF PointNum <> UnknownPoint THEN
+      EditedPoint := PointNum;
+    IF LineNum <> UnknownLine THEN
+      EditedLine := LineNum;
+    IF TrackCircuitNum <> UnknownTrackCircuit THEN
+      EditedTrackCircuit := TrackCircuitNum;
+
     Diagrams.DiagramsWindow.Visible := False;
 
     { The tags are used to tell EditWindow.Visible which value list to edit }
     Edit.EditWindow.Tag := -1;
     IF SignalNum <> UnknownSignal THEN BEGIN
       Edit.EditWindow.Tag := 1;
-      SaveSignalFoundNum := SignalNum;
-      FWPRailWindow.SignalPopupEditSignalDetails.Enabled := False;
     END ELSE
       IF PointNum <> UnknownPoint THEN BEGIN
         Edit.EditWindow.Tag := 2;
         SavePointFoundNum := PointNum;
-        FWPRailWindow.PointPopupEditPointDetails.Enabled := False;
       END;
 
     Edit.EditWindow.Visible := True;
@@ -255,14 +273,20 @@ PROCEDURE TurnEditModeOff;
 BEGIN
   TRY
     IF EditMode THEN BEGIN
+      EditedSignal := UnknownSignal;
+      EditedPoint := UnknownPoint;
+      EditedLine := UnknownLine;
+      EditedTrackCircuit := UnknownTrackCircuit;
+
       EditWindow.Visible := False;
       Diagrams.DiagramsWindow.Visible := True;
       EditMode := False;
-      FWPRailWindow.SignalPopupEditSignalDetails.Enabled := True;
-      FWPRailWindow.PointPopupEditPointDetails.Enabled := True;
 
       SetCaption(FWPRailWindow, '');
       EditWindow.EditValueListEditor.Strings.Clear;
+
+      { and force a redraw so that the highglighted signal/point etc. is de-highlighted }
+      FWPRailWindow.Repaint;
 
       IF SaveSystemOnlineState THEN BEGIN
         IF SetSystemOnline THEN
@@ -273,7 +297,8 @@ BEGIN
 
       WITH EditWindow DO BEGIN
         UndoChangesButton.Enabled := False;
-        SaveChangesButton.Enabled := False;
+        SaveChangesAndExitButton.Enabled := False;
+        ExitWithoutSavingButton.Enabled := False;
       END; {WITH}
     END;
   EXCEPT {TRY}
@@ -293,8 +318,12 @@ END; { InitialiseEditUnit }
 
 PROCEDURE TEditWindow.EditValueListEditorStringsChange(Sender: TObject);
 BEGIN
-  UndoChangesButton.Enabled := True;
-  SaveChangesButton.Enabled := True;
+  IF NOT ValueListToBeCleared THEN BEGIN
+    { clearing the value list changes the strings in it, but we can't then save or undo them }
+    UndoChangesButton.Enabled := True;
+    SaveChangesAndExitButton.Enabled := True;
+    ExitWithoutSavingButton.Enabled := True;
+  END;
 END; { EditWindowValueListEditorStringsChange }
 
 PROCEDURE TEditWindow.SignalImageMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -328,7 +357,7 @@ VAR
 BEGIN
   TRY
     { Work out which field we're editing from the row we're on (there seems to be no other way of finding out) }
-    IF SaveSignalFoundNum <> UnknownSignal THEN
+    IF EditedSignal <> UnknownSignal THEN
       FindKeys(EditValueListEditor.Row, KeyName, KeyValue);
 
     IF KeyName = 'Signal Locations To Monitor' THEN BEGIN
@@ -366,12 +395,12 @@ BEGIN
 
         { Now tick those locations that are already set }
         ArrayCount := 0;
-        WHILE ArrayCount < Length(Signals[SaveSignalFoundNum].Signal_LocationsToMonitorArray) DO BEGIN
+        WHILE ArrayCount < Length(Signals[EditedSignal ].Signal_LocationsToMonitorArray) DO BEGIN
           { find it in the checklistbox and select it }
           I := 0;
           Done := False;
           WHILE (I < SignalLocationsToMonitorCheckListBox.Items.Count - 1) AND NOT Done DO BEGIN
-            IF SignalLocationsToMonitorCheckListBox.Items[I] = Locations[Signals[SaveSignalFoundNum].Signal_LocationsToMonitorArray[ArrayCount]].Location_LongStr THEN BEGIN
+            IF SignalLocationsToMonitorCheckListBox.Items[I] = Locations[Signals[EditedSignal].Signal_LocationsToMonitorArray[ArrayCount]].Location_LongStr THEN BEGIN
               SignalLocationsToMonitorCheckListBox.Checked[I] := True;
               Done := True;
             END;
@@ -388,7 +417,7 @@ BEGIN
 END; { EditValueListEditorEditButtonClick }
 
 PROCEDURE ProcessSignalLocationsToMonitorCheckListBoxChecks;
-{ See which locations are ticked and update the array. This shouldn't need valiudation as the user has not been given the opportunity of introducing errors. }
+{ See which locations are ticked and update the array. This shouldn't need validation as the user has not been given the opportunity of introducing errors. }
 VAR
   I : Integer;
   Loc : Integer;
@@ -396,7 +425,7 @@ VAR
 BEGIN
   TRY
     WITH MovementWindow DO BEGIN
-      SetLength(Signals[SaveSignalFoundNum].Signal_LocationsToMonitorArray, 0);
+      SetLength(Signals[EditedSignal].Signal_LocationsToMonitorArray, 0);
 
       I := 0;
       WHILE I < SignalLocationsToMonitorCheckListBox.Items.Count - 1 DO BEGIN
@@ -404,7 +433,7 @@ BEGIN
           Loc := 0;
           WHILE Loc < Length(Locations) DO BEGIN
             IF Locations[Loc].Location_LongStr = SignalLocationsToMonitorCheckListBox.Items[I] THEN
-              AppendToIntegerArray(Signals[SaveSignalFoundNum].Signal_LocationsToMonitorArray, Loc);
+              AppendToIntegerArray(Signals[EditedSignal].Signal_LocationsToMonitorArray, Loc);
             Inc(Loc);
           END;
         END;
@@ -414,7 +443,8 @@ BEGIN
 
     WITH EditWindow DO BEGIN
       UndoChangesButton.Enabled := True;
-      SaveChangesButton.Enabled := True;
+      SaveChangesAndExitButton.Enabled := True;
+      ExitWithoutSavingButton.Enabled := True;
     END; {WITH}
   EXCEPT {TRY}
     ON E : Exception DO
@@ -459,8 +489,8 @@ BEGIN
     ErrorMsg := '';
 
     WITH EditWindow.EditValueListEditor DO BEGIN
-      IF SaveSignalFoundNum <> UnknownSignal THEN BEGIN
-        WITH Signals[SaveSignalFoundNum] DO BEGIN
+      IF EditedSignal <> UnknownSignal THEN BEGIN
+        WITH Signals[EditedSignal] DO BEGIN
           IF KeyName = Signal_QuadrantFieldName THEN
             Signal_Quadrant := ValidateSignalQuadrant(NewKeyValue, ErrorMsg);
 
@@ -571,7 +601,7 @@ BEGIN
 
           IF ErrorMsg = '' THEN BEGIN
             IF KeyName = Signal_AdjacentLineFieldName THEN BEGIN
-              Signal_AdjacentLine := ValidateSignalAdjacentLine(SaveSignalFoundNum, NewKeyValue, ErrorMsg);
+              Signal_AdjacentLine := ValidateSignalAdjacentLine(EditedSignal , NewKeyValue, ErrorMsg);
               IF Signal_AdjacentLine = UnknownLine THEN BEGIN
                 Signal_AdjacentLine := SaveSignalAdjacentLine;
                 Values[KeyName] := LineToStr(SaveSignalAdjacentLine);
@@ -580,8 +610,8 @@ BEGIN
           END;
 
           IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Signal_XAdjustmentFieldName THEN
-              Signal_XAdjustment := ValidateSignalXAdjustment(NewKeyValue, ErrorMsg);
+            IF KeyName = Signal_AdjacentLineXOffsetFieldName THEN
+              Signal_AdjacentLineXOffset := ValidateSignalAdjacentLineXOffset(NewKeyValue, ErrorMsg);
           END;
 
           IF ErrorMsg = '' THEN
@@ -672,7 +702,7 @@ BEGIN
 
           IF ErrorMsg = '' THEN BEGIN
             IF KeyName = Signal_SemaphoreDistantHomesArrayFieldName THEN
-              Signal_SemaphoreDistantHomesArray := ValidateSignalDistantHomesArray(SaveSignalFoundNum, Signal_Type, UpperCase(NewKeyValue), ErrorMsg);
+              Signal_SemaphoreDistantHomesArray := ValidateSignalDistantHomesArray(EditedSignal , Signal_Type, UpperCase(NewKeyValue), ErrorMsg);
               IF ErrorMsg = '' THEN BEGIN
                 I := 0;
                 WHILE (I <= High(Signal_SemaphoreDistantHomesArray)) AND (ErrorMsg = '') DO BEGIN
@@ -683,26 +713,24 @@ BEGIN
           END;
 
           IF ErrorMsg = '' THEN BEGIN
-            Signal_DataChanged := True;
+//            Signal_DataChanged := True;
 
             { And redraw the screen to display the change}
             RedrawScreen := True;
-            CalculateAllSignalPositions(ZoomScaleFactor);
+            CalculateAllSignalPositions;
             InvalidateScreen(UnitRef, 'EditSaveButtonClick');
             Log('D Screen invalidated by Edit save');
             RedrawScreen := False;
           END ELSE BEGIN
-            IF NOT MessageDialogueWithDefault('Error in creating/amending S=' + IntToStr(SaveSignalFoundNum) + ': '
+            IF NOT MessageDialogueWithDefault('Error in creating/amending S=' + IntToStr(EditedSignal) + ': '
                                               + ErrorMsg
                                               + CRLF
                                               + 'Do you wish to continue?',
                                               StopTimer, mtWarning, [mbYes, mbNo], mbNo) = mrNo
             THEN
               Signal_OutOfUse := True
-            ELSE BEGIN
-              SaveSignalFoundNum := UnknownSignal;
+            ELSE
               TurnEditModeOff;
-            END;
           END;
         END; {WITH}
       END;
@@ -827,10 +855,8 @@ BEGIN
                                               StopTimer, mtWarning, [mbYes, mbNo], mbNo) = mrNo
             THEN
               Point_OutOfUse := True
-            ELSE BEGIN
-              SavePointFoundNum := UnknownPoint;
+            ELSE
               TurnEditModeOff;
-            END;
           END;
         END; {WITH}
       END;
@@ -852,7 +878,7 @@ BEGIN
     { Do the validation for the item we are on when we exit the window here rather than use OnValidate, as OnValidate is not called when a change is made to a keyvalue and
       the Value List is immediately exited
     }
-    IF SaveSignalFoundNum <> UnknownSignal THEN BEGIN
+    IF EditedSignal <> UnknownSignal THEN BEGIN
       WITH EditValueListEditor DO BEGIN
         IF EditValueListEditor.Strings.Count > 0 THEN BEGIN
           DelimiterPos := FindDelimiter('=', EditValueListEditor.Strings[Row - 1], 1);
@@ -917,13 +943,15 @@ END; { WriteIntegerArrayValues }
 PROCEDURE ClearValueList;
 { Empty the value list so as not to display anything if we click on an unrecognised item, or a blank bit of screen }
 BEGIN
+  ValueListToBeCleared := True;
+
   WITH EditWindow DO BEGIN
     EditValueListEditor.Strings.Clear;
     EditWindowLabel.Caption := '';
   END; {WITH}
 END; { ClearValueList }
 
-PROCEDURE DisplayPointOptionsInValueList(P : Integer);
+PROCEDURE DisplayPointOptionsInValueList(P : Integer; SaveVariables : Boolean);
 { Create a value list in the edit window with the appropriate values }
 
   PROCEDURE WritePointValue(Str : String; P : Integer; EditMask : String);
@@ -981,7 +1009,8 @@ BEGIN { DisplayPointOptionsInValueList }
       END; {WITH}
     END; {WITH}
 
-    InitialiseSavedPointVariables(P);
+    IF SaveVariables THEN
+      SavePointVariables(P);
     SavePointFoundNum := P;
 
     { Reactivate this event so as to enable the various buttons if we do any editing }
@@ -993,8 +1022,9 @@ BEGIN { DisplayPointOptionsInValueList }
   END; {TRY}
 END; { DisplayPointOptionsInValueList }
 
-PROCEDURE DisplaySignalOptionsInValueList(S : Integer);
+PROCEDURE DisplaySignalOptionsInValueList(S : Integer; SaveVariables : Boolean);
 { Create a value list in the edit window with the appropriate values }
+
   PROCEDURE WriteSignalValue(Str : String; S : Integer; EditMask : String);
   BEGIN
     WITH EditWindow.EditValueListEditor DO BEGIN
@@ -1052,6 +1082,7 @@ BEGIN { DisplaySignalOptionsInValueList }
           WriteIntegerValue(Signal_AccessoryAddressFieldName, Signal_AccessoryAddress, '9999');
 
           Values[Signal_AdjacentLineFieldName] := LineToStr(Signal_AdjacentLine);
+          WriteIntegerValue(Signal_AdjacentLineXOffsetFieldName, Signal_AdjacentLineXOffset, '!#99');
 
           IF Signal_ApproachControlAspect <> NoAspect THEN
             Values[Signal_ApproachControlAspectFieldName] := AspectToStr(Signal_ApproachControlAspect)
@@ -1096,12 +1127,13 @@ BEGIN { DisplaySignalOptionsInValueList }
                                                                                  ['Calling On', '2 Aspect', '3 Aspect', '4 Aspect', 'Home Semaphore', 'Distant Semaphore']);
           WritePickListValue(Signal_QuadrantFieldName, SignalQuadrantToStr(Signal_Quadrant), ['Upper', 'Lower']);
           WriteBooleanValue(Signal_OutOfUseFieldName, Signal_OutOfUse);
-          WriteIntegerValue(Signal_XAdjustmentFieldName, Signal_XAdjustment, '!#99');
         END; {WITH}
       END; {WITH}
 
-      InitialiseSavedSignalVariables(S);
-      SaveSignalFoundNum := S;
+      IF SaveVariables THEN
+        SaveSignalVariables(S);
+      EditedSignal := S;
+      ExitWithoutSavingButton.Enabled := True;
 
       { Reactivate this event so as to enable the various buttons if we do any editing }
       EditValueListEditor.OnStringsChange := SaveEvent;
@@ -1124,28 +1156,36 @@ BEGIN
 END; { EditValueListEditorValidate }
 
 PROCEDURE TEditWindow.EditWindowShow(Sender: TObject);
+CONST
+  SaveVariables = True;
+
 BEGIN
   TRY
     { Tag represents the signal number, and is set by whichever procedure sets the edit window to visible }
-    IF Tag = 1 THEN
-      DisplaySignalOptionsInValueList(SaveSignalFoundNum)
-    ELSE
-      IF Tag = 2 THEN
-        DisplayPointOptionsInValueList(SavePointFoundNum);
+    CASE Tag OF
+      1:
+        DisplaySignalOptionsInValueList(EditedSignal, SaveVariables);
+      2:
+        DisplayPointOptionsInValueList(SavePointFoundNum, SaveVariables);
+    END; {CASE}
   EXCEPT {TRY}
     ON E : Exception DO
       Log('EG EditWindowShow: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { EditWindowShow }
 
-PROCEDURE TEditWindow.UndoChangesButtonClick(Sender: TObject);
+PROCEDURE UndoChanges;
+CONST
+  SaveVariables = True;
+
 BEGIN
   TRY
     { Undo the changes to the global variables and redisplay the value list }
-    IF SaveSignalFoundNum <> UnknownSignal THEN BEGIN
-      WITH Signals[SaveSignalFoundNum] DO BEGIN
+    IF EditedSignal <> UnknownSignal THEN BEGIN
+      WITH Signals[EditedSignal] DO BEGIN
         Signal_AccessoryAddress := SaveSignalAccessoryAddress;
         Signal_AdjacentLine := SaveSignalAdjacentLine;
+        Signal_AdjacentLineXOffset := SaveSignalAdjacentLineXOffset;
         Signal_ApproachControlAspect := SaveSignalApproachControlAspect;
         Signal_AsTheatreDestination := SaveSignalAsTheatreDestination;
         Signal_Automatic := SaveSignalAutomatic;
@@ -1171,13 +1211,12 @@ BEGIN
         Signal_PossibleStationStartRouteHold := SaveSignalPossibleStationStartRouteHold;
         Signal_SemaphoreDistantHomesArray := SaveSignalSemaphoreDistantHomesArray;
         Signal_Type := SaveSignalType;
-        Signal_XAdjustment := SaveSignalXAdjustment;
       END; {WITH}
 
       CreateNewSignalRecord := False;
-      DisplaySignalOptionsInValueList(SaveSignalFoundNum);
+      DisplaySignalOptionsInValueList(EditedSignal, SaveVariables);
       CalculateTCAdjacentSignals;
-      CalculateAllSignalPositions(ZoomScaleFactor);
+      CalculateAllSignalPositions;
     END;
 
     IF SavePointFoundNum <> UnknownPoint THEN BEGIN
@@ -1205,25 +1244,30 @@ BEGIN
       END; {WITH}
 
       CreateNewPointRecord := False;
-      DisplayPointOptionsInValueList(SavePointFoundNum);
+      DisplayPointOptionsInValueList(SavePointFoundNum, SaveVariables);
       CalculatePointPositions;
     END;
 
     { And redraw the screen }
     RedrawScreen := True;
-    InvalidateScreen(UnitRef, 'EditSaveButtonClick');
-    Log('D Screen invalidated by Edit save');
+    InvalidateScreen(UnitRef, 'UndoChangesButtonClick');
+    Log('D Screen invalidated by Edit Undo Changes');
     RedrawScreen := False;
 
-    UndoChangesButton.Enabled := False;
-    SaveChangesButton.Enabled := False;
+    EditWindow.UndoChangesButton.Enabled := False;
+    EditWindow.SaveChangesAndExitButton.Enabled := False;
   EXCEPT {TRY}
     ON E : Exception DO
       Log('EG UndoChangesButtonClick: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { UndoChangesButtonClick }
 
-PROCEDURE TEditWindow.SaveChangesButtonClick(Sender: TObject);
+PROCEDURE TEditWindow.UndoChangesButtonClick(Sender: TObject);
+BEGIN
+  UndoChanges;
+END; { UndoChangesButtonClick }
+
+PROCEDURE TEditWindow.SaveChangesAndExitButtonClick(Sender: TObject);
 BEGIN
   TRY
     { Update the database }
@@ -1232,36 +1276,45 @@ BEGIN
       AddNewRecordToSignalDatabase;
     END;
 
-    IF SaveSignalFoundNum <> UnknownSignal THEN BEGIN
+    IF EditedSignal <> UnknownSignal THEN BEGIN
       WriteOutSignalDataToDatabase;
       CalculateTCAdjacentSignals;
-      CalculateAllSignalPositions(ZoomScaleFactor);
+      CalculateAllSignalPositions;
+
+      EditedSignal := UnknownSignal;
     END;
 
     IF SavePointFoundNum <> UnknownPoint THEN BEGIN
       WriteOutPointDataToDatabase;
       CalculatePointPositions;
+
+      EditedPoint := UnknownPoint;
     END;
+
+    ClearValueList;
 
     { And redraw the screen }
     RedrawScreen := True;
     CalculateTCAdjacentSignals;
-    CalculateAllSignalPositions(ZoomScaleFactor);
+    CalculateAllSignalPositions;
     InvalidateScreen(UnitRef, 'EditSaveButtonClick');
-    Log('D Screen invalidated by Edit save');
+    Log('D Screen invalidated by Edit Save And Exit');
     RedrawScreen := False;
 
-    SaveSignalFoundNum := UnknownSignal;
-    TurnEditModeOff;
+    UndoChangesButton.Enabled := False;
+    SaveChangesAndExitButton.Enabled := False;
+    ExitWithoutSavingButton.Enabled := False;
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG SaveChangesButtonClick: ' + E.ClassName + ' error raised, with message: '+ E.Message);
+      Log('EG SaveChangesAndExitButtonClick: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
-END; { SaveChangesButtonClick }
+END; { SaveChangesAndExitButtonClick }
 
 PROCEDURE TEditWindow.ExitWithoutSavingButtonClick(Sender: TObject);
 BEGIN
   TRY
+    UndoChanges;
+
     IF CreateNewSignalRecord THEN BEGIN
       CreateNewSignalRecord := False;
 
@@ -1270,9 +1323,11 @@ BEGIN
     END;
 
     { Undo the data-changed settings }
-    IF SaveSignalFoundNum <> UnknownSignal THEN BEGIN
-      Signals[SaveSignalFoundNum].Signal_DataChanged := False;
-      SaveSignalFoundNum := UnknownSignal;
+    IF EditedSignal <> UnknownSignal THEN BEGIN
+      Signals[EditedSignal].Signal_DataChanged := False;
+      EditedSignal := UnknownSignal;
+
+      FWPRailWindow.Repaint;
     END;
 
     IF SavePointFoundNum <> UnknownPoint THEN BEGIN
@@ -1287,7 +1342,10 @@ BEGIN
       SetLength(Points, Length(Points) - 1);
     END;
 
-    TurnEditModeOff;
+    ExitWithoutSavingButton.Enabled := False;
+    UndoChangesButton.Enabled := False;
+    SaveChangesAndExitButton.Enabled := False;
+    ClearValueList;
   EXCEPT {TRY}
     ON E : Exception DO
       Log('EG ExitWithSavingButtonClick: ' + E.ClassName + ' error raised, with message: '+ E.Message);
@@ -1339,6 +1397,9 @@ END; { EditWindowResize }
 
 PROCEDURE CreateSignal;
 { Creates a signal from scratch }
+CONST
+  SaveVariables = True;
+
 VAR
   ExistingSignalFoundAttachedToLine : Boolean;
   S : Integer;
@@ -1367,6 +1428,7 @@ BEGIN
         WITH Signals[High(Signals)] DO BEGIN
           Signal_AccessoryAddress := 0;
           Signal_AdjacentLine := GetLineFoundNum;
+          Signal_AdjacentLineXOffset := 0;
           Signal_AdjacentTC := UnknownTrackCircuit;
           Signal_ApproachControlAspect := NoAspect;
           Signal_ApproachLocked := False;
@@ -1426,16 +1488,14 @@ BEGIN
           Signal_TRSReleasedMsgWritten := False;
           Signal_TheatreIndicatorString := '';
           Signal_Type := TwoAspect;
-          Signal_VerticalSpacing := 0;
-          Signal_XAdjustment := 0;
         END; {WITH}
 
         CreateNewSignalRecord := True;
-        DisplaySignalOptionsInValueList(High(Signals));
+        DisplaySignalOptionsInValueList(High(Signals), SaveVariables);      { should this be "EditedSignal"? **** }
 
         RedrawScreen := True;
         CalculateTCAdjacentSignals;
-        CalculateAllSignalPositions(ZoomScaleFactor);
+        CalculateAllSignalPositions;
         InvalidateScreen(UnitRef, 'CreateSignal');
         Log('D Screen invalidated by CreateSignal');
         RedrawScreen := False;
@@ -1474,7 +1534,7 @@ BEGIN
       WHILE OtherSignal <= High(Signals) DO BEGIN
         WITH Signals[OtherSignal] DO BEGIN
           { Save various variables in case the deletion fails }
-          InitialiseSavedSignalVariables(OtherSignal);
+          SaveSignalVariables(OtherSignal);
 
           { Now look at the individual fields that might need renumbering }
           IF Signal_OppositePassingLoopSignal = SignalToDeleteNum THEN BEGIN
@@ -1625,7 +1685,8 @@ BEGIN
             EditWindowLabel.Caption := '';
             EditValueListEditor.Strings.Clear;
             UndoChangesButton.Enabled := False;
-            SaveChangesButton.Enabled := False;
+            SaveChangesAndExitButton.Enabled := False;
+            ExitWithoutSavingButton.Enabled := False;
           END; {WITH}
 
           { Reload all the signals }
@@ -1633,7 +1694,7 @@ BEGIN
 
           RedrawScreen := True;
           CalculateTCAdjacentSignals;
-          CalculateAllSignalPositions(ZoomScaleFactor);
+          CalculateAllSignalPositions;
           InvalidateScreen(UnitRef, 'DeleteSignal');
           Log('D Screen invalidated by Delete Signal');
           RedrawScreen := False;
@@ -1753,72 +1814,247 @@ BEGIN
   END; {TRY}
 END; { DeletePoint }
 
-PROCEDURE DragSignal(S, MouseX, MouseY : Integer);
+FUNCTION NearestLineToSignal(S : Integer) : Integer;
+{ Returns the line number nearest to a dragged signal if the signal or its post are within a line's mouse rectangle }
+VAR
+  Line : Integer;
+  LineFound : Boolean;
+
+BEGIN
+  Result := UnknownLine;
+  TRY
+    LineFound := False;
+    Line := 0;
+    WHILE (Line <= High(Lines)) AND NOT LineFound DO BEGIN
+      IF PointInPolygon(Lines[Line].Line_MousePolygon, Point(Signals[S].Signal_LineX, Signals[S].Signal_LineWithVerticalSpacingY)) THEN
+        LineFound := True
+      ELSE
+        Inc(Line);
+    END; {WHILE}
+
+    IF NOT LineFound THEN BEGIN
+      { see if the base of the signal post is within the polygon }
+      Line := 0;
+      WHILE (Line <= High(Lines)) AND NOT LineFound DO BEGIN
+        IF PointInPolygon(Lines[Line].Line_MousePolygon, Point(Signals[S].Signal_LineX, Signals[S].Signal_LineY)) THEN
+          LineFound := True
+        ELSE
+          Inc(Line);
+      END; {WHILE}
+    END;
+
+    IF LineFound THEN
+      Result := Line;
+  EXCEPT
+    ON E : Exception DO
+      Log('EG NearestLineToSignal:' + E.ClassName + ' error raised, with message: '+ E.Message);
+  END; {TRY}
+END; { NearestLineToSignal }
+
+FUNCTION TooNearOtherSignal(S : Integer) : Integer;
+{ Returns true if the signal we're dragging/dropping is too close to another signal }
+VAR
+  OtherSignal : Integer;
+  OtherSignalFound : Boolean;
+
+BEGIN
+  Result := UnknownSignal;
+  TRY
+    OtherSignalFound := False;
+    OtherSignal := 0;
+    WHILE (OtherSignal <= High(Signals)) AND NOT OtherSignalFound DO BEGIN
+      IF (OtherSignal <> S) AND PtInRect(Signals[OtherSignal].Signal_MouseRect, Point(Signals[S].Signal_LineX, Signals[S].Signal_LineWithVerticalSpacingY)) THEN
+        OtherSignalFound := True
+      ELSE
+        Inc(OtherSignal);
+    END; {WHILE}
+
+    IF OtherSignalFound THEN
+      Result := OtherSignal;
+  EXCEPT
+    ON E : Exception DO
+      Log('EG TooNearOtherSignal:' + E.ClassName + ' error raised, with message: '+ E.Message);
+  END; {TRY}
+END; { TooNearOtherSignal }
+
+PROCEDURE DragSignal(S, MouseX, MouseY : Integer; OUT NearestLine, TooNearSignal : Integer);
 { Allows a signal to be moved by the mouse }
 BEGIN
-  { Only start dragging after a short delay with the mouse held down }
-  IF NOT SignalDragging THEN BEGIN
-    IF GetKeyState(vk_LButton) < 0 THEN BEGIN
-      IF MilliSecondsBetween(DragTime, Now) > 500 THEN BEGIN
-        ChangeCursor(crDrag);
-        SignalDragging := True;
-        FWPRailWindow.Repaint;
-      END;
+  TRY
+    NearestLine := UnknownLine;
+    TooNearSignal := UnknownLine;
+
+    IF (DragSignalNum <> UnknownSignal) AND SignalDragging THEN BEGIN
+      WITH Signals[DragSignalNum] DO BEGIN
+        Signal_LineX := MouseX;
+        Signal_LineWithVerticalSpacingY := MouseY;
+        IF Signal_Direction = Up THEN
+          Signal_LineY := MouseY - SignalVerticalSpacingScaled + ScrollBarYAdjustment
+        ELSE
+          Signal_LineY := MouseY + SignalVerticalSpacingScaled - ScrollBarYAdjustment;
+
+        { Indicate whether or not it can be dropped }
+        NearestLine := NearestLineToSignal(DragSignalNum);
+        TooNearSignal := TooNearOtherSignal(DragSignalNum);
+      END; {WITH}
+
+      CalculateSignalMouseRectangles(DragSignalNum);
+      DrawSignal(DragSignalNum);
+
+      FWPRailWindow.Repaint;
     END;
-  END;
-
-  IF (DragSignalNum <> UnknownSignal) AND SignalDragging THEN BEGIN
-    WITH Signals[DragSignalNum] DO BEGIN
-      Signal_LocationX := MouseX;
-      Signal_LocationY := MouseY;
-    END; {WITH}
-
-    CalculateSignalMouseRectangles(DragSignalNum, ZoomScaleFactor);
-
-    DrawSignal(DragSignalNum);
-
-    FWPRailWindow.Repaint;
-  END;
+  EXCEPT
+    ON E : Exception DO
+      Log('EG DragSignal:' + E.ClassName + ' error raised, with message: '+ E.Message);
+  END; {TRY}
 END; { DragSignal }
 
 PROCEDURE DropSignal;
 { Drops the signal at the nearest adjacent line }
+CONST
+  SaveVariables = True;
+
 VAR
-  Line : Integer;
-  NearestAdjacentLine : Integer;
-  NearnessToAdjacentLine : Integer;
+  NearestLine : Integer;
+  NewSignalX : Integer;
+  NewSignalY : Integer;
+  TooNearSignal : Integer;
+  SaveSignalAdjacentLine : Integer;
 
 BEGIN
-  SignalDragging := False;
-  ChangeCursor(crDefault);
+  TRY
+    SignalDragging := False;
+    ChangeCursor(crDefault);
 
-  WITH Signals[DragSignalNum] DO BEGIN
-    NearnessToAdjacentLine := 99999;
-    NearestAdjacentLine := UnknownLine;
-    FOR Line := 0 TO High(Lines) DO BEGIN
-      IF (Signal_LocationX >= Lines[Line].Line_UpX) AND (Signal_LocationX <= Lines[Line].Line_DownX) THEN BEGIN
-        { see which line we're closest to (on the y axis) - only choose horizontal lines, though }
-        IF (Signal_LocationY < Lines[Line].Line_UpY)
-        AND (Lines[Line].Line_UpY = Lines[Line].Line_DownY)
-        AND ((Lines[Line].Line_UpY - Signal_LocationY) <= NearnessToAdjacentLine)
-        THEN BEGIN
-          NearnessToAdjacentLine := Lines[Line].Line_UpY - Signal_LocationY;
-          NearestAdjacentLine := Line;
+    WITH Signals[DragSignalNum] DO BEGIN
+      { See if the signal is within a line polygon }
+      NearestLine := NearestLineToSignal(DragSignalNum);
+
+      IF NearestLine = UnknownSignal THEN BEGIN
+        { put the signal back whence it came }
+        Debug('!Cannot find a line anywhere near the dragged signal');
+        Signal_LineX := SaveDragX;
+        Signal_LineWithVerticalSpacingY := SaveDragY;
+        CalculateSignalMouseRectangles(DragSignalNum);
+        FWPRailWindow.Repaint;
+      END ELSE BEGIN
+        { Is another one at the exact spot? Record where it is going to be placed to carry out this test. }
+        IF Signal_Direction = Up THEN
+          NewSignalX := Lines[NearestLine].Line_UpX + SignalRadiusScaled
+        ELSE
+          { Down }
+          NewSignalX := Lines[NearestLine].Line_DownX - SignalRadiusScaled;
+
+        NewSignalY := Lines[NearestLine].Line_UpY;
+
+        { See whether we're trying to drop the signal over another signal }
+        TooNearSignal := TooNearOtherSignal(DragSignalNum);
+        IF TooNearSignal <> UnknownSignal THEN BEGIN
+          { put the newly-moved signal back whence it came }
+          Debug('!Cannot drop the signal where there is an existing signal (S=' + IntToStr(TooNearSignal) +')');
+          Signal_LineX := SaveDragX;
+          Signal_LineWithVerticalSpacingY := SaveDragY;
+          CalculateSignalMouseRectangles(DragSignalNum);
+          FWPRailWindow.Repaint;
+        END ELSE BEGIN
+          { it's ok to place the signal here }
+          SaveSignalAdjacentLine := Signal_AdjacentLine;
+
+          Signal_PreviousLineX := NewSignalX;
+          Signal_PreviousLineY := NewSignalY;
+          Signal_PreviousLineWithVerticalSpacingY := Signal_LineWithVerticalSpacingY;
+
+          Signal_AdjacentLine := NearestLine;
+          Signal_AdjacentLineXOffset := 0;
+          CalculateSignalPosition(DragSignalNum);
+          CalculateSignalMouseRectangles(DragSignalNum);
+
+          DrawSignal(DragSignalNum);
+          Log('SG S' + IntToStr(DragSignalNum) + ' dragged from X=' + IntToStr(SaveDragX) + ' Y=' + IntToStr(SaveDragY) + ' (Line=' + LineToStr(SaveSignalAdjacentLine) + ')'
+              + ' and dropped at X=' + IntToStr(Signal_LineX) + ' Y=' + IntToStr(Signal_LineY)  + ' (Line=' + LineToStr(Signal_AdjacentLine) + ')');
+
+          DisplaySignalOptionsInValueList(EditedSignal, NOT SaveVariables);
+          DragSignalNum := UnknownSignal;
+          Signal_DataChanged := True;
+          FWPRailWindow.Repaint;
         END;
       END;
-    END; {FOR}
-
-    IF NearestAdjacentLine <> UnknownLine THEN BEGIN
-      Signal_LocationY := Lines[NearestAdjacentLine].Line_UpY;
-
-      CalculateSignalPosition(DragSignalNum, ZoomScaleFactor);
-      CalculateSignalMouseRectangles(DragSignalNum, ZoomScaleFactor);
-      DrawSignal(DragSignalNum);
-      DragSignalNum := UnknownSignal;
-
-      FWPRailWindow.Repaint;
-    END;
-  END; {WITH}
+    END; {WITH}
+  EXCEPT
+    ON E : Exception DO
+      Log('EG DropSignal:' + E.ClassName + ' error raised, with message: '+ E.Message);
+  END; {TRY}
 END; { DropSignal }
+
+PROCEDURE MoveObjectLeft;
+{ Moves whatever is currently being edited to the left }
+CONST
+  SaveVariables = True;
+
+BEGIN
+  IF (EditedSignal <> UnknownSignal) AND (DragSignalNum = UnknownSignal) THEN BEGIN
+    WITH Signals[EditedSignal] DO BEGIN
+      Dec(Signals[EditedSignal].Signal_AdjacentLineXOffset);
+
+      CalculateSignalPosition(EditedSignal);
+      CalculateSignalMouseRectangles(EditedSignal);
+
+      DisplaySignalOptionsInValueList(EditedSignal, NOT SaveVariables);
+
+      Signal_DataChanged := True;
+      FWPRailWindow.Repaint;
+    END; {WITH}
+    EditWindow.UndoChangesButton.Enabled := True;
+    EditWindow.SaveChangesAndExitButton.Enabled := True;
+  END;
+END; {MoveObjectLeft }
+
+PROCEDURE MoveObjectRight;
+{ Moves whatever is currently being edited to the right }
+CONST
+  SaveVariables = True;
+
+BEGIN
+  IF (EditedSignal <> UnknownSignal) AND (DragSignalNum = UnknownSignal) THEN BEGIN
+    WITH Signals[EditedSignal] DO BEGIN
+      Signal_DataChanged := True;
+
+      Inc(Signals[EditedSignal].Signal_AdjacentLineXOffset);
+
+      CalculateSignalPosition(EditedSignal);
+      CalculateSignalMouseRectangles(EditedSignal);
+
+      DisplaySignalOptionsInValueList(EditedSignal, NOT SaveVariables);
+
+      Signal_DataChanged := True;
+      FWPRailWindow.Repaint;
+    END; {WITH}
+    EditWindow.UndoChangesButton.Enabled := True;
+    EditWindow.SaveChangesAndExitButton.Enabled := True;
+  END;
+END; {MoveObjectRight }
+
+PROCEDURE CheckWhetherEditedSignalDataHasChanged;
+{ Ask whether we want to save any amended data before selecting another signal }
+BEGIN
+  IF EditedSignal <> UnknownSignal THEN BEGIN
+    IF Signals[EditedSignal].Signal_DataChanged THEN BEGIN
+      IF MessageDialogueWithDefault('You have made changes to S' + IntToStr(EditedSignal) + '.'
+                                    + CRLF
+                                    + 'Do you want to save those changes?',
+                                    StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrYes
+      THEN
+        WriteOutSignalDataToDatabase
+      ELSE BEGIN
+        Signals[EditedSignal].Signal_DataChanged := False;
+
+        { We'd better undo them, then }
+        UndoChanges;
+      END;
+
+      EditedSignal := UnknownSignal;
+    END;
+  END;
+END; { CheckWhetherEditedSignalDataHasChanged }
 
 END { Edit }.

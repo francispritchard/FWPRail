@@ -43,29 +43,30 @@ object EditWindow: TEditWindow
       245
       199)
   end
-  object SaveChangesButton: TButton
-    Left = 597
+  object SaveChangesAndExitButton: TButton
+    Left = 584
     Top = 89
-    Width = 105
+    Width = 118
     Height = 25
-    Caption = 'Save Changes'
+    Caption = 'Save Changes and Exit'
     Enabled = False
     TabOrder = 1
-    OnClick = SaveChangesButtonClick
+    OnClick = SaveChangesAndExitButtonClick
   end
   object ExitWithoutSavingButton: TButton
-    Left = 597
+    Left = 584
     Top = 120
-    Width = 105
+    Width = 118
     Height = 25
     Caption = 'Exit Without Saving'
+    Enabled = False
     TabOrder = 2
     OnClick = ExitWithoutSavingButtonClick
   end
   object UndoChangesButton: TButton
-    Left = 597
+    Left = 584
     Top = 58
-    Width = 105
+    Width = 118
     Height = 25
     Caption = 'Undo Changes'
     Enabled = False
