@@ -1930,7 +1930,7 @@ BEGIN { KeyPressedDown }
                     THEN
                       Debug('Edit Mode remains OFF')
                     ELSE
-                      TurnEditModeOn(UnknownSignal, UnknownPoint);
+                      TurnEditModeOn(UnknownSignal, UnknownPoint, UnknownBufferStop, UnknownLine, UnknownTrackCircuit);
                   END;
                 END;
               END;
@@ -2598,7 +2598,7 @@ BEGIN { KeyPressedDown }
                             { PresentState <> RequiredState: a five second wait should be sufficient }
                             PointFeedbackWaitInSeconds := Round(SecondSpan(Time, Points[P].Point_FeedbackStartTime));
                             IF PointFeedbackWaitInSeconds >= PointFeedbackMaximumWaitInSeconds THEN BEGIN
-                              DebugStr := DebugStr + 'P=' + IntToStr(P) + ' pending change to ' + PointStateToStr( Points[P].Point_RequiredState)
+                              DebugStr := DebugStr + 'P=' + IntToStr(P) + ' pending change to ' + PointStateToStr(Points[P].Point_RequiredState)
                                                    + ' failed after a ' + IntToStr(PointFeedbackWaitInSeconds) + ' second wait';
                               Log('A ' + DebugStr);
                             END;
@@ -2629,7 +2629,7 @@ BEGIN { KeyPressedDown }
                             { PresentState <> RequiredState: a five second wait should be sufficient }
                             PointFeedbackWaitInSeconds := Round(SecondSpan(Time, Points[P].Point_FeedbackStartTime));
                             IF PointFeedbackWaitInSeconds >= PointFeedbackMaximumWaitInSeconds THEN BEGIN
-                              DebugStr := DebugStr + 'P=' + IntToStr(P) + ' pending change to ' + PointStateToStr( Points[P].Point_RequiredState)
+                              DebugStr := DebugStr + 'P=' + IntToStr(P) + ' pending change to ' + PointStateToStr(Points[P].Point_RequiredState)
                                                    + ' failed after a ' + IntToStr(PointFeedbackWaitInSeconds) + ' second wait';
                               Log('A ' + DebugStr);
                             END;
@@ -2787,18 +2787,18 @@ BEGIN { KeyPressedDown }
                   IF NOT ResizeMap THEN
                     ReadInLocationDataFromDatabase
                   ELSE
-                    CalculateLocationPositions(750);
+                    CalculateLocationPositions;
 
                   SetLength(LocationOccupations, Length(Locations));
 
-                  SetUpLineDrawingVars(1000);
+                  SetUpLineDrawingVars;
 
                   Log('A READ IN LINE DATA FROM DATABASE');
                   IF NOT ResizeMap THEN
                     ReadInLineDataFromDatabase
                   ELSE BEGIN
-                    CalculateLinePositions(750);
-                    CalculateBufferStopPositions(750);
+                    CalculateLinePositions;
+                    CalculateBufferStopPositions;
                   END;
 
                   Log('A READ IN FEEDBACK DATA FROM DATABASE');
@@ -3429,10 +3429,12 @@ BEGIN { KeyPressedDown }
 
                   IF ZoomScaleFactor = 1000 THEN BEGIN
                     Zooming := False;
-                    SetCaption(FWPRailWindow, '');
+                    WriteToStatusBarPanel(StatusBarPanel2, 'Screen zoom off');
                   END ELSE BEGIN
                     Zooming := True;
-                    SetCaption(FWPRailWindow, 'Zoom level ' + ZoomAmountStr);
+                    WriteToStatusBarPanel(StatusBarPanel2, 'Screen set to ' + ZoomAmountStr + IfThen(ZoomAmountStr = '500%',
+                                                                                                     ' (maximum size) ',
+                                                                                                     ''));
                   END;
 
                   ReinitialiseFWPRailWindowVariables := True;
@@ -4189,8 +4191,10 @@ BEGIN { KeyPressedDown }
           CASE ShiftKeys OF
             NoShiftKeys: {Left}
               BEGIN
-                HelpMsg := '';
+                HelpMsg := 'Move edited object to the left';
                 IF NOT HelpRequired THEN BEGIN
+                  IF EditMode THEN
+                    MoveObjectLeft;
                 END;
               END;
             ShiftAlt: {Left}
@@ -4234,8 +4238,10 @@ BEGIN { KeyPressedDown }
           CASE ShiftKeys OF
             NoShiftKeys: {Right}
               BEGIN
-                HelpMsg := '';
+                HelpMsg := 'Move edited object to the right';
                 IF NOT HelpRequired THEN BEGIN
+                  IF EditMode THEN
+                    MoveObjectRight;
                 END;
               END;
             ShiftAlt: {Right}
@@ -4589,14 +4595,14 @@ BEGIN { KeyPressedDown }
               END;
             Alt: {F2}
               BEGIN
-                HelpMsg := 'show/hide signal hidden aspects';
+                HelpMsg := 'show/hide hidden station signal aspects';
                 IF NOT HelpRequired THEN BEGIN
-                  IF ShowSignalHiddenAspects THEN BEGIN
-                    WriteToStatusBarPanel(StatusBarPanel2, 'Not displaying signal hidden aspects');
-                    ShowSignalHiddenAspects := False;
+                  IF ShowSignalHiddenStationSignalAspects THEN BEGIN
+                    WriteToStatusBarPanel(StatusBarPanel2, 'Not displaying hidden station signal aspects');
+                    ShowSignalHiddenStationSignalAspects := False;
                   END ELSE BEGIN
-                    WriteToStatusBarPanel(StatusBarPanel2, 'Showing signal hidden aspects');
-                    ShowSignalHiddenAspects := True;
+                    WriteToStatusBarPanel(StatusBarPanel2, 'Showing hidden station signal aspects');
+                    ShowSignalHiddenStationSignalAspects := True;
                   END;
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
@@ -5032,17 +5038,7 @@ BEGIN { KeyPressedDown }
         vk_F9: { journeys }
           CASE ShiftKeys OF
             NoShiftKeys: {F9}
-              BEGIN
-                HelpMsg := 'show full journey record window';
-                IF NOT HelpRequired THEN BEGIN
-                  T := 0;
-                  WHILE T <= High(Trains) DO BEGIN
-                    IF Trains[T].Train_DiagramFound THEN
-                      WriteTrainJourneysRecordToLockListWindow(T, NOT FullRecord);
-                    Inc(T);
-                  END; {WHILE}
-                END;
-              END;
+              ; {avoid using F9 as that's the Delphi run key }
             ShiftAlt: {F8}
               BEGIN
               END;
