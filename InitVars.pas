@@ -604,6 +604,7 @@ TYPE
     Signal_AccessoryAddress : Integer;
     Signal_Aspect : AspectType;
     Signal_AdjacentLine : Integer;
+    Signal_AdjacentLineXOffset : Integer;
     Signal_AdjacentTC : Integer;
     Signal_ApproachControlAspect : AspectType;
     Signal_ApproachLocked : Boolean;
@@ -626,8 +627,9 @@ TYPE
     Signal_IndicatorState : IndicatorStateType;
     Signal_JunctionIndicators : ARRAY [JunctionIndicatorType] OF JunctionIndicatorRec;
     Signal_LampIsOn : Boolean; { used for flashing aspects }
-    Signal_LocationX : Integer;
-    Signal_LocationY : Integer;
+    Signal_LineX : Integer;
+    Signal_LineY : Integer;
+    Signal_LineWithVerticalSpacingY : Integer;
     Signal_LocationsToMonitorArray : IntegerArrayType;
 
     { Signal_LockedArray and Signal_RouteLockingNeededArray sound similar but serve different purposes - RouteLockingNeededArray covers the lines, track circuits, points,
@@ -673,8 +675,6 @@ TYPE
     Signal_TRSReleased : Boolean;
     Signal_TRSReleasedMsgWritten : Boolean;
     Signal_Type : TypeOfSignal;
-    Signal_VerticalSpacing : Integer;
-    Signal_XAdjustment : Integer;
   END;
 
   WriteReadType = (ReadOnly, WriteOnly, WriteThenRead);
@@ -684,6 +684,7 @@ CONST
 
   Signal_AccessoryAddressFieldName : String = 'Signal Accessory Address';
   Signal_AdjacentLineFieldName : String = 'Signal Adjacent Line';
+  Signal_AdjacentLineXOffsetFieldName : String = 'Signal AdjacentLine XOffset';
   Signal_ApproachControlAspectFieldName : String = 'Signal Approach Control Aspect';
   Signal_AsTheatreDestinationFieldName : String = 'Signal As Theatre Destination';
   Signal_AutomaticFieldName : String = 'Signal Automatic'; { not in use }
@@ -713,7 +714,6 @@ CONST
   Signal_UpperLeftIndicatorTargetFieldName : String = 'Signal Upper Left Indicator Target';
   Signal_UpperRightIndicatorTargetFieldName : String = 'Signal Upper Right Indicator Target';
   Signal_VerticalSpacingFieldName : String = 'Signal Vertical Spacing';
-  Signal_XAdjustmentFieldName : String = 'Signal X Adjustment';
 
 TYPE
   SuitableAdditionalTrainsRec = RECORD
@@ -1525,6 +1525,9 @@ FUNCTION ValidateSignalAccessoryAddress(Str : String; SignalType : TypeOfSignal;
 FUNCTION ValidateSignalAdjacentLine(SignalBeingValidated : Integer; Str : String; OUT ErrorMsg : String) : Integer;
 { Validates and if ok returns the line next to a signal }
 
+FUNCTION ValidateSignalAdjacentLineXOffset(Str : String; OUT ErrorMsg : String) : Integer;
+{ Validates and if ok returns whether a signal's on screen adjustment if any }
+
 FUNCTION ValidateSignalApproachControlAspect(Str : String; OUT ErrorMsg : String) : AspectType;
 { Validates and if ok returns the approach control signal aspect }
 
@@ -1566,9 +1569,6 @@ FUNCTION ValidateSignalQuadrant(Str : String; OUT ErrorMsg : String) : QuadrantT
 
 FUNCTION ValidateSignalType(Str : String; Quadrant : QuadrantType; OUT ErrorMsg : String) : TypeOfSignal;
 { Validates and if ok returns the signal type }
-
-FUNCTION ValidateSignalXAdjustment(Str : String; OUT ErrorMsg : String) : Integer;
-{ Validates and if ok returns whether a signal's on screen adjustment if any }
 
 PROCEDURE ValidateJunctionIndicators2(StrArray : ARRAY OF String; SignalIndicator : IndicatorType; SignalJunctionIndicators : ARRAY OF JunctionIndicatorRec;
                                       OUT ErrorMsg : String);
@@ -3593,12 +3593,14 @@ BEGIN
             Signal_LocationX := Signal_LocationX - SignalHorizontalSpacingScaled;
         END;
 
-        { Adjust left or right if XAdjustment greater than or less than zero respectively }
-        IF Signal_XAdjustment > 0 THEN
-          Signal_LocationX := Signal_LocationX + MulDiv(FWPRailWindow.ClientWidth, Signal_XAdjustment, ScaleFactor)
+        Signal_LineY := Lines[Signal_AdjacentLine].Line_UpY;
+
+        { Adjust left or right if AdjacentLineXOffset greater than or less than zero respectively }
+        IF Signal_AdjacentLineXOffset > 0 THEN
+          Signal_LineX := Signal_LineX + MulDiv(FWPRailWindow.ClientWidth, Signal_AdjacentLineXOffset, ZoomScaleFactor)
         ELSE
-          IF Signal_XAdjustment < 0 THEN
-            Signal_LocationX := Signal_LocationX - MulDiv(FWPRailWindow.ClientWidth, Abs(Signal_XAdjustment), ScaleFactor);
+          IF Signal_AdjacentLineXOffset < 0 THEN
+            Signal_LineX := Signal_LineX - MulDiv(FWPRailWindow.ClientWidth, Abs(Signal_AdjacentLineXOffset), ZoomScaleFactor);
 
         Signal_VerticalSpacing := SignalVerticalSpacingScaled;
 
@@ -4158,7 +4160,7 @@ BEGIN
   END; { CASE }
 END; { ValidateSignalType }
 
-FUNCTION ValidateSignalXAdjustment(Str : String; OUT ErrorMsg : String) : Integer;
+FUNCTION ValidateSignalAdjacentLineXOffset(Str : String; OUT ErrorMsg : String) : Integer;
 { Validates and if ok returns a signal's on-screen adjustment if any }
 BEGIN
   ErrorMsg := '';
@@ -4167,8 +4169,8 @@ BEGIN
     Result := -1
   ELSE
     IF NOT TryStrToInt(Trim(Str), Result) THEN
-      ErrorMsg := 'ValidateSignalXAdjustment: Invalid integer String "' + Str + '"';
-END; { ValidateSignalXAdjustment }
+      ErrorMsg := 'ValidateSignalAdjacentLineXOffset: Invalid integer String "' + Str + '"';
+END; { ValidateSignalAdjacentLineXOffset }
 
 FUNCTION ValidateIndicatorDestinations(S : Integer) : String;
 { Validates whether the indicator destinations are valid. This test can only be done once all the signal data has been read in. }
@@ -4443,7 +4445,7 @@ BEGIN
             Signal_AdjacentLine := ValidateSignalAdjacentLine(S, SignalsADOTable.FieldByName(Signal_AdjacentLineFieldName).AsString, ErrorMsg);
 
           IF ErrorMsg = '' THEN
-            Signal_XAdjustment := ValidateSignalXAdjustment(SignalsADOTable.FieldByName(Signal_XAdjustmentFieldName).AsString, ErrorMsg);
+            Signal_AdjacentLineXOffset := ValidateSignalAdjacentLineXOffset(SignalsADOTable.FieldByName(Signal_AdjacentLineXOffsetFieldName).AsString, ErrorMsg);
 
           IF ErrorMsg = '' THEN
             Signal_Direction := ValidateDirection(SignalsADOTable.FieldByName(Signal_DirectionFieldName).AsString, ErrorMsg);
@@ -4742,7 +4744,8 @@ BEGIN
             Exit;
         END;
 
-        SignalsADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source=' + PathToRailDataFiles + SignalDataFilename + '.' + SignalDataFilenameSuffix
+        SignalsADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
+                                                 + PathToRailDataFiles + SignalDataFilename + '.' + SignalDataFilenameSuffix
                                                  + ';Persist Security Info=False';
         SignalsADOConnection.Connected := True;
         SignalsADOTable.Open;
@@ -5001,11 +5004,6 @@ BEGIN
               SignalsADOTable.Edit;
               SignalsADOTable.FieldByName(Signal_TypeFieldName).AsString := SignalTypeToStr(Signal_Type, ShortStringType);
               SignalsADOTable.Post;
-
-              Log('S Recording in Signal database that S=' + IntToStr(S) + ' ' + Signal_XAdjustmentFieldName + ' is ''' + IntToStr(Signal_XAdjustment) + '''');
-              SignalsADOTable.Edit;
-              SignalsADOTable.FieldByName(Signal_XAdjustmentFieldName).AsString := IntToStr(Signal_XAdjustment);
-              SignalsADOTable.Post;
             END; {WITH}
           END;
           SignalsADOTable.Next;
@@ -5024,7 +5022,7 @@ BEGIN
 END; { WriteOutSignalDataToDatabase }
 
 FUNCTION GetLineAdjacentSignal(Line : Integer) : Integer;
-{ Return the signal nearest the line, except for semphore distants as they are treated differently }
+{ Return the signal nearest the line, except for semaphore distants as they are treated differently }
 VAR
   Found : Boolean;
   S : Integer;
