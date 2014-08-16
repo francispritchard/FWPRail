@@ -4084,7 +4084,7 @@ VAR
 BEGIN
   MenuItemEx := TMenuItemExtended.Create(PopupMenu);
   MenuItemEx.Caption := Caption;
-  MenuItemEx.Value := 'test string';
+  MenuItemEx.Value := 'test string'; { not used }
   MenuItemEx.Enabled := Enabled;
   MenuItemEx.PopupType := PopupType;
   MenuItemEx.OnClick := Click;
@@ -4092,6 +4092,9 @@ BEGIN
 END; { AddMenuItem }
 
 PROCEDURE TFWPRailWindow.SignalPopupItemClick(Sender: TObject);
+CONST
+  SaveVariables = True;
+
 BEGIN
   WITH Signals[SignalPopupNum] DO BEGIN
     WITH sender As TMenuItemExtended DO BEGIN
@@ -4105,10 +4108,11 @@ BEGIN
               Signal_Aspect := RedAspect;
             END;
             Signal_DataChanged := True;
-            InvalidateScreen(UnitRef, 'SignalPopupItemClick 1');
+            InvalidateScreen(UnitRef, 'SignalPopupItemClick SignalOutOfUsePopupType');
           END;
+
         SignalEditPopupType:
-          TurnEditModeOn(SignalPopupNum, UnknownPoint);
+          TurnEditModeOn(SignalPopupNum, UnknownPoint, UnknownBufferStop, UnknownLine, UnknownTrackCircuit);
 
         SignalChangeDirectionPopupType:
           BEGIN
@@ -4117,20 +4121,21 @@ BEGIN
             ELSE
               Signal_Direction := Up;
             Signal_DataChanged := True;
-            DisplaySignalOptionsInValueList(SignalPopupNum);
-            InvalidateScreen(UnitRef, 'SignalPopupItemClick 3');
+            DisplaySignalOptionsInValueList(SignalPopupNum, SaveVariables);
+            InvalidateScreen(UnitRef, 'SignalPopupItemClick SignalChangeDirectionPopupType');
           END;
+
         SignalPositionRevertPopupType:
           BEGIN
             Signal_LineX := Signal_PreviousLineX;
             Signal_LineY := Signal_PreviousLineY;
             Signal_LineWithVerticalSpacingY := Signal_PreviousLineWithVerticalSpacingY;
             Signal_DataChanged := True;
-            DisplaySignalOptionsInValueList(SignalPopupNum);
-            InvalidateScreen(UnitRef, 'SignalPopupItemClick 4');
+            DisplaySignalOptionsInValueList(SignalPopupNum, SaveVariables);
+            InvalidateScreen(UnitRef, 'SignalPopupItemClick SignalPositionRevertPopupType');
           END;
       ELSE {CASE}
-        Log('SG Invalid tag ' + IntToStr(Tag) + ' in SignalPopupItemClick');
+        Log('BG Invalid popup type ' + IntToStr(Tag) + ' in LinePopupItemClick');
       END; {CASE}
     END; {WITH}
   END; {WITH}
@@ -4159,7 +4164,7 @@ BEGIN
     END ELSE BEGIN
       { EditMode }
 
-      IF SignalPopupNum = UnknownSignal THEN
+      IF (SignalPopupNum = UnknownSignal) OR (EditedSignal = UnknownSignal) THEN
         Caption := 'Editing Signals'
       ELSE
         Caption := 'Editing Signal ' + IntToStr(SignalPopupNum);
@@ -4189,8 +4194,9 @@ BEGIN
               Point_OutOfUse := True
             ELSE
               Point_OutOfUse := False;
-            InvalidateScreen(UnitRef, 'PointPopupItemClick 1');
+            InvalidateScreen(UnitRef, 'PointPopupItemClick PointOutOfUsePopupType');
           END;
+
         PointToManualPopupType:
           BEGIN
             IF NOT Point_ManualOperation THEN
@@ -4198,8 +4204,9 @@ BEGIN
             ELSE
               Point_ManualOperation := False;
             Point_DataChanged := True;
-            InvalidateScreen(UnitRef, 'PointPopupItemClick 2');
+            InvalidateScreen(UnitRef, 'PointPopupItemClick PointToManualPopupType');
           END;
+
         PointUnlockPopupType:
           BEGIN
             IF Point_LockedByUser THEN
@@ -4207,12 +4214,13 @@ BEGIN
             ELSE
               Point_LockedByUser := True;
             Point_DataChanged := True;
-            InvalidateScreen(UnitRef, 'PointPopupLockPointClick 3');
+            InvalidateScreen(UnitRef, 'PointPopupLockPointClick PointUnlockPopupType');
           END;
+
         PointEditPopupType:
-          TurnEditModeOn(UnknownSignal, PointPopupNum);
+          TurnEditModeOn(UnknownSignal, PointPopupNum, UnknownBufferStop, UnknownLine, UnknownTrackCircuit);
       ELSE {CASE}
-        Log('PG Invalid tag ' + IntToStr(Tag) + ' in PointPopupItemClick');
+        Log('BG Invalid popup type ' + IntToStr(Tag) + ' in LinePopupItemClick');
       END; {CASE}
     END; {WITH}
   END; {WITH}
@@ -4260,7 +4268,7 @@ BEGIN
     WITH Sender AS TMenuItem DO BEGIN
       CASE Tag OF
         1:
-          TurnEditModeOn(UnknownSignal, BufferStopPopupNum);
+          TurnEditModeOn(UnknownSignal, unknownPoint, BufferStopPopupNum, UnknownLine, UnknownTrackCircuit);
       ELSE {CASE}
         Log('BG Invalid tag ' + IntToStr(Tag) + ' in BufferStopPopupItemClick');
       END; {CASE}
@@ -4618,31 +4626,37 @@ BEGIN
         LineTCUnoccupiedPopupType:
           IF Line_TC <> UnknownTrackCircuit THEN BEGIN
             SetTrackCircuitState(Line_TC, TCUnoccupied);
-            InvalidateScreen(UnitRef, 'LinePopupItemClick 1');
+            InvalidateScreen(UnitRef, 'LinePopupItemClick LineTCUnoccupiedPopupType');
           END;
+
         LineTCFeedbackOccupationPopupType:
           IF Line_TC <> UnknownTrackCircuit THEN BEGIN
             SetTrackCircuitState(Line_TC, TCFeedbackOccupation);
-            InvalidateScreen(UnitRef, 'LinePopupItemClick 2');
+            InvalidateScreen(UnitRef, 'LinePopupItemClick LineTCFeedbackOccupationPopupType');
           END;
+
         LineTCSystemOccupationPopupType:
           IF Line_TC <> UnknownTrackCircuit THEN BEGIN
             SetTrackCircuitState(Line_TC, TCSystemOccupation);
-            InvalidateScreen(UnitRef, 'LinePopupItemClick 3');
+            InvalidateScreen(UnitRef, 'LinePopupItemClick LineTCSystemOccupationPopupType');
           END;
+
         LineTCPermanentOccupationPopupType:
           IF Line_TC <> UnknownTrackCircuit THEN BEGIN
             SetTrackCircuitState(Line_TC, TCPermanentOccupationSetByUser);
-            InvalidateScreen(UnitRef, 'LinePopupItemClick 3');
+            InvalidateScreen(UnitRef, 'LinePopupItemClick LineTCPermanentOccupationPopupType:');
           END;
+
         LineTCOutOfUsePopupType:
           IF Line_TC <> UnknownTrackCircuit THEN BEGIN
             SetTrackCircuitState(Line_TC, TCOutOfUseSetByUser);
-            InvalidateScreen(UnitRef, 'LinePopupItemClick 3');
+            InvalidateScreen(UnitRef, 'LinePopupItemClick LineTCOutOfUsePopupType');
           END;
+
         LineTCSpeedRestrictionPopupType:
           IF Line_TC <> UnknownTrackCircuit THEN
             SetOrClearTrackCircuitSpeedRestriction(LinePopupNum);
+
         LineTCUserMustDrivePopupType:
           BEGIN
             IF TrackCircuits[Line_TC].TC_UserMustDrive THEN BEGIN
@@ -4654,16 +4668,18 @@ BEGIN
             END;
 
             IF ShowTrackCircuitsWhereUserMustDrive THEN
-              InvalidateScreen(UnitRef, 'LinePopupItemClick 7');
+              InvalidateScreen(UnitRef, 'LinePopupItemClick LineTCUserMustDrivePopupType');
           END;
+
         LineOutOfUsePopupType:
           BEGIN
             IF Line_OutOfUseState = OutOfUse THEN
               Line_OutOfUseState := InUse
             ELSE
               Line_OutOfUseState := OutOfUse;
-            InvalidateScreen(UnitRef, 'LinePopupItemClick 9');
+            InvalidateScreen(UnitRef, 'LinePopupItemClick LineOutOfUsePopupType');
           END;
+
         LineLocationOutOfUsePopupType:
           IF Line_Location <> UnknownLocation THEN BEGIN
             WITH Locations[Line_Location] DO BEGIN
@@ -4690,20 +4706,24 @@ BEGIN
                   END;
                 END;
               END;
-              InvalidateScreen(UnitRef, 'LinePopupItemClick 8');
+              InvalidateScreen(UnitRef, 'LinePopupItemClick LineLocationOutOfUsePopupType');
             END; {WITH}
           END;
+
         LineAllocateLocoToTrackCircuitPopupType:
           IF TrackCircuits[Line_TC].TC_LocoChip = UnknownLocoChip THEN
             AllocateLocoToTrackCircuit(LinePopupNum)
           ELSE
             ClearLocoFromTrackCircuit(Line_TC);
+
         LineChangeInternalLocoDirectionToUpPopupType:
           IF TrackCircuits[Line_TC].TC_LocoChip = UnknownLocoChip THEN
             ChangeInternalLocoDirectionToUp(TrackCircuits[Line_TC].TC_LocoChip);
+
         LineChangeInternalLocoDirectionToDownPopupType:
           IF TrackCircuits[Line_TC].TC_LocoChip = UnknownLocoChip THEN
             ChangeInternalLocoDirectionToDown(TrackCircuits[Line_TC].TC_LocoChip);
+
         LineShowLocoLastErrorMessagePopupType:
           IF Line_TC <> UnknownTrackCircuit THEN BEGIN
             T := GetTrainIndexFromLocoChip(TrackCircuits[Line_TC].TC_LocoChip);
@@ -4716,10 +4736,11 @@ BEGIN
               END;
             END;
           END;
+
         LineEditPopupType:
-          TurnEditModeOn(UnknownSignal, LinePopupNum);
+          TurnEditModeOn(UnknownSignal, UnknownPoint, UnknownBufferStop, LinePopupNum, UnknownTrackCircuit);
       ELSE {CASE}
-        Log('BG Invalid tag ' + IntToStr(Tag) + ' in LinePopupItemClick');
+        Log('BG Invalid popup type ' + IntToStr(Tag) + ' in LinePopupItemClick');
       END; {CASE}
     END; {WITH}
   END; {WITH}
@@ -6652,8 +6673,16 @@ END; { ResetFWPRailWindowSizeClick }
 PROCEDURE TFWPRailWindow.FWPRailWindowMouseWheel(Sender: TObject; ShiftState: TShiftState; WheelDelta: Integer; MousePos: TPoint; VAR Handled: Boolean);
 BEGIN
   IF (LocoDialogueWindow <> NIL) AND (LocoDialogueWindow.Visible) THEN
-    ControlSpeedByMouseWheel(WheelDelta, MousePos);
-END;
+    ControlSpeedByMouseWheel(WheelDelta, MousePos)
+  ELSE
+    IF FWPRailWindow.VertScrollBar.Visible THEN BEGIN
+      IF WheelDelta > 0 THEN
+        FWPRailWindow.VertScrollBar.Position := FWPRailWindow.VertScrollBar.Position - 25
+      ELSE
+        IF WheelDelta < 0 THEN
+          FWPRailWindow.VertScrollBar.Position := FWPRailWindow.VertScrollBar.Position + 25;
+    END;
+END; { FWPRailWindowMouseWheel }
 
 //PROCEDURE TFWPRailWindow.CM_EnterMenuLoop(var msg: TMessage);
 //BEGIN
@@ -7002,14 +7031,14 @@ BEGIN { Main drawing procedure }
                 { If the screen has been restored to its normal size, restore the screen mode to default }
                 IF (Height = MulDiv(Screen.WorkAreaHeight, 80, 100)) AND (Width = Screen.WorkAreaWidth) THEN BEGIN
                   ScreenMode := DefaultWindowedScreenMode;
-                  WriteToStatusBarPanel(StatusBarPanel2, 'Screen restored to default size');
-                  Log('A Main window restored to default size');
+                  WriteToStatusBarPanel(StatusBarPanel2, 'Screen set to default size');
+                  Log('A Main Window set to default size');
                 END;
                 ThinLineMode := True;
                 Borderstyle := bsSizeable;
                 IF NOT FWPRailWindowStatusBar.Visible THEN
                   FWPRailWindowStatusBar.Show;
-                Log('A Main window set to user-defined size');
+                Log('A Main Window set to user-defined size');
 
                 IF WindowsTaskbarDisabled THEN BEGIN
 
@@ -7030,7 +7059,7 @@ BEGIN { Main drawing procedure }
                 Height := MulDiv(Screen.WorkAreaHeight, 80, 100);
                 IF NOT FWPRailWindowStatusBar.Visible THEN
                   FWPRailWindowStatusBar.Show;
-                Log('A Main window set to default size');
+                Log('A Main Window set to default size');
 
                 IF WindowsTaskbarDisabled THEN BEGIN
                   { Find handle of TASKBAR }
@@ -7055,7 +7084,7 @@ BEGIN { Main drawing procedure }
                 Left := 0;
                 IF FWPRailWindowStatusBar.Visible THEN
                   FWPRailWindowStatusBar.Hide;
-                Log('A Main window now full screen');
+                Log('A Main Window now full screen');
                 Width := Screen.DeskTopWidth;
 
                 IF NOT WindowsTaskbarDisabled THEN BEGIN
@@ -7080,7 +7109,7 @@ BEGIN { Main drawing procedure }
                 Height := Screen.DeskTopHeight;
                 IF NOT FWPRailWindowStatusBar.Visible THEN
                   FWPRailWindowStatusBar.Show;
-                Log('A Main window now full screen with border');
+                Log('A Main Window now full screen with border');
               END;
           END; {CASE}
         END;
