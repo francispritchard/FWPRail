@@ -19,14 +19,6 @@ TYPE
     BufferStopPopupMenu: TPopupMenu;
     ChangePoint: TMenuItem;
     ChangeSignal: TMenuItem;
-    CreateLineMenuItem: TMenuItem;
-    CreateOrDeleteItemPopupMenu: TPopupMenu;
-    CreateOrDeleteMenuItemRuler: TMenuItem;
-    CreatePointMenuItem: TMenuItem;
-    CreateSignalMenuItem: TMenuItem;
-    DeleteLineMenuItem: TMenuItem;
-    DeletePointMenuItem: TMenuItem;
-    DeleteSignalMenuItem: TMenuItem;
     FWPRailApplicationEvents: TApplicationEvents;
     FWPRailWindowColourDialogue: TColorDialog;
     FWPRailWindowMenu: TMainMenu;
@@ -167,13 +159,6 @@ TYPE
 
     PROCEDURE BufferStopPopupItemClick(Sender: TObject);
     PROCEDURE BufferStopMenuOnPopup(Sender: TObject);
-    PROCEDURE CreateLineMenuItemClick(Sender: TObject);
-    PROCEDURE CreateOrDeleteItemMenuOnPopup(Sender: TObject);
-    PROCEDURE CreatePointMenuItemClick(Sender: TObject);
-    PROCEDURE CreateSignalMenuItemClick(Sender: TObject);
-    PROCEDURE DeleteLineMenuItemClick(Sender: TObject);
-    PROCEDURE DeletePointMenuItemClick(Sender: TObject);
-    PROCEDURE DeleteSignalMenuItemClick(Sender: TObject);
     PROCEDURE FlashTimerTick(Sender: TObject);
     PROCEDURE FWPRailApplicationEventsShortCut(VAR Msg: TWMKey; VAR Handled: Boolean);
     PROCEDURE FWPRailWindowCreate(Sender: TObject);
@@ -436,11 +421,13 @@ TYPE
     { Third of three routines which allow the program to be minimised by pressing the "minimize" button and then maximised from the taskbar }
   END;
 
- PopupTypes = (NoClickPopupType, SignalOutOfUsePopupType, SignalEditPopupType, SignalChangeDirectionPopupType, SignalPositionRevertPopupType, PointOutOfUsePopupType,
-               PointToManualPopupType, PointUnlockPopupType, PointEditPopupType, BufferStopEditPopupType, LineTCUnoccupiedPopupType, LineTCFeedbackOccupationPopupType,
-               LineTCSystemOccupationPopupType, LineTCPermanentOccupationPopupType, LineTCSpeedRestrictionPopupType, LineTCUserMustDrivePopupType,
-               LineOutOfUsePopupType, LineTCOutOfUsePopupType, LineLocationOutOfUsePopupType, LineAllocateLocoToTrackCircuitPopupType,
-               LineChangeInternalLocoDirectionToUpPopupType, LineChangeInternalLocoDirectionToDownPopupType, LineShowLocoLastErrorMessagePopupType, LineEditPopupType);
+ PopupTypes = (NoClickPopupType,
+               SignalOutOfUsePopupType, SignalEditPopupType, SignalChangeDirectionPopupType, SignalPositionRevertPopupType, SignalDeletePopupType,
+               PointOutOfUsePopupType, PointToManualPopupType, PointUnlockPopupType, PointEditPopupType, BufferStopEditPopupType,
+               LineTCUnoccupiedPopupType, LineTCFeedbackOccupationPopupType, LineTCSystemOccupationPopupType, LineTCPermanentOccupationPopupType, LineCreateSignalPopupType,
+               LineTCSpeedRestrictionPopupType, LineTCUserMustDrivePopupType, LineOutOfUsePopupType, LineTCOutOfUsePopupType, LineLocationOutOfUsePopupType,
+               LineAllocateLocoToTrackCircuitPopupType, LineChangeInternalLocoDirectionToUpPopupType, LineChangeInternalLocoDirectionToDownPopupType,
+               LineShowLocoLastErrorMessagePopupType, LineEditPopupType);
 
  TMenuItemExtended = CLASS(TMenuItem)
  PRIVATE
@@ -3962,120 +3949,6 @@ BEGIN
     GeneralPopupResetFWPRailWindowSizeAndPosition.Enabled := False;
 END; { FWPRailWindowPopupMenuOnPopup }
 
-PROCEDURE TFWPRailWindow.CreateOrDeleteItemMenuOnPopup(Sender: TObject);
-VAR
-  P : Integer;
-  S : Integer;
-  LineFound : Boolean;
-
-BEGIN
-  IF SignalPopupNum = UnknownSignal THEN BEGIN
-    IF LinePopupNum <> UnknownLine THEN BEGIN
-      { only create a signal next to a line, and then only if there isn't one already attached to it }
-      S := 0;
-      LineFound := False;
-      WHILE S <= High(Signals) DO BEGIN
-        IF Signals[S].Signal_AdjacentLine = LinePopupNum THEN
-          LineFound := True;
-        Inc(S);
-      END; {WHILE}
-      IF LineFound THEN
-        CreateSignalMenuItem.Enabled := False
-      ELSE
-        CreateSignalMenuItem.Enabled := True;
-    END;
-
-    DeleteSignalMenuItem.Enabled := False;
-    DeleteSignalMenuItem.Caption := 'Delete Signal';
-  END ELSE BEGIN
-    CreateSignalMenuItem.Enabled := False;
-    DeleteSignalMenuItem.Enabled := True;
-    DeleteSignalMenuItem.Caption := 'Delete Signal ' + IntToStr(SignalPopupNum)
-  END;
-
-  IF PointPopupNum = UnknownPoint THEN BEGIN
-    IF LinePopupNum <> UnknownLine THEN
-      { only create a point next to a line }
-      CreatePointMenuItem.Enabled := True;
-    DeletePointMenuItem.Enabled := False;
-    DeletePointMenuItem.Caption := 'Delete Point';
-  END ELSE BEGIN
-    CreatePointMenuItem.Enabled := False;
-    DeletePointMenuItem.Enabled := True;
-    DeletePointMenuItem.Caption := 'Delete Point ' + IntToStr(PointPopupNum)
-  END;
-
-  IF LinePopupNum = UnknownLine THEN BEGIN
-    CreateLineMenuItem.Enabled := True;
-    DeleteLineMenuItem.Enabled := False;
-    DeleteLineMenuItem.Caption := 'Delete Line';
-  END ELSE BEGIN
-    CreateLineMenuItem.Enabled := False;
-
-    { but we can't delete a line if there's a signal or point attached to it }
-    S := 0;
-    LineFound := False;
-    WHILE S <= High(Signals) DO BEGIN
-      IF Signals[S].Signal_AdjacentLine = LinePopupNum THEN
-        LineFound := True;
-      Inc(S);
-    END; {WHILE}
-
-    IF NOT LineFound THEN BEGIN
-      P := 0;
-      LineFound := False;
-      WHILE P <= High(Points) DO BEGIN
-        IF Points[P].Point_DivergingLine = LinePopupNum THEN
-          LineFound := True;
-        IF Points[P].Point_StraightLine = LinePopupNum THEN
-          LineFound := True;
-        IF Points[P].Point_HeelLine = LinePopupNum THEN
-          LineFound := True;
-        Inc(P);
-      END; {WHILE}
-    END;
-
-    IF LineFound THEN
-      DeleteLineMenuItem.Enabled := False
-    ELSE
-      DeleteLineMenuItem.Enabled := True;
-    DeleteLineMenuItem.Caption := 'Delete Line ' + LineToStr(LinePopupNum)
-  END;
-END; { CreateOrDeleteItemMenuOnPopup }
-
-PROCEDURE TFWPRailWindow.CreateSignalMenuItemClick(Sender: TObject);
-BEGIN
-  CreateSignal;
-END; { CreateSignalMenuItemClick }
-
-PROCEDURE TFWPRailWindow.DeleteSignalMenuItemClick(Sender: TObject);
-BEGIN
-  DeleteSignal(SignalPopupNum);
-END; { DeleteSignalMenuItemClick }
-
-PROCEDURE TFWPRailWindow.CreatePointMenuItemClick(Sender: TObject);
-BEGIN
-  CreatePoint;
-END; { CreatePointMenuItemClick }
-
-PROCEDURE TFWPRailWindow.DeletePointMenuItemClick(Sender: TObject);
-BEGIN
-  DeletePoint(PointPopupNum);
-END; { DeletePointMenuItemClick }
-
-PROCEDURE TFWPRailWindow.CreateLineMenuItemClick(Sender: TObject);
-BEGIN
-  IF LinePopupNum = UnknownLine THEN
-    CreateLineMenuItem.Enabled := True
-  ELSE
-    CreateLineMenuItem.Enabled := False;
-END; { CreateLineMenuItemClick }
-
-PROCEDURE TFWPRailWindow.DeleteLineMenuItemClick(Sender: TObject);
-BEGIN
-
-END; { DeleteLineMenuItemClick }
-
 PROCEDURE AddMenuItem(PopupMenu : TPopupMenu; Caption : String; PopupType : PopupTypes; Enabled : Boolean; Click : TNotifyEvent);
 { Add a dynamic menu item }
 VAR
@@ -4099,21 +3972,6 @@ BEGIN
   WITH Signals[SignalPopupNum] DO BEGIN
     WITH sender As TMenuItemExtended DO BEGIN
       CASE PopupType OF
-        SignalOutOfUsePopupType:
-          BEGIN
-            IF NOT Signal_OutOfUse THEN                         { should these be here? Â£Â£Â£Â£Â£Â£Â£Â£Â£Â£ }
-              Signal_OutOfUse := True
-            ELSE BEGIN
-              Signal_OutOfUse := False;
-              Signal_Aspect := RedAspect;
-            END;
-            Signal_DataChanged := True;
-            InvalidateScreen(UnitRef, 'SignalPopupItemClick SignalOutOfUsePopupType');
-          END;
-
-        SignalEditPopupType:
-          TurnEditModeOn(SignalPopupNum, UnknownPoint, UnknownBufferStop, UnknownLine, UnknownTrackCircuit);
-
         SignalChangeDirectionPopupType:
           BEGIN
             IF Signal_Direction = Up THEN
@@ -4123,6 +3981,24 @@ BEGIN
             Signal_DataChanged := True;
             DisplaySignalOptionsInValueList(SignalPopupNum, SaveVariables);
             InvalidateScreen(UnitRef, 'SignalPopupItemClick SignalChangeDirectionPopupType');
+          END;
+
+        SignalDeletePopupType:
+          DeleteSignal(SignalPopupNum);
+
+        SignalEditPopupType:
+          TurnEditModeOn(SignalPopupNum, UnknownPoint, UnknownBufferStop, UnknownLine, UnknownTrackCircuit);
+
+        SignalOutOfUsePopupType:
+          BEGIN
+            IF NOT Signal_OutOfUse THEN                         { should these be here? ££££££££££ }
+              Signal_OutOfUse := True
+            ELSE BEGIN
+              Signal_OutOfUse := False;
+              Signal_Aspect := RedAspect;
+            END;
+            Signal_DataChanged := True;
+            InvalidateScreen(UnitRef, 'SignalPopupItemClick SignalOutOfUsePopupType');
           END;
 
         SignalPositionRevertPopupType:
@@ -4147,6 +4023,7 @@ BEGIN
     SignalPopupMenu.Items.Clear;
 
     IF NOT EditMode THEN BEGIN
+      { Add the caption... }
       IF SignalPopupNum = UnknownSignal THEN
         Caption := 'Signals'
       ELSE
@@ -4154,6 +4031,7 @@ BEGIN
       AddMenuItem(SignalPopupMenu, Caption, NoClickPopupType, NOT Enabled, NIL);
       AddMenuItem(SignalPopupMenu, '-', NoClickPopupType, Enabled, NIL);
 
+      { ...and now the individual items }
       IF NOT Signal_OutOfUse THEN
         AddMenuItem(SignalPopupMenu, 'Set Signal Out Of Use', SignalOutOfUsePopupType, Enabled, SignalPopupItemClick)
       ELSE
@@ -4164,6 +4042,7 @@ BEGIN
     END ELSE BEGIN
       { EditMode }
 
+      { Add the caption... }
       IF (SignalPopupNum = UnknownSignal) OR (EditedSignal = UnknownSignal) THEN
         Caption := 'Editing Signals'
       ELSE
@@ -4171,14 +4050,19 @@ BEGIN
       AddMenuItem(SignalPopupMenu, Caption, NoClickPopupType, Enabled, NIL);
       AddMenuItem(SignalPopupMenu, '-', NoClickPopupType, Enabled, NIL);
 
+      { ...and now the individual items }
       IF Signal_Direction = Up THEN
-        AddMenuItem(SignalPopupMenu, 'Change direction to Down', SignalChangeDirectionPopupType, Enabled, SignalPopupItemClick)
+        AddMenuItem(SignalPopupMenu, 'Change Direction to Down', SignalChangeDirectionPopupType, Enabled, SignalPopupItemClick)
       ELSE
-        AddMenuItem(SignalPopupMenu, 'Change direction to Up', SignalChangeDirectionPopupType, Enabled, SignalPopupItemClick);
+        AddMenuItem(SignalPopupMenu, 'Change Direction to Up', SignalChangeDirectionPopupType, Enabled, SignalPopupItemClick);
 
       IF Signal_PreviousLineX <> 0 THEN
-        { the signa has been moved }
-        AddMenuItem(SignalPopupMenu, 'Revert to previous signal position', SignalPositionRevertPopupType, Enabled, SignalPopupItemClick);
+        { the signal has been moved }
+        AddMenuItem(SignalPopupMenu, 'Revert to Previous Signal Position', SignalPositionRevertPopupType, Enabled, SignalPopupItemClick);
+
+      AddMenuItem(SignalPopupMenu, '-', NoClickPopupType, Enabled, NIL);
+
+      AddMenuItem(SignalPopupMenu, 'Delete Signal', SignalDeletePopupType, Enabled, SignalPopupItemClick);
     END;
   END; {WITH}
 END; { SignalPopupMenuOnPopup }
@@ -4232,6 +4116,8 @@ BEGIN
     PointPopupMenu.Items.Clear;
 
     IF NOT EditMode THEN BEGIN
+      { Add the caption... }
+      { ...and now the individual items }
       IF PointPopupNum = UnknownPoint THEN
         Caption := 'Points'
       ELSE
@@ -4239,6 +4125,7 @@ BEGIN
       AddMenuItem(PointPopupMenu, Caption, NoClickPopupType, NOT Enabled, NIL);
       AddMenuItem(PointPopupMenu, '-', NoClickPopupType, Enabled, NIL);
 
+      { ...and now the individual items }
       IF Point_OutOfUse THEN
         AddMenuItem(PointPopupMenu, 'Set Point Back In Use', PointOutOfUsePopupType, Enabled, PointPopupItemClick)
       ELSE
@@ -4258,6 +4145,13 @@ BEGIN
     END ELSE BEGIN
       { EditMode }
 
+      { Add the caption... }
+      IF (PointPopupNum = UnknownPoint) OR (EditedPoint = UnknownPoint) THEN
+        Caption := 'Editing Points'
+      ELSE
+        Caption := 'Editing Point ' + IntToStr(PointPopupNum);
+
+      { ...and now the individual items }
     END;
   END; {WITH}
 END; { PointPopupMenuOnPopup }
@@ -4282,6 +4176,7 @@ BEGIN
     BufferStopPopupMenu.Items.Clear;
 
     IF NOT EditMode THEN BEGIN
+      { Add the caption... }
       IF BufferStopPopupNum = UnknownBufferStop THEN
         Caption := 'BufferStops'
       ELSE
@@ -4289,9 +4184,20 @@ BEGIN
       AddMenuItem(BufferStopPopupMenu, Caption, NoClickPopupType, NOT Enabled, NIL);
       AddMenuItem(BufferStopPopupMenu, '-', NoClickPopupType, Enabled, NIL);
 
+      { ...and now the individual items }
       AddMenuItem(BufferStopPopupMenu, 'Edit BufferStop', BufferStopEditPopupType, Enabled, BufferStopPopupItemClick)
     END ELSE BEGIN
       { EditMode }
+
+      { Add the caption... }
+      IF (BufferStopPopupNum = UnknownBufferStop) OR (EditedBufferStop = UnknownBufferStop) THEN
+        Caption := 'Editing BufferStops'
+      ELSE
+        Caption := 'Editing BufferStop ' + IntToStr(BufferStopPopupNum);
+      AddMenuItem(BufferStopPopupMenu, Caption, NoClickPopupType, NOT Enabled, NIL);
+      AddMenuItem(BufferStopPopupMenu, '-', NoClickPopupType, Enabled, NIL);
+
+      { ...and now the individual items }
 
     END;
   END; {WITH}
@@ -4623,62 +4529,25 @@ BEGIN
   WITH Lines[LinePopupNum] DO BEGIN
     WITH Sender As TMenuItemExtended DO BEGIN
       CASE PopupType OF
-        LineTCUnoccupiedPopupType:
-          IF Line_TC <> UnknownTrackCircuit THEN BEGIN
-            SetTrackCircuitState(Line_TC, TCUnoccupied);
-            InvalidateScreen(UnitRef, 'LinePopupItemClick LineTCUnoccupiedPopupType');
-          END;
+        LineAllocateLocoToTrackCircuitPopupType:
+          IF TrackCircuits[Line_TC].TC_LocoChip = UnknownLocoChip THEN
+            AllocateLocoToTrackCircuit(LinePopupNum)
+          ELSE
+            ClearLocoFromTrackCircuit(Line_TC);
 
-        LineTCFeedbackOccupationPopupType:
-          IF Line_TC <> UnknownTrackCircuit THEN BEGIN
-            SetTrackCircuitState(Line_TC, TCFeedbackOccupation);
-            InvalidateScreen(UnitRef, 'LinePopupItemClick LineTCFeedbackOccupationPopupType');
-          END;
+        LineChangeInternalLocoDirectionToUpPopupType:
+          IF TrackCircuits[Line_TC].TC_LocoChip = UnknownLocoChip THEN
+            ChangeInternalLocoDirectionToUp(TrackCircuits[Line_TC].TC_LocoChip);
 
-        LineTCSystemOccupationPopupType:
-          IF Line_TC <> UnknownTrackCircuit THEN BEGIN
-            SetTrackCircuitState(Line_TC, TCSystemOccupation);
-            InvalidateScreen(UnitRef, 'LinePopupItemClick LineTCSystemOccupationPopupType');
-          END;
+        LineChangeInternalLocoDirectionToDownPopupType:
+          IF TrackCircuits[Line_TC].TC_LocoChip = UnknownLocoChip THEN
+            ChangeInternalLocoDirectionToDown(TrackCircuits[Line_TC].TC_LocoChip);
 
-        LineTCPermanentOccupationPopupType:
-          IF Line_TC <> UnknownTrackCircuit THEN BEGIN
-            SetTrackCircuitState(Line_TC, TCPermanentOccupationSetByUser);
-            InvalidateScreen(UnitRef, 'LinePopupItemClick LineTCPermanentOccupationPopupType:');
-          END;
+        LineCreateSignalPopupType:
+          CreateSignal(LinePopupNum);
 
-        LineTCOutOfUsePopupType:
-          IF Line_TC <> UnknownTrackCircuit THEN BEGIN
-            SetTrackCircuitState(Line_TC, TCOutOfUseSetByUser);
-            InvalidateScreen(UnitRef, 'LinePopupItemClick LineTCOutOfUsePopupType');
-          END;
-
-        LineTCSpeedRestrictionPopupType:
-          IF Line_TC <> UnknownTrackCircuit THEN
-            SetOrClearTrackCircuitSpeedRestriction(LinePopupNum);
-
-        LineTCUserMustDrivePopupType:
-          BEGIN
-            IF TrackCircuits[Line_TC].TC_UserMustDrive THEN BEGIN
-              TrackCircuits[Line_TC].TC_UserMustDrive := False;
-              Log('T TC=' + IntToStr(Line_TC) + ' set to automatic operation');
-            END ELSE BEGIN
-              TrackCircuits[Line_TC].TC_UserMustDrive := True;
-              Log('T TC=' + IntToStr(Line_TC) + ' set to manual operation');
-            END;
-
-            IF ShowTrackCircuitsWhereUserMustDrive THEN
-              InvalidateScreen(UnitRef, 'LinePopupItemClick LineTCUserMustDrivePopupType');
-          END;
-
-        LineOutOfUsePopupType:
-          BEGIN
-            IF Line_OutOfUseState = OutOfUse THEN
-              Line_OutOfUseState := InUse
-            ELSE
-              Line_OutOfUseState := OutOfUse;
-            InvalidateScreen(UnitRef, 'LinePopupItemClick LineOutOfUsePopupType');
-          END;
+        LineEditPopupType:
+          TurnEditModeOn(UnknownSignal, UnknownPoint, UnknownBufferStop, LinePopupNum, UnknownTrackCircuit);
 
         LineLocationOutOfUsePopupType:
           IF Line_Location <> UnknownLocation THEN BEGIN
@@ -4710,19 +4579,14 @@ BEGIN
             END; {WITH}
           END;
 
-        LineAllocateLocoToTrackCircuitPopupType:
-          IF TrackCircuits[Line_TC].TC_LocoChip = UnknownLocoChip THEN
-            AllocateLocoToTrackCircuit(LinePopupNum)
-          ELSE
-            ClearLocoFromTrackCircuit(Line_TC);
-
-        LineChangeInternalLocoDirectionToUpPopupType:
-          IF TrackCircuits[Line_TC].TC_LocoChip = UnknownLocoChip THEN
-            ChangeInternalLocoDirectionToUp(TrackCircuits[Line_TC].TC_LocoChip);
-
-        LineChangeInternalLocoDirectionToDownPopupType:
-          IF TrackCircuits[Line_TC].TC_LocoChip = UnknownLocoChip THEN
-            ChangeInternalLocoDirectionToDown(TrackCircuits[Line_TC].TC_LocoChip);
+        LineOutOfUsePopupType:
+          BEGIN
+            IF Line_OutOfUseState = OutOfUse THEN
+              Line_OutOfUseState := InUse
+            ELSE
+              Line_OutOfUseState := OutOfUse;
+            InvalidateScreen(UnitRef, 'LinePopupItemClick LineOutOfUsePopupType');
+          END;
 
         LineShowLocoLastErrorMessagePopupType:
           IF Line_TC <> UnknownTrackCircuit THEN BEGIN
@@ -4737,8 +4601,54 @@ BEGIN
             END;
           END;
 
-        LineEditPopupType:
-          TurnEditModeOn(UnknownSignal, UnknownPoint, UnknownBufferStop, LinePopupNum, UnknownTrackCircuit);
+        LineTCFeedbackOccupationPopupType:
+          IF Line_TC <> UnknownTrackCircuit THEN BEGIN
+            SetTrackCircuitState(Line_TC, TCFeedbackOccupation);
+            InvalidateScreen(UnitRef, 'LinePopupItemClick LineTCFeedbackOccupationPopupType');
+          END;
+
+        LineTCSystemOccupationPopupType:
+          IF Line_TC <> UnknownTrackCircuit THEN BEGIN
+            SetTrackCircuitState(Line_TC, TCSystemOccupation);
+            InvalidateScreen(UnitRef, 'LinePopupItemClick LineTCSystemOccupationPopupType');
+          END;
+
+        LineTCOutOfUsePopupType:
+          IF Line_TC <> UnknownTrackCircuit THEN BEGIN
+            SetTrackCircuitState(Line_TC, TCOutOfUseSetByUser);
+            InvalidateScreen(UnitRef, 'LinePopupItemClick LineTCOutOfUsePopupType');
+          END;
+
+        LineTCPermanentOccupationPopupType:
+          IF Line_TC <> UnknownTrackCircuit THEN BEGIN
+            SetTrackCircuitState(Line_TC, TCPermanentOccupationSetByUser);
+            InvalidateScreen(UnitRef, 'LinePopupItemClick LineTCPermanentOccupationPopupType:');
+          END;
+
+        LineTCSpeedRestrictionPopupType:
+          IF Line_TC <> UnknownTrackCircuit THEN
+            SetOrClearTrackCircuitSpeedRestriction(LinePopupNum);
+
+        LineTCUnoccupiedPopupType:
+          IF Line_TC <> UnknownTrackCircuit THEN BEGIN
+            SetTrackCircuitState(Line_TC, TCUnoccupied);
+            InvalidateScreen(UnitRef, 'LinePopupItemClick LineTCUnoccupiedPopupType');
+          END;
+
+        LineTCUserMustDrivePopupType:
+          BEGIN
+            IF TrackCircuits[Line_TC].TC_UserMustDrive THEN BEGIN
+              TrackCircuits[Line_TC].TC_UserMustDrive := False;
+              Log('T TC=' + IntToStr(Line_TC) + ' set to automatic operation');
+            END ELSE BEGIN
+              TrackCircuits[Line_TC].TC_UserMustDrive := True;
+              Log('T TC=' + IntToStr(Line_TC) + ' set to manual operation');
+            END;
+
+            IF ShowTrackCircuitsWhereUserMustDrive THEN
+              InvalidateScreen(UnitRef, 'LinePopupItemClick LineTCUserMustDrivePopupType');
+          END;
+
       ELSE {CASE}
         Log('BG Invalid popup type ' + IntToStr(Tag) + ' in LinePopupItemClick');
       END; {CASE}
@@ -4755,11 +4665,16 @@ BEGIN
     LinePopupMenu.Items.Clear;
 
     IF NOT EditMode THEN BEGIN
+      { Add the caption... }
+
       IF LinePopupNum = UnknownLine THEN
         Caption := 'Lines'
       ELSE
         Caption := 'Line ' + LineToStr(LinePopupNum) + ' ' + IfThen(Line_TC <> UnknownTrackCircuit,
                                                                     'TC' + IntToStr(Line_TC));
+      AddMenuItem(LinePopupMenu, Caption, NoClickPopupType, NOT Enabled, NIL);
+      AddMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, NIL);
+      { ...and now the individual items }
       AddMenuItem(LinePopupMenu, Caption, NoClickPopupType, Enabled, NIL);
       AddMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, NIL);
 
@@ -4829,6 +4744,19 @@ BEGIN
       AddMenuItem(LinePopupMenu, 'Edit Line', LineEditPopupType, Enabled, LinePopupItemClick)
     END ELSE BEGIN
       { EditMode }
+
+      { Add the caption... }
+      IF (LinePopupNum = UnknownLine) OR (EditedLine = UnknownLine) THEN
+        Caption := 'Editing Lines'
+      ELSE
+        Caption := 'Editing Line ' + LineToStr(LinePopupNum) + ' ' + IfThen(Line_TC <> UnknownTrackCircuit,
+                                                                            'TC' + IntToStr(Line_TC));
+      AddMenuItem(LinePopupMenu, Caption, NoClickPopupType, NOT Enabled, NIL);
+      AddMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, NIL);
+
+      { ...and now the individual items }
+      WhetherEnabled := SignalAdjacentLineOK(LinePopupNum);
+      AddMenuItem(LinePopupMenu, 'Create Signal', LineCreateSignalPopupType, WhetherEnabled, LinePopupItemClick);
 
     END;
   END; {WITH}

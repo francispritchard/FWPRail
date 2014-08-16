@@ -46,13 +46,13 @@ PROCEDURE CheckWhetherEditedSignalDataHasChanged;
 PROCEDURE ClearValueList;
 { Empty the value list so as not to display anyting if we click on an unrecognised item, or a blank bit of screen }
 
-PROCEDURE CreatePoint;
+PROCEDURE CreatePoint(Line : Integer);
 { Creates a point from scratch }
 
 PROCEDURE DeletePoint(PointToDeleteNum : Integer);
 { Delete a point after appropriate checks }
 
-PROCEDURE CreateSignal;
+PROCEDURE CreateSignal(Line : Integer);
 { Creates a signal from scratch }
 
 PROCEDURE DeleteSignal(SignalToDeleteNum : Integer);
@@ -90,6 +90,7 @@ PROCEDURE TurnEditModeOff;
 
 VAR
   DragSignalNum : Integer = UnknownSignal;
+  EditedBufferStop : Integer = UnknownBufferStop;
   EditedLine : Integer = UnknownLine;
   EditedPoint : Integer = UnknownPoint;
   EditedSignal : Integer = UnknownSignal;
@@ -1395,7 +1396,7 @@ BEGIN
     PopupEditWindowResetSizeAndPosition.Enabled := False;
 END; { EditWindowResize }
 
-PROCEDURE CreateSignal;
+PROCEDURE CreateSignal(Line : Integer);
 { Creates a signal from scratch }
 CONST
   SaveVariables = True;
@@ -1407,7 +1408,7 @@ VAR
 
 BEGIN
   TRY
-    IF GetLineFoundNum = UnknownLine THEN
+    IF Line = UnknownLine THEN
       { this shouldn't happen, but just in case it does... }
       ShowMessage('A new signal must be near an existing line')
     ELSE BEGIN
@@ -1415,19 +1416,19 @@ BEGIN
       ExistingSignalFoundAttachedToLine := False;
       S := 0;
       WHILE (S <= High(Signals)) AND NOT ExistingSignalFoundAttachedToLine DO BEGIN
-        IF Signals[S].Signal_AdjacentLine = GetLineFoundNum THEN
+        IF Signals[S].Signal_AdjacentLine = Line THEN
           ExistingSignalFoundAttachedToLine := True
         ELSE
           Inc(S);
       END; {WHILE}
       IF ExistingSignalFoundAttachedToLine THEN
-        ShowMessage('Cannot create a signal adjacent to line ' + LineToStr(GetLineFoundNum) + ' as S=' + IntToStr(S) + ' is already marked as being adjacent to it')
+        ShowMessage('Cannot create a signal adjacent to line ' + LineToStr(Line) + ' as S=' + IntToStr(S) + ' is already marked as being adjacent to it')
       ELSE BEGIN
         { Now create a basic signal which must then be added to using the value list editor }
         SetLength(Signals, Length(Signals) + 1);
         WITH Signals[High(Signals)] DO BEGIN
           Signal_AccessoryAddress := 0;
-          Signal_AdjacentLine := GetLineFoundNum;
+          Signal_AdjacentLine := Line;
           Signal_AdjacentLineXOffset := 0;
           Signal_AdjacentTC := UnknownTrackCircuit;
           Signal_ApproachControlAspect := NoAspect;
@@ -1437,7 +1438,7 @@ BEGIN
           Signal_Automatic := False; { not yet implemented }
           Signal_DataChanged := True;
           Signal_DecoderNum := 0;
-          IF Lines[GetLineFoundNum].Line_Direction = Down THEN
+          IF Lines[Line].Line_Direction = Down THEN
             Signal_Direction := Down
           ELSE
             { this covers all the other options }
@@ -1707,19 +1708,19 @@ BEGIN
   END; {TRY}
 END; { DeleteSignal }
 
-PROCEDURE CreatePoint;
+PROCEDURE CreatePoint(Line : Integer);
 { Creates a point from scratch }
 //VAR
 //  P : Integer;
 
 BEGIN
   TRY
-    IF GetLineFoundNum = UnknownLine THEN
+    IF Line = UnknownLine THEN
       { this shouldn't happen, but just in case it does... }
       ShowMessage('A new point must be near an existing line')
     ELSE BEGIN
-      Debug(LineToStr(GetLineFoundNum));
-      Debug('Line_UpXLine=' + Lines[GetLineFoundNum].Line_UpXLineStr);
+      Debug(LineToStr(Line));
+      Debug('Line_UpXLine=' + Lines[Line].Line_UpXLineStr);
 
 
 (*

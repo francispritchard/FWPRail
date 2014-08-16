@@ -634,6 +634,9 @@ PROCEDURE ShowMenus;
 PROCEDURE ShutDownProgram(UnitRef : String; SubroutineStr : String);
 { Shut down the program neatly }
 
+FUNCTION SignalAdjacentLineOK(Line : Integer) : Boolean;
+{ Returns true if a signal can be created next to the current line }
+
 FUNCTION SignalHasLeftJunctionIndicator(S : Integer; OUT Indicator : JunctionIndicatorType) : Boolean;
 { Returns true if the signal has a left junction indicator }
 
@@ -6829,6 +6832,32 @@ BEGIN { ShutDownProgram }
       Log('EG ShutDownProgram: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { ShutDownProgram }
+
+FUNCTION SignalAdjacentLineOK(Line : Integer) : Boolean;
+{ Returns true if a signal can be created next to the current line }
+VAR
+  S : Integer;
+  SignalAdjacentLineFound : Boolean;
+
+BEGIN
+  Result := False;
+
+  IF Line <> UnknownLine THEN BEGIN
+    { only create a signal next to a line if there isn't one already attached to it }
+    S := 0;
+    SignalAdjacentLineFound := False;
+    WHILE (S <= High(Signals)) AND NOT SignalAdjacentLineFound DO BEGIN
+      IF Signals[S].Signal_AdjacentLine = Line THEN
+        SignalAdjacentLineFound := True;
+      Inc(S);
+    END; {WHILE}
+
+    IF NOT SignalAdjacentLineFound THEN
+      { the line has to be horizontal }
+      IF Lines[Line].Line_UpY = Lines[Line].Line_DownY THEN
+        Result := True;
+  END;
+END; { SignalAdjacentLineOK }
 
 FUNCTION SignalHasLeftJunctionIndicator(S : Integer; OUT Indicator : JunctionIndicatorType) : Boolean;
 { Returns true if the signal has a left junction indicator }

@@ -1382,48 +1382,9 @@ object FWPRailWindow: TFWPRailWindow
     Left = 480
     Top = 112
   end
-  object CreateOrDeleteItemPopupMenu: TPopupMenu
-    OnPopup = CreateOrDeleteItemMenuOnPopup
-    Left = 472
-    Top = 176
-    object CreateSignalMenuItem: TMenuItem
-      Caption = 'Create Signal'
-      Enabled = False
-      OnClick = CreateSignalMenuItemClick
-    end
-    object CreatePointMenuItem: TMenuItem
-      Caption = 'Create Point'
-      Enabled = False
-      OnClick = CreatePointMenuItemClick
-    end
-    object CreateLineMenuItem: TMenuItem
-      Caption = 'Create Line'
-      Enabled = False
-      OnClick = CreateLineMenuItemClick
-    end
-    object CreateOrDeleteMenuItemRuler: TMenuItem
-      Caption = '-'
-    end
-    object DeleteSignalMenuItem: TMenuItem
-      Caption = 'Delete Signal'
-      OnClick = DeleteSignalMenuItemClick
-    end
-    object DeletePointMenuItem: TMenuItem
-      Caption = 'Delete Point'
-      OnClick = DeletePointMenuItemClick
-    end
-    object DeleteLineMenuItem: TMenuItem
-      Caption = 'Delete Line'
-      OnClick = DeleteLineMenuItemClick
-    end
-  end
   object FWPRailApplicationEvents: TApplicationEvents
     OnShortCut = FWPRailApplicationEventsShortCut
     Left = 112
     Top = 208
-  end
-  object TCPopupMenu: TPopupMenu
-    Left = 256
-    Top = 132
   end
 end
