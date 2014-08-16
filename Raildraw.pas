@@ -7141,7 +7141,7 @@ BEGIN { Main drawing procedure }
           ReadInLocationDataFromDatabase;
           SetLength(LocationOccupations, Length(Locations));
           ReadInLocoDataFromDatabase(LocoDataTableOK);
-          SetUpLineDrawingVars(1000);
+          SetUpLineDrawingVars;
           ReadInLineDataFromDatabase;
           ReadInFeedbackDataFromDatabase;
           IF NOT TrackCircuitsInitialised THEN BEGIN
@@ -7167,13 +7167,13 @@ BEGIN { Main drawing procedure }
         FWPRailWindowStatusBar.Width := ClientWidth;
 
         IF ResizeMap OR ReinitialiseFWPRailWindowVariables THEN BEGIN
-          SetUpLineDrawingVars(ZoomScaleFactor);
-          CalculateLocationPositions(ZoomScaleFactor);
-          CalculateLinePositions(ZoomScaleFactor);
-          CalculateBufferStopPositions(ZoomScaleFactor);
+          SetUpLineDrawingVars;
+          CalculateLocationPositions;
+          CalculateLinePositions;
+          CalculateBufferStopPositions;
           CalculatePointPositions;
-          CalculatePlatformPositions(ZoomScaleFactor);
-          CalculateAllSignalPositions(ZoomScaleFactor);
+          CalculatePlatformPositions;
+          CalculateAllSignalPositions;
 
           IF ReinitialiseFWPRailWindowVariables THEN
             ReinitialiseFWPRailWindowVariables := False;

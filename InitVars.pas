@@ -1387,16 +1387,16 @@ PROCEDURE AddLineToStationMonitorsWebDiagnosticsMemo(S : String);
 PROCEDURE AddNewRecordToSignalDatabase;
 { Append a record to the signal database }
 
-PROCEDURE CalculateBufferStopPositions(ScaleFactor : Integer);
+PROCEDURE CalculateBufferStopPositions;
 { Work out where the buffer stops are on the screen }
 
-PROCEDURE CalculateLinePositions(ScaleFactor : Integer);
+PROCEDURE CalculateLinePositions;
 { Work out where the lines are on the screen }
 
-PROCEDURE CalculateLocationPositions(ScaleFactor : Integer);
+PROCEDURE CalculateLocationPositions;
 { Work out where the locations are on the screen }
 
-PROCEDURE CalculatePlatformPositions(ScaleFactor : Integer);
+PROCEDURE CalculatePlatformPositions;
 { Create the platform rectangle }
 
 PROCEDURE CalculatePointPositions;
@@ -1405,13 +1405,13 @@ PROCEDURE CalculatePointPositions;
 PROCEDURE CalculateTCAdjacentSignals;
 { Work out which track circuits are next the signal }
 
-PROCEDURE CalculateSignalMouseRectangles(S, ScaleFactor : Integer);
+PROCEDURE CalculateSignalMouseRectangles(S : Integer);
 { Work out where the mouse rectangles are for a given signal }
 
-PROCEDURE CalculateSignalPosition(S, ScaleFactor : Integer);
+PROCEDURE CalculateSignalPosition(S : Integer);
 { Work out where a signal is on the screen }
 
-PROCEDURE CalculateAllSignalPositions(ScaleFactor : Integer);
+PROCEDURE CalculateAllSignalPositions;
 { Work out where all the signals are on the screen }
 
 FUNCTION DeleteRecordFromSignalDatabaseAndRenumberSignals(SignalToDeleteNum : Integer) : Boolean;
@@ -1462,7 +1462,7 @@ PROCEDURE RestoreScreenDrawingVariables;
 PROCEDURE SaveScreenDrawingVariables;
 { Save the screen drawing variables }
 
-PROCEDURE SetUpLineDrawingVars(ScaleFactor : Integer);
+PROCEDURE SetUpLineDrawingVars;
 { Set up the positions of the lines and platforms }
 
 FUNCTION ValidateDirection(Str : String; OUT ErrorMsg : String) : DirectionType;
@@ -1623,28 +1623,28 @@ BEGIN
   END; {TRY}
 END; { AddLineToStationMonitorsWebDiagnosticsMemo }
 
-PROCEDURE SetUpLineDrawingVars(ScaleFactor : Integer);
+PROCEDURE SetUpLineDrawingVars;
 { Set up the positions of the lines and plaforms }
 BEGIN
   { Interval spacing : the following data has been read in from the .ini file }
-  DeltaPointXSpaced := MulDiv(FWPRailWindow.ClientHeight, DeltaPointX, ScaleFactor * 10);
-  BufferStopVerticalSpacingScaled := MulDiv(FWPRailWindow.ClientHeight, BufferStopVerticalSpacing, ScaleFactor * 10);
-  IndicatorHorizontalSpacingScaled := MulDiv(FWPRailWindow.ClientWidth, IndicatorHorizontalSpacing, ScaleFactor * 10);
-  IndicatorVerticalSpacingScaled := MulDiv(FWPRailWindow.ClientHeight, IndicatorVerticalSpacing, ScaleFactor * 10);
-  MouseRectangleEdgeVerticalSpacingScaled := MulDiv(FWPRailWindow.ClientHeight, MouseRectangleEdgeVerticalSpacing, ScaleFactor * 10);
-  PlatformEdgeVerticalSpacingScaled := MulDiv(FWPRailWindow.ClientHeight, PlatformEdgeVerticalSpacing, ScaleFactor * 10);
-  PlatformNumberEdgeHorizontalSpacingScaled := MulDiv(FWPRailWindow.ClientWidth, PlatformNumberEdgeHorizontalSpacing, ScaleFactor * 10);
-  PlatformNumberEdgeVerticalSpacingScaled := MulDiv(FWPRailWindow.ClientHeight, PlatformNumberEdgeVerticalSpacing, ScaleFactor * 10);
-  SignalHorizontalSpacingScaled := MulDiv(FWPRailWindow.ClientWidth, SignalHorizontalSpacing, ScaleFactor * 10);
-  SignalRadiusScaled := MulDiv(FWPRailWindow.ClientWidth, SignalRadius, ScaleFactor * 10);
-  SignalSemaphoreHeightScaled := MulDiv(FWPRailWindow.ClientWidth, SignalSemaphoreHeight, ScaleFactor * 10);
-  SignalSemaphoreWidthScaled := MulDiv(FWPRailWindow.ClientHeight, SignalSemaphoreWidth, ScaleFactor * 10);
-  SignalVerticalSpacingScaled := MulDiv(FWPRailWindow.ClientHeight, SignalVerticalSpacing, ScaleFactor * 10);
-  SpeedRestrictionHorizontalSpacingScaled := MulDiv(FWPRailWindow.ClientWidth, SpeedRestrictionHorizontalSpacing, ScaleFactor * 10);
-  SpeedRestrictionVerticalSpacingScaled := MulDiv(FWPRailWindow.ClientWidth, SpeedRestrictionVerticalSpacing, ScaleFactor * 10);
-  TheatreIndicatorHorizontalSpacingScaled := MulDiv(FWPRailWindow.ClientWidth, TheatreIndicatorHorizontalSpacing, ScaleFactor * 10);
-  TheatreIndicatorVerticalSpacingScaled := MulDiv(FWPRailWindow.ClientHeight, TheatreIndicatorVerticalSpacing, ScaleFactor * 10);
-  TRSPlungerLengthScaled := MulDiv(FWPRailWindow.ClientWidth, TRSPlungerLength, ScaleFactor * 10);
+  DeltaPointXSpaced := MulDiv(FWPRailWindow.ClientHeight, DeltaPointX, ZoomScaleFactor * 10);
+  BufferStopVerticalSpacingScaled := MulDiv(FWPRailWindow.ClientHeight, BufferStopVerticalSpacing, ZoomScaleFactor * 10);
+  IndicatorHorizontalSpacingScaled := MulDiv(FWPRailWindow.ClientWidth, IndicatorHorizontalSpacing, ZoomScaleFactor * 10);
+  IndicatorVerticalSpacingScaled := MulDiv(FWPRailWindow.ClientHeight, IndicatorVerticalSpacing, ZoomScaleFactor * 10);
+  MouseRectangleEdgeVerticalSpacingScaled := MulDiv(FWPRailWindow.ClientHeight, MouseRectangleEdgeVerticalSpacing, ZoomScaleFactor * 10);
+  PlatformEdgeVerticalSpacingScaled := MulDiv(FWPRailWindow.ClientHeight, PlatformEdgeVerticalSpacing, ZoomScaleFactor * 10);
+  PlatformNumberEdgeHorizontalSpacingScaled := MulDiv(FWPRailWindow.ClientWidth, PlatformNumberEdgeHorizontalSpacing, ZoomScaleFactor * 10);
+  PlatformNumberEdgeVerticalSpacingScaled := MulDiv(FWPRailWindow.ClientHeight, PlatformNumberEdgeVerticalSpacing, ZoomScaleFactor * 10);
+  SignalHorizontalSpacingScaled := MulDiv(FWPRailWindow.ClientWidth, SignalHorizontalSpacing, ZoomScaleFactor * 10);
+  SignalRadiusScaled := MulDiv(FWPRailWindow.ClientWidth, SignalRadius, ZoomScaleFactor * 10);
+  SignalSemaphoreHeightScaled := MulDiv(FWPRailWindow.ClientWidth, SignalSemaphoreHeight, ZoomScaleFactor * 10);
+  SignalSemaphoreWidthScaled := MulDiv(FWPRailWindow.ClientHeight, SignalSemaphoreWidth, ZoomScaleFactor * 10);
+  SignalVerticalSpacingScaled := MulDiv(FWPRailWindow.ClientHeight, SignalVerticalSpacing, ZoomScaleFactor * 10);
+  SpeedRestrictionHorizontalSpacingScaled := MulDiv(FWPRailWindow.ClientWidth, SpeedRestrictionHorizontalSpacing, ZoomScaleFactor * 10);
+  SpeedRestrictionVerticalSpacingScaled := MulDiv(FWPRailWindow.ClientWidth, SpeedRestrictionVerticalSpacing, ZoomScaleFactor * 10);
+  TheatreIndicatorHorizontalSpacingScaled := MulDiv(FWPRailWindow.ClientWidth, TheatreIndicatorHorizontalSpacing, ZoomScaleFactor * 10);
+  TheatreIndicatorVerticalSpacingScaled := MulDiv(FWPRailWindow.ClientHeight, TheatreIndicatorVerticalSpacing, ZoomScaleFactor * 10);
+  TRSPlungerLengthScaled := MulDiv(FWPRailWindow.ClientWidth, TRSPlungerLength, ZoomScaleFactor * 10);
 END; { SetUpLineDrawingVars }
 
 PROCEDURE ReadInTrackCircuitDataFromDatabase;
@@ -1751,7 +1751,7 @@ BEGIN
             END;
 
             IF ErrorMsg <> '' THEN BEGIN
-              IF MessageDialogueWithDefault('Error in creating TC=' + IntToStr( High(TrackCircuits)) + ' (' + IntToStr(TCNum) + '): '
+              IF MessageDialogueWithDefault('Error in creating TC=' + IntToStr(High(TrackCircuits)) + ' (' + IntToStr(TCNum) + '): '
                                             + '[' + ErrorMsg + ']:'
                                             + CRLF
                                             + 'Do you wish to continue?',
@@ -2083,7 +2083,7 @@ BEGIN
   END; {TRY}
 END; { ReadInAreasDataFromDatabase }
 
-PROCEDURE CalculateLocationPositions(ScaleFactor : Integer);
+PROCEDURE CalculateLocationPositions;
 { Work out where the locations are on the screen }
 VAR
   Location : Integer;
@@ -2092,7 +2092,7 @@ BEGIN
   Location := 0;
   WHILE Location <= High(Locations) DO BEGIN
     WITH Locations[Location] DO
-      Location_YScaled := MulDiv(FWPRailWindow.ClientHeight, Location_Y, ScaleFactor);
+      Location_YScaled := MulDiv(FWPRailWindow.ClientHeight, Location_Y, ZoomScaleFactor);
     Inc(Location);
   END; {WHILE}
 END; { CalculateLocationPositions }
@@ -2467,7 +2467,7 @@ BEGIN
             END;
 
             IF ErrorMsg <> '' THEN BEGIN
-              IF MessageDialogueWithDefault('Error in creating Location ' + IntToStr( High(Locations)) + ' (' + Location_LongStr + ' ): '
+              IF MessageDialogueWithDefault('Error in creating Location ' + IntToStr(High(Locations)) + ' (' + Location_LongStr + ' ): '
                                             + '[' + ErrorMsg + ']:'
                                             + CRLF
                                             + 'Do you wish to continue?',
@@ -2652,7 +2652,7 @@ BEGIN
     IF Iterations >= 100000 THEN
       ErrorMsg := 'Too many iterations in calculating Y positions of locations - error probably with location=' + LocationToStr(TempLocation)
     ELSE
-      CalculateLocationPositions(1000);
+      CalculateLocationPositions;
 
     IF ErrorMsg <> '' THEN BEGIN
       IF MessageDialogueWithDefault('Error when checking Loc=' + IntToStr(Location - 1) + ' (' + Locations[Location - 1] .Location_LongStr + '): '
@@ -2733,7 +2733,7 @@ BEGIN
   END; {TRY}
 END; { WriteOutLocationDataToDatabase }
 
-PROCEDURE CalculateLinePositions(ScaleFactor : Integer);
+PROCEDURE CalculateLinePositions;
 { Work out where the lines are on the screen }
 VAR
   ErrorMsg : String;
@@ -2787,8 +2787,8 @@ BEGIN
     Line := 0;
     WHILE Line <= High(Lines) DO BEGIN
       WITH Lines[Line] DO BEGIN
-        Line_UpX := MulDiv(FWPRailWindow.ClientWidth, Line_UpXAbsolute, ScaleFactor);
-        Line_DownX := MulDiv(FWPRailWindow.ClientWidth, Line_DownXAbsolute, ScaleFactor);
+        Line_UpX := MulDiv(FWPRailWindow.ClientWidth, Line_UpXAbsolute, ZoomScaleFactor);
+        Line_DownX := MulDiv(FWPRailWindow.ClientWidth, Line_DownXAbsolute, ZoomScaleFactor);
       END; {WITH}
       Inc(Line);
     END; {WHILE}
@@ -2797,7 +2797,7 @@ BEGIN
     WHILE Line <= High(Lines) DO BEGIN
       WITH Lines[Line] DO BEGIN
         IF Line_UpYAbsolute <> 0 THEN
-          Line_UpY := MulDiv(FWPRailWindow.ClientHeight, Line_UpYAbsolute, ScaleFactor)
+          Line_UpY := MulDiv(FWPRailWindow.ClientHeight, Line_UpYAbsolute, ZoomScaleFactor)
         ELSE BEGIN
           { see if it's two locations (from which we obtain the average Y value) }
           ObliquePos := Pos('/', Line_UpYLocationStr);
@@ -2821,14 +2821,14 @@ BEGIN
                 ErrorMsg := 'unknown UpY location "' + TempLocationStr2 + '"'
               ELSE BEGIN
                 Line_UpYAbsolute := GetMidPos(Locations[TempLocation1].Location_Y, Locations[TempLocation2].Location_Y);
-                Line_UpY := MulDiv(FWPRailWindow.ClientHeight, Line_UpYAbsolute, ScaleFactor)
+                Line_UpY := MulDiv(FWPRailWindow.ClientHeight, Line_UpYAbsolute, ZoomScaleFactor)
               END;
             END;
           END;
         END;
 
         IF Line_DownYAbsolute <> 0 THEN
-          Line_DownY := MulDiv(FWPRailWindow.ClientHeight, Line_DownYAbsolute, ScaleFactor)
+          Line_DownY := MulDiv(FWPRailWindow.ClientHeight, Line_DownYAbsolute, ZoomScaleFactor)
         ELSE BEGIN
           { see if it's two locations (from which we obtain the average Y value) }
           ObliquePos := Pos('/', Line_DownYLocationStr);
@@ -2852,7 +2852,7 @@ BEGIN
                 ErrorMsg := 'unknown DownY location "' + TempLocationStr2 + '"'
               ELSE BEGIN
                 Line_DownYAbsolute := GetMidPos(Locations[TempLocation1].Location_Y, Locations[TempLocation2].Location_Y);
-                Line_DownY := MulDiv(FWPRailWindow.ClientHeight, Line_DownYAbsolute, ScaleFactor)
+                Line_DownY := MulDiv(FWPRailWindow.ClientHeight, Line_DownYAbsolute, ZoomScaleFactor)
               END;
             END;
           END;
@@ -2873,7 +2873,7 @@ BEGIN
         { Add the line-end characters which indicate where a line goes next }
         WITH RailWindowBitmap.Canvas DO BEGIN
           { a straight line }
-          Font.Height := -MulDiv(FWPRailWindow.ClientHeight, FWPRailWindowFontHeight, ScaleFactor);
+          Font.Height := -MulDiv(FWPRailWindow.ClientHeight, FWPRailWindowFontHeight, ZoomScaleFactor);
           IF Line_UpConnectionCh <> '' THEN BEGIN
             WITH Line_UpConnectionChRect DO BEGIN
               Left := Line_UpX - (TextWidth(Line_UpConnectionCh) DIV 2);
@@ -2906,7 +2906,7 @@ BEGIN
         Log('X ' + Line_Str +  ' UpX=' + IntToStr(Line_UpX) + ' UpY=' + IntToStr(Line_UpY) + ' DownX=' + IntToStr(Line_DownX) + ' DownY=' + IntToStr(Line_DownY));
 END; { CalculateLinePositions }
 
-PROCEDURE CalculateBufferStopPositions(ScaleFactor : Integer);
+PROCEDURE CalculateBufferStopPositions;
 { Work out where the buffer stops are on the screen }
 VAR
   BufferStop : Integer;
@@ -2927,9 +2927,9 @@ BEGIN
 
       { The mouse rectangle }
       WITH BufferStop_MouseRect DO BEGIN
-        Left := BufferStop_X - MulDiv(FWPRailWindow.ClientWidth, 5, ScaleFactor);
+        Left := BufferStop_X - MulDiv(FWPRailWindow.ClientWidth, 5, ZoomScaleFactor);
         Top := BufferStop_Y1;
-        Right := BufferStop_X + MulDiv(FWPRailWindow.ClientWidth, 5, ScaleFactor);
+        Right := BufferStop_X + MulDiv(FWPRailWindow.ClientWidth, 5, ZoomScaleFactor);
         Bottom := BufferStop_Y2;
       END; {WITH}
     END; {WITH}
@@ -2963,7 +2963,7 @@ VAR
       BufferStop_AdjacentLine := L;
       BufferStop_AdjacentTrackCircuit := Lines[BufferStop_AdjacentLine].Line_TC;
       IF (BufferStop_AdjacentTrackCircuit = UnknownTrackCircuit) AND ProgramStartup THEN
-        Log('E Buffer stop ' + IntToStr( High(BufferStops)) + ' (at line' + ' ' + Lines[BufferStop_AdjacentLine].Line_Str + ') has no adjacent track circuit');
+        Log('E Buffer stop ' + IntToStr(High(BufferStops)) + ' (at line' + ' ' + Lines[BufferStop_AdjacentLine].Line_Str + ') has no adjacent track circuit');
 
       BufferStop_AsTheatreDestination := BSTheatreDestination;
       BufferStop_CurrentColour := BufferStopColour;
@@ -3319,7 +3319,7 @@ BEGIN
     END; { FOR }
 
     { Now work out the X and Y values }
-    CalculateLinePositions(1000);
+    CalculateLinePositions;
 
     FOR L := 0 TO High(Lines) DO BEGIN
       WITH Lines[L] DO BEGIN
@@ -3390,7 +3390,7 @@ BEGIN
       END; {WITH}
     END; { FOR }
 
-    CalculateBufferStopPositions(1000);
+    CalculateBufferStopPositions;
 
     { Now they all exist, we can work out which are next to which }
     FOR L := 0 TO High(Lines) DO BEGIN
@@ -3574,23 +3574,25 @@ BEGIN
   END; {TRY}
 END; { WriteOutLineDataToDatabase }
 
-PROCEDURE CalculateSignalPosition(S, ScaleFactor : Integer);
+PROCEDURE CalculateSignalPosition(S : Integer);
 { Work out where a signal is on the screen }
 BEGIN
   TRY
     WITH Signals[S] DO BEGIN
       IF Signal_AdjacentLine <> UnknownLine THEN BEGIN
         IF Signal_Direction = Up THEN BEGIN
+          Signal_LineX := Lines[Signal_AdjacentLine].Line_UpX + SignalRadiusScaled;
           IF Signal_Indicator <> NoIndicator THEN
-            Signal_LocationX := Signal_LocationX + SignalHorizontalSpacingScaled;
+            Signal_LineX := Signal_LineX + SignalHorizontalSpacingScaled;
           IF Signal_Type = FourAspect THEN
-            Signal_LocationX := Signal_LocationX + SignalHorizontalSpacingScaled;
+            Signal_LineX := Signal_LineX + SignalHorizontalSpacingScaled;
         END ELSE BEGIN
           { Down }
+          Signal_LineX := Lines[Signal_AdjacentLine].Line_DownX - SignalRadiusScaled;
           IF Signal_Indicator <> NoIndicator THEN
-            Signal_LocationX := Signal_LocationX - SignalHorizontalSpacingScaled;
+            Signal_LineX := Signal_LineX - SignalHorizontalSpacingScaled;
           IF Signal_Type = FourAspect THEN
-            Signal_LocationX := Signal_LocationX - SignalHorizontalSpacingScaled;
+            Signal_LineX := Signal_LineX - SignalHorizontalSpacingScaled;
         END;
 
         Signal_LineY := Lines[Signal_AdjacentLine].Line_UpY;
@@ -3602,13 +3604,13 @@ BEGIN
           IF Signal_AdjacentLineXOffset < 0 THEN
             Signal_LineX := Signal_LineX - MulDiv(FWPRailWindow.ClientWidth, Abs(Signal_AdjacentLineXOffset), ZoomScaleFactor);
 
-        Signal_VerticalSpacing := SignalVerticalSpacingScaled;
+        SignalVerticalSpacingScaled := SignalVerticalSpacingScaled;
 
         IF Signal_Direction = Up THEN
-          Signal_LocationY := Signal_LocationY + Signal_VerticalSpacing
+          Signal_LineWithVerticalSpacingY := Signal_LineY + SignalVerticalSpacingScaled
         ELSE
           IF Signal_Direction = Down THEN
-            Signal_LocationY := Signal_LocationY - Signal_VerticalSpacing;
+            Signal_LineWithVerticalSpacingY := Signal_LineY - SignalVerticalSpacingScaled;
       END; {WITH}
     END; {WITH}
   EXCEPT {TRY}
@@ -3617,7 +3619,7 @@ BEGIN
   END; {TRY}
 END; { CalculateSignalPosition }
 
-PROCEDURE CalculateSignalMouseRectangles(S, ScaleFactor : Integer);
+PROCEDURE CalculateSignalMouseRectangles(S : Integer);
 { Work out where the mouse rectangles are for a given signal }
 BEGIN
   TRY
@@ -3628,35 +3630,35 @@ BEGIN
 
         IF (Signal_Type <> SemaphoreHome) AND (Signal_Type <> SemaphoreDistant) THEN BEGIN
           { it covers the signal circles }
-          Left := Signal_LocationX - SignalRadiusScaled;
-          Top := Signal_LocationY - SignalRadiusScaled;
-          Right := Signal_LocationX + SignalRadiusScaled;
-          Bottom := Signal_LocationY + SignalRadiusScaled;
+          Left := Signal_LineX - SignalRadiusScaled;
+          Top := Signal_LineWithVerticalSpacingY - SignalRadiusScaled;
+          Right := Signal_LineX + SignalRadiusScaled;
+          Bottom := Signal_LineWithVerticalSpacingY + SignalRadiusScaled;
         END ELSE BEGIN
           { it covers the signal arms }
           IF (Signal_Direction = Up) AND (Signal_Quadrant = UpperQuadrant) THEN BEGIN
-            Left := Signal_LocationX - SignalSemaphoreWidthScaled;
-            Top := Signal_LocationY + RailWindowBitmap.Canvas.Pen.Width;
-            Right := Signal_LocationX + (SignalSemaphoreHeightScaled * 2);
-            Bottom := Signal_LocationY + (SignalSemaphoreWidthScaled * 2);
+            Left := Signal_LineX - SignalSemaphoreWidthScaled;
+            Top := Signal_LineWithVerticalSpacingY + RailWindowBitmap.Canvas.Pen.Width;
+            Right := Signal_LineX + (SignalSemaphoreHeightScaled * 2);
+            Bottom := Signal_LineWithVerticalSpacingY + (SignalSemaphoreWidthScaled * 2);
           END ELSE
             IF (Signal_Direction = Up) AND (Signal_Quadrant = LowerQuadrant) THEN BEGIN
-              Left := Signal_LocationX;
-              Top := Signal_LocationY + RailWindowBitmap.Canvas.Pen.Width;
-              Right := Signal_LocationX + (SignalSemaphoreHeightScaled * 2) + SignalSemaphoreWidthScaled;
-              Bottom := Signal_LocationY + (SignalSemaphoreWidthScaled * 2);
+              Left := Signal_LineX;
+              Top := Signal_LineWithVerticalSpacingY + RailWindowBitmap.Canvas.Pen.Width;
+              Right := Signal_LineX + (SignalSemaphoreHeightScaled * 2) + SignalSemaphoreWidthScaled;
+              Bottom := Signal_LineWithVerticalSpacingY + (SignalSemaphoreWidthScaled * 2);
             END ELSE
               IF (Signal_Direction = Down) AND (Signal_Quadrant = UpperQuadrant) THEN BEGIN
-                Left := Signal_LocationX - SignalSemaphoreWidthScaled;
-                Top := Signal_LocationY - (SignalSemaphoreWidthScaled * 2);
-                Right := Signal_LocationX + (SignalSemaphoreHeightScaled * 2);
-                Bottom := Signal_LocationY - RailWindowBitmap.Canvas.Pen.Width;
+                Left := Signal_LineX - SignalSemaphoreWidthScaled;
+                Top := Signal_LineWithVerticalSpacingY - (SignalSemaphoreWidthScaled * 2);
+                Right := Signal_LineX + (SignalSemaphoreHeightScaled * 2);
+                Bottom := Signal_LineWithVerticalSpacingY - RailWindowBitmap.Canvas.Pen.Width;
               END ELSE
                 IF (Signal_Direction = Down) AND (Signal_Quadrant = LowerQuadrant) THEN BEGIN
-                  Left := Signal_LocationX - (SignalSemaphoreHeightScaled * 2) - SignalSemaphoreWidthScaled;
-                  Top := Signal_LocationY - (SignalSemaphoreWidthScaled * 2);
-                  Right := Signal_LocationX;
-                  Bottom := Signal_LocationY - RailWindowBitmap.Canvas.Pen.Width;
+                  Left := Signal_LineX - (SignalSemaphoreHeightScaled * 2) - SignalSemaphoreWidthScaled;
+                  Top := Signal_LineWithVerticalSpacingY - (SignalSemaphoreWidthScaled * 2);
+                  Right := Signal_LineX;
+                  Bottom := Signal_LineWithVerticalSpacingY - RailWindowBitmap.Canvas.Pen.Width;
                 END;
         END;
       END; {WITH}
@@ -3701,16 +3703,16 @@ BEGIN
       WITH Signal_PostMouseRect DO BEGIN
         IF Signal_Direction = Up THEN BEGIN
           { pen.width is the width of the line outlining the signal }
-          Left := Signal_LocationX + SignalRadiusScaled;
-          Top := Signal_LocationY - SignalRadiusScaled;
-          Right := Signal_LocationX + SignalRadiusScaled + MulDiv(FWPRailWindow.ClientWidth, 10, ZoomScalefactor);
-          Bottom := Signal_LocationY + SignalRadiusScaled;
+          Left := Signal_LineX + SignalRadiusScaled;
+          Top := Signal_LineWithVerticalSpacingY - SignalRadiusScaled;
+          Right := Signal_LineX + SignalRadiusScaled + MulDiv(FWPRailWindow.ClientWidth, 10, ZoomScalefactor);
+          Bottom := Signal_LineWithVerticalSpacingY + SignalRadiusScaled;
         END ELSE
           IF Signal_Direction = Down THEN BEGIN
-            Left := Signal_LocationX - SignalRadiusScaled - MulDiv(FWPRailWindow.ClientWidth, 10, ZoomScalefactor);
-            Top := Signal_LocationY - SignalRadiusScaled;
-            Right := Signal_LocationX - SignalRadiusScaled;
-            Bottom := Signal_LocationY + Signal_VerticalSpacing - RailWindowBitmapCanvasPenWidth;
+            Left := Signal_LineX - SignalRadiusScaled - MulDiv(FWPRailWindow.ClientWidth, 10, ZoomScalefactor);
+            Top := Signal_LineWithVerticalSpacingY - SignalRadiusScaled;
+            Right := Signal_LineX - SignalRadiusScaled;
+            Bottom := Signal_LineWithVerticalSpacingY + SignalVerticalSpacingScaled - RailWindowBitmapCanvasPenWidth;
           END;
       END; {WITH}
     END; {WITH}
@@ -3720,7 +3722,7 @@ BEGIN
   END; {TRY}
 END; { CalculateSignalMouseRectangles }
 
-PROCEDURE CalculateAllSignalPositions(ScaleFactor : Integer);
+PROCEDURE CalculateAllSignalPositions;
 { Work out where all the signals are on the screen }
 VAR
   S : Integer;
@@ -3731,16 +3733,16 @@ BEGIN
     WHILE S <= High(Signals) DO BEGIN
       WITH Signals[S] DO BEGIN
         IF Signal_AdjacentLine <> UnknownLine THEN BEGIN
-          IF Signal_Direction = Up THEN
-            Signal_LocationX := Lines[Signal_AdjacentLine].Line_UpX + SignalRadiusScaled
-          ELSE
-            { Down }
-            Signal_LocationX := Lines[Signal_AdjacentLine].Line_DownX - SignalRadiusScaled;
+//          IF Signal_Direction = Up THEN
+//            Signal_LineX := Lines[Signal_AdjacentLine].Line_UpX + SignalRadiusScaled
+//          ELSE
+//            { Down }
+//            Signal_LineX := Lines[Signal_AdjacentLine].Line_DownX - SignalRadiusScaled;
+//
+//          Signal_LineY := Lines[Signal_AdjacentLine].Line_UpY;
 
-          Signal_LocationY := Lines[Signal_AdjacentLine].Line_UpY;
-
-          CalculateSignalPosition(S, ScaleFactor);
-          CalculateSignalMouseRectangles(S, ScaleFactor);
+          CalculateSignalPosition(S);
+          CalculateSignalMouseRectangles(S);
         END;
       END; {WITH}
       Inc(S);
@@ -4376,6 +4378,9 @@ BEGIN
             Signal_PreviousHiddenStationSignalAspectSignal1 := UnknownSignal;
             Signal_PreviousHiddenStationSignalAspectSignal2 := UnknownSignal;
             Signal_PreviousTheatreIndicatorString := '';
+            Signal_PreviousLineX := 0;
+            Signal_PreviousLineY := 0;
+            Signal_PreviousLineWithVerticalSpacingY := 0;
             Signal_ResettingTC := UnknownTrackCircuit;
             Signal_SemaphoreDistantLocking := UnknownSignal;
             Signal_StateChanged := False;
@@ -4384,7 +4389,6 @@ BEGIN
             Signal_TRSHeldMsgWritten := False;
             Signal_TRSReleased := False;
             Signal_Type := TwoAspect;
-            Signal_VerticalSpacing := 0;
           END;
 
           IF ErrorMsg = '' THEN
@@ -4599,7 +4603,7 @@ BEGIN
         ShutDownProgram(UnitRef, 'ReadInSignalDataFromDatabase 2');
 
     CalculateTCAdjacentSignals;
-    CalculateAllSignalPositions(ZoomScalefactor);
+    CalculateAllSignalPositions;
   EXCEPT {TRY}
     ON E : Exception DO
       Log('EG ReadInSignalDataFromDatabase: ' + E.ClassName + ' error raised, with message: ' + E.Message);
@@ -4772,6 +4776,12 @@ BEGIN
               Log('S Recording in Signal database that S=' + IntToStr(S) + ' ' + Signal_AdjacentLineFieldName + ' is ''' + LineToStr(Signal_AdjacentLine) + '''');
               SignalsADOTable.Edit;
               SignalsADOTable.FieldByName(Signal_AdjacentLineFieldName).AsString := LineToStr(Signal_AdjacentLine);
+              SignalsADOTable.Post;
+
+              Log('S Recording in Signal database that S=' + IntToStr(S) + ' ' + Signal_AdjacentLineXOffsetFieldName
+                     + ' is ''' + IntToStr(Signal_AdjacentLineXOffset) + '''');
+              SignalsADOTable.Edit;
+              SignalsADOTable.FieldByName(Signal_AdjacentLineXOffsetFieldName).AsString := IntToStr(Signal_AdjacentLineXOffset);
               SignalsADOTable.Post;
 
               { The database records "no aspect" as a space in this field }
@@ -5782,7 +5792,7 @@ BEGIN
   END; {TRY}
 END; { WriteOutPointDataToDatabase }
 
-PROCEDURE CalculatePlatformPositions(ScaleFactor : Integer);
+PROCEDURE CalculatePlatformPositions;
 { Create the platform rectangle }
 VAR
   P : Integer;
@@ -5793,25 +5803,25 @@ BEGIN
       WITH Platform_Rect DO BEGIN
         Left := Lines[Platform_LeftLine].Line_UpX;
         IF Platform_LeftLineAdjustment > 0 THEN
-          Left := Left + MulDiv(FWPRailWindow.ClientWidth, Platform_LeftLineAdjustment, ScaleFactor);
+          Left := Left + MulDiv(FWPRailWindow.ClientWidth, Platform_LeftLineAdjustment, ZoomScaleFactor);
 
         Top := -1;
         IF Platforms[P].Platform_LocationAbovePlatform <> UnknownLocation THEN
-          Top := MulDiv(FWPRailWindow.ClientHeight, Locations[Platform_LocationAbovePlatform].Location_Y, ScaleFactor);
+          Top := MulDiv(FWPRailWindow.ClientHeight, Locations[Platform_LocationAbovePlatform].Location_Y, ZoomScaleFactor);
 
         Right := Lines[Platform_RightLine].Line_DownX;
         IF Platform_RightLineAdjustment > 0 THEN
-          Right := Right + MulDiv(FWPRailWindow.ClientWidth, Platform_RightLineAdjustment, ScaleFactor);
+          Right := Right + MulDiv(FWPRailWindow.ClientWidth, Platform_RightLineAdjustment, ZoomScaleFactor);
 
         Bottom := -1;
         IF Platforms[P].Platform_LocationBelowPlatform <> UnknownLocation THEN
-          Bottom := MulDiv(FWPRailWindow.ClientHeight, Locations[Platform_LocationBelowPlatform].Location_Y, ScaleFactor);
+          Bottom := MulDiv(FWPRailWindow.ClientHeight, Locations[Platform_LocationBelowPlatform].Location_Y, ZoomScaleFactor);
 
         IF Top = -1 THEN
-          Top := Platforms[P].Platform_Rect.Bottom - MulDiv(FWPRailWindow.ClientHeight, Platforms[P].Platform_Height, ScaleFactor)
+          Top := Platforms[P].Platform_Rect.Bottom - MulDiv(FWPRailWindow.ClientHeight, Platforms[P].Platform_Height, ZoomScaleFactor)
         ELSE
           IF Bottom = -1 THEN
-            Bottom := Platforms[P].Platform_Rect.Top + MulDiv(FWPRailWindow.ClientHeight, Platforms[P].Platform_Height, ScaleFactor);
+            Bottom := Platforms[P].Platform_Rect.Top + MulDiv(FWPRailWindow.ClientHeight, Platforms[P].Platform_Height, ZoomScaleFactor);
 
         IF Top = Bottom THEN
           Debug('Platform ' + IntToStr(P) + ': platform top value (' + IntToStr(Top) + ') = platform bottom value (' + IntToStr(Bottom) + ')')
@@ -6022,7 +6032,7 @@ BEGIN
                 ErrorMsg := 'cannot have both a location above and a location below if a height is specified';
 
             IF ErrorMsg <> '' THEN BEGIN
-              IF MessageDialogueWithDefault('Error in creating Platform=' + IntToStr( High(Platforms))
+              IF MessageDialogueWithDefault('Error in creating Platform=' + IntToStr(High(Platforms))
                                             + ' (' + Platform_Description + '): ' + '['
                                             + ErrorMsg + ']:'
                                             + CRLF
@@ -6045,7 +6055,7 @@ BEGIN
       Log('EG InitialisePlatformData: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 
-  CalculatePlatformPositions(1000);
+  CalculatePlatformPositions;
 
 //
 // { Now the TRS plunger mouse rectangle }
