@@ -46,19 +46,19 @@ PROCEDURE CheckWhetherEditedSignalDataHasChanged;
 PROCEDURE ClearValueList;
 { Empty the value list so as not to display anyting if we click on an unrecognised item, or a blank bit of screen }
 
-PROCEDURE CreatePoint(Line : Integer);
+PROCEDURE CreatePoint(Direction : DirectionType; Line : Integer);
 { Creates a point from scratch }
+
+PROCEDURE CreateSignal(Direction : DirectionType; Line : Integer);
+{ Creates a signal from scratch }
 
 PROCEDURE DeletePoint(PointToDeleteNum : Integer);
 { Delete a point after appropriate checks }
 
-PROCEDURE CreateSignal(Line : Integer);
-{ Creates a signal from scratch }
-
 PROCEDURE DeleteSignal(SignalToDeleteNum : Integer);
 { Delete a signal after appropriate checks }
 
-PROCEDURE DisplaySignalOptionsInValueList(S : Integer; SaveVariables : Boolean);
+PROCEDURE DisplaySignalOptionsInValueList(S : Integer; SaveVariablesOnExit : Boolean);
 { Create a value list in the edit window with the appropriate values }
 
 PROCEDURE DisplayPointOptionsInValueList(P : Integer; SaveVariables : Boolean);
@@ -1023,7 +1023,7 @@ BEGIN { DisplayPointOptionsInValueList }
   END; {TRY}
 END; { DisplayPointOptionsInValueList }
 
-PROCEDURE DisplaySignalOptionsInValueList(S : Integer; SaveVariables : Boolean);
+PROCEDURE DisplaySignalOptionsInValueList(S : Integer; SaveVariablesOnExit : Boolean);
 { Create a value list in the edit window with the appropriate values }
 
   PROCEDURE WriteSignalValue(Str : String; S : Integer; EditMask : String);
@@ -1131,7 +1131,7 @@ BEGIN { DisplaySignalOptionsInValueList }
         END; {WITH}
       END; {WITH}
 
-      IF SaveVariables THEN
+      IF SaveVariablesOnExit THEN
         SaveSignalVariables(S);
       EditedSignal := S;
       ExitWithoutSavingButton.Enabled := True;
@@ -1396,7 +1396,7 @@ BEGIN
     PopupEditWindowResetSizeAndPosition.Enabled := False;
 END; { EditWindowResize }
 
-PROCEDURE CreateSignal(Line : Integer);
+PROCEDURE CreateSignal(Direction : DirectionType; Line : Integer);
 { Creates a signal from scratch }
 CONST
   SaveVariables = True;
@@ -1438,11 +1438,7 @@ BEGIN
           Signal_Automatic := False; { not yet implemented }
           Signal_DataChanged := True;
           Signal_DecoderNum := 0;
-          IF Lines[Line].Line_Direction = Down THEN
-            Signal_Direction := Down
-          ELSE
-            { this covers all the other options }
-            Signal_Direction := Up;
+          Signal_Direction := Direction;
           Signal_Energised := False;
           Signal_EnergisedTime := 0;
           Signal_FailMsgWritten := False;
@@ -1482,6 +1478,7 @@ BEGIN
           Signal_ResettingTC := UnknownTrackCircuit;
           SetLength(Signal_RouteLockingNeededArray, 0);
           SetLength(Signal_SemaphoreDistantHomesArray, 0);
+          Signal_SemaphoreDistantLocking := UnknownSignal;
           Signal_StateChanged := False;
           Signal_TRSHeld := False;
           Signal_TRSHeldMsgWritten := False;
@@ -1708,7 +1705,7 @@ BEGIN
   END; {TRY}
 END; { DeleteSignal }
 
-PROCEDURE CreatePoint(Line : Integer);
+PROCEDURE CreatePoint(Direction : DirectionType; Line : Integer);
 { Creates a point from scratch }
 //VAR
 //  P : Integer;

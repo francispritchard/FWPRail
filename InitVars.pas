@@ -4357,7 +4357,6 @@ BEGIN
 
             Signal_Automatic := False; { not yet implemented }
             Signal_DataChanged := False;
-            SetLength(Signal_SemaphoreDistantHomesArray, 0);
             Signal_Energised := False;
             Signal_EnergisedTime := 0;
             Signal_FailedToResetFlag := False;
@@ -4382,6 +4381,7 @@ BEGIN
             Signal_PreviousLineY := 0;
             Signal_PreviousLineWithVerticalSpacingY := 0;
             Signal_ResettingTC := UnknownTrackCircuit;
+            SetLength(Signal_SemaphoreDistantHomesArray, 0);
             Signal_SemaphoreDistantLocking := UnknownSignal;
             Signal_StateChanged := False;
             Signal_TheatreIndicatorString := '';
