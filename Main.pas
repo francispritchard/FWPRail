@@ -865,6 +865,7 @@ BEGIN
                     { also reset any hidden station signal aspects }
                     IF Signals[TC_ResettingSignal].Signal_HiddenStationSignalAspect <> RedAspect THEN BEGIN
                       Signals[TC_ResettingSignal].Signal_HiddenStationSignalAspect := NoAspect;
+                      Signals[TC_ResettingSignal].Signal_PostColour := SignalPostColour;
                     END;
                   END ELSE BEGIN
                     IF NOT Signal_FailedToResetFlag THEN BEGIN

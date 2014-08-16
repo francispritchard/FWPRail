@@ -642,6 +642,7 @@ BEGIN
           Log(TempLocoChipStr + ' X+ S=' + IntToStr(HiddenStationSignalAspectSignal) + ': cannot set hidden station aspect as signal is off')
         ELSE BEGIN
           Signals[HiddenStationSignalAspectSignal].Signal_HiddenStationSignalAspect := RedAspect;
+          Signals[HiddenStationSignalAspectSignal].Signal_PostColour := clRed;
 
           Log(TempLocoChipStr + ' R J=' + IntToStr(Journey) + ' R=' + IntToStr(Route)
                               + ' S=' + IntToStr(HiddenStationSignalAspectSignal) + ': hidden station aspect set to red');
@@ -668,6 +669,7 @@ BEGIN
           { If this signal has a hidden station aspect that's on, make sure previous signals are included }
           IF (PreviousHiddenStationSignalAspectSignal1 <> UnknownSignal) AND (Signals[PreviousHiddenStationSignalAspectSignal1].Signal_Type = FourAspect) THEN BEGIN
             Signals[PreviousHiddenStationSignalAspectSignal1].Signal_HiddenStationSignalAspect := SingleYellowAspect;
+            Signals[PreviousHiddenStationSignalAspectSignal1].Signal_PostColour := clYellow;
             Log(TempLocoChipStr + ' R J=' + IntToStr(Journey) + ' R=' + IntToStr(Route)
                                 + ' S=' + IntToStr(HiddenStationSignalAspectSignal) + '''s previous signal S='
                                 + IntToStr(PreviousHiddenStationSignalAspectSignal1) + ': hidden station aspect set to single yellow');
@@ -675,9 +677,11 @@ BEGIN
               DrawSignal(Signals[HiddenStationSignalAspectSignal].Signal_PreviousHiddenStationSignalAspectSignal1);
 
             IF (PreviousHiddenStationSignalAspectSignal2 <> UnknownSignal)
-            AND ((Signals[PreviousHiddenStationSignalAspectSignal2].Signal_Type = FourAspect) OR (Signals[PreviousHiddenStationSignalAspectSignal2].Signal_Type = ThreeAspect))
+            AND ((Signals[PreviousHiddenStationSignalAspectSignal2].Signal_Type = FourAspect)
+                 OR (Signals[PreviousHiddenStationSignalAspectSignal2].Signal_Type = ThreeAspect))
             THEN BEGIN
               Signals[PreviousHiddenStationSignalAspectSignal2].Signal_HiddenStationSignalAspect := DoubleYellowAspect;
+              Signals[PreviousHiddenStationSignalAspectSignal2].Signal_PostColour := clYellow;
               Log(TempLocoChipStr + ' R J=' + IntToStr(Journey) + ' R=' + IntToStr(Route)
                                   + ' S=' + IntToStr(HiddenStationSignalAspectSignal) + '''s previous signal but one S='
                                   + IntToStr(PreviousHiddenStationSignalAspectSignal2) + ': hidden station aspect set to double yellow');
@@ -687,6 +691,7 @@ BEGIN
           END ELSE
             IF (PreviousHiddenStationSignalAspectSignal1 <> UnknownSignal) AND (Signals[PreviousHiddenStationSignalAspectSignal1].Signal_Type = ThreeAspect) THEN BEGIN
               Signals[PreviousHiddenStationSignalAspectSignal1].Signal_HiddenStationSignalAspect := SingleYellowAspect;
+              Signals[PreviousHiddenStationSignalAspectSignal1].Signal_PostColour := clYellow;
               Log(TempLocoChipStr + ' R J=' + IntToStr(Journey) + ' R=' + IntToStr(Route)
                                   + ' S=' + IntToStr(HiddenStationSignalAspectSignal) + '''s previous signal S='
                                   + IntToStr(PreviousHiddenStationSignalAspectSignal1) + ' hidden station aspect set to single yellow');
@@ -715,6 +720,7 @@ BEGIN
         TempLocoChipStr := '';
 
       Signals[HiddenStationSignalAspectSignal].Signal_HiddenStationSignalAspect := NoAspect;
+      Signals[HiddenStationSignalAspectSignal].Signal_PostColour := SignalPostColour;
       IF ShowSignalHiddenStationSignalAspects THEN
         DrawSignal(HiddenStationSignalAspectSignal);
       Log(TempLocoChipStr + ' R S=' + IntToStr(HiddenStationSignalAspectSignal) + ' hidden station aspect set to no aspect');
@@ -724,6 +730,7 @@ BEGIN
       AND (Signals[Signals[HiddenStationSignalAspectSignal].Signal_PreviousHiddenStationSignalAspectSignal1].Signal_HiddenStationSignalAspect <> NoAspect)
       THEN BEGIN
         Signals[Signals[HiddenStationSignalAspectSignal].Signal_PreviousHiddenStationSignalAspectSignal1].Signal_HiddenStationSignalAspect := NoAspect;
+        Signals[Signals[HiddenStationSignalAspectSignal].Signal_PreviousHiddenStationSignalAspectSignal1].Signal_PostColour := SignalPostColour;
         Log(TempLocoChipStr + ' R S=' + IntToStr(HiddenStationSignalAspectSignal) + '''s previous signal S='
                             + IntToStr(Signals[HiddenStationSignalAspectSignal].Signal_PreviousHiddenStationSignalAspectSignal1)
                             + ' hidden station aspect set to no aspect');
@@ -735,6 +742,7 @@ BEGIN
       AND (Signals[Signals[HiddenStationSignalAspectSignal].Signal_PreviousHiddenStationSignalAspectSignal2].Signal_HiddenStationSignalAspect <> NoAspect)
       THEN BEGIN
         Signals[Signals[HiddenStationSignalAspectSignal].Signal_PreviousHiddenStationSignalAspectSignal2].Signal_HiddenStationSignalAspect := NoAspect;
+        Signals[Signals[HiddenStationSignalAspectSignal].Signal_PreviousHiddenStationSignalAspectSignal2].Signal_PostColour := SignalPostColour;
         Log(TempLocoChipStr + ' R S=' + IntToStr(HiddenStationSignalAspectSignal) + '''s previous signal but one S='
                             + IntToStr(Signals[HiddenStationSignalAspectSignal].Signal_PreviousHiddenStationSignalAspectSignal2)
                             + ' hidden station aspect set to no aspect');
@@ -1611,6 +1619,7 @@ BEGIN
             Log(LocoChipStr + ' R ' + SettingString + ' added to approach setting signals list for R=' + IntToStr(Route) + ' and not yet set off');
             AppendToStringArray(Routes_ApproachControlSignalsWaitingToBeSet[Route], SettingString);
             Signals[S].Signal_ApproachLocked := True;
+            Signals[S].Signal_PostColour := clAqua;
             DrawSignalPost(S);
             WriteStringArrayToLog(LocoChipToStr(Routes_LocoChips[Route]), 'R', 'Signals held by approach control for R=' + IntToStr(Route) + ':',
                                                                 Routes_ApproachControlSignalsWaitingToBeSet[Route]);
