@@ -714,8 +714,6 @@ VAR
   IrrelevantShiftState : TShiftState;
   PointFoundNum : Integer;
   PointChangedOK : Boolean;
-  SaveX : Integer;
-  SaveY : Integer;
   SignalFoundNum : Integer;
   SignalPostFoundNum : Integer;
   TheatreIndicatorFoundNum : Integer;
