@@ -64,6 +64,7 @@ VAR
   ButtonPress : MouseButton;
   DownLineEndCharacterLine : Integer = UnknownLine;
   EmergencyRouteingStored : Boolean = False;
+  FoundSignalToDrag : Boolean = False;
   LineFoundNum : Integer = UnknownLine;
   MouseMovingX : Integer;
   MouseMovingY : Integer;
@@ -713,6 +714,8 @@ VAR
   IrrelevantShiftState : TShiftState;
   PointFoundNum : Integer;
   PointChangedOK : Boolean;
+  SaveX : Integer;
+  SaveY : Integer;
   SignalFoundNum : Integer;
   SignalPostFoundNum : Integer;
   TheatreIndicatorFoundNum : Integer;
@@ -1583,6 +1586,7 @@ BEGIN
             END ELSE BEGIN
               DisplaySignalOptionsInValueList(SignalFoundNum, SaveVariables);
               DragSignalNum := SignalFoundNum;
+              FoundSignalToDrag := True;     { use this rather than dragsignalnum? ***** }
             END;
           END ELSE
             IF PointFoundNum <> UnknownPoint THEN

@@ -9380,7 +9380,7 @@ BEGIN
       UNTIL PointsADOTable.EOF AND PointsADOTable2.EOF;
 
       IF NOT ErrorFound THEN
-        Log('XG No comparison errors found in point databases '
+        Log('XG No differences found in point databases '
                 + '"' + Point1DataFilename + '.' + Point1DataFilenameSuffix + '" and "' + Point2DataFilename + '.' + Point2DataFilenameSuffix + '"');
 
       { Tidy up the database }
@@ -9542,7 +9542,7 @@ BEGIN
       UNTIL SignalsADOTable.EOF AND SignalsADOTable2.EOF;
 
       IF NOT ErrorFound THEN
-        Log('XG No comparison errors found in signal databases '
+        Log('XG No differences found in signal databases '
                 + '"' + Signal1DataFilename + '.' + Signal1DataFilenameSuffix + '" and "' + Signal2DataFilename + '.' + Signal2DataFilenameSuffix + '"');
 
       { Tidy up the database }

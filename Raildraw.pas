@@ -423,9 +423,9 @@ TYPE
     { Receives data from the Watchdog program }
 
 //    { Added to handle Windows messages }
-//    PROCEDURE CM_MenuClosed(VAR msg: TMessage); MESSAGE CM_MENU_CLOSED;
-//    PROCEDURE CM_EnterMenuLoop(VAR msg: TMessage); MESSAGE CM_ENTER_MENU_LOOP;
-//    PROCEDURE CM_ExitMenuLoop(VAR msg: TMessage); MESSAGE CM_EXIT_MENU_LOOP;
+//    PROCEDURE CM_MenuClosed(VAR Msg : TMessage); MESSAGE CM_MENU_CLOSED;
+//    PROCEDURE CM_EnterMenuLoop(VAR Msg : TMessage); MESSAGE CM_ENTER_MENU_LOOP;
+//    PROCEDURE CM_ExitMenuLoop(VAR Msg : TMessage); MESSAGE CM_EXIT_MENU_LOOP;
   PUBLIC
     { Public declarations }
     PROCEDURE WMHScroll(VAR ScrollData: TMessage); MESSAGE wm_HScroll;
@@ -6684,21 +6684,21 @@ BEGIN
     END;
 END; { FWPRailWindowMouseWheel }
 
-//PROCEDURE TFWPRailWindow.CM_EnterMenuLoop(var msg: TMessage);
+//PROCEDURE TFWPRailWindow.CM_EnterMenuLoop(var Msg : TMessage);
 //BEGIN
 //  TrackCircuitPopupMenuActive := True;
-////  Debug('PopupMenu entered');
+//  Debug('PopupMenu entered');
 //END; { CM_EnterMenuLoop }
 //
-//PROCEDURE TFWPRailWindow.CM_ExitMenuLoop(var msg: TMessage);
+//PROCEDURE TFWPRailWindow.CM_ExitMenuLoop(var Msg : TMessage);
 //BEGIN
 //  TrackCircuitPopupMenuActive := False;
-////  Debug('PopMenu exited');
+//  Debug('PopMenu exited');
 //END; { CM_ExitMenuLoop }
 //
-//PROCEDURE TFWPRailWindow.CM_MenuClosed(var msg: TMessage);
+//PROCEDURE TFWPRailWindow.CM_MenuClosed(var Msg : TMessage);
 //BEGIN
-////  Debug('PopMenu closed');
+//  Debug('PopMenu closed');
 //END; { CM_MenuClosed }
 
 PROCEDURE CanvasTextOutAngle(X, Y : Integer; D : Word; S : String);
