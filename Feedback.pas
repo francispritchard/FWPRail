@@ -617,7 +617,7 @@ BEGIN { DecodeFeedback }
                 END; {WHILE}
               END; {WITH}
               IF NOT LineFeedbackFound THEN BEGIN
-                DebugStr := DebugStr + ' ( *** no line assigned)';
+                DebugStr := DebugStr + ' (*** no line assigned ***)';
                 Log('P ' + DebugStr);
               END;
             END;
@@ -698,7 +698,7 @@ BEGIN { DecodeFeedback }
                 END;
               END; {WITH}
               IF NOT PointFeedbackFound THEN BEGIN
-                DebugStr := DebugStr + ' ( *** no point assigned)';
+                DebugStr := DebugStr + ' ( *** no point assigned **8)';
                 Log('P ' + DebugStr);
               END;
             END;

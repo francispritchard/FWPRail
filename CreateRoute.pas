@@ -504,7 +504,7 @@ VAR
   END; { RecordPoint }
 
   FUNCTION ChangePointStateStringToStraight(Str : String) : String;
-  { Change the state the point has in the array ( not its real state) }
+  { Change the state the point has in the array (not its real state) }
   BEGIN
     IF Copy(Str, Length(Str), 1) = '/' THEN
       Result := Copy(Str, 1, Length(Str) - 1) + '-'
@@ -513,7 +513,7 @@ VAR
   END; { ChangePointStateStringToStraight }
 
   FUNCTION ChangePointStateStringToDiverging(Str : String) : String;
-  { Change the state the point has in the array ( not its real state) }
+  { Change the state the point has in the array (not its real state) }
   BEGIN
     IF Copy(Str, Length(Str), 1) = '-' THEN
       Result := Copy(Str, 1, Length(Str) - 1) + '/'
