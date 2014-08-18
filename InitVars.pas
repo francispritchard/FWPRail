@@ -112,6 +112,7 @@ CONST
   LightLoco = True;
   NonMovingLoco = True;
   QuickStop = -1;
+  SoundWarning = True;
   StopTimer = True;
   TrainExists = True;
   TurnOn = True;

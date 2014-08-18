@@ -289,7 +289,7 @@ BEGIN
     END;
     TCPSocket2 := NIL;
 
-    SetSystemOffline('TCP Client has disconnected');
+    SetSystemOffline('TCP Client has disconnected', SoundWarning);
   END;
 END; { BroadcastsTCPClientDisconnect }
 

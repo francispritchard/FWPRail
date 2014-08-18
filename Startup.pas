@@ -229,7 +229,7 @@ BEGIN
       'O':
          IF Copy(ParamString, 1, 7) = 'OFFLINE' THEN BEGIN
            SystemSetOfflineByCommandLineParameter := True;
-           SetSystemOffline('by command line parameter');
+           SetSystemOffline('by command line parameter', NOT SoundWarning);
          END;
       'P':
         IF Copy(ParamString, 1, 4) = 'PFW:' THEN

@@ -261,7 +261,7 @@ BEGIN
 
     SaveSystemOnlineState := SystemOnline;
     IF SystemOnline THEN
-      SetSystemOffline('System offline as edit mode starting');
+      SetSystemOffline('System offline as edit mode starting', NOT SoundWarning);
 
     SetCaption(FWPRailWindow, 'EDITING...');
     EditWindow.EditWindowLabel.caption := '';

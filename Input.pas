@@ -2769,7 +2769,7 @@ BEGIN { KeyPressedDown }
                         TurnAutoModeOff(NOT ByUser);
                       LogsCurrentlyKept := False;
                       StartWithDiagrams := False;
-                      SetSystemOffline('');
+                      SetSystemOffline('System set offline by selecting replay', NOT SoundWarning);
                     END;
                   END;
                 END;
@@ -4035,7 +4035,7 @@ BEGIN { KeyPressedDown }
                 IF NOT HelpRequired THEN BEGIN
                   IF SystemOnline THEN BEGIN
                     Log('XG Setting system offline');
-                    SetSystemOffline('')
+                    SetSystemOffline('System set offline by user', NOT SoundWarning)
                   END ELSE BEGIN
                     Log('XG Attempting to set system online...');
                     IF SetSystemOnline THEN

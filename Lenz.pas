@@ -113,7 +113,7 @@ PROCEDURE SetSignalRouteFunction(LocoChipStr : String; S: Integer);
 PROCEDURE SetSingleLocoFunction(VAR Loco : LocoRec; FunctionNum : Integer; TurnOn : Boolean; OUT OK : Boolean);
 { Set a numbered function on or off }
 
-PROCEDURE SetSystemOffline(OfflineMsg : String);
+PROCEDURE SetSystemOffline(OfflineMsg : String; Warning : Boolean);
 { Change the caption and the icons to show we're offline }
 
 FUNCTION SetSystemOnline : Boolean;
@@ -1413,7 +1413,7 @@ BEGIN
     UNTIL (RetryFlag = False) OR (RetryCount > 2);
 
     IF (RetryCount > 2) AND SystemOnline THEN
-      SetSystemOffline('3 failed attempts to write/read data from the LAN/USB interface - system now offline');
+      SetSystemOffline('3 failed attempts to write/read data from the LAN/USB interface - system now offline', SoundWarning);
 
   EXCEPT {TRY}
     ON E : Exception DO
@@ -3299,7 +3299,7 @@ BEGIN
 //  END;
 END; { GetInitialFeedback }
 
-PROCEDURE SetSystemOffline(OfflineMsg : String);
+PROCEDURE SetSystemOffline(OfflineMsg : String; Warning : Boolean);
 { Change the caption and the icons to show we're offline }
 BEGIN
   LenzWindow.LenzOneSecondTimerTick.Enabled := False;
@@ -3312,7 +3312,11 @@ BEGIN
       WriteDataToFeedbackWindow(OfflineMsg);
       FeedbackWindow.FeedbackWindowTimer.Enabled := True;
     END;
-    Log('X! System set offline: ' + OfflineMsg);
+
+    IF warning THEN
+      Log('X! System set offline: ' + OfflineMsg)
+    ELSE
+      Log('XG System set offline: ' + OfflineMsg);
   END;
 
   IF LenzConnection = USBConnection THEN
@@ -3368,7 +3372,7 @@ BEGIN
   END; {CASE}
 
   IF LenzConnection = NoConnection THEN
-    SetSystemOffline('System offline as no connection to the Lenz system {BLANKLINEBEFORE}')
+    SetSystemOffline('System offline as no connection to the Lenz system {BLANKLINEBEFORE}', SoundWarning)
   ELSE BEGIN
     SystemOnline := True;
     SetCaption(FWPRailWindow, '');
