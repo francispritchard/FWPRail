@@ -422,13 +422,13 @@ TYPE
   END;
 
  PopupTypes = (NoClickPopupType,
-               SignalDeletePopupType, SignalEditPopupType, SignalOutOfUsePopupType, SignalPositionRevertPopupType,
+               SignalChangeDirectionPopupType, SignalDeletePopupType, SignalEditPopupType, SignalOutOfUsePopupType, SignalUndoChangesPopupType,
                PointEditPopupType, PointOutOfUsePopupType, PointToManualPopupType, PointUnlockPopupType,
                BufferStopEditPopupType,
                LineAllocateLocoToTrackCircuitPopupType, LineChangeInternalLocoDirectionToDownPopupType, LineChangeInternalLocoDirectionToUpPopupType,
-               LineCreateDownPointPopupType, LineCreateUpPointPopupType, LineCreateDownSignalPopupType, LineCreateUpSignalPopupType, LineEditPopupType,
-               LineLocationOutOfUsePopupType, LineOutOfUsePopupType, LineShowLocoLastErrorMessagePopupType, LineTCFeedbackOccupationPopupType, LineTCOutOfUsePopupType,
-               LineTCPermanentOccupationPopupType, LineTCSpeedRestrictionPopupType, LineTCSystemOccupationPopupType, LineTCUnoccupiedPopupType,
+               LineCreateLinePopupType, LineCreateDownPointPopupType, LineCreateUpPointPopupType, LineCreateDownSignalPopupType, LineCreateUpSignalPopupType,
+               LineEditPopupType, LineLocationOutOfUsePopupType, LineOutOfUsePopupType, LineShowLocoLastErrorMessagePopupType, LineTCFeedbackOccupationPopupType,
+               LineTCOutOfUsePopupType, LineTCPermanentOccupationPopupType, LineTCSpeedRestrictionPopupType, LineTCSystemOccupationPopupType, LineTCUnoccupiedPopupType,
                LineTCUserMustDrivePopupType);
 
  TMenuItemExtended = CLASS(TMenuItem)
@@ -2170,10 +2170,13 @@ BEGIN { DrawSignal }
                          Signal_MouseRect.Bottom - ScrollBarYAdjustment));
 
           Pen.Color := clBlack;
-          IF Signal_type = SemaphoreHome THEN
-            Brush.Color := SignalAspectRed
+          IF EditedSignal = S THEN
+            Brush.Color := clAqua
           ELSE
-            Brush.Color := SignalAspectYellow;
+            IF Signal_type = SemaphoreHome THEN
+              Brush.Color := SignalAspectRed
+            ELSE
+              Brush.Color := SignalAspectYellow;
 
           { Now draw the rectangle }
           IF Aspect = RedAspect THEN BEGIN
@@ -3974,6 +3977,9 @@ BEGIN
   WITH Signals[SignalPopupNum] DO BEGIN
     WITH sender As TMenuItemExtended DO BEGIN
       CASE PopupType OF
+        SignalChangeDirectionPopupType:
+          ChangeSignalDirection(SignalPopupNum);
+
         SignalDeletePopupType:
           DeleteSignal(SignalPopupNum);
 
@@ -3992,15 +3998,8 @@ BEGIN
             InvalidateScreen(UnitRef, 'SignalPopupItemClick SignalOutOfUsePopupType');
           END;
 
-        SignalPositionRevertPopupType:
-          BEGIN
-            Signal_LineX := Signal_PreviousLineX;
-            Signal_LineY := Signal_PreviousLineY;
-            Signal_LineWithVerticalSpacingY := Signal_PreviousLineWithVerticalSpacingY;
-            Signal_DataChanged := True;
-            DisplaySignalOptionsInValueList(SignalPopupNum, SaveVariables);
-            InvalidateScreen(UnitRef, 'SignalPopupItemClick SignalPositionRevertPopupType');
-          END;
+        SignalUndoChangesPopupType:
+          UndoEditChanges;
       ELSE {CASE}
         Log('BG Invalid popup type ' + IntToStr(Tag) + ' in LinePopupItemClick');
       END; {CASE}
@@ -4042,9 +4041,16 @@ BEGIN
       AddMenuItem(SignalPopupMenu, '-', NoClickPopupType, Enabled, NIL);
 
       { ...and now the individual items }
+      IF NOT Signal_OutOfUse THEN
+        AddMenuItem(SignalPopupMenu, 'Set Signal Out Of Use', SignalOutOfUsePopupType, Enabled, SignalPopupItemClick)
+      ELSE
+        AddMenuItem(SignalPopupMenu, 'Set Signal Back In Use', SignalOutOfUsePopupType, Enabled, SignalPopupItemClick);
+
+      AddMenuItem(SignalPopupMenu, 'Change Signal Direction', SignalChangeDirectionPopupType, Enabled, SignalPopupItemClick);
+
       IF Signal_PreviousLineX <> 0 THEN
         { the signal has been moved }
-        AddMenuItem(SignalPopupMenu, 'Revert to Previous Signal Position', SignalPositionRevertPopupType, Enabled, SignalPopupItemClick);
+        AddMenuItem(SignalPopupMenu, 'Undo Changes', SignalUndoChangesPopupType, Enabled, SignalPopupItemClick);
 
       AddMenuItem(SignalPopupMenu, '-', NoClickPopupType, Enabled, NIL);
 
@@ -4531,6 +4537,9 @@ BEGIN
           IF TrackCircuits[Line_TC].TC_LocoChip = UnknownLocoChip THEN
             ChangeInternalLocoDirectionToDown(TrackCircuits[Line_TC].TC_LocoChip);
 
+        LineCreateLinePopupType:
+          CreateLine;
+
         LineCreateUpPointPopupType:
           CreatePoint(Up, LinePopupNum);
 
@@ -4727,9 +4736,9 @@ BEGIN
         AddMenuItem(LinePopupMenu, 'Change Internal Loco Chip Direction to Down', LineChangeInternalLocoDirectionToDownPopupType, Enabled, LinePopupItemClick);
       END ELSE BEGIN
         AddMenuItem(LinePopupMenu, 'Change ' + LocoChipToStr(TrackCircuits[Line_TC].TC_LocoChip) + '''s Internal Loco Chip Direction to Up',
-                                                                                                  LineChangeInternalLocoDirectionToUpPopupType, Enabled, LinePopupItemClick);
+                                                                                                 LineChangeInternalLocoDirectionToUpPopupType, Enabled, LinePopupItemClick);
         AddMenuItem(LinePopupMenu, 'Change ' + LocoChipToStr(TrackCircuits[Line_TC].TC_LocoChip) + '''s Internal Loco Chip Direction to Down',
-                                                                                                LineChangeInternalLocoDirectionToDownPopupType, Enabled, LinePopupItemClick);
+                                                                                               LineChangeInternalLocoDirectionToDownPopupType, Enabled, LinePopupItemClick);
       END;
       WhetherEnabled := TrackCircuits[Line_TC].TC_LocoChip <> UnknownLocoChip;
       AddMenuItem(LinePopupMenu, 'Show Loco''s Last Error Message', LineShowLocoLastErrorMessagePopupType, WhetherEnabled, LinePopupItemClick);
@@ -4751,9 +4760,10 @@ BEGIN
 
       { ...and now the individual items }
       WhetherEnabled := SignalAdjacentLineOK(LinePopupNum);
+      AddMenuItem(LinePopupMenu, 'Create Line', LineCreateLinePopupType, WhetherEnabled, LinePopupItemClick);
+
       AddMenuItem(LinePopupMenu, 'Create Up Signal', LineCreateUpSignalPopupType, WhetherEnabled, LinePopupItemClick);
       AddMenuItem(LinePopupMenu, 'Create Down Signal', LineCreateDownSignalPopupType, WhetherEnabled, LinePopupItemClick);
-
     END;
   END; {WITH}
 END; { LineMenuOnPopup }

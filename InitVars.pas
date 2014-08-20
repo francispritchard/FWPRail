@@ -326,6 +326,7 @@ TYPE
     Line_BufferStopNum : Integer;
     Line_BufferStopTheatreDestinationStr : String;
     Line_CurrentColour : TColour;
+    Line_DataChanged : Boolean;
     Line_Direction : DirectionType;
     Line_DownConnectionCh : String;
     Line_DownConnectionChRect : TRect;
@@ -765,6 +766,7 @@ TYPE
   TrackCircuitRec = RECORD
     TC_AdjacentBufferStop : Integer;
     TC_AdjacentSignals : IntegerArrayType;
+    TC_DataChanged : Boolean;
     TC_EmergencyLocoChip : Integer;
     TC_EmergencyState : TrackCircuitStateType;
     TC_FeedbackInput : Integer;
@@ -1385,6 +1387,9 @@ VAR
 PROCEDURE AddLineToStationMonitorsWebDiagnosticsMemo(S : String);
 { Adds a line of text to the station monitor unit's web diagnostics memo }
 
+PROCEDURE AddNewRecordToPointDatabase;
+{ Append a record to the point database }
+
 PROCEDURE AddNewRecordToSignalDatabase;
 { Append a record to the signal database }
 
@@ -1775,6 +1780,7 @@ BEGIN
       WITH TrackCircuits[TC] DO BEGIN
         SetLength(TC_AdjacentSignals, 0);
         TC_AdjacentBufferStop := UnknownBufferStop;
+        TC_DataChanged := False;
         TC_EmergencyLocoChip := UnknownLocoChip;
         TC_EmergencyState := TCUnoccupied;
         TC_FeedbackOccupation := False;
@@ -5671,6 +5677,42 @@ BEGIN
 
   CalculatePointPositions;
 END; { ReadInPointDataFromDatabase }
+
+PROCEDURE AddNewRecordToPointDatabase;
+{ Append a record to the Point database }
+BEGIN
+  TRY
+    WITH InitVarsWindow DO BEGIN
+      IF NOT FileExists(PathToRailDataFiles + PointDataFilename + '.' + PointDataFilenameSuffix) THEN BEGIN
+        IF MessageDialogueWithDefault('Point database file "' + PathToRailDataFiles + PointDataFilename + '.' + PointDataFilenameSuffix + '" cannot be located'
+                                      + CRLF
+                                      + 'Do you wish to continue?',
+                                      StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
+        THEN
+          ShutDownProgram(UnitRef, 'AddNewRecordToPointDatabase')
+        ELSE
+          Exit;
+      END;
+
+      PointsADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source=' + PathToRailDataFiles + PointDataFilename + '.' + PointDataFilenameSuffix
+                                               + ';Persist Security Info=False';
+      PointsADOConnection.Connected := True;
+      PointsADOTable.Open;
+      PointsADOTable.Append;
+      PointsADOTable.FieldByName('Point Number').AsInteger := High(Points);
+      PointsADOTable.Post;
+
+      Log('S Point data table and connection opened to write out Point data that has changed');
+      { Tidy up the database }
+      PointsADOTable.Close;
+      PointsADOConnection.Connected := False;
+      Log('S Point Data table and connection closed');
+    END;
+  EXCEPT {TRY}
+    ON E : Exception DO
+      Log('EG AddNewRecordToPointDatabase: ' + E.ClassName + ' error raised, with message: ' + E.Message);
+  END; {TRY}
+END; { AddNewRecordToPointDatabase }
 
 PROCEDURE WriteOutPointDataToDatabase;
 { If a point's data has been changed, record it in the database }

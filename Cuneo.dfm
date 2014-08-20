@@ -23,6 +23,7 @@ object CuneoWindow: TCuneoWindow
     Top = 16
   end
   object MouseButtonDownTimer: TTimer
+    Enabled = False
     Interval = 500
     OnTimer = MouseButtonDownTimerTick
     Left = 224

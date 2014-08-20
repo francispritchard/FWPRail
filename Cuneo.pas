@@ -64,7 +64,6 @@ VAR
   ButtonPress : MouseButton;
   DownLineEndCharacterLine : Integer = UnknownLine;
   EmergencyRouteingStored : Boolean = False;
-  FoundSignalToDrag : Boolean = False;
   LineFoundNum : Integer = UnknownLine;
   MouseMovingX : Integer;
   MouseMovingY : Integer;
@@ -172,14 +171,12 @@ BEGIN
                             + IntToStr(MulDiv(1000, X, FWPRailWindow.ClientWidth)) + '/1000,'
                             + IntToStr(MulDiv(1000, Y, FWPRailWindow.ClientHeight)) + '/1000');
 
-    IF EditMode AND (DragSignalNum <> UnknownSignal) THEN BEGIN
-      IF SignalDragging THEN BEGIN
-        DragSignal(DragSignalNum, X, Y, NearestLine, TooNearSignal);
-        IF (NearestLine = UnknownLine) OR (TooNearSignal <> UnknownLine) THEN
-          ChangeCursor(crNoDrop)
-        ELSE
-          ChangeCursor(crDrag);
-      END;
+    IF EditMode AND SignalDragging THEN BEGIN
+      DragSignal(EditedSignal, X, Y, NearestLine, TooNearSignal);
+      IF (NearestLine = UnknownLine) OR (TooNearSignal <> UnknownLine) THEN
+        ChangeCursor(crNoDrop)
+      ELSE
+        ChangeCursor(crDrag);
     END ELSE
       IF PreparingZoom THEN BEGIN
         { Draw and undraw the rectangle if any }
@@ -196,7 +193,7 @@ BEGIN
           ChangeCursor(crSizeNWSE);
 
         DrawOutline(ZoomRect, clRed, UndrawRequired, NOT UndrawToBeAutomatic);
-      END ELSE BEGIN
+      END ELSE // BEGIN
         IF MoveZoomWindowMode THEN BEGIN
           HideStatusBarAndUpDownIndications;
 
@@ -204,7 +201,7 @@ BEGIN
           FWPRailWindow.VertScrollBar.Position := FWPRailWindow.VertScrollBar.Position + MouseMovingY - Y;
           MouseMovingX := X;
           MouseMovingY := Y;
-        END ELSE BEGIN
+        END; // ELSE BEGIN
           IF NOT SignalDragging AND (Screen.Cursor <> crDefault) THEN
             ChangeCursor(crDefault);
 
@@ -214,112 +211,114 @@ BEGIN
           { Clear any debugging track circuit occupations }
           FOR S := 0 TO High(Signals) DO BEGIN
             WITH Signals[S] DO BEGIN
-              IF PtInRect(Signal_MouseRect, Point(MouseX, MouseY)) THEN BEGIN
-                ObjectFound := True;
-                TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'S' + IntToStr(S) + ' ';
-                SignalFoundNum := S;
-
-                IF SignalIsLocked(S, LockingFailureString) THEN
-                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + '[' + LockingFailureString + '] ';
-                IF Signals[S].Signal_OutOfUse THEN
-                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + '(X) ';
-                IF Signal_HiddenStationSignalAspect <> NoAspect THEN
-                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'HA=' + AspectToStr(Signal_HiddenStationSignalAspect, ShortStringType);
-
-                { Show the track circuit which resets the signal }
-                IF ShowSignalResettingTrackCircuitsInStatusBar THEN BEGIN
-                  IF NOT FindNextSignalOrBufferStop(S, UnknownSignal, UnknownBufferStop, NOT IndicatorToBeSet, TempLinesNotAvailableStr, TempDraftRouteArray) THEN
-                    TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'No RTC'
-                  ELSE BEGIN
-                    CreateLockingArrayFromDraftRouteArray(UnknownLocoChipStr, TempDraftRouteArray, Signals[S].Signal_RouteLockingNeededArray);
-                    TC := GetResettingTrackCircuit(UnknownLocoChipStr, S, SuppressMessage);
-                    TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'RTC=' + IntToStr(TC);
-                  END;
-                END;
-              END ELSE
-                IF PtInRect(Signal_JunctionIndicators[UpperLeftIndicator].JunctionIndicator_MouseRect, Point(MouseX, MouseY))
-                AND ((Signal_JunctionIndicators[UpperLeftIndicator].JunctionIndicator_MouseRect.Left <> 0)
-                      AND (Signal_JunctionIndicators[UpperLeftIndicator].JunctionIndicator_MouseRect.Bottom <> 0))
-                THEN BEGIN
+              IF NOT (EditMode AND SignalDragging AND (S = EditedSignal)) THEN BEGIN
+                IF PtInRect(Signal_MouseRect, Point(MouseX, MouseY)) THEN BEGIN
                   ObjectFound := True;
-                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'ULI for S' + IntToStr(S) + ' ';
-                  IndicatorFoundNum := S;
-                  IndicatorFoundType := UpperLeftIndicator;
+                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'S' + IntToStr(S) + ' ';
+                  SignalFoundNum := S;
+
+                  IF SignalIsLocked(S, LockingFailureString) THEN
+                    TempStatusBarPanel1Str := TempStatusBarPanel1Str + '[' + LockingFailureString + '] ';
+                  IF Signals[S].Signal_OutOfUse THEN
+                    TempStatusBarPanel1Str := TempStatusBarPanel1Str + '(X) ';
+                  IF Signal_HiddenStationSignalAspect <> NoAspect THEN
+                    TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'HA=' + AspectToStr(Signal_HiddenStationSignalAspect, ShortStringType);
+
+                  { Show the track circuit which resets the signal }
+                  IF ShowSignalResettingTrackCircuitsInStatusBar THEN BEGIN
+                    IF NOT FindNextSignalOrBufferStop(S, UnknownSignal, UnknownBufferStop, NOT IndicatorToBeSet, TempLinesNotAvailableStr, TempDraftRouteArray) THEN
+                      TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'No RTC'
+                    ELSE BEGIN
+                      CreateLockingArrayFromDraftRouteArray(UnknownLocoChipStr, TempDraftRouteArray, Signals[S].Signal_RouteLockingNeededArray);
+                      TC := GetResettingTrackCircuit(UnknownLocoChipStr, S, SuppressMessage);
+                      TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'RTC=' + IntToStr(TC);
+                    END;
+                  END;
                 END ELSE
-                  IF PtInRect(Signal_JunctionIndicators[MiddleLeftIndicator].JunctionIndicator_MouseRect, Point(MouseX, MouseY))
-                  AND ((Signal_JunctionIndicators[MiddleLeftIndicator].JunctionIndicator_MouseRect.Left <> 0)
-                        AND (Signal_JunctionIndicators[MiddleLeftIndicator].JunctionIndicator_MouseRect.Bottom <> 0))
+                  IF PtInRect(Signal_JunctionIndicators[UpperLeftIndicator].JunctionIndicator_MouseRect, Point(MouseX, MouseY))
+                  AND ((Signal_JunctionIndicators[UpperLeftIndicator].JunctionIndicator_MouseRect.Left <> 0)
+                        AND (Signal_JunctionIndicators[UpperLeftIndicator].JunctionIndicator_MouseRect.Bottom <> 0))
                   THEN BEGIN
                     ObjectFound := True;
-                    TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'MLI for S' + IntToStr(S) + ' ';
+                    TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'ULI for S' + IntToStr(S) + ' ';
                     IndicatorFoundNum := S;
-                    IndicatorFoundType := MiddleLeftIndicator;
+                    IndicatorFoundType := UpperLeftIndicator;
                   END ELSE
-                    IF PtInRect(Signal_JunctionIndicators[LowerLeftIndicator].JunctionIndicator_MouseRect, Point(MouseX, MouseY))
-                    AND ((Signal_JunctionIndicators[LowerLeftIndicator].JunctionIndicator_MouseRect.Left <> 0)
-                          AND (Signal_JunctionIndicators[LowerLeftIndicator].JunctionIndicator_MouseRect.Bottom <> 0))
+                    IF PtInRect(Signal_JunctionIndicators[MiddleLeftIndicator].JunctionIndicator_MouseRect, Point(MouseX, MouseY))
+                    AND ((Signal_JunctionIndicators[MiddleLeftIndicator].JunctionIndicator_MouseRect.Left <> 0)
+                          AND (Signal_JunctionIndicators[MiddleLeftIndicator].JunctionIndicator_MouseRect.Bottom <> 0))
                     THEN BEGIN
                       ObjectFound := True;
-                      TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'LLI for S' + IntToStr(S) + ' ';
+                      TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'MLI for S' + IntToStr(S) + ' ';
                       IndicatorFoundNum := S;
-                      IndicatorFoundType := LowerLeftIndicator;
+                      IndicatorFoundType := MiddleLeftIndicator;
                     END ELSE
-                      IF PtInRect(Signal_JunctionIndicators[UpperRightIndicator].JunctionIndicator_MouseRect, Point(MouseX, MouseY))
-                      AND ((Signal_JunctionIndicators[UpperRightIndicator].JunctionIndicator_MouseRect.Left <> 0)
-                            AND (Signal_JunctionIndicators[UpperRightIndicator].JunctionIndicator_MouseRect.Bottom <> 0))
+                      IF PtInRect(Signal_JunctionIndicators[LowerLeftIndicator].JunctionIndicator_MouseRect, Point(MouseX, MouseY))
+                      AND ((Signal_JunctionIndicators[LowerLeftIndicator].JunctionIndicator_MouseRect.Left <> 0)
+                            AND (Signal_JunctionIndicators[LowerLeftIndicator].JunctionIndicator_MouseRect.Bottom <> 0))
                       THEN BEGIN
                         ObjectFound := True;
-                        TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'URI for S' + IntToStr(S) + ' ';
+                        TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'LLI for S' + IntToStr(S) + ' ';
                         IndicatorFoundNum := S;
-                        IndicatorFoundType := UpperRightIndicator;
+                        IndicatorFoundType := LowerLeftIndicator;
                       END ELSE
-                        IF PtInRect(Signal_JunctionIndicators[MiddleRightIndicator].JunctionIndicator_MouseRect, Point(MouseX, MouseY))
-                        AND ((Signal_JunctionIndicators[MiddleRightIndicator].JunctionIndicator_MouseRect.Left <> 0)
-                              AND (Signal_JunctionIndicators[MiddleRightIndicator].JunctionIndicator_MouseRect.Bottom <> 0))
+                        IF PtInRect(Signal_JunctionIndicators[UpperRightIndicator].JunctionIndicator_MouseRect, Point(MouseX, MouseY))
+                        AND ((Signal_JunctionIndicators[UpperRightIndicator].JunctionIndicator_MouseRect.Left <> 0)
+                              AND (Signal_JunctionIndicators[UpperRightIndicator].JunctionIndicator_MouseRect.Bottom <> 0))
                         THEN BEGIN
                           ObjectFound := True;
-                          TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'MRI for S' + IntToStr(S) + ' ';
+                          TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'URI for S' + IntToStr(S) + ' ';
                           IndicatorFoundNum := S;
-                          IndicatorFoundType := MiddleRightIndicator;
+                          IndicatorFoundType := UpperRightIndicator;
                         END ELSE
-                          IF PtInRect(Signal_JunctionIndicators[LowerRightIndicator].JunctionIndicator_MouseRect, Point(MouseX, MouseY))
-                          AND ((Signal_JunctionIndicators[LowerRightIndicator].JunctionIndicator_MouseRect.Left <> 0)
-                                AND (Signal_JunctionIndicators[LowerRightIndicator].JunctionIndicator_MouseRect.Bottom <> 0))
+                          IF PtInRect(Signal_JunctionIndicators[MiddleRightIndicator].JunctionIndicator_MouseRect, Point(MouseX, MouseY))
+                          AND ((Signal_JunctionIndicators[MiddleRightIndicator].JunctionIndicator_MouseRect.Left <> 0)
+                                AND (Signal_JunctionIndicators[MiddleRightIndicator].JunctionIndicator_MouseRect.Bottom <> 0))
                           THEN BEGIN
                             ObjectFound := True;
-                            TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'LRI for S' + IntToStr(S) + ' ';
+                            TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'MRI for S' + IntToStr(S) + ' ';
                             IndicatorFoundNum := S;
-                            IndicatorFoundType := LowerRightIndicator;
+                            IndicatorFoundType := MiddleRightIndicator;
                           END ELSE
-                            IF PtInRect(Signal_PostMouseRect, Point(MouseX, MouseY))
-                            AND ((Signal_PostMouseRect.Left <> 0)
-                                 AND (Signal_PostMouseRect.Bottom <> 0))
+                            IF PtInRect(Signal_JunctionIndicators[LowerRightIndicator].JunctionIndicator_MouseRect, Point(MouseX, MouseY))
+                            AND ((Signal_JunctionIndicators[LowerRightIndicator].JunctionIndicator_MouseRect.Left <> 0)
+                                  AND (Signal_JunctionIndicators[LowerRightIndicator].JunctionIndicator_MouseRect.Bottom <> 0))
                             THEN BEGIN
                               ObjectFound := True;
-                              TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'SP for S' + IntToStr(S) + ' ';
-                              SignalPostFoundNum := S;
-                          END ELSE
-                            IF PtInRect(Signal_IndicatorMouseRect, Point(MouseX, MouseY))
-                            AND ((Signal_IndicatorMouseRect.Left <> 0)
-                                 AND (Signal_IndicatorMouseRect.Bottom <> 0))
-                            THEN BEGIN
-                              ObjectFound := True;
-                              TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'T for S' + IntToStr(S) + ' ';
-                              TheatreIndicatorFoundNum := S;
+                              TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'LRI for S' + IntToStr(S) + ' ';
+                              IndicatorFoundNum := S;
+                              IndicatorFoundType := LowerRightIndicator;
+                            END ELSE
+                              IF PtInRect(Signal_PostMouseRect, Point(MouseX, MouseY))
+                              AND ((Signal_PostMouseRect.Left <> 0)
+                                   AND (Signal_PostMouseRect.Bottom <> 0))
+                              THEN BEGIN
+                                ObjectFound := True;
+                                TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'SP for S' + IntToStr(S) + ' ';
+                                SignalPostFoundNum := S;
+                            END ELSE
+                              IF PtInRect(Signal_IndicatorMouseRect, Point(MouseX, MouseY))
+                              AND ((Signal_IndicatorMouseRect.Left <> 0)
+                                   AND (Signal_IndicatorMouseRect.Bottom <> 0))
+                              THEN BEGIN
+                                ObjectFound := True;
+                                TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'T for S' + IntToStr(S) + ' ';
+                                TheatreIndicatorFoundNum := S;
 
-                              { Show the track circuit which resets the signal if the indicator is on }
-                              IF ShowSignalResettingTrackCircuitsInStatusBar THEN BEGIN
-                                IF Signals[S].Signal_Indicator <> NoIndicator THEN BEGIN
-                                  IF NOT FindNextSignalOrBufferStop(S, UnknownSignal, UnknownBufferStop, IndicatorToBeSet, TempLinesNotAvailableStr, TempDraftRouteArray) THEN
-                                    TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'No RTC'
-                                  ELSE BEGIN
-                                    CreateLockingArrayFromDraftRouteArray(UnknownLocoChipStr, TempDraftRouteArray, Signals[S].Signal_RouteLockingNeededArray);
-                                    TC := GetResettingTrackCircuit(UnknownLocoChipStr, S, SuppressMessage);
-                                    TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'RTC=' + IntToStr(TC);
+                                { Show the track circuit which resets the signal if the indicator is on }
+                                IF ShowSignalResettingTrackCircuitsInStatusBar THEN BEGIN
+                                  IF Signals[S].Signal_Indicator <> NoIndicator THEN BEGIN
+                                    IF NOT FindNextSignalOrBufferStop(S, UnknownSignal, UnknownBufferStop, IndicatorToBeSet, TempLinesNotAvailableStr, TempDraftRouteArray) THEN
+                                      TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'No RTC'
+                                    ELSE BEGIN
+                                      CreateLockingArrayFromDraftRouteArray(UnknownLocoChipStr, TempDraftRouteArray, Signals[S].Signal_RouteLockingNeededArray);
+                                      TC := GetResettingTrackCircuit(UnknownLocoChipStr, S, SuppressMessage);
+                                      TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'RTC=' + IntToStr(TC);
+                                    END;
                                   END;
                                 END;
                               END;
-                            END;
+              END;
             END; {WITH}
           END;
 
@@ -633,8 +632,8 @@ BEGIN
             IF NOT SignalDragging AND (Screen.Cursor <> crDefault) THEN
               ChangeCursor(crDefault);
 
-        END;
-      END;
+//        END;
+//      END;
   EXCEPT {TRY}
     ON E : Exception DO
       Log('EG WhatIsUnderMouse: ' + E.ClassName + ' error raised, with message: '+ E.Message);
@@ -688,6 +687,7 @@ BEGIN
         ELSE
           IF Routes_NearestSignalTestingInitiated THEN
             Signals[SignalPostToBeFlashed].Signal_PostColour := clRed;
+
       DrawSignalPost(SignalPostToBeFlashed);
       SignalPostDrawn := True;
       InvalidateScreen(UnitRef, 'SignalPostFlashingTimerTick');
@@ -702,7 +702,6 @@ CONST
   IrrelevantLine = UnknownLine;
   IrrelevantLocation = UnknownLocation;
   IrrelevantNum : Integer = 0;
-  SaveVariables = True;
   StartButton = True;
   Undo = True;
 
@@ -1569,7 +1568,7 @@ BEGIN
       TheatreIndicatorSelected(IrrelevantNum, IrrelevantNum, IrrelevantShiftState, HelpRequired);
       UpLineEndCharacterSelected(IrrelevantLine, HelpRequired);
       WriteNextLineDetailToDebugWindow(LineFoundNum, HelpRequired);
-    END ELSE
+    END ELSE BEGIN
       WhatIsUnderMouse(X, Y, ShiftState, BufferStopFoundNum, IndicatorFoundNum, IndicatorFoundType, PointFoundNum, SignalFoundNum, SignalPostFoundNum,
                        TheatreIndicatorFoundNum, TRSPlungerFoundLocation);
 
@@ -1578,19 +1577,19 @@ BEGIN
         IF ButtonPress = mbLeft THEN BEGIN
           IF SignalFoundNum <> UnknownSignal THEN BEGIN
             IF (EditedSignal <> UnknownSignal) AND (EditedSignal <> SignalFoundNum) THEN BEGIN
+              { reset the timer here, as potentially opening the message dialogue in CheckIfEditedSignalDataHasChanged doesn't call the mouse-up event }
+              CuneoWindow.MouseButtonDownTimer.Enabled := False;
               GetCursorPos(CursorXY);
-              CheckWhetherEditedSignalDataHasChanged;
+              CheckIfEditedSignalDataHasChanged;
               SetCursorPos(CursorXY.X, CursorXY.Y);
-            END ELSE BEGIN
-              DisplaySignalOptionsInValueList(SignalFoundNum, SaveVariables);
-              DragSignalNum := SignalFoundNum;
-              FoundSignalToDrag := True;     { use this rather than dragsignalnum? ***** }
             END;
+
+            StartSignalEdit(SignalFoundNum);
           END ELSE
             IF PointFoundNum <> UnknownPoint THEN
-              DisplayPointOptionsInValueList(PointFoundNum, SaveVariables)
+              WritePointValuesToValueList(PointFoundNum)
             ELSE BEGIN
-              ClearValueList;
+              ClearEditValueList('');
 
               IF Zooming THEN
                 MoveZoomWindowMode := True;
@@ -1709,6 +1708,7 @@ BEGIN
                         FWPRailWindow.PopupMenu.Popup(MouseX, MouseY);
           END;
       END;
+    END;
   EXCEPT
     ON E : Exception DO
       Log('EG ChangeStateOfWhatIsUnderMouse: ' + E.ClassName + ' error raised, with message: ' + E.Message);
@@ -1717,13 +1717,13 @@ END; { ChangeStateOfWhatIsUnderMouse }
 
 PROCEDURE TCuneoWindow.MouseButtonDownTimerTick(Sender: TObject);
 BEGIN
-  IF EditMode AND (DragSignalNum <> UnknownSignal) THEN BEGIN
+  IF EditMode AND (EditedSignal <> UnknownSignal) THEN BEGIN
     { only start dragging after a short delay with the mouse held down }
     IF NOT SignalDragging THEN BEGIN
       ChangeCursor(crDrag);
       SignalDragging := True;
 
-      WITH Signals[DragSignalNum] DO BEGIN
+      WITH Signals[EditedSignal] DO BEGIN
         SaveDragX := Signal_LineX;
         SaveDragY := Signal_LineWithVerticalSpacingY;
       END; {WITH}
@@ -1770,7 +1770,6 @@ BEGIN
     { Ending an actual or a potential drag and drop }
     IF SignalDragging THEN
       DropSignal;
-    DragSignalNum := UnknownSignal;
 
     { Ending a zoomed screen mouse move }
     IF MoveZoomWindowMode THEN BEGIN
@@ -1822,9 +1821,11 @@ CONST
   HelpRequired = True;
 
 BEGIN
-  { Start the timer - switching it off and on seems to reset it, though it's undocumented }
-  CuneoWindow.MouseButtonDownTimer.Enabled := False;
-  CuneoWindow.MouseButtonDownTimer.Enabled := True;
+  IF EditMode AND (Button = mbLeft) THEN BEGIN
+    { Start the timer - switching it off and on seems to reset it, though it's undocumented }
+    CuneoWindow.MouseButtonDownTimer.Enabled := False;
+    CuneoWindow.MouseButtonDownTimer.Enabled := True;
+  END;
 
   { See if we're in the middle of an exit sequence, and, if so, abort it }
   IF EscKeyStored THEN BEGIN
