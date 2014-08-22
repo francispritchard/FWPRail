@@ -159,31 +159,6 @@ CONST
   Function11 = 11;
   Function12 = 12;
 
-  { make these changeable in due course *** }
-  ClearLineString = '[clear line string]';
-  UnknownAreaStr = '[unknown area]';
-  UnknownBufferStopStr = '[unknown buffer stop]';
-  UnknownColourStr = 'Unknown Colour';
-  UnknownLineStr = '[unknown line]';
-  UnknownLocoChipStr = '[unknown loco chip]';
-  UnknownLocoChipAsZeroesStr = '0000';
-  UnknownJourneyStr = '[unknown journey]';
-  UnknownLocationStr = '[unknown location]';
-  UnknownPointStr = '[unknown point]';
-  UnknownRouteStr = '[unknown route]';
-  UnknownSignalStr = '[unknown signal]';
-  UnknownTrackCircuitStr = '[unknown track circuit]';
-  UnknownTrainStatusStr = '[unknown train status]';
-  UnknownTrainTypeStr = '[unknown train type]';
-  UnknownTypeStr = '[unknown type]';
-
-  HoldMarker = 'HOLD';
-
-  SetCurrentRailwayTimeCaption = 'Set Current Railway Time';
-  SetProgramStartTimeCaption = 'Set Program Start Time';
-  SetDaylightStartTimeCaption = 'Set Daylight Start Time';
-  SetDaylightEndTimeCaption = 'Set Daylight End Time';
-
 TYPE
   TColour = TColor;
   TColourDialogue = TColorDialog;
@@ -1088,25 +1063,122 @@ CONST
   NumberElements = True;
 
   { Various strings - these have to match those in database fields }
+  { make these changeable in due course *** }
+  BufferStopAtDownStr = 'Buffer Stop At Down';
+  BufferStopAtUpStr = 'Buffer Stop At Up';
+  ClearLineString = '[clear line string]';
+  NotEndOfLineStr = 'Not End Of Line';
+  ProjectedLineAtUpStr = 'Projected Line At Up';
+  ProjectedLineAtDownStr = 'Projected Line At Down';
+
+  MainOrGoodsLineStr = 'Main or Goods Line';
+  MainLineStr = 'Main Line';
+  GoodsLineStr = 'Goods Line';
+  BranchLineDoubleStr = 'Branch Line Double';
+  BranchLineSingleStr = 'Branch Line Single';
+  IslandStationLineStr = 'Island Station Line';
+  MainStationLineStr = 'Main Station Line';
+  BranchStationLineStr = 'Branch Station Line';
+  WindowStationLineStr = 'Window Station Line';
+  SidingLineStr = 'Siding Line';
+  FiddleyardLineStr = 'Fiddleyard Line';
+  SidingsApproachLineStr = 'Sidings Approach Line';
+  StationAvoidingLineStr = 'Station Avoiding Line';
+  ProjectedLineStr = 'Projected Line';
+  UnknownLineTypeStr = 'Unknown Line Type';
+
+  CallingOnStr = 'Calling On';
+  TwoAspectStr = '2 Aspect';
+  ThreeAspectStr = '3 Aspect';
+  FourAspectStr = '4 Aspect';
+  SemaphoreHomeStr = 'Semaphore Home';
+  SemaphoreDistantStr = 'Semaphore Distant';
+
+  NoIndicatorStr = 'No Indicator';
+  JunctionIndicatorStr = 'Junction Indicator';
+  TheatreIndicatorStr = 'Theatre Indicator';
+  QueryIndicatorStr = 'Query Indicator';
+
+  UnknownAreaStr = '[unknown area]';
+  UnknownBufferStopStr = '[unknown buffer stop]';
+  UnknownColourStr = 'Unknown Colour';
+  UnknownLineStr = 'Unknown Line';
+  UnknownLocoChipStr = '[unknown loco chip]';
+  UnknownLocoChipAsZeroesStr = '0000';
+  UnknownJourneyStr = '[unknown journey]';
+  UnknownLocationStr = 'Unknown Location';
+  UnknownPointStr = '[unknown point]';
+  UnknownRouteStr = '[unknown route]';
+  UnknownSignalStr = '[unknown signal]';
+  UnknownTrackCircuitStr = '[unknown track circuit]';
+  UnknownTrainStatusStr = '[unknown train status]';
+  UnknownTrainTypeStr = '[unknown train type]';
+  UnknownTypeStr = '[unknown type]';
+
+  HoldMarker = 'HOLD';
+
+  SetCurrentRailwayTimeCaption = 'Set Current Railway Time';
+  SetProgramStartTimeCaption = 'Set Program Start Time';
+  SetDaylightStartTimeCaption = 'Set Daylight Start Time';
+  SetDaylightEndTimeCaption = 'Set Daylight End Time';
+
   LevelStr = 'Level';
-  RisingIfDownStr = 'RisingIfDown';
-  RisingIfUpStr = 'RisingIfUp';
+  RisingIfDownStr = 'Rising If Down';
+  RisingIfUpStr = 'Rising If Up';
 
   DivergingStr = 'Diverging';
-  OutOfActionStr = 'OutOfAction';
+  OutOfActionStr = 'Out Of Action';
   StraightStr = 'Straight';
   UnknownStr = 'Unknown';
 
-  NonThroughLocationStr = 'NonThroughLocation';
-  ThroughLocationStr = 'ThroughLocation';
+  NonThroughLocationStr = 'Non Through Location';
+  ThroughLocationStr = 'Through Location';
 
-  FeedbackDetectorOutOfUseStr = 'OutOfUse';
-  LineFeedbackDetectorStr = 'LineDetector';
+  FeedbackDetectorOutOfUseStr = 'Out Of Use';
+  LineFeedbackDetectorStr = 'Line Detector';
   MixedFeedbackDetectorStr = 'Mixed';
-  PointFeedbackDetectorStr = 'PointDetector';
-  TrackCircuitFeedbackDetectorStr = 'TrackCircuitDetector';
-  TRSPlungerFeedbackDetectorStr = 'TRSPlunger';
+  PointFeedbackDetectorStr = 'Point Detector';
+  TrackCircuitFeedbackDetectorStr = 'Track Circuit Detector';
+  TRSPlungerFeedbackDetectorStr = 'TRS Plunger';
   UnknownFeedbackDetectorStr = 'Unknown';
+
+  LightLocoStr = 'Light Loco';
+  ExpressPassengerStr = 'Express Passenger';
+  OrdinaryPassengerStr = 'Ordinary Passenger';
+  ExpressFreightStr = 'Express Freight';
+  Freight75mphStr = '75mph Freight';
+  EmptyCoachingStockStr = 'Empty Coaching Stock';
+  Freight60mphStr = '60mph Freight';
+  Freight45mphStr = '45mph Freight';
+  Freight35mphStr = '35mph Freight';
+  InternationalStr = 'International';
+
+  OrdinaryPointStr = 'Ordinary Point';
+  CrossOverPointStr = 'Cross Over Point';
+  ThreeWayPointAStr = 'Three Way Point A';
+  ThreeWayPointBStr = 'Three Way Point B';
+  SingleSlipStr = 'Single Slip';
+  DoubleSlipStr = 'Double Slip';
+  ProtectedPointStr = 'Protected Point';
+  CatchPointUpStr = 'Catch Point Up';
+  CatchPointDownStr = 'Catch Point Down';
+  UnknownPointTypeStr = 'Unknown Point Type';
+
+  LeftTopStr = 'Left Top';
+  RightTopStr = 'Right Top';
+  CentreTopStr = 'Centre Top';
+  LeftBottomStr = 'Left Bottom';
+  RightBottomStr = 'Right Bottom';
+  CentreBottomStr = 'Centre Bottom';
+  UnknownPlatformNumberPositionStr = 'Unknown Platform Number Position';
+
+  SolidStr = 'Solid';
+  DashStr = 'Dash';
+  DotStr = 'Dot';
+  DashDotStr = 'DashDot';
+  DashDotDotStr = 'DashDotDot';
+  ClearStr = 'Clear';
+  InsideFrameStr = 'InsideFrame';
 
   LogSignalData = True;
 

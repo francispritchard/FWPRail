@@ -368,7 +368,7 @@ BEGIN
 
         IF Location_IsPlatform THEN BEGIN
           IF Location_LineAtUp = UnknownLine THEN BEGIN
-            LineAtUpStr := 'Unknown Line';
+            LineAtUpStr := UnknownLineStr;
             Location_PlatformOrFiddleyardAtUp := UnknownLocation;
             IF Location_DirectionPriority <> DownOnly THEN
               Log('E Line up of ' + LocationToStr(Location, ShortStringType) + ' is unknown (is there an adjacent signal missing?)');
@@ -388,7 +388,7 @@ BEGIN
 
         IF Location_IsPlatform THEN BEGIN
           IF Location_LineAtDown = UnknownLine THEN BEGIN
-            LineAtDownStr := 'Unknown Line';
+            LineAtDownStr := UnknownLineStr;
             Location_PlatformOrFiddleyardAtDown := UnknownLocation;
             IF Location_DirectionPriority <> UpOnly THEN
               Log('E Line down of ' + LocationToStr(Location, ShortStringType) + ' is unknown (is there an adjacent signal missing?)');

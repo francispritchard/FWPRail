@@ -3071,15 +3071,15 @@ FUNCTION EndOfLineToStr(E : EndOfLineType) : String;
 BEGIN
   CASE E OF
     BufferStopAtUp:
-      Result := 'Buffer Stop At Up';
+      Result := BufferStopAtUpStr;
     BufferStopAtDown:
-      Result := 'Buffer Stop At Down';
+      Result := BufferStopAtDownStr;
     ProjectedLineAtUp:
-      Result := 'Projected Line At up';
+      Result := ProjectedLineAtUpStr;
     ProjectedLineAtDown:
-      Result := 'Projected Line At down';
+      Result := ProjectedLineAtDownStr;
     NotEndOfLine:
-      Result := 'Not End Of Line';
+      Result := NotEndOfLineStr;
   END; {CASE}
 END; { EndOfLineToStr }
 
@@ -3509,13 +3509,13 @@ BEGIN
   IF LongOrShortString = LongStringType THEN BEGIN
     CASE I OF
       NoIndicator:
-        Result := 'No Indicator';
+        Result := NoIndicatorStr;
       JunctionIndicator:
-        Result := 'Junction Indicator';
+        Result := JunctionIndicatorStr;
       TheatreIndicator:
-        Result := 'Theatre Indicator';
+        Result := TheatreIndicatorStr;
       QueryIndicator:
-        Result := 'Query Indicator';
+        Result := QueryIndicatorStr;
     END; {CASE}
   END ELSE BEGIN
     CASE I OF
@@ -4905,7 +4905,7 @@ FUNCTION LTS(L : Integer) : String;
 { Return a line as a string - routine designed for use in debugging }
 BEGIN
   IF (Length(Lines) = 0) OR (L = UnknownLine) THEN
-    Result := 'Unknown Line'
+    Result := UnknownLineStr
   ELSE
     Result := Lines[L].Line_Str;
 END; { LTS }
@@ -4958,7 +4958,7 @@ CONST
 
 BEGIN
   IF (Length(Locations) = 0) OR (Location = UnknownLocation) THEN
-    Result := 'Unknown Location'
+    Result := UnknownLocationStr
   ELSE
     Result := LocationToStrMainProcedure(Location, LongOrShortString);
 END; { LocTS }
@@ -5645,25 +5645,25 @@ FUNCTION PointTypeToStr(PType : TypeOfPoint) : String;
 BEGIN
   CASE PType OF
     OrdinaryPoint:
-      Result := 'Ordinary Point';
+      Result := OrdinaryPointStr;
     CrossOverPoint:
-      Result := 'Cross Over Point';
+      Result := CrossOverPointStr;
     ThreeWayPointA:
-      Result := 'Three Way Point A';
+      Result := ThreeWayPointAStr;
     ThreeWayPointB:
-      Result := 'Three Way Point B';
+      Result := ThreeWayPointBStr;
     SingleSlip:
-      Result := 'Single Slip';
+      Result := SingleSlipStr;
     DoubleSlip:
-      Result := 'Double Slip';
+      Result := DoubleSlipStr;
     ProtectedPoint:
-      Result := 'Protected Point';
+      Result := ProtectedPointStr;
     CatchPointUp:
-      Result := 'Catch Point Up';
+      Result := CatchPointUpStr;
     CatchPointDown:
-      Result := 'Catch Point Down';
+      Result := CatchPointDownStr;
   ELSE
-    Result := 'Unknown Point Type';
+    Result := UnknownPointTypeStr;
   END; {CASE}
 END; { PointTypeToStr }
 
@@ -6924,17 +6924,17 @@ BEGIN
   IF LongOrShortString = LongStringType THEN BEGIN
     CASE ST OF
       CallingOn:
-        Result := 'Calling On';
+        Result := CallingOnStr;
       TwoAspect:
-        Result := '2 Aspect';
+        Result := TwoAspectStr;
       ThreeAspect:
-        Result := '3 Aspect';
+        Result := ThreeAspectStr;
       FourAspect:
-        Result := '4 Aspect';
+        Result := FourAspectStr;
       SemaphoreHome:
-        Result := 'Semaphore Home';
+        Result := SemaphoreHomeStr;
       SemaphoreDistant:
-        Result := 'Semaphore Distant';
+        Result := SemaphoreDistantStr;
     END; {CASE}
   END ELSE BEGIN
     CASE ST OF
@@ -7292,21 +7292,19 @@ END; { StrToDirectionType }
 FUNCTION StrToEndOfLine(Str : String) : EndOfLineType;
 { Convert a string to an end of line }
 BEGIN
-  Str := TrimRemoveSpacesAndMakeUpperCase(Str);
-
-  IF Str = TrimRemoveSpacesAndMakeUpperCase('Buffer Stop At Up') THEN
+  IF Str = BufferStopAtUpStr THEN
     Result := BufferStopAtUp
   ELSE
-    IF Str = TrimRemoveSpacesAndMakeUpperCase('Buffer Stop At Down') THEN
+    IF Str = BufferStopAtDownStr THEN
       Result := BufferStopAtDown
     ELSE
-      IF Str = TrimRemoveSpacesAndMakeUpperCase('Projected Line At up') THEN
+      IF Str = ProjectedLineAtUpStr THEN
         Result := ProjectedLineAtUp
       ELSE
-        IF Str = TrimRemoveSpacesAndMakeUpperCase('Projected Line At down') THEN
+        IF Str = ProjectedLineAtDownStr THEN
           Result := ProjectedLineAtDown
         ELSE
-          IF Str = TrimRemoveSpacesAndMakeUpperCase('Not End Of Line') THEN
+          IF Str = NotEndOfLineStr THEN
             Result := NotEndOfLine
           ELSE
             Result := UnknownEndOfLine;
@@ -7315,24 +7313,22 @@ END; { StrToEndOfLine }
 FUNCTION StrToFeedbackUnitType(Str : String) : TypeOfFeedBackType;
 { Convert a string to a feedback unit type }
 BEGIN
-  Str := TrimRemoveSpacesAndMakeUpperCase(Str);
-
-  IF Str = TrimRemoveSpacesAndMakeUpperCase(TrackCircuitFeedbackDetectorStr) THEN
+  IF Str = TrackCircuitFeedbackDetectorStr THEN
     Result := TrackCircuitFeedbackDetector
   ELSE
-    IF Str = TrimRemoveSpacesAndMakeUpperCase(TRSPlungerFeedbackDetectorStr) THEN
+    IF Str = TRSPlungerFeedbackDetectorStr THEN
       Result := TRSPlungerFeedbackDetector
     ELSE
-      IF Str = TrimRemoveSpacesAndMakeUpperCase(PointFeedbackDetectorStr) THEN
+      IF Str = PointFeedbackDetectorStr THEN
         Result := PointFeedbackDetector
     ELSE
-      IF Str = TrimRemoveSpacesAndMakeUpperCase(LineFeedbackDetectorStr) THEN
+      IF Str = LineFeedbackDetectorStr THEN
         Result := LineFeedbackDetector
       ELSE
-        IF Str = TrimRemoveSpacesAndMakeUpperCase(MixedFeedbackDetectorStr) THEN
+        IF Str = MixedFeedbackDetectorStr THEN
           Result := MixedFeedbackDetectors
         ELSE
-          IF Str = TrimRemoveSpacesAndMakeUpperCase(FeedbackDetectorOutOfUseStr) THEN
+          IF Str = FeedbackDetectorOutOfUseStr THEN
             Result := FeedbackDetectorOutOfUse
           ELSE
              Result := UnknownFeedbackDetectorType;
@@ -7341,15 +7337,13 @@ END; { StrToFeedbackUnitType }
 FUNCTION StrToGradient(Str : String) : GradientType;
 { Convert a string to a gradient }
 BEGIN
-  Str := TrimRemoveSpacesAndMakeUpperCase(Str);
-
-  IF Str = TrimRemoveSpacesAndMakeUpperCase(LevelStr) THEN
+  IF Str = LevelStr THEN
     Result := Level
   ELSE
-    IF Str = TrimRemoveSpacesAndMakeUpperCase(RisingIfUpStr) THEN
+    IF Str = RisingIfUpStr THEN
       Result := RisingIfUp
     ELSE
-      IF Str = TrimRemoveSpacesAndMakeUpperCase(RisingIfDownStr) THEN
+      IF Str = RisingIfDownStr THEN
         Result := RisingIfDown
       ELSE
         Result := UnknownGradientType;
@@ -7358,18 +7352,16 @@ END; { StrToGradient }
 FUNCTION StrToIndicatorType(Str : String) : IndicatorType;
 { Return the type a route indicator is }
 BEGIN
-  Str := TrimRemoveSpacesAndMakeUpperCase(Str);
-
-  IF Str = 'NOINDICATOR' THEN
+  IF Str = NoIndicatorStr THEN
     Result := NoIndicator
   ELSE
-    IF Str = 'JUNCTIONINDICATOR' THEN
+    IF Str = JunctionIndicatorStr THEN
       Result := JunctionIndicator
     ELSE
-      IF Str = 'THEATREINDICATOR' THEN
+      IF Str = TheatreIndicatorStr THEN
         Result := TheatreIndicator
       ELSE
-        IF Str = 'QUERYINDICATOR' THEN
+        IF Str = QueryIndicatorStr THEN
           Result := QueryIndicator
         ELSE
           Result := UnknownIndicator;
@@ -7432,27 +7424,25 @@ END; { StrToLocation }
 FUNCTION StrToPenStyle(Str : String) : TPenStyle;
 { Converts strings to pen styles }
 BEGIN
-  Str := TrimRemoveSpacesAndMakeUpperCase(Str);
-
-  IF Str = 'SOLID' THEN
+  IF Str = SolidStr THEN
     Result := psSolid
   ELSE
-    IF Str = 'DASH' THEN
+    IF Str = DashStr THEN
       Result := psDash
     ELSE
-      IF Str = 'DOT' THEN
+      IF Str = DotStr THEN
         Result := psDot
       ELSE
-        IF Str = 'DASHDOT' THEN
+        IF Str = DashDotStr THEN
           Result := psDashDot
         ELSE
-          IF Str = 'DASHDOTDOT' THEN
+          IF Str = DashDotDotStr THEN
             Result := psDashDotDot
           ELSE
-            IF Str = 'CLEAR' THEN
+            IF Str = ClearStr THEN
               Result := psClear
             ELSE
-              IF Str = 'INSIDEFRAME' THEN
+              IF Str = InsideFrameStr THEN
                 Result := psInsideFrame
               ELSE
                 Result := psSolid; { the default }
@@ -7461,24 +7451,22 @@ END; { StrToPenStyle }
 FUNCTION StrToPlatformNumberPosition(Str : String) : PlatformNumberPositionType;
 { Return the given platform number position value as a string }
 BEGIN
-  Str := TrimRemoveSpacesAndMakeUpperCase(Str);
-
-  IF Str = 'LEFTTOP' THEN
+  IF Str = LeftTopStr THEN
     Result := LeftTop
   ELSE
-    IF Str = 'RIGHTTOP' THEN
+    IF Str = RightTopStr THEN
       Result := RightTop
     ELSE
-      IF Str = 'CENTRETOP' THEN
+      IF Str = CentreTopStr THEN
         Result := CentreTop
       ELSE
-        IF Str = 'LEFTBOTTOM' THEN
+        IF Str = LeftBottomStr THEN
           Result := LeftBottom
         ELSE
-          IF Str = 'RIGHTBOTTOM' THEN
+          IF Str = RightBottomStr THEN
             Result := RightBottom
           ELSE
-            IF Str = 'CENTREBOTTOM' THEN
+            IF Str = CentreBottomStr THEN
               Result := CentreBottom
             ELSE
               Result := UnknownPlatformNumberPosition;
@@ -7490,15 +7478,13 @@ BEGIN
   Result := PointStateUnknown;
 
   TRY
-    Str := TrimRemoveSpacesAndMakeUpperCase(Str);
-
-    IF Str = TrimRemoveSpacesAndMakeUpperCase(StraightStr) THEN
+    IF Str = StraightStr THEN
       Result := Straight
     ELSE
-      IF Str = TrimRemoveSpacesAndMakeUpperCase(DivergingStr) THEN
+      IF Str = DivergingStr THEN
         Result := Diverging
       ELSE
-        IF Str = TrimRemoveSpacesAndMakeUpperCase(OutOfActionStr) THEN
+        IF Str = OutOfActionStr THEN
           Result := PointOutOfAction;
   EXCEPT
     ON E : Exception DO
@@ -7509,33 +7495,31 @@ END; { StrToPointState }
 FUNCTION StrToPointType(Str : String) : TypeOfPoint;
 { Convert a string to a point state }
 BEGIN
-  Str := TrimRemoveSpacesAndMakeUpperCase(Str);
-
-  IF Str = 'ORDINARYPOINT' THEN
+  IF Str = OrdinaryPointStr THEN
     Result := OrdinaryPoint
   ELSE
-    IF Str = 'CROSSOVERPOINT' THEN
+    IF Str = CrossOverPointStr THEN
       Result := CrossOverPoint
     ELSE
-      IF Str = 'THREEWAYPOINTA' THEN
+      IF Str = ThreeWayPointAStr THEN
         Result := ThreeWayPointA
       ELSE
-        IF Str = 'THREEWAYPOINTB' THEN
+        IF Str = ThreeWayPointBStr THEN
           Result := ThreeWayPointB
         ELSE
-          IF Str = 'SINGLESLIP' THEN
+          IF Str = SingleSlipStr THEN
             Result := SingleSlip
           ELSE
-            IF Str = 'DOUBLESLIP' THEN
+            IF Str = DoubleSlipSTr THEN
               Result := DoubleSlip
             ELSE
-              IF Str = 'PROTECTEDPOINT' THEN
+              IF Str = ProtectedPointStr THEN
                 Result := ProtectedPoint
               ELSE
-                IF Str = 'CATCHPOINTUP' THEN
+                IF Str = CatchPointUpStr THEN
                   Result := CatchPointUp
                 ELSE
-                  IF Str = 'CATCHPOINTDOWN' THEN
+                  IF Str = CatchPointDownStr THEN
                     Result := CatchPointDown
                   ELSE
                     Result := PointTypeUnknown;
@@ -7544,24 +7528,22 @@ END; { StrToPointType }
 FUNCTION StrToSignalType(Str : String) : TypeOfSignal;
 { Return the type of a signal }
 BEGIN
-  Str := TrimRemoveSpacesAndMakeUpperCase(Str);
-
-  IF Str = 'CALLINGON' THEN
+  IF Str = CallingOnStr THEN
     Result := CallingOn
   ELSE
-    IF Str = '2ASPECT' THEN
+    IF Str =  TwoAspectStr THEN
       Result := TwoAspect
     ELSE
-      IF Str = '3ASPECT' THEN
+      IF Str = ThreeAspectStr THEN
         Result := ThreeAspect
       ELSE
-        IF Str = '4ASPECT' THEN
+        IF Str = FourAspectStr THEN
           Result := FourAspect
         ELSE
-          IF Str = 'SEMAPHOREHOME' THEN
+          IF Str = SemaphoreHomeStr THEN
             Result := SemaphoreHome
           ELSE
-            IF Str = 'SEMAPHOREDISTANT' THEN
+            IF Str = SemaphoreDistantStr THEN
               Result := SemaphoreDistant
             ELSE
               Result := UnknownSignalType;
@@ -7570,48 +7552,46 @@ END; { StrToSignalType }
 FUNCTION StrToTypeOfLine(Str : String) : TypeOfLine;
 { Convert a string to a line type }
 BEGIN
-  Str := TrimRemoveSpacesAndMakeUpperCase(Str);
-
-  IF Str = 'MAINORGOODSLINE' THEN
+  IF Str = MainOrGoodsLineStr THEN
     Result := MainOrGoods
   ELSE
-    IF Str ='MAINLINE' THEN
+    IF Str =MainLineStr THEN
       Result := MainLine
     ELSE
-      IF Str ='GOODSLINE' THEN
+      IF Str =GoodsLineStr THEN
         Result := GoodsLine
       ELSE
-        IF Str ='BRANCHLINEDOUBLE' THEN
+        IF Str =BranchLineDoubleStr THEN
           Result := BranchLineDouble
         ELSE
-          IF Str ='BRANCHLINESINGLE' THEN
+          IF Str =BranchLineSingleStr THEN
             Result := BranchLineSingle
           ELSE
-            IF Str ='ISLANDSTATIONLINE' THEN
+            IF Str =IslandStationLineStr THEN
               Result := IslandStationLine
             ELSE
-              IF Str ='MAINSTATIONLINE' THEN
+              IF Str =MainStationLineStr THEN
                 Result := MainStationLine
               ELSE
-                IF Str ='BRANCHSTATIONLINE' THEN
+                IF Str =BranchStationLineStr THEN
                   Result := BranchStationLine
                 ELSE
-                  IF Str ='WINDOWSTATIONLINE' THEN
+                  IF Str =WindowStationLineStr THEN
                     Result := WindowStationLine
                   ELSE
-                    IF Str ='SIDINGLINE' THEN
+                    IF Str =SidingLineStr THEN
                       Result := SidingLine
                     ELSE
-                      IF Str ='FIDDLEYARDLINE' THEN
+                      IF Str =FiddleyardLineStr THEN
                         Result := FiddleyardLine
                       ELSE
-                        IF Str ='SIDINGSAPPROACHLINE' THEN
+                        IF Str =SidingsApproachLineStr THEN
                           Result := SidingsApproach
                           ELSE
-                            IF Str ='STATIONAVOIDINGLINE' THEN
+                            IF Str =StationAvoidingLineStr THEN
                               Result := StationAvoiding
                             ELSE
-                              IF Str ='PROJECTEDLINE' THEN
+                              IF Str =ProjectedLineStr THEN
                                 Result := ProjectedLine
                               ELSE
                                 Result := UnknownTypeOfLine;
@@ -7620,12 +7600,10 @@ END; { StrToTypeOfLine }
 FUNCTION StrToThroughLocationState(Str : String) : ThroughLocationStateType;
 { Return the through state from a given string }
 BEGIN
-  Str := TrimRemoveSpacesAndMakeUpperCase(Str);
-
-  IF Str = TrimRemoveSpacesAndMakeUpperCase(ThroughLocationStr) THEN
+  IF Str = ThroughLocationStr THEN
     Result := ThroughLocation
   ELSE
-    IF Str = TrimRemoveSpacesAndMakeUpperCase(NonThroughLocationStr) THEN
+    IF Str = NonThroughLocationStr THEN
       Result := NonThroughLocation
     ELSE
       Result := UnknownThroughLocationState;
@@ -7634,9 +7612,7 @@ END; { StrToThroughLocationState }
 FUNCTION StrToTrainTypeNum(Str : String) : Integer;
 { Returns the train type as a number; an up-to-date list as of 5/10/05 }
 BEGIN
-  Str := TrimRemoveSpacesAndMakeUpperCase(Str);
-
-  IF Str = 'LIGHTLOCO' THEN
+  IF Str = LightLocoStr THEN
     Result := 0
   ELSE
     IF Str = 'EXPRESSPASSENGER' THEN
@@ -7924,25 +7900,25 @@ FUNCTION TrainTypeNumToStr(TrainTypeNum : Integer) : String;
 BEGIN
   CASE TrainTypeNum OF
     0:
-      Result := 'Light Loco';
+      Result := LightLocoStr;
     1:
-      Result := 'Express Passenger';
+      Result := ExpressPassengerStr;
     2:
-      Result := 'Ordinary Passenger';
+      Result := OrdinaryPassengerStr;
     3:
-      Result := 'Express Freight';
+      Result := ExpressFreightStr;
     4:
-      Result := '75mph Freight';
+      Result := Freight75mphStr;
     5:
-      Result := 'Empty Coaching Stock';
+      Result := EmptyCoachingStockStr;
     6:
-      Result := '60mph Freight';
+      Result := Freight60mphStr;
     7:
-      Result := '45mph Freight';
+      Result := Freight45mphStr;
     8:
-      Result := '35mph Freight';
+      Result := Freight35mphStr;
     9:
-      Result := 'International';
+      Result := InternationalStr;
   ELSE
     Result := UnknownTrainTypeStr;
   END; {CASE}
@@ -8435,35 +8411,35 @@ FUNCTION TypeOfLineToStr(T : TypeOfLine) : String;
 BEGIN
   CASE T OF
     MainOrGoods:
-      Result := 'Main or Goods Line';
+      Result := MainOrGoodsLineStr;
     MainLine:
-      Result := 'Main Line';
+      Result := MainLineStr;
     GoodsLine:
-      Result := 'Goods Line';
+      Result := GoodsLineStr;
     BranchLineDouble:
-      Result := 'Branch Line Double';
+      Result := BranchLineDoubleStr;
     BranchLineSingle:
-      Result := 'Branch Line Single';
+      Result := BranchLineSingleStr;
     IslandStationLine:
-      Result := 'Island Station Line';
+      Result := IslandStationLineStr;
     MainStationLine:
-      Result := 'Main Station Line';
+      Result := MainStationLineStr;
     BranchStationLine:
-      Result := 'Branch Station Line';
+      Result := BranchStationLineStr;
     WindowStationLine:
-      Result := 'Window Station Line';
+      Result := WindowStationLineStr;
     SidingLine:
-      Result := 'Siding Line';
+      Result := SidingLineStr;
     FiddleyardLine:
-      Result := 'Fiddleyard Line';
+      Result := FiddleyardLineStr;
     SidingsApproach:
-      Result := 'Sidings Approach Line';
+      Result := SidingsApproachLineStr;
     StationAvoiding:
-      Result := 'Station Avoiding Line';
+      Result := StationAvoidingLineStr;
     ProjectedLine:
-      Result := 'Projected Line';
+      Result := ProjectedLineStr;
   ELSE {CASE}
-    Result := 'Unknown Line Type';
+    Result := UnknownLineTypeStr;
   END; {CASE}
 END; { TypeOfLineToStr }
 
