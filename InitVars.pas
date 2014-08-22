@@ -353,6 +353,30 @@ TYPE
     Line_UpYLocationStr : String;
   END;
 
+CONST
+  Line_BufferStopNumberFieldName : String = 'Buffer Stop Number';
+  Line_BufferStopTheatreDestinationStrFieldName : String = 'Buffer Stop Theatre Destination';
+  Line_DirectionFieldName : String = 'Direction';
+  Line_DownConnectionChFieldName : String = 'Down Connection Ch';
+  Line_DownYAbsoluteFieldName : String = 'Down Y';
+  Line_DownYLocationStrFieldName : String = 'Down Y Location';
+  Line_EndOfLineMarkerFieldName : String = 'End Of Line Marker';
+  Line_GradientFieldName : String = 'Gradient';
+  Line_InUseFeedbackUnitFieldName : String = 'In Use Feedback Unit';
+  Line_LengthFieldName : String = 'Length';
+  Line_LocationStrFieldName : String = 'Location';
+  Line_NumFieldName : String = 'LineNum';
+  Line_OutOfUseFieldName : String = 'Out Of Use';
+  Line_StrFieldName : String = 'Line';
+  Line_TCFieldName : String = 'Line TC';
+  Line_TypeOfLineFieldName : String = 'Type Of Line';
+  Line_UpConnectionChFieldName : String = 'Up Connection Ch';
+  Line_UpXAbsoluteFieldName : String = 'Up X';
+  Line_UpXLineStrFieldName : String = 'Up X Line';
+  Line_UpYAbsoluteFieldName : String = 'Up Y';
+  Line_UpYLocationStrFieldName : String = 'Up Y Location';
+
+TYPE
   DirectionPriorityType = (PreferablyUp, UpOnly, TerminatingAtUp, PreferablyDown, DownOnly, TerminatingAtDown, NoDirectionPriority);
   ThroughLocationStateType = (ThroughLocation, NonThroughLocation, UnknownThroughLocationState);
   ThroughOrStoppingPriorityType = (ThroughPriority, StoppingPriority, NoStoppingPriority);
@@ -1543,21 +1567,47 @@ PROCEDURE SaveScreenDrawingVariables;
 PROCEDURE SetUpLineDrawingVars;
 { Set up the positions of the lines and platforms }
 
-FUNCTION ValidateDirection(Str : String; OUT ErrorMsg : String) : DirectionType;
-{ Validates and if ok returns the signal direction }
+FUNCTION ValidateBufferStopNumber(BufferStopStr : String; OUT ErrorMsg : String) : Integer;
+{ See if there's a valid number (or nothing) }
 
-FUNCTION ValidateIndicatorSpeedRestriction(Str : String; Indicator : IndicatorType; OUT ErrorMsg : String) : MPHType;
-{ Validates and if ok returns what the tempoarary speed restriction is. This test must be carried outr after Indicator is validated. }
+FUNCTION ValidateLineConnnectionCh(LineConnectionCh : String; OUT ErrorMsg : String) : String;
+{ See if the connection char exceeds one character }
 
-FUNCTION ValidateJunctionIndicators1(Str, FieldName : String; Signal_Indicator : IndicatorType; OUT ErrorMsg : String) : JunctionIndicatorRec;
-{ The first part of verifying whether junction indicators are correctly set up; this part also returns the values for each junction indicator. This test requires that
-  the indicator has been validated first
-}
-FUNCTION ValidateLastPointFeedbackStateAsReadIn(PointStateStr : String; PointManualOperation : Boolean; OUT ErrorMsg : String) : PointStateType;
-{ Check whether the last point state read in is valid }
+FUNCTION ValidateLineDirection(LineDirectionStr : String; OUT ErrorMsg : String) : DirectionType;
+{ Check the direction is correct }
 
-FUNCTION ValidateLastPointManualStateAsReadIn(PointStateStr : String; PointManualOperation : Boolean; OUT ErrorMsg : String) : PointStateType;
-{ Check whether the last point state read in is valid }
+FUNCTION ValidateLineEndOfLineMarker(EndOfLineMarkerStr : String; OUT ErrorMsg : String) : EndOfLineType;
+{ See if the supplied end of line string is correct }
+
+FUNCTION ValidateLineGradient(LineGradientStr : String; OUT ErrorMsg : String) : GradientType;
+{ Checks the line's gradient is valid }
+
+FUNCTION ValidateLineInUseFeedbackUnit(FeedbackUnitStr : String; OUT ErrorMsg : String) : Integer;
+{ Only checks that the supplied data is numeric }
+
+FUNCTION ValidateLineLength(LineLengthStr : String; OUT ErrorMsg : String) : Integer;
+{ Checks whether the line length is a numeral }
+
+FUNCTION ValidateLineLocation(LineLocationStr : String; OUT ErrorMsg : String) : Integer;
+{ Checks whether the line location is valid }
+
+FUNCTION ValidateLineName(Str : String; OUT ErrorMsg : String) : String;
+{ Validates whether the new line name matches an existing one }
+
+FUNCTION ValidateLineTrackCircuit(LineTCStr : String; OUT ErrorMsg : String) : Integer;
+{ Checks the validity of the supplied line track circuit }
+
+FUNCTION ValidateLineType(LineTypeStr : String; OUT ErrorMsg : String) : TypeOfLine;
+{ See if the type of line is correct }
+
+FUNCTION ValidateLineUpXStr(UpXStr, LineStr : String; OUT ErrorMsg : String) : String;
+{ Sees whether the line at UpX is different from the line we're creating }
+
+FUNCTION ValidateLineUpXAbsolute(XStr, XLineStr : String; OUT ErrorMsg : String) : Integer;
+{ See whether the X absolute value duplicates another field }
+
+FUNCTION ValidateLineYAbsolute(YStr, LocationStr : String; YDebugStr1, YDebugStr2 : String; OUT ErrorMsg : String) : Integer;
+{ See whether the Y absolute value duplicates another field }
 
 FUNCTION ValidateNextSignalIfNoIndicator(Str : String; Init : Boolean; OUT ErrorMsg : String) : Integer;
 { Validates and if ok returns what the other signal is if no indicator is lit }
@@ -1577,6 +1627,12 @@ FUNCTION ValidatePointFeedbackUnit(FeedbackUnitStr : String; OUT PointHasFeedbac
 
 FUNCTION ValidatePointHeelLineName(LineName : String; OUT ErrorMsg : String) : Integer;
 { Check that a given point's Heel Line name is valid }
+
+FUNCTION ValidatePointLastFeedbackStateAsReadIn(PointStateStr : String; PointManualOperation : Boolean; OUT ErrorMsg : String) : PointStateType;
+{ Check whether the last point state read in is valid }
+
+FUNCTION ValidatePointLastManualStateAsReadIn(PointStateStr : String; PointManualOperation : Boolean; OUT ErrorMsg : String) : PointStateType;
+{ Check whether the last point state read in is valid }
 
 FUNCTION ValidatePointLenzNum(LenzNumStr : String; PointLastManualStateAsReadIn : PointStateType; OUT PointManualOperation : Boolean; OUT PointPresentState : PointStateType;
                               OUT ErrorMsg : String) : Integer;
@@ -1615,6 +1671,9 @@ FUNCTION ValidateSignalAsTheatreDestination(Str : String; OUT ErrorMsg : String)
 FUNCTION ValidateSignalDecoderNum(Str : String; AccessoryAddress : Integer; SignalType : TypeOfSignal; OUT ErrorMsg : String) : Integer;
 { Validates and if ok returns the decoder number for a signal decoder. This check must be done after Accessory Address and Signal Type are validated. }
 
+FUNCTION ValidateSignalDirection(Str : String; OUT ErrorMsg : String) : DirectionType;
+{ Validates and if ok returns the signal direction }
+
 FUNCTION ValidateSignalIndicator(Str : String; OUT ErrorMsg : String) : IndicatorType;
 { Validates and if ok returns the signal indicator }
 
@@ -1626,6 +1685,17 @@ FUNCTION ValidateSignalIndicatorDecoderNum(Str : String; AccessoryAddress : Inte
 
 FUNCTION ValidateSignalDistantHomesArray(S : Integer; Signal_Type : TypeOfSignal; Str : String; OUT ErrorMsg : String) : IntegerArrayType;
 { Validates the home signal numbers supplied }
+
+FUNCTION ValidateSignalIndicatorSpeedRestriction(Str : String; Indicator : IndicatorType; OUT ErrorMsg : String) : MPHType;
+{ Validates and if ok returns what the tempoarary speed restriction is. This test must be carried outr after Indicator is validated. }
+
+FUNCTION ValidateSignalJunctionIndicators1(Str, FieldName : String; Signal_Indicator : IndicatorType; OUT ErrorMsg : String) : JunctionIndicatorRec;
+{ The first part of verifying whether junction indicators are correctly set up; this part also returns the values for each junction indicator. This test requires that
+  the indicator has been validated first
+}
+PROCEDURE ValidateSignalJunctionIndicators2(StrArray : ARRAY OF String; SignalIndicator : IndicatorType; SignalJunctionIndicators : ARRAY OF JunctionIndicatorRec;
+                                      OUT ErrorMsg : String);
+{ The second part of verifying whether junction indictaors are correctly set up }
 
 FUNCTION ValidateSignalLocationsToMonitorArray(Str : String; PossibleRouteHold : Boolean; OUT ErrorMsg : String) : IntegerArrayType;
 { Validates and if ok returns the signal locations monitored when a route is held. This test must be done after Possible Route Hold is validated. }
@@ -1647,10 +1717,6 @@ FUNCTION ValidateSignalQuadrant(Str : String; OUT ErrorMsg : String) : QuadrantT
 
 FUNCTION ValidateSignalType(Str : String; Quadrant : QuadrantType; OUT ErrorMsg : String) : TypeOfSignal;
 { Validates and if ok returns the signal type }
-
-PROCEDURE ValidateJunctionIndicators2(StrArray : ARRAY OF String; SignalIndicator : IndicatorType; SignalJunctionIndicators : ARRAY OF JunctionIndicatorRec;
-                                      OUT ErrorMsg : String);
-{ The second part of verifying whether junction indictaors are correctly set up }
 
 PROCEDURE WriteOutLineDataToDatabase;
 { Write out some line data to the line data file }
@@ -2330,7 +2396,7 @@ BEGIN
                     ErrorMsg := 'invalid loco chip number "' + TempStrArray[I] + '"'
                   ELSE
                     AppendToIntegerArray(Location_LocosNotAbleToUse, LocoChip);
-                END; { FOR }
+                END; {FOR}
               END;
             END;
 
@@ -2645,7 +2711,7 @@ BEGIN
                   ErrorMsg := 'unknown accessible Up location ' + Location_AccessibleLocationsOrAreasUpStrArray
                     [AccessibleLocationsCount] + ' in Accessible Locations Or Areas Up';
               END;
-            END; { FOR }
+            END; {FOR}
           END;
         END;
 
@@ -2684,12 +2750,11 @@ BEGIN
                   FOR NewLocation := 0 TO High(Locations) DO
                     IF (Locations[NewLocation].Location_Area = TempArea) AND NOT IsElementInIntegerArray(LocationExceptions, NewLocation) THEN
                       AppendToIntegerArray(Location_AccessibleLocationsDown, NewLocation);
-                END
-                ELSE
+                END ELSE
                   ErrorMsg := 'unknown accessible down location ' + Location_AccessibleLocationsOrAreasDownStrArray
                     [AccessibleLocationsCount] + ' in Accessible Locations Or Areas Down';
               END;
-            END; { FOR }
+            END; {FOR}
           END;
         END;
       END; {WITH}
@@ -2852,7 +2917,7 @@ BEGIN
                 END;
               END;
             END; {WITH}
-          END; { FOR }
+          END; {FOR}
           Inc(Iterations);
         UNTIL NOT MissingXValue OR (Iterations = 10000);
 
@@ -3016,6 +3081,186 @@ BEGIN
   END; {WHILE}
 END; { CalculateBufferStopPositions }
 
+FUNCTION ValidateLineInUseFeedbackUnit(FeedbackUnitStr : String; OUT ErrorMsg : String) : Integer;
+{ Only checks that the supplied data is numeric }
+BEGIN
+  ErrorMsg := '';
+  Result := 0;
+
+  IF (FeedbackUnitStr <> '') AND NOT TryStrToInt(FeedbackUnitStr, Result) THEN
+    ErrorMsg := 'ValidateLineInUseFeedbackUnit: invalid line-in-use feedback unit "' + FeedbackUnitStr + '"';
+END; { ValidateLineInUseFeedbackUnit }
+
+FUNCTION ValidateLineGradient(LineGradientStr : String; OUT ErrorMsg : String) : GradientType;
+{ Checks the line's gradient is valid }
+BEGIN
+  ErrorMsg := '';
+
+  Result := StrToGradient(LineGradientStr);
+  IF (LineGradientStr = '') OR (Result = UnknownGradientType) THEN
+    ErrorMsg := 'ValidateLineGradient: unknown gradient type "' + LineGradientStr + '"';
+END; { ValidateLineGradient }
+
+FUNCTION ValidateLineConnnectionCh(LineConnectionCh : String; OUT ErrorMsg : String) : String;
+{ See if the connection char exceeds one character }
+BEGIN
+  ErrorMsg := '';
+  Result := '';
+
+  IF Length(LineConnectionCh) > 1 THEN
+    ErrorMsg := 'ValidateLineConnnectionCh: line connection character "' + LineConnectionCh + '" is too long'
+  ELSE
+    Result := LineConnectionCh;
+END; { ValidateLineConnnectionCh }
+
+FUNCTION ValidateLineType(LineTypeStr : String; OUT ErrorMsg : String) : TypeOfLine;
+{ See if the type of line is correct }
+BEGIN
+  ErrorMsg := '';
+
+  Result := StrToTypeOfLine(LineTypeStr);
+  IF (LineTypeStr = '') OR (Result = UnknownTypeOfLine) THEN
+    ErrorMsg := 'ValidateLineType: unknown type of line "' + LineTypeStr + '"';
+END; { ValidateLineType }
+
+FUNCTION ValidateLineDirection(LineDirectionStr : String; OUT ErrorMsg : String) : DirectionType;
+{ Check the direction is correct }
+BEGIN
+  ErrorMsg := '';
+
+  Result := StrToDirectionType(LineDirectionStr);
+  IF (LineDirectionStr = '') OR (Result = UnknownDirection) THEN
+    ErrorMsg := ':ValidateLineDirection unknown line direction "' + LineDirectionStr + '"';
+END; { ValidateLineDirection }
+
+FUNCTION ValidateBufferStopNumber(BufferStopStr : String; OUT ErrorMsg : String) : Integer;
+{ See if there's a valid number (or nothing) }
+BEGIN
+  ErrorMsg := '';
+
+  IF BufferStopStr= '' THEN
+    Result := UnknownBufferStop
+  ELSE
+    IF NOT TryStrToInt(BufferStopStr, Result) THEN
+      ErrorMsg := 'ValidateBufferStopNumber: invalid buffer stop number "' + BufferStopStr + '"';
+END; { ValidateBufferStopNumber }
+
+FUNCTION ValidateLineEndOfLineMarker(EndOfLineMarkerStr : String; OUT ErrorMsg : String) : EndOfLineType;
+{ See if the supplied end of line string is correct }
+BEGIN
+  ErrorMsg := '';
+
+  Result := StrToEndOfLine(EndOfLineMarkerStr);
+  IF (EndOfLineMarkerStr = '') OR (Result = UnknownEndOfLine) THEN
+    ErrorMsg := 'ValidateLineEndOfLineMarker: unknown end of line marker "' + EndOfLineMarkerStr + '"';
+END; { ValidateLineEndOfLineMarker }
+
+FUNCTION ValidateLineTrackCircuit(LineTCStr : String; OUT ErrorMsg : String) : Integer;
+{ Checks the validity of the supplied line track circuit }
+BEGIN
+  ErrorMsg := '';
+
+  IF LineTCStr = '' THEN
+    Result := UnknownTrackCircuit
+  ELSE
+    IF NOT TryStrToInt(LineTCStr, Result) THEN
+      ErrorMsg := 'ValidateLineTrackCircuit: invalid line TC integer "' + LineTCStr + '"'
+    ELSE
+      IF ((Result < 0) AND (Result > High(TrackCircuits))) OR (Result = UnknownTrackCircuit) THEN
+        ErrorMsg := 'ValidateLineTrackCircuit: track circuit number ' + IntToStr(Result) + ' outside bounds';
+END; { ValidateLineTrackCircuit }
+
+FUNCTION ValidateLineLocation(LineLocationStr : String; OUT ErrorMsg : String) : Integer;
+{ Checks whether the line location is valid }
+BEGIN
+  ErrorMsg := '';
+
+  IF LineLocationStr = '' THEN
+    Result := UnknownLocation
+  ELSE BEGIN
+    Result := StrToLocation(LineLocationStr);
+    IF Result = UnknownLocation THEN
+      ErrorMsg := 'ValidateLineLocation: unknown line location "' + LineLocationStr + '"';
+  END;
+END; { ValidateLineLocation }
+
+FUNCTION ValidateLineLength(LineLengthStr : String; OUT ErrorMsg : String) : Integer;
+{ Checks whether the line length is a numeral }
+BEGIN
+  ErrorMsg := '';
+  Result := 0;
+
+  IF LineLengthStr <> '' THEN BEGIN
+    IF NOT TryStrToInt(LineLengthStr, Result) THEN
+      ErrorMsg := 'ValidateLineLength: invalid length integer';
+  END;
+END; { ValidateLineLength }
+
+FUNCTION ValidateLineUpXAbsolute(XStr, XLineStr : String; OUT ErrorMsg : String) : Integer;
+{ See whether the X absolute value duplicates another field }
+BEGIN
+  ErrorMsg := '';
+  Result := 0;
+
+  IF XStr <> '' THEN BEGIN
+    IF NOT TryStrToInt(XStr, Result) THEN
+      ErrorMsg := 'ValidateLineUpXAbsolute: invalid UpX integer "' + XStr + '"'
+    ELSE
+      IF XLineStr <> '' THEN
+        ErrorMsg := 'ValidateLineUpXAbsolute: UpX cannot have a value if UpX line is specified';
+  END ELSE
+    IF XLineStr = '' THEN
+      ErrorMsg := 'ValidateLineUpXAbsolute: the UpX line must have a value if UpX Line is zero';
+END; { ValidateLineUpXAbsolute }
+
+FUNCTION ValidateLineYAbsolute(YStr, LocationStr : String; YDebugStr1, YDebugStr2 : String; OUT ErrorMsg : String) : Integer;
+{ See whether the Y absolute value duplicates another field }
+BEGIN
+  ErrorMsg := '';
+  Result := 0;
+
+  IF YStr <> '' THEN BEGIN
+    IF NOT TryStrToInt(YStr, Result) THEN
+      ErrorMsg := 'ValidateLineYAbsolute: invalid ' + YDebugStr1 + ' integer "' + YStr + '"'
+    ELSE
+      IF LocationStr <> UnknownLocationStr THEN
+        ErrorMsg := 'ValidateLineYAbsolute: ' + YDebugStr2 + 'cannot have a value if line ' + YDebugStr1 + ' is specified';
+  END ELSE
+    IF LocationStr = UnknownLocationStr THEN
+      ErrorMsg := 'ValidateLineYAbsolute: the ' + YDebugStr1 + ' location must have a value if ' + YDebugStr2 + ' is zero';
+END; { ValidateLineYAbsolute }
+
+FUNCTION ValidateLineUpXStr(UpXStr, LineStr : String; OUT ErrorMsg : String) : String;
+{ Sees whether the line at UpX is different from the line we're creating }
+BEGIN
+  ErrorMsg := '';
+  Result := '';
+
+  IF UpXStr = LineStr THEN
+    ErrorMsg := 'UpXLine cannot be the same value as Line'
+  ELSE
+    Result := UpXStr;
+END; { ValidateLineUpXStr }
+
+FUNCTION ValidateLineName(Str : String; OUT ErrorMsg : String) : String;
+{ Validates whether the new line name matches an existing one }
+VAR
+  TempLine : Integer;
+
+BEGIN
+  ErrorMsg := '';
+  Result := Str;
+
+  TempLine := 0;
+  WHILE (TempLine <= High(Lines)) AND (ErrorMsg = '') DO BEGIN
+    { check all lines apart from the one we've just created }
+    IF Str = Lines[TempLine].Line_Str THEN
+      ErrorMsg := 'duplicate line name "' + Str + '" found'
+    ELSE
+      Inc(TempLine);
+  END; {WHILE}
+END; { ValidateLineName }
+
 PROCEDURE ReadInLineDataFromDatabase;
 { Initialise the data for each of the line segments }
 CONST
@@ -3024,19 +3269,15 @@ CONST
 
 VAR
   ErrorMsg : String;
-  FieldName : String;
-  L : Integer;
-  OtherL : Integer;
+  Line : Integer;
+  OtherLine : Integer;
   SaveLine : Integer;
-  TempStr : String;
   TempLine : Integer;
 
   PROCEDURE CreateBufferStop(L, BSNumber : Integer; BSDirection : DirectionType; BSTheatreDestination : String);
   { Create a bufferstop record }
   BEGIN
     SetLength(BufferStops, Length(BufferStops) + 1);
-
-    Lines[L].Line_AdjacentBufferStop := High(BufferStops);
 
     WITH BufferStops[High(BufferStops)] DO BEGIN
       BufferStop_AdjacentLine := L;
@@ -3048,6 +3289,8 @@ VAR
       BufferStop_CurrentColour := BufferStopColour;
       BufferStop_Direction := BSDirection;
       BufferStop_Number := BSNumber;
+
+      Lines[L].Line_AdjacentBufferStop := BufferStop_Number;
     END; {WITH}
   END; { CreateBufferStop }
 
@@ -3074,14 +3317,13 @@ BEGIN
       Log('T Line data table and connection opened to initialise the lines');
 
       LineDataADOTable.First;
-      L := -1;
-      FieldName := 'LineNum';
+      Line := -1;
       WHILE NOT LineDataADOTable.EOF DO BEGIN
-        Inc(L);
-        IF LineDataADOTable.FieldByName(FieldName).AsInteger <> L THEN BEGIN
+        Inc(Line);
+        IF LineDataADOTable.FieldByName(Line_NumFieldName).AsInteger <> Line THEN BEGIN
           { we need to renumber from here on }
           LineDataADOTable.Edit;
-          LineDataADOTable.FieldByName('LineNum').AsInteger := L;
+          LineDataADOTable.FieldByName('LineNum').AsInteger := Line;
           LineDataADOTable.Post;
         END;
         LineDataADOTable.Next;
@@ -3097,8 +3339,8 @@ BEGIN
       WHILE NOT LineDataADOTable.EOF DO BEGIN
         WITH LineDataADOTable DO BEGIN
           SetLength(Lines, Length(Lines) + 1);
-          L := High(Lines);
-          WITH Lines[L] DO BEGIN
+          Line := High(Lines);
+          WITH Lines[Line] DO BEGIN
             ErrorMsg := '';
 
             Line_UpXAbsolute := 0;
@@ -3111,7 +3353,9 @@ BEGIN
             Line_DownYAbsolute := 0;
             Line_DownY := 0;
 
+            Line_DataChanged := False;
             Line_DownConnectionCh := '';
+            Line_DownConnectionChBold := False;
             Line_AdjacentBufferStop := UnknownBufferStop;
             Line_LockFailureNotedInSubRouteUnit := False;
             Line_NextUpIsEndofLine := NotEndOfLine;
@@ -3124,191 +3368,77 @@ BEGIN
             Line_RouteLockingForDrawing := UnknownRoute;
             Line_RouteSet := UnknownRoute;
             Line_UpConnectionCh := '';
+            Line_UpConnectionChBold := False;
             Line_UpXValueSpecified := False;
 
-            FieldName := 'LineNum';
-            Line_TempNum := FieldByName(FieldName).AsInteger;
-            IF Line_TempNum <> L THEN
+            Line_TempNum := FieldByName(Line_NumFieldName).AsInteger;
+            IF Line_TempNum <> Line THEN
               ErrorMsg := 'it does not match the line number in the database (' + IntToStr(Line_TempNum) + ')';
 
+            IF ErrorMsg = '' THEN
+              Line_Str := ValidateLineName(FieldByName(Line_StrFieldName).AsString, ErrorMsg);
+
+            IF ErrorMsg = '' THEN
+              Line_UpXLineStr := ValidateLineUpXStr(FieldByName(Line_UpXLineStrFieldName).AsString, Line_Str, ErrorMsg);
+
             IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'Line';
-              Line_Str := FieldByName(FieldName).AsString;
-
-              TempLine := 0;
-              WHILE TempLine <= High(Lines) - 1 DO BEGIN
-                { check all lines apart from the one we've just created }
-                IF Line_Str = Lines[TempLine].Line_Str THEN
-                  ErrorMsg := 'duplicate line name found';
-                Inc(TempLine);
-              END; {WHILE}
-
-              FieldName := 'Up X Line';
-              Line_UpXLineStr := FieldByName(FieldName).AsString;
-              IF Line_Str = Line_UpXLineStr THEN
-                ErrorMsg := 'UpXLine cannot be the same value as Line';
+              Line_UpXAbsolute := ValidateLineUpXAbsolute(FieldByName(Line_UpXAbsoluteFieldName).AsString, Line_UpXLineStr, ErrorMsg);
+              IF Line_UpXAbsolute <> 0 THEN
+                Line_UpXValueSpecified := True;
             END;
 
+            IF ErrorMsg = '' THEN
+              { we do the validation when calculating line positions later, as sometimes the location string contains two locations }
+              Line_UpYLocationStr := FieldByName(Line_UpYLocationStrFieldName).AsString;
+
+            IF ErrorMsg = '' THEN
+              Line_UpYAbsolute := ValidateLineYAbsolute(FieldByName(Line_UpYAbsoluteFieldName).AsString, Line_UpYLocationStr, 'UpY', 'UpY Location', ErrorMsg);
+
+            IF ErrorMsg = '' THEN
+              { we do the validation when calculating line positions later, as sometimes the location string contains two locations }
+              Line_DownYLocationStr := FieldByName(Line_DownYLocationStrFieldName).AsString;
+
+            IF ErrorMsg = '' THEN
+              Line_DownYAbsolute := ValidateLineYAbsolute(FieldByName(Line_DownYAbsoluteFieldName).AsString, Line_DownYLocationStr, 'DownY', 'DownY Location', ErrorMsg);
+
             IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'Up X';
-              TempStr := FieldByName(FieldName).AsString;
-              IF TempStr <> '' THEN BEGIN
-                IF NOT TryStrToInt(TempStr, Line_UpXAbsolute) THEN
-                  ErrorMsg := 'invalid UpX integer "' + TempStr + '"'
-                ELSE
-                  Line_UpXValueSpecified := True;
-              END
-              ELSE
-                IF Line_UpXLineStr = '' THEN
-                  ErrorMsg := 'must have a Line_UpXLine value if UpX is zero (Line_UpXLineStr=' + Line_UpXLineStr + ')';
+              Line_Length := ValidateLineLength(FieldByName(Line_LengthFieldName).AsString, ErrorMsg);
+              IF Line_UpXAbsolute <> 0 THEN
+                Line_DownXAbsolute := Line_UpXAbsolute + Line_Length;
             END;
 
-            IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'Length';
-              TempStr := FieldByName(FieldName).AsString;
-              IF TempStr <> '' THEN BEGIN
-                IF NOT TryStrToInt(TempStr, Line_Length) THEN
-                  ErrorMsg := 'invalid length integer';
-                IF Line_UpXAbsolute <> 0 THEN
-                  Line_DownXAbsolute := Line_UpXAbsolute + Line_Length;
-              END;
-            END;
+            IF ErrorMsg = '' THEN
+              Line_Location := ValidateLineLocation(FieldByName(Line_LocationStrFieldName).AsString, ErrorMsg);
+
+            IF ErrorMsg = '' THEN
+              Line_TC := ValidateLineTrackCircuit(FieldByName(Line_TCFieldName).AsString, ErrorMsg);
+
+            IF ErrorMsg = '' THEN
+              Line_EndOfLineMarker := ValidateLineEndOfLineMarker(FieldByName(Line_EndOfLineMarkerFieldName).AsString, ErrorMsg);
+
+            IF ErrorMsg = '' THEN
+              Line_BufferStopNum := ValidateBufferStopNumber(FieldByName(Line_BufferStopNumberFieldName).AsString, ErrorMsg);
+
+            IF ErrorMsg = '' THEN
+              Line_BufferStopTheatreDestinationStr := FieldByName(Line_BufferStopTheatreDestinationStrFieldName).AsString;
+
+            IF ErrorMsg = '' THEN
+              Line_Direction := ValidateLineDirection(FieldByName(Line_DirectionFieldName).AsString, ErrorMsg);
+
+            IF ErrorMsg = '' THEN
+              Line_TypeOfLine := ValidateLineType(FieldByName(Line_TypeOfLineFieldName).AsString, ErrorMsg);
+
+            IF ErrorMsg = '' THEN
+              Line_UpConnectionCh := ValidateLineConnnectionCh(FieldByName(Line_UpConnectionChFieldName).AsString, ErrorMsg);
+
+            IF ErrorMsg = '' THEN
+              Line_DownConnectionCh := ValidateLineConnnectionCh(FieldByName(Line_DownConnectionChFieldName).AsString, ErrorMsg);
+
+            IF ErrorMsg = '' THEN
+              Line_Gradient := ValidateLineGradient(FieldByName(Line_GradientFieldName).AsString, ErrorMsg);
 
             IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'Up Y Location';
-              Line_UpYLocationStr := FieldByName(FieldName).AsString;
-              IF Line_UpYLocationStr = '' THEN
-                Line_UpYLocation := UnknownLocation;
-            END;
-
-            IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'Up Y';
-              TempStr := FieldByName(FieldName).AsString;
-              IF TempStr = '' THEN
-                Line_UpYAbsolute := 0
-              ELSE BEGIN
-                IF NOT TryStrToInt(TempStr, Line_UpYAbsolute) THEN
-                  ErrorMsg := 'invalid UpY integer "' + TempStr + '"';
-              END;
-            END;
-
-            IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'Down Y Location';
-              Line_DownYLocationStr := FieldByName(FieldName).AsString;
-              IF Line_DownYLocationStr = '' THEN
-                Line_DownYLocation := UnknownLocation;
-            END;
-
-            IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'Down Y';
-              TempStr := FieldByName(FieldName).AsString;
-              IF TempStr = '' THEN
-                Line_DownYAbsolute := 0
-              ELSE BEGIN
-                IF NOT TryStrToInt(TempStr, Line_DownYAbsolute) THEN
-                  ErrorMsg := 'invalid DownY integer "' + TempStr + '"';
-              END;
-            END;
-
-            IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'Location';
-              TempStr := FieldByName(FieldName).AsString;
-              IF TempStr = '' THEN
-                Line_Location := UnknownLocation
-              ELSE BEGIN
-                Line_Location := StrToLocation(TempStr);
-                IF Line_Location = UnknownLocation THEN
-                  ErrorMsg := 'unknown line location "' + TempStr + '"';
-              END;
-            END;
-
-            IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'Line TC';
-              TempStr := FieldByName(FieldName).AsString;
-              IF TempStr = '' THEN
-                Line_TC := UnknownTrackCircuit
-              ELSE
-                IF NOT TryStrToInt(TempStr, Line_TC) THEN
-                  ErrorMsg := 'invalid line TC integer "' + TempStr + '"'
-                ELSE
-                  IF ((Line_TC < 0) AND (Line_TC > High(TrackCircuits))) OR (Line_TC = UnknownTrackCircuit) THEN
-                    ErrorMsg := 'track circuit number ' + IntToStr(Line_TC) + ' outside bounds';
-            END;
-
-            IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'End Of Line Marker';
-              TempStr := FieldByName(FieldName).AsString;
-              Line_EndOfLineMarker := StrToEndOfLine(TempStr);
-              IF (TempStr = '') OR (Line_EndOfLineMarker = UnknownEndOfLine) THEN
-                ErrorMsg := 'unknown end of line marker "' + TempStr + '"';
-            END;
-
-            IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'Buffer Stop Number';
-              TempStr := FieldByName(FieldName).AsString;
-              IF TempStr = '' THEN
-                Line_BufferStopNum := UnknownBufferStop
-              ELSE
-                IF NOT TryStrToInt(TempStr, Line_BufferStopNum) THEN
-                  ErrorMsg := 'invalid buffer stop number "' + TempStr + '"';
-
-              TempLine := 0;
-              WHILE TempLine <= High(Lines) - 1 DO BEGIN
-                { check all lines apart from the one we've just created }
-                IF (Line_BufferStopNum <> UnknownBufferStop) AND (Line_BufferStopNum = Lines[TempLine].Line_BufferStopNum) THEN
-                  ErrorMsg := 'duplicate buffer stop number ' + IntToStr(Line_BufferStopNum) + ' found';
-                Inc(TempLine);
-              END; {WHILE}
-            END;
-
-            IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'Buffer Stop Theatre Destination';
-              Line_BufferStopTheatreDestinationStr := FieldByName(FieldName).AsString;
-            END;
-
-            IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'Direction';
-              TempStr := FieldByName(FieldName).AsString;
-              Line_Direction := StrToDirectionType(TempStr);
-              IF (TempStr = '') OR (Line_Direction = UnknownDirection) THEN
-                ErrorMsg := 'unknown line direction "' + TempStr + '"';
-            END;
-
-            IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'Type Of Line';
-              TempStr := FieldByName(FieldName).AsString;
-              Line_TypeOfLine := StrToTypeOfLine(TempStr);
-              IF (TempStr = '') OR (Line_TypeOfLine = UnknownTypeOfLine) THEN
-                ErrorMsg := 'unknown type of line "' + TempStr + '"';
-            END;
-
-            IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'Up Connection Ch';
-              Line_UpConnectionCh := FieldByName(FieldName).AsString;
-              IF Length(Line_UpConnectionCh) > 1 THEN
-                ErrorMsg := 'line up connection ch is too long "' + TempStr + '"';
-              Line_UpConnectionChBold := False;
-            END;
-
-            IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'Down Connection Ch';
-              Line_DownConnectionCh := FieldByName(FieldName).AsString;
-              IF Length(Line_DownConnectionCh) > 1 THEN
-                ErrorMsg := 'line down connection ch is too long "' + TempStr + '"';
-              Line_DownConnectionChBold := False;
-            END;
-
-            IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'Gradient';
-              TempStr := FieldByName(FieldName).AsString;
-              Line_Gradient := StrToGradient(TempStr);
-              IF (TempStr = '') OR (Line_Gradient = UnknownGradientType) THEN
-                ErrorMsg := 'unknown gradient type "' + TempStr + '"';
-            END;
-
-            IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'Out Of Use';
-              IF FieldByName(FieldName).AsBoolean THEN BEGIN
+              IF FieldByName(Line_OutOfUseFieldName).AsBoolean THEN BEGIN
                 Line_InitialOutOfUseState := OutOfUse; { this is used only in deciding whether to save a changed state on exit }
                 Line_OutOfUseState := OutOfUse;
                 Line_SaveOutOfUseState := OutOfUse;
@@ -3324,19 +3454,8 @@ BEGIN
                   Line_OutOfUseState := OutOfUse;
             END;
 
-            IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'In Use Feedback Unit';
-              TempStr := FieldByName(FieldName).AsString;
-              IF (TempStr <> '') AND NOT TryStrToInt(TempStr, Line_InUseFeedbackUnit) THEN
-                ErrorMsg := 'invalid line in use feedback unit "' + TempStr + '"';
-            END;
-
-            IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'In Use Feedback Input';
-              TempStr := FieldByName(FieldName).AsString;
-              IF (TempStr <> '') AND NOT TryStrToInt(TempStr, Line_InUseFeedbackInput) THEN
-                ErrorMsg := 'invalid line in use feedback unit "' + TempStr + '"';
-            END;
+            IF ErrorMsg = '' THEN
+              Line_InUseFeedbackUnit := ValidateLineInUseFeedbackUnit(FieldByName(Line_InUseFeedbackUnitFieldName).AsString, ErrorMsg);
 
             IF ErrorMsg <> '' THEN BEGIN
               IF MessageDialogueWithDefault('Error in creating Line=' + IntToStr(High(Lines)) + ' (' + Line_Str + '): '
@@ -3359,49 +3478,58 @@ BEGIN
     END; {WITH}
 
     { Now we have to do certain tests as some of the data was not be available while we read it in). }
-    FOR L := 0 TO High(Lines) DO BEGIN
-      WITH Lines[L] DO BEGIN
+    FOR Line := 0 TO High(Lines) DO BEGIN
+      WITH Lines[Line] DO BEGIN
         IF Line_UpXLineStr <> '' THEN BEGIN
           TempLine := StrToLine(Line_UpXLineStr);
           IF TempLine = UnknownLine THEN
-            IF MessageDialogueWithDefault('Line ' + LineToStr(L) + ': invalid Line_UpXLine value "' + Line_UpXLineStr + '"',
+            IF MessageDialogueWithDefault('Line ' + LineToStr(Line) + ': invalid Line_UpXLine value "' + Line_UpXLineStr + '"',
                                           StopTimer, mtError, [mbOK, mbAbort], mbAbort) = mrAbort
             THEN
               ShutDownProgram(UnitRef, 'ReadInLineDataFromDatabase');
         END;
       END; {WITH}
-    END; { FOR }
+    END; {FOR}
 
     { see if there are any duplicate connection characters }
-    FOR L := 0 TO High(Lines) DO BEGIN
-      WITH Lines[L] DO BEGIN
-        FOR OtherL := 0 TO High(Lines) DO BEGIN
-          IF L <> OtherL THEN BEGIN
-            IF (Line_UpConnectionCh <> '') AND (Line_UpConnectionCh = Lines[OtherL].Line_UpConnectionCh) THEN BEGIN
+    FOR Line := 0 TO High(Lines) DO BEGIN
+      WITH Lines[Line] DO BEGIN
+        FOR OtherLine := 0 TO High(Lines) DO BEGIN
+          IF Line <> OtherLine THEN BEGIN
+            IF (Line_UpConnectionCh <> '') AND (Line_UpConnectionCh = Lines[OtherLine].Line_UpConnectionCh) THEN BEGIN
               IF MessageDialogueWithDefault('Duplicate up connection character ''' + Line_UpConnectionCh + ''''
-                                            + ' found at line ' + LineToStr(L) + ' and at ' + LineToStr(OtherL),
+                                            + ' found at line ' + LineToStr(Line) + ' and at ' + LineToStr(OtherLine),
                                             StopTimer, mtError, [mbOK, mbAbort], mbAbort) = mrAbort
               THEN
                 ShutDownProgram(UnitRef, 'ReadInLineDataFromDatabase');
-            END
-            ELSE
-              IF (Line_DownConnectionCh <> '') AND (Line_DownConnectionCh = Lines[OtherL].Line_DownConnectionCh) THEN BEGIN
+            END ELSE
+              IF (Line_DownConnectionCh <> '') AND (Line_DownConnectionCh = Lines[OtherLine].Line_DownConnectionCh) THEN BEGIN
                 IF MessageDialogueWithDefault('Duplicate down connection character ''' + Line_DownConnectionCh + '''' +
-                                              ' found at line ' + LineToStr(L) + ' and at ' + LineToStr(OtherL),
+                                              ' found at line ' + LineToStr(Line) + ' and at ' + LineToStr(OtherLine),
                                               StopTimer, mtError, [mbOK, mbAbort], mbAbort) = mrAbort
                 THEN
                   ShutDownProgram(UnitRef, 'ReadInLineDataFromDatabase');
               END;
+
+
+            { Also check all lines apart from the one we've just created }
+            IF (Line_BufferStopNum <> UnknownBufferStop) AND (Line_BufferStopNum = Lines[OtherLine].Line_BufferStopNum) THEN BEGIN
+              IF MessageDialogueWithDefault('Duplicate buffer stop number ' + IntToStr(Line_BufferStopNum)
+                                            + ' found at line ' + LineToStr(Line) + ' and at ' + LineToStr(OtherLine),
+                                            StopTimer, mtError, [mbOK, mbAbort], mbAbort) = mrAbort
+              THEN
+                ShutDownProgram(UnitRef, 'ReadInLineDataFromDatabase');
+            END;
           END;
-        END; { FOR }
+        END; {FOR}
       END; {WITH}
-    END; { FOR }
+    END; {FOR}
 
     { Now work out the X and Y values }
     CalculateLinePositions;
 
-    FOR L := 0 TO High(Lines) DO BEGIN
-      WITH Lines[L] DO BEGIN
+    FOR Line := 0 TO High(Lines) DO BEGIN
+      WITH Lines[Line] DO BEGIN
         { In all cases, UpX should be less than DownX }
         IF Line_UpX > Line_DownX THEN BEGIN
           IF MessageDialogueWithDefault('Line ' + Line_Str + ': UpX > DownX',
@@ -3410,10 +3538,10 @@ BEGIN
             ShutDownProgram(UnitRef, 'ReadInLineDataFromDatabase');
         END;
       END; {WITH}
-    END; { FOR }
+    END; {FOR}
 
-    FOR L := 0 TO High(Lines) DO BEGIN
-      WITH Lines[L] DO BEGIN
+    FOR Line := 0 TO High(Lines) DO BEGIN
+      WITH Lines[Line] DO BEGIN
         Line_CurrentColour := TCUnoccupiedColour;
         Line_OldColour := TCUnoccupiedColour;
         Line_RoutedOver := False;
@@ -3431,14 +3559,14 @@ BEGIN
               Line_NextUpIsEndofLine := BufferStopAtUp;
               Line_NextDownType := LineIsNext;
               { and create a bufferstop record }
-              CreateBufferStop(L, Line_BufferStopNum, Up, Line_BufferStopTheatreDestinationStr);
+              CreateBufferStop(Line, Line_BufferStopNum, Up, Line_BufferStopTheatreDestinationStr);
             END;
           BufferStopAtDown : BEGIN
               Line_NextDownType := EndOfLineIsNext;
               Line_NextDownIsEndOfLine := BufferStopAtDown;
               Line_NextUpType := LineIsNext;
               { and create a bufferstop record }
-              CreateBufferStop(L, Line_BufferStopNum, Down, Line_BufferStopTheatreDestinationStr);
+              CreateBufferStop(Line, Line_BufferStopNum, Down, Line_BufferStopTheatreDestinationStr);
             END;
           ProjectedLineAtUp : BEGIN
               Line_NextUpType := EndOfLineIsNext;
@@ -3453,75 +3581,74 @@ BEGIN
         END; { CASE }
 
         IF Line_NextUpType = UnknownNextLineRouteingType THEN BEGIN
-          IF MessageDialogueWithDefault('Line_NextUpType = UnknownNextLineRouteingType at ' + LineToStr(L),
+          IF MessageDialogueWithDefault('Line_NextUpType = UnknownNextLineRouteingType at ' + LineToStr(Line),
                                         StopTimer, mtError, [mbOK, mbAbort], mbAbort) = mrAbort
           THEN
             ShutDownProgram(UnitRef, 'ReadInLineDataFromDatabase');
         END
         ELSE
           IF Line_NextDownType = UnknownNextLineRouteingType THEN BEGIN
-            IF MessageDialogueWithDefault('Line_NextDownType = UnknownNextLineRouteingType at ' + LineToStr(L),
+            IF MessageDialogueWithDefault('Line_NextDownType = UnknownNextLineRouteingType at ' + LineToStr(Line),
                                           StopTimer, mtError, [mbOK, mbAbort], mbAbort) = mrAbort
             THEN
               ShutDownProgram(UnitRef, 'ReadInLineDataFromDatabase');
           END;
 
       END; {WITH}
-    END; { FOR }
+    END; {FOR}
 
     CalculateBufferStopPositions;
 
     { Now they all exist, we can work out which are next to which }
-    FOR L := 0 TO High(Lines) DO BEGIN
-      WITH Lines[L] DO BEGIN
-        FOR OtherL := 0 TO High(Lines) DO BEGIN
-          IF L <> OtherL THEN BEGIN
+    FOR Line := 0 TO High(Lines) DO BEGIN
+      WITH Lines[Line] DO BEGIN
+        FOR OtherLine := 0 TO High(Lines) DO BEGIN
+          IF Line <> OtherLine THEN BEGIN
             { First, see if a line is disconnected from its neighbour - look for an alphabetic character at its start or end }
-            IF (Line_UpConnectionCh <> '') AND (Line_UpConnectionCh = Lines[OtherL].Line_DownConnectionCh) THEN BEGIN
+            IF (Line_UpConnectionCh <> '') AND (Line_UpConnectionCh = Lines[OtherLine].Line_DownConnectionCh) THEN BEGIN
               Line_NextUpType := LineIsNext;
-              Line_NextUpLine := OtherL
-            END
-            ELSE
-              IF (Line_DownConnectionCh <> '') AND (Line_DownConnectionCh = Lines[OtherL].Line_UpConnectionCh) THEN BEGIN
+              Line_NextUpLine := OtherLine
+            END ELSE
+              IF (Line_DownConnectionCh <> '') AND (Line_DownConnectionCh = Lines[OtherLine].Line_UpConnectionCh) THEN BEGIN
                 Line_NextDownType := LineIsNext;
-                Line_NextDownLine := OtherL
+                Line_NextDownLine := OtherLine
               END ELSE BEGIN
                 { Now look for normal horizontal connections }
-                IF (Line_DownX = Lines[OtherL].Line_UpX) AND (Line_DownY = Lines[OtherL].Line_UpY) AND
-                  (Line_UpY = Lines[OtherL].Line_DownY) THEN BEGIN
+                IF (Line_DownX = Lines[OtherLine].Line_UpX) AND (Line_DownY = Lines[OtherLine].Line_UpY) AND
+                  (Line_UpY = Lines[OtherLine].Line_DownY) THEN BEGIN
                   Line_NextDownType := LineIsNext;
-                  Line_NextDownLine := OtherL;
+                  Line_NextDownLine := OtherLine;
                 END;
 
-                IF (Line_UpX = Lines[OtherL].Line_DownX) AND (Line_UpY = Lines[OtherL].Line_DownY) AND
-                  (Line_DownY = Lines[OtherL].Line_UpY) THEN BEGIN
+                IF (Line_UpX = Lines[OtherLine].Line_DownX) AND (Line_UpY = Lines[OtherLine].Line_DownY) AND
+                  (Line_DownY = Lines[OtherLine].Line_UpY) THEN BEGIN
                   Line_NextUpType := LineIsNext;
-                  Line_NextUpLine := OtherL;
+                  Line_NextUpLine := OtherLine;
                 END;
               END;
 
             { If there are no normal horizontal connections, see if there's a non-horizontal one }
             IF (Line_NextUpLine = UnknownLine) OR (Line_NextDownLine = UnknownLine) THEN BEGIN
-              IF (Line_DownX = Lines[OtherL].Line_UpX) AND (Line_DownY = Lines[OtherL].Line_UpY) THEN BEGIN
+              IF (Line_DownX = Lines[OtherLine].Line_UpX) AND (Line_DownY = Lines[OtherLine].Line_UpY) THEN BEGIN
                 Line_NextDownType := LineIsNext;
-                Line_NextDownLine := OtherL;
+                Line_NextDownLine := OtherLine;
               END;
 
-              IF (Line_UpX = Lines[OtherL].Line_DownX) AND (Line_UpY = Lines[OtherL].Line_DownY) THEN BEGIN
+              IF (Line_UpX = Lines[OtherLine].Line_DownX) AND (Line_UpY = Lines[OtherLine].Line_DownY) THEN BEGIN
                 Line_NextUpType := LineIsNext;
-                Line_NextUpLine := OtherL;
+                Line_NextUpLine := OtherLine;
               END;
             END;
           END;
         END;
       END; {WITH}
-    END; { FOR }
+    END; {FOR}
 
     { And check for lines which are declared but not initialised }
     SaveLine := UnknownLine;
-    FOR L := 0 TO High(Lines) DO BEGIN
-      IF LineToStr(L) = '' THEN
-        IF L = 0 THEN BEGIN
+    FOR Line := 0 TO High(Lines) DO BEGIN
+      IF LineToStr(Line) = '' THEN
+        IF Line = 0 THEN BEGIN
           IF MessageDialogueWithDefault('First line declared in Initvars but not initialised in RailDraw - do you wish to continue?',
                                         StopTimer, mtWarning, [mbYes, mbNo], mbNo) = mrNo
           THEN
@@ -3533,8 +3660,8 @@ BEGIN
           THEN
             ShutDownProgram(UnitRef, 'ReadInLineDataFromDatabase');
         END;
-      SaveLine := L;
-    END; { FOR }
+      SaveLine := Line;
+    END; {FOR}
   EXCEPT {TRY}
     ON E : Exception DO
       Log('EG ReadInLineDataFromDatabase: ' + E.ClassName + ' error raised, with message: ' + E.Message);
@@ -3936,17 +4063,17 @@ BEGIN
           ErrorMsg := 'ValidateSignalDecoderNum: cannot use function decoder addresses with semaphore signals';
 END; { ValidateSignalDecoderNum }
 
-FUNCTION ValidateDirection(Str : String; OUT ErrorMsg : String) : DirectionType;
+FUNCTION ValidateSignalDirection(Str : String; OUT ErrorMsg : String) : DirectionType;
 { Validates and if ok returns the signal direction }
 BEGIN
   ErrorMsg := '';
 
   Result := StrToDirectionType(Str);
   IF Result = UnknownDirection THEN
-    ErrorMsg := 'ValidateDirection: unknown signal direction';
-END; { ValidateDirection }
+    ErrorMsg := 'ValidateSignalDirection: unknown signal direction';
+END; { ValidateSignalDirection }
 
-FUNCTION ValidateIndicatorSpeedRestriction(Str : String; Indicator : IndicatorType; OUT ErrorMsg : String) : MPHType;
+FUNCTION ValidateSignalIndicatorSpeedRestriction(Str : String; Indicator : IndicatorType; OUT ErrorMsg : String) : MPHType;
 { Validates and if ok returns what the tempoarary speed restriction is. This test must be carried outr after Indicator is validated. }
 VAR
   TempInt : Integer;
@@ -3959,15 +4086,15 @@ BEGIN
     IF TryStrToInt(Trim(Str), TempInt) THEN
       Result := IntToMPH(TempInt)
     ELSE
-      ErrorMsg := 'ValidateIndicatorSpeedRestriction: invalid integer String "' + Str + '"';
+      ErrorMsg := 'ValidateSignalIndicatorSpeedRestriction: invalid integer String "' + Str + '"';
 
     IF ErrorMsg = '' THEN
       IF (Result <> NoSpecifiedSpeed) AND (Indicator = NoIndicator) THEN
-        ErrorMsg := 'ValidateIndicatorSpeedRestriction: cannot have an indicator speed restriction if there is no indicator';
+        ErrorMsg := 'ValidateSignalIndicatorSpeedRestriction: cannot have an indicator speed restriction if there is no indicator';
   END;
-END; { ValidateIndicatorSpeedRestriction }
+END; { ValidateSignalIndicatorSpeedRestriction }
 
-FUNCTION ValidateJunctionIndicators1(Str, FieldName : String; Signal_Indicator : IndicatorType; OUT ErrorMsg : String) : JunctionIndicatorRec;
+FUNCTION ValidateSignalJunctionIndicators1(Str, FieldName : String; Signal_Indicator : IndicatorType; OUT ErrorMsg : String) : JunctionIndicatorRec;
 { The first part of verifying whether junction indicators are correctly set up; this part also returns the values for each junction indicator. This test requires that
   Indicator has been validated first
 }
@@ -3980,26 +4107,26 @@ BEGIN
   Str := UpperCase(Str);
   IF Str <> '' THEN BEGIN
     IF (Copy(Str, 1, 1) <> 'S') AND (Copy(Str, 1, 2) <> 'BS') THEN
-      ErrorMsg := 'ValidateJunctionIndicators1: invalid target signal (S) or bufferstop (BS) for ' + FieldName + ': "' + Str + '"'
+      ErrorMsg := 'ValidateSignalJunctionIndicators1: invalid target signal (S) or bufferstop (BS) for ' + FieldName + ': "' + Str + '"'
     ELSE
       IF Copy(Str, 1, 1) = 'S' THEN BEGIN
         Str := Copy(Str, 2);
         IF (Str = '') OR NOT TryStrToInt(Trim(Str), Result.JunctionIndicator_TargetSignal) THEN
-          ErrorMsg := 'ValidateJunctionIndicators1: invalid target signal (S) or bufferstop (BS) for ' + FieldName + ': "' + Str + '"';
+          ErrorMsg := 'ValidateSignalJunctionIndicators1: invalid target signal (S) or bufferstop (BS) for ' + FieldName + ': "' + Str + '"';
       END
       ELSE
         IF Copy(Str, 1, 2) = 'BS' THEN BEGIN
           Str := Copy(Str, 3);
           IF (Str = '') OR NOT TryStrToInt(Trim(Str), Result.JunctionIndicator_TargetBufferStop) THEN
-            ErrorMsg := 'ValidateJunctionIndicators1: invalid target signal (S) or bufferstop (BS) for ' + FieldName + ': "' + Str + '"';
+            ErrorMsg := 'ValidateSignalJunctionIndicators1: invalid target signal (S) or bufferstop (BS) for ' + FieldName + ': "' + Str + '"';
         END;
 
     IF ErrorMsg = '' THEN
       Result.JunctionIndicator_Exists := True;
   END;
-END; { ValidateJunctionIndicators1 }
+END; { ValidateSignalJunctionIndicators1 }
 
-PROCEDURE ValidateJunctionIndicators2(StrArray : ARRAY OF String; SignalIndicator : IndicatorType; SignalJunctionIndicators : ARRAY OF JunctionIndicatorRec;
+PROCEDURE ValidateSignalJunctionIndicators2(StrArray : ARRAY OF String; SignalIndicator : IndicatorType; SignalJunctionIndicators : ARRAY OF JunctionIndicatorRec;
                                       OUT ErrorMsg : String);
 { The second part of verifying whether junction indicators are correctly set up }
 VAR
@@ -4016,7 +4143,7 @@ BEGIN
     WHILE (J <= High(StrArray)) AND (ErrorMsg = '') DO BEGIN
       IF I <> J THEN BEGIN
         IF (StrArray[I] <> '') AND (StrArray[I] = StrArray[J]) THEN
-          ErrorMsg := 'ValidateJunctionIndicators2: identical signal/bufferstopdata (' + StrArray[I] + ') in indicator fields';
+          ErrorMsg := 'ValidateSignalJunctionIndicators2: identical signal/bufferstopdata (' + StrArray[I] + ') in indicator fields';
       END;
       Inc(J);
     END; {WHILE}
@@ -4028,15 +4155,15 @@ BEGIN
     FOR I := 0 TO 5 DO BEGIN
       IF SignalJunctionIndicators[I].JunctionIndicator_Exists THEN
         IndicatorsFound := True;
-    END; { FOR }
+    END; {FOR}
 
     IF (SignalIndicator = JunctionIndicator) AND NOT IndicatorsFound THEN
-      ErrorMsg := 'ValidateJunctionIndicators2: signal indicator type is set to Junction Indicator even though there is no indicator data'
+      ErrorMsg := 'ValidateSignalJunctionIndicators2: signal indicator type is set to Junction Indicator even though there is no indicator data'
     ELSE
       IF (SignalIndicator <> JunctionIndicator) AND IndicatorsFound THEN
-        ErrorMsg := 'ValidateJunctionIndicators2: signal indicator type is not set to Junction Indicator even though there is indicator data';
+        ErrorMsg := 'ValidateSignalJunctionIndicators2: signal indicator type is not set to Junction Indicator even though there is indicator data';
   END;
-END; { ValidateJunctionIndicators2 }
+END; { ValidateSignalJunctionIndicators2 }
 
 FUNCTION ValidateNextSignalIfNoIndicator(Str : String; Init : Boolean; OUT ErrorMsg : String) : Integer;
 { Validates and if ok returns what the other signal is if no indicator is lit }
@@ -4063,7 +4190,7 @@ BEGIN
 
   IF (SignalToTest <> UnknownSignal) AND (SignalToTest > High(Signals)) THEN
     Result := 'ValidateSignalNum: cross-reference to invalid signal number "' + IntToStr(SignalToTest) + '"';
-END; { ValidateNextSignalIfNoIndicator }
+END; { ValidateSigtnalNum }
 
 FUNCTION ValidateSignalIndicator(Str : String; OUT ErrorMsg : String) : IndicatorType;
 { Validates and if ok returns the signal indicator }
@@ -4198,16 +4325,18 @@ FUNCTION ValidateSignalQuadrant(Str : String; OUT ErrorMsg : String) : QuadrantT
 { Validates and if ok returns the quadrant type }
 BEGIN
   ErrorMsg := '';
+  Result := NoQuadrant;
 
   Str := UpperCase(Str);
 
-  IF STR = 'UPPER' THEN
+  IF Str = 'UPPER' THEN
     Result := UpperQuadrant
   ELSE
-    IF STR = 'LOWER' THEN
+    IF Str = 'LOWER' THEN
       Result := LowerQuadrant
     ELSE
-      Result := NoQuadrant;
+      IF Str <> '' THEN
+        ErrorMsg := 'Invalid signal quadrant type';
 END; { ValidateQuadrant }
 
 FUNCTION ValidateSignalType(Str : String; Quadrant : QuadrantType; OUT ErrorMsg : String) : TypeOfSignal;
@@ -4282,7 +4411,7 @@ BEGIN
 
       IF (Signal_NextSignalIfNoIndicator <> UnknownSignal) AND ((Signal_NextSignalIfNoIndicator < 0) OR (Signal_NextSignalIfNoIndicator > High(Signals))) THEN
         Result := ' target for next signal if no indicator (S' + IntToStr(Signal_NextSignalIfNoIndicator) + ') is not a valid signal number';
-    END; { FOR }
+    END; {FOR}
   END; {WITH}
 END; { ValidateIndicatorDestinations }
 
@@ -4487,42 +4616,42 @@ BEGIN
 
           IF ErrorMsg = '' THEN BEGIN
             TempStrArray[0] := SignalsADOTable.FieldByName(Signal_UpperLeftIndicatorTargetFieldName).AsString;
-            Signal_JunctionIndicators[UpperLeftIndicator] := ValidateJunctionIndicators1(TempStrArray[0], Signal_UpperLeftIndicatorTargetFieldName, Signal_Indicator,
+            Signal_JunctionIndicators[UpperLeftIndicator] := ValidateSignalJunctionIndicators1(TempStrArray[0], Signal_UpperLeftIndicatorTargetFieldName, Signal_Indicator,
                                                                                          ErrorMsg);
           END;
 
           IF ErrorMsg = '' THEN BEGIN
             TempStrArray[1] := SignalsADOTable.FieldByName(Signal_MiddleLeftIndicatorTargetFieldName).AsString;
-            Signal_JunctionIndicators[MiddleLeftIndicator] := ValidateJunctionIndicators1(TempStrArray[1], Signal_MiddleLeftIndicatorTargetFieldName, Signal_Indicator,
+            Signal_JunctionIndicators[MiddleLeftIndicator] := ValidateSignalJunctionIndicators1(TempStrArray[1], Signal_MiddleLeftIndicatorTargetFieldName, Signal_Indicator,
                                                                                           ErrorMsg);
           END;
 
           IF ErrorMsg = '' THEN BEGIN
             TempStrArray[2] := SignalsADOTable.FieldByName(Signal_LowerLeftIndicatorTargetFieldName).AsString;
-            Signal_JunctionIndicators[LowerLeftIndicator] := ValidateJunctionIndicators1(TempStrArray[2], Signal_LowerLeftIndicatorTargetFieldName, Signal_Indicator,
+            Signal_JunctionIndicators[LowerLeftIndicator] := ValidateSignalJunctionIndicators1(TempStrArray[2], Signal_LowerLeftIndicatorTargetFieldName, Signal_Indicator,
                                                                                          ErrorMsg);
           END;
 
           IF ErrorMsg = '' THEN BEGIN
             TempStrArray[3] := SignalsADOTable.FieldByName(Signal_UpperRightIndicatorTargetFieldName).AsString;
-            Signal_JunctionIndicators[UpperRightIndicator] := ValidateJunctionIndicators1(TempStrArray[3], Signal_UpperRightIndicatorTargetFieldName, Signal_Indicator,
+            Signal_JunctionIndicators[UpperRightIndicator] := ValidateSignalJunctionIndicators1(TempStrArray[3], Signal_UpperRightIndicatorTargetFieldName, Signal_Indicator,
                                                                                           ErrorMsg);
           END;
 
           IF ErrorMsg = '' THEN BEGIN
             TempStrArray[4] := SignalsADOTable.FieldByName(Signal_MiddleRightIndicatorTargetFieldName).AsString;
-            Signal_JunctionIndicators[MiddleRightIndicator] := ValidateJunctionIndicators1(TempStrArray[4], Signal_MiddleRightIndicatorTargetFieldName, Signal_Indicator,
+            Signal_JunctionIndicators[MiddleRightIndicator] := ValidateSignalJunctionIndicators1(TempStrArray[4], Signal_MiddleRightIndicatorTargetFieldName, Signal_Indicator,
                                                                                            ErrorMsg);
           END;
 
           IF ErrorMsg = '' THEN BEGIN
             TempStrArray[5] := SignalsADOTable.FieldByName(Signal_LowerRightIndicatorTargetFieldName).AsString;
-            Signal_JunctionIndicators[LowerRightIndicator] := ValidateJunctionIndicators1(TempStrArray[5], Signal_LowerRightIndicatorTargetFieldName, Signal_Indicator,
+            Signal_JunctionIndicators[LowerRightIndicator] := ValidateSignalJunctionIndicators1(TempStrArray[5], Signal_LowerRightIndicatorTargetFieldName, Signal_Indicator,
                                                                                           ErrorMsg);
           END;
 
           IF ErrorMsg = '' THEN
-            ValidateJunctionIndicators2(TempStrArray, Signal_Indicator, Signal_JunctionIndicators, ErrorMsg);
+            ValidateSignalJunctionIndicators2(TempStrArray, Signal_Indicator, Signal_JunctionIndicators, ErrorMsg);
 
           IF ErrorMsg = '' THEN
             Signal_AdjacentLine := ValidateSignalAdjacentLine(S, SignalsADOTable.FieldByName(Signal_AdjacentLineFieldName).AsString, ErrorMsg);
@@ -4531,10 +4660,10 @@ BEGIN
             Signal_AdjacentLineXOffset := ValidateSignalAdjacentLineXOffset(SignalsADOTable.FieldByName(Signal_AdjacentLineXOffsetFieldName).AsString, ErrorMsg);
 
           IF ErrorMsg = '' THEN
-            Signal_Direction := ValidateDirection(SignalsADOTable.FieldByName(Signal_DirectionFieldName).AsString, ErrorMsg);
+            Signal_Direction := ValidateSignalDirection(SignalsADOTable.FieldByName(Signal_DirectionFieldName).AsString, ErrorMsg);
 
           IF ErrorMsg = '' THEN
-            Signal_IndicatorSpeedRestriction := ValidateIndicatorSpeedRestriction(SignalsADOTable.FieldByName(Signal_IndicatorSpeedRestrictionFieldName).AsString,
+            Signal_IndicatorSpeedRestriction := ValidateSignalIndicatorSpeedRestriction(SignalsADOTable.FieldByName(Signal_IndicatorSpeedRestrictionFieldName).AsString,
                                                                                   Signal_Indicator, ErrorMsg);
           IF ErrorMsg = '' THEN
             Signal_NextSignalIfNoIndicator := ValidateNextSignalIfNoIndicator(SignalsADOTable.FieldByName(Signal_NextSignalIfNoIndicatorFieldName).AsString, Init, ErrorMsg);
@@ -5268,7 +5397,7 @@ BEGIN
           END;
         END; {WITH}
       END; {WITH}
-    END; { FOR }
+    END; {FOR}
   EXCEPT
     ON E : Exception DO
       Log('E : ' + E.ClassName + ' error raised, with message: ' + E.Message);
@@ -5334,7 +5463,7 @@ BEGIN
     ErrorMsg := 'ValidatePointType: unknown point type: ''' + PointTypeStr;
 END; { ValidatePointType }
 
-FUNCTION ValidateLastPointFeedbackStateAsReadIn(PointStateStr : String; PointManualOperation : Boolean; OUT ErrorMsg : String) : PointStateType;
+FUNCTION ValidatePointLastFeedbackStateAsReadIn(PointStateStr : String; PointManualOperation : Boolean; OUT ErrorMsg : String) : PointStateType;
 { Check whether the last feedback point state read in is valid }
 BEGIN
   ErrorMsg := '';
@@ -5342,13 +5471,13 @@ BEGIN
 
   IF PointStateStr <> '' THEN BEGIN
     IF PointManualOperation THEN
-      ErrorMsg := 'ValidateLastPointFeedbackStateAsReadIn : last feedback state recorded but point marked as being manually operated'
+      ErrorMsg := 'ValidatePointLastFeedbackStateAsReadIn : last feedback state recorded but point marked as being manually operated'
     ELSE
       Result := StrToPointState(PointStateStr);
   END;
-END; { ValidateLastPointFeedbackStateAsReadIn }
+END; { ValidatePointLastFeedbackStateAsReadIn }
 
-FUNCTION ValidateLastPointManualStateAsReadIn(PointStateStr : String; PointManualOperation : Boolean; OUT ErrorMsg : String) : PointStateType;
+FUNCTION ValidatePointLastManualStateAsReadIn(PointStateStr : String; PointManualOperation : Boolean; OUT ErrorMsg : String) : PointStateType;
 { Check whether the last manual point state read in is valid }
 BEGIN
   ErrorMsg := '';
@@ -5356,11 +5485,11 @@ BEGIN
 
   IF PointStateStr <> '' THEN BEGIN
     IF NOT PointManualOperation THEN
-      ErrorMsg := 'ValidateLastPointManualStateAsReadIn : last manual state recorded but point not marked as being manually operated'
+      ErrorMsg := 'ValidatePointLastManualStateAsReadIn : last manual state recorded but point not marked as being manually operated'
     ELSE
       Result := StrToPointState(PointStateStr);
   END;
-END; { ValidateLastPointManualStateAsReadIn }
+END; { ValidatePointLastManualStateAsReadIn }
 
 FUNCTION ValidatePointLenzNum(LenzNumStr : String; PointLastManualStateAsReadIn : PointStateType; OUT PointManualOperation : Boolean; OUT PointPresentState : PointStateType;
                               OUT ErrorMsg : String) : Integer;
@@ -5672,10 +5801,10 @@ BEGIN
             Point_ManualOperation := PointsADOTable.FieldByName(Point_ManualOperationFieldName).AsBoolean;
 
           IF ErrorMsg = '' THEN
-            Point_LastFeedbackStateAsReadIn := ValidateLastPointFeedbackStateAsReadIn(PointsADOTable.FieldByName(Point_LastFeedbackStateAsReadInFieldName).AsString,
+            Point_LastFeedbackStateAsReadIn := ValidatePointLastFeedbackStateAsReadIn(PointsADOTable.FieldByName(Point_LastFeedbackStateAsReadInFieldName).AsString,
                                                                                       Point_ManualOperation, ErrorMsg);
           IF ErrorMsg = '' THEN
-            Point_LastManualStateAsReadIn := ValidateLastPointManualStateAsReadIn(PointsADOTable.FieldByName(Point_LastManualStateAsReadInFieldName).AsString,
+            Point_LastManualStateAsReadIn := ValidatePointLastManualStateAsReadIn(PointsADOTable.FieldByName(Point_LastManualStateAsReadInFieldName).AsString,
                                                                                   Point_ManualOperation, ErrorMsg);
           IF ErrorMsg = '' THEN
             Point_LenzNum := ValidatePointLenzNum(PointsADOTable.FieldByName(Point_LenzNumFieldName).AsString, Point_LastManualStateAsReadIn, Point_ManualOperation,
@@ -5947,7 +6076,7 @@ BEGIN
         Bottom := Bottom - PlatformEdgeVerticalSpacingScaled;
       END; {WITH}
     END; {WITH}
-  END; { FOR }
+  END; {FOR}
 END; { CalculatePlatformPositions }
 
 PROCEDURE ReadInPlatformDataFromDatabase;
