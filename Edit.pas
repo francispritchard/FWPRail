@@ -45,7 +45,7 @@ PROCEDURE ChangeSignalDirection(S : Integer);
 FUNCTION CheckIfEditedDataHasChanged : Boolean;
 { Ask whether we want to save any amended data before selecting another signal }
 
-PROCEDURE ClearEditValueList(Caption : String);
+PROCEDURE ClearEditValueList;
 { Empty the value list so as not to display anyting if we click on an unrecognised item, or a blank bit of screen }
 
 PROCEDURE CreateLine;
@@ -98,18 +98,6 @@ PROCEDURE TurnEditModeOff;
 
 PROCEDURE UndoEditChanges;
 { Undo any changes made by moving the item on screen or editing it in the value list editor }
-
-PROCEDURE WriteLineValuesToValueList(Line : Integer);
-{ Create or update a value list in the edit window with the appropriate values }
-
-PROCEDURE WriteSignalValuesToValueList(S : Integer);
-{ Create or update a value list in the edit window with the appropriate values }
-
-PROCEDURE WritePointValuesToValueList(P : Integer);
-{ Create or update a value list in the edit window with the appropriate values }
-
-PROCEDURE WriteTrackCircuitValuesToValueList(TC : Integer);
-{ Create a value list in the edit window with the appropriate values }
 
 VAR
   EditedBufferStop : Integer = UnknownBufferStop;
@@ -175,126 +163,6 @@ c The c character permits an arbitrary character in this position, but doesn't r
 _ The _ character automatically inserts spaces into the text. When the user enters characters in the field, the cursor skips the _ character.
 }
 
-PROCEDURE StartLineEdit(Line : Integer);
-{ Set up a line edit - this is where we save the signal's original state so we can revert to it regardless of how many edits there are }
-BEGIN
-  IF Line <> EditedLine THEN BEGIN
-    EditedLine := Line;
-    SaveLineRec := Lines[EditedLine];
-    SaveLineNum := EditedLine;
-    WriteLineValuesToValueList(EditedLine);
-  END;
-END; { StartLineEdit }
-
-PROCEDURE StartPointEdit(P : Integer);
-{ Set up a point edit - this is where we save the signal's original state so we can revert to it regardless of how many edits there are }
-BEGIN
-  IF P <> EditedPoint THEN BEGIN
-    EditedPoint := P;
-    SavePointRec := Points[EditedPoint];
-    SavePointNum := EditedPoint;
-    WritePointValuesToValueList(EditedPoint);
-  END;
-END; { StartPointEdit }
-
-PROCEDURE StartSignalEdit(S : Integer);
-{ Set up a signal edit - this is where we save the signal's original state so we can revert to it regardless of how many edits there are }
-BEGIN
-  IF S <> EditedSignal THEN BEGIN
-    EditedSignal := S;
-    SaveSignalRec := Signals[EditedSignal];
-    SaveSignalNum := EditedSignal;
-    WriteSignalValuesToValueList(EditedSignal);
-  END;
-END; { StartSignalEdit }
-
-PROCEDURE StartTrackCircuitEdit(TC : Integer);
-{ Set up a trackCircuit edit - this is where we save the TrackCircuit's original state so we can revert to it regardless of how many edits there are }
-BEGIN
-  IF TC <> EditedTrackCircuit THEN BEGIN
-    EditedTrackCircuit := TC;
-    SaveTrackCircuitRec := TrackCircuits[EditedTrackCircuit];
-    SaveTrackCircuitNum := EditedTrackCircuit;
-    WriteTrackCircuitValuesToValueList(EditedTrackCircuit);
-  END;
-END; { StartTrackCircuitEdit }
-
-PROCEDURE TurnEditModeOn(S, P, BS, Line, TC : Integer);
-{ Turn edit Mode on }
-BEGIN
-  IF NOT EditMode THEN BEGIN
-    EditMode := True;
-    Diagrams.DiagramsWindow.Visible := False;
-
-    { The tags are used to tell EditWindow.Visible which value list to edit }
-    Edit.EditWindow.Tag := -1;
-    IF S <> UnknownSignal THEN BEGIN
-      Edit.EditWindow.Tag := 1;
-      StartSignalEdit(S);
-    END ELSE
-      IF P <> UnknownPoint THEN BEGIN
-        Edit.EditWindow.Tag := 2;
-        StartPointEdit(P);
-      END ELSE
-        IF Line <> UnknownLine THEN BEGIN
-          Edit.EditWindow.Tag := 3;
-          StartLineEdit(Line);
-        END ELSE
-          IF TC  <> UnknownTrackCircuit THEN BEGIN
-            Edit.EditWindow.Tag := 4;
-            StartTrackCircuitEdit(TC);
-          END;
-
-    Edit.EditWindow.Visible := True;
-
-    SaveSystemOnlineState := SystemOnline;
-    IF SystemOnline THEN
-      SetSystemOffline('System offline as edit mode starting', NOT SoundWarning);
-
-    SetCaption(FWPRailWindow, 'EDITING...');
-    EditWindow.EditWindowLabel.caption := '';
-    Application.Icon := EditIcon;
-  END;
-END; { TurnEditModeOn }
-
-PROCEDURE TurnEditModeOff;
-{ Turn edit mode off }
-BEGIN
-  TRY
-    IF EditMode THEN BEGIN
-      EditedPoint := UnknownSignal;
-      EditedPoint := UnknownPoint;
-      EditedLine := UnknownLine;
-      EditedTrackCircuit := UnknownTrackCircuit;
-
-      EditWindow.Visible := False;
-      Diagrams.DiagramsWindow.Visible := True;
-      EditMode := False;
-
-      ClearEditValueList('');
-
-      { and force a redraw so that the highglighted signal/point etc. is de-highlighted }
-      FWPRailWindow.Repaint;
-
-      IF SaveSystemOnlineState THEN BEGIN
-        IF SetSystemOnline THEN
-          Log('A Edit mode off so system now online again')
-        ELSE
-          Log('A Edit mode off but system failed to go online');
-      END;
-
-      WITH EditWindow DO BEGIN
-        UndoChangesButton.Enabled := False;
-        SaveChangesAndExitButton.Enabled := False;
-        ExitWithoutSavingButton.Enabled := False;
-      END; {WITH}
-    END;
-  EXCEPT {TRY}
-    ON E : Exception DO
-      Log('EG TurnEditModeOff: ' + E.ClassName + ' error raised, with message: '+ E.Message);
-  END; {TRY}
-END; { TurnEditModeOff }
-
 PROCEDURE InitialiseEditUnit;
 { Initialises the unit }
 BEGIN
@@ -325,35 +193,6 @@ BEGIN
     ExitWithoutSavingButton.Enabled := True;
   END; {WITH}
 END; { NoteThatDataHasChanged }
-
-PROCEDURE UndoEditChanges;
-{ Undo any changes made by moving the item on screen or editing it in the value list editor }
-BEGIN
-  IF EditedSignal <> UnknownSignal THEN BEGIN
-    Signals[EditedSignal] := SaveSignalRec;
-    Signals[EditedSignal].Signal_DataChanged := False;
-    WriteSignalValuesToValueList(EditedSignal);
-  END ELSE
-    IF EditedPoint <> UnknownPoint THEN BEGIN
-      Points[EditedPoint] := SavePointRec;
-      Points[EditedPoint].Point_DataChanged := False;
-      WritePointValuesToValueList(EditedPoint);
-    END ELSE
-      IF EditedLine <> UnknownLine THEN BEGIN
-        Lines[EditedLine] := SaveLineRec;
-      END ELSE
-        IF EditedTrackCircuit <> UnknownTrackCircuit THEN BEGIN
-          TrackCircuits[EditedTrackCircuit] := SaveTrackCircuitRec;
-          TrackCircuits[EditedTrackCircuit].TC_DataChanged := False;
-          WriteTrackCircuitValuesToValueList(EditedTrackCircuit);
-        END;
-
-  WITH EditWindow DO BEGIN
-    UndoChangesButton.Enabled := False;
-    SaveChangesAndExitButton.Enabled := False;
-    ExitWithoutSavingButton.Enabled := False;
-  END; {WITH}
-END; { UndoEditChanges }
 
 PROCEDURE TEditWindow.EditValueListEditorStringsChange(Sender: TObject);   { what's this for? ***}
 BEGIN
@@ -450,6 +289,234 @@ BEGIN
   END; {TRY}
 END; { EditValueListEditorEditButtonClick }
 
+PROCEDURE WriteIntegerValueExcludingZero(Str : String; I : Integer; EditMask : String);
+BEGIN
+  TRY
+    WITH EditWindow.EditValueListEditor DO BEGIN
+      IF I <> 0 THEN
+        Values[Str] := IntToStr(I)
+      ELSE
+        Values[Str] := '';
+
+      IF EditMask <> '' THEN
+        ItemProps[Str].EditMask := EditMask;
+    END; {WITH}
+  EXCEPT {TRY}
+    ON E : Exception DO
+      Log('EG WriteIntegerValueExcludingZero: ' + E.ClassName + ' error raised, with message: '+ E.Message);
+  END; {TRY}
+END; { WriteIntegerValueExcludingZero }
+
+PROCEDURE WriteIntegerValueIncludingZero(Str : String; I : Integer; EditMask : String);
+BEGIN
+  WITH EditWindow.EditValueListEditor DO BEGIN
+    Values[Str] := IntToStr(I);
+
+    IF EditMask <> '' THEN
+      ItemProps[Str].EditMask := EditMask;
+  END; {WITH}
+END; { WriteIntegerValueINcludingZero }
+
+PROCEDURE WriteBooleanValue(Str : String; Bool : Boolean);
+BEGIN
+  WITH EditWindow.EditValueListEditor DO BEGIN
+    IF Bool THEN
+      Values[Str] := 'True'
+    ELSE
+      Values[Str] := 'False';
+
+    ItemProps[Str].ReadOnly := True;
+    ItemProps[Str].PickList.Add('True');
+    ItemProps[Str].PickList.Add('False');
+    ItemProps[Str].EditStyle := esPickList;
+  END; {WITH}
+END; { WriteBooleanValue }
+
+PROCEDURE WriteIntegerArrayValues(IntegerArrayStr : String; IntegerArray : IntegerArrayType; NoValuesStr, ValuesStr : String);
+VAR
+  I : Integer;
+
+BEGIN
+  WITH EditWindow.EditValueListEditor DO BEGIN
+    IF Length(IntegerArray) = 0 THEN
+      Values[IntegerArrayStr] := NoValuesStr
+    ELSE BEGIN
+      FOR I := 0 TO High(IntegerArray) DO
+        AppendToIntegerArray(IntegerArray, IntegerArray[I]);
+      Values[IntegerArrayStr] := ValuesStr;
+    END;
+    ItemProps[IntegerArrayStr].ReadOnly := True;
+    ItemProps[IntegerArrayStr].EditStyle := esEllipsis;
+  END; {WITH}
+END; { WriteIntegerArrayValues }
+
+PROCEDURE WritePickListValue(Str1, Str2 : String; PickListStrs : ARRAY OF String);
+VAR
+  I : Integer;
+
+BEGIN
+  WITH EditWindow.EditValueListEditor DO BEGIN
+    Values[Str1] := Str2;
+
+    ItemProps[Str1].PickList.Clear;
+    ItemProps[Str1].ReadOnly := True;
+    FOR I := 0 TO High(PickListStrs) DO
+      ItemProps[Str1].PickList.Add(PickListStrs[I]);
+    ItemProps[Str1].EditStyle := esPickList;
+  END; {WITH}
+END; { WritePickListValue }
+
+PROCEDURE ClearEditValueList;
+{ Empty the value list so as not to display anything if we click on an unrecognised item, or a blank bit of screen }
+BEGIN
+  ValueListToBeCleared := True;
+
+  WITH EditWindow DO BEGIN
+    EditValueListEditor.Strings.Clear;
+    EditWindowLabel.Caption := '';
+  END; {WITH}
+
+  IF EditedSignal <> UnknownSignal THEN
+    EditedSignal := UnknownSignal
+  ELSE
+    IF EditedPoint <> UnknownPoint THEN
+      EditedPoint := UnknownPoint
+    ELSE
+      IF EditedLine <> UnknownLine THEN
+        EditedLine := UnknownLine
+      ELSE
+        IF EditedTrackCircuit <> UnknownTrackCircuit THEN
+          EditedTrackCircuit := UnknownTrackCircuit;
+
+  WITH EditWindow DO BEGIN
+    UndoChangesButton.Enabled := False;
+    SaveChangesAndExitButton.Enabled := False;
+    ExitWithoutSavingButton.Enabled := False;
+  END; {WITH}
+END; { ClearEditValueList }
+
+PROCEDURE WriteLineValuesToValueList;
+{ Create a value list in the edit window with the appropriate values }
+BEGIN
+  TRY
+    WITH EditWindow DO BEGIN
+      { Temporarily deactivate the OnstringsChange event so as not to enable the various buttons until we've written the values to the value list - otherwise the act of
+        writing them switches the buttons on before we've done any editing
+      }
+      SaveEvent := EditValueListEditorStringsChange;
+      EditValueListEditor.OnStringsChange := NIL;
+
+      EditWindowLabel.Caption := 'Editing Line ' + IntToStr(EditedLine);
+
+      WITH EditValueListEditor DO BEGIN
+        WITH Lines[EditedLine] DO BEGIN
+          WriteIntegerValueExcludingZero(Line_NumFieldName, EditedLine, '');
+          { make the line number read only }
+          ItemProps[Line_NumFieldName].ReadOnly := True;
+
+          EditWindowLabel.Caption := 'Editing Line ' + IntToStr(EditedLine) + ' (' + LineToStr(EditedLine) + ')';
+
+          Values[Line_StrFieldName] := Line_Str;
+
+          Values[Line_UpXLineStrFieldName] := Line_UpXLineStr;
+
+          IF Line_UpXLineStr = '' THEN
+            WriteIntegerValueExcludingZero(Line_UpXAbsoluteFieldName, Line_UpXAbsolute, '9999')
+          ELSE
+            WriteIntegerValueExcludingZero(Line_UpXAbsoluteFieldName, 0, '9999');
+
+          Values[Line_UpYLocationStrFieldName] := Line_UpYLocationStr;
+
+          IF Line_UpYLocationStr = '' THEN
+            WriteIntegerValueExcludingZero(Line_UpYAbsoluteFieldName, Line_UpYAbsolute, '9999')
+          ELSE
+            WriteIntegerValueExcludingZero(Line_UpYAbsoluteFieldName, 0, '9999');
+
+          Values[Line_DownYLocationStrFieldName] := Line_DownYLocationStr;
+
+          IF Line_DownYLocationStr = '' THEN
+            WriteIntegerValueExcludingZero(Line_DownYAbsoluteFieldName, Line_DownYAbsolute, '9999')
+          ELSE
+            WriteIntegerValueExcludingZero(Line_DownYAbsoluteFieldName, 0, '9999');
+
+          WriteIntegerValueExcludingZero(Line_LengthFieldName, Line_Length, '9999');
+
+          Values[Line_LocationStrFieldName] := LocationToStr(Line_Location);
+
+          WriteIntegerValueExcludingZero(Line_TCFieldName, Line_TC, '9999');
+
+          WritePickListValue(Line_EndOfLineMarkerFieldName, EndOfLineToStr(Line_EndOfLineMarker), [BufferStopAtUpStr, BufferStopAtDownStr, ProjectedLineAtUpStr,
+                                                            ProjectedLineAtDownStr, NotEndOfLineStr]);
+          IF Line_BufferStopNum = UnknownBufferStop THEN
+            WriteIntegerValueExcludingZero(Line_BufferStopNumberFieldName, 0, '9999')
+          ELSE
+            WriteIntegerValueIncludingZero(Line_BufferStopNumberFieldName, Line_BufferStopNum, '9999');
+
+          Values[Line_BufferStopTheatreDestinationStrFieldName] := Line_BufferStopTheatreDestinationStr;
+
+          WritePickListValue(Line_DirectionFieldName, DirectionToStr(Line_Direction), ['Up', 'Down', 'Bidirectional']);
+
+          WritePickListValue(Line_TypeOfLineFieldName, TypeOfLineToStr(Line_TypeOfLine),
+                                                       [MainOrGoodsLineStr, MainLineStr, GoodsLineStr, BranchLineDoubleStr, BranchLineSingleStr, IslandStationLineStr,
+                                                       MainStationLineStr, BranchStationLineStr, WindowStationLineStr, SidingLineStr, FiddleyardLineStr,
+                                                       SidingsApproachLineStr, StationAvoidingLineStr, ProjectedLineStr]);
+
+          Values[Line_UpConnectionChFieldName] := Line_UpConnectionCh;
+          ItemProps[Line_UpConnectionChFieldName].EditMask := '>L';
+
+          Values[Line_DownConnectionChFieldName] := Line_DownConnectionCh;
+          ItemProps[Line_DownConnectionChFieldName].EditMask := '>L';
+
+          WritePickListValue(Line_GradientFieldName, GradientToStr(Line_Gradient), [LevelStr, RisingIfUpStr, RisingIfDownStr]);
+
+          WriteBooleanValue(Line_OutOfUseFieldName, Line_OutOfUseState = OutOfUse);
+
+          WriteIntegerValueExcludingZero(Line_InUseFeedbackUnitFieldName, Line_InUseFeedbackUnit, '9999');
+        END; {WITH}
+      END; {WITH}
+
+      ExitWithoutSavingButton.Enabled := True;
+
+      { Reactivate this event so as to enable the various buttons if we do any editing }
+      EditValueListEditor.OnStringsChange := SaveEvent;
+    END; {WITH}
+  EXCEPT {TRY}
+    ON E : Exception DO
+      Log('EG WriteLineValuesToValueList: ' + E.ClassName + ' error raised, with message: '+ E.Message);
+  END; {TRY}
+END; { WriteLineValuesToValueList }
+
+PROCEDURE UpdateLineValueList(Line : Integer { add other items here });
+{ Update the value list with the appropriate values }
+BEGIN
+  TRY
+    WITH EditWindow DO BEGIN
+      { Temporarily deactivate the OnstringsChange event so as not to enable the various buttons until we've written the values to the value list - otherwise the act of
+        writing them switches the buttons on before we've done any editing
+      }
+      SaveEvent := EditWindow.EditValueListEditorStringsChange;
+      EditWindow.EditValueListEditor.OnStringsChange := NIL;
+
+      WITH EditValueListEditor DO BEGIN
+//        IF AdjacentLine <> UnknownLine THEN
+//          Values[Line_AdjacentLineFieldName] := LineToStr(AdjacentLine);
+//
+//        WriteIntegerValueExcludingZero(Line_AdjacentLineXOffsetFieldName, AdjacentLineXOffset, '!#99');
+//
+//        IF Direction <> UnknownDirection THEN
+//         WritePickListValue(Line_DirectionFieldName, DirectionToStr(Direction), ['Up', 'Down']);
+      END; {WITH}
+
+      NoteThatDataHasChanged;
+
+      EditWindow.EditValueListEditor.OnStringsChange := SaveEvent;
+    END; {WITH}
+  EXCEPT {TRY}
+    ON E : Exception DO
+      Log('EG UpdateLineValueList: ' + E.ClassName + ' error raised, with message: '+ E.Message);
+  END; {TRY}
+END; { UpdateLineValueList }
+
 PROCEDURE ProcessSignalLocationsToMonitorCheckListBoxChecks;
 { See which locations are ticked and update the array. This shouldn't need validation as the user has not been given the opportunity of introducing errors. }
 VAR
@@ -485,22 +552,6 @@ BEGIN
       Log('EG ProcessSignalLocationsToMonitorCheckListBoxChecks: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { ProcessSignalLocationsToMonitorCheckListBoxChecks }
-
-PROCEDURE WritePickListValue(Str1, Str2 : String; PickListStrs : ARRAY OF String);
-VAR
-  I : Integer;
-
-BEGIN
-  WITH EditWindow.EditValueListEditor DO BEGIN
-    Values[Str1] := Str2;
-
-    ItemProps[Str1].PickList.Clear;
-    ItemProps[Str1].ReadOnly := True;
-    FOR I := 0 TO High(PickListStrs) DO
-      ItemProps[Str1].PickList.Add(PickListStrs[I]);
-    ItemProps[Str1].EditStyle := esPickList;
-  END; {WITH}
-END; { WritePickListValue }
 
 PROCEDURE DoEditValidation(KeyName, NewKeyValue : String);
 { Do the validation here so it can be called by OnValidate and when we exit the value list }
@@ -754,11 +805,11 @@ BEGIN
             Log('D Screen invalidated by Edit save');
             RedrawScreen := False;
           END ELSE BEGIN
-            IF NOT MessageDialogueWithDefault('Error in creating/amending S=' + IntToStr(EditedSignal) + ': '
-                                              + ErrorMsg
-                                              + CRLF
-                                              + 'Do you wish to continue?',
-                                              StopTimer, mtWarning, [mbYes, mbNo], mbNo) = mrNo
+            IF MessageDialogueWithDefault('Error in creating/amending S=' + IntToStr(EditedSignal) + ': '
+                                          + ErrorMsg
+                                          + CRLF
+                                          + 'Do you wish to continue?',
+                                          StopTimer, mtWarning, [mbYes, mbNo], mbNo) = mrYes
             THEN
               Signal_OutOfUse := True
             ELSE
@@ -869,10 +920,9 @@ BEGIN
             IF KeyName = Point_LockedIfNonHeelTCsOccupiedFieldName THEN
               Point_LockedIfNonHeelTCsOccupied := StrToBool(NewKeyValue);
 
-          IF ErrorMsg = '' THEN
+          IF ErrorMsg = '' THEN BEGIN
             NoteThatDataHasChanged;
 
-          IF ErrorMsg = '' THEN BEGIN
             { And redraw the screen to display the change}
             RedrawScreen := True;
             CalculatePointPositions;
@@ -880,11 +930,11 @@ BEGIN
             Log('D Screen invalidated by Edit save');
             RedrawScreen := False;
           END ELSE BEGIN
-            IF NOT MessageDialogueWithDefault('Error in creating/amending P=' + IntToStr(EditedPoint) + ': '
-                                              + ErrorMsg
-                                              + CRLF
-                                              + 'Do you wish to continue editing?',
-                                              StopTimer, mtWarning, [mbYes, mbNo], mbNo) = mrNo
+            IF MessageDialogueWithDefault('Error in creating/amending P=' + IntToStr(EditedPoint) + ': '
+                                          + ErrorMsg
+                                          + CRLF
+                                          + 'Do you wish to continue editing?',
+                                          StopTimer, mtWarning, [mbYes, mbNo], mbNo) = mrYes
             THEN
               Point_OutOfUse := True
             ELSE
@@ -898,7 +948,7 @@ BEGIN
           ErrorMsg := '';
 
           IF KeyName = Line_StrFieldName THEN
-            Line_Str := ValidateLineName(NewKeyValue, ErrorMsg);
+            Line_Str := ValidateLineName(NewKeyValue, EditedLine, ErrorMsg);
 
           IF KeyName = Line_UpXLineStrFieldName THEN
             Line_UpXLineStr := ValidateLineUpXStr(NewKeyValue, Line_Str, ErrorMsg);
@@ -970,12 +1020,12 @@ BEGIN
 
           IF ErrorMsg = '' THEN BEGIN
             IF KeyName = Line_UpConnectionChFieldName THEN
-              Line_UpConnectionCh := ValidateLineConnnectionCh(NewKeyValue, ErrorMsg);
+              Line_UpConnectionCh := ValidateLineConnectionCh(NewKeyValue, ErrorMsg);
           END;
 
           IF ErrorMsg = '' THEN BEGIN
             IF KeyName = Line_DownConnectionChFieldName THEN
-              Line_DownConnectionCh := ValidateLineConnnectionCh(NewKeyValue, ErrorMsg);
+              Line_DownConnectionCh := ValidateLineConnectionCh(NewKeyValue, ErrorMsg);
           END;
 
           IF ErrorMsg = '' THEN BEGIN
@@ -1002,10 +1052,9 @@ BEGIN
               Line_InUseFeedbackUnit := ValidateLineInUseFeedbackUnit(NewKeyValue, ErrorMsg);
           END;
 
-          IF ErrorMsg = '' THEN
+          IF ErrorMsg = '' THEN BEGIN
             NoteThatDataHasChanged;
 
-          IF ErrorMsg = '' THEN BEGIN
             { And redraw the screen to display the change}
             RedrawScreen := True;
             CalculateLinePositions;
@@ -1013,13 +1062,13 @@ BEGIN
             Log('D Screen invalidated by Edit save');
             RedrawScreen := False;
           END ELSE BEGIN
-            IF NOT MessageDialogueWithDefault('Error in creating/amending Line=' + IntToStr(EditedLine) + ': '
-                                              + ErrorMsg
-                                              + CRLF
-                                              + 'Do you wish to continue editing?',
-                                              StopTimer, mtWarning, [mbYes, mbNo], mbNo) = mrNo
+            IF MessageDialogueWithDefault('Error in creating/amending Line=' + IntToStr(EditedLine) + ': '
+                                          + ErrorMsg
+                                          + CRLF
+                                          + 'Do you wish to continue editing?',
+                                          StopTimer, mtWarning, [mbYes, mbNo], mbNo) = mrYes
             THEN
-//              Line_OutOfUse := True
+              WriteLineValuesToValueList
             ELSE
               TurnEditModeOff;
           END;
@@ -1032,10 +1081,9 @@ BEGIN
 
           { ... }
 
-          IF ErrorMsg = '' THEN
+          IF ErrorMsg = '' THEN BEGIN
             NoteThatDataHasChanged;
 
-          IF ErrorMsg = '' THEN BEGIN
             { And redraw the screen to display the change}
             RedrawScreen := True;
 //            CalculateTrackCircuitPositions;
@@ -1043,11 +1091,11 @@ BEGIN
             Log('D Screen invalidated by Edit save');
             RedrawScreen := False;
           END ELSE BEGIN
-            IF NOT MessageDialogueWithDefault('Error in creating/amending TC=' + IntToStr(EditedTrackCircuit) + ': '
-                                              + ErrorMsg
-                                              + CRLF
-                                              + 'Do you wish to continue editing?',
-                                              StopTimer, mtWarning, [mbYes, mbNo], mbNo) = mrNo
+            IF MessageDialogueWithDefault('Error in creating/amending TC=' + IntToStr(EditedTrackCircuit) + ': '
+                                          + ErrorMsg
+                                          + CRLF
+                                          + 'Do you wish to continue editing?',
+                                          StopTimer, mtWarning, [mbYes, mbNo], mbNo) = mrYes
             THEN
 //              TrackCircuit_OutOfUse := True
             ELSE
@@ -1089,94 +1137,8 @@ BEGIN
   END; {TRY}
 END; { EditValueListEditorExit }
 
-PROCEDURE WriteIntegerValueExcludingZero(Str : String; I : Integer; EditMask : String);
-BEGIN
-  WITH EditWindow.EditValueListEditor DO BEGIN
-    IF I <> 0 THEN
-      Values[Str] := IntToStr(I)
-    ELSE
-      Values[Str] := '';
-
-    IF EditMask <> '' THEN
-      ItemProps[Str].EditMask := EditMask;
-  END; {WITH}
-END; { WriteIntegerValueExcludingZero }
-
-PROCEDURE WriteIntegerValueIncludingZero(Str : String; I : Integer; EditMask : String);
-BEGIN
-  WITH EditWindow.EditValueListEditor DO BEGIN
-    Values[Str] := IntToStr(I);
-
-    IF EditMask <> '' THEN
-      ItemProps[Str].EditMask := EditMask;
-  END; {WITH}
-END; { WriteIntegerValueINcludingZero }
-
-PROCEDURE WriteBooleanValue(Str : String; Bool : Boolean);
-BEGIN
-  WITH EditWindow.EditValueListEditor DO BEGIN
-    IF Bool THEN
-      Values[Str] := 'True'
-    ELSE
-      Values[Str] := 'False';
-
-    ItemProps[Str].ReadOnly := True;
-    ItemProps[Str].PickList.Add('True');
-    ItemProps[Str].PickList.Add('False');
-    ItemProps[Str].EditStyle := esPickList;
-  END; {WITH}
-END; { WriteBooleanValue }
-
-PROCEDURE WriteIntegerArrayValues(IntegerArrayStr : String; IntegerArray : IntegerArrayType; NoValuesStr, ValuesStr : String);
-VAR
-  I : Integer;
-
-BEGIN
-  WITH EditWindow.EditValueListEditor DO BEGIN
-    IF Length(IntegerArray) = 0 THEN
-      Values[IntegerArrayStr] := NoValuesStr
-    ELSE BEGIN
-      FOR I := 0 TO High(IntegerArray) DO
-        AppendToIntegerArray(IntegerArray, IntegerArray[I]);
-      Values[IntegerArrayStr] := ValuesStr;
-    END;
-    ItemProps[IntegerArrayStr].ReadOnly := True;
-    ItemProps[IntegerArrayStr].EditStyle := esEllipsis;
-  END; {WITH}
-END; { WriteIntegerArrayValues }
-
-PROCEDURE ClearEditValueList(Caption : String);
-{ Empty the value list so as not to display anything if we click on an unrecognised item, or a blank bit of screen }
-BEGIN
-  ValueListToBeCleared := True;
-
-  WITH EditWindow DO BEGIN
-    EditValueListEditor.Strings.Clear;
-    EditWindowLabel.Caption := Caption;
-  END; {WITH}
-
-  IF EditedSignal <> UnknownSignal THEN
-    EditedSignal := UnknownSignal
-  ELSE
-    IF EditedPoint <> UnknownPoint THEN
-      EditedPoint := UnknownPoint
-    ELSE
-      IF EditedLine <> UnknownLine THEN
-        EditedLine := UnknownLine
-      ELSE
-        IF EditedTrackCircuit <> UnknownTrackCircuit THEN
-          EditedTrackCircuit := UnknownTrackCircuit;
-
-  WITH EditWindow DO BEGIN
-    UndoChangesButton.Enabled := False;
-    SaveChangesAndExitButton.Enabled := False;
-    ExitWithoutSavingButton.Enabled := False;
-  END; {WITH}
-END; { ClearEditValueList }
-
-PROCEDURE WritePointValuesToValueList(P : Integer);
+PROCEDURE WritePointValuesToValueList;
 { Create a value list in the edit window with the appropriate values }
-
   PROCEDURE WritePointValue(Str : String; P : Integer; EditMask : String);
   BEGIN
     WITH EditWindow.EditValueListEditor DO BEGIN
@@ -1200,13 +1162,10 @@ BEGIN { WritePointValuesToValueList }
       EditValueListEditor.OnStringsChange := NIL;
 
       WITH EditValueListEditor DO BEGIN
-        ClearEditValueList('Editing Point ' + IntToStr(P));
+        EditWindowLabel.Caption := 'Editing Point ' + IntToStr(EditedPoint);
 
-        EditedPoint := P;
-        SavePointRec := Points[EditedPoint];
-
-        WITH Points[P] DO BEGIN
-          WriteIntegerValueExcludingZero(Point_NumberFieldName, P, '');
+        WITH Points[EditedPoint] DO BEGIN
+          WriteIntegerValueExcludingZero(Point_NumberFieldName, EditedPoint, '');
           ItemProps[Point_NumberFieldName].ReadOnly := True;
 
           Values[Point_DivergingLineFieldName] := LineToStr(Point_DivergingLine);
@@ -1242,7 +1201,7 @@ BEGIN { WritePointValuesToValueList }
   END; {TRY}
 END; { WritePointValuesToValueList }
 
-PROCEDURE WriteSignalValuesToValueList(S : Integer);
+PROCEDURE WriteSignalValuesToValueList;
 { Create or update a value list in the edit window with the appropriate values }
 
   PROCEDURE WriteSignalValue(Str : String; S : Integer; EditMask : String);
@@ -1290,15 +1249,15 @@ BEGIN { WriteSignalValuesToValueList }
       SaveEvent := EditWindow.EditValueListEditorStringsChange;
       EditWindow.EditValueListEditor.OnStringsChange := NIL;
 
-      WITH EditValueListEditor DO BEGIN
-        ClearEditValueList('Editing Signal ' + IntToStr(S));
+      EditWindowLabel.Caption := 'Editing Signal ' + IntToStr(EditedSignal);
 
-        WITH Signals[S] DO BEGIN
-          WriteIntegerValueIncludingZero(Signal_NumberFieldName, S, ''); { as the signal number might be zero }
+      WITH EditValueListEditor DO BEGIN
+        WITH Signals[EditedSignal] DO BEGIN
+          WriteIntegerValueIncludingZero(Signal_NumberFieldName, EditedSignal, ''); { as the signal number might be zero }
           { make the signal number read only }
           ItemProps[Signal_NumberFieldName].ReadOnly := True;
 
-          EditWindowLabel.Caption := 'Editing Signal ' + IntToStr(S);
+          EditWindowLabel.Caption := 'Editing Signal ' + IntToStr(EditedSignal);
 
           WriteIntegerValueExcludingZero(Signal_AccessoryAddressFieldName, Signal_AccessoryAddress, '9999');
 
@@ -1332,12 +1291,12 @@ BEGIN { WriteSignalValuesToValueList }
           WritePickListValue(Signal_IndicatorSpeedRestrictionFieldName, MPHToStr(Signal_IndicatorSpeedRestriction),
                                                                                 ['10', '20', '30', '40', '50', '60', '70', '80', '90', '100', '110']);
           WriteSignalValue(Signal_NextSignalIfNoIndicatorFieldName, Signal_NextSignalIfNoIndicator, '999');
-          WriteJunctionIndicatorValue(S, Signal_UpperLeftIndicatorTargetFieldName, UpperLeftIndicator);
-          WriteJunctionIndicatorValue(S, Signal_MiddleLeftIndicatorTargetFieldName, MiddleLeftIndicator);
-          WriteJunctionIndicatorValue(S, Signal_LowerLeftIndicatorTargetFieldName, LowerLeftIndicator);
-          WriteJunctionIndicatorValue(S, Signal_UpperRightIndicatorTargetFieldName, UpperRightIndicator);
-          WriteJunctionIndicatorValue(S, Signal_MiddleRightIndicatorTargetFieldName, MiddleRightIndicator);
-          WriteJunctionIndicatorValue(S, Signal_LowerRightIndicatorTargetFieldName, LowerRightIndicator);
+          WriteJunctionIndicatorValue(EditedSignal, Signal_UpperLeftIndicatorTargetFieldName, UpperLeftIndicator);
+          WriteJunctionIndicatorValue(EditedSignal, Signal_MiddleLeftIndicatorTargetFieldName, MiddleLeftIndicator);
+          WriteJunctionIndicatorValue(EditedSignal, Signal_LowerLeftIndicatorTargetFieldName, LowerLeftIndicator);
+          WriteJunctionIndicatorValue(EditedSignal, Signal_UpperRightIndicatorTargetFieldName, UpperRightIndicator);
+          WriteJunctionIndicatorValue(EditedSignal, Signal_MiddleRightIndicatorTargetFieldName, MiddleRightIndicator);
+          WriteJunctionIndicatorValue(EditedSignal, Signal_LowerRightIndicatorTargetFieldName, LowerRightIndicator);
           WriteIntegerArrayValues(Signal_LocationsToMonitorFieldName, Signal_LocationsToMonitorArray, '(No Locations)', '(Locations)');
           Values[Signal_NotesFieldName] := Signal_Notes;
           WriteBooleanValue(Signal_NotUsedForRouteingFieldName, Signal_NotUsedForRouteing);
@@ -1394,7 +1353,7 @@ BEGIN
   END; {TRY}
 END; { UpdateSignalValueList }
 
-PROCEDURE WriteLineValuesToValueList(Line: Integer);
+PROCEDURE WriteTrackCircuitValuesToValueList;
 { Create a value list in the edit window with the appropriate values }
 BEGIN
   TRY
@@ -1406,132 +1365,9 @@ BEGIN
       EditValueListEditor.OnStringsChange := NIL;
 
       WITH EditValueListEditor DO BEGIN
-        ClearEditValueList('Editing Line ' + IntToStr(Line));
+        EditWindowLabel.Caption := 'Editing TC ' + IntToStr(EditedTrackCircuit);
 
-        WITH Lines[Line] DO BEGIN
-          WriteIntegerValueExcludingZero(Line_NumFieldName, Line, '');
-          { make the line number read only }
-          ItemProps[Line_NumFieldName].ReadOnly := True;
-
-          EditWindowLabel.Caption := 'Editing Line ' + IntToStr(Line) + ' (' + LineToStr(Line) + ')';
-
-          Values[Line_StrFieldName] := Line_Str;
-
-          Values[Line_UpXLineStrFieldName] := Line_UpXLineStr;
-
-          IF Line_UpXLineStr = '' THEN
-            WriteIntegerValueExcludingZero(Line_UpXAbsoluteFieldName, Line_UpXAbsolute, '9999')
-          ELSE
-            WriteIntegerValueExcludingZero(Line_UpXAbsoluteFieldName, 0, '9999');
-
-          Values[Line_UpYLocationStrFieldName] := Line_UpYLocationStr;
-
-          IF Line_UpYLocationStr = '' THEN
-            WriteIntegerValueExcludingZero(Line_UpYAbsoluteFieldName, Line_UpYAbsolute, '9999')
-          ELSE
-            WriteIntegerValueExcludingZero(Line_UpYAbsoluteFieldName, 0, '9999');
-
-          Values[Line_DownYLocationStrFieldName] := Line_DownYLocationStr;
-
-          IF Line_DownYLocationStr = '' THEN
-            WriteIntegerValueExcludingZero(Line_DownYAbsoluteFieldName, Line_DownYAbsolute, '9999')
-          ELSE
-            WriteIntegerValueExcludingZero(Line_DownYAbsoluteFieldName, 0, '9999');
-
-          WriteIntegerValueExcludingZero(Line_LengthFieldName, Line_Length, '9999');
-
-          Values[Line_LocationStrFieldName] := LocationToStr(Line_Location);
-
-          WriteIntegerValueExcludingZero(Line_TCFieldName, Line_TC, '9999');
-
-          WritePickListValue(Line_EndOfLineMarkerFieldName, EndOfLineToStr(Line_EndOfLineMarker), [BufferStopAtUpStr, BufferStopAtDownStr, ProjectedLineAtUpStr,
-                                                            ProjectedLineAtDownStr, NotEndOfLineStr]);
-          IF Line_BufferStopNum = UnknownBufferStop THEN
-            WriteIntegerValueExcludingZero(Line_BufferStopNumberFieldName, 0, '9999')
-          ELSE
-            WriteIntegerValueIncludingZero(Line_BufferStopNumberFieldName, Line_BufferStopNum, '9999');
-
-          Values[Line_BufferStopTheatreDestinationStrFieldName] := Line_BufferStopTheatreDestinationStr;
-
-          WritePickListValue(Line_DirectionFieldName, DirectionToStr(Line_Direction), ['Up', 'Down', 'Bidirectional']);
-
-          WritePickListValue(Line_TypeOfLineFieldName, TypeOfLineToStr(Line_TypeOfLine),
-                                                       [MainOrGoodsLineStr, MainLineStr, GoodsLineStr, BranchLineDoubleStr, BranchLineSingleStr, IslandStationLineStr,
-                                                       MainStationLineStr, BranchStationLineStr, WindowStationLineStr, SidingLineStr, FiddleyardLineStr,
-                                                       SidingsApproachLineStr, StationAvoidingLineStr, ProjectedLineStr]);
-
-          Values[Line_UpConnectionChFieldName] := Line_UpConnectionCh;
-
-          Values[Line_DownConnectionChFieldName] := Line_DownConnectionCh;
-
-          WritePickListValue(Line_GradientFieldName, GradientToStr(Line_Gradient), [LevelStr, RisingIfUpStr, RisingIfDownStr]);
-
-          WriteBooleanValue(Line_OutOfUseFieldName, Line_OutOfUseState = OutOfUse);
-
-          WriteIntegerValueExcludingZero(Line_InUseFeedbackUnitFieldName, Line_InUseFeedbackUnit, '9999');
-        END; {WITH}
-      END; {WITH}
-
-      ExitWithoutSavingButton.Enabled := True;
-
-      { Reactivate this event so as to enable the various buttons if we do any editing }
-      EditValueListEditor.OnStringsChange := SaveEvent;
-    END; {WITH}
-  EXCEPT {TRY}
-    ON E : Exception DO
-      Log('EG WriteLineValuesToValueList: ' + E.ClassName + ' error raised, with message: '+ E.Message);
-  END; {TRY}
-END; { WriteLineValuesToValueList }
-
-PROCEDURE UpdateLineValueList(Line : Integer { add other items here });
-{ Update the value list with the appropriate values }
-BEGIN
-  TRY
-    WITH EditWindow DO BEGIN
-      { Temporarily deactivate the OnstringsChange event so as not to enable the various buttons until we've written the values to the value list - otherwise the act of
-        writing them switches the buttons on before we've done any editing
-      }
-      SaveEvent := EditWindow.EditValueListEditorStringsChange;
-      EditWindow.EditValueListEditor.OnStringsChange := NIL;
-
-      WITH EditValueListEditor DO BEGIN
-//        IF AdjacentLine <> UnknownLine THEN
-//          Values[Line_AdjacentLineFieldName] := LineToStr(AdjacentLine);
-//
-//        WriteIntegerValueExcludingZero(Line_AdjacentLineXOffsetFieldName, AdjacentLineXOffset, '!#99');
-//
-//        IF Direction <> UnknownDirection THEN
-//         WritePickListValue(Line_DirectionFieldName, DirectionToStr(Direction), ['Up', 'Down']);
-      END; {WITH}
-
-      NoteThatDataHasChanged;
-
-      EditWindow.EditValueListEditor.OnStringsChange := SaveEvent;
-    END; {WITH}
-  EXCEPT {TRY}
-    ON E : Exception DO
-      Log('EG UpdateLineValueList: ' + E.ClassName + ' error raised, with message: '+ E.Message);
-  END; {TRY}
-END; { UpdateLineValueList }
-
-PROCEDURE WriteTrackCircuitValuesToValueList(TC : Integer);
-{ Create a value list in the edit window with the appropriate values }
-BEGIN
-  TRY
-    WITH EditWindow DO BEGIN
-      { Temporarily deactivate the OnstringsChange event so as not to enable the various buttons until we've written the values to the value list - otherwise the act of
-        writing them switches the buttons on before we've done any editing
-      }
-      SaveEvent := EditValueListEditorStringsChange;
-      EditValueListEditor.OnStringsChange := NIL;
-
-      WITH EditValueListEditor DO BEGIN
-        ClearEditValueList('Editing TrackCircuit ' + IntToStr(TC));
-
-        EditedTrackCircuit := TC;
-        SaveTrackCircuitRec := TrackCircuits[EditedTrackCircuit];
-
-        WITH TrackCircuits[TC] DO BEGIN
+        WITH TrackCircuits[EditedTrackCircuit] DO BEGIN
 //          WriteIntegerValueExcludingZero(TrackCircuit_NumberFieldName, P, '');
 //          ItemProps[TrackCircuit_NumberFieldName].ReadOnly := True;
 //
@@ -1586,13 +1422,13 @@ BEGIN
     { Tag represents the signal number, and is set by whichever procedure sets the edit window to visible }
     CASE Tag OF
       1:
-        WriteSignalValuesToValueList(EditedSignal);
+        WriteSignalValuesToValueList;
       2:
-        WritePointValuesToValueList(EditedPoint);
+        WritePointValuesToValueList;
       3:
-        WriteLineValuesToValueList(EditedLine);
+        WriteLineValuesToValueList;
       4:
-        WriteTrackCircuitValuesToValueList(EditedTrackCircuit);
+        WriteTrackCircuitValuesToValueList;
     END; {CASE}
   EXCEPT {TRY}
     ON E : Exception DO
@@ -1644,7 +1480,7 @@ BEGIN
 //      CalculateTrackCircuitPositions;
     END;
 
-    ClearEditValueList('');
+    ClearEditValueList;
 
     { And redraw the screen }
     RedrawScreen := True;
@@ -1672,7 +1508,7 @@ BEGIN
     UndoChangesButton.Enabled := False;
     SaveChangesAndExitButton.Enabled := False;
 
-    ClearEditValueList('');
+    ClearEditValueList;
   EXCEPT {TRY}
     ON E : Exception DO
       Log('EG ExitWithSavingButtonClick: ' + E.ClassName + ' error raised, with message: '+ E.Message);
@@ -1825,7 +1661,7 @@ BEGIN
         WriteOutSignalDataToDatabase;
 
         SaveSignalRec := Signals[EditedSignal];
-        WriteSignalValuesToValueList(EditedSignal);
+        WriteSignalValuesToValueList;
 
         RedrawScreen := True;
         InvalidateScreen(UnitRef, 'CreateSignal');
@@ -2006,7 +1842,7 @@ BEGIN
         END ELSE BEGIN
           { Clear the data from the value-list editor }
           WITH EditWindow DO BEGIN
-            ClearEditValueList('');
+            ClearEditValueList;
             UndoChangesButton.Enabled := False;
             SaveChangesAndExitButton.Enabled := False;
             ExitWithoutSavingButton.Enabled := False;
@@ -2141,7 +1977,7 @@ BEGIN
       WriteOutPointDataToDatabase;
 
       SavePointRec := Points[EditedPoint];
-      WritePointValuesToValueList(EditedPoint);
+      WritePointValuesToValueList;
 
       RedrawScreen := True;
       CalculatePointPositions;
@@ -2494,5 +2330,160 @@ BEGIN
     END;
   END;
 END; { CheckIfEditedDataHasChanged }
+
+PROCEDURE UndoEditChanges;
+{ Undo any changes made by moving the item on screen or editing it in the value list editor }
+BEGIN
+  IF EditedSignal <> UnknownSignal THEN BEGIN
+    Signals[EditedSignal] := SaveSignalRec;
+    Signals[EditedSignal].Signal_DataChanged := False;
+    WriteSignalValuesToValueList;
+  END ELSE
+    IF EditedPoint <> UnknownPoint THEN BEGIN
+      Points[EditedPoint] := SavePointRec;
+      Points[EditedPoint].Point_DataChanged := False;
+      WritePointValuesToValueList;
+    END ELSE
+      IF EditedLine <> UnknownLine THEN BEGIN
+        Lines[EditedLine] := SaveLineRec;
+        Lines[EditedLine].Line_DataChanged := False;
+        WriteLineValuesToValueList;
+      END ELSE
+        IF EditedTrackCircuit <> UnknownTrackCircuit THEN BEGIN
+          TrackCircuits[EditedTrackCircuit] := SaveTrackCircuitRec;
+          TrackCircuits[EditedTrackCircuit].TC_DataChanged := False;
+          WriteTrackCircuitValuesToValueList;
+        END;
+
+  WITH EditWindow DO BEGIN
+    UndoChangesButton.Enabled := False;
+    SaveChangesAndExitButton.Enabled := False;
+    ExitWithoutSavingButton.Enabled := False;
+  END; {WITH}
+END; { UndoEditChanges }
+
+PROCEDURE StartLineEdit(Line : Integer);
+{ Set up a line edit - this is where we save the signal's original state so we can revert to it regardless of how many edits there are }
+BEGIN
+  IF Line <> EditedLine THEN BEGIN
+    ClearEditValueList;
+    EditedLine := Line;
+    SaveLineRec := Lines[EditedLine];
+    SaveLineNum := EditedLine;
+    WriteLineValuesToValueList;
+  END;
+END; { StartLineEdit }
+
+PROCEDURE StartPointEdit(P : Integer);
+{ Set up a point edit - this is where we save the signal's original state so we can revert to it regardless of how many edits there are }
+BEGIN
+  IF P <> EditedPoint THEN BEGIN
+    ClearEditValueList;
+    EditedPoint := P;
+    SavePointRec := Points[EditedPoint];
+    SavePointNum := EditedPoint;
+    WritePointValuesToValueList;
+  END;
+END; { StartPointEdit }
+
+PROCEDURE StartSignalEdit(S : Integer);
+{ Set up a signal edit - this is where we save the signal's original state so we can revert to it regardless of how many edits there are }
+BEGIN
+  IF S <> EditedSignal THEN BEGIN
+    ClearEditValueList;
+    EditedSignal := S;
+    SaveSignalRec := Signals[EditedSignal];
+    SaveSignalNum := EditedSignal;
+    WriteSignalValuesToValueList;
+  END;
+END; { StartSignalEdit }
+
+PROCEDURE StartTrackCircuitEdit(TC : Integer);
+{ Set up a trackCircuit edit - this is where we save the TrackCircuit's original state so we can revert to it regardless of how many edits there are }
+BEGIN
+  IF TC <> EditedTrackCircuit THEN BEGIN
+    ClearEditValueList;
+    EditedTrackCircuit := TC;
+    SaveTrackCircuitRec := TrackCircuits[EditedTrackCircuit];
+    SaveTrackCircuitNum := EditedTrackCircuit;
+    WriteTrackCircuitValuesToValueList;
+  END;
+END; { StartTrackCircuitEdit }
+
+PROCEDURE TurnEditModeOn(S, P, BS, Line, TC : Integer);
+{ Turn edit Mode on }
+BEGIN
+  IF NOT EditMode THEN BEGIN
+    EditMode := True;
+    Diagrams.DiagramsWindow.Visible := False;
+
+    { The tags are used to tell EditWindow.Visible which value list to edit }
+    Edit.EditWindow.Tag := -1;
+    IF S <> UnknownSignal THEN BEGIN
+      Edit.EditWindow.Tag := 1;
+      StartSignalEdit(S);
+    END ELSE
+      IF P <> UnknownPoint THEN BEGIN
+        Edit.EditWindow.Tag := 2;
+        StartPointEdit(P);
+      END ELSE
+        IF Line <> UnknownLine THEN BEGIN
+          Edit.EditWindow.Tag := 3;
+          StartLineEdit(Line);
+        END ELSE
+          IF TC  <> UnknownTrackCircuit THEN BEGIN
+            Edit.EditWindow.Tag := 4;
+            StartTrackCircuitEdit(TC);
+          END;
+
+    Edit.EditWindow.Visible := True;
+
+    SaveSystemOnlineState := SystemOnline;
+    IF SystemOnline THEN
+      SetSystemOffline('System offline as edit mode starting', NOT SoundWarning);
+
+    SetCaption(FWPRailWindow, 'EDITING...');
+    EditWindow.EditWindowLabel.caption := '';
+    Application.Icon := EditIcon;
+  END;
+END; { TurnEditModeOn }
+
+PROCEDURE TurnEditModeOff;
+{ Turn edit mode off }
+BEGIN
+  TRY
+    IF EditMode THEN BEGIN
+      EditedPoint := UnknownSignal;
+      EditedPoint := UnknownPoint;
+      EditedLine := UnknownLine;
+      EditedTrackCircuit := UnknownTrackCircuit;
+
+      EditWindow.Visible := False;
+      Diagrams.DiagramsWindow.Visible := True;
+      EditMode := False;
+
+      ClearEditValueList;
+
+      { and force a redraw so that the highglighted signal/point etc. is de-highlighted }
+      FWPRailWindow.Repaint;
+
+      IF SaveSystemOnlineState THEN BEGIN
+        IF SetSystemOnline THEN
+          Log('A Edit mode off so system now online again')
+        ELSE
+          Log('A Edit mode off but system failed to go online');
+      END;
+
+      WITH EditWindow DO BEGIN
+        UndoChangesButton.Enabled := False;
+        SaveChangesAndExitButton.Enabled := False;
+        ExitWithoutSavingButton.Enabled := False;
+      END; {WITH}
+    END;
+  EXCEPT {TRY}
+    ON E : Exception DO
+      Log('EG TurnEditModeOff: ' + E.ClassName + ' error raised, with message: '+ E.Message);
+  END; {TRY}
+END; { TurnEditModeOff }
 
 END { Edit }.

@@ -1573,7 +1573,7 @@ PROCEDURE SetUpLineDrawingVars;
 FUNCTION ValidateBufferStopNumber(BufferStopStr : String; OUT ErrorMsg : String) : Integer;
 { See if there's a valid number (or nothing) }
 
-FUNCTION ValidateLineConnnectionCh(LineConnectionCh : String; OUT ErrorMsg : String) : String;
+FUNCTION ValidateLineConnectionCh(LineConnectionCh : String; OUT ErrorMsg : String) : String;
 { See if the connection char exceeds one character }
 
 FUNCTION ValidateLineDirection(LineDirectionStr : String; OUT ErrorMsg : String) : DirectionType;
@@ -1594,7 +1594,7 @@ FUNCTION ValidateLineLength(LineLengthStr : String; OUT ErrorMsg : String) : Int
 FUNCTION ValidateLineLocation(LineLocationStr : String; OUT ErrorMsg : String) : Integer;
 { Checks whether the line location is valid }
 
-FUNCTION ValidateLineName(Str : String; OUT ErrorMsg : String) : String;
+FUNCTION ValidateLineName(Str : String; Line : Integer; OUT ErrorMsg : String) : String;
 { Validates whether the new line name matches an existing one }
 
 FUNCTION ValidateLineTrackCircuit(LineTCStr : String; OUT ErrorMsg : String) : Integer;
@@ -3104,17 +3104,17 @@ BEGIN
     ErrorMsg := 'ValidateLineGradient: unknown gradient type "' + LineGradientStr + '"';
 END; { ValidateLineGradient }
 
-FUNCTION ValidateLineConnnectionCh(LineConnectionCh : String; OUT ErrorMsg : String) : String;
+FUNCTION ValidateLineConnectionCh(LineConnectionCh : String; OUT ErrorMsg : String) : String;
 { See if the connection char exceeds one character }
 BEGIN
   ErrorMsg := '';
   Result := '';
 
   IF Length(LineConnectionCh) > 1 THEN
-    ErrorMsg := 'ValidateLineConnnectionCh: line connection character "' + LineConnectionCh + '" is too long'
+    ErrorMsg := 'ValidateLineConnectionCh: line connection character "' + LineConnectionCh + '" is too long'
   ELSE
     Result := LineConnectionCh;
-END; { ValidateLineConnnectionCh }
+END; { ValidateLineConnectionCh }
 
 FUNCTION ValidateLineType(LineTypeStr : String; OUT ErrorMsg : String) : TypeOfLine;
 { See if the type of line is correct }
@@ -3245,7 +3245,7 @@ BEGIN
     Result := UpXStr;
 END; { ValidateLineUpXStr }
 
-FUNCTION ValidateLineName(Str : String; OUT ErrorMsg : String) : String;
+FUNCTION ValidateLineName(Str : String; Line : Integer; OUT ErrorMsg : String) : String;
 { Validates whether the new line name matches an existing one }
 VAR
   TempLine : Integer;
@@ -3255,7 +3255,7 @@ BEGIN
   Result := Str;
 
   TempLine := 0;
-  WHILE (TempLine <= High(Lines)) AND (ErrorMsg = '') DO BEGIN
+  WHILE (TempLine <= High(Lines)) AND (TempLine <> Line) AND (ErrorMsg = '') DO BEGIN
     { check all lines apart from the one we've just created }
     IF Str = Lines[TempLine].Line_Str THEN
       ErrorMsg := 'duplicate line name "' + Str + '" found'
@@ -3379,7 +3379,7 @@ BEGIN
               ErrorMsg := 'it does not match the line number in the database (' + IntToStr(Line_TempNum) + ')';
 
             IF ErrorMsg = '' THEN
-              Line_Str := ValidateLineName(FieldByName(Line_StrFieldName).AsString, ErrorMsg);
+              Line_Str := ValidateLineName(FieldByName(Line_StrFieldName).AsString, Line, ErrorMsg);
 
             IF ErrorMsg = '' THEN
               Line_UpXLineStr := ValidateLineUpXStr(FieldByName(Line_UpXLineStrFieldName).AsString, Line_Str, ErrorMsg);
@@ -3432,10 +3432,10 @@ BEGIN
               Line_TypeOfLine := ValidateLineType(FieldByName(Line_TypeOfLineFieldName).AsString, ErrorMsg);
 
             IF ErrorMsg = '' THEN
-              Line_UpConnectionCh := ValidateLineConnnectionCh(FieldByName(Line_UpConnectionChFieldName).AsString, ErrorMsg);
+              Line_UpConnectionCh := ValidateLineConnectionCh(FieldByName(Line_UpConnectionChFieldName).AsString, ErrorMsg);
 
             IF ErrorMsg = '' THEN
-              Line_DownConnectionCh := ValidateLineConnnectionCh(FieldByName(Line_DownConnectionChFieldName).AsString, ErrorMsg);
+              Line_DownConnectionCh := ValidateLineConnectionCh(FieldByName(Line_DownConnectionChFieldName).AsString, ErrorMsg);
 
             IF ErrorMsg = '' THEN
               Line_Gradient := ValidateLineGradient(FieldByName(Line_GradientFieldName).AsString, ErrorMsg);

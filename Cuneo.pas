@@ -1580,20 +1580,23 @@ BEGIN
               { reset the timer here, as potentially opening the message dialogue in CheckIfEditedSignalDataHasChanged doesn't call the mouse-up event }
               CuneoWindow.MouseButtonDownTimer.Enabled := False;
               GetCursorPos(CursorXY);
-              CheckIfEditedSignalDataHasChanged;
+              CheckIfEditedDataHasChanged;
               SetCursorPos(CursorXY.X, CursorXY.Y);
             END;
 
             StartSignalEdit(SignalFoundNum);
           END ELSE
-            IF PointFoundNum <> UnknownPoint THEN
-              WritePointValuesToValueList(PointFoundNum)
-            ELSE BEGIN
-              ClearEditValueList('');
+            IF PointFoundNum <> UnknownPoint THEN BEGIN
+              StartPointEdit(PointFoundNum);
+            END ELSE
+              IF LineFoundNum <> UnknownLine THEN BEGIN
+                StartLineEdit(LineFoundNum);
+              END ELSE BEGIN
+                ClearEditValueList;
 
-              IF Zooming THEN
-                MoveZoomWindowMode := True;
-            END;
+                IF Zooming THEN
+                  MoveZoomWindowMode := True;
+              END;
         END ELSE
           IF ButtonPress = mbRight THEN BEGIN
             SetSignalPopupNum(UnknownLine);
