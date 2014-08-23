@@ -3686,7 +3686,8 @@ END; { ReadInLineDataFromDatabase }
 PROCEDURE WriteOutLineDataToDatabase;
 { Write out some line data to the line data file }
 VAR
-  L : Integer;
+  Line : Integer;
+  TempStr : String;
 
 BEGIN
   TRY
@@ -3708,9 +3709,10 @@ BEGIN
       LineDataADOTable.Open;
       Log('L Loco Data table and connection opened to write out line data');
 
-      L := 0;
-      WHILE L <= High(Lines) DO BEGIN
-        WITH Lines[L] DO BEGIN
+      Line := 0;
+      WHILE Line <= High(Lines) DO BEGIN
+        WITH Lines[Line] DO BEGIN
+          { First deal with out of use changes }
           IF ((Line_OutOfUseState = OutOfUse)
                OR ((Line_Location <> UnknownLocation) AND Locations[Line_Location].Location_OutOfUse))
           AND (Line_InitialOutOfUseState = InUse)
@@ -3726,8 +3728,7 @@ BEGIN
               END; {WITH}
               LineDataADOTable.Next;
             END; {WHILE}
-            LineDataADOTable.Close;
-          END ELSE
+          END ELSE BEGIN
             IF (Line_OutOfUseState = InUse) AND (Line_InitialOutOfUseState = OutOfUse) THEN BEGIN
               LineDataADOTable.First;
               WHILE NOT LineDataADOTable.EOF DO BEGIN
@@ -3740,40 +3741,128 @@ BEGIN
                 END; {WITH}
                 LineDataADOTable.Next;
               END; {WHILE}
-              LineDataADOTable.Close;
             END;
+          END;
         END; {WITH}
-        Inc(L);
+        Inc(Line);
       END; {WHILE}
 
-// LineDataADOTable.First;
-// WHILE NOT LineDataADOTable.EOF DO BEGIN
-// WITH LineDataADOTable DO BEGIN
-// Line := 0;
-// WHILE Line <= High(Lines) DO BEGIN
-// WITH Lines[Line] DO BEGIN
-// debug(inttostr(line));
-// IF FieldByName('Line').AsString = Line_Str THEN BEGIN
-// IF (Line_Location <> UnknownLocation)
-// AND Locations[Line_Location].Location_OutOfUse
-// THEN
-// TempOutOfUse := Line_SaveOutOfUse
-// ELSE
-// TempOutOfUse := Line_OutOfUse;
-//
-// IF TempOutOfUse <> FieldByName('Out Of Use').AsBoolean THEN BEGIN
-// Edit;
-// FieldByname('Out Of Use').AsBoolean := Line_outOfUse;
-// Post;
-// END;
-// END; {WITH}
-// END;
-// Inc(Line);
-// END;
-// END; {WITH}
-// LineDataADOTable.Next;
-// END; {WHILE}
-//
+      { Now deal with any general editing changes }
+      LineDataADOTable.First;
+      WHILE NOT LineDataADOTable.EOF DO BEGIN
+        Line := LineDataADOTable.FieldByName(Line_NumFieldName).AsInteger;
+        WITH Lines[Line] DO BEGIN
+          IF Line_DataChanged THEN BEGIN
+            Line_DataChanged := False;
+
+            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_BufferStopNumberFieldName + ' is ''' + IntToStr(Line_BufferStopNum) + '''');
+            TempStr := IntToStr(Line_BufferStopNum);
+            IF TempStr = '0' THEN
+              { the database records a zero as a space in this field }
+              TempStr := '';
+            LineDataADOTable.Edit;
+            LineDataADOTable.FieldByName(Line_BufferStopNumberFieldName).AsString := TempStr;
+            LineDataADOTable.Post;
+
+            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_BufferStopTheatreDestinationStrFieldName
+                   + ' is ''' + Line_BufferStopTheatreDestinationStr + '''');
+            LineDataADOTable.Edit;
+            LineDataADOTable.FieldByName(Line_BufferStopTheatreDestinationStrFieldName).AsString := Line_BufferStopTheatreDestinationStr;
+            LineDataADOTable.Post;
+
+            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_DirectionFieldName + ' is ''' + DirectionToStr(Line_Direction) + '''');
+            LineDataADOTable.Edit;
+            LineDataADOTable.FieldByName(Line_DirectionFieldName).AsString := DirectionToStr(Line_Direction);
+            LineDataADOTable.Post;
+
+            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_DownConnectionChFieldName + ' is ''' + Line_DownConnectionCh + '''');
+            LineDataADOTable.Edit;
+            LineDataADOTable.FieldByName(Line_DownConnectionChFieldName).AsString := Line_DownConnectionCh;
+            LineDataADOTable.Post;
+
+            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_UpConnectionChFieldName + ' is ''' + Line_UpConnectionCh + '''');
+            LineDataADOTable.Edit;
+            LineDataADOTable.FieldByName(Line_UpConnectionChFieldName).AsString := Line_UpConnectionCh;
+            LineDataADOTable.Post;
+
+            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_DownYAbsoluteFieldName + ' is ''' + IntToStr(Line_DownYAbsolute) + '''');
+            TempStr := IntToStr(Line_DownYAbsolute);
+            IF TempStr = '0' THEN
+              { the database records a zero as a space in this field }
+              TempStr := '';
+            LineDataADOTable.Edit;
+            LineDataADOTable.FieldByName(Line_DownYAbsoluteFieldName).AsString := TempStr;
+            LineDataADOTable.Post;
+
+            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_UpYAbsoluteFieldName + ' is ''' + IntToStr(Line_UpYAbsolute) + '''');
+            TempStr := IntToStr(Line_UpYAbsolute);
+            IF TempStr = '0' THEN
+              { the database records a zero as a space in this field }
+              TempStr := '';
+            LineDataADOTable.Edit;
+            LineDataADOTable.FieldByName(Line_UpYAbsoluteFieldName).AsString := TempStr;
+            LineDataADOTable.Post;
+
+            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_DownYLocationStrFieldName + ' is ''' + Line_DownYLocationStr + '''');
+            LineDataADOTable.Edit;
+            LineDataADOTable.FieldByName(Line_DownYLocationStrFieldName).AsString := Line_DownYLocationStr;
+            LineDataADOTable.Post;
+
+            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_UpYLocationStrFieldName + ' is ''' + Line_UpYLocationStr + '''');
+            LineDataADOTable.Edit;
+            LineDataADOTable.FieldByName(Line_UpYLocationStrFieldName).AsString := Line_UpYLocationStr;
+            LineDataADOTable.Post;
+
+            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_EndOfLineMarkerFieldName + ' is ''' + EndOfLineToStr(Line_EndOfLineMarker) + '''');
+            LineDataADOTable.Edit;
+            LineDataADOTable.FieldByName(Line_EndOfLineMarkerFieldName).AsString := EndOfLineToStr(Line_EndOfLineMarker);
+            LineDataADOTable.Post;
+
+            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_GradientFieldName + ' is ''' + GradientToStr(Line_Gradient) + '''');
+            LineDataADOTable.Edit;
+            LineDataADOTable.FieldByName(Line_GradientFieldName).AsString := GradientToStr(Line_Gradient);
+            LineDataADOTable.Post;
+
+            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_InUseFeedbackUnitFieldName + ' is ''' + IntToStr(Line_InUseFeedbackUnit) + '''');
+            LineDataADOTable.Edit;
+            LineDataADOTable.FieldByName(Line_InUseFeedbackUnitFieldName).AsString := IntToStr(Line_InUseFeedbackUnit);
+            LineDataADOTable.Post;
+
+            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_LengthFieldName + ' is ''' + IntToStr(Line_Length) + '''');
+            LineDataADOTable.Edit;
+            LineDataADOTable.FieldByName(Line_LengthFieldName).AsString := IntToStr(Line_Length);
+            LineDataADOTable.Post;
+
+            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_LocationStrFieldName + ' is ''' + LocationToStr(Line_Location) + '''');
+            LineDataADOTable.Edit;
+            LineDataADOTable.FieldByName(Line_LocationStrFieldName).AsString := LocationToStr(Line_Location);
+            LineDataADOTable.Post;
+
+            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_StrFieldName + ' is ''' + Line_Str + '''');
+            LineDataADOTable.Edit;
+            LineDataADOTable.FieldByName(Line_StrFieldName).AsString := Line_Str;
+            LineDataADOTable.Post;
+
+            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_TCFieldName + ' is ''' + IntToStr(Line_TC) + '''');
+            LineDataADOTable.Edit;
+            LineDataADOTable.FieldByName(Line_TCFieldName).AsString := IntToStr(Line_TC);
+            LineDataADOTable.Post;
+
+            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_TypeOfLineFieldName + ' is ''' + TypeOfLineToStr(Line_TypeOfLine) + '''');
+            LineDataADOTable.Edit;
+            LineDataADOTable.FieldByName(Line_TypeOfLineFieldName).AsString := TypeOfLineToStr(Line_TypeOfLine);
+            LineDataADOTable.Post;
+
+            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_UpXLineStrFieldName + ' is ''' + Line_UpXLineStr + '''');
+            LineDataADOTable.Edit;
+            LineDataADOTable.FieldByName(Line_UpXLineStrFieldName).AsString := Line_UpXLineStr;
+            LineDataADOTable.Post;
+          END;
+        END; {WITH}
+
+        LineDataADOTable.Next;
+      END; {WHILE}
+
       { Tidy up the database }
       LineDataADOTable.Close;
       LineDataADOConnection.Connected := False;
@@ -4980,8 +5069,8 @@ BEGIN
                      + ' is ''' + IntToStr(Signals[S].Signal_AccessoryAddress) + '''');
               TempStr := IntToStr(Signal_AccessoryAddress);
               IF TempStr = '0' THEN
+                { the database records a zero as a space in this field }
                 TempStr := '';
-              { The database records a zero as a space in this field }
               SignalsADOTable.Edit;
               SignalsADOTable.FieldByName(Signal_AccessoryAddressFieldName).AsString := TempStr;
               SignalsADOTable.Post;
@@ -5035,8 +5124,8 @@ BEGIN
               Log('S Recording in Signal database that S=' + IntToStr(S) + ' ' + Signal_DecoderNumFieldName + ' is ''' + IntToStr(Signal_DecoderNum) + '''');
               TempStr := IntToStr(Signal_DecoderNum);
               IF TempStr = '0' THEN
+                { the database records a zero as a space in this field }
                 TempStr := '';
-              { The database records a zero as a space in this field }
               SignalsADOTable.Edit;
               SignalsADOTable.FieldByName(Signal_DecoderNumFieldName).AsString := TempStr;
               SignalsADOTable.Post;
@@ -5057,8 +5146,8 @@ BEGIN
                      + ' is ''' + IntToStr(Signal_IndicatorDecoderFunctionNum) + '''');
               TempStr := IntToStr(Signal_IndicatorDecoderFunctionNum);
               IF TempStr = '0' THEN
+                { the database records a zero as a space in this field }
                 TempStr := '';
-              { The database records a zero as a space in this field }
               SignalsADOTable.Edit;
               SignalsADOTable.FieldByName(Signal_IndicatorDecoderFunctionNumFieldName).AsString := TempStr;
               SignalsADOTable.Post;
@@ -5067,8 +5156,8 @@ BEGIN
                      + ' is ''' + IntToStr(Signal_IndicatorDecoderNum) + '''');
               TempStr := IntToStr(Signal_IndicatorDecoderNum);
               IF TempStr = '0' THEN
+                { the database records a zero as a space in this field }
                 TempStr := '';
-              { The database records a zero as a space in this field }
               SignalsADOTable.Edit;
               SignalsADOTable.FieldByName(Signal_IndicatorDecoderNumFieldName).AsString := TempStr;
               SignalsADOTable.Post;
