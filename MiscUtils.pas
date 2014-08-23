@@ -124,6 +124,9 @@ FUNCTION ColourToStr(Colour : TColour) : String;
 FUNCTION ColourToStrForUser(Colour : TColour) : String;
 { Checks if it's a Delphi colour or an FWP one, and removes the "cl" or "clFWP" }
 
+PROCEDURE CompareTwoLineDatabases(Line1DataFilename, Line1DataFilenameSuffix, Line2DataFilename, Line2DataFilenameSuffix : String);
+{ Compare two line databases - used for testing }
+
 PROCEDURE CompareTwoPointDatabases(Point1DataFilename, Point1DataFilenameSuffix, Point2DataFilename, Point2DataFilenameSuffix : String);
 { Compare two point databases - used for testing }
 
@@ -9246,12 +9249,163 @@ BEGIN
     PopupDebugWindowResetSizeAndPosition.Enabled := False;
 END; { DebugRichEditPopupMenuOnPopup }
 
+PROCEDURE CompareTwoLineDatabases(Line1DataFilename, Line1DataFilenameSuffix, Line2DataFilename, Line2DataFilenameSuffix : String);
+{ Compare two line databases - used for testing }
+CONST
+  StopTimer = True;
+
+VAR
+  ErrorFound : Boolean;
+  Line : Integer;
+
+  PROCEDURE CheckString(FieldName : String; Table2, Table1 : TADOTable; VAR ErrorFound : Boolean);
+  BEGIN
+    IF UpperCase(Table1.FieldByName(FieldName).AsString) <> UpperCase(Table2.FieldByName(FieldName).AsString) THEN BEGIN
+      IF NOT ErrorFound THEN BEGIN
+        Log('XG Differences found in Line databases '
+                + '"' + Line2DataFilename + '.' + Line2DataFilenameSuffix + '" and "' + Line1DataFilename + '.' + Line1DataFilenameSuffix + '"');
+        ErrorFound := True;
+      END;
+      Log('XG P=' + IntToStr(Line) + ' ' + FieldName + ': "' + Table1.FieldByName(FieldName).AsString + '" to "' + Table2.FieldByName(FieldName).AsString + '"');
+    END;
+  END; { CheckString }
+
+  PROCEDURE CheckBoolean(FieldName : String; Table2, Table1 : TADOTable; VAR ErrorFound : Boolean);
+  BEGIN
+    IF Table1.FieldByName(FieldName).AsBoolean <> Table2.FieldByName(FieldName).AsBoolean THEN BEGIN
+      IF NOT ErrorFound THEN BEGIN
+        Log('XG Differences found in Line databases '
+                + '"' + Line2DataFilename + '.' + Line2DataFilenameSuffix + '" and "' + Line1DataFilename + '.' + Line1DataFilenameSuffix + '"');
+        ErrorFound := True;
+      END;
+      Log('XG P=' + IntToStr(Line) + ' ' + FieldName
+              + ': "' + BoolToStr(Table1.FieldByName(FieldName).AsBoolean, True) + '" to "' + BoolToStr(Table2.FieldByName(FieldName).AsBoolean, True) + '"');
+    END;
+  END; { CheckBoolean }
+
+BEGIN
+  TRY
+    Log('A LINE DATABASES COMPARISON {BlankLineBefore}');
+
+    WITH InitVarsWindow DO BEGIN
+      IF NOT FileExists(PathToRailDataFiles + Line1DataFilename + '.' + Line1DataFilenameSuffix) THEN BEGIN
+        IF MessageDialogueWithDefault('Line database file "' + PathToRailDataFiles + Line1DataFilename + '.' + Line1DataFilenameSuffix + '"'
+                                      + ' cannot be located'
+                                      + CRLF
+                                      + 'Do you wish to continue?',
+                                      StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
+        THEN
+          ShutDownProgram(UnitRef, 'CompareTwoLineDatabases')
+        ELSE
+          Exit;
+      END;
+
+      LineDataADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
+                                               + PathToRailDataFiles + Line1DataFilename + '.' + Line1DataFilenameSuffix
+                                               + ';Persist Security Info=False';
+      TRY
+        LineDataADOConnection.Connected := True;
+      EXCEPT
+        ON E:Exception DO
+          Log('EG CompareTwoLineDatabases 1: ' + E.ClassName + ' error raised, with message: '+ E.Message);
+      END; {TRY}
+
+      LineDataADOTable.Open;
+
+      LineDataADOConnection2.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
+                                               + PathToRailDataFiles + Line2DataFilename + '.' + Line2DataFilenameSuffix
+                                               + ';Persist Security Info=False';
+      TRY
+        LineDataADOConnection2.Connected := True;
+      EXCEPT
+        ON E:Exception DO
+          Log('EG CompareTwoLineDatabases 2: ' + E.ClassName + ' error raised, with message: '+ E.Message);
+      END; {TRY}
+
+      LineDataADOTable2.Open;
+
+      Log('S Line data table and connection opened to compare Line 1 data with Line 2 data');
+
+      ErrorFound := False;
+      Line := -1;
+      LineDataADOTable.Sort := '[LineNum] ASC';
+      LineDataADOTable.First;
+      LineDataADOTable2.Sort := '[LineNum] ASC';
+      LineDataADOTable2.First;
+
+      REPEAT
+        Inc(Line);
+
+        IF Line > High(Lines) THEN BEGIN
+          IF NOT LineDataADOTable.EOF THEN
+            Log('XG Last declared line (Line=' + IntToStr(Line - 1) + ') processed but Line database ' + '"' + Line1DataFilename + '.' + Line1DataFilenameSuffix
+                    + ' has not yet reached end of file')
+          ELSE
+          IF NOT LineDataADOTable2.EOF THEN
+            Log('XG Last declared line (Line=' + IntToStr(Line - 1) + ') processed but Line database ' + '"' + Line2DataFilename + '.' + Line2DataFilenameSuffix
+                    + ' has not yet reached end of file');
+        END ELSE BEGIN
+          WITH Lines[Line] DO BEGIN
+            CheckString(Line_BufferStopNumberFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
+            CheckString(Line_BufferStopTheatreDestinationStrFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
+            CheckString(Line_DirectionFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
+            CheckString(Line_DownConnectionChFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
+            CheckString(Line_DownYAbsoluteFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
+            CheckString(Line_DownYLocationStrFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
+            CheckString(Line_EndOfLineMarkerFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
+            CheckString(Line_GradientFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
+            CheckString(Line_InUseFeedbackUnitFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
+            CheckString(Line_LengthFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
+            CheckString(Line_LocationStrFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
+            CheckString(Line_NumFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
+            CheckBoolean(Line_OutOfUseFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
+            CheckString(Line_StrFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
+            CheckString(Line_TCFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
+            CheckString(Line_TypeOfLineFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
+            CheckString(Line_UpConnectionChFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
+            CheckString(Line_UpXAbsoluteFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
+            CheckString(Line_UpXLineStrFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
+            CheckString(Line_UpYAbsoluteFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
+            CheckString(Line_UpYLocationStrFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
+          END; {WITH}
+        END;
+
+        IF LineDataADOTable.EOF AND NOT LineDataADOTable2.EOF THEN BEGIN
+          Log('XG Line database ' + '"' + Line1DataFilename + '.' + Line1DataFilenameSuffix
+                  + '" is shorter than "' + Line2DataFilename + '.' + Line2DataFilenameSuffix + '"');
+          Log('XG A later entry in line database ' + '"' + Line1DataFilename + '.' + Line1DataFilenameSuffix + '" is Line=' + IntToStr(Line));
+        END ELSE
+          IF NOT LineDataADOTable.EOF AND LineDataADOTable2.EOF THEN BEGIN
+            Log('XG Line database ' + '"' + Line2DataFilename + '.' + Line2DataFilenameSuffix
+                    + '" is shorter than "' + Line1DataFilename + '.' + Line1DataFilenameSuffix + '"');
+            Log('XG A later entry in line database ' + '"' + Line2DataFilename + '.' + Line2DataFilenameSuffix + '" is Line=' + IntToStr(Line));
+          END;
+
+        LineDataADOTable2.Next;
+        LineDataADOTable.Next;
+      UNTIL LineDataADOTable.EOF AND LineDataADOTable2.EOF;
+
+      IF NOT ErrorFound THEN
+        Log('XG No differences found in Line databases '
+                + '"' + Line1DataFilename + '.' + Line1DataFilenameSuffix + '" and "' + Line2DataFilename + '.' + Line2DataFilenameSuffix + '"');
+
+      { Tidy up the database }
+      LineDataADOTable.Close;
+      LineDataADOConnection.Connected := False;
+      Log('S Line Data 1 table and connection closed');
+      LineDataADOTable2.Close;
+      LineDataADOConnection.Connected := False;
+      Log('S Line Data 2 table and connection closed');
+    END; {WITH}
+  EXCEPT {TRY}
+    ON E : Exception DO
+      Log('EG InitialiseLines: ' + E.ClassName + 'error raised, with message: '+ E.Message);
+  END; {TRY}
+END; { CompareTwoLineDatabases }
+
 PROCEDURE CompareTwoPointDatabases(Point1DataFilename, Point1DataFilenameSuffix, Point2DataFilename, Point2DataFilenameSuffix : String);
 { Compare two point databases - used for testing }
 CONST
-  ApproachControlled = True;
-  InUse = True;
-  PermitRouteTo = True;
   StopTimer = True;
 
 VAR
@@ -9285,7 +9439,7 @@ VAR
 
 BEGIN
   TRY
-    Log('POINT SIGNAL DATABASES COMPARISON {BlankLineBefore}');
+    Log('A POINT DATABASES COMPARISON {BlankLineBefore}');
 
     WITH InitVarsWindow DO BEGIN
       IF NOT FileExists(PathToRailDataFiles + Point1DataFilename + '.' + Point1DataFilenameSuffix) THEN BEGIN
@@ -9338,11 +9492,11 @@ BEGIN
 
         IF P > High(Points) THEN BEGIN
           IF NOT PointsADOTable.EOF THEN
-            Log('XG Last declared Point (S=' + IntToStr(P - 1) + ') processed but point database ' + '"' + Point1DataFilename + '.' + Point1DataFilenameSuffix
+            Log('XG Last declared point (P=' + IntToStr(P - 1) + ') processed but point database ' + '"' + Point1DataFilename + '.' + Point1DataFilenameSuffix
                     + ' has not yet reached end of file')
           ELSE
           IF NOT PointsADOTable2.EOF THEN
-            Log('XG Last declared Point (S=' + IntToStr(P - 1) + ') processed but point database ' + '"' + Point2DataFilename + '.' + Point2DataFilenameSuffix
+            Log('XG Last declared point (P=' + IntToStr(P - 1) + ') processed but point database ' + '"' + Point2DataFilename + '.' + Point2DataFilenameSuffix
                     + ' has not yet reached end of file');
         END ELSE BEGIN
           WITH Points[P] DO BEGIN
@@ -9372,12 +9526,12 @@ BEGIN
         IF PointsADOTable.EOF AND NOT PointsADOTable2.EOF THEN BEGIN
           Log('XG Point database ' + '"' + Point1DataFilename + '.' + Point1DataFilenameSuffix
                   + '" is shorter than "' + Point2DataFilename + '.' + Point2DataFilenameSuffix + '"');
-          Log('XG A later entry in point database ' + '"' + Point1DataFilename + '.' + Point1DataFilenameSuffix + '" is S=' + IntToStr(P));
+          Log('XG A later entry in point database ' + '"' + Point1DataFilename + '.' + Point1DataFilenameSuffix + '" is P=' + IntToStr(P));
         END ELSE
           IF NOT PointsADOTable.EOF AND PointsADOTable2.EOF THEN BEGIN
             Log('XG Point database ' + '"' + Point2DataFilename + '.' + Point2DataFilenameSuffix
                     + '" is shorter than "' + Point1DataFilename + '.' + Point1DataFilenameSuffix + '"');
-            Log('XG A later entry in point database ' + '"' + Point2DataFilename + '.' + Point2DataFilenameSuffix + '" is S=' + IntToStr(P));
+            Log('XG A later entry in point database ' + '"' + Point2DataFilename + '.' + Point2DataFilenameSuffix + '" is P=' + IntToStr(P));
           END;
 
         PointsADOTable2.Next;
@@ -9405,9 +9559,6 @@ END; { CompareTwoSignalDatabases }
 PROCEDURE CompareTwoSignalDatabases(Signal1DataFilename, Signal1DataFilenameSuffix, Signal2DataFilename, Signal2DataFilenameSuffix : String);
 { Compare two signal databases - used for testing }
 CONST
-  ApproachControlled = True;
-  InUse = True;
-  PermitRouteTo = True;
   StopTimer = True;
 
 VAR

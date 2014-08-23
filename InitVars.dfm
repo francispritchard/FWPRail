@@ -241,8 +241,8 @@ object InitVarsWindow: TInitVarsWindow
     Top = 8
   end
   object SignalsDataSource2: TDataSource
-    Left = 380
-    Top = 320
+    Left = 492
+    Top = 416
   end
   object SignalsADOTable2: TADOTable
     Connection = SignalsADOConnection2
@@ -267,8 +267,8 @@ object InitVarsWindow: TInitVarsWindow
     Connection = PointsADOConnection2
     CursorType = ctStatic
     TableName = 'PointTable'
-    Left = 408
-    Top = 256
+    Left = 528
+    Top = 176
   end
   object PointsADOConnection2: TADOConnection
     ConnectionString = 
@@ -279,11 +279,34 @@ object InitVarsWindow: TInitVarsWindow
     LoginPrompt = False
     Mode = cmShareDenyNone
     Provider = 'Microsoft.Jet.OLEDB.4.0'
-    Left = 364
-    Top = 252
+    Left = 532
+    Top = 132
   end
   object PointsDataSource2: TDataSource
-    Left = 308
-    Top = 256
+    Left = 540
+    Top = 88
+  end
+  object LineDataADOConnection2: TADOConnection
+    ConnectionString = 
+      'Provider=Microsoft.Jet.OLEDB.4.0;Data Source=C:\Program Files\Bo' +
+      'rland\BDS\3.0\Projects\Rail Data Files\LineData.mdb;Persist Secu' +
+      'rity Info=False'
+    KeepConnection = False
+    LoginPrompt = False
+    Mode = cmShareDenyNone
+    Provider = 'Microsoft.Jet.OLEDB.4.0'
+    Left = 412
+    Top = 548
+  end
+  object LineDataADOTable2: TADOTable
+    Connection = LineDataADOConnection2
+    CursorType = ctStatic
+    TableName = 'LineTable'
+    Left = 336
+    Top = 544
+  end
+  object LineDataSource2: TDataSource
+    Left = 236
+    Top = 552
   end
 end

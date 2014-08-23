@@ -5205,10 +5205,10 @@ BEGIN { KeyPressedDown }
               BEGIN
                 HelpMsg := 'Compare Two Databases';
                 IF NOT HelpRequired THEN BEGIN
-    //              CompareTwoLocationDatabases('LocationData', 'mdb', 'LocationData - Copy', 'mdb');
-    //              CompareTwoLineDatabases('LineData', 'mdb', 'LineData - Copy', 'mdb');
-                  CompareTwoSignalDatabases('SignalData', 'mdb', 'SignalData - Copy', 'mdb');
-    //              CompareTwoPointDatabases('PointData', 'mdb', 'PointData - Copy', 'mdb');
+//                  CompareTwoLocationDatabases('LocationData', 'mdb', 'LocationData - Copy', 'mdb');
+                  CompareTwoLineDatabases('LineData', 'mdb', 'LineData - Copy', 'mdb');
+//                  CompareTwoSignalDatabases('SignalData', 'mdb', 'SignalData - Copy', 'mdb');
+//                  CompareTwoPointDatabases('PointData', 'mdb', 'PointData - Copy', 'mdb');
                 END;
               END;
             Alt: {F11}
