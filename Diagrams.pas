@@ -2691,7 +2691,7 @@ BEGIN
           FindRouteFromLineAToLineB(Train_LocoChipStr, Journey, UnknownSignal, StartLine, EndLine, Direction, Train_Type, Train_CurrentLengthInInches, UseEmergencyRouteing,
                                     NOT IncludeOutOfUseLines, JourneyArray, LinesNotAvailableStr, ErrorMsg, OK);
         IF NOT OK THEN
-          ErrorMsg := ErrorMsg + ': no route ' + DirectionToStr(Direction) + ' found between ' + Lines[StartLine].Line_Str + ' and ' + Lines[EndLine].Line_Str;
+          ErrorMsg := ErrorMsg + ': no route ' + DirectionToStr(Direction) + ' found between ' + Lines[StartLine].Line_NameStr + ' and ' + Lines[EndLine].Line_NameStr;
       END;
     END;
 
@@ -3148,7 +3148,7 @@ BEGIN
             Log('TrainJourney_Cleared=' + BoolToStr(TrainJourney_Cleared, True)+ ' {NOUNITREF}');
             Log('TrainJourney_Created=' + BoolToStr(TrainJourney_Created, True) + ' {NOUNITREF}');
             Log('TrainJourney_Direction=' + DirectionToStr(TrainJourney_Direction) + ' {NOUNITREF}');
-            Log('TrainJourney_EndLine=' + Lines[TrainJourney_EndLine].Line_Str + ' {NOUNITREF}');
+            Log('TrainJourney_EndLine=' + Lines[TrainJourney_EndLine].Line_NameStr + ' {NOUNITREF}');
             Log('TrainJourney_EndSignal=' + IntToStr(TrainJourney_EndSignal) + ' {NOUNITREF}');
             Log('TrainJourney_FirstTC=' + IntToStr(TrainJourney_FirstTC) + ' {NOUNITREF}');
             Log('TrainJourney_LengthInInches=' + FloatToStr(TrainJourney_LengthInInches) + ' {NOUNITREF}');
@@ -3156,7 +3156,7 @@ BEGIN
             Log('TrainJourney_NotForPublicUse=' + BoolToStr(TrainJourney_NotForPublicUse, True) + ' {NOUNITREF}');
             Log('TrainJourney_Route=' + IntToStr(TrainJourney_Route) + ' {NOUNITREF}');
             Log('TrainJourney_SetUp=' + BoolToStr(TrainJourney_SetUp, True) + ' {NOUNITREF}');
-            Log('TrainJourney_StartLine=' + Lines[TrainJourney_StartLine].Line_Str + ' {NOUNITREF}');
+            Log('TrainJourney_StartLine=' + Lines[TrainJourney_StartLine].Line_NameStr + ' {NOUNITREF}');
             Log('TrainJourney_StartOfRepeatJourney=' + BoolToStr(TrainJourney_StartOfRepeatJourney, True) + ' {NOUNITREF}');
             Log('TrainJourney_StoppingOnArrival=' + BoolToStr(TrainJourney_StoppingOnArrival, True) + ' {NOUNITREF}');
           END;
@@ -3203,7 +3203,7 @@ BEGIN
               Add('TrainJourney_Cleared=' + BoolToStr(TrainJourney_Cleared, True));
               Add('TrainJourney_Created=' + BoolToStr(TrainJourney_Created, True));
               Add('TrainJourney_Direction=' + DirectionToStr(TrainJourney_Direction));
-              Add('TrainJourney_EndLine=' + Lines[TrainJourney_EndLine].Line_Str);
+              Add('TrainJourney_EndLine=' + Lines[TrainJourney_EndLine].Line_NameStr);
               Add('TrainJourney_EndSignal=' + IntToStr(TrainJourney_EndSignal));
               Add('TrainJourney_FirstTC=' + IntToStr(TrainJourney_FirstTC));
               Add('TrainJourney_LengthInInches=' + FloatToStr(TrainJourney_LengthInInches));
@@ -3211,7 +3211,7 @@ BEGIN
               Add('TrainJourney_NotForPublicUse=' + BoolToStr(TrainJourney_NotForPublicUse, True));
               Add('TrainJourney_Route=' + IntToStr(TrainJourney_Route));
               Add('TrainJourney_SetUp=' + BoolToStr(TrainJourney_SetUp, True));
-              Add('TrainJourney_StartLine=' + Lines[TrainJourney_StartLine].Line_Str);
+              Add('TrainJourney_StartLine=' + Lines[TrainJourney_StartLine].Line_NameStr);
               Add('TrainJourney_StartOfRepeatJourney=' + BoolToStr(TrainJourney_StartOfRepeatJourney, True));
               Add('TrainJourney_StoppingOnArrival=' + BoolToStr(TrainJourney_StoppingOnArrival, True));
             END;

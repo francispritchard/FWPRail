@@ -1928,7 +1928,7 @@ BEGIN
 END; { MoveAllTrains }
 
 FUNCTION TrainIsInPlace(T : TrainIndex) : Boolean;
-{ Returns true if a given train exists  - not in use 9/4/14 **** }
+{ Returns true if a given train exists - not in use 9/4/14 **** }
 VAR
   DebugStr : String;
   InitialTrackCircuitCount : Integer;

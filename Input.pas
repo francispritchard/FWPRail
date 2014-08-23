@@ -2371,9 +2371,9 @@ BEGIN { KeyPressedDown }
                 IF NOT HelpRequired THEN BEGIN
                   IF LogCurrentTimeMode THEN BEGIN
                     Log('A! LogCurrentTimeMode = OFF');
-                    LogCurrentTimeMode  := False;
+                    LogCurrentTimeMode := False;
                   END ELSE BEGIN
-                    LogCurrentTimeMode  := True;
+                    LogCurrentTimeMode := True;
                     Log('A! LogCurrentTimeMode = ON');
                   END;
                 END;
@@ -4567,9 +4567,9 @@ BEGIN { KeyPressedDown }
               BEGIN
                 HelpMsg := 'show where signals'' junction indicators point';
                 IF NOT HelpRequired THEN BEGIN
-                  IF ShowSignalJunctionDestinations THEN
-                    ShowSignalJunctionDestinations := False
-                  ELSE
+//                  IF ShowSignalJunctionDestinations THEN
+//                    ShowSignalJunctionDestinations := False
+//                  ELSE
                     ShowSignalJunctionDestinations := True;
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;

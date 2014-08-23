@@ -326,6 +326,7 @@ TYPE
     Line_Location : Integer;
     Line_LockFailureNotedInSubRouteUnit : Boolean;
     Line_MousePolygon : ARRAY [0..4] OF TPoint; { mouse access for indicators }
+    Line_NameStr : String;
     Line_NextDownIsEndOfLine : EndOfLineType;
     Line_NextDownLine : Integer;
     Line_NextDownPoint : Integer;
@@ -341,7 +342,6 @@ TYPE
     Line_RouteLockingForDrawing : Integer; { used for drawing those bits of Line that are routed over }
     Line_RouteSet : Integer;
     Line_SaveOutOfUseState : OutOfUseState;
-    Line_Str : String;
     Line_TC : Integer;
     Line_TempNum : Integer;
     Line_TypeOfLine : TypeOfLine;
@@ -370,9 +370,9 @@ CONST
   Line_InUseFeedbackUnitFieldName : String = 'In Use Feedback Unit';
   Line_LengthFieldName : String = 'Length';
   Line_LocationStrFieldName : String = 'Location';
+  Line_NameStrFieldName : String = 'Line';
   Line_NumFieldName : String = 'LineNum';
   Line_OutOfUseFieldName : String = 'Out Of Use';
-  Line_StrFieldName : String = 'Line';
   Line_TCFieldName : String = 'Line TC';
   Line_TypeOfLineFieldName : String = 'Type Of Line';
   Line_UpConnectionChFieldName : String = 'Up Connection Ch';
@@ -411,7 +411,7 @@ TYPE
     Location_LineAtDown : Integer;
     Location_LocosNotAbleToUse : IntegerArrayType;
     Location_LocoClassesReservedFor : StringArrayType; { needs to be a String as could include 57XX etc. }
-    Location_LongStr : String;
+    Location_LongNameStr : String;
     Location_OutOfUse : Boolean;
     Location_PlatformOrFiddleyardAccessViaParallelPlatformOrFiddleyard : Integer;
     Location_PlatformOrFiddleyardAccessViaParallelPlatformOrFiddleyardStr : String; { to store the data for later test }
@@ -421,7 +421,7 @@ TYPE
     Location_PlatformOrFiddleyardNumStr : String;
     Location_PlatformPriority : Integer;
     Location_RecordInLocationOccupationArray : Boolean;
-    Location_ShortStr : String;
+    Location_ShortNameStr : String;
     Location_ThroughLocationState : ThroughLocationStateType;
     Location_ThroughOrStoppingPriority : ThroughOrStoppingPriorityType;
     Location_TrainPriority : TrainPriorityType;
@@ -2340,15 +2340,15 @@ BEGIN
 
             IF ErrorMsg = '' THEN BEGIN
               FieldName := 'LocationName';
-              Location_LongStr := LocationsADOTable.FieldByName(FieldName).AsString;
-              IF Location_LongStr = '' THEN
+              Location_LongNameStr := LocationsADOTable.FieldByName(FieldName).AsString;
+              IF Location_LongNameStr = '' THEN
                 ErrorMsg := 'missing long name';
             END;
 
             IF ErrorMsg = '' THEN BEGIN
               FieldName := 'ShortString';
-              Location_ShortStr := LocationsADOTable.FieldByName(FieldName).AsString;
-              IF Location_ShortStr = '' THEN
+              Location_ShortNameStr := LocationsADOTable.FieldByName(FieldName).AsString;
+              IF Location_ShortNameStr = '' THEN
                 ErrorMsg := 'missing short name';
             END;
 
@@ -2514,7 +2514,7 @@ BEGIN
                   END ELSE BEGIN
                     TempArea := StrToArea(TempStrArray[I]);
                     IF TempArea = UnknownArea THEN
-                      ErrorMsg := 'unknown area "' + TempStrArray[I] + '" for ' + Location_LongStr
+                      ErrorMsg := 'unknown area "' + TempStrArray[I] + '" for ' + Location_LongNameStr
                     ELSE
                       AppendToAreaArray(Location_DestinationPriorityAreas, TempArea);
                   END;
@@ -2551,7 +2551,7 @@ BEGIN
                       IF TempStr = '' THEN
                         Location_TrainPriority := NoTrainPriority
                       ELSE
-                        ErrorMsg := 'unknown train priority "' + TempStr + '" for ' + Location_LongStr;
+                        ErrorMsg := 'unknown train priority "' + TempStr + '" for ' + Location_LongNameStr;
             END;
 
             IF ErrorMsg = '' THEN BEGIN
@@ -2578,7 +2578,7 @@ BEGIN
                           IF TempStr = '' THEN
                             Location_DirectionPriority := NoDirectionPriority
                           ELSE
-                            ErrorMsg := 'unknown direction priority "' + TempStr + '" for ' + Location_LongStr;
+                            ErrorMsg := 'unknown direction priority "' + TempStr + '" for ' + Location_LongNameStr;
             END;
 
             IF ErrorMsg = '' THEN BEGIN
@@ -2593,7 +2593,7 @@ BEGIN
                   IF TempStr = '' THEN
                     Location_ThroughOrStoppingPriority := NoStoppingPriority
                   ELSE
-                    ErrorMsg := 'unknown through or stopping priority "' + TempStr + '" for ' + Location_LongStr;
+                    ErrorMsg := 'unknown through or stopping priority "' + TempStr + '" for ' + Location_LongNameStr;
             END;
 
             IF ErrorMsg = '' THEN BEGIN
@@ -2617,7 +2617,7 @@ BEGIN
             END;
 
             IF ErrorMsg <> '' THEN BEGIN
-              IF MessageDialogueWithDefault('Error in creating Location ' + IntToStr(High(Locations)) + ' (' + Location_LongStr + ' ): '
+              IF MessageDialogueWithDefault('Error in creating Location ' + IntToStr(High(Locations)) + ' (' + Location_LongNameStr + ' ): '
                                             + '[' + ErrorMsg + ']:'
                                             + CRLF
                                             + 'Do you wish to continue?',
@@ -2647,7 +2647,7 @@ BEGIN
           I := 0;
           WHILE (I <= High(Locations)) AND NOT OK DO BEGIN
             TestStr1 := UpperCase(RemoveAllSpacesFromAString(Location_AdjoiningPlatformStr));
-            TestStr2 := UpperCase(RemoveAllSpacesFromAString(Locations[I].Location_LongStr));
+            TestStr2 := UpperCase(RemoveAllSpacesFromAString(Locations[I].Location_LongNameStr));
             IF TestStr1 = TestStr2 THEN BEGIN
               Location_AdjoiningPlatform := StrToLocation(Location_AdjoiningPlatformStr);
               IF Location_AdjoiningPlatform <> UnknownLocation THEN
@@ -2664,7 +2664,7 @@ BEGIN
             I := 0;
             WHILE (I <= High(Locations)) AND NOT OK DO BEGIN
               TestStr1 := UpperCase(RemoveAllSpacesFromAString(Location_PlatformOrFiddleyardAccessViaParallelPlatformOrFiddleyardStr));
-              TestStr2 := UpperCase(RemoveAllSpacesFromAString(Locations[I].Location_LongStr));
+              TestStr2 := UpperCase(RemoveAllSpacesFromAString(Locations[I].Location_LongNameStr));
               IF TestStr1 = TestStr2 THEN BEGIN
                 Location_PlatformOrFiddleyardAccessViaParallelPlatformOrFiddleyard := StrToLocation(Location_PlatformOrFiddleyardAccessViaParallelPlatformOrFiddleyardStr);
                 IF Location_PlatformOrFiddleyardAccessViaParallelPlatformOrFiddleyard <> UnknownLocation THEN
@@ -2804,7 +2804,7 @@ BEGIN
       CalculateLocationPositions;
 
     IF ErrorMsg <> '' THEN BEGIN
-      IF MessageDialogueWithDefault('Error when checking Loc=' + IntToStr(Location - 1) + ' (' + Locations[Location - 1] .Location_LongStr + '): '
+      IF MessageDialogueWithDefault('Error when checking Loc=' + IntToStr(Location - 1) + ' (' + Locations[Location - 1] .Location_LongNameStr + '): '
                                     + ErrorMsg
                                     + CRLF
                                     + 'Do you wish to continue?',
@@ -2856,7 +2856,7 @@ BEGIN
             Location := 0;
             WHILE Location <= High(Locations) DO BEGIN
               WITH Locations[Location] DO BEGIN
-                IF FieldByName('LocationName').AsString = Location_LongStr THEN BEGIN
+                IF FieldByName('LocationName').AsString = Location_LongNameStr THEN BEGIN
                   IF Location_OutOfUse <> FieldByName('OutOfUse').AsBoolean THEN BEGIN
                     Edit;
                     FieldByName('OutOfUse').AsBoolean := Location_OutOfUse;
@@ -3052,7 +3052,7 @@ BEGIN
   IF VerboseFlag THEN
     FOR Line := 0 TO High(Lines) DO
       WITH Lines[Line] DO
-        Log('X ' + Line_Str +  ' UpX=' + IntToStr(Line_UpX) + ' UpY=' + IntToStr(Line_UpY) + ' DownX=' + IntToStr(Line_DownX) + ' DownY=' + IntToStr(Line_DownY));
+        Log('X ' + Line_NameStr +  ' UpX=' + IntToStr(Line_UpX) + ' UpY=' + IntToStr(Line_UpY) + ' DownX=' + IntToStr(Line_DownX) + ' DownY=' + IntToStr(Line_DownY));
 END; { CalculateLinePositions }
 
 PROCEDURE CalculateBufferStopPositions;
@@ -3259,7 +3259,7 @@ BEGIN
   TempLine := 0;
   WHILE (TempLine <= High(Lines)) AND (TempLine <> Line) AND (ErrorMsg = '') DO BEGIN
     { check all lines apart from the one we've just created }
-    IF Str = Lines[TempLine].Line_Str THEN
+    IF Str = Lines[TempLine].Line_NameStr THEN
       ErrorMsg := 'duplicate line name "' + Str + '" found'
     ELSE
       Inc(TempLine);
@@ -3288,7 +3288,7 @@ VAR
       BufferStop_AdjacentLine := L;
       BufferStop_AdjacentTrackCircuit := Lines[BufferStop_AdjacentLine].Line_TC;
       IF (BufferStop_AdjacentTrackCircuit = UnknownTrackCircuit) AND ProgramStartup THEN
-        Log('E Buffer stop ' + IntToStr(High(BufferStops)) + ' (at line' + ' ' + Lines[BufferStop_AdjacentLine].Line_Str + ') has no adjacent track circuit');
+        Log('E Buffer stop ' + IntToStr(High(BufferStops)) + ' (at line' + ' ' + Lines[BufferStop_AdjacentLine].Line_NameStr + ') has no adjacent track circuit');
 
       BufferStop_AsTheatreDestination := BSTheatreDestination;
       BufferStop_CurrentColour := BufferStopColour;
@@ -3381,10 +3381,10 @@ BEGIN
               ErrorMsg := 'it does not match the line number in the database (' + IntToStr(Line_TempNum) + ')';
 
             IF ErrorMsg = '' THEN
-              Line_Str := ValidateLineName(FieldByName(Line_StrFieldName).AsString, Line, ErrorMsg);
+              Line_NameStr := ValidateLineName(FieldByName(Line_NameStrFieldName).AsString, Line, ErrorMsg);
 
             IF ErrorMsg = '' THEN
-              Line_UpXLineStr := ValidateLineUpXStr(FieldByName(Line_UpXLineStrFieldName).AsString, Line_Str, ErrorMsg);
+              Line_UpXLineStr := ValidateLineUpXStr(FieldByName(Line_UpXLineStrFieldName).AsString, Line_NameStr, ErrorMsg);
 
             IF ErrorMsg = '' THEN BEGIN
               Line_UpXAbsolute := ValidateLineUpXAbsolute(FieldByName(Line_UpXAbsoluteFieldName).AsString, Line_UpXLineStr, ErrorMsg);
@@ -3463,7 +3463,7 @@ BEGIN
               Line_InUseFeedbackUnit := ValidateLineInUseFeedbackUnit(FieldByName(Line_InUseFeedbackUnitFieldName).AsString, ErrorMsg);
 
             IF ErrorMsg <> '' THEN BEGIN
-              IF MessageDialogueWithDefault('Error in creating Line=' + IntToStr(High(Lines)) + ' (' + Line_Str + '): '
+              IF MessageDialogueWithDefault('Error in creating Line=' + IntToStr(High(Lines)) + ' (' + Line_NameStr + '): '
                                             + '[' + ErrorMsg + ']:'
                                             + CRLF
                                             + 'Do you wish to continue?',
@@ -3537,7 +3537,7 @@ BEGIN
       WITH Lines[Line] DO BEGIN
         { In all cases, UpX should be less than DownX }
         IF Line_UpX > Line_DownX THEN BEGIN
-          IF MessageDialogueWithDefault('Line ' + Line_Str + ': UpX > DownX',
+          IF MessageDialogueWithDefault('Line ' + Line_NameStr + ': UpX > DownX',
                                         StopTimer, mtError, [mbOK, mbAbort], mbAbort) = mrAbort
           THEN
             ShutDownProgram(UnitRef, 'ReadInLineDataFromDatabase');
@@ -3659,7 +3659,7 @@ BEGIN
           THEN
             ShutDownProgram(UnitRef, 'ReadInLineDataFromDatabase');
         END ELSE BEGIN
-          IF MessageDialogueWithDefault('Line declared in Initvars but not initialised in RailDraw (after line "' + Lines[SaveLine].Line_Str + '")'
+          IF MessageDialogueWithDefault('Line declared in Initvars but not initialised in RailDraw (after line "' + Lines[SaveLine].Line_NameStr + '")'
                                         + ' - do you wish to continue?',
                                         StopTimer, mtWarning, [mbYes, mbNo], mbNo) = mrNo
           THEN
@@ -3720,7 +3720,7 @@ BEGIN
             LineDataADOTable.First;
             WHILE NOT LineDataADOTable.EOF DO BEGIN
               WITH LineDataADOTable DO BEGIN
-                IF FieldByName('Line').AsString = Line_Str THEN BEGIN
+                IF FieldByName('Line').AsString = Line_NameStr THEN BEGIN
                   Edit;
                   FieldByName('Out Of Use').AsBoolean := True;
                   Post;
@@ -3733,7 +3733,7 @@ BEGIN
               LineDataADOTable.First;
               WHILE NOT LineDataADOTable.EOF DO BEGIN
                 WITH LineDataADOTable DO BEGIN
-                  IF FieldByName('Line').AsString = Line_Str THEN BEGIN
+                  IF FieldByName('Line').AsString = Line_NameStr THEN BEGIN
                     Edit;
                     FieldByName('Out Of Use').AsBoolean := False;
                     Post;
@@ -3838,9 +3838,9 @@ BEGIN
             LineDataADOTable.FieldByName(Line_LocationStrFieldName).AsString := LocationToStr(Line_Location);
             LineDataADOTable.Post;
 
-            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_StrFieldName + ' is ''' + Line_Str + '''');
+            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_NameStrFieldName + ' is ''' + Line_NameStr + '''');
             LineDataADOTable.Edit;
-            LineDataADOTable.FieldByName(Line_StrFieldName).AsString := Line_Str;
+            LineDataADOTable.FieldByName(Line_NameStrFieldName).AsString := Line_NameStr;
             LineDataADOTable.Post;
 
             Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_TCFieldName + ' is ''' + IntToStr(Line_TC) + '''');
@@ -4590,7 +4590,7 @@ VAR
 
 BEGIN
   TRY
-    Log('A READ IN SIGNAL DATA FROM DATABASE  {BLANKLINEBEFORE}');
+    Log('A READ IN SIGNAL DATA FROM DATABASE {BLANKLINEBEFORE}');
 
     WITH InitVarsWindow DO BEGIN
       SetLength(Signals, 0);
@@ -5238,7 +5238,7 @@ BEGIN
               { insert a comma between entries }
               IF Length(Signal_LocationsToMonitorArray) > 0 THEN
                 FOR I := 0 TO High(Signal_LocationsToMonitorArray) DO
-                  TempStr := TempStr + Locations[Signal_LocationsToMonitorArray[I]].Location_LongStr + ',';
+                  TempStr := TempStr + Locations[Signal_LocationsToMonitorArray[I]].Location_LongNameStr + ',';
 
               { and remove the comma at the end of the String, if any }
               IF Copy(TempStr, Length(TempStr), 1) = ',' THEN

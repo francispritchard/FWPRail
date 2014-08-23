@@ -422,11 +422,11 @@ BEGIN
                  + IfThen(Location_LineAtUp <> UnknownLine,
                           IfThen(Locations[Location].Location_LineAtUpIsEndOfLine,
                                  ' - End of line at Up',
-                                 ' - Line at Up is ' + Lines[Location_LineAtUp].Line_Str))
+                                 ' - Line at Up is ' + Lines[Location_LineAtUp].Line_NameStr))
                  + IfThen(Location_LineAtUp <> UnknownLine,
                           IfThen(Locations[Location].Location_LineAtDownIsEndOfLine,
                                  ' - End of line at Down',
-                                 ' - Line at Down is ' + Lines[Location_LineAtDown].Line_Str))
+                                 ' - Line at Down is ' + Lines[Location_LineAtDown].Line_NameStr))
                  + IfThen(Location_PlatformOrFiddleyardAtUp <> UnknownLocation,
                           ' - Location at Up is ' + LocationToStr(Location_PlatformOrFiddleyardAtUp))
                  + IfThen(Location_PlatformOrFiddleyardAtDown <> UnknownLocation,
@@ -1208,7 +1208,7 @@ BEGIN
                     { we need to do this as an IfThen clause seems to evaluate the whole expression and we therefore get a range check error when a catch point does not
                       have a diverging line
                     }
-                    TempDivergingLineStr := ' ' + Lines[Points[P].Point_DivergingLine].Line_Str
+                    TempDivergingLineStr := ' ' + Lines[Points[P].Point_DivergingLine].Line_NameStr
                   ELSE
                     TempDivergingLineStr := '';
 
@@ -1216,8 +1216,8 @@ BEGIN
                   MakeSound(1);
                   CASE MessageDialogueWithDefault('P=' + IntToStr(P) + ' [Lenz ' + IntToStr(Points[P].Point_LenzNum)
                                                   + '] ('
-                                                  + Lines[Points[P].Point_HeelLine].Line_Str
-                                                  + ' ' + Lines[Points[P].Point_StraightLine].Line_Str
+                                                  + Lines[Points[P].Point_HeelLine].Line_NameStr
+                                                  + ' ' + Lines[Points[P].Point_StraightLine].Line_NameStr
                                                   + TempDivergingLineStr
                                                   + ') has failed to change to ' + PointStateToStr(Point_RequiredState) + ':' + CRLF
                                                   + 'Retry, or set this point manually to ' + PointStateToStr(Point_RequiredState)

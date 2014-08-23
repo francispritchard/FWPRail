@@ -1185,7 +1185,7 @@ VAR
       END ELSE BEGIN
         WrapNumStr := GetFollowingChars(LogStr, '{WRAP=', '}');
         IF NOT TryStrToInt(WrapNumStr, WrapNum) THEN BEGIN
-          Debug('Log file error: WRAP= must be followed  by "ScreenWidth" or a number (Log string="' + LogStr + '")');
+          Debug('Log file error: WRAP= must be followed by "ScreenWidth" or a number (Log string="' + LogStr + '")');
           AddRichLine(LoggingWindow.LoggingWindowRichEdit, 'Log file error in "' + LogStr + '" WRAP= must be followed by "ScreenWidth" or a number'
                                                      + ' (Log string="' + LogStr + '")');
           WriteLn(LargeLogFile, 'Log file error in "' + LogStr + '" WRAP= must be followed by "ScreenWidth" or a number' + ' (Log string="' + LogStr + '")');
@@ -1241,7 +1241,7 @@ VAR
 
                   LogStr := StringReplace(LogStr, '{LINE=' + TempStr + '}', '', [rfIgnoreCase]);
                 END ELSE BEGIN
-                  Debug('Log file error: Line= must be followed  by a single character or "BEFORE", "AFTER" OR "BEFOREANDAFTER" (Log string="' + LogStr + '")');
+                  Debug('Log file error: Line= must be followed by a single character or "BEFORE", "AFTER" OR "BEFOREANDAFTER" (Log string="' + LogStr + '")');
                   AddRichLine(LoggingWindow.LoggingWindowRichEdit, 'Log file error in "' + LogStr
                                                              + '" Line= must be followed by a single character or "BEFORE", "AFTER" OR "BEFOREANDAFTER" (Log string="'
                                                              + LogStr + '")');
@@ -2009,7 +2009,7 @@ BEGIN
       END;
 
       { Italics }
-      IF StrStartsWith(StrLeft, '<i>', True, True) THEN  BEGIN
+      IF StrStartsWith(StrLeft, '<i>', True, True) THEN BEGIN
         RichTextFound := True;
         AddToStyle(TempStyle, fsItalic);
       END;
@@ -4655,7 +4655,7 @@ FUNCTION LineToStr(L : Integer) : String;
 { Return a line's name as a string }
 BEGIN
   IF (L <> UnknownLine) AND (Length(Lines) > 0) THEN
-    Result := Lines[L].Line_Str
+    Result := Lines[L].Line_NameStr
   ELSE
     Result := UnknownLineStr;
 END; { LineToStr }
@@ -4910,7 +4910,7 @@ BEGIN
   IF (Length(Lines) = 0) OR (L = UnknownLine) THEN
     Result := UnknownLineStr
   ELSE
-    Result := Lines[L].Line_Str;
+    Result := Lines[L].Line_NameStr;
 END; { LTS }
 
 FUNCTION LATS(LineArray : IntegerArrayType) : String;
@@ -4945,9 +4945,9 @@ BEGIN
       IF Location = SearchLocation THEN BEGIN
         FoundLocation := True;
         IF LongOrShortString = LongStringType THEN
-          Result := Locations[Location].Location_LongStr
+          Result := Locations[Location].Location_LongNameStr
         ELSE
-          Result := Locations[Location].Location_ShortStr;
+          Result := Locations[Location].Location_ShortNameStr;
       END ELSE
         Inc(SearchLocation);
     END; {WHILE}
@@ -7411,8 +7411,8 @@ BEGIN
   Result := UnknownLocation;
   Location := 0;
   WHILE (Location <= High(Locations)) AND (Result = UnknownLocation) DO BEGIN
-    TestStr1 := UpperCase(Locations[Location].Location_ShortStr);
-    TestStr2 := UpperCase(Locations[Location].Location_LongStr);
+    TestStr1 := UpperCase(Locations[Location].Location_ShortNameStr);
+    TestStr2 := UpperCase(Locations[Location].Location_LongNameStr);
     TestStr2 := RemoveAllSpacesFromAString(TestStr2);
 
     IF (Str = TestStr1) OR (Str = TestStr2) THEN
@@ -9359,7 +9359,7 @@ BEGIN
             CheckString(Line_LocationStrFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
             CheckString(Line_NumFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
             CheckBoolean(Line_OutOfUseFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
-            CheckString(Line_StrFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
+            CheckString(Line_NameStrFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
             CheckString(Line_TCFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
             CheckString(Line_TypeOfLineFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
             CheckString(Line_UpConnectionChFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);

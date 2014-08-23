@@ -1933,7 +1933,7 @@ BEGIN
 
     WITH Loco DO BEGIN
       IF (Loco_SpeedStepMode = 28) AND (LenzSpeed > 28) THEN BEGIN
-        Log(Loco_LocoChipStr + ' XG  Fatal Error: Lenz speed ' + IntToStr(LenzSpeed) + ' supplied');
+        Log(Loco_LocoChipStr + ' XG Fatal Error: Lenz speed ' + IntToStr(LenzSpeed) + ' supplied');
         OK := False;
       END;
 

@@ -13,6 +13,8 @@ object LocationDataWindow: TLocationDataWindow
   Font.Style = []
   OldCreateOrder = False
   WindowState = wsMaximized
+  ExplicitWidth = 320
+  ExplicitHeight = 240
   PixelsPerInch = 96
   TextHeight = 13
   object LocationDataWindowGrid: TStringGrid

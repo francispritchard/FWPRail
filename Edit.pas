@@ -224,7 +224,7 @@ BEGIN
       { Populate the box, platforms first }
       FOR Loc := 0 TO High(Locations) DO
         IF Locations[Loc].Location_IsPlatform THEN
-          StrList.Add(Locations[Loc].Location_LongStr);
+          StrList.Add(Locations[Loc].Location_LongNameStr);
 
       StrList.Sort;
 
@@ -238,7 +238,7 @@ BEGIN
       { Now the fiddleyard items }
       FOR Loc := 0 TO High(Locations) DO
         IF Locations[Loc].Location_IsFiddleyard THEN
-          StrList.Add(Locations[Loc].Location_LongStr);
+          StrList.Add(Locations[Loc].Location_LongNameStr);
 
       StrList.Sort;
 
@@ -257,7 +257,7 @@ BEGIN
           I := 0;
           Done := False;
           WHILE (I < LocationsCheckListBox.Items.Count - 1) AND NOT Done DO BEGIN
-            IF LocationsCheckListBox.Items[I] = Locations[LocationsToAddToCheckList[ArrayCount]].Location_LongStr THEN BEGIN
+            IF LocationsCheckListBox.Items[I] = Locations[LocationsToAddToCheckList[ArrayCount]].Location_LongNameStr THEN BEGIN
               LocationsCheckListBox.Checked[I] := True;
               Done := True;
             END;
@@ -433,7 +433,7 @@ BEGIN
         IF LocationsCheckListBox.Checked[I] THEN BEGIN
           Loc := 0;
           WHILE Loc < Length(Locations) DO BEGIN
-            IF Locations[Loc].Location_LongStr = LocationsCheckListBox.Items[I] THEN
+            IF Locations[Loc].Location_LongNameStr = LocationsCheckListBox.Items[I] THEN
               AppendToIntegerArray(Signals[EditedSignal].Signal_LocationsToMonitorArray, Loc);
             Inc(Loc);
           END;
@@ -478,7 +478,7 @@ BEGIN
 
           EditWindowLabel.Caption := 'Editing Line ' + IntToStr(EditedLine) + ' (' + LineToStr(EditedLine) + ')';
 
-          Values[Line_StrFieldName] := Line_Str;
+          Values[Line_NameStrFieldName] := Line_NameStr;
 
           Values[Line_UpXLineStrFieldName] := Line_UpXLineStr;
 
@@ -1250,11 +1250,11 @@ BEGIN
         WITH Lines[EditedLine] DO BEGIN
           ErrorMsg := '';
 
-          IF KeyName = Line_StrFieldName THEN
-            Line_Str := ValidateLineName(NewKeyValue, EditedLine, ErrorMsg);
+          IF KeyName = Line_NameStrFieldName THEN
+            Line_NameStr := ValidateLineName(NewKeyValue, EditedLine, ErrorMsg);
 
           IF KeyName = Line_UpXLineStrFieldName THEN
-            Line_UpXLineStr := ValidateLineUpXStr(NewKeyValue, Line_Str, ErrorMsg);
+            Line_UpXLineStr := ValidateLineUpXStr(NewKeyValue, Line_NameStr, ErrorMsg);
 
           IF ErrorMsg = '' THEN BEGIN
             IF KeyName = Line_UpXAbsoluteFieldName THEN
@@ -2465,7 +2465,7 @@ BEGIN
           Edit.EditWindow.Tag := 3;
           StartLineEdit(Line);
         END ELSE
-          IF TC  <> UnknownTrackCircuit THEN BEGIN
+          IF TC <> UnknownTrackCircuit THEN BEGIN
             Edit.EditWindow.Tag := 4;
             StartTrackCircuitEdit(TC);
           END;

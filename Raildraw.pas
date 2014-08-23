@@ -3696,8 +3696,8 @@ BEGIN
              + CRLF
              + CopyrightStatementForDisplaying
              + CRLF
-             + 'All Rights Reserved'
-             , mtInformation, [mbOK], 0);
+             + 'All Rights Reserved',
+             mtInformation, [mbOK], 0);
 END; { FWPRailWindowAboutClick }
 
 PROCEDURE TFWPRailWindow.FWPRailWindowDragDrop(Sender, Source: TObject; X, Y: Integer);

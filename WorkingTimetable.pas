@@ -863,7 +863,7 @@ BEGIN
     FOR Location := 0 TO High(Locations) DO BEGIN
       IF Locations[Location].Location_Area = WorkingTimetable_FirstStationArea THEN
         IF Locations[Location].Location_LengthInInches > Result THEN
-          Result  := Locations[Location].Location_LengthInInches;
+          Result := Locations[Location].Location_LengthInInches;
     END; {FOR}
     Log('W W=' + WorkingTimetable_EntryNumStr + ':    '
            + 'maximum platform length at the first station is ' + FloatToStr(Result));
@@ -873,18 +873,18 @@ BEGIN
       FOR Location := 0 TO High(Locations) DO BEGIN
         IF Locations[Location].Location_Area = WorkingTimetable_StoppingAtStationAreas[MiddleStationCount] THEN BEGIN
           IF Locations[Location].Location_LengthInInches > TempResult THEN
-            TempResult  := Locations[Location].Location_LengthInInches;
+            TempResult := Locations[Location].Location_LengthInInches;
 
           IF Locations[Location].Location_PlatformOrFiddleyardAtUp <> UnknownLocation THEN BEGIN
             IF Locations[Location].Location_LengthInInches + Locations[Locations[Location].Location_PlatformOrFiddleyardAtUp].Location_LengthInInches > TempResult
             THEN
-              TempResult  := Locations[Location].Location_LengthInInches + Locations[Locations[Location].Location_PlatformOrFiddleyardAtUp].Location_LengthInInches;
+              TempResult := Locations[Location].Location_LengthInInches + Locations[Locations[Location].Location_PlatformOrFiddleyardAtUp].Location_LengthInInches;
           END;
 
           IF Locations[Location].Location_PlatformOrFiddleyardAtDown <> UnknownLocation THEN BEGIN
             IF Locations[Location].Location_LengthInInches + Locations[Locations[Location].Location_PlatformOrFiddleyardAtDown].Location_LengthInInches > TempResult
             THEN
-              TempResult  := Locations[Location].Location_LengthInInches + Locations[Locations[Location].Location_PlatformOrFiddleyardAtDown].Location_LengthInInches;
+              TempResult := Locations[Location].Location_LengthInInches + Locations[Locations[Location].Location_PlatformOrFiddleyardAtDown].Location_LengthInInches;
           END;
         END;
       END; {FOR}
@@ -900,18 +900,18 @@ BEGIN
     FOR Location := 0 TO High(Locations) DO BEGIN
       IF Locations[Location].Location_Area = WorkingTimetable_LastStationArea THEN BEGIN
         IF Locations[Location].Location_LengthInInches > TempResult THEN
-          TempResult  := Locations[Location].Location_LengthInInches;
+          TempResult := Locations[Location].Location_LengthInInches;
 
         IF Locations[Location].Location_PlatformOrFiddleyardAtUp <> UnknownLocation THEN BEGIN
           IF Locations[Location].Location_LengthInInches + Locations[Locations[Location].Location_PlatformOrFiddleyardAtUp].Location_LengthInInches > TempResult
           THEN
-            TempResult  := Locations[Location].Location_LengthInInches + Locations[Locations[Location].Location_PlatformOrFiddleyardAtUp].Location_LengthInInches;
+            TempResult := Locations[Location].Location_LengthInInches + Locations[Locations[Location].Location_PlatformOrFiddleyardAtUp].Location_LengthInInches;
         END;
 
         IF Locations[Location].Location_PlatformOrFiddleyardAtDown <> UnknownLocation THEN BEGIN
           IF Locations[Location].Location_LengthInInches + Locations[Locations[Location].Location_PlatformOrFiddleyardAtDown].Location_LengthInInches > TempResult
           THEN
-            TempResult  := Locations[Location].Location_LengthInInches + Locations[Locations[Location].Location_PlatformOrFiddleyardAtDown].Location_LengthInInches;
+            TempResult := Locations[Location].Location_LengthInInches + Locations[Locations[Location].Location_PlatformOrFiddleyardAtDown].Location_LengthInInches;
         END;
       END;
     END; {FOR}

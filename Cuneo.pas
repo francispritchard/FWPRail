@@ -1787,7 +1787,7 @@ BEGIN
         WITH ZoomRect DO BEGIN
           { First see if we've drawn a rectangle at all }
           IF (Left = Right) AND (Top = Bottom) THEN
-            { reinstate the status bar as we're  not drawing a rectangle }
+            { reinstate the status bar as we're not drawing a rectangle }
             ShowStatusBarAndUpDownIndications
           ELSE BEGIN
             { Allow for the user starting to draw the rectangle from a different corner }

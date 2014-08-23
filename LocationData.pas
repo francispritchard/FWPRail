@@ -1264,7 +1264,7 @@ CONST
             IF Area = Locations[LocationCount].Location_Area THEN BEGIN
               InitialAreaFound := True;
               Log(Train_LocoChipStr + ' D ' + DisplayJourneyNumbers(T, Journey, Journey + 1)
-                                    + 'Checking PlatformOrFiddleyard_Location=' + Locations[LocationCount].Location_LongStr);
+                                    + 'Checking PlatformOrFiddleyard_Location=' + Locations[LocationCount].Location_LongNameStr);
               SetLength(PossibleAlternativesArray, Length(PossibleAlternativesArray) + 1);
               WITH PossibleAlternativesArray[High(PossibleAlternativesArray)] DO BEGIN
                 OK := True;
@@ -1388,7 +1388,7 @@ CONST
                   END; {WHILE}
                   IF NOT OK THEN
                     ErrorMsg := 'the journey start area ' + AreaToStr(TrainJourney_StartArea)
-                                + ' is not in the list of accessible start areas for location=' + Location_LongStr;
+                                + ' is not in the list of accessible start areas for location=' + Location_LongNameStr;
                 END;
 
                 { And remove any locations we can't get actually to... }
@@ -1405,7 +1405,7 @@ CONST
                     END; {WHILE}
                     IF NOT OK THEN
                       ErrorMsg := 'the next journey end area ' + AreaToStr(Train_JourneysArray[Journey + 1].TrainJourney_EndArea)
-                                  + ' is not in the list of accessible end areas for location=' + Location_LongStr;
+                                  + ' is not in the list of accessible end areas for location=' + Location_LongNameStr;
                   END;
                 END;
 
@@ -1508,7 +1508,7 @@ CONST
                   PossibleLocation_Available := False;
                   IF ErrorMsg <> '' THEN
                     Log(Train_LocoChipStr + ' D ' + DisplayJourneyNumber(Journey)
-                                          + Locations[LocationCount].Location_ShortStr + ' not possible as an alternative location: ' + ErrorMsg);
+                                          + Locations[LocationCount].Location_ShortNameStr + ' not possible as an alternative location: ' + ErrorMsg);
                 END;
               END;
             END;
@@ -1775,7 +1775,7 @@ CONST
       DebugStr := '';
       FOR I := 0 TO High(SortedPossibleLocationsArray) DO BEGIN
         PossibleLocationsArray[I] := SortedPossibleLocationsArray[I];
-        DebugStr := DebugStr  + ' ' + LocationToStr(PossibleLocationsArray[I].PossibleLocation_PlatformOrFiddleyardLocation, ShortStringType);
+        DebugStr := DebugStr + ' ' + LocationToStr(PossibleLocationsArray[I].PossibleLocation_PlatformOrFiddleyardLocation, ShortStringType);
         IF AlternativeLocationsSortOrder = SortByLocationLength THEN BEGIN
           { add the order of preference too }
           PossibleLocationsArray[I].PossibleLocation_Weighting := I;
@@ -1942,7 +1942,7 @@ BEGIN
                 ELSE
                   IF Locations[PossibleLocation_PlatformOrFiddleyardLocation].Location_LineAtUpIsEndOfLine THEN BEGIN
                     Log(Train_LocoChipStr + ' D ' + DisplayJourneyNumber(Journey)
-                                          + 'Cannot route up via ' + Lines[Locations[PossibleLocation_PlatformOrFiddleyardLocation].Location_LineAtUp].Line_Str
+                                          + 'Cannot route up via ' + Lines[Locations[PossibleLocation_PlatformOrFiddleyardLocation].Location_LineAtUp].Line_NameStr
                                           + ' as it is a dead end');
                     PossibleLocation_Available := False;
                   END;
@@ -1955,7 +1955,7 @@ BEGIN
                   END ELSE
                     IF Locations[PossibleLocation_PlatformOrFiddleyardLocation].Location_LineAtDownIsEndOfLine THEN BEGIN
                       Log(Train_LocoChipStr + ' D ' + DisplayJourneyNumber(Journey)
-                                            + 'Cannot route down via ' + Lines[Locations[PossibleLocation_PlatformOrFiddleyardLocation].Location_LineAtDown].Line_Str
+                                            + 'Cannot route down via ' + Lines[Locations[PossibleLocation_PlatformOrFiddleyardLocation].Location_LineAtDown].Line_NameStr
                                             + ' as it is a dead end');
                       PossibleLocation_Available := False;
                     END;
