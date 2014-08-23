@@ -284,7 +284,7 @@ FUNCTION GetComputerNetName : String;
 FUNCTION GetElementPosInIntegerArray(IntegerArray : IntegerArrayType; Element : Integer) : Integer;
 { Returns where, if at all, the given array element is found in an integer array }
 
-FUNCTION GetFollowingChars(Line: String; Str : String; EndStr : String) : String;
+FUNCTION GetFollowingChars(LineStr : String; Str : String; EndStr : String) : String;
 { Return the characters after the given characters up to the delimiter supplied (or "CRLF" if it's at a line end) }
 
 FUNCTION GetLineTypeColour(T : TypeOfLine) : TColour;
@@ -921,7 +921,7 @@ VAR
   DrawLineInLogFileOnly : Boolean = False;
   IdenticalLineMsgWritten : Boolean = False;
   InitialisationCount : Integer;
-  LastLogLine : String = '';
+  LastLogLineStr : String = '';
   LineAfterJustDrawn : Boolean = False;
   LogArray : StringArrayType;
   OldDebugStr : String = '';
@@ -1467,7 +1467,7 @@ BEGIN { WriteToLogFile }
         SaveLogStrArray[9] := SaveLogStrArray[10];
         SaveLogStrArray[10] := LogStr;
 
-        LastLogLine := LogStr;
+        LastLogLineStr := LogStr;
         TryStrToInt(LocoChipStr, LocoChip);
         LineAfterJustDrawn := False;
 
@@ -3295,7 +3295,7 @@ BEGIN
       AppendToLineArray(Result, L);
 END; { GetLinesForTrackCircuit }
 
-FUNCTION GetFollowingChars(Line : String; Str : String; EndStr : String) : String;
+FUNCTION GetFollowingChars(LineStr : String; Str : String; EndStr : String) : String;
 { Return the characters after the given characters up to the delimiter supplied (or "CRLF" if it's at a line end - to force a search for a line end use '' as the second
   parameter). Do the test in upper case to avoid case errors. }
 VAR
@@ -3303,22 +3303,22 @@ VAR
   TestPos : Integer;
 
 BEGIN
-  TestPos := Pos(UpperCase(Str), UpperCase(Line));
+  TestPos := Pos(UpperCase(Str), UpperCase(LineStr));
   IF TestPos = 0 THEN
     Result := ''
   ELSE BEGIN
-    EndStrPos := Pos(EndStr, Copy(Line, TestPos + Length(Str)));
+    EndStrPos := Pos(EndStr, Copy(LineStr, TestPos + Length(Str)));
     IF EndStrPos = 0 THEN
-      EndStrPos := Length(Line) - 1;
+      EndStrPos := Length(LineStr) - 1;
 
-    Result := Copy(Line, TestPos + Length(Str), EndStrPos - 1);
+    Result := Copy(LineStr, TestPos + Length(Str), EndStrPos - 1);
   END;
 END; { GetFollowingChars }
 
-FUNCTION GetLastLogLine : String;
+FUNCTION GetLastLogLineStr : String;
 { Returns the last line written to the log }
 BEGIN
-  Result := LastLogLine;
+  Result := LastLogLineStr;
 END; { GetLastLogLine }
 
 FUNCTION GetLocationFromTrackCircuit(TC : Integer) : Integer;
@@ -4572,7 +4572,7 @@ BEGIN
   END;
 
   { Suppress it if it's a succession of beeps - one can tell from looking in the Log (it's a hack which works) }
-  TempStr := GetLastLogLine;
+  TempStr := GetLastLogLineStr;
   IF Pos('[Beep]', TempStr) = 0 THEN BEGIN
     CASE SoundNum of
       1:

@@ -552,7 +552,7 @@ VAR
   HTTPStatusNumStr : String;
   HTTPStatusText : String;
   I : Integer;
-  Line : String;
+  LineStr : String;
   Msg : String;
   ParametersArray : TStringDynArray;
   Path : String;
@@ -568,16 +568,16 @@ BEGIN
     StationMonitorsCriticalSection.Enter;
     TRY
       IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) AND NOT ProgramShuttingDown THEN BEGIN
-        Line := ' ';
-        WHILE ClientSocket.Connected AND (Line <> '') DO BEGIN
-          Line := String(ClientSocket.ReceiveLn);
+        LineStr := ' ';
+        WHILE ClientSocket.Connected AND (LineStr <> '') DO BEGIN
+          LineStr := String(ClientSocket.ReceiveLn);
 
           IF InitVarsWindow <> NIL THEN
-            AddLineToStationMonitorsWebDiagnosticsMemo('Rec''d: ' + Line);
+            AddLineToStationMonitorsWebDiagnosticsMemo('Rec''d: ' + LineStr);
 
-          IF Copy(Line, 1, 3) = 'GET' THEN BEGIN
-            HTTPPos := Pos('HTTP', Line);
-            Path := UpperCase(Copy(Line, 5, HTTPPos - 6));
+          IF Copy(LineStr, 1, 3) = 'GET' THEN BEGIN
+            HTTPPos := Pos('HTTP', LineStr);
+            Path := UpperCase(Copy(LineStr, 5, HTTPPos - 6));
             AddLineToStationMonitorsWebDiagnosticsMemo('Path: ' + Path);
           END;
         END;
