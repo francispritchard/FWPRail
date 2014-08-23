@@ -471,7 +471,6 @@ VAR
   PROCEDURE RecordLine(CurrentLine : Integer; LineColour : TColour);
   { Note which line it is, and colour it if required, but not if it's the line we're starting from }
   CONST
-    ActiveTrain = True;
     ProcessMessages = True;
 
   BEGIN
@@ -556,9 +555,6 @@ VAR
 
   FUNCTION Backtrack(VAR CurrentLine, PreviousLine, PreviousLineButOne : Integer; Str : String) : Boolean;
   { Work backwards until we reach a point }
-  CONST
-    ActiveTrain = True;
-
   VAR
     DebugStr : String;
     I : Integer;
@@ -744,9 +740,6 @@ VAR
 
   FUNCTION LineAvailable(CurrentLine, PreviousLine, PreviousLineButOne : Integer; OUT StopStr : String) : Boolean;
   { Check it is permissible to traverse the line }
-  CONST
-    ActiveTrain = True;
-
   VAR
     Count : Integer;
     CurrentLineCheck : Boolean;
@@ -1988,7 +1981,6 @@ PROCEDURE FindRouteFromLineAToLineB(LocoChipStr : String; Journey, S, StartLine,
                                     OUT LinesNotAvailableStr, ErrorMsg : String; OUT RouteFound : Boolean);
 { Uses line names to find a route from A to B }
 CONST
-  ActiveTrain = True;
   LookForASpecificSignalOrBufferStop = True;
   LookForAllSignalsAndBufferStopsOnly = True;
   LookForNextSignalOrBufferStopOnly = True;

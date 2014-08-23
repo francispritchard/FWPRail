@@ -125,8 +125,6 @@ PROCEDURE WhatIsUnderMouseMainProc(X, Y : Integer; ShiftState : TShiftState; OUT
                                    OUT SignalPostFoundNum : Integer; OUT TheatreIndicatorFoundNum : Integer; OUT TRSPlungerFoundLocation : Integer);
 { Returns the current mouse position and whether a specific item has been found at that position without a keypress being required }
 CONST
-  ActiveTrain = True;
-  Bold = True;
   IndicatorToBeSet = True;
   SuppressMessage = True;
   UpLine = True;
@@ -720,9 +718,6 @@ VAR
 
   PROCEDURE UpLineEndCharacterSelected(Line : Integer; HelpRequired : Boolean);
   { Find the corresponding line end }
-  CONST
-    Bold = True;
-
   VAR
     ConnectionChFound : Boolean;
     Line2 : Integer;
@@ -748,9 +743,6 @@ VAR
 
   PROCEDURE DownLineEndCharacterSelected(Line : Integer; HelpRequired : Boolean);
   { Find the corresponding line end }
-  CONST
-    Bold = True;
-
   VAR
     ConnectionChFound : Boolean;
     Line2 : Integer;
@@ -1738,9 +1730,6 @@ END; { MouseButtonDownTimerTick }
 
 PROCEDURE MouseButtonReleased(Button : TMouseButton; X, Y : Integer; ShiftState : TShiftState);
 { Button released - only used for a few processes }
-CONST
-  Bold = True;
-
 VAR
   Line : Integer;
   TempInt : Integer;

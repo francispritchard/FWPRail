@@ -106,6 +106,8 @@ CONST
   FirstRouteCreationHeldMsgNumber = 1;
   LastRouteCreationHeldMsgNumber = 12;
 
+  ActiveTrain = True;
+  Bold = True;
   ByUser = True;
   ForceARead = True;
   ForceAWrite = True;

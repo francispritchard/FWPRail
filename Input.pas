@@ -1201,7 +1201,6 @@ END; { DescribeKey }
 PROCEDURE KeyPressedDownMainProcedure(KeyToTest : Word; InputShiftState : TShiftState; HelpRequired : Boolean; OUT HelpMsg : String);
 { Called when a key is pressed or help on keys is required }
 CONST
-  ActiveTrain = True;
   ErrorMessageRequired = True;
   ExitProgram = True;
   ForceDisplay = True;

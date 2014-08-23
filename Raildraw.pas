@@ -773,9 +773,6 @@ END; { SetCaption }
 
 PROCEDURE ShowLinePos;
 { Showing how line segments are sub-divided - for development }
-CONST
-  ActiveTrain = True;
-
 VAR
   FeedbackData : FeedbackRec;
   FeedbackNum : Integer;
@@ -2319,9 +2316,6 @@ END; { DrawConnectionCh }
 
 PROCEDURE DrawLineMainProcedure(Line : Integer; NewLineColour : Integer; ActiveTrain : Boolean; TempLineText : String);
 { Draw an individual line, with headcode if required, and store the line colour }
-CONST
-  Bold = True;
-
 VAR
   ActiveTrainText : Char;
   DownLineColour : TColor;
@@ -2636,9 +2630,6 @@ END; { DrawLine-2 }
 
 PROCEDURE DrawTrackCircuit{1}(TC : Integer; TCColour : TColour); Overload;
 { Draws a given track circuit }
-CONST
-  ActiveTrain = True;
-
 VAR
   Line : Integer;
 
@@ -2661,9 +2652,6 @@ END; { DrawTrackCircuit-1 }
 
 PROCEDURE DrawTrackCircuit{2}(TC : Integer; TCColour : TColour; TempLineText : String); Overload;
 { Draws a given track circuit - this version is used by Replay to add train descriptions }
-CONST
-  ActiveTrain = True;
-
 VAR
   Line : Integer;
 
@@ -3856,9 +3844,6 @@ END; { InvalidateScreen }
 
 PROCEDURE TFWPRailWindow.FlashTimerTick(Sender: TObject);
 { Do any necessary flashing of signals or other on-screen detail }
-CONST
-  Bold = True;
-
 VAR
   Line : Integer;
   S : Integer;
@@ -6859,7 +6844,6 @@ END; { InitialiseRaildrawUnit }
 PROCEDURE DrawMap;
 { Draws the track layout }
 CONST
-  ActiveTrain = True;
   ForceDraw = True;
   NewSignalData = True;
   ShowNums = True;

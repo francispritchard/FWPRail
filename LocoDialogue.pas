@@ -475,7 +475,7 @@ BEGIN
         LocoDialogueFunction12CheckBox.Checked := True
       ELSE
         LocoDialogueFunction12CheckBox.Checked := False;
-    END {WITH}
+    END; {WITH}
   END;
 END; { LocoDialogueReturnFunctionState }
 
