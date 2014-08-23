@@ -15,24 +15,24 @@ USES
 
 TYPE
   TEditWindow = CLASS(TForm)
-    EditValueListEditor: TValueListEditor;
-    EditWindowLabel: TLabel;
-    EditWindowPopupMenu: TPopupMenu;
-    ExitWithoutSavingButton: TButton;
-    PopupEditWindowResetSizeAndPosition: TMenuItem;
-    SaveChangesAndExitButton: TButton;
-    UndoChangesButton: TButton;
-    PROCEDURE EditValueListEditorEditButtonClick(Sender: TObject);
-    PROCEDURE EditValueListEditorExit(Sender: TObject);
-    PROCEDURE EditValueListEditorStringsChange(Sender: TObject);
-    PROCEDURE EditValueListEditorValidate(Sender: TObject; ACol, ARow: Integer; CONST KeyName, KeyValue: String);
+    EditValueListEditor : TValueListEditor;
+    EditWindowLabel : TLabel;
+    EditWindowPopupMenu : TPopupMenu;
+    ExitWithoutSavingButton : TButton;
+    PopupEditWindowResetSizeAndPosition : TMenuItem;
+    SaveChangesAndExitButton : TButton;
+    UndoChangesButton : TButton;
+    PROCEDURE EditValueListEditorEditButtonClick(Sender : TObject);
+    PROCEDURE EditValueListEditorExit(Sender : TObject);
+    PROCEDURE EditValueListEditorStringsChange(Sender : TObject);
+    PROCEDURE EditValueListEditorValidate(Sender: TObject; ACol, ARow : Integer; CONST KeyName, KeyValue : String);
     PROCEDURE EditWindowPopupMenuPopup(Sender: TObject);
     PROCEDURE EditWindowPopupResetSizeAndPositionClick(Sender: TObject);
-    PROCEDURE EditWindowResize(Sender: TObject);
-    PROCEDURE EditWindowShow(Sender: TObject);
-    PROCEDURE ExitWithoutSavingButtonClick(Sender: TObject);
-    PROCEDURE SaveChangesAndExitButtonClick(Sender: TObject);
-    PROCEDURE UndoChangesButtonClick(Sender: TObject);
+    PROCEDURE EditWindowResize(Sender : TObject);
+    PROCEDURE EditWindowShow(Sender : TObject);
+    PROCEDURE ExitWithoutSavingButtonClick(Sender : TObject);
+    PROCEDURE SaveChangesAndExitButtonClick(Sender : TObject);
+    PROCEDURE UndoChangesButtonClick(Sender : TObject);
   PRIVATE
     { Private declarations }
   PUBLIC
@@ -42,8 +42,8 @@ TYPE
 PROCEDURE ChangeSignalDirection(S : Integer);
 { Change a selected signal's direction }
 
-FUNCTION CheckIfEditedDataHasChanged : Boolean;
-{ Ask whether we want to save any amended data before selecting another signal }
+FUNCTION CheckIfAnyEditedDataHasChanged : Boolean;
+{ Ask whether we want to save amended data (if any) before selecting another signal }
 
 PROCEDURE ClearEditValueList;
 { Empty the value list so as not to display anyting if we click on an unrecognised item, or a blank bit of screen }
@@ -78,7 +78,7 @@ PROCEDURE MoveObjectLeft;
 PROCEDURE MoveObjectRight;
 { Moves whatever is currently being edited to the right }
 
-PROCEDURE ProcessSignalLocationsToMonitorCheckListBoxChecks;
+PROCEDURE ProcessLocationsCheckListBoxChecks;
 { See which locations are ticked and update the array }
 
 PROCEDURE StartSignalEdit(S : Integer);
@@ -204,16 +204,80 @@ BEGIN
   END;
 END; { EditWindowValueListEditorStringsChange }
 
-PROCEDURE TEditWindow.EditValueListEditorEditButtonClick(Sender: TObject);
-{ This is only used for dealing with the entry for Signal Locations To Monitor }
+PROCEDURE CreateLocationCheckList(LocationsToAddToCheckList : IntegerArrayType);
+{ Create a location check list with one or more of the entries ticked }
 VAR
   ArrayCount : Integer;
   Done : Boolean;
   I : Integer;
-  KeyName : String;
-  KeyValue : String;
   Loc : Integer;
   StrList: TStringList;
+
+BEGIN
+  TRY
+    WITH MovementWindow DO BEGIN
+      MovementWindow.Visible := True;
+
+      { Use a hack to sort the list box }
+      StrList := TStringList.Create;
+
+      { Populate the box, platforms first }
+      FOR Loc := 0 TO High(Locations) DO
+        IF Locations[Loc].Location_IsPlatform THEN
+          StrList.Add(Locations[Loc].Location_LongStr);
+
+      StrList.Sort;
+
+      LocationsCheckListBox.Clear;
+
+      FOR I := 0 TO StrList.Count - 1 DO
+        LocationsCheckListBox.Items.Add(StrList.Strings[I]);
+
+      StrList.Clear;
+
+      { Now the fiddleyard items }
+      FOR Loc := 0 TO High(Locations) DO
+        IF Locations[Loc].Location_IsFiddleyard THEN
+          StrList.Add(Locations[Loc].Location_LongStr);
+
+      StrList.Sort;
+
+      FOR I := 0 TO StrList.Count - 1 DO
+        LocationsCheckListBox.Items.Add(StrList.Strings[I]);
+
+      StrList.Destroy;
+
+      IF Length(LocationsToAddToCheckList) = 0 THEN
+        Log('X No locations supplied to CreateLocationCheckList routine')
+      ELSE BEGIN
+        { Now tick those locations that are already set }
+        ArrayCount := 0;
+        WHILE ArrayCount < Length(LocationsToAddToCheckList) DO BEGIN
+          { find it in the checklistbox and select it }
+          I := 0;
+          Done := False;
+          WHILE (I < LocationsCheckListBox.Items.Count - 1) AND NOT Done DO BEGIN
+            IF LocationsCheckListBox.Items[I] = Locations[LocationsToAddToCheckList[ArrayCount]].Location_LongStr THEN BEGIN
+              LocationsCheckListBox.Checked[I] := True;
+              Done := True;
+            END;
+            Inc(I);
+          END; {WHILE}
+          Inc(ArrayCount);
+        END; {WHILE}
+      END;
+    END; {WITH}
+  EXCEPT {TRY}
+    ON E : Exception DO
+      Log('EG CreateLocationCheckList: ' + E.ClassName + ' error raised, with message: '+ E.Message);
+  END; {TRY}
+END; { CreateLocationCheckList }
+
+PROCEDURE TEditWindow.EditValueListEditorEditButtonClick(Sender: TObject);
+{ This is only used for dealing with the entry for the Locations Check Box }
+VAR
+  KeyName : String;
+  KeyValue : String;
 
   PROCEDURE FindKeys(Row : Integer; OUT KeyName, KeyValue : String);
   VAR
@@ -233,54 +297,12 @@ BEGIN
     IF EditedSignal <> UnknownSignal THEN
       FindKeys(EditValueListEditor.Row, KeyName, KeyValue);
 
-    IF KeyName = 'Signal Locations To Monitor' THEN BEGIN
       WITH MovementWindow DO BEGIN
         MovementWindow.Visible := True;
 
-        { Use a hack to sort the list box }
-        StrList := TStringList.Create;
+        IF KeyName = 'Signal Locations To Monitor' THEN BEGIN
+          CreateLocationCheckList(Signals[EditedSignal].Signal_LocationsToMonitorArray);
 
-        { Populate the box, platforms first }
-        FOR Loc := 0 TO High(Locations) DO
-          IF Locations[Loc].Location_IsPlatform THEN
-            StrList.Add(Locations[Loc].Location_LongStr);
-
-        StrList.Sort;
-
-        SignalLocationsToMonitorCheckListBox.Clear;
-
-        FOR I := 0 TO StrList.Count - 1 DO
-          SignalLocationsToMonitorCheckListBox.Items.Add(StrList.Strings[I]);
-
-        StrList.Clear;
-
-        { Now the fiddleyard items }
-        FOR Loc := 0 TO High(Locations) DO
-          IF Locations[Loc].Location_IsFiddleyard THEN
-            StrList.Add(Locations[Loc].Location_LongStr);
-
-        StrList.Sort;
-
-        FOR I := 0 TO StrList.Count - 1 DO
-          SignalLocationsToMonitorCheckListBox.Items.Add(StrList.Strings[I]);
-
-        StrList.Destroy;
-
-        { Now tick those locations that are already set }
-        ArrayCount := 0;
-        WHILE ArrayCount < Length(Signals[EditedSignal ].Signal_LocationsToMonitorArray) DO BEGIN
-          { find it in the checklistbox and select it }
-          I := 0;
-          Done := False;
-          WHILE (I < SignalLocationsToMonitorCheckListBox.Items.Count - 1) AND NOT Done DO BEGIN
-            IF SignalLocationsToMonitorCheckListBox.Items[I] = Locations[Signals[EditedSignal].Signal_LocationsToMonitorArray[ArrayCount]].Location_LongStr THEN BEGIN
-              SignalLocationsToMonitorCheckListBox.Checked[I] := True;
-              Done := True;
-            END;
-            Inc(I);
-          END; {WHILE}
-          Inc(ArrayCount);
-        END; {WHILE}
       END; {WITH}
     END;
   EXCEPT {TRY}
@@ -395,8 +417,48 @@ BEGIN
   END; {WITH}
 END; { ClearEditValueList }
 
+PROCEDURE ProcessLocationsCheckListBoxChecks;
+{ See which locations are ticked and update the array. This shouldn't need validation as the user has not been given the opportunity of introducing errors. }
+VAR
+  I : Integer;
+  Loc : Integer;
+
+BEGIN
+  TRY
+    WITH MovementWindow DO BEGIN
+      SetLength(Signals[EditedSignal].Signal_LocationsToMonitorArray, 0);
+
+      I := 0;
+      WHILE I < LocationsCheckListBox.Items.Count - 1 DO BEGIN
+        IF LocationsCheckListBox.Checked[I] THEN BEGIN
+          Loc := 0;
+          WHILE Loc < Length(Locations) DO BEGIN
+            IF Locations[Loc].Location_LongStr = LocationsCheckListBox.Items[I] THEN
+              AppendToIntegerArray(Signals[EditedSignal].Signal_LocationsToMonitorArray, Loc);
+            Inc(Loc);
+          END;
+        END;
+        Inc(I);
+      END; {WHILE}
+    END; {WITH}
+
+    WITH EditWindow DO BEGIN
+      UndoChangesButton.Enabled := True;
+      SaveChangesAndExitButton.Enabled := True;
+      ExitWithoutSavingButton.Enabled := True;
+    END; {WITH}
+  EXCEPT {TRY}
+    ON E : Exception DO
+      Log('EG ProcessSignalLocationsToMonitorCheckListBoxChecks: ' + E.ClassName + ' error raised, with message: '+ E.Message);
+  END; {TRY}
+END; { ProcessSignalLocationsToMonitorCheckListBoxChecks }
+
 PROCEDURE WriteLineValuesToValueList;
 { Create a value list in the edit window with the appropriate values }
+VAR
+  I : Integer;
+  TempLocationStrArray : StringArrayType;
+
 BEGIN
   TRY
     WITH EditWindow DO BEGIN
@@ -425,14 +487,20 @@ BEGIN
           ELSE
             WriteIntegerValueExcludingZero(Line_UpXAbsoluteFieldName, 0, '9999');
 
-          Values[Line_UpYLocationStrFieldName] := Line_UpYLocationStr;
+          SetLength(TempLocationStrArray, 0);
+          FOR I := 0 TO High(Locations) DO
+            AppendToStringArray(TempLocationStrArray, LocationToStr(I));
+          WritePickListValue(Line_UpYLocationStrFieldName, LocationToStr(Line_UpYLocation), TempLocationStrArray);
 
           IF Line_UpYLocationStr = '' THEN
             WriteIntegerValueExcludingZero(Line_UpYAbsoluteFieldName, Line_UpYAbsolute, '9999')
           ELSE
             WriteIntegerValueExcludingZero(Line_UpYAbsoluteFieldName, 0, '9999');
 
-          Values[Line_DownYLocationStrFieldName] := Line_DownYLocationStr;
+          SetLength(TempLocationStrArray, 0);
+          FOR I := 0 TO High(Locations) DO
+            AppendToStringArray(TempLocationStrArray, LocationToStr(I));
+          WritePickListValue(Line_DownYLocationStrFieldName, LocationToStr(Line_DownYLocation), TempLocationStrArray);
 
           IF Line_DownYLocationStr = '' THEN
             WriteIntegerValueExcludingZero(Line_DownYAbsoluteFieldName, Line_DownYAbsolute, '9999')
@@ -441,7 +509,10 @@ BEGIN
 
           WriteIntegerValueExcludingZero(Line_LengthFieldName, Line_Length, '9999');
 
-          Values[Line_LocationStrFieldName] := LocationToStr(Line_Location);
+          SetLength(TempLocationStrArray, 0);
+          FOR I := 0 TO High(Locations) DO
+            AppendToStringArray(TempLocationStrArray, LocationToStr(I));
+          WritePickListValue(Line_LocationStrFieldName, LocationToStr(Line_Location), TempLocationStrArray);
 
           WriteIntegerValueExcludingZero(Line_TCFieldName, Line_TC, '9999');
 
@@ -458,8 +529,8 @@ BEGIN
 
           WritePickListValue(Line_TypeOfLineFieldName, TypeOfLineToStr(Line_TypeOfLine),
                                                        [MainOrGoodsLineStr, MainLineStr, GoodsLineStr, BranchLineDoubleStr, BranchLineSingleStr, IslandStationLineStr,
-                                                       MainStationLineStr, BranchStationLineStr, WindowStationLineStr, SidingLineStr, FiddleyardLineStr,
-                                                       SidingsApproachLineStr, StationAvoidingLineStr, ProjectedLineStr]);
+                                                        MainStationLineStr, BranchStationLineStr, WindowStationLineStr, SidingLineStr, FiddleyardLineStr,
+                                                        SidingsApproachLineStr, StationAvoidingLineStr, ProjectedLineStr]);
 
           Values[Line_UpConnectionChFieldName] := Line_UpConnectionCh;
           ItemProps[Line_UpConnectionChFieldName].EditMask := '>L';
@@ -516,626 +587,6 @@ BEGIN
       Log('EG UpdateLineValueList: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { UpdateLineValueList }
-
-PROCEDURE ProcessSignalLocationsToMonitorCheckListBoxChecks;
-{ See which locations are ticked and update the array. This shouldn't need validation as the user has not been given the opportunity of introducing errors. }
-VAR
-  I : Integer;
-  Loc : Integer;
-
-BEGIN
-  TRY
-    WITH MovementWindow DO BEGIN
-      SetLength(Signals[EditedSignal].Signal_LocationsToMonitorArray, 0);
-
-      I := 0;
-      WHILE I < SignalLocationsToMonitorCheckListBox.Items.Count - 1 DO BEGIN
-        IF SignalLocationsToMonitorCheckListBox.Checked[I] THEN BEGIN
-          Loc := 0;
-          WHILE Loc < Length(Locations) DO BEGIN
-            IF Locations[Loc].Location_LongStr = SignalLocationsToMonitorCheckListBox.Items[I] THEN
-              AppendToIntegerArray(Signals[EditedSignal].Signal_LocationsToMonitorArray, Loc);
-            Inc(Loc);
-          END;
-        END;
-        Inc(I);
-      END; {WHILE}
-    END; {WITH}
-
-    WITH EditWindow DO BEGIN
-      UndoChangesButton.Enabled := True;
-      SaveChangesAndExitButton.Enabled := True;
-      ExitWithoutSavingButton.Enabled := True;
-    END; {WITH}
-  EXCEPT {TRY}
-    ON E : Exception DO
-      Log('EG ProcessSignalLocationsToMonitorCheckListBoxChecks: ' + E.ClassName + ' error raised, with message: '+ E.Message);
-  END; {TRY}
-END; { ProcessSignalLocationsToMonitorCheckListBoxChecks }
-
-PROCEDURE DoEditValidation(KeyName, NewKeyValue : String);
-{ Do the validation here so it can be called by OnValidate and when we exit the value list }
-CONST
-  Init = True;
-
-VAR
-  ErrorMsg : String;
-  JunctionIndicatorFound : Boolean;
-  TempJunctionIndicator : JunctionIndicatorType;
-  TempStrArray : ARRAY [0..5] OF String;
-
-VAR
-  I : Integer;
-
-BEGIN
-  TRY
-    { We need this as occasionally the mask edit in value list returns a line of spaces when nothing is meant to be returned }
-    NewKeyValue := Trim(NewKeyValue);
-    ErrorMsg := '';
-
-    WITH EditWindow.EditValueListEditor DO BEGIN
-      IF EditedSignal <> UnknownSignal THEN BEGIN
-        WITH Signals[EditedSignal] DO BEGIN
-          IF KeyName = Signal_QuadrantFieldName THEN
-            Signal_Quadrant := ValidateSignalQuadrant(NewKeyValue, ErrorMsg);
-
-          IF KeyName = Signal_TypeFieldName THEN
-            Signal_Type := ValidateSignalType(NewKeyValue, Signal_Quadrant, ErrorMsg);
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Signal_IndicatorFieldName THEN
-              Signal_Indicator := ValidateSignalIndicator(NewKeyValue, ErrorMsg);
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Signal_UpperLeftIndicatorTargetFieldName THEN BEGIN
-              TempStrArray[0] := NewKeyValue;
-              Signal_JunctionIndicators[UpperLeftIndicator] := ValidateSignalJunctionIndicators1(NewKeyValue, KeyName, Signal_Indicator, ErrorMsg);
-              IF ErrorMsg = '' THEN BEGIN
-                IF Signal_JunctionIndicators[UpperLeftIndicator].JunctionIndicator_Exists THEN BEGIN
-                  Signal_Indicator := JunctionIndicator;
-                  WritePickListValue(Signal_IndicatorFieldName, IndicatorToStr(Signal_Indicator, LongStringType),
-                                                                                                             [NoIndicatorStr, JunctionIndicatorStr, TheatreIndicatorStr]);
-                END;
-              END;
-            END;
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Signal_MiddleLeftIndicatorTargetFieldName THEN BEGIN
-              TempStrArray[1] := NewKeyValue;
-              Signal_JunctionIndicators[MiddleLeftIndicator] := ValidateSignalJunctionIndicators1(NewKeyValue, KeyName, Signal_Indicator, ErrorMsg);
-              IF ErrorMsg = '' THEN BEGIN
-                IF Signal_JunctionIndicators[MiddleLeftIndicator].JunctionIndicator_Exists THEN BEGIN
-                  Signal_Indicator := JunctionIndicator;
-                  WritePickListValue(Signal_IndicatorFieldName, IndicatorToStr(Signal_Indicator, LongStringType),
-                                                                                                             [NoIndicatorStr, JunctionIndicatorStr, TheatreIndicatorStr]);
-                END;
-              END;
-            END;
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Signal_LowerLeftIndicatorTargetFieldName THEN BEGIN
-              TempStrArray[2] := NewKeyValue;
-              Signal_JunctionIndicators[LowerLeftIndicator] := ValidateSignalJunctionIndicators1(NewKeyValue, KeyName, Signal_Indicator, ErrorMsg);
-              IF ErrorMsg = '' THEN BEGIN
-                IF Signal_JunctionIndicators[LowerLeftIndicator].JunctionIndicator_Exists THEN BEGIN
-                  Signal_Indicator := JunctionIndicator;
-                  WritePickListValue(Signal_IndicatorFieldName, IndicatorToStr(Signal_Indicator, LongStringType),
-                                                                                                             [NoIndicatorStr, JunctionIndicatorStr, TheatreIndicatorStr]);
-                END;
-              END;
-            END;
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Signal_UpperRightIndicatorTargetFieldName THEN BEGIN
-              TempStrArray[3] := NewKeyValue;
-              Signal_JunctionIndicators[UpperRightIndicator] := ValidateSignalJunctionIndicators1(NewKeyValue, KeyName, Signal_Indicator, ErrorMsg);
-              IF ErrorMsg = '' THEN BEGIN
-                IF Signal_JunctionIndicators[UpperRightIndicator].JunctionIndicator_Exists THEN BEGIN
-                  Signal_Indicator := JunctionIndicator;
-                  WritePickListValue(Signal_IndicatorFieldName, IndicatorToStr(Signal_Indicator, LongStringType),
-                                                                                                             [NoIndicatorStr, JunctionIndicatorStr, TheatreIndicatorStr]);
-                END;
-              END;
-            END;
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Signal_MiddleRightIndicatorTargetFieldName THEN BEGIN
-              TempStrArray[4] := NewKeyValue;
-              Signal_JunctionIndicators[MiddleRightIndicator] := ValidateSignalJunctionIndicators1(NewKeyValue, KeyName, Signal_Indicator, ErrorMsg);
-              IF ErrorMsg = '' THEN BEGIN
-                IF Signal_JunctionIndicators[MiddleRightIndicator].JunctionIndicator_Exists THEN BEGIN
-                  Signal_Indicator := JunctionIndicator;
-                  WritePickListValue(Signal_IndicatorFieldName, IndicatorToStr(Signal_Indicator, LongStringType),
-                                                                                                             [NoIndicatorStr, JunctionIndicatorStr, TheatreIndicatorStr]);
-                END;
-              END;
-            END;
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Signal_LowerRightIndicatorTargetFieldName THEN BEGIN
-              TempStrArray[5] := NewKeyValue;
-              Signal_JunctionIndicators[LowerRightIndicator] := ValidateSignalJunctionIndicators1(NewKeyValue, KeyName, Signal_Indicator, ErrorMsg);
-              IF ErrorMsg = '' THEN BEGIN
-                IF Signal_JunctionIndicators[LowerRightIndicator].JunctionIndicator_Exists THEN BEGIN
-                  Signal_Indicator := JunctionIndicator;
-                  WritePickListValue(Signal_IndicatorFieldName, IndicatorToStr(Signal_Indicator, LongStringType),
-                                                                                                             [NoIndicatorStr, JunctionIndicatorStr, TheatreIndicatorStr]);
-                END;
-              END;
-            END;
-          END;
-
-          JunctionIndicatorFound := False;
-          FOR TempJunctionIndicator := UpperLeftIndicator TO LowerRightIndicator DO BEGIN
-            IF Signal_JunctionIndicators[TempJunctionIndicator].JunctionIndicator_Exists THEN
-              JunctionIndicatorFound := True;
-          END; {FOR}
-
-          IF JunctionIndicatorFound = False THEN
-            IF Signal_Indicator = JunctionIndicator THEN
-              Signal_Indicator := NoIndicator;
-
-          IF ErrorMsg = '' THEN
-            ValidateSignalJunctionIndicators2(TempStrArray, Signal_Indicator, Signal_JunctionIndicators, ErrorMsg);
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Signal_AdjacentLineFieldName THEN BEGIN
-              Signal_AdjacentLine := ValidateSignalAdjacentLine(EditedSignal , NewKeyValue, ErrorMsg);
-              IF Signal_AdjacentLine = UnknownLine THEN BEGIN
-                Signal_AdjacentLine := SaveSignalRec.Signal_AdjacentLine;
-                Values[KeyName] := LineToStr(SaveSignalRec.Signal_AdjacentLine);
-              END;
-            END;
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Signal_AdjacentLineXOffsetFieldName THEN
-              Signal_AdjacentLineXOffset := ValidateSignalAdjacentLineXOffset(NewKeyValue, ErrorMsg);
-          END;
-
-          IF ErrorMsg = '' THEN
-            IF KeyName = Signal_DirectionFieldName THEN
-              Signal_Direction := ValidateSignalDirection(NewKeyValue, ErrorMsg);
-
-          IF ErrorMsg = '' THEN
-            IF KeyName = Signal_IndicatorSpeedRestrictionFieldName THEN
-              Signal_IndicatorSpeedRestriction := ValidateSignalIndicatorSpeedRestriction(NewKeyValue, Signal_Indicator, ErrorMsg);
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Signal_NextSignalIfNoIndicatorFieldName THEN BEGIN
-              Signal_NextSignalIfNoIndicator := ValidateNextSignalIfNoIndicator(NewKeyValue, NOT Init, ErrorMsg);
-              IF ErrorMsg = '' THEN
-                ErrorMsg := ValidateSignalNum(Signal_NextSignalIfNoIndicator);
-            END;
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Signal_OppositePassingLoopSignalFieldName THEN BEGIN
-              Signal_OppositePassingLoopSignal := ValidateSignalOppositePassingLoopSignal(NewKeyValue, NOT Init, ErrorMsg);
-              IF ErrorMsg = '' THEN
-                ErrorMsg := ValidateSignalNum(Signal_OppositePassingLoopSignal);
-            END;
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Signal_AsTheatreDestinationFieldName THEN
-              Signal_AsTheatreDestination := ValidateSignalAsTheatreDestination(NewKeyValue, ErrorMsg);
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Signal_OutOfUseFieldName THEN
-              Signal_OutOfUse := ValidateSignalOutOfUseAndAddAdjacentTC(StrToBool(NewKeyValue), Signal_AdjacentLine, Signal_AdjacentTC, ErrorMsg);
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Signal_NotesFieldName THEN
-              Signal_Notes := NewKeyValue;
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Signal_NotUsedForRouteingFieldName THEN
-              Signal_NotUsedForRouteing := StrToBool(NewKeyValue);
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Signal_AccessoryAddressFieldName THEN
-              Signal_AccessoryAddress := ValidateSignalAccessoryAddress(NewKeyValue, Signal_Type, ErrorMsg);
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Signal_DecoderNumFieldName THEN
-              Signal_DecoderNum := ValidateSignalDecoderNum(NewKeyValue, Signal_AccessoryAddress, Signal_Type, ErrorMsg);
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Signal_IndicatorDecoderNumFieldName THEN
-              Signal_IndicatorDecoderNum := ValidateSignalIndicatorDecoderNum(NewKeyValue, Signal_AccessoryAddress, Signal_Type, ErrorMsg);
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Signal_IndicatorDecoderFunctionNumFieldName THEN
-              Signal_IndicatorDecoderFunctionNum := ValidateSignalIndicatorDecoderFunctionNum(NewKeyValue, Signal_AccessoryAddress, Signal_Type, ErrorMsg);
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Signal_ApproachControlAspectFieldName THEN
-              Signal_ApproachControlAspect := ValidateSignalApproachControlAspect(NewKeyValue, ErrorMsg);
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Signal_PossibleRouteHoldFieldName THEN
-              Signal_PossibleRouteHold := StrToBool(NewKeyValue);
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Signal_PossibleStationStartRouteHoldFieldName THEN
-              Signal_PossibleStationStartRouteHold := ValidateSignalPossibleStationStartRouteHold(StrToBool(NewKeyValue), Signal_PossibleRouteHold, ErrorMsg);
-          END;
-
-          { We don't need to validate Signal_LocationsToMonitorArray as the user hasn't been allowed to introduce errors to it }
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Signal_AutomaticFieldName THEN
-              Signal_Automatic := StrToBool(NewKeyValue); { not yet in use }
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Signal_SemaphoreDistantHomesArrayFieldName THEN
-              Signal_SemaphoreDistantHomesArray := ValidateSignalDistantHomesArray(EditedSignal , Signal_Type, UpperCase(NewKeyValue), ErrorMsg);
-              IF ErrorMsg = '' THEN BEGIN
-                I := 0;
-                WHILE (I <= High(Signal_SemaphoreDistantHomesArray)) AND (ErrorMsg = '') DO BEGIN
-                  ErrorMsg := ValidateSignalNum(Signal_SemaphoreDistantHomesArray[I]);
-                  Inc(I);
-                END; {WHILE}
-              END;
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            { Redraw the screen to display the change}
-            RedrawScreen := True;
-            CalculateAllSignalPositions;
-            InvalidateScreen(UnitRef, 'EditSaveButtonClick');
-            Log('D Screen invalidated by Edit save');
-            RedrawScreen := False;
-          END ELSE BEGIN
-            IF MessageDialogueWithDefault('Error in creating/amending S=' + IntToStr(EditedSignal) + ': '
-                                          + ErrorMsg
-                                          + CRLF
-                                          + 'Do you wish to continue?',
-                                          StopTimer, mtWarning, [mbYes, mbNo], mbNo) = mrYes
-            THEN
-              Signal_OutOfUse := True
-            ELSE
-              TurnEditModeOff;
-          END;
-        END; {WITH}
-      END;
-
-      IF EditedPoint <> UnknownPoint THEN BEGIN
-        WITH Points[EditedPoint] DO BEGIN
-          ErrorMsg := '';
-
-          IF KeyName = Point_HeelLineFieldName THEN BEGIN
-            Point_HeelLine := ValidatePointHeelLineName(NewKeyValue, ErrorMsg);
-            IF ErrorMsg = '' THEN
-              Point_TCAtHeel := Lines[Point_HeelLine].Line_TC;
-            IF (ErrorMsg <> '') AND (Point_HeelLine = UnknownLine) THEN BEGIN
-              Point_HeelLine := SavePointRec.Point_HeelLine;
-              Values[KeyName] := LineToStr(SavePointRec.Point_HeelLine);
-            END;
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Point_StraightLineFieldName THEN BEGIN
-              Point_StraightLine := ValidatePointStraightLineName(NewKeyValue, ErrorMsg);
-              IF (ErrorMsg <> '') AND (Point_StraightLine = UnknownLine) THEN BEGIN
-                Point_StraightLine := SavePointRec.Point_StraightLine;
-                Values[KeyName] := LineToStr(SavePointRec.Point_StraightLine);
-              END;
-            END;
-          END;
-
-          IF ErrorMsg = '' THEN
-            IF KeyName = Point_TypeFieldName THEN
-              Point_Type := ValidatePointType(NewKeyValue, ErrorMsg);
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Point_DivergingLineFieldName THEN BEGIN
-              Point_DivergingLine := ValidatePointDivergingLineName(NewKeyValue, Point_Type, ErrorMsg);
-              IF (ErrorMsg <> '') AND (Point_DivergingLine = UnknownLine) THEN BEGIN
-                Point_DivergingLine := SavePointRec.Point_DivergingLine;
-                Values[KeyName] := LineToStr(SavePointRec.Point_DivergingLine);
-              END;
-            END;
-          END;
-
-          IF ErrorMsg = '' THEN
-            IF KeyName = Point_OutOfUseFieldName THEN
-              Point_OutOfUse := StrToBool(NewKeyValue);
-
-          IF ErrorMsg = '' THEN
-            IF KeyName = Point_ManualOperationFieldName THEN
-              Point_ManualOperation := StrToBool(NewKeyValue);
-
-          IF ErrorMsg = '' THEN
-            IF KeyName =  Point_LastFeedbackStateAsReadInFieldName THEN
-              Point_LastFeedbackStateAsReadIn := ValidatePointLastFeedbackStateAsReadIn(NewKeyValue, Point_ManualOperation, ErrorMsg);
-
-          IF ErrorMsg = '' THEN
-            IF KeyName =  Point_LastManualStateAsReadInFieldName THEN
-              Point_LastManualStateAsReadIn := ValidatePointLastManualStateAsReadIn(NewKeyValue, Point_ManualOperation, ErrorMsg);
-
-          IF ErrorMsg = '' THEN
-            IF KeyName =  Point_LenzNumFieldName THEN
-              Point_LenzNum := ValidatePointLenzNum(NewKeyValue, Point_LastManualStateAsReadIn, Point_ManualOperation, Point_PresentState, ErrorMsg);
-
-          IF ErrorMsg = '' THEN
-            IF KeyName = Point_LenzUnitFieldName THEN
-              Point_LenzUnit := ValidatePointLenzUnit(NewKeyValue, ErrorMsg);
-
-          IF ErrorMsg = '' THEN
-            IF KeyName = Point_LenzUnitTypeFieldName THEN
-              Point_LenzUnitType := ValidatePointLenzUnitType(NewKeyValue, Point_ManualOperation, ErrorMsg);
-
-          IF ErrorMsg = '' THEN
-            IF KeyName = Point_FeedbackUnitFieldName THEN
-              Point_FeedbackUnit := ValidatePointFeedbackUnit(NewKeyValue, Point_HasFeedback, ErrorMsg);
-
-          IF ErrorMsg = '' THEN
-            IF KeyName = Point_FeedbackInputFieldName THEN
-              Point_FeedbackInput := ValidatePointFeedbackInput(NewKeyValue, Point_HasFeedback, ErrorMsg);
-
-          IF ErrorMsg = '' THEN
-            IF KeyName = Point_FeedbackOnIsStraightFieldName THEN
-              Point_FeedbackOnIsStraight := StrToBool(NewKeyValue);
-
-          IF ErrorMsg = '' THEN
-            IF KeyName = Point_WiringReversedFlagFieldName THEN
-              Point_WiringReversedFlag := StrToBool(NewKeyValue);
-
-          IF ErrorMsg = '' THEN
-            IF KeyName = Point_OtherPointFieldName THEN
-              Point_OtherPoint := ValidatePointOtherPoint(NewKeyValue, Point_Type, ErrorMsg);
-
-          IF ErrorMsg = '' THEN
-            IF KeyName = Point_NotesFieldName THEN
-              Point_Notes := NewKeyValue;
-
-          IF ErrorMsg = '' THEN
-            IF KeyName = Point_DefaultStateFieldName THEN
-              Point_DefaultState := ValidatePointDefaultState(NewKeyValue, Point_HeelLine, Point_StraightLine, Point_DivergingLine, Point_PresentState, ErrorMsg);
-
-          IF ErrorMsg = '' THEN
-            IF KeyName = Point_LockedIfHeelTCOccupiedFieldName THEN
-              Point_LockedIfHeelTCOccupied := StrToBool(NewKeyValue);
-
-          IF ErrorMsg = '' THEN
-            IF KeyName = Point_LockedIfNonHeelTCsOccupiedFieldName THEN
-              Point_LockedIfNonHeelTCsOccupied := StrToBool(NewKeyValue);
-
-          IF ErrorMsg = '' THEN BEGIN
-            NoteThatDataHasChanged;
-
-            { And redraw the screen to display the change}
-            RedrawScreen := True;
-            CalculatePointPositions;
-            InvalidateScreen(UnitRef, 'EditSaveButtonClick');
-            Log('D Screen invalidated by Edit save');
-            RedrawScreen := False;
-          END ELSE BEGIN
-            IF MessageDialogueWithDefault('Error in creating/amending P=' + IntToStr(EditedPoint) + ': '
-                                          + ErrorMsg
-                                          + CRLF
-                                          + 'Do you wish to continue editing?',
-                                          StopTimer, mtWarning, [mbYes, mbNo], mbNo) = mrYes
-            THEN
-              Point_OutOfUse := True
-            ELSE
-              TurnEditModeOff;
-          END;
-        END; {WITH}
-      END;
-
-      IF EditedLine <> UnknownLine THEN BEGIN
-        WITH Lines[EditedLine] DO BEGIN
-          ErrorMsg := '';
-
-          IF KeyName = Line_StrFieldName THEN
-            Line_Str := ValidateLineName(NewKeyValue, EditedLine, ErrorMsg);
-
-          IF KeyName = Line_UpXLineStrFieldName THEN
-            Line_UpXLineStr := ValidateLineUpXStr(NewKeyValue, Line_Str, ErrorMsg);
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Line_UpXAbsoluteFieldName THEN
-              Line_UpXAbsolute := ValidateLineUpXAbsolute(NewKeyValue, Line_UpXLineStr, ErrorMsg);
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Line_UpYLocationStrFieldName THEN
-              Line_UpYLocationStr := NewKeyValue;
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Line_UpYAbsoluteFieldName THEN
-              Line_UpYAbsolute := ValidateLineYAbsolute(NewKeyValue, Line_UpYLocationStr, 'UpY', 'UpY Location', ErrorMsg);
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Line_DownYLocationStrFieldName THEN
-              Line_DownYLocationStr := NewKeyValue;
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Line_DownYAbsoluteFieldName THEN
-              Line_DownYAbsolute := ValidateLineYAbsolute(NewKeyValue, Line_DownYLocationStr, 'DownY', 'DownY Location', ErrorMsg);
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Line_LengthFieldName THEN
-              Line_Length := ValidateLineLength(NewKeyValue, ErrorMsg);
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Line_LocationStrFieldName THEN
-               Line_Location := ValidateLineLocation(NewKeyValue, ErrorMsg);
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Line_TCFieldName THEN
-              Line_TC := ValidateLineTrackCircuit(NewKeyValue, ErrorMsg);
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Line_EndOfLineMarkerFieldName THEN
-              Line_EndOfLineMarker := ValidateLineEndOfLineMarker(NewKeyValue, ErrorMsg);
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Line_BufferStopNumberFieldName THEN
-              Line_BufferStopNum := ValidateBufferStopNumber(NewKeyValue, ErrorMsg);
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Line_BufferStopTheatreDestinationStrFieldName THEN
-              Line_BufferStopTheatreDestinationStr := NewKeyvalue;
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Line_DirectionFieldName THEN
-              Line_Direction := ValidateLineDirection(NewKeyValue, ErrorMsg);
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Line_TypeOfLineFieldName THEN
-              Line_TypeOfLine := ValidateLineType(NewKeyValue, ErrorMsg);
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Line_UpConnectionChFieldName THEN
-              Line_UpConnectionCh := ValidateLineConnectionCh(NewKeyValue, ErrorMsg);
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Line_DownConnectionChFieldName THEN
-              Line_DownConnectionCh := ValidateLineConnectionCh(NewKeyValue, ErrorMsg);
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Line_OutOfUseFieldName THEN BEGIN
-              IF StrToBool(NewKeyValue) = True THEN BEGIN
-                Line_InitialOutOfUseState := OutOfUse; { this is used only in deciding whether to save a changed state on exit }
-                Line_OutOfUseState := OutOfUse;
-                Line_SaveOutOfUseState := OutOfUse;
-              END ELSE BEGIN
-                Line_InitialOutOfUseState := InUse;
-                Line_OutOfUseState := InUse;
-                Line_SaveOutOfUseState := InUse;
-              END;
-
-              { Even if the line itself is in use, that can be overridden by the location being out of use }
-              IF Line_Location <> UnknownLocation THEN
-                IF Locations[Line_Location].Location_OutOfUse THEN
-                  Line_OutOfUseState := OutOfUse;
-            END;
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Line_InUseFeedbackUnitFieldName THEN
-              Line_InUseFeedbackUnit := ValidateLineInUseFeedbackUnit(NewKeyValue, ErrorMsg);
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            NoteThatDataHasChanged;
-
-            { And redraw the screen to display the change}
-            RedrawScreen := True;
-            CalculateLinePositions;
-            InvalidateScreen(UnitRef, 'EditSaveButtonClick');
-            Log('D Screen invalidated by Edit save');
-            RedrawScreen := False;
-          END ELSE BEGIN
-            IF MessageDialogueWithDefault('Error in creating/amending Line=' + IntToStr(EditedLine) + ': '
-                                          + ErrorMsg
-                                          + CRLF
-                                          + 'Do you wish to continue editing?',
-                                          StopTimer, mtWarning, [mbYes, mbNo], mbNo) = mrYes
-            THEN
-              WriteLineValuesToValueList
-            ELSE
-              TurnEditModeOff;
-          END;
-        END; {WITH}
-      END;
-
-      IF EditedTrackCircuit <> UnknownTrackCircuit THEN BEGIN
-        WITH TrackCircuits[EditedTrackCircuit] DO BEGIN
-          ErrorMsg := '';
-
-          { ... }
-
-          IF ErrorMsg = '' THEN BEGIN
-            NoteThatDataHasChanged;
-
-            { And redraw the screen to display the change}
-            RedrawScreen := True;
-//            CalculateTrackCircuitPositions;
-            InvalidateScreen(UnitRef, 'EditSaveButtonClick');
-            Log('D Screen invalidated by Edit save');
-            RedrawScreen := False;
-          END ELSE BEGIN
-            IF MessageDialogueWithDefault('Error in creating/amending TC=' + IntToStr(EditedTrackCircuit) + ': '
-                                          + ErrorMsg
-                                          + CRLF
-                                          + 'Do you wish to continue editing?',
-                                          StopTimer, mtWarning, [mbYes, mbNo], mbNo) = mrYes
-            THEN
-//              TrackCircuit_OutOfUse := True
-            ELSE
-              TurnEditModeOff;
-          END;
-        END; {WITH}
-      END;
-    END; {WITH}
-  EXCEPT {TRY}
-    ON E : Exception DO
-      Log('EG DoEditValidation: ' + E.ClassName + ' error raised, with message: '+ E.Message);
-  END; {TRY}
-END; { DoEditValidation }
-
-PROCEDURE TEditWindow.EditValueListEditorExit(Sender: TObject);
-VAR
-  DelimiterPos : Integer;
-  KeyName : String;
-  KeyValue : String;
-
-BEGIN
-  TRY
-    { Do the validation for the item we are on when we exit the window here rather than use OnValidate, as OnValidate is not called when a change is made to a keyvalue and
-      the Value List is immediately exited
-    }
-    IF (EditedPoint <> UnknownPoint) OR (EditedPoint <> UnknownPoint) OR (EditedLine <> UnknownLine) THEN BEGIN
-      WITH EditValueListEditor DO BEGIN
-        IF EditValueListEditor.Strings.Count > 0 THEN BEGIN
-          DelimiterPos := FindDelimiter('=', EditValueListEditor.Strings[Row - 1], 1);
-          KeyName := Copy(EditValueListEditor.Strings[Row - 1], 1, DelimiterPos - 1);
-          KeyValue := Copy(EditValueListEditor.Strings[Row - 1], DelimiterPos + 1);
-          DoEditValidation(KeyName, KeyValue);
-        END;
-      END; {FOR}
-    END;
-  EXCEPT {TRY}
-    ON E : Exception DO
-      Log('EG EditValueListEditorExit: ' + E.ClassName + ' error raised, with message: '+ E.Message);
-  END; {TRY}
-END; { EditValueListEditorExit }
 
 PROCEDURE WritePointValuesToValueList;
 { Create a value list in the edit window with the appropriate values }
@@ -1404,6 +855,587 @@ BEGIN
       Log('EG WriteTrackCircuitValuesToValueList: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { WriteTrackCircuitValuesToValueList }
+
+PROCEDURE DoEditValidation(KeyName, NewKeyValue : String);
+{ Do the validation here so it can be called by OnValidate and when we exit the value list }
+CONST
+  Init = True;
+
+VAR
+  ErrorMsg : String;
+  JunctionIndicatorFound : Boolean;
+  TempJunctionIndicator : JunctionIndicatorType;
+  TempStrArray : ARRAY [0..5] OF String;
+
+VAR
+  I : Integer;
+
+BEGIN
+  TRY
+    { We need this as occasionally the mask edit in value list returns a line of spaces when nothing is meant to be returned }
+    NewKeyValue := Trim(NewKeyValue);
+    ErrorMsg := '';
+
+    WITH EditWindow.EditValueListEditor DO BEGIN
+      IF EditedSignal <> UnknownSignal THEN BEGIN
+        WITH Signals[EditedSignal] DO BEGIN
+          IF KeyName = Signal_QuadrantFieldName THEN
+            Signal_Quadrant := ValidateSignalQuadrant(NewKeyValue, ErrorMsg);
+
+          IF KeyName = Signal_TypeFieldName THEN
+            Signal_Type := ValidateSignalType(NewKeyValue, Signal_Quadrant, ErrorMsg);
+
+          IF ErrorMsg = '' THEN BEGIN
+            IF KeyName = Signal_IndicatorFieldName THEN
+              Signal_Indicator := ValidateSignalIndicator(NewKeyValue, ErrorMsg);
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            IF KeyName = Signal_UpperLeftIndicatorTargetFieldName THEN BEGIN
+              TempStrArray[0] := NewKeyValue;
+              Signal_JunctionIndicators[UpperLeftIndicator] := ValidateSignalJunctionIndicators1(NewKeyValue, KeyName, Signal_Indicator, ErrorMsg);
+              IF ErrorMsg = '' THEN BEGIN
+                IF Signal_JunctionIndicators[UpperLeftIndicator].JunctionIndicator_Exists THEN BEGIN
+                  Signal_Indicator := JunctionIndicator;
+                  WritePickListValue(Signal_IndicatorFieldName, IndicatorToStr(Signal_Indicator, LongStringType),
+                                                                                                               [NoIndicatorStr, JunctionIndicatorStr, TheatreIndicatorStr]);
+                END;
+              END;
+            END;
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            IF KeyName = Signal_MiddleLeftIndicatorTargetFieldName THEN BEGIN
+              TempStrArray[1] := NewKeyValue;
+              Signal_JunctionIndicators[MiddleLeftIndicator] := ValidateSignalJunctionIndicators1(NewKeyValue, KeyName, Signal_Indicator, ErrorMsg);
+              IF ErrorMsg = '' THEN BEGIN
+                IF Signal_JunctionIndicators[MiddleLeftIndicator].JunctionIndicator_Exists THEN BEGIN
+                  Signal_Indicator := JunctionIndicator;
+                  WritePickListValue(Signal_IndicatorFieldName, IndicatorToStr(Signal_Indicator, LongStringType),
+                                                                                                               [NoIndicatorStr, JunctionIndicatorStr, TheatreIndicatorStr]);
+                END;
+              END;
+            END;
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            IF KeyName = Signal_LowerLeftIndicatorTargetFieldName THEN BEGIN
+              TempStrArray[2] := NewKeyValue;
+              Signal_JunctionIndicators[LowerLeftIndicator] := ValidateSignalJunctionIndicators1(NewKeyValue, KeyName, Signal_Indicator, ErrorMsg);
+              IF ErrorMsg = '' THEN BEGIN
+                IF Signal_JunctionIndicators[LowerLeftIndicator].JunctionIndicator_Exists THEN BEGIN
+                  Signal_Indicator := JunctionIndicator;
+                  WritePickListValue(Signal_IndicatorFieldName, IndicatorToStr(Signal_Indicator, LongStringType),
+                                                                                                               [NoIndicatorStr, JunctionIndicatorStr, TheatreIndicatorStr]);
+                END;
+              END;
+            END;
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            IF KeyName = Signal_UpperRightIndicatorTargetFieldName THEN BEGIN
+              TempStrArray[3] := NewKeyValue;
+              Signal_JunctionIndicators[UpperRightIndicator] := ValidateSignalJunctionIndicators1(NewKeyValue, KeyName, Signal_Indicator, ErrorMsg);
+              IF ErrorMsg = '' THEN BEGIN
+                IF Signal_JunctionIndicators[UpperRightIndicator].JunctionIndicator_Exists THEN BEGIN
+                  Signal_Indicator := JunctionIndicator;
+                  WritePickListValue(Signal_IndicatorFieldName, IndicatorToStr(Signal_Indicator, LongStringType),
+                                                                                                               [NoIndicatorStr, JunctionIndicatorStr, TheatreIndicatorStr]);
+                END;
+              END;
+            END;
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            IF KeyName = Signal_MiddleRightIndicatorTargetFieldName THEN BEGIN
+              TempStrArray[4] := NewKeyValue;
+              Signal_JunctionIndicators[MiddleRightIndicator] := ValidateSignalJunctionIndicators1(NewKeyValue, KeyName, Signal_Indicator, ErrorMsg);
+              IF ErrorMsg = '' THEN BEGIN
+                IF Signal_JunctionIndicators[MiddleRightIndicator].JunctionIndicator_Exists THEN BEGIN
+                  Signal_Indicator := JunctionIndicator;
+                  WritePickListValue(Signal_IndicatorFieldName, IndicatorToStr(Signal_Indicator, LongStringType),
+                                                                                                               [NoIndicatorStr, JunctionIndicatorStr, TheatreIndicatorStr]);
+                END;
+              END;
+            END;
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            IF KeyName = Signal_LowerRightIndicatorTargetFieldName THEN BEGIN
+              TempStrArray[5] := NewKeyValue;
+              Signal_JunctionIndicators[LowerRightIndicator] := ValidateSignalJunctionIndicators1(NewKeyValue, KeyName, Signal_Indicator, ErrorMsg);
+              IF ErrorMsg = '' THEN BEGIN
+                IF Signal_JunctionIndicators[LowerRightIndicator].JunctionIndicator_Exists THEN BEGIN
+                  Signal_Indicator := JunctionIndicator;
+                  WritePickListValue(Signal_IndicatorFieldName, IndicatorToStr(Signal_Indicator, LongStringType),
+                                                                                                               [NoIndicatorStr, JunctionIndicatorStr, TheatreIndicatorStr]);
+                END;
+              END;
+            END;
+          END;
+
+          JunctionIndicatorFound := False;
+          FOR TempJunctionIndicator := UpperLeftIndicator TO LowerRightIndicator DO BEGIN
+            IF Signal_JunctionIndicators[TempJunctionIndicator].JunctionIndicator_Exists THEN
+              JunctionIndicatorFound := True;
+          END; {FOR}
+
+          IF JunctionIndicatorFound = False THEN
+            IF Signal_Indicator = JunctionIndicator THEN
+              Signal_Indicator := NoIndicator;
+
+          IF ErrorMsg = '' THEN
+            ValidateSignalJunctionIndicators2(TempStrArray, Signal_Indicator, Signal_JunctionIndicators, ErrorMsg);
+
+          IF ErrorMsg = '' THEN BEGIN
+            IF KeyName = Signal_AdjacentLineFieldName THEN BEGIN
+              Signal_AdjacentLine := ValidateSignalAdjacentLine(EditedSignal , NewKeyValue, ErrorMsg);
+              IF Signal_AdjacentLine = UnknownLine THEN BEGIN
+                Signal_AdjacentLine := SaveSignalRec.Signal_AdjacentLine;
+                Values[KeyName] := LineToStr(SaveSignalRec.Signal_AdjacentLine);
+              END;
+            END;
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            IF KeyName = Signal_AdjacentLineXOffsetFieldName THEN
+              Signal_AdjacentLineXOffset := ValidateSignalAdjacentLineXOffset(NewKeyValue, ErrorMsg);
+          END;
+
+          IF ErrorMsg = '' THEN
+            IF KeyName = Signal_DirectionFieldName THEN
+              Signal_Direction := ValidateSignalDirection(NewKeyValue, ErrorMsg);
+
+          IF ErrorMsg = '' THEN
+            IF KeyName = Signal_IndicatorSpeedRestrictionFieldName THEN
+              Signal_IndicatorSpeedRestriction := ValidateSignalIndicatorSpeedRestriction(NewKeyValue, Signal_Indicator, ErrorMsg);
+
+          IF ErrorMsg = '' THEN BEGIN
+            IF KeyName = Signal_NextSignalIfNoIndicatorFieldName THEN BEGIN
+              Signal_NextSignalIfNoIndicator := ValidateNextSignalIfNoIndicator(NewKeyValue, NOT Init, ErrorMsg);
+              IF ErrorMsg = '' THEN
+                ErrorMsg := ValidateSignalNum(Signal_NextSignalIfNoIndicator);
+            END;
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            IF KeyName = Signal_OppositePassingLoopSignalFieldName THEN BEGIN
+              Signal_OppositePassingLoopSignal := ValidateSignalOppositePassingLoopSignal(NewKeyValue, NOT Init, ErrorMsg);
+              IF ErrorMsg = '' THEN
+                ErrorMsg := ValidateSignalNum(Signal_OppositePassingLoopSignal);
+            END;
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            IF KeyName = Signal_AsTheatreDestinationFieldName THEN
+              Signal_AsTheatreDestination := ValidateSignalAsTheatreDestination(NewKeyValue, ErrorMsg);
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            IF KeyName = Signal_OutOfUseFieldName THEN
+              Signal_OutOfUse := ValidateSignalOutOfUseAndAddAdjacentTC(StrToBool(NewKeyValue), Signal_AdjacentLine, Signal_AdjacentTC, ErrorMsg);
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            IF KeyName = Signal_NotesFieldName THEN
+              Signal_Notes := NewKeyValue;
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            IF KeyName = Signal_NotUsedForRouteingFieldName THEN
+              Signal_NotUsedForRouteing := StrToBool(NewKeyValue);
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            IF KeyName = Signal_AccessoryAddressFieldName THEN
+              Signal_AccessoryAddress := ValidateSignalAccessoryAddress(NewKeyValue, Signal_Type, ErrorMsg);
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            IF KeyName = Signal_DecoderNumFieldName THEN
+              Signal_DecoderNum := ValidateSignalDecoderNum(NewKeyValue, Signal_AccessoryAddress, Signal_Type, ErrorMsg);
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            IF KeyName = Signal_IndicatorDecoderNumFieldName THEN
+              Signal_IndicatorDecoderNum := ValidateSignalIndicatorDecoderNum(NewKeyValue, Signal_AccessoryAddress, Signal_Type, ErrorMsg);
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            IF KeyName = Signal_IndicatorDecoderFunctionNumFieldName THEN
+              Signal_IndicatorDecoderFunctionNum := ValidateSignalIndicatorDecoderFunctionNum(NewKeyValue, Signal_AccessoryAddress, Signal_Type, ErrorMsg);
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            IF KeyName = Signal_ApproachControlAspectFieldName THEN
+              Signal_ApproachControlAspect := ValidateSignalApproachControlAspect(NewKeyValue, ErrorMsg);
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            IF KeyName = Signal_PossibleRouteHoldFieldName THEN
+              Signal_PossibleRouteHold := StrToBool(NewKeyValue);
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            IF KeyName = Signal_PossibleStationStartRouteHoldFieldName THEN
+              Signal_PossibleStationStartRouteHold := ValidateSignalPossibleStationStartRouteHold(StrToBool(NewKeyValue), Signal_PossibleRouteHold, ErrorMsg);
+          END;
+
+          { We don't need to validate Signal_LocationsToMonitorArray as the user hasn't been allowed to introduce errors to it }
+
+          IF ErrorMsg = '' THEN BEGIN
+            IF KeyName = Signal_AutomaticFieldName THEN
+              Signal_Automatic := StrToBool(NewKeyValue); { not yet in use }
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            IF KeyName = Signal_SemaphoreDistantHomesArrayFieldName THEN
+              Signal_SemaphoreDistantHomesArray := ValidateSignalDistantHomesArray(EditedSignal, Signal_Type, UpperCase(NewKeyValue), ErrorMsg);
+              IF ErrorMsg = '' THEN BEGIN
+                I := 0;
+                WHILE (I <= High(Signal_SemaphoreDistantHomesArray)) AND (ErrorMsg = '') DO BEGIN
+                  ErrorMsg := ValidateSignalNum(Signal_SemaphoreDistantHomesArray[I]);
+                  Inc(I);
+                END; {WHILE}
+              END;
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            { Redraw the screen to display the change}
+            RedrawScreen := True;
+            CalculateAllSignalPositions;
+            InvalidateScreen(UnitRef, 'EditSaveButtonClick');
+            Log('D Screen invalidated by Edit save');
+            RedrawScreen := False;
+          END ELSE BEGIN
+            IF MessageDialogueWithDefault('Error in creating/amending S=' + IntToStr(EditedSignal) + ': '
+                                          + ErrorMsg
+                                          + CRLF
+                                          + 'Do you wish to continue?',
+                                          StopTimer, mtWarning, [mbYes, mbNo], mbNo) = mrYes
+            THEN
+              Signal_OutOfUse := True
+            ELSE
+              TurnEditModeOff;
+          END;
+        END; {WITH}
+      END;
+
+      IF EditedPoint <> UnknownPoint THEN BEGIN
+        WITH Points[EditedPoint] DO BEGIN
+          ErrorMsg := '';
+
+          IF KeyName = Point_HeelLineFieldName THEN BEGIN
+            Point_HeelLine := ValidatePointHeelLineName(NewKeyValue, ErrorMsg);
+            IF ErrorMsg = '' THEN
+              Point_TCAtHeel := Lines[Point_HeelLine].Line_TC;
+            IF (ErrorMsg <> '') AND (Point_HeelLine = UnknownLine) THEN BEGIN
+              Point_HeelLine := SavePointRec.Point_HeelLine;
+              Values[KeyName] := LineToStr(SavePointRec.Point_HeelLine);
+            END;
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            IF KeyName = Point_StraightLineFieldName THEN BEGIN
+              Point_StraightLine := ValidatePointStraightLineName(NewKeyValue, ErrorMsg);
+              IF (ErrorMsg <> '') AND (Point_StraightLine = UnknownLine) THEN BEGIN
+                Point_StraightLine := SavePointRec.Point_StraightLine;
+                Values[KeyName] := LineToStr(SavePointRec.Point_StraightLine);
+              END;
+            END;
+          END;
+
+          IF ErrorMsg = '' THEN
+            IF KeyName = Point_TypeFieldName THEN
+              Point_Type := ValidatePointType(NewKeyValue, ErrorMsg);
+
+          IF ErrorMsg = '' THEN BEGIN
+            IF KeyName = Point_DivergingLineFieldName THEN BEGIN
+              Point_DivergingLine := ValidatePointDivergingLineName(NewKeyValue, Point_Type, ErrorMsg);
+              IF (ErrorMsg <> '') AND (Point_DivergingLine = UnknownLine) THEN BEGIN
+                Point_DivergingLine := SavePointRec.Point_DivergingLine;
+                Values[KeyName] := LineToStr(SavePointRec.Point_DivergingLine);
+              END;
+            END;
+          END;
+
+          IF ErrorMsg = '' THEN
+            IF KeyName = Point_OutOfUseFieldName THEN
+              Point_OutOfUse := StrToBool(NewKeyValue);
+
+          IF ErrorMsg = '' THEN
+            IF KeyName = Point_ManualOperationFieldName THEN
+              Point_ManualOperation := StrToBool(NewKeyValue);
+
+          IF ErrorMsg = '' THEN
+            IF KeyName =  Point_LastFeedbackStateAsReadInFieldName THEN
+              Point_LastFeedbackStateAsReadIn := ValidatePointLastFeedbackStateAsReadIn(NewKeyValue, Point_ManualOperation, ErrorMsg);
+
+          IF ErrorMsg = '' THEN
+            IF KeyName =  Point_LastManualStateAsReadInFieldName THEN
+              Point_LastManualStateAsReadIn := ValidatePointLastManualStateAsReadIn(NewKeyValue, Point_ManualOperation, ErrorMsg);
+
+          IF ErrorMsg = '' THEN
+            IF KeyName =  Point_LenzNumFieldName THEN
+              Point_LenzNum := ValidatePointLenzNum(NewKeyValue, Point_LastManualStateAsReadIn, Point_ManualOperation, Point_PresentState, ErrorMsg);
+
+          IF ErrorMsg = '' THEN
+            IF KeyName = Point_LenzUnitFieldName THEN
+              Point_LenzUnit := ValidatePointLenzUnit(NewKeyValue, ErrorMsg);
+
+          IF ErrorMsg = '' THEN
+            IF KeyName = Point_LenzUnitTypeFieldName THEN
+              Point_LenzUnitType := ValidatePointLenzUnitType(NewKeyValue, Point_ManualOperation, ErrorMsg);
+
+          IF ErrorMsg = '' THEN
+            IF KeyName = Point_FeedbackUnitFieldName THEN
+              Point_FeedbackUnit := ValidatePointFeedbackUnit(NewKeyValue, Point_HasFeedback, ErrorMsg);
+
+          IF ErrorMsg = '' THEN
+            IF KeyName = Point_FeedbackInputFieldName THEN
+              Point_FeedbackInput := ValidatePointFeedbackInput(NewKeyValue, Point_HasFeedback, ErrorMsg);
+
+          IF ErrorMsg = '' THEN
+            IF KeyName = Point_FeedbackOnIsStraightFieldName THEN
+              Point_FeedbackOnIsStraight := StrToBool(NewKeyValue);
+
+          IF ErrorMsg = '' THEN
+            IF KeyName = Point_WiringReversedFlagFieldName THEN
+              Point_WiringReversedFlag := StrToBool(NewKeyValue);
+
+          IF ErrorMsg = '' THEN
+            IF KeyName = Point_OtherPointFieldName THEN
+              Point_OtherPoint := ValidatePointOtherPoint(NewKeyValue, Point_Type, ErrorMsg);
+
+          IF ErrorMsg = '' THEN
+            IF KeyName = Point_NotesFieldName THEN
+              Point_Notes := NewKeyValue;
+
+          IF ErrorMsg = '' THEN
+            IF KeyName = Point_DefaultStateFieldName THEN
+              Point_DefaultState := ValidatePointDefaultState(NewKeyValue, Point_HeelLine, Point_StraightLine, Point_DivergingLine, Point_PresentState, ErrorMsg);
+
+          IF ErrorMsg = '' THEN
+            IF KeyName = Point_LockedIfHeelTCOccupiedFieldName THEN
+              Point_LockedIfHeelTCOccupied := StrToBool(NewKeyValue);
+
+          IF ErrorMsg = '' THEN
+            IF KeyName = Point_LockedIfNonHeelTCsOccupiedFieldName THEN
+              Point_LockedIfNonHeelTCsOccupied := StrToBool(NewKeyValue);
+
+          IF ErrorMsg = '' THEN BEGIN
+            NoteThatDataHasChanged;
+
+            { And redraw the screen to display the change}
+            RedrawScreen := True;
+            CalculatePointPositions;
+            InvalidateScreen(UnitRef, 'EditSaveButtonClick');
+            Log('D Screen invalidated by Edit save');
+            RedrawScreen := False;
+          END ELSE BEGIN
+            IF MessageDialogueWithDefault('Error in creating/amending P=' + IntToStr(EditedPoint) + ': '
+                                          + ErrorMsg
+                                          + CRLF
+                                          + 'Do you wish to continue editing?',
+                                          StopTimer, mtWarning, [mbYes, mbNo], mbNo) = mrYes
+            THEN
+              Point_OutOfUse := True
+            ELSE
+              TurnEditModeOff;
+          END;
+        END; {WITH}
+      END;
+
+      IF EditedLine <> UnknownLine THEN BEGIN
+        WITH Lines[EditedLine] DO BEGIN
+          ErrorMsg := '';
+
+          IF KeyName = Line_StrFieldName THEN
+            Line_Str := ValidateLineName(NewKeyValue, EditedLine, ErrorMsg);
+
+          IF KeyName = Line_UpXLineStrFieldName THEN
+            Line_UpXLineStr := ValidateLineUpXStr(NewKeyValue, Line_Str, ErrorMsg);
+
+          IF ErrorMsg = '' THEN BEGIN
+            IF KeyName = Line_UpXAbsoluteFieldName THEN
+              Line_UpXAbsolute := ValidateLineUpXAbsolute(NewKeyValue, Line_UpXLineStr, ErrorMsg);
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            IF KeyName = Line_UpYLocationStrFieldName THEN
+              Line_UpYLocationStr := NewKeyValue;
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            IF KeyName = Line_UpYAbsoluteFieldName THEN
+              Line_UpYAbsolute := ValidateLineYAbsolute(NewKeyValue, Line_UpYLocationStr, 'UpY', 'UpY Location', ErrorMsg);
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            IF KeyName = Line_DownYLocationStrFieldName THEN
+              Line_DownYLocationStr := NewKeyValue;
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            IF KeyName = Line_DownYAbsoluteFieldName THEN
+              Line_DownYAbsolute := ValidateLineYAbsolute(NewKeyValue, Line_DownYLocationStr, 'DownY', 'DownY Location', ErrorMsg);
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            IF KeyName = Line_LengthFieldName THEN
+              Line_Length := ValidateLineLength(NewKeyValue, ErrorMsg);
+          END;
+
+          { We don't need to validate Line_Location as the user hasn't been allowed to introduce errors to it }
+
+          IF ErrorMsg = '' THEN BEGIN
+            IF KeyName = Line_TCFieldName THEN
+              Line_TC := ValidateLineTrackCircuit(NewKeyValue, ErrorMsg);
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            IF KeyName = Line_EndOfLineMarkerFieldName THEN
+              Line_EndOfLineMarker := ValidateLineEndOfLineMarker(NewKeyValue, ErrorMsg);
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            IF KeyName = Line_BufferStopNumberFieldName THEN
+              Line_BufferStopNum := ValidateBufferStopNumber(NewKeyValue, ErrorMsg);
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            IF KeyName = Line_BufferStopTheatreDestinationStrFieldName THEN
+              Line_BufferStopTheatreDestinationStr := NewKeyvalue;
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            IF KeyName = Line_DirectionFieldName THEN
+              Line_Direction := ValidateLineDirection(NewKeyValue, ErrorMsg);
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            IF KeyName = Line_TypeOfLineFieldName THEN
+              Line_TypeOfLine := ValidateLineType(NewKeyValue, ErrorMsg);
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            IF KeyName = Line_UpConnectionChFieldName THEN
+              Line_UpConnectionCh := ValidateLineConnectionCh(NewKeyValue, ErrorMsg);
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            IF KeyName = Line_DownConnectionChFieldName THEN
+              Line_DownConnectionCh := ValidateLineConnectionCh(NewKeyValue, ErrorMsg);
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            IF KeyName = Line_OutOfUseFieldName THEN BEGIN
+              IF StrToBool(NewKeyValue) = True THEN BEGIN
+                Line_InitialOutOfUseState := OutOfUse; { this is used only in deciding whether to save a changed state on exit }
+                Line_OutOfUseState := OutOfUse;
+                Line_SaveOutOfUseState := OutOfUse;
+              END ELSE BEGIN
+                Line_InitialOutOfUseState := InUse;
+                Line_OutOfUseState := InUse;
+                Line_SaveOutOfUseState := InUse;
+              END;
+
+              { Even if the line itself is in use, that can be overridden by the location being out of use }
+              IF Line_Location <> UnknownLocation THEN
+                IF Locations[Line_Location].Location_OutOfUse THEN
+                  Line_OutOfUseState := OutOfUse;
+            END;
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            IF KeyName = Line_InUseFeedbackUnitFieldName THEN
+              Line_InUseFeedbackUnit := ValidateLineInUseFeedbackUnit(NewKeyValue, ErrorMsg);
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            NoteThatDataHasChanged;
+
+            { And redraw the screen to display the change}
+            RedrawScreen := True;
+            CalculateLinePositions;
+            InvalidateScreen(UnitRef, 'EditSaveButtonClick');
+            Log('D Screen invalidated by Edit save');
+            RedrawScreen := False;
+          END ELSE BEGIN
+            IF MessageDialogueWithDefault('Error in creating/amending Line=' + IntToStr(EditedLine) + ': '
+                                          + ErrorMsg
+                                          + CRLF
+                                          + 'Do you wish to continue editing?',
+                                          StopTimer, mtWarning, [mbYes, mbNo], mbNo) = mrYes
+            THEN
+              WriteLineValuesToValueList
+            ELSE
+              TurnEditModeOff;
+          END;
+        END; {WITH}
+      END;
+
+      IF EditedTrackCircuit <> UnknownTrackCircuit THEN BEGIN
+        WITH TrackCircuits[EditedTrackCircuit] DO BEGIN
+          ErrorMsg := '';
+
+          { ... }
+
+          IF ErrorMsg = '' THEN BEGIN
+            NoteThatDataHasChanged;
+
+            { And redraw the screen to display the change}
+            RedrawScreen := True;
+//            CalculateTrackCircuitPositions;
+            InvalidateScreen(UnitRef, 'EditSaveButtonClick');
+            Log('D Screen invalidated by Edit save');
+            RedrawScreen := False;
+          END ELSE BEGIN
+            IF MessageDialogueWithDefault('Error in creating/amending TC=' + IntToStr(EditedTrackCircuit) + ': '
+                                          + ErrorMsg
+                                          + CRLF
+                                          + 'Do you wish to continue editing?',
+                                          StopTimer, mtWarning, [mbYes, mbNo], mbNo) = mrYes
+            THEN
+//              TrackCircuit_OutOfUse := True
+            ELSE
+              TurnEditModeOff;
+          END;
+        END; {WITH}
+      END;
+    END; {WITH}
+  EXCEPT {TRY}
+    ON E : Exception DO
+      Log('EG DoEditValidation: ' + E.ClassName + ' error raised, with message: '+ E.Message);
+  END; {TRY}
+END; { DoEditValidation }
+
+PROCEDURE TEditWindow.EditValueListEditorExit(Sender: TObject);
+VAR
+  DelimiterPos : Integer;
+  KeyName : String;
+  KeyValue : String;
+
+BEGIN
+  TRY
+    { Do the validation for the item we are on when we exit the window here rather than use OnValidate, as OnValidate is not called when a change is made to a keyvalue and
+      the Value List is immediately exited
+    }
+    IF (EditedPoint <> UnknownPoint) OR (EditedPoint <> UnknownPoint) OR (EditedLine <> UnknownLine) THEN BEGIN
+      WITH EditValueListEditor DO BEGIN
+        IF EditValueListEditor.Strings.Count > 0 THEN BEGIN
+          DelimiterPos := FindDelimiter('=', EditValueListEditor.Strings[Row - 1], 1);
+          KeyName := Copy(EditValueListEditor.Strings[Row - 1], 1, DelimiterPos - 1);
+          KeyValue := Copy(EditValueListEditor.Strings[Row - 1], DelimiterPos + 1);
+          DoEditValidation(KeyName, KeyValue);
+        END;
+      END; {FOR}
+    END;
+  EXCEPT {TRY}
+    ON E : Exception DO
+      Log('EG EditValueListEditorExit: ' + E.ClassName + ' error raised, with message: '+ E.Message);
+  END; {TRY}
+END; { EditValueListEditorExit }
 
 PROCEDURE TEditWindow.EditValueListEditorValidate(Sender: TObject; ACol, ARow: Integer; CONST KeyName, KeyValue: String);
 { We don't need to validate pick-list values, as we have set them to be read only, thereby stopping any new ones being entered }
@@ -2257,8 +2289,8 @@ BEGIN
   FWPRailWindow.Repaint;
 END; { ChangeSignalDirection }
 
-FUNCTION CheckIfEditedDataHasChanged : Boolean;
-{ Ask whether we want to save any amended data before selecting another signal }
+FUNCTION CheckIfAnyEditedDataHasChanged : Boolean;
+{ Ask whether we want to save amended data (if any) before selecting another signal }
 BEGIN
   Result := False;
 
@@ -2281,13 +2313,13 @@ BEGIN
 
   IF EditedPoint <> UnknownPoint THEN BEGIN
     IF Points[EditedPoint].Point_DataChanged THEN BEGIN
-      IF MessageDialogueWithDefault('You have made changes to S' + IntToStr(EditedPoint) + '.'
+      IF MessageDialogueWithDefault('You have made changes to P' + IntToStr(EditedPoint) + '.'
                                     + CRLF
                                     + 'Do you want to save those changes?',
                                     StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrYes
       THEN BEGIN
         Result := True;
-        WriteOutPointDataToDatabase
+        WriteOutPointDataToDatabase;
       END ELSE
         { We'd better undo them, then }
         UndoEditChanges;
@@ -2298,13 +2330,13 @@ BEGIN
 
   IF EditedLine <> UnknownLine THEN BEGIN
     IF Lines[EditedLine].Line_DataChanged THEN BEGIN
-      IF MessageDialogueWithDefault('You have made changes to S' + IntToStr(EditedLine) + '.'
+      IF MessageDialogueWithDefault('You have made changes to Line ' + IntToStr(EditedLine) + '.'
                                     + CRLF
                                     + 'Do you want to save those changes?',
                                     StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrYes
       THEN BEGIN
         Result := True;
-        WriteOutLineDataToDatabase
+        WriteOutLineDataToDatabase;
       END ELSE
         { We'd better undo them, then }
         UndoEditChanges;
@@ -2315,13 +2347,13 @@ BEGIN
 
   IF EditedTrackCircuit <> UnknownTrackCircuit THEN BEGIN
     IF TrackCircuits[EditedTrackCircuit].TC_DataChanged THEN BEGIN
-      IF MessageDialogueWithDefault('You have made changes to S' + IntToStr(EditedTrackCircuit) + '.'
+      IF MessageDialogueWithDefault('You have made changes to TC' + IntToStr(EditedTrackCircuit) + '.'
                                     + CRLF
                                     + 'Do you want to save those changes?',
                                     StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrYes
       THEN BEGIN
         Result := True;
-//        WriteOutTrackCircuitDataToDatabase
+//        WriteOutTrackCircuitDataToDatabase;
       END ELSE
         { We'd better undo them, then }
         UndoEditChanges;
@@ -2329,7 +2361,7 @@ BEGIN
       EditedTrackCircuit := UnknownTrackCircuit;
     END;
   END;
-END; { CheckIfEditedDataHasChanged }
+END; { CheckIfAnyEditedDataHasChanged }
 
 PROCEDURE UndoEditChanges;
 { Undo any changes made by moving the item on screen or editing it in the value list editor }
@@ -2371,6 +2403,8 @@ BEGIN
     SaveLineRec := Lines[EditedLine];
     SaveLineNum := EditedLine;
     WriteLineValuesToValueList;
+
+    DrawLine(EditedLine, clAqua, NOT ActiveTrain);
   END;
 END; { StartLineEdit }
 

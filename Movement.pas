@@ -8,11 +8,11 @@ USES
 
 TYPE
   TMovementWindow = CLASS(TForm)
-    SignalLocationsToMonitorCheckListBox: TCheckListBox;
-    SignalLocationsToMonitorOKButton: TButton;
-    SignalLocationsToMonitorCancelButton: TButton;
-    PROCEDURE SignalLocationsToMonitorCancelButtonClick(Sender: TObject);
-    PROCEDURE SignalLocationsToMonitorOKButtonClick(Sender: TObject);
+    LocationsCheckListBox: TCheckListBox;
+    LocationsCheckBoxOKButton: TButton;
+    LocationsCheckBoxCancelButton: TButton;
+    PROCEDURE LocationsCheckBoxCancelButtonClick(Sender: TObject);
+    PROCEDURE LocationsCheckBoxOKButtonClick(Sender: TObject);
   PRIVATE
     { Private declarations }
   PUBLIC
@@ -2311,16 +2311,16 @@ BEGIN
   MovementWindow.Left := MovementWindowLeft;
 END; { InitialiseMovementUnit }
 
-PROCEDURE TMovementWindow.SignalLocationsToMonitorCancelButtonClick(Sender: TObject);
+PROCEDURE TMovementWindow.LocationsCheckBoxCancelButtonClick(Sender: TObject);
 BEGIN
   MovementWindow.Close;
 END; { SignalLocationsToMonitorCancelButtonClick }
 
-PROCEDURE TMovementWindow.SignalLocationsToMonitorOKButtonClick(Sender: TObject);
+PROCEDURE TMovementWindow.LocationsCheckBoxOKButtonClick(Sender: TObject);
 BEGIN
-  ProcessSignalLocationsToMonitorCheckListBoxChecks;
+  ProcessLocationsCheckListBoxChecks;
   MovementWindow.Close;
-END; { SignalLocationsToMonitorOKButtonClick }
+END; { LocationsCheckBoxOKButtonClick }
 
 INITIALIZATION
 

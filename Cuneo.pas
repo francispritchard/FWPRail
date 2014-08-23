@@ -436,8 +436,8 @@ BEGIN
             WITH BufferStops[B] DO BEGIN
               IF PtInRect(BufferStop_MouseRect, Point(MouseX, MouseY)) THEN BEGIN
                 ObjectFound := True;
-                BufferStopFoundNum := B;
-                TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'B' + IntToStr(B) + ' ';
+                BufferStopFoundNum := BufferStops[B].BufferStop_Number;
+                TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'B' + IntToStr(BufferStopFoundNum) + ' ';
               END;
             END; {WITH}
             Inc(B);
@@ -1572,18 +1572,30 @@ BEGIN
               { reset the timer here, as potentially opening the message dialogue in CheckIfEditedSignalDataHasChanged doesn't call the mouse-up event }
               CuneoWindow.MouseButtonDownTimer.Enabled := False;
               GetCursorPos(CursorXY);
-              CheckIfEditedDataHasChanged;
+              CheckIfAnyEditedDataHasChanged;
               SetCursorPos(CursorXY.X, CursorXY.Y);
             END;
 
             StartSignalEdit(SignalFoundNum);
           END ELSE
             IF PointFoundNum <> UnknownPoint THEN BEGIN
+              IF (EditedPoint <> UnknownPoint) AND (EditedPoint <> PointFoundNum) THEN BEGIN
+                CheckIfAnyEditedDataHasChanged;
+              END;
+
               StartPointEdit(PointFoundNum);
             END ELSE
               IF LineFoundNum <> UnknownLine THEN BEGIN
+                IF (EditedLine <> UnknownLine) AND (EditedLine <> LineFoundNum) THEN BEGIN
+                  CheckIfAnyEditedDataHasChanged;
+                END;
+
                 StartLineEdit(LineFoundNum);
               END ELSE BEGIN
+                { reset the timer here, as if we haven't clicked on a signal, point, etc., we don't want dragging to be turned on }
+                CuneoWindow.MouseButtonDownTimer.Enabled := False;
+
+                CheckIfAnyEditedDataHasChanged;
                 ClearEditValueList;
 
                 IF Zooming THEN

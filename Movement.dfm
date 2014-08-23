@@ -1,7 +1,7 @@
 object MovementWindow: TMovementWindow
   Left = 400
   Top = 420
-  Caption = 'Rail Edit Checklistbox'
+  Caption = 'Locations'
   ClientHeight = 835
   ClientWidth = 436
   Color = clBtnFace
@@ -16,7 +16,7 @@ object MovementWindow: TMovementWindow
   Position = poDesigned
   PixelsPerInch = 96
   TextHeight = 13
-  object SignalLocationsToMonitorCheckListBox: TCheckListBox
+  object LocationsCheckListBox: TCheckListBox
     Left = 0
     Top = 0
     Width = 436
@@ -25,22 +25,22 @@ object MovementWindow: TMovementWindow
     ItemHeight = 13
     TabOrder = 0
   end
-  object SignalLocationsToMonitorOKButton: TButton
+  object LocationsCheckBoxOKButton: TButton
     Left = 312
     Top = 160
     Width = 75
     Height = 25
     Caption = 'OK'
     TabOrder = 1
-    OnClick = SignalLocationsToMonitorOKButtonClick
+    OnClick = LocationsCheckBoxOKButtonClick
   end
-  object SignalLocationsToMonitorCancelButton: TButton
+  object LocationsCheckBoxCancelButton: TButton
     Left = 312
     Top = 216
     Width = 75
     Height = 25
     Caption = 'Cancel'
     TabOrder = 2
-    OnClick = SignalLocationsToMonitorCancelButtonClick
+    OnClick = LocationsCheckBoxCancelButtonClick
   end
 end
