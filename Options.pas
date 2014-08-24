@@ -343,9 +343,6 @@ VAR
   DefaultLargeWorkingTimetableWindowSelected : Boolean = False;
   LargeWorkingTimetableWindowSelected : Boolean;
 
-  DefaultLenzPointNumberColour : TColour = clLime;
-  LenzPointNumberColour : TColour = clLime;
-
   DefaultLineDataFilename : String = 'LineData';
   LineDataFilename : String;
 
@@ -360,9 +357,6 @@ VAR
 
   DefaultLinesWithoutTrackCircuitsColour : TColour = clYellow;
   LinesWithoutTrackCircuitsColour : TColour = clYellow;
-
-  DefaultRailFontName : String = 'Arial';
-  RailFontName : String;
 
   DefaultLineFontHeight : Integer = 10;
   LineFontHeight : Integer;
@@ -494,6 +488,9 @@ VAR
   DefaultPointHeelLineColour : TColour = clYellow;
   PointHeelLineColour : TColour = clYellow;
 
+  DefaultPointLenzNumberColour : TColour = clLime;
+  PointLenzNumberColour : TColour = clLime;
+
   DefaultPointLockedByUserColour : TColour = clYellow;
   PointLockedByUserColour : TColour;
 
@@ -522,6 +519,9 @@ VAR
   DefaultProjectedLinePenStyle : TPenStyle = psDashDot;
   ProjectedLinePenStyle : TPenStyle = psDashDot;
 
+  DefaultRailFontName : String = 'Arial';
+  RailFontName : String;
+
   DefaultReplayFilename : String = 'Log';
   ReplayFilename : String;
 
@@ -539,6 +539,9 @@ VAR
 
   DefaultRunTestUnitOnStartup : Boolean = False;
   RunTestUnitOnStartup : Boolean;
+
+  DefaultScreenComponentEditedColour : TColor = clAqua;
+  ScreenComponentEditedColour : TColor = clAqua;
 
   DefaultShowCancelledTrainsInDiagrams : Boolean = True;
   ShowCancelledTrainsInDiagrams : Boolean;
@@ -737,6 +740,9 @@ VAR
   DefaultTCUnoccupiedColour : TColour = clDkGray; { the default line colour }
   TCUnoccupiedColour : TColour = clDkGray; { the default line colour }
 
+  DefaultTCUserMustDriveColour : TColour = clGreen;
+  TCUserMustDriveColour : TColour = clGreen;
+
   DefaultTheatreBoxHeight : Integer = 10;
   TheatreBoxHeight : Integer;
 
@@ -838,13 +844,13 @@ CONST
     BufferStopRedStr = 'Buffer Stop Red';
 
     { Colours for points }
-    LenzPointNumberColourStr = 'Lenz Point Number Colour';
     PointColourStr = 'Point Colour';
     PointDivergingLineColourStr = 'Point Diverging Line Colour';
     PointDownFacingColourStr = 'Point Down Facing Colour';
     PointFeedbackDataInUseColourStr = 'Point Feedback Data In Use Colour';
     PointFeedbackDataOutOfUseColourStr = 'Point Feedback Data Out Of Use Colour';
     PointHeelLineColourStr = 'Point Heel Line Colour';
+    PointLenzNumberColourStr = 'Point Lenz Number Colour';
     PointLockedByUserColourStr = 'Point Locked By User Colour';
     PointManualOperationColourStr = 'Point Manual Operation Colour';
     PointOutOfUseColourStr = 'Point Out Of Use Colour';
@@ -869,6 +875,8 @@ CONST
     SignalAspectGreenStr = 'Signal Aspect Green';
     SignalNumberColourStr = 'Signal Number Colour';
 
+    { Colours for lines }
+    LineNotAvailableColourStr = 'Line Not Available Colour';
     LineRoutedOverColourStr = 'Line Routed Over Colour';
 
     { Colours for platforms }
@@ -891,6 +899,7 @@ CONST
     TCSystemOccupationColourStr = 'TC System Occupation Colour';
     TCUnknownOccupationColourStr = 'TC Unknown Occupation Colour';
     TCUnoccupiedColourStr = 'TC Unoccupied Colour';
+    TCUserMustDriveColourStr = 'TC User Must Drive Colour';
 
     TrainActiveColourStr = 'Train Active Colour';
     TrainInactiveColourStr = 'Train Inactive Colour';
@@ -904,9 +913,9 @@ CONST
     BackgroundColourStr = 'Background Colour';
     ForegroundColourStr = 'Foreground Colour';
     DiagramsWindowGridBackgroundColourStr = 'Diagrams Window Grid Background Colour';
-    LineNotAvailableColourStr = 'Line Not Available Colour';
     LinesWithoutTrackCircuitsColourStr = 'Lines Without Trackcircuits Colour';
     LocoStalledColourStr = 'Loco Stalled Colour';
+    ScreenComponentEditedColourStr = 'Screen Component Edited Colour';
     WorkingTimetableWindowGridBackgroundColourStr = 'Working Timetable Window Grid Background Colour';
 
   PenStylesSectionStr = 'Pen Styles';
@@ -1183,13 +1192,13 @@ BEGIN
   PlatformNumberColour := DefaultPlatformNumberColour;
 
   { Colours for points }
-  LenzPointNumberColour := DefaultLenzPointNumberColour;
   PointColour := DefaultPointColour;
   PointDivergingLineColour := DefaultPointDivergingLineColour;
   PointDownFacingColour := DefaultPointDownFacingColour;
   PointFeedbackDataInUseColour := DefaultPointFeedbackDataInUseColour;
   PointFeedbackDataOutOfUseColour := DefaultPointFeedbackDataOutOfUseColour;
   PointHeelLineColour := DefaultPointHeelLineColour;
+  PointLenzNumberColour := DefaultPointLenzNumberColour;
   PointLockedByUserColour := DefaultPointLockedByUserColour;
   PointManualOperationColour := DefaultPointManualOperationColour;
   PointOutOfUseColour := DefaultPointOutOfUseColour;
@@ -1215,6 +1224,7 @@ BEGIN
   SignalNumberColour := DefaultSignalNumberColour;
 
   { Colours for lines }
+  LineNotAvailableColour := DefaultLineNotAvailableColour;
   LineRoutedOverColour := DefaultLineRoutedOverColour;
 
   { Colours for track circuits }
@@ -1233,6 +1243,7 @@ BEGIN
   TCSpeedRestrictionColour := DefaultTCSpeedRestrictionColour;
   TCSystemOccupationColour := DefaultTCSystemOccupationColour;
   TCUnoccupiedColour := DefaultTCUnoccupiedColour;
+  TCUserMustDriveColour := DefaultTCUserMustDriveColour;
   TrainActiveColour := DefaultTrainActiveColour;
   TrainInactiveColour := DefaultTrainInactiveColour;
 
@@ -1240,9 +1251,9 @@ BEGIN
   BackgroundColour := DefaultBackgroundColour;
   ForegroundColour := DefaultForegroundColour;
   DiagramsWindowGridBackgroundColour := DefaultDiagramsWindowGridBackgroundColour;
-  LineNotAvailableColour := DefaultLineNotAvailableColour;
   LinesWithoutTrackCircuitsColour := DefaultLinesWithoutTrackCircuitsColour;
   LocoStalledColour := DefaultLocoStalledColour;
+  ScreenComponentEditedColour := DefaultScreenComponentEditedColour;
   WorkingTimetableWindowGridBackgroundColour := DefaultWorkingTimetableWindowGridBackgroundColour;
 
   { Pen styles }
@@ -1320,6 +1331,10 @@ BEGIN
       BufferStopNumberColour := StrToColour(ReadString(ColoursSectionStr, BufferStopNumberColourStr, ColourToStr(DefaultBufferStopNumberColour)));
       BufferStopRed := StrToColour(ReadString(ColoursSectionStr, BufferStopRedStr, ColourToStr(DefaultBufferStopRed)));
 
+      { Colours for lines }
+      LineNotAvailableColour := StrToColour(ReadString(ColoursSectionStr, LineNotAvailableColourStr, ColourToStr(DefaultLineNotAvailableColour)));
+      LineRoutedOverColour := StrToColour(ReadString(ColoursSectionStr, LineRoutedOverColourStr, ColourToStr(DefaultLineRoutedOverColour)));
+
       { Colours for TRS plungers }
       TRSPlungerColour := StrToColour(ReadString(ColoursSectionStr, TRSPlungerColourStr, ColourToStr(DefaultTRSPlungerColour)));
       TRSPlungerOutlineColour := StrToColour(ReadString(ColoursSectionStr, TRSPlungerOutlineColourStr, ColourToStr(DefaultTRSPlungerOutlineColour)));
@@ -1330,7 +1345,6 @@ BEGIN
       PlatformNumberColour := StrToColour(ReadString(ColoursSectionStr, PlatformNumberColourStr, ColourToStr(DefaultPlatformNumberColour)));
 
       { Colours for points }
-      LenzPointNumberColour := StrToColour(ReadString(ColoursSectionStr, LenzPointNumberColourStr, ColourToStr(DefaultLenzPointNumberColour)));
       PointColour := StrToColour(ReadString(ColoursSectionStr, PointColourStr, ColourToStr(DefaultPointColour)));
       PointDivergingLineColour := StrToColour(ReadString(ColoursSectionStr, PointDivergingLineColourStr, ColourToStr(DefaultPointDivergingLineColour)));
       PointDownFacingColour := StrToColour(ReadString(ColoursSectionStr, PointDownFacingColourStr, ColourToStr(DefaultPointDownFacingColour)));
@@ -1338,6 +1352,7 @@ BEGIN
       PointFeedbackDataOutOfUseColour := StrToColour(ReadString(ColoursSectionStr, PointFeedbackDataoutOfUseColourStr,
                                                                                                                       ColourToStr(DefaultPointFeedbackDataOutOfUseColour)));
       PointHeelLineColour := StrToColour(ReadString(ColoursSectionStr, PointHeelLineColourStr, ColourToStr(DefaultPointHeelLineColour)));
+      PointLenzNumberColour := StrToColour(ReadString(ColoursSectionStr, PointLenzNumberColourStr, ColourToStr(DefaultPointLenzNumberColour)));
       PointLockedByUserColour := StrToColour(ReadString(ColoursSectionStr, PointLockedByUserColourStr, ColourToStr(DefaultPointLockedByUserColour)));
       PointManualOperationColour := StrToColour(ReadString(ColoursSectionStr, PointManualOperationColourStr, ColourToStr(DefaultPointManualOperationColour)));
       PointOutOfUseColour := StrToColour(ReadString(ColoursSectionStr, PointOutOfUseColourStr, ColourToStr(DefaultPointOutOfUseColour)));
@@ -1365,9 +1380,6 @@ BEGIN
       SignalNumberColour := StrToColour(ReadString(ColoursSectionStr, SignalNumberColourStr, ColourToStr(DefaultSignalNumberColour)));
 
 
-      { Colours for lines }
-      LineRoutedOverColour := StrToColour(ReadString(ColoursSectionStr, LineRoutedOverColourStr, ColourToStr(DefaultLineRoutedOverColour)));
-
       { Colours for track circuits }
       TCFeedbackDataInUseColour := StrToColour(ReadString(ColoursSectionStr, TCFeedbackDataInUseColourStr, ColourToStr(DefaultTCFeedbackDataInUseColour)));
       TCFeedbackDataOutOfUseColour := StrToColour(ReadString(ColoursSectionStr, TCFeedbackDataOutOfUseColourStr, ColourToStr(DefaultTCFeedbackDataOutOfUseColour)));
@@ -1390,6 +1402,7 @@ BEGIN
       TCSpeedRestrictionColour := StrToColour(ReadString(ColoursSectionStr, TCSpeedRestrictionColourStr, ColourToStr(DefaultTCSpeedRestrictionColour)));
       TCSystemOccupationColour := StrToColour(ReadString(ColoursSectionStr, TCSystemOccupationColourStr, ColourToStr(DefaultTCSystemOccupationColour)));
       TCUnoccupiedColour := StrToColour(ReadString(ColoursSectionStr, TCUnoccupiedColourStr, ColourToStr(DefaultTCUnoccupiedColour)));
+      TCUserMustDriveColour := StrToColour(ReadString(ColoursSectionStr, TCUserMustDriveColourStr, ColourToStr(DefaultTCUserMustDriveColour)));
       TrainActiveColour := StrToColour(ReadString(ColoursSectionStr, TrainActiveColourStr, ColourToStr(DefaultTrainActiveColour)));
       TrainInactiveColour := StrToColour(ReadString(ColoursSectionStr, TrainInactiveColourStr, ColourToStr(DefaultTrainInactiveColour)));
 
@@ -1398,10 +1411,10 @@ BEGIN
       ForegroundColour := StrToColour(ReadString(ColoursSectionStr, ForegroundColourStr, ColourToStr(DefaultForegroundColour)));
       DiagramsWindowGridBackgroundColour := StrToColour(ReadString(ColoursSectionStr, DiagramsWindowGridBackgroundColourStr,
                                                                                                                    ColourToStr(DefaultDiagramsWindowGridBackgroundColour)));
-      LineNotAvailableColour := StrToColour(ReadString(ColoursSectionStr, LineNotAvailableColourStr, ColourToStr(DefaultLineNotAvailableColour)));
       LinesWithoutTrackCircuitsColour := StrToColour(ReadString(ColoursSectionStr, LinesWithoutTrackCircuitsColourStr,
                                                                                                                       ColourToStr(DefaultLinesWithoutTrackCircuitsColour)));
       LocoStalledColour := StrToColour(ReadString(ColoursSectionStr, LocoStalledColourStr, ColourToStr(DefaultLocoStalledColour)));
+      ScreenComponentEditedColour := StrToColour(ReadString(ColoursSectionStr, ScreenComponentEditedColourStr, ColourToStr(DefaultScreenComponentEditedColour)));
       WorkingTimetableWindowGridBackgroundColour := StrToColour(ReadString(ColoursSectionStr, WorkingTimetableWindowGridBackgroundColourStr,
                                                                                                            ColourToStr(DefaultWorkingTimetableWindowGridBackgroundColour)));
       { Pen styles }
@@ -1818,13 +1831,13 @@ BEGIN
       WriteString(ColoursSectionStr, TRSPlungerPressedColourStr, ColourToStr(TRSPlungerPressedColour));
 
       { Colours for points }
-      WriteString(ColoursSectionStr, LenzPointNumberColourStr, ColourToStr(LenzPointNumberColour));
       WriteString(ColoursSectionStr, PointColourStr, ColourToStr(PointColour));
       WriteString(ColoursSectionStr, PointDivergingLineColourStr, ColourToStr(PointDivergingLineColour));
       WriteString(ColoursSectionStr, PointDownFacingColourStr, ColourToStr(PointDownFacingColour));
       WriteString(ColoursSectionStr, PointFeedbackDataInUseColourStr, ColourToStr(PointFeedbackDataInUseColour));
       WriteString(ColoursSectionStr, PointFeedbackDataOutOfUseColourStr, ColourToStr(PointFeedbackDataOutOfUseColour));
       WriteString(ColoursSectionStr, PointHeelLineColourStr, ColourToStr(PointHeelLineColour));
+      WriteString(ColoursSectionStr, PointLenzNumberColourStr, ColourToStr(PointLenzNumberColour));
       WriteString(ColoursSectionStr, PointLockedByUserColourStr, ColourToStr(PointLockedByUserColour));
       WriteString(ColoursSectionStr, PointManualOperationColourStr, ColourToStr(PointManualOperationColour));
       WriteString(ColoursSectionStr, PointOutOfUseColourStr, ColourToStr(PointOutOfUseColour));
@@ -1850,6 +1863,7 @@ BEGIN
       WriteString(ColoursSectionStr, SignalNumberColourStr, ColourToStr(SignalNumberColour));
 
       { Colours for lines }
+      WriteString(ColoursSectionStr, LineNotAvailableColourStr, ColourToStr(LineNotAvailableColour));
       WriteString(ColoursSectionStr, LineRoutedOverColourStr, ColourToStr(LineRoutedOverColour));
 
       { Colours for platforms }
@@ -1871,14 +1885,15 @@ BEGIN
       WriteString(ColoursSectionStr, TCSpeedRestrictionColourStr, ColourToStr(TCSpeedRestrictionColour));
       WriteString(ColoursSectionStr, TCSystemOccupationColourStr, ColourToStr(TCSystemOccupationColour));
       WriteString(ColoursSectionStr, TCUnoccupiedColourStr, ColourToStr(TCUnoccupiedColour));
+      WriteString(ColoursSectionStr, TCUserMustDriveColourStr, ColourToStr(TCUserMustDriveColour));
 
       { Miscellaneous colours }
       WriteString(ColoursSectionStr, BackgroundColourStr, ColourToStr(BackgroundColour));
       WriteString(ColoursSectionStr, ForegroundColourStr, ColourToStr(ForegroundColour));
       WriteString(ColoursSectionStr, DiagramsWindowGridBackgroundColourStr, ColourToStr(DiagramsWindowGridBackgroundColour));
-      WriteString(ColoursSectionStr, LineNotAvailableColourStr, ColourToStr(LineNotAvailableColour));
       WriteString(ColoursSectionStr, LinesWithoutTrackCircuitsColourStr, ColourToStr(LinesWithoutTrackCircuitsColour));
       WriteString(ColoursSectionStr, LocoStalledColourStr, ColourToStr(LocoStalledColour));
+      WriteString(ColoursSectionStr, ScreenComponentEditedColourStr, ColourToStr(ScreenComponentEditedColour));
       WriteString(ColoursSectionStr, TrainActiveColourStr, ColourToStr(TrainActiveColour));
       WriteString(ColoursSectionStr, TrainInactiveColourStr, ColourToStr(TrainInactiveColour));
       WriteString(ColoursSectionStr, WorkingTimetableWindowGridBackgroundColourStr, ColourToStr(WorkingTimetableWindowGridBackgroundColour));

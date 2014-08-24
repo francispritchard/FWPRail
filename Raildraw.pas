@@ -43,7 +43,7 @@ TYPE
     GeneralPopupChangeTCFeedbackDataInUseColour: TMenuItem;
     GeneralPopupChangeTCFeedbackDataOutOfUseColour: TMenuItem;
     GeneralPopupChangeTCFeedbackOccupationColour: TMenuItem;
-    GeneralPopupChangeTCLocoOutOfPlaceColour: TMenuItem;
+    GeneralPopupChangeTCUserMustDriveColour: TMenuItem;
     GeneralPopupChangeTCOutOfUseSetByUserColour: TMenuItem;
     GeneralPopupChangeTCPermanentFeedbackOccupationColour: TMenuItem;
     GeneralPopupChangeTCPermanentOccupationSetByUserColour: TMenuItem;
@@ -85,7 +85,7 @@ TYPE
     GeneralPopupRestoreTCFeedbackDataInUseColour: TMenuItem;
     GeneralPopupRestoreTCFeedbackDataOutOfUseColour: TMenuItem;
     GeneralPopupRestoreTCFeedbackOccupationColour: TMenuItem;
-    GeneralPopupRestoreTCLocoOutOfPlaceColour: TMenuItem;
+    GeneralPopupRestoreTCUserMustDriveColour: TMenuItem;
     GeneralPopupRestoreTCOutOfUseSetByUserColour: TMenuItem;
     GeneralPopupRestoreTCPermanentFeedbackOccupationColour: TMenuItem;
     GeneralPopupRestoreTCPermanentOccupationSetByUserColour: TMenuItem;
@@ -113,7 +113,7 @@ TYPE
     GeneralPopupTCFeedbackDataInUseColour: TMenuItem;
     GeneralPopupTCFeedbackDataOutOfUseColour: TMenuItem;
     GeneralPopupTCFeedbackOccupationColour: TMenuItem;
-    GeneralPopupTCLocoOutOfPlaceColour: TMenuItem;
+    GeneralPopupTCUserMustDriveColour: TMenuItem;
     GeneralPopupTCOutOfUseSetByUserColour: TMenuItem;
     GeneralPopupTCPermanentFeedbackOccupationColour: TMenuItem;
     GeneralPopupTCPermanentOccupationSetByUserColour: TMenuItem;
@@ -156,6 +156,12 @@ TYPE
     SetDaylightEnd: TMenuItem;
     SetDayLightStart: TMenuItem;
     SignalPopupMenu: TPopupMenu;
+    LineRoutedOverColour1: TMenuItem;
+    RestoreLineRoutedOverColour2: TMenuItem;
+    ChangeLineRoutedOverColour2: TMenuItem;
+    GeneralPopupScreenComponentEditedColour: TMenuItem;
+    GeneralPopupChangeScreenComponentEditedColour: TMenuItem;
+    GeneralPopupRestoreScreenComponentEditedColour: TMenuItem;
 
     PROCEDURE BufferStopPopupItemClick(Sender: TObject);
     PROCEDURE BufferStopMenuOnPopup(Sender: TObject);
@@ -181,10 +187,9 @@ TYPE
     PROCEDURE GeneralPopupChangeBufferStopColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangeBufferStopNumberColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangeBufferStopRedClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangeColoursClick(Sender: TObject);
     PROCEDURE GeneralPopupChangeDefaultPointColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangeForegroundColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangeLenzPointNumberColourClick(Sender: TObject);
+    PROCEDURE GeneralPopupChangePointLenzNumberColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangeLineNotAvailableColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangeLineRoutedOverColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangeLocoStalledColourClick(Sender: TObject);
@@ -206,6 +211,7 @@ TYPE
     PROCEDURE GeneralPopupChangePointsWithoutFeedbackColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangePointUndrawColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangePointUpFacingColourClick(Sender: TObject);
+    PROCEDURE GeneralPopupChangeScreenComponentEditedColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangeShowPointDefaultStateColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangeSignalAspectGreenClick(Sender: TObject);
     PROCEDURE GeneralPopupChangeSignalAspectRedClick(Sender: TObject);
@@ -230,6 +236,7 @@ TYPE
     PROCEDURE GeneralPopupChangeTCSpeedRestrictionColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangeTCSystemOccupationColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangeTCUnoccupiedColourClick(Sender: TObject);
+    PROCEDURE GeneralPopupChangeTCUserMustDriveColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangeTrainActiveColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangeTrainInactiveColourClick(Sender: TObject);
     PROCEDURE GeneralPopupClockClick(Sender: TObject);
@@ -260,7 +267,7 @@ TYPE
     PROCEDURE GeneralPopupRestoreDefaultBackgroundColourClick(Sender: TObject);
     PROCEDURE GeneralPopupRestoreFiddleyardLinePenStyleClick(Sender: TObject);
     PROCEDURE GeneralPopupRestoreForegroundColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreLenzPointNumberColourClick(Sender: TObject);
+    PROCEDURE GeneralPopupRestorePointLenzNumberColourClick(Sender: TObject);
     PROCEDURE GeneralPopupRestoreLineNotAvailableColourClick(Sender: TObject);
     PROCEDURE GeneralPopupRestoreLineRoutedOverColourClick(Sender: TObject);
     PROCEDURE GeneralPopupRestoreLocoStalledColourClick(Sender: TObject);
@@ -283,6 +290,7 @@ TYPE
     PROCEDURE GeneralPopupRestorePointUndrawColourClick(Sender: TObject);
     PROCEDURE GeneralPopupRestorePointUpFacingColourClick(Sender: TObject);
     PROCEDURE GeneralPopupRestoreProjectedLinePenStyleClick(Sender: TObject);
+    PROCEDURE GeneralPopupRestoreScreenComponentEditedColourClick(Sender: TObject);
     PROCEDURE GeneralPopupRestoreShowPointDefaultStateColourClick(Sender: TObject);
     PROCEDURE GeneralPopupRestoreSidingPenStyleClick(Sender: TObject);
     PROCEDURE GeneralPopupRestoreSignalAspectGreenClick(Sender: TObject);
@@ -313,6 +321,7 @@ TYPE
     PROCEDURE GeneralPopupRestoreTCSpeedRestrictionColourClick(Sender: TObject);
     PROCEDURE GeneralPopupRestoreTCSystemOccupationColourClick(Sender: TObject);
     PROCEDURE GeneralPopupRestoreTCUnoccupiedColourClick(Sender: TObject);
+    PROCEDURE GeneralPopupRestoreTCUserMustDriveColourClick(Sender: TObject);
     PROCEDURE GeneralPopupRestoreTrainActiveColourClick(Sender: TObject);
     PROCEDURE GeneralPopupRestoreTrainInactiveColourClick(Sender: TObject);
     PROCEDURE GeneralPopupRunClockFasterClick(Sender: TObject);
@@ -487,7 +496,7 @@ PROCEDURE DrawPointNum(P : Integer; Colour : TColour);
 { Put the number of the point on the diagram }
 
 PROCEDURE DrawSignal(S : Integer);
-{ Draw a signal at the current position. We need to know if it is for up or down traffic, a home or distant or CallingOn, and what aspect it is. Location.X is the position
+{ Draw a signal at the current position. We need to know if it is for up or down traffic, a home or distant or calling on, and what aspect it is. Signal_Line.X is the
   of the main aspect
 }
 PROCEDURE DrawSignalData(S : Integer; Str : String; Colour : Integer);
@@ -574,8 +583,8 @@ VAR
   SaveBufferStopNumberColourForPrinting : TColor;
   SaveBufferStopRedForPrinting : TColor;
   SaveForegroundColourForPrinting : TColor;
-  SaveLenzPointNumberColourForPrinting : TColor;
   SaveLineNotAvailableColourForPrinting : TColor;
+  SaveLineRoutedOverColourForPrinting : TColor;
   SaveLocoStalledColourForPrinting : TColor;
   SavePlatformColourForPrinting : TColor;
   SavePointColourForPrinting : TColor;
@@ -584,12 +593,15 @@ VAR
   SavePointFeedbackDataInUseColourForPrinting : TColor;
   SavePointFeedbackDataOutOfUseColourForPrinting : TColor;
   SavePointHeelLineColourForPrinting : TColor;
+  SavePointLenzNumberColourForPrinting : TColor;
   SavePointManualOperationColourForPrinting : TColor;
   SavePointStraightLineColourForPrinting :TColor;
   SavePointsWithoutFeedbackColourForPrinting : TColor;
   SavePointUpFacingColourForPrinting : TColor;
   SaveShowPointDefaultStateColourForPrinting : TColor;
   SaveShowPointLockedColourForPrinting : TColor;
+  SaveShowSignalJunctionDestinations : Boolean = False;
+  SaveScreenComponentEditedColourForPrinting : TColor;
   SaveSignalNumberColourForPrinting : TColor;
   SaveSignalPostColourForPrinting : TColor;
   SaveSignalPostRouteSettingColourForPrinting : TColor;
@@ -603,6 +615,7 @@ VAR
   SaveTCPermanentSystemOccupationColourForPrinting : TColor;
   SaveTCSystemOccupationColourForPrinting : TColor;
   SaveTCUnoccupiedColourForPrinting : TColor;
+  SaveTCUserMustDriveColourForPrinting : TColor;
   SaveTrainActiveColourForPrinting : TColor;
   SaveTrainInactiveColourForPrinting : TColor;
   SaveTRSPlungerColourForPrinting : TColor;
@@ -903,10 +916,13 @@ VAR
                 END; {FOR}
               END;
 
-              IF NOT ShowTrackCircuits THEN
+              IF NOT ShowTrackCircuits THEN BEGIN
                 { want TCs coloured all the same }
-                DrawLine(Line, TCUnoccupiedColour, NOT ActiveTrain)
-              ELSE BEGIN
+                IF TrackCircuits[TC].TC_UserMustDrive THEN
+                  DrawLine(Line, TCUserMustDriveColour, NOT ActiveTrain)
+                ELSE
+                  DrawLine(Line, TCUnoccupiedColour, NOT ActiveTrain);
+              END ELSE BEGIN
                 { colour TCs differently to distinguish them }
                 LineDrawn := False;
                 IF Lines[Line].Line_NextUpLine <> UnknownLine THEN BEGIN
@@ -1717,7 +1733,7 @@ BEGIN
 END; { DrawSignalPost }
 
 PROCEDURE DrawSignal(S : Integer);
-{ Draw a signal at the current position. We need to know if it is for up or down traffic, a home or distant or calling on, and what aspect it is. SignalLocation.X is the
+{ Draw a signal at the current position. We need to know if it is for up or down traffic, a home or distant or calling on, and what aspect it is. Signal_Line.X is the
   position of the main aspect
 }
 TYPE
@@ -2100,8 +2116,8 @@ BEGIN { DrawSignal }
         END;
 
         IF EditedSignal = S THEN BEGIN
-          SColour1 := clAqua; { should have an edited-signal colour *********** }
-          SColour2 := ClAqua;
+          SColour1 := ScreenComponentEditedColour;
+          SColour2 := ScreenComponentEditedColour
         END ELSE BEGIN
           IF Signal_OutOfUse
           OR ((Signal_AdjacentLine <> UnknownLine) AND (Lines[Signal_AdjacentLine].Line_TC = UnknownTrackCircuit)) THEN BEGIN
@@ -3151,16 +3167,16 @@ BEGIN
             DrawPointNum(P, PointDownFacingColour)
           ELSE
             IF ShowLenzPointNumbers THEN
-              DrawPointNum(P, LenzPointNumberColour)
+              DrawPointNum(P, PointLenzNumberColour)
             ELSE
               IF ShowPointType THEN
-                DrawPointNum(P, LenzPointNumberColour)
+                DrawPointNum(P, PointLenzNumberColour)
               ELSE
                 IF ShowPointFeedbackDataInSeparateColours THEN
                   DrawPointFeedbackDataInSeparateColours
                 ELSE
                   IF ShowPointFeedbackDataInUse THEN
-                    DrawPointNum(P, LenzPointNumberColour)
+                    DrawPointNum(P, PointLenzNumberColour)
                   ELSE
                     IF ShowLenzPointUnitGroups THEN
                       DrawLenzPointUnitGroups
@@ -5155,6 +5171,40 @@ BEGIN
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreTCOutOfUseSetByUserColourClick');
 END; { GeneralPopupRestoreTCOutOfUseSetByUserColourClick }
 
+PROCEDURE TFWPRailWindow.GeneralPopupChangeTCUserMustDriveColourClick(Sender: TObject);
+BEGIN
+  { Show the default }
+  FWPRailWindowColourDialogue.Color := TCUserMustDriveColour;
+  { Allow the user to change it }
+  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
+    TCUserMustDriveColour := FWPRailWindowColourDialogue.Color;
+    InvalidateScreen(UnitRef, 'GeneralPopupChangeTCUserMustDriveColourClick');
+  END;
+END; { GeneralPopupChangeTCUserMustDriveColourClick }
+
+PROCEDURE TFWPRailWindow.GeneralPopupRestoreTCUserMustDriveColourClick(Sender: TObject);
+BEGIN
+  TCUserMustDriveColour := DefaultTCUserMustDriveColour;
+  InvalidateScreen(UnitRef, 'GeneralPopupRestoreTCUserMustDriveColourClick');
+END; { GeneralPopupRestoreTCUserMustDriveColourClick }
+
+PROCEDURE TFWPRailWindow.GeneralPopupChangeScreenComponentEditedColourClick(Sender: TObject);
+BEGIN
+  { Show the default }
+  FWPRailWindowColourDialogue.Color := ScreenComponentEditedColour;
+  { Allow the user to change it }
+  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
+    ScreenComponentEditedColour := FWPRailWindowColourDialogue.Color;
+    InvalidateScreen(UnitRef, 'GeneralPopupChangeScreenComponentEditedColourClick');
+  END;
+END; { GeneralPopupChangeScreenComponentEditedColourClick }
+
+PROCEDURE TFWPRailWindow.GeneralPopupRestoreScreenComponentEditedColourClick(Sender: TObject);
+BEGIN
+  ScreenComponentEditedColour := DefaultScreenComponentEditedColour;
+  InvalidateScreen(UnitRef, 'GeneralPopupRestoreScreenComponentEditedColourClick');
+END; { GeneralPopupRestoreScreenComponentEditedColourClick }
+
 PROCEDURE TFWPRailWindow.GeneralPopupChangeTCOutOfUseAsNoFeedbackReceivedColourClick(Sender: TObject);
 BEGIN
   { Show the default }
@@ -5215,12 +5265,7 @@ BEGIN
     BufferStopRed := FWPRailWindowColourDialogue.Color;
     InvalidateScreen(UnitRef, 'GeneralPopupRestoreBufferStopNumberColourClick');
   END;
-END; procedure TFWPRailWindow.GeneralPopupChangeColoursClick(Sender: TObject);
-begin
-
-end;
-
-{ ChangeBufferStopRedClick }
+END; { ChangeBufferStopRedClick }
 
 PROCEDURE TFWPRailWindow.GeneralPopupRestoreBufferStopRedClick(Sender: TObject);
 BEGIN
@@ -5488,22 +5533,22 @@ BEGIN
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreShowPointDefaultStateColourClick');
 END; { GeneralPopupRestoreShowPointDefaultStateColourClick }
 
-PROCEDURE TFWPRailWindow.GeneralPopupChangeLenzPointNumberColourClick(Sender: TObject);
+PROCEDURE TFWPRailWindow.GeneralPopupChangePointLenzNumberColourClick(Sender: TObject);
 BEGIN
   { Show the default }
-  FWPRailWindowColourDialogue.Color := LenzPointNumberColour;
+  FWPRailWindowColourDialogue.Color := PointLenzNumberColour;
   { Allow the user to change it }
   IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    LenzPointNumberColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangeLenzPointNumberColourClick');
+    PointLenzNumberColour := FWPRailWindowColourDialogue.Color;
+    InvalidateScreen(UnitRef, 'GeneralPopupChangePointLenzNumberColourClick');
   END;
-END; { ChangeLenzPointNumberColourClick }
+END; { ChangePointLenzNumberColourClick }
 
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreLenzPointNumberColourClick(Sender: TObject);
+PROCEDURE TFWPRailWindow.GeneralPopupRestorePointLenzNumberColourClick(Sender: TObject);
 BEGIN
-  LenzPointNumberColour := DefaultLenzPointNumberColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreLenzPointNumberColourClick');
-END; { GeneralPopupRestoreLenzPointNumberColourClick }
+  PointLenzNumberColour := DefaultPointLenzNumberColour;
+  InvalidateScreen(UnitRef, 'GeneralPopupRestorePointLenzNumberColourClick');
+END; { GeneralPopupRestorePointLenzNumberColourClick }
 
 PROCEDURE TFWPRailWindow.GeneralPopupChangePointManualOperationColourClick(Sender: TObject);
 BEGIN
@@ -5716,8 +5761,8 @@ BEGIN
   BufferStopNumberColour := DefaultBufferStopNumberColour;
   BufferStopRed := DefaultBufferStopRed;
   ForegroundColour := DefaultForegroundColour;
-  LenzPointNumberColour := DefaultLenzPointNumberColour;
   LineNotAvailableColour := DefaultLineNotAvailableColour;
+  LineRoutedOverColour := DefaultLineRoutedOverColour;
   LocoStalledColour := DefaultLocoStalledColour;
   PlatformColour := DefaultPlatformColour;
   PointColour := DefaultPointColour;
@@ -5726,10 +5771,12 @@ BEGIN
   PointFeedbackDataInUseColour := DefaultPointFeedbackDataInUseColour;
   PointFeedbackDataOutOfUseColour := DefaultPointFeedbackDataOutOfUseColour;
   PointHeelLineColour := DefaultPointHeelLineColour;
+  PointLenzNumberColour := DefaultPointLenzNumberColour;
   PointManualOperationColour := DefaultPointManualOperationColour;
   PointStraightLineColour :=DefaultPointStraightLineColour;
   PointsWithoutFeedbackColour := DefaultPointsWithoutFeedbackColour;
   PointUpFacingColour := DefaultPointUpFacingColour;
+  ScreenComponentEditedColour := DefaultScreenComponentEditedColour;
   ShowPointDefaultStateColour := DefaultShowPointDefaultStateColour;
   ShowPointLockedColour := DefaultShowPointLockedColour;
   SignalAspectGreen := DefaultSignalAspectGreen;
@@ -5749,6 +5796,7 @@ BEGIN
   TCPermanentSystemOccupationColour := DefaultTCPermanentSystemOccupationColour;
   TCSystemOccupationColour := DefaultTCSystemOccupationColour;
   TCUnoccupiedColour := DefaultTCUnoccupiedColour;
+  TCUserMustDriveColour := DefaultTCUserMustDriveColour;
   TrainActiveColour := DefaultTrainActiveColour;
   TrainInactiveColour := DefaultTrainInactiveColour;
   TRSPlungerColour := DefaultTRSPlungerColour;
@@ -5781,8 +5829,9 @@ BEGIN
   BufferStopNumberColour := SaveBufferStopNumberColourForPrinting;
   BufferStopRed := SaveBufferStopRedForPrinting;
   ForegroundColour := SaveForegroundColourForPrinting;
-  LenzPointNumberColour := SaveLenzPointNumberColourForPrinting;
+  PointLenzNumberColour := SavePointLenzNumberColourForPrinting;
   LineNotAvailableColour := SaveLineNotAvailableColourForPrinting;
+  LineRoutedOverColour := SaveLineRoutedOverColourForPrinting;
   LocoStalledColour := SaveLocoStalledColourForPrinting;
   PlatformColour := SavePlatformColourForPrinting;
   PointColour := SavePointColourForPrinting;
@@ -5795,6 +5844,7 @@ BEGIN
   PointStraightLineColour := SavePointStraightLineColourForPrinting;
   PointsWithoutFeedbackColour := SavePointsWithoutFeedbackColourForPrinting;
   PointUpFacingColour := SavePointUpFacingColourForPrinting;
+  ScreenComponentEditedColour := SaveScreenComponentEditedColourForPrinting;
   ShowPointDefaultStateColour := SaveShowPointDefaultStateColourForPrinting;
   ShowPointLockedColour := SaveShowPointLockedColourForPrinting;
   SignalNumberColour := SaveSignalNumberColourForPrinting;
@@ -5810,6 +5860,7 @@ BEGIN
   TCPermanentSystemOccupationColour := SaveTCPermanentSystemOccupationColourForPrinting;
   TCSystemOccupationColour := SaveTCSystemOccupationColourForPrinting;
   TCUnoccupiedColour := SaveTCUnoccupiedColourForPrinting;
+  TCUserMustDriveColour := SaveTCUserMustDriveColourForPrinting;
   TrainActiveColour := SaveTrainActiveColourForPrinting;
   TrainInactiveColour := SaveTrainInactiveColourForPrinting;
   TRSPlungerColour := SaveTRSPlungerColourForPrinting;
@@ -5838,11 +5889,14 @@ BEGIN
   SaveForegroundColourForPrinting := ForegroundColour;
   ForegroundColour := clBlack;
 
-  SaveLenzPointNumberColourForPrinting := LenzPointNumberColour;
-  LenzPointNumberColour := clBlack;
+  SavePointLenzNumberColourForPrinting := PointLenzNumberColour;
+  PointLenzNumberColour := clBlack;
 
   SaveLineNotAvailableColourForPrinting := LineNotAvailableColour;
   LineNotAvailableColour := clBlack;
+
+  SaveLineRoutedOverColourForPrinting := LineRoutedOverColour;
+  LineRoutedOverColour := clBlack;
 
   SaveLocoStalledColourForPrinting := LocoStalledColour;
   LocoStalledColour := clBlack;
@@ -5879,6 +5933,9 @@ BEGIN
 
   SavePointUpFacingColourForPrinting := PointUpFacingColour;
   PointUpFacingColour := clBlack;
+
+  SaveScreenComponentEditedColourForPrinting := ScreenComponentEditedColour;
+  ScreenComponentEditedColour := clBlack;
 
   SaveShowPointDefaultStateColourForPrinting := ShowPointDefaultStateColour;
   ShowPointDefaultStateColour := clBlack;
@@ -5924,6 +5981,9 @@ BEGIN
 
   SaveTCUnoccupiedColourForPrinting := TCUnoccupiedColour;
   TCUnoccupiedColour := clBlack;
+
+  SaveTCUserMustDriveColourForPrinting := TCUserMustDriveColour;
+  TCUserMustDriveColour := clBlack;
 
   SaveTrainActiveColourForPrinting := TrainActiveColour;
   TrainActiveColour := clBlack;
@@ -7210,7 +7270,11 @@ BEGIN { Main drawing procedure }
                   IF Line_RouteSet <> UnknownRoute THEN
                     Line_CurrentColour := LineRoutedOverColour
                 END;
-                DrawLine(Line, Line_CurrentColour, ActiveTrain);
+
+                IF Line = EditedLine THEN
+                  DrawLine(Line, ScreenComponentEditedColour, ActiveTrain)
+                ELSE
+                  DrawLine(Line, Line_CurrentColour, ActiveTrain);
               END;
 
               { Draw a rectangle around any line highlighted by the input procedure }

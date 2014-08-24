@@ -285,7 +285,6 @@ object FWPRailWindow: TFWPRailWindow
     end
     object GeneralPopupChangeColours: TMenuItem
       Caption = '&Change Colours'
-      OnClick = GeneralPopupChangeColoursClick
       object GeneralPopupBackgroundColour: TMenuItem
         Caption = '&Background Colour'
         object GeneralPopupChangeBackgroundColour: TMenuItem
@@ -375,6 +374,15 @@ object FWPRailWindow: TFWPRailWindow
           object GeneralPopupRestoreLineNotAvailableColour: TMenuItem
             Caption = 'Restore Line Not Available Colour'
             OnClick = GeneralPopupRestoreLineNotAvailableColourClick
+          end
+        end
+        object LineRoutedOverColour1: TMenuItem
+          Caption = 'Line Routed Over Colour'
+          object ChangeLineRoutedOverColour2: TMenuItem
+            Caption = 'Change Line RoutedOver Colour'
+          end
+          object RestoreLineRoutedOverColour2: TMenuItem
+            Caption = 'Restore Line Routed Over Colour'
           end
         end
         object GeneralPopupLocoStalledColour: TMenuItem
@@ -476,17 +484,6 @@ object FWPRailWindow: TFWPRailWindow
             OnClick = GeneralPopupRestoreTCPermanentSystemOccupationColourClick
           end
         end
-        object GeneralPopupTCLocoOutOfPlaceColour: TMenuItem
-          Caption = 'TC Loco Out Of Place Colour'
-          object GeneralPopupChangeTCLocoOutOfPlaceColour: TMenuItem
-            Caption = 'Change TC Loco Out Of Place Colour'
-            OnClick = GeneralPopupChangeTCLocoOutOfPlaceColourClick
-          end
-          object GeneralPopupRestoreTCLocoOutOfPlaceColour: TMenuItem
-            Caption = 'Restore TC Loco Out Of PlaceColour'
-            OnClick = GeneralPopupRestoreTCLocoOutOfPlaceColourClick
-          end
-        end
         object GeneralPopupTCSpeedRestrictionColour: TMenuItem
           Caption = 'TC Speed Restriction Colour'
           object GeneralPopupChangeTCSpeedRestrictionColour: TMenuItem
@@ -540,6 +537,17 @@ object FWPRailWindow: TFWPRailWindow
           object GeneralPopupRestoreTCUnoccupiedColour: TMenuItem
             Caption = 'Restore TC Unoccupied Colour'
             OnClick = GeneralPopupRestoreTCUnoccupiedColourClick
+          end
+        end
+        object GeneralPopupTCUserMustDriveColour: TMenuItem
+          Caption = 'TC User Must Drive Colour'
+          object GeneralPopupChangeTCUserMustDriveColour: TMenuItem
+            Caption = 'Change TC User Must Drive Colour'
+            OnClick = GeneralPopupChangeTCUserMustDriveColourClick
+          end
+          object GeneralPopupRestoreTCUserMustDriveColour: TMenuItem
+            Caption = 'Restore TC User Must Drive Colour'
+            OnClick = GeneralPopupRestoreTCUserMustDriveColourClick
           end
         end
       end
@@ -607,17 +615,6 @@ object FWPRailWindow: TFWPRailWindow
             OnClick = GeneralPopupRestorePointDefaultColourClick
           end
         end
-        object GeneralPopupLenzPointNumberColour: TMenuItem
-          Caption = 'Lenz Point Number Colour'
-          object GeneralPopupChangeLenzPointNumberColour: TMenuItem
-            Caption = 'Change Lenz Point Number Colour'
-            OnClick = GeneralPopupChangeLenzPointNumberColourClick
-          end
-          object GeneralPopupRestoreLenzPointNumberColour: TMenuItem
-            Caption = 'Restore Lenz Point Number Colour'
-            OnClick = GeneralPopupRestoreLenzPointNumberColourClick
-          end
-        end
         object GeneralPopupPointDivergingLineColour: TMenuItem
           Caption = 'Point Diverging Line Colour'
           object GeneralPopupChangePointDivergingLineColour: TMenuItem
@@ -671,6 +668,17 @@ object FWPRailWindow: TFWPRailWindow
           object GeneralPopupRestorePointHeelLineColour: TMenuItem
             Caption = 'Restore Point Heel Line Colour'
             OnClick = GeneralPopupRestorePointHeelLineColourClick
+          end
+        end
+        object GeneralPopupPointLenzNumberColour: TMenuItem
+          Caption = 'Point Lenz Number Colour'
+          object GeneralPopupChangePointLenzNumberColour: TMenuItem
+            Caption = 'Change Point Lenz Number Colour'
+            OnClick = GeneralPopupChangePointLenzNumberColourClick
+          end
+          object GeneralPopupRestorePointLenzNumberColour: TMenuItem
+            Caption = 'Restore Point Lenz Number Colour'
+            OnClick = GeneralPopupRestorePointLenzNumberColourClick
           end
         end
         object GeneralPopupPointLockedBySystemColour: TMenuItem
@@ -895,6 +903,17 @@ object FWPRailWindow: TFWPRailWindow
             Caption = 'Restore Train Inactive Colour'
             OnClick = GeneralPopupRestoreTrainInactiveColourClick
           end
+        end
+      end
+      object GeneralPopupScreenComponentEditedColour: TMenuItem
+        Caption = 'Screen Component Edited Colour'
+        object GeneralPopupChangeScreenComponentEditedColour: TMenuItem
+          Caption = 'Change Screen Component Edited Colour'
+          OnClick = GeneralPopupChangeScreenComponentEditedColourClick
+        end
+        object GeneralPopupRestoreScreenComponentEditedColour: TMenuItem
+          Caption = 'Restore Screen Component Edited Colour'
+          OnClick = GeneralPopupRestoreScreenComponentEditedColourClick
         end
       end
       object GeneralPopupRuler4: TMenuItem
