@@ -1541,11 +1541,17 @@ BEGIN
     SaveChangesAndExitButton.Enabled := False;
 
     ClearEditValueList;
+
+    { And redraw the screen }
+    RedrawScreen := True;
+    InvalidateScreen(UnitRef, 'EditSaveButtonClick');
+    Log('D Screen invalidated by Edit Without Saving');
+    RedrawScreen := False;
   EXCEPT {TRY}
     ON E : Exception DO
       Log('EG ExitWithSavingButtonClick: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
-END; { ExitWithSavingButtonClick }
+END; { ExitWithoutSavingButtonClick }
 
 PROCEDURE ResetEditWindowSizeAndPosition;
 { Reset the window's size and position }
@@ -2498,7 +2504,7 @@ BEGIN
 
       ClearEditValueList;
 
-      { and force a redraw so that the highglighted signal/point etc. is de-highlighted }
+      { and force a redraw so that the highlighted signal/point etc. is de-highlighted }
       FWPRailWindow.Repaint;
 
       IF SaveSystemOnlineState THEN BEGIN
