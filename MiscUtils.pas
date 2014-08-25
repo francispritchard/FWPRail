@@ -464,6 +464,9 @@ FUNCTION LinesAreAdjacent(L1, L2 : Integer; ErrorMsg : String) : Boolean;
 FUNCTION ListLocoChipsInIntegerArray(IntegerArray : IntegerArrayType) : String;
 { Lists loco chips from an integer array }
 
+PROCEDURE LoadPreviousPointSettings;
+{ Load the previous settings - generally used when starting up offline }
+
 FUNCTION LocationOccupationStateToStr(OccupationState : LocationOccupationStateType) : String;
 { Return the state of the Location Occupation as a string }
 
@@ -4930,6 +4933,27 @@ BEGIN
   END;
 END; { LATS }
 
+PROCEDURE LoadPreviousPointSettings;
+{ Load the previous settings - generally used when starting up offline }
+VAR
+  P : Integer;
+
+BEGIN
+  IF SystemOnline THEN
+    Debug('Cannot load previous point settings if system online')
+  ELSE BEGIN
+    FOR P := 0 TO High(Points) DO BEGIN
+      IF Points[P].Point_ManualOperation THEN
+        Points[P].Point_PresentState := Points[P].Point_LastManualStateAsReadIn
+      ELSE
+        Points[P].Point_PresentState := Points[P].Point_LastFeedbackStateAsReadIn;
+    END; {FOR}
+    Debug('Previous point settings loaded');
+
+    InvalidateScreen(UnitRef, 'Load latest point settings in offline mode');
+  END;
+END; { LoadPreviousPointSettings }
+
 FUNCTION LocationToStrMainProcedure(Location : Integer; LongOrShortString : StringType) : String;
 { Return a location as a string }
 VAR
@@ -6413,6 +6437,15 @@ BEGIN
           PointDebuggingMode := True;
           Log('A Point Debugging Mode = ON');
           WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' POINT');
+        END;
+      PreviousPointSettings:
+        { This probably shouldn't really be a mode, as there would be no point in turning it off once the previous point settings are loaded, but it is a way of recording
+          that the startup parameter is set and then implementing it when the points are subsequently loaded
+        }
+        IF NOT PreviousPointSettingsMode THEN BEGIN
+          PreviousPointSettingsMode := True;
+          Log('A Previous Point Settings Mode = ON');
+          WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' PPS');
         END;
       RDC:
         IF NOT RDCMode THEN BEGIN

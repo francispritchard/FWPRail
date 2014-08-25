@@ -90,7 +90,7 @@ BEGIN
   Str := Copy(Str, Finish);
 END; { GetWord }
 
-PROCEDURE SetParameter(ParamString : String; VAR OK : Boolean);
+PROCEDURE SetParameter(IndividualParameterString : String; VAR OK : Boolean);
 { Set the parameters }
 CONST
   WarnUser = True;
@@ -102,46 +102,46 @@ VAR
 
 BEGIN
   OK := True;
-  Ch := ParamString[1];
+  Ch := IndividualParameterString[1];
   HelpString := 'RAIL [options]';
 
-  IF (Ch = '/') OR (Ch = '-') AND (Length(ParamString) > 1) THEN BEGIN
+  IF (Ch = '/') OR (Ch = '-') AND (Length(IndividualParameterString) > 1) THEN BEGIN
     { advance beyond the '/' or '-' }
-    ParamString := Copy(UpperCase(ParamString), 2, 255);
-    Ch := ParamString[1];
+    IndividualParameterString := Copy(UpperCase(IndividualParameterString), 2, 255);
+    Ch := IndividualParameterString[1];
     CASE Ch OF
       '?':
         { List all the options here **** }
         WriteLn('Test');
       'A':
-        IF ParamString = 'A-' THEN
+        IF IndividualParameterString = 'A-' THEN
           SetMode(AnonymousOccupation, TurnOff)
         ELSE
-          IF ParamString = 'ARD' THEN
+          IF IndividualParameterString = 'ARD' THEN
           { used for development }
             SetMode(AllRouteDebugging, TurnOn)
           ELSE
-            IF ParamString = 'ATCM' THEN BEGIN
+            IF IndividualParameterString = 'ATCM' THEN BEGIN
               SetMode(ShowAdjacentTrackCircuit, TurnOn);
               Debug('Displaying adjacent track circuit mode = ON');
             END ELSE
               OK := False;
       'C':
-        IF ParamString = 'CONNECTION=ETHERNET' THEN
+        IF IndividualParameterString = 'CONNECTION=ETHERNET' THEN
           DesiredLenzConnection := EthernetConnection
         ELSE
-          IF ParamString = 'CONNECTION=USB' THEN
+          IF IndividualParameterString = 'CONNECTION=USB' THEN
             DesiredLenzConnection := USBConnection
           ELSE
-            IF Copy(ParamString, 1, Length('CONNECTION')) = 'CONNECTION' THEN BEGIN
+            IF Copy(IndividualParameterString, 1, Length('CONNECTION')) = 'CONNECTION' THEN BEGIN
               DesiredLenzConnection := NoConnection;
-              Log('XG Invalid connection type: ' + ParamString);
+              Log('XG Invalid connection type: ' + IndividualParameterString);
             END;
       'D':
-        IF Copy(ParamString, 1, 2) = 'D-' THEN
+        IF IndividualParameterString = 'D-' THEN
           StartWithDiagrams := False
         ELSE
-          IF Copy(ParamString, 1, 2) = 'D+' THEN BEGIN
+          IF IndividualParameterString = 'D+' THEN BEGIN
             IF WorkingTimetableMode THEN BEGIN
               Log('XG WorkingTimetable Mode (W+) and DiagramMode (D+) cannot both be set - defaulting to DiagramMode');
               OK := False;
@@ -149,158 +149,163 @@ BEGIN
               WorkingTimetableMode := False;
             END;
           END ELSE
-            IF ParamString = 'Debug' THEN
+            IF IndividualParameterString = 'Debug' THEN
               { used for development }
               SetMode(GeneralDebugging, TurnOn)
             ELSE
               OK := False;
       'F':
-        IF ParamString = 'FD' THEN
+        IF IndividualParameterString = 'FD' THEN
           SetFeedbackDebuggingModeOn('FeedbackDebuggingMode=ON', NOT ReadOutAdjacentSignalNumber, NOT ReadOutTCInFull, NOT ReadOutTCOnce, NOT ReadOutDecoderNumber)
         ELSE
-          IF ParamString = 'FDS' THEN BEGIN
+          IF IndividualParameterString = 'FDS' THEN BEGIN
             SetFeedbackDebuggingModeOn('FeedbackDebuggingMode=ON', NOT ReadOutAdjacentSignalNumber, ReadOutTCInFull, NOT ReadOutTCOnce, NOT ReadOutDecoderNumber)
           END ELSE
-            IF ParamString = 'FSS' THEN
+            IF IndividualParameterString = 'FSS' THEN
               ScreenMode := FullScreenWithStatusBarMode
             ELSE
-              IF ParamString = 'FS' THEN
+              IF IndividualParameterString = 'FS' THEN
                 ScreenMode := FullScreenMode
               ELSE
-                IF ParamString = 'FTC=OFF' THEN
+                IF IndividualParameterString = 'FTC=OFF' THEN
                   DisplayFlashingTrackCircuits := False
                 ELSE
-                  IF ParamString = 'FTC=ON' THEN
+                  IF IndividualParameterString = 'FTC=ON' THEN
                     DisplayFlashingTrackCircuits := True
                   ELSE
                     OK := False;
       'I':
-        IF ParamString = 'I' THEN
+        IF IndividualParameterString = 'I' THEN
           { used for development }
           SetMode(LineDebugging, TurnOn)
         ELSE
-          IF ParamString = 'IL=OFF' THEN
+          IF IndividualParameterString = 'IL=OFF' THEN
             CheckForIdenticalLinesInLog := False
           ELSE
-            IF ParamString = 'IL=ON' THEN
+            IF IndividualParameterString = 'IL=ON' THEN
               CheckForIdenticalLinesInLog := True
             ELSE
               OK := False;
       'K':
-        IF ParamString = 'O' THEN
+        IF IndividualParameterString = 'O' THEN
           { used for development }
           SetMode(LockDebugging, TurnOn);
       'L':
-        IF ParamString = 'L' THEN
+        IF IndividualParameterString = 'L' THEN
           SetMode(Locking, TurnOff)
         ELSE
           { need to alter below to cope with suffixes **** }
-          IF Copy(ParamString, 1, 7) = 'LOGFILE' THEN BEGIN
-            IF Length(ParamString) > 8 THEN
-              LogFileName := Copy(ParamString, 9, 255)
+          IF Pos('LOGFILE', IndividualParameterString) > 0 THEN BEGIN
+            IF Length(IndividualParameterString) > Length('LOGFILE') THEN
+              LogFileName := GetFollowingChars(IndividualParameterString, 'LOGFILE', '')
           END ELSE
             OK := False;
       'M':
-        IF ParamString = 'M+' THEN
+        IF IndividualParameterString = 'M+' THEN
           { Make menus visible }
           ShowMenus
         ELSE
-          IF ParamString = 'M-' THEN
+          IF IndividualParameterString = 'M-' THEN
             { Make menus invisible }
             HideMenus
           ELSE
-            IF ParamString = 'ML' THEN
+            IF IndividualParameterString = 'ML' THEN
               MultipleLogFilesRequired := True
             ELSE
               OK := False;
       'N':
-         IF Copy(ParamString, 1, 8) = 'NOSPLASH' THEN
+         IF IndividualParameterString = 'NOSPLASH' THEN
            { do nothing - it's been dealt with at system initialisation (in rail.pas) }
          ELSE
-           IF Copy(ParamString, 1, 5) = 'NOLOG' THEN
+           IF IndividualParameterString = 'NOLOG' THEN
              { Turn of logging }
              LogsCurrentlyKept := False
            ELSE
-             IF Copy(ParamString, 1, 6) = 'NOBEEP' THEN
+             IF IndividualParameterString = 'NOBEEP' THEN
                { Turn of the sound made when bold text appears in the debug window }
                MakeSoundWhenDebugWindowBoldTextAppears := False
              ELSE
                OK := False;
       'O':
-         IF Copy(ParamString, 1, 7) = 'OFFLINE' THEN BEGIN
+         IF IndividualParameterString = 'OFFLINE' THEN BEGIN
            SystemSetOfflineByCommandLineParameter := True;
            SetSystemOffline('by command line parameter', NOT SoundWarning);
-         END;
+         END ELSE
+           IF IndividualParameterString = 'OFFLINEWITHPREVIOUSPOINTSSET' THEN BEGIN
+             SystemSetOfflineByCommandLineParameter := True;
+             SetSystemOffline('by command line parameter', NOT SoundWarning);
+             SetMode(PreviousPointSettings, TurnOn);
+           END;
       'P':
-        IF Copy(ParamString, 1, 4) = 'PFW:' THEN
-          Val(Copy(ParamString, 5, 1), PointFeedbackMaximumWaitInSeconds, ErrorCode)
+        IF IndividualParameterString = 'PFW:' THEN
+          Val(GetFollowingChars(IndividualParameterString, 'PFW:', ''), PointFeedbackMaximumWaitInSeconds, ErrorCode)
         ELSE
-          IF ParamString = 'PD' THEN
+          IF IndividualParameterString = 'PD' THEN
             { used for development }
             SetMode(PointDebugging, TurnOn)
           ELSE
             OK := False;
       'R':
-        IF ParamString = 'RDC=ON' THEN BEGIN
+        IF IndividualParameterString = 'RDC=ON' THEN BEGIN
           SetMode(RDC, TurnOn)
           // RailDriverWindow.RailDriverWindowTimer.Enabled := True;
         END ELSE
-          IF ParamString = 'RDC=OFF' THEN
+          IF IndividualParameterString = 'RDC=OFF' THEN
             { this is not necessary, but it's easier to turn it on or off in the parameter string this way }
             SetMode(RDC, TurnOff)
           ELSE
-            IF ParamString = 'RD' THEN
+            IF IndividualParameterString = 'RD' THEN
               SetMode(RouteDebugging, TurnOn)
             ELSE
-              IF ParamString = 'RS' THEN
+              IF IndividualParameterString = 'RS' THEN
                 SetMode(RouteDrawing, TurnOn)
               ELSE
-                IF ParamString = 'RB' THEN
+                IF IndividualParameterString = 'RB' THEN
                   SetMode(RouteBacktrackDebugging, TurnOn)
                 ELSE
-                  IF Copy(ParamString, 1, 10) = 'REPLAYFILE' THEN BEGIN
-                    IF Length(ParamString) > 11 THEN
-                      ReplayFileName := Copy(ParamString, 12, 255)
+                  IF Pos('REPLAYFILE', IndividualParameterString) > 0 THEN BEGIN
+                    IF Length(IndividualParameterString) > Length('REPLAYFILE') THEN
+                      ReplayFileName := GetFollowingChars(IndividualParameterString, 'REPLAYFILE', '');
                   END ELSE
-                    IF Copy(ParamString, 1, 11) = 'RUNTESTUNIT' THEN BEGIN
+                    IF IndividualParameterString = 'RUNTESTUNIT' THEN BEGIN
                       RunTestUnitOnStartup := True;
                     END ELSE
                       OK := False;
       'S':
-        IF ParamString = 'S' THEN
+        IF IndividualParameterString = 'S' THEN
           SetMode(StationStart, TurnOn)
         ELSE
           OK := False;
       'T':
-        IF Copy(ParamString, 1, 2) = 'T=' THEN BEGIN
-          IF TimeIsValid(Copy(ParamString, 3, 255)) THEN BEGIN
-            ProgramStartTime := StrToTime(Copy(ParamString, 3, 255));
+        IF IndividualParameterString = 'T=' THEN BEGIN
+          IF TimeIsValid(Copy(IndividualParameterString, 3, 255)) THEN BEGIN
+            ProgramStartTime := StrToTime(Copy(IndividualParameterString, 3, 255));
             SetCurrentRailwayTimeAndDayOfTheWeek(ProgramStartTime);
           END ELSE
             OK := False;
         END ELSE
-          IF ParamString = 'TR' THEN
+          IF IndividualParameterString = 'TR' THEN
             SetMode(RecordingMonitorScreens, TurnOn)
           ELSE
-            IF ParamString = 'TEST' THEN
+            IF IndividualParameterString = 'TEST' THEN
               SetMode(Testing, TurnOn)
             ELSE
               OK := False;
       'W':
-        IF Copy(ParamString, 1, 2) = 'W-' THEN
+        IF IndividualParameterString = 'W-' THEN
           WorkingTimetableMode := False
         ELSE
-          IF Copy(ParamString, 1, 2) = 'W+' THEN BEGIN
+          IF IndividualParameterString = 'W+' THEN BEGIN
             IF StartWithDiagrams THEN BEGIN
               Log('XG WorkingTimetable Mode (W+) and DiagramMode (D+) cannot both be set - defaulting to DiagramMode');
               OK := False;
             END ELSE BEGIN
               WorkingTimetableMode := True;
               StartWithDiagrams := False;
-              IF Copy(ParamString, 1, 2) = 'W:' THEN BEGIN
-                CurrentRailwayDayOfTheWeek := StrToDayOfTheWeek(Copy(ParamString, 3));
+              IF Copy(IndividualParameterString, 1, 2) = 'W:' THEN BEGIN
+                CurrentRailwayDayOfTheWeek := StrToDayOfTheWeek(Copy(IndividualParameterString, 3));
                 IF CurrentRailwayDayOfTheWeek = UnknownDayOfTheWeek THEN
-                  Log('XG Unknown day of the week in parameter ' + ParamString)
+                  Log('XG Unknown day of the week in parameter ' + IndividualParameterString)
                 ELSE
                   { Write out the current time now to include the day of the week }
                   SetCurrentRailwayTimeAndDayOfTheWeek(CurrentRailwayTime);
@@ -308,16 +313,18 @@ BEGIN
             END;
           END;
       'X':
-        IF ParamString = 'X' THEN
+        IF IndividualParameterString = 'X' THEN
           { used for development }
           ShowCreateRouteExitFunctionNum := True;
       'Y':
-        IF Copy(ParamString, 1, 2) = 'Y:' THEN BEGIN
-          ShowByteParam := Copy(ParamString, 3, 255);
-          IF (ShowByteParam = 'ALL')
-          OR ((ShowByteParam >= '0') AND (ShowByteParam <= '9'))
-          THEN
-            OK := False;
+        IF IndividualParameterString = 'Y:' THEN BEGIN
+          IF Length(IndividualParameterString) > Length('Y:') THEN BEGIN
+            ShowByteParam := GetFollowingChars(IndividualParameterString, 'Y:', '');
+            IF (ShowByteParam = 'ALL')
+            OR ((ShowByteParam >= '0') AND (ShowByteParam <= '9'))
+            THEN
+              OK := False;
+          END;
         END ELSE
           OK := False;
       ';', '!':

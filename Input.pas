@@ -2661,12 +2661,8 @@ BEGIN { KeyPressedDown }
                     Debug('Cannot load previous point settings if system online')
                   ELSE BEGIN
                     Debug('Loading previous point settings');
-                    FOR P := 0 TO High(Points) DO BEGIN
-                      IF Points[P].Point_ManualOperation THEN
-                        Points[P].Point_PresentState := Points[P].Point_LastManualStateAsReadIn
-                      ELSE
-                        Points[P].Point_PresentState := Points[P].Point_LastFeedbackStateAsReadIn;
-                    END; {FOR}
+                    SetMode(PreviousPointSettings, TurnOn);
+                    LoadPreviousPointSettings;
                     InvalidateScreen(UnitRef, 'Load latest point settings in offline mode');
                   END;
                 END;
@@ -2815,6 +2811,8 @@ BEGIN { KeyPressedDown }
 
                   Log('A READ IN POINT DATA FROM DATABASE');
                   ReadInPointDataFromDatabase;
+                  IF PreviousPointSettingsMode THEN
+                    LoadPreviousPointSettings;
 
                   Log('A READ IN PLATFORM DATA FROM DATABASE');
                   ReadInPlatformDataFromDatabase;

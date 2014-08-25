@@ -176,8 +176,8 @@ TYPE
   LocoControlStateType = (ControlledByProgram, ControlledByRDC, ControlledByUser, ControlledByUnknownDevice);
 
   { Various modes }
-  ModeType = (AllRouteDebugging, AnonymousOccupation, GeneralDebugging, LineDebugging, LockDebugging, Locking, PointDebugging, RDC, RecordingMonitorScreens,
-              RecordLineDrawing, RouteDebugging, RouteBacktrackDebugging, RouteDrawing, ShowAdjacentTrackCircuit, StationStart, Testing);
+  ModeType = (AllRouteDebugging, AnonymousOccupation, GeneralDebugging, LineDebugging, LockDebugging, Locking, PointDebugging, PreviousPointSettings, RDC,
+              RecordingMonitorScreens, RecordLineDrawing, RouteDebugging, RouteBacktrackDebugging, RouteDrawing, ShowAdjacentTrackCircuit, StationStart, Testing);
 
   DirectionType = (Up, Down, Bidirectional, UnknownDirection);
   DirectionArrayType = ARRAY OF DirectionType;
@@ -1272,6 +1272,7 @@ VAR
   PostEmergencyTime : TDateTime = 0;
   PostEmergencyTimeSet : Boolean = False;
   PreparingZoom : Boolean = False;
+  PreviousPointSettingsMode : Boolean = False;
   ProgramShuttingDown : Boolean = False;
   ProgramStartup : Boolean = True;
   RailWindowBitmapCanvasPenWidth : Integer;
@@ -1775,7 +1776,7 @@ END; { AddLineToStationMonitorsWebDiagnosticsMemo }
 PROCEDURE SetUpLineDrawingVars;
 { Set up the positions of the lines and plaforms }
 BEGIN
-  { Interval spacing : the following data has been read in from the .ini file }
+  { Interval spacing : the following data has been read in from the registry }
   DeltaPointXSpaced := MulDiv(FWPRailWindow.ClientHeight, DeltaPointX, ZoomScaleFactor * 10);
   BufferStopVerticalSpacingScaled := MulDiv(FWPRailWindow.ClientHeight, BufferStopVerticalSpacing, ZoomScaleFactor * 10);
   IndicatorHorizontalSpacingScaled := MulDiv(FWPRailWindow.ClientWidth, IndicatorHorizontalSpacing, ZoomScaleFactor * 10);
