@@ -1324,67 +1324,9 @@ object FWPRailWindow: TFWPRailWindow
     Top = 49
   end
   object LinePopupMenu: TPopupMenu
-    OnPopup = LineMenuOnPopup
+    OnPopup = LinePopupMenuOnPopup
     Left = 336
     Top = 108
-    object TCPopupTrackCircuitNumber: TMenuItem
-      Caption = 'TrackCircuit Number'
-    end
-    object TCPopupRuler1: TMenuItem
-      Caption = '-'
-    end
-    object TCPopupSetTrackCircuitToFeedbackOccupation: TMenuItem
-      Caption = 'Set Track Circuit to Feedback Occupation'
-    end
-    object TCPopupSetTrackCircuitUnoccupied: TMenuItem
-      Caption = 'Set Track Circuit Unoccupied'
-    end
-    object TCPopupSetTrackCircuitOutOfUseSetByUser: TMenuItem
-      Caption = 'Set Track Circuit Out Of Use'
-    end
-    object TCPopupSetTrackCircuitToSystemOccupation: TMenuItem
-      Caption = 'Set Track Circuit to System Occupation'
-    end
-    object TCPopupSetTrackCircuitToPermanentOccupation: TMenuItem
-      Caption = 'Set Track Circuit to Permanent Occupation'
-    end
-    object TCPopupSetTrackCircuitSpeedRestriction: TMenuItem
-      Caption = 'Set Track Circuit Speed Restriction'
-    end
-    object TCPopupClearTrackCircuitSpeedRestriction: TMenuItem
-      Caption = 'Clear Track Circuit Speed Restriction'
-    end
-    object TCPopupSetTrackCircuitToUserDriving: TMenuItem
-      Caption = 'Set Track Circuit to User Must Drive'
-    end
-    object TCPopupRuler2: TMenuItem
-      Caption = '-'
-    end
-    object TCPopupSetLineOutOfUse: TMenuItem
-      Caption = 'Set Line Out Of Use'
-    end
-    object TCPopupSetLocationOutOfUse: TMenuItem
-      Caption = 'Set Location Out Of Use'
-    end
-    object TCPopupRuler3: TMenuItem
-      Caption = '-'
-    end
-    object TCPopupAllocateLocoToTrackCircuit: TMenuItem
-      Caption = 'Allocate Loco to TrackCircuit'
-    end
-    object TCPopupClearLocoAllocationFromTrackCircuit: TMenuItem
-      Caption = 'Clear Loco Allocation From Track Circuit'
-      Enabled = False
-    end
-    object TCPopupRuler4: TMenuItem
-      Caption = '-'
-    end
-    object TCPopupChangeInternalLocoDirectionToUp: TMenuItem
-      Caption = 'Change Internal Loco Direction to Up'
-    end
-    object TCPopupChangeInternalLocoDirectionToDown: TMenuItem
-      Caption = 'Change Internal Loco Direction to Down'
-    end
   end
   object PointPopupMenu: TPopupMenu
     OnPopup = PointPopupMenuOnPopup

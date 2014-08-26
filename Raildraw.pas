@@ -4520,253 +4520,270 @@ VAR
   T : TrainIndex;
 
 BEGIN
-  WITH Lines[LinePopupNum] DO BEGIN
-    WITH Sender As TMenuItemExtended DO BEGIN
-      CASE PopupType OF
-        LineAllocateLocoToTrackCircuitPopupType:
-          IF TrackCircuits[Line_TC].TC_LocoChip = UnknownLocoChip THEN
-            AllocateLocoToTrackCircuit(LinePopupNum)
-          ELSE
-            ClearLocoFromTrackCircuit(Line_TC);
-
-        LineChangeInternalLocoDirectionToUpPopupType:
-          IF TrackCircuits[Line_TC].TC_LocoChip = UnknownLocoChip THEN
-            ChangeInternalLocoDirectionToUp(TrackCircuits[Line_TC].TC_LocoChip);
-
-        LineChangeInternalLocoDirectionToDownPopupType:
-          IF TrackCircuits[Line_TC].TC_LocoChip = UnknownLocoChip THEN
-            ChangeInternalLocoDirectionToDown(TrackCircuits[Line_TC].TC_LocoChip);
-
-        LineCreateLinePopupType:
-          CreateLine;
-
-        LineCreateUpPointPopupType:
-          CreatePoint(Up, LinePopupNum);
-
-        LineCreateDownPointPopupType:
-          CreatePoint(Down, LinePopupNum);
-
-        LineCreateUpSignalPopupType:
-          CreateSignal(Up, LinePopupNum);
-
-        LineCreateDownSignalPopupType:
-          CreateSignal(Down, LinePopupNum);
-
-        LineEditPopupType:
-          TurnEditModeOn(UnknownSignal, UnknownPoint, UnknownBufferStop, LinePopupNum, UnknownTrackCircuit);
-
-        LineLocationOutOfUsePopupType:
-          IF Line_Location <> UnknownLocation THEN BEGIN
-            WITH Locations[Line_Location] DO BEGIN
-              IF Location_OutOfUse THEN BEGIN
-                Location_OutOfUse := False;
-
-                { Now restore all the lines within the location to their previous state }
-                FOR LineCount := 0 TO High(Lines) DO BEGIN
-                  IF Lines[LineCount].Line_Location = Line_Location THEN BEGIN
-                    IF Lines[LineCount].Line_SaveOutOfUseState = OutOfUse THEN
-                      Lines[LineCount].Line_OutOfUseState := OutOfUse
-                    ELSE
-                      Lines[LineCount].Line_OutOfUseState := InUse;
-                  END;
-                END;
-              END ELSE BEGIN
-                Location_OutOfUse := True;
-
-                { Now set all the lines within the location to out of use too }
-                FOR LineCount := 0 TO High(Lines) DO BEGIN
-                  IF Lines[LineCount].Line_Location = Line_Location THEN BEGIN
-                    Lines[LineCount].Line_SaveOutOfUseState := Lines[LineCount].Line_OutOfUseState;
-                    Lines[LineCount].Line_OutOfUseState := OutOfUse;
-                  END;
-                END;
-              END;
-              InvalidateScreen(UnitRef, 'LinePopupItemClick LineLocationOutOfUsePopupType');
-            END; {WITH}
-          END;
-
-        LineOutOfUsePopupType:
-          BEGIN
-            IF Line_OutOfUseState = OutOfUse THEN
-              Line_OutOfUseState := InUse
+  WITH Sender AS TMenuItemExtended DO BEGIN
+    { this code has been separated out from the case statement below as we may well not be on a line, and the WITH Lines[LinePopupNum] would fail }
+    IF PopupType = LineCreateLinePopupType THEN
+      CreateLine
+    ELSE BEGIN
+      WITH Lines[LinePopupNum] DO BEGIN
+        CASE PopupType OF
+          LineAllocateLocoToTrackCircuitPopupType:
+            IF TrackCircuits[Line_TC].TC_LocoChip = UnknownLocoChip THEN
+              AllocateLocoToTrackCircuit(LinePopupNum)
             ELSE
-              Line_OutOfUseState := OutOfUse;
-            InvalidateScreen(UnitRef, 'LinePopupItemClick LineOutOfUsePopupType');
-          END;
+              ClearLocoFromTrackCircuit(Line_TC);
 
-        LineShowLocoLastErrorMessagePopupType:
-          IF Line_TC <> UnknownTrackCircuit THEN BEGIN
-            T := GetTrainIndexFromLocoChip(TrackCircuits[Line_TC].TC_LocoChip);
-            IF T <> UnknownTrainIndex THEN BEGIN
-              WITH Trains[T] DO BEGIN
-                IF Train_LastRouteLockedMsgStr <> '' THEN
-                  Debug(Train_LocoChipStr + ': ' +  Train_LastRouteLockedMsgStr);
-                IF Train_RouteCreationHoldMsg <> '' THEN
-                  Debug(Train_LocoChipStr + ': ' + Train_RouteCreationHoldMsg);
+          LineChangeInternalLocoDirectionToUpPopupType:
+            IF TrackCircuits[Line_TC].TC_LocoChip = UnknownLocoChip THEN
+              ChangeInternalLocoDirectionToUp(TrackCircuits[Line_TC].TC_LocoChip);
+
+          LineChangeInternalLocoDirectionToDownPopupType:
+            IF TrackCircuits[Line_TC].TC_LocoChip = UnknownLocoChip THEN
+              ChangeInternalLocoDirectionToDown(TrackCircuits[Line_TC].TC_LocoChip);
+
+          LineCreateUpPointPopupType:
+            CreatePoint(Up, LinePopupNum);
+
+          LineCreateDownPointPopupType:
+            CreatePoint(Down, LinePopupNum);
+
+          LineCreateUpSignalPopupType:
+            CreateSignal(Up, LinePopupNum);
+
+          LineCreateDownSignalPopupType:
+            CreateSignal(Down, LinePopupNum);
+
+//          LineCreateLinePopupType:
+//            CreateLine;
+
+          LineEditPopupType:
+            TurnEditModeOn(UnknownSignal, UnknownPoint, UnknownBufferStop, LinePopupNum, UnknownTrackCircuit);
+
+          LineLocationOutOfUsePopupType:
+            IF Line_Location <> UnknownLocation THEN BEGIN
+              WITH Locations[Line_Location] DO BEGIN
+                IF Location_OutOfUse THEN BEGIN
+                  Location_OutOfUse := False;
+
+                  { Now restore all the lines within the location to their previous state }
+                  FOR LineCount := 0 TO High(Lines) DO BEGIN
+                    IF Lines[LineCount].Line_Location = Line_Location THEN BEGIN
+                      IF Lines[LineCount].Line_SaveOutOfUseState = OutOfUse THEN
+                        Lines[LineCount].Line_OutOfUseState := OutOfUse
+                      ELSE
+                        Lines[LineCount].Line_OutOfUseState := InUse;
+                    END;
+                  END;
+                END ELSE BEGIN
+                  Location_OutOfUse := True;
+
+                  { Now set all the lines within the location to out of use too }
+                  FOR LineCount := 0 TO High(Lines) DO BEGIN
+                    IF Lines[LineCount].Line_Location = Line_Location THEN BEGIN
+                      Lines[LineCount].Line_SaveOutOfUseState := Lines[LineCount].Line_OutOfUseState;
+                      Lines[LineCount].Line_OutOfUseState := OutOfUse;
+                    END;
+                  END;
+                END;
+                InvalidateScreen(UnitRef, 'LinePopupItemClick LineLocationOutOfUsePopupType');
+              END; {WITH}
+            END;
+
+          LineOutOfUsePopupType:
+            BEGIN
+              IF Line_OutOfUseState = OutOfUse THEN
+                Line_OutOfUseState := InUse
+              ELSE
+                Line_OutOfUseState := OutOfUse;
+              InvalidateScreen(UnitRef, 'LinePopupItemClick LineOutOfUsePopupType');
+            END;
+
+          LineShowLocoLastErrorMessagePopupType:
+            IF Line_TC <> UnknownTrackCircuit THEN BEGIN
+              T := GetTrainIndexFromLocoChip(TrackCircuits[Line_TC].TC_LocoChip);
+              IF T <> UnknownTrainIndex THEN BEGIN
+                WITH Trains[T] DO BEGIN
+                  IF Train_LastRouteLockedMsgStr <> '' THEN
+                    Debug(Train_LocoChipStr + ': ' +  Train_LastRouteLockedMsgStr);
+                  IF Train_RouteCreationHoldMsg <> '' THEN
+                    Debug(Train_LocoChipStr + ': ' + Train_RouteCreationHoldMsg);
+                END;
               END;
             END;
-          END;
 
-        LineTCFeedbackOccupationPopupType:
-          IF Line_TC <> UnknownTrackCircuit THEN BEGIN
-            SetTrackCircuitState(Line_TC, TCFeedbackOccupation);
-            InvalidateScreen(UnitRef, 'LinePopupItemClick LineTCFeedbackOccupationPopupType');
-          END;
-
-        LineTCSystemOccupationPopupType:
-          IF Line_TC <> UnknownTrackCircuit THEN BEGIN
-            SetTrackCircuitState(Line_TC, TCSystemOccupation);
-            InvalidateScreen(UnitRef, 'LinePopupItemClick LineTCSystemOccupationPopupType');
-          END;
-
-        LineTCOutOfUsePopupType:
-          IF Line_TC <> UnknownTrackCircuit THEN BEGIN
-            SetTrackCircuitState(Line_TC, TCOutOfUseSetByUser);
-            InvalidateScreen(UnitRef, 'LinePopupItemClick LineTCOutOfUsePopupType');
-          END;
-
-        LineTCPermanentOccupationPopupType:
-          IF Line_TC <> UnknownTrackCircuit THEN BEGIN
-            SetTrackCircuitState(Line_TC, TCPermanentOccupationSetByUser);
-            InvalidateScreen(UnitRef, 'LinePopupItemClick LineTCPermanentOccupationPopupType:');
-          END;
-
-        LineTCSpeedRestrictionPopupType:
-          IF Line_TC <> UnknownTrackCircuit THEN
-            SetOrClearTrackCircuitSpeedRestriction(LinePopupNum);
-
-        LineTCUnoccupiedPopupType:
-          IF Line_TC <> UnknownTrackCircuit THEN BEGIN
-            SetTrackCircuitState(Line_TC, TCUnoccupied);
-            InvalidateScreen(UnitRef, 'LinePopupItemClick LineTCUnoccupiedPopupType');
-          END;
-
-        LineTCUserMustDrivePopupType:
-          BEGIN
-            IF TrackCircuits[Line_TC].TC_UserMustDrive THEN BEGIN
-              TrackCircuits[Line_TC].TC_UserMustDrive := False;
-              Log('T TC=' + IntToStr(Line_TC) + ' set to automatic operation');
-            END ELSE BEGIN
-              TrackCircuits[Line_TC].TC_UserMustDrive := True;
-              Log('T TC=' + IntToStr(Line_TC) + ' set to manual operation');
+          LineTCFeedbackOccupationPopupType:
+            IF Line_TC <> UnknownTrackCircuit THEN BEGIN
+              SetTrackCircuitState(Line_TC, TCFeedbackOccupation);
+              InvalidateScreen(UnitRef, 'LinePopupItemClick LineTCFeedbackOccupationPopupType');
             END;
 
-            IF ShowTrackCircuitsWhereUserMustDrive THEN
-              InvalidateScreen(UnitRef, 'LinePopupItemClick LineTCUserMustDrivePopupType');
-          END;
+          LineTCSystemOccupationPopupType:
+            IF Line_TC <> UnknownTrackCircuit THEN BEGIN
+              SetTrackCircuitState(Line_TC, TCSystemOccupation);
+              InvalidateScreen(UnitRef, 'LinePopupItemClick LineTCSystemOccupationPopupType');
+            END;
 
-      ELSE {CASE}
-        Log('BG Invalid popup type ' + IntToStr(Tag) + ' in LinePopupItemClick');
-      END; {CASE}
-    END; {WITH}
+          LineTCOutOfUsePopupType:
+            IF Line_TC <> UnknownTrackCircuit THEN BEGIN
+              SetTrackCircuitState(Line_TC, TCOutOfUseSetByUser);
+              InvalidateScreen(UnitRef, 'LinePopupItemClick LineTCOutOfUsePopupType');
+            END;
+
+          LineTCPermanentOccupationPopupType:
+            IF Line_TC <> UnknownTrackCircuit THEN BEGIN
+              SetTrackCircuitState(Line_TC, TCPermanentOccupationSetByUser);
+              InvalidateScreen(UnitRef, 'LinePopupItemClick LineTCPermanentOccupationPopupType:');
+            END;
+
+          LineTCSpeedRestrictionPopupType:
+            IF Line_TC <> UnknownTrackCircuit THEN
+              SetOrClearTrackCircuitSpeedRestriction(LinePopupNum);
+
+          LineTCUnoccupiedPopupType:
+            IF Line_TC <> UnknownTrackCircuit THEN BEGIN
+              SetTrackCircuitState(Line_TC, TCUnoccupied);
+              InvalidateScreen(UnitRef, 'LinePopupItemClick LineTCUnoccupiedPopupType');
+            END;
+
+          LineTCUserMustDrivePopupType:
+            BEGIN
+              IF TrackCircuits[Line_TC].TC_UserMustDrive THEN BEGIN
+                TrackCircuits[Line_TC].TC_UserMustDrive := False;
+                Log('T TC=' + IntToStr(Line_TC) + ' set to automatic operation');
+              END ELSE BEGIN
+                TrackCircuits[Line_TC].TC_UserMustDrive := True;
+                Log('T TC=' + IntToStr(Line_TC) + ' set to manual operation');
+              END;
+
+              IF ShowTrackCircuitsWhereUserMustDrive THEN
+                InvalidateScreen(UnitRef, 'LinePopupItemClick LineTCUserMustDrivePopupType');
+            END;
+
+        ELSE {CASE}
+          Log('BG Invalid popup type ' + IntToStr(Tag) + ' in LinePopupItemClick');
+        END; {CASE}
+      END;
+    END;
   END; {WITH}
 END; { LinePopupItemClick }
 
-PROCEDURE TFWPRailWindow.LineMenuOnPopup(Sender: TObject);
+PROCEDURE TFWPRailWindow.LinePopupMenuOnPopup(Sender: TObject);
 VAR
   WhetherEnabled : Boolean;
 
 BEGIN
-  WITH Lines[LinePopupNum] DO BEGIN
-    LinePopupMenu.Items.Clear;
+  LinePopupMenu.Items.Clear;
 
-    IF NOT EditMode THEN BEGIN
-      { Add the caption... }
-
-      IF LinePopupNum = UnknownLine THEN
-        Caption := 'Lines'
-      ELSE
-        Caption := 'Line ' + LineToStr(LinePopupNum) + ' ' + IfThen(Line_TC <> UnknownTrackCircuit,
-                                                                    'TC' + IntToStr(Line_TC));
-      AddMenuItem(LinePopupMenu, Caption, NoClickPopupType, NOT Enabled, NIL);
+  IF LinePopupNum = UnknownLine THEN BEGIN
+    { we're not on a line, so all we can do is create a line here }
+    IF NOT EditMode THEN
+      beep
+    ELSE BEGIN
+      AddMenuItem(LinePopupMenu, 'Create a New Line', NoClickPopupType, NOT Enabled, NIL);
       AddMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, NIL);
 
-      { ...and now the individual items }
-      WhetherEnabled := TrackCircuits[Line_TC].TC_OccupationState <> TCUnOccupied;
-      AddMenuItem(LinePopupMenu, 'Set Track Circuit To Unoccupied', LineTCUnoccupiedPopupType, WhetherEnabled, LinePopupItemClick);
-
-      WhetherEnabled := TrackCircuits[Line_TC].TC_OccupationState <> TCFeedbackOccupation;
-      AddMenuItem(LinePopupMenu, 'Set Track Circuit To Feedback Occupation', LineTCFeedbackOccupationPopupType, WhetherEnabled, LinePopupItemClick);
-
-      WhetherEnabled := TrackCircuits[Line_TC].TC_OccupationState <> TCSystemOccupation;
-      AddMenuItem(LinePopupMenu, 'Set Track Circuit To System Occupation', LineTCSystemOccupationPopupType, WhetherEnabled, LinePopupItemClick);
-
-      WhetherEnabled := (TrackCircuits[Line_TC].TC_OccupationState <> TCPermanentFeedbackOccupation)
-                                                                                          AND (TrackCircuits[Line_TC].TC_OccupationState <> TCPermanentOccupationSetByUser);
-      AddMenuItem(LinePopupMenu, 'Set Track Circuit To Permanent Occupation', LineTCPermanentOccupationPopupType, WhetherEnabled, LinePopupItemClick);
-
-      WhetherEnabled := TrackCircuits[Line_TC].TC_OccupationState <> TCOutOfUseSetByUser;
-      AddMenuItem(LinePopupMenu, 'Set Track Circuit Out Of Use', LineTCOutOfUsePopupType, WhetherEnabled, LinePopupItemClick);
-
-      IF TrackCircuits[Line_TC].TC_SpeedRestrictionInMPH = NoSpecifiedSpeed THEN
-        AddMenuItem(LinePopupMenu, 'Set Track Circuit Speed Restriction', LineTCSpeedRestrictionPopupType, Enabled, LinePopupItemClick)
-      ELSE
-        AddMenuItem(LinePopupMenu, 'Clear Track Circuit Speed Restriction', LineTCSpeedRestrictionPopupType, Enabled, LinePopupItemClick);
-
-      IF NOT TrackCircuits[Line_TC].TC_UserMustDrive THEN
-         { how do we show this is in effect? ****** 6/8/14 }
-        AddMenuItem(LinePopupMenu, 'Set Track Circuit To User Must Drive', LineTCUserMustDrivePopupType, Enabled, LinePopupItemClick)
-      ELSE
-        AddMenuItem(LinePopupMenu, 'Set Track Circuit To Auto', LineTCUserMustDrivePopupType, Enabled, LinePopupItemClick);
-
-      AddMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, NIL);
-
-      { Can't have both locations and lines out of use at the same time }
-      IF (Line_Location <> UnknownLocation) AND Locations[Line_Location].Location_OutOfUse THEN BEGIN
-        AddMenuItem(LinePopupMenu, 'Put Line ''' + LineToStr(Line_TC) + ''' Out Of Use', LineTCOutOfUsePopupType, NOT Enabled, LinePopupItemClick);
-        AddMenuItem(LinePopupMenu, 'Return Location ''' + LocationToStr(Line_Location) + ''' To Use', LineLocationOutOfUsePopupType, Enabled, LinePopupItemClick);
-      END ELSE
-        IF Line_OutOfUseState = OutOfUse THEN BEGIN
-          AddMenuItem(LinePopupMenu, 'Return Line ''' + LineToStr(Line_TC) + ''' To Use', LineTCOutOfUsePopupType, Enabled, LinePopupItemClick);
-          AddMenuItem(LinePopupMenu, 'Put Location ''' + LocationToStr(Line_Location) + ''' Out Of Use', LineLocationOutOfUsePopupType, NOT Enabled, LinePopupItemClick);
-        END ELSE BEGIN
-          AddMenuItem(LinePopupMenu, 'Put Line ''' + LineToStr(Line_TC) + ''' Out Of Use', LineTCOutOfUsePopupType, Enabled, LinePopupItemClick);
-          AddMenuItem(LinePopupMenu, 'Put Location ''' + LocationToStr(Line_Location) + ''' Out Of Use', LineLocationOutOfUsePopupType, Enabled, LinePopupItemClick);
-        END;
-
-      AddMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, NIL);
-
-      IF TrackCircuits[Line_TC].TC_LocoChip = UnknownLocoChip THEN
-        AddMenuItem(LinePopupMenu, 'Allocate Loco To Track Circuit', LineAllocateLocoToTrackCircuitPopupType, Enabled, LinePopupItemClick)
-      ELSE
-        AddMenuItem(LinePopupMenu, 'Clear Loco Allocation From Track Circuit', LineAllocateLocoToTrackCircuitPopupType, Enabled, LinePopupItemClick);
-
-      IF (Line_TC = UnknownTrackCircuit) OR (TrackCircuits[Line_TC].TC_LocoChip = UnknownLocoChip) THEN BEGIN
-        AddMenuItem(LinePopupMenu, 'Change Internal Loco Chip Direction to Up', LineChangeInternalLocoDirectionToUpPopupType, Enabled, LinePopupItemClick);
-        AddMenuItem(LinePopupMenu, 'Change Internal Loco Chip Direction to Down', LineChangeInternalLocoDirectionToDownPopupType, Enabled, LinePopupItemClick);
-      END ELSE BEGIN
-        AddMenuItem(LinePopupMenu, 'Change ' + LocoChipToStr(TrackCircuits[Line_TC].TC_LocoChip) + '''s Internal Loco Chip Direction to Up',
-                                                                                                 LineChangeInternalLocoDirectionToUpPopupType, Enabled, LinePopupItemClick);
-        AddMenuItem(LinePopupMenu, 'Change ' + LocoChipToStr(TrackCircuits[Line_TC].TC_LocoChip) + '''s Internal Loco Chip Direction to Down',
-                                                                                               LineChangeInternalLocoDirectionToDownPopupType, Enabled, LinePopupItemClick);
-      END;
-      WhetherEnabled := TrackCircuits[Line_TC].TC_LocoChip <> UnknownLocoChip;
-      AddMenuItem(LinePopupMenu, 'Show Loco''s Last Error Message', LineShowLocoLastErrorMessagePopupType, WhetherEnabled, LinePopupItemClick);
-
-      AddMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, NIL);
-
-      AddMenuItem(LinePopupMenu, 'Edit Line', LineEditPopupType, Enabled, LinePopupItemClick)
-    END ELSE BEGIN
-      { EditMode }
-
-      { Add the caption... }
-      IF (LinePopupNum = UnknownLine) OR (EditedLine = UnknownLine) THEN
-        Caption := 'Editing Lines'
-      ELSE
-        Caption := 'Editing Line ' + LineToStr(LinePopupNum) + ' ' + IfThen(Line_TC <> UnknownTrackCircuit,
-                                                                            'TC' + IntToStr(Line_TC));
-      AddMenuItem(LinePopupMenu, Caption, NoClickPopupType, NOT Enabled, NIL);
-      AddMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, NIL);
-
-      { ...and now the individual items }
-      WhetherEnabled := SignalAdjacentLineOK(LinePopupNum);
-      AddMenuItem(LinePopupMenu, 'Create Line', LineCreateLinePopupType, WhetherEnabled, LinePopupItemClick);
-
-      AddMenuItem(LinePopupMenu, 'Create Up Signal', LineCreateUpSignalPopupType, WhetherEnabled, LinePopupItemClick);
-      AddMenuItem(LinePopupMenu, 'Create Down Signal', LineCreateDownSignalPopupType, WhetherEnabled, LinePopupItemClick);
+      AddMenuItem(LinePopupMenu, 'Create Line', LineCreateLinePopupType, Enabled, LinePopupItemClick);
     END;
-  END; {WITH}
-END; { LineMenuOnPopup }
+  END ELSE BEGIN
+    WITH Lines[LinePopupNum] DO BEGIN
+      IF NOT EditMode THEN BEGIN
+        { Add the caption... }
+
+        IF LinePopupNum = UnknownLine THEN
+          Caption := 'Lines'
+        ELSE
+          Caption := 'Line ' + LineToStr(LinePopupNum) + ' ' + IfThen(Line_TC <> UnknownTrackCircuit,
+                                                                      'TC' + IntToStr(Line_TC));
+        AddMenuItem(LinePopupMenu, Caption, NoClickPopupType, NOT Enabled, NIL);
+        AddMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, NIL);
+
+        { ...and now the individual items }
+        WhetherEnabled := TrackCircuits[Line_TC].TC_OccupationState <> TCUnOccupied;
+        AddMenuItem(LinePopupMenu, 'Set Track Circuit To Unoccupied', LineTCUnoccupiedPopupType, WhetherEnabled, LinePopupItemClick);
+
+        WhetherEnabled := TrackCircuits[Line_TC].TC_OccupationState <> TCFeedbackOccupation;
+        AddMenuItem(LinePopupMenu, 'Set Track Circuit To Feedback Occupation', LineTCFeedbackOccupationPopupType, WhetherEnabled, LinePopupItemClick);
+
+        WhetherEnabled := TrackCircuits[Line_TC].TC_OccupationState <> TCSystemOccupation;
+        AddMenuItem(LinePopupMenu, 'Set Track Circuit To System Occupation', LineTCSystemOccupationPopupType, WhetherEnabled, LinePopupItemClick);
+
+        WhetherEnabled := (TrackCircuits[Line_TC].TC_OccupationState <> TCPermanentFeedbackOccupation)
+                                                                                            AND (TrackCircuits[Line_TC].TC_OccupationState <> TCPermanentOccupationSetByUser);
+        AddMenuItem(LinePopupMenu, 'Set Track Circuit To Permanent Occupation', LineTCPermanentOccupationPopupType, WhetherEnabled, LinePopupItemClick);
+
+        WhetherEnabled := TrackCircuits[Line_TC].TC_OccupationState <> TCOutOfUseSetByUser;
+        AddMenuItem(LinePopupMenu, 'Set Track Circuit Out Of Use', LineTCOutOfUsePopupType, WhetherEnabled, LinePopupItemClick);
+
+        IF TrackCircuits[Line_TC].TC_SpeedRestrictionInMPH = NoSpecifiedSpeed THEN
+          AddMenuItem(LinePopupMenu, 'Set Track Circuit Speed Restriction', LineTCSpeedRestrictionPopupType, Enabled, LinePopupItemClick)
+        ELSE
+          AddMenuItem(LinePopupMenu, 'Clear Track Circuit Speed Restriction', LineTCSpeedRestrictionPopupType, Enabled, LinePopupItemClick);
+
+        IF NOT TrackCircuits[Line_TC].TC_UserMustDrive THEN
+           { how do we show this is in effect? ****** 6/8/14 }
+          AddMenuItem(LinePopupMenu, 'Set Track Circuit To User Must Drive', LineTCUserMustDrivePopupType, Enabled, LinePopupItemClick)
+        ELSE
+          AddMenuItem(LinePopupMenu, 'Set Track Circuit To Auto', LineTCUserMustDrivePopupType, Enabled, LinePopupItemClick);
+
+        AddMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, NIL);
+
+        { Can't have both locations and lines out of use at the same time }
+        IF (Line_Location <> UnknownLocation) AND Locations[Line_Location].Location_OutOfUse THEN BEGIN
+          AddMenuItem(LinePopupMenu, 'Put Line ''' + LineToStr(Line_TC) + ''' Out Of Use', LineTCOutOfUsePopupType, NOT Enabled, LinePopupItemClick);
+          AddMenuItem(LinePopupMenu, 'Return Location ''' + LocationToStr(Line_Location) + ''' To Use', LineLocationOutOfUsePopupType, Enabled, LinePopupItemClick);
+        END ELSE
+          IF Line_OutOfUseState = OutOfUse THEN BEGIN
+            AddMenuItem(LinePopupMenu, 'Return Line ''' + LineToStr(Line_TC) + ''' To Use', LineTCOutOfUsePopupType, Enabled, LinePopupItemClick);
+            AddMenuItem(LinePopupMenu, 'Put Location ''' + LocationToStr(Line_Location) + ''' Out Of Use', LineLocationOutOfUsePopupType, NOT Enabled, LinePopupItemClick);
+          END ELSE BEGIN
+            AddMenuItem(LinePopupMenu, 'Put Line ''' + LineToStr(Line_TC) + ''' Out Of Use', LineTCOutOfUsePopupType, Enabled, LinePopupItemClick);
+            AddMenuItem(LinePopupMenu, 'Put Location ''' + LocationToStr(Line_Location) + ''' Out Of Use', LineLocationOutOfUsePopupType, Enabled, LinePopupItemClick);
+          END;
+
+        AddMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, NIL);
+
+        IF TrackCircuits[Line_TC].TC_LocoChip = UnknownLocoChip THEN
+          AddMenuItem(LinePopupMenu, 'Allocate Loco To Track Circuit', LineAllocateLocoToTrackCircuitPopupType, Enabled, LinePopupItemClick)
+        ELSE
+          AddMenuItem(LinePopupMenu, 'Clear Loco Allocation From Track Circuit', LineAllocateLocoToTrackCircuitPopupType, Enabled, LinePopupItemClick);
+
+        IF (Line_TC = UnknownTrackCircuit) OR (TrackCircuits[Line_TC].TC_LocoChip = UnknownLocoChip) THEN BEGIN
+          AddMenuItem(LinePopupMenu, 'Change Internal Loco Chip Direction to Up', LineChangeInternalLocoDirectionToUpPopupType, Enabled, LinePopupItemClick);
+          AddMenuItem(LinePopupMenu, 'Change Internal Loco Chip Direction to Down', LineChangeInternalLocoDirectionToDownPopupType, Enabled, LinePopupItemClick);
+        END ELSE BEGIN
+          AddMenuItem(LinePopupMenu, 'Change ' + LocoChipToStr(TrackCircuits[Line_TC].TC_LocoChip) + '''s Internal Loco Chip Direction to Up',
+                                                                                                 LineChangeInternalLocoDirectionToUpPopupType, Enabled, LinePopupItemClick);
+          AddMenuItem(LinePopupMenu, 'Change ' + LocoChipToStr(TrackCircuits[Line_TC].TC_LocoChip) + '''s Internal Loco Chip Direction to Down',
+                                                                                               LineChangeInternalLocoDirectionToDownPopupType, Enabled, LinePopupItemClick);
+        END;
+        WhetherEnabled := TrackCircuits[Line_TC].TC_LocoChip <> UnknownLocoChip;
+        AddMenuItem(LinePopupMenu, 'Show Loco''s Last Error Message', LineShowLocoLastErrorMessagePopupType, WhetherEnabled, LinePopupItemClick);
+
+        AddMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, NIL);
+
+        AddMenuItem(LinePopupMenu, 'Edit Line', LineEditPopupType, Enabled, LinePopupItemClick)
+      END ELSE BEGIN
+        { EditMode }
+
+        { Add the caption... }
+        IF (LinePopupNum = UnknownLine) OR (EditedLine = UnknownLine) THEN
+          Caption := 'Editing Lines'
+        ELSE
+          Caption := 'Editing Line ' + LineToStr(LinePopupNum) + ' ' + IfThen(Line_TC <> UnknownTrackCircuit,
+                                                                              'TC' + IntToStr(Line_TC));
+        AddMenuItem(LinePopupMenu, Caption, NoClickPopupType, NOT Enabled, NIL);
+        AddMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, NIL);
+
+        { ...and now the individual items }
+        WhetherEnabled := SignalAdjacentLineOK(LinePopupNum);
+        AddMenuItem(LinePopupMenu, 'Create Line', LineCreateLinePopupType, WhetherEnabled, LinePopupItemClick);
+
+        AddMenuItem(LinePopupMenu, 'Create Up Signal', LineCreateUpSignalPopupType, WhetherEnabled, LinePopupItemClick);
+        AddMenuItem(LinePopupMenu, 'Create Down Signal', LineCreateDownSignalPopupType, WhetherEnabled, LinePopupItemClick);
+      END;
+    END; {WITH}
+  END;
+END; { LinePopupMenuOnPopup }
 
 PROCEDURE TFWPRailWindow.FWPRailApplicationEventsShortCut(VAR Msg: TWMKey; VAR Handled: Boolean);
 { This is called regardless of which window has focus }
