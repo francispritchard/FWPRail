@@ -465,7 +465,7 @@ PROCEDURE DrawAllSignals(ShowSignalAndBufferStopNums, ShowTheatreDestinations : 
 PROCEDURE DrawBufferStop(BufferStopNum : Integer; Colour : TColour);
 { Draw a buffer stop }
 
-PROCEDURE DrawBufferStopData(BufferStopNum : Integer; BufferStopText : String; Colour : TColor);
+PROCEDURE DrawBufferStopData(B : Integer; BufferStopText : String; Colour : TColor);
 { Put the bufferstop name or other supplied data on the diagram }
 
 PROCEDURE DrawConnectionCh(Line : Integer; Direction : DirectionType);
@@ -746,7 +746,7 @@ BEGIN
   END; {WITH}
 END; { DrawBufferStop }
 
-PROCEDURE DrawBufferStopData(BufferStopNum : Integer; BufferStopText : String; Colour : TColor);
+PROCEDURE DrawBufferStopData(B : Integer; BufferStopText : String; Colour : TColor);
 { Put the bufferstop name or other supplied data on the diagram }
 BEGIN
   InitialiseScreenDrawingVariables;
@@ -756,7 +756,7 @@ BEGIN
     Brush.Color := BackgroundColour;
     Font.Height := -MulDiv(FWPRailWindow.ClientHeight, LineFontHeight, ZoomScaleFactor);
 
-    WITH BufferStops[BufferStopNum] DO BEGIN
+    WITH BufferStops[B] DO BEGIN
       IF BufferStop_Direction = Down THEN
         TextOut(BufferStop_X - TextWidth(BufferStopText) - MulDiv(FWPRailWindow.ClientWidth, 5, ZoomScaleFactor) - ScrollBarXAdjustment,
                 ((BufferStop_Y2 - BufferStop_Y1) DIV 2) + BufferStop_Y1 - (TextHeight(BufferStopText) DIV 2) - ScrollBarYAdjustment,
@@ -6937,6 +6937,7 @@ VAR
   ErrorMsg : String;
   Line, Line2 : Integer;
   LinesArray : LineArrayType;
+  Location : Integer;
   LocoDataTableOK : Boolean;
   P : Integer;
   S : Integer;
@@ -6945,6 +6946,7 @@ VAR
   ShowArea : Boolean;
   SegmentText : String;
   WindowsTaskbar: HWND;
+  TempLocationYArray : IntegerArrayType;
   WorkingTimetableMissing : Boolean;
   WorkingTimetableOK : Boolean;
   // PreviousDebugTime : TDateTime;
@@ -6958,11 +6960,13 @@ VAR
     TRY
       { Draw the bufferstops }
       FOR B := 0 TO High(BufferStops) DO BEGIN
-        IF ShowSignalAndBufferStopNums THEN
-          DrawBufferStopData(B, IntToStr(B), BufferStopNumberColour)
-        ELSE
-          IF ShowTheatreDestinations THEN
-            DrawBufferStopData(B, BufferStops[B].BufferStop_AsTheatreDestination, BufferStopNumberColour);
+        WITH BufferStops[B] DO BEGIN
+          IF ShowSignalAndBufferStopNums THEN
+            DrawBufferStopData(B, IntToStr(BufferStop_Number), BufferStopNumberColour)
+          ELSE
+            IF ShowTheatreDestinations THEN
+              DrawBufferStopData(B, BufferStops[B].BufferStop_AsTheatreDestination, BufferStopNumberColour);
+        END;
       END;
     EXCEPT
       ON E : Exception DO
@@ -7167,6 +7171,8 @@ BEGIN { Main drawing procedure }
             CheckLineConnectionsAreOK;
           END;
           ReadInPointDataFromDatabase;
+          IF PreviousPointSettingsMode THEN
+            LoadPreviousPointSettings;
           ReadInPlatformDataFromDatabase;
           ReadInSignalDataFromDatabase(NOT NewSignalData);
           ReadInRouteingExceptionsFromDatabase;
@@ -7256,6 +7262,23 @@ BEGIN { Main drawing procedure }
             END;
 
           DiagramsCheckingInProgress := False;
+        END;
+
+        { Draw the positions where lines could be created }
+        IF EditMode THEN BEGIN
+          CalculateLocationPositions;
+          SetLength(TempLocationYArray, 0);
+          Pen.Color := clFWPDkBlue;
+          FOR Location := 0 To High(Locations) DO BEGIN
+            WITH LOcations[Location] DO BEGIN
+              IF NOT IsElementInIntegerArray(TempLocationYArray, Location_YScaled) THEN BEGIN
+                MoveTo(0, Location_YScaled);
+                LineTo(ClientWidth, Location_YScaled);
+                TextOut(0, Location_YScaled, LocationToStr(Location));
+                AppendToIntegerArray(TempLocationYArray, Location_YScaled);
+              END;
+            END; {WITH}
+          END; {FOR}
         END;
 
         { Draw the individual lines }
@@ -7359,72 +7382,84 @@ BEGIN { Main drawing procedure }
                 Signals[S].Signal_PostColour := clLime;
                 DrawSignalPost(S);
                 DrawAllSignals(NOT ShowNums, NOT ShowTheatreDestinationChar);
+
+                SaveShowSignalJunctionDestinations := True;
               END;
             END;
           END ELSE
-            IF ShowSignalsWithAdjacentTrackCircuits THEN BEGIN
-              DrawAllSignals(ShowNums, NOT ShowTheatreDestinationChar);
+            IF SaveShowSignalJunctionDestinations THEN BEGIN
+              { reset the signal post colours }
               FOR S := 0 TO High(Signals) DO BEGIN
-                IF NOT Signals[S].Signal_OutOfUse THEN BEGIN
-                  { needs fixing - leaves TCs with signal numbers after exit **** }
-                  { also needs headcodes not loco numbers (F10) turned on *** }
-                  IF Signals[S].Signal_AdjacentTC <> UnknownTrackCircuit THEN
-                    DrawTrackCircuit(Signals[S].Signal_AdjacentTC, clLime);
-                  IF Signals[S].Signal_AdjacentTC <> UnknownTrackCircuit THEN
-                    Log('X S=' + IntToStr(S) + ' TC=' + IntToStr(Signals[S].Signal_AdjacentTC));
-                END;
+                Signals[S].Signal_PostColour := DefaultSignalPostColour;
+                DrawSignalPost(S);
+                DrawAllSignals(NOT ShowNums, NOT ShowTheatreDestinationChar);
               END; {FOR}
-            END ELSE
-              IF ShowSignalsAndBufferStopsWithTheatreDestinations THEN BEGIN
-                DrawAllSignals(NOT ShowNums, ShowTheatreDestinationChar);
-                DrawAllBufferStopData(NOT ShowNums, ShowTheatreDestinationChar);
-              END ELSE
-                IF ShowSignalsWhereRouteingCanBeHeldAndThoseNotUsedForRouteing THEN BEGIN
-                  FOR S := 0 TO High(Signals) DO BEGIN
-                    ShowArea := False;
 
-                    IF Signals[S].Signal_PossibleStationStartRouteHold THEN BEGIN
-                      Signals[S].Signal_PostColour := clLime;
-                      ShowArea := True;
-                    END ELSE
-                      IF Signals[S].Signal_PossibleRouteHold THEN BEGIN
-                        Signals[S].Signal_PostColour := clYellow;
+              SaveShowSignalJunctionDestinations := False;
+            END ELSE
+              IF ShowSignalsWithAdjacentTrackCircuits THEN BEGIN
+                DrawAllSignals(ShowNums, NOT ShowTheatreDestinationChar);
+                FOR S := 0 TO High(Signals) DO BEGIN
+                  IF NOT Signals[S].Signal_OutOfUse THEN BEGIN
+                    { needs fixing - leaves TCs with signal numbers after exit **** }
+                    { also needs headcodes not loco numbers (F10) turned on *** }
+                    IF Signals[S].Signal_AdjacentTC <> UnknownTrackCircuit THEN
+                      DrawTrackCircuit(Signals[S].Signal_AdjacentTC, clLime);
+                    IF Signals[S].Signal_AdjacentTC <> UnknownTrackCircuit THEN
+                      Log('X S=' + IntToStr(S) + ' TC=' + IntToStr(Signals[S].Signal_AdjacentTC));
+                  END;
+                END; {FOR}
+              END ELSE
+                IF ShowSignalsAndBufferStopsWithTheatreDestinations THEN BEGIN
+                  DrawAllSignals(NOT ShowNums, ShowTheatreDestinationChar);
+                  DrawAllBufferStopData(NOT ShowNums, ShowTheatreDestinationChar);
+                END ELSE
+                  IF ShowSignalsWhereRouteingCanBeHeldAndThoseNotUsedForRouteing THEN BEGIN
+                    FOR S := 0 TO High(Signals) DO BEGIN
+                      ShowArea := False;
+
+                      IF Signals[S].Signal_PossibleStationStartRouteHold THEN BEGIN
+                        Signals[S].Signal_PostColour := clLime;
                         ShowArea := True;
                       END ELSE
-                        IF Signals[S].Signal_NotUsedForRouteing THEN
-                          Signals[S].Signal_PostColour := clAqua;
+                        IF Signals[S].Signal_PossibleRouteHold THEN BEGIN
+                          Signals[S].Signal_PostColour := clYellow;
+                          ShowArea := True;
+                        END ELSE
+                          IF Signals[S].Signal_NotUsedForRouteing THEN
+                            Signals[S].Signal_PostColour := clAqua;
 
-                    DrawSignal(S);
+                      DrawSignal(S);
 
-                    { Also draw the associated area }
-                    IF ShowArea THEN BEGIN
-                      FOR Line := 0 TO High(Lines) DO BEGIN
-                        SegmentText := '';
-                        WITH Lines[Line] DO BEGIN
-                          IF GetLineAdjacentSignal(Line) = S THEN BEGIN
-                            Font.Color := clLime;
-                            IF Lines[Line].Line_Location <> UnknownLocation THEN BEGIN
-                              IF Locations[Line_Location].Location_Area <> UnknownArea THEN
-                                SegmentText := AreaToStr(Locations[Line_Location].Location_Area, ShortStringType);
-                            END ELSE
-                              SegmentText := '?';
+                      { Also draw the associated area }
+                      IF ShowArea THEN BEGIN
+                        FOR Line := 0 TO High(Lines) DO BEGIN
+                          SegmentText := '';
+                          WITH Lines[Line] DO BEGIN
+                            IF GetLineAdjacentSignal(Line) = S THEN BEGIN
+                              Font.Color := clLime;
+                              IF Lines[Line].Line_Location <> UnknownLocation THEN BEGIN
+                                IF Locations[Line_Location].Location_Area <> UnknownArea THEN
+                                  SegmentText := AreaToStr(Locations[Line_Location].Location_Area, ShortStringType);
+                              END ELSE
+                                SegmentText := '?';
 
-                            IF SegmentText <> '' THEN BEGIN
-                              TextOut(Line_UpX + (Line_DownX - Line_UpX) DIV 2 - TextWidth(SegmentText) DIV 2 - ScrollBarXAdjustment,
-                                     (Line_UpY + (Line_DownY - Line_UpY) DIV 2) - TextHeight(SegmentText) DIV 2 - ScrollBarYAdjustment,
-                                      SegmentText);
+                              IF SegmentText <> '' THEN BEGIN
+                                TextOut(Line_UpX + (Line_DownX - Line_UpX) DIV 2 - TextWidth(SegmentText) DIV 2 - ScrollBarXAdjustment,
+                                       (Line_UpY + (Line_DownY - Line_UpY) DIV 2) - TextHeight(SegmentText) DIV 2 - ScrollBarYAdjustment,
+                                        SegmentText);
+                              END;
                             END;
-                          END;
-                        END; {WITH}
-                      END; {FOR}
+                          END; {WITH}
+                        END; {FOR}
+                      END;
                     END;
+                  END ELSE BEGIN
+                    { the main calling point }
+                    DrawAllSignals(NOT ShowNums, NOT ShowTheatreDestinationChar);
+                    DrawAllBufferStopData(NOT ShowNums, NOT ShowTheatreDestinationChar);
+  //debug('called from drawmap ' + TestcOunTstr);
                   END;
-                END ELSE BEGIN
-                  { the main calling point }
-                  DrawAllSignals(NOT ShowNums, NOT ShowTheatreDestinationChar);
-                  DrawAllBufferStopData(NOT ShowNums, NOT ShowTheatreDestinationChar);
-//debug('called from drawmap ' + TestcOunTstr);
-                END;
 
         IF ShowLinesWhichLockPoints THEN BEGIN
           FOR P := 0 To High(Points) DO BEGIN
