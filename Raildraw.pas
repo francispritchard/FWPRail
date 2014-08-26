@@ -1514,11 +1514,11 @@ BEGIN
                             Line_UpY - TextHeight(SpeedStr) - SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment,
                             LeftArrowCh);
                     TextRect(Rect(Line_UpX + SpeedRestrictionHorizontalSpacingScaled + TextWidth(LeftArrowCh) - ScrollBarXAdjustment,
-                                  Line_UpY  - TextHeight(SpeedStr) - SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment,
+                                  Line_UpY - TextHeight(SpeedStr) - SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment,
                                   Line_UpX + SpeedRestrictionHorizontalSpacingScaled + TextWidth(LeftArrowCh) + TextWidth(SpeedStr) - ScrollBarXAdjustment,
                                   Line_UpY - SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment),
-                             Line_UpX  + SpeedRestrictionHorizontalSpacingScaled + TextWidth(LeftArrowCh) - ScrollBarXAdjustment,
-                             Line_UpY  - TextHeight(SpeedStr) - (SpeedRestrictionVerticalSpacingScaled) + HorizontalArrowAdjustment - ScrollBarYAdjustment,
+                             Line_UpX + SpeedRestrictionHorizontalSpacingScaled + TextWidth(LeftArrowCh) - ScrollBarXAdjustment,
+                             Line_UpY - TextHeight(SpeedStr) - (SpeedRestrictionVerticalSpacingScaled) + HorizontalArrowAdjustment - ScrollBarYAdjustment,
                              SpeedStr);
                   END;
                   IF NorthArrowNeededOnRight THEN BEGIN
@@ -1527,11 +1527,11 @@ BEGIN
                             Line_UpY - TextHeight(SpeedStr) - SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment,
                             NorthArrowCh);
                     TextRect(Rect(Line_UpX + SpeedRestrictionHorizontalSpacingScaled + TextWidth(NorthArrowCh) - ScrollBarXAdjustment,
-                                  Line_UpY  - TextHeight(SpeedStr) - SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment,
+                                  Line_UpY - TextHeight(SpeedStr) - SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment,
                                   Line_UpX + SpeedRestrictionHorizontalSpacingScaled + TextWidth(NorthArrowCh) + TextWidth(SpeedStr) - ScrollBarXAdjustment,
                                   Line_UpY - SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment),
-                             Line_UpX  + SpeedRestrictionHorizontalSpacingScaled + TextWidth(NorthArrowCh) - ScrollBarXAdjustment,
-                             Line_UpY  - TextHeight(SpeedStr) - (SpeedRestrictionVerticalSpacingScaled) + HorizontalArrowAdjustment - ScrollBarYAdjustment,
+                             Line_UpX + SpeedRestrictionHorizontalSpacingScaled + TextWidth(NorthArrowCh) - ScrollBarXAdjustment,
+                             Line_UpY - TextHeight(SpeedStr) - (SpeedRestrictionVerticalSpacingScaled) + HorizontalArrowAdjustment - ScrollBarYAdjustment,
                              SpeedStr);
                   END;
                   IF SouthArrowNeededOnRight THEN BEGIN
@@ -1540,11 +1540,11 @@ BEGIN
                             Line_UpY - TextHeight(SpeedStr) - SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment,
                             SouthArrowCh);
                     TextRect(Rect(Line_UpX + SpeedRestrictionHorizontalSpacingScaled + TextWidth(SouthArrowCh) - ScrollBarXAdjustment,
-                                  Line_UpY  - TextHeight(SpeedStr) - SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment,
+                                  Line_UpY - TextHeight(SpeedStr) - SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment,
                                   Line_UpX + SpeedRestrictionHorizontalSpacingScaled + TextWidth(SouthArrowCh) + TextWidth(SpeedStr) - ScrollBarXAdjustment,
                                   Line_UpY - SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment),
-                             Line_UpX  + SpeedRestrictionHorizontalSpacingScaled + TextWidth(SouthArrowCh) - ScrollBarXAdjustment,
-                             Line_UpY  - TextHeight(SpeedStr) - (SpeedRestrictionVerticalSpacingScaled) + HorizontalArrowAdjustment - ScrollBarYAdjustment,
+                             Line_UpX + SpeedRestrictionHorizontalSpacingScaled + TextWidth(SouthArrowCh) - ScrollBarXAdjustment,
+                             Line_UpY - TextHeight(SpeedStr) - (SpeedRestrictionVerticalSpacingScaled) + HorizontalArrowAdjustment - ScrollBarYAdjustment,
                              SpeedStr);
                   END;
                   IF RightArrowNeeded THEN BEGIN
@@ -3909,7 +3909,7 @@ BEGIN
    DebugWindow.WindowState := wsNormal;
  IF DiagramsWindow <> NIL THEN
    DiagramsWindow.WindowState := wsNormal;
-END;
+END; { ApplicationRestore }
 
 PROCEDURE TFWPRailWindow.FWPRailWindowCreate(Sender: TObject);
 { Second of three routines which allow the program to be minimised by pressing the "minimize" button and then maximised from the taskbar }
@@ -3920,20 +3920,20 @@ END; { FWPRailWindowCreate }
 PROCEDURE TFWPRailWindow.WMSysCommand;
 { Third of three routines which allow the program to be minimised by pressing the "minimize" button and then maximised from the taskbar }
 BEGIN
-   CASE Msg.CmdType OF
-     SC_MINIMIZE:
-       BEGIN
-         IF FWPRailWindow <> NIL THEN
-           FWPRailWindow.WindowState := wsMinimized;
-         IF DebugWindow <> NIL THEN
-           DebugWindow.WindowState := wsMinimized;
-         IF DiagramsWindow <> NIL THEN
+  CASE Msg.CmdType OF
+    SC_MINIMIZE:
+      BEGIN
+        IF FWPRailWindow <> NIL THEN
+          FWPRailWindow.WindowState := wsMinimized;
+        IF DebugWindow <> NIL THEN
+          DebugWindow.WindowState := wsMinimized;
+        IF DiagramsWindow <> NIL THEN
            DiagramsWindow.WindowState := wsMinimized;
-       END;
-   END; {CASE}
+      END;
+  END; {CASE}
 
-   { This is here as we want normal minimising/maximising to continue too }
-   DefaultHandler(Msg);
+  { This is here as we want normal minimising/maximising to continue too }
+  DefaultHandler(Msg);
 END; { WMSysCommand }
 
 PROCEDURE TFWPRailWindow.FWPRailWindowDestroy(Sender: TObject);
