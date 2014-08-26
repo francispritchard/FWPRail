@@ -117,7 +117,7 @@ BEGIN
 
   WriteTimeToStatusBar(TimeStr);
   Log('AG Time set to ' + TimeStr);
-END; { SetCurrentRailwayTime }
+END; { SetCurrentRailwayTimeAndDayOfTheWeek }
 
 FUNCTION DayTime : Boolean;
 { Returns true if it's daytime, arbitrarily set between 8 am and 6 pm but can be changed by user }
@@ -341,7 +341,7 @@ BEGIN
     ON E : Exception DO
       Log('EG ControlTimeByMouseWheel: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
-END; { ControlTimeByMouseWheel }
+END; { ClockWindowMouseWheel }
 
 PROCEDURE InitialiseGetTimeUnit;
 { Such routines as this allow us to initialises the units in the order we wish }

@@ -96,7 +96,7 @@ END; { HelpWindowFindDialogFind }
 PROCEDURE THelpWindow.HelpRichEditMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 BEGIN
   Debug('x=' + InttOstr(X) + ' y=' + inttostr(Y));
-END;
+END; { HelpRichEditMouseDown }
 
 PROCEDURE THelpWindow.HelpWindowFindDialogShow(Sender: TObject);
 BEGIN
@@ -147,7 +147,7 @@ BEGIN
         IdentifyLocoOnProgrammingTrack;
       END;
   END; {CASE}
-END; { HelpEditKeyDown }
+END; { HelpRichEditKeyDown }
 
 PROCEDURE WriteHelpText(HelpMsg : String);
 { write the text to the help window }

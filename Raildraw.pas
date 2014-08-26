@@ -383,7 +383,7 @@ TYPE
     PROCEDURE GeneralPopupTCPermanentSystemOccupationPenStyleSolidClick(Sender: TObject);
     PROCEDURE HelpMenuAboutClick(Sender: TObject);
     PROCEDURE LinePopupItemClick(Sender: TObject);
-    PROCEDURE LineMenuOnPopup(Sender: TObject);
+    PROCEDURE LinePopupMenuOnPopup(Sender: TObject);
     PROCEDURE LocoInfoMenuItemClick(Sender: TObject);
     PROCEDURE MainDisplayMenuDebugClick(Sender: TObject);
     PROCEDURE MainDisplayMenuDiagramsWindowClick(Sender: TObject);
@@ -4924,7 +4924,7 @@ BEGIN
     PlatformColour := FWPRailWindowColourDialogue.Color;
     InvalidateScreen(UnitRef, 'GeneralPopupChangePlatformColourClick');
   END;
-END; { GeberalPopupChangePlatformColourClick }
+END; { GeneralPopupChangePlatformColourClick }
 
 PROCEDURE TFWPRailWindow.GeneralPopupRestorePlatformColourClick(Sender: TObject);
 BEGIN
@@ -4941,7 +4941,7 @@ BEGIN
     TCMissingOccupationColour := FWPRailWindowColourDialogue.Color;
     InvalidateScreen(UnitRef, 'GeneralPopupChangeTCMissingOccupationColourClick');
   END;
-END; { ChangeMissingOccupationColourClick }
+END; { GeneralPopupChangeMissingOccupationColourClick }
 
 PROCEDURE TFWPRailWindow.GeneralPopupRestoreTCMissingOccupationColourClick(Sender: TObject);
 BEGIN
@@ -4958,7 +4958,7 @@ BEGIN
     LocoStalledColour := FWPRailWindowColourDialogue.Color;
     InvalidateScreen(UnitRef, 'GeneralPopupChangeLocoStalledColourClick');
   END;
-END; { ChangeLocoStalledColourClick }
+END; { GeneralPopupChangeLocoStalledColourClick }
 
 PROCEDURE TFWPRailWindow.GeneralPopupRestoreLocoStalledColourClick(Sender: TObject);
 BEGIN
@@ -5060,7 +5060,7 @@ BEGIN
     TCFeedbackDataInUseColour := FWPRailWindowColourDialogue.Color;
     InvalidateScreen(UnitRef, 'GeneralPopupChangeTCFeedbackDataInUseColourClick');
   END;
-END; { ChangeTCFeedbackDataInUseColourClick }
+END; { GeneralPopupChangeTCFeedbackDataInUseColourClick }
 
 PROCEDURE TFWPRailWindow.GeneralPopupRestoreTCFeedbackDataInUseColourClick(Sender: TObject);
 BEGIN
@@ -5077,7 +5077,7 @@ BEGIN
     TCFeedbackDataOutOfUseColour := FWPRailWindowColourDialogue.Color;
     InvalidateScreen(UnitRef, 'GeneralPopupChangeTCFeedbackDataOutOfUseColourClick');
   END;
-END; { ChangeTCFeedbackDataOutOfUseColourClick }
+END; { GeneralPopupChangeTCFeedbackDataOutOfUseColourClick }
 
 PROCEDURE TFWPRailWindow.GeneralPopupRestoreTCFeedbackDataOutOfUseColourClick(Sender: TObject);
 BEGIN
@@ -5094,7 +5094,7 @@ BEGIN
     TCFeedbackOccupationColour := FWPRailWindowColourDialogue.Color;
     InvalidateScreen(UnitRef, 'GeneralPopupChangeTCFeedbackOccupationColourClick');
   END;
-END; { ChangeFeedbackOccupationColourClick }
+END; { GeneralPopupChangeFeedbackOccupationColourClick }
 
 PROCEDURE TFWPRailWindow.GeneralPopupRestoreTCFeedbackOccupationColourClick(Sender: TObject);
 BEGIN
@@ -5111,7 +5111,7 @@ BEGIN
     TCFeedbackOccupationButOutOfUseColour := FWPRailWindowColourDialogue.Color;
     InvalidateScreen(UnitRef, 'GeneralPopupChangeTCFeedbackOccupationButOutOfUseColourClick');
   END;
-END; { ChangeFeedbackOccupationButOutOfUseColourClick }
+END; { GeneralPopupChangeFeedbackOccupationButOutOfUseColourClick }
 
 PROCEDURE TFWPRailWindow.GeneralPopupRestoreTCFeedbackOccupationButOutOfUseColourClick(Sender: TObject);
 BEGIN
@@ -5128,7 +5128,7 @@ BEGIN
     TCSystemOccupationColour := FWPRailWindowColourDialogue.Color;
     InvalidateScreen(UnitRef, 'GeneralPopupChangeTCSystemOccupationColourClick');
   END;
-END; { ChangeTCSystemOccupationColourClick }
+END; { GeneralPopupChangeTCSystemOccupationColourClick }
 
 PROCEDURE TFWPRailWindow.GeneralPopupRestoreTCSystemOccupationColourClick(Sender: TObject);
 BEGIN
@@ -5213,7 +5213,7 @@ BEGIN
     TCOutOfUseAsNoFeedbackReceivedColour := FWPRailWindowColourDialogue.Color;
     InvalidateScreen(UnitRef, 'GeneralPopupChangeTCOutOfUseAsNoFeedbackReceivedColourClick');
   END;
-END; { ChangeMysteryOccupationColour2Click }
+END; { GeneralPopupChangeMysteryOccupationColour2Click }
 
 PROCEDURE TFWPRailWindow.GeneralPopupRestoreTCOutOfUseAsNoFeedbackReceivedColourClick(Sender: TObject);
 BEGIN
@@ -5230,7 +5230,7 @@ BEGIN
     BufferStopColour := FWPRailWindowColourDialogue.Color;
     InvalidateScreen(UnitRef, 'GeneralPopupChangeBufferStopColourClick');
   END;
-END; { ChangeBufferStopColourClick }
+END; { GeneralPopupChangeBufferStopColourClick }
 
 PROCEDURE TFWPRailWindow.GeneralPopupRestoreBufferStopColourClick(Sender: TObject);
 BEGIN
@@ -5247,7 +5247,7 @@ BEGIN
     BufferStopNumberColour := FWPRailWindowColourDialogue.Color;
     InvalidateScreen(UnitRef, 'GeneralPopupChangeBufferStopNumberColourClick');
   END;
-END; { ChangeBufferStopNumberColourClick }
+END; { GeneralPopupChangeBufferStopNumberColourClick }
 
 PROCEDURE TFWPRailWindow.GeneralPopupRestoreBufferStopNumberColourClick(Sender: TObject);
 BEGIN
@@ -5264,7 +5264,7 @@ BEGIN
     BufferStopRed := FWPRailWindowColourDialogue.Color;
     InvalidateScreen(UnitRef, 'GeneralPopupRestoreBufferStopNumberColourClick');
   END;
-END; { ChangeBufferStopRedClick }
+END; { GeneralPopupChangeBufferStopRedClick }
 
 PROCEDURE TFWPRailWindow.GeneralPopupRestoreBufferStopRedClick(Sender: TObject);
 BEGIN
@@ -5281,7 +5281,7 @@ BEGIN
     LineNotAvailableColour := FWPRailWindowColourDialogue.Color;
     InvalidateScreen(UnitRef, 'GeneralPopupChangeLineNotAvailableColourClick');
   END;
-END; { ChangeLineNotAvailableColourClick }
+END; { GeneralPopupChangeLineNotAvailableColourClick }
 
 PROCEDURE TFWPRailWindow.GeneralPopupRestoreLineNotAvailableColourClick(Sender: TObject);
 BEGIN
@@ -5298,7 +5298,7 @@ BEGIN
     TRSPlungerPressedColour := FWPRailWindowColourDialogue.Color;
     InvalidateScreen(UnitRef, 'GeneralPopupChangePlungerPressedColourClick');
   END;
-END; { ChangePlungerPressedColourClick }
+END; { GeneralPopupChangePlungerPressedColourClick }
 
 PROCEDURE TFWPRailWindow.GeneralPopupRestorePlungerPressedColourClick(Sender: TObject);
 BEGIN
@@ -5315,7 +5315,7 @@ BEGIN
     SignalAspectUnlit := FWPRailWindowColourDialogue.Color;
     InvalidateScreen(UnitRef, 'GeneralPopupChangeSignalAspectUnlitColourClick');
   END;
-END; { ChangeSignalAspectUnlitClick }
+END; { GeneralPopupChangeSignalAspectUnlitClick }
 
 PROCEDURE TFWPRailWindow.GeneralPopupRestoreSignalAspectUnlitColourClick(Sender: TObject);
 BEGIN
@@ -5332,7 +5332,7 @@ BEGIN
     SignalAspectYellow := FWPRailWindowColourDialogue.Color;
     InvalidateScreen(UnitRef, 'GeneralPopupChangeSignalAspectYellowClick');
   END;
-END; { ChangeSignalAspectYellowClick }
+END; { GeneralPopupChangeSignalAspectYellowClick }
 
 PROCEDURE TFWPRailWindow.GeneralPopupRestoreSignalAspectYellowClick(Sender: TObject);
 BEGIN
@@ -5349,7 +5349,7 @@ BEGIN
     SignalAspectRed := FWPRailWindowColourDialogue.Color;
     InvalidateScreen(UnitRef, 'GeneralPopupChangeSignalAspectRedClick');
   END;
-END; { ChangeSignalAspectRedClick }
+END; { GeneralPopupChangeSignalAspectRedClick }
 
 PROCEDURE TFWPRailWindow.GeneralPopupRestoreSignalAspectRedClick(Sender: TObject);
 BEGIN
@@ -5366,7 +5366,7 @@ BEGIN
     SignalAspectGreen := FWPRailWindowColourDialogue.Color;
     InvalidateScreen(UnitRef, 'GeneralPopupChangeSignalAspectGreenClick');
   END;
-END; { ChangeSignalAspectGreenClick }
+END; { GeneralPopupChangeSignalAspectGreenClick }
 
 PROCEDURE TFWPRailWindow.GeneralPopupRestoreSignalAspectGreenClick(Sender: TObject);
 BEGIN
@@ -5383,7 +5383,7 @@ BEGIN
     SignalPostRouteSettingColour := FWPRailWindowColourDialogue.Color;
     InvalidateScreen(UnitRef, 'GeneralPopupChangeSignalPostRouteSettingColourClick');
   END;
-END; { ChangeSignalPostRouteSettingColourClick }
+END; { GeneralPopupChangeSignalPostRouteSettingColourClick }
 
 PROCEDURE TFWPRailWindow.GeneralPopupRestoreSignalPostRouteSettingColourClick(Sender: TObject);
 BEGIN
@@ -5400,7 +5400,7 @@ BEGIN
     SignalPostRouteSettingColour := FWPRailWindowColourDialogue.Color;
     InvalidateScreen(UnitRef, 'GeneralPopupChangeSignalPostEmergencyRouteSettingColourClick');
   END;
-END; { ChangeSignalPostEmergencyRouteSettingColourClick }
+END; { GeneralPopupChangeSignalPostEmergencyRouteSettingColourClick }
 
 PROCEDURE TFWPRailWindow.GeneralPopupRestoreSignalPostEmergencyRouteSettingColourClick(Sender: TObject);
 BEGIN
@@ -5417,7 +5417,7 @@ BEGIN
     SignalPostTheatreSettingColour := FWPRailWindowColourDialogue.Color;
     InvalidateScreen(UnitRef, 'GeneralPopupChangeSignalPostTheatreSettingColourClick');
   END;
-END; { ChangePostTheatreSettingColourClick }
+END; { GeneralPopupChangePostTheatreSettingColourClick }
 
 PROCEDURE TFWPRailWindow.GeneralPopupRestoreSignalPostTheatreSettingColourClick(Sender: TObject);
 BEGIN
@@ -5434,7 +5434,7 @@ BEGIN
     SignalNumberColour := FWPRailWindowColourDialogue.Color;
     InvalidateScreen(UnitRef, 'GeneralPopupChangeSignalNumberColourClick');
   END;
-END; { ChangeSignalberColourClick }
+END; { GeneralPopupChangeSignalberColourClick }
 
 PROCEDURE TFWPRailWindow.GeneralPopupRestoreSignalNumberColourClick(Sender: TObject);
 BEGIN
@@ -5451,7 +5451,7 @@ BEGIN
     TrainActiveColour := FWPRailWindowColourDialogue.Color;
     InvalidateScreen(UnitRef, 'GeneralPopupChangeTrainActiveColourClick');
   END;
-END; { ChangeTrainActiveColourClick }
+END; { GeneralPopupChangeTrainActiveColourClick }
 
 PROCEDURE TFWPRailWindow.GeneralPopupRestoreTrainActiveColourClick(Sender: TObject);
 BEGIN
@@ -5468,12 +5468,12 @@ BEGIN
     TrainInactiveColour := FWPRailWindowColourDialogue.Color;
     InvalidateScreen(UnitRef, 'GeneralPopupChangeTrainInactiveColourClick');
   END;
-END; procedure TFWPRailWindow.GeneralPopupClockClick(Sender: TObject);
+END; { GeneralPopupChangeTrainInactiveColourClick }
+
+procedure TFWPRailWindow.GeneralPopupClockClick(Sender: TObject);
 begin
-
+;
 end;
-
-{ ChangeTrainInactiveColourClick }
 
 PROCEDURE TFWPRailWindow.GeneralPopupRestoreTrainInactiveColourClick(Sender: TObject);
 BEGIN
@@ -5490,7 +5490,7 @@ BEGIN
     PointUpFacingColour := FWPRailWindowColourDialogue.Color;
     InvalidateScreen(UnitRef, 'GeneralPopupChangePointUpFacingColourClick');
   END;
-END; { ChangeUpFacingPointColourClick }
+END; { GeneralPopupChangeUpFacingPointColourClick }
 
 PROCEDURE TFWPRailWindow.GeneralPopupRestorePointUpFacingColourClick(Sender: TObject);
 BEGIN
@@ -5507,7 +5507,7 @@ BEGIN
     PointDownFacingColour := FWPRailWindowColourDialogue.Color;
     InvalidateScreen(UnitRef, 'GeneralPopupChangePointDownFacingColourClick');
   END;
-END; { ChangeDownFacingPointColourClick }
+END; { GeneralPopupChangeDownFacingPointColourClick }
 
 PROCEDURE TFWPRailWindow.GeneralPopupRestorePointDownFacingColourClick(Sender: TObject);
 BEGIN
@@ -5524,7 +5524,7 @@ BEGIN
     ShowPointDefaultStateColour := FWPRailWindowColourDialogue.Color;
     InvalidateScreen(UnitRef, 'GeneralPopupChangeShowPointDefaultStateColourClick');
   END;
-END; { ChangeShowPointDefaultStateColourClick }
+END; { GeneralPopupChangeShowPointDefaultStateColourClick }
 
 PROCEDURE TFWPRailWindow.GeneralPopupRestoreShowPointDefaultStateColourClick(Sender: TObject);
 BEGIN
@@ -5541,7 +5541,7 @@ BEGIN
     PointLenzNumberColour := FWPRailWindowColourDialogue.Color;
     InvalidateScreen(UnitRef, 'GeneralPopupChangePointLenzNumberColourClick');
   END;
-END; { ChangePointLenzNumberColourClick }
+END; { GeneralPopupChangePointLenzNumberColourClick }
 
 PROCEDURE TFWPRailWindow.GeneralPopupRestorePointLenzNumberColourClick(Sender: TObject);
 BEGIN
@@ -5558,7 +5558,7 @@ BEGIN
     PointManualOperationColour := FWPRailWindowColourDialogue.Color;
     InvalidateScreen(UnitRef, 'GeneralPopupChangePointManualOperationColourClick');
   END;
-END; { ChangePointManualOperationColourClick }
+END; { GeneralPopupChangePointManualOperationColourClick }
 
 PROCEDURE TFWPRailWindow.GeneralPopupRestorePointManualOperationColourClick(Sender: TObject);
 BEGIN
@@ -5575,7 +5575,7 @@ BEGIN
     PointFeedbackDataInUseColour := FWPRailWindowColourDialogue.Color;
     InvalidateScreen(UnitRef, 'GeneralPopupChangePointFeedbackDataInUseColourClick');
   END;
-END; { ChangePointFeedbackDataInUseColourClick }
+END; { GeneralPopupChangePointFeedbackDataInUseColourClick }
 
 PROCEDURE TFWPRailWindow.GeneralPopupRestorePointFeedbackDataInUseColourClick(Sender: TObject);
 BEGIN
@@ -5592,7 +5592,7 @@ BEGIN
     PointFeedbackDataOutOfUseColour := FWPRailWindowColourDialogue.Color;
     InvalidateScreen(UnitRef, 'GeneralPopupChangePointFeedbackDataOutOfUseColourClick');
   END;
-END; { ChangePointFeedbackDataOutOfUseColourClick }
+END; { GeneralPopupChangePointFeedbackDataOutOfUseColourClick }
 
 PROCEDURE TFWPRailWindow.GeneralPopupRestorePointFeedbackDataOutOfUseColourClick(Sender: TObject);
 BEGIN
@@ -5609,7 +5609,7 @@ BEGIN
     PointsWithoutFeedbackColour := FWPRailWindowColourDialogue.Color;
     InvalidateScreen(UnitRef, 'GeneralPopupChangePointsWithoutFeedbackColourClick');
   END;
-END; { ChangePointsWithoutFeedbackColourClick }
+END; { GeneralPopupChangePointsWithoutFeedbackColourClick }
 
 PROCEDURE TFWPRailWindow.GeneralPopupRestorePointsWithoutFeedbackColourClick(Sender: TObject);
 BEGIN
@@ -5626,7 +5626,7 @@ BEGIN
     PointHeelLineColour := FWPRailWindowColourDialogue.Color;
     InvalidateScreen(UnitRef, 'GeneralPopupChangePointHeelLineColourClick');
   END;
-END; { ChangePointHeelLineColourClick }
+END; { GeneralPopupChangePointHeelLineColourClick }
 
 PROCEDURE TFWPRailWindow.GeneralPopupRestorePointHeelLineColourClick(Sender: TObject);
 BEGIN
@@ -5643,7 +5643,7 @@ BEGIN
     PointStraightLineColour := FWPRailWindowColourDialogue.Color;
     InvalidateScreen(UnitRef, 'GeneralPopupChangePointStraightLineColourClick');
   END;
-END; { ChangePointStraightLineColourClick }
+END; { GeneralPopupChangePointStraightLineColourClick }
 
 PROCEDURE TFWPRailWindow.GeneralPopupRestorePointStraightLineColourClick(Sender: TObject);
 BEGIN
@@ -5677,7 +5677,7 @@ BEGIN
     PointDivergingLineColour := FWPRailWindowColourDialogue.Color;
     InvalidateScreen(UnitRef, 'GeneralPopupChangePointDivergingLineColourClick');
   END;
-END; { ChangePointDivergingLineColourClick }
+END; { GeneralPopupChangePointDivergingLineColourClick }
 
 PROCEDURE TFWPRailWindow.GeneralPopupRestorePointDivergingLineColourClick(Sender: TObject);
 BEGIN

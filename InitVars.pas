@@ -94,8 +94,8 @@ CONST
   clFWPDkBrown = $00004080; { 0   0  64 128 }
   clFWPPink = $008080FF; { 0 128 128 255 }
   clFWPPlatformColour = $0038ABB1;
-  clFWPDkGrey = 2368548; { 0 36 36 36 }
-  clFWPVeryDkGrey = 3355443; { 0  33  33  33 }
+  clFWPDkGrey = $00242424; { 0 36 36 36 }
+  clFWPVeryDkGrey = $00212121; { 0  33  33  33 }
 
   FirstFunctionDecoder = 9001;
   LastFunctionDecoder = 9916;
@@ -1640,8 +1640,8 @@ FUNCTION ValidatePointLastFeedbackStateAsReadIn(PointStateStr : String; PointMan
 FUNCTION ValidatePointLastManualStateAsReadIn(PointStateStr : String; PointManualOperation : Boolean; OUT ErrorMsg : String) : PointStateType;
 { Check whether the last point state read in is valid }
 
-FUNCTION ValidatePointLenzNum(LenzNumStr : String; PointLastManualStateAsReadIn : PointStateType; OUT PointManualOperation : Boolean; OUT PointPresentState : PointStateType;
-                              OUT ErrorMsg : String) : Integer;
+FUNCTION ValidatePointLenzNum(LenzNumStr : String; PointLastManualStateAsReadIn : PointStateType; OUT PointManualOperation : Boolean;
+                              OUT PointPresentState : PointStateType; OUT ErrorMsg : String) : Integer;
 { Check whether the Lenz point number is valid }
 
 FUNCTION ValidatePointLenzUnit(LenzUnitStr : String; OUT ErrorMsg : String) : Integer;
@@ -4285,7 +4285,7 @@ BEGIN
 
   IF (SignalToTest <> UnknownSignal) AND (SignalToTest > High(Signals)) THEN
     Result := 'ValidateSignalNum: cross-reference to invalid signal number "' + IntToStr(SignalToTest) + '"';
-END; { ValidateSigtnalNum }
+END; { ValidateSignalNum }
 
 FUNCTION ValidateSignalIndicator(Str : String; OUT ErrorMsg : String) : IndicatorType;
 { Validates and if ok returns the signal indicator }
@@ -4432,7 +4432,7 @@ BEGIN
     ELSE
       IF Str <> '' THEN
         ErrorMsg := 'Invalid signal quadrant type';
-END; { ValidateQuadrant }
+END; { ValidateSignalQuadrant }
 
 FUNCTION ValidateSignalType(Str : String; Quadrant : QuadrantType; OUT ErrorMsg : String) : TypeOfSignal;
 { Validates and if ok returns the signal type }
@@ -4619,7 +4619,9 @@ BEGIN
 
       SignalsADOTable.Open;
 
-      { First see if the signal numbers in the MSAccess file are sequential and, if not, renumber it - we need this or deletions from the MSAccess file will causes problems }
+      { First see if the signal numbers in the MSAccess file are sequential and, if not, renumber it - we need this or deletions from the MSAccess file will causes
+        problems
+      }
       S := -1;
       SignalsADOTable.First;
       WHILE NOT SignalsADOTable.EOF DO BEGIN
@@ -4711,38 +4713,38 @@ BEGIN
 
           IF ErrorMsg = '' THEN BEGIN
             TempStrArray[0] := SignalsADOTable.FieldByName(Signal_UpperLeftIndicatorTargetFieldName).AsString;
-            Signal_JunctionIndicators[UpperLeftIndicator] := ValidateSignalJunctionIndicators1(TempStrArray[0], Signal_UpperLeftIndicatorTargetFieldName, Signal_Indicator,
-                                                                                         ErrorMsg);
+            Signal_JunctionIndicators[UpperLeftIndicator] :=
+                                                   ValidateSignalJunctionIndicators1(TempStrArray[0], Signal_UpperLeftIndicatorTargetFieldName, Signal_Indicator, ErrorMsg);
           END;
 
           IF ErrorMsg = '' THEN BEGIN
             TempStrArray[1] := SignalsADOTable.FieldByName(Signal_MiddleLeftIndicatorTargetFieldName).AsString;
-            Signal_JunctionIndicators[MiddleLeftIndicator] := ValidateSignalJunctionIndicators1(TempStrArray[1], Signal_MiddleLeftIndicatorTargetFieldName, Signal_Indicator,
-                                                                                          ErrorMsg);
+            Signal_JunctionIndicators[MiddleLeftIndicator] :=
+                                                  ValidateSignalJunctionIndicators1(TempStrArray[1], Signal_MiddleLeftIndicatorTargetFieldName, Signal_Indicator, ErrorMsg);
           END;
 
           IF ErrorMsg = '' THEN BEGIN
             TempStrArray[2] := SignalsADOTable.FieldByName(Signal_LowerLeftIndicatorTargetFieldName).AsString;
-            Signal_JunctionIndicators[LowerLeftIndicator] := ValidateSignalJunctionIndicators1(TempStrArray[2], Signal_LowerLeftIndicatorTargetFieldName, Signal_Indicator,
-                                                                                         ErrorMsg);
+            Signal_JunctionIndicators[LowerLeftIndicator] :=
+                                                   ValidateSignalJunctionIndicators1(TempStrArray[2], Signal_LowerLeftIndicatorTargetFieldName, Signal_Indicator, ErrorMsg);
           END;
 
           IF ErrorMsg = '' THEN BEGIN
             TempStrArray[3] := SignalsADOTable.FieldByName(Signal_UpperRightIndicatorTargetFieldName).AsString;
-            Signal_JunctionIndicators[UpperRightIndicator] := ValidateSignalJunctionIndicators1(TempStrArray[3], Signal_UpperRightIndicatorTargetFieldName, Signal_Indicator,
-                                                                                          ErrorMsg);
+            Signal_JunctionIndicators[UpperRightIndicator] :=
+                                                  ValidateSignalJunctionIndicators1(TempStrArray[3], Signal_UpperRightIndicatorTargetFieldName, Signal_Indicator, ErrorMsg);
           END;
 
           IF ErrorMsg = '' THEN BEGIN
             TempStrArray[4] := SignalsADOTable.FieldByName(Signal_MiddleRightIndicatorTargetFieldName).AsString;
-            Signal_JunctionIndicators[MiddleRightIndicator] := ValidateSignalJunctionIndicators1(TempStrArray[4], Signal_MiddleRightIndicatorTargetFieldName, Signal_Indicator,
-                                                                                           ErrorMsg);
+            Signal_JunctionIndicators[MiddleRightIndicator] :=
+                                                 ValidateSignalJunctionIndicators1(TempStrArray[4], Signal_MiddleRightIndicatorTargetFieldName, Signal_Indicator, ErrorMsg);
           END;
 
           IF ErrorMsg = '' THEN BEGIN
             TempStrArray[5] := SignalsADOTable.FieldByName(Signal_LowerRightIndicatorTargetFieldName).AsString;
-            Signal_JunctionIndicators[LowerRightIndicator] := ValidateSignalJunctionIndicators1(TempStrArray[5], Signal_LowerRightIndicatorTargetFieldName, Signal_Indicator,
-                                                                                          ErrorMsg);
+            Signal_JunctionIndicators[LowerRightIndicator] :=
+                                                  ValidateSignalJunctionIndicators1(TempStrArray[5], Signal_LowerRightIndicatorTargetFieldName, Signal_Indicator, ErrorMsg);
           END;
 
           IF ErrorMsg = '' THEN
@@ -4758,10 +4760,11 @@ BEGIN
             Signal_Direction := ValidateSignalDirection(SignalsADOTable.FieldByName(Signal_DirectionFieldName).AsString, ErrorMsg);
 
           IF ErrorMsg = '' THEN
-            Signal_IndicatorSpeedRestriction := ValidateSignalIndicatorSpeedRestriction(SignalsADOTable.FieldByName(Signal_IndicatorSpeedRestrictionFieldName).AsString,
-                                                                                  Signal_Indicator, ErrorMsg);
+            Signal_IndicatorSpeedRestriction :=
+                       ValidateSignalIndicatorSpeedRestriction(SignalsADOTable.FieldByName(Signal_IndicatorSpeedRestrictionFieldName).AsString, Signal_Indicator, ErrorMsg);
           IF ErrorMsg = '' THEN
-            Signal_NextSignalIfNoIndicator := ValidateNextSignalIfNoIndicator(SignalsADOTable.FieldByName(Signal_NextSignalIfNoIndicatorFieldName).AsString, Init, ErrorMsg);
+            Signal_NextSignalIfNoIndicator :=
+                                             ValidateNextSignalIfNoIndicator(SignalsADOTable.FieldByName(Signal_NextSignalIfNoIndicatorFieldName).AsString, Init, ErrorMsg);
 
           IF ErrorMsg = '' THEN
             Signal_OppositePassingLoopSignal := ValidateSignalOppositePassingLoopSignal(SignalsADOTable.FieldByName(Signal_OppositePassingLoopSignalFieldName).AsString,
@@ -4770,8 +4773,8 @@ BEGIN
             Signal_AsTheatreDestination := ValidateSignalAsTheatreDestination(SignalsADOTable.FieldByName(Signal_AsTheatreDestinationFieldName).AsString, ErrorMsg);
 
           IF ErrorMsg = '' THEN
-            Signal_OutOfUse := ValidateSignalOutOfUseAndAddAdjacentTC(SignalsADOTable.FieldByName(Signal_OutOfUseFieldName).AsBoolean, Signal_AdjacentLine,
-                                                                      Signal_AdjacentTC, ErrorMsg);
+            Signal_OutOfUse :=
+                  ValidateSignalOutOfUseAndAddAdjacentTC(SignalsADOTable.FieldByName(Signal_OutOfUseFieldName).AsBoolean, Signal_AdjacentLine, Signal_AdjacentTC, ErrorMsg);
           IF ErrorMsg = '' THEN
             Signal_Notes := SignalsADOTable.FieldByName(Signal_NotesFieldName).AsString;
 
@@ -4802,14 +4805,15 @@ BEGIN
             Signal_PossibleStationStartRouteHold := ValidateSignalPossibleStationStartRouteHold
                                                  (SignalsADOTable.FieldByName(Signal_PossibleStationStartRouteHoldFieldName).AsBoolean, Signal_PossibleRouteHold, ErrorMsg);
           IF ErrorMsg = '' THEN
-            Signal_LocationsToMonitorArray := ValidateSignalLocationsToMonitorArray
-                                                             (SignalsADOTable.FieldByName(Signal_LocationsToMonitorFieldName).AsString, Signal_PossibleRouteHold, ErrorMsg);
+            Signal_LocationsToMonitorArray :=
+                        ValidateSignalLocationsToMonitorArray(SignalsADOTable.FieldByName(Signal_LocationsToMonitorFieldName).AsString, Signal_PossibleRouteHold, ErrorMsg);
           IF ErrorMsg = '' THEN
             Signal_Automatic := SignalsADOTable.FieldByName(Signal_AutomaticFieldName).AsBoolean;
 
           IF ErrorMsg = '' THEN
             Signal_SemaphoreDistantHomesArray := ValidateSignalDistantHomesArray(S, Signal_Type,
-                                                                                 SignalsADOTable.FieldByName(Signal_SemaphoreDistantHomesArrayFieldName).AsString, ErrorMsg);
+                                                                                 SignalsADOTable.FieldByName(Signal_SemaphoreDistantHomesArrayFieldName).AsString,
+                                                                                 ErrorMsg);
 
           IF Signal_PossibleRouteHold AND Signal_PossibleStationStartRouteHold THEN
             { both shouldn't be ticked }
@@ -5586,8 +5590,8 @@ BEGIN
   END;
 END; { ValidatePointLastManualStateAsReadIn }
 
-FUNCTION ValidatePointLenzNum(LenzNumStr : String; PointLastManualStateAsReadIn : PointStateType; OUT PointManualOperation : Boolean; OUT PointPresentState : PointStateType;
-                              OUT ErrorMsg : String) : Integer;
+FUNCTION ValidatePointLenzNum(LenzNumStr : String; PointLastManualStateAsReadIn : PointStateType; OUT PointManualOperation : Boolean;
+                              OUT PointPresentState : PointStateType; OUT ErrorMsg : String) : Integer;
 { Check whether the Lenz point number is valid }
 BEGIN
   ErrorMsg := '';
@@ -6749,6 +6753,6 @@ INITIALIZATION
 
 BEGIN
   SaveActualTime := Time;
-END;
+END; { Initialization }
 
 END { InitVars }.

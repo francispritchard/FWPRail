@@ -1561,8 +1561,8 @@ BEGIN
                   AppendToIntegerArray(Train_DiagramsGridRowNums, TempGridRowCount - 1);
 
                   NewRow := False;
-                  { Draw the cells, If we want a cell to be in bold, add an @ - the OnDrawCell routine will substitute Bold text for it (there is no easier way to do this, as
-                    the OnDrawCell routine doesn't know anything about the antecedents of the text it's been given).
+                  { Draw the cells, If we want a cell to be in bold, add an @ - the OnDrawCell routine will substitute Bold text for it (there is no easier way to do
+                    this, as the OnDrawCell routine doesn't know anything about the antecedents of the text it's been given).
                   }
                   IF Train_LocoChip = UnknownLocoChip THEN
                     SetUpDiagramsGridCell(T, LocoChipCol, TempGridRowCount, '-', BoldStyle)
@@ -2018,7 +2018,7 @@ BEGIN
     END; {WITH}
   END;
   DrawDiagrams(UnitRef, 'PopupTrainUserDrivenClick');
-END; { PopupTrainUserDrivenClick }
+END; { PopupTrainUserDrivingClick }
 
 PROCEDURE TDiagramsWindow.PopupSupplyUserTrainInstructionsClick(Sender: TObject);
 BEGIN
@@ -2064,7 +2064,7 @@ BEGIN
         Debug('No error messages for loco ' + LocoChipToStr(Train_LocoChip));
     END; {WITH}
   END;
-END; { ShowLastTrainErrorMessageClick }
+END; { PopupShowLastTrainErrorMessageClick }
 
 PROCEDURE TDiagramsWindow.DiagramsWindowGridMouseDown(Sender: TObject; Button: TMouseButton; ShiftState: TShiftState; X, Y: Integer);
 { See if we're over a time, in which case display departure and arrival times alternatively, or perhaps we're clicking on a loco to advance it by hand }
@@ -2497,13 +2497,13 @@ BEGIN
     DiagramsWindowGrid.Color := DiagramsWindowColourDialogue.Color;
     DiagramsWindowGridBackgroundColour := DiagramsWindowColourDialogue.Color;
   END;
-END; { opupChangeDiagramsColourClick }
+END; { PopupChangeDiagramsColourClick }
 
 PROCEDURE TDiagramsWindow.PopupRestoreDefaultColourClick(Sender: TObject);
 BEGIN
   DiagramsWindowGrid.Color := DefaultDiagramsWindowGridBackgroundColour;
   DiagramsWindowGridBackgroundColour := DefaultDiagramsWindowGridBackgroundColour;
-END; { RestoreDefaultColourClick }
+END; { PopupRestoreDefaultColourClick }
 
 PROCEDURE ResetDiagramsWindowSizeAndPosition;
 { Reset the window's size and position }
@@ -2538,7 +2538,7 @@ BEGIN
 
   { Also allow the diagram window to be maximised }
 
-END; { DiagramsSmallWindowResize }
+END; { DiagramsWindowResize }
 
 PROCEDURE TDiagramsWindow.DiagramsWindowGridMouseMove(Sender: TObject; ShiftState: TShiftState; X, Y: Integer);
 { If the mouse moves into the Diagrams window, move the focus there; also find out which columns and rows we are hovering over }
@@ -2962,11 +2962,13 @@ BEGIN
                 SetLength(JourneyRouteArray, 0);
 
                 FindRouteFromLineAToLineB(Train_LocoChipStr, Journey, UnknownSignal, TrainJourney_StartLine, TrainJourney_EndLine, TrainDirection, Train_Type,
-                                          Train_CurrentLengthInInches, RouteingInEmergency, NOT IncludeOutOfUseLines, JourneyRouteArray, LinesNotAvailableStr, ErrorMsg, OK);
+                                          Train_CurrentLengthInInches, RouteingInEmergency, NOT IncludeOutOfUseLines, JourneyRouteArray, LinesNotAvailableStr,
+                                          ErrorMsg, OK);
                 IF NOT OK AND (RouteingInEmergency = False) THEN BEGIN
                   { try emergency routeing }
                   FindRouteFromLineAToLineB(Train_LocoChipStr, Journey, UnknownSignal, TrainJourney_StartLine, TrainJourney_EndLine, TrainDirection, Train_Type,
-                                            Train_CurrentLengthInInches, EmergencyRouteing, NOT IncludeOutOfUseLines, JourneyRouteArray, LinesNotAvailableStr, ErrorMsg, OK);
+                                            Train_CurrentLengthInInches, EmergencyRouteing, NOT IncludeOutOfUseLines, JourneyRouteArray, LinesNotAvailableStr,
+                                            ErrorMsg, OK);
                 END;
 
                 IF NOT OK THEN
@@ -3094,7 +3096,8 @@ BEGIN
               IF TrainJourney_DiagrammedDepartureTime <> SaveDiagrammedDepartureTime THEN
                 Log('D ' + StringOfChar(' ', 5) + ': diagrammed departure time is '+ TimeToHMStr(TrainJourney_DiagrammedDepartureTime));
               IF TrainJourney_CurrentArrivalTime <> SaveCurrentArrivalTime THEN
-                Log('D ' + StringOfChar(' ', 5) + ': changing end time from ' + TimeToHMStr(SaveCurrentArrivalTime) + ' to ' + TimeToHMStr(TrainJourney_CurrentArrivalTime));
+                Log('D ' + StringOfChar(' ', 5) + ': changing end time from ' + TimeToHMStr(SaveCurrentArrivalTime)
+                                                                                                                   + ' to ' + TimeToHMStr(TrainJourney_CurrentArrivalTime));
               IF TrainJourney_StoppingOnArrival <> SaveStoppingOnArrival THEN
                 Log('D ' + StringOfChar(' ', 5) + ': changing StoppingOnArrival to ' + BoolToStr(SaveStoppingOnArrival, True));
               IF TrainJourney_NotForPublicUse <> SaveNotForPublicUse THEN
@@ -3875,7 +3878,9 @@ BEGIN
                     END; {WHILE}
 
                     IF NOT DirectionFound THEN BEGIN
-                      { all the directions are bidirectional - just choose the first at random. Note: the From in RandomRange is included in the results, but the To is not. }
+                      { all the directions are bidirectional - just choose the first at random. Note: the From in RandomRange is included in the results, but the To is
+                        not.
+                      }
                       I := RandomRange(1, 3);
                       CASE I OF
                         1:
@@ -4522,8 +4527,8 @@ BEGIN
 
                     JourneyCount := -1;
                     IF NOT T_NonMoving THEN BEGIN
-                      { We can work out how many journeys there are from how many destinations there are. Only load MaxJourneys at any one time, though, as that's the number of
-                        fields in the database.
+                      { We can work out how many journeys there are from how many destinations there are. Only load MaxJourneys at any one time, though, as that's the
+                        number of fields in the database.
                       }
                       NoDestination := False;
                       WHILE (JourneyCount < MaxJourneys) AND NOT NoDestination DO BEGIN
@@ -4673,7 +4678,9 @@ BEGIN
                       IF ErrorMsg = '' THEN BEGIN
                         IF StrToArea(T_DestinationAreaOrLocationsStrArray[High(T_DestinationAreaOrLocationsStrArray)]) = UnknownArea THEN
                           ErrorMsg := 'cannot create a repeat journey for loco ' + LocoChipToStr(T_LocoChip)
-                                      + ' as the final destination area (' + T_DestinationAreaOrLocationsStrArray[High(T_DestinationAreaOrLocationsStrArray)] + ') is unknown';
+                                      + ' as the final destination area ('
+                                      + T_DestinationAreaOrLocationsStrArray[High(T_DestinationAreaOrLocationsStrArray)]
+                                      + ') is unknown';
                       END;
 
                       IF ErrorMsg = '' THEN BEGIN
@@ -5663,9 +5670,9 @@ BEGIN
                   Log(LocoChipToStr(Train_LocoChip) + ' T Problem in finding a route ' + DirectionToStr(TrainJourney_Direction)
                                                         + ' from ' + LineToStr(TrainJourney_StartLine) + ' to ' + LineToStr(TrainJourney_EndLine)
                                                         + ': trying emergency routeing');
-                  FindRouteFromLineAToLineB(Train_LocoChipStr, JourneyCount, UnknownSignal, TrainJourney_StartLine, TrainJourney_EndLine, TrainJourney_Direction, Train_Type,
-                                           Train_CurrentLengthInInches, EmergencyRouteing, NOT IncludeOutOfUseLines, TrainJourney_RouteArray, LinesNotAvailableStr,
-                                           ErrorMsg, DiagramsOK);
+                  FindRouteFromLineAToLineB(Train_LocoChipStr, JourneyCount, UnknownSignal, TrainJourney_StartLine, TrainJourney_EndLine, TrainJourney_Direction,
+                                           Train_Type, Train_CurrentLengthInInches, EmergencyRouteing, NOT IncludeOutOfUseLines, TrainJourney_RouteArray,
+                                           LinesNotAvailableStr, ErrorMsg, DiagramsOK);
                 END;
                 IF NOT DiagramsOK THEN BEGIN
                   IF MessageDialogueWithDefault('Loco ' + LocoChipToStr(Train_LocoChip) + ': problem in finding a route ' + DirectionToStr(TrainJourney_Direction)
@@ -5818,7 +5825,7 @@ BEGIN
   DrawDiagramsWindow;
 
   Log('A Diagrams unit initialised');
-END; { InitDiagramsUnit }
+END; { InitialiseDiagramsUnit }
 
 INITIALIZATION
 

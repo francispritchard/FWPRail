@@ -1753,7 +1753,7 @@ CONST
 
 BEGIN
   WriteStringArrayToLogMainProcedure(LocoChipStr, TypeOfLogChar, '', StringArray, Indent, WrapNum, NOT NumberElements, NoBreakOnStr);
-END; { WriteStringArrayToLogFile - 1}
+END; { WriteStringArrayToLogFile-1}
 
 PROCEDURE WriteStringArrayToLog{2}(LocoChipStr : String; TypeOfLogChar : Char; Str: String; StringArray : StringArrayType; Indent, WrapNum : Integer); Overload;
 { Write the contents of an array to the replay file, wrapping it at Wrapnum and indenting it by Indent: this version is preceded by an explanatory string }
@@ -1762,14 +1762,14 @@ CONST
 
 BEGIN
   WriteStringArrayToLogMainProcedure(LocoChipStr, TypeOfLogChar, Str, StringArray, Indent, WrapNum, NOT NumberElements, NoBreakOnStr);
-END; { WriteStringArrayToLogFile - 2}
+END; { WriteStringArrayToLogFile-2}
 
 PROCEDURE WriteStringArrayToLog{3}(LocoChipStr : String; TypeOfLogChar : Char; Str: String; StringArray : StringArrayType; Indent, WrapNum : Integer; BreakOnStr : String);
                                    Overload;
 { Write the contents of an array to the replay file, wrapping it at Wrapnum and indenting it by Indent: this version is preceded by an explanatory string }
 BEGIN
   WriteStringArrayToLogMainProcedure(LocoChipStr, TypeOfLogChar, Str, StringArray, Indent, WrapNum, NOT NumberElements, BreakOnStr);
-END; { WriteStringArrayToLogFile - 3}
+END; { WriteStringArrayToLogFile-3}
 
 PROCEDURE WriteStringArrayToLog{4}(LocoChipStr : String; TypeOfLogChar : Char; StringArray : StringArrayType; Indent, WrapNum : Integer; BreakOnStr : String); Overload;
 { Write the contents of an array to the replay file, wrapping it at Wrapnum and indenting it by Indent: this version is not preceded by an explanatory string. If the
@@ -1777,7 +1777,7 @@ PROCEDURE WriteStringArrayToLog{4}(LocoChipStr : String; TypeOfLogChar : Char; S
 }
 BEGIN
   WriteStringArrayToLogMainProcedure(LocoChipStr, TypeOfLogChar, '', StringArray, Indent, WrapNum, NOT NumberElements, BreakOnStr);
-END; { WriteStringArrayToLogFile - 4}
+END; { WriteStringArrayToLogFile-4}
 
 PROCEDURE WriteStringArrayToLog{5}(LocoChipStr : String; TypeOfLogChar : Char; StringArray : StringArrayType); Overload;
 { Write the contents of an array to the replay file, wrapping it at WrapNum and indenting it by two - this version is not preceded by an explanatory string }
@@ -1787,7 +1787,7 @@ CONST
 
 BEGIN
   WriteStringArrayToLogMainProcedure(LocoChipStr, TypeOfLogChar, '', StringArray, 2, WrapNum, NOT NumberElements, NoBreakOnStr);
-END; { WriteStringArrayToLogFile - 5}
+END; { WriteStringArrayToLogFile-5}
 
 PROCEDURE WriteStringArrayToLog{6}(LocoChipStr : String; TypeOfLogChar : Char; Str: String; StringArray : StringArrayType); Overload;
 { Write the contents of an array to the replay file, wrapping it by default at 140 and indenting it by two - this version is preceded by an explanatory string }
@@ -1797,7 +1797,7 @@ CONST
 
 BEGIN
   WriteStringArrayToLogMainProcedure(LocoChipStr, TypeOfLogChar, Str, StringArray, 2, WrapNum, NOT NumberElements, NoBreakOnStr);
-END; { WriteStringArrayToLogFile - 6}
+END; { WriteStringArrayToLogFile-6}
 
 PROCEDURE WriteStringArrayToLog{7}(LocoChipStr : String; TypeOfLogChar : Char; Str : String; StringArray : StringArrayType;  NumberElements : Boolean); Overload;
 { Write the contents of an array to the replay file, wrapping it at 140 and indenting it by two - this version is preceded by an explanatory string. If NumberElements is
@@ -1809,7 +1809,7 @@ CONST
 
 BEGIN
   WriteStringArrayToLogMainProcedure(LocoChipStr, TypeOfLogChar, Str, StringArray, 2, WrapNum, NumberElements, NoBreakOnStr);
-END; { WriteStringArrayToLogFile - 7}
+END; { WriteStringArrayToLogFile-7}
 
 PROCEDURE WriteStringArrayToLog{8}(LocoChipStr : String; TypeOfLogChar : Char; Str : String; StringArray : StringArrayType; NumberElements : Boolean; BreakOnStr : String);
                                    Overload;
@@ -1821,13 +1821,13 @@ CONST
 
 BEGIN
   WriteStringArrayToLogMainProcedure(LocoChipStr, TypeOfLogChar, Str, StringArray, 2, WrapNum, NumberElements, BreakOnStr);
-END; { WriteStringArrayToLogFile - 8}
+END; { WriteStringArrayToLogFile-8}
 
 PROCEDURE WriteStringArrayToLog{9}(TypeOfLogChar : Char; Str: String; StringArray : StringArrayType; Indent, WrapNum : Integer; BreakOnStr : String); Overload;
 { Write the contents of an array to the replay file, wrapping it at Wrapnum and indenting it by Indent: this version is preceded by an explanatory string }
 BEGIN
   WriteStringArrayToLogMainProcedure(UnknownLocoChipStr, TypeOfLogChar, Str, StringArray, Indent, WrapNum, NOT NumberElements, BreakOnStr);
-END; { WriteStringArrayToLogFile - 3}
+END; { WriteStringArrayToLogFile-9}
 
 PROCEDURE WriteTimeToLog(Num : Integer);
 { A debugging procedure whereby the current time is written to the log, together with the elapsed time since the previous call to the routine }

@@ -2196,7 +2196,7 @@ BEGIN
   CreateDraftRouteArray(UnknownLocoChipStr, DraftRouteArray, RouteStartLine, UnknownLine, RouteDirection, NoIndicatorLit, UnknownTrainType, UnknownTrainLength, NextSignal,
                         NextBufferStop, NOT ReturnTheSpecifiedRoute, ReturnAllRoutes, NOT LookForNextSignalOrBufferStopOnly, NOT LookForASpecificSignalOrBufferStop,
                         NOT IncludeOutOfUseLines, LookForAllSignalsAndBufferStopsOnly, LinesNotAvailableStr, NOT EmergencyRouteing, RouteFound);
-END; { FindAndHighlightNearestSignals }
+END; { FindAndHighlightNearestSignalsToTheatreIndicator }
 
 PROCEDURE FindNearestSignalsToGivenSignal(RouteStartLine : Integer; RouteDirection : DirectionType; OUT DraftRouteArray : StringArrayType; OUT OK : Boolean);
 { Looks for nearest signals only and returns a list of them - used in setting up routes in advance }
@@ -2547,7 +2547,7 @@ VAR
     END; {WHILE}
   END; { CreateSubRouteArrays }
 
-BEGIN
+BEGIN { CreateInitialRouteRelatedArrays }
   TRY
     { Make sure there are no duplicates in the array, as it will cause problems later }
     RemoveDuplicateElementsFromStringArray(RouteArray, CountSubRoutes(RouteArray));
@@ -2612,8 +2612,8 @@ BEGIN
     AppendToBooleanArray(Routes_RouteSettingsCompleted, False);
 
     { ...and their initial setting }
-    { Add one row to the subroute multidimensional array, then add its columns [there seems to no way to combine the two operations - if one tries, one gets all the rows the
-      same length!]
+    { Add one row to the subroute multidimensional array, then add its columns [there seems to no way to combine the two operations - if one tries, one gets all the rows
+      the same length!]
     }
     SetLength(Routes_SubRouteStates, Routes_RouteCounter + 1);
     SetLength(Routes_SubRouteStates[Routes_RouteCounter], TotalSubRoutes);
@@ -2643,7 +2643,7 @@ BEGIN
     ON E : Exception DO
       Log('EG CreateRouteArrays: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
-END; { CreateRouteArrays }
+END; { CreateInitialRouteRelatedArrays }
 
 PROCEDURE CreateClearingSubRouteArray(Route, SubRoute : Integer);
 { Takes the subroute setting up array and converts it to clear the subroute }
@@ -2953,8 +2953,8 @@ BEGIN
                  OR (Train_CurrentStatus = Departed)
                  OR (Train_CurrentStatus = RouteingWhileDeparted))
             THEN BEGIN
-              { Set up a new route with a new number - Routes_RouteCounter will be incremented if the route setting up is successful. The new route may encompass a number of
-                separate journeys.
+              { Set up a new route with a new number - Routes_RouteCounter will be incremented if the route setting up is successful. The new route may encompass a number
+                of separate journeys.
               }
               NewRoute := Routes_RouteCounter + 1;
 
@@ -3006,7 +3006,9 @@ BEGIN
                                     END;
                                   END ELSE
                                     { this covers all other non-passenger types that we might be }
-                                    IF (Train_Type <> ExpressPassengerType) AND (Train_Type <> OrdinaryPassengerType) AND (Trains[OtherT].Train_Type = OrdinaryPassengerType)
+                                    IF (Train_Type <> ExpressPassengerType)
+                                    AND (Train_Type <> OrdinaryPassengerType)
+                                    AND (Trains[OtherT].Train_Type = OrdinaryPassengerType)
                                     THEN BEGIN
                                       RouteCreationHeld := True;
                                       Train_RouteCreationHoldNum := 2;
@@ -3201,7 +3203,7 @@ BEGIN
                                                                           + LocoChipToStr(Trains[OtherT].Train_LocoChip)
                                                                           + ') has an earlier departure time from '
                                                                           + AreaToStr(Trains[OtherT].Train_JourneysArray[OtherJourneyCount].TrainJourney_StartArea,
-                                                                                                                                                              LongStringType);
+                                                                                                                                                            LongStringType);
                                             IF NOT Train_RouteCreationHeldMsgWrittenArray[Train_RouteCreationHoldNum] THEN BEGIN
                                               Log(Train_LocoChipStr + ' R ' + Train_RouteCreationHoldMsg);
                                               Train_RouteCreationHeldMsgWrittenArray[Train_RouteCreationHoldNum] := True;
@@ -3744,7 +3746,7 @@ BEGIN
     vk_Escape, vk_Return:
       DisplayColoursWindow.Hide;
   END; {CASE}
-END; { DisplayColoursWindowRicheditKeyDown }
+END; { DisplayColoursWindowRichEditKeyDown }
 
 INITIALIZATION
 

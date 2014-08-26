@@ -105,7 +105,7 @@ BEGIN
     IF NOT InputDialogueBox.Active THEN
       InputDialogueBox.SetFocus;
   END;
-END; { InputDialogueWindowMouseMove }
+END; { InputDialogueMouseMove }
 
 PROCEDURE TInputDialogueBox.InputDialogueShowAdjacentTrackCircuitsCheckBoxClick(Sender: TObject);
 BEGIN
@@ -5006,7 +5006,8 @@ BEGIN { KeyPressedDown }
               BEGIN
                 HelpMsg := 'show track circuit feedback data (' + ColourToStrForUser(TCFeedbackDataOutOfUseColour) + ' = out of use)';
                 IF NOT HelpRequired THEN BEGIN
-                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing track circuit feedback data' + ' (' + ColourToStrForUser(TCFeedbackDataOutOfUseColour) + ' = out of use)');
+                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing track circuit feedback data' + ' ('
+                                                                                                     + ColourToStrForUser(TCFeedbackDataOutOfUseColour) + ' = out of use)');
                   ShowTrackCircuitFeedbackDataInUse := True;
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
@@ -5023,7 +5024,7 @@ BEGIN { KeyPressedDown }
             Alt: {F8}
               BEGIN
                 HelpMsg := 'show point feedback data (' + ColourToStrForUser(PointFeedbackDataOutOfUseColour) + ' = out of use, '
-                                                                                                       + ColourToStrForUser(PointsWithoutFeedbackColour) + ' = no feedback)';
+                                                                                                      + ColourToStrForUser(PointsWithoutFeedbackColour) + ' = no feedback)';
                 IF NOT HelpRequired THEN BEGIN
                   WriteToStatusBarPanel(StatusBarPanel2, 'Showing point feedback data' + ' (' + ColourToStrForUser(PointFeedbackDataOutOfUseColour) + ' = out of use, '
                                                          + ColourToStrForUser(PointsWithoutFeedbackColour) + ' = no feedback)');
@@ -5230,7 +5231,7 @@ BEGIN { KeyPressedDown }
     ON E : Exception DO
       Log('EG KeyPressedDown: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
-END; { KeyPressedDown }
+END; { KeyPressedDownMainProcedure }
 
 //    VK_NUMPAD0:
 //      Debug('VK_NUMPAD0: 0 key (numeric keypad)');

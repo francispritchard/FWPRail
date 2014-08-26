@@ -19,7 +19,6 @@ Rail Data Files/*.ldb
 *.dproj
 bin/*
 Rail Data Files/Logs/*
-TestUnit.pas
 *.test
 *.aqt
 profiling/*

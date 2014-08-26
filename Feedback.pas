@@ -679,7 +679,8 @@ BEGIN { DecodeFeedback }
                                     MakeSound(1);
                                     Log('X! Serious error: P=' + IntToStr(P) + ' (Lenz=' + IntToStr(Point_LenzNum) + ')'
                                             + ' [' + DescribeLineNamesForTrackCircuit(Point_TCAtHeel) + '] has changed to ' + PointStateToStr(Point_PresentState)
-                                            + ' even though ' + LockingFailureString + ':' + 'loco ' + LocoChipToStr(Point_LocoChipLockingTheRoute) + ' has been suspended');
+                                            + ' even though ' + LockingFailureString + ':' + 'loco ' + LocoChipToStr(Point_LocoChipLockingTheRoute)
+                                            + ' has been suspended');
                                     Point_MovedWhenLocked := False;
                                   END;
                                 END;

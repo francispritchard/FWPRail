@@ -306,7 +306,8 @@ BEGIN
                                 { Show the track circuit which resets the signal if the indicator is on }
                                 IF ShowSignalResettingTrackCircuitsInStatusBar THEN BEGIN
                                   IF Signals[S].Signal_Indicator <> NoIndicator THEN BEGIN
-                                    IF NOT FindNextSignalOrBufferStop(S, UnknownSignal, UnknownBufferStop, IndicatorToBeSet, TempLinesNotAvailableStr, TempDraftRouteArray) THEN
+                                    IF NOT FindNextSignalOrBufferStop(S, UnknownSignal, UnknownBufferStop, IndicatorToBeSet, TempLinesNotAvailableStr, TempDraftRouteArray)
+                                    THEN
                                       TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'No RTC'
                                     ELSE BEGIN
                                       CreateLockingArrayFromDraftRouteArray(UnknownLocoChipStr, TempDraftRouteArray, Signals[S].Signal_RouteLockingNeededArray);
@@ -1410,15 +1411,17 @@ VAR
                         IF OK THEN BEGIN
                           IF Routes_RouteSettingByHand THEN BEGIN
                             Log('R Route setting request by user concluded - BS=' + IntToStr(BS) + ' pressed');
-                            FindRouteFromLineAToLineB(UnknownLocoChipStr, UnknownJourney, S, Signals[StartSignal].Signal_AdjacentLine, BufferStops[BS].BufferStop_AdjacentLine,
-                                                      Signals[StartSignal].Signal_Direction, TrainTypeForRouteing, TrainLengthInInchesForRouteing, EmergencyRouteingStored,
-                                                      NOT IncludeOutOfUseLinesOn, DraftRouteArray, LinesNotAvailableStr, ErrorMsg, RouteFoundOK);
+                            FindRouteFromLineAToLineB(UnknownLocoChipStr, UnknownJourney, S, Signals[StartSignal].Signal_AdjacentLine,
+                                                      BufferStops[BS].BufferStop_AdjacentLine, Signals[StartSignal].Signal_Direction, TrainTypeForRouteing,
+                                                      TrainLengthInInchesForRouteing, EmergencyRouteingStored, NOT IncludeOutOfUseLinesOn, DraftRouteArray,
+                                                      LinesNotAvailableStr, ErrorMsg, RouteFoundOK);
                             EndLine := BufferStops[BS].BufferStop_AdjacentLine;
                           END ELSE BEGIN
                             Log('S Theatre indicator route setting request by user concluded - BS=' + IntToStr(BS) + ' pressed');
-                            FindRouteFromLineAToLineB(UnknownLocoChipStr, UnknownJourney, S, Signals[StartSignal].Signal_AdjacentLine, BufferStops[BS].BufferStop_AdjacentLine,
-                                                      Signals[StartSignal].Signal_Direction, TrainTypeForRouteing, TrainLengthInInchesForRouteing, EmergencyRouteingStored,
-                                                      NOT IncludeOutOfUseLinesOn, DraftRouteArray, LinesNotAvailableStr, ErrorMsg, RouteFoundOK);
+                            FindRouteFromLineAToLineB(UnknownLocoChipStr, UnknownJourney, S, Signals[StartSignal].Signal_AdjacentLine,
+                                                      BufferStops[BS].BufferStop_AdjacentLine, Signals[StartSignal].Signal_Direction, TrainTypeForRouteing,
+                                                      TrainLengthInInchesForRouteing, EmergencyRouteingStored, NOT IncludeOutOfUseLinesOn, DraftRouteArray,
+                                                      LinesNotAvailableStr, ErrorMsg, RouteFoundOK);
                             AppendToStringArray(DraftRouteArray, 'BS=' + IntToStr(BS));
                             EndLine := BufferStops[BS].BufferStop_AdjacentLine;
                           END;
@@ -1618,16 +1621,17 @@ BEGIN
                 FWPRailWindow.PointPopupMenu.Popup(MouseX, MouseY);
                 PointFoundNum := UnknownPoint;
               END ELSE
-                IF LineFoundNum <> UnknownLine THEN BEGIN
-                  SetLinePopupNum(LineFoundNum);
+                IF BufferStopFoundNum <> UnknownBufferStop THEN BEGIN
+                  SetBufferStopPopupNum(BufferStopFoundNum);
+                  FWPRailWindow.BufferStopPopupMenu.Popup(MouseX, MouseY);
+                  BufferStopFoundNum := UnknownBufferStop;
+                END ELSE BEGIN
+                  { we probably want to create a line near here - we don't need to be on one to create it }
+                  IF LineFoundNum <> UnknownLine THEN
+                    SetLinePopupNum(LineFoundNum);
                   FWPRailWindow.LinePopupMenu.Popup(MouseX, MouseY);
                   LineFoundNum := UnknownLine;
-                END ELSE
-                  IF BufferStopFoundNum <> UnknownBufferStop THEN BEGIN
-                    SetBufferStopPopupNum(BufferStopFoundNum);
-                    FWPRailWindow.BufferStopPopupMenu.Popup(MouseX, MouseY);
-                    BufferStopFoundNum := UnknownBufferStop;
-                  END;
+                END;
           END;
       END ELSE BEGIN
         { Not Edit Mode }
