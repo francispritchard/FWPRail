@@ -3932,9 +3932,8 @@ BEGIN
        END;
    END; {CASE}
 
-   { This would be called if we wished normal minimising/maximising to continue too
+   { This is here as we want normal minimising/maximising to continue too }
    DefaultHandler(Msg);
-   }
 END; { WMSysCommand }
 
 PROCEDURE TFWPRailWindow.FWPRailWindowDestroy(Sender: TObject);
@@ -7334,11 +7333,11 @@ BEGIN { Main drawing procedure }
           IF ShowSignalJunctionDestinations THEN BEGIN
             FOR S := 0 TO High(Signals) DO BEGIN
               IF Signals[S].Signal_JunctionIndicators[UpperLeftIndicator].JunctionIndicator_Exists
-              OR  Signals[S].Signal_JunctionIndicators[MiddleLeftIndicator].JunctionIndicator_Exists
-              OR  Signals[S].Signal_JunctionIndicators[LowerLeftIndicator].JunctionIndicator_Exists
+              OR Signals[S].Signal_JunctionIndicators[MiddleLeftIndicator].JunctionIndicator_Exists
+              OR Signals[S].Signal_JunctionIndicators[LowerLeftIndicator].JunctionIndicator_Exists
               OR Signals[S].Signal_JunctionIndicators[UpperRightIndicator].JunctionIndicator_Exists
-              OR  Signals[S].Signal_JunctionIndicators[MiddleRightIndicator].JunctionIndicator_Exists
-              OR  Signals[S].Signal_JunctionIndicators[LowerRightIndicator].JunctionIndicator_Exists
+              OR Signals[S].Signal_JunctionIndicators[MiddleRightIndicator].JunctionIndicator_Exists
+              OR Signals[S].Signal_JunctionIndicators[LowerRightIndicator].JunctionIndicator_Exists
               THEN BEGIN
                 Signals[S].Signal_PostColour := clLime;
                 DrawSignalPost(S);
@@ -7509,6 +7508,11 @@ BEGIN { Main drawing procedure }
           InvalidateScreen(UnitRef, 'DrawMap 4');
         END;
       END; { WITH Canvas }
+
+      IF MenusVisible THEN
+        ShowMenus
+      ELSE
+        HideMenus;
 
       IF FWPRailWindow.Visible = False THEN
         FWPRailWindow.Visible := True;
