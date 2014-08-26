@@ -126,7 +126,7 @@ BEGIN
               WriteLn(OutputFile, Filename + ' (' + IntToStr(LineCount) + ') '
                                            + IfThen(ProcedureLine, 'Procedure')
                                            + IfThen(FunctionLine, 'Function')
-                                           + IfThen(FunctionLine, 'Initialization')
+                                           + IfThen(InitialisationLine, 'Initialization')
                                            + ' "' + Trim(SaveProcedureOrFunctionNameStr) + '" does not match end of routine name "' + Trim(TempStr) + '"');
         END;
       END;
