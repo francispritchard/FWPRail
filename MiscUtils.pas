@@ -9383,8 +9383,7 @@ BEGIN
             CheckString(Line_BufferStopTheatreDestinationStrFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
             CheckString(Line_DirectionFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
             CheckString(Line_DownConnectionChFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
-            CheckString(Line_DownYAbsoluteFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
-            CheckString(Line_DownYLocationStrFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
+            CheckString(Line_DownRowFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
             CheckString(Line_EndOfLineMarkerFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
             CheckString(Line_GradientFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
             CheckString(Line_InUseFeedbackUnitFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
@@ -9398,8 +9397,7 @@ BEGIN
             CheckString(Line_UpConnectionChFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
             CheckString(Line_UpXAbsoluteFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
             CheckString(Line_UpXLineStrFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
-            CheckString(Line_UpYAbsoluteFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
-            CheckString(Line_UpYLocationStrFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
+            CheckString(Line_UpRowFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
           END; {WITH}
         END;
 

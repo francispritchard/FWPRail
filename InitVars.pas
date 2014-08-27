@@ -311,12 +311,10 @@ TYPE
     Line_DownConnectionCh : String;
     Line_DownConnectionChRect : TRect;
     Line_DownConnectionChBold : Boolean;
+    Line_DownRow : Extended;
     Line_DownXAbsolute : Integer;
     Line_DownX : Integer;
-    Line_DownYAbsolute : Integer;
     Line_DownY : Integer;
-    Line_DownYLocation : Integer;
-    Line_DownYLocationStr : String;
     Line_EndOfLineMarker : EndOfLineType;
     Line_Gradient : GradientType;
     Line_InitialOutOfUseState : OutOfUseState;
@@ -348,14 +346,12 @@ TYPE
     Line_UpConnectionCh : String;
     Line_UpConnectionChRect : TRect;
     Line_UpConnectionChBold : Boolean;
-    Line_UpXAbsolute : Integer;
+    Line_UpRow : Extended;
     Line_UpX : Integer;
+    Line_UpXAbsolute : Integer;
     Line_UpXLineStr : String;
     Line_UpXValueSpecified : Boolean;
-    Line_UpYAbsolute : Integer;
     Line_UpY : Integer;
-    Line_UpYLocation : Integer;
-    Line_UpYLocationStr : String;
   END;
 
 CONST
@@ -363,8 +359,7 @@ CONST
   Line_BufferStopTheatreDestinationStrFieldName : String = 'Buffer Stop Theatre Destination';
   Line_DirectionFieldName : String = 'Direction';
   Line_DownConnectionChFieldName : String = 'Down Connection Ch';
-  Line_DownYAbsoluteFieldName : String = 'Down Y';
-  Line_DownYLocationStrFieldName : String = 'Down Y Location';
+  Line_DownRowFieldName : String = 'Down Row';
   Line_EndOfLineMarkerFieldName : String = 'End Of Line Marker';
   Line_GradientFieldName : String = 'Gradient';
   Line_InUseFeedbackUnitFieldName : String = 'In Use Feedback Unit';
@@ -378,8 +373,7 @@ CONST
   Line_UpConnectionChFieldName : String = 'Up Connection Ch';
   Line_UpXAbsoluteFieldName : String = 'Up X';
   Line_UpXLineStrFieldName : String = 'Up X Line';
-  Line_UpYAbsoluteFieldName : String = 'Up Y';
-  Line_UpYLocationStrFieldName : String = 'Up Y Location';
+  Line_UpRowFieldName : String = 'Up Row';
 
 TYPE
   DirectionPriorityType = (PreferablyUp, UpOnly, TerminatingAtUp, PreferablyDown, DownOnly, TerminatingAtDown, NoDirectionPriority);
@@ -457,8 +451,6 @@ TYPE
     Platform_Height : Integer;
     Platform_LeftLine : Integer;
     Platform_LeftLineAdjustment : Integer;
-    Platform_LocationAbovePlatform : Integer; { do we need these as part of the record? **** }
-    Platform_LocationBelowPlatform : Integer;
     Platform_NumberAStr : String;
     Platform_NumberBStr : String;
     Platform_NumberPositionA : PlatformNumberPositionType;
@@ -466,8 +458,26 @@ TYPE
     Platform_Rect : TRect;
     Platform_RightLine : Integer;
     Platform_RightLineAdjustment : Integer;
+    Platform_RowAbovePlatform : Extended;
+    Platform_RowBelowPlatform : Extended;
   END;
 
+CONST
+    Platform_RunningNumberFieldName = 'RunningNumber';
+    Platform_DescriptionFieldName = 'Description';
+    Platform_HeightFieldName = 'Height';
+    Platform_LeftLineFieldName = 'LeftLine';
+    Platform_LeftLineAdjustmentFieldName = 'LeftLineAdjustment';
+    Platform_NumberAStrFieldName = 'PlatformNumberA';
+    Platform_NumberBStrFieldName = 'PlatformNumberB';
+    Platform_NumberAPositionFieldName = 'PlatformNumberAPosition';
+    Platform_NumberBPositionFieldName = 'PlatformNumberBPosition';
+    Platform_RightLineFieldName = 'RightLine';
+    Platform_RightLineAdjustmentFieldName = 'RightLineAdjustment';
+    Platform_RowAbovePlatformFieldName = 'RowAbovePlatform';
+    Platform_RowBelowPlatformFieldName = 'RowBelowPlatform';
+
+TYPE
   ReversingAreasRecType = RECORD
     ReversingAreas_AccessibleToFirstStationArea : Boolean;
     ReversingAreas_Area : Integer;
@@ -1238,6 +1248,7 @@ VAR
   FWPRailWindowInitialised : Boolean = False;
   FWPRailWindowPartInitialised : Boolean = False;
   InAutoMode : Boolean = False;
+  InterLineSpacing : Integer = 0;
   KeyBoardandMouseLocked : Boolean = False;
   LastPointChanged : Integer = UnknownPoint;
   LastTimeAnyPointChanged : TDateTime = 0;
@@ -1612,9 +1623,6 @@ FUNCTION ValidateLineUpXStr(UpXStr, LineStr : String; OUT ErrorMsg : String) : S
 FUNCTION ValidateLineUpXAbsolute(XStr, XLineStr : String; OUT ErrorMsg : String) : Integer;
 { See whether the X absolute value duplicates another field }
 
-FUNCTION ValidateLineYAbsolute(YStr, LocationStr : String; YDebugStr1, YDebugStr2 : String; OUT ErrorMsg : String) : Integer;
-{ See whether the Y absolute value duplicates another field }
-
 FUNCTION ValidateNextSignalIfNoIndicator(Str : String; Init : Boolean; OUT ErrorMsg : String) : Integer;
 { Validates and if ok returns what the other signal is if no indicator is lit }
 
@@ -1658,6 +1666,9 @@ FUNCTION ValidatePointStraightLineName(LineName : String; OUT ErrorMsg : String)
 
 FUNCTION ValidatePointType(PointTypeStr : String; OUT ErrorMsg : String) : TypeOfPoint;
 { Check that the supplied point type is valid }
+
+FUNCTION ValidateRow(RowStr : String; OUT ErrorMsg : String) : Extended;
+{ See whether the row provided is valid }
 
 FUNCTION ValidateSignalAccessoryAddress(Str : String; SignalType : TypeOfSignal; OUT ErrorMsg : String) : Integer;
 { Validates and if ok returns the decoder address for a TrainTech S3 accessory decoder. This test must be done after Signal Type is validated. }
@@ -1781,6 +1792,7 @@ BEGIN
   BufferStopVerticalSpacingScaled := MulDiv(FWPRailWindow.ClientHeight, BufferStopVerticalSpacing, ZoomScaleFactor * 10);
   IndicatorHorizontalSpacingScaled := MulDiv(FWPRailWindow.ClientWidth, IndicatorHorizontalSpacing, ZoomScaleFactor * 10);
   IndicatorVerticalSpacingScaled := MulDiv(FWPRailWindow.ClientHeight, IndicatorVerticalSpacing, ZoomScaleFactor * 10);
+  InterLineSpacing := MulDiv(FWPRailWindow.ClientHeight, FWPRailWindow.ClientHeight DIV (WindowRows - 2), ZoomScalefactor);
   MouseRectangleEdgeVerticalSpacingScaled := MulDiv(FWPRailWindow.ClientHeight, MouseRectangleEdgeVerticalSpacing, ZoomScaleFactor * 10);
   PlatformEdgeVerticalSpacingScaled := MulDiv(FWPRailWindow.ClientHeight, PlatformEdgeVerticalSpacing, ZoomScaleFactor * 10);
   PlatformNumberEdgeHorizontalSpacingScaled := MulDiv(FWPRailWindow.ClientWidth, PlatformNumberEdgeHorizontalSpacing, ZoomScaleFactor * 10);
@@ -2886,15 +2898,9 @@ END; { WriteOutLocationDataToDatabase }
 PROCEDURE CalculateLinePositions;
 { Work out where the lines are on the screen }
 VAR
-  ErrorMsg : String;
   Iterations : Integer;
   Line, Line2 : Integer;
   MissingXValue : Boolean;
-  ObliquePos : Integer;
-  TempLocation1 : Integer;
-  TempLocation2 : Integer;
-  TempLocationStr1 : String;
-  TempLocationStr2 : String;
 
 BEGIN
   TRY
@@ -2939,74 +2945,9 @@ BEGIN
       WITH Lines[Line] DO BEGIN
         Line_UpX := MulDiv(FWPRailWindow.ClientWidth, Line_UpXAbsolute, ZoomScaleFactor);
         Line_DownX := MulDiv(FWPRailWindow.ClientWidth, Line_DownXAbsolute, ZoomScaleFactor);
-      END; {WITH}
-      Inc(Line);
-    END; {WHILE}
 
-    Line := 0;
-    WHILE Line <= High(Lines) DO BEGIN
-      WITH Lines[Line] DO BEGIN
-        IF Line_UpYAbsolute <> 0 THEN
-          Line_UpY := MulDiv(FWPRailWindow.ClientHeight, Line_UpYAbsolute, ZoomScaleFactor)
-        ELSE BEGIN
-          { see if it's two locations (from which we obtain the average Y value) }
-          ObliquePos := Pos('/', Line_UpYLocationStr);
-          IF ObliquePos = 0 THEN BEGIN
-            Line_UpYLocation := StrToLocation(Line_UpYLocationStr);
-            IF Line_UpYLocation = UnknownLocation THEN
-              ErrorMsg := 'unknown UpY location "' + Line_UpYLocationStr + '"'
-            ELSE BEGIN
-              Line_UpYAbsolute := Locations[Line_UpYLocation].Location_Y;
-              Line_UpY := Locations[Line_UpYLocation].Location_YScaled;
-            END;
-          END ELSE BEGIN
-            TempLocationStr1 := Copy(Line_UpYLocationStr, 1, ObliquePos - 1);
-            TempLocation1 := StrToLocation(TempLocationStr1);
-            IF TempLocation1 = UnknownLocation THEN
-              ErrorMsg := 'unknown UpY location "' + TempLocationStr1 + '"'
-            ELSE BEGIN
-              TempLocationStr2 := Copy(Line_UpYLocationStr, ObliquePos + 1);
-              TempLocation2 := StrToLocation(TempLocationStr2);
-              IF TempLocation2 = UnknownLocation THEN
-                ErrorMsg := 'unknown UpY location "' + TempLocationStr2 + '"'
-              ELSE BEGIN
-                Line_UpYAbsolute := GetMidPos(Locations[TempLocation1].Location_Y, Locations[TempLocation2].Location_Y);
-                Line_UpY := MulDiv(FWPRailWindow.ClientHeight, Line_UpYAbsolute, ZoomScaleFactor)
-              END;
-            END;
-          END;
-        END;
-
-        IF Line_DownYAbsolute <> 0 THEN
-          Line_DownY := MulDiv(FWPRailWindow.ClientHeight, Line_DownYAbsolute, ZoomScaleFactor)
-        ELSE BEGIN
-          { see if it's two locations (from which we obtain the average Y value) }
-          ObliquePos := Pos('/', Line_DownYLocationStr);
-          IF ObliquePos = 0 THEN BEGIN
-            Line_DownYLocation := StrToLocation(Line_DownYLocationStr);
-            IF Line_DownYLocation = UnknownLocation THEN
-              ErrorMsg := 'unknown DownY location "' + Line_DownYLocationStr + '"'
-            ELSE BEGIN
-              Line_DownYAbsolute := Locations[Line_DownYLocation].Location_Y;
-              Line_DownY := Locations[Line_DownYLocation].Location_YScaled;
-            END;
-          END ELSE BEGIN
-            TempLocationStr1 := Copy(Line_DownYLocationStr, 1, ObliquePos - 1);
-            TempLocation1 := StrToLocation(TempLocationStr1);
-            IF TempLocation1 = UnknownLocation THEN
-              ErrorMsg := 'unknown DownY location "' + TempLocationStr1 + '"'
-            ELSE BEGIN
-              TempLocationStr2 := Copy(Line_DownYLocationStr, ObliquePos + 1);
-              TempLocation2 := StrToLocation(TempLocationStr2);
-              IF TempLocation2 = UnknownLocation THEN
-                ErrorMsg := 'unknown DownY location "' + TempLocationStr2 + '"'
-              ELSE BEGIN
-                Line_DownYAbsolute := GetMidPos(Locations[TempLocation1].Location_Y, Locations[TempLocation2].Location_Y);
-                Line_DownY := MulDiv(FWPRailWindow.ClientHeight, Line_DownYAbsolute, ZoomScaleFactor)
-              END;
-            END;
-          END;
-        END;
+        Line_UpY := Round(Line_UpRow * InterLineSpacing);
+        Line_DownY := Round(Line_DownRow * InterLineSpacing);
       END; {WITH}
       Inc(Line);
     END; {WHILE}
@@ -3219,22 +3160,24 @@ BEGIN
       ErrorMsg := 'ValidateLineUpXAbsolute: the UpX line must have a value if UpX Line is zero';
 END; { ValidateLineUpXAbsolute }
 
-FUNCTION ValidateLineYAbsolute(YStr, LocationStr : String; YDebugStr1, YDebugStr2 : String; OUT ErrorMsg : String) : Integer;
-{ See whether the Y absolute value duplicates another field }
+FUNCTION ValidateRow(RowStr : String; OUT ErrorMsg : String) : Extended;
+{ See whether the row provided is valid }
 BEGIN
   ErrorMsg := '';
   Result := 0;
 
-  IF YStr <> '' THEN BEGIN
-    IF NOT TryStrToInt(YStr, Result) THEN
-      ErrorMsg := 'ValidateLineYAbsolute: invalid ' + YDebugStr1 + ' integer "' + YStr + '"'
-    ELSE
-      IF LocationStr <> UnknownLocationStr THEN
-        ErrorMsg := 'ValidateLineYAbsolute: ' + YDebugStr2 + 'cannot have a value if line ' + YDebugStr1 + ' is specified';
-  END ELSE
-    IF LocationStr = UnknownLocationStr THEN
-      ErrorMsg := 'ValidateLineYAbsolute: the ' + YDebugStr1 + ' location must have a value if ' + YDebugStr2 + ' is zero';
-END; { ValidateLineYAbsolute }
+  IF RowStr = '' THEN
+    Result := 0
+  ELSE
+    IF NOT TryStrToFloat(RowStr, Result) THEN
+      ErrorMsg := 'ValidateRow: invalid number';
+
+  IF Result < 0 THEN
+    ErrorMsg := 'ValidateRow: row number cannot be less than zero'
+  ELSE
+    IF Result > WindowRows THEN
+      ErrorMsg := 'ValidateRow: row number cannot exceed the specified number of screeen rows (' + IntToStr(WindowRows) + ')';
+END; { ValidateRow }
 
 FUNCTION ValidateLineUpXStr(UpXStr, LineStr : String; OUT ErrorMsg : String) : String;
 { Sees whether the line at UpX is different from the line we're creating }
@@ -3273,13 +3216,6 @@ CONST
   Horizontal = True;
   StopTimer = True;
 
-VAR
-  ErrorMsg : String;
-  Line : Integer;
-  OtherLine : Integer;
-  SaveLine : Integer;
-  TempLine : Integer;
-
   PROCEDURE CreateBufferStop(L, BSNumber : Integer; BSDirection : DirectionType; BSTheatreDestination : String);
   { Create a bufferstop record }
   BEGIN
@@ -3299,6 +3235,13 @@ VAR
       Lines[L].Line_AdjacentBufferStop := BufferStop_Number;
     END; {WITH}
   END; { CreateBufferStop }
+
+VAR
+  ErrorMsg : String;
+  Line : Integer;
+  OtherLine : Integer;
+  SaveLine : Integer;
+  TempLine : Integer;
 
 BEGIN
   TRY
@@ -3351,12 +3294,14 @@ BEGIN
 
             Line_UpXAbsolute := 0;
             Line_UpX := 0;
+
             Line_DownXAbsolute := 0;
             Line_DownX := 0;
 
-            Line_UpYAbsolute := 0;
+            Line_UpRow := 0;
+            Line_UpRow := 0;
+
             Line_UpY := 0;
-            Line_DownYAbsolute := 0;
             Line_DownY := 0;
 
             Line_DataChanged := False;
@@ -3394,18 +3339,10 @@ BEGIN
             END;
 
             IF ErrorMsg = '' THEN
-              { we do the validation when calculating line positions later, as sometimes the location string contains two locations }
-              Line_UpYLocationStr := FieldByName(Line_UpYLocationStrFieldName).AsString;
+              Line_UpRow := ValidateRow(FieldByName(Line_UpRowFieldName).AsString, ErrorMsg);
 
             IF ErrorMsg = '' THEN
-              Line_UpYAbsolute := ValidateLineYAbsolute(FieldByName(Line_UpYAbsoluteFieldName).AsString, Line_UpYLocationStr, 'UpY', 'UpY Location', ErrorMsg);
-
-            IF ErrorMsg = '' THEN
-              { we do the validation when calculating line positions later, as sometimes the location string contains two locations }
-              Line_DownYLocationStr := FieldByName(Line_DownYLocationStrFieldName).AsString;
-
-            IF ErrorMsg = '' THEN
-              Line_DownYAbsolute := ValidateLineYAbsolute(FieldByName(Line_DownYAbsoluteFieldName).AsString, Line_DownYLocationStr, 'DownY', 'DownY Location', ErrorMsg);
+              Line_DownRow := ValidateRow(FieldByName(Line_DownRowFieldName).AsString, ErrorMsg);
 
             IF ErrorMsg = '' THEN BEGIN
               Line_Length := ValidateLineLength(FieldByName(Line_LengthFieldName).AsString, ErrorMsg);
@@ -3784,34 +3721,6 @@ BEGIN
             Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_UpConnectionChFieldName + ' is ''' + Line_UpConnectionCh + '''');
             LineDataADOTable.Edit;
             LineDataADOTable.FieldByName(Line_UpConnectionChFieldName).AsString := Line_UpConnectionCh;
-            LineDataADOTable.Post;
-
-            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_DownYAbsoluteFieldName + ' is ''' + IntToStr(Line_DownYAbsolute) + '''');
-            TempStr := IntToStr(Line_DownYAbsolute);
-            IF TempStr = '0' THEN
-              { the database records a zero as a space in this field }
-              TempStr := '';
-            LineDataADOTable.Edit;
-            LineDataADOTable.FieldByName(Line_DownYAbsoluteFieldName).AsString := TempStr;
-            LineDataADOTable.Post;
-
-            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_UpYAbsoluteFieldName + ' is ''' + IntToStr(Line_UpYAbsolute) + '''');
-            TempStr := IntToStr(Line_UpYAbsolute);
-            IF TempStr = '0' THEN
-              { the database records a zero as a space in this field }
-              TempStr := '';
-            LineDataADOTable.Edit;
-            LineDataADOTable.FieldByName(Line_UpYAbsoluteFieldName).AsString := TempStr;
-            LineDataADOTable.Post;
-
-            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_DownYLocationStrFieldName + ' is ''' + Line_DownYLocationStr + '''');
-            LineDataADOTable.Edit;
-            LineDataADOTable.FieldByName(Line_DownYLocationStrFieldName).AsString := Line_DownYLocationStr;
-            LineDataADOTable.Post;
-
-            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_UpYLocationStrFieldName + ' is ''' + Line_UpYLocationStr + '''');
-            LineDataADOTable.Edit;
-            LineDataADOTable.FieldByName(Line_UpYLocationStrFieldName).AsString := Line_UpYLocationStr;
             LineDataADOTable.Post;
 
             Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_EndOfLineMarkerFieldName + ' is ''' + EndOfLineToStr(Line_EndOfLineMarker) + '''');
@@ -6149,16 +6058,19 @@ BEGIN
           Left := Left + MulDiv(FWPRailWindow.ClientWidth, Platform_LeftLineAdjustment, ZoomScaleFactor);
 
         Top := -1;
-        IF Platforms[P].Platform_LocationAbovePlatform <> UnknownLocation THEN
-          Top := MulDiv(FWPRailWindow.ClientHeight, Locations[Platform_LocationAbovePlatform].Location_Y, ZoomScaleFactor);
+        IF Platforms[P].Platform_RowAbovePlatform <> 0 THEN
+          Top := Round(Platforms[P].Platform_RowAbovePlatform * InterLineSpacing);
+//          Top := MulDiv(FWPRailWindow.ClientHeight, Round(Platforms[P].Platform_RowAbovePlatform * InterLineSpacing), ZoomScaleFactor);
 
         Right := Lines[Platform_RightLine].Line_DownX;
         IF Platform_RightLineAdjustment > 0 THEN
           Right := Right + MulDiv(FWPRailWindow.ClientWidth, Platform_RightLineAdjustment, ZoomScaleFactor);
 
+          debug('ils=' + inttostr(interlinespacing));
         Bottom := -1;
-        IF Platforms[P].Platform_LocationBelowPlatform <> UnknownLocation THEN
-          Bottom := MulDiv(FWPRailWindow.ClientHeight, Locations[Platform_LocationBelowPlatform].Location_Y, ZoomScaleFactor);
+        IF Platforms[P].Platform_RowBelowPlatform <> 0 THEN
+          Bottom := Round(Platforms[P].Platform_RowBelowPlatform * InterLineSpacing);
+//          Bottom := MulDiv(FWPRailWindow.ClientHeight, Round(Platforms[P].Platform_RowBelowPlatform * InterLineSpacing), ZoomScaleFactor);
 
         IF Top = -1 THEN
           Top := Platforms[P].Platform_Rect.Bottom - MulDiv(FWPRailWindow.ClientHeight, Platforms[P].Platform_Height, ZoomScaleFactor)
@@ -6185,7 +6097,6 @@ CONST
 
 VAR
   ErrorMsg : String;
-  FieldName : String;
   P : Integer;
   TempStr : String;
 
@@ -6215,13 +6126,12 @@ BEGIN
       { First see if the platform numbers in the MSAccess file are sequential and, if not, renumber it; We need this or deletions from the MSAccess file cause problems }
       P := -1;
       PlatformDataADOTable.First;
-      FieldName := 'RunningNumber';
       WHILE NOT PlatformDataADOTable.EOF DO BEGIN
         Inc(P);
-        IF PlatformDataADOTable.FieldByName(FieldName).AsInteger <> P THEN BEGIN
+        IF PlatformDataADOTable.FieldByName(Platform_RunningNumberFieldName).AsInteger <> P THEN BEGIN
           { we need to renumber from here on }
           PlatformDataADOTable.Edit;
-          PlatformDataADOTable.FieldByName(FieldName).AsInteger := P;
+          PlatformDataADOTable.FieldByName(Platform_RunningNumberFieldName).AsInteger := P;
           PlatformDataADOTable.Post;
         END;
         PlatformDataADOTable.Next;
@@ -6238,20 +6148,16 @@ BEGIN
           WITH Platforms[P] DO BEGIN
             ErrorMsg := '';
 
-            FieldName := 'RunningNumber';
-            Platform_RunningNumber := FieldByName(FieldName).AsInteger;
+            Platform_RunningNumber := FieldByName(Platform_RunningNumberFieldName).AsInteger;
             IF Platform_RunningNumber <> P THEN
               ErrorMsg := 'it does not match the platform number in the database (' + IntToStr(Platform_RunningNumber) + ')';
 
             IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'Description';
-              Platform_Description := FieldByName(FieldName).AsString;
+              Platform_Description := FieldByName(Platform_DescriptionFieldName).AsString;
 
-              FieldName := 'PlatformNumberA';
-              Platform_NumberAStr := FieldByName(FieldName).AsString;
+              Platform_NumberAStr := FieldByName(Platform_NumberAStrFieldName).AsString;
 
-              FieldName := 'PlatformNumberAPosition';
-              TempStr := FieldByName(FieldName).AsString;
+              TempStr := FieldByName(Platform_NumberAPositionFieldName).AsString;
               IF TempStr = '' THEN
                 ErrorMsg := 'no platform A position supplied'
               ELSE BEGIN
@@ -6262,11 +6168,9 @@ BEGIN
             END;
 
             IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'PlatformNumberB';
-              Platform_NumberBStr := FieldByName(FieldName).AsString;
+              Platform_NumberBStr := FieldByName(Platform_NumberBStrFieldName).AsString;
 
-              FieldName := 'PlatformNumberBPosition';
-              TempStr := FieldByName(FieldName).AsString;
+              TempStr := FieldByName(Platform_NumberBPositionFieldName).AsString;
               IF TempStr = '' THEN BEGIN
                 IF Platform_NumberBStr <> '' THEN
                   ErrorMsg := 'no platform B position supplied';
@@ -6282,8 +6186,7 @@ BEGIN
             END;
 
             IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'LeftLine';
-              TempStr := FieldByName(FieldName).AsString;
+              TempStr := FieldByName(Platform_LeftLineFieldName).AsString;
               IF TempStr = '' THEN
                 ErrorMsg := 'missing left line value'
               ELSE BEGIN
@@ -6294,8 +6197,7 @@ BEGIN
             END;
 
             IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'LeftLineAdjustment';
-              TempStr := FieldByName(FieldName).AsString;
+              TempStr := FieldByName(Platform_LeftLineAdjustmentFieldName).AsString;
               IF TempStr = '' THEN
                 Platform_LeftLineAdjustment := 0
               ELSE BEGIN
@@ -6308,8 +6210,7 @@ BEGIN
             END;
 
             IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'RightLine';
-              TempStr := FieldByName(FieldName).AsString;
+              TempStr := FieldByName(Platform_RightLineFieldName).AsString;
               IF TempStr = '' THEN
                 ErrorMsg := 'missing right line value'
               ELSE BEGIN
@@ -6320,8 +6221,7 @@ BEGIN
             END;
 
             IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'RightLineAdjustment';
-              TempStr := FieldByName(FieldName).AsString;
+              TempStr := FieldByName(Platform_RightLineAdjustmentFieldName).AsString;
               IF TempStr = '' THEN
                 Platform_RightLineAdjustment := 0
               ELSE BEGIN
@@ -6333,36 +6233,18 @@ BEGIN
               END;
             END;
 
-            IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'LocationAbovePlatform';
-              TempStr := FieldByName(FieldName).AsString;
-              IF TempStr = '' THEN
-                Platform_LocationAbovePlatform := UnknownLocation
-              ELSE BEGIN
-                Platform_LocationAbovePlatform := StrToLocation(TempStr);
-                IF Platform_LocationAbovePlatform = UnknownLocation THEN
-                  ErrorMsg := 'invalid location above platform "' + TempStr + '"';
-              END;
-            END;
+            IF ErrorMsg = '' THEN
+              Platform_RowAbovePlatform := ValidateRow(FieldByName(Platform_RowAbovePlatformFieldName).AsString, ErrorMsg);
+
+            IF ErrorMsg = '' THEN
+              Platform_RowBelowPlatform := ValidateRow(FieldByName(Platform_RowBelowPlatformFieldName).AsString, ErrorMsg);
+
+            IF ErrorMsg = '' THEN
+              IF (Platform_RowAbovePlatform = 0) AND (Platform_RowBelowPlatform = 0) THEN
+                ErrorMsg := 'must have either a location above or a location below';
 
             IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'LocationBelowPlatform';
-              TempStr := FieldByName(FieldName).AsString;
-              IF TempStr = '' THEN
-                Platform_LocationBelowPlatform := UnknownLocation
-              ELSE BEGIN
-                Platform_LocationBelowPlatform := StrToLocation(TempStr);
-                IF Platform_LocationBelowPlatform = UnknownLocation THEN
-                  ErrorMsg := 'invalid location below platform "' + TempStr + '"';
-              END;
-            END;
-
-            IF (Platform_LocationAbovePlatform = UnknownLocation) AND (Platform_LocationBelowPlatform = UnknownLocation) THEN
-              ErrorMsg := 'must have either a location above or a location below';
-
-            IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'Height';
-              TempStr := FieldByName(FieldName).AsString;
+              TempStr := FieldByName(Platform_HeightFieldName).AsString;
               IF TempStr = '' THEN
                 Platform_Height := 0
               ELSE
@@ -6370,9 +6252,10 @@ BEGIN
                   ErrorMsg := 'invalid height "' + TempStr + '"';
             END;
 
-            IF Platform_Height > 0 THEN
-              IF (Platform_LocationAbovePlatform <> UnknownLocation) AND (Platform_LocationBelowPlatform <> UnknownLocation) THEN
-                ErrorMsg := 'cannot have both a location above and a location below if a height is specified';
+            IF ErrorMsg = '' THEN
+              IF Platform_Height > 0 THEN
+                IF (Platform_RowAbovePlatform <> 0) AND (Platform_RowBelowPlatform <> 0) THEN
+                  ErrorMsg := 'cannot have both a location above and a location below if a height is specified';
 
             IF ErrorMsg <> '' THEN BEGIN
               IF MessageDialogueWithDefault('Error in creating Platform=' + IntToStr(High(Platforms))

@@ -780,6 +780,9 @@ VAR
   DefaultWaitBeforeRerouteInMinutes : Integer = 5;
   WaitBeforeRerouteInMinutes : Integer;
 
+  DefaultWindowRows : Integer = 25;
+  WindowRows : Integer;
+
   DefaultWorkingTimetableFilename : String = 'WorkingTimetable';
   WorkingTimetableFilename : String;
 
@@ -1090,6 +1093,7 @@ CONST
     TheatreIndicatorHorizontalSpacingStr = 'Theatre Indicator Horizontal Spacing';
     TheatreIndicatorVerticalSpacingStr = 'Theatre Indicator Vertical Spacing';
     TRSPlungerLengthStr = 'TRS Plunger Length';
+    WindowRowsStr = 'Window Rows';
 
   TimesSectionStr = 'Times';
     { These start time constants have to have different names from the variables containing the program start time itself }
@@ -1555,6 +1559,7 @@ BEGIN
       TheatreIndicatorHorizontalSpacing := ReadInteger(ScreenOptionsStr, TheatreIndicatorHorizontalSpacingStr, DefaultTheatreIndicatorHorizontalSpacing);
       TheatreIndicatorVerticalSpacing := ReadInteger(ScreenOptionsStr, TheatreIndicatorVerticalSpacingStr, DefaultTheatreIndicatorVerticalSpacing);
       TRSPlungerLength := ReadInteger(ScreenOptionsStr, TRSPlungerLengthStr, DefaultTRSPlungerLength);
+      WindowRows := ReadInteger(ScreenOptionsStr, WindowRowsStr, DefaultWindowRows);
 
       { Other Options }
       AcceptAllPermanentOccupationsWithoutFeedback := ReadBool(OtherOptionsSectionStr, AcceptAllPermanentOccupationsWithoutFeedbackStr,
@@ -2129,6 +2134,7 @@ BEGIN
       WriteInteger(ScreenOptionsStr, TheatreIndicatorHorizontalSpacingStr, TheatreIndicatorHorizontalSpacing);
       WriteInteger(ScreenOptionsStr, TheatreIndicatorVerticalSpacingStr, TheatreIndicatorVerticalSpacing);
       WriteInteger(ScreenOptionsStr, TRSPlungerLengthStr, TRSPlungerLength);
+      WriteInteger(ScreenOptionsStr, WindowRowsStr, WindowRows);
 
       { Other Miscellaneous Data }
       WriteString(MiscellaneousDataSectionStr, CurrentParametersStr, CurrentParametersFromParamStr);
@@ -2254,6 +2260,7 @@ BEGIN
       Values[TheatreIndicatorHorizontalSpacingStr] := IntToStr(TheatreIndicatorHorizontalSpacing);
       Values[TheatreIndicatorVerticalSpacingStr] := IntToStr(TheatreIndicatorVerticalSpacing);
       Values[TRSPlungerLengthStr] := IntToStr(TRSPlungerLength);
+      Values[WindowRowsStr] := IntToStr(WindowRows);
 
       { Times }
       Values[TimeOfDayValuesStr] := '';
@@ -2698,6 +2705,7 @@ BEGIN
       CheckIntegerValueListValue(KeyName, TheatreIndicatorHorizontalSpacingStr, NewKeyValue, TheatreIndicatorHorizontalSpacing);
       CheckIntegerValueListValue(KeyName, TheatreIndicatorVerticalSpacingStr, NewKeyValue, TheatreIndicatorVerticalSpacing);
       CheckIntegerValueListValue(KeyName, TRSPlungerLengthStr, NewKeyValue, TRSPlungerLength);
+      CheckIntegerValueListValue(KeyName, WindowRowsStr, NewKeyValue, WindowRows);
 
       { Times }
       IF (KeyName = ProgramStartTimeOptionStr) AND (NewKeyValue <> ProgramStartTimeStr) THEN BEGIN
