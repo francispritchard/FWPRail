@@ -854,7 +854,7 @@ BEGIN
           IF KeyName = Signal_QuadrantFieldName THEN
             Signal_Quadrant := ValidateSignalQuadrant(NewKeyValue, ErrorMsg);
 
-          IF ErrorMsg = '' THEN BEGIN
+          IF ErrorMsg = '' THEN
             IF KeyName = Signal_TypeFieldName THEN
               Signal_Type := ValidateSignalType(NewKeyValue, Signal_Quadrant, Signal_SemaphoreDistantHomesArray, ErrorMsg);
 
