@@ -6060,17 +6060,14 @@ BEGIN
         Top := -1;
         IF Platforms[P].Platform_RowAbovePlatform <> 0 THEN
           Top := Round(Platforms[P].Platform_RowAbovePlatform * InterLineSpacing);
-//          Top := MulDiv(FWPRailWindow.ClientHeight, Round(Platforms[P].Platform_RowAbovePlatform * InterLineSpacing), ZoomScaleFactor);
 
         Right := Lines[Platform_RightLine].Line_DownX;
         IF Platform_RightLineAdjustment > 0 THEN
           Right := Right + MulDiv(FWPRailWindow.ClientWidth, Platform_RightLineAdjustment, ZoomScaleFactor);
 
-          debug('ils=' + inttostr(interlinespacing));
         Bottom := -1;
         IF Platforms[P].Platform_RowBelowPlatform <> 0 THEN
           Bottom := Round(Platforms[P].Platform_RowBelowPlatform * InterLineSpacing);
-//          Bottom := MulDiv(FWPRailWindow.ClientHeight, Round(Platforms[P].Platform_RowBelowPlatform * InterLineSpacing), ZoomScaleFactor);
 
         IF Top = -1 THEN
           Top := Platforms[P].Platform_Rect.Bottom - MulDiv(FWPRailWindow.ClientHeight, Platforms[P].Platform_Height, ZoomScaleFactor)
@@ -6083,6 +6080,7 @@ BEGIN
         ELSE
           IF Top > Bottom THEN
             Debug('Platform ' + IntToStr(P) + ': platform top value (' + IntToStr(Top) + ') > platform bottom value (' + IntToStr(Bottom) + ')');
+
         Top := Top + PlatformEdgeVerticalSpacingScaled;
         Bottom := Bottom - PlatformEdgeVerticalSpacingScaled;
       END; {WITH}
