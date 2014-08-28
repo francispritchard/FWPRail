@@ -4113,25 +4113,29 @@ BEGIN { KeyPressedDown }
               BEGIN
                 HelpMsg := 'exit program';
                 IF NOT HelpRequired THEN BEGIN
-                  { If the screen is zoomed, then return it to normal }
-                  IF ZoomScaleFactor <> 1000 THEN BEGIN
-                    ZoomScaleFactor := 1000;
-                    Zooming := False;
-                    SetCaption(FWPRailWindow, '');
-                    WindowPenWidth := 1;
+                  IF ScreenColoursSetForPrinting THEN BEGIN
+                    ResetScreenColoursAfterPrinting;
+                    FWPRailWindow.Refresh;
+                  END ELSE
+                    { If the screen is zoomed, then return it to normal }
+                    IF ZoomScaleFactor <> 1000 THEN BEGIN
+                      ZoomScaleFactor := 1000;
+                      Zooming := False;
+                      SetCaption(FWPRailWindow, '');
+                      WindowPenWidth := 1;
 
-                    ReinitialiseFWPRailWindowVariables := True;
-                    InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
-                  END ELSE BEGIN
-                    { Close the program after two consecutive escapes }
-                    IF EscKeyStored THEN BEGIN
-                      Log('A Shutdown requested by user pressing Escape twice {BLANKLINEBEFORE}');
-                      ShutDownProgram(UnitRef, 'KeyPressedDown');
+                      ReinitialiseFWPRailWindowVariables := True;
+                      InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                     END ELSE BEGIN
-                      EscKeyStored := True;
-                      Debug('Shutdown requested by user pressing Escape - press it again to confirm');
+                      { Close the program after two consecutive escapes }
+                      IF EscKeyStored THEN BEGIN
+                        Log('A Shutdown requested by user pressing Escape twice {BLANKLINEBEFORE}');
+                        ShutDownProgram(UnitRef, 'KeyPressedDown');
+                      END ELSE BEGIN
+                        EscKeyStored := True;
+                        Debug('Shutdown requested by user pressing Escape - press it again to confirm');
+                      END;
                     END;
-                  END;
                 END;
               END;
             ShiftAlt: {Escape}
@@ -5175,7 +5179,7 @@ BEGIN { KeyPressedDown }
                   ELSE BEGIN
                     SetScreenColoursBeforePrinting;
                     ScreenColoursSetForPrinting := True;
-                    Debug('Screen colours set for printing - press ' + DescribeKey(KeyToTest, InputShiftState) + ' to reset');
+                    Debug('Screen colours set for printing - press Escape to reset');
                   END;
                   FWPRailWindow.Refresh;
                 END;
