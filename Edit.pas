@@ -727,7 +727,7 @@ BEGIN { WriteSignalValuesToValueList }
           WriteBooleanValue(Signal_OutOfUseFieldName, Signal_OutOfUse);
           WriteBooleanValue(Signal_PossibleRouteHoldFieldName, Signal_PossibleRouteHold);
           WriteBooleanValue(Signal_PossibleStationStartRouteHoldFieldName, Signal_PossibleStationStartRouteHold);
-          WritePickListValue(Signal_QuadrantFieldName, SignalQuadrantToStr(Signal_Quadrant), ['Upper', 'Lower']);
+          WritePickListValue(Signal_QuadrantFieldName, SignalQuadrantToStr(Signal_Quadrant), ['', 'Upper', 'Lower']);
           WritePickListValue(Signal_TypeFieldName, SignalTypeToStr(Signal_Type, LongStringType),
                                                                                  [CallingOnStr, TwoAspectStr, ThreeAspectStr, FourAspectStr, SemaphoreHomeStr,
                                                                                   SemaphoreDistantStr]);
