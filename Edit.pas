@@ -1102,11 +1102,9 @@ BEGIN
 
           IF ErrorMsg = '' THEN BEGIN
             { Redraw the screen to display the change}
-            RedrawScreen := True;
             CalculateAllSignalPositions;
             InvalidateScreen(UnitRef, 'EditSaveButtonClick');
             Log('D Screen invalidated by Edit save');
-            RedrawScreen := False;
           END ELSE BEGIN
             IF MessageDialogueWithDefault('Error in creating/amending S=' + IntToStr(EditedSignal) + ': '
                                           + ErrorMsg
@@ -1227,11 +1225,9 @@ BEGIN
             NoteThatDataHasChanged;
 
             { And redraw the screen to display the change}
-            RedrawScreen := True;
             CalculatePointPositions;
             InvalidateScreen(UnitRef, 'EditSaveButtonClick');
             Log('D Screen invalidated by Edit save');
-            RedrawScreen := False;
           END ELSE BEGIN
             IF MessageDialogueWithDefault('Error in creating/amending P=' + IntToStr(EditedPoint) + ': '
                                           + ErrorMsg
@@ -1356,11 +1352,9 @@ BEGIN
             NoteThatDataHasChanged;
 
             { And redraw the screen to display the change}
-            RedrawScreen := True;
             CalculateLinePositions;
             InvalidateScreen(UnitRef, 'EditSaveButtonClick');
             Log('D Screen invalidated by Edit save');
-            RedrawScreen := False;
           END ELSE BEGIN
             IF MessageDialogueWithDefault('Error in creating/amending Line=' + IntToStr(EditedLine) + ': '
                                           + ErrorMsg
@@ -1385,11 +1379,9 @@ BEGIN
             NoteThatDataHasChanged;
 
             { And redraw the screen to display the change}
-            RedrawScreen := True;
 //            CalculateTrackCircuitPositions;
             InvalidateScreen(UnitRef, 'EditSaveButtonClick');
             Log('D Screen invalidated by Edit save');
-            RedrawScreen := False;
           END ELSE BEGIN
             IF MessageDialogueWithDefault('Error in creating/amending TC=' + IntToStr(EditedTrackCircuit) + ': '
                                           + ErrorMsg
@@ -1474,10 +1466,8 @@ BEGIN
     UndoEditChanges;
 
     { And redraw the screen }
-    RedrawScreen := True;
     InvalidateScreen(UnitRef, 'UndoChangesButtonClick');
     Log('D Screen invalidated by Edit Undo Changes');
-    RedrawScreen := False;
 
     EditWindow.UndoChangesButton.Enabled := False;
     EditWindow.SaveChangesAndExitButton.Enabled := False;
@@ -1515,12 +1505,10 @@ BEGIN
     ClearEditValueList;
 
     { And redraw the screen }
-    RedrawScreen := True;
     CalculateTCAdjacentSignals;
     CalculateAllSignalPositions;
     InvalidateScreen(UnitRef, 'EditSaveButtonClick');
     Log('D Screen invalidated by Edit Save And Exit');
-    RedrawScreen := False;
 
     UndoChangesButton.Enabled := False;
     SaveChangesAndExitButton.Enabled := False;
@@ -1543,10 +1531,8 @@ BEGIN
     ClearEditValueList;
 
     { And redraw the screen }
-    RedrawScreen := True;
     InvalidateScreen(UnitRef, 'EditSaveButtonClick');
     Log('D Screen invalidated by Edit Without Saving');
-    RedrawScreen := False;
   EXCEPT {TRY}
     ON E : Exception DO
       Log('EG ExitWithSavingButtonClick: ' + E.ClassName + ' error raised, with message: '+ E.Message);
@@ -1701,10 +1687,8 @@ BEGIN
         SaveSignalRec := Signals[EditedSignal];
         WriteSignalValuesToValueList;
 
-        RedrawScreen := True;
         InvalidateScreen(UnitRef, 'CreateSignal');
         Log('D Screen invalidated by CreateSignal');
-        RedrawScreen := False;
       END;
     END;
   EXCEPT {TRY}
@@ -1889,12 +1873,10 @@ BEGIN
           { Reload all the signals }
           ReadInSignalDataFromDatabase(NewSignalData);
 
-          RedrawScreen := True;
           CalculateTCAdjacentSignals;
           CalculateAllSignalPositions;
           InvalidateScreen(UnitRef, 'DeleteSignal');
           Log('D Screen invalidated by Delete Signal');
-          RedrawScreen := False;
         END;
       END;
     END;
@@ -2017,11 +1999,9 @@ BEGIN
       SavePointRec := Points[EditedPoint];
       WritePointValuesToValueList;
 
-      RedrawScreen := True;
       CalculatePointPositions;
       InvalidateScreen(UnitRef, 'CreatePoint');
       Log('D Screen invalidated by CreatePoint');
-      RedrawScreen := False;
     END;
   EXCEPT {TRY}
     ON E : Exception DO

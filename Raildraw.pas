@@ -3854,8 +3854,10 @@ END; { MainOperationsMenuDriveLocomotiveClick }
 PROCEDURE InvalidateScreen(UnitRefParam, CallingStr : String);
 { Draw the screen by invalidating it }
 BEGIN
+  RedrawScreen := True;
   FWPRailWindow.Invalidate;
 //  Log('XG Invalidate Screen - call ' + CallingStr + ' from Unit ' + UnitRefParam);
+  RedrawScreen := False;
 END; { InvalidateScreen }
 
 PROCEDURE TFWPRailWindow.FlashTimerTick(Sender: TObject);

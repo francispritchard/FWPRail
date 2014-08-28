@@ -2128,10 +2128,8 @@ BEGIN { KeyPressedDown }
               BEGIN
                 HelpMsg := 'invalidate (redraw) screen';
                 IF NOT HelpRequired THEN BEGIN
-                  RedrawScreen := True;
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                   Log('AG Screen invalidated by user');
-                  RedrawScreen := False;
                 END;
               END;
             ShiftAlt: {I}
@@ -2165,13 +2163,11 @@ BEGIN { KeyPressedDown }
                   IF MessageDialogueWithDefault('Redraw screen after re-acquiring the feedback data - are you sure?',
                                                 NOT StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrYes
                   THEN BEGIN
-                    RedrawScreen := True;
                     GetInitialFeedback(OK);
                     InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                     Log('AG User requested screen redraw after initial feedback sought ' + IfThen(OK,
                                                                                                   ' and obtained',
                                                                                                   ' but not provided'));
-                    RedrawScreen := False;
                   END;
                 END;
               END;

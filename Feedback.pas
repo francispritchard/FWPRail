@@ -688,11 +688,8 @@ BEGIN { DecodeFeedback }
                             END;
                           END;
                         END;
-                        IF NOT ProgramStartup THEN BEGIN
-                          RedrawScreen := True;
+                        IF NOT ProgramStartup THEN
                           InvalidateScreen(UnitRef, 'DecodeFeedback');
-                          RedrawScreen := False;
-                        END;
                       END;
                     END;
                   END; {WITH}
