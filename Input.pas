@@ -54,7 +54,7 @@ IMPLEMENTATION
 {$R *.dfm}
 
 USES InitVars, Locks, RailDraw, MiscUtils, Cuneo, LocoUtils, Lenz, MaskUtils, Startup, Diagrams, GetTime, CreateRoute, Feedback, IDGlobal, RDCUnit, Route, StrUtils, Menus,
-     DateUtils, TestUnit, StationMonitors, LocoDialogue, Help, LocationData, Replay, Options, Edit, WorkingTimetable, TCPIP, Logging, Main, Train;
+     DateUtils, TestUnit, StationMonitors, LocoDialogue, Help, LocationData, Replay, Options, Edit, WorkingTimetable, TCPIP, Logging, Main, Train, DataCheck;
 
 CONST
   UnitRef = 'Input';
@@ -5199,17 +5199,16 @@ BEGIN { KeyPressedDown }
               BEGIN
                 HelpMsg := 'Compare Two Databases';
                 IF NOT HelpRequired THEN BEGIN
-//                  CompareTwoLocationDatabases('LocationData', 'mdb', 'LocationData - Copy', 'mdb');
                   CompareTwoLineDatabases('LineData', 'mdb', 'LineData - Copy', 'mdb');
-//                  CompareTwoSignalDatabases('SignalData', 'mdb', 'SignalData - Copy', 'mdb');
-//                  CompareTwoPointDatabases('PointData', 'mdb', 'PointData - Copy', 'mdb');
+                  CompareTwoSignalDatabases('SignalData', 'mdb', 'SignalData - Copy', 'mdb');
+                  CompareTwoPointDatabases('PointData', 'mdb', 'PointData - Copy', 'mdb');
                 END;
               END;
             Alt: {F11}
               BEGIN
-                HelpMsg := '';
-                IF NOT HelpRequired THEN BEGIN
-                END;
+                HelpMsg := 'Format Check all Files';
+                IF NOT HelpRequired THEN
+                  FormatCheckAllFiles
               END;
           END; {CASE}
         vk_F12:

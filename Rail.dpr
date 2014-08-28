@@ -47,7 +47,8 @@ USES
   WorkingTimetable IN 'WorkingTimetable.pas' {WorkingTimetableWindow},
   Logging IN 'Logging.pas' {LoggingWindow},
   Main IN 'Main.pas' {MainWindow},
-  Train IN 'Train.pas' {TrainForm};
+  Train IN 'Train.pas' {TrainForm},
+  DataCheck IN 'DataCheck.pas' {DataCheckForm};
 
 VAR
   I : Integer;
@@ -75,6 +76,7 @@ BEGIN
 
   Application.CreateForm(TMainWindow, MainWindow);
   Application.CreateForm(TTrainForm, TrainForm);
+  Application.CreateForm(TDataCheckForm, DataCheckForm);
   Application.Run;
 END { Rail }.
 

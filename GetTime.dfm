@@ -23,8 +23,8 @@ object ClockWindow: TClockWindow
   PixelsPerInch = 96
   TextHeight = 13
   object Clock: TDateTimePicker
-    Left = 0
-    Top = 4
+    Left = 1
+    Top = 2
     Width = 185
     Height = 50
     BevelOuter = bvRaised

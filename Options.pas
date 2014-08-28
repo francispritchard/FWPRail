@@ -269,6 +269,9 @@ VAR
   DefaultCurrentRailwayDayOfTheWeek : String = 'UnknownDayOfTheWeek';
   CurrentRailwayDayOfTheWeek : DayOfTheWeekType;
 
+  DefaultDataCheckFileName : String = '0Rail.syntaxcheck';
+  DataCheckFileName : String;
+
   DefaultDayLightStartTimeStr : String = '08:00:00';
   DayLightStartTimeStr : String = '08:00:00';
   DayLightStartTime : TDateTime;
@@ -427,6 +430,9 @@ VAR
 
   DefaultPathToRailDataFiles : String = 'C:\Doc\Google Drive\RAD Studio\Projects\Rail Data Files\';
   PathToRailDataFiles : String;
+
+  DefaultPathToRailSourceFiles : String = 'C:\Doc\Google Drive\RAD Studio\Projects\Rail\';
+  PathToRailSourceFiles : String;
 
   DefaultPathToLogFiles : String = 'C:\Doc\Google Drive\RAD Studio\Projects\Rail Data Files\Logs\';
   PathToLogFiles : String;
@@ -962,6 +968,7 @@ CONST
   FilesSectionStr = 'Files';
     AreaDataFilenameStr = 'Area Data Filename';
     AreaDataFilenameSuffixStr = 'Area Data Filename Suffix';
+    DataCheckFileNameStr = 'Data Check FileName';
     DiagramsFilenameStr = 'Diagrams Filename';
     DiagramsFilenameSuffixStr = 'Diagrams Filename Suffix';
     FeedbackDataFilenameStr = 'Feedback Unit Data Filename';
@@ -977,6 +984,7 @@ CONST
     LogFilenameSuffixStr = 'Log Filename Suffix';
     PathToLogFilesStr = 'Path for Log Files';
     PathToRailDataFilesStr = 'Path For Rail Data Files';
+    PathToRailSourceFilesStr = 'Path For Rail Source Files';
     PlatformDataFilenameStr = 'Platform Data Filename';
     PlatformDataFilenameSuffixStr = 'Platform Data Filename Suffix';
     PointDataFilenameStr = 'Point Data Filename';
@@ -1301,8 +1309,10 @@ BEGIN
       }
       PathToLogFiles := ReadString(FilesSectionStr, PathToLogFilesStr, DefaultPathToLogFiles);
       PathToRailDataFiles := ReadString(FilesSectionStr, PathToRailDataFilesStr, DefaultPathToRailDataFiles);
+      PathToRailSourceFiles := ReadString(FilesSectionStr, PathToRailSourceFilesStr, DefaultPathToRailSourceFiles);
       AreaDataFilename := ReadString(FilesSectionStr, AreaDataFilenameStr, DefaultAreaDataFilename);
       AreaDataFilenameSuffix := ReadString(FilesSectionStr, AreaDataFilenameSuffixStr, DefaultAreaDataFilenameSuffix);
+      DataCheckFileName := ReadString(FilesSectionStr, DataCheckFileNameStr, DefaultDataCheckFileName);
       DiagramsFilename := ReadString(FilesSectionStr, DiagramsFilenameStr, DefaultDiagramsFilename);
       DiagramsFilenameSuffix := ReadString(FilesSectionStr, DiagramsFilenameSuffixStr, DefaultDiagramsFilenameSuffix);
       FeedbackDataFilename := ReadString(FilesSectionStr, FeedbackDataFilenameStr, DefaultFeedbackDataFilename);
@@ -1785,11 +1795,12 @@ BEGIN
 
       { various file data }
       WriteString(FilesSectionStr, PathToRailDataFilesStr, PathToRailDataFiles);
+      WriteString(FilesSectionStr, PathToRailSourceFilesStr, PathToRailSourceFiles);
       WriteString(FilesSectionStr, PathToLogFilesStr, PathToLogFiles);
 
       WriteString(FilesSectionStr, AreaDataFilenameStr, AreaDataFilename);
       WriteString(FilesSectionStr, AreaDataFilenameSuffixStr, AreaDataFilenameSuffix);
-
+      WriteString(FilesSectionStr, DataCheckFileNameStr, DataCheckFileName);
       IF DiagramsFilename = '' THEN BEGIN
         { check that we want no diagrams the next time we start }
         IF MessageDialogueWithDefault('There are no diagrams loaded: do you wish to start the next session with diagrams or without?',
@@ -1799,7 +1810,6 @@ BEGIN
       END;
       WriteString(FilesSectionStr, DiagramsFilenameStr, DiagramsFilename);
       WriteString(FilesSectionStr, DiagramsFilenameSuffixStr, DiagramsFilenameSuffix);
-
       WriteString(FilesSectionStr, FeedbackDataFilenameStr, FeedbackDataFilename);
       WriteString(FilesSectionStr, FeedbackDataFilenameSuffixStr, FeedbackDataFilenameSuffix);
       WriteString(FilesSectionStr, LineDataFilenameStr, LineDataFilename);
@@ -2169,6 +2179,7 @@ BEGIN
 
       Values[PathToLogFilesStr] := PathToLogFiles;
       Values[PathToRailDataFilesStr] := PathToRailDataFiles;
+      Values[PathToRailSourceFilesStr] := PathToRailSourceFiles;
 
       { Filenames }
       Values[FilenamesStr] := '';
@@ -2176,6 +2187,7 @@ BEGIN
 
       Values[AreaDataFilenameStr] := AreaDataFilename;
       Values[AreaDataFilenameSuffixStr] := AreaDataFilenameSuffix;
+      Values[DataCheckFileNameStr] := DataCheckFileName;
       Values[DiagramsFilenameStr] := DiagramsFilename;
       Values[DiagramsFilenameSuffixStr] := DiagramsFilenameSuffix;
       Values[FeedbackDataFilenameStr] := FeedbackDataFilename;
@@ -2631,6 +2643,7 @@ BEGIN
       { Filenames - we make sure that changes to these are confirmed }
       CheckStringValueListValue(KeyName, AreaDataFilenameStr, NewKeyValue, AreaDataFilename);
       CheckStringValueListValue(KeyName, AreaDataFilenameSuffixStr, NewKeyValue, AreaDataFilenameSuffix);
+      CheckStringValueListValue(KeyName, DataCheckFileNameStr, NewKeyValue, DataCheckFileName);
       CheckStringValueListValue(KeyName, DiagramsFilenameStr, NewKeyValue, DiagramsFilename);
       CheckStringValueListValue(KeyName, DiagramsFilenameSuffixStr, NewKeyValue, DiagramsFilenameSuffix);
       CheckStringValueListValue(KeyName, FeedbackDataFilenameStr, NewKeyValue, FeedbackDataFilename);
