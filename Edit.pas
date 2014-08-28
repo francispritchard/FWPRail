@@ -455,10 +455,6 @@ END; { ProcessSignalLocationsToMonitorCheckListBoxChecks }
 
 PROCEDURE WriteLineValuesToValueList;
 { Create a value list in the edit window with the appropriate values }
-VAR
-  I : Integer;
-  TempLocationStrArray : StringArrayType;
-
 BEGIN
   TRY
     WITH EditWindow DO BEGIN
@@ -487,32 +483,8 @@ BEGIN
           ELSE
             WriteIntegerValueExcludingZero(Line_UpXAbsoluteFieldName, 0, '9999');
 
-          SetLength(TempLocationStrArray, 0);
-          FOR I := 0 TO High(Locations) DO
-            AppendToStringArray(TempLocationStrArray, LocationToStr(I));
-          WritePickListValue(Line_UpYLocationStrFieldName, LocationToStr(Line_UpYLocation), TempLocationStrArray);
-
-          IF Line_UpYLocationStr = '' THEN
-            WriteIntegerValueExcludingZero(Line_UpYAbsoluteFieldName, Line_UpYAbsolute, '9999')
-          ELSE
-            WriteIntegerValueExcludingZero(Line_UpYAbsoluteFieldName, 0, '9999');
-
-          SetLength(TempLocationStrArray, 0);
-          FOR I := 0 TO High(Locations) DO
-            AppendToStringArray(TempLocationStrArray, LocationToStr(I));
-          WritePickListValue(Line_DownYLocationStrFieldName, LocationToStr(Line_DownYLocation), TempLocationStrArray);
-
-          IF Line_DownYLocationStr = '' THEN
-            WriteIntegerValueExcludingZero(Line_DownYAbsoluteFieldName, Line_DownYAbsolute, '9999')
-          ELSE
-            WriteIntegerValueExcludingZero(Line_DownYAbsoluteFieldName, 0, '9999');
-
-          WriteIntegerValueExcludingZero(Line_LengthFieldName, Line_Length, '9999');
-
-          SetLength(TempLocationStrArray, 0);
-          FOR I := 0 TO High(Locations) DO
-            AppendToStringArray(TempLocationStrArray, LocationToStr(I));
-          WritePickListValue(Line_LocationStrFieldName, LocationToStr(Line_Location), TempLocationStrArray);
+          Values[Line_UpRowFieldName] := FloatToStr(Line_UpRow);
+          Values[Line_DownRowFieldName] := FloatToStr(Line_DownRow);
 
           WriteIntegerValueExcludingZero(Line_TCFieldName, Line_TC, '9999');
 
@@ -1258,23 +1230,13 @@ BEGIN
           END;
 
           IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Line_UpYLocationStrFieldName THEN
-              Line_UpYLocationStr := NewKeyValue;
+            IF KeyName = Line_UpRowFieldName THEN
+              Line_UpRow := ValidateRow(NewKeyValue, ErrorMsg);
           END;
 
           IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Line_UpYAbsoluteFieldName THEN
-              Line_UpYAbsolute := ValidateLineYAbsolute(NewKeyValue, Line_UpYLocationStr, 'UpY', 'UpY Location', ErrorMsg);
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Line_DownYLocationStrFieldName THEN
-              Line_DownYLocationStr := NewKeyValue;
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Line_DownYAbsoluteFieldName THEN
-              Line_DownYAbsolute := ValidateLineYAbsolute(NewKeyValue, Line_DownYLocationStr, 'DownY', 'DownY Location', ErrorMsg);
+            IF KeyName = Line_DownRowFieldName THEN
+              Line_DownRow := ValidateRow(NewKeyValue, ErrorMsg);
           END;
 
           IF ErrorMsg = '' THEN BEGIN

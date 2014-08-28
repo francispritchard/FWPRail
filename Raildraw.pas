@@ -6517,7 +6517,7 @@ BEGIN
   IF (StatusBarX > 0) AND (StatusBarX <= FWPRailWindowStatusBar.Panels[StatusBarPanel0].Width) THEN
     GetTime.ClockWindow.Visible := True
   ELSE BEGIN
-    { Work out where panel 3 is }
+    { Work out where panel 3 is } { why? **** }
     WITH FWPRailWindowStatusBar DO BEGIN
       Panel3X := Panels[StatusBarPanel0].Width + Panels[StatusBarPanel1].Width + Panels[StatusBarPanel2].Width;
       IF (StatusBarX > 0) AND (StatusBarX >= Panel3X) THEN BEGIN
@@ -6939,7 +6939,6 @@ VAR
   ErrorMsg : String;
   Line, Line2 : Integer;
   LinesArray : LineArrayType;
-  Location : Integer;
   LocoDataTableOK : Boolean;
   P : Integer;
   S : Integer;
@@ -7271,15 +7270,12 @@ BEGIN { Main drawing procedure }
           CalculateLocationPositions;
           SetLength(TempLocationYArray, 0);
           Pen.Color := clFWPDkBlue;
-          FOR Location := 0 To High(Locations) DO BEGIN
-            WITH LOcations[Location] DO BEGIN
-              IF NOT IsElementInIntegerArray(TempLocationYArray, Location_YScaled) THEN BEGIN
-                MoveTo(0, Location_YScaled);
-                LineTo(ClientWidth, Location_YScaled);
-                TextOut(0, Location_YScaled, LocationToStr(Location));
-                AppendToIntegerArray(TempLocationYArray, Location_YScaled);
-              END;
-            END; {WITH}
+          J := 0;
+          FOR I := 1 TO WindowRows DO BEGIN
+            J := J + InterLineSpacing;
+            MoveTo(0, J);
+            LineTo(ClientWidth, J);
+            TextOut(0, J, IntToStr(I));
           END; {FOR}
         END;
 
