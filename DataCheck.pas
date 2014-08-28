@@ -64,7 +64,7 @@ VAR
   BEGIN
     IF UpperCase(Table1.FieldByName(FieldName).AsString) <> UpperCase(Table2.FieldByName(FieldName).AsString) THEN BEGIN
       IF NOT ErrorFound THEN BEGIN
-        Log('XG Differences found in Line databases '
+        Log('XG Differences found in line databases '
                 + '"' + Line2DataFilename + '.' + Line2DataFilenameSuffix + '" and "' + Line1DataFilename + '.' + Line1DataFilenameSuffix + '"');
         ErrorFound := True;
       END;
@@ -76,7 +76,7 @@ VAR
   BEGIN
     IF Table1.FieldByName(FieldName).AsBoolean <> Table2.FieldByName(FieldName).AsBoolean THEN BEGIN
       IF NOT ErrorFound THEN BEGIN
-        Log('XG Differences found in Line databases '
+        Log('XG Differences found in line databases '
                 + '"' + Line2DataFilename + '.' + Line2DataFilenameSuffix + '" and "' + Line1DataFilename + '.' + Line1DataFilenameSuffix + '"');
         ErrorFound := True;
       END;
@@ -186,7 +186,7 @@ BEGIN
       UNTIL LineDataADOTable.EOF AND LineDataADOTable2.EOF;
 
       IF NOT ErrorFound THEN
-        Log('XG No differences found in Line databases '
+        Log('XG No differences found in line databases '
                 + '"' + Line1DataFilename + '.' + Line1DataFilenameSuffix + '" and "' + Line2DataFilename + '.' + Line2DataFilenameSuffix + '"');
 
       { Tidy up the database }
@@ -319,7 +319,10 @@ BEGIN
             CheckBoolean(Point_LockedIfNonHeelTCsOccupiedFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
             CheckString(Point_NotesFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
             CheckString(Point_LastManualStateAsReadInFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
+
+            { This is unlikely to be useful
             CheckString(Point_LastFeedbackStateAsReadInFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
+            }
           END; {WITH}
         END;
 
