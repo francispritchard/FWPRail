@@ -1642,20 +1642,15 @@ BEGIN
     FOR S := 0 TO High(Signals) DO BEGIN
       WITH Signals[S] DO BEGIN
         { initialise them to red - to force SetSignal to switch them on and draw them }
-        IF NOT FWPRailWindowInitialised THEN BEGIN
-          IF Signals[S].Signal_OutOfUse THEN
-            SetSignal(UnknownLocoChipStr, S, NoAspect, LogSignalData, NOT ForceAWrite)
-          ELSE
-            SetSignal(UnknownLocoChipStr, S, RedAspect, LogSignalData, NOT ForceAWrite);
-        END ELSE BEGIN
-          { otherwise just draw them }
-          DrawSignal(S);
-          IF ShowSignalAndBufferStopNums THEN
-            DrawSignalData(S, IntToStr(S), SignalNumberColour)
-          ELSE
-            IF ShowTheatreDestinations THEN
-              DrawSignalData(S, Signals[S].Signal_AsTheatreDestination, SignalNumberColour);
-        END;
+        IF NOT FWPRailWindowInitialised THEN
+          SetSignal(UnknownLocoChipStr, S, RedAspect, LogSignalData, NOT ForceAWrite);
+
+        DrawSignal(S);
+        IF ShowSignalAndBufferStopNums THEN
+          DrawSignalData(S, IntToStr(S), SignalNumberColour)
+        ELSE
+          IF ShowTheatreDestinations THEN
+            DrawSignalData(S, Signals[S].Signal_AsTheatreDestination, SignalNumberColour);
 
        { Draw a rectangle around any signal highlighted by the input procedure }
        IF SignalHighlighted <> UnknownSignal THEN
@@ -1765,8 +1760,8 @@ VAR
 
   VAR
     I : Integer;
-    PointArray : ARRAY[0..3] OF TPoint;
     Radians : Extended;
+    TPointArray : ARRAY[0..3] OF TPoint;
     TransformArray : ARRAY[0..3] OF Extended;
     XOffset : Integer;
 
@@ -1782,10 +1777,10 @@ VAR
       IF Pivot = RightPivot THEN BEGIN
         XOffset := 0;
 
-        PointArray[I].X := Round((TransformArray[0] * RightPivotSquareArray[I  * 2]      * SignalSemaphoreHeightScaled * 2)
-                               + (TransformArray[1] * RightPivotSquareArray[(I * 2) + 1] * SignalSemaphoreWidthScaled * 2) + X - ScrollBarXAdjustment - XOffset);
-        PointArray[I].Y := Round((TransformArray[2] * RightPivotSquareArray[I  * 2]      * SignalSemaphoreHeightScaled * 2)
-                               + (TransformArray[3] * RightPivotSquareArray[(I * 2) + 1] * SignalSemaphoreWidthScaled * 2) + Y - ScrollBarYAdjustment);
+        TPointArray[I].X := Round((TransformArray[0] * RightPivotSquareArray[I  * 2]      * SignalSemaphoreHeightScaled * 2)
+                                + (TransformArray[1] * RightPivotSquareArray[(I * 2) + 1] * SignalSemaphoreWidthScaled * 2) + X - ScrollBarXAdjustment - XOffset);
+        TPointArray[I].Y := Round((TransformArray[2] * RightPivotSquareArray[I  * 2]      * SignalSemaphoreHeightScaled * 2)
+                                + (TransformArray[3] * RightPivotSquareArray[(I * 2) + 1] * SignalSemaphoreWidthScaled * 2) + Y - ScrollBarYAdjustment);
       END ELSE BEGIN
         { Pivot = LeftPivot }
         IF (AngleInDegrees >= 90) AND (AngleInDegrees < 270) THEN
@@ -1793,15 +1788,15 @@ VAR
         ELSE
           XOffset := -(2 * SignalSemaphoreHeightScaled);
 
-        PointArray[I].X := Round((TransformArray[0] * LeftPivotSquareArray[I  * 2]      * SignalSemaphoreHeightScaled * 2)
-                               + (TransformArray[1] * LeftPivotSquareArray[(I * 2) + 1] * SignalSemaphoreWidthScaled * 2) + X - ScrollBarXAdjustment - XOffset);
-        PointArray[I].Y := Round((TransformArray[2] * LeftPivotSquareArray[I  * 2]      * SignalSemaphoreHeightScaled * 2)
-                               + (TransformArray[3] * LeftPivotSquareArray[(I * 2) + 1] * SignalSemaphoreWidthScaled * 2) + Y - ScrollBarYAdjustment);
+        TPointArray[I].X := Round((TransformArray[0] * LeftPivotSquareArray[I  * 2]      * SignalSemaphoreHeightScaled * 2)
+                                + (TransformArray[1] * LeftPivotSquareArray[(I * 2) + 1] * SignalSemaphoreWidthScaled * 2) + X - ScrollBarXAdjustment - XOffset);
+        TPointArray[I].Y := Round((TransformArray[2] * LeftPivotSquareArray[I  * 2]      * SignalSemaphoreHeightScaled * 2)
+                                + (TransformArray[3] * LeftPivotSquareArray[(I * 2) + 1] * SignalSemaphoreWidthScaled * 2) + Y - ScrollBarYAdjustment);
       END;
     END; {FOR}
 
     WITH RailWindowBitmap.Canvas DO
-      Polygon(PointArray);
+      Polygon(TPointArray);
   END; { DrawSemaphore }
 
 BEGIN { DrawSignal }
@@ -2115,64 +2110,6 @@ BEGIN { DrawSignal }
           END;
         END;
 
-        IF EditedSignal = S THEN BEGIN
-          SColour1 := ScreenComponentEditedColour;
-          SColour2 := ScreenComponentEditedColour
-        END ELSE BEGIN
-          IF Signal_OutOfUse
-          OR ((Signal_AdjacentLine <> UnknownLine) AND (Lines[Signal_AdjacentLine].Line_TC = UnknownTrackCircuit)) THEN BEGIN
-            { a safeguard - turn the signal off altogether! }
-            SColour1 := SignalAspectUnlit;
-            SColour2 := SignalAspectUnlit;
-          END ELSE BEGIN
-            CASE Aspect OF
-              RedAspect:
-                BEGIN
-                  SColour1 := SignalAspectRed;
-                  SColour2 := SignalAspectUnlit;
-                END;
-              SingleYellowAspect:
-                BEGIN
-                  SColour1 := SignalAspectYellow;
-                  SColour2 := SignalAspectUnlit;
-                END;
-              FlashingSingleYellowAspect:
-                BEGIN
-                  IF Signal_LampIsOn THEN
-                    SColour1 := SignalAspectYellow
-                  ELSE
-                    SColour1 := SignalAspectUnlit;
-                  SColour2 := SignalAspectUnlit;
-                END;
-              DoubleYellowAspect:
-                BEGIN
-                  SColour1 := SignalAspectYellow;
-                  SColour2 := SignalAspectYellow;
-                END;
-              FlashingDoubleYellowAspect:
-                BEGIN
-                  IF Signal_LampIsOn THEN BEGIN
-                    SColour1 := SignalAspectYellow;
-                    SColour2 := SignalAspectYellow;
-                  END ELSE BEGIN
-                    SColour1 := SignalAspectUnlit;
-                    SColour2 := SignalAspectUnlit;
-                  END;
-                END;
-              GreenAspect:
-                BEGIN
-                  SColour1 := SignalAspectGreen;
-                  SColour2 := SignalAspectUnlit;
-                END;
-              NoAspect:
-                BEGIN
-                  SColour1 := SignalAspectUnlit;
-                  SColour2 := SignalAspectUnlit;
-                END;
-            END; {CASE}
-          END;
-        END;
-
         IF (Signal_Type = SemaphoreHome) OR (Signal_Type = SemaphoreDistant) THEN BEGIN
           { First clear the area for the semaphore signal }
           Brush.Color := BackgroundColour;
@@ -2186,7 +2123,7 @@ BEGIN { DrawSignal }
           IF EditedSignal = S THEN
             Brush.Color := clAqua
           ELSE
-            IF Signal_type = SemaphoreHome THEN
+            IF Signal_Type = SemaphoreHome THEN
               Brush.Color := SignalAspectRed
             ELSE
               Brush.Color := SignalAspectYellow;
@@ -2214,7 +2151,81 @@ BEGIN { DrawSignal }
                 DrawSemaphore(Signal_LineX, Signal_LineWithVerticalSpacingY, 135, LeftPivot);
             END;
           END;
+
+          IF Signal_OutOfUse
+          OR { a safeguard - turn the signal off altogether! }
+             ((Signal_AdjacentLine <> UnknownLine) AND (Lines[Signal_AdjacentLine].Line_TC = UnknownTrackCircuit))
+          THEN BEGIN
+            { setting a semaphore to no aspect is meaningless, so since white wooden crosses are used on real railways, we can do the same }
+            Pen.Color := clWhite;
+
+            WITH Signal_MouseRect DO BEGIN
+              MoveTo(Left - ScrollBarXAdjustment, Top - ScrollBarYAdjustment);
+              LineTo(Right - ScrollBarXAdjustment, Bottom - ScrollBarYAdjustment);
+              MoveTo(Right - ScrollBarXAdjustment, Top - ScrollBarYAdjustment);
+              LineTo(Left - ScrollBarXAdjustment, Bottom - ScrollBarYAdjustment);
+            END; {WITH}
+          END;
         END ELSE BEGIN
+          IF EditedSignal = S THEN BEGIN
+            SColour1 := ScreenComponentEditedColour;
+            SColour2 := ScreenComponentEditedColour;
+          END ELSE BEGIN
+            IF Signal_OutOfUse
+            OR { a safeguard - turn the signal off altogether! }
+               ((Signal_AdjacentLine <> UnknownLine) AND (Lines[Signal_AdjacentLine].Line_TC = UnknownTrackCircuit))
+            THEN BEGIN
+              SColour1 := SignalAspectUnlit;
+              SColour2 := SignalAspectUnlit;
+            END ELSE BEGIN
+              CASE Aspect OF
+                RedAspect:
+                  BEGIN
+                    SColour1 := SignalAspectRed;
+                    SColour2 := SignalAspectUnlit;
+                  END;
+                SingleYellowAspect:
+                  BEGIN
+                    SColour1 := SignalAspectYellow;
+                    SColour2 := SignalAspectUnlit;
+                  END;
+                FlashingSingleYellowAspect:
+                  BEGIN
+                    IF Signal_LampIsOn THEN
+                      SColour1 := SignalAspectYellow
+                    ELSE
+                      SColour1 := SignalAspectUnlit;
+                    SColour2 := SignalAspectUnlit;
+                  END;
+                DoubleYellowAspect:
+                  BEGIN
+                    SColour1 := SignalAspectYellow;
+                    SColour2 := SignalAspectYellow;
+                  END;
+                FlashingDoubleYellowAspect:
+                  BEGIN
+                    IF Signal_LampIsOn THEN BEGIN
+                      SColour1 := SignalAspectYellow;
+                      SColour2 := SignalAspectYellow;
+                    END ELSE BEGIN
+                      SColour1 := SignalAspectUnlit;
+                      SColour2 := SignalAspectUnlit;
+                    END;
+                  END;
+                GreenAspect:
+                  BEGIN
+                    SColour1 := SignalAspectGreen;
+                    SColour2 := SignalAspectUnlit;
+                  END;
+                NoAspect:
+                  BEGIN
+                    SColour1 := SignalAspectUnlit;
+                    SColour2 := SignalAspectUnlit;
+                  END;
+              END; {CASE}
+            END;
+          END;
+
           { All other signals except for calling-on signals, which are not yet written. First clear the area for the signal. }
           Brush.Color := BackgroundColour;
           Pen.Color := BackgroundColour;
