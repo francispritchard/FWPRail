@@ -3839,37 +3839,25 @@ BEGIN
         RailWindowBitmap.Canvas.Pen.Width := WindowPenWidth;
 
         IF (Signal_Type <> SemaphoreHome) AND (Signal_Type <> SemaphoreDistant) THEN BEGIN
-          { it covers the signal circles }
+          { it covers the colour-light signal circles }
           Left := Signal_LineX - SignalRadiusScaled;
           Top := Signal_LineWithVerticalSpacingY - SignalRadiusScaled;
           Right := Signal_LineX + SignalRadiusScaled;
           Bottom := Signal_LineWithVerticalSpacingY + SignalRadiusScaled;
         END ELSE BEGIN
-          { it covers the signal arms }
-          IF (Signal_Direction = Up) AND (Signal_Quadrant = UpperQuadrant) THEN BEGIN
+          { it covers the semaphore signal arms }
+          IF Signal_Direction = Up THEN BEGIN
             Left := Signal_LineX - SignalSemaphoreWidthScaled;
             Top := Signal_LineWithVerticalSpacingY + RailWindowBitmap.Canvas.Pen.Width;
-            Right := Signal_LineX + (SignalSemaphoreHeightScaled * 2);
+            Right := Signal_LineX + (SignalSemaphoreWidthScaled * 2);
             Bottom := Signal_LineWithVerticalSpacingY + (SignalSemaphoreWidthScaled * 2);
           END ELSE
-            IF (Signal_Direction = Up) AND (Signal_Quadrant = LowerQuadrant) THEN BEGIN
-              Left := Signal_LineX;
-              Top := Signal_LineWithVerticalSpacingY + RailWindowBitmap.Canvas.Pen.Width;
-              Right := Signal_LineX + (SignalSemaphoreHeightScaled * 2) + SignalSemaphoreWidthScaled;
-              Bottom := Signal_LineWithVerticalSpacingY + (SignalSemaphoreWidthScaled * 2);
-            END ELSE
-              IF (Signal_Direction = Down) AND (Signal_Quadrant = UpperQuadrant) THEN BEGIN
-                Left := Signal_LineX - SignalSemaphoreWidthScaled;
-                Top := Signal_LineWithVerticalSpacingY - (SignalSemaphoreWidthScaled * 2);
-                Right := Signal_LineX + (SignalSemaphoreHeightScaled * 2);
-                Bottom := Signal_LineWithVerticalSpacingY - RailWindowBitmap.Canvas.Pen.Width;
-              END ELSE
-                IF (Signal_Direction = Down) AND (Signal_Quadrant = LowerQuadrant) THEN BEGIN
-                  Left := Signal_LineX - (SignalSemaphoreHeightScaled * 2) - SignalSemaphoreWidthScaled;
-                  Top := Signal_LineWithVerticalSpacingY - (SignalSemaphoreWidthScaled * 2);
-                  Right := Signal_LineX;
-                  Bottom := Signal_LineWithVerticalSpacingY - RailWindowBitmap.Canvas.Pen.Width;
-                END;
+            IF Signal_Direction = Down THEN BEGIN
+              Left := Signal_LineX - (SignalSemaphoreWidthScaled * 2);
+              Top := Signal_LineWithVerticalSpacingY - (SignalSemaphoreWidthScaled * 2);
+              Right := Signal_LineX + SignalSemaphoreWidthScaled;
+              Bottom := Signal_LineWithVerticalSpacingY - RailWindowBitmap.Canvas.Pen.Width;
+            END;
         END;
       END; {WITH}
 
