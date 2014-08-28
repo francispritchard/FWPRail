@@ -1072,6 +1072,9 @@ BEGIN
               END;
           END;
 
+          IF ErrorMsg = '' THEN
+            NoteThatDataHasChanged;
+
           IF ErrorMsg = '' THEN BEGIN
             { Redraw the screen to display the change}
             CalculateAllSignalPositions;
