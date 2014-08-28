@@ -1732,7 +1732,7 @@ FUNCTION ValidateSignalPossibleStationStartRouteHold(Flag : Boolean; PossibleRou
 FUNCTION ValidateSignalQuadrant(Str : String; OUT ErrorMsg : String) : QuadrantType;
 { Validates and if ok returns the quadrant type }
 
-FUNCTION ValidateSignalType(Str : String; Quadrant : QuadrantType; OUT ErrorMsg : String) : TypeOfSignal;
+FUNCTION ValidateSignalType(Str : String; Quadrant : QuadrantType; DistantHomesArray : IntegerArrayType; OUT ErrorMsg : String) : TypeOfSignal;
 { Validates and if ok returns the signal type }
 
 PROCEDURE WriteOutLineDataToDatabase;
@@ -4343,35 +4343,27 @@ BEGIN
         ErrorMsg := 'Invalid signal quadrant type';
 END; { ValidateSignalQuadrant }
 
-FUNCTION ValidateSignalType(Str : String; Quadrant : QuadrantType; OUT ErrorMsg : String) : TypeOfSignal;
+FUNCTION ValidateSignalType(Str : String; Quadrant : QuadrantType; DistantHomesArray : IntegerArrayType; OUT ErrorMsg : String) : TypeOfSignal;
 { Validates and if ok returns the signal type }
 BEGIN
   ErrorMsg := '';
-  Result := UnknownSignalType;
+  Result := StrToSignalType(Str);
 
-  Str := UpperCase(Str);
-  CASE Str[1] OF
-    'C':
-      Result := CallingOn;
-    '2':
-      Result := TwoAspect;
-    '3':
-      Result := ThreeAspect;
-    '4':
-      Result := FourAspect;
-    'H':
-      IF Quadrant = NoQuadrant THEN
-        ErrorMsg := 'ValidateSignalType: missing quadrant'
-      ELSE
-        Result := SemaphoreHome;
-    'D':
-      IF Quadrant = NoQuadrant THEN
-        ErrorMsg := 'ValidateSignalType: missing quadrant'
-      ELSE
-        Result := SemaphoreDistant;
-    ELSE { CASE }
-      ErrorMsg := 'ValidateSignalType: invalid signal type';
-  END; { CASE }
+  IF Result = UnknownSignalType THEN
+    ErrorMsg := 'ValidateSignalType: invalid signal type'
+  ELSE
+    IF ((Result = SemaphoreHome) OR (Result = SemaphoreDistant))
+    AND (Quadrant = NoQuadrant)
+    THEN
+      ErrorMsg := 'ValidateSignalType: missing quadrant';
+
+  IF (Result = CallingOn) OR (Result = TwoAspect) OR (Result = ThreeAspect) OR (Result = FourAspect) THEN
+    IF Quadrant <> NoQuadrant THEN
+      ErrorMsg := 'ValidateSignalType: non-semaphore signals cannot have upper or lower quadrants';
+
+  IF Length(DistantHomesArray) <> 0 THEN
+    IF Result <> SemaphoreDistant THEN
+      ErrorMsg := 'ValidateSignalType: only semaphore distants can have "Distant Homes"';
 END; { ValidateSignalType }
 
 FUNCTION ValidateSignalAdjacentLineXOffset(Str : String; OUT ErrorMsg : String) : Integer;
@@ -4612,7 +4604,7 @@ BEGIN
             IF SignalsADOTable.FieldByName(Signal_TypeFieldName).AsString = '' THEN
               ErrorMsg := 'no signal type given'
             ELSE
-              Signal_Type := ValidateSignalType(SignalsADOTable.FieldByName(Signal_TypeFieldName).AsString, Signal_Quadrant, ErrorMsg);
+              Signal_Type := ValidateSignalType(SignalsADOTable.FieldByName(Signal_TypeFieldName).AsString, Signal_Quadrant, Signal_SemaphoreDistantHomesArray, ErrorMsg);
           END;
 
           { NB the signal fields are in the following order for validation purposes }
