@@ -2832,6 +2832,8 @@ END; { SaveOptionFromValueList }
 PROCEDURE TOptionsWindow.OptionsValueListEditorValidate(Sender: TObject; ACol, ARow: Integer; CONST KeyName, KeyValue: String);
 BEGIN
   SaveOptionFromValueList(KeyName, KeyValue);
+  ReinitialiseFWPRailWindowVariables := True;
+  InvalidateScreen(UnitRef, 'OptionsValueListEditorValidate');
 END; { OptionsValueListEditorValidate }
 
 PROCEDURE TOptionsWindow.OptionsValueListEditorDrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
