@@ -203,21 +203,42 @@ BEGIN
         IF InputDialogueMaskEdit.Text <> '' THEN BEGIN
           InputDialogueLine := 0;
           InputDialogueLineFound := False;
-          WHILE (InputDialogueLine <= High(Lines)) AND NOT InputDialogueLineFound DO BEGIN
-            IF UpperCase(LineToStr(InputDialogueLine)) <> UpperCase(InputDialogueMaskEdit.Text) THEN BEGIN
-              InputDialogueChangeOrSelectButton.Enabled := False;
-              Inc(InputDialogueLine);
-            END ELSE BEGIN
-              { found a line }
-              InputDialogueLineFound := True;
-              InputDialogueChangeOrSelectButton.Enabled := True;
 
-              { Note that the line needs to be highlighted }
-              LineHighlighted := InputDialogueLine;
-              InvalidateScreen(UnitRef, 'InputDialogueMaskEditChange 6');
-            END;
-          END; {WHILE}
+          { See whether it's a line name or a line number }
+          IF TryStrToInt(InputDialogueMaskEdit.Text[1], InputDialogueLine) THEN BEGIN
+            { set the edit mask to only allow other numbers to follow }
+            InputDialogueMaskEdit.EditMask := '9999';
+
+            InputDialogueLine := StrToInt(Trim(InputDialogueMaskEdit.Text));
+            IF (InputDialogueLine < -1) OR (InputDialogueLine > High(Lines)) THEN
+              InputDialogueChangeOrSelectButton.Enabled := False
+            ELSE
+              { found a line number }
+              InputDialogueLineFound := True;
+          END ELSE BEGIN
+            WHILE (InputDialogueLine <= High(Lines)) AND NOT InputDialogueLineFound DO BEGIN
+              IF UpperCase(LineToStr(InputDialogueLine)) <> UpperCase(InputDialogueMaskEdit.Text) THEN BEGIN
+                InputDialogueChangeOrSelectButton.Enabled := False;
+                Inc(InputDialogueLine);
+              END ELSE
+                { found a line name }
+                InputDialogueLineFound := True;
+            END; {WHILE}
+          END;
+
+          IF InputDialogueLineFound THEN BEGIN
+            InputDialogueChangeOrSelectButton.Enabled := True;
+
+            { Note that the line needs to be highlighted }
+            LineHighlighted := InputDialogueLine;
+            InvalidateScreen(UnitRef, 'InputDialogueMaskEditChange 6');
+          END;
         END;
+
+        InputDialogueMaskEdit.Text := Trim(InputDialogueMaskEdit.Text);
+        IF Length(trim(InputDialogueMaskEdit.Text)) = 0 THEN
+          { if there's no entry, clear the mask }
+          InputDialogueMaskEdit.EditMask := '';
       END;
 
     TrackCircuitDialogueBox:
@@ -465,8 +486,8 @@ BEGIN
           InputDialogueMaskEdit.Text := '';
           PreviouslyDisplayedInputDialogueBox := LineDialogueBox;
         END;
-        InputDialogueBox.Caption := 'Find Line Name';
-        InputDialogueMaskEditLabel.Caption := 'Line Name:';
+        InputDialogueBox.Caption := 'Find Line Name or Number';
+        InputDialogueMaskEditLabel.Caption := 'Name/Number:';
         InputDialogueChangeOrSelectButton.Visible := False;
         InputDialogueMaskEdit.MaxLength := 6;
 
@@ -4733,19 +4754,19 @@ BEGIN { KeyPressedDown }
               END;
             CtrlShift: {F4}
               BEGIN
-                HelpMsg := 'show line numbers';
+                HelpMsg := 'show line directions and non-through locations';
                 IF NOT HelpRequired THEN BEGIN
-                  ShowLineNumbers := True;
-                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing line numbers');
+                  ShowLineDirectionDetail := True;
+                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing line directions (blue) and non-through locations (red)');
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
               END;
             Shift: {F4}
               BEGIN
-                HelpMsg := 'show line directions and non-through locations';
+                HelpMsg := 'show line numbers';
                 IF NOT HelpRequired THEN BEGIN
-                  ShowLineDirectionDetail := True;
-                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing line directions (blue) and non-through locations (red)');
+                  ShowLineNumbers := True;
+                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing line numbers');
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
               END;
