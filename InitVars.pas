@@ -2305,7 +2305,6 @@ VAR
   A : Integer;
   AccessibleLocationsCount : Integer;
   ErrorMsg : String;
-  FieldName : String;
   I : Integer;
   Iterations : Integer;
   Loc_Num : Integer;
