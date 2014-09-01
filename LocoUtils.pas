@@ -331,27 +331,27 @@ BEGIN
 
       ErrorMsg := '';
 
-      { First do a check to see if there's a Dapol cleaning wagon - we need to do this first before we can see if any loco is pulling it }
-      LocoDataADOTable.First;
-      WHILE NOT LocoDataADOTable.EOF DO BEGIN
-        WITH LocoDataADOTable DO BEGIN
-          IF FieldByName('Non-Loco').AsBoolean THEN BEGIN
-            IF FieldByName('Non-Loco').AsBoolean AND (FieldByName('Non-LocoType').AsString = '') THEN
-               ErrorMsg := 'Error in database: cannot have a non-loco without a non-loco type';
-
-            IF ErrorMsg = '' THEN BEGIN
-              IF FieldByName('Non-LocoType').AsString = 'Dapol Cleaning Wagon' THEN BEGIN
-                { Check one hasn't been found already, as there can't be more than one or we will get terribly confused }
-                IF DapolCleaningWagonLocoChip <> UnknownLocoChip THEN
-                  ErrorMsg := 'Error in database - cannot have two Dapol cleaning wagons - we already have ' + LocoChipToStr(DapolCleaningWagonLocoChip)
-                ELSE
-                  DapolCleaningWagonLocoChip := FieldByName('LocoChip').AsInteger;
-              END;
-            END;
-          END;
-        END; {WITH}
-        LocoDataADOTable.Next;
-      END; {WHILE}
+      { First do a check to see if there's a Dapol cleaning wagon - we need to do this first before we can see if any loco is pulling it } { *********** }
+//      LocoDataADOTable.First;
+//      WHILE NOT LocoDataADOTable.EOF DO BEGIN
+//        WITH LocoDataADOTable DO BEGIN
+//          IF FieldByName('Non-Loco').AsBoolean THEN BEGIN
+//            IF FieldByName('Non-Loco').AsBoolean AND (FieldByName('Non-LocoType').AsString = '') THEN
+//               ErrorMsg := 'Error in database: cannot have a non-loco without a non-loco type';
+//
+//            IF ErrorMsg = '' THEN BEGIN
+//              IF FieldByName('Non-LocoType').AsString = 'Dapol Cleaning Wagon' THEN BEGIN
+//                { Check one hasn't been found already, as there can't be more than one or we will get terribly confused }
+//                IF DapolCleaningWagonLocoChip <> UnknownLocoChip THEN
+//                  ErrorMsg := 'Error in database - cannot have two Dapol cleaning wagons - we already have ' + LocoChipToStr(DapolCleaningWagonLocoChip)
+//                ELSE
+//                  DapolCleaningWagonLocoChip := FieldByName('LocoChip').AsInteger;
+//              END;
+//            END;
+//          END;
+//        END; {WITH}
+//        LocoDataADOTable.Next;
+//      END; {WHILE}
 
       { Now read in the real loco data }
       LocoDataADOTable.First;
