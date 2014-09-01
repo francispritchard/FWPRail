@@ -38,31 +38,6 @@ BEGIN
   WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
 
-
-(* ******************************************************************** *)
-
-{ Syntax Check stuff: }
-VAR
-  InputFile, OutputFile : Text;
-
-PROCEDURE OpenInputFile(InputFileName : String);
-VAR
-  ErrorMsg : String;
-
-BEGIN
-  OpenInputFileOK(InputFile, InputFileName, ErrorMsg);
-  Reset(InputFile);
-END; { OpenFiles }
-
-PROCEDURE OpenOutputFile(OutputFileName : String);
-BEGIN
-  AssignFile(OutputFile, OutputFileName);
-  IF FileExists(OutputFileName) THEN
-    Erase(OutputFile);
-  { create it so we can write to it when we exit }
-  Rewrite(OutputFile);
-END; { OpenFiles }
-
 PROCEDURE WriteStuff;
 { Test procedure that writes stuff out }
 CONST
@@ -81,14 +56,11 @@ BEGIN
   CloseFile(TempFile);
 END; { WriteStuff }
 
-
 (* ******************************************************************** *)
 
-PROCEDURE Test3;
-//VAR
+PROCEDURE TestProc4();
 BEGIN
-  //
-END; { Test3 }
+END; { TestProc4 }
 
 PROCEDURE TestProc3;
 // VAR
@@ -103,8 +75,11 @@ END; { TestProc2 }
 PROCEDURE TestProc(OUT KeyOK : Boolean);
 { Used to call whatever routine we are testing. Set KeyOK to false if not in use. }
 BEGIN
-//  TestUnitForm.Show;
-//  TestProc3;
+  KeyOK := False;
+
+//  TestProc2;
+
+//  KeyOK := True;
 END; { TestProc }
 
 INITIALIZATION
