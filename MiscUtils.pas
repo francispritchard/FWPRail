@@ -130,6 +130,9 @@ FUNCTION ControlledByStateToStr(ControlledByState : LocoControlStateType) : Stri
 FUNCTION CountSubRoutes(RouteArray : StringArrayType) : Integer;
 { Return how many subroutes there are in a given route array }
 
+FUNCTION CursorToStr(Cursor : TCursor) : String;
+{ Returns a string describing the cursor supplied }
+
 FUNCTION DayOfTheWeekToStr{1}(DayOfTheWeek : DayOfTheWeekType) : String;
 { Return a string with the given day of the week }
 
@@ -2317,6 +2320,59 @@ BEGIN
   END; {FOR}
 END; { CountSubRoutes }
 
+FUNCTION CursorToStr(Cursor : TCursor) : String;
+{ Returns a string describing the cursor supplied }
+BEGIN
+  CASE Cursor OF
+    crDefault:
+      Result := 'Default';
+    crAppStart:
+      Result := 'AppStart';
+    crArrow:
+      Result := 'Arrow';
+    crCross:
+      Result := 'Cross';
+    crDrag:
+      Result := 'Drag';
+    crHandPoint:
+      Result := 'HandPoint';
+    crHelp:
+      Result := 'Help';
+    crHourGlass:
+      Result := 'HourGlass';
+    crHSplit:
+      Result := 'HSplit';
+    crIBeam:
+      Result := 'IBeam';
+    crMultiDrag:
+      Result := 'MultiDrag';
+    crNo:
+      Result := 'No';
+    crNoDrop:
+      Result := 'NoDrop';
+    crNone:
+      Result := 'None';
+    crSize:
+      Result := 'Size';
+    crSizeNESW:
+      Result := 'SizeNESW';
+    crSizeNS:
+      Result := 'SizeNS';
+    crSizeNWSE:
+      Result := 'SizeNWSE';
+    crSizeWE:
+      Result := 'SizeWE';
+    crSQLWait:
+      Result := 'SQLWait';
+    crUpArrow:
+      Result := 'UpArrow';
+    crVSplit:
+      Result := 'VSplit';
+  ELSE {CASE}
+    Result := 'Unknwon Cursor';
+  END; {CASE}
+END; { CursorToStr }
+
 FUNCTION DayOfTheWeekToStr{1}(DayOfTheWeek : DayOfTheWeekType) : String; Overload;
 { Return a long string with the given day of the week }
 BEGIN
@@ -4168,7 +4224,7 @@ BEGIN
       LocoChipFound := True;
       Result := Trains[T].Train_Type;
     END;
-    Inc(T);
+   Inc(T);
   END; {WHILE}
 END; { GetTrainTypeFromLocoChip }
 
@@ -4210,136 +4266,139 @@ BEGIN
       IF UpperCase(SoundStr) = 'OFF' THEN
         ProcessSound(SoundStr)
       ELSE
-        IF UpperCase(SoundStr) = 'OK' THEN
+        IF UpperCase(SoundStr) = 'ON' THEN
           ProcessSound(SoundStr)
-        ELSE BEGIN
-          IF Length(SoundStr) = 3 THEN BEGIN
-            CASE SoundStr[1] OF
-              '1':
-                ProcessSound('Sound100');
-              '2':
-                ProcessSound('Sound200');
-              '3':
-                ProcessSound('Sound300');
-              '4':
-                ProcessSound('Sound400');
-              '5':
-                ProcessSound('Sound500');
-              '6':
-                ProcessSound('Sound600');
-              '7':
-                ProcessSound('Sound700');
-              '8':
-                ProcessSound('Sound800');
-              '9':
-                ProcessSound('Sound900');
-            ELSE {CASE}
-              BEGIN
-                { an unknown word to read out }
-                Debug('Unknown word to read out: ' + SoundStr);
-                ProcessSound('IsThisCorrect');
-              END;
-            END; {CASE}
-            { Remove the hundreds }
-            SoundStr := Copy(SoundStr, 2);
-            IF SoundStr = '00' THEN
-              Exit;
-          END;
-
-          IF Length(SoundStr) = 2 THEN BEGIN
-            IF (SoundStr[1] = '0') AND (SoundStr[2] <> '0') THEN BEGIN
-              { avoid the problem of, e.g., "09" }
-              SoundStr := Copy(SoundStr, 2);
-            END;
-          END;
-
-          IF Length(SoundStr) = 2 THEN BEGIN
-            CASE SoundStr[1] OF
-              '1':
+        ELSE
+          IF UpperCase(SoundStr) = 'OK' THEN
+            ProcessSound(SoundStr)
+          ELSE BEGIN
+            IF Length(SoundStr) = 3 THEN BEGIN
+              CASE SoundStr[1] OF
+                '1':
+                  ProcessSound('Sound100');
+                '2':
+                  ProcessSound('Sound200');
+                '3':
+                  ProcessSound('Sound300');
+                '4':
+                  ProcessSound('Sound400');
+                '5':
+                  ProcessSound('Sound500');
+                '6':
+                  ProcessSound('Sound600');
+                '7':
+                  ProcessSound('Sound700');
+                '8':
+                  ProcessSound('Sound800');
+                '9':
+                  ProcessSound('Sound900');
+              ELSE {CASE}
                 BEGIN
-                  CASE SoundStr[2] OF
-                    '0':
-                      ProcessSound('Sound10');
-                    '1':
-                      ProcessSound('Sound11');
-                    '2':
-                      ProcessSound('Sound12');
-                    '3':
-                      ProcessSound('Sound13');
-                    '4':
-                      ProcessSound('Sound14');
-                    '5':
-                      ProcessSound('Sound15');
-                    '6':
-                      ProcessSound('Sound16');
-                    '7':
-                      ProcessSound('Sound17');
-                    '8':
-                      ProcessSound('Sound18');
-                    '9':
-                      ProcessSound('Sound19');
-                  END; {CASE}
-                  Exit;
+                  { an unknown word to read out }
+                  Debug('Unknown word to read out: ' + SoundStr);
+                  ProcessSound('IsThisCorrect');
                 END;
+              END; {CASE}
+              { Remove the hundreds }
+              SoundStr := Copy(SoundStr, 2);
+              IF SoundStr = '00' THEN
+                Exit;
+            END;
+
+            IF Length(SoundStr) = 2 THEN BEGIN
+              IF (SoundStr[1] = '0') AND (SoundStr[2] <> '0') THEN BEGIN
+                { avoid the problem of, e.g., "09" }
+                SoundStr := Copy(SoundStr, 2);
+              END;
+            END;
+
+            IF Length(SoundStr) = 2 THEN BEGIN
+              CASE SoundStr[1] OF
+                '1':
+                  BEGIN
+                    CASE SoundStr[2] OF
+                      '0':
+                        ProcessSound('Sound10');
+                      '1':
+                        ProcessSound('Sound11');
+                      '2':
+                        ProcessSound('Sound12');
+                      '3':
+                        ProcessSound('Sound13');
+                      '4':
+                        ProcessSound('Sound14');
+                      '5':
+                        ProcessSound('Sound15');
+                      '6':
+                        ProcessSound('Sound16');
+                      '7':
+                        ProcessSound('Sound17');
+                      '8':
+                        ProcessSound('Sound18');
+                      '9':
+                        ProcessSound('Sound19');
+                    END; {CASE}
+                    Exit;
+                  END;
+                '2':
+                  ProcessSound('Sound20');
+                '3':
+                  ProcessSound('Sound30');
+                '4':
+                  ProcessSound('Sound40');
+                '5':
+                  ProcessSound('Sound50');
+                '6':
+                  ProcessSound('Sound60');
+                '7':
+                  ProcessSound('Sound70');
+                '8':
+                  ProcessSound('Sound80');
+                '9':
+                  ProcessSound('Sound90');
+              ELSE {CASE}
+                BEGIN
+                  { an unknown word to read out }
+                  Debug('Unknown word to read out: ' + SoundStr);
+                  ProcessSound('IsThisCorrect');
+                END;
+              END; {CASE}
+              { Remove the tens }
+              SoundStr := Copy(SoundStr, 2);
+              IF SoundStr = '0' THEN
+                Exit;
+            END;
+
+            { the length is 1 }
+            CASE SoundStr[Length(SoundStr)] OF
+              '0':
+                ProcessSound('Sound0');
+              '1':
+                ProcessSound('Sound1');
               '2':
-                ProcessSound('Sound20');
+                ProcessSound('Sound2');
               '3':
-                ProcessSound('Sound30');
+                ProcessSound('Sound3');
               '4':
-                ProcessSound('Sound40');
+                ProcessSound('Sound4');
               '5':
-                ProcessSound('Sound50');
+                ProcessSound('Sound5');
               '6':
-                ProcessSound('Sound60');
+                ProcessSound('Sound6');
               '7':
-                ProcessSound('Sound70');
+                ProcessSound('Sound7');
               '8':
-                ProcessSound('Sound80');
+                ProcessSound('Sound8');
               '9':
-                ProcessSound('Sound90');
+                ProcessSound('Sound9');
             ELSE {CASE}
               BEGIN
                 { an unknown word to read out }
                 Debug('Unknown word to read out: ' + SoundStr);
                 ProcessSound('IsThisCorrect');
               END;
-            END; {CASE}
-            { Remove the tens }
-            SoundStr := Copy(SoundStr, 2);
-            IF SoundStr = '0' THEN
-              Exit;
+            END; {CASE }
           END;
-
-          { the length is 1 }
-          CASE SoundStr[Length(SoundStr)] OF
-            '0':
-              ProcessSound('Sound0');
-            '1':
-              ProcessSound('Sound1');
-            '2':
-              ProcessSound('Sound2');
-            '3':
-              ProcessSound('Sound3');
-            '4':
-              ProcessSound('Sound4');
-            '5':
-              ProcessSound('Sound5');
-            '6':
-              ProcessSound('Sound6');
-            '7':
-              ProcessSound('Sound7');
-            '8':
-              ProcessSound('Sound8');
-            '9':
-              ProcessSound('Sound9');
-          ELSE {CASE}
-            BEGIN
-              { an unknown word to read out }
-              Debug('Unknown word to read out: ' + SoundStr);
-              ProcessSound('IsThisCorrect');
-            END;
-          END; {CASE }
-        END;
   EXCEPT
     ON E : Exception DO
       Log('EG NewReadOut: ' + E.ClassName + ' error raised, with message: ' + E.Message);
@@ -6282,7 +6341,7 @@ BEGIN
 //
 //      Log('D LocationData table and connection opened to initialise the location data');
 //
-//  //    LocationDataADOTable.Sort := 'LocoChip ASC, DepartureTime0 ASC';
+//  //    LocationDataADOTable.Sort := '[LocoChip ASC], [DepartureTime0] ASC';
 //
 //      LocationDataADOTable.Open;
 //      LocationDataADOTable.First;
@@ -6966,17 +7025,17 @@ BEGIN
   END ELSE BEGIN
     CASE ST OF
       CallingOn:
-        Result := 'C';
+        Result := 'Calling On';
       TwoAspect:
-        Result := '2';
+        Result := '2 Aspect';
       ThreeAspect:
-        Result := '3';
+        Result := '3 Aspect';
       FourAspect:
-        Result := '4';
+        Result := '4 Aspect';
       SemaphoreHome:
-        Result := 'H';
+        Result := 'Semaphore Home';
       SemaphoreDistant:
-        Result := 'D';
+        Result := 'Semaphore Distant';
     END; {CASE}
   END;
 END; { SignalTypeToStr }
