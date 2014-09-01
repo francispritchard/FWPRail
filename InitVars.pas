@@ -1533,6 +1533,9 @@ VAR
 PROCEDURE AddLineToStationMonitorsWebDiagnosticsMemo(S : String);
 { Adds a line of text to the station monitor unit's web diagnostics memo }
 
+PROCEDURE AddNewRecordToLineDatabase;
+{ Append a record to the line database }
+
 PROCEDURE AddNewRecordToPointDatabase;
 { Append a record to the point database }
 
@@ -3621,6 +3624,42 @@ BEGIN
     LineLength := Round(20 * Sqrt(DX * DX + DY * DY));
 TP *)
 END; { ReadInLineDataFromDatabase }
+
+PROCEDURE AddNewRecordToLineDatabase;
+{ Append a record to the line database }
+BEGIN
+  TRY
+    WITH InitVarsWindow DO BEGIN
+      IF NOT FileExists(PathToRailDataFiles + LineDataFilename + '.' + LineDataFilenameSuffix) THEN BEGIN
+        IF MessageDialogueWithDefault('Line database file "' + PathToRailDataFiles + LineDataFilename + '.' + LineDataFilenameSuffix + '" cannot be located'
+                                      + CRLF
+                                      + 'Do you wish to continue?',
+                                      StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
+        THEN
+          ShutDownProgram(UnitRef, 'AddNewRecordToLineDatabase')
+        ELSE
+          Exit;
+      END;
+
+      LinesADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source=' + PathToRailDataFiles + LineDataFilename + '.' + LineDataFilenameSuffix
+                                             + ';Persist Security Info=False';
+      LinesADOConnection.Connected := True;
+      LinesADOTable.Open;
+      LinesADOTable.Append;
+      LinesADOTable.FieldByName(Line_NumberFieldName).AsInteger := High(Lines);
+      LinesADOTable.Post;
+
+      Log('S Line data table and connection opened to write out Line data that has changed');
+      { Tidy up the database }
+      LinesADOTable.Close;
+      LinesADOConnection.Connected := False;
+      Log('S Line Data table and connection closed');
+    END;
+  EXCEPT {TRY}
+    ON E : Exception DO
+      Log('EG AddNewRecordToLineDatabase: ' + E.ClassName + ' error raised, with message: ' + E.Message);
+  END; {TRY}
+END; { AddNewRecordToLineDatabase }
 
 PROCEDURE WriteOutLineDataToDatabase;
 { Write out some line data to the line data file }
