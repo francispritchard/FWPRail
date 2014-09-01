@@ -102,99 +102,99 @@ BEGIN
           Exit;
       END;
 
-      LineDataADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
-                                               + PathToRailDataFiles + Line1DataFilename + '.' + Line1DataFilenameSuffix
-                                               + ';Persist Security Info=False';
+      LinesADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
+                                             + PathToRailDataFiles + Line1DataFilename + '.' + Line1DataFilenameSuffix
+                                             + ';Persist Security Info=False';
       TRY
-        LineDataADOConnection.Connected := True;
+        LinesADOConnection.Connected := True;
       EXCEPT
         ON E:Exception DO
           Log('EG CompareTwoLineDatabases 1: ' + E.ClassName + ' error raised, with message: '+ E.Message);
       END; {TRY}
 
-      LineDataADOTable.Open;
+      LinesADOTable.Open;
 
-      LineDataADOConnection2.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
-                                               + PathToRailDataFiles + Line2DataFilename + '.' + Line2DataFilenameSuffix
-                                               + ';Persist Security Info=False';
+      LinesADOConnection2.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
+                                              + PathToRailDataFiles + Line2DataFilename + '.' + Line2DataFilenameSuffix
+                                              + ';Persist Security Info=False';
       TRY
-        LineDataADOConnection2.Connected := True;
+        LinesADOConnection2.Connected := True;
       EXCEPT
         ON E:Exception DO
           Log('EG CompareTwoLineDatabases 2: ' + E.ClassName + ' error raised, with message: '+ E.Message);
       END; {TRY}
 
-      LineDataADOTable2.Open;
+      LinesADOTable2.Open;
 
       Log('S Line data table and connection opened to compare Line 1 data with Line 2 data');
 
       ErrorFound := False;
       Line := -1;
-      LineDataADOTable.Sort := '[LineNum] ASC';
-      LineDataADOTable.First;
-      LineDataADOTable2.Sort := '[LineNum] ASC';
-      LineDataADOTable2.First;
+      LinesADOTable.Sort := '[Line Number] ASC';
+      LinesADOTable.First;
+      LinesADOTable2.Sort := '[Line Number] ASC';
+      LinesADOTable2.First;
 
       REPEAT
         Inc(Line);
 
         IF Line > High(Lines) THEN BEGIN
-          IF NOT LineDataADOTable.EOF THEN
+          IF NOT LinesADOTable.EOF THEN
             Log('XG Last declared line (Line=' + IntToStr(Line - 1) + ') processed but Line database ' + '"' + Line1DataFilename + '.' + Line1DataFilenameSuffix
                     + ' has not yet reached end of file')
           ELSE
-          IF NOT LineDataADOTable2.EOF THEN
+          IF NOT LinesADOTable2.EOF THEN
             Log('XG Last declared line (Line=' + IntToStr(Line - 1) + ') processed but Line database ' + '"' + Line2DataFilename + '.' + Line2DataFilenameSuffix
                     + ' has not yet reached end of file');
         END ELSE BEGIN
           WITH Lines[Line] DO BEGIN
-            CheckString(Line_BufferStopNumberFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
-            CheckString(Line_BufferStopTheatreDestinationStrFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
-            CheckString(Line_DirectionFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
-            CheckString(Line_DownConnectionChFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
-            CheckString(Line_DownRowFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
-            CheckString(Line_EndOfLineMarkerFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
-            CheckString(Line_GradientFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
-            CheckString(Line_InUseFeedbackUnitFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
-            CheckString(Line_LengthFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
-            CheckString(Line_LocationStrFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
-            CheckString(Line_NumFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
-            CheckBoolean(Line_OutOfUseFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
-            CheckString(Line_NameStrFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
-            CheckString(Line_TCFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
-            CheckString(Line_TypeOfLineFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
-            CheckString(Line_UpConnectionChFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
-            CheckString(Line_UpXAbsoluteFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
-            CheckString(Line_UpXLineStrFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
-            CheckString(Line_UpRowFieldName, LineDataADOTable, LineDataADOTable2, ErrorFound);
+            CheckString(Line_BufferStopNumberFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
+            CheckString(Line_BufferStopTheatreDestinationStrFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
+            CheckString(Line_DirectionFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
+            CheckString(Line_DownConnectionChFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
+            CheckString(Line_DownRowFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
+            CheckString(Line_EndOfLineMarkerFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
+            CheckString(Line_GradientFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
+            CheckString(Line_InUseFeedbackUnitFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
+            CheckString(Line_LengthFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
+            CheckString(Line_LocationStrFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
+            CheckString(Line_NumberFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
+            CheckBoolean(Line_OutOfUseFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
+            CheckString(Line_NameStrFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
+            CheckString(Line_TCFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
+            CheckString(Line_TypeOfLineFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
+            CheckString(Line_UpConnectionChFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
+            CheckString(Line_UpXAbsoluteFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
+            CheckString(Line_UpXLineStrFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
+            CheckString(Line_UpRowFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
           END; {WITH}
         END;
 
-        IF LineDataADOTable.EOF AND NOT LineDataADOTable2.EOF THEN BEGIN
+        IF LinesADOTable.EOF AND NOT LinesADOTable2.EOF THEN BEGIN
           Log('XG Line database ' + '"' + Line1DataFilename + '.' + Line1DataFilenameSuffix
                   + '" is shorter than "' + Line2DataFilename + '.' + Line2DataFilenameSuffix + '"');
           Log('XG A later entry in line database ' + '"' + Line1DataFilename + '.' + Line1DataFilenameSuffix + '" is Line=' + IntToStr(Line));
         END ELSE
-          IF NOT LineDataADOTable.EOF AND LineDataADOTable2.EOF THEN BEGIN
+          IF NOT LinesADOTable.EOF AND LinesADOTable2.EOF THEN BEGIN
             Log('XG Line database ' + '"' + Line2DataFilename + '.' + Line2DataFilenameSuffix
                     + '" is shorter than "' + Line1DataFilename + '.' + Line1DataFilenameSuffix + '"');
             Log('XG A later entry in line database ' + '"' + Line2DataFilename + '.' + Line2DataFilenameSuffix + '" is Line=' + IntToStr(Line));
           END;
 
-        LineDataADOTable2.Next;
-        LineDataADOTable.Next;
-      UNTIL LineDataADOTable.EOF AND LineDataADOTable2.EOF;
+        LinesADOTable2.Next;
+        LinesADOTable.Next;
+      UNTIL LinesADOTable.EOF AND LinesADOTable2.EOF;
 
       IF NOT ErrorFound THEN
         Log('XG No differences found in line databases '
                 + '"' + Line1DataFilename + '.' + Line1DataFilenameSuffix + '" and "' + Line2DataFilename + '.' + Line2DataFilenameSuffix + '"');
 
       { Tidy up the database }
-      LineDataADOTable.Close;
-      LineDataADOConnection.Connected := False;
+      LinesADOTable.Close;
+      LinesADOConnection.Connected := False;
       Log('S Line Data 1 table and connection closed');
-      LineDataADOTable2.Close;
-      LineDataADOConnection.Connected := False;
+      LinesADOTable2.Close;
+      LinesADOConnection.Connected := False;
       Log('S Line Data 2 table and connection closed');
     END; {WITH}
   EXCEPT {TRY}
@@ -255,8 +255,8 @@ BEGIN
       END;
 
       PointsADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
-                                               + PathToRailDataFiles + Point1DataFilename + '.' + Point1DataFilenameSuffix
-                                               + ';Persist Security Info=False';
+                                              + PathToRailDataFiles + Point1DataFilename + '.' + Point1DataFilenameSuffix
+                                              + ';Persist Security Info=False';
       TRY
         PointsADOConnection.Connected := True;
       EXCEPT

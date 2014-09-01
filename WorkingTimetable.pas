@@ -658,7 +658,7 @@ BEGIN
         WorkingTimetableADOTable.Open;
         Log('W Working Timetable table and connection opened to initialise the working timetable data');
 
-        WorkingTimetableADOTable.Sort := 'First_Station_Departure_Time ASC';
+        WorkingTimetableADOTable.Sort := '[First_Station_Departure_Time] ASC';
         WorkingTimetableADOTable.First;
         WHILE WorkingTimetableOK
         AND NOT WorkingTimetableWindow.WorkingTimetableADOTable.EOF

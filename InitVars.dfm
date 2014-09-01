@@ -55,18 +55,20 @@ object InitVarsWindow: TInitVarsWindow
       '')
     ScrollBars = ssVertical
     TabOrder = 0
+    ExplicitLeft = -8
+    ExplicitTop = -16
   end
   object SaveDialogue: TSaveDialog
     DefaultExt = 'tim'
     Filter = 'Timetable Files (*.tim)|*.tim'
     Options = [ofOverwritePrompt, ofHideReadOnly, ofNoReadOnlyReturn, ofEnableSizing]
     Title = 'Save Timetable File'
-    Left = 44
-    Top = 416
+    Left = 532
+    Top = 576
   end
   object SignalsDataSource: TDataSource
-    Left = 44
-    Top = 312
+    Left = 84
+    Top = 368
   end
   object SignalsADOConnection: TADOConnection
     ConnectionString = 
@@ -77,15 +79,15 @@ object InitVarsWindow: TInitVarsWindow
     LoginPrompt = False
     Mode = cmShareDenyNone
     Provider = 'Microsoft.Jet.OLEDB.4.0'
-    Left = 164
-    Top = 308
+    Left = 380
+    Top = 372
   end
   object SignalsADOTable: TADOTable
     Connection = SignalsADOConnection
     CursorType = ctStatic
     TableName = 'SignalTable'
     Left = 252
-    Top = 304
+    Top = 376
   end
   object PointsADOConnection: TADOConnection
     ConnectionString = 
@@ -96,38 +98,38 @@ object InitVarsWindow: TInitVarsWindow
     LoginPrompt = False
     Mode = cmShareDenyNone
     Provider = 'Microsoft.Jet.OLEDB.4.0'
-    Left = 164
-    Top = 260
+    Left = 236
+    Top = 308
   end
   object PointsDataSource: TDataSource
-    Left = 44
-    Top = 264
+    Left = 84
+    Top = 296
   end
   object PointsADOTable: TADOTable
     Connection = PointsADOConnection
     CursorType = ctStatic
     TableName = 'PointTable'
-    Left = 248
-    Top = 256
+    Left = 376
+    Top = 304
   end
   object LocationsDataSource: TDataSource
-    Left = 44
-    Top = 216
+    Left = 68
+    Top = 240
   end
   object LocationsADOConnection: TADOConnection
     KeepConnection = False
     LoginPrompt = False
     Mode = cmShareDenyNone
     Provider = 'Microsoft.Jet.OLEDB.4.0'
-    Left = 164
-    Top = 204
+    Left = 212
+    Top = 236
   end
   object LocationsADOTable: TADOTable
     Connection = LocationsADOConnection
     CursorType = ctStatic
     TableName = 'LocationTable'
-    Left = 240
-    Top = 208
+    Left = 368
+    Top = 232
   end
   object AreasDataSource: TDataSource
     Left = 44
@@ -138,21 +140,21 @@ object InitVarsWindow: TInitVarsWindow
     LoginPrompt = False
     Mode = cmShareDenyNone
     Provider = 'Microsoft.Jet.OLEDB.4.0'
-    Left = 164
-    Top = 148
+    Left = 204
+    Top = 164
   end
   object AreasADOTable: TADOTable
     Connection = AreasADOConnection
     CursorType = ctStatic
     TableName = 'AreaTable'
-    Left = 240
-    Top = 152
+    Left = 344
+    Top = 160
   end
   object TrackCircuitDataSource: TDataSource
     Left = 52
     Top = 96
   end
-  object TrackCircuitDataADOConnection: TADOConnection
+  object TrackCircuitsADOConnection: TADOConnection
     ConnectionString = 
       'Provider=Microsoft.Jet.OLEDB.4.0;Data Source=C:\Program Files\Bo' +
       'rland\BDS\4.0\Projects\Rail Data Files\TrackCircuitData.mdb;Pers' +
@@ -161,21 +163,21 @@ object InitVarsWindow: TInitVarsWindow
     LoginPrompt = False
     Mode = cmShareDenyNone
     Provider = 'Microsoft.Jet.OLEDB.4.0'
-    Left = 156
-    Top = 92
+    Left = 196
+    Top = 84
   end
-  object TrackCircuitDataADOTable: TADOTable
-    Connection = TrackCircuitDataADOConnection
+  object TrackCircuitsADOTable: TADOTable
+    Connection = TrackCircuitsADOConnection
     CursorType = ctStatic
     TableName = 'TrackCircuitTable'
-    Left = 224
-    Top = 88
+    Left = 352
+    Top = 80
   end
   object PlatformDataSource: TDataSource
     Left = 44
-    Top = 48
+    Top = 24
   end
-  object PlatformDataADOConnection: TADOConnection
+  object PlatformsADOConnection: TADOConnection
     ConnectionString = 
       'Provider=Microsoft.Jet.OLEDB.4.0;Data Source=C:\Program Files\Bo' +
       'rland\BDS\4.0\Projects\Rail Data Files\PlatformData.mdb;Persist ' +
@@ -184,21 +186,21 @@ object InitVarsWindow: TInitVarsWindow
     LoginPrompt = False
     Mode = cmShareDenyNone
     Provider = 'Microsoft.Jet.OLEDB.4.0'
-    Left = 156
-    Top = 44
+    Left = 196
+    Top = 28
   end
-  object PlatformDataADOTable: TADOTable
-    Connection = PlatformDataADOConnection
+  object PlatformsADOTable: TADOTable
+    Connection = PlatformsADOConnection
     CursorType = ctStatic
     TableName = 'PlatformTable'
-    Left = 232
-    Top = 40
+    Left = 352
+    Top = 16
   end
   object FeedbackUnitDataSource: TDataSource
-    Left = 44
-    Top = 360
+    Left = 60
+    Top = 536
   end
-  object FeedbackUnitDataADOConnection: TADOConnection
+  object FeedbackUnitsADOConnection: TADOConnection
     ConnectionString = 
       'Provider=Microsoft.Jet.OLEDB.4.0;Data Source=C:\Program Files\Bo' +
       'rland\BDS\4.0\Projects\Rail Data Files\FeedbackUnitData.mdb;Pers' +
@@ -207,49 +209,49 @@ object InitVarsWindow: TInitVarsWindow
     LoginPrompt = False
     Mode = cmShareDenyNone
     Provider = 'Microsoft.Jet.OLEDB.4.0'
-    Left = 164
-    Top = 356
+    Left = 332
+    Top = 532
   end
-  object FeedbackUnitDataADOTable: TADOTable
-    Connection = FeedbackUnitDataADOConnection
+  object FeedbackUnitsADOTable: TADOTable
+    Connection = FeedbackUnitsADOConnection
     CursorType = ctStatic
     TableName = 'FeedbackUnitTable'
-    Left = 252
-    Top = 360
+    Left = 188
+    Top = 536
   end
-  object LineDataSource: TDataSource
+  object LinesDataSource: TDataSource
     Left = 52
-    Top = 16
+    Top = 616
   end
-  object LineDataADOConnection: TADOConnection
+  object LinesADOConnection: TADOConnection
     ConnectionString = 
       'Provider=Microsoft.Jet.OLEDB.4.0;Data Source=C:\Program Files\Bo' +
       'rland\BDS\3.0\Projects\Rail Data Files\LineData.mdb;Persist Secu' +
-      'rity Info=False'
+      'rity Info=False;'
     KeepConnection = False
     LoginPrompt = False
     Mode = cmShareDenyNone
     Provider = 'Microsoft.Jet.OLEDB.4.0'
-    Left = 228
-    Top = 12
+    Left = 324
+    Top = 612
   end
-  object LineDataADOTable: TADOTable
-    Connection = LineDataADOConnection
+  object LinesADOTable: TADOTable
+    Connection = LinesADOConnection
     CursorType = ctStatic
     TableName = 'LineTable'
-    Left = 152
-    Top = 8
+    Left = 176
+    Top = 608
   end
   object SignalsDataSource2: TDataSource
-    Left = 492
-    Top = 416
+    Left = 252
+    Top = 440
   end
   object SignalsADOTable2: TADOTable
     Connection = SignalsADOConnection2
     CursorType = ctStatic
     TableName = 'SignalTable'
-    Left = 492
-    Top = 304
+    Left = 76
+    Top = 424
   end
   object SignalsADOConnection2: TADOConnection
     ConnectionString = 
@@ -260,15 +262,15 @@ object InitVarsWindow: TInitVarsWindow
     LoginPrompt = False
     Mode = cmShareDenyNone
     Provider = 'Microsoft.Jet.OLEDB.4.0'
-    Left = 500
-    Top = 356
+    Left = 380
+    Top = 428
   end
   object PointsADOTable2: TADOTable
     Connection = PointsADOConnection2
     CursorType = ctStatic
     TableName = 'PointTable'
-    Left = 528
-    Top = 176
+    Left = 176
+    Top = 744
   end
   object PointsADOConnection2: TADOConnection
     ConnectionString = 
@@ -279,14 +281,14 @@ object InitVarsWindow: TInitVarsWindow
     LoginPrompt = False
     Mode = cmShareDenyNone
     Provider = 'Microsoft.Jet.OLEDB.4.0'
-    Left = 532
-    Top = 132
+    Left = 316
+    Top = 740
   end
   object PointsDataSource2: TDataSource
-    Left = 540
-    Top = 88
+    Left = 44
+    Top = 744
   end
-  object LineDataADOConnection2: TADOConnection
+  object LinesADOConnection2: TADOConnection
     ConnectionString = 
       'Provider=Microsoft.Jet.OLEDB.4.0;Data Source=C:\Program Files\Bo' +
       'rland\BDS\3.0\Projects\Rail Data Files\LineData.mdb;Persist Secu' +
@@ -295,18 +297,18 @@ object InitVarsWindow: TInitVarsWindow
     LoginPrompt = False
     Mode = cmShareDenyNone
     Provider = 'Microsoft.Jet.OLEDB.4.0'
-    Left = 412
-    Top = 548
+    Left = 316
+    Top = 676
   end
-  object LineDataADOTable2: TADOTable
-    Connection = LineDataADOConnection2
+  object LinesADOTable2: TADOTable
+    Connection = LinesADOConnection2
     CursorType = ctStatic
     TableName = 'LineTable'
-    Left = 336
-    Top = 544
+    Left = 176
+    Top = 672
   end
   object LineDataSource2: TDataSource
-    Left = 236
-    Top = 552
+    Left = 52
+    Top = 672
   end
 end

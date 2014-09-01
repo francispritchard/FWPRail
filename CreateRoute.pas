@@ -138,7 +138,7 @@ BEGIN
       RouteingExceptionDataADOTable.Open;
       Log('T RouteingExceptionData data table and connection opened to initialise the RouteingExceptionData data');
 
-      RouteingExceptionDataADOTable.Sort := 'Rule ASC';
+      RouteingExceptionDataADOTable.Sort := '[Rule] ASC';
       RouteingExceptionDataADOTable.First;
       WHILE NOT RouteingExceptionDataADOTable.EOF DO BEGIN
         ErrorMsg := '';

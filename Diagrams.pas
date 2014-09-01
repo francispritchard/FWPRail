@@ -4351,7 +4351,7 @@ BEGIN
       DiagramsADOTable.Open;
       Log('D Diagrams table and connection opened to create the diagrams');
 
-//      DiagramsADOTable.Sort := 'LocoChip ASC, DepartureTime0 ASC';
+//      DiagramsADOTable.Sort := '[LocoChip] ASC, [DepartureTime0] ASC';
 
       DiagramsADOTable.First;
       WHILE DiagramsOK AND NOT DiagramsADOTable.EOF DO BEGIN

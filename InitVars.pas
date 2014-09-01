@@ -15,20 +15,20 @@ TYPE
     AreasDataSource : TDataSource;
     AreasADOConnection : TADOConnection;
     AreasADOTable : TADOTable;
-    FeedbackUnitDataADOConnection : TADOConnection;
-    FeedbackUnitDataADOTable : TADOTable;
+    FeedbackUnitsADOConnection: TADOConnection;
+    FeedbackUnitsADOTable: TADOTable;
     FeedbackUnitDataSource : TDataSource;
-    LineDataSource : TDataSource;
+    LinesDataSource: TDataSource;
     LineDataSource2: TDataSource;
-    LineDataADOConnection : TADOConnection;
-    LineDataADOConnection2: TADOConnection;
-    LineDataADOTable : TADOTable;
-    LineDataADOTable2: TADOTable;
+    LinesADOConnection: TADOConnection;
+    LinesADOConnection2: TADOConnection;
+    LinesADOTable: TADOTable;
+    LinesADOTable2: TADOTable;
     LocationsADOConnection : TADOConnection;
     LocationsADOTable : TADOTable;
     LocationsDataSource : TDataSource;
-    PlatformDataADOConnection : TADOConnection;
-    PlatformDataADOTable : TADOTable;
+    PlatformsADOConnection: TADOConnection;
+    PlatformsADOTable: TADOTable;
     PlatformDataSource : TDataSource;
     PointsADOConnection : TADOConnection;
     PointsADOConnection2 : TADOConnection;
@@ -43,8 +43,8 @@ TYPE
     SignalsADOTable2 : TADOTable;
     SignalsDataSource : TDataSource;
     SignalsDataSource2 : TDataSource;
-    TrackCircuitDataADOConnection : TADOConnection;
-    TrackCircuitDataADOTable : TADOTable;
+    TrackCircuitsADOConnection: TADOConnection;
+    TrackCircuitsADOTable: TADOTable;
     TrackCircuitDataSource : TDataSource;
     UnderwayOrCompleted1Label : TLabel;
     UnderwayOrCompleted2Label : TLabel;
@@ -365,8 +365,8 @@ CONST
   Line_InUseFeedbackUnitFieldName : String = 'In Use Feedback Unit';
   Line_LengthFieldName : String = 'Length';
   Line_LocationStrFieldName : String = 'Location';
-  Line_NameStrFieldName : String = 'Line';
-  Line_NumFieldName : String = 'LineNum';
+  Line_NameStrFieldName : String = 'Line Name';
+  Line_NumberFieldName : String = 'Line Number';
   Line_OutOfUseFieldName : String = 'Out Of Use';
   Line_TCFieldName : String = 'Line TC';
   Line_TypeOfLineFieldName : String = 'Type Of Line';
@@ -428,6 +428,39 @@ TYPE
     Location_YScaled : Integer;
   END;
 
+CONST
+  Location_NameStrFieldName = 'Location Name';
+  Location_NumberFieldName = 'Location Number';
+  Location_ShortStringFieldName = 'Short String';
+  Location_OutOfUseFieldName = 'Out Of Use';
+  Location_AreaFieldName = 'Area';
+  Location_ThroughLocationFieldName = 'Through Location';
+  Location_LocosNotAbleToUseFieldName = 'Locos Not Able To Use';
+  Location_LocoClassesReservedForFieldName = 'Loco Classes Reserved For';
+  Location_PlatformFieldName = 'Platform';
+  Location_SidingFieldName = 'Siding';
+  Location_FiddleyardFieldName = 'Fiddleyard';
+  Location_LengthInInchesFieldName = 'Length In Inches';
+  Location_PlatformParallelAccessFieldName = 'Platform Parallel Access';
+  Location_PlatformDirectionFieldName = 'Platform Direction';
+  Location_PlatformNumberStringFieldName = 'Platform Number String';
+  Location_YFieldName = 'Y';
+  Location_YLocationFieldName = 'Y Location';
+  Location_YLocationAdjustmentFieldName = 'Y Location Adjustment';
+  Location_TRSPlungerXFieldName = 'TRS Plunger X';
+  Location_TRSPlungerYFieldName = 'TRS Plunger Y';
+  Location_RecordInLocationOccupationArrayFieldName = 'Record In Location Occupation Array';
+  Location_AdjoiningPlatformFieldName = 'Adjoining Platform';
+  Location_DestinationPriorityAreasFieldName = 'Destination Priority Areas';
+  Location_TrainPriorityFieldName = 'Train Priority';
+  Location_PlatformPriorityFieldName = 'Platform Priority';
+  Location_DirectionPriorityFieldName = 'Direction Priority';
+  Location_ThroughOrStoppingPriorityFieldName = 'Through Or Stopping Priority';
+  Location_AccessibleLocationsOrAreasUpFieldName = 'Accessible Locations Or Areas Up';
+  Location_AccessibleLocationsOrAreasDownFieldName = 'Accessible Locations Or Areas Down';
+  Location_NotesFieldName = 'Notes';
+
+TYPE
   LocationOccupationStateType = (LocationUnoccupied, LocationStartOfDayOccupation, LocationTemporaryOccupation, LocationUnknownOccupation,
                                  LocationPermanentOccupationWithFeedback, LocationPermanentOccupationSetByUser, LocationPermanentOccupationSetBySystem,
                                  LocationEndOfDayOccupation, LocationOutOfUseOccupation);
@@ -569,29 +602,29 @@ TYPE
   END;
 
 CONST
-  Point_NumberFieldName : String = 'PointNum';
+  Point_NumberFieldName : String = 'Point Number';
 
-  Point_DefaultStateFieldName : String = 'DefaultState';
-  Point_DivergingLineFieldName : String = 'DivergingLine';
-  Point_FeedbackInputFieldName : String = 'FeedbackInput';
-  Point_FeedbackOnIsStraightFieldName : String = 'OnIsStraight';
-  Point_FeedbackUnitFieldName : String = 'FeedbackUnit';
-  Point_HeelLineFieldName : String = 'HeelLine';
-  Point_LastFeedbackStateAsReadInFieldName : String = 'LastFeedbackState';
-  Point_LastManualStateAsReadInFieldName : String = 'LastManualState';
-  Point_LenzNumFieldName : String = 'LenzPointNum';
-  Point_LenzUnitFieldName : String = 'LenzPointUnit';
-  Point_LenzUnitTypeFieldName : String = 'LenzPointUnitType';
-  Point_LockedByUserFieldName : String = 'LockedByUser';
-  Point_LockedIfHeelTCOccupiedFieldName : String = 'LockedIfHeelTCOccupied';
-  Point_LockedIfNonHeelTCsOccupiedFieldName : String = 'LockedIfNonHeelTCsOccupied';
-  Point_ManualOperationFieldName : String = 'ManualOperation';
+  Point_DefaultStateFieldName : String = 'Default State';
+  Point_DivergingLineFieldName : String = 'Diverging Line';
+  Point_FeedbackInputFieldName : String = 'Feedback Input';
+  Point_FeedbackOnIsStraightFieldName : String = 'On Is Straight';
+  Point_FeedbackUnitFieldName : String = 'Feedback Unit';
+  Point_HeelLineFieldName : String = 'Heel Line';
+  Point_LastFeedbackStateAsReadInFieldName : String = 'Last Feedback State';
+  Point_LastManualStateAsReadInFieldName : String = 'Last Manual State';
+  Point_LenzNumFieldName : String = 'Lenz Point Number';
+  Point_LenzUnitFieldName : String = 'Lenz Point Unit';
+  Point_LenzUnitTypeFieldName : String = 'Lenz Point Unit Type';
+  Point_LockedByUserFieldName : String = 'Locked By User';
+  Point_LockedIfHeelTCOccupiedFieldName : String = 'Locked If Heel TC Occupied';
+  Point_LockedIfNonHeelTCsOccupiedFieldName : String = 'Locked If Non-Heel TCs Occupied';
+  Point_ManualOperationFieldName : String = 'Manual Operation';
   Point_NotesFieldName : String = 'Notes';
-  Point_OtherPointFieldName : String = 'OtherPoint';
-  Point_OutOfUseFieldName : String = 'OutOfUse';
-  Point_StraightLineFieldName : String = 'StraightLine';
-  Point_TypeFieldName : String = 'PointType';
-  Point_WiringReversedFlagFieldName : String = 'WiringReversed';
+  Point_OtherPointFieldName : String = 'Other Point';
+  Point_OutOfUseFieldName : String = 'Out Of Use';
+  Point_StraightLineFieldName : String = 'Straight Line';
+  Point_TypeFieldName : String = 'Point Type';
+  Point_WiringReversedFlagFieldName : String = 'Wiring Reversed';
 
 TYPE
   ProgramOnTheMainType = (ChangeDirectionToUp, ChangeDirectionToDown, ChangeAcceleration, ChangeDeceleration);
@@ -1855,30 +1888,30 @@ BEGIN
           Exit;
       END;
 
-      TrackCircuitDataADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
-                                                        + PathToRailDataFiles + TrackCircuitDataFilename + '.' + TrackCircuitDataFilenameSuffix
-                                                        + ';Persist Security Info=False';
-      TrackCircuitDataADOConnection.Connected := True;
-      TrackCircuitDataADOTable.Open;
+      TrackCircuitsADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
+                                                     + PathToRailDataFiles + TrackCircuitDataFilename + '.' + TrackCircuitDataFilenameSuffix
+                                                     + ';Persist Security Info=False';
+      TrackCircuitsADOConnection.Connected := True;
+      TrackCircuitsADOTable.Open;
       Log('T Track circuit data table and connection opened to initialise the trackCircuits');
 
       { First see if the track circuit numbers in the MSAccess file are sequential and, if not, renumber it - we need this or deletions from the MSAccess file will cause
         problems
       }
       FieldName := 'TCNum';
-      TrackCircuitDataADOTable.Sort := 'TCNum ASC';
-      TrackCircuitDataADOTable.First;
+      TrackCircuitsADOTable.Sort := '[TCNum] ASC';
+      TrackCircuitsADOTable.First;
       SetLength(TrackCircuits, 0);
 
-      WHILE NOT TrackCircuitDataADOTable.EOF DO BEGIN
-        WITH TrackCircuitDataADOTable DO BEGIN
+      WHILE NOT TrackCircuitsADOTable.EOF DO BEGIN
+        WITH TrackCircuitsADOTable DO BEGIN
           SetLength(TrackCircuits, Length(TrackCircuits) + 1);
           TC := High(TrackCircuits);
           WITH TrackCircuits[TC] DO BEGIN
             ErrorMsg := '';
 
             FieldName := 'TCNum';
-            TCNum := TrackCircuitDataADOTable.FieldByName(FieldName).AsInteger;
+            TCNum := TrackCircuitsADOTable.FieldByName(FieldName).AsInteger;
             IF TCNum <> TC THEN
               ErrorMsg := 'it does not match the line number in the database (' + IntToStr(TCNum) + ')';
 
@@ -1923,12 +1956,12 @@ BEGIN
             END;
           END; {WITH}
         END; {WITH}
-        TrackCircuitDataADOTable.Next;
+        TrackCircuitsADOTable.Next;
       END; {WHILE}
 
       { Tidy up the database }
-      TrackCircuitDataADOTable.Close;
-      TrackCircuitDataADOConnection.Connected := False;
+      TrackCircuitsADOTable.Close;
+      TrackCircuitsADOConnection.Connected := False;
       Log('T Track circuit data table and connection closed');
     END; {WITH}
 
@@ -2071,7 +2104,7 @@ BEGIN
       SetLength(ReversingAreas, 0);
 
       WITH AreasADOTable DO BEGIN
-        AreasADOTable.Sort := 'AreaNum ASC';
+        AreasADOTable.Sort := '[AreaNum] ASC';
         WHILE NOT AreasADOTable.EOF DO BEGIN
           SetLength(Areas, Length(Areas) + 1);
           WITH Areas[High(Areas)] DO BEGIN
@@ -2314,13 +2347,12 @@ BEGIN
       }
       Loc_Num := -1;
       LocationsADOTable.First;
-      FieldName := 'LocationNum';
       WHILE NOT LocationsADOTable.EOF DO BEGIN
         Inc(Loc_Num);
-        IF LocationsADOTable.FieldByName(FieldName).AsInteger <> Loc_Num THEN BEGIN
+        IF LocationsADOTable.FieldByName(Location_NumberFieldName).AsInteger <> Loc_Num THEN BEGIN
           { we need to renumber from here on }
           LocationsADOTable.Edit;
-          LocationsADOTable.FieldByName(FieldName).AsInteger := Loc_Num;
+          LocationsADOTable.FieldByName(Location_NumberFieldName).AsInteger := Loc_Num;
           LocationsADOTable.Post;
         END;
         LocationsADOTable.Next;
@@ -2330,7 +2362,7 @@ BEGIN
       SetLength(Locations, 0);
 
       WITH LocationsADOTable DO BEGIN
-        LocationsADOTable.Sort := 'LocationNum ASC';
+        LocationsADOTable.Sort := '[Location Number] ASC';
         WHILE NOT LocationsADOTable.EOF DO BEGIN
           SetLength(Locations, Length(Locations) + 1);
           WITH Locations[High(Locations)] DO BEGIN
@@ -2346,33 +2378,27 @@ BEGIN
 
             ErrorMsg := '';
 
-            FieldName := 'LocationNum';
-            Loc_Num := LocationsADOTable.FieldByName(FieldName).AsInteger;
+            Loc_Num := LocationsADOTable.FieldByName(Location_NumberFieldName).AsInteger;
             IF Loc_Num <> High(Locations) THEN
               ErrorMsg := 'it does not match the location number in the database (' + IntToStr(Loc_Num) + ')';
 
             IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'LocationName';
-              Location_LongNameStr := LocationsADOTable.FieldByName(FieldName).AsString;
+              Location_LongNameStr := LocationsADOTable.FieldByName(Location_NameStrFieldName).AsString;
               IF Location_LongNameStr = '' THEN
                 ErrorMsg := 'missing long name';
             END;
 
             IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'ShortString';
-              Location_ShortNameStr := LocationsADOTable.FieldByName(FieldName).AsString;
+              Location_ShortNameStr := LocationsADOTable.FieldByName(Location_ShortStringFieldName).AsString;
               IF Location_ShortNameStr = '' THEN
                 ErrorMsg := 'missing short name';
             END;
 
-            IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'OutOfUse';
-              Location_OutOfUse := LocationsADOTable.FieldByName(FieldName).AsBoolean;
-            END;
+            IF ErrorMsg = '' THEN
+              Location_OutOfUse := LocationsADOTable.FieldByName(Location_OutOfUseFieldName).AsBoolean;
 
             IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'Area';
-              TempStr := LocationsADOTable.FieldByName(FieldName).AsString;
+              TempStr := LocationsADOTable.FieldByName(Location_AreaFieldName).AsString;
               IF TempStr = '' THEN
                 Location_Area := UnknownArea
               ELSE BEGIN
@@ -2383,8 +2409,7 @@ BEGIN
             END;
 
             IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'ThroughLocation';
-              TempStr := LocationsADOTable.FieldByName(FieldName).AsString;
+              TempStr := LocationsADOTable.FieldByName(Location_ThroughLocationFieldName).AsString;
               IF TempStr = '' THEN
                 Location_ThroughLocationState := ThroughLocation
               ELSE
@@ -2395,8 +2420,7 @@ BEGIN
             END;
 
             IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'LocoClassesReservedFor';
-              TempStr := LocationsADOTable.FieldByName(FieldName).AsString;
+              TempStr := LocationsADOTable.FieldByName(Location_LocoClassesReservedForFieldName).AsString;
               IF TempStr <> '' THEN BEGIN
                 ExtractSubStringsFromString(TempStr, ',', TempStrArray);
                 FOR I := 0 TO High(TempStrArray) DO
@@ -2405,8 +2429,7 @@ BEGIN
             END;
 
             IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'LocosNotAbleToUse';
-              TempStr := LocationsADOTable.FieldByName(FieldName).AsString;
+              TempStr := LocationsADOTable.FieldByName(Location_LocosNotAbleToUseFieldName).AsString;
               IF TempStr <> '' THEN BEGIN
                 ExtractSubStringsFromString(TempStr, ',', TempStrArray);
                 FOR I := 0 TO High(TempStrArray) DO BEGIN
@@ -2419,74 +2442,62 @@ BEGIN
             END;
 
             IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'Platform';
-              Location_IsPlatform := LocationsADOTable.FieldByName(FieldName).AsBoolean;
+              Location_IsPlatform := LocationsADOTable.FieldByName(Location_PlatformFieldName).AsBoolean;
             END;
 
             IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'Siding';
-              Location_IsSiding := LocationsADOTable.FieldByName(FieldName).AsBoolean;
+              Location_IsSiding := LocationsADOTable.FieldByName(Location_SidingFieldName).AsBoolean;
             END;
 
-            IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'Fiddleyard';
-              Location_IsFiddleyard := LocationsADOTable.FieldByName(FieldName).AsBoolean;
-            END;
+            IF ErrorMsg = '' THEN
+              Location_IsFiddleyard := LocationsADOTable.FieldByName(Location_FiddleyardFieldName).AsBoolean;
 
             IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'LengthInInches';
-              TempStr := LocationsADOTable.FieldByName(FieldName).AsString;
+              TempStr := LocationsADOTable.FieldByName(Location_LengthInInchesFieldName).AsString;
               IF TempStr <> '' THEN
                 IF NOT TryStrToFloat(TempStr, Location_LengthInInches) THEN
                   ErrorMsg := 'invalid length "' + TempStr + '"';
             END;
 
             IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'Y';
-              TempStr := LocationsADOTable.FieldByName(FieldName).AsString;
+              TempStr := LocationsADOTable.FieldByName(Location_YFieldName).AsString;
               IF TempStr <> '' THEN
                 IF NOT TryStrToInt(TempStr, Location_Y) THEN
                   ErrorMsg := 'invalid YPos value "' + TempStr + '"';
             END;
 
             IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'YLocation';
-              Location_YLocationStr := LocationsADOTable.FieldByName(FieldName).AsString;
+              Location_YLocationStr := LocationsADOTable.FieldByName(Location_YLocationFieldName).AsString;
             END;
 
             IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'YLocationAdjustment';
-              TempStr := LocationsADOTable.FieldByName(FieldName).AsString;
+              TempStr := LocationsADOTable.FieldByName(Location_YLocationAdjustmentFieldName).AsString;
               IF TempStr <> '' THEN
                 IF NOT TryStrToInt(TempStr, Location_YLocationAdjustment) THEN
                   ErrorMsg := 'invalid YPos location adjustment value "' + TempStr + '"';
             END;
 
             IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'TRSPlungerX';
-              TempStr := LocationsADOTable.FieldByName(FieldName).AsString;
+              TempStr := LocationsADOTable.FieldByName(Location_TRSPlungerXFieldName).AsString;
               IF TempStr <> '' THEN
                 IF NOT TryStrToInt(TempStr, Location_TRSPlungerX) THEN
                   ErrorMsg := 'invalid TRS Plunger X value "' + TempStr + '"';
             END;
 
             IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'TRSPlungerY';
-              TempStr := LocationsADOTable.FieldByName(FieldName).AsString;
+              TempStr := LocationsADOTable.FieldByName(Location_TRSPlungerYFieldName).AsString;
               IF TempStr <> '' THEN
                 IF NOT TryStrToInt(TempStr, Location_TRSPlungerY) THEN
                   ErrorMsg := 'invalid TRS Plunger Y value "' + TempStr + '"';
             END;
 
             IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'PlatformParallelAccess';
-              Location_PlatformOrFiddleyardAccessViaParallelPlatformOrFiddleyardStr := LocationsADOTable.FieldByName(FieldName).AsString;
+              Location_PlatformOrFiddleyardAccessViaParallelPlatformOrFiddleyardStr := LocationsADOTable.FieldByName(Location_PlatformParallelAccessFieldName).AsString;
               { Note: we can't test that this field contains a valid location until all the locations are read in }
             END;
 
             IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'PlatformDirection';
-              TempStr := LocationsADOTable.FieldByName(FieldName).AsString;
+              TempStr := LocationsADOTable.FieldByName(Location_PlatformDirectionFieldName).AsString;
               IF TempStr <> '' THEN BEGIN
                 Location_PlatformOrFiddleyardDirection := StrToDirectionType(TempStr);
                 IF Location_PlatformOrFiddleyardDirection = UnknownDirection THEN
@@ -2495,24 +2506,20 @@ BEGIN
             END;
 
             IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'PlatformNumStr';
-              Location_PlatformOrFiddleyardNumStr := LocationsADOTable.FieldByName(FieldName).AsString;
+              Location_PlatformOrFiddleyardNumStr := LocationsADOTable.FieldByName(Location_PlatformNumberStringFieldName).AsString;
             END;
 
             IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'RecordInLocationOccupationArray';
-              Location_RecordInLocationOccupationArray := LocationsADOTable.FieldByName(FieldName).AsBoolean;
+              Location_RecordInLocationOccupationArray := LocationsADOTable.FieldByName(Location_RecordInLocationOccupationArrayFieldName).AsBoolean;
             END;
 
             IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'AdjoiningPlatform';
-              Location_AdjoiningPlatformStr := FieldByName(FieldName).AsString;
+              Location_AdjoiningPlatformStr := FieldByName(Location_AdjoiningPlatformFieldName).AsString;
               { Note: we can only check this data after all the locations have been read in }
             END;
 
             IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'DestinationPriorityAreas';
-              TempStr := FieldByName(FieldName).AsString;
+              TempStr := FieldByName(Location_DestinationPriorityAreasFieldName).AsString;
               SetLength(TempStrArray, 0);
               IF TempStr <> '' THEN BEGIN
                 { We expect a comma as a delimiter }
@@ -2537,8 +2544,7 @@ BEGIN
             END;
 
             IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'PlatformPriority';
-              TempStr := FieldByName(FieldName).AsString;
+              TempStr := FieldByName(Location_PlatformPriorityFieldName).AsString;
               IF TempStr = '' THEN
                 Location_PlatformPriority := 0
               ELSE
@@ -2547,8 +2553,7 @@ BEGIN
             END;
 
             IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'TrainPriority';
-              TempStr := FieldByName(FieldName).AsString;
+              TempStr := FieldByName(Location_TrainPriorityFieldName).AsString;
               IF TempStr = 'Express Only' THEN
                 Location_TrainPriority := ExpressOnly
               ELSE
@@ -2568,8 +2573,7 @@ BEGIN
             END;
 
             IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'DirectionPriority';
-              TempStr := FieldByName(FieldName).AsString;
+              TempStr := FieldByName(Location_DirectionPriorityFieldName).AsString;
               IF TempStr = 'Preferably Up' THEN
                 Location_DirectionPriority := PreferablyUp
               ELSE
@@ -2595,8 +2599,7 @@ BEGIN
             END;
 
             IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'ThroughOrStoppingPriority';
-              TempStr := FieldByName(FieldName).AsString;
+              TempStr := FieldByName(Location_ThroughOrStoppingPriorityFieldName).AsString;
               IF TempStr = 'Through' THEN
                 Location_ThroughOrStoppingPriority := ThroughPriority
               ELSE
@@ -2610,8 +2613,7 @@ BEGIN
             END;
 
             IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'AccessibleLocationsOrAreasUp';
-              TempStr := FieldByName(FieldName).AsString;
+              TempStr := FieldByName(Location_AccessibleLocationsOrAreasUpFieldName).AsString;
               SetLength(Location_AccessibleLocationsOrAreasUpStrArray, 0);
               IF TempStr <> '' THEN
                 { Extract the data into a String array for now - we expect a comma as a delimiter }
@@ -2620,8 +2622,7 @@ BEGIN
             END;
 
             IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'AccessibleLocationsOrAreasDown';
-              TempStr := FieldByName(FieldName).AsString;
+              TempStr := FieldByName(Location_AccessibleLocationsOrAreasDownFieldName).AsString;
               SetLength(Location_AccessibleLocationsOrAreasDownStrArray, 0);
               IF TempStr <> '' THEN
                 { Extract the data into a String array for now - we expect a comma as a delimiter }
@@ -2869,10 +2870,10 @@ BEGIN
             Location := 0;
             WHILE Location <= High(Locations) DO BEGIN
               WITH Locations[Location] DO BEGIN
-                IF FieldByName('LocationName').AsString = Location_LongNameStr THEN BEGIN
-                  IF Location_OutOfUse <> FieldByName('OutOfUse').AsBoolean THEN BEGIN
+                IF FieldByName(Location_NameStrFieldName).AsString = Location_LongNameStr THEN BEGIN
+                  IF Location_OutOfUse <> FieldByName(Line_OutOfUseFieldName).AsBoolean THEN BEGIN
                     Edit;
-                    FieldByName('OutOfUse').AsBoolean := Location_OutOfUse;
+                    FieldByName(Line_OutOfUseFieldName).AsBoolean := Location_OutOfUse;
                     Post;
                   END;
                 END; {WITH}
@@ -3259,34 +3260,34 @@ BEGIN
           Exit;
       END;
 
-      LineDataADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source=' + PathToRailDataFiles + LineDataFilename + '.' + LineDataFilenameSuffix
-                                                + ';Persist Security Info=False';
-      LineDataADOConnection.Connected := True;
-      LineDataADOTable.Open;
+      LinesADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source=' + PathToRailDataFiles + LineDataFilename + '.' + LineDataFilenameSuffix
+                                             + ';Persist Security Info=False';
+      LinesADOConnection.Connected := True;
+      LinesADOTable.Open;
       Log('T Line data table and connection opened to initialise the lines');
 
-      LineDataADOTable.First;
+      LinesADOTable.First;
       Line := -1;
-      WHILE NOT LineDataADOTable.EOF DO BEGIN
+      WHILE NOT LinesADOTable.EOF DO BEGIN
         Inc(Line);
-        IF LineDataADOTable.FieldByName(Line_NumFieldName).AsInteger <> Line THEN BEGIN
+        IF LinesADOTable.FieldByName(Line_NumberFieldName).AsInteger <> Line THEN BEGIN
           { we need to renumber from here on }
-          LineDataADOTable.Edit;
-          LineDataADOTable.FieldByName('LineNum').AsInteger := Line;
-          LineDataADOTable.Post;
+          LinesADOTable.Edit;
+          LinesADOTable.FieldByName(Line_NumberFieldName).AsInteger := Line;
+          LinesADOTable.Post;
         END;
-        LineDataADOTable.Next;
+        LinesADOTable.Next;
       END; {WHILE}
 
-      LineDataADOTable.Sort := 'LineNum ASC';
-      LineDataADOTable.First;
+      LinesADOTable.Sort := '[Line Number] ASC';
+      LinesADOTable.First;
 
       { and make sure the arrays are empty, otherwise the next time the screen is resized we will merely add more lines/bufferstops }
       SetLength(Lines, 0);
       SetLength(BufferStops, 0);
 
-      WHILE NOT LineDataADOTable.EOF DO BEGIN
-        WITH LineDataADOTable DO BEGIN
+      WHILE NOT LinesADOTable.EOF DO BEGIN
+        WITH LinesADOTable DO BEGIN
           SetLength(Lines, Length(Lines) + 1);
           Line := High(Lines);
           WITH Lines[Line] DO BEGIN
@@ -3322,7 +3323,7 @@ BEGIN
             Line_UpConnectionChBold := False;
             Line_UpXValueSpecified := False;
 
-            Line_TempNum := FieldByName(Line_NumFieldName).AsInteger;
+            Line_TempNum := FieldByName(Line_NumberFieldName).AsInteger;
             IF Line_TempNum <> Line THEN
               ErrorMsg := 'it does not match the line number in the database (' + IntToStr(Line_TempNum) + ')';
 
@@ -3411,12 +3412,12 @@ BEGIN
             END;
           END;
         END; {WITH}
-        LineDataADOTable.Next;
+        LinesADOTable.Next;
       END; {WHILE}
 
       { Tidy up the database }
-      LineDataADOTable.Close;
-      LineDataADOConnection.Connected := False;
+      LinesADOTable.Close;
+      LinesADOConnection.Connected := False;
       Log('T Line Data table and connection closed');
     END; {WITH}
 
@@ -3641,10 +3642,10 @@ BEGIN
           Exit;
       END;
 
-      LineDataADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source=' + PathToRailDataFiles + LineDataFilename + '.' + LineDataFilenameSuffix
-                                                + ';Persist Security Info=False';
-      LineDataADOConnection.Connected := True;
-      LineDataADOTable.Open;
+      LinesADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source=' + PathToRailDataFiles + LineDataFilename + '.' + LineDataFilenameSuffix
+                                             + ';Persist Security Info=False';
+      LinesADOConnection.Connected := True;
+      LinesADOTable.Open;
       Log('L Loco Data table and connection opened to write out line data');
 
       Line := 0;
@@ -3655,29 +3656,29 @@ BEGIN
                OR ((Line_Location <> UnknownLocation) AND Locations[Line_Location].Location_OutOfUse))
           AND (Line_InitialOutOfUseState = InUse)
           THEN BEGIN
-            LineDataADOTable.First;
-            WHILE NOT LineDataADOTable.EOF DO BEGIN
-              WITH LineDataADOTable DO BEGIN
-                IF FieldByName('Line').AsString = Line_NameStr THEN BEGIN
+            LinesADOTable.First;
+            WHILE NOT LinesADOTable.EOF DO BEGIN
+              WITH LinesADOTable DO BEGIN
+                IF FieldByName(Line_NameStrFieldName).AsString = Line_NameStr THEN BEGIN
                   Edit;
-                  FieldByName('Out Of Use').AsBoolean := True;
+                  FieldByName(Line_OutOfUseFieldName).AsBoolean := True;
                   Post;
                 END;
               END; {WITH}
-              LineDataADOTable.Next;
+              LinesADOTable.Next;
             END; {WHILE}
           END ELSE BEGIN
             IF (Line_OutOfUseState = InUse) AND (Line_InitialOutOfUseState = OutOfUse) THEN BEGIN
-              LineDataADOTable.First;
-              WHILE NOT LineDataADOTable.EOF DO BEGIN
-                WITH LineDataADOTable DO BEGIN
-                  IF FieldByName('Line').AsString = Line_NameStr THEN BEGIN
+              LinesADOTable.First;
+              WHILE NOT LinesADOTable.EOF DO BEGIN
+                WITH LinesADOTable DO BEGIN
+                  IF FieldByName(Line_NameStrFieldName).AsString = Line_NameStr THEN BEGIN
                     Edit;
-                    FieldByName('Out Of Use').AsBoolean := False;
+                    FieldByName(Line_OutOfUseFieldName).AsBoolean := False;
                     Post;
                   END;
                 END; {WITH}
-                LineDataADOTable.Next;
+                LinesADOTable.Next;
               END; {WHILE}
             END;
           END;
@@ -3686,9 +3687,9 @@ BEGIN
       END; {WHILE}
 
       { Now deal with any general editing changes }
-      LineDataADOTable.First;
-      WHILE NOT LineDataADOTable.EOF DO BEGIN
-        Line := LineDataADOTable.FieldByName(Line_NumFieldName).AsInteger;
+      LinesADOTable.First;
+      WHILE NOT LinesADOTable.EOF DO BEGIN
+        Line := LinesADOTable.FieldByName(Line_NumberFieldName).AsInteger;
         WITH Lines[Line] DO BEGIN
           IF Line_DataChanged THEN BEGIN
             Line_DataChanged := False;
@@ -3698,84 +3699,84 @@ BEGIN
             IF TempStr = '0' THEN
               { the database records a zero as a space in this field }
               TempStr := '';
-            LineDataADOTable.Edit;
-            LineDataADOTable.FieldByName(Line_BufferStopNumberFieldName).AsString := TempStr;
-            LineDataADOTable.Post;
+            LinesADOTable.Edit;
+            LinesADOTable.FieldByName(Line_BufferStopNumberFieldName).AsString := TempStr;
+            LinesADOTable.Post;
 
             Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_BufferStopTheatreDestinationStrFieldName
                    + ' is ''' + Line_BufferStopTheatreDestinationStr + '''');
-            LineDataADOTable.Edit;
-            LineDataADOTable.FieldByName(Line_BufferStopTheatreDestinationStrFieldName).AsString := Line_BufferStopTheatreDestinationStr;
-            LineDataADOTable.Post;
+            LinesADOTable.Edit;
+            LinesADOTable.FieldByName(Line_BufferStopTheatreDestinationStrFieldName).AsString := Line_BufferStopTheatreDestinationStr;
+            LinesADOTable.Post;
 
             Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_DirectionFieldName + ' is ''' + DirectionToStr(Line_Direction) + '''');
-            LineDataADOTable.Edit;
-            LineDataADOTable.FieldByName(Line_DirectionFieldName).AsString := DirectionToStr(Line_Direction);
-            LineDataADOTable.Post;
+            LinesADOTable.Edit;
+            LinesADOTable.FieldByName(Line_DirectionFieldName).AsString := DirectionToStr(Line_Direction);
+            LinesADOTable.Post;
 
             Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_DownConnectionChFieldName + ' is ''' + Line_DownConnectionCh + '''');
-            LineDataADOTable.Edit;
-            LineDataADOTable.FieldByName(Line_DownConnectionChFieldName).AsString := Line_DownConnectionCh;
-            LineDataADOTable.Post;
+            LinesADOTable.Edit;
+            LinesADOTable.FieldByName(Line_DownConnectionChFieldName).AsString := Line_DownConnectionCh;
+            LinesADOTable.Post;
 
             Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_UpConnectionChFieldName + ' is ''' + Line_UpConnectionCh + '''');
-            LineDataADOTable.Edit;
-            LineDataADOTable.FieldByName(Line_UpConnectionChFieldName).AsString := Line_UpConnectionCh;
-            LineDataADOTable.Post;
+            LinesADOTable.Edit;
+            LinesADOTable.FieldByName(Line_UpConnectionChFieldName).AsString := Line_UpConnectionCh;
+            LinesADOTable.Post;
 
             Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_EndOfLineMarkerFieldName + ' is ''' + EndOfLineToStr(Line_EndOfLineMarker) + '''');
-            LineDataADOTable.Edit;
-            LineDataADOTable.FieldByName(Line_EndOfLineMarkerFieldName).AsString := EndOfLineToStr(Line_EndOfLineMarker);
-            LineDataADOTable.Post;
+            LinesADOTable.Edit;
+            LinesADOTable.FieldByName(Line_EndOfLineMarkerFieldName).AsString := EndOfLineToStr(Line_EndOfLineMarker);
+            LinesADOTable.Post;
 
             Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_GradientFieldName + ' is ''' + GradientToStr(Line_Gradient) + '''');
-            LineDataADOTable.Edit;
-            LineDataADOTable.FieldByName(Line_GradientFieldName).AsString := GradientToStr(Line_Gradient);
-            LineDataADOTable.Post;
+            LinesADOTable.Edit;
+            LinesADOTable.FieldByName(Line_GradientFieldName).AsString := GradientToStr(Line_Gradient);
+            LinesADOTable.Post;
 
             Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_InUseFeedbackUnitFieldName + ' is ''' + IntToStr(Line_InUseFeedbackUnit) + '''');
-            LineDataADOTable.Edit;
-            LineDataADOTable.FieldByName(Line_InUseFeedbackUnitFieldName).AsString := IntToStr(Line_InUseFeedbackUnit);
-            LineDataADOTable.Post;
+            LinesADOTable.Edit;
+            LinesADOTable.FieldByName(Line_InUseFeedbackUnitFieldName).AsString := IntToStr(Line_InUseFeedbackUnit);
+            LinesADOTable.Post;
 
             Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_LengthFieldName + ' is ''' + IntToStr(Line_Length) + '''');
-            LineDataADOTable.Edit;
-            LineDataADOTable.FieldByName(Line_LengthFieldName).AsString := IntToStr(Line_Length);
-            LineDataADOTable.Post;
+            LinesADOTable.Edit;
+            LinesADOTable.FieldByName(Line_LengthFieldName).AsString := IntToStr(Line_Length);
+            LinesADOTable.Post;
 
             Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_LocationStrFieldName + ' is ''' + LocationToStr(Line_Location) + '''');
-            LineDataADOTable.Edit;
-            LineDataADOTable.FieldByName(Line_LocationStrFieldName).AsString := LocationToStr(Line_Location);
-            LineDataADOTable.Post;
+            LinesADOTable.Edit;
+            LinesADOTable.FieldByName(Line_LocationStrFieldName).AsString := LocationToStr(Line_Location);
+            LinesADOTable.Post;
 
             Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_NameStrFieldName + ' is ''' + Line_NameStr + '''');
-            LineDataADOTable.Edit;
-            LineDataADOTable.FieldByName(Line_NameStrFieldName).AsString := Line_NameStr;
-            LineDataADOTable.Post;
+            LinesADOTable.Edit;
+            LinesADOTable.FieldByName(Line_NameStrFieldName).AsString := Line_NameStr;
+            LinesADOTable.Post;
 
             Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_TCFieldName + ' is ''' + IntToStr(Line_TC) + '''');
-            LineDataADOTable.Edit;
-            LineDataADOTable.FieldByName(Line_TCFieldName).AsString := IntToStr(Line_TC);
-            LineDataADOTable.Post;
+            LinesADOTable.Edit;
+            LinesADOTable.FieldByName(Line_TCFieldName).AsString := IntToStr(Line_TC);
+            LinesADOTable.Post;
 
             Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_TypeOfLineFieldName + ' is ''' + TypeOfLineToStr(Line_TypeOfLine) + '''');
-            LineDataADOTable.Edit;
-            LineDataADOTable.FieldByName(Line_TypeOfLineFieldName).AsString := TypeOfLineToStr(Line_TypeOfLine);
-            LineDataADOTable.Post;
+            LinesADOTable.Edit;
+            LinesADOTable.FieldByName(Line_TypeOfLineFieldName).AsString := TypeOfLineToStr(Line_TypeOfLine);
+            LinesADOTable.Post;
 
             Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_UpXLineStrFieldName + ' is ''' + Line_UpXLineStr + '''');
-            LineDataADOTable.Edit;
-            LineDataADOTable.FieldByName(Line_UpXLineStrFieldName).AsString := Line_UpXLineStr;
-            LineDataADOTable.Post;
+            LinesADOTable.Edit;
+            LinesADOTable.FieldByName(Line_UpXLineStrFieldName).AsString := Line_UpXLineStr;
+            LinesADOTable.Post;
           END;
         END; {WITH}
 
-        LineDataADOTable.Next;
+        LinesADOTable.Next;
       END; {WHILE}
 
       { Tidy up the database }
-      LineDataADOTable.Close;
-      LineDataADOConnection.Connected := False;
+      LinesADOTable.Close;
+      LinesADOConnection.Connected := False;
       Log('L Line Data table and connection closed after writing line data');
     END; {WITH}
   EXCEPT {TRY}
@@ -4827,7 +4828,7 @@ BEGIN
       SignalsADOConnection.Connected := True;
       SignalsADOTable.Open;
       SignalsADOTable.Append;
-      SignalsADOTable.FieldByName('Signal Number').AsInteger := High(Signals);
+      SignalsADOTable.FieldByName(Signal_NumberFieldName).AsInteger := High(Signals);
       SignalsADOTable.Post;
 
       Log('S Signal data table and connection opened to write out signal data that has changed');
@@ -5672,7 +5673,7 @@ BEGIN
 
       { First see if the point numbers in the MSAccess file are sequential and, if not, renumber it - we need this or deletions from the MSAccess file will cause problems }
       P := -1;
-      PointsADOTable.Sort := 'PointNum ASC';
+      PointsADOTable.Sort := '[Point Number] ASC';
       PointsADOTable.First;
       WHILE NOT PointsADOTable.EOF DO BEGIN
         Inc(P);
@@ -5684,12 +5685,12 @@ BEGIN
             PointsADOTable.First;
             { at the start of the database }
             WHILE NOT PointsADOTable.EOF DO BEGIN
-              IF PointsADOTable.FieldByName('OtherPoint').AsInteger = P THEN BEGIN
-                Log('A! P=' + IntToStr(PointsADOTable.FieldByName('PointNUm').AsInteger) + '''s OtherPoint refers to '
-                        + ' P=' + IntToStr(PointsADOTable.FieldByName('OtherPoint').AsInteger)
+              IF PointsADOTable.FieldByName(Point_OtherPointFieldName).AsInteger = P THEN BEGIN
+                Log('A! P=' + IntToStr(PointsADOTable.FieldByName(Point_NumberFieldName).AsInteger) + '''s OtherPoint refers to '
+                        + ' P=' + IntToStr(PointsADOTable.FieldByName(point_OtherPointFieldName).AsInteger)
                         + ' which did not exist prior to point renumbering - OtherPoint has been set to 9999');
                 PointsADOTable.Edit;
-                PointsADOTable.FieldByName('OtherPoint').AsInteger := 9999;
+                PointsADOTable.FieldByName(Point_OtherPointFieldName).AsInteger := 9999;
                 PointsADOTable.Post;
               END;
               PointsADOTable.Next;
@@ -5699,12 +5700,12 @@ BEGIN
             PointsADOTable.First;
             { at the start of the database }
             WHILE NOT PointsADOTable.EOF DO BEGIN
-              IF InitVarsWindow.PointsADOTable.FieldByName('OtherPoint').AsInteger = NextInDatabaseP THEN BEGIN
+              IF InitVarsWindow.PointsADOTable.FieldByName(Point_OtherPointFieldName).AsInteger = NextInDatabaseP THEN BEGIN
                 IF NextInDatabaseP = P THEN
                   { this shouldn't happen }
                   Log('A! OtherPoint=' + IntToStr(NextInDatabaseP) + ' is the same as P=' + IntToStr(P));
                 PointsADOTable.Edit;
-                PointsADOTable.FieldByName('OtherPoint').AsInteger := P;
+                PointsADOTable.FieldByName(Point_OtherPointFieldName).AsInteger := P;
                 PointsADOTable.Post;
               END;
               PointsADOTable.Next;
@@ -5723,7 +5724,7 @@ BEGIN
       END; {WHILE}
 
       P := -1;
-      PointsADOTable.Sort := 'PointNum ASC';
+      PointsADOTable.Sort := '[Point Number] ASC';
       PointsADOTable.First;
 
       SetLength(Points, 0);
@@ -5888,7 +5889,7 @@ BEGIN
       PointsADOConnection.Connected := True;
       PointsADOTable.Open;
       PointsADOTable.Append;
-      PointsADOTable.FieldByName('Point Number').AsInteger := High(Points);
+      PointsADOTable.FieldByName(Point_NumberFieldName).AsInteger := High(Points);
       PointsADOTable.Post;
 
       Log('S Point data table and connection opened to write out Point data that has changed');
@@ -5953,7 +5954,7 @@ BEGIN
 
         PointsADOTable.First;
         WHILE NOT PointsADOTable.EOF DO BEGIN
-          P := PointsADOTable.FieldByName('PointNum').AsInteger;
+          P := PointsADOTable.FieldByName(Point_NumberFieldName).AsInteger;
           WITH Points[P] DO BEGIN
             { First changes to out of use status }
             IF Point_DataChanged THEN BEGIN
@@ -6094,33 +6095,33 @@ BEGIN
           Exit;
       END;
 
-      PlatformDataADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
+      PlatformsADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
                                                     + PathToRailDataFiles + PlatformDataFilename + '.' + PlatformDataFilenameSuffix
                                                     + ';Persist Security Info=False';
-      PlatformDataADOConnection.Connected := True;
-      PlatformDataADOTable.Open;
+      PlatformsADOConnection.Connected := True;
+      PlatformsADOTable.Open;
       Log('T Platform data table and connection opened to initialise the platform data');
 
       { First see if the platform numbers in the MSAccess file are sequential and, if not, renumber it; We need this or deletions from the MSAccess file cause problems }
       P := -1;
-      PlatformDataADOTable.First;
-      WHILE NOT PlatformDataADOTable.EOF DO BEGIN
+      PlatformsADOTable.First;
+      WHILE NOT PlatformsADOTable.EOF DO BEGIN
         Inc(P);
-        IF PlatformDataADOTable.FieldByName(Platform_RunningNumberFieldName).AsInteger <> P THEN BEGIN
+        IF PlatformsADOTable.FieldByName(Platform_RunningNumberFieldName).AsInteger <> P THEN BEGIN
           { we need to renumber from here on }
-          PlatformDataADOTable.Edit;
-          PlatformDataADOTable.FieldByName(Platform_RunningNumberFieldName).AsInteger := P;
-          PlatformDataADOTable.Post;
+          PlatformsADOTable.Edit;
+          PlatformsADOTable.FieldByName(Platform_RunningNumberFieldName).AsInteger := P;
+          PlatformsADOTable.Post;
         END;
-        PlatformDataADOTable.Next;
+        PlatformsADOTable.Next;
       END; {WHILE}
 
-      PlatformDataADOTable.Sort := 'RunningNumber ASC';
-      PlatformDataADOTable.First;
+      PlatformsADOTable.Sort := '[RunningNumber] ASC';
+      PlatformsADOTable.First;
       SetLength(Platforms, 0);
 
-      WHILE NOT PlatformDataADOTable.EOF DO BEGIN
-        WITH PlatformDataADOTable DO BEGIN
+      WHILE NOT PlatformsADOTable.EOF DO BEGIN
+        WITH PlatformsADOTable DO BEGIN
           SetLength(Platforms, Length(Platforms) + 1);
           P := High(Platforms);
           WITH Platforms[P] DO BEGIN
@@ -6246,12 +6247,12 @@ BEGIN
             END;
           END; {WITH}
         END; {WITH}
-        PlatformDataADOTable.Next;
+        PlatformsADOTable.Next;
       END; {WHILE}
 
       { Tidy up the database }
-      PlatformDataADOTable.Close;
-      PlatformDataADOConnection.Connected := False;
+      PlatformsADOTable.Close;
+      PlatformsADOConnection.Connected := False;
       Log('T Platform data table and connection closed');
     END; {WITH}
   EXCEPT {TRY}
@@ -6331,21 +6332,21 @@ BEGIN
           Exit;
       END;
 
-      FeedbackUnitDataADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
+      FeedbackUnitsADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
                                                         + PathToRailDataFiles + FeedbackDataFilename + '.' + FeedbackDataFilenameSuffix
                                                         + ';Persist Security Info=False';
-      FeedbackUnitDataADOConnection.Connected := True;
-      FeedbackUnitDataADOTable.Open;
+      FeedbackUnitsADOConnection.Connected := True;
+      FeedbackUnitsADOTable.Open;
       Log('T Feedback data table and connection opened to initialise the feedback unit data');
 
-      FeedbackUnitDataADOTable.Sort := 'Unit ASC';
-      FeedbackUnitDataADOTable.First;
+      FeedbackUnitsADOTable.Sort := '[Unit] ASC';
+      FeedbackUnitsADOTable.First;
       SetLength(FeedbackUnitData, 0);
       FirstFeedbackUnit := 99999;
       LastFeedbackUnit := 0;
 
-      WHILE NOT FeedbackUnitDataADOTable.EOF DO BEGIN
-        WITH FeedbackUnitDataADOTable DO BEGIN
+      WHILE NOT FeedbackUnitsADOTable.EOF DO BEGIN
+        WITH FeedbackUnitsADOTable DO BEGIN
           SetLength(FeedbackUnitData, Length(FeedbackUnitData) + 1);
           F := High(FeedbackUnitData);
           WITH FeedbackUnitData[F] DO BEGIN
@@ -6407,12 +6408,12 @@ BEGIN
 
           END; {WITH}
         END; {WITH}
-        FeedbackUnitDataADOTable.Next;
+        FeedbackUnitsADOTable.Next;
       END; {WHILE}
 
       { Tidy up the database }
-      FeedbackUnitDataADOTable.Close;
-      FeedbackUnitDataADOConnection.Connected := False;
+      FeedbackUnitsADOTable.Close;
+      FeedbackUnitsADOConnection.Connected := False;
       Log('T Feedback unit data table and connection closed');
 
       Log('T Reading in feedback data from unit ' + IntToStr(FirstFeedbackUnit) + ' to unit ' + IntToStr(LastFeedbackUnit) + ' from database');
