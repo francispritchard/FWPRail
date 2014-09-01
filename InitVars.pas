@@ -1828,7 +1828,7 @@ BEGIN
   BufferStopVerticalSpacingScaled := MulDiv(FWPRailWindow.ClientHeight, BufferStopVerticalSpacing, ZoomScaleFactor * 10);
   IndicatorHorizontalSpacingScaled := MulDiv(FWPRailWindow.ClientWidth, IndicatorHorizontalSpacing, ZoomScaleFactor * 10);
   IndicatorVerticalSpacingScaled := MulDiv(FWPRailWindow.ClientHeight, IndicatorVerticalSpacing, ZoomScaleFactor * 10);
-  InterLineSpacing := MulDiv(FWPRailWindow.ClientHeight, FWPRailWindow.ClientHeight DIV (WindowRows - 2), ZoomScalefactor);
+  InterLineSpacing := (FWPRailWindow.ClientHeight * 1000) DIV ((WindowRows + 1) * ZoomScalefactor);
   MouseRectangleEdgeVerticalSpacingScaled := MulDiv(FWPRailWindow.ClientHeight, MouseRectangleEdgeVerticalSpacing, ZoomScaleFactor * 10);
   PlatformEdgeVerticalSpacingScaled := MulDiv(FWPRailWindow.ClientHeight, PlatformEdgeVerticalSpacing, ZoomScaleFactor * 10);
   PlatformNumberEdgeHorizontalSpacingScaled := MulDiv(FWPRailWindow.ClientWidth, PlatformNumberEdgeHorizontalSpacing, ZoomScaleFactor * 10);
