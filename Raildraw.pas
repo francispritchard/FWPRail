@@ -541,9 +541,6 @@ PROCEDURE ResetFWPRailWindowSizeAndPosition;
 PROCEDURE ResetScreenColoursAfterPrinting;
 { Restore the colours to those saved before printing the screen in printer-friendly colours }
 
-PROCEDURE RestoreCursor;
-{ Restores the shape of the cursor (from the Delphi Help system) }
-
 PROCEDURE SetBufferStopPopupNum(Num : Integer);
 { Set the buffer stop popup number }
 
@@ -3707,12 +3704,6 @@ BEGIN
   Screen.Cursor := NewCursor;
   Application.ProcessMessages;
 END; { ChangeCursor }
-
-PROCEDURE RestoreCursor;
-{ Restores the shape of the cursor (from the Delphi Help system) - not in use }
-BEGIN
-  Screen.Cursor := crDefault; { Show default cursor }
-END; { RestoreCursor }
 
 PROCEDURE TFWPRailWindow.HelpMenuAboutClick(Sender: TObject);
 BEGIN
