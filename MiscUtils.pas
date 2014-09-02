@@ -1003,6 +1003,9 @@ VAR
       { Finally remove any sundry spaces left, from, for example, between angle brackets }
       TempLogStr := StringReplace(TempLogStr, '  ', ' ', [rfIgnoreCase]);
       TempLogStr := StringReplace(TempLogStr, '  ', ' ', [rfIgnoreCase]);
+
+      { and remove any intended extra spaces indicated by the underline character }
+      TempLogStr := StringReplace(TempLogStr, '_', ' ', [rfIgnoreCase, rfReplaceAll]);
     END; { RemoveRichEditInstructionsFromLogStr }
 
   BEGIN
