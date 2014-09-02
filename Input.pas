@@ -653,10 +653,12 @@ VAR
   FeedbackData : FeedbackRec;
   FeedbackNum1 : Integer;
   FeedbackNumFound : Boolean;
+  FeedbackPoint : Integer;
   FeedbackType : TypeOfFeedBackType;
   I, J : Integer;
   L : Integer;
   LenzPointNumFound : Boolean;
+  LenzPointNumOutOfUse : Boolean;
   P : Integer;
   PointCount : Integer;
   S : Integer;
@@ -671,7 +673,7 @@ VAR
 
 BEGIN
   DrawLineInLogFile(UnknownLocoChipAsZeroesStr, 'X', '=', UnitRef);
-  Log('X G E N E R A L    C H E C K  {NOUNITREF}');
+  Log('X G E N E R A L_____C H E C K  {NOUNITREF}');
   DrawLineInLogFile(UnknownLocoChipAsZeroesStr, 'X', '-', UnitRef);
 
   WriteToStatusBarPanel(StatusBarPanel2, 'Feedback check');
@@ -715,19 +717,20 @@ BEGIN
       END;
     END;
 
-    IF NOT TCInUse AND NOT TCHasFeedback THEN BEGIN
-      Inc(ErrorCount);
-      Log('X TC=' + IntToStr(TC) + ' not in use (and has no feedback)');
-    END ELSE
-      IF NOT TCInUse THEN BEGIN
+      IF NOT TCInUse AND NOT TCHasFeedback THEN BEGIN
         Inc(ErrorCount);
-        Log('X TC=' + IntToStr(TC) + ' not in use');
+        Log('X TC=' + IntToStr(TC) + ' not in use (and has no feedback)');
       END ELSE
-        IF NOT TCHasFeedback THEN BEGIN
+        IF NOT TCInUse THEN BEGIN
           Inc(ErrorCount);
-          Log('X TC=' + IntToStr(TC) + ' has no feedback');
-        END;
+          Log('X TC=' + IntToStr(TC) + ' not in use');
+        END ELSE
+          IF NOT TCHasFeedback THEN BEGIN
+            Inc(ErrorCount);
+            Log('X TC=' + IntToStr(TC) + ' has no feedback');
+          END;
   END;
+
   IF ErrorCount > 0 THEN
     Debug('Trackcircuit check completed - ' + IntToStr(ErrorCount) + ' errors noted in LogFile')
   ELSE
@@ -744,9 +747,14 @@ BEGIN
       IF FeedbackType = TrackCircuitFeedbackDetector THEN BEGIN
         FeedbackNumFound := False;
         FOR TC := 0 TO High(TrackCircuits) DO BEGIN
-          IF TC = FeedbackNum1 THEN
+          IF TC = FeedbackNum1 THEN BEGIN
             FeedbackNumFound := True;
+
+            IF TrackCircuits[TC].TC_OccupationState = TCOutOfUseSetByUser THEN
+              Log('X Trackcircuit feedback unit ' + IntToStr(I) + ' input no. ' + IntToStr(J) + ' not in use as TC=' + IntToStr(TC) + ' is marked as being set out of use');
+          END;
         END;
+
         IF NOT FeedbackNumFound THEN BEGIN
           Log('X Trackcircuit feedback unit ' + IntToStr(I) + ' input no. ' + IntToStr(J) + ' not in use ');
           Inc(ErrorCount);
@@ -754,6 +762,7 @@ BEGIN
       END;
     END;
   END;
+
   IF ErrorCount > 0 THEN
     Debug('Trackcircuit feedback check completed - ' + IntToStr(ErrorCount) + ' errors noted in LogFile')
   ELSE BEGIN
@@ -788,14 +797,23 @@ BEGIN
       ExtractDataFromFeedback(FeedbackData, TCAboveFeedbackUnit, FeedbackType, FeedbackNum1);
       IF FeedbackType = PointFeedbackDetector THEN BEGIN
         FeedbackNumFound := False;
-        FOR P := 0 TO High(Points) DO BEGIN
-          IF (Points[P].Point_FeedbackUnit = I) AND (Points[P].Point_FeedbackInput = J) THEN
+        FeedbackPoint := UnknownPoint;
+        P := 0;
+        WHILE (P <= High(Points)) AND NOT FeedbackNumFound DO BEGIN
+          IF (Points[P].Point_FeedbackUnit = I) AND (Points[P].Point_FeedbackInput = J) THEN BEGIN
             FeedbackNumFound := True;
+            FeedbackPoint := P;
+          END;
+
+          Inc(P);
         END; {FOR}
+
         IF NOT FeedbackNumFound THEN BEGIN
-          Log('X Point feedback unit ' + IntToStr(I) + ' input no. ' + IntToStr(J) + ' not in use ');
+          Log('X Point feedback unit ' + IntToStr(I) + ' input no. ' + IntToStr(J) + ' not used');
           Inc(ErrorCount);
-        END;
+        END ELSE
+          IF (FeedbackPoint <> UnknownPoint) AND Points[FeedbackPoint].Point_OutOfUse THEN
+            Log('X Point feedback unit ' + IntToStr(I) + ' input no. ' + IntToStr(J) + ' not in use as point is marked out of use');
       END;
     END; {FOR}
   END; {FOR}
@@ -825,6 +843,7 @@ BEGIN
     Debug('Point feedback check completed - ' + IntToStr(ErrorCount) + ' errors noted in LogFile')
   ELSE
     Log('X Point feedback check completed - all feedback inputs accounted for');
+
   { And show which points are not installed (by looking at the Lenz point numbers) }
 
   { Need to count down to find the last Lenz point num }
@@ -844,17 +863,23 @@ BEGIN
   { Now record missing ones }
   FOR I := 1 TO PointCount DO BEGIN
     LenzPointNumFound := False;
+    LenzPointNumOutOfUse := False;
     J := 0;
     WHILE J <= High(Points) DO BEGIN
       IF Points[J].Point_LenzNum = I THEN BEGIN
         LenzPointNumFound := True;
+        IF Points[J].Point_OutOfUse THEN
+          LenzPointNumOutOfUse := True;
       END;
       Inc(J);
     END; {WHILE}
+
     IF NOT LenzPointNumFound THEN BEGIN
       Log('X No Lenz point num ' + IntToStr(I));
       Inc(ErrorCount);
-    END;
+    END ELSE
+      IF LenzPointNumOutOfUse THEN
+        Log('X Lenz point num ' + IntToStr(I) + ' marked as out of use');
   END;
 
   IF ErrorCount > 0 THEN
