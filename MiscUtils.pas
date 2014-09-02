@@ -1540,7 +1540,10 @@ BEGIN { WriteToLogFile }
                                  IfThen(LocoChipStr = '',
                                         NoLocoChipStr,
                                         LocoChipStr),
-                                 LogStr + ' ' + '[' + UnitRef + ']');
+                                 LogStr
+                                 + IfThen(NoUnitRef,
+                                          '',
+                                          ' [' + UnitRef + ']'));
             END ELSE BEGIN
               { Do the indenting and line wrapping - it is assumed that the line wrapping happens at the given number regardless of the indent }
               IF WrapNum <> 0 THEN BEGIN
