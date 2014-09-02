@@ -2425,7 +2425,7 @@ VAR
   StartLine, EndLine : Integer;
 
 BEGIN
-  Result := FAlse;
+  Result := False;
 
   TRY
     LinesNotAvailableStr := '';

@@ -670,6 +670,10 @@ VAR
   TempLinesNotAvailableStr : String;
 
 BEGIN
+  DrawLineInLogFile(UnknownLocoChipAsZeroesStr, 'X', '=', UnitRef);
+  Log('X G E N E R A L    C H E C K  {NOUNITREF}');
+  DrawLineInLogFile(UnknownLocoChipAsZeroesStr, 'X', '-', UnitRef);
+
   WriteToStatusBarPanel(StatusBarPanel2, 'Feedback check');
   ErrorCount := 0;
   Debug('Commencing feedback unit check - please wait...');
@@ -683,7 +687,7 @@ BEGIN
   IF ErrorCount > 0 THEN
     Debug('Feedback check completed - report in LogFile with header ''FFFF'' includes ' + IntToStr(ErrorCount) + ' errors found')
   ELSE
-    Log('FFFF XG Feedback check completed - no feedback units serving more than one track circuit');
+    Log('XG Feedback check completed - no feedback units serving more than one track circuit');
 
   { Also check for line sections track circuit numbers unused }
   ErrorCount := 0;
@@ -713,21 +717,21 @@ BEGIN
 
     IF NOT TCInUse AND NOT TCHasFeedback THEN BEGIN
       Inc(ErrorCount);
-      Log('TTTT X TC=' + IntToStr(TC) + ' not in use (and has no feedback)');
+      Log('X TC=' + IntToStr(TC) + ' not in use (and has no feedback)');
     END ELSE
       IF NOT TCInUse THEN BEGIN
         Inc(ErrorCount);
-        Log('TTTT X TC=' + IntToStr(TC) + ' not in use');
+        Log('X TC=' + IntToStr(TC) + ' not in use');
       END ELSE
         IF NOT TCHasFeedback THEN BEGIN
           Inc(ErrorCount);
-          Log('TTTT X TC=' + IntToStr(TC) + ' has no feedback');
+          Log('X TC=' + IntToStr(TC) + ' has no feedback');
         END;
   END;
   IF ErrorCount > 0 THEN
-    Debug('Trackcircuit check completed - ' + IntToStr(ErrorCount) + ' errors noted in LogFile with header ''TTTT''')
+    Debug('Trackcircuit check completed - ' + IntToStr(ErrorCount) + ' errors noted in LogFile')
   ELSE
-    Log('TTTT XG Trackcircuit check completed - all feedback inputs accounted for');
+    Log('XG Trackcircuit check completed - all feedback inputs accounted for');
 
   { Also check for track circuit feedback inputs unused }
   ErrorCount := 0;
@@ -744,16 +748,16 @@ BEGIN
             FeedbackNumFound := True;
         END;
         IF NOT FeedbackNumFound THEN BEGIN
-          Log('TFTF X Trackcircuit feedback unit ' + IntToStr(I) + ' input no. ' + IntToStr(J) + ' not in use ');
+          Log('X Trackcircuit feedback unit ' + IntToStr(I) + ' input no. ' + IntToStr(J) + ' not in use ');
           Inc(ErrorCount);
         END;
       END;
     END;
   END;
   IF ErrorCount > 0 THEN
-    Debug('Trackcircuit feedback check completed - ' + IntToStr(ErrorCount) + ' errors noted in LogFile with header ''TFTF''')
+    Debug('Trackcircuit feedback check completed - ' + IntToStr(ErrorCount) + ' errors noted in LogFile')
   ELSE BEGIN
-    Log('TFTF XG Trackcircuit feedback check completed - all feedback inputs accounted for');
+    Log('XG Trackcircuit feedback check completed - all feedback inputs accounted for');
   END;
 
   { Debug point data }
@@ -763,15 +767,15 @@ BEGIN
   FOR P := 0 TO High(Points) DO BEGIN
     IF NOT Points[P].Point_HasFeedback THEN BEGIN
       Inc(ErrorCount);
-      Log('PPPP Point ' + IntToStr(P) + ' has no feedback');
+      Log('X Point ' + IntToStr(P) + ' has no feedback');
     END;
   END; {FOR}
 
   IF ErrorCount > 0 THEN
-    Debug('Point check completed - ' + IntToStr(ErrorCount) + ' errors noted in LogFile with header ''PPPP''')
+    Debug('Point check completed - ' + IntToStr(ErrorCount) + ' errors noted in LogFile')
   ELSE BEGIN
     Debug('Point check completed - all feedback inputs accounted for');
-    Log('PPPP Point check completed - all feedback inputs accounted for');
+    Log('X Point check completed - all feedback inputs accounted for');
   END;
 
   { Also check for point feedback inputs unused }
@@ -789,7 +793,7 @@ BEGIN
             FeedbackNumFound := True;
         END; {FOR}
         IF NOT FeedbackNumFound THEN BEGIN
-          Log('PFPF X Point feedback unit ' + IntToStr(I) + ' input no. ' + IntToStr(J) + ' not in use ');
+          Log('X Point feedback unit ' + IntToStr(I) + ' input no. ' + IntToStr(J) + ' not in use ');
           Inc(ErrorCount);
         END;
       END;
@@ -797,9 +801,9 @@ BEGIN
   END; {FOR}
 
   IF ErrorCount > 0 THEN
-    Debug('Point feedback unit check completed - ' + IntToStr(ErrorCount) + ' errors noted in LogFile with header ''PFPF''')
+    Debug('Point feedback unit check completed - ' + IntToStr(ErrorCount) + ' errors noted in LogFile')
   ELSE
-    Log('PFPF XG Point feedback unit check completed - all feedback inputs in use');
+    Log('X Point feedback unit check completed - all feedback inputs in use');
 
   ErrorCount := 0;
   { See if the same feedback unit is attached to two different points }
@@ -811,16 +815,16 @@ BEGIN
       AND (Points[I].Point_FeedbackUnit = Points[J].Point_FeedbackUnit)
       AND (Points[I].Point_FeedbackInput = Points[J].Point_FeedbackInput)
       THEN BEGIN
-        Log('PFPF X Point ' + IntToStr(I) + ' and point ' + IntToStr(J) + ' have the same feedback input');
+        Log('X Point ' + IntToStr(I) + ' and point ' + IntToStr(J) + ' have the same feedback input');
         Inc(ErrorCount);
       END;
     END; {FOR}
   END; {FOR}
 
   IF ErrorCount > 0 THEN
-    Debug('Point feedback check completed - ' + IntToStr(ErrorCount) + ' errors noted in LogFile with header ''PFPF''')
+    Debug('Point feedback check completed - ' + IntToStr(ErrorCount) + ' errors noted in LogFile')
   ELSE
-    Log('PFPF X Point feedback check completed - all feedback inputs accounted for');
+    Log('X Point feedback check completed - all feedback inputs accounted for');
   { And show which points are not installed (by looking at the Lenz point numbers) }
 
   { Need to count down to find the last Lenz point num }
@@ -848,31 +852,35 @@ BEGIN
       Inc(J);
     END; {WHILE}
     IF NOT LenzPointNumFound THEN BEGIN
-      Log('LPLP X No Lenz point num ' + IntToStr(I));
+      Log('X No Lenz point num ' + IntToStr(I));
       Inc(ErrorCount);
     END;
   END;
 
   IF ErrorCount > 0 THEN
-    Debug('Missing Lenz point numbers found - ' + IntToStr(ErrorCount) + ' errors noted in LogFile with header ''LPLP''')
+    Debug('Missing Lenz point numbers found - ' + IntToStr(ErrorCount) + ' errors noted in LogFile')
   ELSE
-    Log('LPLP XG All Lenz point numbers accounted for');
+    Log('XG All Lenz point numbers accounted for');
 
   { Show any signals which do not have resetting track circuits }
   Debug('Checking for signal resetting track circuits...');
   FOR S := 0 TO High(Signals) DO BEGIN
-    IF NOT FindNextSignalOrBufferStop(S, UnknownSignal, UnknownBufferStop, NOT IndicatorToBeSet, TempLinesNotAvailableStr, TempDraftRouteArray)
-    THEN BEGIN
-      IF NOT Signals[S].Signal_OutOfUse THEN
-        Log('S No resetting TC for S=' + IntToStr(S) + ' [' + LineToStr(Signals[S].Signal_AdjacentLine) + '] found as no next signal or bufferstop found')
-      ELSE
-        Log('S No resetting TC for S=' + IntToStr(S) + ' [' + LineToStr(Signals[S].Signal_AdjacentLine) + '] found as no next signal or bufferstop found but signal is '
-               + 'marked as out of use');
-    END ELSE BEGIN
-      CreateLockingArrayFromDraftRouteArray(UnknownLocoChipStr, TempDraftRouteArray, Signals[S].Signal_RouteLockingNeededArray);
-      TC := GetResettingTrackCircuit(UnknownLocoChipStr, S, SuppressMessage);
-      IF TC = UnknownTrackCircuit THEN
-        Log('S No resetting TC for S=' + IntToStr(S) + ' [' + LineToStr(Signals[S].Signal_AdjacentLine) + '] found');
+    IF Signals[S].Signal_Type = SemaphoreDistant THEN
+      { semaphore distants don't have resetting track circuits }
+      Log('S [Note: Semaphore Distant S=' + IntToStr(S) + ' cannot have a resetting track circuit]')
+    ELSE BEGIN
+      IF NOT FindNextSignalOrBufferStop(S, UnknownSignal, UnknownBufferStop, NOT IndicatorToBeSet, TempLinesNotAvailableStr, TempDraftRouteArray) THEN BEGIN
+        IF NOT Signals[S].Signal_OutOfUse THEN
+          Log('S No resetting TC for S=' + IntToStr(S) + ' [' + LineToStr(Signals[S].Signal_AdjacentLine) + '] found as no next signal or bufferstop found')
+        ELSE
+          Log('S No resetting TC for S=' + IntToStr(S) + ' [' + LineToStr(Signals[S].Signal_AdjacentLine) + '] found as no next signal or bufferstop found but signal is '
+                 + 'marked as out of use');
+      END ELSE BEGIN
+        CreateLockingArrayFromDraftRouteArray(UnknownLocoChipStr, TempDraftRouteArray, Signals[S].Signal_RouteLockingNeededArray);
+        TC := GetResettingTrackCircuit(UnknownLocoChipStr, S, SuppressMessage);
+        IF TC = UnknownTrackCircuit THEN
+          Log('S No resetting TC for S=' + IntToStr(S) + ' [' + LineToStr(Signals[S].Signal_AdjacentLine) + '] found');
+      END;
     END;
   END; {FOR}
 
@@ -898,6 +906,7 @@ BEGIN
   END; {FOR}
 
   Log('XG All checks concluded');
+  DrawLineInLogFile(UnknownLocoChipAsZeroesStr, 'X', '=', UnitRef);
 END; { DoGeneralCheck }
 
 PROCEDURE SetUpStationMonitors(ShiftState : TShiftState; DisplayOrderNum : Integer);

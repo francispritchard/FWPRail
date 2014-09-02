@@ -36,6 +36,7 @@ object HelpWindow: THelpWindow
   object HelpWindowFindDialog: TFindDialog
     OnClose = HelpWindowFindDialogClose
     OnShow = HelpWindowFindDialogShow
+    Options = [frHideUpDown]
     OnFind = HelpWindowFindDialogFind
     Left = 132
     Top = 176
