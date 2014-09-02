@@ -930,7 +930,8 @@ BEGIN
     END; {FOR}
   END; {FOR}
 
-  Log('XG All checks concluded');
+  DrawLineInLogFile(UnknownLocoChipAsZeroesStr, 'X', '-', UnitRef);
+  Log('X E N D_____OF_____G E N E R A L_____C H E C K  {NOUNITREF}');
   DrawLineInLogFile(UnknownLocoChipAsZeroesStr, 'X', '=', UnitRef);
 END; { DoGeneralCheck }
 
