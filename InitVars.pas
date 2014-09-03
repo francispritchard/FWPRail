@@ -1694,7 +1694,7 @@ FUNCTION ValidatePointLenzUnit(LenzUnitStr : String; OUT ErrorMsg : String) : In
 FUNCTION ValidatePointLenzUnitType(LenzUnitTypeStr : String; PointManualOperation : Boolean; OUT ErrorMsg : String) : String;
 { Check whether a Lenz point unit type is valid }
 
-FUNCTION ValidatePointOtherPoint(OtherPointStr : String; PointType : TypeOfPoint; OUT ErrorMsg : String) : Integer;
+FUNCTION ValidatePointOtherPoint(P : Integer; OtherPointStr : String; PointType : TypeOfPoint; OUT ErrorMsg : String) : Integer;
 { Check whether the value of the connected point (if any) is valid }
 
 FUNCTION ValidatePointStraightLineName(LineName : String; OUT ErrorMsg : String) : Integer;
@@ -5603,7 +5603,7 @@ BEGIN
   END;
 END; { ValidatePointFeedbackInput }
 
-FUNCTION ValidatePointOtherPoint(OtherPointStr : String; PointType : TypeOfPoint; OUT ErrorMsg : String) : Integer;
+FUNCTION ValidatePointOtherPoint(P : Integer; OtherPointStr : String; PointType : TypeOfPoint; OUT ErrorMsg : String) : Integer;
 { Check whether the value of the connected point (if any) is valid }
 BEGIN
   ErrorMsg := '';
@@ -5613,6 +5613,10 @@ BEGIN
   ELSE
     IF NOT TryStrToInt(OtherPointStr, Result) THEN
       ErrorMsg := 'ValidatePointOtherPoint: invalid integer "' + OtherPointStr + '"';
+
+  IF ErrorMsg = '' THEN
+    IF P = Result THEN
+      ErrorMsg := 'ValidatePointOtherPoint: value of "other point" cannot be the same as the point''s own number';
 
   IF ErrorMsg = '' THEN BEGIN
     IF (PointType <> OrdinaryPoint) AND (PointType <> CatchPointUp) AND (PointType <> CatchPointDown) AND (Result = UnknownPoint) THEN
@@ -5855,7 +5859,7 @@ BEGIN
             Point_WiringReversedFlag := PointsADOTable.FieldByName(Point_WiringReversedFlagFieldName).AsBoolean;
 
           IF ErrorMsg = '' THEN
-            Point_OtherPoint := ValidatePointOtherPoint(PointsADOTable.FieldByName(Point_OtherPointFieldName).AsString, Point_Type, ErrorMsg);
+            Point_OtherPoint := ValidatePointOtherPoint(P, PointsADOTable.FieldByName(Point_OtherPointFieldName).AsString, Point_Type, ErrorMsg);
 
           IF ErrorMsg = '' THEN
             Point_Notes := PointsADOTable.FieldByName(Point_NotesFieldName).AsString;

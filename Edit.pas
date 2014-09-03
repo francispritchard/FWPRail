@@ -1179,7 +1179,7 @@ BEGIN
 
           IF ErrorMsg = '' THEN
             IF KeyName = Point_OtherPointFieldName THEN
-              Point_OtherPoint := ValidatePointOtherPoint(NewKeyValue, Point_Type, ErrorMsg);
+              Point_OtherPoint := ValidatePointOtherPoint(EditedPoint, NewKeyValue, Point_Type, ErrorMsg);
 
           IF ErrorMsg = '' THEN
             IF KeyName = Point_NotesFieldName THEN
