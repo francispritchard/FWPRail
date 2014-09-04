@@ -236,7 +236,7 @@ BEGIN
         END;
 
         InputDialogueMaskEdit.Text := Trim(InputDialogueMaskEdit.Text);
-        IF Length(trim(InputDialogueMaskEdit.Text)) = 0 THEN
+        IF Length(Trim(InputDialogueMaskEdit.Text)) = 0 THEN
           { if there's no entry, clear the mask }
           InputDialogueMaskEdit.EditMask := '';
       END;

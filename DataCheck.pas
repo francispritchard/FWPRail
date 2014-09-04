@@ -347,6 +347,8 @@ BEGIN
     END; {FOR}
   END; {FOR}
 
+  Debug('End of check');
+
   DrawLineInLogFile(UnknownLocoChipAsZeroesStr, 'X', '-', UnitRef);
   Log('X E N D_____OF_____G E N E R A L_____C H E C K  {NOUNITREF}');
   DrawLineInLogFile(UnknownLocoChipAsZeroesStr, 'X', '=', UnitRef);
