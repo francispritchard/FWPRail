@@ -1677,35 +1677,35 @@ BEGIN
 
         { If it's a point potentially locked by a catch point, add the catch point first }
         IF Points[TempPoint].Point_Type = CatchPointUp THEN BEGIN
-          IF Points[Points[TempPoint].Point_OtherPoint].Point_FacingDirection = Down THEN
-            AppendToStringArray(LockingArray, 'FP=' + IntToStr(Points[TempPoint].Point_OtherPoint) + '/');
+          IF Points[Points[TempPoint].Point_RelatedPoint].Point_FacingDirection = Down THEN
+            AppendToStringArray(LockingArray, 'FP=' + IntToStr(Points[TempPoint].Point_RelatedPoint) + '/');
         END ELSE
           IF Points[TempPoint].Point_Type = CatchPointDown THEN BEGIN
-            IF Points[Points[TempPoint].Point_OtherPoint].Point_FacingDirection = Up THEN
-              AppendToStringArray(LockingArray, 'FP=' + IntToStr(Points[TempPoint].Point_OtherPoint) + '/');
+            IF Points[Points[TempPoint].Point_RelatedPoint].Point_FacingDirection = Up THEN
+              AppendToStringArray(LockingArray, 'FP=' + IntToStr(Points[TempPoint].Point_RelatedPoint) + '/');
           END;
 
         { or, if it's a protected point, switch the catch point first if it doesn't appear later in the draft routeing array }
         IF Points[TempPoint].Point_Type = ProtectedPoint THEN
-          IF NOT IsPointInStringArray(TempDraftRouteArray, Points[TempPoint].Point_OtherPoint) THEN
-            AppendToStringArray(LockingArray, 'FP=' + IntToStr(Points[TempPoint].Point_OtherPoint) + '/');
+          IF NOT IsPointInStringArray(TempDraftRouteArray, Points[TempPoint].Point_RelatedPoint) THEN
+            AppendToStringArray(LockingArray, 'FP=' + IntToStr(Points[TempPoint].Point_RelatedPoint) + '/');
 
         { If we want a three-way point A to diverge }
         IF (Points[TempPoint].Point_Type = ThreeWayPointA) AND (RightStr(TempDraftRouteArray[TempDraftRouteArrayPos], 1) = '/') THEN BEGIN
           { we need to make sure that the B point is straight first }
-          Log(LocoChipStr + ' P P=' + IntToStr(TempPoint) + ' is a three way A set to diverge, so three way B P=' + IntToStr(Points[TempPoint].Point_OtherPoint)
+          Log(LocoChipStr + ' P P=' + IntToStr(TempPoint) + ' is a three way A set to diverge, so three way B P=' + IntToStr(Points[TempPoint].Point_RelatedPoint)
                                       + ' must be set straight first');
-          AppendToStringArray(LockingArray, 'FP=' + IntToStr(Points[TempPoint].Point_OtherPoint) + '-');
+          AppendToStringArray(LockingArray, 'FP=' + IntToStr(Points[TempPoint].Point_RelatedPoint) + '-');
         END;
 
         AppendToStringArray(LockingArray, TempDraftRouteArray[TempDraftRouteArrayPos]);
         { and check on any crossover points that would cause a collision if there were an overrun }
-        IF (Points[TempPoint].Point_Type = CrossOverPoint) AND (Points[TempPoint].Point_OtherPoint <> UnknownPoint) THEN BEGIN
+        IF (Points[TempPoint].Point_Type = CrossOverPoint) AND (Points[TempPoint].Point_RelatedPoint <> UnknownPoint) THEN BEGIN
           { Otherwise set it to its opposing point's state }
           IF ExtractPointStateFromString(TempDraftRouteArray[TempDraftRouteArrayPos]) = Straight THEN
-            CrossOverPointStr := 'XP=' + IntToStr(Points[TempPoint].Point_OtherPoint) + '-'
+            CrossOverPointStr := 'XP=' + IntToStr(Points[TempPoint].Point_RelatedPoint) + '-'
           ELSE
-            CrossOverPointStr := 'XP=' + IntToStr(Points[TempPoint].Point_OtherPoint) + '/'
+            CrossOverPointStr := 'XP=' + IntToStr(Points[TempPoint].Point_RelatedPoint) + '/'
         END;
 
         IF CrossOverPointStr <> '' THEN
@@ -1716,45 +1716,45 @@ BEGIN
 
           { If it's a point potentially locked by a catch point, add the catch point first }
           IF Points[TempPoint].Point_Type = CatchPointUp THEN BEGIN
-            IF Points[Points[TempPoint].Point_OtherPoint].Point_FacingDirection = Down THEN
-              AppendToStringArray(LockingArray, 'FP=' + IntToStr(Points[TempPoint].Point_OtherPoint) + '/');
+            IF Points[Points[TempPoint].Point_RelatedPoint].Point_FacingDirection = Down THEN
+              AppendToStringArray(LockingArray, 'FP=' + IntToStr(Points[TempPoint].Point_RelatedPoint) + '/');
           END ELSE
             IF Points[TempPoint].Point_Type = CatchPointDown THEN BEGIN
-              IF Points[Points[TempPoint].Point_OtherPoint].Point_FacingDirection = Up THEN
-                AppendToStringArray(LockingArray, 'FP=' + IntToStr(Points[TempPoint].Point_OtherPoint) + '/');
+              IF Points[Points[TempPoint].Point_RelatedPoint].Point_FacingDirection = Up THEN
+                AppendToStringArray(LockingArray, 'FP=' + IntToStr(Points[TempPoint].Point_RelatedPoint) + '/');
             END;
 
           { or, if it's a protected point, switch the catch point first if it doesn't appear later in the draft routeing array }
           IF Points[TempPoint].Point_Type = ProtectedPoint THEN
-            IF NOT IsPointInStringArray(TempDraftRouteArray, Points[TempPoint].Point_OtherPoint) THEN
-              AppendToStringArray(LockingArray, 'FP=' + IntToStr(Points[TempPoint].Point_OtherPoint) + '/');
+            IF NOT IsPointInStringArray(TempDraftRouteArray, Points[TempPoint].Point_RelatedPoint) THEN
+              AppendToStringArray(LockingArray, 'FP=' + IntToStr(Points[TempPoint].Point_RelatedPoint) + '/');
 
           IF RouteDirection <> UnknownDirection THEN BEGIN
             { If we want a three-way point A to diverge }
             IF (Points[TempPoint].Point_Type = ThreeWayPointA) AND (RightStr(TempDraftRouteArray[TempDraftRouteArrayPos], 1) = '/') THEN BEGIN
               { we need to make sure that the B point is straight first }
-              { Log(LocoChipStr + ' P P=' + IntToStr(TempPoint) + ' is a three way A set to diverge, so three way B P=' + IntToStr(Points[TempPoint].Point_OtherPoint)
+              { Log(LocoChipStr + ' P P=' + IntToStr(TempPoint) + ' is a three way A set to diverge, so three way B P=' + IntToStr(Points[TempPoint].Point_RelatedPoint)
                                 + ' must be set straight first');
               }
-              AppendToStringArray(LockingArray, 'FP=' + IntToStr(Points[TempPoint].Point_OtherPoint) + '-');
+              AppendToStringArray(LockingArray, 'FP=' + IntToStr(Points[TempPoint].Point_RelatedPoint) + '-');
             END ELSE
               { If we want a three-way point B to diverge }
               IF (Points[TempPoint].Point_Type = ThreeWayPointB) AND (RightStr(TempDraftRouteArray[TempDraftRouteArrayPos], 1) = '/') THEN BEGIN
                 { we need to make sure that the A point is straight first }
-                { Log(LocoChipStr + ' P P=' + IntToStr(TempPoint) + ' is a three way B set to diverge, so three way A P=' + IntToStr(Points[TempPoint].Point_OtherPoint)
+                { Log(LocoChipStr + ' P P=' + IntToStr(TempPoint) + ' is a three way B set to diverge, so three way A P=' + IntToStr(Points[TempPoint].Point_RelatedPoint)
                                   + ' must be set straight first');
                 }
-                AppendToStringArray(LockingArray, 'FP=' + IntToStr(Points[TempPoint].Point_OtherPoint) + '-');
+                AppendToStringArray(LockingArray, 'FP=' + IntToStr(Points[TempPoint].Point_RelatedPoint) + '-');
               END;
 
             AppendToStringArray(LockingArray, TempDraftRouteArray[TempDraftRouteArrayPos]);
             { and check on any crossover points that would cause a collision if there were an overrun }
-            IF (Points[TempPoint].Point_Type = CrossOverPoint) AND (Points[TempPoint].Point_OtherPoint <> UnknownPoint) THEN BEGIN
+            IF (Points[TempPoint].Point_Type = CrossOverPoint) AND (Points[TempPoint].Point_RelatedPoint <> UnknownPoint) THEN BEGIN
               { Otherwise set it to its opposing point's state }
               IF ExtractPointStateFromString(TempDraftRouteArray[TempDraftRouteArrayPos]) = Straight THEN
-                CrossOverPointStr := 'XP=' + IntToStr(Points[TempPoint].Point_OtherPoint) + '-'
+                CrossOverPointStr := 'XP=' + IntToStr(Points[TempPoint].Point_RelatedPoint) + '-'
               ELSE
-                CrossOverPointStr := 'XP=' + IntToStr(Points[TempPoint].Point_OtherPoint) + '/'
+                CrossOverPointStr := 'XP=' + IntToStr(Points[TempPoint].Point_RelatedPoint) + '/'
             END;
 
             IF CrossOverPointStr <> '' THEN
@@ -2683,11 +2683,11 @@ BEGIN
 
             { Watch out for catch points }
             IF Points[TempPoint].Point_Type = ProtectedPoint THEN BEGIN
-              IF NOT IsElementInIntegerArray(PointsSeenArray, Points[TempPoint].Point_OtherPoint) THEN BEGIN
+              IF NOT IsElementInIntegerArray(PointsSeenArray, Points[TempPoint].Point_RelatedPoint) THEN BEGIN
                 { if we haven't processed a protected point's catch point, process that first as it will subsequently be locked by the protected point }
-                AppendToStringArray(Routes_SubRouteClearingStrings[Route, SubRoute], 'TP=' + IntToStr(Points[TempPoint].Point_OtherPoint) + '-');
+                AppendToStringArray(Routes_SubRouteClearingStrings[Route, SubRoute], 'TP=' + IntToStr(Points[TempPoint].Point_RelatedPoint) + '-');
                 { and record the fact we've added it }
-                AppendToIntegerArray(PointsSeenArray, Points[TempPoint].Point_OtherPoint);
+                AppendToIntegerArray(PointsSeenArray, Points[TempPoint].Point_RelatedPoint);
               END;
             END;
 

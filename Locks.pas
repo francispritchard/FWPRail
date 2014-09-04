@@ -247,17 +247,17 @@ BEGIN
 
         { See that three-way points have the first, 'a' point, set to straight before the 'b' point is set }
         IF Point_Type = ThreeWayPointB THEN BEGIN
-          IF Points[Point_OtherPoint].Point_PresentState <> Straight THEN BEGIN
+          IF Points[Point_RelatedPoint].Point_PresentState <> Straight THEN BEGIN
             IF LockingMsg = '' THEN
               LockingMsg := 'locked:';
-            LockingMsg := LockingMsg + ' 3-way point A (P=' + IntToStr(Point_OtherPoint) + ') diverging';
+            LockingMsg := LockingMsg + ' 3-way point A (P=' + IntToStr(Point_RelatedPoint) + ') diverging';
           END;
         END ELSE
           IF Point_Type = ThreeWayPointA THEN BEGIN
-            IF Points[Point_OtherPoint].Point_PresentState <> Straight THEN BEGIN
+            IF Points[Point_RelatedPoint].Point_PresentState <> Straight THEN BEGIN
               IF LockingMsg = '' THEN
                 LockingMsg := 'locked:';
-              LockingMsg := LockingMsg + ' 3-way point B (P=' + IntToStr(Point_OtherPoint) + ') diverging';
+              LockingMsg := LockingMsg + ' 3-way point B (P=' + IntToStr(Point_RelatedPoint) + ') diverging';
             END;
           END;
 
@@ -267,7 +267,7 @@ BEGIN
           IF ((Points[CatchPoint].Point_Type = CatchPointUp)
           OR (Points[CatchPoint].Point_Type = CatchPointDown))
           THEN BEGIN
-            IF Points[CatchPoint].Point_OtherPoint = P THEN BEGIN
+            IF Points[CatchPoint].Point_RelatedPoint = P THEN BEGIN
               IF Points[CatchPoint].Point_PresentState <> Diverging THEN BEGIN
                 IF LockingMsg = '' THEN
                   LockingMsg := 'locked:';
@@ -282,22 +282,22 @@ BEGIN
         IF (Points[P].Point_Type = CatchPointUp)
         OR (Points[P].Point_Type = CatchPointDown)
         THEN BEGIN
-          IF Points[Points[P].Point_OtherPoint].Point_PresentState = Straight THEN BEGIN
+          IF Points[Points[P].Point_RelatedPoint].Point_PresentState = Straight THEN BEGIN
             IF LockingMsg = '' THEN
               LockingMsg := 'locked:';
-            LockingMsg := LockingMsg + ' protected point P=' + IntToStr(Points[P].Point_OtherPoint) + ' is not diverging';
+            LockingMsg := LockingMsg + ' protected point P=' + IntToStr(Points[P].Point_RelatedPoint) + ' is not diverging';
           END;
         END;
 
         { Also check if crossover points can change }
         IF CheckCrossOverPoint THEN BEGIN
           { pass false as a second argument to prevent PointIsLocked from being called recursively in an infinite loop }
-          IF (Points[P].Point_Type = CrossOverPoint) AND PointIsLocked(Points[P].Point_OtherPoint, TempLockingMsg, False) THEN BEGIN
+          IF (Points[P].Point_Type = CrossOverPoint) AND PointIsLocked(Points[P].Point_RelatedPoint, TempLockingMsg, False) THEN BEGIN
             { but also allow a cross-over point to change to be in agreement with its locked partner }
-            IF Points[P].Point_PresentState = Points[Points[P].Point_OtherPoint].Point_PresentState THEN BEGIN
+            IF Points[P].Point_PresentState = Points[Points[P].Point_RelatedPoint].Point_PresentState THEN BEGIN
               IF LockingMsg = '' THEN
                 LockingMsg := 'locked:';
-              LockingMsg := LockingMsg + ' cross-over point''s corresponding point P=' + PointToStr(Points[P].Point_OtherPoint) + ' is locked';
+              LockingMsg := LockingMsg + ' cross-over point''s corresponding point P=' + PointToStr(Points[P].Point_RelatedPoint) + ' is locked';
             END;
           END;
         END;
@@ -2118,9 +2118,9 @@ BEGIN
             thus three way points are always returned as locked if called by this subroutine).
           }
           IF Points[P].Point_Type = ThreeWayPointA THEN BEGIN
-            IF PointIsLocked(Points[P].Point_OtherPoint, LockingMsg) THEN
+            IF PointIsLocked(Points[P].Point_RelatedPoint, LockingMsg) THEN
               { check that the point B isn't just locked by point A }
-              IF PointIsLockedByAnySignal(Points[P].Point_OtherPoint, SignalLockingArray) OR PointIsLockedByAnyRoute(P, RouteLockingArray)
+              IF PointIsLockedByAnySignal(Points[P].Point_RelatedPoint, SignalLockingArray) OR PointIsLockedByAnyRoute(P, RouteLockingArray)
               THEN
                 RouteCurrentlyLocked := True;
           END ELSE

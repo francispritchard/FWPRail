@@ -605,7 +605,7 @@ BEGIN { WritePointValuesToValueList }
           WriteBooleanValue(Point_WiringReversedFlagFieldName, Point_WiringReversedFlag);
           WritePickListValue(Point_TypeFieldName, PointTypeToStr(Point_Type), [OrdinaryPointStr, CrossOverPointStr, ThreeWayPointAStr, ThreeWayPointBStr, SingleSlipStr,
                                                                                DoubleSlipStr, ProtectedPointStr, CatchPointUpStr, CatchPointDownStr, UnknownPointTypeStr]);
-          WritePointValue(Point_OtherPointFieldName, Point_OtherPoint, '9999');
+          WritePointValue(Point_RelatedPointFieldName, Point_RelatedPoint, '9999');
           WritePickListValue(Point_DefaultStateFieldName, PointStateToStr(Point_DefaultState), ['straight', 'diverging', 'unknown', 'out of action']);
           WriteBooleanValue(Point_LockedIfHeelTCOccupiedFieldName, Point_LockedIfHeelTCOccupied);
           WriteBooleanValue(Point_OutOfUseFieldName, Point_OutOfUse);
@@ -1178,8 +1178,8 @@ BEGIN
               Point_WiringReversedFlag := StrToBool(NewKeyValue);
 
           IF ErrorMsg = '' THEN
-            IF KeyName = Point_OtherPointFieldName THEN
-              Point_OtherPoint := ValidatePointOtherPoint(EditedPoint, NewKeyValue, Point_Type, ErrorMsg);
+            IF KeyName = Point_RelatedPointFieldName THEN
+              Point_RelatedPoint := ValidatePointRelatedPoint(EditedPoint, NewKeyValue, Point_Type, ErrorMsg);
 
           IF ErrorMsg = '' THEN
             IF KeyName = Point_NotesFieldName THEN
@@ -1941,10 +1941,10 @@ BEGIN
         Point_MaybeBeingSetToManual := False;
         Point_MovedWhenLocked := False;
         Point_Notes := 'Created by user on ' + DateToStr(Date);
-        Point_OtherPoint := UnknownPoint;
         Point_OutOfUse := True;
         Point_PresentState := PointStateUnknown;
         Point_PreviousState := PointStateUnknown;
+        Point_RelatedPoint := UnknownPoint;
         Point_RequiredState := PointStateUnknown;
         Point_ResettingTime := 0;
         Point_RouteLockedByLocoChip := UnknownLocoChip;

@@ -2909,42 +2909,42 @@ BEGIN
                 END;
               CrossOverPoint:
                 BEGIN
-                  NumberText := 'CO' + IntToStr(P) + '/' + IntToStr(Point_OtherPoint);
+                  NumberText := 'CO' + IntToStr(P) + '/' + IntToStr(Point_RelatedPoint);
                   Font.Color := clAqua;
                 END;
               ThreeWayPointA:
                 BEGIN
-                  NumberText := '3a ' + IntToStr(P) + '/' + IntToStr(Point_OtherPoint);
+                  NumberText := '3a ' + IntToStr(P) + '/' + IntToStr(Point_RelatedPoint);
                   Font.Color := clRed;
                 END;
               ThreeWayPointB:
                 BEGIN
-                  NumberText := '3b ' + IntToStr(P) + '/' + IntToStr(Point_OtherPoint);
+                  NumberText := '3b ' + IntToStr(P) + '/' + IntToStr(Point_RelatedPoint);
                   Font.Color := clMoneyGreen;
                 END;
               SingleSlip:
                 BEGIN
-                  NumberText := 'S ' + IntToStr(P) + '/' + IntToStr(Point_OtherPoint);
+                  NumberText := 'S ' + IntToStr(P) + '/' + IntToStr(Point_RelatedPoint);
                   Font.Color := clFuchsia;
                 END;
               DoubleSlip:
                 BEGIN
-                  NumberText := 'D ' + IntToStr(P) + '/' + IntToStr(Point_OtherPoint);
+                  NumberText := 'D ' + IntToStr(P) + '/' + IntToStr(Point_RelatedPoint);
                   Font.Color := clSkyBlue;
                 END;
               ProtectedPoint:
                 BEGIN
-                  NumberText := 'PP ' + IntToStr(P) + '/' + IntToStr(Point_OtherPoint);
+                  NumberText := 'PP ' + IntToStr(P) + '/' + IntToStr(Point_RelatedPoint);
                   Font.Color := clFWPPink;
                 END;
               CatchPointUp:
                 BEGIN
-                  NumberText := 'CPU ' + IntToStr(P) + '/' + IntToStr(Point_OtherPoint);
+                  NumberText := 'CPU ' + IntToStr(P) + '/' + IntToStr(Point_RelatedPoint);
                   Font.Color := clFWPPink;
                 END;
               CatchPointDown:
                 BEGIN
-                  NumberText := 'CPD ' + IntToStr(P) + '/' + IntToStr(Point_OtherPoint);
+                  NumberText := 'CPD ' + IntToStr(P) + '/' + IntToStr(Point_RelatedPoint);
                   Font.Color := clLime;
                 END;
             ELSE

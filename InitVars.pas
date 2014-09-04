@@ -583,10 +583,10 @@ TYPE
     Point_MouseRect : TRect; { mouse access rectangle }
     Point_MovedWhenLocked : Boolean;
     Point_Notes : String;
-    Point_OtherPoint : Integer;
     Point_OutOfUse : Boolean;
     Point_PresentState : PointStateType;
     Point_PreviousState : PointStateType;
+    Point_RelatedPoint : Integer;
     Point_RequiredState : PointStateType;
     Point_ResettingTime : TDateTime;
     Point_LocoChipLockingTheRoute : Integer;
@@ -620,8 +620,9 @@ CONST
   Point_LockedIfNonHeelTCsOccupiedFieldName : String = 'Locked If Non-Heel TCs Occupied';
   Point_ManualOperationFieldName : String = 'Manual Operation';
   Point_NotesFieldName : String = 'Notes';
-  Point_OtherPointFieldName : String = 'Other Point';
+  Point_NumberFieldName : String = 'Point Number';
   Point_OutOfUseFieldName : String = 'Out Of Use';
+  Point_RelatedPointFieldName : String = 'Related Point';
   Point_StraightLineFieldName : String = 'Straight Line';
   Point_TypeFieldName : String = 'Point Type';
   Point_WiringReversedFlagFieldName : String = 'Wiring Reversed';
@@ -1694,7 +1695,7 @@ FUNCTION ValidatePointLenzUnit(LenzUnitStr : String; OUT ErrorMsg : String) : In
 FUNCTION ValidatePointLenzUnitType(LenzUnitTypeStr : String; PointManualOperation : Boolean; OUT ErrorMsg : String) : String;
 { Check whether a Lenz point unit type is valid }
 
-FUNCTION ValidatePointOtherPoint(P : Integer; OtherPointStr : String; PointType : TypeOfPoint; OUT ErrorMsg : String) : Integer;
+FUNCTION ValidatePointRelatedPoint(P : Integer; RelatedPointStr : String; PointType : TypeOfPoint; OUT ErrorMsg : String) : Integer;
 { Check whether the value of the connected point (if any) is valid }
 
 FUNCTION ValidatePointStraightLineName(LineName : String; OUT ErrorMsg : String) : Integer;
@@ -5603,32 +5604,32 @@ BEGIN
   END;
 END; { ValidatePointFeedbackInput }
 
-FUNCTION ValidatePointOtherPoint(P : Integer; OtherPointStr : String; PointType : TypeOfPoint; OUT ErrorMsg : String) : Integer;
+FUNCTION ValidatePointRelatedPoint(P : Integer; RelatedPointStr : String; PointType : TypeOfPoint; OUT ErrorMsg : String) : Integer;
 { Check whether the value of the connected point (if any) is valid }
 BEGIN
   ErrorMsg := '';
 
-  IF OtherPointStr = '' THEN
+  IF RelatedPointStr = '' THEN
     Result := UnknownPoint
   ELSE
-    IF NOT TryStrToInt(OtherPointStr, Result) THEN
-      ErrorMsg := 'ValidatePointOtherPoint: invalid integer "' + OtherPointStr + '"';
+    IF NOT TryStrToInt(RelatedPointStr, Result) THEN
+      ErrorMsg := 'ValidatePointRelatedPoint: invalid integer "' + RelatedPointStr + '"';
 
   IF ErrorMsg = '' THEN
     IF P = Result THEN
-      ErrorMsg := 'ValidatePointOtherPoint: value of "other point" cannot be the same as the point''s own number';
+      ErrorMsg := 'ValidatePointRelatedPoint: value of "other point" cannot be the same as the point''s own number';
 
   IF ErrorMsg = '' THEN BEGIN
     IF (PointType <> OrdinaryPoint) AND (PointType <> CatchPointUp) AND (PointType <> CatchPointDown) AND (Result = UnknownPoint) THEN
-      ErrorMsg := 'ValidatePointOtherPoint: value of "other point" is missing'
+      ErrorMsg := 'ValidatePointRelatedPoint: value of "other point" is missing'
     ELSE
       IF (PointType = ProtectedPoint) AND (Result = UnknownPoint) THEN
-        ErrorMsg := 'ValidatePointOtherPoint: value of "other point" is missing'
+        ErrorMsg := 'ValidatePointRelatedPoint: value of "other point" is missing'
       ELSE
         IF (PointType = OrdinaryPoint) AND (Result <> UnknownPoint) THEN
-          ErrorMsg := 'ValidatePointOtherPoint: value of "other point" is invalid';
+          ErrorMsg := 'ValidatePointRelatedPoint: value of "other point" is invalid';
   END;
-END; { ValidatePointOtherPoint }
+END; { ValidatePointRelatedPoint }
 
 FUNCTION ValidatePointDefaultState(NewStateStr : String; HeelLine, StraightLine, DivergingLine : Integer; OUT PresentState : PointStateType; OUT ErrorMsg : String)
                                    : PointStateType;
@@ -5727,12 +5728,12 @@ BEGIN
             PointsADOTable.First;
             { at the start of the database }
             WHILE NOT PointsADOTable.EOF DO BEGIN
-              IF PointsADOTable.FieldByName(Point_OtherPointFieldName).AsInteger = P THEN BEGIN
-                Log('A! P=' + IntToStr(PointsADOTable.FieldByName(Point_NumberFieldName).AsInteger) + '''s OtherPoint refers to '
-                        + ' P=' + IntToStr(PointsADOTable.FieldByName(point_OtherPointFieldName).AsInteger)
-                        + ' which did not exist prior to point renumbering - OtherPoint has been set to 9999');
+              IF PointsADOTable.FieldByName(Point_RelatedPointFieldName).AsInteger = P THEN BEGIN
+                Log('A! P=' + IntToStr(PointsADOTable.FieldByName(Point_NumberFieldName).AsInteger) + '''s Related Point refers to '
+                        + ' P=' + IntToStr(PointsADOTable.FieldByName(Point_RelatedPointFieldName).AsInteger)
+                        + ' which did not exist prior to point renumbering - Related Point has been set to unknown');
                 PointsADOTable.Edit;
-                PointsADOTable.FieldByName(Point_OtherPointFieldName).AsInteger := 9999;
+                PointsADOTable.FieldByName(Point_RelatedPointFieldName).AsInteger := UnknownPoint;
                 PointsADOTable.Post;
               END;
               PointsADOTable.Next;
@@ -5742,12 +5743,12 @@ BEGIN
             PointsADOTable.First;
             { at the start of the database }
             WHILE NOT PointsADOTable.EOF DO BEGIN
-              IF InitVarsWindow.PointsADOTable.FieldByName(Point_OtherPointFieldName).AsInteger = NextInDatabaseP THEN BEGIN
+              IF InitVarsWindow.PointsADOTable.FieldByName(Point_RelatedPointFieldName).AsInteger = NextInDatabaseP THEN BEGIN
                 IF NextInDatabaseP = P THEN
                   { this shouldn't happen }
-                  Log('A! OtherPoint=' + IntToStr(NextInDatabaseP) + ' is the same as P=' + IntToStr(P));
+                  Log('A! Related Point is ' + IntToStr(NextInDatabaseP) + ' is the same as P' + IntToStr(P));
                 PointsADOTable.Edit;
-                PointsADOTable.FieldByName(Point_OtherPointFieldName).AsInteger := P;
+                PointsADOTable.FieldByName(Point_RelatedPointFieldName).AsInteger := P;
                 PointsADOTable.Post;
               END;
               PointsADOTable.Next;
@@ -5859,7 +5860,7 @@ BEGIN
             Point_WiringReversedFlag := PointsADOTable.FieldByName(Point_WiringReversedFlagFieldName).AsBoolean;
 
           IF ErrorMsg = '' THEN
-            Point_OtherPoint := ValidatePointOtherPoint(P, PointsADOTable.FieldByName(Point_OtherPointFieldName).AsString, Point_Type, ErrorMsg);
+            Point_RelatedPoint := ValidatePointRelatedPoint(P, PointsADOTable.FieldByName(Point_RelatedPointFieldName).AsString, Point_Type, ErrorMsg);
 
           IF ErrorMsg = '' THEN
             Point_Notes := PointsADOTable.FieldByName(Point_NotesFieldName).AsString;

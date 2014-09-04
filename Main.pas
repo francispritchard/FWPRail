@@ -770,9 +770,9 @@ BEGIN
                           UnlockPointLockedBySpecificRoute(P, TrackCircuits[TC].TC_LockedForRoute, DoNotWriteMessage);
 
                           { and any related crossover or three-way points too }
-                          IF Points[P].Point_OtherPoint <> UnknownPoint THEN
-                            IF PointIsLockedByASpecificRoute(Points[P].Point_OtherPoint, TrackCircuits[TC].TC_LockedForRoute) THEN
-                              UnlockPointLockedBySpecificRoute(Points[P].Point_OtherPoint, TrackCircuits[TC].TC_LockedForRoute, DoNotWriteMessage);
+                          IF Points[P].Point_RelatedPoint <> UnknownPoint THEN
+                            IF PointIsLockedByASpecificRoute(Points[P].Point_RelatedPoint, TrackCircuits[TC].TC_LockedForRoute) THEN
+                              UnlockPointLockedBySpecificRoute(Points[P].Point_RelatedPoint, TrackCircuits[TC].TC_LockedForRoute, DoNotWriteMessage);
                         END;
                       END;
                     END;

@@ -613,7 +613,7 @@ BEGIN
             CheckBoolean(Point_FeedbackOnIsStraightFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
             CheckBoolean(Point_WiringReversedFlagFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
             CheckString(Point_TypeFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
-            CheckString(Point_OtherPointFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
+            CheckString(Point_RelatedPointFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
             CheckString(Point_DefaultStateFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
             CheckBoolean(Point_LockedIfHeelTCOccupiedFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
             CheckBoolean(Point_OutOfUseFieldName, PointsADOTable, PointsADOTable2, ErrorFound);

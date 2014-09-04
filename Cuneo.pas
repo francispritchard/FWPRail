@@ -1657,7 +1657,7 @@ BEGIN
                     { also switch the opposite cross-over point (unless Alt is pressed) }
                     IF (Points[PointFoundNum].Point_Type = CrossOverPoint) THEN BEGIN
                       IF NOT PointChangedOK THEN
-                        Log('A Cannot change crossover point P=' + IntToStr(Points[PointFoundNum].Point_OtherPoint)
+                        Log('A Cannot change crossover point P=' + IntToStr(Points[PointFoundNum].Point_RelatedPoint)
                                + ' as corresponding point P=' + IntToStr(PointFoundNum) + ' failed to change')
                       ELSE BEGIN
                         IF NOT (ssShift IN ShiftState) AND NOT (ssAlt IN ShiftState) THEN
@@ -1665,7 +1665,7 @@ BEGIN
                             through and cause problems
                           }
                           IF PointFoundNum <> UnknownPoint THEN
-                            ChangePoint(Points[PointFoundNum].Point_OtherPoint, ShiftState, HelpRequired);
+                            ChangePoint(Points[PointFoundNum].Point_RelatedPoint, ShiftState, HelpRequired);
                       END;
                     END;
                   END ELSE
