@@ -1981,25 +1981,78 @@ CONST
   NewPointData = True;
 
 VAR
-//  CanDelete : Boolean;
+  CanDelete : Boolean;
   OtherPoint : Integer;
 
 BEGIN
   TRY
     { Ask for confirmation }
+    CanDelete := True;
     IF MessageDialogueWithDefault('Delete Point ' + IntToStr(PointToDeleteNum) + '?',
                                   StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
-    THEN
-      Debug('Point ' + IntToStr(PointToDeleteNum) + ' not deleted')
-    ELSE BEGIN
+    THEN BEGIN
+      Debug('Point ' + IntToStr(PointToDeleteNum) + ' not deleted');
+      CanDelete := False;
+    END ELSE BEGIN
       { We need to check if this point is referred to elsewhere }
       OtherPoint := 0;
-//      CanDelete := True;
       WHILE OtherPoint <= High(Points) DO BEGIN
+        IF PointToDeleteNum = Points[OtherPoint].Point_RelatedPoint THEN BEGIN
+          IF MessageDialogueWithDefault('Cannot delete P=' + IntToStr(PointToDeleteNum) + ' until it ceases to be the "Related Point" for P=' + IntToStr(OtherPoint)
+                                        + CRLF
+                                        + 'and we change the other point''s type from ' + PointTypeToStr(Points[OtherPoint].Point_Type) + ' to "Ordinary Point"'
+                                        + CRLF
+                                        + 'Do you wish to remove the reference and change the other point''s type?',
+                                        StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
+          THEN
+            CanDelete := False
+          ELSE BEGIN
+            Points[OtherPoint].Point_Type := OrdinaryPoint;
+            Points[OtherPoint].Point_RelatedPoint := UnknownPoint;
+            Points[OtherPoint].Point_DataChanged := True;
 
-
+            WriteOutPointDataToDatabase;
+          END;
+        END;
         Inc(OtherPoint);
       END; {WHILE}
+    END;
+
+    IF CanDelete THEN
+      DeleteRecordFromPointDatabase(PointToDeleteNum);
+
+    IF CanDelete THEN BEGIN
+      WITH InitVarsWindow DO BEGIN
+       { "Move" the last entry into the space left by the about-to-be deleted point by renumbering it (a DJW suggestion of 3/9/14), and renumber any point records that
+          point to it
+        }
+        FOR OtherPoint := 0 TO High(Points) DO BEGIN
+          IF Points[OtherPoint].Point_RelatedPoint = High(Points) THEN BEGIN
+            Points[OtherPoint].Point_RelatedPoint := PointToDeleteNum;
+            Points[OtherPoint].Point_DataChanged := True;
+
+            WriteOutPointDataToDatabase;
+          END;
+        END; {FOR}
+
+        { and renumber the last entry }
+        Points[High(Points)].Point_Number := PointToDeleteNum;
+        Points[High(Points)].Point_DataChanged := True;
+        WriteOutPointDataToDatabase;
+
+        { Clear the data from the value-list editor }
+        WITH EditWindow DO BEGIN
+          ClearEditValueList;
+          UndoChangesButton.Enabled := False;
+          SaveChangesAndExitButton.Enabled := False;
+          ExitWithoutSavingButton.Enabled := False;
+        END; {WITH}
+
+        { Reload all the points }
+        ReadInPointDataFromDatabase;
+        InvalidateScreen(UnitRef, 'DeletePoint');
+        Log('D Screen invalidated by Delete Point');
+      END;
     END;
   EXCEPT {TRY}
     ON E : Exception DO
@@ -2007,7 +2060,31 @@ BEGIN
   END; {TRY}
 END; { DeletePoint }
 
-FUNCTION NearestLineToSignal(S : Integer) : Integer;
+FUNCTION IsNearRow(Y : Integer) : Boolean;
+{ Returns true if the Y position is close to a window row }
+VAR
+  Row : Integer;
+  RowFound : Boolean;
+
+BEGIN
+  Result := False;
+
+  Row := 1;
+  RowFound := False;
+  WHILE (Row <= WindowRows) AND NOT RowFound DO BEGIN
+    IF (Row * InterLineSpacing > (Y - MulDiv(FWPRailWindow.ClientHeight, 5, 1000))) AND (Row * InterLineSpacing < (Y + MulDiv(FWPRailWindow.ClientHeight, 5, 1000))) THEN
+      RowFound := True
+    ELSE
+      IF (((Row * InterLineSpacing) + InterLineSpacing / 0.25) > (Y - MulDiv(FWPRailWindow.ClientHeight, 5, 1000))) AND (Row * InterLineSpacing < (Y + MulDiv(FWPRailWindow.ClientHeight, 5, 1000))) THEN
+        RowFound := True;
+    Inc(Row);
+  END; {WHILE}
+
+  IF RowFound THEN
+    Result := True;
+END; { IsNearRow }
+
+FUNCTION GetNearestLine(X, Y : Integer) : Integer;
 { Returns the line number nearest to a dragged signal if the line is horizontal and the signal or its post are within a line's mouse rectangle }
 VAR
   Line : Integer;
@@ -2020,24 +2097,12 @@ BEGIN
     Line := 0;
     WHILE (Line <= High(Lines)) AND NOT LineFound DO BEGIN
       IF (Lines[Line].Line_UpY = Lines[Line].Line_DownY)
-      AND PointInPolygon(Lines[Line].Line_MousePolygon, Point(Signals[S].Signal_LineX, Signals[S].Signal_LineWithVerticalSpacingY))
+      AND PointInPolygon(Lines[Line].Line_MousePolygon, Point(X, Y))
       THEN
         LineFound := True
       ELSE
         Inc(Line);
     END; {WHILE}
-
-    IF NOT LineFound THEN BEGIN
-      { see if the base of the signal post is within the polygon }
-      Line := 0;
-      WHILE (Line <= High(Lines)) AND NOT LineFound DO BEGIN
-        IF (Lines[Line].Line_UpY = Lines[Line].Line_DownY)
-        AND PointInPolygon(Lines[Line].Line_MousePolygon, Point(Signals[S].Signal_LineX, Signals[S].Signal_LineY)) THEN
-          LineFound := True
-        ELSE
-          Inc(Line);
-      END; {WHILE}
-    END;
 
     IF LineFound THEN
       Result := Line;
@@ -2045,41 +2110,41 @@ BEGIN
     ON E : Exception DO
       Log('EG NearestLineToSignal:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
-END; { NearestLineToSignal }
+END; { GetNearestLine }
 
 FUNCTION TooNearOtherSignal(S, NearestLine : Integer) : Integer;
 { Returns true if the signal we're dragging/dropping is too close to another signal }
 VAR
-  OtherSignal : Integer;
+  OtherSignal1 : Integer;
   OtherSignalFound : Boolean;
 
 BEGIN
   Result := UnknownSignal;
   TRY
     OtherSignalFound := False;
-    OtherSignal := 0;
-    WHILE (OtherSignal <= High(Signals)) AND NOT OtherSignalFound DO BEGIN
-      IF (OtherSignal <> S) AND PtInRect(Signals[OtherSignal].Signal_MouseRect, Point(Signals[S].Signal_LineX, Signals[S].Signal_LineWithVerticalSpacingY))
-      OR (Signals[OtherSignal].Signal_AdjacentLine = NearestLine)
+    OtherSignal1 := 0;
+    WHILE (OtherSignal1 <= High(Signals)) AND NOT OtherSignalFound DO BEGIN
+      IF (OtherSignal1 <> S) AND PtInRect(Signals[OtherSignal1].Signal_MouseRect, Point(Signals[S].Signal_LineX, Signals[S].Signal_LineWithVerticalSpacingY))
+      OR (Signals[OtherSignal1].Signal_AdjacentLine = NearestLine)
       THEN
         OtherSignalFound := True
       ELSE
-        Inc(OtherSignal);
+        Inc(OtherSignal1);
     END; {WHILE}
 
     IF OtherSignalFound THEN
-      Result := OtherSignal;
+      Result := OtherSignal1;
   EXCEPT
     ON E : Exception DO
       Log('EG TooNearOtherSignal:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { TooNearOtherSignal }
 
-PROCEDURE DragSignal(S, MouseX, MouseY : Integer; OUT NearestLine, TooNearSignal : Integer);
+PROCEDURE DragSignal(S, MouseX, MouseY : Integer; OUT NearestLineToSignal, TooNearSignal : Integer);
 { Allows a signal to be moved by the mouse }
 BEGIN
   TRY
-    NearestLine := UnknownLine;
+    NearestLineToSignal := UnknownLine;
     TooNearSignal := UnknownLine;
 
     IF (EditedSignal <> UnknownSignal) AND SignalDragging THEN BEGIN
@@ -2091,13 +2156,22 @@ BEGIN
         ELSE
           Signal_LineY := MouseY + SignalVerticalSpacingScaled - ScrollBarYAdjustment;
 
-        { Indicate whether or not it can be dropped }
-        NearestLine := NearestLineToSignal(EditedSignal);
-        TooNearSignal := TooNearOtherSignal(EditedSignal, NearestLine);
+        { Indicate whether or not it can be dropped - first check the Signal's X position }
+        NearestLineToSignal := GetNearestLine(Signals[S].Signal_LineX, Signals[S].Signal_LineWithVerticalSpacingY);
+        IF NearestLineToSignal = UnknownLine THEN
+          { see if the base of the signal post is within the polygon }
+          NearestLineToSignal := GetNearestLine(Signals[S].Signal_LineX, Signals[S].Signal_LineY);
+
+        TooNearSignal := TooNearOtherSignal(EditedSignal, NearestLineToSignal);
       END; {WITH}
 
       CalculateSignalMouseRectangles(EditedSignal);
       DrawSignal(EditedSignal);
+
+      IF (NearestLineToSignal = UnknownLine) OR (TooNearSignal <> UnknownLine) THEN
+        ChangeCursor(crNoDrop)
+      ELSE
+        ChangeCursor(crDrag);
 
       FWPRailWindow.Repaint;
     END;
@@ -2109,11 +2183,8 @@ END; { DragSignal }
 
 PROCEDURE DropSignal;
 { Drops the signal at the nearest adjacent line }
-CONST
-  SaveVariables = True;
-
 VAR
-  NearestLine : Integer;
+  NearestLineToSignal : Integer;
   NewSignalX : Integer;
   NewSignalY : Integer;
   TooNearSignal : Integer;
@@ -2125,9 +2196,9 @@ BEGIN
 
     WITH Signals[EditedSignal] DO BEGIN
       { See if the signal is within a line polygon }
-      NearestLine := NearestLineToSignal(EditedSignal);
+      NearestLineToSignal := GetNearestLine(Signals[EditedSignal].Signal_LineX, Signals[EditedSignal].Signal_LineWithVerticalSpacingY);
 
-      IF NearestLine = UnknownSignal THEN BEGIN
+      IF NearestLineToSignal = UnknownSignal THEN BEGIN
         { put the signal back whence it came }
         Debug('!Cannot find a line anywhere near the dragged signal');
         Signal_LineX := SaveDragX;
@@ -2137,15 +2208,15 @@ BEGIN
       END ELSE BEGIN
         { Is another one at the exact spot? Record where it is going to be placed to carry out this test. }
         IF Signal_Direction = Up THEN
-          NewSignalX := Lines[NearestLine].Line_UpX + SignalRadiusScaled
+          NewSignalX := Lines[NearestLineToSignal].Line_UpX + SignalRadiusScaled
         ELSE
           { Down }
-          NewSignalX := Lines[NearestLine].Line_DownX - SignalRadiusScaled;
+          NewSignalX := Lines[NearestLineToSignal].Line_DownX - SignalRadiusScaled;
 
-        NewSignalY := Lines[NearestLine].Line_UpY;
+        NewSignalY := Lines[NearestLineToSignal].Line_UpY;
 
         { See whether we're trying to drop the signal over another signal }
-        TooNearSignal := TooNearOtherSignal(EditedSignal, NearestLine);
+        TooNearSignal := TooNearOtherSignal(EditedSignal, NearestLineToSignal);
         IF TooNearSignal <> UnknownSignal THEN BEGIN
           { put the newly-moved signal back whence it came }
           Debug('!Cannot drop the signal where there is an existing signal (S=' + IntToStr(TooNearSignal) +')');
@@ -2159,7 +2230,7 @@ BEGIN
           Signal_PreviousLineY := NewSignalY;
           Signal_PreviousLineWithVerticalSpacingY := Signal_LineWithVerticalSpacingY;
 
-          Signal_AdjacentLine := NearestLine;
+          Signal_AdjacentLine := NearestLineToSignal;
           Signal_AdjacentLineXOffset := 0;
           CalculateSignalPosition(EditedSignal);
           CalculateSignalMouseRectangles(EditedSignal);
@@ -2181,9 +2252,6 @@ END; { DropSignal }
 
 PROCEDURE MoveObjectLeft;
 { Moves whatever is currently being edited to the left }
-CONST
-  SaveVariables = True;
-
 BEGIN
   IF EditedSignal <> UnknownSignal THEN BEGIN
     WITH Signals[EditedSignal] DO BEGIN
@@ -2202,9 +2270,6 @@ END; { MoveObjectLeft }
 
 PROCEDURE MoveObjectRight;
 { Moves whatever is currently being edited to the right }
-CONST
-  SaveVariables = True;
-
 BEGIN
   IF EditedSignal <> UnknownSignal THEN BEGIN
     WITH Signals[EditedSignal] DO BEGIN

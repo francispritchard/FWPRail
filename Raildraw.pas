@@ -432,13 +432,13 @@ TYPE
 
  PopupTypes = (NoClickPopupType,
                SignalChangeDirectionPopupType, SignalDeletePopupType, SignalEditPopupType, SignalOutOfUsePopupType, SignalUndoChangesPopupType,
-               PointEditPopupType, PointOutOfUsePopupType, PointToManualPopupType, PointUnlockPopupType,
+               PointDeletePopupType, PointEditPopupType, PointOutOfUsePopupType, PointToManualPopupType, PointUnlockPopupType,
                BufferStopEditPopupType,
                LineAllocateLocoToTrackCircuitPopupType, LineChangeInternalLocoDirectionToDownPopupType, LineChangeInternalLocoDirectionToUpPopupType,
-               LineCreateLinePopupType, LineCreateDownPointPopupType, LineCreateUpPointPopupType, LineCreateDownSignalPopupType, LineCreateUpSignalPopupType,
-               LineEditPopupType, LineLocationOutOfUsePopupType, LineOutOfUsePopupType, LineShowLocoLastErrorMessagePopupType, LineTCFeedbackOccupationPopupType,
-               LineTCOutOfUsePopupType, LineTCPermanentOccupationPopupType, LineTCSpeedRestrictionPopupType, LineTCSystemOccupationPopupType, LineTCUnoccupiedPopupType,
-               LineTCUserMustDrivePopupType);
+               LineCreateDownPointPopupType, LineCreateUpPointPopupType, LineCreateDownSignalPopupType, LineCreateUpSignalPopupType, LineEnterCreateLinePopupType,
+               LineExitCreateLinePopupType, LineEditPopupType, LineLocationOutOfUsePopupType, LineOutOfUsePopupType, LineShowLocoLastErrorMessagePopupType,
+               LineTCFeedbackOccupationPopupType, LineTCOutOfUsePopupType, LineTCPermanentOccupationPopupType, LineTCSpeedRestrictionPopupType,
+               LineTCSystemOccupationPopupType, LineTCUnoccupiedPopupType, LineTCUserMustDrivePopupType);
 
  TMenuItemExtended = CLASS(TMenuItem)
  PRIVATE
@@ -4097,6 +4097,9 @@ BEGIN
             InvalidateScreen(UnitRef, 'PointPopupLockPointClick PointUnlockPopupType');
           END;
 
+        PointDeletePopupType:
+          DeletePoint(PointPopupNum);
+
         PointEditPopupType:
           TurnEditModeOn(UnknownSignal, PointPopupNum, UnknownBufferStop, UnknownLine, UnknownTrackCircuit);
       ELSE {CASE}
@@ -4113,43 +4116,37 @@ BEGIN
 
     IF NOT EditMode THEN BEGIN
       { Add the caption... }
-      { ...and now the individual items }
-      IF PointPopupNum = UnknownPoint THEN
-        Caption := 'Points'
-      ELSE
-        Caption := 'Point ' + IntToStr(PointPopupNum);
+      Caption := 'Point ' + IntToStr(PointPopupNum);
       AddMenuItem(PointPopupMenu, Caption, NoClickPopupType, NOT Enabled, NIL);
       AddMenuItem(PointPopupMenu, '-', NoClickPopupType, Enabled, NIL);
 
       { ...and now the individual items }
       IF Point_OutOfUse THEN
-        AddMenuItem(PointPopupMenu, 'Set Point Back In Use', PointOutOfUsePopupType, Enabled, PointPopupItemClick)
+        AddMenuItem(PointPopupMenu, 'Set Point  ' + IntToStr(PointPopupNum) + ' Back In Use', PointOutOfUsePopupType, Enabled, PointPopupItemClick)
       ELSE
-        AddMenuItem(PointPopupMenu, 'Set Point Out Of Use', PointOutOfUsePopupType, Enabled, PointPopupItemClick);
+        AddMenuItem(PointPopupMenu, 'Set Point  ' + IntToStr(PointPopupNum) + ' Out Of Use', PointOutOfUsePopupType, Enabled, PointPopupItemClick);
 
       IF Point_ManualOperation THEN
-        AddMenuItem(PointPopupMenu, 'Set Point To Manual', PointToManualPopupType, Enabled, PointPopupItemClick)
+        AddMenuItem(PointPopupMenu, 'Set Point  ' + IntToStr(PointPopupNum) + ' To Manual', PointToManualPopupType, Enabled, PointPopupItemClick)
       ELSE
-        AddMenuItem(PointPopupMenu, 'Set Point To Automatic', PointToManualPopupType, Enabled, PointPopupItemClick);
+        AddMenuItem(PointPopupMenu, 'Set Point  ' + IntToStr(PointPopupNum) + ' To Automatic', PointToManualPopupType, Enabled, PointPopupItemClick);
 
       IF Point_LockedByUser THEN
-        AddMenuItem(PointPopupMenu, 'Unlock Point', PointUnlockPopupType, Enabled, PointPopupItemClick)
+        AddMenuItem(PointPopupMenu, 'Unlock Point ' + IntToStr(PointPopupNum), PointUnlockPopupType, Enabled, PointPopupItemClick)
       ELSE
-        AddMenuItem(PointPopupMenu, 'Lock Point', PointUnlockPopupType, Enabled, PointPopupItemClick);
+        AddMenuItem(PointPopupMenu, 'Lock Point ' + IntToStr(PointPopupNum), PointUnlockPopupType, Enabled, PointPopupItemClick);
 
-      AddMenuItem(PointPopupMenu, 'Edit Point', PointEditPopupType, Enabled, PointPopupItemClick);
+      AddMenuItem(PointPopupMenu, 'Edit Point ' + IntToStr(PointPopupNum), PointEditPopupType, Enabled, PointPopupItemClick);
     END ELSE BEGIN
       { EditMode }
 
       { Add the caption... }
-      IF (PointPopupNum = UnknownPoint) OR (EditedPoint = UnknownPoint) THEN
-        Caption := 'Editing Points'
-      ELSE
-        Caption := 'Editing Point ' + IntToStr(PointPopupNum);
+      Caption := 'Editing Point ' + IntToStr(PointPopupNum);
       AddMenuItem(PointPopupMenu, Caption, NoClickPopupType, NOT Enabled, NIL);
       AddMenuItem(PointPopupMenu, '-', NoClickPopupType, Enabled, NIL);
 
       { ...and now the individual items }
+      AddMenuItem(PointPopupMenu, 'Delete Point ' + intToStr(PointPopupNum), PointDeletePopupType, Enabled, PointPopupItemClick);
     END;
   END; {WITH}
 END; { PointPopupMenuOnPopup }

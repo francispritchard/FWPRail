@@ -544,13 +544,10 @@ TYPE
   TypeOfPoint = (OrdinaryPoint, CrossOverPoint, ThreeWayPointA, ThreeWayPointB, SingleSlip, DoubleSlip, ProtectedPoint, CatchPointUp, CatchPointDown, PointTypeUnknown);
 
   PointRec = RECORD
-    Point_DivergingLine : Integer;
-    Point_HeelLine : Integer;
-    Point_StraightLine : Integer;
-
     Point_AwaitingManualChange : Boolean;
     Point_DataChanged : Boolean;
     Point_DefaultState : PointStateType;
+    Point_DivergingLine : Integer;
     Point_Energised : Boolean;
     Point_EnergisedTime : TDateTime;
     Point_FacingDirection : DirectionType;
@@ -565,6 +562,7 @@ TYPE
     Point_ForcedDelayMsg1Written : Boolean;
     Point_ForcedDelayMsg2Written : Boolean;
     Point_HasFeedback : Boolean;
+    Point_HeelLine : Integer;
     Point_LastChangedTime : TDateTime;
     Point_LastFeedbackStateAsReadIn : PointStateType;
     Point_LastManualStateAsReadIn : PointStateType;
@@ -578,19 +576,21 @@ TYPE
     Point_LockFailureNotedInSubRouteUnit : Boolean;
     Point_LockingArray : StringArrayType;
     Point_LockingState : PointStateType; { used to detect points that have moved while locked }
+    Point_LocoChipLockingTheRoute : Integer;
     Point_ManualOperation : Boolean;
     Point_MaybeBeingSetToManual : Boolean;
     Point_MouseRect : TRect; { mouse access rectangle }
     Point_MovedWhenLocked : Boolean;
     Point_Notes : String;
+    Point_Number : Integer;
     Point_OutOfUse : Boolean;
     Point_PresentState : PointStateType;
     Point_PreviousState : PointStateType;
     Point_RelatedPoint : Integer;
     Point_RequiredState : PointStateType;
     Point_ResettingTime : TDateTime;
-    Point_LocoChipLockingTheRoute : Integer;
     Point_RouteLockedByLocoChip : Integer;
+    Point_StraightLine : Integer;
     Point_TCAtHeel : Integer;
     Point_Type : TypeOfPoint;
     Point_SecondAttempt : Boolean;
@@ -602,8 +602,6 @@ TYPE
   END;
 
 CONST
-  Point_NumberFieldName : String = 'Point Number';
-
   Point_DefaultStateFieldName : String = 'Default State';
   Point_DivergingLineFieldName : String = 'Diverging Line';
   Point_FeedbackInputFieldName : String = 'Feedback Input';
@@ -1569,6 +1567,9 @@ PROCEDURE CalculateSignalPosition(S : Integer);
 
 PROCEDURE CalculateAllSignalPositions;
 { Work out where all the signals are on the screen }
+
+FUNCTION DeleteRecordFromPointDatabase(PointToDeleteNum : Integer) : Boolean;
+{ Remove a record from the point database. (Checks have already been made in Edit as to whether it can be deleted). }
 
 FUNCTION DeleteRecordFromSignalDatabaseAndRenumberSignals(SignalToDeleteNum : Integer) : Boolean;
 { Remove a record from the signal database. (Checks have already been made in Edit as to whether ir can be deleted). }
@@ -5691,6 +5692,7 @@ VAR
   LastManualStateStr : String;
   NextInDatabaseP : Integer;
   P : Integer;
+  TempPointNumber : Integer;
 
 BEGIN
   TRY
@@ -5776,8 +5778,9 @@ BEGIN
         LastManualStateStr := '';
         Inc(P);
 
-        IF PointsADOTable.FieldByName(Point_NumberFieldName).AsInteger <> P THEN
-          ErrorMsg := 'it does not match the point number in the database (' + IntToStr(PointsADOTable.FieldByName(Point_NumberFieldName).AsInteger) + ')'
+        TempPointNumber := PointsADOTable.FieldByName(Point_NumberFieldName).AsInteger;
+        IF PointsADOTable.FieldByName(Point_NumberFieldName).AsInteger <> TempPointNumber THEN
+          ErrorMsg := 'it does not match the point number in the database (' + IntToStr(TempPointNumber) + ')'
         ELSE
           SetLength(Points, Length(Points) + 1);
 
@@ -5798,6 +5801,7 @@ BEGIN
           Point_LockingState := PointStateUnknown;
           Point_MaybeBeingSetToManual := False;
           Point_MovedWhenLocked := False;
+          Point_Number := TempPointNumber;
           Point_PresentState := PointStateUnknown;
           Point_RequiredState := PointStateUnknown;
           Point_ResettingTime := 0;
@@ -5911,8 +5915,51 @@ BEGIN
   CalculatePointPositions;
 END; { ReadInPointDataFromDatabase }
 
+FUNCTION DeleteRecordFromPointDatabase(PointToDeleteNum : Integer) : Boolean;
+{ Remove a record from the point database. (Checks have already been made in Edit as to whether it can be deleted). }
+BEGIN
+  Result := False;
+  TRY
+    WITH InitVarsWindow DO BEGIN
+      IF NOT FileExists(PathToRailDataFiles + PointDataFilename + '.' + PointDataFilenameSuffix) THEN BEGIN
+        IF MessageDialogueWithDefault('Point database file "' + PathToRailDataFiles + PointDataFilename + '.' + PointDataFilenameSuffix + '" cannot be located'
+                                      + CRLF
+                                      + 'Do you wish to continue?',
+                                      StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
+        THEN
+          ShutDownProgram(UnitRef, 'DeleteRecordFromPointDatabaseAndRenumberPoints')
+        ELSE
+          Exit;
+      END;
+
+      PointsADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source=' + PathToRailDataFiles + PointDataFilename + '.' + PointDataFilenameSuffix
+                                               + ';Persist Security Info=False';
+      PointsADOConnection.Connected := True;
+      PointsADOTable.Open;
+      IF NOT PointsADOTable.Locate(Point_NumberFieldName, IntToStr(PointToDeleteNum), []) THEN BEGIN
+        Log('P Point data table and connection opened to delete P' + IntToStr(PointToDeleteNum) + ' but it cannot be found');
+      END ELSE BEGIN
+        Log('P Point data table and connection opened to delete P' + IntToStr(PointToDeleteNum));
+
+        { Now delete the point - we have already checked, in the Edit unit, whether deleting it is will cause knock-on problems with other Points }
+        PointsADOTable.Delete;
+        Log('PG P' + IntToStr(PointToDeleteNum) + ' has been deleted');
+        Result := True;
+      END;
+
+      { Tidy up the database }
+      PointsADOTable.Close;
+      PointsADOConnection.Connected := False;
+      Log('S Point Data table and connection closed');
+    END;
+  EXCEPT {TRY}
+    ON E : Exception DO
+      Log('EG AddNewRecordToPointDatabase: ' + E.ClassName + ' error raised, with message: ' + E.Message);
+  END; {TRY}
+END; { DeleteRecordFromPointDatabaseAndRenumberPoints }
+
 PROCEDURE AddNewRecordToPointDatabase;
-{ Append a record to the Point database }
+{ Append a record to the point database }
 BEGIN
   TRY
     WITH InitVarsWindow DO BEGIN
@@ -5964,6 +6011,7 @@ BEGIN
         WITH Points[P] DO BEGIN
           IF Point_DataChanged THEN
             PointDatabaseNeedsUpdating := True;
+
           IF Point_ManualOperation AND (Point_LastManualStateAsReadIn <> Point_PresentState) THEN
             PointDatabaseNeedsUpdating := True;
           IF NOT Point_ManualOperation AND (Point_LastManualStateAsReadIn <> PointStateUnknown) THEN
@@ -6002,22 +6050,36 @@ BEGIN
             { First changes to out of use status }
             IF Point_DataChanged THEN BEGIN
               PointsADOTable.Edit;
+              PointsADOTable.FieldByName(Point_NumberFieldName).AsString := IntToStr(Point_Number);
+              PointsADOTable.Post;
+              IF PointDebuggingMode THEN
+                Log('P Recording in point database that P=' + IntToStr(P) + ' is now ' + IntToStr(Point_Number));
+
+              PointsADOTable.Edit;
               PointsADOTable.FieldByName(Point_OutOfUseFieldName).AsBoolean := Point_OutOfUse;
               PointsADOTable.Post;
               IF PointDebuggingMode THEN
                 Log('P Recording in point database that P=' + IntToStr(P) + ' is now ' + IfThen(Points[P].Point_OutOfUse, 'out of use', 'back in use'));
-            END;
 
-            { And if the user has locked a particular point }
-            IF Point_DataChanged THEN BEGIN
               PointsADOTable.Edit;
               PointsADOTable.FieldByName(Point_LockedByUserFieldName).AsBoolean := Point_LockedByUser;
               PointsADOTable.Post;
               IF PointDebuggingMode THEN
                 Log('P Recording in point database that P=' + IntToStr(P) + ' is now ' + IfThen(Points[P].Point_LockedByUser, 'locked by user', 'back in use'));
+
+              PointsADOTable.Edit;
+              PointsADOTable.FieldByName(Point_RelatedPointFieldName).AsString := IntToStr(Point_RelatedPoint);
+              PointsADOTable.Post;
+              IF PointDebuggingMode THEN
+                Log('P Recording in point database that P=' + IntToStr(P) + '''s Related Point is now ' + IntToStr(Points[P].Point_RelatedPoint));
+
+              PointsADOTable.Edit;
+              PointsADOTable.FieldByName(Point_TypeFieldName).AsString := PointTypeToStr(Point_Type);
+              PointsADOTable.Post;
+              IF PointDebuggingMode THEN
+                Log('P Recording in point database that P=' + IntToStr(P) + '''s Point Type is now ' + PointTypeToStr(Points[P].Point_Type));
             END;
 
-            { And the last known state of manual points }
             IF NOT Point_ManualOperation AND (Point_LastManualStateAsReadIn <> PointStateUnknown) THEN BEGIN
               PointsADOTable.Edit;
               PointsADOTable.FieldByName(Point_LastManualStateAsReadInFieldName).AsString := '';
