@@ -42,7 +42,7 @@ IMPLEMENTATION
 USES MiscUtils, StrUtils, InitVars, ADODB, Options, Raildraw, Feedback, CreateRoute;
 
 CONST
-  UnitRef = 'TestUnit';
+  UnitRef = 'DataCheck';
 
 VAR
   InputFile, OutputFile : Text;
@@ -433,9 +433,9 @@ BEGIN
 
       ErrorFound := False;
       Line := -1;
-      LinesADOTable.Sort := '[Line Number] ASC';
+      LinesADOTable.Sort := '[' + Line_NumberFieldName + '] ASC';
       LinesADOTable.First;
-      LinesADOTable2.Sort := '[Line Number] ASC';
+      LinesADOTable2.Sort := '[' + Line_NumberFieldName + '] ASC';
       LinesADOTable2.First;
 
       REPEAT
@@ -585,9 +585,9 @@ BEGIN
 
       ErrorFound := False;
       P := -1;
-      PointsADOTable.Sort := '[PointNum] ASC';
+      PointsADOTable.Sort := '[' + Point_NumberFieldName + '] ASC';
       PointsADOTable.First;
-      PointsADOTable2.Sort := '[PointNum] ASC';
+      PointsADOTable2.Sort := '[' + Point_NumberFieldName + '] ASC';
       PointsADOTable2.First;
 
       REPEAT
@@ -741,9 +741,9 @@ BEGIN
 
       ErrorFound := False;
       S := -1;
-      SignalsADOTable.Sort := '[Signal Number] ASC';
+      SignalsADOTable.Sort := '[' + Signal_NumberFieldName + '] ASC';
       SignalsADOTable.First;
-      SignalsADOTable2.Sort := '[Signal Number] ASC';
+      SignalsADOTable2.Sort := '[' + Signal_NumberFieldName + '] ASC';
       SignalsADOTable2.First;
 
       REPEAT

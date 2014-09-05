@@ -2366,7 +2366,7 @@ BEGIN
       SetLength(Locations, 0);
 
       WITH LocationsADOTable DO BEGIN
-        LocationsADOTable.Sort := '[Location Number] ASC';
+        LocationsADOTable.Sort := '[' + Location_NumberFieldName + '] ASC';
         WHILE NOT LocationsADOTable.EOF DO BEGIN
           SetLength(Locations, Length(Locations) + 1);
           WITH Locations[High(Locations)] DO BEGIN
@@ -3283,7 +3283,7 @@ BEGIN
         LinesADOTable.Next;
       END; {WHILE}
 
-      LinesADOTable.Sort := '[Line Number] ASC';
+      LinesADOTable.Sort := '[' + Line_NumberFieldName + '] ASC';
       LinesADOTable.First;
 
       { and make sure the arrays are empty, otherwise the next time the screen is resized we will merely add more lines/bufferstops }
@@ -4553,6 +4553,7 @@ BEGIN
         problems
       }
       S := -1;
+      SignalsADOTable.Sort := '[' + Signal_NumberFieldName + '] ASC';
       SignalsADOTable.First;
       WHILE NOT SignalsADOTable.EOF DO BEGIN
         Inc(S);
@@ -4568,14 +4569,15 @@ BEGIN
       Log('S Signal data table and connection opened to initialise the signal data');
 
       S := -1;
-      SignalsADOTable.Sort := '[Signal Number] ASC';
+      SignalsADOTable.Sort := '[' + Signal_NumberFieldName + '] ASC';
       SignalsADOTable.First;
       WHILE NOT SignalsADOTable.EOF DO BEGIN
         ErrorMsg := '';
         Inc(S);
 
-        IF SignalsADOTable.FieldByName(Signal_NumberFieldName).AsInteger <> S THEN
-          ErrorMsg := 'it does not match the signal number in the database (' + IntToStr(SignalsADOTable.FieldByName(Signal_NumberFieldName).AsInteger) + ')'
+        TempSignalNumber := SignalsADOTable.FieldByName(Signal_NumberFieldName).AsInteger;
+        IF TempSignalNumber <> S THEN
+          ErrorMsg := 'it does not match the signal number in the database (' + IntToStr(TempSignalNumber) + ')'
         ELSE
           SetLength(Signals, Length(Signals) + 1);
 
@@ -4584,45 +4586,90 @@ BEGIN
             Signal_AdjacentTC := UnknownTrackCircuit;
             Signal_ApproachLocked := False;
 
+            Signal_AccessoryAddress := 0;
+            Signal_AdjacentLine := UnknownLine;
+            Signal_AdjacentLineXOffset := 0;
+            Signal_AdjacentTC := UnknownTrackCircuit;
+            Signal_ApproachControlAspect := NoAspect;
+            Signal_ApproachLocked := False;
+
             IF NewSignalData THEN
               { colour-light signals are set to RedAspect just before they're switched on, unless we're reloading the data; semaphore signals are always set to red aspect }
               Signal_Aspect := RedAspect
             ELSE
               Signal_Aspect := NoAspect;
 
+            Signal_AsTheatreDestination := ''; { what a signal pointing at this signal might display }
             Signal_Automatic := False; { not yet implemented }
             Signal_DataChanged := False;
+            Signal_DecoderNum := 0;
+            Signal_Direction := UnknownDirection;
             Signal_Energised := False;
             Signal_EnergisedTime := 0;
             Signal_FailedToResetFlag := False;
             Signal_FailMsgWritten := False;
             Signal_FindNextSignalBufferStopMsgWritten := False;
             Signal_HiddenStationSignalAspect := NoAspect;
+            Signal_Indicator := NoIndicator;
+            Signal_IndicatorDecoderFunctionNum := 0;
+            Signal_IndicatorDecoderNum := 0;
+            Signal_IndicatorSpeedRestriction := MPH0; { applicable only if the route indicator is set }
             Signal_IndicatorState := NoIndicatorLit;
+
+            FOR TempJunctionIndicator := UpperLeftIndicator TO LowerRightIndicator DO BEGIN
+              WITH Signal_JunctionIndicators[TempJunctionIndicator] DO BEGIN
+                JunctionIndicator_Exists := False;
+                JunctionIndicator_TargetSignal := UnknownSignal;
+                JunctionIndicator_TargetBufferStop := UnknownBufferStop;
+              END; {WITH}
+            END; {FOR}
+
             Signal_LampIsOn := True;
+            Signal_LineWithVerticalSpacingY := UnknownLine;
+            Signal_LineX := 0;
+            Signal_LineY := 0;
+            SetLength(Signal_LocationsToMonitorArray, 0);
+
+            { Signal_LockedArray and Signal_RouteLockingNeededArray sound similar but serve different purposes - RouteLockingNeededArray covers the lines, track circuits,
+              points, etc. ahead that must be locked before a signal can be pulled off; Signal_LockedArray shows whether a signal is locked either by a specific route or
+              by a user.
+            }
+            SetLength(Signal_LockedArray, 0);
             Signal_LockedBySemaphoreDistant := False;
             Signal_LockFailureNotedInRouteUnit := False;
+            Signal_NextSignalIfNoIndicator := UnknownSignal;
+            Signal_Notes := '';
+            Signal_NotUsedForRouteing := True;
+            Signal_Number := TempSignalNumber;
+            Signal_OppositePassingLoopSignal := UnknownSignal;
+            Signal_OutOfUse := False;
             Signal_OutOfUseMsgWritten := False;
-            SetLength(Signal_LocationsToMonitorArray, 0);
+            Signal_PossibleRouteHold := False;
+            Signal_PossibleStationStartRouteHold := False;
             Signal_PostColour := ForegroundColour;
             Signal_PreviousAspect := NoAspect;
-            Signal_PreviousIndicatorState := NoIndicatorLit;
-            Signal_PreviousSignal1 := UnknownSignal;
-            Signal_PreviousSignal2 := UnknownSignal;
             Signal_PreviousHiddenStationSignalAspectSignal1 := UnknownSignal;
             Signal_PreviousHiddenStationSignalAspectSignal2 := UnknownSignal;
-            Signal_PreviousTheatreIndicatorString := '';
+            Signal_PreviousIndicatorState := NoIndicatorLit;
+            Signal_PreviousLineWithVerticalSpacingY := 0;
             Signal_PreviousLineX := 0;
             Signal_PreviousLineY := 0;
-            Signal_PreviousLineWithVerticalSpacingY := 0;
+            Signal_PreviousSignal1 := UnknownSignal;
+            Signal_PreviousSignal2 := UnknownSignal;
+            Signal_PreviousTheatreIndicatorString := '';
+            Signal_Quadrant := NoQuadrant;
             Signal_ResettingTC := UnknownTrackCircuit;
-            SetLength(Signal_SemaphoreDistantHomesArray, 0);
+
+            { see note above for Signal_LockedArray }
+            SetLength(Signal_RouteLockingNeededArray, 0);
+            SetLength(Signal_SemaphoreDistantHomesArray, 0); { needed to tell a semaphore distant which semaphore homes lock it }
             Signal_SemaphoreDistantLocking := UnknownSignal;
             Signal_StateChanged := False;
             Signal_TheatreIndicatorString := '';
             Signal_TRSHeld := False;
             Signal_TRSHeldMsgWritten := False;
             Signal_TRSReleased := False;
+            Signal_TRSReleasedMsgWritten := False;
             Signal_Type := TwoAspect;
           END;
 
@@ -5718,7 +5765,7 @@ BEGIN
 
       { First see if the point numbers in the MSAccess file are sequential and, if not, renumber it - we need this or deletions from the MSAccess file will cause problems }
       P := -1;
-      PointsADOTable.Sort := '[Point Number] ASC';
+      PointsADOTable.Sort := '[' + Point_NumberFieldName + '] ASC';
       PointsADOTable.First;
       WHILE NOT PointsADOTable.EOF DO BEGIN
         Inc(P);
@@ -5769,7 +5816,7 @@ BEGIN
       END; {WHILE}
 
       P := -1;
-      PointsADOTable.Sort := '[Point Number] ASC';
+      PointsADOTable.Sort := '[' + Point_NumberFieldName + '] ASC';
       PointsADOTable.First;
 
       SetLength(Points, 0);
@@ -6221,7 +6268,7 @@ BEGIN
         PlatformsADOTable.Next;
       END; {WHILE}
 
-      PlatformsADOTable.Sort := '[RunningNumber] ASC';
+      PlatformsADOTable.Sort := '[' + Platform_RunningNumberFieldName + '] ASC';
       PlatformsADOTable.First;
       SetLength(Platforms, 0);
 
