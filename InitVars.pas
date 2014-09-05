@@ -691,6 +691,7 @@ TYPE
     Signal_NextSignalIfNoIndicator : Integer;
     Signal_NotUsedForRouteing : Boolean;
     Signal_Notes : String;
+    Signal_Number : Integer;
     Signal_OppositePassingLoopSignal : Integer;
     Signal_OutOfUse : Boolean;
     Signal_OutOfUseMsgWritten : Boolean;
@@ -728,8 +729,6 @@ TYPE
   WriteReadType = (ReadOnly, WriteOnly, WriteThenRead);
 
 CONST
-  Signal_NumberFieldName : String = 'Signal Number';
-
   Signal_AccessoryAddressFieldName : String = 'Signal Accessory Address';
   Signal_AdjacentLineFieldName : String = 'Signal Adjacent Line';
   Signal_AdjacentLineXOffsetFieldName : String = 'Signal AdjacentLine XOffset';
@@ -751,6 +750,7 @@ CONST
   Signal_NextSignalIfNoIndicatorFieldName : String = 'Signal Next Signal If No Indicator';
   Signal_NotesFieldName : String = 'Signal Notes';
   Signal_NotUsedForRouteingFieldName : String = 'Signal Not Used For Routeing';
+  Signal_NumberFieldName : String = 'Signal Number';
   Signal_OppositePassingLoopSignalFieldName : String = 'Signal Opposite Passing Loop Signal';
   Signal_OutOfUseFieldName : String = 'Signal Out Of Use';
   Signal_PossibleRouteHoldFieldName : String = 'Signal Possible Route Hold';
@@ -1571,8 +1571,8 @@ PROCEDURE CalculateAllSignalPositions;
 FUNCTION DeleteRecordFromPointDatabase(PointToDeleteNum : Integer) : Boolean;
 { Remove a record from the point database. (Checks have already been made in Edit as to whether it can be deleted). }
 
-FUNCTION DeleteRecordFromSignalDatabaseAndRenumberSignals(SignalToDeleteNum : Integer) : Boolean;
-{ Remove a record from the signal database. (Checks have already been made in Edit as to whether ir can be deleted). }
+FUNCTION DeleteRecordFromSignalDatabase(SignalToDeleteNum : Integer) : Boolean;
+{ Remove a record from the signal database. (Checks have already been made in Edit as to whether it can be deleted). }
 
 FUNCTION DescribeActualDateAndTime : String;
 { Return the current real date and time as a String }
@@ -3999,11 +3999,17 @@ VAR
   TC : Integer;
 
 BEGIN
-  FOR TC := 0 TO High(TrackCircuits) DO
-    SetLength(TrackCircuits[TC].TC_AdjacentSignals, 0);
+  TRY
+    FOR TC := 0 TO High(TrackCircuits) DO
+      SetLength(TrackCircuits[TC].TC_AdjacentSignals, 0);
 
-  FOR S := 0 TO High(Signals) DO
-    AppendToIntegerArray(TrackCircuits[Lines[Signals[S].Signal_AdjacentLine].Line_TC].TC_AdjacentSignals, S);
+    FOR S := 0 TO High(Signals) DO
+      IF Signals[S].Signal_AdjacentLine <> UnknownLine THEN
+        AppendToIntegerArray(TrackCircuits[Lines[Signals[S].Signal_AdjacentLine].Line_TC].TC_AdjacentSignals, S);
+  EXCEPT {TRY}
+    ON E : Exception DO
+      Log('EG CalculateTCAdjacentSignals: ' + E.ClassName + ' error raised, with message: ' + E.Message);
+  END; {TRY}
 END; { CalculateTCAdjacentSignals }
 
 FUNCTION ValidateSignalAccessoryAddress(Str : String; SignalType : TypeOfSignal; OUT ErrorMsg : String) : Integer;
@@ -4515,8 +4521,10 @@ VAR
   ErrorMsg : String;
   I : Integer;
   S : Integer;
+  TempJunctionIndicator : JunctionIndicatorType;
   TempLineArray : LineArrayType;
   TempS : Integer;
+  TempSignalNumber : Integer;
   TempStrArray : ARRAY [0..5] OF String;
 
 BEGIN
@@ -4739,6 +4747,7 @@ BEGIN
           IF ErrorMsg = '' THEN
             Signal_IndicatorSpeedRestriction :=
                        ValidateSignalIndicatorSpeedRestriction(SignalsADOTable.FieldByName(Signal_IndicatorSpeedRestrictionFieldName).AsString, Signal_Indicator, ErrorMsg);
+
           IF ErrorMsg = '' THEN
             Signal_NextSignalIfNoIndicator :=
                                              ValidateNextSignalIfNoIndicator(SignalsADOTable.FieldByName(Signal_NextSignalIfNoIndicatorFieldName).AsString, Init, ErrorMsg);
@@ -4752,6 +4761,7 @@ BEGIN
           IF ErrorMsg = '' THEN
             Signal_OutOfUse :=
                   ValidateSignalOutOfUseAndAddAdjacentTC(SignalsADOTable.FieldByName(Signal_OutOfUseFieldName).AsBoolean, Signal_AdjacentLine, Signal_AdjacentTC, ErrorMsg);
+
           IF ErrorMsg = '' THEN
             Signal_Notes := SignalsADOTable.FieldByName(Signal_NotesFieldName).AsString;
 
@@ -4784,6 +4794,7 @@ BEGIN
           IF ErrorMsg = '' THEN
             Signal_LocationsToMonitorArray :=
                         ValidateSignalLocationsToMonitorArray(SignalsADOTable.FieldByName(Signal_LocationsToMonitorFieldName).AsString, Signal_PossibleRouteHold, ErrorMsg);
+
           IF ErrorMsg = '' THEN
             Signal_Automatic := SignalsADOTable.FieldByName(Signal_AutomaticFieldName).AsBoolean;
 
@@ -4930,11 +4941,8 @@ BEGIN
   END; {TRY}
 END; { AddNewRecordToSignalDatabase }
 
-FUNCTION DeleteRecordFromSignalDatabaseAndRenumberSignals(SignalToDeleteNum : Integer) : Boolean;
-{ Remove a record from the signal database. (Checks have already been made in Edit as to whether ir can be deleted). }
-VAR
-  S : Integer;
-
+FUNCTION DeleteRecordFromSignalDatabase(SignalToDeleteNum : Integer) : Boolean;
+{ Remove a record from the signal database. (Checks have already been made in Edit as to whether it can be deleted). }
 BEGIN
   Result := False;
   TRY
@@ -4955,34 +4963,13 @@ BEGIN
       SignalsADOConnection.Connected := True;
       SignalsADOTable.Open;
       IF NOT SignalsADOTable.Locate(Signal_NumberFieldName, IntToStr(SignalToDeleteNum), []) THEN BEGIN
-        Log('S Signal data table and connection opened to delete S=' + IntToStr(SignalToDeleteNum) + ' but it cannot be found');
+        Log('S Signal data table and connection opened to delete S' + IntToStr(SignalToDeleteNum) + ' but it cannot be found');
       END ELSE BEGIN
-        Log('S Signal data table and connection opened to delete S=' + IntToStr(SignalToDeleteNum));
+        Log('S Signal data table and connection opened to delete S' + IntToStr(SignalToDeleteNum));
 
         { Now delete the signal - we have already checked, in the Edit unit, whether deleting it is will cause knock-on problems with other signals }
         SignalsADOTable.Delete;
-        Log('SG S=' + IntToStr(SignalToDeleteNum) + ' has been deleted');
-
-        { Now renumber the rest }
-        SignalsADOTable.Edit;
-
-        S := SignalToDeleteNum + 1;
-        Log('S Signal data table and connection opened to write out signal data that has changed');
-        IF NOT SignalsADOTable.Locate(Signal_NumberFieldName, IntToStr(S), []) THEN
-          Log('SG Cannot renumber subsequent signals as there aren''t any')
-        ELSE BEGIN
-          S := SignalToDeleteNum - 1;
-          WHILE NOT SignalsADOTable.EOF DO BEGIN
-            Inc(S);
-
-            SignalsADOTable.Edit;
-            SignalsADOTable.FieldByName(Signal_NumberFieldName).AsString := IntToStr(S);
-            SignalsADOTable.Post;
-
-            SignalsADOTable.Next;
-          END; {WHILE}
-        END;
-        Log('S Recording in Signal database that signals S=' + IntToStr(SignalToDeleteNum) + ' to S=' + IntToStr(S) + ' have been renumbered');
+        Log('SG S' + IntToStr(SignalToDeleteNum) + ' has been deleted');
         Result := True;
       END;
 
@@ -4995,7 +4982,7 @@ BEGIN
     ON E : Exception DO
       Log('EG AddNewRecordToSignalDatabase: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
-END; { DeleteRecordFromSignalDatabaseAndRenumberSignals }
+END; { DeleteRecordFromSignalDatabase }
 
 PROCEDURE WriteOutSignalDataToDatabase;
 { If a Signal's data has been changed, record it in the database }
@@ -5047,7 +5034,12 @@ BEGIN
             IF Signal_DataChanged THEN BEGIN
               Signal_DataChanged := False;
 
-              Log('S Recording in Signal database that S=' + IntToStr(S) + ' ' + Signal_AccessoryAddressFieldName
+              Log('S Recording in signal database that S=' + IntToStr(S) + ' ' + Signal_NumberFieldName + ' is ''' + IntToStr(Signal_Number) + '''');
+              SignalsADOTable.Edit;
+              SignalsADOTable.FieldByName(Signal_NumberFieldName).AsString := IntToStr(Signal_Number);
+              SignalsADOTable.Post;
+
+              Log('S Recording in signal database that S=' + IntToStr(S) + ' ' + Signal_AccessoryAddressFieldName
                      + ' is ''' + IntToStr(Signals[S].Signal_AccessoryAddress) + '''');
               TempStr := IntToStr(Signal_AccessoryAddress);
               IF TempStr = '0' THEN
@@ -5057,19 +5049,19 @@ BEGIN
               SignalsADOTable.FieldByName(Signal_AccessoryAddressFieldName).AsString := TempStr;
               SignalsADOTable.Post;
 
-              Log('S Recording in Signal database that S=' + IntToStr(S) + ' ' + Signal_AdjacentLineFieldName + ' is ''' + LineToStr(Signal_AdjacentLine) + '''');
+              Log('S Recording in signal database that S=' + IntToStr(S) + ' ' + Signal_AdjacentLineFieldName + ' is ''' + LineToStr(Signal_AdjacentLine) + '''');
               SignalsADOTable.Edit;
               SignalsADOTable.FieldByName(Signal_AdjacentLineFieldName).AsString := LineToStr(Signal_AdjacentLine);
               SignalsADOTable.Post;
 
-              Log('S Recording in Signal database that S=' + IntToStr(S) + ' ' + Signal_AdjacentLineXOffsetFieldName
+              Log('S Recording in signal database that S=' + IntToStr(S) + ' ' + Signal_AdjacentLineXOffsetFieldName
                      + ' is ''' + IntToStr(Signal_AdjacentLineXOffset) + '''');
               SignalsADOTable.Edit;
               SignalsADOTable.FieldByName(Signal_AdjacentLineXOffsetFieldName).AsString := IntToStr(Signal_AdjacentLineXOffset);
               SignalsADOTable.Post;
 
               { The database records "no aspect" as a space in this field }
-              Log('S Recording in Signal database that S=' + IntToStr(S) + ' ' + Signal_ApproachControlAspectFieldName
+              Log('S Recording in signal database that S=' + IntToStr(S) + ' ' + Signal_ApproachControlAspectFieldName
                      + ' is ''' + AspectToStr(Signal_ApproachControlAspect) + '''');
               TempStr := AspectToStr(Signal_ApproachControlAspect);
               IF UpperCase(TempStr) = 'NO ASPECT' THEN
@@ -5086,24 +5078,24 @@ BEGIN
                     DebugStr := DebugStr + ', S' + IntToStr(Signals[S].Signal_SemaphoreDistantHomesArray[I]);
                 END;
               END;
-              Log('S Recording in Signal database that S=' + IntToStr(S) + ' ' + Signal_SemaphoreDistantHomesArrayFieldName + ' contains ''' + DebugStr + '''');
+              Log('S Recording in signal database that S=' + IntToStr(S) + ' ' + Signal_SemaphoreDistantHomesArrayFieldName + ' contains ''' + DebugStr + '''');
               SignalsADOTable.Edit;
               SignalsADOTable.FieldByName(Signal_SemaphoreDistantHomesArrayFieldName).AsString := DebugStr;
               SignalsADOTable.Post;
 
 
-              Log('S Recording in Signal database that S=' + IntToStr(S) + ' ' + Signal_AsTheatreDestinationFieldName + ' is ''' + Signal_AsTheatreDestination + '''');
+              Log('S Recording in signal database that S=' + IntToStr(S) + ' ' + Signal_AsTheatreDestinationFieldName + ' is ''' + Signal_AsTheatreDestination + '''');
               SignalsADOTable.Edit;
               SignalsADOTable.FieldByName(Signal_AsTheatreDestinationFieldName).AsString := Signal_AsTheatreDestination;
               SignalsADOTable.Post;
 
-              Log('S Recording in Signal database that S=' + IntToStr(S) + ' ' + Signal_AutomaticFieldName
+              Log('S Recording in signal database that S=' + IntToStr(S) + ' ' + Signal_AutomaticFieldName
                      + '  is ''' + IfThen(Signals[S].Signal_Automatic, 'automatic', 'not automatic') + '''');
               SignalsADOTable.Edit;
               SignalsADOTable.FieldByName(Signal_AutomaticFieldName).AsBoolean := Signal_Automatic;
               SignalsADOTable.Post;
 
-              Log('S Recording in Signal database that S=' + IntToStr(S) + ' ' + Signal_DecoderNumFieldName + ' is ''' + IntToStr(Signal_DecoderNum) + '''');
+              Log('S Recording in signal database that S=' + IntToStr(S) + ' ' + Signal_DecoderNumFieldName + ' is ''' + IntToStr(Signal_DecoderNum) + '''');
               TempStr := IntToStr(Signal_DecoderNum);
               IF TempStr = '0' THEN
                 { the database records a zero as a space in this field }
@@ -5112,19 +5104,19 @@ BEGIN
               SignalsADOTable.FieldByName(Signal_DecoderNumFieldName).AsString := TempStr;
               SignalsADOTable.Post;
 
-              Log('S Recording in Signal database that S=' + IntToStr(S) + ' ' + Signal_DirectionFieldName + ' is ''' + DirectionToStr(Signal_Direction) + '''');
+              Log('S Recording in signal database that S=' + IntToStr(S) + ' ' + Signal_DirectionFieldName + ' is ''' + DirectionToStr(Signal_Direction) + '''');
               SignalsADOTable.Edit;
               SignalsADOTable.FieldByName(Signal_DirectionFieldName).AsString := DirectionToStr(Signal_Direction, VeryShortStringType);
               SignalsADOTable.Post;
 
-              Log('S Recording in Signal database that S=' + IntToStr(S) + ' ' + Signal_IndicatorFieldName
+              Log('S Recording in signal database that S=' + IntToStr(S) + ' ' + Signal_IndicatorFieldName
                      + ' is ''' + IndicatorToStr(Signal_Indicator, LongStringType) + '''');
               TempStr := IndicatorToStr(Signal_Indicator, ShortStringType);
               SignalsADOTable.Edit;
               SignalsADOTable.FieldByName(Signal_IndicatorFieldName).AsString := TempStr;
               SignalsADOTable.Post;
 
-              Log('S Recording in Signal database that S=' + IntToStr(S) + ' ' + Signal_IndicatorDecoderFunctionNumFieldName
+              Log('S Recording in signal database that S=' + IntToStr(S) + ' ' + Signal_IndicatorDecoderFunctionNumFieldName
                      + ' is ''' + IntToStr(Signal_IndicatorDecoderFunctionNum) + '''');
               TempStr := IntToStr(Signal_IndicatorDecoderFunctionNum);
               IF TempStr = '0' THEN
@@ -5134,7 +5126,7 @@ BEGIN
               SignalsADOTable.FieldByName(Signal_IndicatorDecoderFunctionNumFieldName).AsString := TempStr;
               SignalsADOTable.Post;
 
-              Log('S Recording in Signal database that S=' + IntToStr(S) + ' ' + Signal_IndicatorDecoderNumFieldName
+              Log('S Recording in signal database that S=' + IntToStr(S) + ' ' + Signal_IndicatorDecoderNumFieldName
                      + ' is ''' + IntToStr(Signal_IndicatorDecoderNum) + '''');
               TempStr := IntToStr(Signal_IndicatorDecoderNum);
               IF TempStr = '0' THEN
@@ -5144,7 +5136,7 @@ BEGIN
               SignalsADOTable.FieldByName(Signal_IndicatorDecoderNumFieldName).AsString := TempStr;
               SignalsADOTable.Post;
 
-              Log('S Recording in Signal database that S=' + IntToStr(S) + ' ' + Signal_IndicatorSpeedRestrictionFieldName
+              Log('S Recording in signal database that S=' + IntToStr(S) + ' ' + Signal_IndicatorSpeedRestrictionFieldName
                      + ' is ''' + MPHToStr(Signal_IndicatorSpeedRestriction) + '''');
               SignalsADOTable.Edit;
               SignalsADOTable.FieldByName(Signal_IndicatorSpeedRestrictionFieldName).AsString := MPHToStr(Signal_IndicatorSpeedRestriction);
@@ -5156,7 +5148,7 @@ BEGIN
               ELSE
                 IF Signal_JunctionIndicators[UpperLeftIndicator].JunctionIndicator_TargetBufferStop <> UnknownBufferStop THEN
                   JunctionIndicatorStr := 'BS' + IntToStr(Signal_JunctionIndicators[UpperLeftIndicator].JunctionIndicator_TargetBufferStop);
-              Log('S Recording in Signal database that S=' + IntToStr(S) + ' ' + Signal_UpperLeftIndicatorTargetFieldName + ' is ''' + JunctionIndicatorStr + '''');
+              Log('S Recording in signal database that S=' + IntToStr(S) + ' ' + Signal_UpperLeftIndicatorTargetFieldName + ' is ''' + JunctionIndicatorStr + '''');
               SignalsADOTable.Edit;
               SignalsADOTable.FieldByName(Signal_UpperLeftIndicatorTargetFieldName).AsString := JunctionIndicatorStr;
               SignalsADOTable.Post;
@@ -5167,7 +5159,7 @@ BEGIN
               ELSE
                 IF Signal_JunctionIndicators[MiddleLeftIndicator].JunctionIndicator_TargetBufferStop <> UnknownBufferStop THEN
                   JunctionIndicatorStr := 'BS' + IntToStr(Signal_JunctionIndicators[MiddleLeftIndicator].JunctionIndicator_TargetBufferStop);
-              Log('S Recording in Signal database that S=' + IntToStr(S) + ' ' + Signal_MiddleLeftIndicatorTargetFieldName + ' is ''' + JunctionIndicatorStr + '''');
+              Log('S Recording in signal database that S=' + IntToStr(S) + ' ' + Signal_MiddleLeftIndicatorTargetFieldName + ' is ''' + JunctionIndicatorStr + '''');
               SignalsADOTable.Edit;
               SignalsADOTable.FieldByName(Signal_MiddleLeftIndicatorTargetFieldName).AsString := JunctionIndicatorStr;
               SignalsADOTable.Post;
@@ -5178,7 +5170,7 @@ BEGIN
               ELSE
                 IF Signal_JunctionIndicators[LowerLeftIndicator].JunctionIndicator_TargetBufferStop <> UnknownBufferStop THEN
                   JunctionIndicatorStr := 'BS' + IntToStr(Signal_JunctionIndicators[LowerLeftIndicator].JunctionIndicator_TargetBufferStop);
-              Log('S Recording in Signal database that S=' + IntToStr(S) + ' ' + Signal_LowerLeftIndicatorTargetFieldName + ' is ''' + JunctionIndicatorStr + '''');
+              Log('S Recording in signal database that S=' + IntToStr(S) + ' ' + Signal_LowerLeftIndicatorTargetFieldName + ' is ''' + JunctionIndicatorStr + '''');
               SignalsADOTable.Edit;
               SignalsADOTable.FieldByName(Signal_LowerLeftIndicatorTargetFieldName).AsString := JunctionIndicatorStr;
               SignalsADOTable.Post;
@@ -5189,7 +5181,7 @@ BEGIN
               ELSE
                 IF Signal_JunctionIndicators[UpperRightIndicator].JunctionIndicator_TargetBufferStop <> UnknownBufferStop THEN
                   JunctionIndicatorStr := 'BS' + IntToStr(Signal_JunctionIndicators[UpperRightIndicator].JunctionIndicator_TargetBufferStop);
-              Log('S Recording in Signal database that S=' + IntToStr(S) + ' ' + Signal_UpperRightIndicatorTargetFieldName + ' is ''' + JunctionIndicatorStr + '''');
+              Log('S Recording in signal database that S=' + IntToStr(S) + ' ' + Signal_UpperRightIndicatorTargetFieldName + ' is ''' + JunctionIndicatorStr + '''');
               SignalsADOTable.Edit;
               SignalsADOTable.FieldByName(Signal_UpperRightIndicatorTargetFieldName).AsString := JunctionIndicatorStr;
               SignalsADOTable.Post;
@@ -5200,7 +5192,7 @@ BEGIN
               ELSE
                 IF Signal_JunctionIndicators[MiddleRightIndicator].JunctionIndicator_TargetBufferStop <> UnknownBufferStop THEN
                   JunctionIndicatorStr := 'BS' + IntToStr(Signal_JunctionIndicators[MiddleRightIndicator].JunctionIndicator_TargetBufferStop);
-              Log('S Recording in Signal database that S=' + IntToStr(S) + ' ' + Signal_MiddleRightIndicatorTargetFieldName + ' is ''' + JunctionIndicatorStr + '''');
+              Log('S Recording in signal database that S=' + IntToStr(S) + ' ' + Signal_MiddleRightIndicatorTargetFieldName + ' is ''' + JunctionIndicatorStr + '''');
               SignalsADOTable.Edit;
               SignalsADOTable.FieldByName(Signal_MiddleRightIndicatorTargetFieldName).AsString := JunctionIndicatorStr;
               SignalsADOTable.Post;
@@ -5211,7 +5203,7 @@ BEGIN
               ELSE
                 IF Signal_JunctionIndicators[LowerRightIndicator].JunctionIndicator_TargetBufferStop <> UnknownBufferStop THEN
                   JunctionIndicatorStr := 'BS' + IntToStr(Signal_JunctionIndicators[LowerRightIndicator].JunctionIndicator_TargetBufferStop);
-              Log('S Recording in Signal database that S=' + IntToStr(S) + ' ' + Signal_LowerRightIndicatorTargetFieldName + ' is ''' + JunctionIndicatorStr + '''');
+              Log('S Recording in signal database that S=' + IntToStr(S) + ' ' + Signal_LowerRightIndicatorTargetFieldName + ' is ''' + JunctionIndicatorStr + '''');
               SignalsADOTable.Edit;
               SignalsADOTable.FieldByName(Signal_LowerRightIndicatorTargetFieldName).AsString := JunctionIndicatorStr;
               SignalsADOTable.Post;
@@ -5228,7 +5220,7 @@ BEGIN
 
               { also remove any spaces in the text - this will help to get around the 250 character length restriction in MSAccess fields }
               TempStr := ReplaceText(TempStr, ' ', '');
-              Log('S Recording in Signal database that S=' + IntToStr(S) + ' ' + Signal_LocationsToMonitorFieldName + ' is ''' + TempStr + '''');
+              Log('S Recording in signal database that S=' + IntToStr(S) + ' ' + Signal_LocationsToMonitorFieldName + ' is ''' + TempStr + '''');
               SignalsADOTable.Edit;
               SignalsADOTable.FieldByName(Signal_LocationsToMonitorFieldName).AsString := TempStr;
               SignalsADOTable.Post;
@@ -5239,18 +5231,18 @@ BEGIN
                 TempStr := ''
               ELSE
                 TempStr := 'S' + TempStr;
-              Log('S Recording in Signal database that S=' + IntToStr(S) + ' ' + Signal_NextSignalIfNoIndicatorFieldName + ' is ''' + TempStr + '''');
+              Log('S Recording in signal database that S=' + IntToStr(S) + ' ' + Signal_NextSignalIfNoIndicatorFieldName + ' is ''' + TempStr + '''');
               SignalsADOTable.Edit;
               SignalsADOTable.FieldByName(Signal_NextSignalIfNoIndicatorFieldName).AsString := TempStr;
               SignalsADOTable.Post;
 
-              Log('S Recording in Signal database that S=' + IntToStr(S) + ' ' + Signal_NotUsedForRouteingFieldName
+              Log('S Recording in signal database that S=' + IntToStr(S) + ' ' + Signal_NotUsedForRouteingFieldName
                      + ' is ''' + IfThen(Signals[S].Signal_NotUsedForRouteing, 'not used for routeing', 'used for routeing') + '''');
               SignalsADOTable.Edit;
               SignalsADOTable.FieldByName(Signal_NotUsedForRouteingFieldName).AsBoolean := Signal_NotUsedForRouteing;
               SignalsADOTable.Post;
 
-              Log('S Recording in Signal database that S=' + IntToStr(S) + ' ' + Signal_NotesFieldName + ' is ''' + Signal_Notes + '''');
+              Log('S Recording in signal database that S=' + IntToStr(S) + ' ' + Signal_NotesFieldName + ' is ''' + Signal_Notes + '''');
               SignalsADOTable.Edit;
               SignalsADOTable.FieldByName(Signal_NotesFieldName).AsString := Signal_Notes;
               SignalsADOTable.Post;
@@ -5261,24 +5253,24 @@ BEGIN
                 TempStr := ''
               ELSE
                 TempStr := 'S' + TempStr;
-              Log('S Recording in Signal database that S=' + IntToStr(S) + ' ' + Signal_OppositePassingLoopSignalFieldName + ' is ''' + TempStr + '''');
+              Log('S Recording in signal database that S=' + IntToStr(S) + ' ' + Signal_OppositePassingLoopSignalFieldName + ' is ''' + TempStr + '''');
               SignalsADOTable.Edit;
               SignalsADOTable.FieldByName(Signal_OppositePassingLoopSignalFieldName).AsString := TempStr;
               SignalsADOTable.Post;
 
-              Log('S Recording in Signal database that S=' + IntToStr(S) + ' ' + Signal_OutOfUseFieldName
+              Log('S Recording in signal database that S=' + IntToStr(S) + ' ' + Signal_OutOfUseFieldName
                      + ' is ''' + IfThen(Signals[S].Signal_OutOfUse, 'out of use', 'back in use') + '''');
               SignalsADOTable.Edit;
               SignalsADOTable.FieldByName(Signal_OutOfUseFieldName).AsBoolean := Signal_OutOfUse;
               SignalsADOTable.Post;
 
-              Log('S Recording in Signal database that S=' + IntToStr(S) + ' ' + Signal_PossibleRouteHoldFieldName
+              Log('S Recording in signal database that S=' + IntToStr(S) + ' ' + Signal_PossibleRouteHoldFieldName
                      + ' is ''' + IfThen(Signals[S].Signal_PossibleRouteHold, 'a possible route hold', 'not a possible route hold') + '''');
               SignalsADOTable.Edit;
               SignalsADOTable.FieldByName(Signal_PossibleRouteHoldFieldName).AsBoolean := Signal_PossibleRouteHold;
               SignalsADOTable.Post;
 
-              Log('S Recording in Signal database that S=' + IntToStr(S) + ' ' + Signal_PossibleStationStartRouteHoldFieldName +
+              Log('S Recording in signal database that S=' + IntToStr(S) + ' ' + Signal_PossibleStationStartRouteHoldFieldName +
                     ' is ''' + IfThen(Signals[S].Signal_PossibleStationStartRouteHold,
                                       'a possible station start route hold',
                                       'not a possible station start route hold') + '''');
@@ -5286,7 +5278,7 @@ BEGIN
               SignalsADOTable.FieldByName(Signal_PossibleStationStartRouteHoldFieldName).AsBoolean := Signal_PossibleStationStartRouteHold;
               SignalsADOTable.Post;
 
-              Log('S Recording in Signal database that S=' + IntToStr(S) + ' ' + Signal_QuadrantFieldName + ' is ''' + SignalQuadrantToStr(Signal_Quadrant) + '''');
+              Log('S Recording in signal database that S=' + IntToStr(S) + ' ' + Signal_QuadrantFieldName + ' is ''' + SignalQuadrantToStr(Signal_Quadrant) + '''');
               SignalsADOTable.Edit;
               IF Signal_Quadrant = NoQuadrant THEN
                 SignalsADOTable.FieldByName(Signal_QuadrantFieldName).AsString := ''
@@ -5294,7 +5286,7 @@ BEGIN
                 SignalsADOTable.FieldByName(Signal_QuadrantFieldName).AsString := SignalQuadrantToStr(Signal_Quadrant);
               SignalsADOTable.Post;
 
-              Log('S Recording in Signal database that S=' + IntToStr(S) + ' ' + Signal_TypeFieldName + ' is ''' + SignalTypeToStr(Signal_Type, LongStringType) + '''');
+              Log('S Recording in signal database that S=' + IntToStr(S) + ' ' + Signal_TypeFieldName + ' is ''' + SignalTypeToStr(Signal_Type, LongStringType) + '''');
               SignalsADOTable.Edit;
               SignalsADOTable.FieldByName(Signal_TypeFieldName).AsString := SignalTypeToStr(Signal_Type, ShortStringType);
               SignalsADOTable.Post;
@@ -6094,7 +6086,6 @@ BEGIN
         WHILE NOT PointsADOTable.EOF DO BEGIN
           P := PointsADOTable.FieldByName(Point_NumberFieldName).AsInteger;
           WITH Points[P] DO BEGIN
-            { First changes to out of use status }
             IF Point_DataChanged THEN BEGIN
               PointsADOTable.Edit;
               PointsADOTable.FieldByName(Point_NumberFieldName).AsString := IntToStr(Point_Number);

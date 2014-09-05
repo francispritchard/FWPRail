@@ -63,7 +63,7 @@ PROCEDURE DeletePoint(PointToDeleteNum : Integer);
 PROCEDURE DeleteSignal(SignalToDeleteNum : Integer);
 { Delete a signal after appropriate checks }
 
-PROCEDURE DragSignal(S, MouseX, MouseY : Integer; OUT NearestLine, TooNearSignal : Integer);
+PROCEDURE DragSignal(S, MouseX, MouseY : Integer; OUT NearestLineToSignal, TooNearSignal : Integer);
 { { Allows a signal to be moved by the mouse }
 
 PROCEDURE DropSignal;
@@ -468,9 +468,9 @@ BEGIN
 
       WITH EditValueListEditor DO BEGIN
         WITH Lines[EditedLine] DO BEGIN
-          WriteIntegerValueExcludingZero(Line_NumFieldName, EditedLine, '');
+          WriteIntegerValueExcludingZero(Line_NumberFieldName, EditedLine, '');
           { make the line number read only }
-          ItemProps[Line_NumFieldName].ReadOnly := True;
+          ItemProps[Line_NumberFieldName].ReadOnly := True;
 
           EditWindowLabel.Caption := 'Editing Line ' + IntToStr(EditedLine) + ' (' + LineToStr(EditedLine) + ')';
 
@@ -1550,9 +1550,6 @@ END; { EditWindowResize }
 
 PROCEDURE CreateSignal(Direction : DirectionType; Line : Integer);
 { Creates a signal from scratch }
-CONST
-  SaveVariables = True;
-
 VAR
   ExistingSignalFoundAttachedToLine : Boolean;
   S : Integer;
@@ -1577,7 +1574,6 @@ BEGIN
       IF ExistingSignalFoundAttachedToLine THEN
         ShowMessage('Cannot create a signal adjacent to line ' + LineToStr(Line) + ' as S=' + IntToStr(S) + ' is already marked as being adjacent to it')
       ELSE BEGIN
-
         { Now create and save a basic signal which must then be added to using the value list editor }
         SetLength(Signals, Length(Signals) + 1);
         EditedSignal := High(Signals);
@@ -1672,7 +1668,6 @@ VAR
   CanDelete : Boolean;
   JunctionIndicator : JunctionIndicatorType;
   OtherSignal : Integer;
-  SignalDeletedNum : Integer;
   SignalPos : Integer;
 
 BEGIN
@@ -1716,8 +1711,7 @@ BEGIN
               { Remove the reference to this signal from the other signal's database entry }
               Signals[OtherSignal].Signal_NextSignalIfNoIndicator := UnknownSignal;
               Signals[OtherSignal].Signal_DataChanged := True;
-              WriteOutSignalDataToDatabase;
-            END;
+           END;
           END;
         END;
 
@@ -1725,7 +1719,7 @@ BEGIN
           FOR JunctionIndicator := UpperLeftIndicator TO LowerRightIndicator DO BEGIN
             IF Signals[OtherSignal].Signal_JunctionIndicators[JunctionIndicator].JunctionIndicator_Exists THEN BEGIN
               IF Signals[OtherSignal].Signal_JunctionIndicators[JunctionIndicator].JunctionIndicator_TargetSignal = SignalToDeleteNum THEN BEGIN
-                IF MessageDialogueWithDefault('Cannot delete S=' + IntToStr(SignalToDeleteNum)
+                IF MessageDialogueWithDefault('Cannot delete S' + IntToStr(SignalToDeleteNum)
                                               + ' until it ceases to be the target signal for'
                                               + ' S' + IntToStr(OtherSignal) + '''s ' + JunctionIndicatorTypeToStr(JunctionIndicator)
                                               + CRLF
@@ -1751,7 +1745,7 @@ BEGIN
           IF CanDelete THEN BEGIN
             SignalPos := GetElementPosInIntegerArray(Signals[OtherSignal].Signal_SemaphoreDistantHomesArray, SignalToDeleteNum);
             IF SignalPos > -1 THEN BEGIN
-              IF MessageDialogueWithDefault('Cannot delete S=' + IntToStr(SignalToDeleteNum)
+              IF MessageDialogueWithDefault('Cannot delete S' + IntToStr(SignalToDeleteNum)
                                             + ' until it ceases to be a home signal in S' + IntToStr(OtherSignal) + '''s DistantHomesArray'
                                             + CRLF
                                             + 'Do you wish to remove the reference?',
@@ -1765,49 +1759,49 @@ BEGIN
               END;
             END;
           END;
-
-          IF NOT CanDelete THEN
-            NoteThatDataHasChanged;
-
-          IF Signals[OtherSignal].Signal_DataChanged THEN
-            WriteOutSignalDataToDatabase;
         END;
+
+        IF Signals[OtherSignal].Signal_DataChanged THEN
+          WriteOutSignalDataToDatabase;
+
         Inc(OtherSignal);
       END;
 
+//      IF CanDelete THEN BEGIN
+//        { Now we need to renumber signal references in the database that have changed because of the deletion }
+//
+//
+//        FOR OtherSignal1 := 0 TO High(Signals) DO BEGIN
+//          { we only need to decrement signal numbers from the signal we deleted to the signal number equal to the end of the new array - plus one, the signal we deleted }
+//          FOR OtherSignal2 := SignalToDeleteNum TO High(Signals) + 1 DO BEGIN
+//            IF Signals[OtherSignal1].Signal_OppositePassingLoopSignal = OtherSignal2 THEN
+//              Signals[OtherSignal1].Signal_OppositePassingLoopSignal := OtherSignal2 - 1;
+//
+//            IF Signals[OtherSignal1].Signal_NextSignalIfNoIndicator = OtherSignal2 THEN
+//              Signals[OtherSignal1].Signal_NextSignalIfNoIndicator := OtherSignal2 - 1;
+//
+//            FOR JunctionIndicator := UpperLeftIndicator TO LowerRightIndicator DO BEGIN
+//              IF Signals[OtherSignal1].Signal_JunctionIndicators[JunctionIndicator].JunctionIndicator_Exists THEN BEGIN
+//                IF Signals[OtherSignal1].Signal_JunctionIndicators[JunctionIndicator].JunctionIndicator_TargetSignal = OtherSignal2 THEN BEGIN
+//                  Signals[OtherSignal1].Signal_JunctionIndicators[JunctionIndicator].JunctionIndicator_TargetSignal := OtherSignal2 - 1;
+//                  Signals[OtherSignal1].Signal_DataChanged := True;
+//                END;
+//              END;
+//            END; {FOR}
+//
+//            SignalPos := GetElementPosInIntegerArray(Signals[OtherSignal1].Signal_SemaphoreDistantHomesArray, OtherSignal2);
+//            IF SignalPos > -1 THEN BEGIN
+//              Signals[OtherSignal1].Signal_SemaphoreDistantHomesArray[SignalPos] := OtherSignal2 - 1;
+//              Signals[OtherSignal1].Signal_DataChanged := True;
+//            END;
+//          END; {FOR}
+//          IF Signals[OtherSignal1].Signal_DataChanged THEN
+//            WriteOutSignalDataToDatabase;
+//        END; {FOR}
+//      END;
+
       IF CanDelete THEN BEGIN
-        { Now we need to renumber signal references in the database that have changed because of the deletion }
-        FOR OtherSignal := 0 TO High(Signals) DO BEGIN
-          { we only need to decrement signal numbers from the signal we deleted to the signal number equal to the end of the new array - plus one, the signal we deleted }
-          FOR SignalDeletedNum := SignalToDeleteNum TO High(Signals) + 1 DO BEGIN
-            IF Signals[OtherSignal].Signal_OppositePassingLoopSignal = SignalDeletedNum THEN
-              Signals[OtherSignal].Signal_OppositePassingLoopSignal := SignalDeletedNum - 1;
-
-            IF Signals[OtherSignal].Signal_NextSignalIfNoIndicator = SignalDeletedNum THEN
-              Signals[OtherSignal].Signal_NextSignalIfNoIndicator := SignalDeletedNum - 1;
-
-            FOR JunctionIndicator := UpperLeftIndicator TO LowerRightIndicator DO BEGIN
-              IF Signals[OtherSignal].Signal_JunctionIndicators[JunctionIndicator].JunctionIndicator_Exists THEN BEGIN
-                IF Signals[OtherSignal].Signal_JunctionIndicators[JunctionIndicator].JunctionIndicator_TargetSignal = SignalDeletedNum THEN BEGIN
-                  Signals[OtherSignal].Signal_JunctionIndicators[JunctionIndicator].JunctionIndicator_TargetSignal := SignalDeletedNum - 1;
-                  Signals[OtherSignal].Signal_DataChanged := True;
-                END;
-              END;
-            END; {FOR}
-
-            SignalPos := GetElementPosInIntegerArray(Signals[OtherSignal].Signal_SemaphoreDistantHomesArray, SignalDeletedNum);
-            IF SignalPos > -1 THEN BEGIN
-              Signals[OtherSignal].Signal_SemaphoreDistantHomesArray[SignalPos] := SignalDeletedNum - 1;
-              Signals[OtherSignal].Signal_DataChanged := True;
-            END;
-          END; {FOR}
-          IF Signals[OtherSignal].Signal_DataChanged THEN
-            WriteOutSignalDataToDatabase;
-        END; {FOR}
-      END;
-
-      IF CanDelete THEN BEGIN
-        IF NOT DeleteRecordFromSignalDatabaseAndRenumberSignals(SignalToDeleteNum) THEN BEGIN
+        IF NOT DeleteRecordFromSignalDatabase(SignalToDeleteNum) THEN BEGIN
           Log('S! Cannot delete S=' + IntToStr(SignalToDeleteNum));
 
           { and restore the variables }
@@ -1828,6 +1822,44 @@ BEGIN
           Signals[SignalToDeleteNum].Signal_DataChanged := True;
           WriteOutSignalDataToDatabase;
         END ELSE BEGIN
+          { Now we need to renumber signal references in the database that have changed because of the deletion. We renumber the last entry so it the same as the point already
+            deleted (a DJW suggestion of 3/9/14), and also renumber any signal records that point to it.
+          }
+          FOR OtherSignal := 0 TO High(Signals) DO BEGIN
+            IF Signals[OtherSignal].Signal_OppositePassingLoopSignal = High(Signals) THEN BEGIN
+              Signals[OtherSignal].Signal_OppositePassingLoopSignal := SignalToDeleteNum;
+              Signals[OtherSignal].Signal_DataChanged := True;
+            END;
+
+            IF Signals[OtherSignal].Signal_NextSignalIfNoIndicator = High(Signals) THEN BEGIN
+              Signals[OtherSignal].Signal_NextSignalIfNoIndicator := SignalToDeleteNum;
+              Signals[OtherSignal].Signal_DataChanged := True;
+            END;
+
+            FOR JunctionIndicator := UpperLeftIndicator TO LowerRightIndicator DO BEGIN
+              IF Signals[OtherSignal].Signal_JunctionIndicators[JunctionIndicator].JunctionIndicator_Exists THEN BEGIN
+                IF Signals[OtherSignal].Signal_JunctionIndicators[JunctionIndicator].JunctionIndicator_TargetSignal = High(Signals) THEN BEGIN
+                  Signals[OtherSignal].Signal_JunctionIndicators[JunctionIndicator].JunctionIndicator_TargetSignal := SignalToDeleteNum;
+                  Signals[OtherSignal].Signal_DataChanged := True;
+                END;
+              END;
+            END; {FOR}
+
+            SignalPos := GetElementPosInIntegerArray(Signals[OtherSignal].Signal_SemaphoreDistantHomesArray, High(Signals));
+            IF SignalPos > -1 THEN BEGIN
+              Signals[OtherSignal].Signal_SemaphoreDistantHomesArray[SignalPos] := SignalToDeleteNum;
+              Signals[OtherSignal].Signal_DataChanged := True;
+            END;
+
+            IF Signals[OtherSignal].Signal_DataChanged THEN
+              WriteOutSignalDataToDatabase;
+          END; {FOR}
+
+          { and renumber the last entry }
+          Signals[High(Signals)].Signal_Number := SignalToDeleteNum;
+          Signals[High(Signals)].Signal_DataChanged := True;
+          WriteOutSignalDataToDatabase;
+
           { Clear the data from the value-list editor }
           WITH EditWindow DO BEGIN
             ClearEditValueList;
@@ -2023,8 +2055,8 @@ BEGIN
 
     IF CanDelete THEN BEGIN
       WITH InitVarsWindow DO BEGIN
-       { "Move" the last entry into the space left by the about-to-be deleted point by renumbering it (a DJW suggestion of 3/9/14), and renumber any point records that
-          point to it
+        { Now we need to renumber point references in the database that have changed because of the deletion. We renumber the last entry so it the same as the point already
+          deleted (a DJW suggestion of 3/9/14), and also renumber any point records that point to it.
         }
         FOR OtherPoint := 0 TO High(Points) DO BEGIN
           IF Points[OtherPoint].Point_RelatedPoint = High(Points) THEN BEGIN
