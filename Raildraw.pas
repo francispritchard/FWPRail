@@ -435,10 +435,10 @@ TYPE
                PointDeletePopupType, PointEditPopupType, PointOutOfUsePopupType, PointToManualPopupType, PointUnlockPopupType,
                BufferStopEditPopupType,
                LineAllocateLocoToTrackCircuitPopupType, LineChangeInternalLocoDirectionToDownPopupType, LineChangeInternalLocoDirectionToUpPopupType,
-               LineCreateDownPointPopupType, LineCreateUpPointPopupType, LineCreateDownSignalPopupType, LineCreateUpSignalPopupType, LineEnterCreateLinePopupType,
-               LineExitCreateLinePopupType, LineEditPopupType, LineLocationOutOfUsePopupType, LineOutOfUsePopupType, LineShowLocoLastErrorMessagePopupType,
-               LineTCFeedbackOccupationPopupType, LineTCOutOfUsePopupType, LineTCPermanentOccupationPopupType, LineTCSpeedRestrictionPopupType,
-               LineTCSystemOccupationPopupType, LineTCUnoccupiedPopupType, LineTCUserMustDrivePopupType);
+               LineCreateDownPointPopupType, LineCreateUpPointPopupType, LineCreateDownSignalPopupType, LineCreateUpSignalPopupType, LineDeleteLinePopupType,
+               LineEnterCreateLinePopupType, LineExitCreateLinePopupType, LineEditPopupType, LineLocationOutOfUsePopupType, LineOutOfUsePopupType,
+               LineShowLocoLastErrorMessagePopupType, LineTCFeedbackOccupationPopupType, LineTCOutOfUsePopupType, LineTCPermanentOccupationPopupType,
+               LineTCSpeedRestrictionPopupType, LineTCSystemOccupationPopupType, LineTCUnoccupiedPopupType, LineTCUserMustDrivePopupType);
 
  TMenuItemExtended = CLASS(TMenuItem)
  PRIVATE
@@ -4555,6 +4555,9 @@ BEGIN
             LineCreateDownSignalPopupType:
               CreateSignal(Down, LinePopupNum);
 
+            LineDeleteLinePopupType:
+              DeleteLine(LinePopupNum);
+
             LineEditPopupType:
               TurnEditModeOn(UnknownSignal, UnknownPoint, UnknownBufferStop, LinePopupNum, UnknownTrackCircuit);
 
@@ -4688,7 +4691,6 @@ BEGIN
     WITH Lines[LinePopupNum] DO BEGIN
       IF NOT EditMode THEN BEGIN
         { Add the caption... }
-
         Caption := 'Line ' + LineToStr(LinePopupNum) + ' ' + IfThen(Line_TC <> UnknownTrackCircuit,
                                                                     'TC' + IntToStr(Line_TC));
         AddMenuItem(LinePopupMenu, Caption, NoClickPopupType, NOT Enabled, NIL);
@@ -4699,14 +4701,17 @@ BEGIN
         AddMenuItem(LinePopupMenu, 'Set Track Circuit ' + IntToStr(Line_TC) + ' To Unoccupied', LineTCUnoccupiedPopupType, WhetherEnabled, LinePopupItemClick);
 
         WhetherEnabled := TrackCircuits[Line_TC].TC_OccupationState <> TCFeedbackOccupation;
-        AddMenuItem(LinePopupMenu, 'Set Track Circuit  ' + IntToStr(Line_TC) + 'To Feedback Occupation', LineTCFeedbackOccupationPopupType, WhetherEnabled, LinePopupItemClick);
+        AddMenuItem(LinePopupMenu, 'Set Track Circuit  ' + IntToStr(Line_TC) + 'To Feedback Occupation', LineTCFeedbackOccupationPopupType, WhetherEnabled,
+                                                                                                                                                        LinePopupItemClick);
 
         WhetherEnabled := TrackCircuits[Line_TC].TC_OccupationState <> TCSystemOccupation;
         AddMenuItem(LinePopupMenu, 'Set Track Circuit ' + IntToStr(Line_TC) + ' To System Occupation', LineTCSystemOccupationPopupType, WhetherEnabled, LinePopupItemClick);
 
         WhetherEnabled := (TrackCircuits[Line_TC].TC_OccupationState <> TCPermanentFeedbackOccupation)
                            AND (TrackCircuits[Line_TC].TC_OccupationState <> TCPermanentOccupationSetByUser);
-        AddMenuItem(LinePopupMenu, 'Set Track Circuit ' + IntToStr(Line_TC) + ' To Permanent Occupation', LineTCPermanentOccupationPopupType, WhetherEnabled, LinePopupItemClick);
+
+        AddMenuItem(LinePopupMenu, 'Set Track Circuit ' + IntToStr(Line_TC) + ' To Permanent Occupation', LineTCPermanentOccupationPopupType, WhetherEnabled,
+                                                                                                                                                        LinePopupItemClick);
 
         WhetherEnabled := TrackCircuits[Line_TC].TC_OccupationState <> TCOutOfUseSetByUser;
         AddMenuItem(LinePopupMenu, 'Set Track Circuit ' + IntToStr(Line_TC) + ' Out Of Use', LineTCOutOfUsePopupType, WhetherEnabled, LinePopupItemClick);
@@ -4758,7 +4763,7 @@ BEGIN
 
         AddMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, NIL);
 
-        AddMenuItem(LinePopupMenu, 'Edit Line ' + IntToStr(Line_TC), LineEditPopupType, Enabled, LinePopupItemClick)
+        AddMenuItem(LinePopupMenu, 'Edit Line ' + LineToStr(LinePopupNum), LineEditPopupType, Enabled, LinePopupItemClick)
       END ELSE BEGIN
         { EditMode }
 
@@ -4769,6 +4774,10 @@ BEGIN
         AddMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, NIL);
 
         { ...and now the individual items }
+        AddMenuItem(LinePopupMenu, 'Delete Line ' + LineToStr(LinePopupNum), LineDeleteLinePopupType, Enabled, LinePopupItemClick);
+
+        AddMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, NIL);
+
         WhetherEnabled := SignalAdjacentLineOK(LinePopupNum);
         AddMenuItem(LinePopupMenu, 'Create Line', LineEnterCreateLinePopupType, WhetherEnabled, LinePopupItemClick);
 
