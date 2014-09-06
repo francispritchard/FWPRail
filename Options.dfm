@@ -14,6 +14,7 @@ object OptionsWindow: TOptionsWindow
   FormStyle = fsStayOnTop
   OldCreateOrder = False
   Position = poDefault
+  OnCreate = OptionsWindowCreate
   OnShow = OptionsWindowShow
   PixelsPerInch = 96
   TextHeight = 13

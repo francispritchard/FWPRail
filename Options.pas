@@ -22,6 +22,7 @@ TYPE
     PROCEDURE OptionsWindowFindDialogClose(Sender: TObject);
     PROCEDURE OptionsWindowFindDialogFind(Sender: TObject);
     PROCEDURE OptionsWindowShow(Sender: TObject);
+    procedure OptionsWindowCreate(Sender: TObject);
   PRIVATE
     { Private declarations }
   PUBLIC
@@ -2894,22 +2895,61 @@ BEGIN
   OptionsWindow.OptionsValueListEditor.ColWidths[0] := OptionsWindowValueListEditorCol0Width;
 END; { InitialiseOptionsUnit }
 
-PROCEDURE TOptionsWindow.OptionsWindowFindDialogFind(Sender: TObject);
-//VAR
-//  FoundPos : Integer;
+//procedure TForm1.FormClick(Sender: TObject);
+//begin
+//  FindDialog1.Execute(Handle)
+//end;
 
-BEGIN
-//  WITH OptionsWindow DO BEGIN
-//    FindDialogFind(OptionsWindowFindDialog, OptionsValueListEditor.Strings.Text, FoundPos);
-//    IF FoundPos > 0 THEN BEGIN
-//      debug;
-//        HelpRichEdit.SelStart := PreviousFoundPos - 1;
-//        HelpRichEdit.SelLength := Length(HelpWindowFindDialog.FindText);
-//        HelpRichEdit.SetFocus;
-//        HelpRichEdit.Perform(EM_SCROLLCARET, 0, 0);
-//    END ELSE
-//      ShowMessage('Could not find "' + HelpWindowFindDialog.FindText + '"');
-//  END; {WITH}
+procedure TOptionsWindow.OptionsWindowCreate(Sender: TObject);
+begin
+  OptionsWindowFindDialog.Options := [frDown, frHideWholeWord, frHideUpDown];
+end;
+
+PROCEDURE TOptionsWindow.OptionsWindowFindDialogFind(Sender: TObject);
+var
+  CurX, CurY, GridWidth, GridHeight: integer;
+  X, Y: integer;
+  TargetText: string;
+  CellText: string;
+  i: integer;
+  GridRect: TGridRect;
+label
+  TheEnd;
+begin
+  CurX := OptionsValueListEditor.Selection.Left + 1;
+  CurY := OptionsValueListEditor.Selection.Top;
+  GridWidth := OptionsValueListEditor.ColCount;
+  GridHeight := OptionsValueListEditor.RowCount;
+  Y := CurY;
+  X := CurX;
+  if frMatchCase in OptionsWindowFindDialog.Options then
+    TargetText := OptionsWindowFindDialog.FindText
+  else
+    TargetText := AnsiLowerCase(OptionsWindowFindDialog.FindText);
+  while Y < GridHeight do
+  begin
+    while X < GridWidth do
+    begin
+      if frMatchCase in OptionsWindowFindDialog.Options then
+        CellText := OptionsValueListEditor.Cells[X, Y]
+      else
+        CellText := AnsiLowerCase(OptionsValueListEditor.Cells[X, Y]);
+      i := Pos(TargetText, CellText) ;
+      if i > 0 then
+      begin
+        GridRect.Left := X;
+        GridRect.Right := X;
+        GridRect.Top := Y;
+        GridRect.Bottom := Y;
+        OptionsValueListEditor.Selection := GridRect;
+        goto TheEnd;
+      end;
+      inc(X);
+    end;
+    inc(Y);
+    X := OptionsValueListEditor.FixedCols;
+  end;
+TheEnd:
 END; { OptionsWindowFindDialogFind }
 
 PROCEDURE SearchOptionsText(S : String);
@@ -2917,7 +2957,7 @@ PROCEDURE SearchOptionsText(S : String);
 BEGIN
   PreviousFoundPos := 0;
   WITH OptionsWindow DO BEGIN
-    OptionsWindowFindDialog.Position := Point(OptionsWindow.Left + (OptionsWindow.Width DIV 2), OptionsWindow.Top);
+//    OptionsWindowFindDialog.Position := Point(OptionsWindow.Left + (OptionsWindow.Width DIV 2), OptionsWindow.Top);
     OptionsWindowFindDialog.Execute;
   END; {WITH}
 END; { SearchOptionsText }
@@ -2932,7 +2972,7 @@ BEGIN
     ELSE
       OptionsWindow.Hide;
   END ELSE BEGIN
-    IF (Key = Ord('F')) AND (ssCtrl IN Shift) THEN BEGIN
+    IF ((Key = Ord('F')) OR (Key = Ord('f'))) AND (ssCtrl IN Shift) THEN BEGIN
       S := Chr(Key);
       SearchOptionsText(S);
     END;
