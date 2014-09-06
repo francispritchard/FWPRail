@@ -133,7 +133,7 @@ FUNCTION CountSubRoutes(RouteArray : StringArrayType) : Integer;
 FUNCTION CursorToStr(Cursor : TCursor) : String;
 { Returns a string describing the cursor supplied }
 
-FUNCTION DayOfTheWeekToStr{1}(DayOfTheWeek : DayOfTheWeekType) : String;
+FUNCTION DayOfTheWeekToStr{2}(DayOfTheWeek : DayOfTheWeekType) : String; Overload;
 { Return a string with the given day of the week }
 
 FUNCTION DaysOfTheWeekSetToStr(DaysOfTheWeek : DaysOfTheWeekSetType) : String; Overload;
@@ -908,7 +908,6 @@ CONST
      'VersionDetails');
 
   DebugWindowCaption = '&Debug Window';
-  UnknownColourStr = 'Unknown Colour';
   MaxSaveLogStrs = 10;
   RichEditChars = True;
 
@@ -1196,50 +1195,50 @@ VAR
     END;
 
     BlankLineBefore := False;
-    IF Pos('{BLANKLINEBEFORE}', UpperCase(LogStr)) > 0 THEN BEGIN
+    IF Pos(BlankLineBeforeLogStr, UpperCase(LogStr)) > 0 THEN BEGIN
       BlankLineBefore := True;
-      LogStr := StringReplace(LogStr, '{BLANKLINEBEFORE}', '', [rfIgnoreCase]);
+      LogStr := StringReplace(LogStr, BlankLineBeforeLogStr, '', [rfIgnoreCase]);
     END ELSE BEGIN
       DrawLineInLogFileBefore := False;
       DrawLineInLogFileOnly := False;
       DrawLineInLogFileAfter := False;
 
-      IF Pos('{LINE}', UpperCase(LogStr)) > 0 THEN BEGIN
+      IF Pos(LineLogStr, UpperCase(LogStr)) > 0 THEN BEGIN
         DrawLineChar := '-';
 
         { Draw the default line drawing character }
         IF NOT LineAfterJustDrawn THEN
           DrawLineInLogFileOnly := True;
 
-        LogStr := StringReplace(LogStr, '{LINE}', '', [rfIgnoreCase]);
+        LogStr := StringReplace(LogStr, LineLogStr, '', [rfIgnoreCase]);
       END;
 
       { Drawing lines in the log file. First see if there is a drawn 'line after' immediately succeeding a 'line before' - avoid too many lines in the log }
-      IF Pos('{LINE=', UpperCase(LogStr)) > 0 THEN BEGIN
-        TempStr := GetFollowingChars(LogStr, '{LINE=', '}');
+      IF Pos(LineEqualsLogStr, UpperCase(LogStr)) > 0 THEN BEGIN
+        TempStr := GetFollowingChars(LogStr, LineEqualsLogStr, '}');
         IF (UpperCase(TempStr) = 'BEFORE}') AND NOT LineAfterJustDrawn THEN BEGIN
           DrawLineInLogFileBefore := True;
-          LogStr := StringReplace(LogStr, '{LINE=BEFORE}', '', [rfIgnoreCase]);
+          LogStr := StringReplace(LogStr, LineBeforeLogStr, '', [rfIgnoreCase]);
         END ELSE
           IF (UpperCase(TempStr) = 'BEFORE}') AND LineAfterJustDrawn THEN BEGIN
             DrawLineInLogFileBefore := False;
-            LogStr := StringReplace(LogStr, '{LINE=BEFORE}', '', [rfIgnoreCase]);
+            LogStr := StringReplace(LogStr, LineBeforeLogStr, '', [rfIgnoreCase]);
           END ELSE
             IF UpperCase(TempStr) = 'AFTER}' THEN BEGIN
               DrawLineInLogFileAfter := True;
-              LogStr := StringReplace(LogStr, '{LINE=AFTER}', '', [rfIgnoreCase]);
+              LogStr := StringReplace(LogStr, LineAfterLogStr, '', [rfIgnoreCase]);
             END ELSE
               IF UpperCase(TempStr) = 'BEFOREANDAFTER}' THEN BEGIN
                 DrawLineInLogFileAfter := True;
                 IF NOT LineAfterJustDrawn THEN
                   DrawLineInLogFileBefore := True;
-                LogStr := StringReplace(LogStr, '{LINE=BEFOREANDAFTER}', '', [rfIgnoreCase]);
+                LogStr := StringReplace(LogStr, LineBeforAndAfterLogStr, '', [rfIgnoreCase]);
               END ELSE
                 IF Length(TempStr) = 1 THEN BEGIN
                   DrawLineChar := TempStr;
                   DrawLineInLogFileOnly := True;
 
-                  LogStr := StringReplace(LogStr, '{LINE=' + TempStr + '}', '', [rfIgnoreCase]);
+                  LogStr := StringReplace(LogStr, LineEqualsLogStr + TempStr + '}', '', [rfIgnoreCase]);
                 END ELSE BEGIN
                   Debug('Log file error: Line= must be followed by a single character or "BEFORE", "AFTER" OR "BEFOREANDAFTER" (Log string="' + LogStr + '")');
                   AddRichLine(LoggingWindow.LoggingWindowRichEdit, 'Log file error in "' + LogStr
@@ -2173,19 +2172,19 @@ FUNCTION AspectToStr{1}(Aspect : AspectType): String; Overload;
 BEGIN
   CASE Aspect OF
     FlashingDoubleYellowAspect:
-      Result := 'flashing double yellow';
+      Result := FlashingDoubleYellowAspectStr;
     FlashingSingleYellowAspect:
-      Result := 'flashing single yellow';
+      Result := FlashingSingleYellowAspectStr;
     DoubleYellowAspect:
-      Result := 'double yellow';
+      Result := DoubleYellowAspectStr;
     SingleYellowAspect:
-      Result := 'single yellow';
+      Result := SingleYellowAspectStr;
     GreenAspect:
-      Result := 'green';
+      Result := GreenAspectStr;
     RedAspect:
-      Result := 'red';
+      Result := RedAspectStr;
     NoAspect:
-      Result := 'no aspect';
+      Result := NoAspectStr;
   END; {CASE}
 END; { AspectToStr-1 }
 
@@ -2195,36 +2194,36 @@ BEGIN
   IF LongOrShortString = LongStringType THEN BEGIN
     CASE Aspect OF
       FlashingDoubleYellowAspect:
-        Result := 'flashing double yellow';
+        Result := FlashingDoubleYellowAspectStr;
       FlashingSingleYellowAspect:
-        Result := 'flashing single yellow';
+        Result := FlashingSingleYellowAspectStr;
       DoubleYellowAspect:
-        Result := 'double yellow';
+        Result := DoubleYellowAspectStr;
       SingleYellowAspect:
-        Result := 'single yellow';
+        Result := SingleYellowAspectStr;
       GreenAspect:
-        Result := 'green';
+        Result := GreenAspectStr;
       RedAspect:
-        Result := 'red';
+        Result := RedAspectStr;
       NoAspect:
-        Result := 'no aspect';
+        Result := NoAspectStr;
     END; {CASE}
   END ELSE BEGIN
     CASE Aspect OF
       FlashingDoubleYellowAspect:
-        Result := 'YY*';
+        Result := FlashingDoubleYellowAspectShortStr;
       FlashingSingleYellowAspect:
-        Result := 'Y*';
+        Result := FlashingSingleYellowAspectShortStr;
       DoubleYellowAspect:
-        Result := 'YY';
+        Result := DoubleYellowAspectShortStr;
       SingleYellowAspect:
-        Result := 'Y';
+        Result := SingleYellowAspectShortStr;
       GreenAspect:
-        Result := 'G';
+        Result := GreenAspectShortStr;
       RedAspect:
-        Result := 'R';
+        Result := RedAspectShortStr;
       NoAspect:
-        Result := 'N';
+        Result := NoAspectShortStr;
     END; { CASE }
   END;
 END; { AspectToStr-2 }
@@ -2264,22 +2263,22 @@ FUNCTION ColourToStr(Colour : TColour) : String;
 BEGIN
   IF NOT ColorToIdent(Colour, Result) THEN BEGIN
     CASE Colour OF
-      $0802040:
-        Result := 'clFWPDkBlue';
-      $000080FF:
-        Result := 'clFWPOrange';
-      $004080FF:
-        Result := 'clFWPLtBrown';
-      $00004080:
-        Result := 'clFWPDkBrown';
-      $008080FF:
-        Result := 'clFWPPink';
-      2368548:
-        Result := 'clFWPDkGrey';
-      $3355443:
-        Result := 'clFWPVeryDkGrey';
-      $0038ABB1:
-        Result := 'clFWPPlatformColour';
+      clFWPDkBlue:
+        Result := clFWPDkBlueStr;
+      clFWPOrange:
+        Result := clFWPOrangeStr;
+      clFWPLtBrown:
+        Result := clFWPLtBrownStr;
+      clFWPDkBrown:
+        Result := clFWPDkBrownStr;
+      clFWPPink:
+        Result := clFWPPinkStr;
+      clFWPDkGrey:
+        Result := clFWPDkGreyStr;
+      clFWPVeryDkGrey:
+        Result := clFWPVeryDkGreyStr;
+      clFWPPlatformColour:
+        Result := clFWPPlatformColourStr;
     ELSE
       Result := UnknownColourStr + ': ' + IntToStr(Colour);
     END; {CASE}
@@ -2379,74 +2378,57 @@ BEGIN
   END; {CASE}
 END; { CursorToStr }
 
-FUNCTION DayOfTheWeekToStr{1}(DayOfTheWeek : DayOfTheWeekType) : String; Overload;
-{ Return a long string with the given day of the week }
-BEGIN
-  CASE DayOfTheWeek OF
-    Monday:
-      Result := 'Monday';
-    Tuesday:
-      Result := 'Tuesday';
-    Wednesday:
-      Result := 'Wednesday';
-    Thursday:
-      Result := 'Thursday';
-    Friday:
-      Result := 'Friday';
-    Saturday:
-      Result := 'Saturday';
-    Sunday:
-      Result := 'Sunday';
-    UnknownDayofTheWeek:
-      Result := 'Unknown Day of the Week';
-  END; {CASE}
-END; { DayOfTheWeekToStr-1 }
-
-FUNCTION DayOfTheWeekToStr{2}(DayOfTheWeek : DayOfTheWeekType; LongOrShortString : StringType) : String; Overload;
+FUNCTION DayOfTheWeekToStr{1}(DayOfTheWeek : DayOfTheWeekType; LongOrShortString : StringType) : String; Overload;
 { Return a long or short string with the given day of the week }
 BEGIN
   CASE DayOfTheWeek OF
     Monday:
       IF LongOrShortString = ShortStringType THEN
-        Result := 'Mo'
+        Result := MondayShortStr
       ELSE
-        Result := 'Monday';
+        Result := MondayStr;
     Tuesday:
       IF LongOrShortString = ShortStringType THEN
-        Result := 'Tu'
+        Result := TuesdayShortStr
       ELSE
-        Result := 'Tuesday';
+        Result := TuesdayStr;
     Wednesday:
       IF LongOrShortString = ShortStringType THEN
-        Result := 'We'
+        Result := WednesdayShortStr
       ELSE
-        Result := 'Wednesday';
+        Result := WednesdayStr;
     Thursday:
       IF LongOrShortString = ShortStringType THEN
-        Result := 'Th'
+        Result := ThursdayShortStr
       ELSE
-        Result := 'Thursday';
+        Result := ThursdayStr;
     Friday:
       IF LongOrShortString = ShortStringType THEN
-        Result := 'Fr'
+        Result := FridayShortStr
       ELSE
-        Result := 'Friday';
+        Result := FridayStr;
     Saturday:
       IF LongOrShortString = ShortStringType THEN
-        Result := 'Sa'
+        Result := SaturdayShortStr
       ELSE
-        Result := 'Saturday';
+        Result := SaturdayStr;
     Sunday:
       IF LongOrShortString = ShortStringType THEN
-        Result := 'Su'
+        Result := SundayShortStr
       ELSE
-        Result := 'Sunday';
+        Result := SundayStr;
     UnknownDayofTheWeek:
       IF LongOrShortString = ShortStringType THEN
         Result := '?'
       ELSE
-        Result := 'Unknown Day';
+        Result := UnknownDayOfTheWeekStr;
   END; {CASE}
+END; { DayOfTheWeekToStr-1 }
+
+FUNCTION DayOfTheWeekToStr{2}(DayOfTheWeek : DayOfTheWeekType) : String; Overload;
+{ Return a long string with the given day of the week }
+BEGIN
+  Result := DayOfTheWeekToStr(DayOfTheWeek, LongStringType);
 END; { DayOfTheWeekToStr-2 }
 
 FUNCTION DaysOfTheWeekSetToStr(DaysOfTheWeek : DaysOfTheWeekSetType) : String; Overload;
@@ -2519,7 +2501,7 @@ BEGIN
     IF LongOrShortString = ShortStringType THEN
       Result := Result + DayOfTheWeekToStr(Sunday)
     ELSE
-      Result := Result + DayOfTheWeekToStr(sunday, LongStringType);
+      Result := Result + DayOfTheWeekToStr(Sunday, LongStringType);
   END;
 END; { DaysOfTheWeekSetToStr }
 
@@ -7277,25 +7259,25 @@ FUNCTION StrToAspect(Str : String) : AspectType;
 BEGIN
   Str := TrimRemoveSpacesAndMakeUpperCase(Str);
 
-  IF (Str = 'FLASHINGDOUBLEYELLOW') OR (Str = 'YY*') THEN
+  IF (Str = FlashingDoubleYellowAspectStr) OR (Str = FlashingDoubleYellowAspectShortStr) THEN
     Result := FlashingDoubleYellowAspect
   ELSE
-    IF (Str = 'FLASHINGSINGLEYELLOW') OR (Str = 'Y*') THEN
+    IF (Str = FlashingSingleYellowAspectStr) OR (Str = FlashingSingleYellowAspectShortStr) THEN
       Result := FlashingSingleYellowAspect
     ELSE
-      IF (Str = 'DOUBLEYELLOW') OR (Str = 'YY') THEN
+      IF (Str = DoubleYellowAspectStr) OR (Str = DoubleYellowAspectShortStr) THEN
         Result := DoubleYellowAspect
       ELSE
-        IF (Str = 'SINGLEYELLOW') OR (Str = 'Y') THEN
+        IF (Str = SingleYellowAspectStr) OR (Str = SingleYellowAspectShortStr) THEN
           Result := SingleYellowAspect
         ELSE
-          IF (Str = 'GREEN') OR (Str = 'G') THEN
+          IF (Str = GreenAspectStr) OR (Str = GreenAspectShortStr) THEN
             Result := GreenAspect
           ELSE
-            IF (Str = 'RED') OR (Str = 'R') THEN
+            IF (Str = RedAspectStr) OR (Str = RedAspectShortStr) THEN
               Result := RedAspect
             ELSE
-              IF (Str = 'NOASPECT') OR (Str = 'N') THEN
+              IF (Str = NoAspectStr) OR (Str = NoAspectShortStr) THEN
                 Result := NoAspect
               ELSE
                 Result := UnknownAspectType;
@@ -7304,62 +7286,59 @@ END; { StrToAspect }
 FUNCTION StrToColour(Str : String) : TColour;
 { Checks if it's a Delphi colour or an FWP one }
 BEGIN
-  Str := TrimRemoveSpacesAndMakeUpperCase(Str);
-
-  IF Pos(TrimRemoveSpacesAndMakeUpperCase(UnknownColourStr), Str) > 0 THEN
-    Result := StringToColor(Copy(Str, Length(TrimRemoveSpacesAndMakeUpperCase(UnknownColourStr)) + 2))
+  IF Pos(UnknownColourStr, Str) > 0 THEN
+    Result := StringToColor(Copy(Str, Length(UnknownColourStr) + 2))
   ELSE
-    IF Str = 'CLFWPDKBLUE' THEN
-      Result := $0802040
+    IF Str = clFWPDkBlueStr THEN
+      Result := clFWPDkBlue
     ELSE
-      IF Str = 'CLFWPORANGE' THEN
-        Result := $000080FF
+      IF Str = clFWPOrangeStr THEN
+        Result := clFWPOrange
       ELSE
-        IF Str = 'CLFWPLTBROWN' THEN
-          Result := $004080FF
+        IF Str = clFWPLtBrownStr THEN
+          Result := clFWPLtBrown
         ELSE
-          IF Str = 'CLFWPDKBROWN' THEN
-            Result := $00004080
+          IF Str = clFWPDkBrownStr THEN
+            Result := clFWPDkBrown
           ELSE
-            IF Str = 'CLFWPPINK' THEN
-              Result := $008080FF
+            IF Str = clFWPPinkStr THEN
+              Result := clFWPPink
             ELSE
-              IF Str = 'CLFWPDKGREY' THEN
-                Result := 2368548
+              IF Str = clFWPDkGreyStr THEN
+                Result := clFWPDkGrey
               ELSE
-                IF Str = 'CLFWPVERYDKGREY' THEN
-                  Result := $3355443
+                IF Str = clFWPVeryDkGreyStr THEN
+                  Result := clFWPVeryDkGrey
                 ELSE
-                  IF Str = 'CLFWPPLATFORMCOLOUR' THEN
-                    Result := $0038ABB1
+                  IF Str = clFWPPlatformColourStr THEN
+                    Result := clFWPPlatformColour
                   ELSE
                     Result := StringToColor(Str);
-END; { StrToColour }
+END;
 
 FUNCTION StrToDayOfTheWeek(Str : String) : DayOfTheWeekType;
 { Return a day of the week from a given string }
 BEGIN
-  Str := UpperCase(Str);
-  IF (Str = 'MONDAY') OR (Str = 'MON') THEN
+  IF (Str = MondayStr) OR (Str = MondayShortStr) THEN
     Result := Monday
   ELSE
-    IF (Str = 'TUESDAY') OR (Str = 'TUE') THEN
+    IF (Str = TuesdayStr) OR (Str = TuesdayShortStr) THEN
       Result := Tuesday
     ELSE
-      IF (Str = 'WEDNESDAY') OR (Str = 'WED') THEN
+      IF (Str = WednesdayStr) OR (Str = WednesdayShortStr) THEN
         Result := Wednesday
       ELSE
-        IF (Str = 'THURSDAY') OR (Str = 'THU') THEN
+        IF (Str = ThursdayStr) OR (Str = ThursdayShortStr) THEN
           Result := Thursday
         ELSE
-          IF (Str = 'FRIDAY') OR (Str = 'FRI') THEN
+          IF (Str = FridayStr) OR (Str = FridayShortStr) THEN
             Result := Friday
           ELSE
-            IF (STR = 'SATURDAY') OR (STR = 'SAT') THEN
-              Result := SATURDAY
+            IF (Str = SaturdayStr) OR (STR = SaturdayShortStr) THEN
+              Result := Saturday
             ELSE
-              IF (STR = 'SUNDAY') OR (STR = 'SUN') THEN
-                Result := SUNDAY
+              IF (Str = SundayStr) OR (STR = SundayShortStr) THEN
+                Result := Sunday
               ELSE
                 Result := UnknownDayOfTheWeek;
 END; { StrToDayOfTheWeek }

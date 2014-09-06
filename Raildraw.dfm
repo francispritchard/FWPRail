@@ -739,7 +739,6 @@ object FWPRailWindow: TFWPRailWindow
         object GeneralPopupPointUndrawColour: TMenuItem
           Caption = 'Point Undraw Colour'
           object GeneralPopupChangePointUndrawColour: TMenuItem
-            AutoCheck = True
             Caption = 'Change Point Undraw Colour'
             OnClick = GeneralPopupChangePointUndrawColourClick
           end

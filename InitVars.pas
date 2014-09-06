@@ -97,6 +97,15 @@ CONST
   clFWPDkGrey = $00242424; { 0 36 36 36 }
   clFWPVeryDkGrey = $00212121; { 0  33  33  33 }
 
+  clFWPDkBlueStr = 'clFWPDkBlue';
+  clFWPOrangeStr = 'clFWPOrange';
+  clFWPLtBrownStr = 'clFWPLtBrown';
+  clFWPDkBrownStr = 'clFWPDkBrown';
+  clFWPPinkStr = 'clFWPPink';
+  clFWPPlatformColourStr = 'clFWPPlatformColour';
+  clFWPDkGreyStr = 'clFWPDkGrey';
+  clFWPVeryDkGreyStr = 'clFWPVeryDkGrey';
+
   FirstFunctionDecoder = 9001;
   LastFunctionDecoder = 9916;
 
@@ -1235,6 +1244,22 @@ CONST
   CatchPointDownStr = 'Catch Point Down';
   UnknownPointTypeStr = 'Unknown Point Type';
 
+  FlashingDoubleYellowAspectStr = 'flashing double yellow';
+  FlashingSingleYellowAspectStr = 'flashing single yellow';
+  DoubleYellowAspectStr = 'double yellow';
+  SingleYellowAspectStr = 'single yellow';
+  GreenAspectStr = 'green';
+  RedAspectStr = 'red';
+  NoAspectStr = 'no aspect';
+
+  FlashingDoubleYellowAspectShortStr = 'YY*';
+  FlashingSingleYellowAspectShortStr = 'Y*';
+  DoubleYellowAspectShortStr = 'YY';
+  SingleYellowAspectShortStr = 'Y';
+  GreenAspectShortStr = 'G';
+  RedAspectShortStr = 'R';
+  NoAspectShortStr = 'N';
+
   LeftTopStr = 'Left Top';
   RightTopStr = 'Right Top';
   CentreTopStr = 'Centre Top';
@@ -1250,6 +1275,30 @@ CONST
   DashDotDotStr = 'DashDotDot';
   ClearStr = 'Clear';
   InsideFrameStr = 'InsideFrame';
+
+  MondayStr = 'Monday';
+  TuesdayStr = 'Tuesday';
+  WednesdayStr = 'Wednesday';
+  ThursdayStr = 'Thursday';
+  FridayStr = 'Friday';
+  SaturdayStr = 'Saturday';
+  SundayStr = 'Sunday';
+  UnknownDayofTheWeekStr = 'Unknown Day of the Week';
+
+  MondayShortStr = 'Mon';
+  TuesdayShortStr = 'Tue';
+  WednesdayShortStr = 'Wed';
+  ThursdayShortStr = 'Thu';
+  FridayShortStr = 'Fri';
+  SaturdayShortStr = 'Sat';
+  SundayShortStr = 'Sun';
+
+  BlankLineBeforeLogStr = '{BLANKLINEBEFORE}';
+  LineLogStr = '{LINE}';
+  LineEqualsLogStr = '{LINE=';
+  LineBeforeLogStr = '{LINE=BEFORE}';
+  LineAfterLogStr = '{LINE=AFTER}';
+  LineBeforAndAfterLogStr = '{LINE=BEFOREANDAFTER}';
 
   LogSignalData = True;
 

@@ -55,8 +55,6 @@ object InitVarsWindow: TInitVarsWindow
       '')
     ScrollBars = ssVertical
     TabOrder = 0
-    ExplicitLeft = -8
-    ExplicitTop = -16
   end
   object SaveDialogue: TSaveDialog
     DefaultExt = 'tim'
