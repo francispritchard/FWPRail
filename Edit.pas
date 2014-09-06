@@ -1767,39 +1767,6 @@ BEGIN
         Inc(OtherSignal);
       END;
 
-//      IF CanDelete THEN BEGIN
-//        { Now we need to renumber signal references in the database that have changed because of the deletion }
-//
-//
-//        FOR OtherSignal1 := 0 TO High(Signals) DO BEGIN
-//          { we only need to decrement signal numbers from the signal we deleted to the signal number equal to the end of the new array - plus one, the signal we deleted }
-//          FOR OtherSignal2 := SignalToDeleteNum TO High(Signals) + 1 DO BEGIN
-//            IF Signals[OtherSignal1].Signal_OppositePassingLoopSignal = OtherSignal2 THEN
-//              Signals[OtherSignal1].Signal_OppositePassingLoopSignal := OtherSignal2 - 1;
-//
-//            IF Signals[OtherSignal1].Signal_NextSignalIfNoIndicator = OtherSignal2 THEN
-//              Signals[OtherSignal1].Signal_NextSignalIfNoIndicator := OtherSignal2 - 1;
-//
-//            FOR JunctionIndicator := UpperLeftIndicator TO LowerRightIndicator DO BEGIN
-//              IF Signals[OtherSignal1].Signal_JunctionIndicators[JunctionIndicator].JunctionIndicator_Exists THEN BEGIN
-//                IF Signals[OtherSignal1].Signal_JunctionIndicators[JunctionIndicator].JunctionIndicator_TargetSignal = OtherSignal2 THEN BEGIN
-//                  Signals[OtherSignal1].Signal_JunctionIndicators[JunctionIndicator].JunctionIndicator_TargetSignal := OtherSignal2 - 1;
-//                  Signals[OtherSignal1].Signal_DataChanged := True;
-//                END;
-//              END;
-//            END; {FOR}
-//
-//            SignalPos := GetElementPosInIntegerArray(Signals[OtherSignal1].Signal_SemaphoreDistantHomesArray, OtherSignal2);
-//            IF SignalPos > -1 THEN BEGIN
-//              Signals[OtherSignal1].Signal_SemaphoreDistantHomesArray[SignalPos] := OtherSignal2 - 1;
-//              Signals[OtherSignal1].Signal_DataChanged := True;
-//            END;
-//          END; {FOR}
-//          IF Signals[OtherSignal1].Signal_DataChanged THEN
-//            WriteOutSignalDataToDatabase;
-//        END; {FOR}
-//      END;
-
       IF CanDelete THEN BEGIN
         IF NOT DeleteRecordFromSignalDatabase(SignalToDeleteNum) THEN BEGIN
           Log('S! Cannot delete S=' + IntToStr(SignalToDeleteNum));
