@@ -334,6 +334,7 @@ TYPE
     Line_NextUpPoint : Integer;
     Line_NextUpType : NextLineRouteingType;
     Line_NoLongerOutOfUse : Boolean;
+    Line_Number : Integer;
     Line_OldColour : TColour;
     Line_OutOfUseState : OutOfUseState;
     Line_RoutedOver : Boolean;
@@ -341,7 +342,6 @@ TYPE
     Line_RouteSet : Integer;
     Line_SaveOutOfUseState : OutOfUseState;
     Line_TC : Integer;
-    Line_TempNum : Integer;
     Line_TypeOfLine : TypeOfLine;
     Line_UpConnectionCh : String;
     Line_UpConnectionChRect : TRect;
@@ -1567,6 +1567,9 @@ PROCEDURE CalculateSignalPosition(S : Integer);
 
 PROCEDURE CalculateAllSignalPositions;
 { Work out where all the signals are on the screen }
+
+FUNCTION DeleteRecordFromLineDatabase(LineToDeleteNum : Integer) : Boolean;
+{ Remove a record from the line database. (Checks have already been made in Edit as to whether it can be deleted). }
 
 FUNCTION DeleteRecordFromPointDatabase(PointToDeleteNum : Integer) : Boolean;
 { Remove a record from the point database. (Checks have already been made in Edit as to whether it can be deleted). }
@@ -3274,7 +3277,8 @@ BEGIN
       Line := -1;
       WHILE NOT LinesADOTable.EOF DO BEGIN
         Inc(Line);
-        IF LinesADOTable.FieldByName(Line_NumberFieldName).AsInteger <> Line THEN BEGIN
+        TempLine := LinesADOTable.FieldByName(Line_NumberFieldName).AsInteger;
+        IF TempLine <> Line THEN BEGIN
           { we need to renumber from here on }
           LinesADOTable.Edit;
           LinesADOTable.FieldByName(Line_NumberFieldName).AsInteger := Line;
@@ -3327,9 +3331,9 @@ BEGIN
             Line_UpConnectionChBold := False;
             Line_UpXValueSpecified := False;
 
-            Line_TempNum := FieldByName(Line_NumberFieldName).AsInteger;
-            IF Line_TempNum <> Line THEN
-              ErrorMsg := 'it does not match the line number in the database (' + IntToStr(Line_TempNum) + ')';
+            Line_Number := FieldByName(Line_NumberFieldName).AsInteger;
+            IF Line_Number <> Line THEN
+              ErrorMsg := 'it does not match the line number in the database (' + IntToStr(Line_Number) + ')';
 
             IF ErrorMsg = '' THEN
               Line_NameStr := ValidateLineName(FieldByName(Line_NameStrFieldName).AsString, Line, ErrorMsg);
@@ -3691,7 +3695,12 @@ BEGIN
       Line := 0;
       WHILE Line <= High(Lines) DO BEGIN
         WITH Lines[Line] DO BEGIN
-          { First deal with out of use changes }
+          Log('S Recording in line database that L' + IntToStr(Line) + ' ' + Line_NumberFieldName + ' is ''' + IntToStr(Line_Number) + '''');
+          LinesADOTable.Edit;
+          LinesADOTable.FieldByName(Line_NumberFieldName).AsString := IntToStr(Line_Number);
+          LinesADOTable.Post;
+
+          { And deal with out of use changes }
           IF ((Line_OutOfUseState = OutOfUse)
                OR ((Line_Location <> UnknownLocation) AND Locations[Line_Location].Location_OutOfUse))
           AND (Line_InitialOutOfUseState = InUse)
@@ -3703,6 +3712,8 @@ BEGIN
                   Edit;
                   FieldByName(Line_OutOfUseFieldName).AsBoolean := True;
                   Post;
+
+                  Log('S Recording in line database that L' + IntToStr(Line) + ' (' + Line_NameStr + ') is out of use');
                 END;
               END; {WITH}
               LinesADOTable.Next;
@@ -3716,6 +3727,8 @@ BEGIN
                     Edit;
                     FieldByName(Line_OutOfUseFieldName).AsBoolean := False;
                     Post;
+
+                    Log('S Recording in line database that L' + IntToStr(Line) + ' (' + Line_NameStr + ') is in use');
                   END;
                 END; {WITH}
                 LinesADOTable.Next;
@@ -4953,7 +4966,7 @@ BEGIN
                                       + 'Do you wish to continue?',
                                       StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
         THEN
-          ShutDownProgram(UnitRef, 'DeleteRecordFromSignalDatabaseAndRenumberSignals')
+          ShutDownProgram(UnitRef, 'DeleteRecordFromSignalDatabase')
         ELSE
           Exit;
       END;
@@ -4983,6 +4996,49 @@ BEGIN
       Log('EG AddNewRecordToSignalDatabase: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { DeleteRecordFromSignalDatabase }
+
+FUNCTION DeleteRecordFromLineDatabase(LineToDeleteNum : Integer) : Boolean;
+{ Remove a record from the line database. (Checks have already been made in Edit as to whether it can be deleted). }
+BEGIN
+  Result := False;
+  TRY
+    WITH InitVarsWindow DO BEGIN
+      IF NOT FileExists(PathToRailDataFiles + LineDataFilename + '.' + LineDataFilenameSuffix) THEN BEGIN
+        IF MessageDialogueWithDefault('Line database file "' + PathToRailDataFiles + LineDataFilename + '.' + LineDataFilenameSuffix + '" cannot be located'
+                                      + CRLF
+                                      + 'Do you wish to continue?',
+                                      StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
+        THEN
+          ShutDownProgram(UnitRef, 'DeleteRecordFromLineDatabase')
+        ELSE
+          Exit;
+      END;
+
+      LinesADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source=' + PathToRailDataFiles + LineDataFilename + '.' + LineDataFilenameSuffix
+                                               + ';Persist Security Info=False';
+      LinesADOConnection.Connected := True;
+      LinesADOTable.Open;
+      IF NOT LinesADOTable.Locate(Line_NumberFieldName, IntToStr(LineToDeleteNum), []) THEN BEGIN
+        Log('S Line data table and connection opened to delete S' + IntToStr(LineToDeleteNum) + ' but it cannot be found');
+      END ELSE BEGIN
+        Log('S Line data table and connection opened to delete S' + IntToStr(LineToDeleteNum));
+
+        { Now delete the Line - we have already checked, in the Edit unit, whether deleting it is will cause knock-on problems with other Lines }
+        LinesADOTable.Delete;
+        Log('SG S' + IntToStr(LineToDeleteNum) + ' has been deleted');
+        Result := True;
+      END;
+
+      { Tidy up the database }
+      LinesADOTable.Close;
+      LinesADOConnection.Connected := False;
+      Log('S Line Data table and connection closed');
+    END;
+  EXCEPT {TRY}
+    ON E : Exception DO
+      Log('EG AddNewRecordToLineDatabase: ' + E.ClassName + ' error raised, with message: ' + E.Message);
+  END; {TRY}
+END; { DeleteRecordFromLineDatabase }
 
 PROCEDURE WriteOutSignalDataToDatabase;
 { If a Signal's data has been changed, record it in the database }
@@ -5014,7 +5070,7 @@ BEGIN
                                         + 'Do you wish to continue?',
                                         StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
           THEN
-            ShutDownProgram(UnitRef, 'DeleteRecordFromSignalDatabaseAndRenumberSignals')
+            ShutDownProgram(UnitRef, 'DeleteRecordFromSignalDatabase')
           ELSE
             Exit;
         END;
@@ -5966,7 +6022,7 @@ BEGIN
                                       + 'Do you wish to continue?',
                                       StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
         THEN
-          ShutDownProgram(UnitRef, 'DeleteRecordFromPointDatabaseAndRenumberPoints')
+          ShutDownProgram(UnitRef, 'DeleteRecordFromPointDatabase')
         ELSE
           Exit;
       END;
@@ -5995,7 +6051,7 @@ BEGIN
     ON E : Exception DO
       Log('EG AddNewRecordToPointDatabase: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
-END; { DeleteRecordFromPointDatabaseAndRenumberPoints }
+END; { DeleteRecordFromPointDatabase }
 
 PROCEDURE AddNewRecordToPointDatabase;
 { Append a record to the point database }
