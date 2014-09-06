@@ -177,6 +177,13 @@ TYPE
   TColour = TColor;
   TColourDialogue = TColorDialog;
 
+  CreatingLineType = RECORD
+    X1 : Integer;
+    Y1 : Integer;
+    X2 : Integer;
+    Y2 : Integer;
+  END;
+
   BooleanArrayType = ARRAY OF Boolean;
   DateTimeArrayType = ARRAY OF TDateTime;
   IntegerArrayType = ARRAY OF Integer;
@@ -1310,6 +1317,8 @@ VAR
   AutoModeInitiated : Boolean = False;
   BreakPointRequiredInMakeSoundRoutine : Boolean = False;
   BufferStops : ARRAY OF BufferStopRec;
+  CreateLineMode : Boolean = False;
+  CreatingLine : CreatingLineType;
   CrossHairCursor : TCursor;
   DapolCleaningWagonLocoChip : Integer = UnknownLocoChip;
   DapolCleaningWagonLocoChipRunning : Boolean = False;
@@ -6862,6 +6871,10 @@ END; { InitialiseInitVarsUnit }
 INITIALIZATION
 
 BEGIN
+  CreatingLine.X1 := 0;
+  CreatingLine.Y1 := 0;
+  CreatingLine.X2 := 0;
+  CreatingLine.Y2 := 0;
   SaveActualTime := Time;
 END; { Initialization }
 

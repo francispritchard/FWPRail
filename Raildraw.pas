@@ -7266,8 +7266,10 @@ BEGIN { Main drawing procedure }
           DiagramsCheckingInProgress := False;
         END;
 
-        { Draw the positions where lines could be created }
-        IF EditMode THEN BEGIN
+        { Draw the positions where lines could be created. This procedure has to be before the line drawing routines, as otherwise these temporary lines would overwrite
+          the real lines representing tracks.
+        }
+        IF CreateLineMode THEN BEGIN
           CalculateLocationPositions;
           SetLength(TempLocationYArray, 0);
           Pen.Color := clFWPDkBlue;
@@ -7545,6 +7547,13 @@ BEGIN { Main drawing procedure }
 
         IF NOT ShowTrackCircuits AND NOT ShowLineDetail AND NOT ShowLineNumbers AND NOT ShowLinesWhereUpXValueSpecified THEN
           DrawAllPoints;
+
+        IF LineEndDragging THEN BEGIN
+          Pen.Color := clWhite;
+          Pen.Style := psSolid;
+          MoveTo(CreatingLine.X1, CreatingLine.Y1);
+          LineTo(CreatingLine.X2, CreatingLine.Y2);
+        END;
 
         IF ResizeMap THEN
           ResizeMap := False;

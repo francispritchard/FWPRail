@@ -66,14 +66,26 @@ PROCEDURE DeletePoint(PointToDeleteNum : Integer);
 PROCEDURE DeleteSignal(SignalToDeleteNum : Integer);
 { Delete a signal after appropriate checks }
 
+PROCEDURE DragLineEnd(MouseX, MouseY : Integer);
+{ Allows a line to be moved by the mouse }
+
 PROCEDURE DragSignal(S, MouseX, MouseY : Integer; OUT NearestLineToSignal, TooNearSignal : Integer);
 { { Allows a signal to be moved by the mouse }
 
 PROCEDURE DropSignal;
 { Drops the signal at the nearest adjacent line }
 
+FUNCTION GetNearestLine(X, Y : Integer) : Integer;
+{ Returns the line number nearest to a dragged signal if the line is horizontal and the signal or its post are within a line's mouse rectangle }
+
 PROCEDURE InitialiseEditUnit;
 { Initialises the unit }
+
+FUNCTION IsNearRow(Y : Integer) : Boolean;
+{ Returns true if the Y position is close to a window row }
+
+PROCEDURE LineDraggingComplete(X, Y : Integer);
+{ Called when when we have finished line creation by mouse }
 
 PROCEDURE MoveObjectLeft;
 { Moves whatever is currently being edited to the left }
@@ -109,6 +121,9 @@ VAR
   EditedSignal : Integer = UnknownSignal;
   EditedTrackCircuit : Integer = UnknownTrackCircuit;
   EditWindow: TEditWindow;
+  LineCreatedXYPos : TPoint;
+  LineEndDragging : Boolean = False;
+  PreLineEndDragging : Boolean = False;
   SaveDragX : Integer = 0;
   SaveDragY : Integer = 0;
 
@@ -1855,8 +1870,50 @@ BEGIN
 END; { DeleteSignal }
 
 PROCEDURE CreateLine;
-{ Creates a line from scratch }
+{ Create a basic signal which must then be added to using the value list editor }
 BEGIN
+  SetLength(Lines, Length(Lines) + 1);
+  EditedLine := High(Lines);
+
+  WITH Lines[EditedLine] DO BEGIN
+    Line_UpXAbsolute := 0;
+    Line_UpX := 0;
+    Line_DownXAbsolute := 0;
+    Line_DownX := 0;
+    Line_UpRow := 0;
+    Line_UpRow := 0;
+    Line_UpY := 0;
+    Line_DownY := 0;
+
+    Line_DataChanged := False;
+    Line_DownConnectionCh := '';
+    Line_DownConnectionChBold := False;
+    Line_AdjacentBufferStop := UnknownBufferStop;
+    Line_LockFailureNotedInSubRouteUnit := False;
+    Line_NextUpIsEndofLine := NotEndOfLine;
+    Line_NextDownIsEndOfLine := NotEndOfLine;
+    Line_NextDownPoint := UnknownPoint;
+    Line_NextDownType := UnknownNextLineRouteingType;
+    Line_NextDownLine := UnknownLine;
+    Line_NextUpLine := UnknownLine;
+    Line_NextUpPoint := UnknownPoint;
+    Line_RouteLockingForDrawing := UnknownRoute;
+    Line_RouteSet := UnknownRoute;
+    Line_UpConnectionCh := '';
+    Line_UpConnectionChBold := False;
+    Line_UpXValueSpecified := False;
+  END; {WITH}
+
+  NoteThatDataHasChanged;
+  CalculateLinePositions;
+  AddNewRecordToLineDatabase;
+  WriteOutLineDataToDatabase;
+
+  SaveLineRec := Lines[EditedLine];
+  WriteLineValuesToValueList;
+
+  InvalidateScreen(UnitRef, 'CreateLine');
+  Log('D Screen invalidated by CreateLine');
 END; { CreateLine }
 
 PROCEDURE DeleteLine(LineToDeleteNum : Integer);
@@ -2615,5 +2672,54 @@ BEGIN
       Log('EG TurnEditModeOff: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { TurnEditModeOff }
+
+PROCEDURE DragLineEnd(MouseX, MouseY : Integer);
+{ Allows a line to be moved by the mouse }
+VAR
+  NearestLineToNewLine : Integer;
+
+BEGIN
+  TRY
+    BEGIN
+      WITH FWPRailWindow.Canvas DO BEGIN
+        CreatingLine.X1 := LineCreatedXYPos.X;
+        CreatingLine.Y1 := LineCreatedXYPos.Y;
+        CreatingLine.X2 := MouseX;
+        CreatingLine.Y2 := MouseY;
+      END; {WITH}
+
+      NearestLineToNewLine := GetNearestLine(MouseX, MouseY);
+      IF NearestLineToNewLine = UnknownLine THEN
+        ChangeCursor(crNoDrop)
+      ELSE
+        ChangeCursor(crDrag);
+
+      FWPRailWindow.Repaint;
+    END;
+  EXCEPT
+    ON E : Exception DO
+      Log('EG DragLineEnd:' + E.ClassName + ' error raised, with message: '+ E.Message);
+  END; {TRY}
+END; { DragLineEnd }
+
+PROCEDURE LineDraggingComplete(X, Y : Integer);
+{ Called when when we have finished line creation by mouse }
+VAR
+  Line : Integer;
+  LineFound : Boolean;
+
+BEGIN
+  Line := 0;
+  LineFound := False;
+  WHILE (Line <= High(Lines)) AND NOT LineFound DO BEGIN
+    IF PointInPolygon(Lines[Line].Line_MousePolygon, Point(X, Y)) THEN
+      LineFound := True
+    ELSE
+      Inc(Line);
+  END; {WHILE}
+
+  IF LineFound THEN
+    beep;
+END; { LineDraggingComplete }
 
 END { Edit }.

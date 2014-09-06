@@ -200,10 +200,10 @@ BEGIN
             MouseMovingY := Y;
           END;
 
-    IF CreateLineMode AND NOT IsNearRow(Y) THEN
-      ChangeCursor(crNoDrop)
-    ELSE
-      IF CreateLineMode THEN
+//    IF CreateLineMode AND NOT IsNearRow(Y) THEN
+//      ChangeCursor(crNoDrop)
+//    ELSE
+      IF CreateLineMode AND IsNearRow(Y) THEN
         ChangeCursor(crHandPoint)
       ELSE
         IF NOT SignalDragging AND (Screen.Cursor <> crDefault) THEN
