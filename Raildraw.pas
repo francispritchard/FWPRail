@@ -1104,13 +1104,10 @@ VAR
             END;
           END;
 
-          IF ShowLinesWhereUpXValueSpecified THEN BEGIN
+          IF ShowLinesUpXAbsoluteValue THEN BEGIN
             Font.Color := GetLineTypeColour(Line_TypeOfLine);
             LineNameWidth := TextWidth(LineToStr(Line));
-            IF Line_UpXValueSpecified THEN
-              SegmentText := LineToStr(Line)
-            ELSE
-              SegmentText := '';
+            SegmentText := IntToStr(Lines[Line].Line_UpX);
           END;
 
           IF ShowLineDirectionDetail THEN BEGIN
@@ -1292,7 +1289,7 @@ BEGIN
       IF ShowAreas
       OR ShowLineDetail
       OR ShowLineNumbers
-      OR ShowLinesWhereUpXValueSpecified
+      OR ShowLinesUpXAbsoluteValue
       OR ShowLinesWhichLockPoints
       OR ShowLineDirectionDetail
       OR ShowLocationLengthDetail
@@ -7513,7 +7510,7 @@ BEGIN { Main drawing procedure }
         IF ShowAreas
         OR ShowLineDetail
         OR ShowLineNumbers
-        OR ShowLinesWhereUpXValueSpecified
+        OR ShowLinesUpXAbsoluteValue
         OR ShowLinesWhichLockPoints
         OR ShowLineDirectionDetail
         OR ShowLocationLengthDetail
@@ -7545,7 +7542,7 @@ BEGIN { Main drawing procedure }
           END; {FOR}
         END;
 
-        IF NOT ShowTrackCircuits AND NOT ShowLineDetail AND NOT ShowLineNumbers AND NOT ShowLinesWhereUpXValueSpecified THEN
+        IF NOT ShowTrackCircuits AND NOT ShowLineDetail AND NOT ShowLineNumbers AND NOT ShowLinesUpXAbsoluteValue THEN
           DrawAllPoints;
 
         IF LineEndDragging THEN BEGIN

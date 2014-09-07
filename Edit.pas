@@ -494,12 +494,8 @@ BEGIN
 
           Values[Line_NameStrFieldName] := Line_NameStr;
 
-          Values[Line_UpXLineStrFieldName] := Line_UpXLineStr;
-
-          IF Line_UpXLineStr = '' THEN
-            WriteIntegerValueExcludingZero(Line_UpXAbsoluteFieldName, Line_UpXAbsolute, '9999')
-          ELSE
-            WriteIntegerValueExcludingZero(Line_UpXAbsoluteFieldName, 0, '9999');
+          WriteIntegerValueExcludingZero(Line_UpXAbsoluteFieldName, Line_UpXAbsolute, '9999');
+          WriteIntegerValueExcludingZero(Line_DownXAbsoluteFieldName, Line_DownXAbsolute, '9999');
 
           Values[Line_UpRowFieldName] := FloatToStr(Line_UpRow);
           Values[Line_DownRowFieldName] := FloatToStr(Line_DownRow);
@@ -1243,12 +1239,14 @@ BEGIN
           IF KeyName = Line_NameStrFieldName THEN
             Line_NameStr := ValidateLineName(NewKeyValue, EditedLine, ErrorMsg);
 
-          IF KeyName = Line_UpXLineStrFieldName THEN
-            Line_UpXLineStr := ValidateLineUpXStr(NewKeyValue, Line_NameStr, ErrorMsg);
-
           IF ErrorMsg = '' THEN BEGIN
             IF KeyName = Line_UpXAbsoluteFieldName THEN
-              Line_UpXAbsolute := ValidateLineUpXAbsolute(NewKeyValue, Line_UpXLineStr, ErrorMsg);
+              Line_UpXAbsolute := ValidateLineXAbsolute(NewKeyValue, ErrorMsg);
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            IF KeyName = Line_DownXAbsoluteFieldName THEN
+              Line_DownXAbsolute := ValidateLineXAbsolute(NewKeyValue, ErrorMsg);
           END;
 
           IF ErrorMsg = '' THEN BEGIN
@@ -1259,11 +1257,6 @@ BEGIN
           IF ErrorMsg = '' THEN BEGIN
             IF KeyName = Line_DownRowFieldName THEN
               Line_DownRow := ValidateRow(NewKeyValue, ErrorMsg);
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Line_LengthFieldName THEN
-              Line_Length := ValidateLineLength(NewKeyValue, ErrorMsg);
           END;
 
           { We don't need to validate Line_Location as the user hasn't been allowed to introduce errors to it }
@@ -1901,7 +1894,6 @@ BEGIN
     Line_RouteSet := UnknownRoute;
     Line_UpConnectionCh := '';
     Line_UpConnectionChBold := False;
-    Line_UpXValueSpecified := False;
   END; {WITH}
 
   NoteThatDataHasChanged;
@@ -1923,64 +1915,17 @@ CONST
 
 VAR
   CanDelete : Boolean;
-  OtherLine : Integer;
 
 BEGIN
   TRY
+    CanDelete := True;
+
     { Ask for confirmation }
     IF MessageDialogueWithDefault('Delete Line ' + LineToStr(LineToDeleteNum) + ' (' + IntToStr(LineToDeleteNum)+ ') ?',
                                   StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
     THEN BEGIN
       Debug('Line ' + IntToStr(LineToDeleteNum) + ' not deleted');
       CanDelete := False;
-    END ELSE BEGIN
-      { We need to check if this line is referred to elsewhere }
-      OtherLine := 0;
-      CanDelete := True;
-      WHILE OtherLine <= High(Lines) DO BEGIN
-        { Look at the individual fields that might need renumbering }
-        IF Lines[OtherLine].Line_UpXLineStr = LineToStr(LineToDeleteNum) THEN BEGIN
-          IF MessageDialogueWithDefault('Cannot delete line ' + LineToStr(LineToDeleteNum)
-                                        + ' until it ceases to be the UpX Line for line ' + LineToStr(OtherLine)
-                                        + CRLF
-                                        + 'Do you wish to alter that reference so that '
-                                        + 'line ' + LineToStr(OtherLine) + '''s UpX Line is now ' + Lines[LineToDeleteNum].Line_UpXLineStr + '?',
-                                        StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
-          THEN
-            CanDelete := False
-          ELSE BEGIN
-            { Amend reference to this Line so that other line now connects to the deleted line's UpX line }
-            Lines[OtherLine].Line_UpXLineStr := ''; //Lines[LineToDeleteNum].Line_UpXLineStr;
-            Lines[OtherLine].Line_DataChanged := True;
-          END;
-// ELSE
-//          IF Lines[OtherLine].Line_UpX <> 0 THEN BEGIN
-//            IF MessageDialogueWithDefault('Cannot delete line ' + IntToStr(LineToDeleteNum)
-//                                          + ' until it ceases to be the UpX Line for line ' + LineToStr(OtherLine)
-//                                          + CRLF
-//                                          + 'Do you wish to alter that reference so that '
-//                                          + 'line ' + LineToStr(OtherLine) + '''s UpX Line is now ' + Lines[LineToDeleteNum].Line_UpXLineStr + '?',
-//                                          StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
-//            THEN
-//              CanDelete := False
-//            ELSE BEGIN
-//              { Amend reference to this Line so that other line now connects to the deleted line's UpX line }
-//              Lines[OtherLine].Line_UpXLineStr := Lines[LineToDeleteNum].Line_UpXLineStr;
-//              Lines[OtherLine].Line_DataChanged := True;
-//            END;
-//          END;
-
-          IF Lines[OtherLine].Line_DataChanged THEN
-            WriteOutLineDataToDatabase;
-
-          Inc(OtherLine);
-        END;
-
-        IF Lines[OtherLine].Line_DataChanged THEN
-          WriteOutLineDataToDatabase;
-
-        Inc(OtherLine);
-      END
     END;
 
     IF CanDelete THEN
@@ -1988,19 +1933,7 @@ BEGIN
 
     IF CanDelete THEN BEGIN
       WITH InitVarsWindow DO BEGIN
-        { Now we need to renumber line references in the database that have changed because of the deletion. We renumber the last entry so it the same as the line already
-          deleted (a DJW suggestion of 3/9/14), and also renumber any line records that Line to it.
-        }
-        FOR OtherLine := 0 TO High(Lines) DO BEGIN
-          IF Lines[OtherLine].Line_UpXLineStr = IntToStr(High(Lines)) THEN BEGIN
-            Lines[OtherLine].Line_UpXLineStr := IntToStr(LineToDeleteNum);
-            Lines[OtherLine].Line_DataChanged := True;
-
-            WriteOutLineDataToDatabase;
-          END;
-        END; {FOR}
-
-        { and renumber the last entry }
+        { Now we renumber the last entry so it the same as the line already deleted (a DJW suggestion of 3/9/14) }
         Lines[High(Lines)].Line_Number := LineToDeleteNum;
         Lines[High(Lines)].Line_DataChanged := True;
         WriteOutLineDataToDatabase;
@@ -2034,7 +1967,6 @@ BEGIN
       ShowMessage('A new point must be near an existing line')
     ELSE BEGIN
       Debug(LineToStr(Line));
-      Debug('Line_UpXLine=' + Lines[Line].Line_UpXLineStr);
 
       { Now create and save a basic point which must then be added to using the value list editor }
       SetLength(Points, Length(Points) + 1);

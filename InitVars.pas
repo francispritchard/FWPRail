@@ -336,7 +336,6 @@ TYPE
     Line_InitialOutOfUseState : OutOfUseState;
     Line_InUseFeedbackUnit : Integer;
     Line_InUseFeedbackInput : Integer;
-    Line_Length : Integer;
     Line_Location : Integer;
     Line_LockFailureNotedInSubRouteUnit : Boolean;
     Line_MousePolygon : ARRAY [0..4] OF TPoint; { mouse access for indicators }
@@ -365,8 +364,6 @@ TYPE
     Line_UpRow : Extended;
     Line_UpX : Integer;
     Line_UpXAbsolute : Integer;
-    Line_UpXLineStr : String;
-    Line_UpXValueSpecified : Boolean;
     Line_UpY : Integer;
   END;
 
@@ -376,10 +373,10 @@ CONST
   Line_DirectionFieldName : String = 'Direction';
   Line_DownConnectionChFieldName : String = 'Down Connection Ch';
   Line_DownRowFieldName : String = 'Down Row';
+  Line_DownXAbsoluteFieldName : String = 'Down X';
   Line_EndOfLineMarkerFieldName : String = 'End Of Line Marker';
   Line_GradientFieldName : String = 'Gradient';
   Line_InUseFeedbackUnitFieldName : String = 'In Use Feedback Unit';
-  Line_LengthFieldName : String = 'Length';
   Line_LocationStrFieldName : String = 'Location';
   Line_NameStrFieldName : String = 'Line Name';
   Line_NumberFieldName : String = 'Line Number';
@@ -388,7 +385,6 @@ CONST
   Line_TypeOfLineFieldName : String = 'Type Of Line';
   Line_UpConnectionChFieldName : String = 'Up Connection Ch';
   Line_UpXAbsoluteFieldName : String = 'Up X';
-  Line_UpXLineStrFieldName : String = 'Up X Line';
   Line_UpRowFieldName : String = 'Up Row';
 
 TYPE
@@ -1522,7 +1518,7 @@ VAR
   ShowLineDirectionDetail : Boolean = False;
   ShowLineGradients : Boolean = False;
   ShowLineNumbers : Boolean = False;
-  ShowLinesWhereUpXValueSpecified : Boolean = False;
+  ShowLinesUpXAbsoluteValue : Boolean = False;
   ShowLinesWhichLockPoints : Boolean = False;
   ShowLinesWithoutTrackCircuits : Boolean = False;
   ShowLocationLengthDetail : Boolean = False;
@@ -1701,9 +1697,6 @@ FUNCTION ValidateLineGradient(LineGradientStr : String; OUT ErrorMsg : String) :
 FUNCTION ValidateLineInUseFeedbackUnit(FeedbackUnitStr : String; OUT ErrorMsg : String) : Integer;
 { Only checks that the supplied data is numeric }
 
-FUNCTION ValidateLineLength(LineLengthStr : String; OUT ErrorMsg : String) : Integer;
-{ Checks whether the line length is a numeral }
-
 FUNCTION ValidateLineLocation(LineLocationStr : String; OUT ErrorMsg : String) : Integer;
 { Checks whether the line location is valid }
 
@@ -1719,7 +1712,7 @@ FUNCTION ValidateLineType(LineTypeStr : String; OUT ErrorMsg : String) : TypeOfL
 FUNCTION ValidateLineUpXStr(UpXStr, LineStr : String; OUT ErrorMsg : String) : String;
 { Sees whether the line at UpX is different from the line we're creating }
 
-FUNCTION ValidateLineUpXAbsolute(XStr, XLineStr : String; OUT ErrorMsg : String) : Integer;
+FUNCTION ValidateLineXAbsolute(XStr : String; OUT ErrorMsg : String) : Integer;
 { See whether the X absolute value duplicates another field }
 
 FUNCTION ValidateNextSignalIfNoIndicator(Str : String; Init : Boolean; OUT ErrorMsg : String) : Integer;
@@ -2964,48 +2957,10 @@ END; { WriteOutLocationDataToDatabase }
 PROCEDURE CalculateLinePositions;
 { Work out where the lines are on the screen }
 VAR
-  Iterations : Integer;
-  Line, Line2 : Integer;
-  MissingXValue : Boolean;
+  Line : Integer;
 
 BEGIN
   TRY
-    Line := 0;
-    Iterations := 0;
-    WHILE (Line <= High(Lines)) AND (Iterations <= 10000) DO BEGIN
-      WITH Lines[Line] DO BEGIN
-        MissingXValue := False;
-        REPEAT
-          { read in the values until one is found }
-          FOR Line2 := 0 TO High(Lines) DO BEGIN
-            WITH Lines[Line2] DO BEGIN
-              IF Line_UpXAbsolute = 0 THEN BEGIN
-                IF Lines[StrToLine(Line_UpXLineStr)].Line_DownXAbsolute = 0 THEN
-                  MissingXValue := True
-                ELSE BEGIN
-                  IF Line_Length < 0 THEN BEGIN
-                    Line_DownXAbsolute := Lines[StrToLine(Line_UpXLineStr)].Line_UpXAbsolute;
-                    Line_UpXAbsolute := Line_DownXAbsolute + Line_Length;
-                    MissingXValue := False;
-                  END ELSE BEGIN
-                    Line_UpXAbsolute := Lines[StrToLine(Line_UpXLineStr)].Line_DownXAbsolute;
-                    Line_DownXAbsolute := Line_UpXAbsolute + Line_Length;
-                    MissingXValue := False;
-                  END;
-                END;
-              END;
-            END; {WITH}
-          END; {FOR}
-          Inc(Iterations);
-        UNTIL NOT MissingXValue OR (Iterations = 10000);
-
-        IF Iterations >= 10000 THEN
-          Debug('Too many iterations in CalculateLinePositions');
-      END;
-      Inc(Line);
-      Inc(Iterations);
-    END; {WHILE}
-
     Line := 0;
     WHILE Line <= High(Lines) DO BEGIN
       WITH Lines[Line] DO BEGIN
@@ -3197,35 +3152,6 @@ BEGIN
   END;
 END; { ValidateLineLocation }
 
-FUNCTION ValidateLineLength(LineLengthStr : String; OUT ErrorMsg : String) : Integer;
-{ Checks whether the line length is a numeral }
-BEGIN
-  ErrorMsg := '';
-  Result := 0;
-
-  IF LineLengthStr <> '' THEN BEGIN
-    IF NOT TryStrToInt(LineLengthStr, Result) THEN
-      ErrorMsg := 'ValidateLineLength: invalid length integer';
-  END;
-END; { ValidateLineLength }
-
-FUNCTION ValidateLineUpXAbsolute(XStr, XLineStr : String; OUT ErrorMsg : String) : Integer;
-{ See whether the X absolute value duplicates another field }
-BEGIN
-  ErrorMsg := '';
-  Result := 0;
-
-  IF XStr <> '' THEN BEGIN
-    IF NOT TryStrToInt(XStr, Result) THEN
-      ErrorMsg := 'ValidateLineUpXAbsolute: invalid UpX integer "' + XStr + '"'
-    ELSE
-      IF XLineStr <> '' THEN
-        ErrorMsg := 'ValidateLineUpXAbsolute: UpX cannot have a value if UpX line is specified';
-  END ELSE
-    IF XLineStr = '' THEN
-      ErrorMsg := 'ValidateLineUpXAbsolute: the UpX line must have a value if UpX Line is zero';
-END; { ValidateLineUpXAbsolute }
-
 FUNCTION ValidateRow(RowStr : String; OUT ErrorMsg : String) : Extended;
 { See whether the row provided is valid }
 BEGIN
@@ -3244,6 +3170,17 @@ BEGIN
     IF Result > WindowRows THEN
       ErrorMsg := 'ValidateRow: row number cannot exceed the specified number of screeen rows (' + IntToStr(WindowRows) + ')';
 END; { ValidateRow }
+
+FUNCTION ValidateLineXAbsolute(XStr : String; OUT ErrorMsg : String) : Integer;
+{ See whether the X absolute value supplied is a valid integer }
+BEGIN
+  ErrorMsg := '';
+  Result := 0;
+
+  IF XStr <> '' THEN
+    IF NOT TryStrToInt(XStr, Result) THEN
+      ErrorMsg := 'ValidateLineXAbsolute: invalid X integer "' + XStr + '"';
+END; { ValidateLineUpXAbsolute }
 
 FUNCTION ValidateLineUpXStr(UpXStr, LineStr : String; OUT ErrorMsg : String) : String;
 { Sees whether the line at UpX is different from the line we're creating }
@@ -3270,7 +3207,7 @@ BEGIN
   WHILE (TempLine <= High(Lines)) AND (TempLine <> Line) AND (ErrorMsg = '') DO BEGIN
     { check all lines apart from the one we've just created }
     IF Str = Lines[TempLine].Line_NameStr THEN
-      ErrorMsg := 'duplicate line name "' + Str + '" found'
+      ErrorMsg := 'duplicate line name "' + Str + '" (' + IntToStr(TempLine) + ') found'
     ELSE
       Inc(TempLine);
   END; {WHILE}
@@ -3387,7 +3324,6 @@ BEGIN
             Line_RouteSet := UnknownRoute;
             Line_UpConnectionCh := '';
             Line_UpConnectionChBold := False;
-            Line_UpXValueSpecified := False;
 
             Line_Number := FieldByName(Line_NumberFieldName).AsInteger;
             IF Line_Number <> Line THEN
@@ -3397,25 +3333,16 @@ BEGIN
               Line_NameStr := ValidateLineName(FieldByName(Line_NameStrFieldName).AsString, Line, ErrorMsg);
 
             IF ErrorMsg = '' THEN
-              Line_UpXLineStr := ValidateLineUpXStr(FieldByName(Line_UpXLineStrFieldName).AsString, Line_NameStr, ErrorMsg);
+              Line_UpXAbsolute := ValidateLineXAbsolute(FieldByName(Line_UpXAbsoluteFieldName).AsString, ErrorMsg);
 
-            IF ErrorMsg = '' THEN BEGIN
-              Line_UpXAbsolute := ValidateLineUpXAbsolute(FieldByName(Line_UpXAbsoluteFieldName).AsString, Line_UpXLineStr, ErrorMsg);
-              IF Line_UpXAbsolute <> 0 THEN
-                Line_UpXValueSpecified := True;
-            END;
+            IF ErrorMsg = '' THEN
+              Line_DownXAbsolute := ValidateLineXAbsolute(FieldByName(Line_DownXAbsoluteFieldName).AsString, ErrorMsg);
 
             IF ErrorMsg = '' THEN
               Line_UpRow := ValidateRow(FieldByName(Line_UpRowFieldName).AsString, ErrorMsg);
 
             IF ErrorMsg = '' THEN
               Line_DownRow := ValidateRow(FieldByName(Line_DownRowFieldName).AsString, ErrorMsg);
-
-            IF ErrorMsg = '' THEN BEGIN
-              Line_Length := ValidateLineLength(FieldByName(Line_LengthFieldName).AsString, ErrorMsg);
-              IF Line_UpXAbsolute <> 0 THEN
-                Line_DownXAbsolute := Line_UpXAbsolute + Line_Length;
-            END;
 
             IF ErrorMsg = '' THEN
               Line_Location := ValidateLineLocation(FieldByName(Line_LocationStrFieldName).AsString, ErrorMsg);
@@ -3487,21 +3414,7 @@ BEGIN
       Log('T Line Data table and connection closed');
     END; {WITH}
 
-    { Now we have to do certain tests as some of the data was not be available while we read it in). }
-    FOR Line := 0 TO High(Lines) DO BEGIN
-      WITH Lines[Line] DO BEGIN
-        IF Line_UpXLineStr <> '' THEN BEGIN
-          TempLine := StrToLine(Line_UpXLineStr);
-          IF TempLine = UnknownLine THEN
-            IF MessageDialogueWithDefault('Line ' + LineToStr(Line) + ': invalid Line_UpXLine value "' + Line_UpXLineStr + '"',
-                                          StopTimer, mtError, [mbOK, mbAbort], mbAbort) = mrAbort
-            THEN
-              ShutDownProgram(UnitRef, 'ReadInLineDataFromDatabase');
-        END;
-      END; {WITH}
-    END; {FOR}
-
-    { see if there are any duplicate connection characters }
+    { Now we have to do certain tests as some of the data was not be available while we read it in. First see if there are any duplicate connection characters }
     FOR Line := 0 TO High(Lines) DO BEGIN
       WITH Lines[Line] DO BEGIN
         FOR OtherLine := 0 TO High(Lines) DO BEGIN
@@ -3728,6 +3641,7 @@ PROCEDURE WriteOutLineDataToDatabase;
 { Write out some line data to the line data file }
 VAR
   Line : Integer;
+  TempInt : Integer;
   TempStr : String;
 
 BEGIN
@@ -3753,12 +3667,7 @@ BEGIN
       Line := 0;
       WHILE Line <= High(Lines) DO BEGIN
         WITH Lines[Line] DO BEGIN
-          Log('S Recording in line database that L' + IntToStr(Line) + ' ' + Line_NumberFieldName + ' is ''' + IntToStr(Line_Number) + '''');
-          LinesADOTable.Edit;
-          LinesADOTable.FieldByName(Line_NumberFieldName).AsString := IntToStr(Line_Number);
-          LinesADOTable.Post;
-
-          { And deal with out of use changes }
+          { Deal with out of use changes }
           IF ((Line_OutOfUseState = OutOfUse)
                OR ((Line_Location <> UnknownLocation) AND Locations[Line_Location].Location_OutOfUse))
           AND (Line_InitialOutOfUseState = InUse)
@@ -3771,7 +3680,7 @@ BEGIN
                   FieldByName(Line_OutOfUseFieldName).AsBoolean := True;
                   Post;
 
-                  Log('S Recording in line database that L' + IntToStr(Line) + ' (' + Line_NameStr + ') is out of use');
+                  Log('S Recording in line database that Line ' + IntToStr(Line) + ' (' + Line_NameStr + ') is out of use');
                 END;
               END; {WITH}
               LinesADOTable.Next;
@@ -3786,7 +3695,7 @@ BEGIN
                     FieldByName(Line_OutOfUseFieldName).AsBoolean := False;
                     Post;
 
-                    Log('S Recording in line database that L' + IntToStr(Line) + ' (' + Line_NameStr + ') is in use');
+                    Log('S Recording in line database that Line ' + IntToStr(Line) + ' (' + Line_NameStr + ') is in use');
                   END;
                 END; {WITH}
                 LinesADOTable.Next;
@@ -3799,17 +3708,34 @@ BEGIN
 
       { Now deal with any general editing changes }
       LinesADOTable.First;
+      Line := 0;
       WHILE NOT LinesADOTable.EOF DO BEGIN
-        Line := LinesADOTable.FieldByName(Line_NumberFieldName).AsInteger;
         WITH Lines[Line] DO BEGIN
           IF Line_DataChanged THEN BEGIN
             Line_DataChanged := False;
 
-            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_BufferStopNumberFieldName + ' is ''' + IntToStr(Line_BufferStopNum) + '''');
-            TempStr := IntToStr(Line_BufferStopNum);
-            IF TempStr = '0' THEN
-              { the database records a zero as a space in this field }
+            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_NameStrFieldName + ' is ''' + Line_NameStr + '''');
+            LinesADOTable.Edit;
+            LinesADOTable.FieldByName(Line_NameStrFieldName).AsString := Line_NameStr;
+            LinesADOTable.Post;
+
+            TempInt := Line_UpXAbsolute;
+            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + 'Up X Absolute' + ' is ''' + IntToStr(TempInt) + '''');
+            LinesADOTable.Edit;
+            LinesADOTable.FieldByName('Up X').AsString := IntToStr(TempInt);
+            LinesADOTable.Post;
+
+            TempInt := Line_DownXAbsolute;
+            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + 'Down X Absolute' + ' is ''' + IntToStr(TempInt) + '''');
+            LinesADOTable.Edit;
+            LinesADOTable.FieldByName('Down X').AsString := IntToStr(TempInt);
+            LinesADOTable.Post;
+
+            IF Line_BufferStopNum <> UnknownBufferStop THEN
+              TempStr := IntToStr(Line_BufferStopNum)
+            ELSE
               TempStr := '';
+            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_BufferStopNumberFieldName + ' is ''' + TempStr + '''');
             LinesADOTable.Edit;
             LinesADOTable.FieldByName(Line_BufferStopNumberFieldName).AsString := TempStr;
             LinesADOTable.Post;
@@ -3845,43 +3771,41 @@ BEGIN
             LinesADOTable.FieldByName(Line_GradientFieldName).AsString := GradientToStr(Line_Gradient);
             LinesADOTable.Post;
 
-            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_InUseFeedbackUnitFieldName + ' is ''' + IntToStr(Line_InUseFeedbackUnit) + '''');
+            IF Line_InUseFeedbackUnit <> 0 THEN
+              TempStr := IntToStr(Line_InUseFeedbackUnit)
+            ELSE
+              TempStr := '';
+            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_InUseFeedbackUnitFieldName + ' is ''' + TempStr + '''');
             LinesADOTable.Edit;
-            LinesADOTable.FieldByName(Line_InUseFeedbackUnitFieldName).AsString := IntToStr(Line_InUseFeedbackUnit);
+            LinesADOTable.FieldByName(Line_InUseFeedbackUnitFieldName).AsString := TempStr;
             LinesADOTable.Post;
 
-            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_LengthFieldName + ' is ''' + IntToStr(Line_Length) + '''');
+            IF Line_Location <> UnknownLocation THEN
+              Tempstr := LocationToStr(Line_Location)
+            ELSE
+              Tempstr := '';
+            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_LocationStrFieldName + ' is ''' + Tempstr + '''');
             LinesADOTable.Edit;
-            LinesADOTable.FieldByName(Line_LengthFieldName).AsString := IntToStr(Line_Length);
+            LinesADOTable.FieldByName(Line_LocationStrFieldName).AsString := Tempstr;
             LinesADOTable.Post;
 
-            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_LocationStrFieldName + ' is ''' + LocationToStr(Line_Location) + '''');
+            IF Line_TC <> UnknownTrackCircuit THEN
+              TempStr := IntToStr(Line_TC)
+            ELSE
+              TempStr := '';
+            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_TCFieldName + ' is ''' + TempStr + '''');
             LinesADOTable.Edit;
-            LinesADOTable.FieldByName(Line_LocationStrFieldName).AsString := LocationToStr(Line_Location);
-            LinesADOTable.Post;
-
-            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_NameStrFieldName + ' is ''' + Line_NameStr + '''');
-            LinesADOTable.Edit;
-            LinesADOTable.FieldByName(Line_NameStrFieldName).AsString := Line_NameStr;
-            LinesADOTable.Post;
-
-            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_TCFieldName + ' is ''' + IntToStr(Line_TC) + '''');
-            LinesADOTable.Edit;
-            LinesADOTable.FieldByName(Line_TCFieldName).AsString := IntToStr(Line_TC);
+            LinesADOTable.FieldByName(Line_TCFieldName).AsString := TempStr;
             LinesADOTable.Post;
 
             Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_TypeOfLineFieldName + ' is ''' + TypeOfLineToStr(Line_TypeOfLine) + '''');
             LinesADOTable.Edit;
             LinesADOTable.FieldByName(Line_TypeOfLineFieldName).AsString := TypeOfLineToStr(Line_TypeOfLine);
             LinesADOTable.Post;
-
-            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_UpXLineStrFieldName + ' is ''' + Line_UpXLineStr + '''');
-            LinesADOTable.Edit;
-            LinesADOTable.FieldByName(Line_UpXLineStrFieldName).AsString := Line_UpXLineStr;
-            LinesADOTable.Post;
           END;
         END; {WITH}
 
+        Inc(Line);
         LinesADOTable.Next;
       END; {WHILE}
 

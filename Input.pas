@@ -1141,7 +1141,7 @@ BEGIN { KeyPressedDown }
             OR ShowLineGradients
             OR ShowLineNumbers
             OR ShowLinesWithoutTrackCircuits
-            OR ShowLinesWhereUpXValueSpecified
+            OR ShowLinesUpXAbsoluteValue
             OR ShowLinesWhichLockPoints
             OR ShowLocationLengthDetail
             OR ShowLocations
@@ -1173,7 +1173,7 @@ BEGIN { KeyPressedDown }
               ShowLineGradients := False;
               ShowLineNumbers := False;
               ShowLinesWithoutTrackCircuits := False;
-              ShowLinesWhereUpXValueSpecified := False;
+              ShowLinesUpXAbsoluteValue := False;
               ShowLinesWhichLockPoints := False;
               ShowLocationLengthDetail := False;
               ShowLocations := False;
@@ -4486,10 +4486,10 @@ BEGIN { KeyPressedDown }
               END;
             CtrlAlt: {F4}
               BEGIN
-                HelpMsg := 'show lines where UpX value specified';
+                HelpMsg := 'show the absolute Up X values for lines (in 1/1000)';
                 IF NOT HelpRequired THEN BEGIN
-                  ShowLinesWhereUpXValueSpecified := True;
-                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing line numbers where UpX value is specified');
+                  ShowLinesUpXAbsoluteValue := True;
+                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing the absolute Up X values for lines (in 1/1000)');
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
               END;
@@ -4978,11 +4978,51 @@ BEGIN { KeyPressedDown }
               END;
           END; {CASE}
         vk_F12:
-          BEGIN
-            HelpMsg := 'Starts the debugger if running in Delphi IDE debugger mode';
-            IF NOT HelpRequired THEN BEGIN
-            END;
-          END;
+          { Note: this used to start the debugger if running in Delphi IDE debugger mode }
+          CASE ShiftKeys OF
+            NoShiftKeys: {F12}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
+            ShiftAlt: {F12}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
+            CtrlAlt: {F12}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
+            CtrlShift: {F12}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
+            Shift: {F12}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
+            Ctrl: {F12}
+              BEGIN
+                HelpMsg := 'Write out the source code .pas files to ensure correct CR/LF line endings';
+                IF NOT HelpRequired THEN
+                  EnsureCorrectLineEndings;
+              END;
+            Alt: {F12}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
+          END; {CASE}
       END; {CASE}
 
       IF NOT HelpRequired AND (HelpMsg = '') AND (KeyToTest <> vk_Shift) AND (KeyToTest <> vk_Control) AND (KeyToTest <> vk_Menu {Alt}) THEN
