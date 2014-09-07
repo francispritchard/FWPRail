@@ -319,7 +319,6 @@ TYPE
 
   LineRec = RECORD
     Line_AdjacentBufferStop : Integer;
-    Line_BufferStopNum : Integer;
     Line_BufferStopTheatreDestinationStr : String;
     Line_CurrentColour : TColour;
     Line_DataChanged : Boolean;
@@ -368,7 +367,6 @@ TYPE
   END;
 
 CONST
-  Line_BufferStopNumberFieldName : String = 'Buffer Stop Number';
   Line_BufferStopTheatreDestinationStrFieldName : String = 'Buffer Stop Theatre Destination';
   Line_DirectionFieldName : String = 'Direction';
   Line_DownConnectionChFieldName : String = 'Down Connection Ch';
@@ -3219,7 +3217,7 @@ CONST
   Horizontal = True;
   StopTimer = True;
 
-  PROCEDURE CreateBufferStop(L, BSNumber : Integer; BSDirection : DirectionType; BSTheatreDestination : String);
+  PROCEDURE CreateBufferStop(L : Integer; BSDirection : DirectionType; BSTheatreDestination : String);
   { Create a bufferstop record }
   BEGIN
     SetLength(BufferStops, Length(BufferStops) + 1);
@@ -3233,7 +3231,7 @@ CONST
       BufferStop_AsTheatreDestination := BSTheatreDestination;
       BufferStop_CurrentColour := BufferStopColour;
       BufferStop_Direction := BSDirection;
-      BufferStop_Number := BSNumber;
+      BufferStop_Number := High(BufferStops);
 
       Lines[L].Line_AdjacentBufferStop := BufferStop_Number;
     END; {WITH}
@@ -3354,9 +3352,6 @@ BEGIN
               Line_EndOfLineMarker := ValidateLineEndOfLineMarker(FieldByName(Line_EndOfLineMarkerFieldName).AsString, ErrorMsg);
 
             IF ErrorMsg = '' THEN
-              Line_BufferStopNum := ValidateBufferStopNumber(FieldByName(Line_BufferStopNumberFieldName).AsString, ErrorMsg);
-
-            IF ErrorMsg = '' THEN
               Line_BufferStopTheatreDestinationStr := FieldByName(Line_BufferStopTheatreDestinationStrFieldName).AsString;
 
             IF ErrorMsg = '' THEN
@@ -3433,16 +3428,6 @@ BEGIN
                 THEN
                   ShutDownProgram(UnitRef, 'ReadInLineDataFromDatabase');
               END;
-
-
-            { Also check all lines apart from the one we've just created }
-            IF (Line_BufferStopNum <> UnknownBufferStop) AND (Line_BufferStopNum = Lines[OtherLine].Line_BufferStopNum) THEN BEGIN
-              IF MessageDialogueWithDefault('Duplicate buffer stop number ' + IntToStr(Line_BufferStopNum)
-                                            + ' found at line ' + LineToStr(Line) + ' and at ' + LineToStr(OtherLine),
-                                            StopTimer, mtError, [mbOK, mbAbort], mbAbort) = mrAbort
-              THEN
-                ShutDownProgram(UnitRef, 'ReadInLineDataFromDatabase');
-            END;
           END;
         END; {FOR}
       END; {WITH}
@@ -3482,14 +3467,14 @@ BEGIN
               Line_NextUpIsEndofLine := BufferStopAtUp;
               Line_NextDownType := LineIsNext;
               { and create a bufferstop record }
-              CreateBufferStop(Line, Line_BufferStopNum, Up, Line_BufferStopTheatreDestinationStr);
+              CreateBufferStop(Line, Up, Line_BufferStopTheatreDestinationStr);
             END;
           BufferStopAtDown : BEGIN
               Line_NextDownType := EndOfLineIsNext;
               Line_NextDownIsEndOfLine := BufferStopAtDown;
               Line_NextUpType := LineIsNext;
               { and create a bufferstop record }
-              CreateBufferStop(Line, Line_BufferStopNum, Down, Line_BufferStopTheatreDestinationStr);
+              CreateBufferStop(Line, Down, Line_BufferStopTheatreDestinationStr);
             END;
           ProjectedLineAtUp : BEGIN
               Line_NextUpType := EndOfLineIsNext;
@@ -3729,15 +3714,6 @@ BEGIN
             Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + 'Down X Absolute' + ' is ''' + IntToStr(TempInt) + '''');
             LinesADOTable.Edit;
             LinesADOTable.FieldByName('Down X').AsString := IntToStr(TempInt);
-            LinesADOTable.Post;
-
-            IF Line_BufferStopNum <> UnknownBufferStop THEN
-              TempStr := IntToStr(Line_BufferStopNum)
-            ELSE
-              TempStr := '';
-            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_BufferStopNumberFieldName + ' is ''' + TempStr + '''');
-            LinesADOTable.Edit;
-            LinesADOTable.FieldByName(Line_BufferStopNumberFieldName).AsString := TempStr;
             LinesADOTable.Post;
 
             Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_BufferStopTheatreDestinationStrFieldName

@@ -2102,7 +2102,7 @@ BEGIN { KeyPressedDown }
                   IF LockingMode THEN
                     SetMode(Locking, TurnOff)
                   ELSE
-                    SetMode(Locking, TurnOff);
+                    SetMode(Locking, TurnOn);
                 END;
               END;
             Ctrl: {L}

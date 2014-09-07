@@ -504,10 +504,6 @@ BEGIN
 
           WritePickListValue(Line_EndOfLineMarkerFieldName, EndOfLineToStr(Line_EndOfLineMarker), [BufferStopAtUpStr, BufferStopAtDownStr, ProjectedLineAtUpStr,
                                                             ProjectedLineAtDownStr, NotEndOfLineStr]);
-          IF Line_BufferStopNum = UnknownBufferStop THEN
-            WriteIntegerValueExcludingZero(Line_BufferStopNumberFieldName, 0, '9999')
-          ELSE
-            WriteIntegerValueIncludingZero(Line_BufferStopNumberFieldName, Line_BufferStopNum, '9999');
 
           Values[Line_BufferStopTheatreDestinationStrFieldName] := Line_BufferStopTheatreDestinationStr;
 
@@ -1269,11 +1265,6 @@ BEGIN
           IF ErrorMsg = '' THEN BEGIN
             IF KeyName = Line_EndOfLineMarkerFieldName THEN
               Line_EndOfLineMarker := ValidateLineEndOfLineMarker(NewKeyValue, ErrorMsg);
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Line_BufferStopNumberFieldName THEN
-              Line_BufferStopNum := ValidateBufferStopNumber(NewKeyValue, ErrorMsg);
           END;
 
           IF ErrorMsg = '' THEN BEGIN

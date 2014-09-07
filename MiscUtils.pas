@@ -6467,7 +6467,7 @@ BEGIN
       Locking:
         IF NOT LockingMode THEN BEGIN
           LockingMode := True;
-          Log('A Locking Mode = ON');
+          Log('AG Locking Mode = ON');
           WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' LOCK');
         END;
       PointDebugging:
@@ -6577,7 +6577,7 @@ BEGIN
       Locking:
         IF LockingMode THEN BEGIN
           LockingMode := False;
-          Log('A Locking Mode = OFF');
+          Log('AG Locking Mode = OFF');
           RemoveStringFromStatusPanel('LOCKING=OFF');
         END;
       PointDebugging:
