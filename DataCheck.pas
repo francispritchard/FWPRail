@@ -20,6 +20,9 @@ TYPE
 PROCEDURE CompareTwoLineDatabases(Line1DataFilename, Line1DataFilenameSuffix, Line2DataFilename, Line2DataFilenameSuffix : String);
 { Compare two line databases - used for testing }
 
+PROCEDURE CompareTwoLocationDatabases(Location1DataFilename, Location1DataFilenameSuffix, Location2DataFilename, Location2DataFilenameSuffix : String);
+{ Compare two location databases - used for testing }
+
 PROCEDURE CompareTwoPointDatabases(Point1DataFilename, Point1DataFilenameSuffix, Point2DataFilename, Point2DataFilenameSuffix : String);
 { Compare two point databases - used for testing }
 
@@ -505,6 +508,166 @@ BEGIN
       Log('EG InitialiseLines: ' + E.ClassName + 'error raised, with message: '+ E.Message);
   END; {TRY}
 END; { CompareTwoLineDatabases }
+
+PROCEDURE CompareTwoLocationDatabases(Location1DataFilename, Location1DataFilenameSuffix, Location2DataFilename, Location2DataFilenameSuffix : String);
+{ Compare two location databases - used for testing }
+CONST
+  StopTimer = True;
+
+VAR
+  ErrorFound : Boolean;
+  Location : Integer;
+
+  PROCEDURE CheckString(FieldName : String; Table2, Table1 : TADOTable; VAR ErrorFound : Boolean);
+  BEGIN
+    IF UpperCase(Table1.FieldByName(FieldName).AsString) <> UpperCase(Table2.FieldByName(FieldName).AsString) THEN BEGIN
+      IF NOT ErrorFound THEN BEGIN
+        Log('XG Differences found in location databases '
+                + '"' + Location2DataFilename + '.' + Location2DataFilenameSuffix + '" and "' + Location1DataFilename + '.' + Location1DataFilenameSuffix + '"');
+        ErrorFound := True;
+      END;
+      Log('XG P=' + IntToStr(Location) + ' ' + FieldName + ': "' + Table1.FieldByName(FieldName).AsString + '" to "' + Table2.FieldByName(FieldName).AsString + '"');
+    END;
+  END; { CheckString }
+
+  PROCEDURE CheckBoolean(FieldName : String; Table2, Table1 : TADOTable; VAR ErrorFound : Boolean);
+  BEGIN
+    IF Table1.FieldByName(FieldName).AsBoolean <> Table2.FieldByName(FieldName).AsBoolean THEN BEGIN
+      IF NOT ErrorFound THEN BEGIN
+        Log('XG Differences found in location databases '
+                + '"' + Location2DataFilename + '.' + Location2DataFilenameSuffix + '" and "' + Location1DataFilename + '.' + Location1DataFilenameSuffix + '"');
+        ErrorFound := True;
+      END;
+      Log('XG P=' + IntToStr(Location) + ' ' + FieldName
+              + ': "' + BoolToStr(Table1.FieldByName(FieldName).AsBoolean, True) + '" to "' + BoolToStr(Table2.FieldByName(FieldName).AsBoolean, True) + '"');
+    END;
+  END; { CheckBoolean }
+
+BEGIN
+  TRY
+    Log('A LOCATION DATABASES COMPARISON {BlankLineBefore}');
+
+    WITH InitVarsWindow DO BEGIN
+      IF NOT FileExists(PathToRailDataFiles + Location1DataFilename + '.' + Location1DataFilenameSuffix) THEN BEGIN
+        IF MessageDialogueWithDefault('Location database file "' + PathToRailDataFiles + Location1DataFilename + '.' + Location1DataFilenameSuffix + '"'
+                                      + ' cannot be located'
+                                      + CRLF
+                                      + 'Do you wish to continue?',
+                                      StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
+        THEN
+          ShutDownProgram(UnitRef, 'CompareTwoLocationDatabases')
+        ELSE
+          Exit;
+      END;
+
+      LocationsADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
+                                             + PathToRailDataFiles + Location1DataFilename + '.' + Location1DataFilenameSuffix
+                                             + ';Persist Security Info=False';
+      TRY
+        LocationsADOConnection.Connected := True;
+      EXCEPT
+        ON E:Exception DO
+          Log('EG CompareTwoLocationDatabases 1: ' + E.ClassName + ' error raised, with message: '+ E.Message);
+      END; {TRY}
+
+      LocationsADOTable.Open;
+
+      LocationsADOConnection2.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
+                                              + PathToRailDataFiles + Location2DataFilename + '.' + Location2DataFilenameSuffix
+                                              + ';Persist Security Info=False';
+      TRY
+        LocationsADOConnection2.Connected := True;
+      EXCEPT
+        ON E:Exception DO
+          Log('EG CompareTwoLocationDatabases 2: ' + E.ClassName + ' error raised, with message: '+ E.Message);
+      END; {TRY}
+
+      LocationsADOTable2.Open;
+
+      Log('S Location data table and connection opened to compare location 1 data with location 2 data');
+
+      ErrorFound := False;
+      Location := -1;
+      LocationsADOTable.Sort := '[' + Location_NumberFieldName + '] ASC';
+      LocationsADOTable.First;
+      LocationsADOTable2.Sort := '[' + Location_NumberFieldName + '] ASC';
+      LocationsADOTable2.First;
+
+      REPEAT
+        Inc(Location);
+
+        IF Location > High(Locations) THEN BEGIN
+          IF NOT LocationsADOTable.EOF THEN
+            Log('XG Last declared location (Location=' + IntToStr(Location - 1) + ') processed but location database '
+                    + '"' + Location1DataFilename + '.' + Location1DataFilenameSuffix + ' has not yet reached end of file')
+          ELSE
+          IF NOT LocationsADOTable2.EOF THEN
+            Log('XG Last declared location (Location=' + IntToStr(Location - 1) + ') processed but location database ' + '"'
+                    + Location2DataFilename + '.' + Location2DataFilenameSuffix + ' has not yet reached end of file');
+        END ELSE BEGIN
+          WITH Locations[Location] DO BEGIN
+            CheckString(Location_AccessibleLocationsOrAreasDownFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CheckString(Location_AccessibleLocationsOrAreasUpFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CheckString(Location_AdjoiningPlatformFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CheckString(Location_AreaFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CheckString(Location_DestinationPriorityAreasFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CheckString(Location_DirectionPriorityFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CheckString(Location_FiddleyardFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CheckString(Location_LengthInInchesFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CheckString(Location_LocoClassesReservedForFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CheckString(Location_LocosNotAbleToUseFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CheckString(Location_NameStrFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CheckString(Location_NotesFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CheckString(Location_NumberFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CheckString(Location_OutOfUseFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CheckString(Location_PlatformDirectionFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CheckString(Location_PlatformFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CheckString(Location_PlatformNumberStringFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CheckString(Location_PlatformParallelAccessFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CheckString(Location_PlatformPriorityFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CheckString(Location_RecordInLocationOccupationArrayFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CheckString(Location_ShortStringFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CheckString(Location_SidingFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CheckString(Location_ThroughLocationFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CheckString(Location_ThroughOrStoppingPriorityFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CheckString(Location_TrainPriorityFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CheckString(Location_TRSPlungerXFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CheckString(Location_TRSPlungerYFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
+          END; {WITH}
+        END;
+
+        IF LocationsADOTable.EOF AND NOT LocationsADOTable2.EOF THEN BEGIN
+          Log('XG Location database ' + '"' + Location1DataFilename + '.' + Location1DataFilenameSuffix
+                  + '" is shorter than "' + Location2DataFilename + '.' + Location2DataFilenameSuffix + '"');
+          Log('XG A later entry in location database ' + '"' + Location1DataFilename + '.' + Location1DataFilenameSuffix + '" is Location=' + IntToStr(Location));
+        END ELSE
+          IF NOT LocationsADOTable.EOF AND LocationsADOTable2.EOF THEN BEGIN
+            Log('XG Location database ' + '"' + Location2DataFilename + '.' + Location2DataFilenameSuffix
+                    + '" is shorter than "' + Location1DataFilename + '.' + Location1DataFilenameSuffix + '"');
+            Log('XG A later entry in location database ' + '"' + Location2DataFilename + '.' + Location2DataFilenameSuffix + '" is Location=' + IntToStr(Location));
+          END;
+
+        LocationsADOTable2.Next;
+        LocationsADOTable.Next;
+      UNTIL LocationsADOTable.EOF AND LocationsADOTable2.EOF;
+
+      IF NOT ErrorFound THEN
+        Log('XG No differences found in Location databases '
+                + '"' + Location1DataFilename + '.' + Location1DataFilenameSuffix + '" and "' + Location2DataFilename + '.' + Location2DataFilenameSuffix + '"');
+
+      { Tidy up the database }
+      LocationsADOTable.Close;
+      LocationsADOConnection.Connected := False;
+      Log('S Location Data 1 table and connection closed');
+      LocationsADOTable2.Close;
+      LocationsADOConnection.Connected := False;
+      Log('S Location Data 2 table and connection closed');
+    END; {WITH}
+  EXCEPT {TRY}
+    ON E : Exception DO
+      Log('EG InitialiseLocations: ' + E.ClassName + 'error raised, with message: '+ E.Message);
+  END; {TRY}
+END; { CompareTwoLocationDatabases }
 
 PROCEDURE CompareTwoPointDatabases(Point1DataFilename, Point1DataFilenameSuffix, Point2DataFilename, Point2DataFilenameSuffix : String);
 { Compare two point databases - used for testing }

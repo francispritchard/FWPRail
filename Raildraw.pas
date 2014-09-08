@@ -787,11 +787,29 @@ VAR
   FeedbackData : FeedbackRec;
   FeedbackNum : Integer;
   FeedbackUnitFound : Boolean;
-  Line : Integer;
   LineNameWidth : Word;
   SegmentText : String;
   TrackCircuitNumbered : Boolean;
   X, Y : Integer;
+
+  PROCEDURE DrawSegmentText(SegmentText : String; UpX, UpY, DownX, DownY : Integer);
+  { Draws the text in the right place on screen, using the correct font for certain symbols }
+  VAR
+    SaveLineFontName : String;
+
+  BEGIN
+    WITH RailWindowBitmap.Canvas DO BEGIN
+      SaveLineFontName := Font.Name;
+      { arrows need to be in the Symbol typeface }
+      IF (SegmentText = '¬') OR (SegmentText = '®') OR (SegmentText = '­') OR (SegmentText = '¯') OR (SegmentText = '­¯') THEN
+        Font.Name := 'Symbol';
+
+      TextOut(UpX + (DownX - UpX) DIV 2 - TextWidth(SegmentText) DIV 2 - ScrollBarXAdjustment,
+             (UpY + (DownY - UpY) DIV 2) - TextHeight(SegmentText) DIV 2 - ScrollBarYAdjustment,
+              SegmentText);
+      Font.Name := SaveLineFontName;
+    END; {WITH}
+  END; { DrawSegmentText }
 
   PROCEDURE ShowTrackCircuitData;
   { Display data relating to track circuits }
@@ -1046,15 +1064,12 @@ VAR
     ElementPos : Integer;
     Line : Integer;
     Pos : Integer;
-    SaveLineFontName : String;
-    TempLocationArray : IntegerArrayType;
 
   BEGIN
     WITH RailWindowBitmap.Canvas DO BEGIN
-      { First clear existing line detail, as it may obscure the data we're writing out }
       ShowLineOccupationDetail := False;
-      SetLength(TempLocationArray, 0);
 
+      { First clear existing line detail, as it may obscure the data we're writing out }
       FOR Line := 0 TO High(Lines) DO
         DrawLine(Line, Lines[Line].Line_CurrentColour, False);
 
@@ -1154,17 +1169,6 @@ VAR
             END;
           END;
 
-          IF ShowLocationLengthDetail THEN BEGIN
-            IF Lines[Line].Line_Location <> UnknownLocation THEN BEGIN
-              IF NOT IsElementInLocationArray(TempLocationArray, Lines[Line].Line_Location, ElementPos) THEN BEGIN
-                { only display the length once for each location }
-                AppendToLocationArray(TempLocationArray, Lines[Line].Line_Location);
-                Font.Color := clAqua;
-                SegmentText := LocationToStr(Lines[Line].Line_Location, ShortStringType) + ' ' + FloatToStr(Locations[Lines[Line].Line_Location].Location_LengthInInches);
-              END;
-            END;
-          END;
-
           IF ShowLineGradients THEN BEGIN
             { Indicate lines which are marked as being on a gradient }
             Font.Color := clLime;
@@ -1189,14 +1193,6 @@ VAR
                       SegmentText := '­¯' { Up and down arrows }
               END;
             END;
-          END;
-
-          IF ShowLocations THEN BEGIN
-            Font.Color := clLime;
-            IF Lines[Line].Line_Location <> UnknownLocation THEN
-              SegmentText := LocationToStr(Line_Location, ShortStringType)
-            ELSE
-              SegmentText := '?';
           END;
 
           IF ShowAreas THEN BEGIN
@@ -1226,15 +1222,7 @@ VAR
             IF Zooming THEN
               Font.Size := 14; { should depend on the zoom factor? ************ }
 
-            SaveLineFontName := Font.Name;
-            { arrows need to be in the Symbol typeface }
-            IF (SegmentText = '¬') OR (SegmentText = '®') OR (SegmentText = '­') OR (SegmentText = '¯') OR (SegmentText = '­¯') THEN
-              Font.Name := 'Symbol';
-
-            TextOut(Line_UpX + (Line_DownX - Line_UpX) DIV 2 - TextWidth(SegmentText) DIV 2 - ScrollBarXAdjustment,
-                   (Line_UpY + (Line_DownY - Line_UpY) DIV 2) - TextHeight(SegmentText) DIV 2 - ScrollBarYAdjustment,
-                    SegmentText);
-            Font.Name := SaveLineFontName;
+            DrawSegmentText(SegmentText, Line_UpX, Line_UpY, Line_DownX, Line_DownY);
           END;
 
           { Draw vertical lines to show the line segments }
@@ -1251,6 +1239,71 @@ VAR
       ShowLineOccupationDetail := True;
     END; {WITH}
   END; { ShowLineData }
+
+  PROCEDURE ShowLocationData;
+  { show various location display options }
+  VAR
+    ElementPos : Integer;
+    Line : Integer;
+    LineFound : Boolean;
+    Location : Integer;
+    TempLocationArray : IntegerArrayType;
+
+  BEGIN
+    TRY
+      { First clear existing line detail, as it may obscure the data we're writing out }
+      ShowLineOccupationDetail := False;
+      FOR Line := 0 TO High(Lines) DO
+        DrawLine(Line, Lines[Line].Line_CurrentColour, False);
+
+      SetLength(TempLocationArray, 0);
+
+      WITH RailWindowBitmap.Canvas DO BEGIN
+        FOR Location := 0 TO High(Locations) DO BEGIN
+          IF Location = UnknownLocation THEN
+            SegmentText := '?'
+          ELSE BEGIN
+            SegmentText := '';
+            WITH Locations[Location] DO BEGIN
+              IF ShowLocations THEN BEGIN
+                Font.Color := clLime;
+                SegmentText := LocationToStr(Location, ShortStringType);
+              END ELSE
+                IF ShowLocationLengthDetail THEN BEGIN
+                  IF NOT IsElementInLocationArray(TempLocationArray, Location, ElementPos) THEN BEGIN
+                    { only display the length once for each location }
+                    AppendToLocationArray(TempLocationArray, Location);
+                    Font.Color := clAqua;
+                    SegmentText := LocationToStr(Location, ShortStringType) + ' ' + FloatToStr(Location_LengthInInches);
+                  END;
+                END;
+            END; {WITH}
+
+            { Find a line so we can get an X and Y position for the location }
+            LineFound := False;
+            Line := 0;
+            WHILE (Line <= High(Lines)) AND NOT LineFound DO BEGIN
+              IF Lines[Line].Line_Location = Location THEN
+                LineFound := True
+              ELSE
+                Inc(Line);
+            END; {WHILE}
+
+            IF LineFound THEN
+              WITH Lines[Line] DO
+                DrawSegmentText(SegmentText, Line_UpX, Line_UpY, Line_DownX, Line_DownY);
+          END;
+        END; {FOR}
+        ShowLineOccupationDetail := True;
+      END; {WITH}
+    EXCEPT
+      ON E : Exception DO
+        Log('EG ShowLocationData:' + E.ClassName + ' error raised, with message: '+ E.Message);
+    END; {TRY}
+  END; { ShowLocationData }
+
+VAR
+  Line : Integer;
 
 BEGIN
   TRY
@@ -1275,11 +1328,8 @@ BEGIN
           IF Lines[Line].Line_TC = UnknownTrackCircuit THEN BEGIN
             Font.Color := LinesWithoutTrackCircuitsColour;
             SegmentText := 'X';
-            WITH Lines[Line] DO BEGIN
-              TextOut(Line_UpX + (Line_DownX - Line_UpX) DIV 2 - TextWidth(SegmentText) DIV 2 - ScrollBarXAdjustment,
-                     (Line_UpY + (Line_DownY - Line_UpY) DIV 2) - TextHeight(SegmentText) DIV 2 - ScrollBarYAdjustment,
-                      SegmentText);
-            END; {WITH}
+            WITH Lines[Line] DO
+              DrawSegmentText(SegmentText, Line_UpX, Line_UpY, Line_DownX, Line_DownY);
           END;
           Inc(Line);
         END; {WHILE}
@@ -1292,12 +1342,15 @@ BEGIN
       OR ShowLinesUpXAbsoluteValue
       OR ShowLinesWhichLockPoints
       OR ShowLineDirectionDetail
-      OR ShowLocationLengthDetail
       OR ShowLineGradients
-      OR ShowLocations
       OR ShowTrackCircuitsRoutedOver
       THEN
-        ShowLineData;
+        ShowLineData
+      ELSE
+        IF ShowLocationLengthDetail
+        OR ShowLocations
+        THEN
+          ShowLocationData;
     END; {WITH}
   EXCEPT
     ON E : Exception DO
@@ -2342,7 +2395,6 @@ VAR
   ActiveTrainText : Char;
   DownLineColour : TColor;
   LineTextStr : String;
-  LineTextStrRect : TRect;
   T : TrainIndex;
   UpLineColour : TColor;
   X1, X2, Y1, Y2 : Integer;
@@ -2586,12 +2638,6 @@ BEGIN
               IF ScreenColoursSetForPrinting THEN
                 Font.Color := clBlack;
               Font.Height := -MulDiv(FWPRailWindow.ClientHeight, LineFontHeight, ZoomScalefactor);
-
-              { the following Rect is not used *** }
-              LineTextStrRect := Rect(Line_UpX + ((Line_DownX - Line_UpX - TextWidth(LineTextStr + StringOfChar(' ', 2))) DIV 2) - ScrollBarXAdjustment,
-                                      Line_UpY - (LineFontHeight DIV 2) - ScrollBarYAdjustment,
-                                      Line_DownX - ((Line_DownX - Line_UpX - TextWidth(LineTextStr + StringOfChar(' ', 2))) DIV 2) - ScrollBarXAdjustment,
-                                      Line_UpY + (LineFontHeight DIV 2) - ScrollBarYAdjustment);
 
               TextOut(Line_UpX + ((Line_DownX - Line_UpX - TextWidth(LineTextStr)) DIV 2) - ScrollBarXAdjustment,
                       Line_UpY - (LineFontHeight DIV 2) - ScrollBarYAdjustment,

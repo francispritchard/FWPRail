@@ -13,4 +13,13 @@ object DataCheckForm: TDataCheckForm
   OldCreateOrder = False
   PixelsPerInch = 96
   TextHeight = 13
+  object mmText: TMemo
+    Left = 168
+    Top = 88
+    Width = 185
+    Height = 89
+    Lines.Strings = (
+      'mmText')
+    TabOrder = 0
+  end
 end

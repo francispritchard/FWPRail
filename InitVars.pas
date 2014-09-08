@@ -50,6 +50,9 @@ TYPE
     UnderwayOrCompleted2Label : TLabel;
 
     StationMonitorsWebDiagnosticsMemo: TMemo;
+    LocationsDataSource2: TDataSource;
+    LocationsADOConnection2: TADOConnection;
+    LocationsADOTable2: TADOTable;
   PRIVATE
     { Private declarations }
   PUBLIC

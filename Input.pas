@@ -1166,7 +1166,6 @@ BEGIN { KeyPressedDown }
             OR ShowTrackCircuitsRoutedOver
             THEN BEGIN
               { Now reset all the states }
-              HighlightTrackCircuitSpeedRestrictions := False;
               ShowAreas := False;
               ShowLenzPointNumbers := False;
               ShowLineDirectionDetail := False;
@@ -1196,16 +1195,20 @@ BEGIN { KeyPressedDown }
               ShowTrackCircuitFeedbackDataInUse := False;
               ShowTrackCircuitLengths := False;
               ShowTrackCircuitsRoutedOver := False;
+              HighlightTrackCircuitSpeedRestrictions := False;
+
+              { This is a special case, as pressing F4 a second time adds the box which lists the colours }
+              IF KeyToTest <> vk_F4 THEN
+                ShowLineDetail := False
+              ELSE
+                IF KeyToTest = vK_Escape THEN BEGIN
+                  IF ShowLineDetail THEN
+                    ShowLineDetail := False;
+                  Exit;
+                END;
 
               WriteToStatusBarPanel(StatusBarPanel2, '');
               InvalidateScreen(UnitRef, 'KeyPressedDown 1');
-
-              IF KeyToTest = vK_Escape THEN BEGIN
-                IF ShowLineDetail THEN
-                  { this is a special case, as pressing F4 a second time adds the box which lists the colours }
-                  ShowLineDetail := False;
-                Exit;
-              END;
             END;
           END;
       END; {CASE}
@@ -4964,6 +4967,7 @@ BEGIN { KeyPressedDown }
                 HelpMsg := 'Compare Two Databases';
                 IF NOT HelpRequired THEN BEGIN
                   CompareTwoLineDatabases('LineData', 'mdb', 'LineData - Copy', 'mdb');
+                  CompareTwoLocationDatabases('LocationData', 'mdb', 'LocationData - Copy', 'mdb');
                   CompareTwoSignalDatabases('SignalData', 'mdb', 'SignalData - Copy', 'mdb');
                   CompareTwoPointDatabases('PointData', 'mdb', 'PointData - Copy', 'mdb');
                 END;
