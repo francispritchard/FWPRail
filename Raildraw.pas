@@ -7189,7 +7189,6 @@ BEGIN { Main drawing procedure }
 
         IF ResizeMap OR ReinitialiseFWPRailWindowVariables THEN BEGIN
           SetUpLineDrawingVars;
-          CalculateLocationPositions;
           CalculateLinePositions;
           CalculateBufferStopPositions;
           CalculatePointPositions;
@@ -7267,7 +7266,6 @@ BEGIN { Main drawing procedure }
           the real lines representing tracks.
         }
         IF CreateLineMode THEN BEGIN
-          CalculateLocationPositions;
           SetLength(TempLocationYArray, 0);
           Pen.Color := clFWPDkBlue;
           J := 0;

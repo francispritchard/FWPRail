@@ -431,44 +431,36 @@ TYPE
     Location_TrainPriority : TrainPriorityType;
     Location_TRSPlungerX : Integer;
     Location_TRSPlungerY : Integer;
-    Location_Y : Integer;
-    Location_YLocationStr : String;
-    Location_YLocation : Integer;
-    Location_YLocationAdjustment : Integer;
-    Location_YScaled : Integer;
   END;
 
 CONST
-  Location_NameStrFieldName = 'Location Name';
-  Location_NumberFieldName = 'Location Number';
-  Location_ShortStringFieldName = 'Short String';
-  Location_OutOfUseFieldName = 'Out Of Use';
+  Location_AccessibleLocationsOrAreasDownFieldName = 'Accessible Locations Or Areas Down';
+  Location_AccessibleLocationsOrAreasUpFieldName = 'Accessible Locations Or Areas Up';
+  Location_AdjoiningPlatformFieldName = 'Adjoining Platform';
   Location_AreaFieldName = 'Area';
-  Location_ThroughLocationFieldName = 'Through Location';
-  Location_LocosNotAbleToUseFieldName = 'Locos Not Able To Use';
-  Location_LocoClassesReservedForFieldName = 'Loco Classes Reserved For';
-  Location_PlatformFieldName = 'Platform';
-  Location_SidingFieldName = 'Siding';
+  Location_DestinationPriorityAreasFieldName = 'Destination Priority Areas';
+  Location_DirectionPriorityFieldName = 'Direction Priority';
   Location_FiddleyardFieldName = 'Fiddleyard';
   Location_LengthInInchesFieldName = 'Length In Inches';
-  Location_PlatformParallelAccessFieldName = 'Platform Parallel Access';
+  Location_LocoClassesReservedForFieldName = 'Loco Classes Reserved For';
+  Location_LocosNotAbleToUseFieldName = 'Locos Not Able To Use';
+  Location_NameStrFieldName = 'Location Name';
+  Location_NotesFieldName = 'Notes';
+  Location_NumberFieldName = 'Location Number';
+  Location_OutOfUseFieldName = 'Out Of Use';
   Location_PlatformDirectionFieldName = 'Platform Direction';
+  Location_PlatformFieldName = 'Platform';
   Location_PlatformNumberStringFieldName = 'Platform Number String';
-  Location_YFieldName = 'Y';
-  Location_YLocationFieldName = 'Y Location';
-  Location_YLocationAdjustmentFieldName = 'Y Location Adjustment';
+  Location_PlatformParallelAccessFieldName = 'Platform Parallel Access';
+  Location_PlatformPriorityFieldName = 'Platform Priority';
+  Location_RecordInLocationOccupationArrayFieldName = 'Record In Location Occupation Array';
+  Location_ShortStringFieldName = 'Short String';
+  Location_SidingFieldName = 'Siding';
+  Location_ThroughLocationFieldName = 'Through Location';
+  Location_ThroughOrStoppingPriorityFieldName = 'Through Or Stopping Priority';
+  Location_TrainPriorityFieldName = 'Train Priority';
   Location_TRSPlungerXFieldName = 'TRS Plunger X';
   Location_TRSPlungerYFieldName = 'TRS Plunger Y';
-  Location_RecordInLocationOccupationArrayFieldName = 'Record In Location Occupation Array';
-  Location_AdjoiningPlatformFieldName = 'Adjoining Platform';
-  Location_DestinationPriorityAreasFieldName = 'Destination Priority Areas';
-  Location_TrainPriorityFieldName = 'Train Priority';
-  Location_PlatformPriorityFieldName = 'Platform Priority';
-  Location_DirectionPriorityFieldName = 'Direction Priority';
-  Location_ThroughOrStoppingPriorityFieldName = 'Through Or Stopping Priority';
-  Location_AccessibleLocationsOrAreasUpFieldName = 'Accessible Locations Or Areas Up';
-  Location_AccessibleLocationsOrAreasDownFieldName = 'Accessible Locations Or Areas Down';
-  Location_NotesFieldName = 'Notes';
 
 TYPE
   LocationOccupationStateType = (LocationUnoccupied, LocationStartOfDayOccupation, LocationTemporaryOccupation, LocationUnknownOccupation,
@@ -1599,9 +1591,6 @@ PROCEDURE CalculateBufferStopPositions;
 PROCEDURE CalculateLinePositions;
 { Work out where the lines are on the screen }
 
-PROCEDURE CalculateLocationPositions;
-{ Work out where the locations are on the screen }
-
 PROCEDURE CalculatePlatformPositions;
 { Create the platform rectangle }
 
@@ -2336,20 +2325,6 @@ BEGIN
   END; {TRY}
 END; { ReadInAreasDataFromDatabase }
 
-PROCEDURE CalculateLocationPositions;
-{ Work out where the locations are on the screen }
-VAR
-  Location : Integer;
-
-BEGIN
-  Location := 0;
-  WHILE Location <= High(Locations) DO BEGIN
-    WITH Locations[Location] DO
-      Location_YScaled := MulDiv(FWPRailWindow.ClientHeight, Location_Y, ZoomScaleFactor);
-    Inc(Location);
-  END; {WHILE}
-END; { CalculateLocationPositions }
-
 PROCEDURE ReadInLocationDataFromDatabase;
 { Initialise the location data }
 CONST
@@ -2360,13 +2335,11 @@ VAR
   AccessibleLocationsCount : Integer;
   ErrorMsg : String;
   I : Integer;
-  Iterations : Integer;
   Loc_Num : Integer;
   Location : Integer;
   LocationExceptions : IntegerArrayType;
   LocationExceptionsStrArray : StringArrayType;
   LocoChip : Integer;
-  MissingYValue : Boolean;
   NewLocation : Integer;
   OK : Boolean;
   TempArea : Integer;
@@ -2513,24 +2486,6 @@ BEGIN
               IF TempStr <> '' THEN
                 IF NOT TryStrToFloat(TempStr, Location_LengthInInches) THEN
                   ErrorMsg := 'invalid length "' + TempStr + '"';
-            END;
-
-            IF ErrorMsg = '' THEN BEGIN
-              TempStr := LocationsADOTable.FieldByName(Location_YFieldName).AsString;
-              IF TempStr <> '' THEN
-                IF NOT TryStrToInt(TempStr, Location_Y) THEN
-                  ErrorMsg := 'invalid YPos value "' + TempStr + '"';
-            END;
-
-            IF ErrorMsg = '' THEN BEGIN
-              Location_YLocationStr := LocationsADOTable.FieldByName(Location_YLocationFieldName).AsString;
-            END;
-
-            IF ErrorMsg = '' THEN BEGIN
-              TempStr := LocationsADOTable.FieldByName(Location_YLocationAdjustmentFieldName).AsString;
-              IF TempStr <> '' THEN
-                IF NOT TryStrToInt(TempStr, Location_YLocationAdjustment) THEN
-                  ErrorMsg := 'invalid YPos location adjustment value "' + TempStr + '"';
             END;
 
             IF ErrorMsg = '' THEN BEGIN
@@ -2835,54 +2790,6 @@ BEGIN
       END; {WITH}
       Inc(Location);
     END; {WHILE}
-
-    { And work out Y positions of locations - again, can't do this until all the locations are read in, and then we have to run through the list of locations until we build
-      up all the missing Y values, as the list may not be in the correct order and locations may reference other locations which themselves haven't been initialised yet
-    }
-    TempLocation := UnknownLocation;
-    Iterations := 0;
-    IF ErrorMsg = '' THEN BEGIN
-      REPEAT
-        MissingYValue := False;
-        Location := 0;
-        WHILE (Location <= High(Locations)) AND (Iterations <= 100000) DO BEGIN
-          WITH Locations[Location] DO BEGIN
-            IF Location_Y = 0 THEN BEGIN
-              IF Location_YLocationStr <> '' THEN BEGIN
-                TempLocation := StrToLocation(Location_YLocationStr);
-                IF TempLocation = UnknownLocation THEN
-                  ErrorMsg := 'unknown Y location "' + Location_YLocationStr + '" supplied for location ' + LocationToStr(Location)
-                ELSE BEGIN
-                  Location_Y := Locations[TempLocation].Location_Y;
-                  IF Location_Y = 0 THEN
-                    MissingYValue := True
-                  ELSE
-                    Location_Y := Location_Y + Location_YLocationAdjustment;
-                END;
-              END;
-            END;
-          END; {WITH}
-          Inc(Location);
-          Inc(Iterations);
-        END; {WHILE}
-      UNTIL NOT MissingYValue OR (ErrorMsg <> '') OR (Iterations = 100000);
-    END;
-
-    IF Iterations >= 100000 THEN
-      ErrorMsg := 'Too many iterations in calculating Y positions of locations - error probably with location=' + LocationToStr(TempLocation)
-    ELSE
-      CalculateLocationPositions;
-
-    IF ErrorMsg <> '' THEN BEGIN
-      IF MessageDialogueWithDefault('Error when checking Loc=' + IntToStr(Location - 1) + ' (' + Locations[Location - 1] .Location_LongNameStr + '): '
-                                    + ErrorMsg
-                                    + CRLF
-                                    + 'Do you wish to continue?',
-                                    StopTimer, mtWarning, [mbYes, mbNo], mbNo) = mrNo
-      THEN
-        ShutDownProgram(UnitRef, 'ReadInLocationDataFromDatabase 2');
-    END;
-
   EXCEPT {TRY}
     ON E : Exception DO
       Log('EG ReadInLocationDataFromDatabase: ' + E.ClassName + ' error raised, with message: ' + E.Message);

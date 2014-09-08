@@ -2538,9 +2538,7 @@ BEGIN { KeyPressedDown }
 
                   Log('A READ IN LOCATION DATA FROM DATABASE');
                   IF NOT ResizeMap THEN
-                    ReadInLocationDataFromDatabase
-                  ELSE
-                    CalculateLocationPositions;
+                    ReadInLocationDataFromDatabase;
 
                   SetLength(LocationOccupations, Length(Locations));
 
