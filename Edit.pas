@@ -48,9 +48,6 @@ FUNCTION CheckIfAnyEditedDataHasChanged : Boolean;
 PROCEDURE ClearEditValueList;
 { Empty the value list so as not to display anyting if we click on an unrecognised item, or a blank bit of screen }
 
-PROCEDURE CreateLine;
-{ Creates a line from scratch }
-
 PROCEDURE CreatePoint(Direction : DirectionType; Line : Integer);
 { Creates a point from scratch }
 
@@ -66,7 +63,7 @@ PROCEDURE DeletePoint(PointToDeleteNum : Integer);
 PROCEDURE DeleteSignal(SignalToDeleteNum : Integer);
 { Delete a signal after appropriate checks }
 
-PROCEDURE DragLineEnd(MouseX, MouseY : Integer);
+PROCEDURE DragEndOfLine(MouseX, MouseY : Integer);
 { Allows a line to be moved by the mouse }
 
 PROCEDURE DragSignal(S, MouseX, MouseY : Integer; OUT NearestLineToSignal, TooNearSignal : Integer);
@@ -81,8 +78,8 @@ FUNCTION GetNearestLine(X, Y : Integer) : Integer;
 PROCEDURE InitialiseEditUnit;
 { Initialises the unit }
 
-FUNCTION IsNearRow(Y : Integer) : Boolean;
-{ Returns true if the Y position is close to a window row }
+FUNCTION IsNearRow(Y : Integer) : Integer;
+{ Returns the row number if the Y position is close to it }
 
 PROCEDURE LineDraggingComplete(X, Y : Integer);
 { Called when when we have finished line creation by mouse }
@@ -121,7 +118,6 @@ VAR
   EditedSignal : Integer = UnknownSignal;
   EditedTrackCircuit : Integer = UnknownTrackCircuit;
   EditWindow: TEditWindow;
-  LineCreatedXYPos : TPoint;
   LineEndDragging : Boolean = False;
   PreLineEndDragging : Boolean = False;
   SaveDragX : Integer = 0;
@@ -1853,102 +1849,6 @@ BEGIN
   END; {TRY}
 END; { DeleteSignal }
 
-PROCEDURE CreateLine;
-{ Create a basic signal which must then be added to using the value list editor }
-BEGIN
-  SetLength(Lines, Length(Lines) + 1);
-  EditedLine := High(Lines);
-
-  WITH Lines[EditedLine] DO BEGIN
-    Line_UpXAbsolute := 0;
-    Line_UpX := 0;
-    Line_DownXAbsolute := 0;
-    Line_DownX := 0;
-    Line_UpRow := 0;
-    Line_UpRow := 0;
-    Line_UpY := 0;
-    Line_DownY := 0;
-
-    Line_DataChanged := False;
-    Line_DownConnectionCh := '';
-    Line_DownConnectionChBold := False;
-    Line_AdjacentBufferStop := UnknownBufferStop;
-    Line_LockFailureNotedInSubRouteUnit := False;
-    Line_NextUpIsEndofLine := NotEndOfLine;
-    Line_NextDownIsEndOfLine := NotEndOfLine;
-    Line_NextDownPoint := UnknownPoint;
-    Line_NextDownType := UnknownNextLineRouteingType;
-    Line_NextDownLine := UnknownLine;
-    Line_NextUpLine := UnknownLine;
-    Line_NextUpPoint := UnknownPoint;
-    Line_RouteLockingForDrawing := UnknownRoute;
-    Line_RouteSet := UnknownRoute;
-    Line_UpConnectionCh := '';
-    Line_UpConnectionChBold := False;
-  END; {WITH}
-
-  NoteThatDataHasChanged;
-  CalculateLinePositions;
-  AddNewRecordToLineDatabase;
-  WriteOutLineDataToDatabase;
-
-  SaveLineRec := Lines[EditedLine];
-  WriteLineValuesToValueList;
-
-  InvalidateScreen(UnitRef, 'CreateLine');
-  Log('D Screen invalidated by CreateLine');
-END; { CreateLine }
-
-PROCEDURE DeleteLine(LineToDeleteNum : Integer);
-{ Delete a line after appropriate checks }
-CONST
-  NewLineData = True;
-
-VAR
-  CanDelete : Boolean;
-
-BEGIN
-  TRY
-    CanDelete := True;
-
-    { Ask for confirmation }
-    IF MessageDialogueWithDefault('Delete Line ' + LineToStr(LineToDeleteNum) + ' (' + IntToStr(LineToDeleteNum)+ ') ?',
-                                  StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
-    THEN BEGIN
-      Debug('Line ' + IntToStr(LineToDeleteNum) + ' not deleted');
-      CanDelete := False;
-    END;
-
-    IF CanDelete THEN
-      DeleteRecordFromLineDatabase(LineToDeleteNum);
-
-    IF CanDelete THEN BEGIN
-      WITH InitVarsWindow DO BEGIN
-        { Now we renumber the last entry so it the same as the line already deleted (a DJW suggestion of 3/9/14) }
-        Lines[High(Lines)].Line_Number := LineToDeleteNum;
-        Lines[High(Lines)].Line_DataChanged := True;
-        WriteOutLineDataToDatabase;
-
-        { Clear the data from the value-list editor }
-        WITH EditWindow DO BEGIN
-          ClearEditValueList;
-          UndoChangesButton.Enabled := False;
-          SaveChangesAndExitButton.Enabled := False;
-          ExitWithoutSavingButton.Enabled := False;
-        END; {WITH}
-
-        { Reload all the lines }
-        ReadInLineDataFromDatabase;
-        InvalidateScreen(UnitRef, 'DeleteLine');
-        Log('D Screen invalidated by Delete Line');
-      END;
-    END;
-  EXCEPT {TRY}
-    ON E : Exception DO
-      Log('EG DeleteLine: ' + E.ClassName + ' error raised, with message: '+ E.Message);
-  END; {TRY}
-END; { DeleteLine }
-
 PROCEDURE CreatePoint(Direction : DirectionType; Line : Integer);
 { Creates a point from scratch }
 BEGIN
@@ -2119,14 +2019,14 @@ BEGIN
   END; {TRY}
 END; { DeletePoint }
 
-FUNCTION IsNearRow(Y : Integer) : Boolean;
-{ Returns true if the Y position is close to a window row }
+FUNCTION IsNearRow(Y : Integer) : Integer;
+{ Returns the row number if the Y position is close to it }
 VAR
   Row : Integer;
   RowFound : Boolean;
 
 BEGIN
-  Result := False;
+  Result := UnknownRow;
 
   Row := 1;
   RowFound := False;
@@ -2140,7 +2040,9 @@ BEGIN
   END; {WHILE}
 
   IF RowFound THEN
-    Result := True;
+    Result := Row;
+
+  Debug('row=' + inttostr(row));
 END; { IsNearRow }
 
 FUNCTION GetNearestLine(X, Y : Integer) : Integer;
@@ -2596,7 +2498,57 @@ BEGIN
   END; {TRY}
 END; { TurnEditModeOff }
 
-PROCEDURE DragLineEnd(MouseX, MouseY : Integer);
+PROCEDURE DeleteLine(LineToDeleteNum : Integer);
+{ Delete a line after appropriate checks }
+CONST
+  NewLineData = True;
+
+VAR
+  CanDelete : Boolean;
+
+BEGIN
+  TRY
+    CanDelete := True;
+
+    { Ask for confirmation }
+    IF MessageDialogueWithDefault('Delete Line ' + LineToStr(LineToDeleteNum) + ' (' + IntToStr(LineToDeleteNum)+ ') ?',
+                                  StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
+    THEN BEGIN
+      Debug('Line ' + IntToStr(LineToDeleteNum) + ' not deleted');
+      CanDelete := False;
+    END;
+
+    IF CanDelete THEN
+      DeleteRecordFromLineDatabase(LineToDeleteNum);
+
+    IF CanDelete THEN BEGIN
+      WITH InitVarsWindow DO BEGIN
+        { Now we renumber the last entry so it the same as the line already deleted (a DJW suggestion of 3/9/14) }
+        Lines[High(Lines)].Line_Number := LineToDeleteNum;
+        Lines[High(Lines)].Line_DataChanged := True;
+        WriteOutLineDataToDatabase;
+
+        { Clear the data from the value-list editor }
+        WITH EditWindow DO BEGIN
+          ClearEditValueList;
+          UndoChangesButton.Enabled := False;
+          SaveChangesAndExitButton.Enabled := False;
+          ExitWithoutSavingButton.Enabled := False;
+        END; {WITH}
+
+        { Reload all the lines }
+        ReadInLineDataFromDatabase;
+        InvalidateScreen(UnitRef, 'DeleteLine');
+        Log('D Screen invalidated by Delete Line');
+      END;
+    END;
+  EXCEPT {TRY}
+    ON E : Exception DO
+      Log('EG DeleteLine: ' + E.ClassName + ' error raised, with message: '+ E.Message);
+  END; {TRY}
+END; { DeleteLine }
+
+PROCEDURE DragEndOfLine(MouseX, MouseY : Integer);
 { Allows a line to be moved by the mouse }
 VAR
   NearestLineToNewLine : Integer;
@@ -2605,10 +2557,10 @@ BEGIN
   TRY
     BEGIN
       WITH FWPRailWindow.Canvas DO BEGIN
-        CreatingLine.X1 := LineCreatedXYPos.X;
-        CreatingLine.Y1 := LineCreatedXYPos.Y;
-        CreatingLine.X2 := MouseX;
-        CreatingLine.Y2 := MouseY;
+        WITH NewLines[High(NewLines)] DO BEGIN
+          NewLine_X2 := MouseX;
+          NewLine_Y2 := MouseY;
+        END; {WITH}
       END; {WITH}
 
       NearestLineToNewLine := GetNearestLine(MouseX, MouseY);
@@ -2621,9 +2573,54 @@ BEGIN
     END;
   EXCEPT
     ON E : Exception DO
-      Log('EG DragLineEnd:' + E.ClassName + ' error raised, with message: '+ E.Message);
+      Log('EG DragEndOfLine:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
-END; { DragLineEnd }
+END; { DragEndOfLine }
+
+PROCEDURE CreateLine(X1, Y1, X2, Y2 : Integer);
+{ Create a basic line which must then be added to using the value list editor }
+BEGIN
+  SetLength(Lines, Length(Lines) + 1);
+  EditedLine := High(Lines);
+
+  WITH Lines[EditedLine] DO BEGIN
+    Line_UpXAbsolute := X1;
+    Line_DownXAbsolute := X2;
+
+    Line_DownRow := 0;
+    Line_UpRow := 0;
+
+    CalculateLinePositions;
+
+    Line_DataChanged := False;
+    Line_DownConnectionCh := '';
+    Line_DownConnectionChBold := False;
+    Line_AdjacentBufferStop := UnknownBufferStop;
+    Line_LockFailureNotedInSubRouteUnit := False;
+    Line_NextUpIsEndofLine := NotEndOfLine;
+    Line_NextDownIsEndOfLine := NotEndOfLine;
+    Line_NextDownPoint := UnknownPoint;
+    Line_NextDownType := UnknownNextLineRouteingType;
+    Line_NextDownLine := UnknownLine;
+    Line_NextUpLine := UnknownLine;
+    Line_NextUpPoint := UnknownPoint;
+    Line_RouteLockingForDrawing := UnknownRoute;
+    Line_RouteSet := UnknownRoute;
+    Line_UpConnectionCh := '';
+    Line_UpConnectionChBold := False;
+  END; {WITH}
+
+  NoteThatDataHasChanged;
+  CalculateLinePositions;
+  AddNewRecordToLineDatabase;
+  WriteOutLineDataToDatabase;
+
+  SaveLineRec := Lines[EditedLine];
+  WriteLineValuesToValueList;
+
+  InvalidateScreen(UnitRef, 'CreateLine');
+  Log('D Screen invalidated by CreateLine');
+END; { CreateLine }
 
 PROCEDURE LineDraggingComplete(X, Y : Integer);
 { Called when when we have finished line creation by mouse }
@@ -2640,6 +2637,9 @@ BEGIN
     ELSE
       Inc(Line);
   END; {WHILE}
+
+//  WITH NewLines[High(NewLines)] DO
+//    CreateLine(NewLine_X1, NewLine_Y1, NewLine_X2, NewLine_Y2);
 
   IF LineFound THEN
     beep;

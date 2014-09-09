@@ -1061,7 +1061,6 @@ VAR
   PROCEDURE ShowLineData;
   { show various line display options }
   VAR
-    ElementPos : Integer;
     Line : Integer;
     Pos : Integer;
 
@@ -6982,7 +6981,7 @@ VAR
   ShowPointNum : Boolean;
   ErrorMsg : String;
   Line, Line2 : Integer;
-  LinesArray : LineArrayType;
+  LinesArray : IntegerArrayType;
   LocoDataTableOK : Boolean;
   P : Integer;
   S : Integer;
@@ -7589,11 +7588,15 @@ BEGIN { Main drawing procedure }
         IF NOT ShowTrackCircuits AND NOT ShowLineDetail AND NOT ShowLineNumbers AND NOT ShowLinesUpXAbsoluteValue THEN
           DrawAllPoints;
 
-        IF LineEndDragging THEN BEGIN
+        IF LineEndDragging OR (Length(NewLines) > 0) THEN BEGIN
           Pen.Color := clWhite;
           Pen.Style := psSolid;
-          MoveTo(CreatingLine.X1, CreatingLine.Y1);
-          LineTo(CreatingLine.X2, CreatingLine.Y2);
+          IF Length(NewLines) > 0 THEN BEGIN
+            WITH NewLines[High(NewLines)] DO BEGIN
+              MoveTo(NewLine_X1, NewLine_Y1);
+              LineTo(NewLine_X2, NewLine_Y2);
+            END; {WITH}
+          END;
         END;
 
         IF ResizeMap THEN

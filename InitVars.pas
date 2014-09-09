@@ -145,6 +145,7 @@ CONST
   UnknownSubRoute = 99999;
   UnknownPoint = 99999;
   UnknownRoute = 99999;
+  UnknownRow = 99999;
   UnknownSignal = 99999;
   UnknownTrackCircuit = 99999;
   UnknownTrainIndex = 99999;
@@ -179,13 +180,6 @@ CONST
 TYPE
   TColour = TColor;
   TColourDialogue = TColorDialog;
-
-  CreatingLineType = RECORD
-    X1 : Integer;
-    Y1 : Integer;
-    X2 : Integer;
-    Y2 : Integer;
-  END;
 
   BooleanArrayType = ARRAY OF Boolean;
   DateTimeArrayType = ARRAY OF TDateTime;
@@ -389,6 +383,13 @@ CONST
   Line_UpRowFieldName : String = 'Up Row';
 
 TYPE
+  NewLineRec = RECORD
+    NewLine_X1 : Integer;
+    NewLine_Y1 : Integer;
+    NewLine_X2 : Integer;
+    NewLine_Y2 : Integer;
+  END;
+
   DirectionPriorityType = (PreferablyUp, UpOnly, TerminatingAtUp, PreferablyDown, DownOnly, TerminatingAtDown, NoDirectionPriority);
   ThroughLocationStateType = (ThroughLocation, NonThroughLocation, UnknownThroughLocationState);
   ThroughOrStoppingPriorityType = (ThroughPriority, StoppingPriority, NoStoppingPriority);
@@ -812,8 +813,6 @@ TYPE
   TrackCircuitStateType = (TCFeedbackOccupation, TCFeedbackOccupationButOutOfUse, TCPermanentFeedbackOccupation, TCPermanentOccupationSetByUser, TCSystemOccupation,
                            TCPermanentSystemOccupation, TCMissingOccupation, TCOutOfUseSetByUser, TCOutOfUseAsNoFeedbackReceived, TCLocoOutOfPlaceOccupation, TCUnoccupied);
 
-  LineArrayType = ARRAY OF Integer;
-
   TrackCircuitRec = RECORD
     TC_AdjacentBufferStop : Integer;
     TC_AdjacentSignals : IntegerArrayType;
@@ -828,7 +827,7 @@ TYPE
     TC_HeadCode : String;
     TC_Journey : Integer;
     TC_LengthInInches : Extended;
-    TC_LineArray : LineArrayType;
+    TC_LineArray : IntegerArrayType;
     TC_LitUp : Boolean; { used for flashing }
     TC_Location : Integer;
     TC_LockedForRoute : Integer;
@@ -1307,7 +1306,6 @@ VAR
   BreakPointRequiredInMakeSoundRoutine : Boolean = False;
   BufferStops : ARRAY OF BufferStopRec;
   CreateLineMode : Boolean = False;
-  CreatingLine : CreatingLineType;
   CrossHairCursor : TCursor;
   DapolCleaningWagonLocoChip : Integer = UnknownLocoChip;
   DapolCleaningWagonLocoChipRunning : Boolean = False;
@@ -1348,6 +1346,7 @@ VAR
   MainPlatformPlungers : ARRAY OF TRSPlungerRec;
   MissingTrainArray : ARRAY [1..9] OF Boolean = (False, False, False, False, False, False, False, False, False);
   MissingTrainCounter : Integer = 0;
+  NewLines : ARRAY OF NewLineRec;
   NightTimeSetByUser : Boolean = False;
   NoFeedBackList : StringArrayType;
   NumberLines : Boolean = False;
@@ -1463,7 +1462,7 @@ VAR
   Routes_CurrentSubRouteSettingPos : IntegerArrayType;
   Routes_Directions : DirectionArrayType;
   Routes_EndBufferStops : IntegerArrayType;
-  Routes_EndLines : LineArrayType;
+  Routes_EndLines : IntegerArrayType;
   Routes_EndSignals : IntegerArrayType;
   Routes_Journeys : IntegerArrayType;
   Routes_LocoChips : IntegerArrayType;
@@ -1486,13 +1485,13 @@ VAR
   Routes_RoutesSettingUpStalledMsgWrittenArray : BooleanArrayType;
   Routes_RoutesSettingUpStalledTimeArray : DateTimeArrayType;
   Routes_SettingUpFailuresMsgWrittenArray : BooleanArrayType;
-  Routes_StartLines : LineArrayType;
+  Routes_StartLines : IntegerArrayType;
   Routes_StartSignals : IntegerArrayType;
   Routes_SubRouteClearingStrings : ARRAY OF ARRAY OF StringArrayType; { ie a 3-dimensional ARRAY OF String }
-  Routes_SubRouteEndLines : ARRAY OF LineArrayType;
+  Routes_SubRouteEndLines : ARRAY OF IntegerArrayType;
   Routes_SubRoutesAheadNotClearMsgWrittenArray : BooleanArrayType;
   Routes_SubRouteSettingStrings : ARRAY OF ARRAY OF StringArrayType; { ie a 3-dimensional ARRAY OF String }
-  Routes_SubRouteStartLines : ARRAY OF LineArrayType;
+  Routes_SubRouteStartLines : ARRAY OF IntegerArrayType;
   Routes_SubRouteStartSignals : ARRAY OF IntegerArrayType;
   Routes_SubRouteStates : ARRAY OF SubRouteStateArrayType; { 2D as there are 3 states per subroute }
   Routes_TheatreIndicatorSettingInitiated : Boolean = False;
@@ -1793,7 +1792,7 @@ FUNCTION ValidateSignalJunctionIndicators1(Str, FieldName : String; Signal_Indic
   the indicator has been validated first
 }
 PROCEDURE ValidateSignalJunctionIndicators2(StrArray : ARRAY OF String; SignalIndicator : IndicatorType; SignalJunctionIndicators : ARRAY OF JunctionIndicatorRec;
-                                      OUT ErrorMsg : String);
+                                            OUT ErrorMsg : String);
 { The second part of verifying whether junction indictaors are correctly set up }
 
 FUNCTION ValidateSignalLocationsToMonitorArray(Str : String; PossibleRouteHold : Boolean; OUT ErrorMsg : String) : IntegerArrayType;
@@ -4047,7 +4046,7 @@ BEGIN
 END; { ValidateSignalJunctionIndicators1 }
 
 PROCEDURE ValidateSignalJunctionIndicators2(StrArray : ARRAY OF String; SignalIndicator : IndicatorType; SignalJunctionIndicators : ARRAY OF JunctionIndicatorRec;
-                                      OUT ErrorMsg : String);
+                                            OUT ErrorMsg : String);
 { The second part of verifying whether junction indicators are correctly set up }
 VAR
   I, J : Integer;
@@ -4403,7 +4402,7 @@ VAR
   I : Integer;
   S : Integer;
   TempJunctionIndicator : JunctionIndicatorType;
-  TempLineArray : LineArrayType;
+  TempLineArray : IntegerArrayType;
   TempS : Integer;
   TempSignalNumber : Integer;
   TempStrArray : ARRAY [0..5] OF String;
@@ -6681,10 +6680,6 @@ END; { InitialiseInitVarsUnit }
 INITIALIZATION
 
 BEGIN
-  CreatingLine.X1 := 0;
-  CreatingLine.Y1 := 0;
-  CreatingLine.X2 := 0;
-  CreatingLine.Y2 := 0;
   SaveActualTime := Time;
 END; { Initialization }
 

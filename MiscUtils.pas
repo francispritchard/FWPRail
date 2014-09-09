@@ -67,11 +67,14 @@ PROCEDURE AppendToDirectionArray(VAR DirectionArray : DirectionArrayType; NewEle
 PROCEDURE AppendToIntegerArray(VAR IntegerArray : IntegerArrayType; NewElement : Integer);
 { Appends an integer value to the array }
 
-PROCEDURE AppendToLineArray(VAR LineArray : LineArrayType; NewElement : Integer);
+PROCEDURE AppendToLineArray(VAR LineArray : IntegerArrayType; NewElement : Integer);
 { Appends a line to the array }
 
 PROCEDURE AppendToLocationArray(VAR LocationArray : IntegerArrayType; NewElement : Integer);
 { Appends a location to the array }
+
+PROCEDURE AppendToNewLineArray(VAR NewLineArray : IntegerArrayType; NewElement : Integer);
+{ Appends a newly-created line to the temporary new-lines array }
 
 PROCEDURE AppendToStringArray(VAR StringArray : StringArrayType; NewElement : String);
 { Appends a string value to the array }
@@ -284,7 +287,7 @@ FUNCTION GetFollowingChars(LineStr : String; Str : String; EndStr : String) : St
 FUNCTION GetLineTypeColour(T : TypeOfLine) : TColour;
 { Return the colour for a specific line type }
 
-FUNCTION GetLinesForTrackCircuit(TC : Integer) : LineArrayType;
+FUNCTION GetLinesForTrackCircuit(TC : Integer) : IntegerArrayType;
 { Return all the lines on a given track circuit }
 
 FUNCTION GetLocationFromTrackCircuit(TC : Integer) : Integer;
@@ -404,7 +407,7 @@ FUNCTION IsElementInIntegerArray{1}(IntegerArray : IntegerArrayType; Element : I
 FUNCTION IsElementInIntegerArray{2}(IntegerArray : IntegerArrayType; Element : Integer; OUT ElementPos : Integer) : Boolean; Overload;
 { Returns whether the given array element is found in an integer array and where it is in the array }
 
-FUNCTION IsElementInLineArray(LineArray : LineArrayType; Element : Integer) : Boolean;
+FUNCTION IsElementInLineArray(LineArray : IntegerArrayType; Element : Integer) : Boolean;
 { Returns whether the given array element is in a line array }
 
 FUNCTION IsElementInLocationArray(LocationArray : IntegerArrayType; Element : Integer; OUT ElementPos : Integer) : Boolean;
@@ -2131,7 +2134,7 @@ BEGIN
   IntegerArray[High(IntegerArray)] := NewElement;
 END; { AppendToIntegerArray }
 
-PROCEDURE AppendToLineArray(VAR LineArray : LineArrayType; NewElement : Integer);
+PROCEDURE AppendToLineArray(VAR LineArray : IntegerArrayType; NewElement : Integer);
 { Appends a line name to the array }
 BEGIN
   SetLength(LineArray, Length(LineArray) + 1);
@@ -2144,6 +2147,13 @@ BEGIN
   SetLength(LocationArray, Length(LocationArray) + 1);
   LocationArray[High(LocationArray)] := NewElement;
 END; { AppendToLocationArray }
+
+PROCEDURE AppendToNewLineArray(VAR NewLineArray : IntegerArrayType; NewElement : Integer);
+{ Appends a newly-created line to the temporary new-lines array }
+BEGIN
+  SetLength(NewLineArray, Length(NewLineArray) + 1);
+  NewLineArray[High(NewLineArray)] := NewElement;
+END; { AppendToLineArray }
 
 PROCEDURE AppendToStringArray(VAR StringArray : StringArrayType; NewElement : String);
 { Appends a string value to the array }
@@ -3320,7 +3330,7 @@ BEGIN
   END;
 END; { GetLineTypeColour }
 
-FUNCTION GetLinesForTrackCircuit(TC : Integer) : LineArrayType;
+FUNCTION GetLinesForTrackCircuit(TC : Integer) : IntegerArrayType;
 { Return all the lines on a given track circuit }
 VAR
   L : Integer;
@@ -3759,7 +3769,7 @@ BEGIN
   END; {WHILE}
 END; { IsElementInIntegerArray-2 }
 
-FUNCTION IsElementInLineArray(LineArray : LineArrayType; Element : Integer) : Boolean;
+FUNCTION IsElementInLineArray(LineArray : IntegerArrayType; Element : Integer) : Boolean;
 { Returns whether the given array element is in a line array }
 VAR
   I : Integer;

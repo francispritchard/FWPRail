@@ -173,7 +173,7 @@ BEGIN
       DragSignal(EditedSignal, X, Y, NearestLine, TooNearSignal)
     ELSE
       IF EditMode AND LineEndDragging THEN BEGIN
-        DragLineEnd(X, Y);
+        DragEndOfLine(X, Y);
       END ELSE
         IF PreparingZoom THEN BEGIN
           { Draw and undraw the rectangle if any }
@@ -200,10 +200,7 @@ BEGIN
             MouseMovingY := Y;
           END;
 
-//    IF CreateLineMode AND NOT IsNearRow(Y) THEN
-//      ChangeCursor(crNoDrop)
-//    ELSE
-      IF CreateLineMode AND IsNearRow(Y) THEN
+      IF CreateLineMode AND (IsNearRow(Y) <> UnknownRow) THEN
         ChangeCursor(crHandPoint)
       ELSE
         IF NOT SignalDragging AND (Screen.Cursor <> crDefault) THEN
@@ -1843,11 +1840,21 @@ BEGIN
     CuneoWindow.MouseButtonDownTimer.Enabled := True;
   END;
 
-  IF EditMode AND PreLineEndDragging AND IsNearRow(Y) THEN BEGIN
+  IF EditMode AND PreLineEndDragging
+  AND ((IsNearRow(Y) <> UnKnownRow)
+       OR (ssShift IN ShiftState))
+  THEN BEGIN
     PreLineEndDragging := False;
     LineEndDragging := True;
-    LineCreatedXYPos.X := X;
-    LineCreatedXYPos.Y := Y;
+
+    { and create a new line record }
+    SetLength(NewLines, Length(NewLines) + 1);
+    WITH NewLines[High(NewLines)] DO BEGIN
+      NewLine_X1 := X;
+      NewLine_Y1 := Y;
+      NewLine_X2 := 0;
+      NewLine_Y2 := 0;
+    END; {WITH}
   END;
 
   { See if we're in the middle of an exit sequence, and, if so, abort it }

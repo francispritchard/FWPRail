@@ -724,7 +724,7 @@ VAR
   AdjacentUpTC, AdjacentDownTC : Integer;
   ErrorMsg : String;
   I, J : Integer;
-  LineArray : LineArrayType;
+  LineArray : IntegerArrayType;
   Location : Integer;
   LocationOccupationCount : Integer;
   TempLocationLocoChips : IntegerArrayType;
