@@ -16,7 +16,7 @@ TYPE
     { Public declarations }
   END;
 
-PROCEDURE ChangeStateOfWhatIsUnderMouse(X, Y : Integer; ShiftState : TShiftState; HelpRequired : Boolean);
+PROCEDURE ChangeStateOfWhatIsUnderMouse(ScreenX, ScreenY : Integer; ShiftState : TShiftState; HelpRequired : Boolean);
 { See what the mouse is currently pointing at something, and change its state if appropriate }
 
 FUNCTION GetLineFoundNum : Integer;
@@ -25,19 +25,19 @@ FUNCTION GetLineFoundNum : Integer;
 FUNCTION GetZoomRect : TRect;
 { Return the current zoom rectangle }
 
-PROCEDURE MouseButtonPressed(Button : TMouseButton; X, Y : Integer; ShiftState : TShiftState);
+PROCEDURE MouseButtonPressed(Button : TMouseButton; ScreenX, ScreenY : Integer; ShiftState : TShiftState);
 { The mouse button has been pressed }
 
-PROCEDURE MouseButtonReleased(Button : TMouseButton; X, Y : Integer; ShiftState : TShiftState);
+PROCEDURE MouseButtonReleased(Button : TMouseButton; ScreenX, ScreenY : Integer; ShiftState : TShiftState);
 { Button released }
 
 PROCEDURE SetZoomRect(TempZoomRect : TRect);
 { Set the current zoom rectangle }
 
-PROCEDURE WhatIsUnderMouse(X, Y : Integer; ShiftState : TShiftState); Overload;
+PROCEDURE WhatIsUnderMouse(ScreenX, ScreenY : Integer; ShiftState : TShiftState); Overload;
 { Returns the current mouse position and whether a specific item has been found at that position without a keypress being required }
 
-PROCEDURE WhatIsUnderMouse(X, Y : Integer; ShiftState : TShiftState; OUT BufferStopFoundNum : Integer; OUT IndicatorFoundNum : Integer;
+PROCEDURE WhatIsUnderMouse(ScreenX, ScreenY : Integer; ShiftState : TShiftState; OUT BufferStopFoundNum : Integer; OUT IndicatorFoundNum : Integer;
                            OUT IndicatorFoundType : JunctionIndicatorType; OUT PointFoundNum : Integer; OUT SignalFoundNum : Integer; OUT SignalPostFoundNum : Integer;
                            OUT TheatreIndicatorFoundNum : Integer; OUT TRSPlungerFoundLocation : Integer); Overload;
 { Returns the current mouse position and whether a specific item has been found at that position without a keypress being required }
@@ -70,6 +70,7 @@ VAR
   MouseX : Integer;
   MouseY : Integer;
   MoveZoomWindowMode : Boolean = False;
+  NewLineFoundNum : Integer = UnknownLine;
   SaveDivergingLine : Integer = UnknownLine;
   SaveDivergingLineColour : TColour;
   SaveDownBufferStop : Integer = UnknownBufferStop;
@@ -120,7 +121,7 @@ BEGIN
   ZoomRect := TempZoomRect;
 END; { SetZoomRect }
 
-PROCEDURE WhatIsUnderMouseMainProc(X, Y : Integer; ShiftState : TShiftState; OUT BufferStopFoundNum : Integer; OUT IndicatorFoundNum : Integer;
+PROCEDURE WhatIsUnderMouseMainProc(ScreenX, ScreenY : Integer; ShiftState : TShiftState; OUT BufferStopFoundNum : Integer; OUT IndicatorFoundNum : Integer;
                                    OUT IndicatorFoundType : JunctionIndicatorType; OUT PointFoundNum : Integer; OUT SignalFoundNum : Integer;
                                    OUT SignalPostFoundNum : Integer; OUT TheatreIndicatorFoundNum : Integer; OUT TRSPlungerFoundLocation : Integer);
 { Returns the current mouse position and whether a specific item has been found at that position without a keypress being required }
@@ -132,9 +133,12 @@ CONST
 VAR
   B, P, S : Integer;
   DebugStr : String;
+  GridX : Integer;
+  GridY : Integer;
   Line : Integer;
   LockingFailureString : String;
   NearestLine : Integer;
+  NewLine : Integer;
   ObjectFound : Boolean;
   SaveRecordLineDrawingMode : Boolean;
   StatusBarPanel1Str : String;
@@ -143,6 +147,7 @@ VAR
   TC : Integer;
   TempDraftRouteArray : StringArrayType;
   TempLinesNotAvailableStr : String;
+  DummyRow : Integer;
   TempStatusBarPanel1Str : String;
   TooNearSignal : Integer;
 //  TRSPlungerFound : Boolean;
@@ -153,6 +158,7 @@ BEGIN
     IndicatorFoundNum := UnknownSignal;
     IndicatorFoundType := UnknownJunctionIndicator;
     LineFoundNum := UnknownLine;
+    NewLineFoundNum := UnknownLine;
     PointFoundNum := UnknownPoint;
     SignalFoundNum := UnknownSignal;
     SignalPostFoundNum := UnknownSignal;
@@ -174,11 +180,11 @@ BEGIN
     END;
 
     IF EditMode AND SignalDragging THEN
-      DragSignal(EditedSignal, X, Y, NearestLine, TooNearSignal)
+      DragSignal(EditedSignal, ScreenX, ScreenY, NearestLine, TooNearSignal)
     ELSE
-      IF EditMode AND LineEndDragging THEN BEGIN
-        DragEndOfLine(X, Y);
-      END ELSE
+      IF EditMode AND EndOfLineDragging THEN
+        DragEndOfLine(ScreenX, ScreenY, ShiftState)
+      ELSE
         IF PreparingZoom THEN BEGIN
           { Draw and undraw the rectangle if any }
           DrawOutline(ZoomRect, clRed, UndrawRequired, NOT UndrawToBeAutomatic);
@@ -186,11 +192,11 @@ BEGIN
           { and set up and draw the new rectangle }
           ZoomRect.Left := MouseX;
           ZoomRect.Top := MouseY;
-          ZoomRect.Right := X;
-          ZoomRect.Bottom := Y;
+          ZoomRect.Right := ScreenX;
+          ZoomRect.Bottom := ScreenY;
 
           { Only change the cursor if we start drawing a rectangle }
-          IF (MouseX <> X) AND (MouseY <> Y) THEN
+          IF (MouseX <> ScreenX) AND (MouseY <> ScreenY) THEN
             ChangeCursor(crSizeNWSE);
 
           DrawOutline(ZoomRect, clRed, UndrawRequired, NOT UndrawToBeAutomatic);
@@ -198,17 +204,14 @@ BEGIN
           IF MoveZoomWindowMode THEN BEGIN
             HideStatusBarAndUpDownIndications;
 
-            FWPRailWindow.HorzScrollBar.Position := FWPRailWindow.HorzScrollBar.Position + MouseMovingX - X;
-            FWPRailWindow.VertScrollBar.Position := FWPRailWindow.VertScrollBar.Position + MouseMovingY - Y;
-            MouseMovingX := X;
-            MouseMovingY := Y;
+            FWPRailWindow.HorzScrollBar.Position := FWPRailWindow.HorzScrollBar.Position + MouseMovingX - ScreenX;
+            FWPRailWindow.VertScrollBar.Position := FWPRailWindow.VertScrollBar.Position + MouseMovingY - ScreenY;
+            MouseMovingX := ScreenX;
+            MouseMovingY := ScreenY;
           END;
 
-      IF CreateLineMode AND (IsNearRow(Y) <> UnknownRow) THEN
-        ChangeCursor(crHandPoint)
-      ELSE
-        IF NOT SignalDragging AND (Screen.Cursor <> crDefault) THEN
-          ChangeCursor(crDefault);
+    IF NOT CreateLineMode AND NOT SignalDragging AND (Screen.Cursor <> crDefault) THEN
+      ChangeCursor(crDefault);
 
     MouseX := ScreenX + ScrollBarXAdjustment;
     MouseY := ScreenY + ScrollBarYAdjustment;
@@ -328,6 +331,8 @@ BEGIN
       END; {WITH}
     END;
 
+ IF StatusBarPanel1Str <> '' THEN
+ null;
     StatusBarPanel1Str := TempStatusBarPanel1Str;
     TempStatusBarPanel1Str := '';
 
@@ -583,9 +588,9 @@ BEGIN
             RecordLineDrawingMode := SaveRecordLineDrawingMode;
           END;
 
-          { If the mouse has moved away from a line, this will clear the panel }
-//            IF MainWindow.MainWindowStatusBar.Panels[StatusBarPanel2].Text <> '' THEN
-//              WriteToStatusBarPanel(StatusBarPanel2, '');
+//          { If the mouse has moved away from a line, this will clear the panel }
+//          IF FWPRailWindow.FWPRailWindowStatusBar.Panels[StatusBarPanel2].Text <> '' THEN
+//            WriteToStatusBarPanel(StatusBarPanel2, '');
         END;
       END; {WITH}
     END;
@@ -625,17 +630,13 @@ BEGIN
   //  END; {WHILE}
 
     { Write out the description if we've found something to describe }
-    IF StatusBarPanel1Str <> '' THEN BEGIN
-      WriteToStatusBarPanel(StatusBarPanel1, StatusBarPanel1Str);
-      StatusBarPanel1Str := '';
-    END;
-    IF StatusBarPanel2Str <> '' THEN BEGIN
-      WriteToStatusBarPanel(StatusBarPanel2, StatusBarPanel2Str);
-      StatusBarPanel2Str := '';
-    END;
+    WriteToStatusBarPanel(StatusBarPanel1, StatusBarPanel1Str);
+    StatusBarPanel1Str := '';
+
+    WriteToStatusBarPanel(StatusBarPanel2, StatusBarPanel2Str);
 
     IF NOT ObjectFound THEN
-      IF NOT SignalDragging AND NOT LineEndDragging AND NOT CreateLineMode AND (Screen.Cursor <> crDefault) THEN
+      IF NOT SignalDragging AND NOT EndOfLineDragging AND NOT CreateLineMode AND (Screen.Cursor <> crDefault) THEN
         ChangeCursor(crDefault);
   EXCEPT {TRY}
     ON E : Exception DO
@@ -643,7 +644,7 @@ BEGIN
   END; {TRY}
 END; { WhatIsUnderMouseMainProc }
 
-PROCEDURE WhatIsUnderMouse(X, Y : Integer; ShiftState : TShiftState); Overload;
+PROCEDURE WhatIsUnderMouse(ScreenX, ScreenY : Integer; ShiftState : TShiftState); Overload;
 { Returns the current mouse position }
 VAR
   BufferStopFoundNum : Integer;
@@ -656,16 +657,16 @@ VAR
   TRSPlungerFoundLocation : Integer;
 
 BEGIN
-  WhatIsUnderMouseMainProc(X, Y, ShiftState, BufferStopFoundNum, IndicatorFoundNum, IndicatorFoundType, PointFoundNum, SignalFoundNum, SignalPostFoundNum,
+  WhatIsUnderMouseMainProc(ScreenX, ScreenY, ShiftState, BufferStopFoundNum, IndicatorFoundNum, IndicatorFoundType, PointFoundNum, SignalFoundNum, SignalPostFoundNum,
                            TheatreIndicatorFoundNum, TRSPlungerFoundLocation);
 END; { WhatIsUnderMouse }
 
-PROCEDURE WhatIsUnderMouse(X, Y : Integer; ShiftState : TShiftState; OUT BufferStopFoundNum : Integer; OUT IndicatorFoundNum : Integer;
+PROCEDURE WhatIsUnderMouse(ScreenX, ScreenY : Integer; ShiftState : TShiftState; OUT BufferStopFoundNum : Integer; OUT IndicatorFoundNum : Integer;
                            OUT IndicatorFoundType : JunctionIndicatorType; OUT PointFoundNum : Integer; OUT SignalFoundNum : Integer; OUT SignalPostFoundNum : Integer;
                            OUT TheatreIndicatorFoundNum : Integer; OUT TRSPlungerFoundLocation : Integer); Overload;
 { Returns the current mouse position and whether a specific item has been found at that position without a keypress being required }
 BEGIN
-  WhatIsUnderMouseMainProc(X, Y, ShiftState, BufferStopFoundNum, IndicatorFoundNum, IndicatorFoundType, PointFoundNum, SignalFoundNum, SignalPostFoundNum,
+  WhatIsUnderMouseMainProc(ScreenX, ScreenY, ShiftState, BufferStopFoundNum, IndicatorFoundNum, IndicatorFoundType, PointFoundNum, SignalFoundNum, SignalPostFoundNum,
                            TheatreIndicatorFoundNum, TRSPlungerFoundLocation);
 END; { WhatIsUnderMouse }
 
@@ -1788,9 +1789,9 @@ BEGIN
     IF SignalDragging THEN
       DropSignal;
 
-    IF LineEndDragging THEN BEGIN
-      LineEndDragging := False;
-      LineDraggingComplete(X, Y);
+    IF EndOfLineDragging THEN BEGIN
+      EndOfLineDragging := False;
+      LineDraggingComplete(ScreenX, ScreenY);
     END;
 
     { Ending a zoomed screen mouse move }
@@ -1837,7 +1838,7 @@ BEGIN
   END; {TRY}
 END; { MouseButtonReleased }
 
-PROCEDURE MouseButtonPressed(Button : TMouseButton; X, Y : Integer; ShiftState : TShiftState);
+PROCEDURE MouseButtonPressed(Button : TMouseButton; ScreenX, ScreenY : Integer; ShiftState : TShiftState);
 { Button pressed }
 CONST
   HelpRequired = True;
@@ -1849,20 +1850,17 @@ BEGIN
     CuneoWindow.MouseButtonDownTimer.Enabled := True;
   END;
 
-  IF EditMode AND PreLineEndDragging
-  AND ((IsNearRow(Y) <> UnKnownRow)
-       OR (ssShift IN ShiftState))
-  THEN BEGIN
-    PreLineEndDragging := False;
-    LineEndDragging := True;
+  IF (Button = mbLeft) AND EditMode AND CreateLineMode AND NOT EndOfLineDragging THEN BEGIN
+    EndOfLineDragging := True;
 
     { and create a new line record }
-    SetLength(NewLines, Length(NewLines) + 1);
-    WITH NewLines[High(NewLines)] DO BEGIN
-      NewLine_X1 := X;
-      NewLine_Y1 := Y;
-      NewLine_X2 := 0;
-      NewLine_Y2 := 0;
+    SetLength(Lines, Length(Lines) + 1);
+    WITH Lines[High(Lines)] DO BEGIN
+      Line_IsTempNewLine := True;
+      Line_TempNewLineScreenUpX := ScreenX;
+      Line_TempNewLineScreenUpY := ScreenY;
+      Line_TempNewLineScreenDownX := 0;
+      Line_TempNewLineScreenDownY := 0;
     END; {WITH}
   END;
 
@@ -1891,7 +1889,7 @@ BEGIN
     THEN
       CheckEmergencyStop(Button, ShiftState)
     ELSE
-      ChangeStateOfWhatIsUnderMouse(X, Y, ShiftState, NOT HelpRequired);
+      ChangeStateOfWhatIsUnderMouse(ScreenX, ScreenY, ShiftState, NOT HelpRequired);
 
     InvalidateScreen(UnitRef, 'MouseButtonPressed');
   END;

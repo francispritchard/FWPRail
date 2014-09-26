@@ -48,6 +48,9 @@ FUNCTION CheckIfAnyEditedDataHasChanged : Boolean;
 PROCEDURE ClearEditValueList;
 { Empty the value list so as not to display anyting if we click on an unrecognised item, or a blank bit of screen }
 
+PROCEDURE CreateLine(X1, Y1, X2, Y2 : Integer);
+{ Create a basic line which must then be added to using the value list editor }
+
 PROCEDURE CreatePoint(Direction : DirectionType; Line : Integer);
 { Creates a point from scratch }
 
@@ -63,8 +66,8 @@ PROCEDURE DeletePoint(PointToDeleteNum : Integer);
 PROCEDURE DeleteSignal(SignalToDeleteNum : Integer);
 { Delete a signal after appropriate checks }
 
-PROCEDURE DragEndOfLine(MouseX, MouseY : Integer);
-{ Allows a line to be moved by the mouse }
+PROCEDURE DragEndOfLine(X, Y : Integer; ShiftState : TShiftState);
+{ Allows a line end to be moved by the mouse }
 
 PROCEDURE DragSignal(S, MouseX, MouseY : Integer; OUT NearestLineToSignal, TooNearSignal : Integer);
 { { Allows a signal to be moved by the mouse }
@@ -93,6 +96,9 @@ PROCEDURE MoveObjectRight;
 PROCEDURE ProcessLocationsCheckListBoxChecks;
 { See which locations are ticked and update the array }
 
+PROCEDURE SaveOrDiscardNewLines;
+{ If any new lines have been drawn either save them or discard them }
+
 PROCEDURE StartSignalEdit(S : Integer);
 { Set up a signal edit - this is where we save the signal's original state so we can revert to it regardless of how many edits there are }
 
@@ -118,8 +124,9 @@ VAR
   EditedSignal : Integer = UnknownSignal;
   EditedTrackCircuit : Integer = UnknownTrackCircuit;
   EditWindow: TEditWindow;
-  LineEndDragging : Boolean = False;
-  PreLineEndDragging : Boolean = False;
+  EndOfLineDragging : Boolean = False;
+  NewLineX : Integer = 0;
+  NewLineY : Integer = 0;
   SaveDragX : Integer = 0;
   SaveDragY : Integer = 0;
 
@@ -134,17 +141,16 @@ CONST
 
 VAR
   SaveEvent : TNotifyEvent;
-  SaveSystemOnlineState : Boolean;
-  ValueListToBeCleared : Boolean = False;
-
   SaveLineNum : Integer;
   SaveLineRec : LineRec;
   SavePointNum : Integer;
   SavePointRec : PointRec;
   SaveSignalNum : Integer;
   SaveSignalRec : SignalRec;
+  SaveSystemOnlineState : Boolean;
   SaveTrackCircuitNum : Integer;
   SaveTrackCircuitRec : TrackCircuitRec;
+  ValueListToBeCleared : Boolean = False;
 
 PROCEDURE Log(Str : String);
 { For ease of debugging, adds the unit name }
@@ -492,9 +498,6 @@ BEGIN
 
           WriteIntegerValueExcludingZero(Line_UpXAbsoluteFieldName, Line_UpXAbsolute, '9999');
           WriteIntegerValueExcludingZero(Line_DownXAbsoluteFieldName, Line_DownXAbsolute, '9999');
-
-          Values[Line_UpRowFieldName] := FloatToStr(Line_UpRow);
-          Values[Line_DownRowFieldName] := FloatToStr(Line_DownRow);
 
           WriteIntegerValueExcludingZero(Line_TCFieldName, Line_TC, '9999');
 
@@ -1233,22 +1236,12 @@ BEGIN
 
           IF ErrorMsg = '' THEN BEGIN
             IF KeyName = Line_UpXAbsoluteFieldName THEN
-              Line_UpXAbsolute := ValidateLineXAbsolute(NewKeyValue, ErrorMsg);
+              Line_UpXAbsolute := ValidateLineAbsolute(NewKeyValue, ErrorMsg);
           END;
 
           IF ErrorMsg = '' THEN BEGIN
             IF KeyName = Line_DownXAbsoluteFieldName THEN
-              Line_DownXAbsolute := ValidateLineXAbsolute(NewKeyValue, ErrorMsg);
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Line_UpRowFieldName THEN
-              Line_UpRow := ValidateRow(NewKeyValue, ErrorMsg);
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Line_DownRowFieldName THEN
-              Line_DownRow := ValidateRow(NewKeyValue, ErrorMsg);
+              Line_DownXAbsolute := ValidateLineAbsolute(NewKeyValue, ErrorMsg);
           END;
 
           { We don't need to validate Line_Location as the user hasn't been allowed to introduce errors to it }
@@ -2422,6 +2415,52 @@ BEGIN
   END;
 END; { StartTrackCircuitEdit }
 
+PROCEDURE SaveOrDiscardNewLines;
+{ If any new lines have been drawn either save them or discard them }
+VAR
+  Line : Integer;
+  LineStr : String;
+  TempVal : Integer;
+
+BEGIN
+  { add test for new lines here .... }
+
+  exit;
+
+  IF Length(Lines) > 0 THEN BEGIN
+    IF Length(Lines) = 1 THEN
+      LineStr := 'line'
+    ELSE
+      LineStr := 'lines';
+
+    IF MessageDialogueWithDefault('Do you wish to add the new ' + LineStr + ' to the line database?',
+                                  StopTimer, mtError, [mbYes, mbNo], ['&Add ' + LineStr, '&Discard ' + LineStr], mbNo) = mrYes
+    THEN BEGIN
+      FOR Line := 0 TO High(Lines) DO
+        WITH Lines[Line] DO BEGIN
+          IF Line_IsTempNewLine THEN BEGIN
+            { we may need to reverse the up and down values if the down value is greater than the uUp value }
+            IF Line_UpXAbsolute > Line_DownXAbsolute THEN BEGIN
+              TempVal := Line_UpXAbsolute;
+              Line_UpXAbsolute := Line_DownXAbsolute;
+              Line_DownXAbsolute := TempVal;
+            END;
+
+            IF Line_UpYAbsolute > Line_DownYAbsolute THEN BEGIN
+              TempVal := Line_UpYAbsolute;
+              Line_UpYAbsolute := Line_DownYAbsolute;
+              Line_DownYAbsolute := TempVal;
+            END;
+
+            CreateLine(Line_UpXAbsolute, Line_UpYAbsolute, Line_DownXAbsolute, Line_DownYAbsolute);
+
+            Line_IsTempNewLine := False;
+          END;
+        END; {WITH}
+    END;
+  END;
+END; { SaveOrDiscardNewLines }
+
 PROCEDURE TurnEditModeOn(S, P, BS, Line, TC : Integer);
 { Turn edit Mode on }
 BEGIN
@@ -2465,6 +2504,8 @@ PROCEDURE TurnEditModeOff;
 BEGIN
   TRY
     IF EditMode THEN BEGIN
+      SaveOrDiscardNewLines;
+
       EditedPoint := UnknownSignal;
       EditedPoint := UnknownPoint;
       EditedLine := UnknownLine;
@@ -2548,64 +2589,35 @@ BEGIN
   END; {TRY}
 END; { DeleteLine }
 
-PROCEDURE DragEndOfLine(MouseX, MouseY : Integer);
-{ Allows a line to be moved by the mouse }
-VAR
-  NearestLineToNewLine : Integer;
-
-BEGIN
-  TRY
-    BEGIN
-      WITH FWPRailWindow.Canvas DO BEGIN
-        WITH NewLines[High(NewLines)] DO BEGIN
-          NewLine_X2 := MouseX;
-          NewLine_Y2 := MouseY;
-        END; {WITH}
-      END; {WITH}
-
-      NearestLineToNewLine := GetNearestLine(MouseX, MouseY);
-      IF NearestLineToNewLine = UnknownLine THEN
-        ChangeCursor(crNoDrop)
-      ELSE
-        ChangeCursor(crDrag);
-
-      FWPRailWindow.Repaint;
-    END;
-  EXCEPT
-    ON E : Exception DO
-      Log('EG DragEndOfLine:' + E.ClassName + ' error raised, with message: '+ E.Message);
-  END; {TRY}
-END; { DragEndOfLine }
-
 PROCEDURE CreateLine(X1, Y1, X2, Y2 : Integer);
 { Create a basic line which must then be added to using the value list editor }
 BEGIN
-  SetLength(Lines, Length(Lines) + 1);
-  EditedLine := High(Lines);
-
   WITH Lines[EditedLine] DO BEGIN
     Line_UpXAbsolute := X1;
     Line_DownXAbsolute := X2;
-
-    Line_DownRow := 0;
-    Line_UpRow := 0;
+    Line_UpYAbsolute := Y1;
+    Line_DownYAbsolute := Y2;
 
     CalculateLinePositions;
 
-    Line_DataChanged := False;
+    Line_AdjacentBufferStop := UnknownBufferStop;
+    Line_DataChanged := True;
     Line_DownConnectionCh := '';
     Line_DownConnectionChBold := False;
-    Line_AdjacentBufferStop := UnknownBufferStop;
+    Line_EndOfLineMarker := BufferStopAtDown;
     Line_LockFailureNotedInSubRouteUnit := False;
-    Line_NextUpIsEndofLine := NotEndOfLine;
-    Line_NextDownIsEndOfLine := NotEndOfLine;
+    Line_NameStr := 'New Line ' + IntToStr(High(Lines));
+    Line_NextDownIsEndOfLine := BufferStopAtDown;
     Line_NextDownPoint := UnknownPoint;
-    Line_NextDownType := UnknownNextLineRouteingType;
     Line_NextDownLine := UnknownLine;
+    Line_NextDownType := UnknownNextLineRouteingType;
+    Line_NextUpIsEndofLine := BufferStopAtUp;
     Line_NextUpLine := UnknownLine;
     Line_NextUpPoint := UnknownPoint;
+    Line_NextUpType := UnknownNextLineRouteingType;
     Line_RouteLockingForDrawing := UnknownRoute;
     Line_RouteSet := UnknownRoute;
+    Line_TypeOfLine := NewlyCreatedLine;
     Line_UpConnectionCh := '';
     Line_UpConnectionChBold := False;
   END; {WITH}
@@ -2622,11 +2634,45 @@ BEGIN
   Log('D Screen invalidated by CreateLine');
 END; { CreateLine }
 
+PROCEDURE DragEndOfLine(X, Y : Integer; ShiftState : TShiftState);
+{ Allows a line end to be moved by the mouse }
+VAR
+  NearestLineToNewLine : Integer;
+
+BEGIN
+  TRY
+    BEGIN
+      WITH FWPRailWindow.Canvas DO BEGIN
+        WITH Lines[High(Lines)] DO BEGIN
+          Line_TempNewLineScreenDownX := X;
+
+          IF ssShift IN ShiftState THEN
+            Line_TempNewLineScreenDownY := Line_TempNewLineScreenUpY
+          ELSE
+            Line_TempNewLineScreenDownY := Y;
+        END; {WITH}
+      END; {WITH}
+
+      NearestLineToNewLine := GetNearestLine(X, Y);
+      IF NearestLineToNewLine = UnknownLine THEN
+        ChangeCursor(crNoDrop)
+      ELSE
+        ChangeCursor(crDrag);
+
+      FWPRailWindow.Repaint;
+    END;
+  EXCEPT
+    ON E : Exception DO
+      Log('EG DragEndOfLine:' + E.ClassName + ' error raised, with message: '+ E.Message);
+  END; {TRY}
+END; { DragEndOfLine }
+
 PROCEDURE LineDraggingComplete(X, Y : Integer);
 { Called when when we have finished line creation by mouse }
 VAR
   Line : Integer;
   LineFound : Boolean;
+  TempVal : Integer;
 
 BEGIN
   Line := 0;
@@ -2638,8 +2684,44 @@ BEGIN
       Inc(Line);
   END; {WHILE}
 
-//  WITH NewLines[High(NewLines)] DO
-//    CreateLine(NewLine_X1, NewLine_Y1, NewLine_X2, NewLine_Y2);
+  EditedLine := High(Lines);
+
+  { Now update the new line record }
+  WITH Lines[EditedLine] DO BEGIN
+    Line_UpX := Line_TempNewLineScreenUpX;
+    Line_UpXAbsolute := MapScreenXToGridX(Line_UpX);
+    Line_UpY := Line_TempNewLineScreenUpY;
+    Line_UpYAbsolute := MapScreenYToGridY(Line_UpY);
+
+    Line_DownX := Line_TempNewLineScreenDownX;
+    Line_DownXAbsolute := MapScreenXToGridX(Line_DownX);
+    Line_DownY := Line_TempNewLineScreenDownY;
+    Line_DownYAbsolute := MapScreenYToGridY(Line_DownY);
+
+    { We may need to reverse the up and down values if the down value is greater than the up value }
+    IF Line_UpXAbsolute > Line_DownXAbsolute THEN BEGIN
+      TempVal := Line_UpXAbsolute;
+      Line_UpXAbsolute := Line_DownXAbsolute;
+      Line_DownXAbsolute := TempVal;
+
+      TempVal := Line_UpYAbsolute;
+      Line_UpYAbsolute := Line_DownYAbsolute;
+      Line_DownYAbsolute := TempVal;
+    END ELSE
+      IF Line_UpYAbsolute > Line_DownYAbsolute THEN BEGIN
+        TempVal := Line_UpXAbsolute;
+        Line_UpXAbsolute := Line_DownXAbsolute;
+        Line_DownXAbsolute := TempVal;
+
+        TempVal := Line_UpYAbsolute;
+        Line_UpYAbsolute := Line_DownYAbsolute;
+        Line_DownYAbsolute := TempVal;
+      END;
+
+    Line_IsTempNewLine := False;
+
+    CreateLine(Line_UpXAbsolute, Line_UpYAbsolute, Line_DownXAbsolute, Line_DownYAbsolute);
+  END; {WITH}
 
   IF LineFound THEN
     beep;

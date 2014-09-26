@@ -19,7 +19,7 @@ TYPE
     FeedbackUnitsADOTable: TADOTable;
     FeedbackUnitDataSource : TDataSource;
     LinesDataSource: TDataSource;
-    LineDataSource2: TDataSource;
+    LinesDataSource2: TDataSource;
     LinesADOConnection: TADOConnection;
     LinesADOConnection2: TADOConnection;
     LinesADOTable: TADOTable;
@@ -243,7 +243,7 @@ TYPE
   EndOfLineType = (BufferStopAtUp, BufferStopAtDown, ProjectedLineAtUp, ProjectedLineAtDown, NotEndOfLine, UnknownEndOfLine);
 
   TypeOfLine = (MainOrGoods, MainLine, GoodsLine, BranchLineDouble, BranchLineSingle, IslandStationLine, MainStationLine, BranchStationLine, WindowStationLine, SidingLine,
-                FiddleyardLine, SidingsApproach, StationAvoiding, ProjectedLine, UnknownTypeOfLine);
+                FiddleyardLine, SidingsApproach, StationAvoiding, ProjectedLine, NewlyCreatedLine, UnknownTypeOfLine);
   { adjust FirstTypeOfLine or LastTypeOfLine if alteration made to above declaration }
 
   GradientType = (Level, RisingIfUp, RisingIfDown, UnknownGradientType);
@@ -323,8 +323,8 @@ TYPE
     Line_DownConnectionCh : String;
     Line_DownConnectionChRect : TRect;
     Line_DownConnectionChBold : Boolean;
-    Line_DownRow : Extended;
     Line_DownXAbsolute : Integer;
+    Line_DownYAbsolute : Integer;
     Line_DownX : Integer;
     Line_DownY : Integer;
     Line_EndOfLineMarker : EndOfLineType;
@@ -1146,19 +1146,20 @@ CONST
 
   MainOrGoodsLineStr = 'Main or Goods Line';
   MainLineStr = 'Main Line';
-  GoodsLineStr = 'Goods Line';
+  MainStationLineStr = 'Main Station Line';
   BranchLineDoubleStr = 'Branch Line Double';
   BranchLineSingleStr = 'Branch Line Single';
-  IslandStationLineStr = 'Island Station Line';
-  MainStationLineStr = 'Main Station Line';
   BranchStationLineStr = 'Branch Station Line';
-  WindowStationLineStr = 'Window Station Line';
-  SidingLineStr = 'Siding Line';
   FiddleyardLineStr = 'Fiddleyard Line';
+  GoodsLineStr = 'Goods Line';
+  IslandStationLineStr = 'Island Station Line';
+  NewlyCreatedLineStr = 'Newly Created Line';
+  ProjectedLineStr = 'Projected Line';
+  SidingLineStr = 'Siding Line';
   SidingsApproachLineStr = 'Sidings Approach Line';
   StationAvoidingLineStr = 'Station Avoiding Line';
-  ProjectedLineStr = 'Projected Line';
   UnknownLineTypeStr = 'Unknown Line Type';
+  WindowStationLineStr = 'Window Station Line';
 
   CallingOnStr = 'Calling On';
   TwoAspectStr = '2 Aspect';
@@ -1324,6 +1325,7 @@ VAR
   FWPRailWindowPartInitialised : Boolean = False;
   InAutoMode : Boolean = False;
   InterLineSpacing : Integer = 0;
+GridInterLineSpacing : Integer = 0;
   KeyBoardandMouseLocked : Boolean = False;
   LastPointChanged : Integer = UnknownPoint;
   LastTimeAnyPointChanged : TDateTime = 0;
@@ -1344,7 +1346,6 @@ VAR
   MainPlatformPlungers : ARRAY OF TRSPlungerRec;
   MissingTrainArray : ARRAY [1..9] OF Boolean = (False, False, False, False, False, False, False, False, False);
   MissingTrainCounter : Integer = 0;
-  NewLines : ARRAY OF NewLineRec;
   NightTimeSetByUser : Boolean = False;
   NoFeedBackList : StringArrayType;
   NumberLines : Boolean = False;
@@ -3623,15 +3624,27 @@ BEGIN
             LinesADOTable.Post;
 
             TempInt := Line_UpXAbsolute;
-            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + 'Up X Absolute' + ' is ''' + IntToStr(TempInt) + '''');
+            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + 'Up X' + ' is ''' + IntToStr(TempInt) + '''');
             LinesADOTable.Edit;
             LinesADOTable.FieldByName('Up X').AsString := IntToStr(TempInt);
             LinesADOTable.Post;
 
             TempInt := Line_DownXAbsolute;
-            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + 'Down X Absolute' + ' is ''' + IntToStr(TempInt) + '''');
+            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + 'Down X' + ' is ''' + IntToStr(TempInt) + '''');
             LinesADOTable.Edit;
             LinesADOTable.FieldByName('Down X').AsString := IntToStr(TempInt);
+            LinesADOTable.Post;
+
+            TempInt := Line_UpYAbsolute;
+            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + 'Up Y' + ' is ''' + IntToStr(TempInt) + '''');
+            LinesADOTable.Edit;
+            LinesADOTable.FieldByName('Up Y').AsString := IntToStr(TempInt);
+            LinesADOTable.Post;
+
+            TempInt := Line_DownYAbsolute;
+            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + 'Down Y' + ' is ''' + IntToStr(TempInt) + '''');
+            LinesADOTable.Edit;
+            LinesADOTable.FieldByName('Down Y').AsString := IntToStr(TempInt);
             LinesADOTable.Post;
 
             Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_BufferStopTheatreDestinationStrFieldName

@@ -885,7 +885,7 @@ IMPLEMENTATION
 {$R *.dfm}
 
 USES GetTime, Lenz, Diagrams, RailDraw, Types, LocoUtils, Math {sic}, IDGlobal, StrUtils, Feedback, RDCUnit, CreateRoute, IniFiles, DateUtils, Startup, Cuneo, Movement,
-     LocoDialogue, FWPShowMessageUnit, Options, Help, MMSystem, TCPIP, Main, StationMonitors, Train;
+     LocoDialogue, FWPShowMessageUnit, Options, Help, MMSystem, TCPIP, Main, StationMonitors, Train, Edit;
 
 CONST
   UnitRef = 'MiscUtils';
@@ -6804,6 +6804,8 @@ BEGIN { ShutDownProgram }
     Log('A! Shut down initiated');
     ProgramShuttingDown := True;
 
+    SaveOrDiscardNewLines;
+
     IF ScreenColoursSetForPrinting THEN
       { we need to do this or the wrong colours are saved in the registry }
       ResetScreenColoursAfterPrinting;
@@ -7639,41 +7641,44 @@ BEGIN
     IF Str =MainLineStr THEN
       Result := MainLine
     ELSE
-      IF Str =GoodsLineStr THEN
-        Result := GoodsLine
+      IF Str =MainStationLineStr THEN
+        Result := MainStationLine
       ELSE
-        IF Str =BranchLineDoubleStr THEN
-          Result := BranchLineDouble
+        IF Str =GoodsLineStr THEN
+          Result := GoodsLine
         ELSE
-          IF Str =BranchLineSingleStr THEN
-            Result := BranchLineSingle
+          IF Str =BranchLineDoubleStr THEN
+            Result := BranchLineDouble
           ELSE
-            IF Str =IslandStationLineStr THEN
-              Result := IslandStationLine
+            IF Str =BranchLineSingleStr THEN
+              Result := BranchLineSingle
             ELSE
-              IF Str =MainStationLineStr THEN
-                Result := MainStationLine
+              IF Str =BranchStationLineStr THEN
+                Result := BranchStationLine
               ELSE
-                IF Str =BranchStationLineStr THEN
-                  Result := BranchStationLine
+                IF Str =FiddleyardLineStr THEN
+                  Result := FiddleyardLine
                 ELSE
-                  IF Str =WindowStationLineStr THEN
-                    Result := WindowStationLine
+                  IF Str =IslandStationLineStr THEN
+                    Result := IslandStationLine
                   ELSE
-                    IF Str =SidingLineStr THEN
-                      Result := SidingLine
+                    IF Str =NewlyCreatedLineStr THEN
+                      Result := NewlyCreatedLine
                     ELSE
-                      IF Str =FiddleyardLineStr THEN
-                        Result := FiddleyardLine
+                      IF Str =ProjectedLineStr THEN
+                        Result := ProjectedLine
                       ELSE
-                        IF Str =SidingsApproachLineStr THEN
-                          Result := SidingsApproach
+                        IF Str =SidingLineStr THEN
+                          Result := SidingLine
+                        ELSE
+                          IF Str =SidingsApproachLineStr THEN
+                            Result := SidingsApproach
                           ELSE
                             IF Str =StationAvoidingLineStr THEN
                               Result := StationAvoiding
                             ELSE
-                              IF Str =ProjectedLineStr THEN
-                                Result := ProjectedLine
+                              IF Str =WindowStationLineStr THEN
+                                Result := WindowStationLine
                               ELSE
                                 Result := UnknownTypeOfLine;
 END; { StrToTypeOfLine }
@@ -8495,30 +8500,32 @@ BEGIN
       Result := MainOrGoodsLineStr;
     MainLine:
       Result := MainLineStr;
+    MainStationLine:
+      Result := MainStationLineStr;
     GoodsLine:
       Result := GoodsLineStr;
     BranchLineDouble:
       Result := BranchLineDoubleStr;
     BranchLineSingle:
       Result := BranchLineSingleStr;
-    IslandStationLine:
-      Result := IslandStationLineStr;
-    MainStationLine:
-      Result := MainStationLineStr;
     BranchStationLine:
       Result := BranchStationLineStr;
-    WindowStationLine:
-      Result := WindowStationLineStr;
-    SidingLine:
-      Result := SidingLineStr;
     FiddleyardLine:
       Result := FiddleyardLineStr;
+    IslandStationLine:
+      Result := IslandStationLineStr;
+    NewlyCreatedLine:
+      Result := NewlyCreatedLineStr;
+    ProjectedLine:
+      Result := ProjectedLineStr;
+    SidingLine:
+      Result := SidingLineStr;
     SidingsApproach:
       Result := SidingsApproachLineStr;
     StationAvoiding:
       Result := StationAvoidingLineStr;
-    ProjectedLine:
-      Result := ProjectedLineStr;
+    WindowStationLine:
+      Result := WindowStationLineStr;
   ELSE {CASE}
     Result := UnknownLineTypeStr;
   END; {CASE}

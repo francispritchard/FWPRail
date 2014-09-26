@@ -4600,10 +4600,10 @@ BEGIN
     IF PopupType = LineEnterCreateLinePopupType THEN BEGIN
       GetCursorPos(XYPos);
       CreateLineMode := True;
-      PreLineEndDragging := True;
     END ELSE
       IF PopupType = LineExitCreateLinePopupType THEN BEGIN
         CreateLineMode := False;
+        SaveOrDiscardNewLines;
       END ELSE BEGIN
         WITH Lines[LinePopupNum] DO BEGIN
           CASE PopupType OF
@@ -7624,15 +7624,16 @@ BEGIN { Main drawing procedure }
         IF NOT ShowTrackCircuits AND NOT ShowLineDetail AND NOT ShowLineNumbers AND NOT ShowLinesUpXAbsoluteValue THEN
           DrawAllPoints;
 
-        IF LineEndDragging OR (Length(NewLines) > 0) THEN BEGIN
-          Pen.Color := clWhite;
-          Pen.Style := psSolid;
-          IF Length(NewLines) > 0 THEN BEGIN
-            WITH NewLines[High(NewLines)] DO BEGIN
-              MoveTo(NewLine_X1, NewLine_Y1);
-              LineTo(NewLine_X2, NewLine_Y2);
-            END; {WITH}
-          END;
+        { Draw any draft lines that haven't yet been saved to the database }
+        Pen.Color := clWhite;
+        Pen.Style := psSolid;
+        FOR Line := 0 TO High(Lines) DO BEGIN
+          WITH Lines[Line] DO BEGIN
+            IF Line_IsTempNewLine THEN BEGIN
+              MoveTo(Line_TempNewLineScreenUpX, Line_TempNewLineScreenUpY);
+              LineTo(Line_TempNewLineScreenDownX, Line_TempNewLineScreenDownY);
+            END;
+          END; {WITH}
         END;
 
         IF ResizeMap THEN
@@ -7647,7 +7648,7 @@ BEGIN { Main drawing procedure }
           ProgramStartup := False;
           InvalidateScreen(UnitRef, 'DrawMap 4');
         END;
-      END; { WITH Canvas }
+      END; {WITH Canvas}
 
       IF MenusVisible THEN
         ShowMenus

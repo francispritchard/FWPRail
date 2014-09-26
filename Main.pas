@@ -693,7 +693,7 @@ BEGIN
           IF MessageDialogueWithDefault('No line continuation data for up of line ' + LineToStr(L),
                                         StopTimer, mtWarning, [mbOK, mbAbort], ['&Continue', '&Exit'], mbOK) = mrAbort
           THEN
-            ShutDownProgram(UnitRef, 'CheckLInesAreOK');
+            ShutDownProgram(UnitRef, 'CheckLinesAreOK');
         END;
         IF (Line_NextDownLine = UnknownLine)
         AND (Line_NextDownPoint = UnknownPoint)

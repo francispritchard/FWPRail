@@ -7,10 +7,11 @@ UNIT DataCheck;
 INTERFACE
 
 USES
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs;
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls;
 
 TYPE
   TDataCheckForm = CLASS(TForm)
+    mmText: TMemo;
   PRIVATE
     { Private declarations }
   PUBLIC
@@ -32,6 +33,9 @@ PROCEDURE CompareTwoSignalDatabases(Signal1DataFilename, Signal1DataFilenameSuff
 PROCEDURE DoGeneralCheck;
 { Debug check for various things including two different feedback units serving the same track circuit }
 
+PROCEDURE EnsureCorrectLineEndings;
+{ This is useful to make sure Delphi's red error underlining appears on the right line - it writes the files out with correct CR/LF line endings }
+
 PROCEDURE FormatCheckAllFiles;
 { Checks all .pas files for formatting errors }
 
@@ -42,7 +46,7 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES MiscUtils, StrUtils, InitVars, ADODB, Options, Raildraw, Feedback, CreateRoute;
+USES MiscUtils, StrUtils, InitVars, ADODB, Options, Raildraw, Feedback, CreateRoute, System.UITypes;
 
 CONST
   UnitRef = 'DataCheck';
@@ -446,33 +450,29 @@ BEGIN
 
         IF Line > High(Lines) THEN BEGIN
           IF NOT LinesADOTable.EOF THEN
-            Log('XG Last declared line (Line=' + IntToStr(Line - 1) + ') processed but Line database ' + '"' + Line1DataFilename + '.' + Line1DataFilenameSuffix
+            Log('XG Last declared line (Line=' + IntToStr(Line - 1) + ') processed but line database ' + '"' + Line1DataFilename + '.' + Line1DataFilenameSuffix
                     + ' has not yet reached end of file')
           ELSE
           IF NOT LinesADOTable2.EOF THEN
-            Log('XG Last declared line (Line=' + IntToStr(Line - 1) + ') processed but Line database ' + '"' + Line2DataFilename + '.' + Line2DataFilenameSuffix
+            Log('XG Last declared line (Line=' + IntToStr(Line - 1) + ') processed but line database ' + '"' + Line2DataFilename + '.' + Line2DataFilenameSuffix
                     + ' has not yet reached end of file');
         END ELSE BEGIN
           WITH Lines[Line] DO BEGIN
-            CheckString(Line_BufferStopNumberFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
             CheckString(Line_BufferStopTheatreDestinationStrFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
             CheckString(Line_DirectionFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
             CheckString(Line_DownConnectionChFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
-            CheckString(Line_DownRowFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
+            CheckString(Line_DownXAbsoluteFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
             CheckString(Line_EndOfLineMarkerFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
             CheckString(Line_GradientFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
             CheckString(Line_InUseFeedbackUnitFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
-            CheckString(Line_LengthFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
             CheckString(Line_LocationStrFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
             CheckString(Line_NumberFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
-            CheckBoolean(Line_OutOfUseFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
             CheckString(Line_NameStrFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
+            CheckBoolean(Line_OutOfUseFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
             CheckString(Line_TCFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
             CheckString(Line_TypeOfLineFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
             CheckString(Line_UpConnectionChFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
             CheckString(Line_UpXAbsoluteFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
-            CheckString(Line_UpXLineStrFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
-            CheckString(Line_UpRowFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
           END; {WITH}
         END;
 
@@ -766,25 +766,25 @@ BEGIN
                     + ' has not yet reached end of file');
         END ELSE BEGIN
           WITH Points[P] DO BEGIN
+            CheckString(Point_DefaultStateFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
             CheckString(Point_DivergingLineFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
+            CheckString(Point_FeedbackInputFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
+            CheckBoolean(Point_FeedbackOnIsStraightFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
+            CheckString(Point_FeedbackUnitFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
             CheckString(Point_HeelLineFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
-            CheckString(Point_StraightLineFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
+            CheckString(Point_LastManualStateAsReadInFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
             CheckString(Point_LenzNumFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
             CheckString(Point_LenzUnitFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
             CheckString(Point_LenzUnitTypeFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
-            CheckBoolean(Point_ManualOperationFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
-            CheckString(Point_FeedbackUnitFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
-            CheckString(Point_FeedbackInputFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
-            CheckBoolean(Point_FeedbackOnIsStraightFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
-            CheckBoolean(Point_WiringReversedFlagFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
-            CheckString(Point_TypeFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
-            CheckString(Point_RelatedPointFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
-            CheckString(Point_DefaultStateFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
             CheckBoolean(Point_LockedIfHeelTCOccupiedFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
-            CheckBoolean(Point_OutOfUseFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
             CheckBoolean(Point_LockedIfNonHeelTCsOccupiedFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
+            CheckBoolean(Point_ManualOperationFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
             CheckString(Point_NotesFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
-            CheckString(Point_LastManualStateAsReadInFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
+            CheckBoolean(Point_OutOfUseFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
+            CheckString(Point_RelatedPointFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
+            CheckString(Point_StraightLineFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
+            CheckString(Point_TypeFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
+            CheckBoolean(Point_WiringReversedFlagFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
 
             { This is unlikely to be useful
             CheckString(Point_LastFeedbackStateAsReadInFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
@@ -823,7 +823,7 @@ BEGIN
     ON E : Exception DO
       Log('EG InitialisePoints: ' + E.ClassName + 'error raised, with message: '+ E.Message);
   END; {TRY}
-END; { CompareTwoSignalDatabases }
+END; { CompareTwoPointDatabases }
 
 PROCEDURE CompareTwoSignalDatabases(Signal1DataFilename, Signal1DataFilenameSuffix, Signal2DataFilename, Signal2DataFilenameSuffix : String);
 { Compare two signal databases - used for testing }
@@ -922,32 +922,32 @@ BEGIN
                     + ' has not yet reached end of file');
         END ELSE BEGIN
           WITH Signals[S] DO BEGIN
+            CheckString(Signal_AccessoryAddressFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
             CheckString(Signal_AdjacentLineFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
             CheckString(Signal_AdjacentLineXOffsetFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
             CheckString(Signal_ApproachControlAspectFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
             CheckString(Signal_AsTheatreDestinationFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
-            CheckString(Signal_IndicatorFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
-            CheckString(Signal_UpperLeftIndicatorTargetFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
-            CheckString(Signal_MiddleLeftIndicatorTargetFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
-            CheckString(Signal_LowerLeftIndicatorTargetFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
-            CheckString(Signal_UpperRightIndicatorTargetFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
-            CheckString(Signal_MiddleRightIndicatorTargetFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
-            CheckString(Signal_LowerRightIndicatorTargetFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CheckString(Signal_DecoderNumFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CheckString(Signal_DirectionFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
             CheckString(Signal_IndicatorDecoderFunctionNumFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
             CheckString(Signal_IndicatorDecoderNumFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CheckString(Signal_IndicatorFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
             CheckString(Signal_IndicatorSpeedRestrictionFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CheckString(Signal_LowerLeftIndicatorTargetFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CheckString(Signal_LowerRightIndicatorTargetFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CheckString(Signal_MiddleLeftIndicatorTargetFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CheckString(Signal_MiddleRightIndicatorTargetFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
             CheckString(Signal_LocationsToMonitorFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
             CheckString(Signal_NextSignalIfNoIndicatorFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
-            CheckString(Signal_NotUsedForRouteingFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
             CheckString(Signal_NotesFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CheckString(Signal_NotUsedForRouteingFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
             CheckString(Signal_OppositePassingLoopSignalFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
             CheckBoolean(Signal_OutOfUseFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
             CheckBoolean(Signal_PossibleRouteHoldFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
             CheckBoolean(Signal_PossibleStationStartRouteHoldFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
-            CheckString(Signal_AccessoryAddressFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
-            CheckString(Signal_DecoderNumFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
             CheckString(Signal_TypeFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
-            CheckString(Signal_DirectionFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CheckString(Signal_UpperLeftIndicatorTargetFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CheckString(Signal_UpperRightIndicatorTargetFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
           END; {WITH}
         END;
 
@@ -1063,7 +1063,7 @@ BEGIN
       WriteLn(OutputFile, Filename + ' (' + IntToStr(LineCount) + ') > 172: "' + Buf + '"');
       Inc(LinesAddedCount);
     END;
-  END;
+  END; {WHILE}
 END; { LookForEndRoutineComments }
 
 PROCEDURE FormatCheckAllFiles;
@@ -1106,5 +1106,188 @@ BEGIN
   ELSE
     Debug('Formatting check completed - ' + IntToStr(LinesAddedCount) + ' lines written to ' + DataCheckFileName);
 END; { FormatCheckAllFiles }
+
+PROCEDURE ReadFileStream(InputFileName : String);
+CONST
+  CR = #13;
+  LF = #10;
+
+VAR
+  Ch : Char;
+  CRFound : Boolean;
+  Line : String;
+  LineCount : Integer;
+  Reader : TStreamReader;
+//  Size : Int64;
+
+BEGIN
+  { Create a file stream and open a text writer for it }
+  Reader := TStreamReader.Create(
+    TFileStream.Create(InputFileName, fmOpenRead),
+    TEncoding.UTF8
+  );
+
+  DataCheckForm.mmText.Clear();
+
+  { Check for the end of the stream and exit if necessary }
+  IF Reader.EndOfStream THEN BEGIN
+    MessageDlg('Nothing to read!', mtInformation, [mbOK], 0);
+
+    Reader.BaseStream.Free();
+    Reader.Free();
+  END;
+
+  { Peek at each iteration to see whether there are characters to read from the reader. Peek is identical in its effect as EndOfStream property }
+  Line := '';
+  CRFound := False;
+  LineCount := 1;
+
+  WHILE Reader.Peek() >= 0 DO BEGIN
+    { Read the next character }
+    Ch := Char(Reader.Read());
+
+    IF Ch = CR THEN
+      CRFound := True;
+
+    IF CRFound AND (Ch <> LF) THEN
+      Log('X no line feed found at line ' + IntToStr(LineCount) + ': ' + Line);
+
+    IF (Ch = LF) AND NOT CRFound THEN
+      Log('X no carriage return found at line ' + IntToStr(LineCount) + ': ' + Line);
+
+    IF (CRFound AND (Ch = LF))
+    OR (CRFound AND (Ch <> LF))
+    THEN BEGIN
+      DataCheckForm.mmText.Lines.Add(Line);
+      Line := '';
+      CRFound := False;
+      Inc(LineCount);
+    END ELSE
+      Line := Line + Ch;
+
+
+//    { Check for line termination (Unix-style) }
+//    IF Ch = #$0A THEN BEGIN
+//      DataCheckForm.mmText.Lines.Add(Line);
+//      Line := '';
+//    END ELSE
+//      Line := Line + Ch;
+  END;
+
+//  { Obtain the size of the data }
+//  Size := Reader.BaseStream.Size;
+
+  { Free the reader and underlying stream }
+  Reader.Close();
+  Reader.BaseStream.Free;
+  Reader.Free();
+
+  // MessageDlg(Format('%d bytes read from the stream using the %s encoding!', [Size, Reader.CurrentEncoding.ClassName]), mtInformation, [mbOK], 0);
+END; { ReadFileStream }
+
+PROCEDURE WriteFileStream(OutputFileName : String);
+VAR
+  I : Integer;
+  J : Integer;
+  Line : String;
+//  Size : Int64;
+  Writer : TStreamWriter;
+
+BEGIN
+  FOR I := 0 to DataCheckForm.mmText.Lines.Count - 1 DO BEGIN
+//    Log('X ' + DataCheckForm.mmText.Lines[I]);
+  END;
+
+  exit;
+
+  { Create a file stream and open a text writer for it }
+  Writer := TStreamWriter.Create(
+    TFileStream.Create(OutputFileName, fmCreate),
+    TEncoding.UTF8
+  );
+
+  { Do not flush after each writing, it is done automatically }
+  Writer.AutoFlush := False;
+
+  { Set the custom new-line to be Unix-compatible }
+  Writer.NewLine := #$0A;
+
+  { Start storing all the lines in the memo }
+  FOR I := 0 to DataCheckForm.mmText.Lines.Count - 1 DO BEGIN
+    { Obtain the line }
+    Line := DataCheckForm.mmText.Lines[I];
+
+    { Write char-by-char }
+    FOR J := 1 TO Length(Line) DO
+      Writer.Write(Line[J]);
+
+    { Add a line terminator }
+    Writer.WriteLine();
+  END;
+
+  { Flush the contents of the writer to the stream }
+  Writer.Flush();
+
+  { Close the writer }
+  Writer.Close();
+
+//  { Obtain the size of the data }
+//  Size := Writer.BaseStream.Size;
+
+  { Free the writer and underlying stream }
+  Writer.BaseStream.Free;
+  Writer.Free();
+
+  // MessageDlg(Format('%d bytes written to the stream using the %s encoding!', [Size, Writer.Encoding.ClassName]), mtInformation, [mbOK], 0);
+END; { WriteFileStream }
+
+PROCEDURE EnsureCorrectLineEndings;
+{ This is useful to make sure Delphi's red error underlining appears on the right line - it writes the files out with correct CR/LF line endings }
+CONST
+  AppendToFile = True;
+
+VAR
+  Buf : String;
+  ErrorMsg : String;
+//  LineCount : Integer;
+  SearchRec: TSearchRec;
+
+BEGIN
+  Debug('Beginning line ending check...');
+  ReadFileStream(PathToRailSourceFiles + 'testunit.pas.in');
+  WriteFileStream(PathToRailSourceFiles + 'testunit.pas.out');
+  Debug('Line ending check completed');
+
+  exit;
+
+
+  Debug('Beginning line ending check...');
+  IF FindFirst(PathToRailSourceFiles + '*.pas', FaAnyFile, SearchRec) = 0 THEN BEGIN
+    REPEAT
+      { If SearchRec = . OR .. then skip to next iteration }
+      IF (SearchRec.Name =  '.') OR (SearchRec.Name =  '..') OR DirectoryExists(SearchRec.Name) THEN
+        Continue;
+
+      IF NOT OpenInputFileOK(InputFile, PathToRailSourceFiles + SearchRec.Name, ErrorMsg) THEN
+        Debug(ErrorMsg)
+      ELSE
+        IF NOT OpenOutputFileOK(OutputFile, PathToRailSourceFiles + SearchRec.Name + '.new', ErrorMsg, NOT AppendToFile) THEN
+          Debug(ErrorMsg)
+        ELSE BEGIN
+          WHILE NOT EoF(InputFile) DO BEGIN
+            ReadLn(InputFile, Buf);
+//            Inc(LineCount);
+            WriteLn(OutputFile, Buf);
+          END; {WHILE}
+        END;
+
+      CloseInputOrOutputFile(OutputFile, DataCheckFileName);
+
+    { Loop until no more files are found }
+    UNTIL FindNext(SearchRec) <> 0;
+  END;
+
+  Debug('Line ending check completed');
+END; { EnsureCorrectLineEndings }
 
 END { DataCheck }.
