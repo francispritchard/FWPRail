@@ -535,6 +535,18 @@ PROCEDURE InitialiseRaildrawUnit;
 PROCEDURE InvalidateScreen(UnitRefParam, CallingStr : String);
 { Draw the screen by invalidating it }
 
+FUNCTION MapScreenXToGridX(ScreenX : Integer) : Integer;
+{ Map screen co-ordinate to grid co-ordinate }
+
+FUNCTION MapScreenYToGridY(ScreenY : Integer) : Integer;
+{ Map screen co-ordinate to grid co-ordinate }
+
+FUNCTION MapGridXToScreenX(GridX : Integer) : Integer;
+{ Map grid co-ordinate to screen co-ordinate }
+
+FUNCTION MapGridYToScreenY(GridY : Integer) : Integer;
+{ Map grid co-ordinate to screen co-ordinate }
+
 PROCEDURE ResetFWPRailWindowSizeAndPosition;
 { Reset the window's size and position }
 
@@ -667,6 +679,30 @@ PROCEDURE Log(Str : String);
 BEGIN
   WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
+
+FUNCTION MapScreenXToGridX(ScreenX : Integer) : Integer;
+{ Map screen co-ordinate to grid co-ordinate }
+BEGIN
+  Result := MulDiv(ZoomScaleFactor, ScreenX + ScrollBarXAdjustment, FWPRailWindow.ClientWidth);
+END; { MapScreenXToGridX }
+
+FUNCTION MapScreenYToGridY(ScreenY : Integer) : Integer;
+{ Map screen co-ordinate to grid co-ordinate }
+BEGIN
+  Result := MulDiv(ZoomScaleFactor, ScreenY + ScrollBarYAdjustment, FWPRailWindow.ClientHeight);
+END; { MapScreenYToGridY }
+
+FUNCTION MapGridXToScreenX(GridX : Integer) : Integer;
+{ Map grid co-ordinate to screen co-ordinate }
+BEGIN
+  Result := MulDiv(FWPRailWindow.ClientWidth, GridX, ZoomScaleFactor) - ScrollBarXAdjustment;
+END; { MapGridXToScreenX }
+
+FUNCTION MapGridYToScreenY(GridY : Integer) : Integer;
+{ Map grid co-ordinate to screen co-ordinate }
+BEGIN
+  Result := MulDiv(FWPRailWindow.ClientHeight, GridY, ZoomScaleFactor) - ScrollBarYAdjustment;
+END; { MapGridYToScreenY }
 
 FUNCTION GetSaveCursor : TCursor;
 { Return the SaveCursor variable state }
@@ -2612,8 +2648,8 @@ BEGIN
             Pen.Color := NewLineColour;
 
           IF ThinLineMode THEN BEGIN
-            MoveTo(Line_UpX - ScrollBarXAdjustment, Line_UpY - ScrollBarYAdjustment);
-            LineTo(Line_DownX - ScrollBarXAdjustment, Line_DownY - ScrollBarYAdjustment);
+            MoveTo(Line_UpX, Line_UpY - ScrollBarYAdjustment);
+            LineTo(Line_DownX, Line_DownY - ScrollBarYAdjustment);
           END ELSE BEGIN
             CASE Pen.Style OF
               psDashDot, psDot, psDashDotDot:

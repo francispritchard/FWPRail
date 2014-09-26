@@ -163,11 +163,15 @@ BEGIN
 
     StatusBarPanel1Str := '';
 
-    IF DebuggingMode THEN
+    IF DebuggingMode THEN BEGIN
       { Display mouse co-ordinates }
-      WriteToStatusBarPanel(StatusBarPanel2, IntToStr(X) + ',' + IntToStr(Y) + '; '
-                            + IntToStr(MulDiv(1000, X, FWPRailWindow.ClientWidth)) + '/1000,'
-                            + IntToStr(MulDiv(1000, Y, FWPRailWindow.ClientHeight)) + '/1000');
+      GridX := MapScreenXToGridX(ScreenX);
+      GridY := MapScreenYToGridY(ScreenY);
+
+      WriteToStatusBarPanel(StatusBarPanel2, IntToStr(ScreenX) + ',' + IntToStr(ScreenY) + '; '
+                            + IntToStr(GridX)  + '/1000,'
+                            + IntToStr(GridY)  + '/1000');
+    END;
 
     IF EditMode AND SignalDragging THEN
       DragSignal(EditedSignal, X, Y, NearestLine, TooNearSignal)
@@ -206,8 +210,8 @@ BEGIN
         IF NOT SignalDragging AND (Screen.Cursor <> crDefault) THEN
           ChangeCursor(crDefault);
 
-    MouseX := X + ScrollBarXAdjustment;
-    MouseY := Y + ScrollBarYAdjustment;
+    MouseX := ScreenX + ScrollBarXAdjustment;
+    MouseY := ScreenY + ScrollBarYAdjustment;
 
     { Clear any debugging track circuit occupations }
     FOR S := 0 TO High(Signals) DO BEGIN
@@ -694,7 +698,7 @@ BEGIN
   END;
 END; { SignalPostFlashingTimerTick }
 
-PROCEDURE ChangeStateOfWhatIsUnderMouse(X, Y : Integer; ShiftState : TShiftState; HelpRequired : Boolean);
+PROCEDURE ChangeStateOfWhatIsUnderMouse(ScreenX, ScreenY : Integer; ShiftState : TShiftState; HelpRequired : Boolean);
 { See what the mouse is currently pointing at something, and change its state if appropriate }
 CONST
   Amendment = True;
@@ -1564,7 +1568,7 @@ BEGIN
       UpLineEndCharacterSelected(IrrelevantLine, HelpRequired);
       WriteNextLineDetailToDebugWindow(LineFoundNum, HelpRequired);
     END ELSE BEGIN
-      WhatIsUnderMouse(X, Y, ShiftState, BufferStopFoundNum, IndicatorFoundNum, IndicatorFoundType, PointFoundNum, SignalFoundNum, SignalPostFoundNum,
+      WhatIsUnderMouse(ScreenX, ScreenY, ShiftState, BufferStopFoundNum, IndicatorFoundNum, IndicatorFoundType, PointFoundNum, SignalFoundNum, SignalPostFoundNum,
                        TheatreIndicatorFoundNum, TRSPlungerFoundLocation);
 
       { We get the FoundNum data from the WhatIsUnderMouse routine }
@@ -1579,21 +1583,26 @@ BEGIN
               SetCursorPos(CursorXY.X, CursorXY.Y);
             END;
 
-            StartSignalEdit(SignalFoundNum);
+            IF NOT CreateLineMode THEN
+              StartSignalEdit(SignalFoundNum);
           END ELSE
             IF PointFoundNum <> UnknownPoint THEN BEGIN
               IF (EditedPoint <> UnknownPoint) AND (EditedPoint <> PointFoundNum) THEN BEGIN
                 CheckIfAnyEditedDataHasChanged;
               END;
 
-              StartPointEdit(PointFoundNum);
+              IF NOT CreateLineMode THEN
+                StartPointEdit(PointFoundNum);
             END ELSE
               IF LineFoundNum <> UnknownLine THEN BEGIN
                 IF (EditedLine <> UnknownLine) AND (EditedLine <> LineFoundNum) THEN BEGIN
                   CheckIfAnyEditedDataHasChanged;
                 END;
 
-                StartLineEdit(LineFoundNum);
+//                IF CreateLineMode THEN
+//                  EditNewLine(NewLineFoundNum)
+//                ELSE
+                  StartLineEdit(LineFoundNum);
               END ELSE BEGIN
                 { reset the timer here, as if we haven't clicked on a signal, point, etc., we don't want dragging to be turned on }
                 CuneoWindow.MouseButtonDownTimer.Enabled := False;
@@ -1744,7 +1753,7 @@ BEGIN
   END;
 END; { MouseButtonDownTimerTick }
 
-PROCEDURE MouseButtonReleased(Button : TMouseButton; X, Y : Integer; ShiftState : TShiftState);
+PROCEDURE MouseButtonReleased(Button : TMouseButton; ScreenX, ScreenY : Integer; ShiftState : TShiftState);
 { Button released - only used for a few processes }
 VAR
   Line : Integer;
@@ -1867,12 +1876,12 @@ BEGIN
   IF KeyBoardandMouseLocked THEN
     Debug('Mouse locked - press Shift + ''K'' to unlock ')
   ELSE BEGIN
-    MouseX := X + ScrollBarXAdjustment;
-    MouseY := Y + ScrollBarYAdjustment;
+    MouseX := ScreenX + ScrollBarXAdjustment;
+    MouseY := ScreenY + ScrollBarYAdjustment;
 
     { Store the position of X and Y in case we decide the pan the screen by using the mouse }
-    MouseMovingX := X;
-    MouseMovingY := Y;
+    MouseMovingX := ScreenX;
+    MouseMovingY := ScreenY;
 
     ButtonPress := Button;
     WriteToStatusBarPanel(StatusBarPanel2, '');

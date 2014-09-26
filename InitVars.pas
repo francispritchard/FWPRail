@@ -353,13 +353,18 @@ TYPE
     Line_RouteSet : Integer;
     Line_SaveOutOfUseState : OutOfUseState;
     Line_TC : Integer;
+    Line_IsTempNewLine : Boolean;
+    Line_TempNewLineScreenDownX : Integer;
+    Line_TempNewLineScreenDownY : Integer;
+    Line_TempNewLineScreenUpX : Integer;
+    Line_TempNewLineScreenUpY : Integer;
     Line_TypeOfLine : TypeOfLine;
     Line_UpConnectionCh : String;
     Line_UpConnectionChRect : TRect;
     Line_UpConnectionChBold : Boolean;
-    Line_UpRow : Extended;
     Line_UpX : Integer;
     Line_UpXAbsolute : Integer;
+    Line_UpYAbsolute : Integer;
     Line_UpY : Integer;
   END;
 
@@ -367,8 +372,8 @@ CONST
   Line_BufferStopTheatreDestinationStrFieldName : String = 'Buffer Stop Theatre Destination';
   Line_DirectionFieldName : String = 'Direction';
   Line_DownConnectionChFieldName : String = 'Down Connection Ch';
-  Line_DownRowFieldName : String = 'Down Row';
   Line_DownXAbsoluteFieldName : String = 'Down X';
+  Line_DownYAbsoluteFieldName : String = 'Down Y';
   Line_EndOfLineMarkerFieldName : String = 'End Of Line Marker';
   Line_GradientFieldName : String = 'Gradient';
   Line_InUseFeedbackUnitFieldName : String = 'In Use Feedback Unit';
@@ -380,16 +385,9 @@ CONST
   Line_TypeOfLineFieldName : String = 'Type Of Line';
   Line_UpConnectionChFieldName : String = 'Up Connection Ch';
   Line_UpXAbsoluteFieldName : String = 'Up X';
-  Line_UpRowFieldName : String = 'Up Row';
+  Line_UpYAbsoluteFieldName : String = 'Up Y';
 
 TYPE
-  NewLineRec = RECORD
-    NewLine_X1 : Integer;
-    NewLine_Y1 : Integer;
-    NewLine_X2 : Integer;
-    NewLine_Y2 : Integer;
-  END;
-
   DirectionPriorityType = (PreferablyUp, UpOnly, TerminatingAtUp, PreferablyDown, DownOnly, TerminatingAtDown, NoDirectionPriority);
   ThroughLocationStateType = (ThroughLocation, NonThroughLocation, UnknownThroughLocationState);
   ThroughOrStoppingPriorityType = (ThroughPriority, StoppingPriority, NoStoppingPriority);
@@ -1701,8 +1699,8 @@ FUNCTION ValidateLineType(LineTypeStr : String; OUT ErrorMsg : String) : TypeOfL
 FUNCTION ValidateLineUpXStr(UpXStr, LineStr : String; OUT ErrorMsg : String) : String;
 { Sees whether the line at UpX is different from the line we're creating }
 
-FUNCTION ValidateLineXAbsolute(XStr : String; OUT ErrorMsg : String) : Integer;
-{ See whether the X absolute value duplicates another field }
+FUNCTION ValidateLineAbsolute(Str : String; OUT ErrorMsg : String) : Integer;
+{ See whether the X or Y absolute value duplicates another field }
 
 FUNCTION ValidateNextSignalIfNoIndicator(Str : String; Init : Boolean; OUT ErrorMsg : String) : Integer;
 { Validates and if ok returns what the other signal is if no indicator is lit }
@@ -1874,6 +1872,7 @@ BEGIN
   IndicatorHorizontalSpacingScaled := MulDiv(FWPRailWindow.ClientWidth, IndicatorHorizontalSpacing, ZoomScaleFactor * 10);
   IndicatorVerticalSpacingScaled := MulDiv(FWPRailWindow.ClientHeight, IndicatorVerticalSpacing, ZoomScaleFactor * 10);
   InterLineSpacing := (FWPRailWindow.ClientHeight * 1000) DIV ((WindowRows + 1) * ZoomScalefactor);
+GridInterLineSpacing := 1000 DIV (WindowRows + 1);
   MouseRectangleEdgeVerticalSpacingScaled := MulDiv(FWPRailWindow.ClientHeight, MouseRectangleEdgeVerticalSpacing, ZoomScaleFactor * 10);
   PlatformEdgeVerticalSpacingScaled := MulDiv(FWPRailWindow.ClientHeight, PlatformEdgeVerticalSpacing, ZoomScaleFactor * 10);
   PlatformNumberEdgeHorizontalSpacingScaled := MulDiv(FWPRailWindow.ClientWidth, PlatformNumberEdgeHorizontalSpacing, ZoomScaleFactor * 10);
@@ -2871,11 +2870,11 @@ BEGIN
     Line := 0;
     WHILE Line <= High(Lines) DO BEGIN
       WITH Lines[Line] DO BEGIN
-        Line_UpX := MulDiv(FWPRailWindow.ClientWidth, Line_UpXAbsolute, ZoomScaleFactor);
-        Line_DownX := MulDiv(FWPRailWindow.ClientWidth, Line_DownXAbsolute, ZoomScaleFactor);
+        Line_UpX := MapGridXToScreenX(Line_UpXAbsolute);
+        Line_DownX := MapGridXToScreenX(Line_DownXAbsolute);
 
-        Line_UpY := Round(Line_UpRow * InterLineSpacing);
-        Line_DownY := Round(Line_DownRow * InterLineSpacing);
+        Line_UpY := MapGridYToScreenY(Line_UpYAbsolute);
+        Line_DownY := MapGridYToScreenY(Line_DownYAbsolute);
       END; {WITH}
       Inc(Line);
     END; {WHILE}
@@ -3078,16 +3077,16 @@ BEGIN
       ErrorMsg := 'ValidateRow: row number cannot exceed the specified number of screeen rows (' + IntToStr(WindowRows) + ')';
 END; { ValidateRow }
 
-FUNCTION ValidateLineXAbsolute(XStr : String; OUT ErrorMsg : String) : Integer;
-{ See whether the X absolute value supplied is a valid integer }
+FUNCTION ValidateLineAbsolute(Str : String; OUT ErrorMsg : String) : Integer;
+{ See whether the X or Y absolute value duplicates another field }
 BEGIN
   ErrorMsg := '';
   Result := 0;
 
-  IF XStr <> '' THEN
-    IF NOT TryStrToInt(XStr, Result) THEN
-      ErrorMsg := 'ValidateLineXAbsolute: invalid X integer "' + XStr + '"';
-END; { ValidateLineUpXAbsolute }
+  IF Str <> '' THEN
+    IF NOT TryStrToInt(Str, Result) THEN
+      ErrorMsg := 'ValidateLineAbsolute: invalid integer "' + Str + '"';
+END; { ValidateLineAbsolute }
 
 FUNCTION ValidateLineUpXStr(UpXStr, LineStr : String; OUT ErrorMsg : String) : String;
 { Sees whether the line at UpX is different from the line we're creating }
@@ -3209,28 +3208,38 @@ BEGIN
             Line_DownXAbsolute := 0;
             Line_DownX := 0;
 
-            Line_UpRow := 0;
-            Line_UpRow := 0;
-
+            Line_UpYAbsolute := 0;
             Line_UpY := 0;
+            Line_DownYAbsolute := 0;
             Line_DownY := 0;
 
             Line_DataChanged := False;
-            Line_DownConnectionCh := '';
-            Line_DownConnectionChBold := False;
             Line_AdjacentBufferStop := UnknownBufferStop;
             Line_LockFailureNotedInSubRouteUnit := False;
-            Line_NextUpIsEndofLine := NotEndOfLine;
-            Line_NextDownIsEndOfLine := NotEndOfLine;
-            Line_NextDownPoint := UnknownPoint;
-            Line_NextDownType := UnknownNextLineRouteingType;
-            Line_NextDownLine := UnknownLine;
-            Line_NextUpLine := UnknownLine;
-            Line_NextUpPoint := UnknownPoint;
             Line_RouteLockingForDrawing := UnknownRoute;
             Line_RouteSet := UnknownRoute;
+
+            Line_NextUpIsEndofLine := NotEndOfLine;
+            Line_NextUpLine := UnknownLine;
+            Line_NextUpPoint := UnknownPoint;
+            Line_NextUpType := UnknownNextLineRouteingType;
+
+            Line_NextDownIsEndOfLine := NotEndOfLine;
+            Line_NextDownLine := UnknownLine;
+            Line_NextDownPoint := UnknownPoint;
+            Line_NextDownType := UnknownNextLineRouteingType;
+
             Line_UpConnectionCh := '';
             Line_UpConnectionChBold := False;
+            Line_DownConnectionCh := '';
+            Line_DownConnectionChBold := False;
+
+            Line_IsTempNewLine := False;
+            Line_TempNewLineScreenUpX := 0;
+            Line_TempNewLineScreenDownX := 0;
+
+            Line_TempNewLineScreenUpY := 0;
+            Line_TempNewLineScreenDownY := 0;
 
             Line_Number := FieldByName(Line_NumberFieldName).AsInteger;
             IF Line_Number <> Line THEN
@@ -3240,16 +3249,16 @@ BEGIN
               Line_NameStr := ValidateLineName(FieldByName(Line_NameStrFieldName).AsString, Line, ErrorMsg);
 
             IF ErrorMsg = '' THEN
-              Line_UpXAbsolute := ValidateLineXAbsolute(FieldByName(Line_UpXAbsoluteFieldName).AsString, ErrorMsg);
+              Line_UpXAbsolute := ValidateLineAbsolute(FieldByName(Line_UpXAbsoluteFieldName).AsString, ErrorMsg);
 
             IF ErrorMsg = '' THEN
-              Line_DownXAbsolute := ValidateLineXAbsolute(FieldByName(Line_DownXAbsoluteFieldName).AsString, ErrorMsg);
+              Line_DownXAbsolute := ValidateLineAbsolute(FieldByName(Line_DownXAbsoluteFieldName).AsString, ErrorMsg);
 
             IF ErrorMsg = '' THEN
-              Line_UpRow := ValidateRow(FieldByName(Line_UpRowFieldName).AsString, ErrorMsg);
+              Line_UpYAbsolute := ValidateLineAbsolute(FieldByName(Line_UpYAbsoluteFieldName).AsString, ErrorMsg);
 
             IF ErrorMsg = '' THEN
-              Line_DownRow := ValidateRow(FieldByName(Line_DownRowFieldName).AsString, ErrorMsg);
+              Line_DownYAbsolute := ValidateLineAbsolute(FieldByName(Line_DownYAbsoluteFieldName).AsString, ErrorMsg);
 
             IF ErrorMsg = '' THEN
               Line_Location := ValidateLineLocation(FieldByName(Line_LocationStrFieldName).AsString, ErrorMsg);
