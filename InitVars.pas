@@ -837,6 +837,7 @@ TYPE
     TC_LocoStalled : Boolean;
     TC_MissingTrainNoted : Boolean;
     TC_MysteriouslyOccupied : Boolean;
+    TC_Number : Integer;
     TC_OccupationStartTime : TDateTime;
     TC_OccupationState : TrackCircuitStateType;
     TC_PreviousLocoChip : Integer;
@@ -849,6 +850,13 @@ TYPE
     TC_UserMustDrive : Boolean;
   END;
 
+CONST
+  TC_NumberFieldName : String = 'TCNum';
+  TC_LengthFieldName : String = 'Length';
+  TC_FeedbackUnitFieldName : String = 'FeedbackUnit';
+  TC_FeedbackInputFieldName : String = 'FeedbackInput';
+
+TYPE
   { Train-related type declarations }
   TypeOfTrainType = (LightLocoType, ExpressPassengerType, OrdinaryPassengerType, ExpressFreightType, Freight75mphType, EmptyCoachingStockType, Freight60mphType,
                      Freight45mphType, Freight35mphType, InternationalType, UnknownTrainType);
@@ -1604,6 +1612,9 @@ PROCEDURE CalculatePointPositions;
 PROCEDURE CalculateTCAdjacentSignals;
 { Work out which track circuits are next the signal }
 
+PROCEDURE CalculateTCAdjacentBufferStops;
+{ Work out which track circuits are next a buffer stop }
+
 PROCEDURE CalculateSignalMouseRectangles(S : Integer);
 { Work out where the mouse rectangles are for a given signal }
 
@@ -1614,13 +1625,16 @@ PROCEDURE CalculateAllSignalPositions;
 { Work out where all the signals are on the screen }
 
 FUNCTION DeleteRecordFromLineDatabase(LineToDeleteNum : Integer) : Boolean;
-{ Remove a record from the line database. (Checks have already been made in Edit as to whether it can be deleted). }
+{ Remove a record from the line database }
 
 FUNCTION DeleteRecordFromPointDatabase(PointToDeleteNum : Integer) : Boolean;
-{ Remove a record from the point database. (Checks have already been made in Edit as to whether it can be deleted). }
+{ Remove a record from the point database }
 
 FUNCTION DeleteRecordFromSignalDatabase(SignalToDeleteNum : Integer) : Boolean;
-{ Remove a record from the signal database. (Checks have already been made in Edit as to whether it can be deleted). }
+{ Remove a record from the signal database }
+
+FUNCTION DeleteRecordFromTrackCircuitDatabase(TrackCircuitToDeleteNum : Integer) : Boolean;
+{ Remove a record from the trackCircuit database }
 
 FUNCTION DescribeActualDateAndTime : String;
 { Return the current real date and time as a String }
@@ -1830,6 +1844,9 @@ PROCEDURE WriteOutPointDataToDatabase;
 PROCEDURE WriteOutSignalDataToDatabase;
 { If a Signal's data has been changed, record it in the database }
 
+PROCEDURE WriteOutTrackCircuitDataToDatabase;
+{ Write out some track circuit data to the track circuit data file }
+
 IMPLEMENTATION
 
 {$R *.dfm}
@@ -1908,19 +1925,14 @@ PROCEDURE ReadInTrackCircuitDataFromDatabase;
   Unit 95 inputs 5-6 reserved for new siding B
   Unit 99 inputs 3-4 reseved for cross over points from platforms 5 to 6
   Unit 116 input 2 free [point input]
-
 }
 CONST
   StopTimer = True;
 
 VAR
   ErrorMsg : String;
-  FieldName : String;
-  L : Integer;
   Location : Integer;
   TC : Integer;
-  TCNum : Integer;
-  TCLocationFound : Boolean;
   TempStr : String;
 
 BEGIN
@@ -1949,8 +1961,7 @@ BEGIN
       { First see if the track circuit numbers in the MSAccess file are sequential and, if not, renumber it - we need this or deletions from the MSAccess file will cause
         problems
       }
-      FieldName := 'TCNum';
-      TrackCircuitsADOTable.Sort := '[TCNum] ASC';
+      TrackCircuitsADOTable.Sort := '[' + TC_NumberFieldName + '] ASC';
       TrackCircuitsADOTable.First;
       SetLength(TrackCircuits, 0);
 
@@ -1961,24 +1972,21 @@ BEGIN
           WITH TrackCircuits[TC] DO BEGIN
             ErrorMsg := '';
 
-            FieldName := 'TCNum';
-            TCNum := TrackCircuitsADOTable.FieldByName(FieldName).AsInteger;
-            IF TCNum <> TC THEN
-              ErrorMsg := 'it does not match the line number in the database (' + IntToStr(TCNum) + ')';
+            TC_Number := TrackCircuitsADOTable.FieldByName(TC_NumberFieldName).AsInteger;
+            IF TC_Number <> TC THEN
+              ErrorMsg := 'it does not match the line number in the database (' + IntToStr(TC_Number) + ')';
 
             IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'Length';
-              TempStr := FieldByName(FieldName).AsString;
+              TempStr := FieldByName(TC_LengthFieldName).AsString;
               IF TempStr = '' THEN
                 TC_LengthInInches := 0
               ELSE
                 IF NOT TryStrToFloat(TempStr, TC_LengthInInches) THEN
-                  Debug('TC=' + IntToStr(TCNum) + ': invalid length String "' + TempStr + '"');
+                  Debug('TC=' + IntToStr(TC_Number) + ': invalid length String "' + TempStr + '"');
             END;
 
             IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'FeedbackUnit';
-              TempStr := FieldByName(FieldName).AsString;
+              TempStr := FieldByName(TC_FeedbackUnitFieldName).AsString;
               IF TempStr = '' THEN
                 TC_FeedbackUnit := 0
               ELSE
@@ -1987,8 +1995,7 @@ BEGIN
             END;
 
             IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'FeedbackInput';
-              TempStr := FieldByName(FieldName).AsString;
+              TempStr := FieldByName(TC_FeedbackInputFieldName).AsString;
               IF TempStr = '' THEN
                 TC_FeedbackInput := 0
               ELSE
@@ -1997,7 +2004,7 @@ BEGIN
             END;
 
             IF ErrorMsg <> '' THEN BEGIN
-              IF MessageDialogueWithDefault('Error in creating TC=' + IntToStr(High(TrackCircuits)) + ' (' + IntToStr(TCNum) + '): '
+              IF MessageDialogueWithDefault('Error in creating TC=' + IntToStr(High(TrackCircuits)) + ' (' + IntToStr(TC_Number) + '): '
                                             + '[' + ErrorMsg + ']:'
                                             + CRLF
                                             + 'Do you wish to continue?',
@@ -2049,28 +2056,10 @@ BEGIN
 
         SetLength(TC_LineArray, 0);
       END; {WITH}
-
-      { Initialise track circuit lines and locations }
-      TCLocationFound := False;
-      L := 0;
-      WHILE (L < High(Lines)) AND NOT TCLocationFound DO BEGIN
-        IF Lines[L].Line_TC = TC THEN BEGIN
-          TCLocationFound := True;
-          AppendToLineArray(TrackCircuits[TC].TC_LineArray, L);
-          TrackCircuits[TC].TC_Location := Lines[L].Line_Location;
-
-          { also initialise the buffer stop data }
-          TrackCircuits[TC].TC_AdjacentBufferStop := Lines[L].Line_AdjacentBufferStop;
-
-          { and the gradient - give the track circuit the benefit of the doubt so that if any line comprising it is not level, that gradient is the one recorded as being at
-            the track circuit
-          }
-          IF Lines[L].Line_Gradient <> Level THEN
-            TrackCircuits[TC].TC_Gradient := Lines[L].Line_Gradient;
-        END;
-        Inc(L);
-      END; {WHILE}
     END; {FOR}
+
+    { Initialise track circuit lines and locations }
+    CalculateTCAdjacentBufferStops;
 
     { Check that all track circuits have a TC_LineArray value }
     TC := 0;
@@ -2097,6 +2086,107 @@ BEGIN
       Log('EG ReadInTrackCircuitDataFromDatabase: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { ReadInTrackCircuitDataFromDatabase }
+
+PROCEDURE WriteOutTrackCircuitDataToDatabase;
+{ Write out some track circuit data to the track circuit data file }
+VAR
+  TC : Integer;
+
+BEGIN
+  TRY
+    WITH InitVarsWindow DO BEGIN
+      IF NOT FileExists(PathToRailDataFiles + TrackCircuitDataFilename + '.' + TrackCircuitDataFilenameSuffix) THEN BEGIN
+        IF MessageDialogueWithDefault('Track circuit database file "' + PathToRailDataFiles + TrackCircuitDataFilename + '.' + TrackCircuitDataFilenameSuffix
+                                      + '" cannot be located'
+                                      + CRLF
+                                      + 'Do you wish to continue?',
+                                      StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
+        THEN
+          ShutDownProgram(UnitRef, 'WriteOutTrackCircuitDataFromDatabase')
+        ELSE
+          Exit;
+      END;
+
+      TrackCircuitsADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
+                                                    + PathToRailDataFiles + TrackCircuitDataFilename + '.' + TrackCircuitDataFilenameSuffix
+                                                    + ';Persist Security Info=False';
+      TrackCircuitsADOConnection.Connected := True;
+      TrackCircuitsADOTable.Open;
+      Log('T Track circuit data table and connection opened to write out track circuit data');
+
+      TrackCircuitsADOTable.First;
+      TC := 0;
+      WHILE NOT TrackCircuitsADOTable.EOF DO BEGIN
+        WITH TrackCircuits[TC] DO BEGIN
+          IF TC_DataChanged THEN BEGIN
+            TC_DataChanged := False;
+
+            Log('T Recording in TrackCircuit database that TC ' + IntToStr(TC) + ' ' + TC_NumberFieldName + ' is ''' + IntToStr(TC_Number) + '''');
+            TrackCircuitsADOTable.Edit;
+            TrackCircuitsADOTable.FieldByName(TC_NumberFieldName).AsString := IntToStr(TC_Number);
+            TrackCircuitsADOTable.Post;
+          END;
+        END; {WITH}
+
+        Inc(TC);
+        TrackCircuitsADOTable.Next;
+      END; {WHILE}
+
+      { Tidy up the database }
+      TrackCircuitsADOTable.Close;
+      TrackCircuitsADOConnection.Connected := False;
+      Log('L Track circuit data table and connection closed after writing track circuit data');
+    END; {WITH}
+  EXCEPT {TRY}
+    ON E : Exception DO
+      Log('EG WriteOutTrackCircuitData: ' + E.ClassName + ' error raised, with message: ' + E.Message);
+  END; {TRY}
+END; { WriteOutTrackCircuitDataToDatabase }
+
+FUNCTION DeleteRecordFromTrackCircuitDatabase(TrackCircuitToDeleteNum : Integer) : Boolean;
+{ Remove a record from the trackCircuit database }
+BEGIN
+  Result := False;
+  TRY
+    WITH InitVarsWindow DO BEGIN
+      IF NOT FileExists(PathToRailDataFiles + TrackCircuitDataFilename + '.' + TrackCircuitDataFilenameSuffix) THEN BEGIN
+        IF MessageDialogueWithDefault('Track circuit database file "' + PathToRailDataFiles + TrackCircuitDataFilename + '.' + TrackCircuitDataFilenameSuffix
+                                      + '" cannot be located'
+                                      + CRLF
+                                      + 'Do you wish to continue?',
+                                      StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
+        THEN
+          ShutDownProgram(UnitRef, 'DeleteRecordFromTrackCircuitDatabase')
+        ELSE
+          Exit;
+      END;
+
+      TrackCircuitsADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
+                                                     + PathToRailDataFiles + TrackCircuitDataFilename + '.' + TrackCircuitDataFilenameSuffix
+                                                     + ';Persist Security Info=False';
+      TrackCircuitsADOConnection.Connected := True;
+      TrackCircuitsADOTable.Open;
+      IF NOT TrackCircuitsADOTable.Locate(TC_NumberFieldName, IntToStr(TrackCircuitToDeleteNum), []) THEN BEGIN
+        Log('T Track circuit data table and connection opened to delete TC ' + TrackCircuitToStr(TrackCircuitToDeleteNum) + ' but it cannot be found');
+      END ELSE BEGIN
+        Log('T Track circuit data table and connection opened to delete TC ' + TrackCircuitToStr(TrackCircuitToDeleteNum));
+
+        { Now delete the track circuit - we have already checked, in the Edit unit, whether deleting it is will cause knock-on problems with other track circuits }
+        TrackCircuitsADOTable.Delete;
+        Log('TG TrackCircuit ' + IntToStr(TrackCircuitToDeleteNum) + ' has been deleted');
+        Result := True;
+      END;
+
+      { Tidy up the database }
+      TrackCircuitsADOTable.Close;
+      TrackCircuitsADOConnection.Connected := False;
+      Log('T Track circuit Data table and connection closed');
+    END;
+  EXCEPT {TRY}
+    ON E : Exception DO
+      Log('EG AddNewRecordToTrackCircuitDatabase: ' + E.ClassName + ' error raised, with message: ' + E.Message);
+  END; {TRY}
+END; { DeleteRecordFromTrackCircuitDatabase }
 
 PROCEDURE ReadInAreasDataFromDatabase;
 { Initialise the area data }
@@ -3730,6 +3820,49 @@ BEGIN
   END; {TRY}
 END; { WriteOutLineDataToDatabase }
 
+FUNCTION DeleteRecordFromLineDatabase(LineToDeleteNum : Integer) : Boolean;
+{ Remove a record from the line database }
+BEGIN
+  Result := False;
+  TRY
+    WITH InitVarsWindow DO BEGIN
+      IF NOT FileExists(PathToRailDataFiles + LineDataFilename + '.' + LineDataFilenameSuffix) THEN BEGIN
+        IF MessageDialogueWithDefault('Line database file "' + PathToRailDataFiles + LineDataFilename + '.' + LineDataFilenameSuffix + '" cannot be located'
+                                      + CRLF
+                                      + 'Do you wish to continue?',
+                                      StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
+        THEN
+          ShutDownProgram(UnitRef, 'DeleteRecordFromLineDatabase')
+        ELSE
+          Exit;
+      END;
+
+      LinesADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source=' + PathToRailDataFiles + LineDataFilename + '.' + LineDataFilenameSuffix
+                                               + ';Persist Security Info=False';
+      LinesADOConnection.Connected := True;
+      LinesADOTable.Open;
+      IF NOT LinesADOTable.Locate(Line_NumberFieldName, IntToStr(LineToDeleteNum), []) THEN BEGIN
+        Log('L Line data table and connection opened to delete Line ' + LineToStr(LineToDeleteNum) + ' but it cannot be found');
+      END ELSE BEGIN
+        Log('L Line data table and connection opened to delete Line ' + LineToStr(LineToDeleteNum));
+
+        { Now delete the line - we have already checked, in the Edit unit, whether deleting it is will cause knock-on problems with other lines }
+        LinesADOTable.Delete;
+        Log('LG Line ' + IntToStr(LineToDeleteNum) + ' has been deleted');
+        Result := True;
+      END;
+
+      { Tidy up the database }
+      LinesADOTable.Close;
+      LinesADOConnection.Connected := False;
+      Log('L Line Data table and connection closed');
+    END;
+  EXCEPT {TRY}
+    ON E : Exception DO
+      Log('EG AddNewRecordToLineDatabase: ' + E.ClassName + ' error raised, with message: ' + E.Message);
+  END; {TRY}
+END; { DeleteRecordFromLineDatabase }
+
 PROCEDURE CalculateSignalPosition(S : Integer);
 { Work out where a signal is on the screen }
 BEGIN
@@ -3877,14 +4010,6 @@ BEGIN
     WHILE S <= High(Signals) DO BEGIN
       WITH Signals[S] DO BEGIN
         IF Signal_AdjacentLine <> UnknownLine THEN BEGIN
-//          IF Signal_Direction = Up THEN
-//            Signal_LineX := Lines[Signal_AdjacentLine].Line_UpX + SignalRadiusScaled
-//          ELSE
-//            { Down }
-//            Signal_LineX := Lines[Signal_AdjacentLine].Line_DownX - SignalRadiusScaled;
-//
-//          Signal_LineY := Lines[Signal_AdjacentLine].Line_UpY;
-
           CalculateSignalPosition(S);
           CalculateSignalMouseRectangles(S);
         END;
@@ -3897,8 +4022,39 @@ BEGIN
   END; {TRY}
 END; { CalculateAllSignalPositions }
 
+PROCEDURE CalculateTCAdjacentBufferStops;
+{ Work out which track circuits are next a buffer stop }
+VAR
+  L : Integer;
+  TC : Integer;
+  TCLocationFound : Boolean;
+
+BEGIN
+  FOR TC := 0 TO High(TrackCircuits) DO BEGIN
+    TCLocationFound := False;
+    L := 0;
+    WHILE (L < High(Lines)) AND NOT TCLocationFound DO BEGIN
+      IF Lines[L].Line_TC = TC THEN BEGIN
+        TCLocationFound := True;
+        AppendToLineArray(TrackCircuits[TC].TC_LineArray, L);
+        TrackCircuits[TC].TC_Location := Lines[L].Line_Location;
+
+        { also initialise the buffer stop data }
+        TrackCircuits[TC].TC_AdjacentBufferStop := Lines[L].Line_AdjacentBufferStop;
+
+        { and the gradient - give the track circuit the benefit of the doubt so that if any line comprising it is not level, that gradient is the one recorded as being at
+          the track circuit
+        }
+        IF Lines[L].Line_Gradient <> Level THEN
+          TrackCircuits[TC].TC_Gradient := Lines[L].Line_Gradient;
+      END;
+      Inc(L);
+    END; {WHILE}
+  END; {FOR}
+END; { CalculateTCAdjacentBufferStops }
+
 PROCEDURE CalculateTCAdjacentSignals;
-{ Work out which track circuits are next the signal }
+{ Work out which track circuits are next the signal and/or a bufferstop }
 VAR
   S : Integer;
   TC : Integer;
@@ -4496,9 +4652,6 @@ BEGIN
 
         WITH Signals[S] DO BEGIN
           IF ErrorMsg = '' THEN BEGIN
-            Signal_AdjacentTC := UnknownTrackCircuit;
-            Signal_ApproachLocked := False;
-
             Signal_AccessoryAddress := 0;
             Signal_AdjacentLine := UnknownLine;
             Signal_AdjacentLineXOffset := 0;
@@ -4847,7 +5000,7 @@ BEGIN
 END; { AddNewRecordToSignalDatabase }
 
 FUNCTION DeleteRecordFromSignalDatabase(SignalToDeleteNum : Integer) : Boolean;
-{ Remove a record from the signal database. (Checks have already been made in Edit as to whether it can be deleted). }
+{ Remove a record from the signal database }
 BEGIN
   Result := False;
   TRY
@@ -4888,49 +5041,6 @@ BEGIN
       Log('EG AddNewRecordToSignalDatabase: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { DeleteRecordFromSignalDatabase }
-
-FUNCTION DeleteRecordFromLineDatabase(LineToDeleteNum : Integer) : Boolean;
-{ Remove a record from the line database. (Checks have already been made in Edit as to whether it can be deleted). }
-BEGIN
-  Result := False;
-  TRY
-    WITH InitVarsWindow DO BEGIN
-      IF NOT FileExists(PathToRailDataFiles + LineDataFilename + '.' + LineDataFilenameSuffix) THEN BEGIN
-        IF MessageDialogueWithDefault('Line database file "' + PathToRailDataFiles + LineDataFilename + '.' + LineDataFilenameSuffix + '" cannot be located'
-                                      + CRLF
-                                      + 'Do you wish to continue?',
-                                      StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
-        THEN
-          ShutDownProgram(UnitRef, 'DeleteRecordFromLineDatabase')
-        ELSE
-          Exit;
-      END;
-
-      LinesADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source=' + PathToRailDataFiles + LineDataFilename + '.' + LineDataFilenameSuffix
-                                               + ';Persist Security Info=False';
-      LinesADOConnection.Connected := True;
-      LinesADOTable.Open;
-      IF NOT LinesADOTable.Locate(Line_NumberFieldName, IntToStr(LineToDeleteNum), []) THEN BEGIN
-        Log('S Line data table and connection opened to delete S' + IntToStr(LineToDeleteNum) + ' but it cannot be found');
-      END ELSE BEGIN
-        Log('S Line data table and connection opened to delete S' + IntToStr(LineToDeleteNum));
-
-        { Now delete the Line - we have already checked, in the Edit unit, whether deleting it is will cause knock-on problems with other Lines }
-        LinesADOTable.Delete;
-        Log('SG S' + IntToStr(LineToDeleteNum) + ' has been deleted');
-        Result := True;
-      END;
-
-      { Tidy up the database }
-      LinesADOTable.Close;
-      LinesADOConnection.Connected := False;
-      Log('S Line Data table and connection closed');
-    END;
-  EXCEPT {TRY}
-    ON E : Exception DO
-      Log('EG AddNewRecordToLineDatabase: ' + E.ClassName + ' error raised, with message: ' + E.Message);
-  END; {TRY}
-END; { DeleteRecordFromLineDatabase }
 
 PROCEDURE WriteOutSignalDataToDatabase;
 { If a Signal's data has been changed, record it in the database }
@@ -5903,7 +6013,7 @@ BEGIN
 END; { ReadInPointDataFromDatabase }
 
 FUNCTION DeleteRecordFromPointDatabase(PointToDeleteNum : Integer) : Boolean;
-{ Remove a record from the point database. (Checks have already been made in Edit as to whether it can be deleted). }
+{ Remove a record from the point database }
 BEGIN
   Result := False;
   TRY
