@@ -633,7 +633,8 @@ BEGIN
     WriteToStatusBarPanel(StatusBarPanel1, StatusBarPanel1Str);
     StatusBarPanel1Str := '';
 
-    WriteToStatusBarPanel(StatusBarPanel2, StatusBarPanel2Str);
+    IF StatusBarPanel2Str <> '' THEN
+      WriteToStatusBarPanel(StatusBarPanel2, StatusBarPanel2Str);
 
     IF NOT ObjectFound THEN
       IF NOT SignalDragging AND NOT EndOfLineDragging AND NOT CreateLineMode AND (Screen.Cursor <> crDefault) THEN
