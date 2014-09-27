@@ -84,7 +84,7 @@ BEGIN
     ToEnd := Length(Text) - StartPos;
     FoundAt := FindText(HelpWindowFindDialog.FindText, StartPos, ToEnd, mySearchTypes);
     IF FoundAt = -1 THEN
-      Beep
+      MakeSound(1)
     ELSE BEGIN
       SetFocus;
       SelStart := FoundAt;
