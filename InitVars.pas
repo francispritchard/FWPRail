@@ -53,6 +53,9 @@ TYPE
     LocationsDataSource2: TDataSource;
     LocationsADOConnection2: TADOConnection;
     LocationsADOTable2: TADOTable;
+    TrackCircuitsADOConnection2: TADOConnection;
+    TrackCircuitDataSource2: TDataSource;
+    TrackCircuitsADOTable2: TADOTable;
   PRIVATE
     { Private declarations }
   PUBLIC
