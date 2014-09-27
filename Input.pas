@@ -1543,14 +1543,11 @@ BEGIN { KeyPressedDown }
               END;
             Shift: {C}
               BEGIN
-                HelpMsg := 'initiate general check';
+                HelpMsg := 'select create line mode';
                 IF NOT HelpRequired THEN BEGIN
-                  IF NOT LogsCurrentlyKept THEN
-                    Debug('Cannot initiate general check with LogsCurrentlyKept turned off')
-                  ELSE BEGIN
-                    WriteToStatusBarPanel(StatusBarPanel2, 'General check initiated');
-                    DoGeneralCheck;
-                  END;
+                  TurnEditModeOn(UnknownSignal, UnknownPoint, UnknownBufferStop, UnknownLine, UnknownTrackCircuit);
+                  CreateLineMode := True;
+                  InvalidateScreen(UnitRef, 'select create line mode');
                 END;
               END;
             Ctrl: {C}
@@ -2004,8 +2001,14 @@ BEGIN { KeyPressedDown }
               END;
             CtrlShift: {K}
               BEGIN
-                HelpMsg := '';
+                HelpMsg := 'initiate general check';
                 IF NOT HelpRequired THEN BEGIN
+                  IF NOT LogsCurrentlyKept THEN
+                    Debug('Cannot initiate general check with LogsCurrentlyKept turned off')
+                  ELSE BEGIN
+                    WriteToStatusBarPanel(StatusBarPanel2, 'General check initiated');
+                    DoGeneralCheck;
+                  END;
                 END;
               END;
             Shift: {K}
