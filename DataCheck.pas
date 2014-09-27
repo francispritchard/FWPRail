@@ -30,6 +30,9 @@ PROCEDURE CompareTwoPointDatabases(Point1DataFilename, Point1DataFilenameSuffix,
 PROCEDURE CompareTwoSignalDatabases(Signal1DataFilename, Signal1DataFilenameSuffix, Signal2DataFilename, Signal2DataFilenameSuffix : String);
 { Compare two signal databases - used for testing }
 
+PROCEDURE CompareTwoTrackCircuitDatabases(TrackCircuit1DataFilename, TrackCircuit1DataFilenameSuffix, TrackCircuit2DataFilename, TrackCircuit2DataFilenameSuffix : String);
+{ Compare two TrackCircuit databases - used for testing }
+
 PROCEDURE DoGeneralCheck;
 { Debug check for various things including two different feedback units serving the same track circuit }
 
@@ -508,6 +511,148 @@ BEGIN
       Log('EG InitialiseLines: ' + E.ClassName + 'error raised, with message: '+ E.Message);
   END; {TRY}
 END; { CompareTwoLineDatabases }
+
+PROCEDURE CompareTwoTrackCircuitDatabases(TrackCircuit1DataFilename, TrackCircuit1DataFilenameSuffix, TrackCircuit2DataFilename, TrackCircuit2DataFilenameSuffix : String);
+{ Compare two TrackCircuit databases - used for testing }
+CONST
+  StopTimer = True;
+
+VAR
+  ErrorFound : Boolean;
+  TrackCircuit : Integer;
+
+  PROCEDURE CheckString(FieldName : String; Table2, Table1 : TADOTable; VAR ErrorFound : Boolean);
+  BEGIN
+    IF UpperCase(Table1.FieldByName(FieldName).AsString) <> UpperCase(Table2.FieldByName(FieldName).AsString) THEN BEGIN
+      IF NOT ErrorFound THEN BEGIN
+        Log('XG Differences found in TrackCircuit databases '
+                + '"' + TrackCircuit2DataFilename + '.' + TrackCircuit2DataFilenameSuffix + '" and "' + TrackCircuit1DataFilename + '.' + TrackCircuit1DataFilenameSuffix + '"');
+        ErrorFound := True;
+      END;
+      Log('XG P=' + IntToStr(TrackCircuit) + ' ' + FieldName + ': "' + Table1.FieldByName(FieldName).AsString + '" to "' + Table2.FieldByName(FieldName).AsString + '"');
+    END;
+  END; { CheckString }
+
+  PROCEDURE CheckBoolean(FieldName : String; Table2, Table1 : TADOTable; VAR ErrorFound : Boolean);
+  BEGIN
+    IF Table1.FieldByName(FieldName).AsBoolean <> Table2.FieldByName(FieldName).AsBoolean THEN BEGIN
+      IF NOT ErrorFound THEN BEGIN
+        Log('XG Differences found in TrackCircuit databases '
+                + '"' + TrackCircuit2DataFilename + '.' + TrackCircuit2DataFilenameSuffix + '" and "' + TrackCircuit1DataFilename + '.' + TrackCircuit1DataFilenameSuffix + '"');
+        ErrorFound := True;
+      END;
+      Log('XG P=' + IntToStr(TrackCircuit) + ' ' + FieldName
+              + ': "' + BoolToStr(Table1.FieldByName(FieldName).AsBoolean, True) + '" to "' + BoolToStr(Table2.FieldByName(FieldName).AsBoolean, True) + '"');
+    END;
+  END; { CheckBoolean }
+
+BEGIN
+  TRY
+    Log('A TRACKCIRCUIT DATABASES COMPARISON {BlankLineBefore}');
+
+    WITH InitVarsWindow DO BEGIN
+      IF NOT FileExists(PathToRailDataFiles + TrackCircuit1DataFilename + '.' + TrackCircuit1DataFilenameSuffix) THEN BEGIN
+        IF MessageDialogueWithDefault('Track circuit database file "' + PathToRailDataFiles + TrackCircuit1DataFilename + '.' + TrackCircuit1DataFilenameSuffix + '"'
+                                      + ' cannot be located'
+                                      + CRLF
+                                      + 'Do you wish to continue?',
+                                      StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
+        THEN
+          ShutDownProgram(UnitRef, 'CompareTwoTrackCircuitDatabases')
+        ELSE
+          Exit;
+      END;
+
+      TrackCircuitsADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
+                                             + PathToRailDataFiles + TrackCircuit1DataFilename + '.' + TrackCircuit1DataFilenameSuffix
+                                             + ';Persist Security Info=False';
+      TRY
+        TrackCircuitsADOConnection.Connected := True;
+      EXCEPT
+        ON E:Exception DO
+          Log('EG CompareTwoTrackCircuitDatabases 1: ' + E.ClassName + ' error raised, with message: '+ E.Message);
+      END; {TRY}
+
+      TrackCircuitsADOTable.Open;
+
+      TrackCircuitsADOConnection2.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
+                                              + PathToRailDataFiles + TrackCircuit2DataFilename + '.' + TrackCircuit2DataFilenameSuffix
+                                              + ';Persist Security Info=False';
+      TRY
+        TrackCircuitsADOConnection2.Connected := True;
+      EXCEPT
+        ON E:Exception DO
+          Log('EG CompareTwoTrackCircuitDatabases 2: ' + E.ClassName + ' error raised, with message: '+ E.Message);
+      END; {TRY}
+
+      TrackCircuitsADOTable2.Open;
+
+      Log('S Track circuit data table and connection opened to compare TrackCircuit 1 data with TrackCircuit 2 data');
+
+      ErrorFound := False;
+      TrackCircuit := -1;
+      TrackCircuitsADOTable.Sort := '[' + TC_NumberFieldName + '] ASC';
+      TrackCircuitsADOTable.First;
+      TrackCircuitsADOTable2.Sort := '[' + TC_NumberFieldName + '] ASC';
+      TrackCircuitsADOTable2.First;
+
+      REPEAT
+        Inc(TrackCircuit);
+
+        IF TrackCircuit > High(TrackCircuits) THEN BEGIN
+          IF NOT TrackCircuitsADOTable.EOF THEN
+            Log('XG Last declared track circuit (TrackCircuit=' + IntToStr(TrackCircuit - 1) + ') processed but TrackCircuit database '
+                    + '"' + TrackCircuit1DataFilename + '.' + TrackCircuit1DataFilenameSuffix
+                    + ' has not yet reached end of file')
+          ELSE
+          IF NOT TrackCircuitsADOTable2.EOF THEN
+            Log('XG Last declared track circuit (TrackCircuit=' + IntToStr(TrackCircuit - 1) + ') processed but TrackCircuit database '
+                    + '"' + TrackCircuit2DataFilename + '.' + TrackCircuit2DataFilenameSuffix
+                    + ' has not yet reached end of file');
+        END ELSE BEGIN
+          WITH TrackCircuits[TrackCircuit] DO BEGIN
+            CheckString(TC_LengthFieldName, TrackCircuitsADOTable, TrackCircuitsADOTable2, ErrorFound);
+            CheckString(TC_LengthFieldName, TrackCircuitsADOTable, TrackCircuitsADOTable2, ErrorFound);
+            CheckString(TC_FeedbackUnitFieldName, TrackCircuitsADOTable, TrackCircuitsADOTable2, ErrorFound);
+            CheckString(TC_FeedbackInputFieldName, TrackCircuitsADOTable, TrackCircuitsADOTable2, ErrorFound);
+          END; {WITH}
+        END;
+
+        IF TrackCircuitsADOTable.EOF AND NOT TrackCircuitsADOTable2.EOF THEN BEGIN
+          Log('XG Track circuit database ' + '"' + TrackCircuit1DataFilename + '.' + TrackCircuit1DataFilenameSuffix
+                  + '" is shorter than "' + TrackCircuit2DataFilename + '.' + TrackCircuit2DataFilenameSuffix + '"');
+          Log('XG A later entry in track cCircuit database ' + '"' + TrackCircuit1DataFilename + '.' + TrackCircuit1DataFilenameSuffix
+                  + '" is TrackCircuit=' + IntToStr(TrackCircuit));
+        END ELSE
+          IF NOT TrackCircuitsADOTable.EOF AND TrackCircuitsADOTable2.EOF THEN BEGIN
+            Log('XG Track circuit database ' + '"' + TrackCircuit2DataFilename + '.' + TrackCircuit2DataFilenameSuffix
+                    + '" is shorter than "' + TrackCircuit1DataFilename + '.' + TrackCircuit1DataFilenameSuffix + '"');
+            Log('XG A later entry in track circuit database ' + '"' + TrackCircuit2DataFilename + '.' + TrackCircuit2DataFilenameSuffix
+                    + '" is TrackCircuit=' + IntToStr(TrackCircuit));
+          END;
+
+        TrackCircuitsADOTable2.Next;
+        TrackCircuitsADOTable.Next;
+      UNTIL TrackCircuitsADOTable.EOF AND TrackCircuitsADOTable2.EOF;
+
+      IF NOT ErrorFound THEN
+        Log('XG No differences found in track circuit databases '
+                + '"' + TrackCircuit1DataFilename + '.' + TrackCircuit1DataFilenameSuffix
+                + '" and "' + TrackCircuit2DataFilename + '.' + TrackCircuit2DataFilenameSuffix + '"');
+
+      { Tidy up the database }
+      TrackCircuitsADOTable.Close;
+      TrackCircuitsADOConnection.Connected := False;
+      Log('S Track circuit Data 1 table and connection closed');
+      TrackCircuitsADOTable2.Close;
+      TrackCircuitsADOConnection.Connected := False;
+      Log('S Track circuit Data 2 table and connection closed');
+    END; {WITH}
+  EXCEPT {TRY}
+    ON E : Exception DO
+      Log('EG CompareTwoTrackCircuitDatabases: ' + E.ClassName + 'error raised, with message: '+ E.Message);
+  END; {TRY}
+END; { CompareTwoTrackCircuitDatabases }
 
 PROCEDURE CompareTwoLocationDatabases(Location1DataFilename, Location1DataFilenameSuffix, Location2DataFilename, Location2DataFilenameSuffix : String);
 { Compare two location databases - used for testing }

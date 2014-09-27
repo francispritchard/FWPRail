@@ -4970,6 +4970,7 @@ BEGIN { KeyPressedDown }
                   CompareTwoLocationDatabases('LocationData', 'mdb', 'LocationData - Copy', 'mdb');
                   CompareTwoSignalDatabases('SignalData', 'mdb', 'SignalData - Copy', 'mdb');
                   CompareTwoPointDatabases('PointData', 'mdb', 'PointData - Copy', 'mdb');
+                  CompareTwoTrackCircuitDatabases('TrackCircuitData', 'mdb', 'TrackCircuitData - Copy', 'mdb');
                 END;
               END;
             Alt: {F11}
