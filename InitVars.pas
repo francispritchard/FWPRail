@@ -326,12 +326,12 @@ TYPE
     Line_DownConnectionCh : String;
     Line_DownConnectionChRect : TRect;
     Line_DownConnectionChBold : Boolean;
-    Line_DownXAbsolute : Integer;
-    Line_DownYAbsolute : Integer;
-    Line_DownX : Integer;
-    Line_DownY : Integer;
+    Line_GridDownX : Integer;
+    Line_GridDownY : Integer;
     Line_EndOfLineMarker : EndOfLineType;
     Line_Gradient : GradientType;
+    Line_GridUpX : Integer;
+    Line_GridUpY : Integer;
     Line_InitialOutOfUseState : OutOfUseState;
     Line_InUseFeedbackUnit : Integer;
     Line_InUseFeedbackInput : Integer;
@@ -355,6 +355,10 @@ TYPE
     Line_RouteLockingForDrawing : Integer; { used for drawing those bits of Line that are routed over }
     Line_RouteSet : Integer;
     Line_SaveOutOfUseState : OutOfUseState;
+    Line_ScreenDownX : Integer;
+    Line_ScreenDownY : Integer;
+    Line_ScreenUpX : Integer;
+    Line_ScreenUpY : Integer;
     Line_TC : Integer;
     Line_IsTempNewLine : Boolean;
     Line_TempNewLineScreenDownX : Integer;
@@ -365,18 +369,14 @@ TYPE
     Line_UpConnectionCh : String;
     Line_UpConnectionChRect : TRect;
     Line_UpConnectionChBold : Boolean;
-    Line_UpX : Integer;
-    Line_UpXAbsolute : Integer;
-    Line_UpYAbsolute : Integer;
-    Line_UpY : Integer;
   END;
 
 CONST
   Line_BufferStopTheatreDestinationStrFieldName : String = 'Buffer Stop Theatre Destination';
   Line_DirectionFieldName : String = 'Direction';
   Line_DownConnectionChFieldName : String = 'Down Connection Ch';
-  Line_DownXAbsoluteFieldName : String = 'Down X';
-  Line_DownYAbsoluteFieldName : String = 'Down Y';
+  Line_GridDownXFieldName : String = 'Down X';
+  Line_GridDownYFieldName : String = 'Down Y';
   Line_EndOfLineMarkerFieldName : String = 'End Of Line Marker';
   Line_GradientFieldName : String = 'Gradient';
   Line_InUseFeedbackUnitFieldName : String = 'In Use Feedback Unit';
@@ -387,8 +387,8 @@ CONST
   Line_TCFieldName : String = 'Line TC';
   Line_TypeOfLineFieldName : String = 'Type Of Line';
   Line_UpConnectionChFieldName : String = 'Up Connection Ch';
-  Line_UpXAbsoluteFieldName : String = 'Up X';
-  Line_UpYAbsoluteFieldName : String = 'Up Y';
+  Line_GridUpXFieldName : String = 'Up X';
+  Line_GridUpYFieldName : String = 'Up Y';
 
 TYPE
   DirectionPriorityType = (PreferablyUp, UpOnly, TerminatingAtUp, PreferablyDown, DownOnly, TerminatingAtDown, NoDirectionPriority);
@@ -2964,11 +2964,11 @@ BEGIN
     Line := 0;
     WHILE Line <= High(Lines) DO BEGIN
       WITH Lines[Line] DO BEGIN
-        Line_UpX := MapGridXToScreenX(Line_UpXAbsolute);
-        Line_DownX := MapGridXToScreenX(Line_DownXAbsolute);
+        Line_ScreenUpX := MapGridXToScreenX(Line_GridUpX); { rename Absolute to Grid ***************************** and upx to screen }
+        Line_ScreenDownX := MapGridXToScreenX(Line_GridDownX);
 
-        Line_UpY := MapGridYToScreenY(Line_UpYAbsolute);
-        Line_DownY := MapGridYToScreenY(Line_DownYAbsolute);
+        Line_ScreenUpY := MapGridYToScreenY(Line_GridUpY);
+        Line_ScreenDownY := MapGridYToScreenY(Line_GridDownY);
       END; {WITH}
       Inc(Line);
     END; {WHILE}
@@ -2976,10 +2976,10 @@ BEGIN
     Line := 0;
     WHILE Line <= High(Lines) DO BEGIN
       WITH Lines[Line] DO BEGIN
-        Line_MousePolygon[0] := Point(Line_UpX, Line_UpY + MouseRectangleEdgeVerticalSpacingScaled);
-        Line_MousePolygon[1] := Point(Line_UpX, Line_UpY - MouseRectangleEdgeVerticalSpacingScaled);
-        Line_MousePolygon[2] := Point(Line_DownX, Line_DownY - MouseRectangleEdgeVerticalSpacingScaled);
-        Line_MousePolygon[3] := Point(Line_DownX, Line_DownY + MouseRectangleEdgeVerticalSpacingScaled);
+        Line_MousePolygon[0] := Point(Line_ScreenUpX, Line_ScreenUpY + MouseRectangleEdgeVerticalSpacingScaled);
+        Line_MousePolygon[1] := Point(Line_ScreenUpX, Line_ScreenUpY - MouseRectangleEdgeVerticalSpacingScaled);
+        Line_MousePolygon[2] := Point(Line_ScreenDownX, Line_ScreenDownY - MouseRectangleEdgeVerticalSpacingScaled);
+        Line_MousePolygon[3] := Point(Line_ScreenDownX, Line_ScreenDownY + MouseRectangleEdgeVerticalSpacingScaled);
         Line_MousePolygon[4] := Line_MousePolygon[0];
 
         { Add the line-end characters which indicate where a line goes next }
@@ -2988,18 +2988,18 @@ BEGIN
           Font.Height := -MulDiv(FWPRailWindow.ClientHeight, FWPRailWindowFontHeight, ZoomScaleFactor);
           IF Line_UpConnectionCh <> '' THEN BEGIN
             WITH Line_UpConnectionChRect DO BEGIN
-              Left := Line_UpX - (TextWidth(Line_UpConnectionCh) DIV 2);
-              Top := Line_UpY - (TextHeight(Line_UpConnectionCh) DIV 2);
-              Right := Line_UpX + (TextWidth(Line_UpConnectionCh) DIV 2);
-              Bottom := Line_UpY + (TextHeight(Line_UpConnectionCh) DIV 2);
+              Left := Line_ScreenUpX - (TextWidth(Line_UpConnectionCh) DIV 2);
+              Top := Line_ScreenUpY - (TextHeight(Line_UpConnectionCh) DIV 2);
+              Right := Line_ScreenUpX + (TextWidth(Line_UpConnectionCh) DIV 2);
+              Bottom := Line_ScreenUpY + (TextHeight(Line_UpConnectionCh) DIV 2);
             END; {WITH}
           END;
           IF Line_DownConnectionCh <> '' THEN BEGIN
             WITH Line_DownConnectionChRect DO BEGIN
-              Left := Line_DownX - (TextWidth(Line_DownConnectionCh) DIV 2);
-              Top := Line_DownY - (TextHeight(Line_DownConnectionCh) DIV 2);
-              Right := Line_DownX + (TextWidth(Line_DownConnectionCh) DIV 2);
-              Bottom := Line_DownY + (TextHeight(Line_DownConnectionCh) DIV 2);
+              Left := Line_ScreenDownX - (TextWidth(Line_DownConnectionCh) DIV 2);
+              Top := Line_ScreenDownY - (TextHeight(Line_DownConnectionCh) DIV 2);
+              Right := Line_ScreenDownX + (TextWidth(Line_DownConnectionCh) DIV 2);
+              Bottom := Line_ScreenDownY + (TextHeight(Line_DownConnectionCh) DIV 2);
             END; {WITH}
           END;
         END; {WITH}
@@ -3015,7 +3015,7 @@ BEGIN
   IF VerboseFlag THEN
     FOR Line := 0 TO High(Lines) DO
       WITH Lines[Line] DO
-        Log('X ' + Line_NameStr +  ' UpX=' + IntToStr(Line_UpX) + ' UpY=' + IntToStr(Line_UpY) + ' DownX=' + IntToStr(Line_DownX) + ' DownY=' + IntToStr(Line_DownY));
+        Log('X ' + Line_NameStr +  ' UpX=' + IntToStr(Line_ScreenUpX) + ' UpY=' + IntToStr(Line_ScreenUpY) + ' DownX=' + IntToStr(Line_ScreenDownX) + ' DownY=' + IntToStr(Line_ScreenDownY));
 END; { CalculateLinePositions }
 
 PROCEDURE CalculateBufferStopPositions;
@@ -3028,13 +3028,13 @@ BEGIN
   WHILE BufferStop <= High(BufferStops) DO BEGIN
     WITH BufferStops[BufferStop] DO BEGIN
       IF BufferStop_Direction = Up THEN BEGIN
-        BufferStop_X := Lines[BufferStop_AdjacentLine].Line_UpX;
-        BufferStop_Y1 := Lines[BufferStop_AdjacentLine].Line_UpY - BufferStopVerticalSpacingScaled;
-        BufferStop_Y2 := Lines[BufferStop_AdjacentLine].Line_UpY + BufferStopVerticalSpacingScaled;
+        BufferStop_X := Lines[BufferStop_AdjacentLine].Line_ScreenUpX;
+        BufferStop_Y1 := Lines[BufferStop_AdjacentLine].Line_ScreenUpY - BufferStopVerticalSpacingScaled;
+        BufferStop_Y2 := Lines[BufferStop_AdjacentLine].Line_ScreenUpY + BufferStopVerticalSpacingScaled;
       END ELSE BEGIN
-        BufferStop_X := Lines[BufferStop_AdjacentLine].Line_DownX;
-        BufferStop_Y1 := Lines[BufferStop_AdjacentLine].Line_DownY - BufferStopVerticalSpacingScaled;
-        BufferStop_Y2 := Lines[BufferStop_AdjacentLine].Line_DownY + BufferStopVerticalSpacingScaled;
+        BufferStop_X := Lines[BufferStop_AdjacentLine].Line_ScreenDownX;
+        BufferStop_Y1 := Lines[BufferStop_AdjacentLine].Line_ScreenDownY - BufferStopVerticalSpacingScaled;
+        BufferStop_Y2 := Lines[BufferStop_AdjacentLine].Line_ScreenDownY + BufferStopVerticalSpacingScaled;
       END;
 
       { The mouse rectangle }
@@ -3296,16 +3296,16 @@ BEGIN
           WITH Lines[Line] DO BEGIN
             ErrorMsg := '';
 
-            Line_UpXAbsolute := 0;
-            Line_UpX := 0;
+            Line_GridUpX := 0;
+            Line_ScreenUpX := 0;
 
-            Line_DownXAbsolute := 0;
-            Line_DownX := 0;
+            Line_GridDownX := 0;
+            Line_ScreenDownX := 0;
 
-            Line_UpYAbsolute := 0;
-            Line_UpY := 0;
-            Line_DownYAbsolute := 0;
-            Line_DownY := 0;
+            Line_GridUpY := 0;
+            Line_ScreenUpY := 0;
+            Line_GridDownY := 0;
+            Line_ScreenDownY := 0;
 
             Line_DataChanged := False;
             Line_AdjacentBufferStop := UnknownBufferStop;
@@ -3343,16 +3343,16 @@ BEGIN
               Line_NameStr := ValidateLineName(FieldByName(Line_NameStrFieldName).AsString, Line, ErrorMsg);
 
             IF ErrorMsg = '' THEN
-              Line_UpXAbsolute := ValidateLineAbsolute(FieldByName(Line_UpXAbsoluteFieldName).AsString, ErrorMsg);
+              Line_GridUpX := ValidateLineAbsolute(FieldByName(Line_GridUpXFieldName).AsString, ErrorMsg);
 
             IF ErrorMsg = '' THEN
-              Line_DownXAbsolute := ValidateLineAbsolute(FieldByName(Line_DownXAbsoluteFieldName).AsString, ErrorMsg);
+              Line_GridDownX := ValidateLineAbsolute(FieldByName(Line_GridDownXFieldName).AsString, ErrorMsg);
 
             IF ErrorMsg = '' THEN
-              Line_UpYAbsolute := ValidateLineAbsolute(FieldByName(Line_UpYAbsoluteFieldName).AsString, ErrorMsg);
+              Line_GridUpY := ValidateLineAbsolute(FieldByName(Line_GridUpYFieldName).AsString, ErrorMsg);
 
             IF ErrorMsg = '' THEN
-              Line_DownYAbsolute := ValidateLineAbsolute(FieldByName(Line_DownYAbsoluteFieldName).AsString, ErrorMsg);
+              Line_GridDownY := ValidateLineAbsolute(FieldByName(Line_GridDownYFieldName).AsString, ErrorMsg);
 
             IF ErrorMsg = '' THEN
               Line_Location := ValidateLineLocation(FieldByName(Line_LocationStrFieldName).AsString, ErrorMsg);
@@ -3451,7 +3451,7 @@ BEGIN
     FOR Line := 0 TO High(Lines) DO BEGIN
       WITH Lines[Line] DO BEGIN
         { In all cases, UpX should be less than DownX }
-        IF Line_UpX > Line_DownX THEN BEGIN
+        IF Line_ScreenUpX > Line_ScreenDownX THEN BEGIN
           IF MessageDialogueWithDefault('Line ' + Line_NameStr + ': UpX > DownX',
                                         StopTimer, mtError, [mbOK, mbAbort], mbAbort) = mrAbort
           THEN
@@ -3534,14 +3534,14 @@ BEGIN
                 Line_NextDownLine := OtherLine
               END ELSE BEGIN
                 { Now look for normal horizontal connections }
-                IF (Line_DownX = Lines[OtherLine].Line_UpX) AND (Line_DownY = Lines[OtherLine].Line_UpY) AND
-                  (Line_UpY = Lines[OtherLine].Line_DownY) THEN BEGIN
+                IF (Line_ScreenDownX = Lines[OtherLine].Line_ScreenUpX) AND (Line_ScreenDownY = Lines[OtherLine].Line_ScreenUpY) AND
+                  (Line_ScreenUpY = Lines[OtherLine].Line_ScreenDownY) THEN BEGIN
                   Line_NextDownType := LineIsNext;
                   Line_NextDownLine := OtherLine;
                 END;
 
-                IF (Line_UpX = Lines[OtherLine].Line_DownX) AND (Line_UpY = Lines[OtherLine].Line_DownY) AND
-                  (Line_DownY = Lines[OtherLine].Line_UpY) THEN BEGIN
+                IF (Line_ScreenUpX = Lines[OtherLine].Line_ScreenDownX) AND (Line_ScreenUpY = Lines[OtherLine].Line_ScreenDownY) AND
+                  (Line_ScreenDownY = Lines[OtherLine].Line_ScreenUpY) THEN BEGIN
                   Line_NextUpType := LineIsNext;
                   Line_NextUpLine := OtherLine;
                 END;
@@ -3549,12 +3549,12 @@ BEGIN
 
             { If there are no normal horizontal connections, see if there's a non-horizontal one }
             IF (Line_NextUpLine = UnknownLine) OR (Line_NextDownLine = UnknownLine) THEN BEGIN
-              IF (Line_DownX = Lines[OtherLine].Line_UpX) AND (Line_DownY = Lines[OtherLine].Line_UpY) THEN BEGIN
+              IF (Line_ScreenDownX = Lines[OtherLine].Line_ScreenUpX) AND (Line_ScreenDownY = Lines[OtherLine].Line_ScreenUpY) THEN BEGIN
                 Line_NextDownType := LineIsNext;
                 Line_NextDownLine := OtherLine;
               END;
 
-              IF (Line_UpX = Lines[OtherLine].Line_DownX) AND (Line_UpY = Lines[OtherLine].Line_DownY) THEN BEGIN
+              IF (Line_ScreenUpX = Lines[OtherLine].Line_ScreenDownX) AND (Line_ScreenUpY = Lines[OtherLine].Line_ScreenDownY) THEN BEGIN
                 Line_NextUpType := LineIsNext;
                 Line_NextUpLine := OtherLine;
               END;
@@ -3716,25 +3716,25 @@ BEGIN
             LinesADOTable.FieldByName(Line_NameStrFieldName).AsString := Line_NameStr;
             LinesADOTable.Post;
 
-            TempInt := Line_UpXAbsolute;
+            TempInt := Line_GridUpX;
             Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + 'Up X' + ' is ''' + IntToStr(TempInt) + '''');
             LinesADOTable.Edit;
             LinesADOTable.FieldByName('Up X').AsString := IntToStr(TempInt);
             LinesADOTable.Post;
 
-            TempInt := Line_DownXAbsolute;
+            TempInt := Line_GridDownX;
             Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + 'Down X' + ' is ''' + IntToStr(TempInt) + '''');
             LinesADOTable.Edit;
             LinesADOTable.FieldByName('Down X').AsString := IntToStr(TempInt);
             LinesADOTable.Post;
 
-            TempInt := Line_UpYAbsolute;
+            TempInt := Line_GridUpY;
             Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + 'Up Y' + ' is ''' + IntToStr(TempInt) + '''');
             LinesADOTable.Edit;
             LinesADOTable.FieldByName('Up Y').AsString := IntToStr(TempInt);
             LinesADOTable.Post;
 
-            TempInt := Line_DownYAbsolute;
+            TempInt := Line_GridDownY;
             Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + 'Down Y' + ' is ''' + IntToStr(TempInt) + '''');
             LinesADOTable.Edit;
             LinesADOTable.FieldByName('Down Y').AsString := IntToStr(TempInt);
@@ -3870,21 +3870,21 @@ BEGIN
     WITH Signals[S] DO BEGIN
       IF Signal_AdjacentLine <> UnknownLine THEN BEGIN
         IF Signal_Direction = Up THEN BEGIN
-          Signal_LineX := Lines[Signal_AdjacentLine].Line_UpX + SignalRadiusScaled;
+          Signal_LineX := Lines[Signal_AdjacentLine].Line_ScreenUpX + SignalRadiusScaled;
           IF Signal_Indicator <> NoIndicator THEN
             Signal_LineX := Signal_LineX + SignalHorizontalSpacingScaled;
           IF Signal_Type = FourAspect THEN
             Signal_LineX := Signal_LineX + SignalHorizontalSpacingScaled;
         END ELSE BEGIN
           { Down }
-          Signal_LineX := Lines[Signal_AdjacentLine].Line_DownX - SignalRadiusScaled;
+          Signal_LineX := Lines[Signal_AdjacentLine].Line_ScreenDownX - SignalRadiusScaled;
           IF Signal_Indicator <> NoIndicator THEN
             Signal_LineX := Signal_LineX - SignalHorizontalSpacingScaled;
           IF Signal_Type = FourAspect THEN
             Signal_LineX := Signal_LineX - SignalHorizontalSpacingScaled;
         END;
 
-        Signal_LineY := Lines[Signal_AdjacentLine].Line_UpY;
+        Signal_LineY := Lines[Signal_AdjacentLine].Line_ScreenUpY;
 
         { Adjust left or right if AdjacentLineXOffset greater than or less than zero respectively }
         IF Signal_AdjacentLineXOffset > 0 THEN
@@ -5399,8 +5399,8 @@ BEGIN
       WITH Points[P] DO BEGIN
         { Mark the position of the heel of the point as UpX and UpY and add the appropriate data to the data for each line to show if there's a point at its start or end }
         UpX := 0;
-        IF (Lines[Point_HeelLine].Line_UpX = Lines[Point_StraightLine].Line_DownX) THEN BEGIN
-          UpX := Lines[Point_HeelLine].Line_UpX;
+        IF (Lines[Point_HeelLine].Line_ScreenUpX = Lines[Point_StraightLine].Line_ScreenDownX) THEN BEGIN
+          UpX := Lines[Point_HeelLine].Line_ScreenUpX;
 
           Lines[Point_HeelLine].Line_NextUpType := PointIsNext;
           Lines[Point_HeelLine].Line_NextUpPoint := P;
@@ -5414,10 +5414,10 @@ BEGIN
 
             Point_FacingDirection := Up;
 
-            IF Lines[Point_StraightLine].Line_DownX <> Lines[Point_DivergingLine].Line_DownX THEN BEGIN
+            IF Lines[Point_StraightLine].Line_ScreenDownX <> Lines[Point_DivergingLine].Line_ScreenDownX THEN BEGIN
               DebugStr := 'Lines do not properly intersect at P=' + IntToStr(P) + ': '
-                          + 'DownX for straight line ' + LineToStr(Point_StraightLine) + ' is ' + IntToStr(Lines[Point_StraightLine].Line_DownX)
-                          + ' and DownX for diverging line ' + LineToStr(Point_DivergingLine) + ' is ' + IntToStr(Lines[Point_DivergingLine].Line_DownX)
+                          + 'DownX for straight line ' + LineToStr(Point_StraightLine) + ' is ' + IntToStr(Lines[Point_StraightLine].Line_ScreenDownX)
+                          + ' and DownX for diverging line ' + LineToStr(Point_DivergingLine) + ' is ' + IntToStr(Lines[Point_DivergingLine].Line_ScreenDownX)
                           + CRLF
                           + 'Do you wish to continue?';
               IF MessageDialogueWithDefault(DebugStr, StopTimer, mtWarning, [mbOK, mbAbort], mbOK) = mrAbort THEN
@@ -5426,8 +5426,8 @@ BEGIN
           END;
         END
         ELSE
-          IF (Lines[Point_HeelLine].Line_DownX = Lines[Point_StraightLine].Line_UpX) THEN BEGIN
-            UpX := Lines[Point_StraightLine].Line_UpX;
+          IF (Lines[Point_HeelLine].Line_ScreenDownX = Lines[Point_StraightLine].Line_ScreenUpX) THEN BEGIN
+            UpX := Lines[Point_StraightLine].Line_ScreenUpX;
 
             Lines[Point_HeelLine].Line_NextDownType := PointIsNext;
             Lines[Point_HeelLine].Line_NextDownPoint := P;
@@ -5441,10 +5441,10 @@ BEGIN
 
               Point_FacingDirection := Down;
 
-              IF Lines[Point_StraightLine].Line_UpX <> Lines[Point_DivergingLine].Line_UpX THEN BEGIN
+              IF Lines[Point_StraightLine].Line_ScreenUpX <> Lines[Point_DivergingLine].Line_ScreenUpX THEN BEGIN
                 DebugStr := 'Lines do not properly intersect at P=' + IntToStr(P) + ': ' + 'UpX for straight line ' + LineToStr(Point_StraightLine)
-                            + ' is ' + IntToStr(Lines[Point_StraightLine].Line_UpX) + ' and UpX for diverging line ' + LineToStr(Point_DivergingLine)
-                            + ' is ' + IntToStr(Lines[Point_DivergingLine].Line_UpX)
+                            + ' is ' + IntToStr(Lines[Point_StraightLine].Line_ScreenUpX) + ' and UpX for diverging line ' + LineToStr(Point_DivergingLine)
+                            + ' is ' + IntToStr(Lines[Point_DivergingLine].Line_ScreenUpX)
                             + CRLF
                             + 'Do you wish to continue?';
                 IF MessageDialogueWithDefault(DebugStr, StopTimer, mtWarning, [mbOK, mbAbort], mbOK) = mrAbort THEN
@@ -5457,24 +5457,24 @@ BEGIN
             Log('X! Failure in creating P=' + IntToStr(P)
                     + ' (' + LineToStr(Point_HeelLine) + '/' + LineToStr(Point_StraightLine) + '/' + LineToStr(Point_DivergingLine) + ')');
 
-        UpY := Lines[Point_StraightLine].Line_UpY;
+        UpY := Lines[Point_StraightLine].Line_ScreenUpY;
 
         { Now see if whether the diverging line shares that common point - if it does, swap UpX and DownX }
         IF NOT PointIsCatchPoint(P) THEN BEGIN
-          IF UpX = Lines[Point_DivergingLine].Line_UpX THEN BEGIN
-            OtherX := Lines[Point_DivergingLine].Line_DownX;
-            OtherY := Lines[Point_DivergingLine].Line_DownY;
+          IF UpX = Lines[Point_DivergingLine].Line_ScreenUpX THEN BEGIN
+            OtherX := Lines[Point_DivergingLine].Line_ScreenDownX;
+            OtherY := Lines[Point_DivergingLine].Line_ScreenDownY;
           END ELSE BEGIN
-            OtherX := Lines[Point_DivergingLine].Line_UpX;
-            OtherY := Lines[Point_DivergingLine].Line_UpY;
+            OtherX := Lines[Point_DivergingLine].Line_ScreenUpX;
+            OtherY := Lines[Point_DivergingLine].Line_ScreenUpY;
           END;
         END ELSE BEGIN
           IF Points[P].Point_Type = CatchPointUp THEN BEGIN
-            OtherX := Lines[Point_StraightLine].Line_UpX - 100;
-            OtherY := Lines[Point_StraightLine].Line_UpY - 100;
+            OtherX := Lines[Point_StraightLine].Line_ScreenUpX - 100;
+            OtherY := Lines[Point_StraightLine].Line_ScreenUpY - 100;
           END ELSE BEGIN
-            OtherX := Lines[Point_StraightLine].Line_DownX + 100;
-            OtherY := Lines[Point_StraightLine].Line_DownY + 100;
+            OtherX := Lines[Point_StraightLine].Line_ScreenDownX + 100;
+            OtherY := Lines[Point_StraightLine].Line_ScreenDownY + 100;
           END;
         END;
 
@@ -6235,7 +6235,7 @@ BEGIN
   FOR P := 0 TO High(Platforms) DO BEGIN
     WITH Platforms[P] DO BEGIN
       WITH Platform_Rect DO BEGIN
-        Left := Lines[Platform_LeftLine].Line_UpX;
+        Left := Lines[Platform_LeftLine].Line_ScreenUpX;
         IF Platform_LeftLineAdjustment > 0 THEN
           Left := Left + MulDiv(FWPRailWindow.ClientWidth, Platform_LeftLineAdjustment, ZoomScaleFactor);
 
@@ -6243,7 +6243,7 @@ BEGIN
         IF Platforms[P].Platform_RowAbovePlatform <> 0 THEN
           Top := Round(Platforms[P].Platform_RowAbovePlatform * InterLineSpacing);
 
-        Right := Lines[Platform_RightLine].Line_DownX;
+        Right := Lines[Platform_RightLine].Line_ScreenDownX;
         IF Platform_RightLineAdjustment > 0 THEN
           Right := Right + MulDiv(FWPRailWindow.ClientWidth, Platform_RightLineAdjustment, ZoomScaleFactor);
 

@@ -314,8 +314,8 @@ VAR
   LineAtDownStr : String;
   LineAtUpStr : String;
   Location : Integer;
-  SaveDownX : Integer;
-  SaveUpX : Integer;
+  SaveScreenDownX : Integer;
+  SaveScreenUpX : Integer;
 
 BEGIN
   TRY
@@ -323,8 +323,8 @@ BEGIN
       WITH Locations[Location] DO BEGIN
         Location_LineAtUp := UnknownLine;
         Location_LineAtDown := UnknownLine;
-        SaveUpX := FWPRailWindow.ClientWidth;
-        SaveDownX := 0;
+        SaveScreenUpX := FWPRailWindow.ClientWidth;
+        SaveScreenDownX := 0;
         { Set up L to contain the lines at the ends of locations - if there is more than one line related to a location, use the one nearest to up or down }
         FOR L := 0 TO High(Lines) DO BEGIN
           WITH Lines[L] DO BEGIN
@@ -332,27 +332,27 @@ BEGIN
               IF ((GetLineAdjacentSignal(L) <> UnknownSignal)
                   AND (Signals[GetLineAdjacentSignal(L)].Signal_Direction = Up)
                   AND NOT Signals[GetLineAdjacentSignal(L)].Signal_OutOfUse)
-              AND (Lines[L].Line_UpX < SaveUpX)
+              AND (Lines[L].Line_ScreenUpX < SaveScreenUpX)
               THEN BEGIN
                 Location_LineAtUp := L;
-                SaveUpX := Lines[L].Line_UpX;
+                SaveScreenUpX := Lines[L].Line_ScreenUpX;
               END ELSE
                 IF ((Lines[L].Line_AdjacentBufferStop <> UnknownBufferStop) AND (GetBufferStopDirection(Lines[L].Line_AdjacentBufferStop) = Up))
-                AND (BufferStops[Lines[L].Line_AdjacentBufferStop].BufferStop_X <= SaveUpX)
+                AND (BufferStops[Lines[L].Line_AdjacentBufferStop].BufferStop_X <= SaveScreenUpX)
                 THEN
                   Location_LineAtUp := L
                 ELSE
                   IF ((GetLineAdjacentSignal(L) <> UnknownSignal)
                       AND (Signals[GetLineAdjacentSignal(L)].Signal_Direction = Down)
                       AND NOT Signals[GetLineAdjacentSignal(L)].Signal_OutOfUse)
-                  AND (Lines[L].Line_DownX > SaveDownX)
+                  AND (Lines[L].Line_ScreenDownX > SaveScreenDownX)
                   THEN BEGIN
                     Location_LineAtDown := L;
-                    SaveDownX := Lines[L].Line_DownX;
+                    SaveScreenDownX := Lines[L].Line_ScreenDownX;
                   END ELSE
                     IF ((Lines[L].Line_AdjacentBufferStop <> UnknownBufferStop) AND (GetBufferStopDirection(Lines[L].Line_AdjacentBufferStop) = Down))
                     { remember that BufferStops array is dynamic and starts at zero }
-                    AND (BufferStops[Lines[L].Line_AdjacentBufferStop].BufferStop_X >= SaveDownX)
+                    AND (BufferStops[Lines[L].Line_AdjacentBufferStop].BufferStop_X >= SaveScreenDownX)
                     THEN
                       Location_LineAtDown := L;
 

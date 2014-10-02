@@ -464,9 +464,10 @@ BEGIN
             CheckString(Line_BufferStopTheatreDestinationStrFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
             CheckString(Line_DirectionFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
             CheckString(Line_DownConnectionChFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
-            CheckString(Line_DownXAbsoluteFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
             CheckString(Line_EndOfLineMarkerFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
             CheckString(Line_GradientFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
+            CheckString(Line_GridDownXFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
+            CheckString(Line_GridUpXFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
             CheckString(Line_InUseFeedbackUnitFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
             CheckString(Line_LocationStrFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
             CheckString(Line_NumberFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
@@ -475,7 +476,6 @@ BEGIN
             CheckString(Line_TCFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
             CheckString(Line_TypeOfLineFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
             CheckString(Line_UpConnectionChFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
-            CheckString(Line_UpXAbsoluteFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
           END; {WITH}
         END;
 

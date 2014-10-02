@@ -1235,13 +1235,13 @@ BEGIN
             Line_NameStr := ValidateLineName(NewKeyValue, EditedLine, ErrorMsg);
 
           IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Line_UpXAbsoluteFieldName THEN
-              Line_UpXAbsolute := ValidateLineAbsolute(NewKeyValue, ErrorMsg);
+            IF KeyName = Line_GridUpXFieldName THEN
+              Line_GridUpX := ValidateLineAbsolute(NewKeyValue, ErrorMsg);
           END;
 
           IF ErrorMsg = '' THEN BEGIN
-            IF KeyName = Line_DownXAbsoluteFieldName THEN
-              Line_DownXAbsolute := ValidateLineAbsolute(NewKeyValue, ErrorMsg);
+            IF KeyName = Line_GridDownXFieldName THEN
+              Line_GridDownX := ValidateLineAbsolute(NewKeyValue, ErrorMsg);
           END;
 
           { We don't need to validate Line_Location as the user hasn't been allowed to introduce errors to it }
@@ -2440,19 +2440,19 @@ BEGIN
         WITH Lines[Line] DO BEGIN
           IF Line_IsTempNewLine THEN BEGIN
             { we may need to reverse the up and down values if the down value is greater than the uUp value }
-            IF Line_UpXAbsolute > Line_DownXAbsolute THEN BEGIN
-              TempVal := Line_UpXAbsolute;
-              Line_UpXAbsolute := Line_DownXAbsolute;
-              Line_DownXAbsolute := TempVal;
+            IF Line_GridUpX > Line_GridDownX THEN BEGIN
+              TempVal := Line_GridUpX;
+              Line_GridUpX := Line_GridDownX;
+              Line_GridDownX := TempVal;
             END;
 
-            IF Line_UpYAbsolute > Line_DownYAbsolute THEN BEGIN
-              TempVal := Line_UpYAbsolute;
-              Line_UpYAbsolute := Line_DownYAbsolute;
-              Line_DownYAbsolute := TempVal;
+            IF Line_GridUpY > Line_GridDownY THEN BEGIN
+              TempVal := Line_GridUpY;
+              Line_GridUpY := Line_GridDownY;
+              Line_GridDownY := TempVal;
             END;
 
-            CreateLine(Line_UpXAbsolute, Line_UpYAbsolute, Line_DownXAbsolute, Line_DownYAbsolute);
+            CreateLine(Line_GridUpX, Line_GridUpY, Line_GridDownX, Line_GridDownY);
 
             Line_IsTempNewLine := False;
           END;
@@ -2462,7 +2462,7 @@ BEGIN
 END; { SaveOrDiscardNewLines }
 
 PROCEDURE TurnEditModeOn(S, P, BS, Line, TC : Integer);
-{ Turn edit Mode on }
+{ Turn edit mode on }
 BEGIN
   IF NOT EditMode THEN BEGIN
     EditMode := True;
@@ -2593,10 +2593,10 @@ PROCEDURE CreateLine(X1, Y1, X2, Y2 : Integer);
 { Create a basic line which must then be added to using the value list editor }
 BEGIN
   WITH Lines[EditedLine] DO BEGIN
-    Line_UpXAbsolute := X1;
-    Line_DownXAbsolute := X2;
-    Line_UpYAbsolute := Y1;
-    Line_DownYAbsolute := Y2;
+    Line_GridUpX := X1;
+    Line_GridDownX := X2;
+    Line_GridUpY := Y1;
+    Line_GridDownY := Y2;
 
     CalculateLinePositions;
 
@@ -2688,39 +2688,39 @@ BEGIN
 
   { Now update the new line record }
   WITH Lines[EditedLine] DO BEGIN
-    Line_UpX := Line_TempNewLineScreenUpX;
-    Line_UpXAbsolute := MapScreenXToGridX(Line_UpX);
-    Line_UpY := Line_TempNewLineScreenUpY;
-    Line_UpYAbsolute := MapScreenYToGridY(Line_UpY);
+    Line_ScreenUpX := Line_TempNewLineScreenUpX;
+    Line_GridUpX := MapScreenXToGridX(Line_ScreenUpX);
+    Line_ScreenUpY := Line_TempNewLineScreenUpY;
+    Line_GridUpY := MapScreenYToGridY(Line_ScreenUpY);
 
-    Line_DownX := Line_TempNewLineScreenDownX;
-    Line_DownXAbsolute := MapScreenXToGridX(Line_DownX);
-    Line_DownY := Line_TempNewLineScreenDownY;
-    Line_DownYAbsolute := MapScreenYToGridY(Line_DownY);
+    Line_ScreenDownX := Line_TempNewLineScreenDownX;
+    Line_GridDownX := MapScreenXToGridX(Line_ScreenDownX);
+    Line_ScreenDownY := Line_TempNewLineScreenDownY;
+    Line_GridDownY := MapScreenYToGridY(Line_ScreenDownY);
 
     { We may need to reverse the up and down values if the down value is greater than the up value }
-    IF Line_UpXAbsolute > Line_DownXAbsolute THEN BEGIN
-      TempVal := Line_UpXAbsolute;
-      Line_UpXAbsolute := Line_DownXAbsolute;
-      Line_DownXAbsolute := TempVal;
+    IF Line_GridUpX > Line_GridDownX THEN BEGIN
+      TempVal := Line_GridUpX;
+      Line_GridUpX := Line_GridDownX;
+      Line_GridDownX := TempVal;
 
-      TempVal := Line_UpYAbsolute;
-      Line_UpYAbsolute := Line_DownYAbsolute;
-      Line_DownYAbsolute := TempVal;
+      TempVal := Line_GridUpY;
+      Line_GridUpY := Line_GridDownY;
+      Line_GridDownY := TempVal;
     END ELSE
-      IF Line_UpYAbsolute > Line_DownYAbsolute THEN BEGIN
-        TempVal := Line_UpXAbsolute;
-        Line_UpXAbsolute := Line_DownXAbsolute;
-        Line_DownXAbsolute := TempVal;
+      IF Line_GridUpY > Line_GridDownY THEN BEGIN
+        TempVal := Line_GridUpX;
+        Line_GridUpX := Line_GridDownX;
+        Line_GridDownX := TempVal;
 
-        TempVal := Line_UpYAbsolute;
-        Line_UpYAbsolute := Line_DownYAbsolute;
-        Line_DownYAbsolute := TempVal;
+        TempVal := Line_GridUpY;
+        Line_GridUpY := Line_GridDownY;
+        Line_GridDownY := TempVal;
       END;
 
     Line_IsTempNewLine := False;
 
-    CreateLine(Line_UpXAbsolute, Line_UpYAbsolute, Line_DownXAbsolute, Line_DownYAbsolute);
+    CreateLine(Line_GridUpX, Line_GridUpY, Line_GridDownX, Line_GridDownY);
   END; {WITH}
 
   IF LineFound THEN

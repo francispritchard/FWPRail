@@ -6940,7 +6940,7 @@ BEGIN
 
     IF NOT SignalAdjacentLineFound THEN
       { the line has to be horizontal }
-      IF Lines[Line].Line_UpY = Lines[Line].Line_DownY THEN
+      IF Lines[Line].Line_ScreenUpY = Lines[Line].Line_ScreenDownY THEN
         Result := True;
   END;
 END; { SignalAdjacentLineOK }
