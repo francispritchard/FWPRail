@@ -7002,7 +7002,6 @@ PROCEDURE DrawMap;
 { Draws the track layout }
 CONST
   ForceDraw = True;
-  NewSignalData = True;
   ShowNums = True;
   ShowTheatreDestinationChar = True;
   StartOfLine = True;
@@ -7254,7 +7253,7 @@ BEGIN { Main drawing procedure }
           IF PreviousPointSettingsMode THEN
             LoadPreviousPointSettings;
           ReadInPlatformDataFromDatabase;
-          ReadInSignalDataFromDatabase(NOT NewSignalData);
+          ReadInSignalDataFromDatabase(NOT NewData);
           ReadInRouteingExceptionsFromDatabase;
           IF NOT LocationLinesInitialised THEN BEGIN
             Log('A INITIALISING LOCATION LINES {BLANKLINEBEFORE}');
@@ -7343,8 +7342,8 @@ BEGIN { Main drawing procedure }
           DiagramsCheckingInProgress := False;
         END;
 
-        { Draw the positions where lines could be created. This procedure has to be before the line drawing routines, as otherwise these temporary lines would overwrite
-          the real lines representing tracks.
+        { Draw the Y grid where lines could be created. This procedure has to be executed before the line drawing routines, as otherwise these temporary lines would
+          overwrite the real lines representing tracks.
         }
         IF CreateLineMode THEN BEGIN
           SetLength(TempLocationYArray, 0);
