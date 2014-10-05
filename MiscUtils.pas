@@ -525,7 +525,7 @@ FUNCTION NewSecondsBetween(CONST AThen, ANow: TDateTime): Integer;
 { A replacement for the system routine which is buggy - from http://qc.codegear.com/wc/qcmain.aspx?d=56957 and
   http://objectmix.com/delphi/401781-proposed-fix-dateutils-date-time-compare-functions.html
 }
-FUNCTION NewMilliSecondsBetween(CONST AThen, ANow: TDateTime): Integer;
+FUNCTION NewMilliSecondsBetween(CONST AThen, ANow: TDateTime): Int64;
 { A replacement for the system routine which is buggy - from http://qc.codegear.com/wc/qcmain.aspx?d=56957 and
   http://objectmix.com/delphi/401781-proposed-fix-dateutils-date-time-compare-functions.html
 }
@@ -920,6 +920,7 @@ VAR
   DrawLineInLogFileOnly : Boolean = False;
   IdenticalLineMsgWritten : Boolean = False;
   InitialisationCount : Integer;
+  LastSoundTime : TDateTime = 0;
   LastLogLineStr : String = '';
   LineAfterJustDrawn : Boolean = False;
   LogArray : StringArrayType;
@@ -4610,7 +4611,6 @@ PROCEDURE MakeSound(SoundNum : Integer);
 { Make a warning sound }
 VAR
   mb: DWord;
-  TempStr : String;
 
 BEGIN
   { Set up a breakpoint if required - sometimes cannot tell why sounds are being produced }
@@ -4622,43 +4622,44 @@ BEGIN
     END; {ASM}
   END;
 
-  { Suppress it if it's a succession of beeps - one can tell from looking in the Log (it's a hack which works) }
-  TempStr := GetLastLogLineStr;
-  IF Pos('[Beep]', TempStr) = 0 THEN BEGIN
-    CASE SoundNum of
-      1:
-        BEGIN
-          mb := MB_ICONASTERISK; //SystemAsterisk
-          Log('X [Beep] (asterisk)');
-        END;
-      2:
-        BEGIN
-          mb := MB_ICONEXCLAMATION; //SystemExclamation
-          Log('X [Beep] (exclamation)');
-        END;
-      3:
-        BEGIN
-          mb := MB_ICONHAND; //SystemHand
-          Log('X [Beep] (hand)');
-        END;
-      4:
-        BEGIN
-          mb := MB_ICONQUESTION; //SystemQuestion
-          Log('X [Beep] (question)');
-        END;
-      5:
-        BEGIN
-          mb := MB_OK; //SystemDefault
-          Log('X [Beep] (default)');
-        END;
-    ELSE
+  { Suppress it if it's a part of a succession of beeps }
+  IF NewMilliSecondsBetween(LastSoundTime, Now) < 250 THEN
+    Exit;
+
+  CASE SoundNum of
+    1:
       BEGIN
-        mb:= $0FFFFFFFF; //Standard beep using the computer speaker
-        Log('X [Beep]');
+        mb := MB_ICONASTERISK; //SystemAsterisk
+        Log('X [Beep] (asterisk)');
       END;
-    END; {CASE}
-    MessageBeep(mb);
-  END;
+    2:
+      BEGIN
+        mb := MB_ICONEXCLAMATION; //SystemExclamation
+        Log('X [Beep] (exclamation)');
+      END;
+    3:
+      BEGIN
+        mb := MB_ICONHAND; //SystemHand
+        Log('X [Beep] (hand)');
+      END;
+    4:
+      BEGIN
+        mb := MB_ICONQUESTION; //SystemQuestion
+        Log('X [Beep] (question)');
+      END;
+    5:
+      BEGIN
+        mb := MB_OK; //SystemDefault
+        Log('X [Beep] (default)');
+      END;
+  ELSE
+    BEGIN
+      mb:= $0FFFFFFFF; //Standard beep using the computer speaker
+      Log('X [Beep]');
+    END;
+  END; {CASE}
+  MessageBeep(mb);
+  LastSoundTime := Now;
 END; { MakeSound }
 
 FUNCTION RemoveAllSpacesFromAString(Str : String) : String;
@@ -5572,7 +5573,7 @@ BEGIN
   StringArray := NewStringArray;
 END; { RemoveDuplicateElementsFromStringArray-2 }
 
-FUNCTION DateTimeToMilliSeconds(DateTime: TDateTime): Int64;
+FUNCTION DateTimeToMilliSeconds(DateTime: TDateTime) : Int64;
 { Converts a TDateTime variable to Int64 milliseconds from 0001-01-01 }
 VAR
   TimeStamp : SysUtils.TTimeStamp;
@@ -5585,7 +5586,7 @@ BEGIN
   Result := Int64(TimeStamp.Date) * MSecsPerDay + TimeStamp.Time;
 END; { DateTimeToMilliSeconds }
 
-FUNCTION MilliSecondsToDateTime(MilliSeconds: Int64): TDateTime;
+FUNCTION MilliSecondsToDateTime(MilliSeconds: Int64) : TDateTime;
 { Converts an Int64 milliseconds from 0001-01-01 to TDateTime variable }
 VAR
   TimeStamp : SysUtils.TTimeStamp;
@@ -5599,14 +5600,14 @@ BEGIN
   Result := SysUtils.TimeStampToDateTime(TimeStamp);
 END; { MilliSecondsToDateTime }
 
-FUNCTION NewMinutesBetween(CONST AThen, ANow: TDateTime): Int64;
+FUNCTION NewMinutesBetween(CONST AThen, ANow: TDateTime) : Int64;
 { A replacement for the system routine which is buggy - from http://qc.codegear.com/wc/qcmain.aspx?d=56957 and
   http://objectmix.com/delphi/401781-proposed-fix-dateutils-date-time-compare-functions.html
 }
 VAR
   nnNow, nnThen: Int64;
 
-  FUNCTION TruncDateTimeToMinutes(DateTime: TDateTime): LongInt;
+  FUNCTION TruncDateTimeToMinutes(DateTime: TDateTime) : LongInt;
   { Truncates a DateTime to minutes from 0001-01-01 }
   VAR
     ms: Int64;
@@ -5647,14 +5648,14 @@ BEGIN
   Result := nnNow - nnThen;
 END; { NewSecondsBetween }
 
-FUNCTION NewMilliSecondsBetween(CONST AThen, ANow: TDateTime): Integer;
+FUNCTION NewMilliSecondsBetween(CONST AThen, ANow : TDateTime) : Int64;
 { A replacement for the system routine which is buggy - from http://qc.codegear.com/wc/qcmain.aspx?d=56957 and
   http://objectmix.com/delphi/401781-proposed-fix-dateutils-date-time-compare-functions.html
 }
 VAR
   nnNow, nnThen: Int64;
 
-  FUNCTION TruncDateTimeToMilliSeconds(DateTime: TDateTime): Int64;
+  FUNCTION TruncDateTimeToMilliSeconds(DateTime: TDateTime) : Int64;
   { Truncates a DateTime to seconds from 0001-01-01 }
   BEGIN
     Result := DateTimeToMilliSeconds(DateTime);
