@@ -1439,6 +1439,7 @@ BEGIN
     IF EditedSignal <> UnknownSignal THEN BEGIN
       WriteOutSignalDataToDatabase;
       CalculateTCAdjacentSignals;
+      CalculateTCAdjacentBufferStops;
       CalculateAllSignalPositions;
     END;
 
@@ -1461,6 +1462,7 @@ BEGIN
 
     { And redraw the screen }
     CalculateTCAdjacentSignals;
+    CalculateTCAdjacentBufferStops;
     CalculateAllSignalPositions;
     InvalidateScreen(UnitRef, 'EditSaveButtonClick');
     Log('D Screen invalidated by Edit Save And Exit');
@@ -1631,6 +1633,7 @@ BEGIN
 
         NoteThatDataHasChanged;
         CalculateTCAdjacentSignals;
+        CalculateTCAdjacentBufferStops;
         CalculateAllSignalPositions;
         AddNewRecordToSignalDatabase;
         WriteOutSignalDataToDatabase;
@@ -1650,9 +1653,6 @@ END; { CreateSignal }
 
 PROCEDURE DeleteSignal(SignalToDeleteNum : Integer);
 { Delete a signal after appropriate checks }
-CONST
-  NewSignalData = True;
-
 VAR
   CanDelete : Boolean;
   JunctionIndicator : JunctionIndicatorType;
