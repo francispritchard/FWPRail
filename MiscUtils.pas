@@ -6815,8 +6815,6 @@ BEGIN { ShutDownProgram }
     Log('A! Shut down initiated');
     ProgramShuttingDown := True;
 
-    SaveOrDiscardNewLines;
-
     IF ScreenColoursSetForPrinting THEN
       { we need to do this or the wrong colours are saved in the registry }
       ResetScreenColoursAfterPrinting;

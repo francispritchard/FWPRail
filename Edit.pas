@@ -96,8 +96,6 @@ PROCEDURE MoveObjectRight;
 PROCEDURE ProcessLocationsCheckListBoxChecks;
 { See which locations are ticked and update the array }
 
-PROCEDURE SaveOrDiscardNewLines;
-{ If any new lines have been drawn either save them or discard them }
 
 PROCEDURE StartSignalEdit(S : Integer);
 { Set up a signal edit - this is where we save the signal's original state so we can revert to it regardless of how many edits there are }
@@ -2415,52 +2413,6 @@ BEGIN
   END;
 END; { StartTrackCircuitEdit }
 
-PROCEDURE SaveOrDiscardNewLines;
-{ If any new lines have been drawn either save them or discard them }
-VAR
-  Line : Integer;
-  LineStr : String;
-  TempVal : Integer;
-
-BEGIN
-  { add test for new lines here .... }
-
-  exit;
-
-  IF Length(Lines) > 0 THEN BEGIN
-    IF Length(Lines) = 1 THEN
-      LineStr := 'line'
-    ELSE
-      LineStr := 'lines';
-
-    IF MessageDialogueWithDefault('Do you wish to add the new ' + LineStr + ' to the line database?',
-                                  StopTimer, mtError, [mbYes, mbNo], ['&Add ' + LineStr, '&Discard ' + LineStr], mbNo) = mrYes
-    THEN BEGIN
-      FOR Line := 0 TO High(Lines) DO
-        WITH Lines[Line] DO BEGIN
-          IF Line_IsTempNewLine THEN BEGIN
-            { we may need to reverse the up and down values if the down value is greater than the uUp value }
-            IF Line_GridUpX > Line_GridDownX THEN BEGIN
-              TempVal := Line_GridUpX;
-              Line_GridUpX := Line_GridDownX;
-              Line_GridDownX := TempVal;
-            END;
-
-            IF Line_GridUpY > Line_GridDownY THEN BEGIN
-              TempVal := Line_GridUpY;
-              Line_GridUpY := Line_GridDownY;
-              Line_GridDownY := TempVal;
-            END;
-
-            CreateLine(Line_GridUpX, Line_GridUpY, Line_GridDownX, Line_GridDownY);
-
-            Line_IsTempNewLine := False;
-          END;
-        END; {WITH}
-    END;
-  END;
-END; { SaveOrDiscardNewLines }
-
 PROCEDURE TurnEditModeOn(S, P, BS, Line, TC : Integer);
 { Turn edit mode on }
 BEGIN
@@ -2504,8 +2456,6 @@ PROCEDURE TurnEditModeOff;
 BEGIN
   TRY
     IF EditMode THEN BEGIN
-      SaveOrDiscardNewLines;
-
       EditedPoint := UnknownSignal;
       EditedPoint := UnknownPoint;
       EditedLine := UnknownLine;
