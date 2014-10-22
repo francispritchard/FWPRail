@@ -1,5 +1,15 @@
 Things to do:
 
+22/10/14
+Add Grid stuff to WhatisUnderMouse
+
+FUNCTION ValidateGridX(Str : String; OUT ErrorMsg : String) : Integer;
+{ Converts grid string to number }  { add >= 0 and <- 999 **************** and rename StrToGrid }
+
+see if Line_IsTempNewLine is still used
+
+remove ShowLinesUpXAbsoluteValue
+
 26/6/14
 Create loco record
 
