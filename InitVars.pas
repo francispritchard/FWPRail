@@ -3816,7 +3816,7 @@ BEGIN
     END; {WITH}
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG WriteOutLineData: ' + E.ClassName + ' error raised, with message: ' + E.Message);
+      Log('EG WriteOutLineDataToDatabase: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { WriteOutLineDataToDatabase }
 
@@ -3838,7 +3838,7 @@ BEGIN
       END;
 
       LinesADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source=' + PathToRailDataFiles + LineDataFilename + '.' + LineDataFilenameSuffix
-                                               + ';Persist Security Info=False';
+                                             + ';Persist Security Info=False';
       LinesADOConnection.Connected := True;
       LinesADOTable.Open;
       IF NOT LinesADOTable.Locate(Line_NumberFieldName, IntToStr(LineToDeleteNum), []) THEN BEGIN
@@ -3846,7 +3846,7 @@ BEGIN
       END ELSE BEGIN
         Log('L Line data table and connection opened to delete Line ' + LineToStr(LineToDeleteNum));
 
-        { Now delete the line - we have already checked, in the Edit unit, whether deleting it is will cause knock-on problems with other lines }
+        { Delete the line }
         LinesADOTable.Delete;
         Log('LG Line ' + IntToStr(LineToDeleteNum) + ' has been deleted');
         Result := True;
@@ -3859,7 +3859,7 @@ BEGIN
     END;
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG AddNewRecordToLineDatabase: ' + E.ClassName + ' error raised, with message: ' + E.Message);
+      Log('EG DeleteRecordFromLineDatabase: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { DeleteRecordFromLineDatabase }
 
