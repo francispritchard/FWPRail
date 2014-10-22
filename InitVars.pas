@@ -129,6 +129,7 @@ CONST
   HelpRequired = True;
   Highlight = True;
   LightLoco = True;
+  NewData = True;
   NonMovingLoco = True;
   QuickStop = -1;
   SoundWarning = True;
