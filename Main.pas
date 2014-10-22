@@ -689,21 +689,21 @@ BEGIN
         AND (Line_NextUpPoint = UnknownPoint)
         AND (Line_NextUpIsEndOfLine = NotEndOfLine)
         THEN BEGIN
-          Log('X No line continuation data for up of line ' + LineToStr(L));
-          IF MessageDialogueWithDefault('No line continuation data for up of line ' + LineToStr(L),
-                                        StopTimer, mtWarning, [mbOK, mbAbort], ['&Continue', '&Exit'], mbOK) = mrAbort
-          THEN
-            ShutDownProgram(UnitRef, 'CheckLinesAreOK');
+//          Log('X No line continuation data for up of line ' + LineToStr(L));
+//          IF MessageDialogueWithDefault('No line continuation data for up of line ' + LineToStr(L),
+//                                        StopTimer, mtWarning, [mbOK, mbAbort], ['&Continue', '&Exit'], mbOK) = mrAbort
+//          THEN
+//            ShutDownProgram(UnitRef, 'CheckLinesAreOK');
         END;
         IF (Line_NextDownLine = UnknownLine)
         AND (Line_NextDownPoint = UnknownPoint)
         AND (Line_NextDownIsEndOfLine = NotEndOfLine)
         THEN BEGIN
-          Log('X No line continuation data for down of line ' + LineToStr(L));
-          IF MessageDialogueWithDefault('No line continuation data for down of line ' + LineToStr(L),
-                                        StopTimer, mtWarning, [mbOK, mbAbort], ['&Continue', '&Exit'], mbOK) = mrAbort
-          THEN
-            ShutDownProgram(UnitRef, 'CheckLinesAreOK');
+//          Log('X No line continuation data for down of line ' + LineToStr(L));
+//          IF MessageDialogueWithDefault('No line continuation data for down of line ' + LineToStr(L),
+//                                        StopTimer, mtWarning, [mbOK, mbAbort], ['&Continue', '&Exit'], mbOK) = mrAbort
+//          THEN
+//            ShutDownProgram(UnitRef, 'CheckLinesAreOK');
         END;
       END; {WITH}
     END; {FOR}

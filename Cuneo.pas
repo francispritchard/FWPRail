@@ -173,41 +173,57 @@ BEGIN
 
     IF DebuggingMode THEN BEGIN
       { Display mouse co-ordinates }
-      GridX := MapScreenXToGridX(ScreenX);
-      GridY := MapScreenYToGridY(ScreenY);
+      GridX := MapScreenXToGridX(ScreenClickPosX);
+      GridY := MapScreenYToGridY(ScreenClickPosY);
 
-      WriteToStatusBarPanel(StatusBarPanel2, IntToStr(ScreenX) + ',' + IntToStr(ScreenY) + '; '
+      WriteToStatusBarPanel(StatusBarPanel2, IntToStr(ScreenClickPosX) + ',' + IntToStr(ScreenClickPosY) + '; '
                             + IntToStr(GridX)  + '/1000,'
                             + IntToStr(GridY)  + '/1000');
     END;
 
-    IF EditMode AND SignalDragging THEN
-      DragSignal(EditedSignal, ScreenX, ScreenY, NearestLine, TooNearSignal)
-    ELSE
-      IF EditMode AND EndOfLineDragging THEN
-        DragEndOfLine(ScreenX, ScreenY, ShiftState)
+    IF EditMode THEN BEGIN
+      IF SignalDragging THEN
+        DragSignal(EditedSignal, ScreenClickPosX, ScreenClickPosY, NearestLine, TooNearSignal)
       ELSE
+        IF MoveZoomWindowMode THEN BEGIN
+          HideStatusBarAndUpDownIndications;
 
-          { Only change the cursor if we start drawing a rectangle }
-          IF (MouseX <> ScreenX) AND (MouseY <> ScreenY) THEN
-            ChangeCursor(crSizeNWSE);
-
-          DrawOutline(ZoomRect, clRed, UndrawRequired, NOT UndrawToBeAutomatic);
+          FWPRailWindow.HorzScrollBar.Position := FWPRailWindow.HorzScrollBar.Position + MouseMovingX - ScreenClickPosX;
+          FWPRailWindow.VertScrollBar.Position := FWPRailWindow.VertScrollBar.Position + MouseMovingY - ScreenClickPosY;
+          MouseMovingX := ScreenClickPosX;
+          MouseMovingY := ScreenClickPosY;
         END ELSE
-          IF MoveZoomWindowMode THEN BEGIN
-            HideStatusBarAndUpDownIndications;
+          IF EndOfLineDragging AND (EditedLine <> UnknownLine) THEN
+            DragEndOfLine(ScreenClickPosX, ScreenClickPosY, ShiftState)
+          ELSE
+            IF EditMode AND WholeLineDragging AND (EditedLine <> UnknownLine) THEN
+              DragWholeLine(ScreenClickPosX, ScreenClickPosY);
+     END ELSE
+      IF MoveZoomWindowMode THEN BEGIN
+        HideStatusBarAndUpDownIndications;
 
-            FWPRailWindow.HorzScrollBar.Position := FWPRailWindow.HorzScrollBar.Position + MouseMovingX - ScreenX;
-            FWPRailWindow.VertScrollBar.Position := FWPRailWindow.VertScrollBar.Position + MouseMovingY - ScreenY;
-            MouseMovingX := ScreenX;
-            MouseMovingY := ScreenY;
-          END;
+        FWPRailWindow.HorzScrollBar.Position := FWPRailWindow.HorzScrollBar.Position + MouseMovingX - ScreenClickPosX;
+        FWPRailWindow.VertScrollBar.Position := FWPRailWindow.VertScrollBar.Position + MouseMovingY - ScreenClickPosY;
+        MouseMovingX := ScreenClickPosX;
+        MouseMovingY := ScreenClickPosY;
+      END;
 
-    IF NOT CreateLineMode AND NOT SignalDragging AND (Screen.Cursor <> crDefault) THEN
-      ChangeCursor(crDefault);
+    { Sort out the cursor }
+    IF (CreateLineMode AND (GetNearestLine(ScreenClickPosX, ScreenClickPosY) <> UnknownLine))
+    OR (CreateLineMode AND (ssCtrl IN ShiftState))
+    THEN
+      ChangeCursor(crDrag)
+    ELSE
+      IF SignalDragging AND (GetNearestLine(ScreenClickPosX, ScreenClickPosY) = UnknownLine) THEN
+        ChangeCursor(crNoDrop)
+      ELSE
+        IF SignalDragging THEN
+          ChangeCursor(crDrag)
+        ELSE
+          ChangeCursor(crDefault);
 
-    MouseX := ScreenX + ScrollBarXAdjustment;
-    MouseY := ScreenY + ScrollBarYAdjustment;
+    MouseX := ScreenClickPosX + ScrollBarXAdjustment;
+    MouseY := ScreenClickPosY + ScrollBarYAdjustment;
 
     { Clear any debugging track circuit occupations }
     FOR S := 0 TO High(Signals) DO BEGIN
@@ -352,7 +368,7 @@ BEGIN
           ObjectFound := True;
 
           { Change the cursor as often points are difficult to focus on }
-          IF NOT SignalDragging AND (Screen.Cursor <> crCross) THEN
+          IF NOT SignalDragging AND NOT CreateLineMode AND (Screen.Cursor <> crCross) THEN
             ChangeCursor(crCross);
 
           TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'P' + IntToStr(P) + ' ';
@@ -630,7 +646,7 @@ BEGIN
       WriteToStatusBarPanel(StatusBarPanel2, StatusBarPanel2Str);
 
     IF NOT ObjectFound THEN
-      IF NOT SignalDragging AND NOT EndOfLineDragging AND NOT CreateLineMode AND (Screen.Cursor <> crDefault) THEN
+      IF NOT SignalDragging AND NOT EndOfLineDragging AND NOT WholeLineDragging AND NOT EditMode AND NOT CreateLineMode AND (Screen.Cursor <> crDefault) THEN
         ChangeCursor(crDefault);
   EXCEPT {TRY}
     ON E : Exception DO
@@ -706,6 +722,8 @@ CONST
 VAR
   BufferStopFoundNum : Integer;
   CursorXY : TPoint;
+  GridX : Integer;
+  GridY : Integer;
   IndicatorFoundNum : Integer;
   IndicatorFoundType : JunctionIndicatorType;
   IrrelevantShiftState : TShiftState;
@@ -1549,6 +1567,9 @@ VAR
     END;
   END; { TheatreIndicatorSelected }
 
+VAR
+  LineHandleFound : Boolean;
+
 { Main Procedure for ChangeStateOfWhatIsUnderMouse }
 BEGIN
   TRY
@@ -1563,6 +1584,9 @@ BEGIN
       UpLineEndCharacterSelected(IrrelevantLine, HelpRequired);
       WriteNextLineDetailToDebugWindow(LineFoundNum, HelpRequired);
     END ELSE BEGIN
+      GridX := MapScreenXToGridX(ScreenClickPosX);
+      GridY := MapScreenYToGridY(ScreenClickPosY);
+
       WhatIsUnderMouse(ScreenClickPosX, ScreenClickPosY, ShiftState, BufferStopFoundNum, IndicatorFoundNum, IndicatorFoundType, PointFoundNum, SignalFoundNum,
                        SignalPostFoundNum, TheatreIndicatorFoundNum, TRSPlungerFoundLocation);
 
@@ -1589,21 +1613,85 @@ BEGIN
               IF NOT CreateLineMode THEN
                 StartPointEdit(PointFoundNum);
             END ELSE
-              IF LineFoundNum <> UnknownLine THEN BEGIN
-                IF (EditedLine <> UnknownLine) AND (EditedLine <> LineFoundNum) THEN BEGIN
-                  CheckIfAnyEditedDataHasChanged;
+              IF CreateLineMode THEN BEGIN
+                LineHandleFound := False;
+
+                IF EditedLine <> UnknownLine THEN BEGIN
+                  WITH Lines[EditedLine] DO BEGIN
+                    Assert(Line_ShowHandles = True);
+
+                    IF PointInPolygon(Line_UpHandlePolygon, Point(ScreenClickPosX, ScreenClickPosY)) AND NOT EndOfLineDragging THEN BEGIN
+                      LineHandleFound := True;
+                      EndOfLineDragging := True;
+                      Line_IsBeingMovedByHandle := UpHandle;
+                      DragEndOfLine(ScreenClickPosX, ScreenClickPosY, ShiftState);
+                    END ELSE
+                      IF PointInPolygon(Line_DownHandlePolygon, Point(ScreenClickPosX, ScreenClickPosY)) AND NOT EndOfLineDragging THEN BEGIN
+                        LineHandleFound := True;
+                        EndOfLineDragging := True;
+                        Line_IsBeingMovedByHandle := DownHandle;
+                        DragEndOfLine(ScreenClickPosX, ScreenClickPosY, ShiftState);
+                      END ELSE
+                        IF PointInPolygon(Line_MidHandlePolygon, Point(ScreenClickPosX, ScreenClickPosY)) AND NOT WholeLineDragging THEN BEGIN
+                          LineHandleFound := True;
+                          Line_IsBeingMovedByHandle := MidHandle;
+                          WholeLineDragging := True;
+
+                          { store where we are so that we can work out the offset to move it }
+                          SaveGridClickPosX := MapScreenXToGridX(ScreenClickPosX);
+                          SaveGridClickPosY := MapScreenYToGridY(ScreenClickPosY);
+                          DragWholeLine(ScreenClickPosX, ScreenClickPosY)
+                        END;
+                  END; {WITH}
                 END;
 
-//                IF CreateLineMode THEN
-//                  EditNewLine(NewLineFoundNum)
-//                ELSE
-                  StartLineEdit(LineFoundNum);
+                IF NOT LineHandleFound THEN BEGIN
+                  IF LineFoundNum <> UnknownLine THEN BEGIN
+                    { we're not yet editing a line, so see if we're already on one }
+                    WITH Lines[LineFoundNum] DO BEGIN
+                      { first reset any previously-set variables }
+                      DeselectLine;
+
+                      { now set them }
+                      EditedLine := LineFoundNum;
+                      EditingExistingLine := True;
+                      Line_ShowHandles := True;
+
+                      IF ssShift IN ShiftState THEN
+                        { split the line }
+                        SplitLine(LineFoundNum, GridX, GridY);
+                    END; {WITH}
+                  END ELSE BEGIN
+                    IF NOT EndOfLineDragging THEN BEGIN
+                      IF EditedLine <> UnknownLine THEN
+                        DeselectLine;
+                      EndOfLineDragging := True;
+                      StartLineEdit(LineFoundNum);
+
+                      { and create a new line record }
+                      SetLength(Lines, Length(Lines) + 1);
+                      WITH Lines[High(Lines)] DO BEGIN
+                        Line_IsTempNewLine := True;
+                        Line_ScreenUpX := ScreenClickPosX;
+                        Line_ScreenUpY := ScreenClickPosY;
+                        Line_ScreenDownX := ScreenClickPosX;
+                        Line_ScreenDownY := ScreenClickPosY;
+
+                        Line_ShowHandles := True;
+                      END; {WITH}
+
+                      EditedLine := High(Lines);
+                    END;
+                  END;
+                END;
               END ELSE BEGIN
                 { reset the timer here, as if we haven't clicked on a signal, point, etc., we don't want dragging to be turned on }
                 CuneoWindow.MouseButtonDownTimer.Enabled := False;
 
-                CheckIfAnyEditedDataHasChanged;
-                ClearEditValueList;
+                IF NOT EndOfLineDragging AND NOT WholeLineDragging THEN BEGIN
+                  CheckIfAnyEditedDataHasChanged;
+                  ClearEditValueList;
+                END;
 
                 IF Zooming THEN
                   MoveZoomWindowMode := True;
@@ -1753,8 +1841,28 @@ VAR
 
 BEGIN
   TRY
-    { Reset the timer }
-    CuneoWindow.MouseButtonDownTimer.Enabled := False;
+    { Reset the saved mouse position }
+    SaveGridClickPosX := -1;
+    SaveGridClickPosY := -1;
+
+    IF EditMode THEN BEGIN
+      { Reset the timer }
+      CuneoWindow.MouseButtonDownTimer.Enabled := False;
+
+      { Ending an actual or a potential drag and drop }
+      IF SignalDragging THEN
+        DropSignal;
+
+      IF EndOfLineDragging THEN BEGIN
+        EndOfLineDragging := False;
+        LineDraggingComplete(ScreenClickPosX, ScreenClickPosY, ShiftState);
+      END;
+
+      IF WholeLineDragging THEN BEGIN
+        WholeLineDragging := False;
+        LineDraggingComplete(ScreenClickPosX, ScreenClickPosY, ShiftState);
+      END;
+    END;
 
     Line := 0;
     WHILE Line <= High(Lines) DO BEGIN
@@ -1776,19 +1884,11 @@ BEGIN
       Inc(Line);
     END;
 
-    { Ending an actual or a potential drag and drop }
-    IF SignalDragging THEN
-      DropSignal;
-
-    IF EndOfLineDragging THEN BEGIN
-      EndOfLineDragging := False;
-      LineDraggingComplete(ScreenX, ScreenY);
-    END;
-
     { Ending a zoomed screen mouse move }
     IF MoveZoomWindowMode THEN BEGIN
       MoveZoomWindowMode := False;
       ShowStatusBarAndUpDownIndications;
+    END;
   EXCEPT {TRY}
     ON E : Exception DO
       Log('EG MouseButtonReleased: ' + E.ClassName + ' error raised, with message: '+ E.Message);
@@ -1801,26 +1901,6 @@ CONST
   HelpRequired = True;
 
 BEGIN
-  IF EditMode AND (Button = mbLeft) THEN BEGIN
-    { Start the timer - switching it off and on seems to reset it, though it's undocumented }
-    CuneoWindow.MouseButtonDownTimer.Enabled := False;
-    CuneoWindow.MouseButtonDownTimer.Enabled := True;
-  END;
-
-  IF (Button = mbLeft) AND EditMode AND CreateLineMode AND NOT EndOfLineDragging THEN BEGIN
-    EndOfLineDragging := True;
-
-    { and create a new line record }
-    SetLength(Lines, Length(Lines) + 1);
-    WITH Lines[High(Lines)] DO BEGIN
-      Line_IsTempNewLine := True;
-      Line_TempNewLineScreenUpX := ScreenX;
-      Line_TempNewLineScreenUpY := ScreenY;
-      Line_TempNewLineScreenDownX := 0;
-      Line_TempNewLineScreenDownY := 0;
-    END; {WITH}
-  END;
-
   { See if we're in the middle of an exit sequence, and, if so, abort it }
   IF EscKeyStored THEN BEGIN
     EscKeyStored := False;
@@ -1831,12 +1911,12 @@ BEGIN
   IF KeyBoardandMouseLocked THEN
     Debug('Mouse locked - press Shift + ''K'' to unlock ')
   ELSE BEGIN
-    MouseX := ScreenX + ScrollBarXAdjustment;
-    MouseY := ScreenY + ScrollBarYAdjustment;
+    MouseX := ScreenClickPosX + ScrollBarXAdjustment;
+    MouseY := ScreenClickPosY + ScrollBarYAdjustment;
 
     { Store the position of X and Y in case we decide the pan the screen by using the mouse }
-    MouseMovingX := ScreenX;
-    MouseMovingY := ScreenY;
+    MouseMovingX := ScreenClickPosX;
+    MouseMovingY := ScreenClickPosY;
 
     ButtonPress := Button;
     WriteToStatusBarPanel(StatusBarPanel2, '');

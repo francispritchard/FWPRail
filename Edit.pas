@@ -6,6 +6,7 @@ UNIT Edit;
   v0.1  15/07/09 Unit created
   v0.2  10/03/13 writing signal editing code
   v0.3  26/03/13 writing point editing code
+  v0.4  30/09/14 implemented new database renumbering method proposed by DJW
 }
 INTERFACE
 
@@ -48,9 +49,6 @@ FUNCTION CheckIfAnyEditedDataHasChanged : Boolean;
 PROCEDURE ClearEditValueList;
 { Empty the value list so as not to display anyting if we click on an unrecognised item, or a blank bit of screen }
 
-PROCEDURE CreateLine(X1, Y1, X2, Y2 : Integer);
-{ Create a basic line which must then be added to using the value list editor }
-
 PROCEDURE CreatePoint(Direction : DirectionType; Line : Integer);
 { Creates a point from scratch }
 
@@ -66,25 +64,28 @@ PROCEDURE DeletePoint(PointToDeleteNum : Integer);
 PROCEDURE DeleteSignal(SignalToDeleteNum : Integer);
 { Delete a signal after appropriate checks }
 
+PROCEDURE DeselectLine;
+{ Ensures handles are switched off, etc. }
+
 PROCEDURE DragEndOfLine(X, Y : Integer; ShiftState : TShiftState);
 { Allows a line end to be moved by the mouse }
 
 PROCEDURE DragSignal(S, MouseX, MouseY : Integer; OUT NearestLineToSignal, TooNearSignal : Integer);
-{ { Allows a signal to be moved by the mouse }
+{ Allows a signal to be moved by the mouse }
+
+PROCEDURE DragWholeLine(ScreenClickPosX, ScreenClickPosY: Integer);
+{ Move a whole line by dragging its middle handle }
 
 PROCEDURE DropSignal;
 { Drops the signal at the nearest adjacent line }
 
 FUNCTION GetNearestLine(X, Y : Integer) : Integer;
-{ Returns the line number nearest to a dragged signal if the line is horizontal and the signal or its post are within a line's mouse rectangle }
+{ Returns the line number nearest to a given position if the line is horizontal and the position is within a line's mouse rectangle }
 
 PROCEDURE InitialiseEditUnit;
 { Initialises the unit }
 
-FUNCTION IsNearRow(Y : Integer) : Integer;
-{ Returns the row number if the Y position is close to it }
-
-PROCEDURE LineDraggingComplete(X, Y : Integer);
+PROCEDURE LineDraggingComplete(X, Y : Integer; ShiftState : TShiftState);
 { Called when when we have finished line creation by mouse }
 
 PROCEDURE MoveObjectLeft;
@@ -96,6 +97,8 @@ PROCEDURE MoveObjectRight;
 PROCEDURE ProcessLocationsCheckListBoxChecks;
 { See which locations are ticked and update the array }
 
+PROCEDURE SplitLine(OldLine, GridX, GridY : Integer);
+{ Split a line at the point indicated }
 
 PROCEDURE StartSignalEdit(S : Integer);
 { Set up a signal edit - this is where we save the signal's original state so we can revert to it regardless of how many edits there are }
@@ -121,18 +124,20 @@ VAR
   EditedPoint : Integer = UnknownPoint;
   EditedSignal : Integer = UnknownSignal;
   EditedTrackCircuit : Integer = UnknownTrackCircuit;
+  EditingExistingLine : Boolean = False;
   EditWindow: TEditWindow;
   EndOfLineDragging : Boolean = False;
   NewLineX : Integer = 0;
   NewLineY : Integer = 0;
   SaveDragX : Integer = 0;
   SaveDragY : Integer = 0;
+  WholeLineDragging : Boolean = False;
 
 IMPLEMENTATION
 
 {$R *.dfm}
 
-USES Diagrams, Input, Cuneo, Lenz, Types;
+USES Diagrams, Input, Cuneo, Lenz, Types, Math {sic};
 
 CONST
   UnitRef = 'Edit';
@@ -291,6 +296,19 @@ BEGIN
   END; {TRY}
 END; { CreateLocationCheckList }
 
+PROCEDURE DeselectLine;
+{ Ensures handles are switched off, etc. }
+BEGIN
+  IF EditedLine <> UnknownLine THEN BEGIN
+    Lines[EditedLine].Line_ShowHandles := False;
+    Lines[EditedLine].Line_IsBeingMovedByHandle := NoHandle;
+  END;
+  EditingExistingLine := False;
+  EditedLine := UnknownLine;
+  EndOfLineDragging := False;
+  WholeLineDragging := False;
+END; { DeselectLine }
+
 PROCEDURE TEditWindow.EditValueListEditorEditButtonClick(Sender: TObject);
 { This is only used for dealing with the entry for the Locations Check Box }
 VAR
@@ -423,10 +441,12 @@ BEGIN
       EditedPoint := UnknownPoint
     ELSE
       IF EditedLine <> UnknownLine THEN
-        EditedLine := UnknownLine
+        DeselectLine
       ELSE
         IF EditedTrackCircuit <> UnknownTrackCircuit THEN
           EditedTrackCircuit := UnknownTrackCircuit;
+
+  EditingExistingLine := False;
 
   WITH EditWindow DO BEGIN
     UndoChangesButton.Enabled := False;
@@ -494,8 +514,8 @@ BEGIN
 
           Values[Line_NameStrFieldName] := Line_NameStr;
 
-          WriteIntegerValueExcludingZero(Line_UpXAbsoluteFieldName, Line_UpXAbsolute, '9999');
-          WriteIntegerValueExcludingZero(Line_DownXAbsoluteFieldName, Line_DownXAbsolute, '9999');
+          WriteIntegerValueExcludingZero(Line_GridUpXFieldName, Line_GridUpX, '9999');
+          WriteIntegerValueExcludingZero(Line_GridDownXFieldName, Line_GridDownX, '9999');
 
           WriteIntegerValueExcludingZero(Line_TCFieldName, Line_TC, '9999');
 
@@ -1234,12 +1254,12 @@ BEGIN
 
           IF ErrorMsg = '' THEN BEGIN
             IF KeyName = Line_GridUpXFieldName THEN
-              Line_GridUpX := ValidateLineAbsolute(NewKeyValue, ErrorMsg);
+              Line_GridUpX := ValidateGridX(NewKeyValue, ErrorMsg);
           END;
 
           IF ErrorMsg = '' THEN BEGIN
             IF KeyName = Line_GridDownXFieldName THEN
-              Line_GridDownX := ValidateLineAbsolute(NewKeyValue, ErrorMsg);
+              Line_GridDownX := ValidateGridX(NewKeyValue, ErrorMsg);
           END;
 
           { We don't need to validate Line_Location as the user hasn't been allowed to introduce errors to it }
@@ -1778,9 +1798,7 @@ BEGIN
           Signals[SignalToDeleteNum].Signal_DataChanged := True;
           WriteOutSignalDataToDatabase;
         END ELSE BEGIN
-          { Now we need to renumber signal references in the database that have changed because of the deletion. We renumber the last entry so it the same as the point already
-            deleted (a DJW suggestion of 3/9/14), and also renumber any signal records that point to it.
-          }
+          { Now we need to renumber signal references in the database that have changed because of the deletion }
           FOR OtherSignal := 0 TO High(Signals) DO BEGIN
             IF Signals[OtherSignal].Signal_OppositePassingLoopSignal = High(Signals) THEN BEGIN
               Signals[OtherSignal].Signal_OppositePassingLoopSignal := SignalToDeleteNum;
@@ -1811,7 +1829,7 @@ BEGIN
               WriteOutSignalDataToDatabase;
           END; {FOR}
 
-          { and renumber the last entry }
+          { Renumber the last entry so it is the same as the record already deleted (a DJW suggestion of 3/9/14), and also renumber any signal records that point to it }
           Signals[High(Signals)].Signal_Number := SignalToDeleteNum;
           Signals[High(Signals)].Signal_DataChanged := True;
           WriteOutSignalDataToDatabase;
@@ -1825,9 +1843,10 @@ BEGIN
           END; {WITH}
 
           { Reload all the signals }
-          ReadInSignalDataFromDatabase(NewSignalData);
+          ReadInSignalDataFromDatabase(NewData);
 
           CalculateTCAdjacentSignals;
+          CalculateTCAdjacentBufferStops;
           CalculateAllSignalPositions;
           InvalidateScreen(UnitRef, 'DeleteSignal');
           Log('D Screen invalidated by Delete Signal');
@@ -1973,8 +1992,7 @@ BEGIN
 
     IF CanDelete THEN BEGIN
       WITH InitVarsWindow DO BEGIN
-        { Now we need to renumber point references in the database that have changed because of the deletion. We renumber the last entry so it the same as the point already
-          deleted (a DJW suggestion of 3/9/14), and also renumber any point records that point to it.
+        { Now we need to renumber point references in the database that have changed because of the deletion
         }
         FOR OtherPoint := 0 TO High(Points) DO BEGIN
           IF Points[OtherPoint].Point_RelatedPoint = High(Points) THEN BEGIN
@@ -1985,7 +2003,7 @@ BEGIN
           END;
         END; {FOR}
 
-        { and renumber the last entry }
+        { Renumber the last entry so it is the same as the record already deleted (a DJW suggestion of 3/9/14), and also renumber any point records that point to it }
         Points[High(Points)].Point_Number := PointToDeleteNum;
         Points[High(Points)].Point_DataChanged := True;
         WriteOutPointDataToDatabase;
@@ -2001,7 +2019,7 @@ BEGIN
         { Reload all the points }
         ReadInPointDataFromDatabase;
         InvalidateScreen(UnitRef, 'DeletePoint');
-        Log('D Screen invalidated by Delete Point');
+        Log('D Screen invalidated by DeletePoint');
       END;
     END;
   EXCEPT {TRY}
@@ -2037,7 +2055,7 @@ BEGIN
 END; { IsNearRow }
 
 FUNCTION GetNearestLine(X, Y : Integer) : Integer;
-{ Returns the line number nearest to a dragged signal if the line is horizontal and the signal or its post are within a line's mouse rectangle }
+{ Returns the line number nearest to a given position if the line is horizontal and the position is within a line's mouse rectangle }
 VAR
   Line : Integer;
   LineFound : Boolean;
@@ -2048,7 +2066,7 @@ BEGIN
     LineFound := False;
     Line := 0;
     WHILE (Line <= High(Lines)) AND NOT LineFound DO BEGIN
-      IF (Lines[Line].Line_UpY = Lines[Line].Line_DownY)
+      IF (Lines[Line].Line_ScreenUpY = Lines[Line].Line_ScreenDownY)
       AND PointInPolygon(Lines[Line].Line_MousePolygon, Point(X, Y))
       THEN
         LineFound := True
@@ -2060,7 +2078,7 @@ BEGIN
       Result := Line;
   EXCEPT
     ON E : Exception DO
-      Log('EG NearestLineToSignal:' + E.ClassName + ' error raised, with message: '+ E.Message);
+      Log('EG GetNearestLine:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { GetNearestLine }
 
@@ -2120,10 +2138,10 @@ BEGIN
       CalculateSignalMouseRectangles(EditedSignal);
       DrawSignal(EditedSignal);
 
-      IF (NearestLineToSignal = UnknownLine) OR (TooNearSignal <> UnknownLine) THEN
-        ChangeCursor(crNoDrop)
-      ELSE
-        ChangeCursor(crDrag);
+//      IF (NearestLineToSignal = UnknownLine) OR (TooNearSignal <> UnknownLine) THEN
+//        ChangeCursor(crNoDrop)
+//      ELSE
+//        ChangeCursor(crDrag);
 
       FWPRailWindow.Repaint;
     END;
@@ -2160,12 +2178,12 @@ BEGIN
       END ELSE BEGIN
         { Is another one at the exact spot? Record where it is going to be placed to carry out this test. }
         IF Signal_Direction = Up THEN
-          NewSignalX := Lines[NearestLineToSignal].Line_UpX + SignalRadiusScaled
+          NewSignalX := Lines[NearestLineToSignal].Line_ScreenUpX + SignalRadiusScaled
         ELSE
           { Down }
-          NewSignalX := Lines[NearestLineToSignal].Line_DownX - SignalRadiusScaled;
+          NewSignalX := Lines[NearestLineToSignal].Line_ScreenDownX - SignalRadiusScaled;
 
-        NewSignalY := Lines[NearestLineToSignal].Line_UpY;
+        NewSignalY := Lines[NearestLineToSignal].Line_ScreenUpY;
 
         { See whether we're trying to drop the signal over another signal }
         TooNearSignal := TooNearOtherSignal(EditedSignal, NearestLineToSignal);
@@ -2310,7 +2328,7 @@ BEGIN
         { We'd better undo them, then }
         UndoEditChanges;
 
-      EditedLine := UnknownLine;
+      DeselectLine;
     END;
   END;
 
@@ -2364,7 +2382,12 @@ BEGIN
 END; { UndoEditChanges }
 
 PROCEDURE StartLineEdit(Line : Integer);
-{ Set up a line edit - this is where we save the signal's original state so we can revert to it regardless of how many edits there are }
+{ Set up a line edit - this is where we save the line's original state so we can revert to it regardless of how many edits there are }
+CONST
+  DrawHandles = True;
+VAR
+  TempLine : Integer;
+
 BEGIN
   IF Line <> EditedLine THEN BEGIN
     ClearEditValueList;
@@ -2373,7 +2396,16 @@ BEGIN
     SaveLineNum := EditedLine;
     WriteLineValuesToValueList;
 
-    DrawLine(EditedLine, clAqua, NOT ActiveTrain);
+    IF CreateLineMode THEN BEGIN
+      { first remove any other editing handles }
+      FOR TempLine := 0 TO High(Lines) DO
+        Lines[TempLine].Line_ShowHandles := False;
+
+      { now add them for the current edited line }
+      Lines[EditedLine].Line_ShowHandles := True;
+    END;
+
+    DrawLine(EditedLine, ScreenComponentEditedColour, NOT ActiveTrain);
   END;
 END; { StartLineEdit }
 
@@ -2458,7 +2490,7 @@ BEGIN
     IF EditMode THEN BEGIN
       EditedPoint := UnknownSignal;
       EditedPoint := UnknownPoint;
-      EditedLine := UnknownLine;
+      DeselectLine;
       EditedTrackCircuit := UnknownTrackCircuit;
 
       EditWindow.Visible := False;
@@ -2490,34 +2522,115 @@ BEGIN
 END; { TurnEditModeOff }
 
 PROCEDURE DeleteLine(LineToDeleteNum : Integer);
-{ Delete a line after appropriate checks }
-CONST
-  NewLineData = True;
-
+{ Delete a line after appropriate checks. NB: this doesn't yet deal with the routeing exceptions database or platform positions database. }
 VAR
   CanDelete : Boolean;
+  Line : Integer;
+  LineTrackCircuits : IntegerArrayType;
+  P : Integer;
+  QueryStr : String;
+  S : Integer;
 
 BEGIN
   TRY
     CanDelete := True;
 
-    { Ask for confirmation }
-    IF MessageDialogueWithDefault('Delete Line ' + LineToStr(LineToDeleteNum) + ' (' + IntToStr(LineToDeleteNum)+ ') ?',
-                                  StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
-    THEN BEGIN
-      Debug('Line ' + IntToStr(LineToDeleteNum) + ' not deleted');
-      CanDelete := False;
-    END;
-
-    IF CanDelete THEN
-      DeleteRecordFromLineDatabase(LineToDeleteNum);
+    FOR S := 0 TO High(Signals) DO BEGIN
+      IF Signals[S].Signal_AdjacentLine = LineToDeleteNum THEN BEGIN
+        Log('L! Cannot delete line ' + LineToStr(LineToDeleteNum) + ' as it is used by signal ' + IntToStr(S));
+        CanDelete := False;
+      END;
+    END; {FOR}
 
     IF CanDelete THEN BEGIN
+      { see if the line is used either by a signal or by a point }
+      FOR P := 0 TO High(Points) DO BEGIN
+        IF (Points[P].Point_HeelLine = LineToDeleteNum)
+        OR (Points[P].Point_StraightLine = LineToDeleteNum)
+        OR (Points[P].Point_DivergingLine = LineToDeleteNum)
+        THEN BEGIN
+          Log('L! Cannot delete line ' + LineToStr(LineToDeleteNum) + ' as it is used by point ' + IntToStr(P));
+          CanDelete := False;
+        END;
+      END; {FOR}
+    END;
+
+    IF CanDelete THEN BEGIN
+      { Ask for confirmation, but first see whether an associated track circuit can be deleted - but only if it is not attached to another line }
+      SetLength(LineTrackCircuits, 0);
+      FOR Line := 0 TO High(Lines) DO BEGIN
+        IF Lines[Line].Line_TC = Lines[LineToDeleteNum].Line_TC THEN
+          AppendToIntegerArray(LineTrackCircuits, Lines[Line].Line_TC);
+      END; {FOR}
+
+      IF Length(LineTrackCircuits) <> 1 THEN
+        { there's only one reference to it, so it can't be attached to another line }
+        QueryStr := 'Delete line ' + LineToStr(LineToDeleteNum) + '?'
+      ELSE
+        QueryStr := 'Delete line ' + LineToStr(LineToDeleteNum) + ' and associated track circuit ' + IntToStr(LineTrackCircuits[0]) + '?';
+
+      IF MessageDialogueWithDefault(QueryStr, StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo THEN BEGIN
+        Debug('Line ' + IntToStr(LineToDeleteNum) + ' not deleted');
+        CanDelete := False;
+      END;
+    END;
+
+    IF CanDelete THEN BEGIN
+      IF Length(LineTrackCircuits) = 1 THEN BEGIN
+        { Move the last record to replace the record we're deleting (a DJW suggestion). First see if the track circuit it represents is in use by the Line database }
+        FOR Line := 0 TO High(Lines) DO BEGIN
+          IF Lines[Line].Line_TC = High(TrackCircuits) THEN BEGIN
+            Log('T Replacing the database''s last TC ' + IntToStr(Lines[Line].Line_TC) + ' for Line ' + LineToStr(Line) + ' with TC ' + IntToStr(LineTrackCircuits[0]));
+            Lines[Line].Line_TC := LineTrackCircuits[0];
+            Lines[Line].Line_DataChanged := True;
+            WriteOutLineDataToDatabase;
+          END;
+        END; {FOR}
+
+        { Now remove the last record from the track circuit database }
+        TrackCircuits[LineTrackCircuits[0]] := TrackCircuits[High(TrackCircuits)];
+        TrackCircuits[LineTrackCircuits[0]].TC_Number := LineTrackCircuits[0];
+        TrackCircuits[LineTrackCircuits[0]].TC_DataChanged := True;
+
+        WriteOutTrackCircuitDataToDatabase;
+
+        DeleteRecordFromTrackCircuitDatabase(High(TrackCircuits));
+        SetLength(TrackCircuits, High(TrackCircuits) - 1);
+
+        { Reload all the track circuits }
+        ReadInTrackCircuitDataFromDatabase;
+      END;
+
       WITH InitVarsWindow DO BEGIN
-        { Now we renumber the last entry so it the same as the line already deleted (a DJW suggestion of 3/9/14) }
-        Lines[High(Lines)].Line_Number := LineToDeleteNum;
-        Lines[High(Lines)].Line_DataChanged := True;
+        { change the line endings for associated lines }
+        WITH Lines[LineToDeleteNum] DO BEGIN
+          IF NOT Line_NextUpLine <> UnknownLine THEN BEGIN
+            IF Lines[LineToDeleteNum].Line_NextUpLine <> UnknownLine THEN BEGIN
+              Lines[Lines[LineToDeleteNum].Line_NextUpLine].Line_NextDownLine := UnknownLine;
+              Lines[Lines[LineToDeleteNum].Line_NextUpLine].Line_NextDownIsEndOfLine := BufferStopAtDown;
+              Lines[Lines[LineToDeleteNum].Line_NextUpLine].Line_EndOfLineMarker := BufferStopAtDown;
+              Lines[Lines[LineToDeleteNum].Line_NextUpLine].Line_DataChanged := True;
+              WriteOutLineDataToDatabase;
+            END;
+          END;
+          IF NOT Line_NextDownLine <> UnknownLine THEN BEGIN
+            IF Lines[LineToDeleteNum].Line_NextDownLine <> UnknownLine THEN BEGIN
+              Lines[Lines[LineToDeleteNum].Line_NextDownLine].Line_NextUpLine := UnknownLine;
+              Lines[Lines[LineToDeleteNum].Line_NextDownLine].Line_NextUpIsEndOfLine := BufferStopAtUp;
+              Lines[Lines[LineToDeleteNum].Line_NextDownLine].Line_EndOfLineMarker := BufferStopAtUp;
+              Lines[Lines[LineToDeleteNum].Line_NextDownLine].Line_DataChanged := True;
+              WriteOutLineDataToDatabase;
+            END;
+          END;
+        END; {WITH}
+
+        { Now delete the last record }
+        Lines[LineToDeleteNum] := Lines[High(Lines)];
+        Lines[LineToDeleteNum].Line_DataChanged := True;
         WriteOutLineDataToDatabase;
+        DeleteRecordFromLineDatabase(High(Lines));
+
+        Log('L Line ' + IntToStr(LineToDeleteNum) + ' deleted');
 
         { Clear the data from the value-list editor }
         WITH EditWindow DO BEGIN
@@ -2529,6 +2642,13 @@ BEGIN
 
         { Reload all the lines }
         ReadInLineDataFromDatabase;
+
+        { And the points and signals as these will have lines that need to be been renumbered }
+        ReadInSignalDataFromDatabase(NewData);
+        ReadInPointDataFromDatabase;
+        IF PreviousPointSettingsMode THEN
+          LoadPreviousPointSettings;
+
         InvalidateScreen(UnitRef, 'DeleteLine');
         Log('D Screen invalidated by Delete Line');
       END;
@@ -2539,15 +2659,148 @@ BEGIN
   END; {TRY}
 END; { DeleteLine }
 
-PROCEDURE CreateLine(X1, Y1, X2, Y2 : Integer);
+PROCEDURE DragEndOfLine(X, Y : Integer; ShiftState : TShiftState);
+{ Allows a line end to be moved by the mouse }
+VAR
+  NearestLineToNewLine : Integer;
+
+BEGIN
+  TRY
+    BEGIN
+      WITH FWPRailWindow.Canvas DO BEGIN
+        WITH Lines[EditedLine] DO BEGIN
+          IF Line_IsTempNewLine THEN BEGIN
+            Line_ScreenDownX := X;
+
+            IF ssAlt IN ShiftState THEN
+              { make it an exact horizontal line }
+              Line_ScreenDownY := Line_ScreenUpY
+            ELSE
+              Line_ScreenDownY := Y;
+          END ELSE
+            IF Line_IsBeingMovedByHandle = UpHandle THEN BEGIN
+              Line_ScreenUpX := X;
+
+              IF ssShift IN ShiftState THEN
+                { make it an exact horizontal line }
+                Line_ScreenUpY := Line_ScreenDownY
+              ELSE
+                Line_ScreenUpY := Y;
+            END ELSE
+              IF Line_IsBeingMovedByHandle = DownHandle THEN BEGIN
+                Line_ScreenDownX := X;
+
+                IF ssShift IN ShiftState THEN
+                  { make it an exact horizontal line }
+                  Line_ScreenDownY := Line_ScreenUpY
+                ELSE
+                  Line_ScreenDownY := Y;
+              END;
+
+          Line_GridUpX := MapScreenXToGridX(Line_ScreenUpX);
+          Line_GridUpY := MapScreenYToGridY(Line_ScreenUpY);
+          Line_GridDownX := MapScreenXToGridX(Line_ScreenDownX);
+          Line_GridDownY := MapScreenYToGridY(Line_ScreenDownY);
+        END; {WITH}
+      END; {WITH}
+
+      NearestLineToNewLine := GetNearestLine(X, Y);
+      IF NearestLineToNewLine = UnknownLine THEN
+        ChangeCursor(crNoDrop)
+      ELSE
+        ChangeCursor(crDrag);
+
+      FWPRailWindow.Repaint;
+    END;
+  EXCEPT
+    ON E : Exception DO
+      Log('EG DragEndOfLine:' + E.ClassName + ' error raised, with message: '+ E.Message);
+  END; {TRY}
+END; { DragEndOfLine }
+
+PROCEDURE DragWholeLine(ScreenClickPosX, ScreenClickPosY: Integer);
+{ Move a whole line by dragging its middle handle }
+VAR
+  GridClickPosX : Integer;
+  GridClickPosY : Integer;
+  Line : Integer;
+
+BEGIN
+  TRY
+    BEGIN
+      WITH FWPRailWindow.Canvas DO BEGIN
+        FOR Line := 0 TO High(Lines) DO BEGIN
+          WITH Lines[Line] DO BEGIN
+            IF Line_IsBeingMovedByHandle <> NoHandle THEN BEGIN
+              GridClickPosX := MapScreenXToGridX(ScreenClickPosX);
+              GridClickPosY := MapScreenYToGridY(ScreenClickPosY);
+
+              Line_GridUpX := Line_GridUpX + GridClickPosX - SaveGridClickPosX;
+              Line_GridUpY := Line_GridUpY + GridClickPosY - SaveGridClickPosY;
+              Line_GridDownX := Line_GridDownX + GridClickPosX - SaveGridClickPosX;
+              Line_GridDownY := Line_GridDownY + GridClickPosY - SaveGridClickPosY;
+
+              SaveGridClickPosX := GridClickPosX;
+              SaveGridClickPosY := GridClickPosY;
+
+              Line_ScreenUpX := MapGridXTOScreenX(Line_GridUpX);
+              Line_ScreenUpY := MapGridYTOScreenY(Line_GridUpY);
+              Line_ScreenDownX := MapGridXTOScreenX(Line_GridDownX);
+              Line_ScreenDownY := MapGridYTOScreenY(Line_GridDownY);
+            END;
+          END; {WITH}
+        END; {FOR}
+
+        FWPRailWindow.Repaint;
+      END; {WITH}
+    END;
+  EXCEPT
+    ON E : Exception DO
+      Log('EG DragWholeLine:' + E.ClassName + ' error raised, with message: '+ E.Message);
+  END; {TRY}
+END; { DragWholeLine }
+
+FUNCTION GetYPositionOfNearestGridLine(Y : Integer) : Integer;
+BEGIN
+  Result := Round(Y / InterLineSpacing) * InterLineSpacing;
+END; { GetPositionOfNearestGridLine }
+
+FUNCTION GetXPositionOfNearestLineIfAny(Line, X, Y : Integer) : Integer;
+{ So we can see if a newly-created or extended line can be "snapped" to an existing one. This returns 0 (so there's no "snap") if there's no line near }
+VAR
+  ScreenX : integer;
+  ScreenY : integer;
+  LineFound : Boolean;
+  TempLine : Integer;
+
+BEGIN
+  TempLine := 0;
+  LineFound := False;
+  Result := X;
+  ScreenX := MapGridXToScreenX(X);
+  ScreenY := MapGridYToScreenY(Y);
+
+  WHILE (TempLine <= High(Lines)) AND NOT LineFound DO BEGIN
+    IF TempLine <> Line THEN BEGIN
+      WITH Lines[TempLine] DO BEGIN
+        IF PointInPolygon(Line_UpHandlePolygon, Point(ScreenX, ScreenY)) THEN BEGIN
+          Result := Line_GridUpX;
+          LineFound := True;
+        END ELSE
+          IF PointInPolygon(Line_DownHandlePolygon, Point(ScreenX, ScreenY)) THEN BEGIN
+            Result := Line_GridDownX;
+            LineFound := True;
+          END;
+      END; {WITH}
+    END;
+    Inc(TempLine);
+  END; {WHILE}
+END; { GetXPositionOfNearestLineIfAny }
+
+PROCEDURE CreateLine(Line : Integer);
 { Create a basic line which must then be added to using the value list editor }
 BEGIN
-  WITH Lines[EditedLine] DO BEGIN
-    Line_GridUpX := X1;
-    Line_GridDownX := X2;
-    Line_GridUpY := Y1;
-    Line_GridDownY := Y2;
-
+  WITH Lines[Line] DO BEGIN
     CalculateLinePositions;
 
     Line_AdjacentBufferStop := UnknownBufferStop;
@@ -2556,7 +2809,7 @@ BEGIN
     Line_DownConnectionChBold := False;
     Line_EndOfLineMarker := BufferStopAtDown;
     Line_LockFailureNotedInSubRouteUnit := False;
-    Line_NameStr := 'New Line ' + IntToStr(High(Lines));
+    Line_NameStr := '[' + IntToStr(Line) + ']';
     Line_NextDownIsEndOfLine := BufferStopAtDown;
     Line_NextDownPoint := UnknownPoint;
     Line_NextDownLine := UnknownLine;
@@ -2575,106 +2828,208 @@ BEGIN
   NoteThatDataHasChanged;
   CalculateLinePositions;
   AddNewRecordToLineDatabase;
-  WriteOutLineDataToDatabase;
-
-  SaveLineRec := Lines[EditedLine];
-  WriteLineValuesToValueList;
-
-  InvalidateScreen(UnitRef, 'CreateLine');
-  Log('D Screen invalidated by CreateLine');
 END; { CreateLine }
 
-PROCEDURE DragEndOfLine(X, Y : Integer; ShiftState : TShiftState);
-{ Allows a line end to be moved by the mouse }
-VAR
-  NearestLineToNewLine : Integer;
-
-BEGIN
-  TRY
-    BEGIN
-      WITH FWPRailWindow.Canvas DO BEGIN
-        WITH Lines[High(Lines)] DO BEGIN
-          Line_TempNewLineScreenDownX := X;
-
-          IF ssShift IN ShiftState THEN
-            Line_TempNewLineScreenDownY := Line_TempNewLineScreenUpY
-          ELSE
-            Line_TempNewLineScreenDownY := Y;
-        END; {WITH}
-      END; {WITH}
-
-      NearestLineToNewLine := GetNearestLine(X, Y);
-      IF NearestLineToNewLine = UnknownLine THEN
-        ChangeCursor(crNoDrop)
-      ELSE
-        ChangeCursor(crDrag);
-
-      FWPRailWindow.Repaint;
-    END;
-  EXCEPT
-    ON E : Exception DO
-      Log('EG DragEndOfLine:' + E.ClassName + ' error raised, with message: '+ E.Message);
-  END; {TRY}
-END; { DragEndOfLine }
-
-PROCEDURE LineDraggingComplete(X, Y : Integer);
+PROCEDURE LineDraggingComplete(X, Y : Integer; ShiftState : TShiftState);
 { Called when when we have finished line creation by mouse }
 VAR
-  Line : Integer;
-  LineFound : Boolean;
+  OldGridUpX : Integer;
+  OldGridUpY : Integer;
+  OldGridDownX : Integer;
+  OldGridDownY : Integer;
+  OldDownRow : Extended;
+  OldUpRow : Extended;
   TempVal : Integer;
 
 BEGIN
-  Line := 0;
-  LineFound := False;
-  WHILE (Line <= High(Lines)) AND NOT LineFound DO BEGIN
-    IF PointInPolygon(Lines[Line].Line_MousePolygon, Point(X, Y)) THEN
-      LineFound := True
-    ELSE
-      Inc(Line);
-  END; {WHILE}
-
-  EditedLine := High(Lines);
-
-  { Now update the new line record }
   WITH Lines[EditedLine] DO BEGIN
-    Line_ScreenUpX := Line_TempNewLineScreenUpX;
+    Line_IsBeingMovedByHandle := NoHandle;
+
+    { We may need to reverse the X/Y values if the down X value is greater than the up X value }
+    IF Line_ScreenDownX < Line_ScreenUpX THEN BEGIN
+      TempVal := Line_ScreenUpX;
+      Line_ScreenUpX := Line_ScreenDownX;
+      Line_ScreenDownX := TempVal;
+
+      TempVal := Line_ScreenUpY;
+      Line_ScreenUpY := Line_ScreenDownY;
+      Line_ScreenDownY := TempVal;
+    END;
+
+    { save where the line is in case we need to revert }
+    OldGridUpX := Line_GridUpX;
+    OldGridUpY := Line_GridUpY;
+    OldGridDownX := Line_GridDownX;
+    OldGridDownY := Line_GridDownY;
+    OldDownRow := Line_UpRow;
+    OldUpRow := Line_DownRow;
+
+    { Now update the new line record }
     Line_GridUpX := MapScreenXToGridX(Line_ScreenUpX);
-    Line_ScreenUpY := Line_TempNewLineScreenUpY;
     Line_GridUpY := MapScreenYToGridY(Line_ScreenUpY);
-
-    Line_ScreenDownX := Line_TempNewLineScreenDownX;
     Line_GridDownX := MapScreenXToGridX(Line_ScreenDownX);
-    Line_ScreenDownY := Line_TempNewLineScreenDownY;
     Line_GridDownY := MapScreenYToGridY(Line_ScreenDownY);
+    Line_UpRow := MapScreenYToRow(Line_ScreenUpY);
+    Line_DownRow := MapScreenYToRow(Line_ScreenDownY);
 
-    { We may need to reverse the up and down values if the down value is greater than the up value }
-    IF Line_GridUpX > Line_GridDownX THEN BEGIN
-      TempVal := Line_GridUpX;
-      Line_GridUpX := Line_GridDownX;
-      Line_GridDownX := TempVal;
+    IF DistanceBetween(Line_GridUpX, Line_GridUpY, Line_GridDownX, Line_GridDownY) < 5 THEN BEGIN
+      { the cursor has been clicked without it moving - if we're on a line, then mark it as edited and add the handles }
+      IF EditingExistingLine THEN BEGIN
+        { return to existing length }
+        Line_GridUpX := OldGridUpX;
+        Line_GridUpY := OldGridUpY;
+        Line_GridDownX := OldGridDownX;
+        Line_GridDownY := OldGridDownY;
+        Line_UpRow := OldUpRow;
+        Line_DownRow := OldDownRow;
 
-      TempVal := Line_GridUpY;
-      Line_GridUpY := Line_GridDownY;
-      Line_GridDownY := TempVal;
-    END ELSE
-      IF Line_GridUpY > Line_GridDownY THEN BEGIN
-        TempVal := Line_GridUpX;
-        Line_GridUpX := Line_GridDownX;
-        Line_GridDownX := TempVal;
+        DeselectLine;
+      END ELSE BEGIN
+        DeselectLine;
+        SetLength(Lines, Length(Lines) - 1);
+      END;
+    END ELSE BEGIN
+      { Unless Ctrl is held down, see if we are near enough a horizontal grid line or the beginning or the end of an actual line to "snap" to it }
+      IF NOT (ssCtrl IN ShiftState) THEN BEGIN
+        Line_ScreenUpY := GetYPositionOfNearestGridLine(Line_ScreenUpY);
+        Line_GridUpY := MapScreenYToGridY(Line_ScreenUpY);
+        Line_ScreenDownY := GetYPositionOfNearestGridLine(Line_ScreenDownY);
+        Line_GridDownY := MapScreenYToGridY(Line_ScreenDownY);
+        Line_UpRow := MapScreenYToRow(Line_ScreenUpY);
+        Line_DownRow := MapScreenYToRow(Line_ScreenDownY);
 
-        TempVal := Line_GridUpY;
-        Line_GridUpY := Line_GridDownY;
-        Line_GridDownY := TempVal;
+        Line_GridUpX := GetXPositionOfNearestLineIfAny(EditedLine, Line_GridUpX, Line_GridUpY);
+        Line_GridDownX := GetXPositionOfNearestLineIfAny(EditedLine, Line_GridDownX, Line_GridDownY);
+        Line_ScreenUpX := MapGridXToScreenX(Line_GridUpX);
+        Line_ScreenDownX := MapGridXToScreenX(Line_GridDownX);
       END;
 
-    Line_IsTempNewLine := False;
+      Line_IsTempNewLine := False;
 
-    CreateLine(Line_GridUpX, Line_GridUpY, Line_GridDownX, Line_GridDownY);
+      IF NOT EditingExistingLine THEN BEGIN
+        CreateLine(EditedLine);
+        EditingExistingLine := True;
+      END;
+    END;
+
+    IF EditedLine <> UnknownLine THEN BEGIN
+      Lines[EditedLine].Line_DataChanged := True;
+      WriteOutLineDataToDatabase;
+      SaveLineRec := Lines[EditedLine];
+      WriteLineValuesToValueList;
+    END;
+    InvalidateScreen(UnitRef, 'LineDraggingComplete');
   END; {WITH}
-
-  IF LineFound THEN
-    beep;
 END; { LineDraggingComplete }
 
+PROCEDURE SplitLine(OldLine, GridX, GridY : Integer);
+{ Split a line at the point indicated }
+VAR
+  AX, AY, BX, BY : Integer;
+  C : Extended;
+  M : Extended;
+  PX, PY : Integer;
+  NewLine : Integer;
+
+BEGIN
+  TRY
+    { First create a new one using the new co-ordinates }
+    SetLength(Lines, Length(Lines) + 1);
+    CreateLine(High(Lines));
+    NewLine := High(Lines);
+
+    IF Lines[OldLine].Line_GridUpY <> Lines[OldLine].Line_GridDownY THEN BEGIN
+      WITH Lines[OldLine] DO BEGIN
+        AX := Line_GridDownX;
+        AY := Line_GridDownY;
+        BX := Line_GridUpX;
+        BY := Line_GridUpY;
+        M := (BY - AY) / (BX - AX); { gradient of the line }
+        C := AY - (M * AX);  { Y intercept }
+
+        PY := GridY;
+        PX := Round((PY - C) / M);
+      END; {WITH}
+    END ELSE BEGIN
+      PX := GridX;
+      PY := Lines[OldLine].Line_GridUpY;
+    END;
+
+    { Adjust the X/Y co-ordinates for the new line - but make sure the Y position is on a grid line }
+    Lines[NewLine].Line_GridUpX := PX;
+    Lines[NewLine].Line_GridUpY := PY;
+    Lines[NewLine].Line_ScreenUpX := MapGridXToScreenX(Lines[NewLine].Line_GridUpX);
+    Lines[NewLine].Line_ScreenUpY := MapGridYToScreenY(Lines[NewLine].Line_GridUpY);
+    Lines[NewLine].Line_UpRow := MapScreenYToRow(Lines[NewLine].Line_ScreenUpY);
+
+    Lines[NewLine].Line_GridDownX := Lines[OldLine].Line_GridDownX;
+    Lines[NewLine].Line_GridDownY := Lines[OldLine].Line_GridDownY;
+    Lines[NewLine].Line_ScreenDownX := Lines[OldLine].Line_ScreenDownX;
+    Lines[NewLine].Line_ScreenDownY := Lines[OldLine].Line_ScreenDownY;
+    Lines[NewLine].Line_DownRow := Lines[OldLine].Line_DownRow;
+
+    { Then truncate the existing old line }
+    Lines[OldLine].Line_GridDownX := Lines[NewLine].Line_GridUpX;
+    Lines[OldLine].Line_GridDownY := Lines[NewLine].Line_GridUpY;
+    Lines[OldLine].Line_ScreenDownX := Lines[NewLine].Line_ScreenUpX;
+    Lines[OldLine].Line_ScreenDownY := Lines[NewLine].Line_ScreenUpY;
+    Lines[OldLine].Line_DownRow := Lines[NewLine].Line_UpRow;
+
+    { Now adjust the other details for the new line }
+    WITH Lines[NewLine] DO BEGIN
+      Line_AdjacentBufferStop := UnknownBufferStop;
+      Line_DownConnectionCh := Lines[OldLine].Line_DownConnectionCh;
+      Line_DownConnectionChBold := False;
+      Line_EndOfLineMarker := BufferStopAtDown;
+      Line_LockFailureNotedInSubRouteUnit := False;
+      Line_NameStr := '[' + IntToStr(NewLine) + ']';
+      Line_NextDownIsEndOfLine := Lines[OldLine].Line_NextDownIsEndOfLine;
+      Line_NextDownPoint := Lines[OldLine].Line_NextDownPoint;
+      Line_NextDownLine := Lines[OldLine].Line_NextDownLine;
+      Line_NextDownType := Lines[OldLine].Line_NextDownType;
+      Line_NextUpIsEndofLine := NotEndOfLine;
+      Line_NextUpLine := OldLine;
+      Line_NextUpPoint := UnknownPoint;
+      Line_NextUpType := UnknownNextLineRouteingType;
+      Line_RouteLockingForDrawing := UnknownRoute;
+      Line_RouteSet := UnknownRoute;
+      Line_TypeOfLine := Lines[OldLine].Line_TypeOfLine;
+      Line_UpConnectionCh := '';
+      Line_UpConnectionChBold := False;
+    END; {WITH}
+
+    { And for any connected points at the Down end of the new line or signals attached to old line that has become the new line }
+    { ************** 22/10/14 }
+
+    { Also TCs }
+
+    { And for the existing line }
+    WITH Lines[OldLine] DO BEGIN
+      Line_NextDownIsEndOfLine := NotEndOfLine;
+      Line_NextDownPoint := UnknownPoint;
+      Line_NextDownLine := NewLine;
+      Line_NextDownType := LineIsNext;
+    END; {WITH}
+
+    CalculateLinePositions;
+
+    { Now write both sets of revised data to the database }
+    Lines[OldLine].Line_DataChanged := True;
+    Lines[NewLine].Line_DataChanged := True;
+    WriteOutLineDataToDatabase;
+
+    InvalidateScreen(UnitRef, 'LineDraggingComplete');
+  EXCEPT
+    ON E : Exception DO
+      Log('EG SplitLine:' + E.ClassName + ' error raised, with message: '+ E.Message);
+  END; {TRY}
+END; { SplitLine }
+
+{ note: we need to deal with lines that overlap on a different plane
+  snap lines to other lines?
+  ask about adding points?
+}
+
 END { Edit }.
+
+

@@ -438,7 +438,8 @@ TYPE
                LineCreateDownPointPopupType, LineCreateUpPointPopupType, LineCreateDownSignalPopupType, LineCreateUpSignalPopupType, LineDeleteLinePopupType,
                LineEnterCreateLinePopupType, LineExitCreateLinePopupType, LineEditPopupType, LineLocationOutOfUsePopupType, LineOutOfUsePopupType,
                LineShowLocoLastErrorMessagePopupType, LineTCFeedbackOccupationPopupType, LineTCOutOfUsePopupType, LineTCPermanentOccupationPopupType,
-               LineTCSpeedRestrictionPopupType, LineTCSystemOccupationPopupType, LineTCUnoccupiedPopupType, LineTCUserMustDrivePopupType);
+               LineTCSpeedRestrictionPopupType, LineTCSystemOccupationPopupType, LineTCUnoccupiedPopupType, LineTCUserMustDrivePopupType,
+               LineAllocateTrackCircuitPopupType, LineRemoveTrackCircuitPopupType);
 
  TMenuItemExtended = CLASS(TMenuItem)
  PRIVATE
@@ -2441,6 +2442,7 @@ VAR
   DownLineColour : TColor;
   LineTextStr : String;
   T : TrainIndex;
+  TempLine : Integer;
   UpLineColour : TColor;
   X1, X2, Y1, Y2 : Integer;
 
@@ -2587,14 +2589,14 @@ BEGIN
 
           IF Line_OutOfUseState = OutOfUse THEN BEGIN
             { Draw a red lamp and line across the track }
-            X1 := Lines[Line].Line_ScreenUpX;
-            Y1 := Lines[Line].Line_ScreenUpY - BufferStopVerticalSpacingScaled;
-            Y2 := Lines[Line].Line_ScreenUpY + BufferStopVerticalSpacingScaled;
+            X1 := Line_ScreenUpX;
+            Y1 := Line_ScreenUpY - BufferStopVerticalSpacingScaled;
+            Y2 := Line_ScreenUpY + BufferStopVerticalSpacingScaled;
             DrawRedLampAndVerticalLine(X1, Y1, Y2, ForegroundColour);
 
-            X1 := Lines[Line].Line_ScreenDownX;
-            Y1 := Lines[Line].Line_ScreenDownY - BufferStopVerticalSpacingScaled;
-            Y2 := Lines[Line].Line_ScreenDownY + BufferStopVerticalSpacingScaled;
+            X1 := Line_ScreenDownX;
+            Y1 := Line_ScreenDownY - BufferStopVerticalSpacingScaled;
+            Y2 := Line_ScreenDownY + BufferStopVerticalSpacingScaled;
             DrawRedLampAndVerticalLine(X1, Y1, Y2, ForegroundColour);
 
             Pen.Style := psDot;
@@ -2629,7 +2631,9 @@ BEGIN
 
           { Clear any previous text away }
           IF (LineTextStr <> '') OR (TempLineText <> '') THEN BEGIN
-            IF (Line_ScreenUpY = Line_ScreenDownY) AND ((Line_ScreenDownX - Line_ScreenUpX > TextWidth('---- ')) OR (Line_ScreenUpX - Line_ScreenDownX > TextWidth('---- '))) THEN BEGIN
+            IF (Line_ScreenUpY = Line_ScreenDownY)
+            AND ((Line_ScreenDownX - Line_ScreenUpX > TextWidth('---- ')) OR (Line_ScreenUpX - Line_ScreenDownX > TextWidth('---- ')))
+            THEN BEGIN
               X1 := Line_ScreenUpX + ((Line_ScreenDownX - Line_ScreenUpX - TextWidth('MMMM')) DIV 2) - ScrollBarXAdjustment;
               Y1 := Line_ScreenUpY - (TextHeight('M') DIV 2) - ScrollBarYAdjustment;
               X2 := Line_ScreenDownX - ((Line_ScreenDownX - Line_ScreenUpX - TextWidth('MMMM')) DIV 2) - ScrollBarXAdjustment;
@@ -2717,6 +2721,33 @@ BEGIN
 
           IF ShowMouseRectangles THEN
             DrawOutline(Line_MousePolygon, clGreen, NOT UndrawRequired, NOT UndrawToBeAutomatic);
+
+          IF CreateLineMode THEN BEGIN
+            { If we're editing the line in create line mode, draw handles so the line can be moved }
+            IF Lines[Line].Line_ShowHandles THEN BEGIN
+              CalculateLinePolygons(Line);
+              DrawOutline(Line_UpHandlePolygon, clGreen, NOT UndrawRequired, NOT UndrawToBeAutomatic);
+              DrawOutline(Line_DownHandlePolygon, clGreen, NOT UndrawRequired, NOT UndrawToBeAutomatic);
+              DrawOutline(Line_MidHandlePolygon, clGreen, NOT UndrawRequired, NOT UndrawToBeAutomatic);
+            END;
+
+            { And show any overlapping lines, at least for horizontal lines }
+            TempLine := 0;
+            WHILE TempLine <= High(Lines) DO BEGIN
+              IF Line <> TempLine THEN BEGIN
+                IF (Line_GridUpY = Line_GridDownY)
+                AND ((Line_GridUpY = Lines[TempLine].Line_GridUpY) AND (Line_GridDownY = Lines[TempLine].Line_GridDownY))
+                THEN BEGIN
+                  IF ((Line_GridUpX < Lines[TempLine].Line_GridDownX) AND (Line_GridDownX > Lines[TempLine].Line_GridUpX)) THEN BEGIN
+                    Pen.Color := clFWPPink;
+                    MoveTo(MapGridXToScreenX(Max(Line_GridUpX, Lines[TempLine].Line_GridUpX)), MapGridYToScreenY(Line_GridUpY));
+                    LineTo(MapGridXToScreenX(Min(Line_GridDownX, Lines[TempLine].Line_GridDownX)), MapGridYToScreenY(Line_GridDownY));
+                  END;
+                END;
+              END;
+              Inc(TempLine);
+            END; {WHILE}
+          END;
         END; {WITH}
       END; {WITH}
     END;
@@ -4613,6 +4644,7 @@ BEGIN
     END ELSE
       IF PopupType = LineExitCreateLinePopupType THEN BEGIN
         CreateLineMode := False;
+        ShowLineHandles := False;
       END ELSE BEGIN
         WITH Lines[LinePopupNum] DO BEGIN
           CASE PopupType OF
@@ -4747,7 +4779,13 @@ BEGIN
                 IF ShowTrackCircuitsWhereUserMustDrive THEN
                   InvalidateScreen(UnitRef, 'LinePopupItemClick LineTCUserMustDrivePopupType');
               END;
+            LineAllocateTrackCircuitPopupType:
+              BEGIN
+                IF Line_TC = UnknownTrackcircuit THEN
 
+              END;
+            LineRemoveTrackCircuitPopupType:
+              Line_TC := UnknownTrackcircuit;
           ELSE {CASE}
             Log('BG Invalid popup type ' + IntToStr(Tag) + ' in LinePopupItemClick');
           END; {CASE}
@@ -4862,6 +4900,8 @@ BEGIN
 
         { ...and now the individual items }
         AddMenuItem(LinePopupMenu, 'Delete Line ' + LineToStr(LinePopupNum), LineDeleteLinePopupType, Enabled, LinePopupItemClick);
+        AddMenuItem(LinePopupMenu, 'Allocate Track Circuit ' + LineToStr(LinePopupNum), LineAllocateTrackCircuitPopupType, Enabled, LinePopupItemClick);
+        AddMenuItem(LinePopupMenu, 'Remove Track Circuit ' + LineToStr(LinePopupNum), LineRemoveTrackCircuitPopupType, Enabled, LinePopupItemClick);
 
         AddMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, NIL);
 
@@ -7395,10 +7435,10 @@ BEGIN { Main drawing procedure }
                     Line_CurrentColour := LineRoutedOverColour
                 END;
 
-                IF Line = EditedLine THEN
-                  DrawLine(Line, ScreenComponentEditedColour, ActiveTrain)
+                IF Line <> EditedLine THEN
+                  DrawLine(Line, Line_CurrentColour, ActiveTrain)
                 ELSE
-                  DrawLine(Line, Line_CurrentColour, ActiveTrain);
+                  DrawLine(Line, ScreenComponentEditedColour, ActiveTrain);
               END;
 
               { Draw a rectangle around any line highlighted by the input procedure }
@@ -7631,18 +7671,6 @@ BEGIN { Main drawing procedure }
 
         IF NOT ShowTrackCircuits AND NOT ShowLineDetail AND NOT ShowLineNumbers AND NOT ShowLinesUpXAbsoluteValue THEN
           DrawAllPoints;
-
-        { Draw any draft lines that haven't yet been saved to the database }
-        Pen.Color := clWhite;
-        Pen.Style := psSolid;
-        FOR Line := 0 TO High(Lines) DO BEGIN
-          WITH Lines[Line] DO BEGIN
-            IF Line_IsTempNewLine THEN BEGIN
-              MoveTo(Line_TempNewLineScreenUpX, Line_TempNewLineScreenUpY);
-              LineTo(Line_TempNewLineScreenDownX, Line_TempNewLineScreenDownY);
-            END;
-          END; {WITH}
-        END;
 
         IF ResizeMap THEN
           ResizeMap := False;

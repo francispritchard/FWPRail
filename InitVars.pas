@@ -250,6 +250,7 @@ TYPE
   { adjust FirstTypeOfLine or LastTypeOfLine if alteration made to above declaration }
 
   GradientType = (Level, RisingIfUp, RisingIfDown, UnknownGradientType);
+  HandleType = (UpHandle, MidHandle, DownHandle, NoHandle);
   MPHType = (MPH0, MPH10, MPH20, MPH30, MPH40, MPH50, MPH60, MPH70, MPH80, MPH90, MPH100, MPH110, MPH120, UnknownMPH, NoSpecifiedSpeed);
   NextLineRouteingType = (EndOfLineIsNext, LineIsNext, PointIsNext, UnknownNextLineRouteingType);
   OutOfUseState = (InUse, OutOfUse);
@@ -326,12 +327,21 @@ TYPE
     Line_DownConnectionCh : String;
     Line_DownConnectionChRect : TRect;
     Line_DownConnectionChBold : Boolean;
-    Line_GridDownX : Integer;
-    Line_GridDownY : Integer;
+    Line_DownRow : Extended;
     Line_EndOfLineMarker : EndOfLineType;
     Line_Gradient : GradientType;
+    Line_GridDownX : Integer;
+    Line_GridDownY : Integer;
+  Line_SaveGridDownX : Integer;
+  Line_SaveGridDownY : Integer;
+  Line_SaveScreenDownX : Integer;
+  Line_SaveScreenDownY : Integer;
     Line_GridUpX : Integer;
     Line_GridUpY : Integer;
+  Line_SaveGridUpX : Integer;
+  Line_SaveGridUpY : Integer;
+  Line_SaveScreenUpX : Integer;
+  Line_SaveScreenUpY : Integer;
     Line_InitialOutOfUseState : OutOfUseState;
     Line_InUseFeedbackUnit : Integer;
     Line_InUseFeedbackInput : Integer;
@@ -360,23 +370,28 @@ TYPE
     Line_ScreenUpX : Integer;
     Line_ScreenUpY : Integer;
     Line_TC : Integer;
-    Line_IsTempNewLine : Boolean;
-    Line_TempNewLineScreenDownX : Integer;
-    Line_TempNewLineScreenDownY : Integer;
-    Line_TempNewLineScreenUpX : Integer;
-    Line_TempNewLineScreenUpY : Integer;
     Line_TypeOfLine : TypeOfLine;
     Line_UpConnectionCh : String;
     Line_UpConnectionChRect : TRect;
     Line_UpConnectionChBold : Boolean;
+    Line_UpRow : Extended;
+
+    { For line editing }
+    Line_DownHandlePolygon : ARRAY [0..4] OF TPoint;
+    Line_IsBeingMovedByHandle : HandleType;
+    Line_IsTempNewLine : Boolean;
+    Line_MidHandlePolygon : ARRAY [0..4] OF TPoint;
+    Line_ShowHandles : Boolean;
+    Line_UpHandlePolygon : ARRAY [0..4] OF TPoint;
   END;
 
 CONST
   Line_BufferStopTheatreDestinationStrFieldName : String = 'Buffer Stop Theatre Destination';
   Line_DirectionFieldName : String = 'Direction';
   Line_DownConnectionChFieldName : String = 'Down Connection Ch';
-  Line_GridDownXFieldName : String = 'Down X';
-  Line_GridDownYFieldName : String = 'Down Y';
+  Line_DownRowFieldName : String = 'Down Row';
+  Line_GridDownXFieldName : String = 'Grid Down X';
+  Line_GridDownYFieldName : String = 'Grid Down Y';
   Line_EndOfLineMarkerFieldName : String = 'End Of Line Marker';
   Line_GradientFieldName : String = 'Gradient';
   Line_InUseFeedbackUnitFieldName : String = 'In Use Feedback Unit';
@@ -387,8 +402,9 @@ CONST
   Line_TCFieldName : String = 'Line TC';
   Line_TypeOfLineFieldName : String = 'Type Of Line';
   Line_UpConnectionChFieldName : String = 'Up Connection Ch';
-  Line_GridUpXFieldName : String = 'Up X';
-  Line_GridUpYFieldName : String = 'Up Y';
+  Line_UpRowFieldName : String = 'Up Row';
+  Line_GridUpXFieldName : String = 'Grid Up X';
+  Line_GridUpYFieldName : String = 'Grid Up Y';
 
 TYPE
   DirectionPriorityType = (PreferablyUp, UpOnly, TerminatingAtUp, PreferablyDown, DownOnly, TerminatingAtDown, NoDirectionPriority);
@@ -1518,6 +1534,7 @@ GridInterLineSpacing : Integer = 0;
   ShowLineOccupationDetail : Boolean = True;
   ShowLineDirectionDetail : Boolean = False;
   ShowLineGradients : Boolean = False;
+  ShowLineHandles : Boolean = False;
   ShowLineNumbers : Boolean = False;
   ShowLinesUpXAbsoluteValue : Boolean = False;
   ShowLinesWhichLockPoints : Boolean = False;
@@ -1598,6 +1615,9 @@ PROCEDURE AddNewRecordToSignalDatabase;
 
 PROCEDURE CalculateBufferStopPositions;
 { Work out where the buffer stops are on the screen }
+
+PROCEDURE CalculateLinePolygons(Line : Integer);
+{ Work out the position for the various line polygons }
 
 PROCEDURE CalculateLinePositions;
 { Work out where the lines are on the screen }
@@ -1713,11 +1733,8 @@ FUNCTION ValidateLineTrackCircuit(LineTCStr : String; OUT ErrorMsg : String) : I
 FUNCTION ValidateLineType(LineTypeStr : String; OUT ErrorMsg : String) : TypeOfLine;
 { See if the type of line is correct }
 
-FUNCTION ValidateLineUpXStr(UpXStr, LineStr : String; OUT ErrorMsg : String) : String;
-{ Sees whether the line at UpX is different from the line we're creating }
-
-FUNCTION ValidateLineAbsolute(Str : String; OUT ErrorMsg : String) : Integer;
-{ See whether the X or Y absolute value duplicates another field }
+FUNCTION ValidateGridX(Str : String; OUT ErrorMsg : String) : Integer;
+{ Converts grid string to number }
 
 FUNCTION ValidateNextSignalIfNoIndicator(Str : String; Init : Boolean; OUT ErrorMsg : String) : Integer;
 { Validates and if ok returns what the other signal is if no indicator is lit }
@@ -1957,9 +1974,6 @@ BEGIN
       TrackCircuitsADOTable.Open;
       Log('T Track circuit data table and connection opened to initialise the trackCircuits');
 
-      { First see if the track circuit numbers in the MSAccess file are sequential and, if not, renumber it - we need this or deletions from the MSAccess file will cause
-        problems
-      }
       TrackCircuitsADOTable.Sort := '[' + TC_NumberFieldName + '] ASC';
       TrackCircuitsADOTable.First;
       SetLength(TrackCircuits, 0);
@@ -2107,28 +2121,47 @@ BEGIN
       END;
 
       TrackCircuitsADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
-                                                    + PathToRailDataFiles + TrackCircuitDataFilename + '.' + TrackCircuitDataFilenameSuffix
-                                                    + ';Persist Security Info=False';
+                                                     + PathToRailDataFiles + TrackCircuitDataFilename + '.' + TrackCircuitDataFilenameSuffix
+                                                     + ';Persist Security Info=False';
       TrackCircuitsADOConnection.Connected := True;
       TrackCircuitsADOTable.Open;
       Log('T Track circuit data table and connection opened to write out track circuit data');
 
       TrackCircuitsADOTable.First;
       TC := 0;
-      WHILE NOT TrackCircuitsADOTable.EOF DO BEGIN
+//      WHILE NOT TrackCircuitsADOTable.EOF DO BEGIN
+//        WITH TrackCircuits[TC] DO BEGIN
+//          IF TC_DataChanged THEN BEGIN
+//            TC_DataChanged := False;
+//
+//            Log('T Recording in track circuit database that TC ' + IntToStr(TC) + ' ' + TC_NumberFieldName + ' is ''' + IntToStr(TC_Number) + '''');
+//            TrackCircuitsADOTable.Edit;
+//            TrackCircuitsADOTable.FieldByName(TC_NumberFieldName).AsString := IntToStr(TC_Number);
+//            TrackCircuitsADOTable.Post;
+//          END;
+//        END; {WITH}
+//
+//        Inc(TC);
+//        TrackCircuitsADOTable.Next;
+//      END; {WHILE}
+
+      WHILE TC <= High(TrackCircuits) DO BEGIN
         WITH TrackCircuits[TC] DO BEGIN
           IF TC_DataChanged THEN BEGIN
             TC_DataChanged := False;
 
-            Log('T Recording in TrackCircuit database that TC ' + IntToStr(TC) + ' ' + TC_NumberFieldName + ' is ''' + IntToStr(TC_Number) + '''');
-            TrackCircuitsADOTable.Edit;
-            TrackCircuitsADOTable.FieldByName(TC_NumberFieldName).AsString := IntToStr(TC_Number);
-            TrackCircuitsADOTable.Post;
+            IF NOT TrackCircuitsADOTable.Locate(TC_NumberFieldName, IntToStr(TC), []) THEN BEGIN
+              Log('T Track circuit data table and connection opened to delete TC ' + TrackCircuitToStr(TC) + ' but it cannot be found');
+            END ELSE BEGIN
+              Log('T Track circuit data table and connection opened to record that ' + TC_NumberFieldName + ' is ''' + IntToStr(TC_Number) + '''');
+              TrackCircuitsADOTable.Edit;
+              TrackCircuitsADOTable.FieldByName(TC_NumberFieldName).AsString := IntToStr(TC_Number);
+              TrackCircuitsADOTable.Post;
+            END;
           END;
         END; {WITH}
 
         Inc(TC);
-        TrackCircuitsADOTable.Next;
       END; {WHILE}
 
       { Tidy up the database }
@@ -2954,6 +2987,48 @@ BEGIN
   END; {TRY}
 END; { WriteOutLocationDataToDatabase }
 
+PROCEDURE CalculateLinePolygons(Line : Integer);
+{ Work out the position for the various line polygons }
+VAR
+  MidScreenX : Integer;
+  MidScreenY : Integer;
+  ScreenUpX : Integer;
+  ScreenUpY : Integer;
+  ScreenDownX : Integer;
+  ScreenDownY : Integer;
+
+BEGIN
+  WITH Lines[Line] DO BEGIN
+    { The mouse polygon }
+    Line_MousePolygon[0] := Point(Line_ScreenUpX, Line_ScreenUpY + MouseRectangleEdgeVerticalSpacingScaled);
+    Line_MousePolygon[1] := Point(Line_ScreenUpX, Line_ScreenUpY - MouseRectangleEdgeVerticalSpacingScaled);
+    Line_MousePolygon[2] := Point(Line_ScreenDownX, Line_ScreenDownY - MouseRectangleEdgeVerticalSpacingScaled);
+    Line_MousePolygon[3] := Point(Line_ScreenDownX, Line_ScreenDownY + MouseRectangleEdgeVerticalSpacingScaled);
+    Line_MousePolygon[4] := Line_MousePolygon[0];
+
+    { The handles }
+    Line_UpHandlePolygon[0] := Point(Line_ScreenUpX - SignalRadiusScaled, Line_ScreenUpY + MouseRectangleEdgeVerticalSpacingScaled);
+    Line_UpHandlePolygon[1] := Point(Line_ScreenUpX - SignalRadiusScaled, Line_ScreenUpY - MouseRectangleEdgeVerticalSpacingScaled);
+    Line_UpHandlePolygon[2] := Point(Line_ScreenUpX + SignalRadiusScaled, Line_ScreenUpY - MouseRectangleEdgeVerticalSpacingScaled);
+    Line_UpHandlePolygon[3] := Point(Line_ScreenUpX + SignalRadiusScaled, Line_ScreenUpY + MouseRectangleEdgeVerticalSpacingScaled);
+    Line_UpHandlePolygon[4] := Line_UpHandlePolygon[0];
+
+    Line_DownHandlePolygon[0] := Point(Line_ScreenDownX + SignalRadiusScaled, Line_ScreenDownY + MouseRectangleEdgeVerticalSpacingScaled);
+    Line_DownHandlePolygon[1] := Point(Line_ScreenDownX + SignalRadiusScaled, Line_ScreenDownY - MouseRectangleEdgeVerticalSpacingScaled);
+    Line_DownHandlePolygon[2] := Point(Line_ScreenDownX - SignalRadiusScaled, Line_ScreenDownY - MouseRectangleEdgeVerticalSpacingScaled);
+    Line_DownHandlePolygon[3] := Point(Line_ScreenDownX - SignalRadiusScaled, Line_ScreenDownY + MouseRectangleEdgeVerticalSpacingScaled);
+    Line_DownHandlePolygon[4] := Line_DownHandlePolygon[0];
+
+    MidScreenX := Line_ScreenUpX + ((Line_ScreenDownX - Line_ScreenUpX) DIV 2);
+    MidScreenY := Line_ScreenUpY + ((Line_ScreenDownY - Line_ScreenUpY) DIV 2);
+    Line_MidHandlePolygon[0] := Point(MidScreenX - SignalRadiusScaled, MidScreenY + MouseRectangleEdgeVerticalSpacingScaled);
+    Line_MidHandlePolygon[1] := Point(MidScreenX - SignalRadiusScaled, MidScreenY - MouseRectangleEdgeVerticalSpacingScaled);
+    Line_MidHandlePolygon[2] := Point(MidScreenX + SignalRadiusScaled, MidScreenY - MouseRectangleEdgeVerticalSpacingScaled);
+    Line_MidHandlePolygon[3] := Point(MidScreenX + SignalRadiusScaled, MidScreenY + MouseRectangleEdgeVerticalSpacingScaled);
+    Line_MidHandlePolygon[4] := Line_MidHandlePolygon[0];
+  END; {WITH}
+END; { CalculateLinePolygons }
+
 PROCEDURE CalculateLinePositions;
 { Work out where the lines are on the screen }
 VAR
@@ -2964,11 +3039,23 @@ BEGIN
     Line := 0;
     WHILE Line <= High(Lines) DO BEGIN
       WITH Lines[Line] DO BEGIN
-        Line_ScreenUpX := MapGridXToScreenX(Line_GridUpX); { rename Absolute to Grid ***************************** and upx to screen }
+        Line_ScreenUpX := MapGridXToScreenX(Line_GridUpX);
         Line_ScreenDownX := MapGridXToScreenX(Line_GridDownX);
 
-        Line_ScreenUpY := MapGridYToScreenY(Line_GridUpY);
-        Line_ScreenDownY := MapGridYToScreenY(Line_GridDownY);
+        Line_ScreenUpY := Round(Line_UpRow * InterLineSpacing);
+        Line_ScreenDownY := Round(Line_DownRow * InterLineSpacing);
+
+        Line_GridUpY := MapScreenYToGridY(Line_ScreenUpY);
+        Line_GridDownY := MapScreenYToGridY(Line_ScreenDownY);
+
+        Line_SaveGridUpX := Line_GridUpX;
+        Line_SaveGridDownX := Line_GridDownX;
+        Line_SaveGridUpY := Line_GridUpY;
+        Line_SaveGridDownY := Line_GridDownY;
+        Line_SaveScreenUpX := Line_ScreenUpX;
+        Line_SaveScreenDownX := Line_ScreenDownX;
+        Line_SaveScreenUpY := Line_ScreenUpY;
+        Line_SaveScreenDownY := Line_ScreenDownY;
       END; {WITH}
       Inc(Line);
     END; {WHILE}
@@ -2976,11 +3063,7 @@ BEGIN
     Line := 0;
     WHILE Line <= High(Lines) DO BEGIN
       WITH Lines[Line] DO BEGIN
-        Line_MousePolygon[0] := Point(Line_ScreenUpX, Line_ScreenUpY + MouseRectangleEdgeVerticalSpacingScaled);
-        Line_MousePolygon[1] := Point(Line_ScreenUpX, Line_ScreenUpY - MouseRectangleEdgeVerticalSpacingScaled);
-        Line_MousePolygon[2] := Point(Line_ScreenDownX, Line_ScreenDownY - MouseRectangleEdgeVerticalSpacingScaled);
-        Line_MousePolygon[3] := Point(Line_ScreenDownX, Line_ScreenDownY + MouseRectangleEdgeVerticalSpacingScaled);
-        Line_MousePolygon[4] := Line_MousePolygon[0];
+        CalculateLinePolygons(Line);
 
         { Add the line-end characters which indicate where a line goes next }
         WITH RailWindowBitmap.Canvas DO BEGIN
@@ -3171,28 +3254,16 @@ BEGIN
       ErrorMsg := 'ValidateRow: row number cannot exceed the specified number of screeen rows (' + IntToStr(WindowRows) + ')';
 END; { ValidateRow }
 
-FUNCTION ValidateLineAbsolute(Str : String; OUT ErrorMsg : String) : Integer;
-{ See whether the X or Y absolute value duplicates another field }
+FUNCTION ValidateGridX(Str : String; OUT ErrorMsg : String) : Integer;
+{ Converts grid string to number }
 BEGIN
   ErrorMsg := '';
   Result := 0;
 
   IF Str <> '' THEN
     IF NOT TryStrToInt(Str, Result) THEN
-      ErrorMsg := 'ValidateLineAbsolute: invalid integer "' + Str + '"';
-END; { ValidateLineAbsolute }
-
-FUNCTION ValidateLineUpXStr(UpXStr, LineStr : String; OUT ErrorMsg : String) : String;
-{ Sees whether the line at UpX is different from the line we're creating }
-BEGIN
-  ErrorMsg := '';
-  Result := '';
-
-  IF UpXStr = LineStr THEN
-    ErrorMsg := 'UpXLine cannot be the same value as Line'
-  ELSE
-    Result := UpXStr;
-END; { ValidateLineUpXStr }
+      ErrorMsg := 'ValidateGridX: invalid integer "' + Str + '"';
+END; { ValidateGridX }
 
 FUNCTION ValidateLineName(Str : String; Line : Integer; OUT ErrorMsg : String) : String;
 { Validates whether the new line name matches an existing one }
@@ -3243,8 +3314,6 @@ VAR
   ErrorMsg : String;
   Line : Integer;
   OtherLine : Integer;
-  SaveLine : Integer;
-  TempLine : Integer;
 
 BEGIN
   TRY
@@ -3267,20 +3336,6 @@ BEGIN
       LinesADOConnection.Connected := True;
       LinesADOTable.Open;
       Log('T Line data table and connection opened to initialise the lines');
-
-      LinesADOTable.First;
-      Line := -1;
-      WHILE NOT LinesADOTable.EOF DO BEGIN
-        Inc(Line);
-        TempLine := LinesADOTable.FieldByName(Line_NumberFieldName).AsInteger;
-        IF TempLine <> Line THEN BEGIN
-          { we need to renumber from here on }
-          LinesADOTable.Edit;
-          LinesADOTable.FieldByName(Line_NumberFieldName).AsInteger := Line;
-          LinesADOTable.Post;
-        END;
-        LinesADOTable.Next;
-      END; {WHILE}
 
       LinesADOTable.Sort := '[' + Line_NumberFieldName + '] ASC';
       LinesADOTable.First;
@@ -3328,12 +3383,9 @@ BEGIN
             Line_DownConnectionCh := '';
             Line_DownConnectionChBold := False;
 
+            Line_IsBeingMovedByHandle := NoHandle;
             Line_IsTempNewLine := False;
-            Line_TempNewLineScreenUpX := 0;
-            Line_TempNewLineScreenDownX := 0;
-
-            Line_TempNewLineScreenUpY := 0;
-            Line_TempNewLineScreenDownY := 0;
+            Line_ShowHandles := False;
 
             Line_Number := FieldByName(Line_NumberFieldName).AsInteger;
             IF Line_Number <> Line THEN
@@ -3343,16 +3395,22 @@ BEGIN
               Line_NameStr := ValidateLineName(FieldByName(Line_NameStrFieldName).AsString, Line, ErrorMsg);
 
             IF ErrorMsg = '' THEN
-              Line_GridUpX := ValidateLineAbsolute(FieldByName(Line_GridUpXFieldName).AsString, ErrorMsg);
+              Line_UpRow := ValidateRow(FieldByName('Up Row').AsString, ErrorMsg);
 
             IF ErrorMsg = '' THEN
-              Line_GridDownX := ValidateLineAbsolute(FieldByName(Line_GridDownXFieldName).AsString, ErrorMsg);
+              Line_DownRow := ValidateRow(FieldByName('Down Row').AsString, ErrorMsg);
 
             IF ErrorMsg = '' THEN
-              Line_GridUpY := ValidateLineAbsolute(FieldByName(Line_GridUpYFieldName).AsString, ErrorMsg);
+              Line_GridUpX := ValidateGridX(FieldByName(Line_GridUpXFieldName).AsString, ErrorMsg);
 
             IF ErrorMsg = '' THEN
-              Line_GridDownY := ValidateLineAbsolute(FieldByName(Line_GridDownYFieldName).AsString, ErrorMsg);
+              Line_GridDownX := ValidateGridX(FieldByName(Line_GridDownXFieldName).AsString, ErrorMsg);
+
+            IF ErrorMsg = '' THEN
+              Line_GridUpY := ValidateGridX(FieldByName(Line_GridUpYFieldName).AsString, ErrorMsg);
+
+            IF ErrorMsg = '' THEN
+              Line_GridDownY := ValidateGridX(FieldByName(Line_GridDownYFieldName).AsString, ErrorMsg);
 
             IF ErrorMsg = '' THEN
               Line_Location := ValidateLineLocation(FieldByName(Line_LocationStrFieldName).AsString, ErrorMsg);
@@ -3565,23 +3623,10 @@ BEGIN
     END; {FOR}
 
     { And check for lines which are declared but not initialised }
-    SaveLine := UnknownLine;
-    FOR Line := 0 TO High(Lines) DO BEGIN
+    FOR Line := 0 TO High(Lines) DO
       IF LineToStr(Line) = '' THEN
-        IF Line = 0 THEN BEGIN
-          IF MessageDialogueWithDefault('First line declared in Initvars but not initialised in RailDraw - do you wish to continue?',
-                                        StopTimer, mtWarning, [mbYes, mbNo], mbNo) = mrNo
-          THEN
-            ShutDownProgram(UnitRef, 'ReadInLineDataFromDatabase');
-        END ELSE BEGIN
-          IF MessageDialogueWithDefault('Line declared in Initvars but not initialised in RailDraw (after line "' + Lines[SaveLine].Line_NameStr + '")'
-                                        + ' - do you wish to continue?',
-                                        StopTimer, mtWarning, [mbYes, mbNo], mbNo) = mrNo
-          THEN
-            ShutDownProgram(UnitRef, 'ReadInLineDataFromDatabase');
-        END;
-      SaveLine := Line;
-    END; {FOR}
+        Log('X! Line ' + IntToStr(Line) + ' does not have a name');
+
   EXCEPT {TRY}
     ON E : Exception DO
       Log('EG ReadInLineDataFromDatabase: ' + E.ClassName + ' error raised, with message: ' + E.Message);
@@ -3622,7 +3667,7 @@ BEGIN
       LinesADOTable.FieldByName(Line_NumberFieldName).AsInteger := High(Lines);
       LinesADOTable.Post;
 
-      Log('S Line data table and connection opened to write out Line data that has changed');
+      Log('S Line data table and connection opened to create record for Line ' + IntToStr(High(Lines)));
       { Tidy up the database }
       LinesADOTable.Close;
       LinesADOConnection.Connected := False;
@@ -3639,6 +3684,7 @@ PROCEDURE WriteOutLineDataToDatabase;
 VAR
   Line : Integer;
   TempInt : Integer;
+  TempExtended : Extended;
   TempStr : String;
 
 BEGIN
