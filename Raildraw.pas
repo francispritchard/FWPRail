@@ -4613,7 +4613,6 @@ BEGIN
     END ELSE
       IF PopupType = LineExitCreateLinePopupType THEN BEGIN
         CreateLineMode := False;
-        SaveOrDiscardNewLines;
       END ELSE BEGIN
         WITH Lines[LinePopupNum] DO BEGIN
           CASE PopupType OF
