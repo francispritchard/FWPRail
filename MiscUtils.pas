@@ -218,6 +218,9 @@ FUNCTION DirectionWillChangeAfterGivenJourney(T : TrainIndex; CurrentJourney : I
 FUNCTION DirectionArrayToStr(DirectionsArray : DirectionArrayType) : String;
 { List the contents of an array }
 
+FUNCTION DistanceBetween(X1, Y1, X2, Y2 : Integer) : Extended;
+{ Returns the Euclidean distance between (X1, Y1) and (X2, Y2) }
+
 PROCEDURE DrawLineInLogFile(LocoChipStr : String; LogFileCh : Char; LineStr : String; OriginatingUnitRef : String);
 { Draw a line of a given character in the log file }
 
@@ -2864,6 +2867,12 @@ BEGIN
     Result := Result + IntToStr(TrackCircuitArray[High(TrackCircuitArray)]);
   END;
 END; { DisplayTrackCircuitsForLocation }
+
+FUNCTION DistanceBetween(X1, Y1, X2, Y2 : Integer) : Extended;
+{ Returns the Euclidean distance between (X1, Y1) and (X2, Y2) }
+BEGIN
+  Result := Sqrt(Power(X1 - X2, 2) + Power(Y1 - Y2, 2));
+END; { DistanceBetween }
 
 PROCEDURE DrawLineInLogFile(LocoChipStr : String; LogFileCh : Char; LineStr : String; OriginatingUnitRef : String);
 { Draw a line of a given character in the log file }
