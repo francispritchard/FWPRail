@@ -187,15 +187,6 @@ BEGIN
       IF EditMode AND EndOfLineDragging THEN
         DragEndOfLine(ScreenX, ScreenY, ShiftState)
       ELSE
-        IF PreparingZoom THEN BEGIN
-          { Draw and undraw the rectangle if any }
-          DrawOutline(ZoomRect, clRed, UndrawRequired, NOT UndrawToBeAutomatic);
-
-          { and set up and draw the new rectangle }
-          ZoomRect.Left := MouseX;
-          ZoomRect.Top := MouseY;
-          ZoomRect.Right := ScreenX;
-          ZoomRect.Bottom := ScreenY;
 
           { Only change the cursor if we start drawing a rectangle }
           IF (MouseX <> ScreenX) AND (MouseY <> ScreenY) THEN
@@ -1693,9 +1684,6 @@ BEGIN
                           ELSE
                             IF Zooming THEN
                               MoveZoomWindowMode := True;
-//                            ELSE
-//                              IF NOT PreparingZoom THEN
-//                                PreparingZoom := True;
         END ELSE
           IF ButtonPress = mbRight THEN BEGIN
             IF SignalFoundNum <> UnknownSignal THEN BEGIN
@@ -1801,40 +1789,6 @@ BEGIN
     IF MoveZoomWindowMode THEN BEGIN
       MoveZoomWindowMode := False;
       ShowStatusBarAndUpDownIndications;
-    END ELSE
-      { Setting up a zoom rectangle }
-      IF PreparingZoom THEN BEGIN
-        PreparingZoom := False;
-
-        WITH ZoomRect DO BEGIN
-          { First see if we've drawn a rectangle at all }
-          IF (Left = Right) AND (Top = Bottom) THEN
-            { reinstate the status bar as we're not drawing a rectangle }
-            ShowStatusBarAndUpDownIndications
-          ELSE BEGIN
-            { Allow for the user starting to draw the rectangle from a different corner }
-            IF ZoomRect.Left > ZoomRect.Right THEN BEGIN
-              TempInt := ZoomRect.Right;
-              ZoomRect.Right := ZoomRect.Left;
-              ZoomRect.Left := TempInt
-            END;
-
-            IF ZoomRect.Top > ZoomRect.Bottom THEN BEGIN
-              TempInt := ZoomRect.Bottom;
-              ZoomRect.Bottom := ZoomRect.Top;
-              ZoomRect.Top := TempInt;
-            END;
-
-            ZoomScaleFactor := 750;
-            SetCaption(FWPRailWindow, 'Zoom level 130%');
-            Zooming := True;
-            InvalidateScreen(UnitRef, 'MouseButtonReleased');
-          END;
-        END;
-
-        { Undraw the rectangle that's left }
-        DrawOutline(ZoomRect, clRed, UndrawRequired, NOT UndrawToBeAutomatic);
-      END;
   EXCEPT {TRY}
     ON E : Exception DO
       Log('EG MouseButtonReleased: ' + E.ClassName + ' error raised, with message: '+ E.Message);

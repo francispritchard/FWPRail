@@ -1370,7 +1370,6 @@ GridInterLineSpacing : Integer = 0;
   Points : ARRAY OF PointRec;
   PostEmergencyTime : TDateTime = 0;
   PostEmergencyTimeSet : Boolean = False;
-  PreparingZoom : Boolean = False;
   PreviousPointSettingsMode : Boolean = False;
   ProgramShuttingDown : Boolean = False;
   ProgramStartup : Boolean = True;
