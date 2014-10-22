@@ -31,7 +31,8 @@ TYPE
 VAR
   DebugWindow: TDebugWindow;
 
-PROCEDURE AddLightsToLightsToBeSwitchedOnArray(T : TrainIndex; DesiredDirection1, DesiredDirection2 : DirectionType; MinSeconds, MaxSeconds : Integer; LightsOnTime : TDateTime);
+PROCEDURE AddLightsToLightsToBeSwitchedOnArray(T : TrainIndex; DesiredDirection1, DesiredDirection2 : DirectionType; MinSeconds, MaxSeconds : Integer;
+                                               LightsOnTime : TDateTime);
 { Set up a train's lights to switch on at a random time ahead }
 
 PROCEDURE AddRichLine(RichEdit: TRichEdit; StrToAdd: String);
