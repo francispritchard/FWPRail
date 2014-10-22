@@ -2541,7 +2541,7 @@ BEGIN
   END;
 
   { Needs this to avoid filling the window with identical lines of text }
-  IF (Str <> OldDebugStr) OR (Str = '!***') THEN BEGIN
+  IF (Str <> OldDebugStr) OR (Pos('!*', Str) > 0) THEN BEGIN
     IF DebugWindow = NIL THEN BEGIN
       { store any messages written before the Debug Window is initialised, to be written out when it is }
       SetLength(DebugWindowLines, Length(DebugWindowLines) + 1);
