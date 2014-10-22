@@ -541,6 +541,9 @@ FUNCTION MapScreenXToGridX(ScreenX : Integer) : Integer;
 FUNCTION MapScreenYToGridY(ScreenY : Integer) : Integer;
 { Map screen co-ordinate to grid co-ordinate }
 
+FUNCTION MapScreenYToRow(ScreenY : Integer) : Extended;
+{ Map screen co-ordinate to row }
+
 FUNCTION MapGridXToScreenX(GridX : Integer) : Integer;
 { Map grid co-ordinate to screen co-ordinate }
 
@@ -691,6 +694,13 @@ FUNCTION MapScreenYToGridY(ScreenY : Integer) : Integer;
 BEGIN
   Result := MulDiv(ZoomScaleFactor, ScreenY + ScrollBarYAdjustment, FWPRailWindow.ClientHeight);
 END; { MapScreenYToGridY }
+
+FUNCTION MapScreenYToRow(ScreenY : Integer) : Extended;
+{ Map screen co-ordinate to row }
+BEGIN
+  Result := ScreenY / InterLineSpacing;
+  Result := Round(Result * 10) / 10;
+END; { MapScreenYToRow }
 
 FUNCTION MapGridXToScreenX(GridX : Integer) : Integer;
 { Map grid co-ordinate to screen co-ordinate }
