@@ -4033,7 +4033,7 @@ BEGIN
   FOR TC := 0 TO High(TrackCircuits) DO BEGIN
     TCLocationFound := False;
     L := 0;
-    WHILE (L < High(Lines)) AND NOT TCLocationFound DO BEGIN
+    WHILE (L <= High(Lines)) AND NOT TCLocationFound DO BEGIN
       IF Lines[L].Line_TC = TC THEN BEGIN
         TCLocationFound := True;
         AppendToLineArray(TrackCircuits[TC].TC_LineArray, L);
