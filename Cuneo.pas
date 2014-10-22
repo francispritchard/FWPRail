@@ -16,7 +16,7 @@ TYPE
     { Public declarations }
   END;
 
-PROCEDURE ChangeStateOfWhatIsUnderMouse(ScreenX, ScreenY : Integer; ShiftState : TShiftState; HelpRequired : Boolean);
+PROCEDURE ChangeStateOfWhatIsUnderMouse(ScreenClickPosX, ScreenClickPosY : Integer; ShiftState : TShiftState; HelpRequired : Boolean);
 { See what the mouse is currently pointing at something, and change its state if appropriate }
 
 FUNCTION GetLineFoundNum : Integer;
@@ -25,25 +25,27 @@ FUNCTION GetLineFoundNum : Integer;
 FUNCTION GetZoomRect : TRect;
 { Return the current zoom rectangle }
 
-PROCEDURE MouseButtonPressed(Button : TMouseButton; ScreenX, ScreenY : Integer; ShiftState : TShiftState);
+PROCEDURE MouseButtonPressed(Button : TMouseButton; ScreenClickPosX, ScreenClickPosY : Integer; ShiftState : TShiftState);
 { The mouse button has been pressed }
 
-PROCEDURE MouseButtonReleased(Button : TMouseButton; ScreenX, ScreenY : Integer; ShiftState : TShiftState);
+PROCEDURE MouseButtonReleased(Button : TMouseButton; ScreenClickPosX, ScreenClickPosY : Integer; ShiftState : TShiftState);
 { Button released }
 
 PROCEDURE SetZoomRect(TempZoomRect : TRect);
 { Set the current zoom rectangle }
 
-PROCEDURE WhatIsUnderMouse(ScreenX, ScreenY : Integer; ShiftState : TShiftState); Overload;
+PROCEDURE WhatIsUnderMouse(ScreenClickPosX, ScreenClickPosY : Integer; ShiftState : TShiftState); Overload;
 { Returns the current mouse position and whether a specific item has been found at that position without a keypress being required }
 
-PROCEDURE WhatIsUnderMouse(ScreenX, ScreenY : Integer; ShiftState : TShiftState; OUT BufferStopFoundNum : Integer; OUT IndicatorFoundNum : Integer;
+PROCEDURE WhatIsUnderMouse(ScreenClickPosX, ScreenClickPosY : Integer; ShiftState : TShiftState; OUT BufferStopFoundNum : Integer; OUT IndicatorFoundNum : Integer;
                            OUT IndicatorFoundType : JunctionIndicatorType; OUT PointFoundNum : Integer; OUT SignalFoundNum : Integer; OUT SignalPostFoundNum : Integer;
                            OUT TheatreIndicatorFoundNum : Integer; OUT TRSPlungerFoundLocation : Integer); Overload;
 { Returns the current mouse position and whether a specific item has been found at that position without a keypress being required }
 
 VAR
   CuneoWindow: TCuneoWindow;
+  SaveGridClickPosX : Integer = -1;
+  SaveGridClickPosY : Integer = -1;
 
 IMPLEMENTATION
 
@@ -121,7 +123,7 @@ BEGIN
   ZoomRect := TempZoomRect;
 END; { SetZoomRect }
 
-PROCEDURE WhatIsUnderMouseMainProc(ScreenX, ScreenY : Integer; ShiftState : TShiftState; OUT BufferStopFoundNum : Integer; OUT IndicatorFoundNum : Integer;
+PROCEDURE WhatIsUnderMouseMainProc(ScreenClickPosX, ScreenClickPosY : Integer; ShiftState : TShiftState; OUT BufferStopFoundNum : Integer; OUT IndicatorFoundNum : Integer;
                                    OUT IndicatorFoundType : JunctionIndicatorType; OUT PointFoundNum : Integer; OUT SignalFoundNum : Integer;
                                    OUT SignalPostFoundNum : Integer; OUT TheatreIndicatorFoundNum : Integer; OUT TRSPlungerFoundLocation : Integer);
 { Returns the current mouse position and whether a specific item has been found at that position without a keypress being required }
@@ -645,7 +647,7 @@ BEGIN
   END; {TRY}
 END; { WhatIsUnderMouseMainProc }
 
-PROCEDURE WhatIsUnderMouse(ScreenX, ScreenY : Integer; ShiftState : TShiftState); Overload;
+PROCEDURE WhatIsUnderMouse(ScreenClickPosX, ScreenClickPosY : Integer; ShiftState : TShiftState); Overload;
 { Returns the current mouse position }
 VAR
   BufferStopFoundNum : Integer;
@@ -658,16 +660,16 @@ VAR
   TRSPlungerFoundLocation : Integer;
 
 BEGIN
-  WhatIsUnderMouseMainProc(ScreenX, ScreenY, ShiftState, BufferStopFoundNum, IndicatorFoundNum, IndicatorFoundType, PointFoundNum, SignalFoundNum, SignalPostFoundNum,
+  WhatIsUnderMouseMainProc(ScreenClickPosX, ScreenClickPosY, ShiftState, BufferStopFoundNum, IndicatorFoundNum, IndicatorFoundType, PointFoundNum, SignalFoundNum, SignalPostFoundNum,
                            TheatreIndicatorFoundNum, TRSPlungerFoundLocation);
 END; { WhatIsUnderMouse }
 
-PROCEDURE WhatIsUnderMouse(ScreenX, ScreenY : Integer; ShiftState : TShiftState; OUT BufferStopFoundNum : Integer; OUT IndicatorFoundNum : Integer;
+PROCEDURE WhatIsUnderMouse(ScreenClickPosX, ScreenClickPosY : Integer; ShiftState : TShiftState; OUT BufferStopFoundNum : Integer; OUT IndicatorFoundNum : Integer;
                            OUT IndicatorFoundType : JunctionIndicatorType; OUT PointFoundNum : Integer; OUT SignalFoundNum : Integer; OUT SignalPostFoundNum : Integer;
                            OUT TheatreIndicatorFoundNum : Integer; OUT TRSPlungerFoundLocation : Integer); Overload;
 { Returns the current mouse position and whether a specific item has been found at that position without a keypress being required }
 BEGIN
-  WhatIsUnderMouseMainProc(ScreenX, ScreenY, ShiftState, BufferStopFoundNum, IndicatorFoundNum, IndicatorFoundType, PointFoundNum, SignalFoundNum, SignalPostFoundNum,
+  WhatIsUnderMouseMainProc(ScreenClickPosX, ScreenClickPosY, ShiftState, BufferStopFoundNum, IndicatorFoundNum, IndicatorFoundType, PointFoundNum, SignalFoundNum, SignalPostFoundNum,
                            TheatreIndicatorFoundNum, TRSPlungerFoundLocation);
 END; { WhatIsUnderMouse }
 
@@ -700,7 +702,7 @@ BEGIN
   END;
 END; { SignalPostFlashingTimerTick }
 
-PROCEDURE ChangeStateOfWhatIsUnderMouse(ScreenX, ScreenY : Integer; ShiftState : TShiftState; HelpRequired : Boolean);
+PROCEDURE ChangeStateOfWhatIsUnderMouse(ScreenClickPosX, ScreenClickPosY : Integer; ShiftState : TShiftState; HelpRequired : Boolean);
 { See what the mouse is currently pointing at something, and change its state if appropriate }
 CONST
   Amendment = True;
@@ -1570,8 +1572,8 @@ BEGIN
       UpLineEndCharacterSelected(IrrelevantLine, HelpRequired);
       WriteNextLineDetailToDebugWindow(LineFoundNum, HelpRequired);
     END ELSE BEGIN
-      WhatIsUnderMouse(ScreenX, ScreenY, ShiftState, BufferStopFoundNum, IndicatorFoundNum, IndicatorFoundType, PointFoundNum, SignalFoundNum, SignalPostFoundNum,
-                       TheatreIndicatorFoundNum, TRSPlungerFoundLocation);
+      WhatIsUnderMouse(ScreenClickPosX, ScreenClickPosY, ShiftState, BufferStopFoundNum, IndicatorFoundNum, IndicatorFoundType, PointFoundNum, SignalFoundNum,
+                       SignalPostFoundNum, TheatreIndicatorFoundNum, TRSPlungerFoundLocation);
 
       { We get the FoundNum data from the WhatIsUnderMouse routine }
       IF EditMode THEN BEGIN
@@ -1755,7 +1757,7 @@ BEGIN
   END;
 END; { MouseButtonDownTimerTick }
 
-PROCEDURE MouseButtonReleased(Button : TMouseButton; ScreenX, ScreenY : Integer; ShiftState : TShiftState);
+PROCEDURE MouseButtonReleased(Button : TMouseButton; ScreenClickPosX, ScreenClickPosY : Integer; ShiftState : TShiftState);
 { Button released - only used for a few processes }
 VAR
   Line : Integer;
@@ -1839,7 +1841,7 @@ BEGIN
   END; {TRY}
 END; { MouseButtonReleased }
 
-PROCEDURE MouseButtonPressed(Button : TMouseButton; ScreenX, ScreenY : Integer; ShiftState : TShiftState);
+PROCEDURE MouseButtonPressed(Button : TMouseButton; ScreenClickPosX, ScreenClickPosY : Integer; ShiftState : TShiftState);
 { Button pressed }
 CONST
   HelpRequired = True;
@@ -1890,7 +1892,7 @@ BEGIN
     THEN
       CheckEmergencyStop(Button, ShiftState)
     ELSE
-      ChangeStateOfWhatIsUnderMouse(ScreenX, ScreenY, ShiftState, NOT HelpRequired);
+      ChangeStateOfWhatIsUnderMouse(ScreenClickPosX, ScreenClickPosY, ShiftState, NOT HelpRequired);
 
     InvalidateScreen(UnitRef, 'MouseButtonPressed');
   END;
