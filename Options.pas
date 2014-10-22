@@ -1318,12 +1318,13 @@ BEGIN
       DiagramsFilenameSuffix := ReadString(FilesSectionStr, DiagramsFilenameSuffixStr, DefaultDiagramsFilenameSuffix);
       FeedbackDataFilename := ReadString(FilesSectionStr, FeedbackDataFilenameStr, DefaultFeedbackDataFilename);
       FeedbackDataFilenameSuffix := ReadString(FilesSectionStr, FeedbackDataFilenameSuffixStr, DefaultFeedbackDataFilenameSuffix);
+      LineDataFilename := ReadString(FilesSectionStr, LineDataFilenameStr, DefaultLineDataFilename);
+      LineDataFilenameSuffix := ReadString(FilesSectionStr, LineDataFilenameSuffixStr, DefaultLineDataFilenameSuffix);
+
       LocationDataFilename := ReadString(FilesSectionStr, LocationDataFilenameStr, DefaultLocationDataFilename);
       LocationDataFilenameSuffix := ReadString(FilesSectionStr, LocationDataFilenameSuffixStr, DefaultLocationDataFilenameSuffix);
       LocoDataFilename := ReadString(FilesSectionStr, LocoDataFilenameStr, DefaultLocoDataFilename);
       LocoDataFilenameSuffix := ReadString(FilesSectionStr, LocoDataFilenameSuffixStr, DefaultLocoDataFilenameSuffix);
-      LineDataFilename := ReadString(FilesSectionStr, LineDataFilenameStr, DefaultLineDataFilename);
-      LineDataFilenameSuffix := ReadString(FilesSectionStr, LineDataFilenameSuffixStr, DefaultLineDataFilenameSuffix);
       LogFilename := ReadString(FilesSectionStr, LogFilenameStr, DefaultLogFilename);
       LogFilenameSuffix := ReadString(FilesSectionStr, LogFilenameSuffixStr, DefaultLogFilenameSuffix);
       PlatformDataFilename := ReadString(FilesSectionStr, PlatformDataFilenameStr, DefaultPlatformDataFilename);
@@ -1813,6 +1814,7 @@ BEGIN
       WriteString(FilesSectionStr, DiagramsFilenameSuffixStr, DiagramsFilenameSuffix);
       WriteString(FilesSectionStr, FeedbackDataFilenameStr, FeedbackDataFilename);
       WriteString(FilesSectionStr, FeedbackDataFilenameSuffixStr, FeedbackDataFilenameSuffix);
+
       WriteString(FilesSectionStr, LineDataFilenameStr, LineDataFilename);
       WriteString(FilesSectionStr, LineDataFilenameSuffixStr, LineDataFilenameSuffix);
       WriteString(FilesSectionStr, LocationDataFilenameStr, LocationDataFilename);
