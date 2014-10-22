@@ -25,8 +25,11 @@ TYPE
     LinesADOTable: TADOTable;
     LinesADOTable2: TADOTable;
     LocationsADOConnection : TADOConnection;
+    LocationsADOConnection2: TADOConnection;
     LocationsADOTable : TADOTable;
+    LocationsADOTable2: TADOTable;
     LocationsDataSource : TDataSource;
+    LocationsDataSource2: TDataSource;
     PlatformsADOConnection: TADOConnection;
     PlatformsADOTable: TADOTable;
     PlatformDataSource : TDataSource;
@@ -43,19 +46,15 @@ TYPE
     SignalsADOTable2 : TADOTable;
     SignalsDataSource : TDataSource;
     SignalsDataSource2 : TDataSource;
+    StationMonitorsWebDiagnosticsMemo: TMemo;
     TrackCircuitsADOConnection: TADOConnection;
+    TrackCircuitsADOConnection2: TADOConnection;
     TrackCircuitsADOTable: TADOTable;
+    TrackCircuitsADOTable2: TADOTable;
     TrackCircuitDataSource : TDataSource;
+    TrackCircuitDataSource2: TDataSource;
     UnderwayOrCompleted1Label : TLabel;
     UnderwayOrCompleted2Label : TLabel;
-
-    StationMonitorsWebDiagnosticsMemo: TMemo;
-    LocationsDataSource2: TDataSource;
-    LocationsADOConnection2: TADOConnection;
-    LocationsADOTable2: TADOTable;
-    TrackCircuitsADOConnection2: TADOConnection;
-    TrackCircuitDataSource2: TDataSource;
-    TrackCircuitsADOTable2: TADOTable;
   PRIVATE
     { Private declarations }
   PUBLIC
@@ -2166,12 +2165,13 @@ BEGIN
                                                      + ';Persist Security Info=False';
       TrackCircuitsADOConnection.Connected := True;
       TrackCircuitsADOTable.Open;
+
       IF NOT TrackCircuitsADOTable.Locate(TC_NumberFieldName, IntToStr(TrackCircuitToDeleteNum), []) THEN BEGIN
         Log('T Track circuit data table and connection opened to delete TC ' + TrackCircuitToStr(TrackCircuitToDeleteNum) + ' but it cannot be found');
       END ELSE BEGIN
         Log('T Track circuit data table and connection opened to delete TC ' + TrackCircuitToStr(TrackCircuitToDeleteNum));
 
-        { Now delete the track circuit - we have already checked, in the Edit unit, whether deleting it is will cause knock-on problems with other track circuits }
+        { Now delete the track circuit - we have already checked, in the Edit unit, whether deleting it will cause knock-on problems with other track circuits }
         TrackCircuitsADOTable.Delete;
         Log('TG TrackCircuit ' + IntToStr(TrackCircuitToDeleteNum) + ' has been deleted');
         Result := True;
@@ -5025,7 +5025,7 @@ BEGIN
       END ELSE BEGIN
         Log('S Signal data table and connection opened to delete S' + IntToStr(SignalToDeleteNum));
 
-        { Now delete the signal - we have already checked, in the Edit unit, whether deleting it is will cause knock-on problems with other signals }
+        { Now delete the signal - we have already checked, in the Edit unit, whether deleting it will cause knock-on problems with other signals }
         SignalsADOTable.Delete;
         Log('SG S' + IntToStr(SignalToDeleteNum) + ' has been deleted');
         Result := True;
@@ -6038,7 +6038,7 @@ BEGIN
       END ELSE BEGIN
         Log('P Point data table and connection opened to delete P' + IntToStr(PointToDeleteNum));
 
-        { Now delete the point - we have already checked, in the Edit unit, whether deleting it is will cause knock-on problems with other Points }
+        { Now delete the point - we have already checked, in the Edit unit, whether deleting it will cause knock-on problems with other Points }
         PointsADOTable.Delete;
         Log('PG P' + IntToStr(PointToDeleteNum) + ' has been deleted');
         Result := True;
