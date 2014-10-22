@@ -3717,27 +3717,39 @@ BEGIN
             LinesADOTable.Post;
 
             TempInt := Line_GridUpX;
-            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + 'Up X' + ' is ''' + IntToStr(TempInt) + '''');
+            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_GridUpXFieldName + ' is ''' + IntToStr(TempInt) + '''');
             LinesADOTable.Edit;
-            LinesADOTable.FieldByName('Up X').AsString := IntToStr(TempInt);
+            LinesADOTable.FieldByName(Line_GridUpXFieldName).AsString := IntToStr(TempInt);
             LinesADOTable.Post;
 
             TempInt := Line_GridDownX;
-            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + 'Down X' + ' is ''' + IntToStr(TempInt) + '''');
+            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_GridDownXFieldName + ' is ''' + IntToStr(TempInt) + '''');
             LinesADOTable.Edit;
-            LinesADOTable.FieldByName('Down X').AsString := IntToStr(TempInt);
+            LinesADOTable.FieldByName(Line_GridDownXFieldName).AsString := IntToStr(TempInt);
             LinesADOTable.Post;
 
             TempInt := Line_GridUpY;
-            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + 'Up Y' + ' is ''' + IntToStr(TempInt) + '''');
+            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_GridUpYFieldName + ' is ''' + IntToStr(TempInt) + '''');
             LinesADOTable.Edit;
-            LinesADOTable.FieldByName('Up Y').AsString := IntToStr(TempInt);
+            LinesADOTable.FieldByName(Line_GridUpYFieldName).AsString := IntToStr(TempInt);
             LinesADOTable.Post;
 
             TempInt := Line_GridDownY;
-            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + 'Down Y' + ' is ''' + IntToStr(TempInt) + '''');
+            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_GridDownYFieldName + ' is ''' + IntToStr(TempInt) + '''');
             LinesADOTable.Edit;
-            LinesADOTable.FieldByName('Down Y').AsString := IntToStr(TempInt);
+            LinesADOTable.FieldByName(Line_GridDownYFieldName).AsString := IntToStr(TempInt);
+            LinesADOTable.Post;
+
+            TempExtended := Line_UpRow;
+            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_UpRowFieldName + ' is ''' + FloatToStr(TempExtended) + '''');
+            LinesADOTable.Edit;
+            LinesADOTable.FieldByName(Line_UpRowFieldName).AsString := FloatToStr(TempExtended);
+            LinesADOTable.Post;
+
+            TempExtended := Line_DownRow;
+            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_DownRowFieldName + ' is ''' + FloatToStr(TempExtended) + '''');
+            LinesADOTable.Edit;
+            LinesADOTable.FieldByName(Line_DownRowFieldName).AsString := FloatToStr(TempExtended);
             LinesADOTable.Post;
 
             Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_BufferStopTheatreDestinationStrFieldName
