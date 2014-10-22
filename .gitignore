@@ -22,3 +22,7 @@ Rail Data Files/Logs/*
 *.test
 *.aqt
 profiling/*
+SaveRail/*
+Misc/*
+*.lnk
+*.bat
