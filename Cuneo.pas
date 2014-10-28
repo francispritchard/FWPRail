@@ -156,6 +156,9 @@ VAR
 
 BEGIN
   TRY
+    GridX := MapScreenXToGridX(ScreenClickPosX);
+    GridY := MapScreenYToGridY(ScreenClickPosY);
+
     ObjectFound := False;
     IndicatorFoundNum := UnknownSignal;
     IndicatorFoundType := UnknownJunctionIndicator;
@@ -171,15 +174,11 @@ BEGIN
 
     StatusBarPanel1Str := '';
 
-    IF DebuggingMode THEN BEGIN
+    IF DebuggingMode THEN
       { Display mouse co-ordinates }
-      GridX := MapScreenXToGridX(ScreenClickPosX);
-      GridY := MapScreenYToGridY(ScreenClickPosY);
-
       WriteToStatusBarPanel(StatusBarPanel2, IntToStr(ScreenClickPosX) + ',' + IntToStr(ScreenClickPosY) + '; '
                             + IntToStr(GridX)  + '/1000,'
                             + IntToStr(GridY)  + '/1000');
-    END;
 
     IF EditMode THEN BEGIN
       IF SignalDragging THEN
@@ -194,10 +193,10 @@ BEGIN
           MouseMovingY := ScreenClickPosY;
         END ELSE
           IF EndOfLineDragging AND (EditedLine <> UnknownLine) THEN
-            DragEndOfLine(ScreenClickPosX, ScreenClickPosY, ShiftState)
+            DragEndOfLine(GridX, GridY, ShiftState)
           ELSE
             IF EditMode AND WholeLineDragging AND (EditedLine <> UnknownLine) THEN
-              DragWholeLine(ScreenClickPosX, ScreenClickPosY);
+              DragWholeLine(GridX, GridY);
      END ELSE
       IF MoveZoomWindowMode THEN BEGIN
         HideStatusBarAndUpDownIndications;
@@ -1624,13 +1623,13 @@ BEGIN
                       LineHandleFound := True;
                       EndOfLineDragging := True;
                       Line_IsBeingMovedByHandle := UpHandle;
-                      DragEndOfLine(ScreenClickPosX, ScreenClickPosY, ShiftState);
+                      DragEndOfLine(GridX, GridY, ShiftState)
                     END ELSE
                       IF PointInPolygon(Line_DownHandlePolygon, Point(ScreenClickPosX, ScreenClickPosY)) AND NOT EndOfLineDragging THEN BEGIN
                         LineHandleFound := True;
                         EndOfLineDragging := True;
                         Line_IsBeingMovedByHandle := DownHandle;
-                        DragEndOfLine(ScreenClickPosX, ScreenClickPosY, ShiftState);
+                        DragEndOfLine(GridX, GridY, ShiftState)
                       END ELSE
                         IF PointInPolygon(Line_MidHandlePolygon, Point(ScreenClickPosX, ScreenClickPosY)) AND NOT WholeLineDragging THEN BEGIN
                           LineHandleFound := True;
@@ -1638,9 +1637,9 @@ BEGIN
                           WholeLineDragging := True;
 
                           { store where we are so that we can work out the offset to move it }
-                          SaveGridClickPosX := MapScreenXToGridX(ScreenClickPosX);
-                          SaveGridClickPosY := MapScreenYToGridY(ScreenClickPosY);
-                          DragWholeLine(ScreenClickPosX, ScreenClickPosY)
+                          SaveGridClickPosX := GridX;
+                          SaveGridClickPosY := GridY;
+                          DragWholeLine(GridX, GridY);
                         END;
                   END; {WITH}
                 END;
@@ -1672,10 +1671,10 @@ BEGIN
                       SetLength(Lines, Length(Lines) + 1);
                       WITH Lines[High(Lines)] DO BEGIN
                         Line_IsTempNewLine := True;
-                        Line_ScreenUpX := ScreenClickPosX;
-                        Line_ScreenUpY := ScreenClickPosY;
-                        Line_ScreenDownX := ScreenClickPosX;
-                        Line_ScreenDownY := ScreenClickPosY;
+                        Line_GridUpX := GridX;
+                        Line_GridUpY := GridY;
+                        Line_GridDownX := GridX;
+                        Line_GridDownY := GridY;
 
                         Line_ShowHandles := True;
                       END; {WITH}
@@ -1837,7 +1836,6 @@ PROCEDURE MouseButtonReleased(Button : TMouseButton; ScreenClickPosX, ScreenClic
 { Button released - only used for a few processes }
 VAR
   Line : Integer;
-  TempInt : Integer;
 
 BEGIN
   TRY
@@ -1855,12 +1853,12 @@ BEGIN
 
       IF EndOfLineDragging THEN BEGIN
         EndOfLineDragging := False;
-        LineDraggingComplete(ScreenClickPosX, ScreenClickPosY, ShiftState);
+        LineDraggingComplete(ShiftState);
       END;
 
       IF WholeLineDragging THEN BEGIN
         WholeLineDragging := False;
-        LineDraggingComplete(ScreenClickPosX, ScreenClickPosY, ShiftState);
+        LineDraggingComplete(ShiftState);
       END;
     END;
 

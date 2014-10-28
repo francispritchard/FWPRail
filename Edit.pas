@@ -67,13 +67,13 @@ PROCEDURE DeleteSignal(SignalToDeleteNum : Integer);
 PROCEDURE DeselectLine;
 { Ensures handles are switched off, etc. }
 
-PROCEDURE DragEndOfLine(X, Y : Integer; ShiftState : TShiftState);
+PROCEDURE DragEndOfLine(GridX, GridY : Integer; ShiftState : TShiftState);
 { Allows a line end to be moved by the mouse }
 
 PROCEDURE DragSignal(S, MouseX, MouseY : Integer; OUT NearestLineToSignal, TooNearSignal : Integer);
 { Allows a signal to be moved by the mouse }
 
-PROCEDURE DragWholeLine(ScreenClickPosX, ScreenClickPosY: Integer);
+PROCEDURE DragWholeLine(GridX, GridY : Integer);
 { Move a whole line by dragging its middle handle }
 
 PROCEDURE DropSignal;
@@ -85,7 +85,7 @@ FUNCTION GetNearestLine(X, Y : Integer) : Integer;
 PROCEDURE InitialiseEditUnit;
 { Initialises the unit }
 
-PROCEDURE LineDraggingComplete(X, Y : Integer; ShiftState : TShiftState);
+PROCEDURE LineDraggingComplete(ShiftState : TShiftState);
 { Called when when we have finished line creation by mouse }
 
 PROCEDURE MoveObjectLeft;
@@ -2659,7 +2659,7 @@ BEGIN
   END; {TRY}
 END; { DeleteLine }
 
-PROCEDURE DragEndOfLine(X, Y : Integer; ShiftState : TShiftState);
+PROCEDURE DragEndOfLine(GridX, GridY : Integer; ShiftState : TShiftState);
 { Allows a line end to be moved by the mouse }
 VAR
   NearestLineToNewLine : Integer;
@@ -2670,45 +2670,45 @@ BEGIN
       WITH FWPRailWindow.Canvas DO BEGIN
         WITH Lines[EditedLine] DO BEGIN
           IF Line_IsTempNewLine THEN BEGIN
-            Line_ScreenDownX := X;
+            Line_GridDownX := GridX;
 
             IF ssAlt IN ShiftState THEN
               { make it an exact horizontal line }
-              Line_ScreenDownY := Line_ScreenUpY
+              Line_GridDownY := Line_GridUpY
             ELSE
-              Line_ScreenDownY := Y;
+              Line_GridDownY := GridY;
           END ELSE
             IF Line_IsBeingMovedByHandle = UpHandle THEN BEGIN
-              Line_ScreenUpX := X;
+              Line_GridUpX := GridX;
 
               IF ssShift IN ShiftState THEN
                 { make it an exact horizontal line }
-                Line_ScreenUpY := Line_ScreenDownY
+                Line_GridUpY := Line_GridDownY
               ELSE
-                Line_ScreenUpY := Y;
+                Line_GridUpY := GridY;
             END ELSE
               IF Line_IsBeingMovedByHandle = DownHandle THEN BEGIN
-                Line_ScreenDownX := X;
+                Line_GridDownX := GridX;
 
                 IF ssShift IN ShiftState THEN
                   { make it an exact horizontal line }
-                  Line_ScreenDownY := Line_ScreenUpY
+                  Line_GridDownY := Line_GridUpY
                 ELSE
-                  Line_ScreenDownY := Y;
+                  Line_GridDownY := GridY;
               END;
 
-          Line_GridUpX := MapScreenXToGridX(Line_ScreenUpX);
-          Line_GridUpY := MapScreenYToGridY(Line_ScreenUpY);
-          Line_GridDownX := MapScreenXToGridX(Line_ScreenDownX);
-          Line_GridDownY := MapScreenYToGridY(Line_ScreenDownY);
+          Line_ScreenUpX := MapGridXToScreenX(Line_GridUpX);
+          Line_ScreenUpY := MapGridYToScreenY(Line_GridUpY);
+          Line_ScreenDownX := MapGridXToScreenX(Line_GridDownX);
+          Line_ScreenDownY := MapGridYToScreenY(Line_GridDownY);
         END; {WITH}
       END; {WITH}
 
-      NearestLineToNewLine := GetNearestLine(X, Y);
-      IF NearestLineToNewLine = UnknownLine THEN
-        ChangeCursor(crNoDrop)
-      ELSE
-        ChangeCursor(crDrag);
+//      NearestLineToNewLine := GetNearestLine(X, Y);
+//      IF NearestLineToNewLine = UnknownLine THEN
+//        ChangeCursor(crNoDrop)
+//      ELSE
+//        ChangeCursor(crDrag);
 
       FWPRailWindow.Repaint;
     END;
@@ -2718,11 +2718,9 @@ BEGIN
   END; {TRY}
 END; { DragEndOfLine }
 
-PROCEDURE DragWholeLine(ScreenClickPosX, ScreenClickPosY: Integer);
+PROCEDURE DragWholeLine(GridX, GridY : Integer);
 { Move a whole line by dragging its middle handle }
 VAR
-  GridClickPosX : Integer;
-  GridClickPosY : Integer;
   Line : Integer;
 
 BEGIN
@@ -2732,16 +2730,13 @@ BEGIN
         FOR Line := 0 TO High(Lines) DO BEGIN
           WITH Lines[Line] DO BEGIN
             IF Line_IsBeingMovedByHandle <> NoHandle THEN BEGIN
-              GridClickPosX := MapScreenXToGridX(ScreenClickPosX);
-              GridClickPosY := MapScreenYToGridY(ScreenClickPosY);
+              Line_GridUpX := Line_GridUpX + GridX - SaveGridClickPosX;
+              Line_GridUpY := Line_GridUpY + GridY - SaveGridClickPosY;
+              Line_GridDownX := Line_GridDownX + GridX - SaveGridClickPosX;
+              Line_GridDownY := Line_GridDownY + GridY - SaveGridClickPosY;
 
-              Line_GridUpX := Line_GridUpX + GridClickPosX - SaveGridClickPosX;
-              Line_GridUpY := Line_GridUpY + GridClickPosY - SaveGridClickPosY;
-              Line_GridDownX := Line_GridDownX + GridClickPosX - SaveGridClickPosX;
-              Line_GridDownY := Line_GridDownY + GridClickPosY - SaveGridClickPosY;
-
-              SaveGridClickPosX := GridClickPosX;
-              SaveGridClickPosY := GridClickPosY;
+              SaveGridClickPosX := GridX;
+              SaveGridClickPosY := GridY;
 
               Line_ScreenUpX := MapGridXTOScreenX(Line_GridUpX);
               Line_ScreenUpY := MapGridYTOScreenY(Line_GridUpY);
@@ -2830,7 +2825,7 @@ BEGIN
   AddNewRecordToLineDatabase;
 END; { CreateLine }
 
-PROCEDURE LineDraggingComplete(X, Y : Integer; ShiftState : TShiftState);
+PROCEDURE LineDraggingComplete(ShiftState : TShiftState);
 { Called when when we have finished line creation by mouse }
 VAR
   OldGridUpX : Integer;
@@ -2846,14 +2841,14 @@ BEGIN
     Line_IsBeingMovedByHandle := NoHandle;
 
     { We may need to reverse the X/Y values if the down X value is greater than the up X value }
-    IF Line_ScreenDownX < Line_ScreenUpX THEN BEGIN
-      TempVal := Line_ScreenUpX;
-      Line_ScreenUpX := Line_ScreenDownX;
-      Line_ScreenDownX := TempVal;
+    IF Line_GridDownX < Line_GridUpX THEN BEGIN
+      TempVal := Line_GridUpX;
+      Line_GridUpX := Line_GridDownX;
+      Line_GridDownX := TempVal;
 
-      TempVal := Line_ScreenUpY;
-      Line_ScreenUpY := Line_ScreenDownY;
-      Line_ScreenDownY := TempVal;
+      TempVal := Line_GridUpY;
+      Line_GridUpY := Line_GridDownY;
+      Line_GridDownY := TempVal;
     END;
 
     { save where the line is in case we need to revert }
@@ -2865,10 +2860,10 @@ BEGIN
     OldUpRow := Line_DownRow;
 
     { Now update the new line record }
-    Line_GridUpX := MapScreenXToGridX(Line_ScreenUpX);
-    Line_GridUpY := MapScreenYToGridY(Line_ScreenUpY);
-    Line_GridDownX := MapScreenXToGridX(Line_ScreenDownX);
-    Line_GridDownY := MapScreenYToGridY(Line_ScreenDownY);
+//    Line_GridUpX := MapScreenXToGridX(Line_ScreenUpX);
+//    Line_GridUpY := MapScreenYToGridY(Line_ScreenUpY);
+//    Line_GridDownX := MapScreenXToGridX(Line_ScreenDownX);
+//    Line_GridDownY := MapScreenYToGridY(Line_ScreenDownY);
     Line_UpRow := MapScreenYToRow(Line_ScreenUpY);
     Line_DownRow := MapScreenYToRow(Line_ScreenDownY);
 

@@ -2442,6 +2442,10 @@ VAR
   DownLineColour : TColor;
   LineTextStr : String;
   T : TrainIndex;
+  ScreenUpX : Integer;
+  ScreenUpY : Integer;
+  ScreenDownX : Integer;
+  ScreenDownY : Integer;
   TempLine : Integer;
   UpLineColour : TColor;
   X1, X2, Y1, Y2 : Integer;
@@ -2485,6 +2489,11 @@ BEGIN
       InitialiseScreenDrawingVariables;
       WITH RailWindowBitmap.Canvas DO BEGIN
         WITH Lines[Line] DO BEGIN
+          ScreenUpX := MapGridXToScreenX(Line_GridUpX);
+          ScreenUpY := MapGridYToScreenY(Line_GridUpY);
+          ScreenDownX := MapGridXToScreenX(Line_GridDownX);
+          ScreenDownY := MapGridYToScreenY(Line_GridDownY);
+
           IF Line_TypeOfLine = SidingLine THEN
             Pen.Style := SidingPenStyle
           ELSE
@@ -2589,14 +2598,14 @@ BEGIN
 
           IF Line_OutOfUseState = OutOfUse THEN BEGIN
             { Draw a red lamp and line across the track }
-            X1 := Line_ScreenUpX;
-            Y1 := Line_ScreenUpY - BufferStopVerticalSpacingScaled;
-            Y2 := Line_ScreenUpY + BufferStopVerticalSpacingScaled;
+            X1 := ScreenUpX;
+            Y1 := ScreenUpY - BufferStopVerticalSpacingScaled;
+            Y2 := ScreenUpY + BufferStopVerticalSpacingScaled;
             DrawRedLampAndVerticalLine(X1, Y1, Y2, ForegroundColour);
 
-            X1 := Line_ScreenDownX;
-            Y1 := Line_ScreenDownY - BufferStopVerticalSpacingScaled;
-            Y2 := Line_ScreenDownY + BufferStopVerticalSpacingScaled;
+            X1 := ScreenDownX;
+            Y1 := ScreenDownY - BufferStopVerticalSpacingScaled;
+            Y2 := ScreenDownY + BufferStopVerticalSpacingScaled;
             DrawRedLampAndVerticalLine(X1, Y1, Y2, ForegroundColour);
 
             Pen.Style := psDot;
@@ -2631,13 +2640,13 @@ BEGIN
 
           { Clear any previous text away }
           IF (LineTextStr <> '') OR (TempLineText <> '') THEN BEGIN
-            IF (Line_ScreenUpY = Line_ScreenDownY)
-            AND ((Line_ScreenDownX - Line_ScreenUpX > TextWidth('---- ')) OR (Line_ScreenUpX - Line_ScreenDownX > TextWidth('---- ')))
+            IF (ScreenUpY = ScreenDownY)
+            AND ((ScreenDownX - ScreenUpX > TextWidth('---- ')) OR (ScreenUpX - ScreenDownX > TextWidth('---- ')))
             THEN BEGIN
-              X1 := Line_ScreenUpX + ((Line_ScreenDownX - Line_ScreenUpX - TextWidth('MMMM')) DIV 2) - ScrollBarXAdjustment;
-              Y1 := Line_ScreenUpY - (TextHeight('M') DIV 2) - ScrollBarYAdjustment;
-              X2 := Line_ScreenDownX - ((Line_ScreenDownX - Line_ScreenUpX - TextWidth('MMMM')) DIV 2) - ScrollBarXAdjustment;
-              Y2 := Line_ScreenUpY + (TextHeight('M') DIV 2) - ScrollBarYAdjustment;
+              X1 := ScreenUpX + ((ScreenDownX - ScreenUpX - TextWidth('MMMM')) DIV 2) - ScrollBarXAdjustment;
+              Y1 := ScreenUpY - (TextHeight('M') DIV 2) - ScrollBarYAdjustment;
+              X2 := ScreenDownX - ((ScreenDownX - ScreenUpX - TextWidth('MMMM')) DIV 2) - ScrollBarXAdjustment;
+              Y2 := ScreenUpY + (TextHeight('M') DIV 2) - ScrollBarYAdjustment;
               Brush.Color := BackgroundColour;
               FillRect(Rect(X1 - ScrollBarXAdjustment,
                             Y1 - ScrollBarYAdjustment,
@@ -2662,16 +2671,16 @@ BEGIN
             Pen.Color := NewLineColour;
 
           IF ThinLineMode THEN BEGIN
-            MoveTo(Line_ScreenUpX, Line_ScreenUpY - ScrollBarYAdjustment);
-            LineTo(Line_ScreenDownX, Line_ScreenDownY - ScrollBarYAdjustment);
+            MoveTo(ScreenUpX, ScreenUpY - ScrollBarYAdjustment);
+            LineTo(ScreenDownX, ScreenDownY - ScrollBarYAdjustment);
           END ELSE BEGIN
             CASE Pen.Style OF
               psDashDot, psDot, psDashDotDot:
-                DrawDottedLine(Line_ScreenUpX, Line_ScreenUpY, Line_ScreenDownX, Line_ScreenDownY);
+                DrawDottedLine(ScreenUpX, ScreenUpY, ScreenDownX, ScreenDownY);
               psSolid:
                 BEGIN
-                  MoveTo(Line_ScreenUpX - ScrollBarXAdjustment, Line_ScreenUpY - ScrollBarYAdjustment);
-                  LineTo(Line_ScreenDownX - ScrollBarXAdjustment, Line_ScreenDownY - ScrollBarYAdjustment);
+                  MoveTo(ScreenUpX - ScrollBarXAdjustment, ScreenUpY - ScrollBarYAdjustment);
+                  LineTo(ScreenDownX - ScrollBarXAdjustment, ScreenDownY - ScrollBarYAdjustment);
                 END;
             END; {CASE}
           END;
@@ -2679,8 +2688,8 @@ BEGIN
           { if there's some text and there's room for it, and the line is horizontal, then add it }
           IF ShowLineOccupationDetail AND (LineTextStr <> '') AND (TempLineText <> ClearLineString) THEN BEGIN
             { needs text if there's room }
-            IF (Line_ScreenUpY = Line_ScreenDownY)
-            AND ((Line_ScreenDownX - Line_ScreenUpX > TextWidth(LineTextStr)) OR (Line_ScreenUpX - Line_ScreenDownX > TextWidth(LineTextStr)))
+            IF (ScreenUpY = ScreenDownY)
+            AND ((ScreenDownX - ScreenUpX > TextWidth(LineTextStr)) OR (ScreenUpX - ScreenDownX > TextWidth(LineTextStr)))
             THEN BEGIN
               { clear space for the text }
               Brush.Color := BackgroundColour;
@@ -2688,8 +2697,8 @@ BEGIN
                 Font.Color := clBlack;
               Font.Height := -MulDiv(FWPRailWindow.ClientHeight, LineFontHeight, ZoomScalefactor);
 
-              TextOut(Line_ScreenUpX + ((Line_ScreenDownX - Line_ScreenUpX - TextWidth(LineTextStr)) DIV 2) - ScrollBarXAdjustment,
-                      Line_ScreenUpY - (LineFontHeight DIV 2) - ScrollBarYAdjustment,
+              TextOut(ScreenUpX + ((ScreenDownX - ScreenUpX - TextWidth(LineTextStr)) DIV 2) - ScrollBarXAdjustment,
+                      ScreenUpY - (LineFontHeight DIV 2) - ScrollBarYAdjustment,
                       LineTextStr);
             END;
           END;
@@ -2699,14 +2708,14 @@ BEGIN
           { Draw adjacent lines if they are not track circuited }
           IF (Line_NextUpLine <> UnknownLine) AND (Line_NextDownLine <> UnknownLine) THEN BEGIN
             IF (Lines[Line_NextUpLine].Line_TC = UnknownTrackCircuit) AND (Lines[Line_NextDownLine].Line_TC = UnknownTrackCircuit) THEN BEGIN
-              MoveTo(Lines[Line_NextUpLine].Line_ScreenUpX - ScrollBarXAdjustment,
-                     Lines[Line_NextUpLine].Line_ScreenUpY - ScrollBarYAdjustment);
-              LineTo(Lines[Line_NextUpLine].Line_ScreenDownX - ScrollBarXAdjustment,
-                     Lines[Line_NextUpLine].Line_ScreenDownY - ScrollBarYAdjustment);
-              MoveTo(Lines[Line_NextDownLine].Line_ScreenDownX - ScrollBarXAdjustment,
-                     Lines[Line_NextDownLine].Line_ScreenDownY - ScrollBarYAdjustment);
-              LineTo(Lines[Line_NextDownLine].Line_ScreenDownX - ScrollBarXAdjustment,
-                     Lines[Line_NextDownLine].Line_ScreenDownY - ScrollBarYAdjustment);
+              MoveTo(MapGridXToScreenX(Lines[Line_NextUpLine].Line_GridUpX),
+                     MapGridYToScreenY(Lines[Line_NextUpLine].Line_GridUpY));
+              LineTo(MapGridXToScreenX(Lines[Line_NextUpLine].Line_GridDownX),
+                     MapGridYToScreenY(Lines[Line_NextUpLine].Line_GridDownY));
+              MoveTo(MapGridXToScreenX(Lines[Line_NextDownLine].Line_GridDownX),
+                     MapGridYToScreenY(Lines[Line_NextDownLine].Line_GridDownY));
+              LineTo(MapGridXToScreenX(Lines[Line_NextDownLine].Line_GridDownX),
+                     MapGridYToScreenY(Lines[Line_NextDownLine].Line_GridDownY));
             END;
           END;
 
