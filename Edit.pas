@@ -2135,7 +2135,7 @@ BEGIN
         TooNearSignal := TooNearOtherSignal(EditedSignal, NearestLineToSignal);
       END; {WITH}
 
-      CalculateSignalMouseRectangles(EditedSignal);
+      CalculateSignalPosition(EditedSignal);
       DrawSignal(EditedSignal);
 
 //      IF (NearestLineToSignal = UnknownLine) OR (TooNearSignal <> UnknownLine) THEN
@@ -2173,7 +2173,7 @@ BEGIN
         Debug('!Cannot find a line anywhere near the dragged signal');
         Signal_LineX := SaveDragX;
         Signal_LineWithVerticalSpacingY := SaveDragY;
-        CalculateSignalMouseRectangles(EditedSignal);
+        CalculateSignalPosition(EditedSignal);
         FWPRailWindow.Repaint;
       END ELSE BEGIN
         { Is another one at the exact spot? Record where it is going to be placed to carry out this test. }
@@ -2192,7 +2192,7 @@ BEGIN
           Debug('!Cannot drop the signal where there is an existing signal (S=' + IntToStr(TooNearSignal) +')');
           Signal_LineX := SaveDragX;
           Signal_LineWithVerticalSpacingY := SaveDragY;
-          CalculateSignalMouseRectangles(EditedSignal);
+          CalculateSignalPosition(EditedSignal);
           FWPRailWindow.Repaint;
         END ELSE BEGIN
           { it's ok to place the signal here }
@@ -2203,7 +2203,6 @@ BEGIN
           Signal_AdjacentLine := NearestLineToSignal;
           Signal_AdjacentLineXOffset := 0;
           CalculateSignalPosition(EditedSignal);
-          CalculateSignalMouseRectangles(EditedSignal);
 
           NoteThatDataHasChanged;
 
@@ -2230,7 +2229,6 @@ BEGIN
       Dec(Signals[EditedSignal].Signal_AdjacentLineXOffset);
 
       CalculateSignalPosition(EditedSignal);
-      CalculateSignalMouseRectangles(EditedSignal);
 
       UpdateSignalValueList(EditedSignal, Signal_AdjacentLine, Signal_AdjacentLineXOffset, UnknownDirection);
       FWPRailWindow.Repaint;
@@ -2248,7 +2246,6 @@ BEGIN
       Inc(Signals[EditedSignal].Signal_AdjacentLineXOffset);
 
       CalculateSignalPosition(EditedSignal);
-      CalculateSignalMouseRectangles(EditedSignal);
 
       UpdateSignalValueList(EditedSignal, Signal_AdjacentLine, Signal_AdjacentLineXOffset, UnknownDirection);
       FWPRailWindow.Repaint;
@@ -2269,7 +2266,6 @@ BEGIN
       Signal_Direction := Up;
 
     CalculateSignalPosition(EditedSignal);
-    CalculateSignalMouseRectangles(EditedSignal);
     UpdateSignalValueList(EditedSignal, UnknownLine, 0, Signal_Direction);
   END; {WITH}
 

@@ -1634,9 +1634,6 @@ PROCEDURE CalculateTCAdjacentSignals;
 PROCEDURE CalculateTCAdjacentBufferStops;
 { Work out which track circuits are next a buffer stop }
 
-PROCEDURE CalculateSignalMouseRectangles(S : Integer);
-{ Work out where the mouse rectangles are for a given signal }
-
 PROCEDURE CalculateSignalPosition(S : Integer);
 { Work out where a signal is on the screen }
 
@@ -3958,18 +3955,7 @@ BEGIN
           IF Signal_Direction = Down THEN
             Signal_LineWithVerticalSpacingY := Signal_LineY - SignalVerticalSpacingScaled;
       END; {WITH}
-    END; {WITH}
-  EXCEPT {TRY}
-    ON E : Exception DO
-      Log('EG CalculateSignalPosition: ' + E.ClassName + ' error raised, with message: ' + E.Message);
-  END; {TRY}
-END; { CalculateSignalPosition }
 
-PROCEDURE CalculateSignalMouseRectangles(S : Integer);
-{ Work out where the mouse rectangles are for a given signal }
-BEGIN
-  TRY
-    WITH Signals[S] DO BEGIN
       { Set up mouse access rectangles }
       WITH Signal_MouseRect DO BEGIN
         RailWindowBitmap.Canvas.Pen.Width := WindowPenWidth;
@@ -4054,7 +4040,7 @@ BEGIN
     ON E : Exception DO
       Log('EG CalculateSignalPosition: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
-END; { CalculateSignalMouseRectangles }
+END; { CalculateSignalPosition }
 
 PROCEDURE CalculateAllSignalPositions;
 { Work out where all the signals are on the screen }
@@ -4066,10 +4052,8 @@ BEGIN
     S := 0;
     WHILE S <= High(Signals) DO BEGIN
       WITH Signals[S] DO BEGIN
-        IF Signal_AdjacentLine <> UnknownLine THEN BEGIN
+        IF Signal_AdjacentLine <> UnknownLine THEN
           CalculateSignalPosition(S);
-          CalculateSignalMouseRectangles(S);
-        END;
       END; {WITH}
       Inc(S);
     END; {WHILE}
