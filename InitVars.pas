@@ -1904,7 +1904,6 @@ PROCEDURE SetUpLineDrawingVars;
 { Set up the positions of the lines and plaforms }
 BEGIN
   { Interval spacing : the following data has been read in from the registry }
-  DeltaPointXSpaced := MulDiv(FWPRailWindow.ClientHeight, DeltaPointX, ZoomScaleFactor * 10);
   BufferStopVerticalSpacingScaled := MulDiv(FWPRailWindow.ClientHeight, BufferStopVerticalSpacing, ZoomScaleFactor * 10);
   IndicatorHorizontalSpacingScaled := MulDiv(FWPRailWindow.ClientWidth, IndicatorHorizontalSpacing, ZoomScaleFactor * 10);
   IndicatorVerticalSpacingScaled := MulDiv(FWPRailWindow.ClientHeight, IndicatorVerticalSpacing, ZoomScaleFactor * 10);
@@ -5457,8 +5456,8 @@ BEGIN
       WITH Points[P] DO BEGIN
         { Mark the position of the heel of the point as UpX and UpY and add the appropriate data to the data for each line to show if there's a point at its start or end }
         UpX := 0;
-        IF (Lines[Point_HeelLine].Line_ScreenUpX = Lines[Point_StraightLine].Line_ScreenDownX) THEN BEGIN
-          UpX := Lines[Point_HeelLine].Line_ScreenUpX;
+        IF (Lines[Point_HeelLine].Line_GridUpX = Lines[Point_StraightLine].Line_GridDownX) THEN BEGIN
+          UpX := Lines[Point_HeelLine].Line_GridUpX;
 
           Lines[Point_HeelLine].Line_NextUpType := PointIsNext;
           Lines[Point_HeelLine].Line_NextUpPoint := P;
@@ -5472,20 +5471,19 @@ BEGIN
 
             Point_FacingDirection := Up;
 
-            IF Lines[Point_StraightLine].Line_ScreenDownX <> Lines[Point_DivergingLine].Line_ScreenDownX THEN BEGIN
+            IF Lines[Point_StraightLine].Line_GridDownX <> Lines[Point_DivergingLine].Line_GridDownX THEN BEGIN
               DebugStr := 'Lines do not properly intersect at P=' + IntToStr(P) + ': '
-                          + 'DownX for straight line ' + LineToStr(Point_StraightLine) + ' is ' + IntToStr(Lines[Point_StraightLine].Line_ScreenDownX)
-                          + ' and DownX for diverging line ' + LineToStr(Point_DivergingLine) + ' is ' + IntToStr(Lines[Point_DivergingLine].Line_ScreenDownX)
+                          + 'DownX for straight line ' + LineToStr(Point_StraightLine) + ' is ' + IntToStr(Lines[Point_StraightLine].Line_GridDownX)
+                          + ' and DownX for diverging line ' + LineToStr(Point_DivergingLine) + ' is ' + IntToStr(Lines[Point_DivergingLine].Line_GridDownX)
                           + CRLF
                           + 'Do you wish to continue?';
               IF MessageDialogueWithDefault(DebugStr, StopTimer, mtWarning, [mbOK, mbAbort], mbOK) = mrAbort THEN
                 ShutDownProgram(UnitRef, 'CreatePoint');
             END;
           END;
-        END
-        ELSE
-          IF (Lines[Point_HeelLine].Line_ScreenDownX = Lines[Point_StraightLine].Line_ScreenUpX) THEN BEGIN
-            UpX := Lines[Point_StraightLine].Line_ScreenUpX;
+        END ELSE
+          IF (Lines[Point_HeelLine].Line_GridDownX = Lines[Point_StraightLine].Line_GridUpX) THEN BEGIN
+            UpX := Lines[Point_StraightLine].Line_GridUpX;
 
             Lines[Point_HeelLine].Line_NextDownType := PointIsNext;
             Lines[Point_HeelLine].Line_NextDownPoint := P;
@@ -5499,10 +5497,10 @@ BEGIN
 
               Point_FacingDirection := Down;
 
-              IF Lines[Point_StraightLine].Line_ScreenUpX <> Lines[Point_DivergingLine].Line_ScreenUpX THEN BEGIN
+              IF Lines[Point_StraightLine].Line_GridUpX <> Lines[Point_DivergingLine].Line_GridUpX THEN BEGIN
                 DebugStr := 'Lines do not properly intersect at P=' + IntToStr(P) + ': ' + 'UpX for straight line ' + LineToStr(Point_StraightLine)
-                            + ' is ' + IntToStr(Lines[Point_StraightLine].Line_ScreenUpX) + ' and UpX for diverging line ' + LineToStr(Point_DivergingLine)
-                            + ' is ' + IntToStr(Lines[Point_DivergingLine].Line_ScreenUpX)
+                            + ' is ' + IntToStr(Lines[Point_StraightLine].Line_GridUpX) + ' and UpX for diverging line ' + LineToStr(Point_DivergingLine)
+                            + ' is ' + IntToStr(Lines[Point_DivergingLine].Line_GridUpX)
                             + CRLF
                             + 'Do you wish to continue?';
                 IF MessageDialogueWithDefault(DebugStr, StopTimer, mtWarning, [mbOK, mbAbort], mbOK) = mrAbort THEN
@@ -5515,24 +5513,24 @@ BEGIN
             Log('X! Failure in creating P=' + IntToStr(P)
                     + ' (' + LineToStr(Point_HeelLine) + '/' + LineToStr(Point_StraightLine) + '/' + LineToStr(Point_DivergingLine) + ')');
 
-        UpY := Lines[Point_StraightLine].Line_ScreenUpY;
+        UpY := Lines[Point_StraightLine].Line_GridUpY;
 
         { Now see if whether the diverging line shares that common point - if it does, swap UpX and DownX }
         IF NOT PointIsCatchPoint(P) THEN BEGIN
-          IF UpX = Lines[Point_DivergingLine].Line_ScreenUpX THEN BEGIN
-            OtherX := Lines[Point_DivergingLine].Line_ScreenDownX;
-            OtherY := Lines[Point_DivergingLine].Line_ScreenDownY;
+          IF UpX = Lines[Point_DivergingLine].Line_GridUpX THEN BEGIN
+            OtherX := Lines[Point_DivergingLine].Line_GridDownX;
+            OtherY := Lines[Point_DivergingLine].Line_GridDownY;
           END ELSE BEGIN
-            OtherX := Lines[Point_DivergingLine].Line_ScreenUpX;
-            OtherY := Lines[Point_DivergingLine].Line_ScreenUpY;
+            OtherX := Lines[Point_DivergingLine].Line_GridUpX;
+            OtherY := Lines[Point_DivergingLine].Line_GridUpY;
           END;
         END ELSE BEGIN
           IF Points[P].Point_Type = CatchPointUp THEN BEGIN
-            OtherX := Lines[Point_StraightLine].Line_ScreenUpX - 100;
-            OtherY := Lines[Point_StraightLine].Line_ScreenUpY - 100;
+            OtherX := Lines[Point_StraightLine].Line_GridUpX - 100;
+            OtherY := Lines[Point_StraightLine].Line_GridUpY - 100;
           END ELSE BEGIN
-            OtherX := Lines[Point_StraightLine].Line_ScreenDownX + 100;
-            OtherY := Lines[Point_StraightLine].Line_ScreenDownY + 100;
+            OtherX := Lines[Point_StraightLine].Line_GridDownX + 100;
+            OtherY := Lines[Point_StraightLine].Line_GridDownY + 100;
           END;
         END;
 
@@ -5540,9 +5538,9 @@ BEGIN
         Point_Y := UpY;
 
         IF OtherX < UpX THEN
-          DeltaX := -DeltaPointXSpaced
+          DeltaX := -DeltaPointX
         ELSE
-          DeltaX := +DeltaPointXSpaced;
+          DeltaX := +DeltaPointX;
 
         XLength := LongInt(OtherX) - LongInt(UpX);
         YLength := LongInt(OtherY) - LongInt(UpY);
@@ -5556,27 +5554,27 @@ BEGIN
           { Set up rectangles for mouse access }
           IF Point_FarY < Point_Y THEN BEGIN
             IF Point_FarX < Point_X THEN BEGIN
-              Left := Point_FarX;
-              Top := Point_FarY;
-              Right := Point_X;
-              Bottom := Point_Y;
+              Left := MapGridXToScreenX(Point_FarX);
+              Top := MapGridYToScreenY(Point_FarY);
+              Right := MapGridXToScreenX(Point_X);
+              Bottom := MapGridYToScreenY(Point_Y);
             END ELSE BEGIN
-              Left := Point_X;
-              Top := Point_FarY;
-              Right := Point_FarX;
-              Bottom := Point_Y;
+              Left := MapGridXToScreenX(Point_X);
+              Top := MapGridYToScreenY(Point_FarY);
+              Right := MapGridXToScreenX(Point_FarX);
+              Bottom := MapGridYToScreenY(Point_Y);
             END;
           END ELSE BEGIN
             IF Point_FarX < Point_X THEN BEGIN
-              Left := Point_FarX;
-              Top := Point_Y;
-              Right := Point_X;
-              Bottom := Point_FarY;
+              Left := MapGridXToScreenX(Point_FarX);
+              Top := MapGridYToScreenY(Point_Y);
+              Right := MapGridXToScreenX(Point_X);
+              Bottom := MapGridYToScreenY(Point_FarY);
             END ELSE BEGIN
-              Left := Point_X;
-              Top := Point_Y;
-              Right := Point_FarX;
-              Bottom := Point_FarY;
+              Left := MapGridXToScreenX(Point_X);
+              Top := MapGridYToScreenY(Point_Y);
+              Right := MapGridXToScreenX(Point_FarX);
+              Bottom := MapGridYToScreenY(Point_FarY);
             END;
           END;
         END; {WITH}

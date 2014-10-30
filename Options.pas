@@ -281,9 +281,8 @@ VAR
   DayLightEndTimeStr : String = '17:59:59';
   DayLightEndTime : TDateTime;
 
-  DefaultDeltaPointX : Integer = 150;
+  DefaultDeltaPointX : Integer = 10;
   DeltaPointX : Integer;
-  DeltaPointXSpaced : Integer;
 
   DefaultDiagramsFilename : String = 'Diagrams';
   DiagramsFilename : String;

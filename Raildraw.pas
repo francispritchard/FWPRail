@@ -2852,12 +2852,21 @@ PROCEDURE DrawPoint(P : Integer; Colour : TColour);
 { Draw a point }
 VAR
   RouteLockingArray : IntegerArrayType;
+  ScreenX : Integer;
+  ScreenY : Integer;
+  ScreenFarX : Integer;
+  ScreenFarY : Integer;
 
 BEGIN
   TRY
     InitialiseScreenDrawingVariables;
     WITH RailWindowBitmap.Canvas DO BEGIN
       WITH Points[P] DO BEGIN
+        ScreenX := MapGridXToScreenX(Point_X);
+        ScreenY := MapGridYToScreenY(Point_Y);
+        ScreenFarX := MapGridXToScreenX(Point_FarX);
+        ScreenFarY := MapGridYToScreenY(Point_FarY);
+
         { Undraw the previous state by increasing the pen width when rubbing out the line - otherwise a faint trace of the line gets left behind (I know this is a hack,
           but it works!)
         }
@@ -2867,30 +2876,30 @@ BEGIN
         ELSE
           Pen.Width := FullScreenPenWidth + 1;
 
-        MoveTo(Point_X - ScrollBarXAdjustment, Point_Y - ScrollBarYAdjustment);
+        MoveTo(ScreenX, ScreenY);
         IF Point_PresentState = Straight THEN BEGIN
           { clear away the faint color from where we're going to draw }
           Pen.Color := BackgroundColour;
-          LineTo(Point_FarX - ScrollBarXAdjustment, Point_Y - ScrollBarYAdjustment);
+          LineTo(ScreenFarX, ScreenY);
           { now rub out the previous point setting, but leave a faint line! }
           Pen.Color := PointUndrawColour;
-          MoveTo(Point_X - ScrollBarXAdjustment, Point_Y - ScrollBarYAdjustment);
-          LineTo(Point_FarX - ScrollBarXAdjustment, Point_FarY - ScrollBarYAdjustment)
+          MoveTo(ScreenX, ScreenY);
+          LineTo(ScreenFarX, ScreenFarY)
         END ELSE BEGIN
           IF Point_PresentState = Diverging THEN BEGIN
             { clear away the faint color from where we're going to draw }
             Pen.Color := BackgroundColour;
-            LineTo(Point_FarX - ScrollBarXAdjustment, Point_FarY - ScrollBarYAdjustment);
+            LineTo(ScreenFarX, ScreenFarY);
             { now rub out the previous point setting, but leave a faint line! }
             Pen.Color := PointUndrawColour;
-            MoveTo(Point_X - ScrollBarXAdjustment, Point_Y - ScrollBarYAdjustment);
-            LineTo(Point_FarX - ScrollBarXAdjustment, Point_Y - ScrollBarYAdjustment);
+            MoveTo(ScreenX, ScreenY);
+            LineTo(ScreenFarX, ScreenY);
           END ELSE BEGIN
             { PointState = PointStateUnknown }
             Pen.Color := PointUndrawColour;
-            LineTo(Point_FarX - ScrollBarXAdjustment, Point_FarY - ScrollBarYAdjustment);
-            MoveTo(Point_X - ScrollBarXAdjustment, Point_Y - ScrollBarYAdjustment);
-            LineTo(Point_FarX - ScrollBarXAdjustment, Point_Y - ScrollBarYAdjustment);
+            LineTo(ScreenFarX, ScreenFarY);
+            MoveTo(ScreenX, ScreenY);
+            LineTo(ScreenFarX, ScreenY);
           END;
         END;
 
@@ -2951,43 +2960,43 @@ BEGIN
           END;
         END;
 
-        MoveTo(Point_X - ScrollBarXAdjustment, Point_Y - ScrollBarYAdjustment);
+        MoveTo(ScreenX, ScreenY);
 
         IF ShowPointsStraightAndDiverging THEN BEGIN
           Pen.Color := clFWPOrange;
-          LineTo(Point_FarX - ScrollBarXAdjustment, Point_Y - ScrollBarYAdjustment);
-          MoveTo(Point_X - ScrollBarXAdjustment, Point_Y - ScrollBarYAdjustment);
+          LineTo(ScreenFarX, ScreenY);
+          MoveTo(ScreenX, ScreenY);
           Pen.Color := clYellow;
-          LineTo(Point_FarX - ScrollBarXAdjustment, Point_FarY - ScrollBarYAdjustment);
+          LineTo(ScreenFarX, ScreenFarY);
         END ELSE
           IF Point_PresentState = PointOutOfAction THEN BEGIN
             Pen.Width := 2;
-            LineTo(Point_FarX - ScrollBarXAdjustment, Point_Y - ScrollBarYAdjustment);
-            MoveTo(Point_X - ScrollBarXAdjustment, Point_Y - ScrollBarYAdjustment);
-            LineTo(Point_FarX - ScrollBarXAdjustment, Point_FarY - ScrollBarYAdjustment);
+            LineTo(ScreenFarX, ScreenY);
+            MoveTo(ScreenX, ScreenY);
+            LineTo(ScreenFarX, ScreenFarY);
           END ELSE BEGIN
             { a normal state }
             IF NOT ShowPointDefaultState THEN BEGIN
               IF Point_PresentState = Straight THEN
-                LineTo(Point_FarX - ScrollBarXAdjustment, Point_Y - ScrollBarYAdjustment)
+                LineTo(ScreenFarX, ScreenY)
               ELSE
                 IF Point_PresentState = Diverging THEN
-                  LineTo(Point_FarX - ScrollBarXAdjustment, Point_FarY - ScrollBarYAdjustment)
+                  LineTo(ScreenFarX, ScreenFarY)
                 ELSE BEGIN
                   { PresentState = PointStateUnknown }
                   IF ShowPointDefaultState THEN
                     Pen.Color := ForegroundColour;
-                  LineTo(Point_FarX - ScrollBarXAdjustment, Point_Y - ScrollBarYAdjustment);
-                  MoveTo(Point_X - ScrollBarXAdjustment, Point_Y - ScrollBarYAdjustment);
-                  LineTo(Point_FarX - ScrollBarXAdjustment, Point_FarY - ScrollBarYAdjustment);
+                  LineTo(ScreenFarX, ScreenY);
+                  MoveTo(ScreenX, ScreenY);
+                  LineTo(ScreenFarX, ScreenFarY);
                 END;
             END ELSE BEGIN
               { ShowPointDefaultState }
               IF Point_DefaultState = Straight THEN
-                LineTo(Point_FarX - ScrollBarXAdjustment, Point_Y - ScrollBarYAdjustment)
+                LineTo(ScreenFarX, ScreenY)
               ELSE
                 IF Point_DefaultState = Diverging THEN
-                  LineTo(Point_FarX - ScrollBarXAdjustment, Point_FarY - ScrollBarYAdjustment);
+                  LineTo(ScreenFarX, ScreenFarY);
             END;
           END;
       END; {WITH}
@@ -3123,12 +3132,12 @@ BEGIN
         WITH Point_MouseRect DO BEGIN
           Font.Height := -MulDiv(FWPRailWindow.ClientHeight, LineFontHeight, ZoomScaleFactor);
           IF Point_FarY < Point_Y THEN
-            TextOut(Right - ScrollBarXAdjustment,
-                    Top + ((Bottom - Top - TextHeight(NumberText)) DIV 2) - ScrollBarYAdjustment,
+            TextOut(Right,
+                    Top + ((Bottom - Top - TextHeight(NumberText)) DIV 2),
                     NumberText)
           ELSE
-            TextOut(Left - TextWidth(NumberText) - ScrollBarXAdjustment,
-                    Top + ((Bottom - Top - TextHeight(NumberText)) DIV 2) - ScrollBarYAdjustment,
+            TextOut(Left - TextWidth(NumberText),
+                    Top + ((Bottom - Top - TextHeight(NumberText)) DIV 2),
                     NumberText);
         END; {WITH}
       END; {WITH}
