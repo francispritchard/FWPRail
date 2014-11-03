@@ -536,21 +536,6 @@ PROCEDURE InitialiseRaildrawUnit;
 PROCEDURE InvalidateScreen(UnitRefParam, CallingStr : String);
 { Draw the screen by invalidating it }
 
-FUNCTION MapScreenXToGridX(ScreenX : Integer) : Integer;
-{ Map screen co-ordinate to grid co-ordinate }
-
-FUNCTION MapScreenYToGridY(ScreenY : Integer) : Integer;
-{ Map screen co-ordinate to grid co-ordinate }
-
-FUNCTION MapScreenYToRow(ScreenY : Integer) : Extended;
-{ Map screen co-ordinate to row }
-
-FUNCTION MapGridXToScreenX(GridX : Integer) : Integer;
-{ Map grid co-ordinate to screen co-ordinate }
-
-FUNCTION MapGridYToScreenY(GridY : Integer) : Integer;
-{ Map grid co-ordinate to screen co-ordinate }
-
 PROCEDURE ResetFWPRailWindowSizeAndPosition;
 { Reset the window's size and position }
 
@@ -684,37 +669,6 @@ BEGIN
   WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
 
-FUNCTION MapScreenXToGridX(ScreenX : Integer) : Integer;
-{ Map screen co-ordinate to grid co-ordinate }
-BEGIN
-  Result := MulDiv(ZoomScaleFactor, ScreenX + ScrollBarXAdjustment, FWPRailWindow.ClientWidth);
-END; { MapScreenXToGridX }
-
-FUNCTION MapScreenYToGridY(ScreenY : Integer) : Integer;
-{ Map screen co-ordinate to grid co-ordinate }
-BEGIN
-  Result := MulDiv(ZoomScaleFactor, ScreenY + ScrollBarYAdjustment, FWPRailWindow.ClientHeight);
-END; { MapScreenYToGridY }
-
-FUNCTION MapScreenYToRow(ScreenY : Integer) : Extended;
-{ Map screen co-ordinate to row }
-BEGIN
-  Result := ScreenY / InterLineSpacing;
-  Result := Round(Result * 10) / 10;
-END; { MapScreenYToRow }
-
-FUNCTION MapGridXToScreenX(GridX : Integer) : Integer;
-{ Map grid co-ordinate to screen co-ordinate }
-BEGIN
-  Result := MulDiv(FWPRailWindow.ClientWidth, GridX, ZoomScaleFactor) - ScrollBarXAdjustment;
-END; { MapGridXToScreenX }
-
-FUNCTION MapGridYToScreenY(GridY : Integer) : Integer;
-{ Map grid co-ordinate to screen co-ordinate }
-BEGIN
-  Result := MulDiv(FWPRailWindow.ClientHeight, GridY, ZoomScaleFactor) - ScrollBarYAdjustment;
-END; { MapGridYToScreenY }
-
 FUNCTION GetSaveCursor : TCursor;
 { Return the SaveCursor variable state }
 BEGIN
@@ -835,6 +789,10 @@ VAR
   FeedbackNum : Integer;
   FeedbackUnitFound : Boolean;
   LineNameWidth : Word;
+  ScreenDownX : Integer;
+  ScreenDownY : Integer;
+  ScreenUpX : Integer;
+  ScreenUpY : Integer;
   SegmentText : String;
   TrackCircuitNumbered : Boolean;
   X, Y : Integer;
@@ -941,10 +899,15 @@ VAR
                   SegmentText := IntToStr(I) + IntToStr(J);
                   IF Length(TrackCircuits[FeedbackNum].TC_LineArray) > 0 THEN BEGIN
                     Line := TrackCircuits[FeedbackNum].TC_LineArray[0];
-                    WITH Lines[Line] DO
-                      TextOut(Line_ScreenUpX + (Line_ScreenDownX - Line_ScreenUpX) DIV 2 - TextWidth(SegmentText) DIV 2 - ScrollBarXAdjustment,
-                              (Line_ScreenUpY + (Line_ScreenDownY - Line_ScreenUpY) DIV 2) - TextHeight(SegmentText) DIV 2 - ScrollBarYAdjustment,
+                    WITH Lines[Line] DO BEGIN
+                      ScreenUpX := MapGridXToScreenX(Line_GridUpX);
+                      ScreenUpY := MapGridYToScreenY(Line_GridUpY);
+                      ScreenDownX := MapGridXToScreenX(Line_GridDownX);
+                      ScreenDownY := MapGridYToScreenY(Line_GridDownY);
+                      TextOut(ScreenUpX + (ScreenDownX - ScreenUpX) DIV 2 - TextWidth(SegmentText) DIV 2 - ScrollBarXAdjustment,
+                              (ScreenUpY + (ScreenDownY - ScreenUpY) DIV 2) - TextHeight(SegmentText) DIV 2 - ScrollBarYAdjustment,
                               SegmentText);
+                    END; {WITH}
                     SegmentText := '';
                   END;
                 END;
@@ -968,8 +931,12 @@ VAR
                 Pen.Style := psSolid;
                 FOR Pos := 0 TO 10 DO BEGIN
                   WITH Lines[Line] DO BEGIN
-                    X := Line_ScreenUpX + MulDiv(Line_ScreenDownX - Line_ScreenUpX, Pos, 10);
-                    Y := Line_ScreenUpY + MulDiv(Line_ScreenDownY - Line_ScreenUpY, Pos, 10);
+                    ScreenUpX := MapGridXToScreenX(Line_GridUpX);
+                    ScreenUpY := MapGridYToScreenY(Line_GridUpY);
+                    ScreenDownX := MapGridXToScreenX(Line_GridDownX);
+                    ScreenDownY := MapGridYToScreenY(Line_GridDownY);
+                    X := ScreenUpX + MulDiv(ScreenDownX - ScreenUpX, Pos, 10);
+                    Y := ScreenUpY + MulDiv(ScreenDownY - ScreenUpY, Pos, 10);
                     IF Pos = 0 THEN BEGIN
                       MoveTo(X - ScrollBarXAdjustment, Y - 6 - ScrollBarYAdjustment);
                       LineTo(X - ScrollBarXAdjustment, Y + 6 - ScrollBarYAdjustment);
@@ -1089,8 +1056,12 @@ VAR
                   IF ScreenColoursSetForPrinting THEN
                     Font.Color := clBlack;
 
-                  TextOut(Line_ScreenUpX + (Line_ScreenDownX - Line_ScreenUpX) DIV 2 - TextWidth(SegmentText) DIV 2 - ScrollBarXAdjustment,
-                         (Line_ScreenUpY + (Line_ScreenDownY - Line_ScreenUpY) DIV 2) - TextHeight(SegmentText) DIV 2 - ScrollBarYAdjustment,
+                  ScreenUpX := MapGridXToScreenX(Line_GridUpX);
+                  ScreenUpY := MapGridYToScreenY(Line_GridUpY);
+                  ScreenDownX := MapGridXToScreenX(Line_GridDownX);
+                  ScreenDownY := MapGridYToScreenY(Line_GridDownY);
+                  TextOut(ScreenUpX + (ScreenDownX - ScreenUpX) DIV 2 - TextWidth(SegmentText) DIV 2 - ScrollBarXAdjustment,
+                         (ScreenUpY + (ScreenDownY - ScreenUpY) DIV 2) - TextHeight(SegmentText) DIV 2 - ScrollBarYAdjustment,
                           SegmentText);
                   SegmentText := '';
                 END; {WITH}
@@ -1122,7 +1093,12 @@ VAR
       FOR Line := 0 TO High(Lines) DO BEGIN
         SegmentText := '';
         WITH Lines[Line] DO BEGIN
-          { how which track circuits have routes set over them }
+          ScreenUpX := MapGridXToScreenX(Line_GridUpX);
+          ScreenUpY := MapGridYToScreenY(Line_GridUpY);
+          ScreenDownX := MapGridXToScreenX(Line_GridDownX);
+          ScreenDownY := MapGridYToScreenY(Line_GridDownY);
+
+          { How which track circuits have routes set over them }
           IF ShowTrackCircuitsRoutedOver THEN BEGIN
             IF Line_TC <> UnknownTrackCircuit THEN BEGIN
               Font.Color := clAqua;
@@ -1135,13 +1111,13 @@ VAR
             { show the internal name for each track segment }
             Font.Color := GetLineTypeColour(Line_TypeOfLine);
             LineNameWidth := TextWidth(LineToStr(Line));
-            IF Line_ScreenDownX > Line_ScreenUpX THEN BEGIN
-              IF (Line_ScreenDownX - Line_ScreenUpX) > LineNameWidth THEN
+            IF ScreenDownX > ScreenUpX THEN BEGIN
+              IF (ScreenDownX - ScreenUpX) > LineNameWidth THEN
                 SegmentText := LineToStr(Line)
               ELSE
                 SegmentText := Copy(LineToStr(Line), Length(LineToStr(Line)), 1);
             END ELSE BEGIN
-              IF (Line_ScreenUpX - Line_ScreenDownX) > LineNameWidth THEN
+              IF (ScreenUpX - ScreenDownX) > LineNameWidth THEN
                 SegmentText := LineToStr(Line)
               ELSE
                 SegmentText := Copy(LineToStr(Line), Length(LineToStr(Line)), 1);
@@ -1152,13 +1128,13 @@ VAR
             { show the internal numbers for each track segment }
             Font.Color := GetLineTypeColour(Line_TypeOfLine);
             LineNameWidth := TextWidth(IntToStr(Line));
-            IF Line_ScreenDownX > Line_ScreenUpX THEN BEGIN
-              IF (Line_ScreenDownX - Line_ScreenUpX) > LineNameWidth THEN
+            IF ScreenDownX > ScreenUpX THEN BEGIN
+              IF (ScreenDownX - ScreenUpX) > LineNameWidth THEN
                 SegmentText := IntToStr(Line)
               ELSE
                 SegmentText := Copy(IntToStr(Line), Length(IntToStr(Line)), 1);
             END ELSE BEGIN
-              IF (Line_ScreenUpX - Line_ScreenDownX) > LineNameWidth THEN
+              IF (ScreenUpX - ScreenDownX) > LineNameWidth THEN
                 SegmentText := LineToStr(Line)
               ELSE
                 SegmentText := Copy(IntToStr(Line), Length(IntToStr(Line)), 1);
@@ -1168,7 +1144,7 @@ VAR
           IF ShowLinesUpXAbsoluteValue THEN BEGIN
             Font.Color := GetLineTypeColour(Line_TypeOfLine);
             LineNameWidth := TextWidth(LineToStr(Line));
-            SegmentText := IntToStr(Lines[Line].Line_ScreenUpX);
+            SegmentText := IntToStr(Lines[Line].Line_GridUpX);
           END;
 
           IF ShowLineDirectionDetail THEN BEGIN
@@ -1185,19 +1161,19 @@ VAR
                     { if the line direction is one way, which way it is }
                     Font.Color := clAqua;
                     IF Lines[Line].Line_Direction = Up THEN BEGIN
-                      IF Line_ScreenUpY = Line_ScreenDownY THEN
+                      IF ScreenUpY = ScreenDownY THEN
                         SegmentText := Char(172) { left arrow }
                       ELSE
-                        IF Line_ScreenUpY > Line_ScreenDownY THEN
+                        IF ScreenUpY > ScreenDownY THEN
                           SegmentText := Char(175) { down arrow }
                         ELSE
                           SegmentText := Char(173); { up arrow }
                     END ELSE
                       IF Lines[Line].Line_Direction = Down THEN BEGIN
-                        IF Line_ScreenUpY = Line_ScreenDownY THEN
+                        IF ScreenUpY = ScreenDownY THEN
                           SegmentText := Char(174) { right arrow }
                         ELSE
-                          IF Line_ScreenUpY > Line_ScreenDownY THEN
+                          IF ScreenUpY > ScreenDownY THEN
                             SegmentText := Char(173) { up arrow }
                           ELSE
                             SegmentText := Char(175); { down arrow }
@@ -1268,13 +1244,13 @@ VAR
             IF Zooming THEN
               Font.Size := 14; { should depend on the zoom factor? ************ }
 
-            DrawSegmentText(SegmentText, Line_ScreenUpX, Line_ScreenUpY, Line_ScreenDownX, Line_ScreenDownY);
+            DrawSegmentText(SegmentText, ScreenUpX, ScreenUpY, ScreenDownX, ScreenDownY);
           END;
 
           { Draw vertical lines to show the line segments }
           FOR Pos := 0 TO 10 DO BEGIN
-            X := Line_ScreenUpX + MulDiv(Line_ScreenDownX - Line_ScreenUpX, Pos, 10);
-            Y := Line_ScreenUpY + MulDiv(Line_ScreenDownY - Line_ScreenUpY, Pos, 10);
+            X := ScreenUpX + MulDiv(ScreenDownX - ScreenUpX, Pos, 10);
+            Y := ScreenUpY + MulDiv(ScreenDownY - ScreenUpY, Pos, 10);
             IF Pos = 0 THEN BEGIN
               MoveTo(X - ScrollBarXAdjustment, Y - 6 - ScrollBarYAdjustment);
               LineTo(X - ScrollBarXAdjustment, Y + 6 - ScrollBarYAdjustment);
@@ -1336,8 +1312,13 @@ VAR
             END; {WHILE}
 
             IF LineFound THEN
-              WITH Lines[Line] DO
-                DrawSegmentText(SegmentText, Line_ScreenUpX, Line_ScreenUpY, Line_ScreenDownX, Line_ScreenDownY);
+              WITH Lines[Line] DO BEGIN
+                ScreenUpX := MapGridXToScreenX(Line_GridUpX);
+                ScreenUpY := MapGridYToScreenY(Line_GridUpY);
+                ScreenDownX := MapGridXToScreenX(Line_GridDownX);
+                ScreenDownY := MapGridYToScreenY(Line_GridDownY);
+                DrawSegmentText(SegmentText, ScreenUpX, ScreenUpY, ScreenDownX, ScreenDownY);
+              END; {WITH}
           END;
         END; {FOR}
         ShowLineOccupationDetail := True;
@@ -1374,9 +1355,14 @@ BEGIN
           IF Lines[Line].Line_TC = UnknownTrackCircuit THEN BEGIN
             Font.Color := LinesWithoutTrackCircuitsColour;
             SegmentText := 'X';
-            WITH Lines[Line] DO
-              DrawSegmentText(SegmentText, Line_ScreenUpX, Line_ScreenUpY, Line_ScreenDownX, Line_ScreenDownY);
-          END;
+            WITH Lines[Line] DO BEGIN
+              ScreenUpX := MapGridXToScreenX(Line_GridUpX);
+              ScreenUpY := MapGridYToScreenY(Line_GridUpY);
+              ScreenDownX := MapGridXToScreenX(Line_GridDownX);
+              ScreenDownY := MapGridYToScreenY(Line_GridDownY);
+              DrawSegmentText(SegmentText, ScreenUpX, ScreenUpY, ScreenDownX, ScreenDownY);
+            END; {WITH}
+           END;
           Inc(Line);
         END; {WHILE}
       END;
@@ -1527,6 +1513,9 @@ VAR
   NorthArrowNeededOnRight : Boolean;
   RightArrowNeeded : Boolean;
   SaveLineFontName : String;
+  ScreenDownX : Integer;
+  ScreenUpX : Integer;
+  ScreenUpY : Integer;
   SouthArrowNeededOnLeft : Boolean;
   SouthArrowNeededOnRight : Boolean;
   SpeedStr : String;
@@ -1601,84 +1590,88 @@ BEGIN
                     in line with the text.
                   }
                   HorizontalArrowAdjustment := MulDiv(FWPRailWindow.ClientWidth, 1, ZoomScalefactor);
+                  ScreenUpX := MapGridXToScreenX(Line_GridUpX);
+                  ScreenUpY := MapGridYToScreenY(Line_GridUpY);
+                  ScreenDownX := MapGridXToScreenX(Line_GridDownX);
+
                   IF LeftArrowNeeded THEN BEGIN
                     { Note: we write the data on the wrong side of the track to avoid signals overwriting it }
-                    TextOut(Line_ScreenUpX + SpeedRestrictionHorizontalSpacingScaled - ScrollBarXAdjustment,
-                            Line_ScreenUpY - TextHeight(SpeedStr) - SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment,
+                    TextOut(ScreenUpX + SpeedRestrictionHorizontalSpacingScaled - ScrollBarXAdjustment,
+                            ScreenUpY - TextHeight(SpeedStr) - SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment,
                             LeftArrowCh);
-                    TextRect(Rect(Line_ScreenUpX + SpeedRestrictionHorizontalSpacingScaled + TextWidth(LeftArrowCh) - ScrollBarXAdjustment,
-                                  Line_ScreenUpY - TextHeight(SpeedStr) - SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment,
-                                  Line_ScreenUpX + SpeedRestrictionHorizontalSpacingScaled + TextWidth(LeftArrowCh) + TextWidth(SpeedStr) - ScrollBarXAdjustment,
-                                  Line_ScreenUpY - SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment),
-                             Line_ScreenUpX + SpeedRestrictionHorizontalSpacingScaled + TextWidth(LeftArrowCh) - ScrollBarXAdjustment,
-                             Line_ScreenUpY - TextHeight(SpeedStr) - (SpeedRestrictionVerticalSpacingScaled) + HorizontalArrowAdjustment - ScrollBarYAdjustment,
+                    TextRect(Rect(ScreenUpX + SpeedRestrictionHorizontalSpacingScaled + TextWidth(LeftArrowCh) - ScrollBarXAdjustment,
+                                  ScreenUpY - TextHeight(SpeedStr) - SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment,
+                                  ScreenUpX + SpeedRestrictionHorizontalSpacingScaled + TextWidth(LeftArrowCh) + TextWidth(SpeedStr) - ScrollBarXAdjustment,
+                                  ScreenUpY - SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment),
+                             ScreenUpX + SpeedRestrictionHorizontalSpacingScaled + TextWidth(LeftArrowCh) - ScrollBarXAdjustment,
+                             ScreenUpY - TextHeight(SpeedStr) - (SpeedRestrictionVerticalSpacingScaled) + HorizontalArrowAdjustment - ScrollBarYAdjustment,
                              SpeedStr);
                   END;
                   IF NorthArrowNeededOnRight THEN BEGIN
                     { Note: we write the data on the wrong side of the track to avoid signals overwriting it }
-                    TextOut(Line_ScreenUpX + SpeedRestrictionHorizontalSpacingScaled - ScrollBarXAdjustment,
-                            Line_ScreenUpY - TextHeight(SpeedStr) - SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment,
+                    TextOut(ScreenUpX + SpeedRestrictionHorizontalSpacingScaled - ScrollBarXAdjustment,
+                            ScreenUpY - TextHeight(SpeedStr) - SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment,
                             NorthArrowCh);
-                    TextRect(Rect(Line_ScreenUpX + SpeedRestrictionHorizontalSpacingScaled + TextWidth(NorthArrowCh) - ScrollBarXAdjustment,
-                                  Line_ScreenUpY - TextHeight(SpeedStr) - SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment,
-                                  Line_ScreenUpX + SpeedRestrictionHorizontalSpacingScaled + TextWidth(NorthArrowCh) + TextWidth(SpeedStr) - ScrollBarXAdjustment,
-                                  Line_ScreenUpY - SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment),
-                             Line_ScreenUpX + SpeedRestrictionHorizontalSpacingScaled + TextWidth(NorthArrowCh) - ScrollBarXAdjustment,
-                             Line_ScreenUpY - TextHeight(SpeedStr) - (SpeedRestrictionVerticalSpacingScaled) + HorizontalArrowAdjustment - ScrollBarYAdjustment,
+                    TextRect(Rect(ScreenUpX + SpeedRestrictionHorizontalSpacingScaled + TextWidth(NorthArrowCh) - ScrollBarXAdjustment,
+                                  ScreenUpY - TextHeight(SpeedStr) - SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment,
+                                  ScreenUpX + SpeedRestrictionHorizontalSpacingScaled + TextWidth(NorthArrowCh) + TextWidth(SpeedStr) - ScrollBarXAdjustment,
+                                  ScreenUpY - SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment),
+                             ScreenUpX + SpeedRestrictionHorizontalSpacingScaled + TextWidth(NorthArrowCh) - ScrollBarXAdjustment,
+                             ScreenUpY - TextHeight(SpeedStr) - (SpeedRestrictionVerticalSpacingScaled) + HorizontalArrowAdjustment - ScrollBarYAdjustment,
                              SpeedStr);
                   END;
                   IF SouthArrowNeededOnRight THEN BEGIN
                     { Note: we write the data on the wrong side of the track to avoid signals overwriting it }
-                    TextOut(Line_ScreenUpX + SpeedRestrictionHorizontalSpacingScaled - ScrollBarXAdjustment,
-                            Line_ScreenUpY - TextHeight(SpeedStr) - SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment,
+                    TextOut(ScreenUpX + SpeedRestrictionHorizontalSpacingScaled - ScrollBarXAdjustment,
+                            ScreenUpY - TextHeight(SpeedStr) - SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment,
                             SouthArrowCh);
-                    TextRect(Rect(Line_ScreenUpX + SpeedRestrictionHorizontalSpacingScaled + TextWidth(SouthArrowCh) - ScrollBarXAdjustment,
-                                  Line_ScreenUpY - TextHeight(SpeedStr) - SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment,
-                                  Line_ScreenUpX + SpeedRestrictionHorizontalSpacingScaled + TextWidth(SouthArrowCh) + TextWidth(SpeedStr) - ScrollBarXAdjustment,
-                                  Line_ScreenUpY - SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment),
-                             Line_ScreenUpX + SpeedRestrictionHorizontalSpacingScaled + TextWidth(SouthArrowCh) - ScrollBarXAdjustment,
-                             Line_ScreenUpY - TextHeight(SpeedStr) - (SpeedRestrictionVerticalSpacingScaled) + HorizontalArrowAdjustment - ScrollBarYAdjustment,
+                    TextRect(Rect(ScreenUpX + SpeedRestrictionHorizontalSpacingScaled + TextWidth(SouthArrowCh) - ScrollBarXAdjustment,
+                                  ScreenUpY - TextHeight(SpeedStr) - SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment,
+                                  ScreenUpX + SpeedRestrictionHorizontalSpacingScaled + TextWidth(SouthArrowCh) + TextWidth(SpeedStr) - ScrollBarXAdjustment,
+                                  ScreenUpY - SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment),
+                             ScreenUpX + SpeedRestrictionHorizontalSpacingScaled + TextWidth(SouthArrowCh) - ScrollBarXAdjustment,
+                             ScreenUpY - TextHeight(SpeedStr) - (SpeedRestrictionVerticalSpacingScaled) + HorizontalArrowAdjustment - ScrollBarYAdjustment,
                              SpeedStr);
                   END;
                   IF RightArrowNeeded THEN BEGIN
                     { Note: we write the data on the wrong side of the track to avoid signals overwriting it }
-                    TextRect(Rect(Line_ScreenUpX + (Line_ScreenDownX - Line_ScreenUpX) - TextWidth(SpeedStr) - TextWidth(RightArrowCh) - ScrollBarXAdjustment,
-                                  Line_ScreenUpY + SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment,
-                                  Line_ScreenUpX + (Line_ScreenDownX - Line_ScreenUpX) - TextWidth(RightArrowCh) - ScrollBarXAdjustment,
-                                  Line_ScreenUpY + TextHeight(SpeedStr) + SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment),
-                             Line_ScreenUpX + (Line_ScreenDownX - Line_ScreenUpX) - TextWidth(SpeedStr) - TextWidth(RightArrowCh) - ScrollBarXAdjustment,
-                             Line_ScreenUpY + SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment,
+                    TextRect(Rect(ScreenUpX + (ScreenDownX - ScreenUpX) - TextWidth(SpeedStr) - TextWidth(RightArrowCh) - ScrollBarXAdjustment,
+                                  ScreenUpY + SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment,
+                                  ScreenUpX + (ScreenDownX - ScreenUpX) - TextWidth(RightArrowCh) - ScrollBarXAdjustment,
+                                  ScreenUpY + TextHeight(SpeedStr) + SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment),
+                             ScreenUpX + (ScreenDownX - ScreenUpX) - TextWidth(SpeedStr) - TextWidth(RightArrowCh) - ScrollBarXAdjustment,
+                             ScreenUpY + SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment,
                              SpeedStr);
-                    TextOut(Line_ScreenUpX + (Line_ScreenDownX - Line_ScreenUpX) - TextWidth(RightArrowCh) - ScrollBarXAdjustment,
-                            Line_ScreenUpY + SpeedRestrictionVerticalSpacingScaled - HorizontalArrowAdjustment - ScrollBarYAdjustment,
+                    TextOut(ScreenUpX + (ScreenDownX - ScreenUpX) - TextWidth(RightArrowCh) - ScrollBarXAdjustment,
+                            ScreenUpY + SpeedRestrictionVerticalSpacingScaled - HorizontalArrowAdjustment - ScrollBarYAdjustment,
                             RightArrowCh);
                   END;
 
                   IF SouthArrowNeededOnLeft THEN BEGIN
                     { Note: we write the data on the wrong side of the track to avoid signals overwriting it }
-                    TextRect(Rect(Line_ScreenUpX + (Line_ScreenDownX - Line_ScreenUpX) - TextWidth(SpeedStr) - TextWidth(SouthArrowCh) - ScrollBarXAdjustment,
-                                  Line_ScreenUpY + SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment,
-                                  Line_ScreenUpX + (Line_ScreenDownX - Line_ScreenUpX) - TextWidth(SouthArrowCh) - ScrollBarXAdjustment,
-                                  Line_ScreenUpY + TextHeight(SpeedStr) + SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment),
-                             Line_ScreenUpX + (Line_ScreenDownX - Line_ScreenUpX) - TextWidth(SpeedStr) - TextWidth(SouthArrowCh) - ScrollBarXAdjustment,
-                             Line_ScreenUpY + SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment,
+                    TextRect(Rect(ScreenUpX + (ScreenDownX - ScreenUpX) - TextWidth(SpeedStr) - TextWidth(SouthArrowCh) - ScrollBarXAdjustment,
+                                  ScreenUpY + SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment,
+                                  ScreenUpX + (ScreenDownX - ScreenUpX) - TextWidth(SouthArrowCh) - ScrollBarXAdjustment,
+                                  ScreenUpY + TextHeight(SpeedStr) + SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment),
+                             ScreenUpX + (ScreenDownX - ScreenUpX) - TextWidth(SpeedStr) - TextWidth(SouthArrowCh) - ScrollBarXAdjustment,
+                             ScreenUpY + SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment,
                              SpeedStr);
-                    TextOut(Line_ScreenUpX + (Line_ScreenDownX - Line_ScreenUpX) - TextWidth(SouthArrowCh) - ScrollBarXAdjustment,
-                            Line_ScreenUpY + SpeedRestrictionVerticalSpacingScaled - HorizontalArrowAdjustment - ScrollBarYAdjustment,
+                    TextOut(ScreenUpX + (ScreenDownX - ScreenUpX) - TextWidth(SouthArrowCh) - ScrollBarXAdjustment,
+                            ScreenUpY + SpeedRestrictionVerticalSpacingScaled - HorizontalArrowAdjustment - ScrollBarYAdjustment,
                             SouthArrowCh);
                   END;
 
                   IF NorthArrowNeededOnLeft THEN BEGIN
                     { Note: we write the data on the wrong side of the track to avoid signals overwriting it }
-                    TextRect(Rect(Line_ScreenUpX + (Line_ScreenDownX - Line_ScreenUpX) - TextWidth(SpeedStr) - TextWidth(RightArrowCh) - ScrollBarXAdjustment,
-                                  Line_ScreenUpY + SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment,
-                                  Line_ScreenUpX + (Line_ScreenDownX - Line_ScreenUpX) - TextWidth(RightArrowCh) - ScrollBarXAdjustment,
-                                  Line_ScreenUpY + TextHeight(SpeedStr) + SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment),
-                             Line_ScreenUpX + (Line_ScreenDownX - Line_ScreenUpX) - TextWidth(SpeedStr) - TextWidth(RightArrowCh) - ScrollBarXAdjustment,
-                             Line_ScreenUpY + SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment,
+                    TextRect(Rect(ScreenUpX + (ScreenDownX - ScreenUpX) - TextWidth(SpeedStr) - TextWidth(RightArrowCh) - ScrollBarXAdjustment,
+                                  ScreenUpY + SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment,
+                                  ScreenUpX + (ScreenDownX - ScreenUpX) - TextWidth(RightArrowCh) - ScrollBarXAdjustment,
+                                  ScreenUpY + TextHeight(SpeedStr) + SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment),
+                             ScreenUpX + (ScreenDownX - ScreenUpX) - TextWidth(SpeedStr) - TextWidth(RightArrowCh) - ScrollBarXAdjustment,
+                             ScreenUpY + SpeedRestrictionVerticalSpacingScaled - ScrollBarYAdjustment,
                              SpeedStr);
-                    TextOut(Line_ScreenUpX + (Line_ScreenDownX - Line_ScreenUpX) - TextWidth(RightArrowCh) - ScrollBarXAdjustment,
-                            Line_ScreenUpY + SpeedRestrictionVerticalSpacingScaled - HorizontalArrowAdjustment - ScrollBarYAdjustment,
+                    TextOut(ScreenUpX + (ScreenDownX - ScreenUpX) - TextWidth(RightArrowCh) - ScrollBarXAdjustment,
+                            ScreenUpY + SpeedRestrictionVerticalSpacingScaled - HorizontalArrowAdjustment - ScrollBarYAdjustment,
                             NorthArrowCh);
                   END;
                 END;
@@ -1892,55 +1885,13 @@ VAR
       Polygon(TPointArray);
   END; { DrawSemaphore }
 
-BEGIN { DrawSignal }
-  TRY
-    TopAspectX := 0;
-    IndicatorX := 0;
-    SignalLeft := 0;
-    SignalTop := 0;
-    SignalRight := 0;
-    SignalBottom := 0;
+  PROCEDURE DrawIndicators(S : Integer);
+  VAR
+    Indicator : JunctionIndicatorType;
 
-    InitialiseScreenDrawingVariables;
+  BEGIN
     WITH RailWindowBitmap.Canvas DO BEGIN
-      SColour1 := BackgroundColour;
-      SColour2 := BackgroundColour;
-      Font.Style := [fsBold];
-      Font.Color := clWhite;
-      Font.Height := -MulDiv(FWPRailWindow.ClientHeight, TheatreFontHeight, ZoomScalefactor);
-
       WITH Signals[S] DO BEGIN
-//Region := CreateRectRgn(Signal_MouseRect.Left, Signal_MouseRect.Top, Signal_MouseRect.Right, Signal_MouseRect.Bottom);
-//SelectClipRgn(Canvas.Handle, Region);
-        { store the data for debugging }
-
-        DrawSignalPost(S);
-
-        IF RecordLineDrawingMode OR NOT FWPRailWindowInitialised OR Signal_StateChanged THEN
-          Log('S S=' + IntToStr(S)
-                 + ' A=' + AspectToStr(Signals[S].Signal_Aspect, ShortStringType)
-                 + ' I=' + IndicatorStateToStr(Signals[S].Signal_IndicatorState));
-
-        IF Signal_StateChanged THEN
-          Signal_StateChanged := False;
-
-        IF NOT ShowSignalHiddenStationSignalAspects THEN
-          Aspect := Signal_Aspect
-        ELSE
-          Aspect := Signal_HiddenStationSignalAspect;
-
-        MoveTo(Signal_LineX - ScrollBarXAdjustment, Signal_LineWithVerticalSpacingY - ScrollBarYAdjustment);
-
-        IF Signal_Type = FourAspect THEN BEGIN
-          IF Signal_Direction = Up THEN
-            TopAspectX := Signal_LineX - SignalHorizontalSpacingScaled
-          ELSE
-            IF Signal_Direction = Down THEN
-              TopAspectX := Signal_LineX + SignalHorizontalSpacingScaled;
-        END;
-
-        { Now draw indicators if any }
-        IF Signal_Indicator <> NoIndicator THEN BEGIN
           IF Signal_Direction = Up THEN BEGIN
             IndicatorX := Signal_LineX - IndicatorHorizontalSpacingScaled;
             IF Signal_Type = FourAspect THEN
@@ -2201,7 +2152,48 @@ BEGIN { DrawSignal }
 
             Pen.Width := SavePenWidth;
           END;
-        END;
+      END; {WITH}
+    END; {WITH}
+  END; { DrawIndicators }
+
+BEGIN { DrawSignal }
+  TRY
+    TopAspectX := 0;
+    IndicatorX := 0;
+    SignalLeft := 0;
+    SignalTop := 0;
+    SignalRight := 0;
+    SignalBottom := 0;
+
+    InitialiseScreenDrawingVariables;
+    WITH RailWindowBitmap.Canvas DO BEGIN
+      SColour1 := BackgroundColour;
+      SColour2 := BackgroundColour;
+      Font.Style := [fsBold];
+      Font.Color := clWhite;
+      Font.Height := -MulDiv(FWPRailWindow.ClientHeight, TheatreFontHeight, ZoomScalefactor);
+
+      WITH Signals[S] DO BEGIN
+//Region := CreateRectRgn(Signal_MouseRect.Left, Signal_MouseRect.Top, Signal_MouseRect.Right, Signal_MouseRect.Bottom);
+//SelectClipRgn(Canvas.Handle, Region);
+        { store the data for debugging }
+
+        DrawSignalPost(S);
+
+        IF RecordLineDrawingMode OR NOT FWPRailWindowInitialised OR Signal_StateChanged THEN
+          Log('S S=' + IntToStr(S)
+                 + ' A=' + AspectToStr(Signals[S].Signal_Aspect, ShortStringType)
+                 + ' I=' + IndicatorStateToStr(Signals[S].Signal_IndicatorState));
+
+        IF Signal_StateChanged THEN
+          Signal_StateChanged := False;
+
+        IF NOT ShowSignalHiddenStationSignalAspects THEN
+          Aspect := Signal_Aspect
+        ELSE
+          Aspect := Signal_HiddenStationSignalAspect;
+
+        MoveTo(Signal_LineX - ScrollBarXAdjustment, Signal_LineWithVerticalSpacingY - ScrollBarYAdjustment);
 
         IF (Signal_Type = SemaphoreHome) OR (Signal_Type = SemaphoreDistant) THEN BEGIN
           { First clear the area for the semaphore signal }
@@ -2250,7 +2242,7 @@ BEGIN { DrawSignal }
           OR { a safeguard - turn the signal off altogether! }
              ((Signal_AdjacentLine <> UnknownLine) AND (Lines[Signal_AdjacentLine].Line_TC = UnknownTrackCircuit))
           THEN BEGIN
-            { setting a semaphore to no aspect is meaningless, so since white wooden crosses are used on real railways, we can do the same }
+            { setting a semaphore to no aspect is meaningless, so since white crosses are used on real railways, we can do the same }
             Pen.Color := clWhite;
 
             WITH Signal_MouseRect DO BEGIN
@@ -2265,6 +2257,10 @@ BEGIN { DrawSignal }
             SColour1 := ScreenComponentEditedColour;
             SColour2 := ScreenComponentEditedColour;
           END ELSE BEGIN
+            { Now draw indicators if any }
+            IF Signal_Indicator <> NoIndicator THEN
+              DrawIndicators(S);
+
             IF Signal_OutOfUse
             OR { a safeguard - turn the signal off altogether! }
                ((Signal_AdjacentLine <> UnknownLine) AND (Lines[Signal_AdjacentLine].Line_TC = UnknownTrackCircuit))
@@ -2341,6 +2337,12 @@ BEGIN { DrawSignal }
                   EllipseY2 - ScrollBarYAdjustment);
 
           IF Signal_Type = FourAspect THEN BEGIN
+            IF Signal_Direction = Up THEN
+              TopAspectX := Signal_LineX - SignalHorizontalSpacingScaled
+            ELSE
+              IF Signal_Direction = Down THEN
+                TopAspectX := Signal_LineX + SignalHorizontalSpacingScaled;
+
             Brush.Color := SColour2;
             EllipseX1 := TopAspectX - SignalRadiusScaled;
             EllipseY1 := Signal_LineWithVerticalSpacingY - SignalRadiusScaled;
@@ -7089,6 +7091,10 @@ VAR
   S : Integer;
   SaveLineOldColour : Integer;
   SaveRecordLineDrawingMode : Boolean;
+  ScreenDownX : Integer;
+  ScreenDownY : Integer;
+  ScreenUpX : Integer;
+  ScreenUpY : Integer;
   ShowArea : Boolean;
   SegmentText : String;
   WindowsTaskbar: HWND;
@@ -7588,8 +7594,12 @@ BEGIN { Main drawing procedure }
                                 SegmentText := '?';
 
                               IF SegmentText <> '' THEN BEGIN
-                                TextOut(Line_ScreenUpX + (Line_ScreenDownX - Line_ScreenUpX) DIV 2 - TextWidth(SegmentText) DIV 2 - ScrollBarXAdjustment,
-                                       (Line_ScreenUpY + (Line_ScreenDownY - Line_ScreenUpY) DIV 2) - TextHeight(SegmentText) DIV 2 - ScrollBarYAdjustment,
+                                ScreenUpX := MapGridXToScreenX(Line_GridUpX);
+                                ScreenUpY := MapGridYToScreenY(Line_GridUpY);
+                                ScreenDownX := MapGridXToScreenX(Line_GridDownX);
+                                ScreenDownY := MapGridYToScreenY(Line_GridDownY);
+                                TextOut(ScreenUpX + (ScreenDownX - ScreenUpX) DIV 2 - TextWidth(SegmentText) DIV 2 - ScrollBarXAdjustment,
+                                       (ScreenUpY + (ScreenDownY - ScreenUpY) DIV 2) - TextHeight(SegmentText) DIV 2 - ScrollBarYAdjustment,
                                         SegmentText);
                               END;
                             END;

@@ -504,6 +504,21 @@ FUNCTION LTS(L : Integer) : String;
 PROCEDURE MakeSound(SoundNum : Integer);
 { Make a warning sound }
 
+FUNCTION MapGridYToRow(GridY : Integer) : Extended;
+{ Map grid co-ordinate to row }
+
+FUNCTION MapGridXToScreenX(GridX : Integer) : Integer;
+{ Map grid co-ordinate to screen co-ordinate }
+
+FUNCTION MapGridYToScreenY(GridY : Integer) : Integer;
+{ Map grid co-ordinate to screen co-ordinate }
+
+FUNCTION MapScreenXToGridX(ScreenX : Integer) : Integer;
+{ Map screen co-ordinate to grid co-ordinate }
+
+FUNCTION MapScreenYToGridY(ScreenY : Integer) : Integer;
+{ Map screen co-ordinate to grid co-ordinate }
+
 FUNCTION MessageDialogueWithDefault{1}(DialogueText: String; StopTimer : Boolean; DlgType : TMsgDlgType; Buttons : TMsgDlgButtons; DefaultButton : TMsgDlgBtn) : Word;
                                        Overload;
 { Adapted from the Borland Delphi web site example - uses procedures from their uDialogsExt Unit. This version has a default button. }
@@ -5084,6 +5099,41 @@ BEGIN
   Result := LocationToStrMainProcedure(Location, LongOrShortString);
 END; { LocationToStr-2 }
 
+FUNCTION MapGridYToRow(GridY : Integer) : Extended;
+{ Map grid co-ordinate to row }
+VAR
+  TempInt : Integer;
+
+BEGIN
+  Result := MapGridYToScreenY(GridY);
+  Result := Result / InterLineSpacing;
+  Result := Round(Result * 10) / 10;
+END; { MapGridYToRow }
+
+FUNCTION MapGridXToScreenX(GridX : Integer) : Integer;
+{ Map grid co-ordinate to screen co-ordinate }
+BEGIN
+  Result := MulDiv(FWPRailWindow.ClientWidth, GridX, ZoomScaleFactor) - ScrollBarXAdjustment;
+END; { MapGridXToScreenX }
+
+FUNCTION MapGridYToScreenY(GridY : Integer) : Integer;
+{ Map grid co-ordinate to screen co-ordinate }
+BEGIN
+  Result := MulDiv(FWPRailWindow.ClientHeight, GridY, ZoomScaleFactor) - ScrollBarYAdjustment;
+END; { MapGridYToScreenY }
+
+FUNCTION MapScreenXToGridX(ScreenX : Integer) : Integer;
+{ Map screen co-ordinate to grid co-ordinate }
+BEGIN
+  Result := MulDiv(ZoomScaleFactor, ScreenX + ScrollBarXAdjustment, FWPRailWindow.ClientWidth);
+END; { MapScreenXToGridX }
+
+FUNCTION MapScreenYToGridY(ScreenY : Integer) : Integer;
+{ Map screen co-ordinate to grid co-ordinate }
+BEGIN
+  Result := MulDiv(ZoomScaleFactor, ScreenY + ScrollBarYAdjustment, FWPRailWindow.ClientHeight);
+END; { MapScreenYToGridY }
+
 FUNCTION MPHToInt(MPH : MPHType) : Integer;
 { Returns the given MPH as an integer }
 BEGIN
@@ -6949,7 +6999,7 @@ BEGIN
 
     IF NOT SignalAdjacentLineFound THEN
       { the line has to be horizontal }
-      IF Lines[Line].Line_ScreenUpY = Lines[Line].Line_ScreenDownY THEN
+      IF Lines[Line].Line_GridUpY = Lines[Line].Line_GridDownY THEN
         Result := True;
   END;
 END; { SignalAdjacentLineOK }

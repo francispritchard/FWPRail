@@ -2066,7 +2066,7 @@ BEGIN
     LineFound := False;
     Line := 0;
     WHILE (Line <= High(Lines)) AND NOT LineFound DO BEGIN
-      IF (Lines[Line].Line_ScreenUpY = Lines[Line].Line_ScreenDownY)
+      IF (Lines[Line].Line_GridUpY = Lines[Line].Line_GridDownY)
       AND PointInPolygon(Lines[Line].Line_MousePolygon, Point(X, Y))
       THEN
         LineFound := True
@@ -2178,12 +2178,12 @@ BEGIN
       END ELSE BEGIN
         { Is another one at the exact spot? Record where it is going to be placed to carry out this test. }
         IF Signal_Direction = Up THEN
-          NewSignalX := Lines[NearestLineToSignal].Line_ScreenUpX + SignalRadiusScaled
+          NewSignalX := MapGridXToScreenX(Lines[NearestLineToSignal].Line_GridUpX) + SignalRadiusScaled
         ELSE
           { Down }
-          NewSignalX := Lines[NearestLineToSignal].Line_ScreenDownX - SignalRadiusScaled;
+          NewSignalX := MapGridXToScreenX(Lines[NearestLineToSignal].Line_GridDownX) - SignalRadiusScaled;
 
-        NewSignalY := Lines[NearestLineToSignal].Line_ScreenUpY;
+        NewSignalY := MapGridYToScreenY(Lines[NearestLineToSignal].Line_GridUpY);
 
         { See whether we're trying to drop the signal over another signal }
         TooNearSignal := TooNearOtherSignal(EditedSignal, NearestLineToSignal);
@@ -2692,11 +2692,6 @@ BEGIN
                 ELSE
                   Line_GridDownY := GridY;
               END;
-
-          Line_ScreenUpX := MapGridXToScreenX(Line_GridUpX);
-          Line_ScreenUpY := MapGridYToScreenY(Line_GridUpY);
-          Line_ScreenDownX := MapGridXToScreenX(Line_GridDownX);
-          Line_ScreenDownY := MapGridYToScreenY(Line_GridDownY);
         END; {WITH}
       END; {WITH}
 
@@ -2733,11 +2728,6 @@ BEGIN
 
               SaveGridClickPosX := GridX;
               SaveGridClickPosY := GridY;
-
-              Line_ScreenUpX := MapGridXTOScreenX(Line_GridUpX);
-              Line_ScreenUpY := MapGridYTOScreenY(Line_GridUpY);
-              Line_ScreenDownX := MapGridXTOScreenX(Line_GridDownX);
-              Line_ScreenDownY := MapGridYTOScreenY(Line_GridDownY);
             END;
           END; {WITH}
         END; {FOR}
@@ -2856,12 +2846,8 @@ BEGIN
     OldUpRow := Line_DownRow;
 
     { Now update the new line record }
-//    Line_GridUpX := MapScreenXToGridX(Line_ScreenUpX);
-//    Line_GridUpY := MapScreenYToGridY(Line_ScreenUpY);
-//    Line_GridDownX := MapScreenXToGridX(Line_ScreenDownX);
-//    Line_GridDownY := MapScreenYToGridY(Line_ScreenDownY);
-    Line_UpRow := MapScreenYToRow(Line_ScreenUpY);
-    Line_DownRow := MapScreenYToRow(Line_ScreenDownY);
+    Line_UpRow := MapGridYToRow(Line_GridUpY);
+    Line_DownRow := MapGridYToRow(Line_GridDownY);
 
     IF DistanceBetween(Line_GridUpX, Line_GridUpY, Line_GridDownX, Line_GridDownY) < 5 THEN BEGIN
       { the cursor has been clicked without it moving - if we're on a line, then mark it as edited and add the handles }
@@ -2949,21 +2935,15 @@ BEGIN
     { Adjust the X/Y co-ordinates for the new line - but make sure the Y position is on a grid line }
     Lines[NewLine].Line_GridUpX := PX;
     Lines[NewLine].Line_GridUpY := PY;
-    Lines[NewLine].Line_ScreenUpX := MapGridXToScreenX(Lines[NewLine].Line_GridUpX);
-    Lines[NewLine].Line_ScreenUpY := MapGridYToScreenY(Lines[NewLine].Line_GridUpY);
-    Lines[NewLine].Line_UpRow := MapScreenYToRow(Lines[NewLine].Line_ScreenUpY);
+    Lines[NewLine].Line_UpRow := MapGridYToRow(Lines[NewLine].Line_GridUpY);
 
     Lines[NewLine].Line_GridDownX := Lines[OldLine].Line_GridDownX;
     Lines[NewLine].Line_GridDownY := Lines[OldLine].Line_GridDownY;
-    Lines[NewLine].Line_ScreenDownX := Lines[OldLine].Line_ScreenDownX;
-    Lines[NewLine].Line_ScreenDownY := Lines[OldLine].Line_ScreenDownY;
     Lines[NewLine].Line_DownRow := Lines[OldLine].Line_DownRow;
 
     { Then truncate the existing old line }
     Lines[OldLine].Line_GridDownX := Lines[NewLine].Line_GridUpX;
     Lines[OldLine].Line_GridDownY := Lines[NewLine].Line_GridUpY;
-    Lines[OldLine].Line_ScreenDownX := Lines[NewLine].Line_ScreenUpX;
-    Lines[OldLine].Line_ScreenDownY := Lines[NewLine].Line_ScreenUpY;
     Lines[OldLine].Line_DownRow := Lines[NewLine].Line_UpRow;
 
     { Now adjust the other details for the new line }

@@ -332,16 +332,8 @@ TYPE
     Line_Gradient : GradientType;
     Line_GridDownX : Integer;
     Line_GridDownY : Integer;
-  Line_SaveGridDownX : Integer;
-  Line_SaveGridDownY : Integer;
-  Line_SaveScreenDownX : Integer;
-  Line_SaveScreenDownY : Integer;
     Line_GridUpX : Integer;
     Line_GridUpY : Integer;
-  Line_SaveGridUpX : Integer;
-  Line_SaveGridUpY : Integer;
-  Line_SaveScreenUpX : Integer;
-  Line_SaveScreenUpY : Integer;
     Line_InitialOutOfUseState : OutOfUseState;
     Line_InUseFeedbackUnit : Integer;
     Line_InUseFeedbackInput : Integer;
@@ -365,10 +357,6 @@ TYPE
     Line_RouteLockingForDrawing : Integer; { used for drawing those bits of Line that are routed over }
     Line_RouteSet : Integer;
     Line_SaveOutOfUseState : OutOfUseState;
-    Line_ScreenDownX : Integer;
-    Line_ScreenDownY : Integer;
-    Line_ScreenUpX : Integer;
-    Line_ScreenUpY : Integer;
     Line_TC : Integer;
     Line_TypeOfLine : TypeOfLine;
     Line_UpConnectionCh : String;
@@ -1901,6 +1889,24 @@ PROCEDURE SetUpLineDrawingVars;
 { Set up the positions of the lines and plaforms }
 BEGIN
   { Interval spacing : the following data has been read in from the registry }
+//  BufferStopVerticalSpacingScaled := BufferStopVerticalSpacing DIV 10;
+//  IndicatorHorizontalSpacingScaled := IndicatorHorizontalSpacing DIV 10;
+//  IndicatorVerticalSpacingScaled := IndicatorVerticalSpacing DIV 10;
+//  MouseRectangleEdgeVerticalSpacingScaled := MouseRectangleEdgeVerticalSpacing DIV 10;
+//  PlatformEdgeVerticalSpacingScaled := PlatformEdgeVerticalSpacing DIV 10;
+//  PlatformNumberEdgeHorizontalSpacingScaled := PlatformNumberEdgeHorizontalSpacing DIV 10;
+//  PlatformNumberEdgeVerticalSpacingScaled := PlatformNumberEdgeVerticalSpacing DIV 10;
+//  SignalHorizontalSpacingScaled := SignalHorizontalSpacing DIV 10;
+//  SignalRadiusScaled := SignalRadius DIV 10;
+//  SignalSemaphoreHeightScaled := SignalSemaphoreHeight DIV 10;
+//  SignalSemaphoreWidthScaled := SignalSemaphoreWidth DIV 10;
+//  SignalVerticalSpacingScaled := SignalVerticalSpacing DIV 10;
+//  SpeedRestrictionHorizontalSpacingScaled := SpeedRestrictionHorizontalSpacing DIV 10;
+//  SpeedRestrictionVerticalSpacingScaled := SpeedRestrictionVerticalSpacing DIV 10;
+//  TheatreIndicatorHorizontalSpacingScaled := TheatreIndicatorHorizontalSpacing DIV 10;
+//  TheatreIndicatorVerticalSpacingScaled := TheatreIndicatorVerticalSpacing DIV 10;
+//  TRSPlungerLengthScaled := TRSPlungerLength DIV 10;
+
   BufferStopVerticalSpacingScaled := MulDiv(FWPRailWindow.ClientHeight, BufferStopVerticalSpacing, ZoomScaleFactor * 10);
   IndicatorHorizontalSpacingScaled := MulDiv(FWPRailWindow.ClientWidth, IndicatorHorizontalSpacing, ZoomScaleFactor * 10);
   IndicatorVerticalSpacingScaled := MulDiv(FWPRailWindow.ClientHeight, IndicatorVerticalSpacing, ZoomScaleFactor * 10);
@@ -2995,28 +3001,33 @@ VAR
 
 BEGIN
   WITH Lines[Line] DO BEGIN
+    ScreenUpX := MapGridXToScreenX(Line_GridUpX);
+    ScreenUpY := MapGridYToScreenY(Line_GridUpY);
+    ScreenDownX := MapGridXToScreenX(Line_GridDownX);
+    ScreenDownY := MapGridYToScreenY(Line_GridDownY);
+
     { The mouse polygon }
-    Line_MousePolygon[0] := Point(Line_ScreenUpX, Line_ScreenUpY + MouseRectangleEdgeVerticalSpacingScaled);
-    Line_MousePolygon[1] := Point(Line_ScreenUpX, Line_ScreenUpY - MouseRectangleEdgeVerticalSpacingScaled);
-    Line_MousePolygon[2] := Point(Line_ScreenDownX, Line_ScreenDownY - MouseRectangleEdgeVerticalSpacingScaled);
-    Line_MousePolygon[3] := Point(Line_ScreenDownX, Line_ScreenDownY + MouseRectangleEdgeVerticalSpacingScaled);
+    Line_MousePolygon[0] := Point(ScreenUpX, ScreenUpY + MouseRectangleEdgeVerticalSpacingScaled);
+    Line_MousePolygon[1] := Point(ScreenUpX, ScreenUpY - MouseRectangleEdgeVerticalSpacingScaled);
+    Line_MousePolygon[2] := Point(ScreenDownX, ScreenDownY - MouseRectangleEdgeVerticalSpacingScaled);
+    Line_MousePolygon[3] := Point(ScreenDownX, ScreenDownY + MouseRectangleEdgeVerticalSpacingScaled);
     Line_MousePolygon[4] := Line_MousePolygon[0];
 
     { The handles }
-    Line_UpHandlePolygon[0] := Point(Line_ScreenUpX - SignalRadiusScaled, Line_ScreenUpY + MouseRectangleEdgeVerticalSpacingScaled);
-    Line_UpHandlePolygon[1] := Point(Line_ScreenUpX - SignalRadiusScaled, Line_ScreenUpY - MouseRectangleEdgeVerticalSpacingScaled);
-    Line_UpHandlePolygon[2] := Point(Line_ScreenUpX + SignalRadiusScaled, Line_ScreenUpY - MouseRectangleEdgeVerticalSpacingScaled);
-    Line_UpHandlePolygon[3] := Point(Line_ScreenUpX + SignalRadiusScaled, Line_ScreenUpY + MouseRectangleEdgeVerticalSpacingScaled);
+    Line_UpHandlePolygon[0] := Point(ScreenUpX - SignalRadiusScaled, ScreenUpY + MouseRectangleEdgeVerticalSpacingScaled);
+    Line_UpHandlePolygon[1] := Point(ScreenUpX - SignalRadiusScaled, ScreenUpY - MouseRectangleEdgeVerticalSpacingScaled);
+    Line_UpHandlePolygon[2] := Point(ScreenUpX + SignalRadiusScaled, ScreenUpY - MouseRectangleEdgeVerticalSpacingScaled);
+    Line_UpHandlePolygon[3] := Point(ScreenUpX + SignalRadiusScaled, ScreenUpY + MouseRectangleEdgeVerticalSpacingScaled);
     Line_UpHandlePolygon[4] := Line_UpHandlePolygon[0];
 
-    Line_DownHandlePolygon[0] := Point(Line_ScreenDownX + SignalRadiusScaled, Line_ScreenDownY + MouseRectangleEdgeVerticalSpacingScaled);
-    Line_DownHandlePolygon[1] := Point(Line_ScreenDownX + SignalRadiusScaled, Line_ScreenDownY - MouseRectangleEdgeVerticalSpacingScaled);
-    Line_DownHandlePolygon[2] := Point(Line_ScreenDownX - SignalRadiusScaled, Line_ScreenDownY - MouseRectangleEdgeVerticalSpacingScaled);
-    Line_DownHandlePolygon[3] := Point(Line_ScreenDownX - SignalRadiusScaled, Line_ScreenDownY + MouseRectangleEdgeVerticalSpacingScaled);
+    Line_DownHandlePolygon[0] := Point(ScreenDownX + SignalRadiusScaled, ScreenDownY + MouseRectangleEdgeVerticalSpacingScaled);
+    Line_DownHandlePolygon[1] := Point(ScreenDownX + SignalRadiusScaled, ScreenDownY - MouseRectangleEdgeVerticalSpacingScaled);
+    Line_DownHandlePolygon[2] := Point(ScreenDownX - SignalRadiusScaled, ScreenDownY - MouseRectangleEdgeVerticalSpacingScaled);
+    Line_DownHandlePolygon[3] := Point(ScreenDownX - SignalRadiusScaled, ScreenDownY + MouseRectangleEdgeVerticalSpacingScaled);
     Line_DownHandlePolygon[4] := Line_DownHandlePolygon[0];
 
-    MidScreenX := Line_ScreenUpX + ((Line_ScreenDownX - Line_ScreenUpX) DIV 2);
-    MidScreenY := Line_ScreenUpY + ((Line_ScreenDownY - Line_ScreenUpY) DIV 2);
+    MidScreenX := ScreenUpX + ((ScreenDownX - ScreenUpX) DIV 2);
+    MidScreenY := ScreenUpY + ((ScreenDownY - ScreenUpY) DIV 2);
     Line_MidHandlePolygon[0] := Point(MidScreenX - SignalRadiusScaled, MidScreenY + MouseRectangleEdgeVerticalSpacingScaled);
     Line_MidHandlePolygon[1] := Point(MidScreenX - SignalRadiusScaled, MidScreenY - MouseRectangleEdgeVerticalSpacingScaled);
     Line_MidHandlePolygon[2] := Point(MidScreenX + SignalRadiusScaled, MidScreenY - MouseRectangleEdgeVerticalSpacingScaled);
@@ -3024,6 +3035,45 @@ BEGIN
     Line_MidHandlePolygon[4] := Line_MidHandlePolygon[0];
   END; {WITH}
 END; { CalculateLinePolygons }
+
+PROCEDURE CalculateLineEndCharacters(Line : Integer);
+{ Add the line-end characters which indicate where a line goes next }
+VAR
+  ScreenUpX : Integer;
+  ScreenUpY : Integer;
+  ScreenDownX : Integer;
+  ScreenDownY : Integer;
+
+BEGIN
+  WITH RailWindowBitmap.Canvas DO BEGIN
+    WITH Lines[Line] DO BEGIN
+      ScreenUpX := MapGridXToScreenX(Line_GridUpX);
+      ScreenUpY := MapGridYToScreenY(Line_GridUpY);
+      ScreenDownX := MapGridXToScreenX(Line_GridDownX);
+      ScreenDownY := MapGridYToScreenY(Line_GridDownY);
+
+      { a straight line }
+      Font.Height := -MulDiv(FWPRailWindow.ClientHeight, FWPRailWindowFontHeight, ZoomScaleFactor);
+      IF Line_UpConnectionCh <> '' THEN BEGIN
+        WITH Line_UpConnectionChRect DO BEGIN
+          Left := ScreenUpX - (TextWidth(Line_UpConnectionCh) DIV 2);
+          Top := ScreenUpY - (TextHeight(Line_UpConnectionCh) DIV 2);
+          Right := ScreenUpX + (TextWidth(Line_UpConnectionCh) DIV 2);
+          Bottom := ScreenUpY + (TextHeight(Line_UpConnectionCh) DIV 2);
+        END; {WITH}
+      END;
+
+      IF Line_DownConnectionCh <> '' THEN BEGIN
+        WITH Line_DownConnectionChRect DO BEGIN
+          Left := ScreenDownX - (TextWidth(Line_DownConnectionCh) DIV 2);
+          Top := ScreenDownY - (TextHeight(Line_DownConnectionCh) DIV 2);
+          Right := ScreenDownX + (TextWidth(Line_DownConnectionCh) DIV 2);
+          Bottom := ScreenDownY + (TextHeight(Line_DownConnectionCh) DIV 2);
+        END; {WITH}
+      END;
+    END; {WITH}
+  END; {WITH}
+END; { CalculateLineEndCharacters }
 
 PROCEDURE CalculateLinePositions;
 { Work out where the lines are on the screen }
@@ -3035,23 +3085,8 @@ BEGIN
     Line := 0;
     WHILE Line <= High(Lines) DO BEGIN
       WITH Lines[Line] DO BEGIN
-        Line_ScreenUpX := MapGridXToScreenX(Line_GridUpX);
-        Line_ScreenDownX := MapGridXToScreenX(Line_GridDownX);
-
-        Line_ScreenUpY := Round(Line_UpRow * InterLineSpacing);
-        Line_ScreenDownY := Round(Line_DownRow * InterLineSpacing);
-
-        Line_GridUpY := MapScreenYToGridY(Line_ScreenUpY);
-        Line_GridDownY := MapScreenYToGridY(Line_ScreenDownY);
-
-        Line_SaveGridUpX := Line_GridUpX;
-        Line_SaveGridDownX := Line_GridDownX;
-        Line_SaveGridUpY := Line_GridUpY;
-        Line_SaveGridDownY := Line_GridDownY;
-        Line_SaveScreenUpX := Line_ScreenUpX;
-        Line_SaveScreenDownX := Line_ScreenDownX;
-        Line_SaveScreenUpY := Line_ScreenUpY;
-        Line_SaveScreenDownY := Line_ScreenDownY;
+        Line_GridUpY := MapScreenYToGridY(Round(Line_UpRow * InterLineSpacing));
+        Line_GridDownY := MapScreenYToGridY(Round(Line_DownRow * InterLineSpacing));
       END; {WITH}
       Inc(Line);
     END; {WHILE}
@@ -3060,28 +3095,7 @@ BEGIN
     WHILE Line <= High(Lines) DO BEGIN
       WITH Lines[Line] DO BEGIN
         CalculateLinePolygons(Line);
-
-        { Add the line-end characters which indicate where a line goes next }
-        WITH RailWindowBitmap.Canvas DO BEGIN
-          { a straight line }
-          Font.Height := -MulDiv(FWPRailWindow.ClientHeight, FWPRailWindowFontHeight, ZoomScaleFactor);
-          IF Line_UpConnectionCh <> '' THEN BEGIN
-            WITH Line_UpConnectionChRect DO BEGIN
-              Left := Line_ScreenUpX - (TextWidth(Line_UpConnectionCh) DIV 2);
-              Top := Line_ScreenUpY - (TextHeight(Line_UpConnectionCh) DIV 2);
-              Right := Line_ScreenUpX + (TextWidth(Line_UpConnectionCh) DIV 2);
-              Bottom := Line_ScreenUpY + (TextHeight(Line_UpConnectionCh) DIV 2);
-            END; {WITH}
-          END;
-          IF Line_DownConnectionCh <> '' THEN BEGIN
-            WITH Line_DownConnectionChRect DO BEGIN
-              Left := Line_ScreenDownX - (TextWidth(Line_DownConnectionCh) DIV 2);
-              Top := Line_ScreenDownY - (TextHeight(Line_DownConnectionCh) DIV 2);
-              Right := Line_ScreenDownX + (TextWidth(Line_DownConnectionCh) DIV 2);
-              Bottom := Line_ScreenDownY + (TextHeight(Line_DownConnectionCh) DIV 2);
-            END; {WITH}
-          END;
-        END; {WITH}
+        CalculateLineEndCharacters(Line);
       END; {WITH}
       Inc(Line);
     END; {WHILE}
@@ -3089,12 +3103,6 @@ BEGIN
     ON E : Exception DO
       Log('EG CalculateLinePositions: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
-
-
-  IF VerboseFlag THEN
-    FOR Line := 0 TO High(Lines) DO
-      WITH Lines[Line] DO
-        Log('X ' + Line_NameStr +  ' UpX=' + IntToStr(Line_ScreenUpX) + ' UpY=' + IntToStr(Line_ScreenUpY) + ' DownX=' + IntToStr(Line_ScreenDownX) + ' DownY=' + IntToStr(Line_ScreenDownY));
 END; { CalculateLinePositions }
 
 PROCEDURE CalculateBufferStopPositions;
@@ -3107,13 +3115,13 @@ BEGIN
   WHILE BufferStop <= High(BufferStops) DO BEGIN
     WITH BufferStops[BufferStop] DO BEGIN
       IF BufferStop_Direction = Up THEN BEGIN
-        BufferStop_X := Lines[BufferStop_AdjacentLine].Line_ScreenUpX;
-        BufferStop_Y1 := Lines[BufferStop_AdjacentLine].Line_ScreenUpY - BufferStopVerticalSpacingScaled;
-        BufferStop_Y2 := Lines[BufferStop_AdjacentLine].Line_ScreenUpY + BufferStopVerticalSpacingScaled;
+        BufferStop_X := MapGridXToScreenX(Lines[BufferStop_AdjacentLine].Line_GridUpX);
+        BufferStop_Y1 := MapGridYToScreenY(Lines[BufferStop_AdjacentLine].Line_GridUpY) - BufferStopVerticalSpacingScaled;
+        BufferStop_Y2 := MapGridYToScreenY(Lines[BufferStop_AdjacentLine].Line_GridUpY) + BufferStopVerticalSpacingScaled;
       END ELSE BEGIN
-        BufferStop_X := Lines[BufferStop_AdjacentLine].Line_ScreenDownX;
-        BufferStop_Y1 := Lines[BufferStop_AdjacentLine].Line_ScreenDownY - BufferStopVerticalSpacingScaled;
-        BufferStop_Y2 := Lines[BufferStop_AdjacentLine].Line_ScreenDownY + BufferStopVerticalSpacingScaled;
+        BufferStop_X := MapGridXToScreenX(Lines[BufferStop_AdjacentLine].Line_GridDownX);
+        BufferStop_Y1 := MapGridYToScreenY(Lines[BufferStop_AdjacentLine].Line_GridDownY) - BufferStopVerticalSpacingScaled;
+        BufferStop_Y2 := MapGridYToScreenY(Lines[BufferStop_AdjacentLine].Line_GridDownY) + BufferStopVerticalSpacingScaled;
       END;
 
       { The mouse rectangle }
@@ -3348,15 +3356,9 @@ BEGIN
             ErrorMsg := '';
 
             Line_GridUpX := 0;
-            Line_ScreenUpX := 0;
-
             Line_GridDownX := 0;
-            Line_ScreenDownX := 0;
-
             Line_GridUpY := 0;
-            Line_ScreenUpY := 0;
             Line_GridDownY := 0;
-            Line_ScreenDownY := 0;
 
             Line_DataChanged := False;
             Line_AdjacentBufferStop := UnknownBufferStop;
@@ -3505,7 +3507,7 @@ BEGIN
     FOR Line := 0 TO High(Lines) DO BEGIN
       WITH Lines[Line] DO BEGIN
         { In all cases, UpX should be less than DownX }
-        IF Line_ScreenUpX > Line_ScreenDownX THEN BEGIN
+        IF Line_GridUpX > Line_GridDownX THEN BEGIN
           IF MessageDialogueWithDefault('Line ' + Line_NameStr + ': UpX > DownX',
                                         StopTimer, mtError, [mbOK, mbAbort], mbAbort) = mrAbort
           THEN
@@ -3588,14 +3590,14 @@ BEGIN
                 Line_NextDownLine := OtherLine
               END ELSE BEGIN
                 { Now look for normal horizontal connections }
-                IF (Line_ScreenDownX = Lines[OtherLine].Line_ScreenUpX) AND (Line_ScreenDownY = Lines[OtherLine].Line_ScreenUpY) AND
-                  (Line_ScreenUpY = Lines[OtherLine].Line_ScreenDownY) THEN BEGIN
+                IF (Line_GridDownX = Lines[OtherLine].Line_GridUpX) AND (Line_GridDownY = Lines[OtherLine].Line_GridUpY) AND
+                  (Line_GridUpY = Lines[OtherLine].Line_GridDownY) THEN BEGIN
                   Line_NextDownType := LineIsNext;
                   Line_NextDownLine := OtherLine;
                 END;
 
-                IF (Line_ScreenUpX = Lines[OtherLine].Line_ScreenDownX) AND (Line_ScreenUpY = Lines[OtherLine].Line_ScreenDownY) AND
-                  (Line_ScreenDownY = Lines[OtherLine].Line_ScreenUpY) THEN BEGIN
+                IF (Line_GridUpX = Lines[OtherLine].Line_GridDownX) AND (Line_GridUpY = Lines[OtherLine].Line_GridDownY) AND
+                  (Line_GridDownY = Lines[OtherLine].Line_GridUpY) THEN BEGIN
                   Line_NextUpType := LineIsNext;
                   Line_NextUpLine := OtherLine;
                 END;
@@ -3603,12 +3605,12 @@ BEGIN
 
             { If there are no normal horizontal connections, see if there's a non-horizontal one }
             IF (Line_NextUpLine = UnknownLine) OR (Line_NextDownLine = UnknownLine) THEN BEGIN
-              IF (Line_ScreenDownX = Lines[OtherLine].Line_ScreenUpX) AND (Line_ScreenDownY = Lines[OtherLine].Line_ScreenUpY) THEN BEGIN
+              IF (Line_GridDownX = Lines[OtherLine].Line_GridUpX) AND (Line_GridDownY = Lines[OtherLine].Line_GridUpY) THEN BEGIN
                 Line_NextDownType := LineIsNext;
                 Line_NextDownLine := OtherLine;
               END;
 
-              IF (Line_ScreenUpX = Lines[OtherLine].Line_ScreenDownX) AND (Line_ScreenUpY = Lines[OtherLine].Line_ScreenDownY) THEN BEGIN
+              IF (Line_GridUpX = Lines[OtherLine].Line_GridDownX) AND (Line_GridUpY = Lines[OtherLine].Line_GridDownY) THEN BEGIN
                 Line_NextUpType := LineIsNext;
                 Line_NextUpLine := OtherLine;
               END;
@@ -3924,21 +3926,23 @@ BEGIN
     WITH Signals[S] DO BEGIN
       IF Signal_AdjacentLine <> UnknownLine THEN BEGIN
         IF Signal_Direction = Up THEN BEGIN
-          Signal_LineX := Lines[Signal_AdjacentLine].Line_ScreenUpX + SignalRadiusScaled;
+          Signal_LineX := MapGridXToScreenX(Lines[Signal_AdjacentLine].Line_GridUpX);
+          Signal_LineX := Signal_LineX + SignalRadiusScaled;
           IF Signal_Indicator <> NoIndicator THEN
             Signal_LineX := Signal_LineX + SignalHorizontalSpacingScaled;
           IF Signal_Type = FourAspect THEN
             Signal_LineX := Signal_LineX + SignalHorizontalSpacingScaled;
         END ELSE BEGIN
           { Down }
-          Signal_LineX := Lines[Signal_AdjacentLine].Line_ScreenDownX - SignalRadiusScaled;
+          Signal_LineX := MapGridXToScreenX(Lines[Signal_AdjacentLine].Line_GridDownX);
+          Signal_LineX := Signal_LineX - SignalRadiusScaled;
           IF Signal_Indicator <> NoIndicator THEN
             Signal_LineX := Signal_LineX - SignalHorizontalSpacingScaled;
           IF Signal_Type = FourAspect THEN
             Signal_LineX := Signal_LineX - SignalHorizontalSpacingScaled;
         END;
 
-        Signal_LineY := Lines[Signal_AdjacentLine].Line_ScreenUpY;
+        Signal_LineY := MapGridYToScreenY(Lines[Signal_AdjacentLine].Line_GridUpY);
 
         { Adjust left or right if AdjacentLineXOffset greater than or less than zero respectively }
         IF Signal_AdjacentLineXOffset > 0 THEN
@@ -6275,7 +6279,7 @@ BEGIN
   FOR P := 0 TO High(Platforms) DO BEGIN
     WITH Platforms[P] DO BEGIN
       WITH Platform_Rect DO BEGIN
-        Left := Lines[Platform_LeftLine].Line_ScreenUpX;
+        Left := MapGridXToScreenX(Lines[Platform_LeftLine].Line_GridUpX);
         IF Platform_LeftLineAdjustment > 0 THEN
           Left := Left + MulDiv(FWPRailWindow.ClientWidth, Platform_LeftLineAdjustment, ZoomScaleFactor);
 
@@ -6283,7 +6287,7 @@ BEGIN
         IF Platforms[P].Platform_RowAbovePlatform <> 0 THEN
           Top := Round(Platforms[P].Platform_RowAbovePlatform * InterLineSpacing);
 
-        Right := Lines[Platform_RightLine].Line_ScreenDownX;
+        Right := MapGridXToScreenX(Lines[Platform_RightLine].Line_GridDownX);
         IF Platform_RightLineAdjustment > 0 THEN
           Right := Right + MulDiv(FWPRailWindow.ClientWidth, Platform_RightLineAdjustment, ZoomScaleFactor);
 
