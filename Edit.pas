@@ -2018,6 +2018,8 @@ BEGIN
 
         { Reload all the points }
         ReadInPointDataFromDatabase;
+        IF PreviousPointSettingsMode THEN
+          LoadPreviousPointSettings;
         InvalidateScreen(UnitRef, 'DeletePoint');
         Log('D Screen invalidated by DeletePoint');
       END;
