@@ -532,19 +532,19 @@ PROCEDURE ResetScreenColoursAfterPrinting;
 { Restore the colours to those saved before printing the screen in printer-friendly colours }
 
 PROCEDURE SetBufferStopPopupNum(Num : Integer);
-{ Set the buffer stop popup number }
+{ Assign to the buffer stop popup number }
 
 PROCEDURE SetCaption(Window : TForm; Caption : String);
 { Sets a window caption }
 
 PROCEDURE SetLinePopupNum(Num : Integer);
-{ Set the LinePopupNum variable state }
+{ Assign to the LinePopupNum variable state }
 
 PROCEDURE SetPointPopupNum(Num : Integer);
-{ Set the PointPopupNum variable state }
+{ assign to the PointPopupNum variable state }
 
 PROCEDURE SetSignalPopupNum(Num : Integer);
-{ Set the SignalPopupNum variable state }
+{ Assign to the SignalPopupNum variable state }
 
 PROCEDURE SetScreenColoursBeforePrinting;
 { Save the screen colours before printing the screen in printer-friendly colours }
@@ -665,19 +665,19 @@ BEGIN
 END; { SaveCursor }
 
 PROCEDURE SetLinePopupNum(Num : Integer);
-{ Set the GetLinePopupNum variable state }
+{ Assign to the GetLinePopupNum variable state }
 BEGIN
   LinePopupNum := Num;
 END; { SetLinePopupNum }
 
 PROCEDURE SetPointPopupNum(Num : Integer);
-{ Set the GetPointPopupNum variable state }
+{ Assign to the GetPointPopupNum variable state }
 BEGIN
   PointPopupNum := Num;
 END; { SetPointPopupNum }
 
 PROCEDURE SetSignalPopupNum(Num : Integer);
-{ Set the GetSignalPopupNum variable state }
+{ Assign to the GetSignalPopupNum variable state }
 BEGIN
   SignalPopupNum := Num;
 END; { SetSignalPopupNum }
@@ -689,7 +689,7 @@ BEGIN
 END; { GetDiagramsCheckingInProgress }
 
 PROCEDURE SetBufferStopPopupNum(Num : Integer);
-{ Set the buffer stop popup number }
+{ Assign to the buffer stop popup number }
 BEGIN
   BufferStopPopupNum := Num;
 END; { SetBufferStopPopupNum }

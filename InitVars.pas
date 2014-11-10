@@ -3142,51 +3142,7 @@ BEGIN
       Inc(Line);
     END; {WHILE}
 
-    { Now work out which lines are next to which }
-    FOR Line := 0 TO High(Lines) DO BEGIN
-      WITH Lines[Line] DO BEGIN
-        FOR OtherLine := 0 TO High(Lines) DO BEGIN
-          IF Line <> OtherLine THEN BEGIN
-            { First, see if a line is disconnected from its neighbour - look for an alphabetic character at its start or end }
-            IF (Line_UpConnectionCh <> '') AND (Line_UpConnectionCh = Lines[OtherLine].Line_DownConnectionCh) THEN BEGIN
-              Line_NextUpType := LineIsNext;
-              Line_NextUpLine := OtherLine
-            END ELSE
-              IF (Line_DownConnectionCh <> '') AND (Line_DownConnectionCh = Lines[OtherLine].Line_UpConnectionCh) THEN BEGIN
-                Line_NextDownType := LineIsNext;
-                Line_NextDownLine := OtherLine
-              END ELSE BEGIN
-                { Now look for normal horizontal connections }
-                IF (Line_GridDownX = Lines[OtherLine].Line_GridUpX) AND (Line_GridDownY = Lines[OtherLine].Line_GridUpY) AND
-                  (Line_GridUpY = Lines[OtherLine].Line_GridDownY) THEN BEGIN
-                  Line_NextDownType := LineIsNext;
-                  Line_NextDownLine := OtherLine;
-                END;
-
-                IF (Line_GridUpX = Lines[OtherLine].Line_GridDownX) AND (Line_GridUpY = Lines[OtherLine].Line_GridDownY) AND
-                  (Line_GridDownY = Lines[OtherLine].Line_GridUpY) THEN BEGIN
-                  Line_NextUpType := LineIsNext;
-                  Line_NextUpLine := OtherLine;
-                END;
-              END;
-
-            { If there are no normal horizontal connections, see if there's a non-horizontal one }
-            IF (Line_NextUpLine = UnknownLine) OR (Line_NextDownLine = UnknownLine) THEN BEGIN
-              IF (Line_GridDownX = Lines[OtherLine].Line_GridUpX) AND (Line_GridDownY = Lines[OtherLine].Line_GridUpY) THEN BEGIN
-                Line_NextDownType := LineIsNext;
-                Line_NextDownLine := OtherLine;
-              END;
-
-              IF (Line_GridUpX = Lines[OtherLine].Line_GridDownX) AND (Line_GridUpY = Lines[OtherLine].Line_GridDownY) THEN BEGIN
-                Line_NextUpType := LineIsNext;
-                Line_NextUpLine := OtherLine;
-              END;
-            END;
-          END;
-        END;
-      END; {WITH}
-    END; {FOR}
-
+    { Sort out buffer stop positions }
     FOR Line := 0 TO High(Lines) DO BEGIN
       WITH Lines[Line] DO BEGIN
         Line_CurrentColour := TCUnoccupiedColour;
@@ -3245,6 +3201,51 @@ BEGIN
               ShutDownProgram(UnitRef, 'ReadInLineDataFromDatabase');
           END;
 
+      END; {WITH}
+    END; {FOR}
+
+    { Now work out which lines are next to which }
+    FOR Line := 0 TO High(Lines) DO BEGIN
+      WITH Lines[Line] DO BEGIN
+        FOR OtherLine := 0 TO High(Lines) DO BEGIN
+          IF Line <> OtherLine THEN BEGIN
+            { First, see if a line is disconnected from its neighbour - look for an alphabetic character at its start or end }
+            IF (Line_UpConnectionCh <> '') AND (Line_UpConnectionCh = Lines[OtherLine].Line_DownConnectionCh) THEN BEGIN
+              Line_NextUpType := LineIsNext;
+              Line_NextUpLine := OtherLine
+            END ELSE
+              IF (Line_DownConnectionCh <> '') AND (Line_DownConnectionCh = Lines[OtherLine].Line_UpConnectionCh) THEN BEGIN
+                Line_NextDownType := LineIsNext;
+                Line_NextDownLine := OtherLine
+              END ELSE BEGIN
+                { Now look for normal horizontal connections }
+                IF (Line_GridDownX = Lines[OtherLine].Line_GridUpX) AND (Line_GridDownY = Lines[OtherLine].Line_GridUpY) AND
+                  (Line_GridUpY = Lines[OtherLine].Line_GridDownY) THEN BEGIN
+                  Line_NextDownType := LineIsNext;
+                  Line_NextDownLine := OtherLine;
+                END;
+
+                IF (Line_GridUpX = Lines[OtherLine].Line_GridDownX) AND (Line_GridUpY = Lines[OtherLine].Line_GridDownY) AND
+                  (Line_GridDownY = Lines[OtherLine].Line_GridUpY) THEN BEGIN
+                  Line_NextUpType := LineIsNext;
+                  Line_NextUpLine := OtherLine;
+                END;
+              END;
+
+            { If there are no normal horizontal connections, see if there's a non-horizontal one }
+            IF (Line_NextUpLine = UnknownLine) OR (Line_NextDownLine = UnknownLine) THEN BEGIN
+              IF (Line_GridDownX = Lines[OtherLine].Line_GridUpX) AND (Line_GridDownY = Lines[OtherLine].Line_GridUpY) THEN BEGIN
+                Line_NextDownType := LineIsNext;
+                Line_NextDownLine := OtherLine;
+              END;
+
+              IF (Line_GridUpX = Lines[OtherLine].Line_GridDownX) AND (Line_GridUpY = Lines[OtherLine].Line_GridDownY) THEN BEGIN
+                Line_NextUpType := LineIsNext;
+                Line_NextUpLine := OtherLine;
+              END;
+            END;
+          END;
+        END;
       END; {WITH}
     END; {FOR}
 
