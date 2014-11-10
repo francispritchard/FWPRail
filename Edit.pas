@@ -2740,9 +2740,9 @@ BEGIN
   END; {TRY}
 END; { DragWholeLine }
 
-FUNCTION GetYPositionOfNearestGridLine(Y : Integer) : Integer;
+FUNCTION GetYPositionOfNearestGridLine(GridY : Integer) : Integer;
 BEGIN
-  Result := Round(Y / InterLineSpacing) * InterLineSpacing;
+  Result := Round(GridY / GridInterLineSpacing) * GridInterLineSpacing;
 END; { GetPositionOfNearestGridLine }
 
 FUNCTION GetXPositionOfNearestLineIfAny(Line, X, Y : Integer) : Integer;
@@ -2867,17 +2867,16 @@ BEGIN
     END ELSE BEGIN
       { Unless Ctrl is held down, see if we are near enough a horizontal grid line or the beginning or the end of an actual line to "snap" to it }
       IF NOT (ssCtrl IN ShiftState) THEN BEGIN
-        Line_ScreenUpY := GetYPositionOfNearestGridLine(Line_ScreenUpY);
-        Line_GridUpY := MapScreenYToGridY(Line_ScreenUpY);
-        Line_ScreenDownY := GetYPositionOfNearestGridLine(Line_ScreenDownY);
-        Line_GridDownY := MapScreenYToGridY(Line_ScreenDownY);
-        Line_UpRow := MapScreenYToRow(Line_ScreenUpY);
-        Line_DownRow := MapScreenYToRow(Line_ScreenDownY);
-
+debug('Line_GridUpY=' + inttostr(Line_GridUpY));
+debug('GetYPositionOfNearestGridLine(Line_GridUpY)=' + inttostr(GetYPositionOfNearestGridLine(Line_GridUpY)));
+        Line_UpRow := MapGridYToRow(GetYPositionOfNearestGridLine(Line_GridUpY));
+debug('Line_UpRow=' + floattostr(Line_upRow));
+        Line_DownRow := MapGridYToRow(GetYPositionOfNearestGridLine(Line_GridDownY));
         Line_GridUpX := GetXPositionOfNearestLineIfAny(EditedLine, Line_GridUpX, Line_GridUpY);
         Line_GridDownX := GetXPositionOfNearestLineIfAny(EditedLine, Line_GridDownX, Line_GridDownY);
-        Line_ScreenUpX := MapGridXToScreenX(Line_GridUpX);
-        Line_ScreenDownX := MapGridXToScreenX(Line_GridDownX);
+      END ELSE BEGIN
+        Line_UpRow := MapGridYToRow(Line_GridUpY);
+        Line_DownRow := MapGridYToRow(Line_GridDownY);
       END;
 
       Line_IsTempNewLine := False;

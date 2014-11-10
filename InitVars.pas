@@ -1338,9 +1338,9 @@ VAR
   FullScreenPenWidth : Integer = 5;
   FWPRailWindowInitialised : Boolean = False;
   FWPRailWindowPartInitialised : Boolean = False;
+  GridInterLineSpacing : Integer = 0;
   InAutoMode : Boolean = False;
   InterLineSpacing : Integer = 0;
-GridInterLineSpacing : Integer = 0;
   KeyBoardandMouseLocked : Boolean = False;
   LastPointChanged : Integer = UnknownPoint;
   LastTimeAnyPointChanged : TDateTime = 0;
@@ -1889,29 +1889,11 @@ PROCEDURE SetUpLineDrawingVars;
 { Set up the positions of the lines and plaforms }
 BEGIN
   { Interval spacing : the following data has been read in from the registry }
-//  BufferStopVerticalSpacingScaled := BufferStopVerticalSpacing DIV 10;
-//  IndicatorHorizontalSpacingScaled := IndicatorHorizontalSpacing DIV 10;
-//  IndicatorVerticalSpacingScaled := IndicatorVerticalSpacing DIV 10;
-//  MouseRectangleEdgeVerticalSpacingScaled := MouseRectangleEdgeVerticalSpacing DIV 10;
-//  PlatformEdgeVerticalSpacingScaled := PlatformEdgeVerticalSpacing DIV 10;
-//  PlatformNumberEdgeHorizontalSpacingScaled := PlatformNumberEdgeHorizontalSpacing DIV 10;
-//  PlatformNumberEdgeVerticalSpacingScaled := PlatformNumberEdgeVerticalSpacing DIV 10;
-//  SignalHorizontalSpacingScaled := SignalHorizontalSpacing DIV 10;
-//  SignalRadiusScaled := SignalRadius DIV 10;
-//  SignalSemaphoreHeightScaled := SignalSemaphoreHeight DIV 10;
-//  SignalSemaphoreWidthScaled := SignalSemaphoreWidth DIV 10;
-//  SignalVerticalSpacingScaled := SignalVerticalSpacing DIV 10;
-//  SpeedRestrictionHorizontalSpacingScaled := SpeedRestrictionHorizontalSpacing DIV 10;
-//  SpeedRestrictionVerticalSpacingScaled := SpeedRestrictionVerticalSpacing DIV 10;
-//  TheatreIndicatorHorizontalSpacingScaled := TheatreIndicatorHorizontalSpacing DIV 10;
-//  TheatreIndicatorVerticalSpacingScaled := TheatreIndicatorVerticalSpacing DIV 10;
-//  TRSPlungerLengthScaled := TRSPlungerLength DIV 10;
-
   BufferStopVerticalSpacingScaled := MulDiv(FWPRailWindow.ClientHeight, BufferStopVerticalSpacing, ZoomScaleFactor * 10);
+  GridInterLineSpacing := 1000 DIV (WindowRows + 1);
   IndicatorHorizontalSpacingScaled := MulDiv(FWPRailWindow.ClientWidth, IndicatorHorizontalSpacing, ZoomScaleFactor * 10);
   IndicatorVerticalSpacingScaled := MulDiv(FWPRailWindow.ClientHeight, IndicatorVerticalSpacing, ZoomScaleFactor * 10);
   InterLineSpacing := (FWPRailWindow.ClientHeight * 1000) DIV ((WindowRows + 1) * ZoomScalefactor);
-GridInterLineSpacing := 1000 DIV (WindowRows + 1);
   MouseRectangleEdgeVerticalSpacingScaled := MulDiv(FWPRailWindow.ClientHeight, MouseRectangleEdgeVerticalSpacing, ZoomScaleFactor * 10);
   PlatformEdgeVerticalSpacingScaled := MulDiv(FWPRailWindow.ClientHeight, PlatformEdgeVerticalSpacing, ZoomScaleFactor * 10);
   PlatformNumberEdgeHorizontalSpacingScaled := MulDiv(FWPRailWindow.ClientWidth, PlatformNumberEdgeHorizontalSpacing, ZoomScaleFactor * 10);
@@ -1941,7 +1923,7 @@ PROCEDURE ReadInTrackCircuitDataFromDatabase;
 
   Unit 93 inputs 2-3 reserved for new siding A
   Unit 95 inputs 5-6 reserved for new siding B
-  Unit 99 inputs 3-4 reseved for cross over points from platforms 5 to 6
+  Unit 99 inputs 3-4 reserved for cross over points from platforms 5 to 6
   Unit 116 input 2 free [point input]
 }
 CONST
@@ -3085,8 +3067,10 @@ BEGIN
     Line := 0;
     WHILE Line <= High(Lines) DO BEGIN
       WITH Lines[Line] DO BEGIN
-        Line_GridUpY := MapScreenYToGridY(Round(Line_UpRow * InterLineSpacing));
-        Line_GridDownY := MapScreenYToGridY(Round(Line_DownRow * InterLineSpacing));
+//        Line_GridUpY := MapScreenYToGridY(Round(Line_UpRow * InterLineSpacing));
+//        Line_GridDownY := MapScreenYToGridY(Round(Line_DownRow * InterLineSpacing));
+        Line_GridUpY := Round(Line_UpRow * GridInterLineSpacing);
+        Line_GridDownY := Round(Line_DownRow * GridInterLineSpacing);
       END; {WITH}
       Inc(Line);
     END; {WHILE}
@@ -3404,12 +3388,12 @@ BEGIN
             IF ErrorMsg = '' THEN
               Line_GridDownX := ValidateGridX(FieldByName(Line_GridDownXFieldName).AsString, ErrorMsg);
 
-            IF ErrorMsg = '' THEN
-              Line_GridUpY := ValidateGridX(FieldByName(Line_GridUpYFieldName).AsString, ErrorMsg);
-
-            IF ErrorMsg = '' THEN
-              Line_GridDownY := ValidateGridX(FieldByName(Line_GridDownYFieldName).AsString, ErrorMsg);
-
+//            IF ErrorMsg = '' THEN
+//              Line_GridUpY := ValidateGridX(FieldByName(Line_GridUpYFieldName).AsString, ErrorMsg);
+//
+//            IF ErrorMsg = '' THEN
+//              Line_GridDownY := ValidateGridX(FieldByName(Line_GridDownYFieldName).AsString, ErrorMsg);
+//
             IF ErrorMsg = '' THEN
               Line_Location := ValidateLineLocation(FieldByName(Line_LocationStrFieldName).AsString, ErrorMsg);
 

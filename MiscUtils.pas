@@ -5101,12 +5101,9 @@ END; { LocationToStr-2 }
 
 FUNCTION MapGridYToRow(GridY : Integer) : Extended;
 { Map grid co-ordinate to row }
-VAR
-  TempInt : Integer;
-
 BEGIN
   Result := MapGridYToScreenY(GridY);
-  Result := Result / InterLineSpacing;
+  Result := Result / GridInterLineSpacing;
   Result := Round(Result * 10) / 10;
 END; { MapGridYToRow }
 
