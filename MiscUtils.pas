@@ -9013,8 +9013,8 @@ BEGIN
       Debug('NextUpIsEndOfLine=' + EndOfLineToStr(Line_NextUpIsEndOfLine));
       Debug('NextDownIsEndOfLine=' + EndOfLineToStr(Line_NextDownIsEndOfLine));
       Debug('EndOfLineMarker=' + EndOfLineToStr(Line_EndOfLineMarker));
-      Debug('NextUpLine=' + IntToStr(Line_NextUpLine));
-      Debug('NextDownLine=' + IntToStr(Line_NextDownLine));
+      Debug('NextUpLine=' + LineToStr(Line_NextUpLine) + ' (' + IntToStr(Line_NextUpLine) + ')');
+      Debug('NextDownLine=' + LineToStr(Line_NextDownLine) + ' (' + IntToStr(Line_NextDownLine) + ')');
       Debug('NextUpPoint=' + IntToStr(Line_NextUpPoint));
       Debug('NextDownPoint=' + IntToStr(Line_NextDownPoint));
     END; {WITH}
