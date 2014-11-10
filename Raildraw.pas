@@ -1892,266 +1892,266 @@ VAR
   BEGIN
     WITH RailWindowBitmap.Canvas DO BEGIN
       WITH Signals[S] DO BEGIN
-          IF Signal_Direction = Up THEN BEGIN
-            IndicatorX := Signal_LineX - IndicatorHorizontalSpacingScaled;
+        IF Signal_Direction = Up THEN BEGIN
+          IndicatorX := Signal_LineX - IndicatorHorizontalSpacingScaled;
+          IF Signal_Type = FourAspect THEN
+            IndicatorX := IndicatorX - SignalHorizontalSpacingScaled;
+        END ELSE
+          IF Signal_Direction = Down THEN BEGIN
+            IndicatorX := Signal_LineX + IndicatorHorizontalSpacingScaled;
             IF Signal_Type = FourAspect THEN
-              IndicatorX := IndicatorX - SignalHorizontalSpacingScaled;
-          END ELSE
-            IF Signal_Direction = Down THEN BEGIN
-              IndicatorX := Signal_LineX + IndicatorHorizontalSpacingScaled;
-              IF Signal_Type = FourAspect THEN
-                IndicatorX := IndicatorX + SignalHorizontalSpacingScaled;
-            END;
-          MoveTo(IndicatorX - ScrollBarXAdjustment, Signal_LineWithVerticalSpacingY - ScrollBarYAdjustment);
-
-          IF Signal_Indicator = TheatreIndicator THEN BEGIN
-            Brush.Color := BackgroundColour;
-
-            IF Signal_Direction = Up THEN BEGIN
-              TheatreIndicatorX2 := Signal_LineX - TheatreIndicatorHorizontalSpacingScaled;
-              IF Signal_Type = FourAspect THEN
-                TheatreIndicatorX2 := TheatreIndicatorX2 - SignalHorizontalSpacingScaled;
-              TheatreIndicatorX1 := TheatreIndicatorX2 - TheatreBoxWidth;
-            END ELSE BEGIN
-              TheatreIndicatorX1 := Signal_LineX + TheatreIndicatorHorizontalSpacingScaled;
-              IF Signal_Type = FourAspect THEN
-                TheatreIndicatorX1 := TheatreIndicatorX1 + SignalHorizontalSpacingScaled;
-              TheatreIndicatorX2 := TheatreIndicatorX1 + TheatreBoxWidth;
-            END;
-
-            TheatreIndicatorY1 := Signal_LineWithVerticalSpacingY - (TheatreBoxHeight DIV 2);
-            TheatreIndicatorY2 := Signal_LineWithVerticalSpacingY + (TheatreBoxHeight DIV 2);
-
-            { First clear the area for the theatre indicator }
-            Brush.Color := BackgroundColour;
-            Pen.Color := BackgroundColour;
-            Rectangle(Rect(TheatreIndicatorX1, TheatreIndicatorY1, TheatreIndicatorX2, TheatreIndicatorY2));
-
-            Font.Height := -MulDiv(FWPRailWindow.ClientHeight, LineFontHeight, ZoomScalefactor);
-            Font.Color := clWhite;
-            IF Signal_IndicatorState = NoIndicatorLit THEN
-              { Now the outline of the theatre indicator box }
-              DrawOutline(Rect(TheatreIndicatorX1,
-                                          TheatreIndicatorY1,
-                                          TheatreIndicatorX2,
-                                          TheatreIndicatorY2),
-                                     ForegroundColour,
-                                     NOT UndrawRequired,
-                                     NOT UndrawToBeAutomatic)
-            ELSE
-              IF Signal_IndicatorState = QueryIndicatorLit THEN
-                { Now draw the query }
-                TextOut(TheatreIndicatorX1 - ScrollBarXAdjustment,
-                        Signal_LineWithVerticalSpacingY - (TextHeight('?') DIV 2) - ScrollBarYAdjustment,
-                        '?')
-              ELSE
-                IF Signal_Direction = Up THEN
-                  TextOut(TheatreIndicatorX2 - ScrollBarXAdjustment - TextWidth(Signal_TheatreIndicatorString),
-                          Signal_LineWithVerticalSpacingY - (TextHeight('T') DIV 2) - ScrollBarYAdjustment,
-                          Signal_TheatreIndicatorString)
-                ELSE
-                  TextOut(TheatreIndicatorX1 - ScrollBarXAdjustment,
-                          Signal_LineWithVerticalSpacingY - (TextHeight('T') DIV 2) - ScrollBarYAdjustment,
-                          Signal_TheatreIndicatorString);
-          END ELSE BEGIN
-            { First clear the area for the indicators }
-            Brush.Color := BackgroundColour;
-            Pen.Color := BackgroundColour;
-            Rectangle(Rect(Signal_IndicatorMouseRect.Left - ScrollBarXAdjustment,
-                           Signal_IndicatorMouseRect.Top - ScrollBarYAdjustment,
-                           Signal_IndicatorMouseRect.Right - ScrollBarXAdjustment,
-                           Signal_IndicatorMouseRect.Bottom - ScrollBarYAdjustment));
-
-            SavePenWidth := Pen.Width;
-            Pen.Width := 2;
-
-            RevisedIndicatorX := IndicatorX;
-
-            { Adjust the X spacing of the indicators based on how many indicators there are - without this, if there were only upper indicators they would be a long way
-              from the signal
-            }
-            LowerX := 0;
-            MiddleX := 0;
-            IF Signal_Direction = Up THEN BEGIN
-              IF Signal_JunctionIndicators[LowerLeftIndicator].JunctionIndicator_Exists
-              OR Signal_JunctionIndicators[LowerRightIndicator].JunctionIndicator_Exists
-              THEN BEGIN
-                LowerX := IndicatorX;
-                RevisedIndicatorX := IndicatorX - MulDiv(FWPRailWindow.ClientWidth, 3, ZoomScalefactor);
-
-                IF Signal_JunctionIndicators[MiddleLeftIndicator].JunctionIndicator_Exists
-                OR Signal_JunctionIndicators[MiddleRightIndicator].JunctionIndicator_Exists
-                THEN BEGIN
-                  MiddleX := RevisedIndicatorX;
-                  UpperX := RevisedIndicatorX - MulDiv(FWPRailWindow.ClientWidth, 3, ZoomScalefactor);
-                END ELSE
-                  UpperX := RevisedIndicatorX + MulDiv(FWPRailWindow.ClientWidth, 3, ZoomScalefactor);
-              END ELSE
-                { a slight adjustment to bring the middle arms nearer the signal }
-                IF Signal_JunctionIndicators[MiddleLeftIndicator].JunctionIndicator_Exists
-                OR Signal_JunctionIndicators[MiddleRightIndicator].JunctionIndicator_Exists
-                THEN BEGIN
-                  MiddleX := RevisedIndicatorX + MulDiv(FWPRailWindow.ClientWidth, 3, ZoomScalefactor);
-                  UpperX := RevisedIndicatorX;
-                END ELSE
-                  UpperX := RevisedIndicatorX + MulDiv(FWPRailWindow.ClientWidth, 3, ZoomScalefactor);
-            END ELSE BEGIN
-              { Signal_Direction = Down }
-              IF Signal_JunctionIndicators[LowerLeftIndicator].JunctionIndicator_Exists
-              OR Signal_JunctionIndicators[LowerRightIndicator].JunctionIndicator_Exists
-              THEN BEGIN
-                LowerX := IndicatorX;
-                RevisedIndicatorX := IndicatorX + MulDiv(FWPRailWindow.ClientWidth, 3, ZoomScalefactor);
-
-                IF Signal_JunctionIndicators[MiddleLeftIndicator].JunctionIndicator_Exists
-                OR Signal_JunctionIndicators[MiddleRightIndicator].JunctionIndicator_Exists
-                THEN BEGIN
-                  MiddleX := RevisedIndicatorX;
-                  UpperX := RevisedIndicatorX + MulDiv(FWPRailWindow.ClientWidth, 3, ZoomScalefactor);
-                END ELSE
-                  UpperX := RevisedIndicatorX - MulDiv(FWPRailWindow.ClientWidth, 3, ZoomScalefactor);
-              END ELSE
-                { a slight adjustment to bring the middle arms nearer the signal }
-                IF Signal_JunctionIndicators[MiddleLeftIndicator].JunctionIndicator_Exists
-                OR Signal_JunctionIndicators[MiddleRightIndicator].JunctionIndicator_Exists
-                THEN BEGIN
-                  MiddleX := RevisedIndicatorX - MulDiv(FWPRailWindow.ClientWidth, 3, ZoomScalefactor);
-                  UpperX := RevisedIndicatorX;
-                END ELSE
-                  UpperX := RevisedIndicatorX - MulDiv(FWPRailWindow.ClientWidth, 3, ZoomScalefactor);
-            END;
-
-            FOR Indicator := UpperLeftIndicator TO LowerRightIndicator DO BEGIN
-              WITH Signal_JunctionIndicators[Indicator] DO BEGIN
-                IF JunctionIndicator_Exists THEN BEGIN
-                  CASE Indicator OF
-                    UpperLeftIndicator:
-                      IF Signal_Direction = Up THEN BEGIN
-                        SignalLeft := UpperX;
-                        SignalTop := Signal_LineWithVerticalSpacingY + MulDiv(FWPRailWindow.ClientHeight, 3, ZoomScalefactor);
-                        SignalRight := UpperX - MulDiv(FWPRailWindow.ClientWidth, 5, ZoomScalefactor);
-                        SignalBottom := Signal_LineWithVerticalSpacingY + IndicatorVerticalSpacingScaled;
-                      END ELSE BEGIN
-                        SignalLeft := UpperX;
-                        SignalTop := Signal_LineWithVerticalSpacingY - MulDiv(FWPRailWindow.ClientHeight, 3, ZoomScalefactor);
-                        SignalRight := UpperX + MulDiv(FWPRailWindow.ClientWidth, 5, ZoomScalefactor);
-                        SignalBottom := Signal_LineWithVerticalSpacingY - IndicatorVerticalSpacingScaled;
-                      END;
-                    MiddleLeftIndicator:
-                      IF Signal_Direction = Up THEN BEGIN
-                        SignalLeft := MiddleX;
-                        SignalTop := Signal_LineWithVerticalSpacingY + MulDiv(FWPRailWindow.ClientHeight, 3, ZoomScalefactor);
-                        SignalRight := MiddleX;
-                        SignalBottom := Signal_LineWithVerticalSpacingY + IndicatorVerticalSpacingScaled;
-                      END ELSE BEGIN
-                        SignalLeft := MiddleX;
-                        SignalTop := Signal_LineWithVerticalSpacingY - MulDiv(FWPRailWindow.ClientHeight, 3, ZoomScalefactor);
-                        SignalRight := MiddleX;
-                        SignalBottom := Signal_LineWithVerticalSpacingY - IndicatorVerticalSpacingScaled;
-                      END;
-                    LowerLeftIndicator:
-                      IF Signal_Direction = Up THEN BEGIN
-                        SignalLeft := LowerX;
-                        SignalTop := Signal_LineWithVerticalSpacingY + MulDiv(FWPRailWindow.ClientHeight, 3, ZoomScalefactor);
-                        SignalRight := LowerX + MulDiv(FWPRailWindow.ClientWidth, 5, ZoomScalefactor);
-                        SignalBottom := Signal_LineWithVerticalSpacingY + IndicatorVerticalSpacingScaled;
-                      END ELSE BEGIN
-                        SignalLeft := LowerX;
-                        SignalTop := Signal_LineWithVerticalSpacingY - MulDiv(FWPRailWindow.ClientHeight, 3, ZoomScalefactor);
-                        SignalRight := LowerX - MulDiv(FWPRailWindow.ClientWidth, 5, ZoomScalefactor);
-                        SignalBottom := Signal_LineWithVerticalSpacingY - IndicatorVerticalSpacingScaled;
-                      END;
-                    UpperRightIndicator:
-                      IF Signal_Direction = Up THEN BEGIN
-                        SignalLeft := UpperX;
-                        SignalTop := Signal_LineWithVerticalSpacingY - MulDiv(FWPRailWindow.ClientHeight, 3, ZoomScalefactor);
-                        SignalRight := UpperX - MulDiv(FWPRailWindow.ClientWidth, 5, ZoomScalefactor);
-                        SignalBottom := Signal_LineWithVerticalSpacingY - IndicatorVerticalSpacingScaled;
-                      END ELSE BEGIN
-                        SignalLeft := UpperX;
-                        SignalTop := Signal_LineWithVerticalSpacingY + MulDiv(FWPRailWindow.ClientHeight, 3, ZoomScalefactor);
-                        SignalRight := UpperX + MulDiv(FWPRailWindow.ClientWidth, 5, ZoomScalefactor);
-                        SignalBottom := Signal_LineWithVerticalSpacingY + IndicatorVerticalSpacingScaled
-                      END;
-                    MiddleRightIndicator:
-                      IF Signal_Direction = Up THEN BEGIN
-                        SignalLeft := MiddleX;
-                        SignalTop := Signal_LineWithVerticalSpacingY - MulDiv(FWPRailWindow.ClientHeight, 3, ZoomScalefactor);
-                        SignalRight := MiddleX;
-                        SignalBottom := Signal_LineWithVerticalSpacingY - IndicatorVerticalSpacingScaled;
-                      END ELSE BEGIN
-                        SignalLeft := MiddleX;
-                        SignalTop := Signal_LineWithVerticalSpacingY + MulDiv(FWPRailWindow.ClientHeight, 3, ZoomScalefactor);
-                        SignalRight := MiddleX;
-                        SignalBottom := Signal_LineWithVerticalSpacingY + IndicatorVerticalSpacingScaled;
-                      END;
-                    LowerRightIndicator:
-                      IF Signal_Direction = Up THEN BEGIN
-                        SignalLeft := LowerX;
-                        SignalTop := Signal_LineWithVerticalSpacingY - MulDiv(FWPRailWindow.ClientHeight, 3, ZoomScalefactor);
-                        SignalRight := LowerX + MulDiv(FWPRailWindow.ClientWidth, 5, ZoomScalefactor);
-                        SignalBottom := Signal_LineWithVerticalSpacingY - IndicatorVerticalSpacingScaled;
-                      END ELSE BEGIN
-                        SignalLeft := LowerX;
-                        SignalTop := Signal_LineWithVerticalSpacingY + MulDiv(FWPRailWindow.ClientHeight, 3, ZoomScalefactor);
-                        SignalRight := LowerX - MulDiv(FWPRailWindow.ClientWidth, 5, ZoomScalefactor);
-                        SignalBottom := Signal_LineWithVerticalSpacingY + IndicatorVerticalSpacingScaled;
-                      END;
-                  END; {CASE}
-
-                  Pen.Color := ForegroundColour;
-                  CASE Indicator OF
-                    UpperLeftIndicator:
-                      IF Signal_IndicatorState = UpperLeftIndicatorLit THEN
-                        Pen.Color := clWhite;
-                    MiddleLeftIndicator:
-                      IF Signal_IndicatorState = MiddleLeftIndicatorLit THEN
-                        Pen.Color := clWhite;
-                    LowerLeftIndicator:
-                      IF Signal_IndicatorState = LowerLeftIndicatorLit THEN
-                        Pen.Color := clWhite;
-                    UpperRightIndicator:
-                      IF Signal_IndicatorState = UpperRightIndicatorLit THEN
-                        Pen.Color := clWhite;
-                    MiddleRightIndicator:
-                      IF Signal_IndicatorState = MiddleRightIndicatorLit THEN
-                        Pen.Color := clWhite;
-                    LowerRightIndicator:
-                      IF Signal_IndicatorState = LowerRightIndicatorLit THEN
-                        Pen.Color := clWhite;
-                  END; {CASE}
-
-                  MoveTo(SignalLeft - ScrollBarXAdjustment, SignalTop - ScrollBarYAdjustment);
-                  LineTo(SignalRight - ScrollBarXAdjustment, SignalBottom - ScrollBarYAdjustment);
-
-                  { Orient the rectangles }
-                  IF SignalLeft < SignalRight THEN BEGIN
-                    JunctionIndicator_MouseRect.Left := SignalLeft;
-                    JunctionIndicator_MouseRect.Right := SignalRight;
-                  END ELSE BEGIN
-                    JunctionIndicator_MouseRect.Left := SignalRight;
-                    JunctionIndicator_MouseRect.Right := SignalLeft;
-                  END;
-
-                  IF SignalTop < SignalBottom THEN BEGIN
-                    JunctionIndicator_MouseRect.Top := SignalTop;
-                    JunctionIndicator_MouseRect.Bottom := SignalBottom;
-                  END ELSE BEGIN
-                    JunctionIndicator_MouseRect.Top := SignalBottom;
-                    JunctionIndicator_MouseRect.Bottom := SignalTop;
-                  END;
-
-                  { special case for these two indicators as otherwise the mouse is trying to click on an exact vertical line }
-                  IF (Indicator = MiddleLeftIndicator) OR (Indicator = MiddleRightIndicator) THEN BEGIN
-                    JunctionIndicator_MouseRect.Left := JunctionIndicator_MouseRect.Left - MulDiv(FWPRailWindow.ClientWidth, 1, ZoomScalefactor);
-                    JunctionIndicator_MouseRect.Right := JunctionIndicator_MouseRect.Right + MulDiv(FWPRailWindow.ClientWidth, 1, ZoomScalefactor);
-                  END;
-                END;
-              END; {WITH}
-            END; {FOR}
-
-            Pen.Width := SavePenWidth;
+              IndicatorX := IndicatorX + SignalHorizontalSpacingScaled;
           END;
+        MoveTo(IndicatorX - ScrollBarXAdjustment, Signal_LineWithVerticalSpacingY - ScrollBarYAdjustment);
+
+        IF Signal_Indicator = TheatreIndicator THEN BEGIN
+          Brush.Color := BackgroundColour;
+
+          IF Signal_Direction = Up THEN BEGIN
+            TheatreIndicatorX2 := Signal_LineX - TheatreIndicatorHorizontalSpacingScaled;
+            IF Signal_Type = FourAspect THEN
+              TheatreIndicatorX2 := TheatreIndicatorX2 - SignalHorizontalSpacingScaled;
+            TheatreIndicatorX1 := TheatreIndicatorX2 - TheatreBoxWidth;
+          END ELSE BEGIN
+            TheatreIndicatorX1 := Signal_LineX + TheatreIndicatorHorizontalSpacingScaled;
+            IF Signal_Type = FourAspect THEN
+              TheatreIndicatorX1 := TheatreIndicatorX1 + SignalHorizontalSpacingScaled;
+            TheatreIndicatorX2 := TheatreIndicatorX1 + TheatreBoxWidth;
+          END;
+
+          TheatreIndicatorY1 := Signal_LineWithVerticalSpacingY - (TheatreBoxHeight DIV 2);
+          TheatreIndicatorY2 := Signal_LineWithVerticalSpacingY + (TheatreBoxHeight DIV 2);
+
+          { First clear the area for the theatre indicator }
+          Brush.Color := BackgroundColour;
+          Pen.Color := BackgroundColour;
+          Rectangle(Rect(TheatreIndicatorX1, TheatreIndicatorY1, TheatreIndicatorX2, TheatreIndicatorY2));
+
+          Font.Height := -MulDiv(FWPRailWindow.ClientHeight, LineFontHeight, ZoomScalefactor);
+          Font.Color := clWhite;
+          IF Signal_IndicatorState = NoIndicatorLit THEN
+            { Now the outline of the theatre indicator box }
+            DrawOutline(Rect(TheatreIndicatorX1,
+                                        TheatreIndicatorY1,
+                                        TheatreIndicatorX2,
+                                        TheatreIndicatorY2),
+                                   ForegroundColour,
+                                   NOT UndrawRequired,
+                                   NOT UndrawToBeAutomatic)
+          ELSE
+            IF Signal_IndicatorState = QueryIndicatorLit THEN
+              { Now draw the query }
+              TextOut(TheatreIndicatorX1 - ScrollBarXAdjustment,
+                      Signal_LineWithVerticalSpacingY - (TextHeight('?') DIV 2) - ScrollBarYAdjustment,
+                      '?')
+            ELSE
+              IF Signal_Direction = Up THEN
+                TextOut(TheatreIndicatorX2 - ScrollBarXAdjustment - TextWidth(Signal_TheatreIndicatorString),
+                        Signal_LineWithVerticalSpacingY - (TextHeight('T') DIV 2) - ScrollBarYAdjustment,
+                        Signal_TheatreIndicatorString)
+              ELSE
+                TextOut(TheatreIndicatorX1 - ScrollBarXAdjustment,
+                        Signal_LineWithVerticalSpacingY - (TextHeight('T') DIV 2) - ScrollBarYAdjustment,
+                        Signal_TheatreIndicatorString);
+        END ELSE BEGIN
+          { First clear the area for the indicators }
+          Brush.Color := BackgroundColour;
+          Pen.Color := BackgroundColour;
+          Rectangle(Rect(Signal_IndicatorMouseRect.Left - ScrollBarXAdjustment,
+                         Signal_IndicatorMouseRect.Top - ScrollBarYAdjustment,
+                         Signal_IndicatorMouseRect.Right - ScrollBarXAdjustment,
+                         Signal_IndicatorMouseRect.Bottom - ScrollBarYAdjustment));
+
+          SavePenWidth := Pen.Width;
+          Pen.Width := 2;
+
+          RevisedIndicatorX := IndicatorX;
+
+          { Adjust the X spacing of the indicators based on how many indicators there are - without this, if there were only upper indicators they would be a long way
+            from the signal
+          }
+          LowerX := 0;
+          MiddleX := 0;
+          IF Signal_Direction = Up THEN BEGIN
+            IF Signal_JunctionIndicators[LowerLeftIndicator].JunctionIndicator_Exists
+            OR Signal_JunctionIndicators[LowerRightIndicator].JunctionIndicator_Exists
+            THEN BEGIN
+              LowerX := IndicatorX;
+              RevisedIndicatorX := IndicatorX - MulDiv(FWPRailWindow.ClientWidth, 3, ZoomScalefactor);
+
+              IF Signal_JunctionIndicators[MiddleLeftIndicator].JunctionIndicator_Exists
+              OR Signal_JunctionIndicators[MiddleRightIndicator].JunctionIndicator_Exists
+              THEN BEGIN
+                MiddleX := RevisedIndicatorX;
+                UpperX := RevisedIndicatorX - MulDiv(FWPRailWindow.ClientWidth, 3, ZoomScalefactor);
+              END ELSE
+                UpperX := RevisedIndicatorX + MulDiv(FWPRailWindow.ClientWidth, 3, ZoomScalefactor);
+            END ELSE
+              { a slight adjustment to bring the middle arms nearer the signal }
+              IF Signal_JunctionIndicators[MiddleLeftIndicator].JunctionIndicator_Exists
+              OR Signal_JunctionIndicators[MiddleRightIndicator].JunctionIndicator_Exists
+              THEN BEGIN
+                MiddleX := RevisedIndicatorX + MulDiv(FWPRailWindow.ClientWidth, 3, ZoomScalefactor);
+                UpperX := RevisedIndicatorX;
+              END ELSE
+                UpperX := RevisedIndicatorX + MulDiv(FWPRailWindow.ClientWidth, 3, ZoomScalefactor);
+          END ELSE BEGIN
+            { Signal_Direction = Down }
+            IF Signal_JunctionIndicators[LowerLeftIndicator].JunctionIndicator_Exists
+            OR Signal_JunctionIndicators[LowerRightIndicator].JunctionIndicator_Exists
+            THEN BEGIN
+              LowerX := IndicatorX;
+              RevisedIndicatorX := IndicatorX + MulDiv(FWPRailWindow.ClientWidth, 3, ZoomScalefactor);
+
+              IF Signal_JunctionIndicators[MiddleLeftIndicator].JunctionIndicator_Exists
+              OR Signal_JunctionIndicators[MiddleRightIndicator].JunctionIndicator_Exists
+              THEN BEGIN
+                MiddleX := RevisedIndicatorX;
+                UpperX := RevisedIndicatorX + MulDiv(FWPRailWindow.ClientWidth, 3, ZoomScalefactor);
+              END ELSE
+                UpperX := RevisedIndicatorX - MulDiv(FWPRailWindow.ClientWidth, 3, ZoomScalefactor);
+            END ELSE
+              { a slight adjustment to bring the middle arms nearer the signal }
+              IF Signal_JunctionIndicators[MiddleLeftIndicator].JunctionIndicator_Exists
+              OR Signal_JunctionIndicators[MiddleRightIndicator].JunctionIndicator_Exists
+              THEN BEGIN
+                MiddleX := RevisedIndicatorX - MulDiv(FWPRailWindow.ClientWidth, 3, ZoomScalefactor);
+                UpperX := RevisedIndicatorX;
+              END ELSE
+                UpperX := RevisedIndicatorX - MulDiv(FWPRailWindow.ClientWidth, 3, ZoomScalefactor);
+          END;
+
+          FOR Indicator := UpperLeftIndicator TO LowerRightIndicator DO BEGIN
+            WITH Signal_JunctionIndicators[Indicator] DO BEGIN
+              IF JunctionIndicator_Exists THEN BEGIN
+                CASE Indicator OF
+                  UpperLeftIndicator:
+                    IF Signal_Direction = Up THEN BEGIN
+                      SignalLeft := UpperX;
+                      SignalTop := Signal_LineWithVerticalSpacingY + MulDiv(FWPRailWindow.ClientHeight, 3, ZoomScalefactor);
+                      SignalRight := UpperX - MulDiv(FWPRailWindow.ClientWidth, 5, ZoomScalefactor);
+                      SignalBottom := Signal_LineWithVerticalSpacingY + IndicatorVerticalSpacingScaled;
+                    END ELSE BEGIN
+                      SignalLeft := UpperX;
+                      SignalTop := Signal_LineWithVerticalSpacingY - MulDiv(FWPRailWindow.ClientHeight, 3, ZoomScalefactor);
+                      SignalRight := UpperX + MulDiv(FWPRailWindow.ClientWidth, 5, ZoomScalefactor);
+                      SignalBottom := Signal_LineWithVerticalSpacingY - IndicatorVerticalSpacingScaled;
+                    END;
+                  MiddleLeftIndicator:
+                    IF Signal_Direction = Up THEN BEGIN
+                      SignalLeft := MiddleX;
+                      SignalTop := Signal_LineWithVerticalSpacingY + MulDiv(FWPRailWindow.ClientHeight, 3, ZoomScalefactor);
+                      SignalRight := MiddleX;
+                      SignalBottom := Signal_LineWithVerticalSpacingY + IndicatorVerticalSpacingScaled;
+                    END ELSE BEGIN
+                      SignalLeft := MiddleX;
+                      SignalTop := Signal_LineWithVerticalSpacingY - MulDiv(FWPRailWindow.ClientHeight, 3, ZoomScalefactor);
+                      SignalRight := MiddleX;
+                      SignalBottom := Signal_LineWithVerticalSpacingY - IndicatorVerticalSpacingScaled;
+                    END;
+                  LowerLeftIndicator:
+                    IF Signal_Direction = Up THEN BEGIN
+                      SignalLeft := LowerX;
+                      SignalTop := Signal_LineWithVerticalSpacingY + MulDiv(FWPRailWindow.ClientHeight, 3, ZoomScalefactor);
+                      SignalRight := LowerX + MulDiv(FWPRailWindow.ClientWidth, 5, ZoomScalefactor);
+                      SignalBottom := Signal_LineWithVerticalSpacingY + IndicatorVerticalSpacingScaled;
+                    END ELSE BEGIN
+                      SignalLeft := LowerX;
+                      SignalTop := Signal_LineWithVerticalSpacingY - MulDiv(FWPRailWindow.ClientHeight, 3, ZoomScalefactor);
+                      SignalRight := LowerX - MulDiv(FWPRailWindow.ClientWidth, 5, ZoomScalefactor);
+                      SignalBottom := Signal_LineWithVerticalSpacingY - IndicatorVerticalSpacingScaled;
+                    END;
+                  UpperRightIndicator:
+                    IF Signal_Direction = Up THEN BEGIN
+                      SignalLeft := UpperX;
+                      SignalTop := Signal_LineWithVerticalSpacingY - MulDiv(FWPRailWindow.ClientHeight, 3, ZoomScalefactor);
+                      SignalRight := UpperX - MulDiv(FWPRailWindow.ClientWidth, 5, ZoomScalefactor);
+                      SignalBottom := Signal_LineWithVerticalSpacingY - IndicatorVerticalSpacingScaled;
+                    END ELSE BEGIN
+                      SignalLeft := UpperX;
+                      SignalTop := Signal_LineWithVerticalSpacingY + MulDiv(FWPRailWindow.ClientHeight, 3, ZoomScalefactor);
+                      SignalRight := UpperX + MulDiv(FWPRailWindow.ClientWidth, 5, ZoomScalefactor);
+                      SignalBottom := Signal_LineWithVerticalSpacingY + IndicatorVerticalSpacingScaled
+                    END;
+                  MiddleRightIndicator:
+                    IF Signal_Direction = Up THEN BEGIN
+                      SignalLeft := MiddleX;
+                      SignalTop := Signal_LineWithVerticalSpacingY - MulDiv(FWPRailWindow.ClientHeight, 3, ZoomScalefactor);
+                      SignalRight := MiddleX;
+                      SignalBottom := Signal_LineWithVerticalSpacingY - IndicatorVerticalSpacingScaled;
+                    END ELSE BEGIN
+                      SignalLeft := MiddleX;
+                      SignalTop := Signal_LineWithVerticalSpacingY + MulDiv(FWPRailWindow.ClientHeight, 3, ZoomScalefactor);
+                      SignalRight := MiddleX;
+                      SignalBottom := Signal_LineWithVerticalSpacingY + IndicatorVerticalSpacingScaled;
+                    END;
+                  LowerRightIndicator:
+                    IF Signal_Direction = Up THEN BEGIN
+                      SignalLeft := LowerX;
+                      SignalTop := Signal_LineWithVerticalSpacingY - MulDiv(FWPRailWindow.ClientHeight, 3, ZoomScalefactor);
+                      SignalRight := LowerX + MulDiv(FWPRailWindow.ClientWidth, 5, ZoomScalefactor);
+                      SignalBottom := Signal_LineWithVerticalSpacingY - IndicatorVerticalSpacingScaled;
+                    END ELSE BEGIN
+                      SignalLeft := LowerX;
+                      SignalTop := Signal_LineWithVerticalSpacingY + MulDiv(FWPRailWindow.ClientHeight, 3, ZoomScalefactor);
+                      SignalRight := LowerX - MulDiv(FWPRailWindow.ClientWidth, 5, ZoomScalefactor);
+                      SignalBottom := Signal_LineWithVerticalSpacingY + IndicatorVerticalSpacingScaled;
+                    END;
+                END; {CASE}
+
+                Pen.Color := ForegroundColour;
+                CASE Indicator OF
+                  UpperLeftIndicator:
+                    IF Signal_IndicatorState = UpperLeftIndicatorLit THEN
+                      Pen.Color := clWhite;
+                  MiddleLeftIndicator:
+                    IF Signal_IndicatorState = MiddleLeftIndicatorLit THEN
+                      Pen.Color := clWhite;
+                  LowerLeftIndicator:
+                    IF Signal_IndicatorState = LowerLeftIndicatorLit THEN
+                      Pen.Color := clWhite;
+                  UpperRightIndicator:
+                    IF Signal_IndicatorState = UpperRightIndicatorLit THEN
+                      Pen.Color := clWhite;
+                  MiddleRightIndicator:
+                    IF Signal_IndicatorState = MiddleRightIndicatorLit THEN
+                      Pen.Color := clWhite;
+                  LowerRightIndicator:
+                    IF Signal_IndicatorState = LowerRightIndicatorLit THEN
+                      Pen.Color := clWhite;
+                END; {CASE}
+
+                MoveTo(SignalLeft - ScrollBarXAdjustment, SignalTop - ScrollBarYAdjustment);
+                LineTo(SignalRight - ScrollBarXAdjustment, SignalBottom - ScrollBarYAdjustment);
+
+                { Orient the rectangles }
+                IF SignalLeft < SignalRight THEN BEGIN
+                  JunctionIndicator_MouseRect.Left := SignalLeft;
+                  JunctionIndicator_MouseRect.Right := SignalRight;
+                END ELSE BEGIN
+                  JunctionIndicator_MouseRect.Left := SignalRight;
+                  JunctionIndicator_MouseRect.Right := SignalLeft;
+                END;
+
+                IF SignalTop < SignalBottom THEN BEGIN
+                  JunctionIndicator_MouseRect.Top := SignalTop;
+                  JunctionIndicator_MouseRect.Bottom := SignalBottom;
+                END ELSE BEGIN
+                  JunctionIndicator_MouseRect.Top := SignalBottom;
+                  JunctionIndicator_MouseRect.Bottom := SignalTop;
+                END;
+
+                { special case for these two indicators as otherwise the mouse is trying to click on an exact vertical line }
+                IF (Indicator = MiddleLeftIndicator) OR (Indicator = MiddleRightIndicator) THEN BEGIN
+                  JunctionIndicator_MouseRect.Left := JunctionIndicator_MouseRect.Left - MulDiv(FWPRailWindow.ClientWidth, 1, ZoomScalefactor);
+                  JunctionIndicator_MouseRect.Right := JunctionIndicator_MouseRect.Right + MulDiv(FWPRailWindow.ClientWidth, 1, ZoomScalefactor);
+                END;
+              END;
+            END; {WITH}
+          END; {FOR}
+
+          Pen.Width := SavePenWidth;
+        END;
       END; {WITH}
     END; {WITH}
   END; { DrawIndicators }
@@ -2193,7 +2193,8 @@ BEGIN { DrawSignal }
         ELSE
           Aspect := Signal_HiddenStationSignalAspect;
 
-        MoveTo(Signal_LineX - ScrollBarXAdjustment, Signal_LineWithVerticalSpacingY - ScrollBarYAdjustment);
+//        MoveTo(Signal_LineX - ScrollBarXAdjustment, Signal_LineWithVerticalSpacingY - ScrollBarYAdjustment);
+//        MoveTo(Signal_LineX, Signal_LineWithVerticalSpacingY);
 
         IF (Signal_Type = SemaphoreHome) OR (Signal_Type = SemaphoreDistant) THEN BEGIN
           { First clear the area for the semaphore signal }
