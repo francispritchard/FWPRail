@@ -430,25 +430,14 @@ TYPE
     { Third of three routines which allow the program to be minimised by pressing the "minimize" button and then maximised from the taskbar }
   END;
 
- PopupTypes = (NoClickPopupType,
-               SignalChangeDirectionPopupType, SignalDeletePopupType, SignalEditPopupType, SignalOutOfUsePopupType, SignalUndoChangesPopupType,
-               PointDeletePopupType, PointEditPopupType, PointOutOfUsePopupType, PointToManualPopupType, PointUnlockPopupType,
-               BufferStopEditPopupType,
-               LineAllocateLocoToTrackCircuitPopupType, LineChangeInternalLocoDirectionToDownPopupType, LineChangeInternalLocoDirectionToUpPopupType,
-               LineCreateDownPointPopupType, LineCreateUpPointPopupType, LineCreateDownSignalPopupType, LineCreateUpSignalPopupType, LineDeleteLinePopupType,
-               LineEnterCreateLinePopupType, LineExitCreateLinePopupType, LineEditPopupType, LineLocationOutOfUsePopupType, LineOutOfUsePopupType,
-               LineShowLocoLastErrorMessagePopupType, LineTCFeedbackOccupationPopupType, LineTCOutOfUsePopupType, LineTCPermanentOccupationPopupType,
-               LineTCSpeedRestrictionPopupType, LineTCSystemOccupationPopupType, LineTCUnoccupiedPopupType, LineTCUserMustDrivePopupType,
-               LineAllocateTrackCircuitPopupType, LineRemoveTrackCircuitPopupType);
-
  TMenuItemExtended = CLASS(TMenuItem)
  PRIVATE
    fValue: String;
-   fPopupType : PopupTypes;
+   fPopupType : MenuPopupTypes;
 
  PUBLISHED
    PROPERTY Value : String Read fValue Write fValue;
-   PROPERTY PopupType : PopupTypes Read fPopupType Write fPopupType;
+   PROPERTY PopupType : MenuPopupTypes Read fPopupType Write fPopupType;
  END;
 
 PROCEDURE CanvasTextOutAngle(X, Y : Integer; D : Word; S : String);
@@ -4099,7 +4088,7 @@ BEGIN
     GeneralPopupResetFWPRailWindowSizeAndPosition.Enabled := False;
 END; { FWPRailWindowPopupMenuOnPopup }
 
-PROCEDURE AddMenuItem(PopupMenu : TPopupMenu; Caption : String; PopupType : PopupTypes; Enabled : Boolean; Click : TNotifyEvent);
+PROCEDURE AddMenuItem(PopupMenu : TPopupMenu; Caption : String; PopupType : MenuPopupTypes; Enabled : Boolean; Click : TNotifyEvent);
 { Add a dynamic menu item }
 VAR
   MenuItemEx : TMenuItemExtended;

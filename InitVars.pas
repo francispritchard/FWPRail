@@ -242,6 +242,17 @@ TYPE
     Feedback_Unit : Byte;
   END;
 
+  MenuPopupTypes = (NoClickPopupType,
+                    SignalChangeDirectionPopupType, SignalDeletePopupType, SignalEditPopupType, SignalOutOfUsePopupType, SignalUndoChangesPopupType,
+                    PointDeletePopupType, PointEditPopupType, PointOutOfUsePopupType, PointToManualPopupType, PointUnlockPopupType,
+                    BufferStopEditPopupType,
+                    LineAllocateLocoToTrackCircuitPopupType, LineChangeInternalLocoDirectionToDownPopupType, LineChangeInternalLocoDirectionToUpPopupType,
+                    LineCreateDownSignalPopupType, LineCreateUpSignalPopupType, LineDeleteLinePopupType, LineCreatePointPopupType, LineEnterCreateLinePopupType,
+                    LineExitCreateLinePopupType, LineEditPopupType, LineLocationOutOfUsePopupType, LineOutOfUsePopupType, LineShowLocoLastErrorMessagePopupType,
+                    LineTCFeedbackOccupationPopupType, LineTCOutOfUsePopupType, LineTCPermanentOccupationPopupType, LineTCSpeedRestrictionPopupType,
+                    LineTCSystemOccupationPopupType, LineTCUnoccupiedPopupType, LineTCUserMustDrivePopupType, LineAllocateTrackCircuitPopupType,
+                    LineRemoveTrackCircuitPopupType);
+
   { Line-related type declarations }
   EndOfLineType = (BufferStopAtUp, BufferStopAtDown, ProjectedLineAtUp, ProjectedLineAtDown, NotEndOfLine, UnknownEndOfLine);
 
