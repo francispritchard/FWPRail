@@ -1545,8 +1545,13 @@ BEGIN { KeyPressedDown }
               BEGIN
                 HelpMsg := 'select create line mode';
                 IF NOT HelpRequired THEN BEGIN
-                  TurnEditModeOn(UnknownSignal, UnknownPoint, UnknownBufferStop, UnknownLine, UnknownTrackCircuit);
-                  CreateLineMode := True;
+                  IF NOT CreateLineMode THEN BEGIN
+                    TurnEditModeOn(UnknownSignal, UnknownPoint, UnknownBufferStop, UnknownLine, UnknownTrackCircuit);
+                    CreateLineMode := True;
+                  END ELSE BEGIN
+                    TurnEditModeOff;
+                    CreateLineMode := False;
+                  END;
                   InvalidateScreen(UnitRef, 'select create line mode');
                 END;
               END;
