@@ -2558,10 +2558,8 @@ BEGIN { KeyPressedDown }
                   Log('A READ IN LINE DATA FROM DATABASE');
                   IF NOT ResizeMap THEN
                     ReadInLineDataFromDatabase
-                  ELSE BEGIN
+                  ELSE
                     CalculateLinePositions;
-                    CalculateBufferStopPositions;
-                  END;
 
                   Log('A READ IN FEEDBACK DATA FROM DATABASE');
                   ReadInFeedbackDataFromDatabase;

@@ -7333,7 +7333,6 @@ BEGIN { Main drawing procedure }
         IF ResizeMap OR ReinitialiseFWPRailWindowVariables THEN BEGIN
           SetUpLineDrawingVars;
           CalculateLinePositions;
-          CalculateBufferStopPositions;
           CalculatePointPositions;
           CalculatePlatformPositions;
           CalculateAllSignalPositions;

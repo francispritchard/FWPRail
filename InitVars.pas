@@ -1612,9 +1612,6 @@ PROCEDURE AddNewRecordToPointDatabase;
 PROCEDURE AddNewRecordToSignalDatabase;
 { Append a record to the signal database }
 
-PROCEDURE CalculateBufferStopPositions;
-{ Work out where the buffer stops are on the screen }
-
 PROCEDURE CalculateLinePolygons(Line : Integer);
 { Work out the position for the various line polygons }
 
@@ -3072,14 +3069,64 @@ PROCEDURE CalculateLinePositions;
 { Work out where the lines are on the screen }
 VAR
   Line : Integer;
+  OtherLine : Integer;
+
+  PROCEDURE CreateBufferStop(L : Integer; BSDirection : DirectionType; BSTheatreDestination : String);
+  { Create a bufferstop record }
+  BEGIN
+    SetLength(BufferStops, Length(BufferStops) + 1);
+
+    WITH BufferStops[High(BufferStops)] DO BEGIN
+      BufferStop_AdjacentLine := L;
+      BufferStop_AdjacentTrackCircuit := Lines[BufferStop_AdjacentLine].Line_TC;
+      IF (BufferStop_AdjacentTrackCircuit = UnknownTrackCircuit) AND ProgramStartup THEN
+        Log('E Buffer stop ' + IntToStr(High(BufferStops)) + ' (at line' + ' ' + Lines[BufferStop_AdjacentLine].Line_NameStr + ') has no adjacent track circuit');
+
+      BufferStop_AsTheatreDestination := BSTheatreDestination;
+      BufferStop_CurrentColour := BufferStopColour;
+      BufferStop_Direction := BSDirection;
+      BufferStop_Number := High(BufferStops);
+
+      Lines[L].Line_AdjacentBufferStop := BufferStop_Number;
+    END; {WITH}
+  END; { CreateBufferStop }
+
+  PROCEDURE CalculateBufferStopPositions;
+  { Work out where the buffer stops are on the screen }
+  VAR
+    BufferStop : Integer;
+
+  BEGIN
+    BufferStop := 0;
+    WHILE BufferStop <= High(BufferStops) DO BEGIN
+      WITH BufferStops[BufferStop] DO BEGIN
+        IF BufferStop_Direction = Up THEN BEGIN
+          BufferStop_X := MapGridXToScreenX(Lines[BufferStop_AdjacentLine].Line_GridUpX);
+          BufferStop_Y1 := MapGridYToScreenY(Lines[BufferStop_AdjacentLine].Line_GridUpY) - BufferStopVerticalSpacingScaled;
+          BufferStop_Y2 := MapGridYToScreenY(Lines[BufferStop_AdjacentLine].Line_GridUpY) + BufferStopVerticalSpacingScaled;
+        END ELSE BEGIN
+          BufferStop_X := MapGridXToScreenX(Lines[BufferStop_AdjacentLine].Line_GridDownX);
+          BufferStop_Y1 := MapGridYToScreenY(Lines[BufferStop_AdjacentLine].Line_GridDownY) - BufferStopVerticalSpacingScaled;
+          BufferStop_Y2 := MapGridYToScreenY(Lines[BufferStop_AdjacentLine].Line_GridDownY) + BufferStopVerticalSpacingScaled;
+        END;
+
+        { The mouse rectangle }
+        WITH BufferStop_MouseRect DO BEGIN
+          Left := BufferStop_X - MulDiv(FWPRailWindow.ClientWidth, 5, ZoomScaleFactor);
+          Top := BufferStop_Y1;
+          Right := BufferStop_X + MulDiv(FWPRailWindow.ClientWidth, 5, ZoomScaleFactor);
+          Bottom := BufferStop_Y2;
+        END; {WITH}
+      END; {WITH}
+      Inc(BufferStop);
+    END; {WHILE}
+  END; { CalculateBufferStopPositions }
 
 BEGIN
   TRY
     Line := 0;
     WHILE Line <= High(Lines) DO BEGIN
       WITH Lines[Line] DO BEGIN
-//        Line_GridUpY := MapScreenYToGridY(Round(Line_UpRow * InterLineSpacing));
-//        Line_GridDownY := MapScreenYToGridY(Round(Line_DownRow * InterLineSpacing));
         Line_GridUpY := Round(Line_UpRow * GridInterLineSpacing);
         Line_GridDownY := Round(Line_DownRow * GridInterLineSpacing);
       END; {WITH}
@@ -3094,42 +3141,120 @@ BEGIN
       END; {WITH}
       Inc(Line);
     END; {WHILE}
+
+    { Now work out which lines are next to which }
+    FOR Line := 0 TO High(Lines) DO BEGIN
+      WITH Lines[Line] DO BEGIN
+        FOR OtherLine := 0 TO High(Lines) DO BEGIN
+          IF Line <> OtherLine THEN BEGIN
+            { First, see if a line is disconnected from its neighbour - look for an alphabetic character at its start or end }
+            IF (Line_UpConnectionCh <> '') AND (Line_UpConnectionCh = Lines[OtherLine].Line_DownConnectionCh) THEN BEGIN
+              Line_NextUpType := LineIsNext;
+              Line_NextUpLine := OtherLine
+            END ELSE
+              IF (Line_DownConnectionCh <> '') AND (Line_DownConnectionCh = Lines[OtherLine].Line_UpConnectionCh) THEN BEGIN
+                Line_NextDownType := LineIsNext;
+                Line_NextDownLine := OtherLine
+              END ELSE BEGIN
+                { Now look for normal horizontal connections }
+                IF (Line_GridDownX = Lines[OtherLine].Line_GridUpX) AND (Line_GridDownY = Lines[OtherLine].Line_GridUpY) AND
+                  (Line_GridUpY = Lines[OtherLine].Line_GridDownY) THEN BEGIN
+                  Line_NextDownType := LineIsNext;
+                  Line_NextDownLine := OtherLine;
+                END;
+
+                IF (Line_GridUpX = Lines[OtherLine].Line_GridDownX) AND (Line_GridUpY = Lines[OtherLine].Line_GridDownY) AND
+                  (Line_GridDownY = Lines[OtherLine].Line_GridUpY) THEN BEGIN
+                  Line_NextUpType := LineIsNext;
+                  Line_NextUpLine := OtherLine;
+                END;
+              END;
+
+            { If there are no normal horizontal connections, see if there's a non-horizontal one }
+            IF (Line_NextUpLine = UnknownLine) OR (Line_NextDownLine = UnknownLine) THEN BEGIN
+              IF (Line_GridDownX = Lines[OtherLine].Line_GridUpX) AND (Line_GridDownY = Lines[OtherLine].Line_GridUpY) THEN BEGIN
+                Line_NextDownType := LineIsNext;
+                Line_NextDownLine := OtherLine;
+              END;
+
+              IF (Line_GridUpX = Lines[OtherLine].Line_GridDownX) AND (Line_GridUpY = Lines[OtherLine].Line_GridDownY) THEN BEGIN
+                Line_NextUpType := LineIsNext;
+                Line_NextUpLine := OtherLine;
+              END;
+            END;
+          END;
+        END;
+      END; {WITH}
+    END; {FOR}
+
+    FOR Line := 0 TO High(Lines) DO BEGIN
+      WITH Lines[Line] DO BEGIN
+        Line_CurrentColour := TCUnoccupiedColour;
+        Line_OldColour := TCUnoccupiedColour;
+        Line_RoutedOver := False;
+        Line_NoLongerOutOfUse := False;
+
+        CASE Line_EndOfLineMarker OF
+          NotEndOfLine:
+            BEGIN
+              Line_NextUpType := LineIsNext;
+              Line_NextUpIsEndofLine := NotEndOfLine;
+              Line_NextDownType := LineIsNext;
+              Line_NextDownIsEndOfLine := NotEndOfLine;
+            END;
+          BufferStopAtUp:
+            BEGIN
+              Line_NextUpType := EndOfLineIsNext;
+              Line_NextUpIsEndofLine := BufferStopAtUp;
+              Line_NextDownType := LineIsNext;
+              { and create a bufferstop record }
+              CreateBufferStop(Line, Up, Line_BufferStopTheatreDestinationStr);
+            END;
+          BufferStopAtDown:
+            BEGIN
+              Line_NextDownType := EndOfLineIsNext;
+              Line_NextDownIsEndOfLine := BufferStopAtDown;
+              Line_NextUpType := LineIsNext;
+              { and create a bufferstop record }
+              CreateBufferStop(Line, Down, Line_BufferStopTheatreDestinationStr);
+            END;
+          ProjectedLineAtUp:
+            BEGIN
+              Line_NextUpType := EndOfLineIsNext;
+              Line_NextUpIsEndofLine := ProjectedLineAtUp;
+              Line_NextDownType := LineIsNext;
+            END;
+          ProjectedLineAtDown:
+            BEGIN
+              Line_NextDownType := EndOfLineIsNext;
+              Line_NextDownIsEndOfLine := ProjectedLineAtDown;
+              Line_NextUpType := LineIsNext;
+            END;
+        END; { CASE }
+
+        IF Line_NextUpType = UnknownNextLineRouteingType THEN BEGIN
+          IF MessageDialogueWithDefault('Line_NextUpType = UnknownNextLineRouteingType at ' + LineToStr(Line),
+                                        StopTimer, mtError, [mbOK, mbAbort], mbAbort) = mrAbort
+          THEN
+            ShutDownProgram(UnitRef, 'ReadInLineDataFromDatabase');
+        END ELSE
+          IF Line_NextDownType = UnknownNextLineRouteingType THEN BEGIN
+            IF MessageDialogueWithDefault('Line_NextDownType = UnknownNextLineRouteingType at ' + LineToStr(Line),
+                                          StopTimer, mtError, [mbOK, mbAbort], mbAbort) = mrAbort
+            THEN
+              ShutDownProgram(UnitRef, 'ReadInLineDataFromDatabase');
+          END;
+
+      END; {WITH}
+    END; {FOR}
+
+    CalculateBufferStopPositions;
+
   EXCEPT {TRY}
     ON E : Exception DO
       Log('EG CalculateLinePositions: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { CalculateLinePositions }
-
-PROCEDURE CalculateBufferStopPositions;
-{ Work out where the buffer stops are on the screen }
-VAR
-  BufferStop : Integer;
-
-BEGIN
-  BufferStop := 0;
-  WHILE BufferStop <= High(BufferStops) DO BEGIN
-    WITH BufferStops[BufferStop] DO BEGIN
-      IF BufferStop_Direction = Up THEN BEGIN
-        BufferStop_X := MapGridXToScreenX(Lines[BufferStop_AdjacentLine].Line_GridUpX);
-        BufferStop_Y1 := MapGridYToScreenY(Lines[BufferStop_AdjacentLine].Line_GridUpY) - BufferStopVerticalSpacingScaled;
-        BufferStop_Y2 := MapGridYToScreenY(Lines[BufferStop_AdjacentLine].Line_GridUpY) + BufferStopVerticalSpacingScaled;
-      END ELSE BEGIN
-        BufferStop_X := MapGridXToScreenX(Lines[BufferStop_AdjacentLine].Line_GridDownX);
-        BufferStop_Y1 := MapGridYToScreenY(Lines[BufferStop_AdjacentLine].Line_GridDownY) - BufferStopVerticalSpacingScaled;
-        BufferStop_Y2 := MapGridYToScreenY(Lines[BufferStop_AdjacentLine].Line_GridDownY) + BufferStopVerticalSpacingScaled;
-      END;
-
-      { The mouse rectangle }
-      WITH BufferStop_MouseRect DO BEGIN
-        Left := BufferStop_X - MulDiv(FWPRailWindow.ClientWidth, 5, ZoomScaleFactor);
-        Top := BufferStop_Y1;
-        Right := BufferStop_X + MulDiv(FWPRailWindow.ClientWidth, 5, ZoomScaleFactor);
-        Bottom := BufferStop_Y2;
-      END; {WITH}
-    END; {WITH}
-    Inc(BufferStop);
-  END; {WHILE}
-END; { CalculateBufferStopPositions }
 
 FUNCTION ValidateLineInUseFeedbackUnit(FeedbackUnitStr : String; OUT ErrorMsg : String) : Integer;
 { Only checks that the supplied data is numeric }
@@ -3288,26 +3413,6 @@ PROCEDURE ReadInLineDataFromDatabase;
 CONST
   Horizontal = True;
   StopTimer = True;
-
-  PROCEDURE CreateBufferStop(L : Integer; BSDirection : DirectionType; BSTheatreDestination : String);
-  { Create a bufferstop record }
-  BEGIN
-    SetLength(BufferStops, Length(BufferStops) + 1);
-
-    WITH BufferStops[High(BufferStops)] DO BEGIN
-      BufferStop_AdjacentLine := L;
-      BufferStop_AdjacentTrackCircuit := Lines[BufferStop_AdjacentLine].Line_TC;
-      IF (BufferStop_AdjacentTrackCircuit = UnknownTrackCircuit) AND ProgramStartup THEN
-        Log('E Buffer stop ' + IntToStr(High(BufferStops)) + ' (at line' + ' ' + Lines[BufferStop_AdjacentLine].Line_NameStr + ') has no adjacent track circuit');
-
-      BufferStop_AsTheatreDestination := BSTheatreDestination;
-      BufferStop_CurrentColour := BufferStopColour;
-      BufferStop_Direction := BSDirection;
-      BufferStop_Number := High(BufferStops);
-
-      Lines[L].Line_AdjacentBufferStop := BufferStop_Number;
-    END; {WITH}
-  END; { CreateBufferStop }
 
 VAR
   ErrorMsg : String;
@@ -3507,110 +3612,6 @@ BEGIN
                                         StopTimer, mtError, [mbOK, mbAbort], mbAbort) = mrAbort
           THEN
             ShutDownProgram(UnitRef, 'ReadInLineDataFromDatabase');
-        END;
-      END; {WITH}
-    END; {FOR}
-
-    FOR Line := 0 TO High(Lines) DO BEGIN
-      WITH Lines[Line] DO BEGIN
-        Line_CurrentColour := TCUnoccupiedColour;
-        Line_OldColour := TCUnoccupiedColour;
-        Line_RoutedOver := False;
-        Line_NoLongerOutOfUse := False;
-
-        CASE Line_EndOfLineMarker OF
-          NotEndOfLine : BEGIN
-              Line_NextUpType := LineIsNext;
-              Line_NextUpIsEndofLine := NotEndOfLine;
-              Line_NextDownType := LineIsNext;
-              Line_NextDownIsEndOfLine := NotEndOfLine;
-            END;
-          BufferStopAtUp : BEGIN
-              Line_NextUpType := EndOfLineIsNext;
-              Line_NextUpIsEndofLine := BufferStopAtUp;
-              Line_NextDownType := LineIsNext;
-              { and create a bufferstop record }
-              CreateBufferStop(Line, Up, Line_BufferStopTheatreDestinationStr);
-            END;
-          BufferStopAtDown : BEGIN
-              Line_NextDownType := EndOfLineIsNext;
-              Line_NextDownIsEndOfLine := BufferStopAtDown;
-              Line_NextUpType := LineIsNext;
-              { and create a bufferstop record }
-              CreateBufferStop(Line, Down, Line_BufferStopTheatreDestinationStr);
-            END;
-          ProjectedLineAtUp : BEGIN
-              Line_NextUpType := EndOfLineIsNext;
-              Line_NextUpIsEndofLine := ProjectedLineAtUp;
-              Line_NextDownType := LineIsNext;
-            END;
-          ProjectedLineAtDown : BEGIN
-              Line_NextDownType := EndOfLineIsNext;
-              Line_NextDownIsEndOfLine := ProjectedLineAtDown;
-              Line_NextUpType := LineIsNext;
-            END;
-        END; { CASE }
-
-        IF Line_NextUpType = UnknownNextLineRouteingType THEN BEGIN
-          IF MessageDialogueWithDefault('Line_NextUpType = UnknownNextLineRouteingType at ' + LineToStr(Line),
-                                        StopTimer, mtError, [mbOK, mbAbort], mbAbort) = mrAbort
-          THEN
-            ShutDownProgram(UnitRef, 'ReadInLineDataFromDatabase');
-        END
-        ELSE
-          IF Line_NextDownType = UnknownNextLineRouteingType THEN BEGIN
-            IF MessageDialogueWithDefault('Line_NextDownType = UnknownNextLineRouteingType at ' + LineToStr(Line),
-                                          StopTimer, mtError, [mbOK, mbAbort], mbAbort) = mrAbort
-            THEN
-              ShutDownProgram(UnitRef, 'ReadInLineDataFromDatabase');
-          END;
-
-      END; {WITH}
-    END; {FOR}
-
-    CalculateBufferStopPositions;
-
-    { Now they all exist, we can work out which are next to which }
-    FOR Line := 0 TO High(Lines) DO BEGIN
-      WITH Lines[Line] DO BEGIN
-        FOR OtherLine := 0 TO High(Lines) DO BEGIN
-          IF Line <> OtherLine THEN BEGIN
-            { First, see if a line is disconnected from its neighbour - look for an alphabetic character at its start or end }
-            IF (Line_UpConnectionCh <> '') AND (Line_UpConnectionCh = Lines[OtherLine].Line_DownConnectionCh) THEN BEGIN
-              Line_NextUpType := LineIsNext;
-              Line_NextUpLine := OtherLine
-            END ELSE
-              IF (Line_DownConnectionCh <> '') AND (Line_DownConnectionCh = Lines[OtherLine].Line_UpConnectionCh) THEN BEGIN
-                Line_NextDownType := LineIsNext;
-                Line_NextDownLine := OtherLine
-              END ELSE BEGIN
-                { Now look for normal horizontal connections }
-                IF (Line_GridDownX = Lines[OtherLine].Line_GridUpX) AND (Line_GridDownY = Lines[OtherLine].Line_GridUpY) AND
-                  (Line_GridUpY = Lines[OtherLine].Line_GridDownY) THEN BEGIN
-                  Line_NextDownType := LineIsNext;
-                  Line_NextDownLine := OtherLine;
-                END;
-
-                IF (Line_GridUpX = Lines[OtherLine].Line_GridDownX) AND (Line_GridUpY = Lines[OtherLine].Line_GridDownY) AND
-                  (Line_GridDownY = Lines[OtherLine].Line_GridUpY) THEN BEGIN
-                  Line_NextUpType := LineIsNext;
-                  Line_NextUpLine := OtherLine;
-                END;
-              END;
-
-            { If there are no normal horizontal connections, see if there's a non-horizontal one }
-            IF (Line_NextUpLine = UnknownLine) OR (Line_NextDownLine = UnknownLine) THEN BEGIN
-              IF (Line_GridDownX = Lines[OtherLine].Line_GridUpX) AND (Line_GridDownY = Lines[OtherLine].Line_GridUpY) THEN BEGIN
-                Line_NextDownType := LineIsNext;
-                Line_NextDownLine := OtherLine;
-              END;
-
-              IF (Line_GridUpX = Lines[OtherLine].Line_GridDownX) AND (Line_GridUpY = Lines[OtherLine].Line_GridDownY) THEN BEGIN
-                Line_NextUpType := LineIsNext;
-                Line_NextUpLine := OtherLine;
-              END;
-            END;
-          END;
         END;
       END; {WITH}
     END; {FOR}
