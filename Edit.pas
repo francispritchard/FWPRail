@@ -2126,7 +2126,7 @@ BEGIN
         ELSE
           Signal_LineY := MouseY + SignalVerticalSpacingScaled - ScrollBarYAdjustment;
 
-        { Indicate whether or not it can be dropped - first check the Signal's X position }
+        { Indicate whether or not it can be dropped - first check the signal's X position }
         NearestLineToSignal := GetNearestLine(Signals[S].Signal_LineX, Signals[S].Signal_LineWithVerticalSpacingY);
         IF NearestLineToSignal = UnknownLine THEN
           { see if the base of the signal post is within the polygon }
@@ -2135,7 +2135,6 @@ BEGIN
         TooNearSignal := TooNearOtherSignal(EditedSignal, NearestLineToSignal);
       END; {WITH}
 
-      CalculateSignalPosition(EditedSignal);
       DrawSignal(EditedSignal);
 
 //      IF (NearestLineToSignal = UnknownLine) OR (TooNearSignal <> UnknownLine) THEN

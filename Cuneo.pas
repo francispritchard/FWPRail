@@ -1905,6 +1905,9 @@ BEGIN
     Debug('Mouse button press detected rather than Escape pressed a second time - shutdown cancelled');
   END;
 
+  { Set the signal-dragging timer }
+  CuneoWindow.MouseButtonDownTimer.Enabled := True;
+
   { See if the keyboard is locked }
   IF KeyBoardandMouseLocked THEN
     Debug('Mouse locked - press Shift + ''K'' to unlock ')
