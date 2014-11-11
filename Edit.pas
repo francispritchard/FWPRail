@@ -1989,6 +1989,7 @@ BEGIN
           Point_MaybeBeingSetToManual := False;
           Point_MovedWhenLocked := False;
           Point_Notes := 'Created by user on ' + DateToStr(Date);
+          Point_Number := EditedPoint;
           Point_OutOfUse := True;
           Point_PresentState := PointStateUnknown;
           Point_PreviousState := PointStateUnknown;
@@ -1997,7 +1998,7 @@ BEGIN
           Point_ResettingTime := 0;
           Point_RouteLockedByLocoChip := UnknownLocoChip;
           Point_TCAtHeel := 0;
-          Point_Type := PointTypeUnknown;
+          Point_Type := OrdinaryPoint;
           Point_SecondAttempt := False;
           Point_SetASecondTime := False;
           Point_WaitTime := 0;
@@ -2019,8 +2020,6 @@ BEGIN
         CalculateLinePositions;
         InvalidateScreen(UnitRef, 'CreatePoint');
         Log('D Screen invalidated by CreatePoint');
-
-        ShowMessage('Point record created - please set Point Type before using the point');
       END;
     END;
   EXCEPT {TRY}

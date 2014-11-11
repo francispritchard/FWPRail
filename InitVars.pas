@@ -6194,28 +6194,142 @@ BEGIN
                 Log('P Recording in point database that P=' + IntToStr(P) + ' is now ' + IntToStr(Point_Number));
 
               PointsADOTable.Edit;
+              PointsADOTable.FieldByName(Point_StraightLineFieldName).AsString := LineToStr(Point_StraightLine);
+              PointsADOTable.Post;
+              IF PointDebuggingMode THEN
+                Log('P Recording in point database that P=' + IntToStr(P) + '''s straight line is now ' + LineToStr(Point_StraightLine));
+
+              PointsADOTable.Edit;
+              PointsADOTable.FieldByName(Point_DivergingLineFieldName).AsString := LineToStr(Point_DivergingLine);
+              PointsADOTable.Post;
+              IF PointDebuggingMode THEN
+                Log('P Recording in point database that P=' + IntToStr(P) + '''s Diverging line is now ' + LineToStr(Point_DivergingLine));
+
+              PointsADOTable.Edit;
+              PointsADOTable.FieldByName(Point_HeelLineFieldName).AsString := LineToStr(Point_HeelLine);
+              PointsADOTable.Post;
+              IF PointDebuggingMode THEN
+                Log('P Recording in point database that P=' + IntToStr(P) + '''s Heel line is now ' + LineToStr(Point_HeelLine));
+
+              PointsADOTable.Edit;
               PointsADOTable.FieldByName(Point_OutOfUseFieldName).AsBoolean := Point_OutOfUse;
               PointsADOTable.Post;
               IF PointDebuggingMode THEN
-                Log('P Recording in point database that P=' + IntToStr(P) + ' is now ' + IfThen(Points[P].Point_OutOfUse, 'out of use', 'back in use'));
+                Log('P Recording in point database that P=' + IntToStr(P) + ' is now ' + IfThen(Point_OutOfUse, 'out of use', 'back in use'));
 
               PointsADOTable.Edit;
               PointsADOTable.FieldByName(Point_LockedByUserFieldName).AsBoolean := Point_LockedByUser;
               PointsADOTable.Post;
               IF PointDebuggingMode THEN
-                Log('P Recording in point database that P=' + IntToStr(P) + ' is now ' + IfThen(Points[P].Point_LockedByUser, 'locked by user', 'back in use'));
+                Log('P Recording in point database that P=' + IntToStr(P) + ' is now ' + IfThen(Point_LockedByUser, 'locked by user', 'back in use'));
 
+              IF Point_RelatedPoint <> UnknownPoint THEN
+                TempStr := IntToStr(Point_RelatedPoint)
+              ELSE
+                TempStr := '';
               PointsADOTable.Edit;
-              PointsADOTable.FieldByName(Point_RelatedPointFieldName).AsString := IntToStr(Point_RelatedPoint);
+              PointsADOTable.FieldByName(Point_RelatedPointFieldName).AsString := TempStr;
               PointsADOTable.Post;
               IF PointDebuggingMode THEN
-                Log('P Recording in point database that P=' + IntToStr(P) + '''s Related Point is now ' + IntToStr(Points[P].Point_RelatedPoint));
+                Log('P Recording in point database that P=' + IntToStr(P) + '''s Related Point is now "' + TempStr + '"');
 
               PointsADOTable.Edit;
               PointsADOTable.FieldByName(Point_TypeFieldName).AsString := PointTypeToStr(Point_Type);
               PointsADOTable.Post;
               IF PointDebuggingMode THEN
-                Log('P Recording in point database that P=' + IntToStr(P) + '''s Point Type is now ' + PointTypeToStr(Points[P].Point_Type));
+                Log('P Recording in point database that P=' + IntToStr(P) + '''s Point Type is now ' + PointTypeToStr(Point_Type));
+
+              IF Point_DefaultState <> PointStateUnknown THEN
+                TempStr := PointStateToStr(Point_DefaultState)
+              ELSE
+                TempStr := '';
+              PointsADOTable.Edit;
+              PointsADOTable.FieldByName(Point_DefaultStateFieldName).AsString := TempStr;
+              PointsADOTable.Post;
+              IF PointDebuggingMode THEN
+                Log('P Recording in point database that P=' + IntToStr(P) + '''s Default State is now "' + TempStr + '"');
+
+              IF Point_FeedbackInput <> 0 THEN
+                TempStr := IntToStr(Point_FeedbackInput)
+              ELSE
+                TempStr := '';
+              PointsADOTable.Edit;
+              PointsADOTable.FieldByName(Point_FeedbackInputFieldName).AsString := TempStr;
+              PointsADOTable.Post;
+              IF PointDebuggingMode THEN
+                Log('P Recording in point database that P=' + IntToStr(P) + '''s Feedback Input is now "' + TempStr + '"');
+
+              PointsADOTable.Edit;
+              PointsADOTable.FieldByName(Point_FeedbackOnIsStraightFieldName).AsBoolean := Point_FeedbackOnIsStraight;
+              PointsADOTable.Post;
+              IF PointDebuggingMode THEN
+                Log('P Recording in point database that P=' + IntToStr(P) + '''s Feedback On Is Straight flag is now ' + BoolToStr(Point_FeedbackOnIsStraight, True));
+
+              IF Point_FeedbackUnit <> 0 THEN
+                TempStr := IntToStr(Point_FeedbackUnit)
+              ELSE
+                TempStr := '';
+              PointsADOTable.Edit;
+              PointsADOTable.FieldByName(Point_FeedbackUnitFieldName).AsString := TempStr;
+              PointsADOTable.Post;
+              IF PointDebuggingMode THEN
+                Log('P Recording in point database that P=' + IntToStr(P) + '''s Feedback Unit is now "' + Tempstr + '"');
+
+              IF Point_LenzNum <> 0 THEN
+                TempStr := IntToStr(Point_LenzNum)
+              ELSE
+                TempStr := '';
+              PointsADOTable.Edit;
+              PointsADOTable.FieldByName(Point_LenzNumFieldName).AsString := TempStr;
+              PointsADOTable.Post;
+              IF PointDebuggingMode THEN
+                Log('P Recording in point database that P=' + IntToStr(P) + '''s Lenz Point Number is now "' + TempStr + '"');
+
+              IF Point_LenzUnit <> 0 THEN
+                TempStr := IntToStr(Point_LenzUnit)
+              ELSE
+                TempStr := '';
+              PointsADOTable.Edit;
+              PointsADOTable.FieldByName(Point_LenzUnitFieldName).AsString := TempStr;
+              PointsADOTable.Post;
+              IF PointDebuggingMode THEN
+                Log('P Recording in point database that P=' + IntToStr(P) + '''s Lenz Point Unit is now "' + TempStr + '"');
+
+              PointsADOTable.Edit;
+              PointsADOTable.FieldByName(Point_LenzUnitTypeFieldName).AsString := Point_LenzUnitType;
+              PointsADOTable.Post;
+              IF PointDebuggingMode THEN
+                Log('P Recording in point database that P=' + IntToStr(P) + '''s Lenz Unit Type is now ' + Point_LenzUnitType);
+
+              PointsADOTable.Edit;
+              PointsADOTable.FieldByName(Point_LockedIfHeelTCOccupiedFieldName).AsBoolean := Point_LockedIfHeelTCOccupied;
+              PointsADOTable.Post;
+              IF PointDebuggingMode THEN
+                Log('P Recording in point database that P=' + IntToStr(P) + '''s Locked If Heel TC Occupied flag is now ' + BoolToStr(Point_LockedIfHeelTCOccupied, True));
+
+              PointsADOTable.Edit;
+              PointsADOTable.FieldByName(Point_LockedIfNonHeelTCsOccupiedFieldName).AsBoolean := Point_LockedIfNonHeelTCsOccupied;
+              PointsADOTable.Post;
+              IF PointDebuggingMode THEN
+                Log('P Recording in point database that P=' + IntToStr(P) + '''s Locked If Non-Heel TCs Occupied flag is now ' + BoolToStr(Point_LockedIfNonHeelTCsOccupied,
+                                                                                                                                                                     True));
+              PointsADOTable.Edit;
+              PointsADOTable.FieldByName(Point_ManualOperationFieldName).AsBoolean := Point_ManualOperation;
+              PointsADOTable.Post;
+              IF PointDebuggingMode THEN
+                Log('P Recording in point database that P=' + IntToStr(P) + '''s Manual Operation is now ' + BoolToStr(Point_ManualOperation, True));
+
+              PointsADOTable.Edit;
+              PointsADOTable.FieldByName(Point_NotesFieldName).AsString := Point_Notes;
+              PointsADOTable.Post;
+              IF PointDebuggingMode THEN
+                Log('P Recording in point database that P=' + IntToStr(P) + '''s notes are now ' + Point_Notes);
+
+              PointsADOTable.Edit;
+              PointsADOTable.FieldByName(Point_WiringReversedFlagFieldName).AsBoolean := Point_WiringReversedFlag;
+              PointsADOTable.Post;
+              IF PointDebuggingMode THEN
+                Log('P Recording in point database that P=' + IntToStr(P) + '''s Wiring Reversed flag is now ' + BoolToStr(Point_WiringReversedFlag, True));
             END;
 
             IF NOT Point_ManualOperation AND (Point_LastManualStateAsReadIn <> PointStateUnknown) THEN BEGIN
@@ -6241,13 +6355,16 @@ BEGIN
             { And of points from which we've had feedback }
             IF NOT Point_ManualOperation THEN BEGIN
               PointsADOTable.Edit;
-              IF Points[P].Point_PresentState = PointStateUnknown THEN
-                PointsADOTable.FieldByName(Point_LastManualStateAsReadInFieldName).AsString := ''
-              ELSE
+              IF Points[P].Point_PresentState = PointStateUnknown THEN BEGIN
+                PointsADOTable.FieldByName(Point_LastManualStateAsReadInFieldName).AsString := '';
+                PointsADOTable.FieldByName(Point_LastFeedbackStateAsReadInFieldName).AsString := '';
+              END ELSE
                 IF Points[P].Point_PresentState = Straight THEN
-                  PointsADOTable.FieldByName(Point_LastFeedbackStateAsReadInFieldName).AsString := 'Straight'
+                  PointsADOTable.FieldByName(Point_LastFeedbackStateAsReadInFieldName).AsString := StraightStr
                 ELSE
-                  PointsADOTable.FieldByName(Point_LastFeedbackStateAsReadInFieldName).AsString := 'Diverging';
+                  IF Points[P].Point_PresentState = Diverging THEN
+                    PointsADOTable.FieldByName(Point_LastFeedbackStateAsReadInFieldName).AsString := DivergingStr;
+
               PointsADOTable.Post;
               IF PointDebuggingMode THEN
                 Log('P Recording in point database that P=' + IntToStr(P) + '''s feedback state is now ' + PointStateToStr(Points[P].Point_PresentState));
