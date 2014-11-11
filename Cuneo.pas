@@ -19,9 +19,6 @@ TYPE
 PROCEDURE ChangeStateOfWhatIsUnderMouse(ScreenClickPosX, ScreenClickPosY : Integer; ShiftState : TShiftState; HelpRequired : Boolean);
 { See what the mouse is currently pointing at something, and change its state if appropriate }
 
-FUNCTION GetLineFoundNum : Integer;
-{ Returns which line we're on }
-
 FUNCTION GetZoomRect : TRect;
 { Return the current zoom rectangle }
 
@@ -66,7 +63,6 @@ VAR
   ButtonPress : MouseButton;
   DownLineEndCharacterLine : Integer = UnknownLine;
   EmergencyRouteingStored : Boolean = False;
-  LineFoundNum : Integer = UnknownLine;
   LineFoundArray : IntegerArrayType;
   MouseMovingX : Integer;
   MouseMovingY : Integer;
@@ -105,12 +101,6 @@ PROCEDURE Log(Str : String);
 BEGIN
   WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
-
-FUNCTION GetLineFoundNum : Integer;
-{ Returns which line we're on }
-BEGIN
-  Result := LineFoundNum;
-END; { GetLineFoundNum }
 
 FUNCTION GetZoomRect : TRect;
 { Return the current zoom rectangle }
@@ -166,7 +156,6 @@ BEGIN
     ObjectFound := False;
     IndicatorFoundNum := UnknownSignal;
     IndicatorFoundType := UnknownJunctionIndicator;
-    LineFoundNum := UnknownLine;
     SetLength(LineFoundArray, 0);
     NewLineFoundNum := UnknownLine;
     BufferStopFoundNum := UnknownPoint;
@@ -488,7 +477,6 @@ BEGIN
           IF Lines[Line].Line_RouteLockingForDrawing <> UnknownRoute THEN
             TempStatusBarPanel1Str := TempStatusBarPanel1Str + '[R=' + IntToStr(Lines[Line].Line_RouteLockingForDrawing) + ']';
           TempStatusBarPanel1Str := TempStatusBarPanel1Str + ')';
-          LineFoundNum := Line;
           AppendToIntegerArray(LineFoundArray, Line);
 
           IF Line_OutOfUseState = OutOfUse THEN BEGIN
@@ -1601,7 +1589,7 @@ BEGIN
       SignalPostSelected(IrrelevantNum, IrrelevantNum, IrrelevantShiftState, HelpRequired);
       TheatreIndicatorSelected(IrrelevantNum, IrrelevantNum, IrrelevantShiftState, HelpRequired);
       UpLineEndCharacterSelected(IrrelevantLine, HelpRequired);
-      WriteNextLineDetailToDebugWindow(LineFoundNum, HelpRequired);
+      WriteNextLineDetailToDebugWindow(IrrelevantLine, HelpRequired);
     END ELSE BEGIN
       GridX := MapScreenXToGridX(ScreenClickPosX);
       GridY := MapScreenYToGridY(ScreenClickPosY);
@@ -1664,28 +1652,28 @@ BEGIN
                   END; {WITH}
                 END;
 
-                IF NOT LineHandleFound THEN BEGIN
-                  IF LineFoundNum <> UnknownLine THEN BEGIN
+                IF NOT LineHandleFound AND (Length(LineFoundArray) <> 0) THEN BEGIN
+                  IF LineFoundArray[0] <> UnknownLine THEN BEGIN
                     { we're not yet editing a line, so see if we're already on one }
-                    WITH Lines[LineFoundNum] DO BEGIN
+                    WITH Lines[LineFoundArray[0]] DO BEGIN
                       { first reset any previously-set variables }
                       DeselectLine;
 
                       { now set them }
-                      EditedLine := LineFoundNum;
+                      EditedLine := LineFoundArray[0];
                       EditingExistingLine := True;
                       Line_ShowHandles := True;
 
                       IF ssShift IN ShiftState THEN
                         { split the line }
-                        SplitLine(LineFoundNum, GridX, GridY);
+                        SplitLine(LineFoundArray[0], GridX, GridY);
                     END; {WITH}
                   END ELSE BEGIN
                     IF NOT EndOfLineDragging THEN BEGIN
                       IF EditedLine <> UnknownLine THEN
                         DeselectLine;
                       EndOfLineDragging := True;
-                      StartLineEdit(LineFoundNum);
+                      StartLineEdit(LineFoundArray[0]);
 
                       { and create a new line record }
                       SetLength(Lines, Length(Lines) + 1);
@@ -1738,10 +1726,10 @@ BEGIN
                   BufferStopFoundNum := UnknownBufferStop;
                 END ELSE BEGIN
                   { we probably want to create a line near here - we don't need to be on one to create it }
-                  IF LineFoundNum <> UnknownLine THEN
+                  IF Length(LineFoundArray) <> 0 THEN
                     SetLinePopupNumArray(LineFoundArray);
                   FWPRailWindow.LinePopupMenu.Popup(MouseX, MouseY);
-                  LineFoundNum := UnknownLine;
+                  SetLength(LineFoundArray, 0);
                 END;
           END;
       END ELSE BEGIN
@@ -1815,13 +1803,13 @@ BEGIN
                     IF TheatreIndicatorFoundNum <> UnknownSignal THEN
                       SignalPostSelected(-TheatreIndicatorFoundNum, UnknownBufferStop, ShiftState, HelpRequired)
                     ELSE
-                      IF LineFoundNum <> UnknownLine THEN BEGIN
+                      IF (Length(LineFoundArray) <> 0) AND (LineFoundArray[0] <> UnknownLine) THEN BEGIN
                         IF ssShift IN ShiftState THEN
-                          WriteNextLineDetailToDebugWindow(LineFoundNum, HelpRequired)
+                          WriteNextLineDetailToDebugWindow(LineFoundArray[0], HelpRequired)
                         ELSE BEGIN
                           SetLinePopupNumArray(LineFoundArray);
                           FWPRailWindow.LinePopupMenu.Popup(MouseX, MouseY);
-                          LineFoundNum := UnknownLine;
+                          LineFoundArray[0] := UnknownLine;
                         END;
                       END ELSE
                         FWPRailWindow.PopupMenu.Popup(MouseX, MouseY);
