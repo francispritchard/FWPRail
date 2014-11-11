@@ -67,6 +67,7 @@ VAR
   DownLineEndCharacterLine : Integer = UnknownLine;
   EmergencyRouteingStored : Boolean = False;
   LineFoundNum : Integer = UnknownLine;
+  LineFoundArray : IntegerArrayType;
   MouseMovingX : Integer;
   MouseMovingY : Integer;
   MouseX : Integer;
@@ -137,8 +138,11 @@ CONST
 VAR
   B, P, S : Integer;
   DebugStr : String;
+  DuplicateLineFound : Boolean;
   GridX : Integer;
   GridY : Integer;
+  I : Integer;
+  J : Integer;
   Line : Integer;
   LockingFailureString : String;
   NearestLine : Integer;
@@ -165,6 +169,7 @@ BEGIN
     IndicatorFoundNum := UnknownSignal;
     IndicatorFoundType := UnknownJunctionIndicator;
     LineFoundNum := UnknownLine;
+    SetLength(LineFoundArray, 0);
     NewLineFoundNum := UnknownLine;
     PointFoundNum := UnknownPoint;
     SignalFoundNum := UnknownSignal;
@@ -490,6 +495,7 @@ BEGIN
             TempStatusBarPanel1Str := TempStatusBarPanel1Str + '[R=' + IntToStr(Lines[Line].Line_RouteLockingForDrawing) + ']';
           TempStatusBarPanel1Str := TempStatusBarPanel1Str + ')';
           LineFoundNum := Line;
+          AppendToIntegerArray(LineFoundArray, Line);
 
           IF Line_OutOfUseState = OutOfUse THEN BEGIN
             IF (Lines[Line].Line_Location <> UnknownLocation) AND (Locations[Lines[Line].Line_Location].Location_OutOfUse) THEN
@@ -652,6 +658,22 @@ BEGIN
     IF NOT ObjectFound THEN
       IF NOT SignalDragging AND NOT EndOfLineDragging AND NOT WholeLineDragging AND NOT EditMode AND NOT CreateLineMode AND (Screen.Cursor <> crDefault) THEN
         ChangeCursor(crDefault);
+
+    { Remove any duplicates from LinesFoundArray - testing shows that they occasionally appear if the cursor is just in a particular place }
+    DuplicateLineFound := False;
+    I := 0;
+    J := 1;
+    WHILE (I <= High(LineFoundArray)) AND NOT DuplicateLineFound DO BEGIN
+      WHILE (J <= High(LineFoundArray)) AND NOT DuplicateLineFound DO BEGIN
+        IF I <> J THEN BEGIN
+          IF LineFoundArray[I] = LineFoundArray[J] THEN
+            DeleteElementFromIntegerArray(LineFoundArray, I);
+        END;
+        Inc(J);
+      END; {WHILE}
+      Inc(I);
+    END; {WHILE}
+    END;
   EXCEPT {TRY}
     ON E : Exception DO
       Log('EG WhatIsUnderMouse: ' + E.ClassName + ' error raised, with message: '+ E.Message);
