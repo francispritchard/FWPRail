@@ -224,7 +224,7 @@ BEGIN
     MouseX := ScreenClickPosX + ScrollBarXAdjustment;
     MouseY := ScreenClickPosY + ScrollBarYAdjustment;
 
-    { Clear any debugging track circuit occupations }
+    { Signals }
     FOR S := 0 TO High(Signals) DO BEGIN
       WITH Signals[S] DO BEGIN
         IF NOT (EditMode AND SignalDragging AND (S = EditedSignal)) THEN BEGIN
@@ -339,12 +339,10 @@ BEGIN
       END; {WITH}
     END;
 
- IF StatusBarPanel1Str <> '' THEN
- null;
     StatusBarPanel1Str := TempStatusBarPanel1Str;
     TempStatusBarPanel1Str := '';
 
-    { Deal with points }
+    { Points }
     IF PointDebuggingMode THEN BEGIN
       SaveRecordLineDrawingMode := RecordLineDrawingMode;
       RecordLineDrawingMode := False;
@@ -450,7 +448,7 @@ BEGIN
       RecordLineDrawingMode := SaveRecordLineDrawingMode;
     END;
 
-    { Now with buffer stops }
+    { Buffer stops }
     B := 0;
     BufferStopFoundNum := UnknownBufferStop;
     WHILE (B <= High(BufferStops)) AND (BufferStopFoundNum = UnknownBufferStop) DO BEGIN
@@ -473,7 +471,7 @@ BEGIN
       TempStatusBarPanel1Str := '';
     END;
 
-    { See if the mouse pointer is within lines rectangle - note: no guarantee that MX1 < MX2 }
+    { Lines: see if the mouse pointer is within lines rectangle - note: no guarantee that MX1 < MX2 }
     FOR Line := 0 TO High(Lines) DO BEGIN
       WITH Lines[Line] DO BEGIN
         IF PointInPolygon(Line_MousePolygon, Point(MouseX, MouseY)) THEN BEGIN
@@ -666,8 +664,8 @@ VAR
   TRSPlungerFoundLocation : Integer;
 
 BEGIN
-  WhatIsUnderMouseMainProc(ScreenClickPosX, ScreenClickPosY, ShiftState, BufferStopFoundNum, IndicatorFoundNum, IndicatorFoundType, PointFoundNum, SignalFoundNum, SignalPostFoundNum,
-                           TheatreIndicatorFoundNum, TRSPlungerFoundLocation);
+  WhatIsUnderMouseMainProc(ScreenClickPosX, ScreenClickPosY, ShiftState, BufferStopFoundNum, IndicatorFoundNum, IndicatorFoundType, PointFoundNum, SignalFoundNum,
+                           SignalPostFoundNum, TheatreIndicatorFoundNum, TRSPlungerFoundLocation);
 END; { WhatIsUnderMouse }
 
 PROCEDURE WhatIsUnderMouse(ScreenClickPosX, ScreenClickPosY : Integer; ShiftState : TShiftState; OUT BufferStopFoundNum : Integer; OUT IndicatorFoundNum : Integer;
@@ -675,8 +673,8 @@ PROCEDURE WhatIsUnderMouse(ScreenClickPosX, ScreenClickPosY : Integer; ShiftStat
                            OUT TheatreIndicatorFoundNum : Integer; OUT TRSPlungerFoundLocation : Integer); Overload;
 { Returns the current mouse position and whether a specific item has been found at that position without a keypress being required }
 BEGIN
-  WhatIsUnderMouseMainProc(ScreenClickPosX, ScreenClickPosY, ShiftState, BufferStopFoundNum, IndicatorFoundNum, IndicatorFoundType, PointFoundNum, SignalFoundNum, SignalPostFoundNum,
-                           TheatreIndicatorFoundNum, TRSPlungerFoundLocation);
+  WhatIsUnderMouseMainProc(ScreenClickPosX, ScreenClickPosY, ShiftState, BufferStopFoundNum, IndicatorFoundNum, IndicatorFoundType, PointFoundNum, SignalFoundNum,
+                           SignalPostFoundNum, TheatreIndicatorFoundNum, TRSPlungerFoundLocation);
 END; { WhatIsUnderMouse }
 
 PROCEDURE TCuneoWindow.SignalPostFlashingTimerTick(Sender: TObject);
