@@ -81,6 +81,7 @@ BEGIN
 END; { TestProc3 }
 
 PROCEDURE TestProc2;
+
 BEGIN
 END; { TestProc2 }
 
@@ -89,15 +90,9 @@ PROCEDURE TestProc(OUT KeyOK : Boolean);
 BEGIN
   KeyOK := False;
 
-  TestUnitForm.TestUnitTimer.Interval := 100;
-  TestUnitForm.TestUnitTimer.Enabled := True;
-
 //  TestProc2;
-
 //  KeyOK := True;
 END; { TestProc }
-
-
 
 INITIALIZATION
 
