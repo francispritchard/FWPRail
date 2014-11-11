@@ -633,7 +633,7 @@ BEGIN { WritePointValuesToValueList }
           WritePickListValue(Point_TypeFieldName, PointTypeToStr(Point_Type), [OrdinaryPointStr, CrossOverPointStr, ThreeWayPointAStr, ThreeWayPointBStr, SingleSlipStr,
                                                                                DoubleSlipStr, ProtectedPointStr, CatchPointUpStr, CatchPointDownStr, UnknownPointTypeStr]);
           WritePointValue(Point_RelatedPointFieldName, Point_RelatedPoint, '9999');
-          WritePickListValue(Point_DefaultStateFieldName, PointStateToStr(Point_DefaultState), ['straight', 'diverging', 'unknown', 'out of action']);
+          WritePickListValue(Point_DefaultStateFieldName, PointStateToStr(Point_DefaultState), [StraightStr, DivergingStr, UnknownStr, OutOfActionStr]);
           WriteBooleanValue(Point_LockedIfHeelTCOccupiedFieldName, Point_LockedIfHeelTCOccupied);
           WriteBooleanValue(Point_OutOfUseFieldName, Point_OutOfUse);
           WriteBooleanValue(Point_LockedIfNonHeelTCsOccupiedFieldName, Point_LockedIfNonHeelTCsOccupied);
@@ -837,7 +837,7 @@ BEGIN
 //                                                                               'Single Slip', 'Double Slip', 'Protected TrackCircuit', 'Catch TrackCircuit Up', 'Catch TrackCircuit Down',
 //                                                                               'Unknown TrackCircuit Type']);
 //          WriteTrackCircuitValue(TrackCircuit_OtherTrackCircuitFieldName, TrackCircuit_OtherTrackCircuit, '9999');
-//          WritePickListValue(TrackCircuit_DefaultStateFieldName, TrackCircuitStateToStr(TrackCircuit_DefaultState), ['straight', 'diverging', 'unknown', 'out of action']);
+//          WritePickListValue(TrackCircuit_DefaultStateFieldName, TrackCircuitStateToStr(TrackCircuit_DefaultState), [StraightStr, DivergingStr, UnknownStr, OutOfActionStr]);
 //          WriteBooleanValue(TrackCircuit_LockedIfHeelTCOccupiedFieldName, TrackCircuit_LockedIfHeelTCOccupied);
 //          WriteBooleanValue(TrackCircuit_OutOfUseFieldName, TrackCircuit_OutOfUse);
 //          WriteBooleanValue(TrackCircuit_LockedIfNonHeelTCsOccupiedFieldName, TrackCircuit_LockedIfNonHeelTCsOccupied);
@@ -2077,8 +2077,7 @@ BEGIN
 
     IF CanDelete THEN BEGIN
       WITH InitVarsWindow DO BEGIN
-        { Now we need to renumber point references in the database that have changed because of the deletion
-        }
+        { Now we need to renumber point references in the database that have changed because of the deletion }
         FOR OtherPoint := 0 TO High(Points) DO BEGIN
           IF Points[OtherPoint].Point_RelatedPoint = High(Points) THEN BEGIN
             Points[OtherPoint].Point_RelatedPoint := PointToDeleteNum;

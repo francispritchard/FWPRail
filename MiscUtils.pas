@@ -5761,16 +5761,16 @@ FUNCTION PointStateToStr(PointState : PointStateType) : String;
 { Return the point state as a string }
 BEGIN
   IF PointState = Straight THEN
-    Result := 'straight'
+    Result := StraightStr
   ELSE
     IF PointState = Diverging THEN
-      Result := 'diverging'
+      Result := DivergingStr
     ELSE
       IF PointState = PointStateUnknown THEN
-        Result := 'unknown'
+        Result := UnknownStr
       ELSE
         IF PointState = PointOutOfAction THEN
-          Result := 'out of action';
+          Result := OutOfActionStr;
 END; { PointStateToStr }
 
 FUNCTION PointTypeToStr(PType : TypeOfPoint) : String;

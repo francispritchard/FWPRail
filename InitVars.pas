@@ -6120,7 +6120,7 @@ BEGIN
       PointsADOTable.FieldByName(Point_NumberFieldName).AsInteger := High(Points);
       PointsADOTable.Post;
 
-      Log('S Point data table and connection opened to write out Point data that has changed');
+      Log('S Point data table and connection opened to write out point data that has changed');
       { Tidy up the database }
       PointsADOTable.Close;
       PointsADOConnection.Connected := False;
@@ -6137,6 +6137,7 @@ PROCEDURE WriteOutPointDataToDatabase;
 VAR
   P : Integer;
   PointDatabaseNeedsUpdating : Boolean;
+  TempStr : String;
 
 BEGIN
   TRY
