@@ -4662,6 +4662,10 @@ VAR
 BEGIN
   WITH Sender AS TMenuItemExtended DO BEGIN
     { this code has been separated out from the case statement below as we may well not be on a line, and the "WITH Lines[LinePopupNum]" statement would fail }
+    IF Length(LinePopupNumArray) <> 1 THEN BEGIN
+      IF PopupType = LineCreatePointPopupType THEN
+        CreatePoint(LinePopupNumArray);
+    END ELSE
     IF PopupType = LineEnterCreateLinePopupType THEN BEGIN
       GetCursorPos(XYPos);
       CreateLineMode := True;
@@ -4669,12 +4673,12 @@ BEGIN
       IF PopupType = LineExitCreateLinePopupType THEN BEGIN
         CreateLineMode := False;
         ShowLineHandles := False;
-      END ELSE BEGIN
-        WITH Lines[LinePopupNum] DO BEGIN
+      END ELSE
+        WITH Lines[LinePopupNumArray[0]] DO BEGIN
           CASE PopupType OF
             LineAllocateLocoToTrackCircuitPopupType:
               IF TrackCircuits[Line_TC].TC_LocoChip = UnknownLocoChip THEN
-                AllocateLocoToTrackCircuit(LinePopupNum)
+                AllocateLocoToTrackCircuit(LinePopupNumArray[0])
               ELSE
                 ClearLocoFromTrackCircuit(Line_TC);
 
@@ -4686,23 +4690,17 @@ BEGIN
               IF TrackCircuits[Line_TC].TC_LocoChip = UnknownLocoChip THEN
                 ChangeInternalLocoDirectionToDown(TrackCircuits[Line_TC].TC_LocoChip);
 
-            LineCreateUpPointPopupType:
-              CreatePoint(Up, LinePopupNum);
-
-            LineCreateDownPointPopupType:
-              CreatePoint(Down, LinePopupNum);
-
             LineCreateUpSignalPopupType:
-              CreateSignal(Up, LinePopupNum);
+              CreateSignal(Up, LinePopupNumArray[0]);
 
             LineCreateDownSignalPopupType:
-              CreateSignal(Down, LinePopupNum);
+              CreateSignal(Down, LinePopupNumArray[0]);
 
             LineDeleteLinePopupType:
-              DeleteLine(LinePopupNum);
+              DeleteLine(LinePopupNumArray[0]);
 
             LineEditPopupType:
-              TurnEditModeOn(UnknownSignal, UnknownPoint, UnknownBufferStop, LinePopupNum, UnknownTrackCircuit);
+              TurnEditModeOn(UnknownSignal, UnknownPoint, UnknownBufferStop, LinePopupNumArray[0], UnknownTrackCircuit);
 
             LineLocationOutOfUsePopupType:
               IF Line_Location <> UnknownLocation THEN BEGIN
@@ -4782,7 +4780,7 @@ BEGIN
 
             LineTCSpeedRestrictionPopupType:
               IF Line_TC <> UnknownTrackCircuit THEN
-                SetOrClearTrackCircuitSpeedRestriction(LinePopupNum);
+                SetOrClearTrackCircuitSpeedRestriction(LinePopupNumArray[0]);
 
             LineTCUnoccupiedPopupType:
               IF Line_TC <> UnknownTrackCircuit THEN BEGIN
@@ -4813,8 +4811,7 @@ BEGIN
           ELSE {CASE}
             Log('BG Invalid popup type ' + IntToStr(Tag) + ' in LinePopupItemClick');
           END; {CASE}
-        END;
-      END;
+        END; {WITH}
   END; {WITH}
 END; { LinePopupItemClick }
 
@@ -4825,7 +4822,7 @@ VAR
 BEGIN
   LinePopupMenu.Items.Clear;
 
-  IF LinePopupNum = UnknownLine THEN BEGIN
+  IF Length(LinePopupNumArray) = 0 THEN BEGIN
     { we're not on a line, so all we can do is create a line here }
     IF EditMode THEN BEGIN
       AddMenuItem(LinePopupMenu, 'Create a New Line', NoClickPopupType, NOT Enabled, NIL);
@@ -4837,10 +4834,10 @@ BEGIN
         AddMenuItem(LinePopupMenu, 'Exit Create Line Mode', LineExitCreateLinePopupType, Enabled, LinePopupItemClick);
     END;
   END ELSE BEGIN
-    WITH Lines[LinePopupNum] DO BEGIN
+    WITH Lines[LinePopupNumArray[0]] DO BEGIN
       IF NOT EditMode THEN BEGIN
         { Add the caption... }
-        Caption := 'Line ' + LineToStr(LinePopupNum) + ' ' + IfThen(Line_TC <> UnknownTrackCircuit,
+        Caption := 'Line ' + LineToStr(LinePopupNumArray[0]) + ' ' + IfThen(Line_TC <> UnknownTrackCircuit,
                                                                     'TC' + IntToStr(Line_TC));
         AddMenuItem(LinePopupMenu, Caption, NoClickPopupType, NOT Enabled, NIL);
         AddMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, NIL);
@@ -4880,14 +4877,14 @@ BEGIN
 
         { Can't have both locations and lines out of use at the same time }
         IF (Line_Location <> UnknownLocation) AND Locations[Line_Location].Location_OutOfUse THEN BEGIN
-          AddMenuItem(LinePopupMenu, 'Put Line ''' + LineToStr(LinePopupNum) + ''' Out Of Use', LineTCOutOfUsePopupType, NOT Enabled, LinePopupItemClick);
+          AddMenuItem(LinePopupMenu, 'Put Line ''' + LineToStr(LinePopupNumArray[0]) + ''' Out Of Use', LineTCOutOfUsePopupType, NOT Enabled, LinePopupItemClick);
           AddMenuItem(LinePopupMenu, 'Return Location ''' + LocationToStr(Line_Location) + ''' To Use', LineLocationOutOfUsePopupType, Enabled, LinePopupItemClick);
         END ELSE
           IF Line_OutOfUseState = OutOfUse THEN BEGIN
-            AddMenuItem(LinePopupMenu, 'Return Line ''' + LineToStr(LinePopupNum) + ''' To Use', LineTCOutOfUsePopupType, Enabled, LinePopupItemClick);
+            AddMenuItem(LinePopupMenu, 'Return Line ''' + LineToStr(LinePopupNumArray[0]) + ''' To Use', LineTCOutOfUsePopupType, Enabled, LinePopupItemClick);
             AddMenuItem(LinePopupMenu, 'Put Location ''' + LocationToStr(Line_Location) + ''' Out Of Use', LineLocationOutOfUsePopupType, NOT Enabled, LinePopupItemClick);
           END ELSE BEGIN
-            AddMenuItem(LinePopupMenu, 'Put Line ''' + LineToStr(LinePopupNum) + ''' Out Of Use', LineTCOutOfUsePopupType, Enabled, LinePopupItemClick);
+            AddMenuItem(LinePopupMenu, 'Put Line ''' + LineToStr(LinePopupNumArray[0]) + ''' Out Of Use', LineTCOutOfUsePopupType, Enabled, LinePopupItemClick);
             AddMenuItem(LinePopupMenu, 'Put Location ''' + LocationToStr(Line_Location) + ''' Out Of Use', LineLocationOutOfUsePopupType, Enabled, LinePopupItemClick);
           END;
 
@@ -4912,28 +4909,31 @@ BEGIN
 
         AddMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, NIL);
 
-        AddMenuItem(LinePopupMenu, 'Edit Line ' + LineToStr(LinePopupNum), LineEditPopupType, Enabled, LinePopupItemClick)
+        AddMenuItem(LinePopupMenu, 'Edit Line ' + LineToStr(LinePopupNumArray[0]), LineEditPopupType, Enabled, LinePopupItemClick)
       END ELSE BEGIN
         { EditMode }
 
         { Add the caption... }
-        Caption := 'Editing Line ' + LineToStr(LinePopupNum) + ' ' + IfThen(Line_TC <> UnknownTrackCircuit,
+        Caption := 'Editing Line ' + LineToStr(LinePopupNumArray[0]) + ' ' + IfThen(Line_TC <> UnknownTrackCircuit,
                                                                               'TC' + IntToStr(Line_TC));
         AddMenuItem(LinePopupMenu, Caption, NoClickPopupType, NOT Enabled, NIL);
         AddMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, NIL);
 
         { ...and now the individual items }
-        AddMenuItem(LinePopupMenu, 'Delete Line ' + LineToStr(LinePopupNum), LineDeleteLinePopupType, Enabled, LinePopupItemClick);
-        AddMenuItem(LinePopupMenu, 'Allocate Track Circuit ' + LineToStr(LinePopupNum), LineAllocateTrackCircuitPopupType, Enabled, LinePopupItemClick);
-        AddMenuItem(LinePopupMenu, 'Remove Track Circuit ' + LineToStr(LinePopupNum), LineRemoveTrackCircuitPopupType, Enabled, LinePopupItemClick);
+        AddMenuItem(LinePopupMenu, 'Delete Line ' + LineToStr(LinePopupNumArray[0]), LineDeleteLinePopupType, Enabled, LinePopupItemClick);
+        AddMenuItem(LinePopupMenu, 'Allocate Track Circuit ' + LineToStr(LinePopupNumArray[0]), LineAllocateTrackCircuitPopupType, Enabled, LinePopupItemClick);
+        AddMenuItem(LinePopupMenu, 'Remove Track Circuit ' + LineToStr(LinePopupNumArray[0]), LineRemoveTrackCircuitPopupType, Enabled, LinePopupItemClick);
 
         AddMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, NIL);
 
-        WhetherEnabled := SignalAdjacentLineOK(LinePopupNum);
+        WhetherEnabled := SignalAdjacentLineOK(LinePopupNumArray[0]);
         AddMenuItem(LinePopupMenu, 'Create Line', LineEnterCreateLinePopupType, WhetherEnabled, LinePopupItemClick);
 
         AddMenuItem(LinePopupMenu, 'Create Up Signal', LineCreateUpSignalPopupType, WhetherEnabled, LinePopupItemClick);
         AddMenuItem(LinePopupMenu, 'Create Down Signal', LineCreateDownSignalPopupType, WhetherEnabled, LinePopupItemClick);
+
+        WhetherEnabled := Length(LinePopupNumArray) > 1;
+        AddMenuItem(LinePopupMenu, 'Create Point', LineCreatePointPopupType, WhetherEnabled, LinePopupItemClick);
       END;
     END; {WITH}
   END;
