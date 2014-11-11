@@ -89,6 +89,8 @@ VAR
   SaveNextUpPoint : Integer = UnknownPoint;
   SavePoint : Integer = UnknownPoint;
   SavePossibleRoutesArray : StringArrayType;
+  SaveScreenClickPosX : Integer = -1;
+  SaveScreenClickPosY : Integer = -1;
   SaveStraightLine : Integer = UnknownLine;
   SaveStraightLineColour : TColour;
   SaveUpBufferStop : Integer = UnknownBufferStop;
@@ -172,7 +174,12 @@ BEGIN
     UpLineEndCharacterLine := UnknownLine;
     DownLineEndCharacterLine := UnknownLine;
 
-    StatusBarPanel1Str := '';
+    { Only proceed if the mouse has moved }
+    IF (ScreenClickPosX <> SaveScreenClickPosX) OR (ScreenClickPosY <> SaveScreenClickPosY) THEN BEGIN
+      SaveScreenClickPosX := ScreenClickPosX;
+      SaveScreenClickPosY := ScreenClickPosY;
+
+      StatusBarPanel1Str := '';
 
     IF DebuggingMode THEN
       { Display mouse co-ordinates }
