@@ -171,6 +171,7 @@ BEGIN
     LineFoundNum := UnknownLine;
     SetLength(LineFoundArray, 0);
     NewLineFoundNum := UnknownLine;
+    BufferStopFoundNum := UnknownPoint;
     PointFoundNum := UnknownPoint;
     SignalFoundNum := UnknownSignal;
     SignalPostFoundNum := UnknownSignal;
