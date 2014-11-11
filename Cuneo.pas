@@ -1726,7 +1726,7 @@ BEGIN
           IF ButtonPress = mbRight THEN BEGIN
             SetSignalPopupNum(UnknownLine);
             SetPointPopupNum(UnknownPoint);
-            SetLinePopupNum(UnknownLine);
+            ClearLinePopupNumArray;
             SetBufferStopPopupNum(UnknownLine);
 
             IF SignalFoundNum <> UnknownSignal THEN BEGIN
@@ -1746,7 +1746,7 @@ BEGIN
                 END ELSE BEGIN
                   { we probably want to create a line near here - we don't need to be on one to create it }
                   IF LineFoundNum <> UnknownLine THEN
-                    SetLinePopupNum(LineFoundNum);
+                    SetLinePopupNumArray(LineFoundArray);
                   FWPRailWindow.LinePopupMenu.Popup(MouseX, MouseY);
                   LineFoundNum := UnknownLine;
                 END;
@@ -1826,7 +1826,7 @@ BEGIN
                         IF ssShift IN ShiftState THEN
                           WriteNextLineDetailToDebugWindow(LineFoundNum, HelpRequired)
                         ELSE BEGIN
-                          SetLinePopupNum(LineFoundNum);
+                          SetLinePopupNumArray(LineFoundArray);
                           FWPRailWindow.LinePopupMenu.Popup(MouseX, MouseY);
                           LineFoundNum := UnknownLine;
                         END;

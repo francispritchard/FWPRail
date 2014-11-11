@@ -446,6 +446,9 @@ PROCEDURE CanvasTextOutAngle(X, Y : Integer; D : Word; S : String);
 PROCEDURE ChangeCursor(NewCursor : TCursor);
 { Change the shape of the cursor (from the Delphi Help system) }
 
+PROCEDURE ClearLinePopupNumArray;
+{ Empties the line popup num array }
+
 PROCEDURE DrawAllPoints;
 { Draw all the points }
 
@@ -537,8 +540,8 @@ PROCEDURE SetBufferStopPopupNum(Num : Integer);
 PROCEDURE SetCaption(Window : TForm; Caption : String);
 { Sets a window caption }
 
-PROCEDURE SetLinePopupNum(Num : Integer);
-{ Assign to the LinePopupNum variable state }
+PROCEDURE SetLinePopupNumArray(NumArray : IntegerArrayType);
+{ Assign to the LinePopupNumArray }
 
 PROCEDURE SetPointPopupNum(Num : Integer);
 { assign to the PointPopupNum variable state }
@@ -638,7 +641,7 @@ CONST
 VAR
   BufferStopPopupNum : Integer;
   DiagramsCheckingInProgress : Boolean = False;
-  LinePopupNum : Integer;
+  LinePopupNumArray : IntegerArrayType;
   LocationLinesInitialised : Boolean = False;
   PointPopupNum : Integer;
   SaveCursor : TCursor = crDefault;
@@ -664,10 +667,21 @@ BEGIN
   Result := SaveCursor;
 END; { SaveCursor }
 
-PROCEDURE SetLinePopupNum(Num : Integer);
-{ Assign to the GetLinePopupNum variable state }
+PROCEDURE ClearLinePopupNumArray;
+{ Empties the line popup num array }
 BEGIN
-  LinePopupNum := Num;
+  SetLength(LinePopupNumArray, 0);
+END; { ClearLinePopupNumArray }
+
+PROCEDURE SetLinePopupNumArray(NumArray : IntegerArrayType);
+{ Assign to the LinePopupNumArray }
+VAR
+  I : Integer;
+
+BEGIN
+  ClearLinePopupNumArray;
+  FOR I := 0 TO High(NumArray) DO
+    AppendToIntegerArray(LinePopupNumArray, NumArray[I]);
 END; { SetLinePopupNum }
 
 PROCEDURE SetPointPopupNum(Num : Integer);
