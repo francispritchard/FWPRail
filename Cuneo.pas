@@ -41,6 +41,8 @@ PROCEDURE WhatIsUnderMouse(ScreenClickPosX, ScreenClickPosY : Integer; ShiftStat
 
 VAR
   CuneoWindow: TCuneoWindow;
+  MouseX : Integer;
+  MouseY : Integer;
   SaveGridClickPosX : Integer = -1;
   SaveGridClickPosY : Integer = -1;
 
@@ -66,8 +68,6 @@ VAR
   LineFoundArray : IntegerArrayType;
   MouseMovingX : Integer;
   MouseMovingY : Integer;
-  MouseX : Integer;
-  MouseY : Integer;
   MoveZoomWindowMode : Boolean = False;
   NewLineFoundNum : Integer = UnknownLine;
   SaveDivergingLine : Integer = UnknownLine;

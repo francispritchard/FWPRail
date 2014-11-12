@@ -247,11 +247,11 @@ TYPE
                     PointDeletePopupType, PointEditPopupType, PointOutOfUsePopupType, PointToManualPopupType, PointUnlockPopupType,
                     BufferStopEditPopupType,
                     LineAllocateLocoToTrackCircuitPopupType, LineChangeInternalLocoDirectionToDownPopupType, LineChangeInternalLocoDirectionToUpPopupType,
-                    LineCreateDownSignalPopupType, LineCreateUpSignalPopupType, LineDeleteLinePopupType, LineCreatePointPopupType, LineEnterCreateLinePopupType,
-                    LineExitCreateLinePopupType, LineEditPopupType, LineLocationOutOfUsePopupType, LineOutOfUsePopupType, LineShowLocoLastErrorMessagePopupType,
-                    LineTCFeedbackOccupationPopupType, LineTCOutOfUsePopupType, LineTCPermanentOccupationPopupType, LineTCSpeedRestrictionPopupType,
-                    LineTCSystemOccupationPopupType, LineTCUnoccupiedPopupType, LineTCUserMustDrivePopupType, LineAllocateTrackCircuitPopupType,
-                    LineRemoveTrackCircuitPopupType);
+                    LineCreateDownSignalPopupType, LineCreateUpSignalPopupType, LineDeleteLinePopupType, LineCreatePointPopupType, LineCreateCatchPointUpPopupType,
+                    LineCreateCatchPointDownPopupType, LineEnterCreateLinePopupType, LineExitCreateLinePopupType, LineEditPopupType, LineLocationOutOfUsePopupType,
+                    LineOutOfUsePopupType, LineShowLocoLastErrorMessagePopupType, LineTCFeedbackOccupationPopupType, LineTCOutOfUsePopupType,
+                    LineTCPermanentOccupationPopupType, LineTCSpeedRestrictionPopupType, LineTCSystemOccupationPopupType, LineTCUnoccupiedPopupType,
+                    LineTCUserMustDrivePopupType, LineAllocateTrackCircuitPopupType, LineRemoveTrackCircuitPopupType);
 
   { Line-related type declarations }
   EndOfLineType = (BufferStopAtUp, BufferStopAtDown, ProjectedLineAtUp, ProjectedLineAtDown, NotEndOfLine, UnknownEndOfLine);
@@ -6199,11 +6199,15 @@ BEGIN
               IF PointDebuggingMode THEN
                 Log('P Recording in point database that P=' + IntToStr(P) + '''s straight line is now ' + LineToStr(Point_StraightLine));
 
+              IF Point_DivergingLine <> UnknownLine THEN
+                TempStr := IntToStr(Point_DivergingLine)
+              ELSE
+                TempStr := '';
               PointsADOTable.Edit;
-              PointsADOTable.FieldByName(Point_DivergingLineFieldName).AsString := LineToStr(Point_DivergingLine);
+              PointsADOTable.FieldByName(Point_DivergingLineFieldName).AsString := TempStr;
               PointsADOTable.Post;
               IF PointDebuggingMode THEN
-                Log('P Recording in point database that P=' + IntToStr(P) + '''s Diverging line is now ' + LineToStr(Point_DivergingLine));
+                Log('P Recording in point database that P=' + IntToStr(P) + '''s Diverging line is now "' + TempStr + '"');
 
               PointsADOTable.Edit;
               PointsADOTable.FieldByName(Point_HeelLineFieldName).AsString := LineToStr(Point_HeelLine);

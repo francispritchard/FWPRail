@@ -49,7 +49,7 @@ FUNCTION CheckIfAnyEditedDataHasChanged : Boolean;
 PROCEDURE ClearEditValueList;
 { Empty the value list so as not to display anyting if we click on an unrecognised item, or a blank bit of screen }
 
-PROCEDURE CreatePoint(LineArray : IntegerArrayType);
+PROCEDURE CreatePoint(LineArray : IntegerArrayType; TempPointType : TypeOfPoint; X, Y : Integer);
 { Creates a point from scratch }
 
 PROCEDURE CreateSignal(Direction : DirectionType; Line : Integer);
@@ -1859,169 +1859,173 @@ BEGIN
   END; {TRY}
 END; { DeleteSignal }
 
-PROCEDURE CreatePoint(LineArray : IntegerArrayType);
+PROCEDURE CreatePoint(LineArray : IntegerArrayType; TempPointType : TypeOfPoint; X, Y : Integer);
 { Creates a point from scratch }
 VAR
-  CatchPointJunction : Boolean;
   CommonGridX : Integer;
   CommonGridY : Integer;
   DivergingLine : Integer;
   HeelLine : Integer;
-  HeelLineFound : Boolean;
-  I : integer;
   Line : Integer;
-  LineJunctionFound : Boolean;
+  LineFound : Boolean;
   StraightLine : Integer;
 
 BEGIN
   TRY
-    CatchPointJunction := False;
-    LineJunctionFound := False;
+    StraightLine := UnknownLine;
+    DivergingLine := UnknownLine;
+    HeelLine := UnknownLine;
 
-    IF Length(LineArray) < 2 THEN
-      { this shouldn't happen, but just in case it does... }
-      ShowMessage('A new point must be near at least two existing lines')
-    ELSE BEGIN
-      { ascertain whether this is a suitable place for a point - i.e. that, unless it is a catch point, it is a place where three lines join }
-      IF Length(LineArray) = 1 THEN
-        CatchPointJunction := True
-      ELSE
-        IF Length(LineArray) = 2 THEN
-          LineJunctionFound := True;
+    IF (TempPointType = CatchPointUp) OR (TempPointType = CatchPointDown) THEN BEGIN
+      HeelLine := LineArray[0];
+      IF PointInPolygon(Lines[LineArray[0]].Line_UpHandlePolygon, Point(X, Y)) THEN BEGIN
 
-      IF NOT CatchPointJunction AND NOT LineJunctionFound THEN
-        ShowMessage('Cannot create a point unless there are at least two adjoining lines')
-      ELSE BEGIN
-        IF CatchPointJunction THEN BEGIN
-          { needs more work ********* }
-        END ELSE BEGIN
-          { now we can work out the lines: if two Up Xs and Ys are the same, see which DownY is the same as the UpY - straight - and which is greater or less - diverging }
-          StraightLine := UnknownLine;
-          DivergingLine := UnknownLine;
-          HeelLine := UnknownLine;
-          CommonGridX := 0;
-          CommonGridY := 0;
-
-          IF (Lines[LineArray[0]].Line_GridUpX = Lines[LineArray[1]].Line_GridUpX)
-          AND (Lines[LineArray[0]].Line_GridUpY = Lines[LineArray[1]].Line_GridUpY)
-          THEN BEGIN
-            CommonGridX := Lines[LineArray[0]].Line_GridUpX;
-            CommonGridY := Lines[LineArray[0]].Line_GridUpY;
-            IF (Lines[LineArray[0]].Line_GridUpY = Lines[LineArray[0]].Line_GridDownY) THEN BEGIN
-              StraightLine := LineArray[0];
-              DivergingLine := LineArray[1];
-            END ELSE BEGIN
-              StraightLine := LineArray[1];
-              DivergingLine := LineArray[0];
-            END;
-          END ELSE
-            IF (Lines[LineArray[0]].Line_GridDownX = Lines[LineArray[1]].Line_GridDownX)
-            AND (Lines[LineArray[0]].Line_GridDownY = Lines[LineArray[1]].Line_GridDownY)
-            THEN BEGIN
-              CommonGridX := Lines[LineArray[0]].Line_GridDownX;
-              CommonGridY := Lines[LineArray[0]].Line_GridDownY;
-              IF (Lines[LineArray[0]].Line_GridUpY = Lines[LineArray[0]].Line_GridDownY) THEN BEGIN
-                StraightLine := LineArray[0];
-                DivergingLine := LineArray[1];
-              END ELSE BEGIN
-                StraightLine := LineArray[1];
-                DivergingLine := LineArray[0];
-              END;
-            END;
-
-          { Now we can find the heel line }
+        { Now find the straight line }
+        Line := 0;
+        LineFound := False;
+        WHILE (Line <= High(Lines)) AND NOT LineFound DO BEGIN
+          IF Lines[LineArray[0]].Line_GridUpX = Lines[Line].Line_GridDownX THEN BEGIN
+            LineFound := True;
+            StraightLine := Line;
+          END;
+          Inc(Line);
+        END; {WHILE}
+      END ELSE
+        IF PointInPolygon(Lines[LineArray[0]].Line_DownHandlePolygon, Point(X, Y)) THEN BEGIN
+          { Now find the Straight line }
           Line := 0;
-          HeelLineFound := False;
-          WHILE (Line <= High(Lines)) AND NOT HeelLineFound DO BEGIN
-            IF (Line <> LineArray[0]) AND (Line <> LineArray[1]) THEN BEGIN
-              IF ((Lines[Line].Line_GridUpX = CommonGridX) AND (Lines[Line].Line_GridUpY = CommonGridY))
-              OR ((Lines[Line].Line_GridDownX = CommonGridX) AND (Lines[Line].Line_GridDownY = CommonGridY))
-              THEN BEGIN
-                HeelLineFound := True;
-                HeelLine := Line;
-              END;
+          LineFound := False;
+          WHILE (Line <= High(Lines)) AND NOT LineFound DO BEGIN
+            IF Lines[LineArray[0]].Line_GridDownX = Lines[Line].Line_GridUpX THEN BEGIN
+              LineFound := True;
+              StraightLine := Line;
             END;
-
             Inc(Line);
           END; {WHILE}
         END;
+    END ELSE BEGIN
+      { now we can work out the lines: if two Up Xs and Ys are the same, see which DownY is the same as the UpY - straight - and which is greater or less - diverging }
+      CommonGridX := 0;
+      CommonGridY := 0;
 
-        { Now create and save a basic point which must then be added to using the value list editor }
-        SetLength(Points, Length(Points) + 1);
-        EditedPoint := High(Points);
+      IF (Lines[LineArray[0]].Line_GridUpX = Lines[LineArray[1]].Line_GridUpX)
+      AND (Lines[LineArray[0]].Line_GridUpY = Lines[LineArray[1]].Line_GridUpY)
+      THEN BEGIN
+        CommonGridX := Lines[LineArray[0]].Line_GridUpX;
+        CommonGridY := Lines[LineArray[0]].Line_GridUpY;
+        IF (Lines[LineArray[0]].Line_GridUpY = Lines[LineArray[0]].Line_GridDownY) THEN BEGIN
+          StraightLine := LineArray[0];
+          DivergingLine := LineArray[1];
+        END ELSE BEGIN
+          StraightLine := LineArray[1];
+          DivergingLine := LineArray[0];
+        END;
+      END ELSE
+        IF (Lines[LineArray[0]].Line_GridDownX = Lines[LineArray[1]].Line_GridDownX)
+        AND (Lines[LineArray[0]].Line_GridDownY = Lines[LineArray[1]].Line_GridDownY)
+        THEN BEGIN
+          CommonGridX := Lines[LineArray[0]].Line_GridDownX;
+          CommonGridY := Lines[LineArray[0]].Line_GridDownY;
+          IF (Lines[LineArray[0]].Line_GridUpY = Lines[LineArray[0]].Line_GridDownY) THEN BEGIN
+            StraightLine := LineArray[0];
+            DivergingLine := LineArray[1];
+          END ELSE BEGIN
+            StraightLine := LineArray[1];
+            DivergingLine := LineArray[0];
+          END;
+        END;
 
-        WITH Points[EditedPoint] DO BEGIN
-          Point_DivergingLine := DivergingLine;
-          Point_HeelLine := HeelLine;
-          Point_StraightLine := StraightLine;
+      { Now we can find the heel line }
+      Line := 0;
+      LineFound := False;
+      WHILE (Line <= High(Lines)) AND NOT LineFound DO BEGIN
+        IF (Line <> LineArray[0]) AND (Line <> LineArray[1]) THEN BEGIN
+          IF ((Lines[Line].Line_GridUpX = CommonGridX) AND (Lines[Line].Line_GridUpY = CommonGridY))
+          OR ((Lines[Line].Line_GridDownX = CommonGridX) AND (Lines[Line].Line_GridDownY = CommonGridY))
+          THEN BEGIN
+            LineFound := True;
+            HeelLine := Line;
+          END;
+        END;
 
-          Point_AwaitingManualChange := False;
-          Point_DataChanged := True;
-          Point_DefaultState := PointStateUnknown;
-          Point_Energised := False;
-          Point_EnergisedTime := 0;
-          Point_FacingDirection := UnknownDirection;
-          Point_FarX := 0;
-          Point_FarY := 0;
-          Point_FeedbackOnIsStraight := False;
-          Point_FeedbackPending := False;
-          Point_FeedbackPendingMsgWritten := False;
-          Point_FeedbackStartTime := 0;
-          Point_FeedbackUnit := 0;
-          Point_FeedbackInput := 0;
-          Point_ForcedDelayMsg1Written := False;
-          Point_ForcedDelayMsg2Written := False;
-          Point_HasFeedback := False;
-          Point_LastChangedTime := 0;
-          Point_LastFeedbackStateAsReadIn := PointStateUnknown;
-          Point_LastManualStateAsReadIn := PointStateUnknown;
-          Point_LenzNum := 0;
-          Point_LenzUnit := 0;
-          Point_LenzUnitType := '';
-          Point_LockedByUser := False;
-          Point_LockedIfHeelTCOccupied := False;
-          Point_LockedIfNonHeelTCsOccupied := False;
-          Point_LockFailureNotedInLocksUnit := False;
-          Point_LockFailureNotedInSubRouteUnit := False;
-          SetLength(Point_LockingArray, 0);
-          Point_LockingState := PointStateUnknown;
-          Point_ManualOperation := False;
-          Point_MaybeBeingSetToManual := False;
-          Point_MovedWhenLocked := False;
-          Point_Notes := 'Created by user on ' + DateToStr(Date);
-          Point_Number := EditedPoint;
-          Point_OutOfUse := True;
-          Point_PresentState := PointStateUnknown;
-          Point_PreviousState := PointStateUnknown;
-          Point_RelatedPoint := UnknownPoint;
-          Point_RequiredState := PointStateUnknown;
-          Point_ResettingTime := 0;
-          Point_RouteLockedByLocoChip := UnknownLocoChip;
-          Point_TCAtHeel := 0;
-          Point_Type := OrdinaryPoint;
-          Point_SecondAttempt := False;
-          Point_SetASecondTime := False;
-          Point_WaitTime := 0;
-          Point_WiringReversedFlag := False;
-          Point_X := 0;
-          Point_Y := 0;
-        END; {WITH}
-
-        NoteThatDataHasChanged;
-        AddNewRecordToPointDatabase;
-        WriteOutPointDataToDatabase;
-
-        SavePointRec := Points[EditedPoint];
-        WritePointValuesToValueList;
-
-        CalculatePointPositions;
-
-        { and we also need to tell the appropriate lines that there is now a point attahed to them }
-        CalculateLinePositions;
-        InvalidateScreen(UnitRef, 'CreatePoint');
-        Log('D Screen invalidated by CreatePoint');
-      END;
+        Inc(Line);
+      END; {WHILE}
     END;
+
+    { Now create and save a basic point which must then be added to using the value list editor }
+    SetLength(Points, Length(Points) + 1);
+    EditedPoint := High(Points);
+
+    WITH Points[EditedPoint] DO BEGIN
+      Point_DivergingLine := DivergingLine;
+      Point_HeelLine := HeelLine;
+      Point_StraightLine := StraightLine;
+
+      Point_AwaitingManualChange := False;
+      Point_DataChanged := True;
+      Point_DefaultState := PointStateUnknown;
+      Point_Energised := False;
+      Point_EnergisedTime := 0;
+      Point_FacingDirection := UnknownDirection;
+      Point_FarX := 0;
+      Point_FarY := 0;
+      Point_FeedbackOnIsStraight := False;
+      Point_FeedbackPending := False;
+      Point_FeedbackPendingMsgWritten := False;
+      Point_FeedbackStartTime := 0;
+      Point_FeedbackUnit := 0;
+      Point_FeedbackInput := 0;
+      Point_ForcedDelayMsg1Written := False;
+      Point_ForcedDelayMsg2Written := False;
+      Point_HasFeedback := False;
+      Point_LastChangedTime := 0;
+      Point_LastFeedbackStateAsReadIn := PointStateUnknown;
+      Point_LastManualStateAsReadIn := PointStateUnknown;
+      Point_LenzNum := 0;
+      Point_LenzUnit := 0;
+      Point_LenzUnitType := '';
+      Point_LockedByUser := False;
+      Point_LockedIfHeelTCOccupied := False;
+      Point_LockedIfNonHeelTCsOccupied := False;
+      Point_LockFailureNotedInLocksUnit := False;
+      Point_LockFailureNotedInSubRouteUnit := False;
+      SetLength(Point_LockingArray, 0);
+      Point_LockingState := PointStateUnknown;
+      Point_ManualOperation := False;
+      Point_MaybeBeingSetToManual := False;
+      Point_MovedWhenLocked := False;
+      Point_Notes := 'Created by user on ' + DateToStr(Date);
+      Point_Number := EditedPoint;
+      Point_OutOfUse := True;
+      Point_PresentState := PointStateUnknown;
+      Point_PreviousState := PointStateUnknown;
+      Point_RelatedPoint := UnknownPoint;
+      Point_RequiredState := PointStateUnknown;
+      Point_ResettingTime := 0;
+      Point_RouteLockedByLocoChip := UnknownLocoChip;
+      Point_TCAtHeel := 0;
+      Point_Type := TempPointType;
+      Point_SecondAttempt := False;
+      Point_SetASecondTime := False;
+      Point_WaitTime := 0;
+      Point_WiringReversedFlag := False;
+      Point_X := 0;
+      Point_Y := 0;
+    END; {WITH}
+
+    NoteThatDataHasChanged;
+    AddNewRecordToPointDatabase;
+    WriteOutPointDataToDatabase;
+
+    SavePointRec := Points[EditedPoint];
+    WritePointValuesToValueList;
+
+    CalculatePointPositions;
+
+    { and we also need to tell the appropriate lines that there is now a point attahed to them }
+    CalculateLinePositions;
+    InvalidateScreen(UnitRef, 'CreatePoint');
+    Log('D Screen invalidated by CreatePoint');
   EXCEPT {TRY}
     ON E : Exception DO
       Log('EG CreatePoint: ' + E.ClassName + ' error raised, with message: '+ E.Message);

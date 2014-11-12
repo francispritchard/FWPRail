@@ -4657,19 +4657,13 @@ PROCEDURE TFWPRailWindow.LinePopupItemClick(Sender: TObject);
 VAR
   LineCount : Integer;
   T : TrainIndex;
-  XYPos : TPoint;
 
 BEGIN
   WITH Sender AS TMenuItemExtended DO BEGIN
-    { this code has been separated out from the case statement below as we may well not be on a line, and the "WITH Lines[LinePopupNum]" statement would fail }
-    IF Length(LinePopupNumArray) <> 1 THEN BEGIN
-      IF PopupType = LineCreatePointPopupType THEN
-        CreatePoint(LinePopupNumArray);
-    END ELSE
-  IF PopupType = LineEnterCreateLinePopupType THEN BEGIN
-    GetCursorPos(XYPos);
-    CreateLineMode := True;
-  END ELSE
+    { this code has been separated out from the case statement below as we may well not be on a line, and the "WITH Lines[LinePopupNumArray[0]]" statement would fail }
+  IF PopupType = LineEnterCreateLinePopupType THEN
+    CreateLineMode := True
+  ELSE
     IF PopupType = LineExitCreateLinePopupType THEN BEGIN
       CreateLineMode := False;
       ShowLineHandles := False;
@@ -4695,6 +4689,15 @@ BEGIN
 
           LineCreateDownSignalPopupType:
             CreateSignal(Down, LinePopupNumArray[0]);
+
+          LineCreatePointPopupType:
+            CreatePoint(LinePopupNumArray, OrdinaryPoint, MouseX, MouseY);
+
+          LineCreateCatchPointUpPopupType:
+            CreatePoint(LinePopupNumArray, CatchPointUp, MouseX, MouseY);
+
+          LineCreateCatchPointDownPopupType:
+            CreatePoint(LinePopupNumArray, CatchPointDown, MouseX, MouseY);
 
           LineDeleteLinePopupType:
             DeleteLine(LinePopupNumArray[0]);
@@ -4812,7 +4815,7 @@ BEGIN
           Log('BG Invalid popup type ' + IntToStr(Tag) + ' in LinePopupItemClick');
         END; {CASE}
       END; {WITH}
-  END; {WITH}
+    END; {WITH}
 END; { LinePopupItemClick }
 
 PROCEDURE TFWPRailWindow.LinePopupMenuOnPopup(Sender: TObject);
@@ -4934,6 +4937,14 @@ BEGIN
 
         WhetherEnabled := Length(LinePopupNumArray) > 1;
         AddMenuItem(LinePopupMenu, 'Create Point', LineCreatePointPopupType, WhetherEnabled, LinePopupItemClick);
+
+        { Catch points: check to see if the line we're on is horizontal, and use the handle polygons to work out whether we want the up or down end of the line }
+        WhetherEnabled := (Length(LinePopupNumArray) = 1)
+                          AND (Lines[LinePopupNumArray[0]].Line_GridUpY = Lines[LinePopupNumArray[0]].Line_GridDownY)
+                          AND ((PointInPolygon(Line_UpHandlePolygon, Point(MouseX, MouseY))) { DJW }
+                              OR (PointInPolygon(Line_DownHandlePolygon, Point(MouseX, MouseY))));
+        AddMenuItem(LinePopupMenu, 'Create Up Catch Point', LineCreateCatchPointUpPopupType, WhetherEnabled, LinePopupItemClick);
+        AddMenuItem(LinePopupMenu, 'Create Down Catch Point', LineCreateCatchPointDownPopupType, WhetherEnabled, LinePopupItemClick);
       END;
     END; {WITH}
   END;
