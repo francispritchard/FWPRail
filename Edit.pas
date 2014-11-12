@@ -2026,6 +2026,9 @@ BEGIN
     CalculateLinePositions;
     InvalidateScreen(UnitRef, 'CreatePoint');
     Log('D Screen invalidated by CreatePoint');
+
+    IF (TempPointType = CatchPointUp) OR (TempPointType = CatchPointDown) THEN
+      ShowMessage('Now add the catch-point related point');
   EXCEPT {TRY}
     ON E : Exception DO
       Log('EG CreatePoint: ' + E.ClassName + ' error raised, with message: '+ E.Message);
