@@ -4942,7 +4942,7 @@ BEGIN
         { Catch points: check to see if the line we're on is horizontal, and use the handle polygons to work out whether we want the up or down end of the line }
         WhetherEnabled := (Length(LinePopupNumArray) = 1)
                           AND (Lines[LinePopupNumArray[0]].Line_GridUpY = Lines[LinePopupNumArray[0]].Line_GridDownY)
-                          AND ((PointInPolygon(Line_UpHandlePolygon, Point(MouseX, MouseY))) { DJW }
+                          AND ((PointInPolygon(Line_UpHandlePolygon, Point(MouseX, MouseY)))
                               OR (PointInPolygon(Line_DownHandlePolygon, Point(MouseX, MouseY))));
         AddMenuItem(LinePopupMenu, 'Create Up Catch Point', LineCreateCatchPointUpPopupType, WhetherEnabled, LinePopupItemClick);
         AddMenuItem(LinePopupMenu, 'Create Down Catch Point', LineCreateCatchPointDownPopupType, WhetherEnabled, LinePopupItemClick);
