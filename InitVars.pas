@@ -6197,23 +6197,23 @@ BEGIN
               PointsADOTable.FieldByName(Point_StraightLineFieldName).AsString := LineToStr(Point_StraightLine);
               PointsADOTable.Post;
               IF PointDebuggingMode THEN
-                Log('P Recording in point database that P=' + IntToStr(P) + '''s straight line is now ' + LineToStr(Point_StraightLine));
+                Log('P Recording in point database that P=' + IntToStr(P) + '''s Straight Line is now ' + LineToStr(Point_StraightLine));
 
               IF Point_DivergingLine <> UnknownLine THEN
-                TempStr := IntToStr(Point_DivergingLine)
+                TempStr := LineToStr(Point_DivergingLine)
               ELSE
                 TempStr := '';
               PointsADOTable.Edit;
               PointsADOTable.FieldByName(Point_DivergingLineFieldName).AsString := TempStr;
               PointsADOTable.Post;
               IF PointDebuggingMode THEN
-                Log('P Recording in point database that P=' + IntToStr(P) + '''s Diverging line is now "' + TempStr + '"');
+                Log('P Recording in point database that P=' + IntToStr(P) + '''s Diverging Line is now "' + TempStr + '"');
 
               PointsADOTable.Edit;
               PointsADOTable.FieldByName(Point_HeelLineFieldName).AsString := LineToStr(Point_HeelLine);
               PointsADOTable.Post;
               IF PointDebuggingMode THEN
-                Log('P Recording in point database that P=' + IntToStr(P) + '''s Heel line is now ' + LineToStr(Point_HeelLine));
+                Log('P Recording in point database that P=' + IntToStr(P) + '''s Heel Line is now ' + LineToStr(Point_HeelLine));
 
               PointsADOTable.Edit;
               PointsADOTable.FieldByName(Point_OutOfUseFieldName).AsBoolean := Point_OutOfUse;
