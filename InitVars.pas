@@ -243,15 +243,27 @@ TYPE
   END;
 
   MenuPopupTypes = (NoClickPopupType,
+                    { sinals }
                     SignalChangeDirectionPopupType, SignalDeletePopupType, SignalEditPopupType, SignalOutOfUsePopupType, SignalUndoChangesPopupType,
+                    { Points }
                     PointDeletePopupType, PointEditPopupType, PointOutOfUsePopupType, PointToManualPopupType, PointUnlockPopupType,
+                    { BufferStops }
                     BufferStopEditPopupType,
+                    { Lines with locos }
                     LineAllocateLocoToTrackCircuitPopupType, LineChangeInternalLocoDirectionToDownPopupType, LineChangeInternalLocoDirectionToUpPopupType,
-                    LineCreateDownSignalPopupType, LineCreateUpSignalPopupType, LineDeleteLinePopupType, LineCreatePointPopupType, LineCreateCatchPointUpPopupType,
-                    LineCreateCatchPointDownPopupType, LineEnterCreateLinePopupType, LineExitCreateLinePopupType, LineEditPopupType, LineLocationOutOfUsePopupType,
-                    LineOutOfUsePopupType, LineShowLocoLastErrorMessagePopupType, LineTCFeedbackOccupationPopupType, LineTCOutOfUsePopupType,
-                    LineTCPermanentOccupationPopupType, LineTCSpeedRestrictionPopupType, LineTCSystemOccupationPopupType, LineTCUnoccupiedPopupType,
-                    LineTCUserMustDrivePopupType, LineAllocateTrackCircuitPopupType, LineRemoveTrackCircuitPopupType);
+                    { Lines with points }
+                    LineCreateCatchPointUpPopupType, LineCreateCatchPointDownPopupType, LineCreateOrdinaryPointPopupType, LineCreateCrossOverPointPopupType,
+                    LineCreateThreeWayPointAPopupType, LineCreateThreeWayPointBPopupType,
+                    { Lines with signals }
+                    LineCreateDownSignalPopupType, LineCreateUpSignalPopupType,
+                    LineDeleteLinePopupType, LineEnterCreateLinePopupType, LineExitCreateLinePopupType, LineEditPopupType,
+                    { Lines out of use }
+                    LineLocationOutOfUsePopupType, LineOutOfUsePopupType,
+                    { Lines miscellaneous }
+                    LineShowLocoLastErrorMessagePopupType,
+                    LineTCFeedbackOccupationPopupType, LineTCOutOfUsePopupType, LineTCPermanentOccupationPopupType, LineTCSpeedRestrictionPopupType,
+                    LineTCSystemOccupationPopupType, LineTCUnoccupiedPopupType, LineTCUserMustDrivePopupType, LineAllocateTrackCircuitPopupType,
+                    LineRemoveTrackCircuitPopupType);
 
   { Line-related type declarations }
   EndOfLineType = (BufferStopAtUp, BufferStopAtDown, ProjectedLineAtUp, ProjectedLineAtDown, NotEndOfLine, UnknownEndOfLine);

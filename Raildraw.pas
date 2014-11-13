@@ -4679,23 +4679,25 @@ BEGIN
             LineChangeInternalLocoDirectionToUpPopupType:
               IF TrackCircuits[Line_TC].TC_LocoChip = UnknownLocoChip THEN
                 ChangeInternalLocoDirectionToUp(TrackCircuits[Line_TC].TC_LocoChip);
-
             LineChangeInternalLocoDirectionToDownPopupType:
               IF TrackCircuits[Line_TC].TC_LocoChip = UnknownLocoChip THEN
                 ChangeInternalLocoDirectionToDown(TrackCircuits[Line_TC].TC_LocoChip);
 
             LineCreateUpSignalPopupType:
               CreateSignal(Up, LinePopupNumArray[0]);
-
             LineCreateDownSignalPopupType:
               CreateSignal(Down, LinePopupNumArray[0]);
 
-            LineCreatePointPopupType:
+            LineCreateOrdinaryPointPopupType:
               CreatePoint(LinePopupNumArray, OrdinaryPoint, MouseX, MouseY);
-
+            LineCreateCrossOverPointPopupType:
+              CreatePoint(LinePopupNumArray, CrossOverPoint, MouseX, MouseY);
+            LineCreateThreeWayPointAPopupType:
+              CreatePoint(LinePopupNumArray, ThreeWayPointA, MouseX, MouseY);
+            LineCreateThreeWayPointBPopupType:
+              CreatePoint(LinePopupNumArray, ThreeWayPointB, MouseX, MouseY);
             LineCreateCatchPointUpPopupType:
               CreatePoint(LinePopupNumArray, CatchPointUp, MouseX, MouseY);
-
             LineCreateCatchPointDownPopupType:
               CreatePoint(LinePopupNumArray, CatchPointDown, MouseX, MouseY);
 
@@ -4917,35 +4919,45 @@ BEGIN
       END ELSE BEGIN
         { EditMode }
 
-        { Add the caption... }
-        Caption := 'Editing Line ' + LineToStr(LinePopupNumArray[0]) + ' ' + IfThen(Line_TC <> UnknownTrackCircuit,
-                                                                              'TC' + IntToStr(Line_TC));
-        AddMenuItem(LinePopupMenu, Caption, NoClickPopupType, NOT Enabled, NIL);
-        AddMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, NIL);
+        { Add the caption }
+        IF Length(LinePopupNumArray) > 1 THEN BEGIN
+          { if we're at the junction of two lines, add point-type items }
+          Caption := 'Creating new points at junction of lines ' + LineToStr(LinePopupNumArray[0]) + ' and ' + LineToStr(LinePopupNumArray[1]);
 
-        { ...and now the individual items }
-        AddMenuItem(LinePopupMenu, 'Delete Line ' + LineToStr(LinePopupNumArray[0]), LineDeleteLinePopupType, Enabled, LinePopupItemClick);
-        AddMenuItem(LinePopupMenu, 'Allocate Track Circuit ' + LineToStr(LinePopupNumArray[0]), LineAllocateTrackCircuitPopupType, Enabled, LinePopupItemClick);
-        AddMenuItem(LinePopupMenu, 'Remove Track Circuit ' + LineToStr(LinePopupNumArray[0]), LineRemoveTrackCircuitPopupType, Enabled, LinePopupItemClick);
+          AddMenuItem(LinePopupMenu, Caption, NoClickPopupType, NOT Enabled, NIL);
+          AddMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, NIL);
 
-        AddMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, NIL);
+          AddMenuItem(LinePopupMenu, 'Create Ordinary Point', LineCreateOrdinaryPointPopupType, Enabled, LinePopupItemClick);
+          AddMenuItem(LinePopupMenu, 'Create Cross-Over Point', LineCreateCrossOverPointPopupType, Enabled, LinePopupItemClick);
+          AddMenuItem(LinePopupMenu, 'Create Three-Way Point A', LineCreateThreeWayPointAPopupType, Enabled, LinePopupItemClick);
+          AddMenuItem(LinePopupMenu, 'Create Three-Way Point B', LineCreateThreeWayPointBPopupType, Enabled, LinePopupItemClick);
+        END ELSE BEGIN
+          { otherwise add line-type items (and catch points) }
+          Caption := 'Editing Line ' + LineToStr(LinePopupNumArray[0]) + ' ' + IfThen(Line_TC <> UnknownTrackCircuit,
+                                                                                'TC' + IntToStr(Line_TC));
+          AddMenuItem(LinePopupMenu, Caption, NoClickPopupType, NOT Enabled, NIL);
+          AddMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, NIL);
 
-        WhetherEnabled := SignalAdjacentLineOK(LinePopupNumArray[0]);
-        AddMenuItem(LinePopupMenu, 'Create Line', LineEnterCreateLinePopupType, WhetherEnabled, LinePopupItemClick);
+          AddMenuItem(LinePopupMenu, 'Delete Line ' + LineToStr(LinePopupNumArray[0]), LineDeleteLinePopupType, Enabled, LinePopupItemClick);
+          AddMenuItem(LinePopupMenu, 'Allocate Track Circuit ' + LineToStr(LinePopupNumArray[0]), LineAllocateTrackCircuitPopupType, Enabled, LinePopupItemClick);
+          AddMenuItem(LinePopupMenu, 'Remove Track Circuit ' + LineToStr(LinePopupNumArray[0]), LineRemoveTrackCircuitPopupType, Enabled, LinePopupItemClick);
 
-        AddMenuItem(LinePopupMenu, 'Create Up Signal', LineCreateUpSignalPopupType, WhetherEnabled, LinePopupItemClick);
-        AddMenuItem(LinePopupMenu, 'Create Down Signal', LineCreateDownSignalPopupType, WhetherEnabled, LinePopupItemClick);
+          AddMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, NIL);
 
-        WhetherEnabled := Length(LinePopupNumArray) > 1;
-        AddMenuItem(LinePopupMenu, 'Create Point', LineCreatePointPopupType, WhetherEnabled, LinePopupItemClick);
+          WhetherEnabled := SignalAdjacentLineOK(LinePopupNumArray[0]);
+          AddMenuItem(LinePopupMenu, 'Create Line', LineEnterCreateLinePopupType, WhetherEnabled, LinePopupItemClick);
 
-        { Catch points: check to see if the line we're on is horizontal, and use the handle polygons to work out whether we want the up or down end of the line }
-        WhetherEnabled := (Length(LinePopupNumArray) = 1)
-                          AND (Lines[LinePopupNumArray[0]].Line_GridUpY = Lines[LinePopupNumArray[0]].Line_GridDownY)
-                          AND ((PointInPolygon(Line_UpHandlePolygon, Point(MouseX, MouseY)))
-                              OR (PointInPolygon(Line_DownHandlePolygon, Point(MouseX, MouseY))));
-        AddMenuItem(LinePopupMenu, 'Create Up Catch Point', LineCreateCatchPointUpPopupType, WhetherEnabled, LinePopupItemClick);
-        AddMenuItem(LinePopupMenu, 'Create Down Catch Point', LineCreateCatchPointDownPopupType, WhetherEnabled, LinePopupItemClick);
+          AddMenuItem(LinePopupMenu, 'Create Up Signal', LineCreateUpSignalPopupType, WhetherEnabled, LinePopupItemClick);
+          AddMenuItem(LinePopupMenu, 'Create Down Signal', LineCreateDownSignalPopupType, WhetherEnabled, LinePopupItemClick);
+
+          { Catch points: check to see if the line we're on is horizontal, and use the handle polygons to work out whether we want the up or down end of the line }
+          WhetherEnabled := (Length(LinePopupNumArray) = 1)
+                            AND (Lines[LinePopupNumArray[0]].Line_GridUpY = Lines[LinePopupNumArray[0]].Line_GridDownY)
+                            AND ((PointInPolygon(Line_UpHandlePolygon, Point(MouseX, MouseY)))
+                                OR (PointInPolygon(Line_DownHandlePolygon, Point(MouseX, MouseY))));
+          AddMenuItem(LinePopupMenu, 'Create Up Catch Point', LineCreateCatchPointUpPopupType, WhetherEnabled, LinePopupItemClick);
+          AddMenuItem(LinePopupMenu, 'Create Down Catch Point', LineCreateCatchPointDownPopupType, WhetherEnabled, LinePopupItemClick);
+        END;
       END;
     END; {WITH}
   END;

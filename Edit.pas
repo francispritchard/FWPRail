@@ -2022,13 +2022,17 @@ BEGIN
 
     CalculatePointPositions;
 
-    { and we also need to tell the appropriate lines that there is now a point attahed to them }
+    { and we also need to tell the appropriate lines that there is now a point attached to them }
     CalculateLinePositions;
     InvalidateScreen(UnitRef, 'CreatePoint');
     Log('D Screen invalidated by CreatePoint');
 
-    IF (TempPointType = CatchPointUp) OR (TempPointType = CatchPointDown) THEN
-      ShowMessage('Now add the catch-point related point');
+    CASE TempPointType OF
+      CatchPointUp, CatchPointDown, ThreeWayPointA, ThreeWayPointB, CrossOverPoint:
+        IF Points[EditedPoint].Point_RelatedPoint = UnknownPoint THEN
+          ShowMessage('Now add the related point');
+    END; {CASE}
+
   EXCEPT {TRY}
     ON E : Exception DO
       Log('EG CreatePoint: ' + E.ClassName + ' error raised, with message: '+ E.Message);
