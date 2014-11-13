@@ -195,6 +195,7 @@ BEGIN
 
   TRY
     WITH Points[P] DO BEGIN
+      LockingMsg := '';
 
       IF Length(Point_LockingArray) > 0 THEN BEGIN
         LockingMsg := '';
@@ -214,11 +215,8 @@ BEGIN
         AND (TrackCircuits[Lines[Points[P].Point_HeelLine].Line_TC].TC_OccupationState <> TCOutOfUseSetByUser)
         AND (TrackCircuits[Lines[Points[P].Point_HeelLine].Line_TC].TC_OccupationState <> TCOutOfUseAsNoFeedbackReceived)
         AND Point_LockedIfHeelTCOccupied
-        THEN BEGIN
-          IF LockingMsg = '' THEN
-            LockingMsg := 'locked:';
+        THEN
           LockingMsg := LockingMsg + ' TC=' + IntToStr(Lines[Point_HeelLine].Line_TC) + ' occupied at heel line';
-        END;
 
         { Or if the straight or diverging lines is occupied - depending on the point record this will mean that the point is locked }
         IF (Lines[Points[P].Point_StraightLine].Line_TC <> UnknownTrackCircuit)
@@ -226,11 +224,8 @@ BEGIN
         AND (TrackCircuits[Lines[Points[P].Point_StraightLine].Line_TC].TC_OccupationState <> TCOutOfUseSetByUser)
         AND (TrackCircuits[Lines[Points[P].Point_StraightLine].Line_TC].TC_OccupationState <> TCOutOfUseAsNoFeedbackReceived)
         AND Point_LockedIfNonHeelTCsOccupied
-        THEN BEGIN
-          IF LockingMsg = '' THEN
-            LockingMsg := 'locked:';
+        THEN
           LockingMsg := LockingMsg + ' TC=' + IntToStr(Lines[Point_StraightLine].Line_TC) + ' occupied at straight line';
-        END;
 
         IF NOT PointIsCatchPoint(P) THEN BEGIN
           IF (Lines[Points[P].Point_DivergingLine].Line_TC <> UnknownTrackCircuit)
@@ -238,81 +233,72 @@ BEGIN
           AND (TrackCircuits[Lines[Points[P].Point_DivergingLine].Line_TC].TC_OccupationState <> TCOutOfUseSetByUser)
           AND (TrackCircuits[Lines[Points[P].Point_DivergingLine].Line_TC].TC_OccupationState <> TCOutOfUseAsNoFeedbackReceived)
           AND Point_LockedIfNonHeelTCsOccupied
-          THEN BEGIN
-            IF LockingMsg = '' THEN
-              LockingMsg := 'locked:';
+          THEN
             LockingMsg := LockingMsg + 'TC=' + IntToStr(Lines[Point_DivergingLine].Line_TC) + ' occupied at diverging line';
-          END;
         END;
 
         { See that three-way points have the first, 'a' point, set to straight before the 'b' point is set }
         IF Point_Type = ThreeWayPointB THEN BEGIN
-          IF Points[Point_RelatedPoint].Point_PresentState <> Straight THEN BEGIN
-            IF LockingMsg = '' THEN
-              LockingMsg := 'locked:';
-            LockingMsg := LockingMsg + ' 3-way point A (P=' + IntToStr(Point_RelatedPoint) + ') diverging';
-          END;
+          IF Point_RelatedPoint = UnknownPoint THEN
+            LockingMsg := LockingMsg + ' 3-way point A has no related point!'
+          ELSE
+            IF Points[Point_RelatedPoint].Point_PresentState <> Straight THEN
+              LockingMsg := LockingMsg + ' 3-way point A (P=' + IntToStr(Point_RelatedPoint) + ') diverging';
         END ELSE
           IF Point_Type = ThreeWayPointA THEN BEGIN
-            IF Points[Point_RelatedPoint].Point_PresentState <> Straight THEN BEGIN
-              IF LockingMsg = '' THEN
-                LockingMsg := 'locked:';
-              LockingMsg := LockingMsg + ' 3-way point B (P=' + IntToStr(Point_RelatedPoint) + ') diverging';
-            END;
+            IF Point_RelatedPoint = UnknownPoint THEN
+              LockingMsg := LockingMsg + ' 3-way point A has no related point!'
+            ELSE
+              IF Points[Point_RelatedPoint].Point_PresentState <> Straight THEN
+                LockingMsg := LockingMsg + ' 3-way point B (P=' + IntToStr(Point_RelatedPoint) + ') diverging';
           END;
+
 
         { See if the point is affected by an adjoining catch point }
         CatchPoint := 0;
         WHILE CatchPoint <= High(Points) DO BEGIN
-          IF ((Points[CatchPoint].Point_Type = CatchPointUp)
-          OR (Points[CatchPoint].Point_Type = CatchPointDown))
-          THEN BEGIN
-            IF Points[CatchPoint].Point_RelatedPoint = P THEN BEGIN
-              IF Points[CatchPoint].Point_PresentState <> Diverging THEN BEGIN
-                IF LockingMsg = '' THEN
-                  LockingMsg := 'locked:';
+          IF ((Points[CatchPoint].Point_Type = CatchPointUp) OR (Points[CatchPoint].Point_Type = CatchPointDown))
+          AND (Point_RelatedPoint <> UnknownPoint)
+          THEN
+            IF Points[CatchPoint].Point_RelatedPoint = P THEN
+              IF Points[CatchPoint].Point_PresentState <> Diverging THEN
                 LockingMsg := LockingMsg + ' catch point P=' + IntToStr(CatchPoint) + ' is not diverging';
-              END;
-            END;
-          END;
+
           Inc(CatchPoint);
         END; {WHILE}
 
         { And see if a catch point is locked by its adjoining point }
-        IF (Points[P].Point_Type = CatchPointUp)
-        OR (Points[P].Point_Type = CatchPointDown)
-        THEN BEGIN
-          IF Points[Points[P].Point_RelatedPoint].Point_PresentState = Straight THEN BEGIN
-            IF LockingMsg = '' THEN
-              LockingMsg := 'locked:';
-            LockingMsg := LockingMsg + ' protected point P=' + IntToStr(Points[P].Point_RelatedPoint) + ' is not diverging';
-          END;
+        IF (Points[P].Point_Type = CatchPointUp) OR (Points[P].Point_Type = CatchPointDown) THEN BEGIN
+          IF Point_RelatedPoint = UnknownPoint THEN
+            LockingMsg := LockingMsg + ' catch point has no related point!'
+          ELSE
+            IF Points[Points[P].Point_RelatedPoint].Point_PresentState = Straight THEN
+              LockingMsg := LockingMsg + ' protected point P=' + IntToStr(Points[P].Point_RelatedPoint) + ' is not diverging';
         END;
 
         { Also check if crossover points can change }
         IF CheckCrossOverPoint THEN BEGIN
           { pass false as a second argument to prevent PointIsLocked from being called recursively in an infinite loop }
           IF (Points[P].Point_Type = CrossOverPoint) AND PointIsLocked(Points[P].Point_RelatedPoint, TempLockingMsg, False) THEN BEGIN
-            { but also allow a cross-over point to change to be in agreement with its locked partner }
-            IF Points[P].Point_PresentState = Points[Points[P].Point_RelatedPoint].Point_PresentState THEN BEGIN
-              IF LockingMsg = '' THEN
-                LockingMsg := 'locked:';
-              LockingMsg := LockingMsg + ' cross-over point''s corresponding point P=' + PointToStr(Points[P].Point_RelatedPoint) + ' is locked';
-            END;
+            IF Point_RelatedPoint = UnknownPoint THEN
+              LockingMsg := LockingMsg + ' cross-over point has no related point!'
+            ELSE
+              { but also allow a cross-over point to change to be in agreement with its locked partner }
+              IF Points[P].Point_PresentState = Points[Points[P].Point_RelatedPoint].Point_PresentState THEN
+                LockingMsg := LockingMsg + ' cross-over point''s corresponding point P=' + PointToStr(Points[P].Point_RelatedPoint) + ' is locked';
           END;
         END;
       END;
 
-      IF Points[P].Point_LockedByUser THEN BEGIN
-        IF LockingMsg = '' THEN
-          LockingMsg := 'locked:';
+      IF Points[P].Point_LockedByUser THEN
         LockingMsg := LockingMsg + ' P=' + IntToStr(P) + ' by user';
-      END;
 
       IF LockingMsg = '' THEN
         LockingMsg := 'not locked'
-      ELSE
+      ELSE BEGIN
+        LockingMsg := 'locked: ' + LockingMsg;
         Result := True;
+      END;
     END; {WITH}
   EXCEPT
     ON E : Exception DO
