@@ -1199,16 +1199,13 @@ BEGIN { KeyPressedDown }
 
               { This is a special case, as pressing F4 a second time adds the box which lists the colours }
               IF KeyToTest <> vk_F4 THEN
-                ShowLineDetail := False
-              ELSE
-                IF KeyToTest = vK_Escape THEN BEGIN
-                  IF ShowLineDetail THEN
-                    ShowLineDetail := False;
-                  Exit;
-                END;
+                ShowLineDetail := False;
 
               WriteToStatusBarPanel(StatusBarPanel2, '');
               InvalidateScreen(UnitRef, 'KeyPressedDown 1');
+
+              IF KeyToTest = vk_Escape THEN
+                Exit;
             END;
           END;
       END; {CASE}
