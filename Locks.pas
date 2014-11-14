@@ -279,14 +279,13 @@ BEGIN
         { Also check if crossover points can change }
         IF CheckCrossOverPoint THEN BEGIN
           { pass false as a second argument to prevent PointIsLocked from being called recursively in an infinite loop }
-          IF (Points[P].Point_Type = CrossOverPoint) AND PointIsLocked(Points[P].Point_RelatedPoint, TempLockingMsg, False) THEN BEGIN
-            IF Point_RelatedPoint = UnknownPoint THEN
-              LockingMsg := LockingMsg + ' cross-over point has no related point!'
-            ELSE
+          IF Point_RelatedPoint = UnknownPoint THEN
+            LockingMsg := LockingMsg + ' cross-over point has no related point!'
+          ELSE
+            IF (Points[P].Point_Type = CrossOverPoint) AND PointIsLocked(Points[P].Point_RelatedPoint, TempLockingMsg, False) THEN
               { but also allow a cross-over point to change to be in agreement with its locked partner }
               IF Points[P].Point_PresentState = Points[Points[P].Point_RelatedPoint].Point_PresentState THEN
                 LockingMsg := LockingMsg + ' cross-over point''s corresponding point P=' + PointToStr(Points[P].Point_RelatedPoint) + ' is locked';
-          END;
         END;
       END;
 
