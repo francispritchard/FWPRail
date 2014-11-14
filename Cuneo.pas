@@ -1652,8 +1652,8 @@ BEGIN
                   END; {WITH}
                 END;
 
-                IF NOT LineHandleFound AND (Length(LineFoundArray) <> 0) THEN BEGIN
-                  IF LineFoundArray[0] <> UnknownLine THEN BEGIN
+                IF NOT LineHandleFound THEN BEGIN
+                  IF Length(LineFoundArray) = 1 THEN BEGIN
                     { we're not yet editing a line, so see if we're already on one }
                     WITH Lines[LineFoundArray[0]] DO BEGIN
                       { first reset any previously-set variables }
@@ -1668,12 +1668,12 @@ BEGIN
                         { split the line }
                         SplitLine(LineFoundArray[0], GridX, GridY);
                     END; {WITH}
-                  END ELSE BEGIN
+                  END ELSE
                     IF NOT EndOfLineDragging THEN BEGIN
                       IF EditedLine <> UnknownLine THEN
                         DeselectLine;
                       EndOfLineDragging := True;
-                      StartLineEdit(LineFoundArray[0]);
+                      StartLineEdit(UnknownLine);
 
                       { and create a new line record }
                       SetLength(Lines, Length(Lines) + 1);
@@ -1689,7 +1689,6 @@ BEGIN
 
                       EditedLine := High(Lines);
                     END;
-                  END;
                 END;
               END ELSE BEGIN
                 { reset the timer here, as if we haven't clicked on a signal, point, etc., we don't want dragging to be turned on }
