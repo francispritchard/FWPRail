@@ -1708,9 +1708,6 @@ PROCEDURE SaveScreenDrawingVariables;
 PROCEDURE SetUpLineDrawingVars;
 { Set up the positions of the lines and platforms }
 
-FUNCTION ValidateBufferStopNumber(BufferStopStr : String; OUT ErrorMsg : String) : Integer;
-{ See if there's a valid number (or nothing) }
-
 FUNCTION ValidateLineConnectionCh(LineConnectionCh : String; OUT ErrorMsg : String) : String;
 { See if the connection char exceeds one character }
 
@@ -3320,18 +3317,6 @@ BEGIN
   IF (LineDirectionStr = '') OR (Result = UnknownDirection) THEN
     ErrorMsg := ':ValidateLineDirection unknown line direction "' + LineDirectionStr + '"';
 END; { ValidateLineDirection }
-
-FUNCTION ValidateBufferStopNumber(BufferStopStr : String; OUT ErrorMsg : String) : Integer;
-{ See if there's a valid number (or nothing) }
-BEGIN
-  ErrorMsg := '';
-
-  IF BufferStopStr= '' THEN
-    Result := UnknownBufferStop
-  ELSE
-    IF NOT TryStrToInt(BufferStopStr, Result) THEN
-      ErrorMsg := 'ValidateBufferStopNumber: invalid buffer stop number "' + BufferStopStr + '"';
-END; { ValidateBufferStopNumber }
 
 FUNCTION ValidateLineEndOfLineMarker(EndOfLineMarkerStr : String; OUT ErrorMsg : String) : EndOfLineType;
 { See if the supplied end of line string is correct }
