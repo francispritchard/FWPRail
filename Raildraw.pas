@@ -7497,7 +7497,7 @@ BEGIN { Main drawing procedure }
                 WITH Lines[LineHighlighted] DO
                   DrawOutline(Line_MousePolygon, clWhite, NOT UndrawRequired, NOT UndrawToBeAutomatic);
 
-               { Draw a rectangle around any track circuit highlighted by the input procedure }
+              { Draw a rectangle around any track circuit highlighted by the input procedure }
               IF TrackCircuitHighlighted <> UnknownLine THEN
                 LinesArray := GetLinesForTrackCircuit(TrackCircuitHighlighted);
                 Line2 := 0;

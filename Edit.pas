@@ -137,7 +137,7 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES Diagrams, Input, Cuneo, Lenz, Types, Math {sic};
+USES Diagrams, Input, Cuneo, Lenz, Types, Math {sic}, Main;
 
 CONST
   UnitRef = 'Edit';
@@ -1868,6 +1868,7 @@ VAR
   HeelLine : Integer;
   Line : Integer;
   LineFound : Boolean;
+  RelatedPoint : Integer;
   StraightLine : Integer;
 
 BEGIN
@@ -1875,6 +1876,7 @@ BEGIN
     StraightLine := UnknownLine;
     DivergingLine := UnknownLine;
     HeelLine := UnknownLine;
+    RelatedPoint := UnknownPoint;
 
     IF (TempPointType = CatchPointUp) OR (TempPointType = CatchPointDown) THEN BEGIN
       HeelLine := LineArray[0];
@@ -1905,12 +1907,11 @@ BEGIN
         END;
 
       { Now take a guess at which point the catch point is protecting }  { *** add when routeing is rewritten - DJW }
-      IF TempPointType = CatchPointUp THEN BEGIN
-
-      END ELSE
-        IF TempPointType = CatchPointDown THEN BEGIN
-
-        END;
+      IF TempPointType = CatchPointUp THEN
+        FindNextPoint(Lines[StraightLine].Line_TC, Up, RelatedPoint)
+      ELSE
+        IF TempPointType = CatchPointDown THEN
+          FindNextPoint(Lines[StraightLine].Line_TC, Down, RelatedPoint);
     END ELSE BEGIN
       { now we can work out the lines: if two Up Xs and Ys are the same, see which DownY is the same as the UpY - straight - and which is greater or less - diverging }
       CommonGridX := 0;
@@ -2007,7 +2008,7 @@ BEGIN
       Point_OutOfUse := True;
       Point_PresentState := PointStateUnknown;
       Point_PreviousState := PointStateUnknown;
-      Point_RelatedPoint := UnknownPoint;
+      Point_RelatedPoint := RelatedPoint;
       Point_RequiredState := PointStateUnknown;
       Point_ResettingTime := 0;
       Point_RouteLockedByLocoChip := UnknownLocoChip;
@@ -2038,7 +2039,9 @@ BEGIN
     CASE TempPointType OF
       CatchPointUp, CatchPointDown, ThreeWayPointA, ThreeWayPointB, CrossOverPoint:
         IF Points[EditedPoint].Point_RelatedPoint = UnknownPoint THEN
-          ShowMessage('Now add the related point');
+          ShowMessage('Now add the related point')
+        ELSE
+          ShowMessage('Related Point has been set to be P' + IntToStr(Points[EditedPoint].Point_RelatedPoint) + ' - please check this is the case');
     END; {CASE}
 
   EXCEPT {TRY}
