@@ -1903,6 +1903,14 @@ BEGIN
             Inc(Line);
           END; {WHILE}
         END;
+
+      { Now take a guess at which point the catch point is protecting }  { *** add when routeing is rewritten - DJW }
+      IF TempPointType = CatchPointUp THEN BEGIN
+
+      END ELSE
+        IF TempPointType = CatchPointDown THEN BEGIN
+
+        END;
     END ELSE BEGIN
       { now we can work out the lines: if two Up Xs and Ys are the same, see which DownY is the same as the UpY - straight - and which is greater or less - diverging }
       CommonGridX := 0;
