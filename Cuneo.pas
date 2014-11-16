@@ -225,24 +225,24 @@ BEGIN
         IF NOT (EditMode AND SignalDragging AND (S = EditedSignal)) THEN BEGIN
           IF PtInRect(Signal_MouseRect, Point(MouseX, MouseY)) THEN BEGIN
             ObjectFound := True;
-            TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'S' + IntToStr(S) + ' ';
+            TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'S' + IntToStr(S);
             SignalFoundNum := S;
 
             IF SignalIsLocked(S, LockingFailureString) THEN
-              TempStatusBarPanel1Str := TempStatusBarPanel1Str + '[' + LockingFailureString + '] ';
+              TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' [' + LockingFailureString + ']';
             IF Signals[S].Signal_OutOfUse THEN
-              TempStatusBarPanel1Str := TempStatusBarPanel1Str + '(X) ';
+              TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' (X)';
             IF Signal_HiddenStationSignalAspect <> NoAspect THEN
-              TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'HA=' + AspectToStr(Signal_HiddenStationSignalAspect, ShortStringType);
+              TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' HA=' + AspectToStr(Signal_HiddenStationSignalAspect, ShortStringType);
 
             { Show the track circuit which resets the signal }
             IF ShowSignalResettingTrackCircuitsInStatusBar THEN BEGIN
               IF NOT FindNextSignalOrBufferStop(S, UnknownSignal, UnknownBufferStop, NOT IndicatorToBeSet, TempLinesNotAvailableStr, TempDraftRouteArray) THEN
-                TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'No RTC'
+                TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' No RTC'
               ELSE BEGIN
                 CreateLockingArrayFromDraftRouteArray(UnknownLocoChipStr, TempDraftRouteArray, Signals[S].Signal_RouteLockingNeededArray);
                 TC := GetResettingTrackCircuit(UnknownLocoChipStr, S, SuppressMessage);
-                TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'RTC=' + IntToStr(TC);
+                TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' RTC=' + IntToStr(TC);
               END;
             END;
           END ELSE
@@ -251,7 +251,7 @@ BEGIN
                   AND (Signal_JunctionIndicators[UpperLeftIndicator].JunctionIndicator_MouseRect.Bottom <> 0))
             THEN BEGIN
               ObjectFound := True;
-              TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'ULI for S' + IntToStr(S) + ' ';
+              TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' ULI for S' + IntToStr(S);
               IndicatorFoundNum := S;
               IndicatorFoundType := UpperLeftIndicator;
             END ELSE
@@ -260,7 +260,7 @@ BEGIN
                     AND (Signal_JunctionIndicators[MiddleLeftIndicator].JunctionIndicator_MouseRect.Bottom <> 0))
               THEN BEGIN
                 ObjectFound := True;
-                TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'MLI for S' + IntToStr(S) + ' ';
+                TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' MLI for S' + IntToStr(S);
                 IndicatorFoundNum := S;
                 IndicatorFoundType := MiddleLeftIndicator;
               END ELSE
@@ -269,7 +269,7 @@ BEGIN
                       AND (Signal_JunctionIndicators[LowerLeftIndicator].JunctionIndicator_MouseRect.Bottom <> 0))
                 THEN BEGIN
                   ObjectFound := True;
-                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'LLI for S' + IntToStr(S) + ' ';
+                  TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' LLI for S' + IntToStr(S);
                   IndicatorFoundNum := S;
                   IndicatorFoundType := LowerLeftIndicator;
                 END ELSE
@@ -278,7 +278,7 @@ BEGIN
                         AND (Signal_JunctionIndicators[UpperRightIndicator].JunctionIndicator_MouseRect.Bottom <> 0))
                   THEN BEGIN
                     ObjectFound := True;
-                    TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'URI for S' + IntToStr(S) + ' ';
+                    TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' URI for S' + IntToStr(S);
                     IndicatorFoundNum := S;
                     IndicatorFoundType := UpperRightIndicator;
                   END ELSE
@@ -287,7 +287,7 @@ BEGIN
                           AND (Signal_JunctionIndicators[MiddleRightIndicator].JunctionIndicator_MouseRect.Bottom <> 0))
                     THEN BEGIN
                       ObjectFound := True;
-                      TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'MRI for S' + IntToStr(S) + ' ';
+                      TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' MRI for S' + IntToStr(S);
                       IndicatorFoundNum := S;
                       IndicatorFoundType := MiddleRightIndicator;
                     END ELSE
@@ -296,7 +296,7 @@ BEGIN
                             AND (Signal_JunctionIndicators[LowerRightIndicator].JunctionIndicator_MouseRect.Bottom <> 0))
                       THEN BEGIN
                         ObjectFound := True;
-                        TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'LRI for S' + IntToStr(S) + ' ';
+                        TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' LRI for S' + IntToStr(S);
                         IndicatorFoundNum := S;
                         IndicatorFoundType := LowerRightIndicator;
                       END ELSE
@@ -305,7 +305,7 @@ BEGIN
                              AND (Signal_PostMouseRect.Bottom <> 0))
                         THEN BEGIN
                           ObjectFound := True;
-                          TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'SP for S' + IntToStr(S) + ' ';
+                          TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' SP for S' + IntToStr(S);
                           SignalPostFoundNum := S;
                       END ELSE
                         IF PtInRect(Signal_IndicatorMouseRect, Point(MouseX, MouseY))
@@ -313,7 +313,7 @@ BEGIN
                              AND (Signal_IndicatorMouseRect.Bottom <> 0))
                         THEN BEGIN
                           ObjectFound := True;
-                          TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'T for S' + IntToStr(S) + ' ';
+                          TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' T for S' + IntToStr(S);
                           TheatreIndicatorFoundNum := S;
 
                           { Show the track circuit which resets the signal if the indicator is on }
@@ -321,11 +321,11 @@ BEGIN
                             IF Signals[S].Signal_Indicator <> NoIndicator THEN BEGIN
                               IF NOT FindNextSignalOrBufferStop(S, UnknownSignal, UnknownBufferStop, IndicatorToBeSet, TempLinesNotAvailableStr, TempDraftRouteArray)
                               THEN
-                                TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'No RTC'
+                                TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' No RTC'
                               ELSE BEGIN
                                 CreateLockingArrayFromDraftRouteArray(UnknownLocoChipStr, TempDraftRouteArray, Signals[S].Signal_RouteLockingNeededArray);
                                 TC := GetResettingTrackCircuit(UnknownLocoChipStr, S, SuppressMessage);
-                                TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'RTC=' + IntToStr(TC);
+                                TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' RTC=' + IntToStr(TC);
                               END;
                             END;
                           END;
@@ -363,21 +363,22 @@ BEGIN
           IF NOT SignalDragging AND NOT CreateLineMode AND (Screen.Cursor <> crCross) THEN
             ChangeCursor(crCross);
 
-          TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'P' + IntToStr(P) + ' ';
+          TempStatusBarPanel1Str := 'P' + IntToStr(P);
+
           IF PointIsLocked(P, LockingFailureString) THEN
-            TempStatusBarPanel1Str := TempStatusBarPanel1Str + '[' + LockingFailureString + '] ';
+            TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' [' + LockingFailureString + ']';
           IF Point_ManualOperation THEN
-            TempStatusBarPanel1Str := TempStatusBarPanel1Str + '[manual] ';
+            TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' [manual]';
           IF Point_OutOfUse THEN
-            TempStatusBarPanel1Str := TempStatusBarPanel1Str + '[out of use] ';
+            TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' [out of use]';
 
           IF ShowLinesWhichLockPoints THEN BEGIN
             IF Points[P].Point_LockedIfHeelTCOccupied THEN
-              TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'Heel line = ' + LineToStr(Points[P].Point_HeelLine) + ' ';
+              TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' Heel line = ' + LineToStr(Points[P].Point_HeelLine);
 
             IF Points[P].Point_LockedIfNonHeelTCsOccupied THEN BEGIN
-              TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'Straight line = ' + LineToStr(Points[P].Point_StraightLine) + ' ';
-              TempStatusBarPanel1Str := TempStatusBarPanel1Str + 'Diverging line = ' + LineToStr(Points[P].Point_DivergingLine) + ' ';
+              TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' Straight line = ' + LineToStr(Points[P].Point_StraightLine);
+              TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' Diverging line = ' + LineToStr(Points[P].Point_DivergingLine);
             END;
           END;
 
@@ -413,7 +414,7 @@ BEGIN
     IF TempStatusBarPanel1Str <> '' THEN BEGIN
       IF StatusBarPanel1Str <> '' THEN
         { add a separator }
-        StatusBarPanel1Str := StatusBarPanel1Str + ';' + TempStatusBarPanel1Str
+        StatusBarPanel1Str := StatusBarPanel1Str + '; ' + TempStatusBarPanel1Str
       ELSE
         StatusBarPanel1Str := TempStatusBarPanel1Str;
       TempStatusBarPanel1Str := '';
@@ -460,7 +461,7 @@ BEGIN
     IF TempStatusBarPanel1Str <> '' THEN BEGIN
       IF StatusBarPanel1Str <> '' THEN
         { add a separator }
-        StatusBarPanel1Str := StatusBarPanel1Str + ';' + TempStatusBarPanel1Str
+        StatusBarPanel1Str := StatusBarPanel1Str + '; ' + TempStatusBarPanel1Str
       ELSE
         StatusBarPanel1Str := TempStatusBarPanel1Str;
       TempStatusBarPanel1Str := '';
@@ -518,7 +519,7 @@ BEGIN
             IF TrackCircuits[Lines[Line].Line_TC].TC_Headcode <> '' THEN
               TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' ' + TrackCircuits[Lines[Line].Line_TC].TC_Headcode;
             IF TrackCircuits[Lines[Line].Line_TC].TC_SpeedRestrictionInMPH <> NoSpecifiedSpeed THEN BEGIN
-              TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' ' + ' max:' + MPHToStr(TrackCircuits[Lines[Line].Line_TC].TC_SpeedRestrictionInMPH);
+             TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' ' + ' max:' + MPHToStr(TrackCircuits[Lines[Line].Line_TC].TC_SpeedRestrictionInMPH);
               IF TrackCircuits[Lines[Line].Line_TC].TC_SpeedRestrictionDirection <> Bidirectional THEN
                 IF TrackCircuits[Lines[Line].Line_TC].TC_SpeedRestrictionDirection = Up THEN
                   TempStatusBarPanel1Str := TempStatusBarPanel1Str + '<'
@@ -599,7 +600,7 @@ BEGIN
     IF TempStatusBarPanel1Str <> '' THEN BEGIN
       IF StatusBarPanel1Str <> '' THEN
         { add a separator }
-        StatusBarPanel1Str := StatusBarPanel1Str + ';' + TempStatusBarPanel1Str
+        StatusBarPanel1Str := StatusBarPanel1Str + '; ' + TempStatusBarPanel1Str
       ELSE
         StatusBarPanel1Str := TempStatusBarPanel1Str;
       TempStatusBarPanel1Str := '';
