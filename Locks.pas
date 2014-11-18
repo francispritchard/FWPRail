@@ -311,7 +311,7 @@ CONST
   CheckCrossOverPoint = True;
 
 BEGIN
-  Result := PointIsLocked(P, LockingMsg, CheckCrossOverPoint);
+  Result := PointIsLocked(P, LockingMsg, NOT CheckCrossOverPoint);
 END; { PointIsLocked-2 }
 
 PROCEDURE LockPointByRoute(LocoChip, P, Route : Integer; DoNotWriteMessage : Boolean);
