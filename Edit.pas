@@ -1873,6 +1873,10 @@ VAR
 
 BEGIN
   TRY
+    { Create  basic point which must then be added to using the value list editor }
+    SetLength(Points, Length(Points) + 1);
+    EditedPoint := High(Points);
+
     StraightLine := UnknownLine;
     DivergingLine := UnknownLine;
     HeelLine := UnknownLine;
@@ -1881,12 +1885,13 @@ BEGIN
     IF (TempPointType = CatchPointUp) OR (TempPointType = CatchPointDown) THEN BEGIN
       HeelLine := LineArray[0];
       IF PointInPolygon(Lines[LineArray[0]].Line_UpHandlePolygon, Point(X, Y)) THEN BEGIN
-
         { Now find the straight line }
         Line := 0;
         LineFound := False;
         WHILE (Line <= High(Lines)) AND NOT LineFound DO BEGIN
-          IF Lines[LineArray[0]].Line_GridUpX = Lines[Line].Line_GridDownX THEN BEGIN
+          IF (Lines[LineArray[0]].Line_GridUpX = Lines[Line].Line_GridDownX)
+          AND (Lines[LineArray[0]].Line_GridUpY = Lines[Line].Line_GridDownY)
+          THEN BEGIN
             LineFound := True;
             StraightLine := Line;
           END;
@@ -1898,7 +1903,9 @@ BEGIN
           Line := 0;
           LineFound := False;
           WHILE (Line <= High(Lines)) AND NOT LineFound DO BEGIN
-            IF Lines[LineArray[0]].Line_GridDownX = Lines[Line].Line_GridUpX THEN BEGIN
+            IF (Lines[LineArray[0]].Line_GridUpX = Lines[Line].Line_GridDownX)
+            AND (Lines[LineArray[0]].Line_GridUpY = Lines[Line].Line_GridDownY)
+            THEN BEGIN
               LineFound := True;
               StraightLine := Line;
             END;
@@ -1906,12 +1913,20 @@ BEGIN
           END; {WHILE}
         END;
 
-      { Now take a guess at which point the catch point is protecting }  { *** add when routeing is rewritten - DJW }
+      { Now take a guess at which point the catch point is protecting }
       IF TempPointType = CatchPointUp THEN
         FindNextPoint(Lines[StraightLine].Line_TC, Up, RelatedPoint)
       ELSE
         IF TempPointType = CatchPointDown THEN
           FindNextPoint(Lines[StraightLine].Line_TC, Down, RelatedPoint);
+
+      IF RelatedPoint <> UnknownPoint THEN BEGIN
+        { add the catch point to the related point's "Other Point" field }
+        Points[RelatedPoint].Point_Type := ProtectedPoint;
+        Points[RelatedPoint].Point_RelatedPoint := Editedpoint;
+        Points[RelatedPoint].Point_DataChanged := True;
+        WriteOutPointDataToDatabase;
+      END;
     END ELSE BEGIN
       { now we can work out the lines: if two Up Xs and Ys are the same, see which DownY is the same as the UpY - straight - and which is greater or less - diverging }
       CommonGridX := 0;
@@ -1960,10 +1975,6 @@ BEGIN
         Inc(Line);
       END; {WHILE}
     END;
-
-    { Now create and save a basic point which must then be added to using the value list editor }
-    SetLength(Points, Length(Points) + 1);
-    EditedPoint := High(Points);
 
     WITH Points[EditedPoint] DO BEGIN
       Point_DivergingLine := DivergingLine;

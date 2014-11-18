@@ -529,7 +529,7 @@ END; { GetBufferStopDirection }
 PROCEDURE FollowThatLine(CurrentLine, TC : Integer; SearchDirection : DirectionType; FindPoint : Boolean; OUT AdjoiningUpTC, AdjoiningDownTC, NextPoint : Integer);
 { Follow lines and points until we find a different track circuit }
 
-  FUNCTION FoundTrackCircuitOrPoint(CurrentLine, TC : Integer; OUT AdjoiningUpTC, AdjoiningDownTC : Integer) : Boolean;
+  FUNCTION FindTrackCircuitOrPoint(CurrentLine, TC : Integer; OUT AdjoiningUpTC, AdjoiningDownTC : Integer) : Boolean;
   BEGIN
     Result := False;
     TRY
@@ -546,7 +546,7 @@ PROCEDURE FollowThatLine(CurrentLine, TC : Integer; SearchDirection : DirectionT
       ON E : Exception DO
         Log('EG FoundAdjacentTrackCircuit:' + E.ClassName + ' error raised, with message: '+ E.Message);
     END; {TRY}
-  END; { FoundTrackCircuitOrPoint }
+  END; { FindTrackCircuitOrPoint }
 
 VAR
   ExitFunction : Boolean;
@@ -580,7 +580,7 @@ BEGIN
                   DrawPoint(NextPoint, clLime);
 
                 CurrentLine := Points[NextPoint].Point_StraightLine;
-                IF FoundTrackCircuitOrPoint(CurrentLine, TC, AdjoiningUpTC, AdjoiningDownTC) THEN
+                IF FindTrackCircuitOrPoint(CurrentLine, TC, AdjoiningUpTC, AdjoiningDownTC) THEN
                   ExitFunction := True;
               END ELSE
                 IF Points[NextPoint].Point_PresentState = Diverging THEN BEGIN
@@ -588,7 +588,7 @@ BEGIN
                     DrawPoint(NextPoint, clLime);
 
                   CurrentLine := Points[NextPoint].Point_DivergingLine;
-                  IF (CurrentLine = UnknownLine) OR FoundTrackCircuitOrPoint(CurrentLine, TC, AdjoiningUpTC, AdjoiningDownTC) THEN
+                  IF (CurrentLine = UnknownLine) OR FindTrackCircuitOrPoint(CurrentLine, TC, AdjoiningUpTC, AdjoiningDownTC) THEN
                     ExitFunction := True;
                 END ELSE BEGIN
                   { Points[NextPoint].Point_PresentState = PointStateUnknown }
@@ -600,7 +600,7 @@ BEGIN
               { a trailing point - if it's not set in our direction, stop searching here }
               IF ((CurrentLine = Points[NextPoint].Point_StraightLine) AND (Points[NextPoint].Point_PresentState = Straight)) THEN BEGIN
                 CurrentLine := Points[NextPoint].Point_HeelLine;
-                IF (CurrentLine = UnknownLine) OR FoundTrackCircuitOrPoint(CurrentLine, TC, AdjoiningUpTC, AdjoiningDownTC) THEN
+                IF (CurrentLine = UnknownLine) OR FindTrackCircuitOrPoint(CurrentLine, TC, AdjoiningUpTC, AdjoiningDownTC) THEN
                     ExitFunction := True;
 
                 IF LockDebuggingMode THEN
@@ -610,7 +610,7 @@ BEGIN
               END ELSE
                 IF ((CurrentLine = Points[NextPoint].Point_DivergingLine) AND (Points[NextPoint].Point_PresentState = Diverging)) THEN BEGIN
                   CurrentLine := Points[NextPoint].Point_HeelLine;
-                  IF (CurrentLine = UnknownLine) OR FoundTrackCircuitOrPoint(CurrentLine, TC, AdjoiningUpTC, AdjoiningDownTC) THEN
+                  IF (CurrentLine = UnknownLine) OR FindTrackCircuitOrPoint(CurrentLine, TC, AdjoiningUpTC, AdjoiningDownTC) THEN
                       ExitFunction := True;
 
                   IF LockDebuggingMode THEN
@@ -635,8 +635,9 @@ BEGIN
             ELSE
               CurrentLine := Lines[CurrentLine].Line_NextDownLine;
 
-            IF FoundTrackCircuitOrPoint(CurrentLine, TC, AdjoiningUpTC, AdjoiningDownTC) THEN
-              ExitFunction := True;
+            IF NOT FindPoint THEN
+              IF FindTrackCircuitOrPoint(CurrentLine, TC, AdjoiningUpTC, AdjoiningDownTC) THEN
+                ExitFunction := True;
           END;
         EndOfLineIsNext:
           ExitFunction := True;
