@@ -256,11 +256,15 @@ TYPE
                     LineCreateThreeWayPointAPopupType, LineCreateThreeWayPointBPopupType,
                     { Lines with signals }
                     LineCreateDownSignalPopupType, LineCreateUpSignalPopupType,
-                    LineDeleteLinePopupType, LineEnterCreateLinePopupType, LineExitCreateLinePopupType, LineEditPopupType,
                     { Lines out of use }
                     LineLocationOutOfUsePopupType, LineOutOfUsePopupType,
                     { Lines miscellaneous }
+                    LineDeletePopupType,
+                    LineEnterCreateLinePopupType, LineExitCreateLinePopupType,
+                    LineEditPopupType,
                     LineShowLocoLastErrorMessagePopupType,
+                    LineSplitPopupType, LineJoinPopupType,
+                    { Line track circuits }
                     LineTCFeedbackOccupationPopupType, LineTCOutOfUsePopupType, LineTCPermanentOccupationPopupType, LineTCSpeedRestrictionPopupType,
                     LineTCSystemOccupationPopupType, LineTCUnoccupiedPopupType, LineTCUserMustDrivePopupType, LineAllocateTrackCircuitPopupType,
                     LineRemoveTrackCircuitPopupType);
@@ -585,8 +589,7 @@ TYPE
     Point_Energised : Boolean;
     Point_EnergisedTime : TDateTime;
     Point_FacingDirection : DirectionType;
-    Point_FarX : Word; { Position of other ends }
-    Point_FarY : Word; { Position of other ends }
+    Point_FarX : Integer; { Position of other ends }    Point_FarY : Integer; { Position of other ends }
     Point_FeedbackOnIsStraight : Boolean;
     Point_FeedbackPending : Boolean;
     Point_FeedbackPendingMsgWritten : Boolean;
@@ -631,8 +634,8 @@ TYPE
     Point_SetASecondTime : Boolean;
     Point_WaitTime : TDateTime;
     Point_WiringReversedFlag : Boolean;
-    Point_X : Word; { position of common point }
-    Point_Y : Word; { position of common point }
+    Point_X : Integer; { position of common point }
+    Point_Y : Integer; { position of common point }
   END;
 
 CONST

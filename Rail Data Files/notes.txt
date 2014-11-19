@@ -1,5 +1,10 @@
 Things to do:
 
+19/11/14
+Write registry data to .ini file
+
+DataCheck : add CRLF
+
 22/10/14
 Add Grid stuff to WhatisUnderMouse
 

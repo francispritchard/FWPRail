@@ -55,7 +55,7 @@ PROCEDURE CreatePoint(LineArray : IntegerArrayType; TempPointType : TypeOfPoint;
 PROCEDURE CreateSignal(Direction : DirectionType; Line : Integer);
 { Creates a signal from scratch }
 
-PROCEDURE DeleteLine(LineToDeleteNum : Integer);
+PROCEDURE DeleteLine(LineToDeleteNum : Integer; OUT CanDelete: Boolean);
 { Delete a line after appropriate checks }
 
 PROCEDURE DeletePoint(PointToDeleteNum : Integer);
@@ -84,6 +84,9 @@ FUNCTION GetNearestLine(X, Y : Integer) : Integer;
 
 PROCEDURE InitialiseEditUnit;
 { Initialises the unit }
+
+PROCEDURE JoinLine(LineArray : IntegerArrayType; GridX, GridY : Integer);
+{ Join two lines at the point indicated. The checks to make sure that the lines are next to each other and are at the same angle have been done in the Popup code. }
 
 PROCEDURE LineDraggingComplete(ShiftState : TShiftState);
 { Called when when we have finished line creation by mouse }
@@ -1881,13 +1884,13 @@ BEGIN
     DivergingLine := UnknownLine;
     HeelLine := UnknownLine;
     RelatedPoint := UnknownPoint;
+    LineFound := False;
 
     IF (TempPointType = CatchPointUp) OR (TempPointType = CatchPointDown) THEN BEGIN
       HeelLine := LineArray[0];
       IF PointInPolygon(Lines[LineArray[0]].Line_UpHandlePolygon, Point(X, Y)) THEN BEGIN
         { Now find the straight line }
         Line := 0;
-        LineFound := False;
         WHILE (Line <= High(Lines)) AND NOT LineFound DO BEGIN
           IF (Lines[LineArray[0]].Line_GridUpX = Lines[Line].Line_GridDownX)
           AND (Lines[LineArray[0]].Line_GridUpY = Lines[Line].Line_GridDownY)
@@ -1899,11 +1902,10 @@ BEGIN
         END; {WHILE}
       END ELSE
         IF PointInPolygon(Lines[LineArray[0]].Line_DownHandlePolygon, Point(X, Y)) THEN BEGIN
-          { Now find the Straight line }
+          { Now find the straight line }
           Line := 0;
-          LineFound := False;
           WHILE (Line <= High(Lines)) AND NOT LineFound DO BEGIN
-            IF (Lines[LineArray[0]].Line_GridUpX = Lines[Line].Line_GridDownX)
+            IF (Lines[LineArray[0]].Line_GridDownX = Lines[Line].Line_GridUpX)
             AND (Lines[LineArray[0]].Line_GridUpY = Lines[Line].Line_GridDownY)
             THEN BEGIN
               LineFound := True;
@@ -1912,6 +1914,11 @@ BEGIN
             Inc(Line);
           END; {WHILE}
         END;
+
+      IF NOT LineFound THEN BEGIN
+        SetLength(Points, Length(Points) - 1);
+        Exit;
+      END;
 
       { Now take a guess at which point the catch point is protecting }
       IF TempPointType = CatchPointUp THEN
@@ -2634,10 +2641,9 @@ BEGIN
   END; {TRY}
 END; { TurnEditModeOff }
 
-PROCEDURE DeleteLine(LineToDeleteNum : Integer);
+PROCEDURE DeleteLine(LineToDeleteNum : Integer; OUT CanDelete: Boolean);
 { Delete a line after appropriate checks. NB: this doesn't yet deal with the routeing exceptions database or platform positions database. }
 VAR
-  CanDelete : Boolean;
   Line : Integer;
   LineTrackCircuits : IntegerArrayType;
   P : Integer;
@@ -3014,6 +3020,81 @@ debug('Line_UpRow=' + floattostr(Line_upRow));
     InvalidateScreen(UnitRef, 'LineDraggingComplete');
   END; {WITH}
 END; { LineDraggingComplete }
+
+PROCEDURE JoinLine(LineArray : IntegerArrayType; GridX, GridY : Integer);
+{ Join a down line to an up line at the point indicated. The checks to make sure that the lines are next to each other and are at the same angle have been done in the
+  Popup code. The line array is set up to be up-line name followed by down-line name.
+}
+VAR
+  DebugStr : String;
+  OK : Boolean;
+  P : integer;
+
+BEGIN
+  DebugStr := '';
+  { If the two lines have different settings, e.g. track circuits, inform the user }
+  IF Lines[LineArray[0]].Line_TC <> Lines[LineArray[1]].Line_TC THEN
+    DebugStr := DebugStr + ' track circuits do not match;';
+  IF (Lines[LineArray[0]].Line_AdjacentBufferStop <> UnknownBufferStop) AND (Lines[LineArray[1]].Line_AdjacentBufferStop <> UnknownBufferStop) THEN
+    DebugStr := DebugStr + ' both lines have bufferstops;';
+  IF ((Lines[LineArray[0]].Line_BufferStopTheatreDestinationStr <> '') AND (Lines[LineArray[1]].Line_BufferStopTheatreDestinationStr = ''))
+  OR ((Lines[LineArray[0]].Line_BufferStopTheatreDestinationStr = '') AND (Lines[LineArray[1]].Line_BufferStopTheatreDestinationStr <> ''))
+  THEN
+    DebugStr := DebugStr + ' Buffer stop destination strings do not match;';
+  IF GetLineAdjacentSignal(LineArray[1]) <> UnknownSignal THEN
+    DebugStr := DebugStr + ' line ' + LineToStr(LineArray[1]) + ' has an adjacent signal;';
+  IF Lines[LineArray[0]].Line_Direction <> Lines[LineArray[1]].Line_Direction THEN
+    DebugStr := DebugStr + ' incompatible line directions;';
+  IF Lines[LineArray[0]].Line_DownConnectionCh <> Lines[LineArray[1]].Line_DownConnectionCh THEN
+    DebugStr := DebugStr + ' incompatible line connection strings;';
+  IF Lines[LineArray[0]].Line_UpConnectionCh <> Lines[LineArray[1]].Line_UpConnectionCh THEN
+    DebugStr := DebugStr + ' incompatible line connection strings;';
+  IF Lines[LineArray[0]].Line_Gradient <> Lines[LineArray[1]].Line_Gradient THEN
+    DebugStr := DebugStr + ' incompatible line gradient;';
+  IF Lines[LineArray[0]].Line_InUseFeedbackUnit <> Lines[LineArray[1]].Line_InUseFeedbackUnit THEN
+    DebugStr := DebugStr + ' in use feedback units do not match;';
+  IF Lines[LineArray[0]].Line_InUseFeedbackInput <> Lines[LineArray[1]].Line_InUseFeedbackInput THEN
+    DebugStr := DebugStr + ' in use feedback inputs do not match;';
+  IF Lines[LineArray[0]].Line_Location <> Lines[LineArray[1]].Line_Location THEN
+    DebugStr := DebugStr + ' line locations do not match;';
+  IF Lines[LineArray[0]].Line_OutOfUseState <> Lines[LineArray[1]].Line_OutOfUseState THEN
+    DebugStr := DebugStr + ' out of use states do not match;';
+  IF Lines[LineArray[0]].Line_TypeOfLine <> Lines[LineArray[1]].Line_TypeOfLine THEN
+    DebugStr := DebugStr + ' out of use states do not match;';
+
+  FOR P := 0 TO High(Points) DO BEGIN
+    IF Points[P].Point_StraightLine = LineArray[1] THEN
+      DebugStr := DebugStr + ' point ' + IntToStr(P) + ' is attached to ' + LineToStr(LineArray[1]);
+    IF Points[P].Point_DivergingLine = LineArray[1] THEN
+      DebugStr := DebugStr + ' point ' + IntToStr(P) + ' is attached to ' + LineToStr(LineArray[1]);
+    IF Points[P].Point_HeelLine = LineArray[1] THEN
+      DebugStr := DebugStr + ' point ' + IntToStr(P) + ' is attached to ' + LineToStr(LineArray[1]);
+  END; {FOR}
+
+  { Remove any final semicolon for neatness }
+  IF DebugStr[Length(DebugStr)] = ';' THEN
+    DebugStr[Length(DebugStr)] := '.';
+
+  IF DebugStr <> '' THEN BEGIN
+    DebugStr := 'Problems in joining lines ' + LineToStr(LineArray[0]) + ' and ' + LineToStr(LineArray[1]) + ': ' + DebugStr;
+    Log('X ' + DebugStr + ' {WRAP=SCREENWIDTH}');
+    ShowMessage('Cannot join lines ' + LineToStr(LineArray[0]) + ' and ' + LineToStr(LineArray[1]) + ': incompatibilities found are recorded in the Log file');
+  END ELSE BEGIN
+    Lines[LineArray[0]].Line_GridDownX := Lines[LineArray[1]].Line_GridDownX;
+    Lines[LineArray[0]].Line_GridDownY := Lines[LineArray[1]].Line_GridDownY;
+    Lines[LineArray[0]].Line_EndOfLineMarker := Lines[LineArray[1]].Line_EndOfLineMarker;
+    Lines[LineArray[0]].Line_NextDownIsEndOfLine := Lines[LineArray[1]].Line_NextDownIsEndOfLine;
+    Lines[LineArray[0]].Line_NextDownLine := Lines[LineArray[1]].Line_NextDownLine;
+    Lines[LineArray[0]].Line_NextDownPoint := Lines[LineArray[1]].Line_NextDownPoint;
+    Lines[LineArray[0]].Line_NextDownType := Lines[LineArray[1]].Line_NextDownType;
+
+    DeleteLine(LineArray[1], OK);
+    IF OK THEN BEGIN
+      Lines[LineArray[0]].Line_DataChanged := True;
+      WriteOutLineDataToDatabase;
+    END;
+  END;
+END; { JoinLine }
 
 PROCEDURE SplitLine(OldLine, GridX, GridY : Integer);
 { Split a line at the point indicated }

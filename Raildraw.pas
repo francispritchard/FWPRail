@@ -3307,8 +3307,7 @@ BEGIN
   TRY
     { Now draw them all }
     FOR P := 0 TO High(Points) DO BEGIN
-      DrawPoint(P, PointColour);
-
+      DrawPoint(P, PointColour);
       IF ShowPointDetail AND Points[P].Point_OutOfUse THEN
         DrawPointNum(P, PointOutOfUseColour)
       ELSE
@@ -4207,10 +4206,10 @@ BEGIN
   END; {WITH}
 END; { SignalPopupMenuOnPopup }
 
-PROCEDURE TFWPRailWindow.PointPopupItemClick(Sender: TObject) ;
+PROCEDURE TFWPRailWindow.PointPopupItemClick(Sender: TObject);
 BEGIN
   WITH Points[PointPopupNum] DO BEGIN
-    WITH Sender As TMenuItemExtended DO BEGIN
+    WITH Sender AS TMenuItemExtended DO BEGIN
       CASE PopupType OF
         PointOutOfUsePopupType:
           BEGIN
@@ -4656,6 +4655,7 @@ END; { ChangeInternalLocoDirectionToDown }
 PROCEDURE TFWPRailWindow.LinePopupItemClick(Sender: TObject);
 VAR
   LineCount : Integer;
+  OK : Boolean;
   T : TrainIndex;
 
 BEGIN
@@ -4701,8 +4701,13 @@ BEGIN
             LineCreateCatchPointDownPopupType:
               CreatePoint(LinePopupNumArray, CatchPointDown, MouseX, MouseY);
 
-            LineDeleteLinePopupType:
-              DeleteLine(LinePopupNumArray[0]);
+            LineDeletePopupType:
+              DeleteLine(LinePopupNumArray[0], OK);
+
+            LineJoinPopupType:
+              JoinLine(LinePopupNumArray, MapScreenXToGridX(MouseX), MapScreenYToGridY(MouseY));
+            LineSplitPopupType:
+              SplitLine(LinePopupNumArray[0], MapScreenXToGridX(MouseX), MapScreenYToGridY(MouseY));
 
             LineEditPopupType:
               TurnEditModeOn(UnknownSignal, UnknownPoint, UnknownBufferStop, LinePopupNumArray[0], UnknownTrackCircuit);
@@ -4733,6 +4738,7 @@ BEGIN
                       END;
                     END;
                   END;
+
                   InvalidateScreen(UnitRef, 'LinePopupItemClick LineLocationOutOfUsePopupType');
                 END; {WITH}
               END;
@@ -4823,7 +4829,22 @@ END; { LinePopupItemClick }
 
 PROCEDURE TFWPRailWindow.LinePopupMenuOnPopup(Sender: TObject);
 VAR
+  NextLine : Integer;
   WhetherEnabled : Boolean;
+
+  FUNCTION LinesAreParallel(Line1, Line2 : Integer) : Boolean;
+  VAR
+    M1, M2 : Extended;
+
+  BEGIN
+    { Find the gradient of each line }
+    WITH Lines[Line1] DO
+      M1 := (Line_GridUpY - Line_GridDownY) / (Line_GridUpX - Line_GridDownX);
+    WITH Lines[Line2] DO
+      M2 := (Line_GridUpY - Line_GridDownY) / (Line_GridUpX - Line_GridDownX);
+
+    Result := Abs(M1 - M2) < 0.1;
+  END; { LinesAreParallel }
 
 BEGIN
   LinePopupMenu.Items.Clear;
@@ -4934,25 +4955,55 @@ BEGIN
         END ELSE BEGIN
           { otherwise add line-type items (and catch points) }
           Caption := 'Editing Line ' + LineToStr(LinePopupNumArray[0]) + ' ' + IfThen(Line_TC <> UnknownTrackCircuit,
-                                                                                'TC' + IntToStr(Line_TC));
+                                                                                      'TC' + IntToStr(Line_TC));
           AddMenuItem(LinePopupMenu, Caption, NoClickPopupType, NOT Enabled, NIL);
           AddMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, NIL);
 
-          AddMenuItem(LinePopupMenu, 'Delete Line ' + LineToStr(LinePopupNumArray[0]), LineDeleteLinePopupType, Enabled, LinePopupItemClick);
+          { Join two lines - see if the cursor is in one of the handle polygons, and the next line is at the same angle }
+          WhetherEnabled := False;
+          IF PointInPolygon(Line_UpHandlePolygon, Point(MouseX, MouseY)) THEN BEGIN
+            NextLine := Lines[LinePopupNumArray[0]].Line_NextUpLine;
+            IF NextLine <> UnknownLine THEN BEGIN
+              IF LinesAreParallel(LinePopupNumArray[0], NextLine) THEN BEGIN
+                SetLength(LinePopupNumArray, 2);
+                { move the existing up-line name so that the array is for these purposes up line followed by down line }
+                LinePopupNumArray[1] := LinePopupNumArray[0];
+                LinePopupNumArray[0] := NextLine;
+                WhetherEnabled := True;
+                  debug('LAP')
+              END else
+                  debug('LANP');
+            END;
+          END ELSE
+            IF PointInPolygon(Line_DownHandlePolygon, Point(MouseX, MouseY)) THEN BEGIN
+              NextLine := Lines[LinePopupNumArray[0]].Line_NextDownLine;
+              IF NextLine <> UnknownLine THEN
+                IF LinesAreParallel(LinePopupNumArray[0], NextLine) THEN BEGIN
+                  SetLength(LinePopupNumArray, 2);
+                  { add the new down-line name so that the array is for these purposes up line followed by down line }
+                  LinePopupNumArray[1] := NextLine;
+                  WhetherEnabled := True;
+                  debug('LAP')
+                END else
+                  debug('LANP');
+            END;
+
+          IF Length(LinePopupNumArray) > 1 THEN
+            AddMenuItem(LinePopupMenu, 'Join Lines ' + LineToStr(LinePopupNumArray[0]) + ' and ' + LineToStr(LinePopupNumArray[1]),
+                                                                                                                     LineJoinPopupType, WhetherEnabled, LinePopupItemClick);
+          AddMenuItem(LinePopupMenu, 'Split Line ' + LineToStr(LinePopupNumArray[0]), LineSplitPopupType, Enabled, LinePopupItemClick);
+          AddMenuItem(LinePopupMenu, 'Delete Line ' + LineToStr(LinePopupNumArray[0]), LineDeletePopupType, Enabled, LinePopupItemClick);
           AddMenuItem(LinePopupMenu, 'Allocate Track Circuit ' + LineToStr(LinePopupNumArray[0]), LineAllocateTrackCircuitPopupType, Enabled, LinePopupItemClick);
           AddMenuItem(LinePopupMenu, 'Remove Track Circuit ' + LineToStr(LinePopupNumArray[0]), LineRemoveTrackCircuitPopupType, Enabled, LinePopupItemClick);
 
           AddMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, NIL);
 
           WhetherEnabled := SignalAdjacentLineOK(LinePopupNumArray[0]);
-          AddMenuItem(LinePopupMenu, 'Create Line', LineEnterCreateLinePopupType, WhetherEnabled, LinePopupItemClick);
-
           AddMenuItem(LinePopupMenu, 'Create Up Signal', LineCreateUpSignalPopupType, WhetherEnabled, LinePopupItemClick);
           AddMenuItem(LinePopupMenu, 'Create Down Signal', LineCreateDownSignalPopupType, WhetherEnabled, LinePopupItemClick);
 
           { Catch points: check to see if the line we're on is horizontal, and use the handle polygons to work out whether we want the up or down end of the line }
-          WhetherEnabled := (Length(LinePopupNumArray) = 1)
-                            AND (Lines[LinePopupNumArray[0]].Line_GridUpY = Lines[LinePopupNumArray[0]].Line_GridDownY)
+          WhetherEnabled := (Lines[LinePopupNumArray[0]].Line_GridUpY = Lines[LinePopupNumArray[0]].Line_GridDownY)
                             AND ((PointInPolygon(Line_UpHandlePolygon, Point(MouseX, MouseY)))
                                 OR (PointInPolygon(Line_DownHandlePolygon, Point(MouseX, MouseY))));
           AddMenuItem(LinePopupMenu, 'Create Up Catch Point', LineCreateCatchPointUpPopupType, WhetherEnabled, LinePopupItemClick);
