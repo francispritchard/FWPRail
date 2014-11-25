@@ -7075,25 +7075,11 @@ BEGIN
    END; {WITH}
 END; { WMVScroll }
 
-PROCEDURE LoadIcons;
-{ The icons are held in the system resource file, itself compiled by using "brcc32 -v rail.rc" from the command prompt. The file "rail.rc" is the resource script file. }
-BEGIN
-  EditIcon := TIcon.Create;
-  OnlineIcon := TIcon.Create;
-  OfflineIcon := TIcon.Create;
-
-  EditIcon.Handle := LoadIcon(hInstance, 'EditIcon');
-  OnlineIcon.Handle := LoadIcon(hInstance, 'OnlineIcon');
-  OfflineIcon.Handle := LoadIcon(hInstance, 'OfflineIcon');
-END; { LoadIcons }
-
 PROCEDURE InitialiseRaildrawUnit;
 { Initialises the unit }
 BEGIN
   TRY
     WITH FWPRailWindow DO BEGIN
-      LoadIcons;
-
 //      { Intercept messages }
 //      Application.OnMessage := ApplicationMessage;
 
