@@ -7094,7 +7094,7 @@ BEGIN
     WITH FWPRailWindow DO BEGIN
       LoadIcons;
 
-//      { Intercept messages to be able to use the tab key! }
+//      { Intercept messages }
 //      Application.OnMessage := ApplicationMessage;
 
       { initialize parameters }
