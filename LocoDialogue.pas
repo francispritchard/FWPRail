@@ -526,7 +526,7 @@ BEGIN
 
         LocoDialogueEmergencyStopButton.Enabled := True;
         LocoDialogueLocoTimerStartStopButton.Enabled := True;
-        IF NOT LocoSpeedTimingMode THEN
+        IF NOT InLocoSpeedTimingMode THEN
           LocoDialogueLocoTimerStartStopButton.Caption := 'Start Loco Timer'
         ELSE
           LocoDialogueLocoTimerStartStopButton.Caption := 'Stop Loco Timer';
@@ -1780,7 +1780,7 @@ BEGIN
     END ELSE BEGIN
       LocoDialogueLocoTimerStartStopButton.Caption := 'Start Loco Timer';
       Log(LocoChipToStr(LocoDialogueLocoChip) + ' *G Loco speed test completed');
-      LocoSpeedTimingMode := False;
+      SetMode(LocoSpeedTiming, False);
       LocoDialogueSpeedDisplay.Color := clBtnFace;
     END;
 

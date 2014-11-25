@@ -1232,7 +1232,7 @@ BEGIN
     OK := False;
   END ELSE BEGIN
     { Is signal being locked by the user, and it's already locked by a route, or is it locked by any route but the current one? }
-    IF LockingMode
+    IF InLockingMode
     AND (ResetTC = UnknownTrackCircuit)
     AND (((Route = UnknownRoute) AND SignalIsLockedByAnyRoute(S, RouteLockingArray))
          OR (SignalIsLockedByAnyRoute(S, RouteLockingArray)
@@ -1265,7 +1265,7 @@ BEGIN
       END;
       OK := False;
     END ELSE BEGIN
-      IF LockingMode AND SignalIsLockedByOppositePassingLoopSignal(S, OtherS) THEN BEGIN
+      IF InLockingMode AND SignalIsLockedByOppositePassingLoopSignal(S, OtherS) THEN BEGIN
         OK := False;
         IF NOT Signals[S].Signal_FailMsgWritten THEN BEGIN
           IF NOT User THEN
@@ -1276,7 +1276,7 @@ BEGIN
           Forbid;
         END;
       END ELSE BEGIN
-        IF LockingMode AND SignalIsLockedByUser(S) AND (Route <> UnknownRoute) THEN BEGIN
+        IF InLockingMode AND SignalIsLockedByUser(S) AND (Route <> UnknownRoute) THEN BEGIN
           OK := False;
           IF NOT Signals[S].Signal_FailMsgWritten THEN BEGIN
             Log(LocoChipStr + ' R R=' + IntToStr(Route) +
@@ -1286,7 +1286,7 @@ BEGIN
           END;
         END ELSE BEGIN
           { Check that both the signals and the track circuit occupation resetting them, if locked, are locked by the same route }
-          IF LockingMode AND (ResetTC <> UnknownTrackCircuit) THEN BEGIN
+          IF InLockingMode AND (ResetTC <> UnknownTrackCircuit) THEN BEGIN
             IF SignalIsLockedByAnyRoute(S, RouteLockingArray) THEN BEGIN
               IF NOT IsElementInIntegerArray(RouteLockingArray, TrackCircuits[ResetTC].TC_LockedForRoute) THEN BEGIN
                 IF NOT User THEN
@@ -1521,7 +1521,7 @@ BEGIN
             END;
           END;
 
-          IF OK AND LockingMode THEN BEGIN
+          IF OK AND InLockingMode THEN BEGIN
             { If there's nothing in the locking array, it's ok, otherwise test the locking }
             OK := SignalLockingOK(LocoChipStr, S, Signals[S].Signal_RouteLockingNeededArray, ShowError);
             IF OK AND (Signals[S].Signal_Aspect = RedAspect) THEN BEGIN
@@ -1537,7 +1537,7 @@ BEGIN
         { Check that the previous signal is not a theatre in the process of being set up - a bit esoteric, this check, but necessary, as the previous signal could not
           otherwise be completely pulled off
         }
-        IF OK AND LockingMode THEN BEGIN
+        IF OK AND InLockingMode THEN BEGIN
           IF (Signals[S].Signal_PreviousSignal1 <> UnknownSignal)
           AND (Signals[Signals[S].Signal_PreviousSignal1].Signal_Aspect = RedAspect)
           AND (Signals[Signals[S].Signal_PreviousSignal1].Signal_Indicator = TheatreIndicator)
@@ -1592,7 +1592,7 @@ BEGIN
           UnlockSignalLockedByUser(S);
         END;
 
-        IF NOT OK AND LockingMode THEN BEGIN
+        IF NOT OK AND InLockingMode THEN BEGIN
           SetLength(Signals[S].Signal_RouteLockingNeededArray, 0);
           IF (Route <> UnknownRoute) AND Routes_RouteSettingsInProgress[Route] THEN BEGIN
             Signals[S].Signal_StateChanged := False;
@@ -1743,7 +1743,7 @@ BEGIN
     END ELSE BEGIN
       PointChangedOK := False;
       EmergencyDeselectPointOK := False;
-      IF (LockingMode AND PointIsLocked(P, LockingFailureString)) AND NOT ForcePoint THEN BEGIN
+      IF (InLockingMode AND PointIsLocked(P, LockingFailureString)) AND NOT ForcePoint THEN BEGIN
         IF User THEN
           Log(LocoChipStr + ' P Attempt by user to change P=' + IntToStr(P) + ' failed - ' + LockingFailureString);
         IF PointIsLocked(P, LockingFailureString) THEN BEGIN
@@ -1777,7 +1777,7 @@ BEGIN
 //        END;
 
         { Also stop a point being changed over and over in quick succession by two competing routes }
-        IF InAutoMode AND (Route <> UnknownRoute) AND LockingMode AND NOT Point_SecondAttempt AND (IncSecond(Point_LastChangedTime, 10) > Time) THEN BEGIN
+        IF InAutoMode AND (Route <> UnknownRoute) AND InLockingMode AND NOT Point_SecondAttempt AND (IncSecond(Point_LastChangedTime, 10) > Time) THEN BEGIN
           IF NOT Point_ForcedDelayMsg2Written THEN BEGIN
             ErrorMsg := ': 10 seconds forced delay after previously changing';
             Log(LocoChipStr + ' P P=' + IntToStr(P) + ErrorMsg);
@@ -1865,7 +1865,7 @@ BEGIN
                         IF User THEN
                           DebugStr := DebugStr + ' by user';
 
-                        IF RecordLineDrawingMode THEN BEGIN
+                        IF InRecordLineDrawingMode THEN BEGIN
                           IF Point_RequiredState = Straight THEN
                             Log(LocoChipStr + ' P P=' + IntToStr(P) + ' D=S')
                           ELSE
@@ -1954,7 +1954,7 @@ BEGIN
                 ELSE
                   Point_PresentState := Diverging;
 
-                IF RecordLineDrawingMode THEN BEGIN
+                IF InRecordLineDrawingMode THEN BEGIN
                   IF Point_PresentState = Straight THEN
                     Log(LocoChipStr + ' P P=' + IntToStr(P) + ' D=S')
                   ELSE

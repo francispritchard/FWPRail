@@ -366,6 +366,63 @@ FUNCTION IfThenTime{1}(Test : Boolean; Time1, Time2 : TDateTime) : TDateTime; Ov
 FUNCTION IfThenTime{2}(Test : Boolean; Time : TDateTime) : TDateTime; Overload;
 { Returns the supplied time if the test is true. (The system IfThen routine doesn't work with TDateTime values) }
 
+FUNCTION InAllRouteDebuggingMode : Boolean;
+{ Return the status of AllRouteDebuggingMode }
+
+FUNCTION InAnonymousOccupationMode : Boolean;
+{ Return the status of AnonymousOccupationMode }
+
+FUNCTION InDebuggingMode : Boolean;
+{ Return the status of DebuggingMode }
+
+FUNCTION InFeedbackDebuggingMode : Boolean;
+{ Return the status of FeedbackDebuggingMode }
+
+FUNCTION InLineDebuggingMode : Boolean;
+{ Return the status of LineDebuggingMode }
+
+FUNCTION InLockDebuggingMode : Boolean;
+{ Return the status of LockDebuggingMode }
+
+FUNCTION InLockingMode : Boolean;
+{ Return the status of LockingMode }
+
+FUNCTION InLocoSpeedTimingMode : Boolean;
+{ Return the status of LocoSpeedTimingMode }
+
+FUNCTION InLogsCurrentlyKeptMode : Boolean;
+{ Return the status of LogsCurrentlyKeptMode }
+
+FUNCTION InPointDebuggingMode : Boolean;
+{ Return the status of PointDebuggingMode }
+
+FUNCTION InRDCMode : Boolean;
+{ Return the status of RDCMode }
+
+FUNCTION InRecordingMonitorScreensMode : Boolean;
+{ Return the status of RecordingMonitorScreensMode }
+
+FUNCTION InRecordLineDrawingMode : Boolean;
+{ Return the status of RecordLineDrawingMode }
+
+FUNCTION InRouteDebuggingMode : Boolean;
+{ Return the status of RouteDebuggingMode }
+
+FUNCTION InRouteBacktrackDebuggingMode : Boolean;
+{ Return the status of RouteBacktrackDebuggingMode }
+
+FUNCTION InRouteDrawingMode : Boolean;
+{ Return the status of RouteDrawingMode }
+
+FUNCTION InShowAdjacentTrackCircuitMode: Boolean;
+{ Return the status of ShowAdjacentTrackCircuitMode }
+
+FUNCTION InStationStartMode: Boolean;
+{ Return the status of StationStartMode }
+
+FUNCTION InTestingMode: Boolean;
+{ Return the status of TestingMode }
+
 FUNCTION IndicatorToStr(I : IndicatorType; LongOrShortString : StringType) : String;
 { Return the type a route indicator is }
 
@@ -934,23 +991,156 @@ CONST
   RichEditChars = True;
 
 VAR
+  AllRouteDebuggingMode : Boolean = False;
+  AnonymousOccupationMode : Boolean = True;
+  DebuggingMode : Boolean = False;
   DrawLineInLogFileAfter : Boolean = False;
   DrawLineInLogFileBefore : Boolean = False;
   DrawLineInLogFileOnly : Boolean = False;
+  FeedbackDebuggingMode : Boolean = False;
   IdenticalLineMsgWritten : Boolean = False;
   InitialisationCount : Integer;
-  LastSoundTime : TDateTime = 0;
   LastLogLineStr : String = '';
+  LastSoundTime : TDateTime = 0;
   LineAfterJustDrawn : Boolean = False;
+  LineDebuggingMode : Boolean = False;
+  LockDebuggingMode : Boolean = False;
+  LockingMode : Boolean = True;
+  LocoSpeedTimingMode : Boolean = False;
   LogArray : StringArrayType;
+  LogsCurrentlyKeptMode : Boolean = True;
   OldDebugStr : String = '';
   OperationsStopped : Boolean = False;
+  PointDebuggingMode : Boolean = False;
   PreviousLogTime : TDateTime = 0;
+  RDCMode : Boolean = False;
+  RecordingMonitorScreensMode : Boolean = False;
+  RecordLineDrawingMode : Boolean = False;
+  RouteBacktrackDebuggingMode : Boolean = False;
+  RouteDebuggingMode : Boolean = False;
+  RouteDrawingMode : Boolean = False;
   SaveLogStrArray : ARRAY [1..MaxSaveLogStrs] OF String;
+  ShowAdjacentTrackCircuitMode : Boolean = False;
+  StationStartMode : Boolean;
   StoredRichEditLoggingTextArray : StringArrayType;
-  UserDebugText : String = '';
-  TestCounter : Integer = 0; { used to test iterations in debugging }
   TempSaveLogStr : String = '';
+  TestCounter : Integer = 0; { used to test iterations in debugging }
+  TestingMode : Boolean = False;
+  UserDebugText : String = '';
+
+FUNCTION InAllRouteDebuggingMode : Boolean;
+{ Return the status of AllRouteDebuggingMode }
+BEGIN
+  Result := AllRouteDebuggingMode;
+END; { InAllRouteDebuggingMode }
+
+FUNCTION InAnonymousOccupationMode : Boolean;
+{ Return the status of AnonymousOccupationMode }
+BEGIN
+  Result := AnonymousOccupationMode;
+END; { InAnonymousOccupationMode }
+
+FUNCTION InDebuggingMode : Boolean;
+{ Return the status of DebuggingMode }
+BEGIN
+  Result := DebuggingMode;
+END; { InDebuggingModeMode }
+
+FUNCTION InFeedbackDebuggingMode : Boolean;
+{ Return the status of FeedbackDebuggingMode }
+BEGIN
+  Result := FeedbackDebuggingMode;
+END; { InFeedbackDebuggingModeMode }
+
+FUNCTION InLineDebuggingMode : Boolean;
+{ Return the status of LineDebuggingMode }
+BEGIN
+  Result := LineDebuggingMode;
+END; { InLineDebuggingMode }
+
+FUNCTION InLockDebuggingMode : Boolean;
+{ Return the status of LockDebuggingMode }
+BEGIN
+  Result := LockDebuggingMode;
+END; { InLockDebuggingMode }
+
+FUNCTION InLockingMode : Boolean;
+{ Return the status of LockingMode }
+BEGIN
+  Result := LockingMode;
+END; { InLockingMode }
+
+FUNCTION InLocoSpeedTimingMode : Boolean;
+{ Return the status of LocoSpeedTimingMode }
+BEGIN
+  Result := LocoSpeedTimingMode;
+END; { InLocoSpeedTimingMode }
+
+FUNCTION InLogsCurrentlyKeptMode : Boolean;
+{ Return the status of LogsCurrentlyKeptMode }
+BEGIN
+  Result := LogsCurrentlyKeptMode;
+END; { InLogsCurrentlyKeptMode }
+
+FUNCTION InPointDebuggingMode : Boolean;
+{ Return the status of PointDebuggingMode }
+BEGIN
+  Result := PointDebuggingMode;
+END; { InPointDebuggingMode }
+
+FUNCTION InRDCMode : Boolean;
+{ Return the status of RDCMode }
+BEGIN
+  Result := RDCMode;
+END; { InRDCMode }
+
+FUNCTION InRecordingMonitorScreensMode : Boolean;
+{ Return the status of RecordingMonitorScreensMode }
+BEGIN
+  Result := RecordingMonitorScreensMode;
+END; { InRecordingMonitorScreensMode }
+
+FUNCTION InRecordLineDrawingMode : Boolean;
+{ Return the status of RecordLineDrawingMode }
+BEGIN
+  Result := RecordingMonitorScreensMode;
+END; { InRecordLineDrawingMode }
+
+FUNCTION InRouteDebuggingMode : Boolean;
+{ Return the status of RouteDebuggingMode }
+BEGIN
+  Result := RouteDebuggingMode;
+END; { InRouteDebuggingMode }
+
+FUNCTION InRouteDrawingMode : Boolean;
+{ Return the status of RouteDrawingMode }
+BEGIN
+  Result := RouteDrawingMode;
+END; { InRouteDrawingMode }
+
+FUNCTION InRouteBacktrackDebuggingMode : Boolean;
+{ Return the status of RouteBacktrackDebuggingMode }
+BEGIN
+  Result := RouteBacktrackDebuggingMode;
+END; { InRouteBacktrackDebuggingMode }
+
+FUNCTION InShowAdjacentTrackCircuitMode : Boolean;
+{ Return the status of ShowAdjacentTrackCircuitMode }
+BEGIN
+  Result := ShowAdjacentTrackCircuitMode;
+END; { InShowAdjacentTrackCircuitMode }
+
+FUNCTION InStationStartMode : Boolean;
+{ Return the status of StationStartMode }
+BEGIN
+  Result := StationStartMode;
+END; { InStationStartMode }
+
+FUNCTION InTestingMode : Boolean;
+{ Return the status of TestingMode }
+BEGIN
+  Result := TestingMode;
+END; { InTestingMode }
 
 PROCEDURE WriteToLogFile(LogStr : String); Overload;
 { Write the data to the log file, adding the LocoChip and UnitRef, and wrapping and indenting if required. The syntax is: LocoChip, TypeOfLog, LogString, and parameters
@@ -1329,7 +1519,7 @@ VAR
 
 BEGIN { WriteToLogFile }
   TRY
-    IF LogsCurrentlyKept THEN BEGIN
+    IF InLogsCurrentlyKeptMode THEN BEGIN
       { Set up the internal logging window }
       IF LoggingWindow = NIL THEN BEGIN
         LoggingWindow := TLoggingWindow.Create(Application);
@@ -1406,6 +1596,7 @@ BEGIN { WriteToLogFile }
             'L', 'l',
             'R', 'r',
             'D', 'd',
+            'G', 'g',
             'W', 'w',
             '*', '+',
             'E', 'e', 'X', 'x':
@@ -5554,7 +5745,7 @@ BEGIN
     Inc(I);
   END; {WHILE}
 
-  IF DebuggingMode AND (Length(DuplicateElements) > 0) THEN BEGIN
+  IF InDebuggingMode AND (Length(DuplicateElements) > 0) THEN BEGIN
     Log('X Have removed the following duplicate elements');
     WriteStringArrayToLog(UnknownLocoChipStr, 'X', DuplicateElements);
     Log('X from the following string array');
@@ -5597,7 +5788,7 @@ BEGIN
     Inc(I);
   END; {WHILE}
 
-  IF DebuggingMode AND (Length(DuplicateElements) > 0) THEN BEGIN
+  IF InDebuggingMode AND (Length(DuplicateElements) > 0) THEN BEGIN
     Debug('Have removed the following duplicate elements');
     Debug(DescribeIntegerArray(DuplicateElements));
     Debug('from the following Integer array');
@@ -6505,7 +6696,7 @@ BEGIN
     CASE TypeOfMode OF
       AllRouteDebugging:
         IF NOT AllRouteDebuggingMode THEN BEGIN
-          AllRouteDebuggingMode := True;
+          SetMode(AllRouteDebugging, True);
           Log('A All Route Debugging Mode = ON');
           WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' ALLROUTE');
         END;
@@ -6514,6 +6705,12 @@ BEGIN
           AnonymousOccupationMode := True;
           Log('A Anonymous Occupation Mode = ON');
           WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' ANON');
+        END;
+      FeedbackDebugging:
+        IF NOT FeedbackDebuggingMode THEN BEGIN
+          FeedbackDebuggingMode := True;
+          Log('A Feedback Debugging Mode = ON');
+          WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' FBCK ');
         END;
       GeneralDebugging:
         IF NOT DebuggingMode THEN BEGIN
@@ -6531,12 +6728,25 @@ BEGIN
         IF NOT LockDebuggingMode THEN BEGIN
           LockDebuggingMode := True;
           Log('A Lock Debugging Mode = ON');
+          WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' LOCK');
         END;
       Locking:
         IF NOT LockingMode THEN BEGIN
           LockingMode := True;
           Log('AG Locking Mode = ON');
-          WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' LOCK');
+          WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' LDB');
+        END;
+      LocoSpeedTiming:
+        IF NOT LocoSpeedTimingMode THEN BEGIN
+          LocoSpeedTimingMode := True;
+          Log('AG Loco Speed Timing Mode = ON');
+          WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' LST');
+        END;
+      LogsCurrentlyKept:
+        IF NOT LogsCurrentlyKeptMode THEN BEGIN
+          LogsCurrentlyKeptMode := True;
+          Log('AG Logs Currently Kept Mde = ON');
+          WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' LCK');
         END;
       PointDebugging:
         IF NOT PointDebuggingMode THEN BEGIN
@@ -6614,7 +6824,7 @@ BEGIN
     CASE TypeOfMode OF
       AllRouteDebugging:
         IF AllRouteDebuggingMode THEN BEGIN
-          AllRouteDebuggingMode := False;
+          SetMode(AllRouteDebugging, False);
           Log('A All Route Debugging Mode = OFF');
           RemoveStringFromStatusPanel('ALLROUTE');
         END;
@@ -6623,6 +6833,12 @@ BEGIN
           AnonymousOccupationMode := False;
           Log('A Anonymous Occupation Mode = OFF');
           RemoveStringFromStatusPanel('ANON');
+        END;
+      FeedbackDebugging:
+        IF FeedbackDebuggingMode THEN BEGIN
+          FeedbackDebuggingMode := False;
+          Log('A Feedback Debugging Mode = OFF');
+          RemoveStringFromStatusPanel('FBCK');
         END;
       GeneralDebugging:
         IF DebuggingMode THEN BEGIN
@@ -6640,13 +6856,25 @@ BEGIN
         IF LockDebuggingMode THEN BEGIN
           LockDebuggingMode := False;
           Log('A Lock Debugging Mode = OFF');
-          RemoveStringFromStatusPanel('LOCK');
+          RemoveStringFromStatusPanel('LDB');
         END;
       Locking:
         IF LockingMode THEN BEGIN
           LockingMode := False;
           Log('AG Locking Mode = OFF');
-          RemoveStringFromStatusPanel('LOCKING=OFF');
+          RemoveStringFromStatusPanel('LOCK');
+        END;
+      LocoSpeedTiming:
+        IF LocoSpeedTimingMode THEN BEGIN
+          LocoSpeedTimingMode := False;
+          Log('AG Loco Speed Timing Mode = OFF');
+          RemoveStringFromStatusPanel('LST');
+        END;
+      LogsCurrentlyKept:
+        IF LogsCurrentlyKeptMode THEN BEGIN
+          LogsCurrentlyKeptMode := False;
+          Log('AG Logs Currently Kept = OFF');
+          RemoveStringFromStatusPanel('LCK');
         END;
       PointDebugging:
         IF PointDebuggingMode THEN BEGIN
@@ -6672,17 +6900,17 @@ BEGIN
           Log('A Record Line Drawing Mode = OFF');
           RemoveStringFromStatusPanel('LINEDRAWING');
         END;
-      RouteDebugging:
-        IF RouteDebuggingMode THEN BEGIN
-          RouteDebuggingMode := False;
-          Log('A Route Debugging Mode = OFF');
-          RemoveStringFromStatusPanel('ROUTE');
-        END;
       RouteBacktrackDebugging:
         IF RouteBacktrackDebuggingMode THEN BEGIN
           RouteBacktrackDebuggingMode := False;
           Log('A RouteBacktrack Debugging Mode = OFF');
           RemoveStringFromStatusPanel('BACKTRACK');
+        END;
+      RouteDebugging:
+        IF RouteDebuggingMode THEN BEGIN
+          RouteDebuggingMode := False;
+          Log('A Route Debugging Mode = OFF');
+          RemoveStringFromStatusPanel('ROUTE');
         END;
       RouteDrawing:
         IF RouteDrawingMode THEN BEGIN
@@ -6918,7 +7146,7 @@ BEGIN { ShutDownProgram }
 
       { Write then close the log file }
       WriteToLogFileAndTestFile := True;
-      IF RDCMode AND RailDriverInitialised THEN BEGIN
+      IF InRDCMode AND RailDriverInitialised THEN BEGIN
         WriteToRailDriverLEDs('');
         CloseRailDriver;
       END;
@@ -6937,7 +7165,7 @@ BEGIN { ShutDownProgram }
       StopLANUSBServer;
 
     Log('A Shut down initiated in ' + UnitRef + ' unit, ' + SubroutineStr + ' subroutine' + ' is now complete (' + DescribeActualDateAndTime + ')');
-    IF LogsCurrentlyKept THEN BEGIN
+    IF InLogsCurrentlyKeptMode THEN BEGIN
       CloseFile(TestLogFile);
       CloseFile(LargeLogFile);
       IF MultipleLogFilesRequired THEN BEGIN

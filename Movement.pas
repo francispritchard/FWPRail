@@ -220,7 +220,7 @@ BEGIN
             END;
 
             { If the occupation has lasted more than a second and we don't know who's there, call a temporary halt }
-            IF NOT OK AND AnonymousOccupationMode THEN BEGIN
+            IF NOT OK AND InAnonymousOccupationMode THEN BEGIN
               Log('XG TC=' + IntToStr(TC) + ' has been anonymously occupied for ' + IntToStr(TCOccupationTimeInMilliSeconds) + ' ms');
               TurnAutoModeOff(NOT ByUser);
               ShowMessage('TC=' + IntToStr(TC) + ' has been anonymously occupied for ' + IntToStr(TCOccupationTimeInMilliSeconds) + ' ms' + ': auto mode suspended');
@@ -1878,7 +1878,7 @@ PROCEDURE MoveAllTrains;
               END;
             END;
 
-            IF RDCMode AND RailDriverInitialised AND RailDriverCalibrated { AND (Train_ControlledByState = ControlledByRDC) }
+            IF InRDCMode AND RailDriverInitialised AND RailDriverCalibrated { AND (Train_ControlledByState = ControlledByRDC) }
             THEN BEGIN
               Train_DesiredSpeedInMPH := Stop;
               SetSpeedByRailDriverConsole(Train_LocoIndex);

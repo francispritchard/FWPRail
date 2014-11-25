@@ -658,7 +658,6 @@ VAR
   StationSameDirectionExitMinimumWaitTimeInMinutes : Integer = 1;
 
   DefaultStationStartMode : Boolean = False;
-  StationStartMode : Boolean;
 
   DefaultStationStartOfDayPassengerBoardingTimeInMinutes : Integer = 4;
   StationStartOfDayPassengerBoardingTimeInMinutes : Integer = 4;
@@ -2163,7 +2162,7 @@ BEGIN
     WriteBoolTwice(OtherOptionsSectionStr, StationMonitorsWebPageRequiredStr, StationMonitorsWebPageRequired);
     WriteIntegerTwice(OtherOptionsSectionStr, StationOppositeDirectionExitMinimumWaitTimeInMinutesStr, StationOppositeDirectionExitMinimumWaitTimeInMinutes);
     WriteIntegerTwice(OtherOptionsSectionStr, StationSameDirectionExitMinimumWaitTimeInMinutesStr, StationSameDirectionExitMinimumWaitTimeInMinutes);
-    WriteBoolTwice(OtherOptionsSectionStr, StationStartModeStr, StationStartMode);
+    WriteBoolTwice(OtherOptionsSectionStr, StationStartModeStr, InStationStartMode);
     WriteIntegerTwice(OtherOptionsSectionStr, StationStartOfDayPassengerBoardingTimeInMinutesStr, StationStartOfDayPassengerBoardingTimeInMinutes);
     WriteBoolTwice(OtherOptionsSectionStr, StopAllLocosAtShutDownStr, StopAllLocosAtShutDown);
     WriteBoolTwice(OtherOptionsSectionStr, SwitchActiveLocoLightsOffAtShutDownStr, SwitchActiveLocoLightsOffAtShutDown);
@@ -2520,7 +2519,7 @@ BEGIN
 
       Values[StationSameDirectionExitMinimumWaitTimeInMinutesStr] := IntToStr(StationSameDirectionExitMinimumWaitTimeInMinutes);
 
-      Values[StationStartModeStr] := BoolToStr(StationStartMode, True);
+      Values[StationStartModeStr] := BoolToStr(InStationStartMode, True);
       ItemProps[StationStartModeStr].PickList.Add('True');
       ItemProps[StationStartModeStr].PickList.Add('False');
       ItemProps[StationStartModeStr].EditStyle := esPickList;
@@ -2700,6 +2699,9 @@ PROCEDURE SaveOptionFromValueList(KeyName, NewKeyValue : String);
     END; {WITH}
   END; { CheckBooleanValueListValue }
 
+VAR
+  TempStationStartMode : Boolean;
+
 BEGIN
   TRY
     WITH OptionsWindow.OptionsValueListEditor DO BEGIN
@@ -2867,7 +2869,8 @@ BEGIN
       CheckBooleanValueListValue(KeyName, StationMonitorsWebPageRequiredStr, NewKeyValue, StationMonitorsWebPageRequired);
       CheckIntegerValueListValue(KeyName, StationOppositeDirectionExitMinimumWaitTimeInMinutesStr, NewKeyValue, StationOppositeDirectionExitMinimumWaitTimeInMinutes);
       CheckIntegerValueListValue(KeyName, StationSameDirectionExitMinimumWaitTimeInMinutesStr, NewKeyValue, StationSameDirectionExitMinimumWaitTimeInMinutes);
-      CheckBooleanValueListValue(KeyName, StationStartModeStr, NewKeyValue, StationStartMode);
+      TempStationStartMode := InStationStartMode;
+        CheckBooleanValueListValue(KeyName, StationStartModeStr, NewKeyValue, TempStationStartMode);
       CheckIntegerValueListValue(KeyName, StationStartOfDayPassengerBoardingTimeInMinutesStr, NewKeyValue, StationStartOfDayPassengerBoardingTimeInMinutes);
       CheckBooleanValueListValue(KeyName, StopAllLocosAtShutDownStr, NewKeyValue, StopAllLocosAtShutDown);
       CheckBooleanValueListValue(KeyName, SwitchActiveLocoLightsOffAtShutDownStr, NewKeyValue, SwitchActiveLocoLightsOffAtShutDown);

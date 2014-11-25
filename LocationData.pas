@@ -61,7 +61,7 @@ VAR
 
 IMPLEMENTATION
 
-USES MiscUtils, StrUtils, LocoUtils, Diagrams, DateUtils, RailDraw, Locks, Input, GetTime, Lenz, Options;
+USES MiscUtils, StrUtils, LocoUtils, Diagrams, DateUtils, RailDraw, Locks, Input, GetTime, Lenz, Options, Startup;
 
 {$R *.dfm}
 
@@ -1091,7 +1091,7 @@ CONST
         WITH Trains[T] DO BEGIN
           SuccessMsg := '';
       
-          IF DebuggingMode THEN
+          IF InDebuggingMode THEN
             Log(Train_LocoChipStr + ' D ' + DisplayJourneyNumber(Journey) + 'Finding next available location:');
 
           { Clear the array first }
@@ -1137,7 +1137,7 @@ CONST
             END;
           END;
 
-          IF DebuggingMode THEN
+          IF InDebuggingMode THEN
             FOR AvailabilityArrayPos := 0 TO High(AvailabilityArray) DO
               Log('X ' + TimeToHMStr(AvailabilityArray[AvailabilityArrayPos].LocationOccupation_StartTime)
                      + 'to' + TimeToHMStr(AvailabilityArray[AvailabilityArrayPos].LocationOccupation_EndTime));
@@ -1166,7 +1166,7 @@ CONST
             { See if the minute is occupied }
             IF NOT MinutesOccupiedArray[I] THEN BEGIN
               IF SavedMinute = 0 THEN BEGIN
-                IF DebuggingMode THEN
+                IF InDebuggingMode THEN
                   Log('X found gap at ' + TimeToHMStr(GetTimeFromMinute(I)));
                 SavedMinute := I;
               END;

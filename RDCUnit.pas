@@ -750,7 +750,7 @@ BEGIN
   RailDriverWindow.Hide;
   IF NOT RailDriverInitialised THEN BEGIN
     RailDriverWindow.RailDriverTimer.Enabled := False;
-    RDCMode := False;
+    SetMode(RDC, False);
     Log('AG RDC Mode turned off');
     WriteToRailDriverLEDs('');
   END;
@@ -2018,7 +2018,7 @@ BEGIN
     Action := caNone
   ELSE BEGIN
     Log('AG RailDriver window closed - RDC Mode off');
-    RDCMode := False;
+    SetMode(RDC, False);
   END;
 END; { RailDriverWindowClose }
 

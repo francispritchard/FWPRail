@@ -1402,7 +1402,7 @@ BEGIN
         UNTIL (ExpectedReply = NoReplyExpected) OR ExpectedDataReceived OR TimedOut OR ErrorFound OR (RetryFlag = True);
 
         IF UnRequestedDataFound THEN BEGIN
-          IF TestingMode THEN
+          IF InTestingMode THEN
             DebugWindow.Caption := DebugWindow.Caption + '.';
         END;
       END;

@@ -173,7 +173,7 @@ VAR
           IF StationMonitorsWebPageRequired AND (StationMonitorsWebPage <> NIL) THEN
             ExpectedColumnStr := ExpectedColumnStr + '<span class="ttentry">' + ActualTimeStr + '</span>';
 
-          IF RecordingMonitorScreensMode THEN
+          IF InRecordingMonitorScreensMode THEN
             Log('T ' + DebugStr + ' {NOUNITREF}');
         END; {WITH}
         Inc(I);
@@ -212,7 +212,7 @@ VAR
                                + '    <span class="ttheading">Expected</span>';
         END;
 
-        IF RecordingMonitorScreensMode THEN
+        IF InRecordingMonitorScreensMode THEN
           Log('T Arrivals' + ' {NOUNITREF}');
 
         SetLength(TimetableArray, 0);
@@ -350,7 +350,7 @@ VAR
                              + '    <span class="ttheading">Expected</span>';
       END;
 
-      IF RecordingMonitorScreensMode THEN
+      IF InRecordingMonitorScreensMode THEN
         Log('T Departures' + ' {NOUNITREF}');
 
       SetLength(TimetableArray, 0);
@@ -477,7 +477,7 @@ BEGIN
         IF StationMonitorDisplay = StationClockDisplay THEN BEGIN
 
         END ELSE BEGIN
-          IF RecordingMonitorScreensMode THEN BEGIN
+          IF InRecordingMonitorScreensMode THEN BEGIN
             DrawLineinLogFile(UnknownLocoChipAsZeroesStr, 'D', 'T', UnitRef);
             Log('T ' + GetStationNameFromArea(Area) + ' {NOUNITREF}');
           END;
@@ -516,7 +516,7 @@ BEGIN
               END;
           END; {CASE}
 
-          IF RecordingMonitorScreensMode THEN
+          IF InRecordingMonitorScreensMode THEN
             DrawLineinLogFile(UnknownLocoChipAsZeroesStr, 'D', 'T', UnitRef);
         END;
       END;

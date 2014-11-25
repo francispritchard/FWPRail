@@ -192,8 +192,9 @@ TYPE
   LocoControlStateType = (ControlledByProgram, ControlledByRDC, ControlledByUser, ControlledByUnknownDevice);
 
   { Various modes }
-  ModeType = (AllRouteDebugging, AnonymousOccupation, GeneralDebugging, LineDebugging, LockDebugging, Locking, PointDebugging, PreviousPointSettings, RDC,
-              RecordingMonitorScreens, RecordLineDrawing, RouteDebugging, RouteBacktrackDebugging, RouteDrawing, ShowAdjacentTrackCircuit, StationStart, Testing);
+  ModeType = (AllRouteDebugging, AnonymousOccupation, FeedbackDebugging, GeneralDebugging, LineDebugging, LockDebugging, Locking, LocoSpeedTiming, LogsCurrentlyKept,
+              PointDebugging, PreviousPointSettings, RDC, RecordingMonitorScreens, RecordLineDrawing, RouteDebugging, RouteBacktrackDebugging, RouteDrawing,
+              ShowAdjacentTrackCircuit, StationStart, Testing);
 
   DirectionType = (Up, Down, Bidirectional, UnknownDirection);
   DirectionArrayType = ARRAY OF DirectionType;
@@ -1338,9 +1339,7 @@ CONST
   LogSignalData = True;
 
 VAR
-  AllRouteDebuggingMode : Boolean = False;
   AllSignalsSwitchedOff : Boolean = False;
-  AnonymousOccupationMode : Boolean = True;
   Areas : ARRAY OF AreaRec;
   AutoModeInitiated : Boolean = False;
   BreakPointRequiredInMakeSoundRoutine : Boolean = False;
@@ -1350,7 +1349,6 @@ VAR
   DapolCleaningWagonLocoChip : Integer = UnknownLocoChip;
   DapolCleaningWagonLocoChipRunning : Boolean = False;
   DayTimeSetByUser : Boolean = False;
-  DebuggingMode : Boolean = False;
   DesiredLenzConnection : LenzConnectionType = NoConnection;
   DiagramsArray : IntegerArrayType;
   DisplayFeedbackStringsInDebugWindow : Boolean = False;
@@ -1358,7 +1356,6 @@ VAR
   EditMode : Boolean = False;
   EmergencyStopMsgDisplayed : Boolean = False;
   EscKeyStored : Boolean = False;
-  FeedbackDebuggingMode : Boolean = False;
   FeedbackUnitData : ARRAY OF FeedbackRec;
   FeedbackUnitInUseArray : ARRAY [FirstFeedbackUnit..LastFeedbackUnit] OF Boolean;
   FullScreenPenWidth : Integer = 5;
@@ -1372,18 +1369,13 @@ VAR
   LastTimeAnyPointChanged : TDateTime = 0;
   LenzConnection : LenzConnectionType = NoConnection;
   LightsToBeSwitchedOnArray : ARRAY OF LightsToBeSwitchedOnRec;
-  LineDebuggingMode : Boolean = False;
   LineHighlighted : Integer = UnknownLine;
   Lines : ARRAY OF LineRec;
   LinesInitialised : Boolean = False;
   Locations : ARRAY OF LocationRec;
-  LockDebuggingMode : Boolean = False;
-  LockingMode : Boolean = True;
   LocationOccupations : ARRAY OF ARRAY OF LocationOccupationRec;
   Locos : ARRAY OF LocoRec;
-  LocoSpeedTimingMode : Boolean = False;
   LocosStopped : Boolean = True;
-  LogsCurrentlyKept : Boolean = True;
   MainPlatformPlungers : ARRAY OF TRSPlungerRec;
   MissingTrainArray : ARRAY [1..9] OF Boolean = (False, False, False, False, False, False, False, False, False);
   MissingTrainCounter : Integer = 0;
@@ -1393,7 +1385,6 @@ VAR
   OfflineIcon : TIcon;
   OnlineIcon : TIcon;
   Platforms : ARRAY OF PlatformRec;
-  PointDebuggingMode : Boolean = False;
   PointHighlighted : Integer = UnknownPoint;
   PointResettingMode : Boolean = True;
   PointResettingToDefaultStateArray : IntegerArrayType;
@@ -1407,13 +1398,10 @@ VAR
   RailDriverCalibrated : Boolean = False;
   RailDriverCalibrationStarted : Boolean = False;
   RailDriverInitialised : Boolean = False;
-  RDCMode : Boolean = False;
   ReadOutAdjacentSignalNumber : Boolean = False;
   ReadOutDecoderNumber : Boolean = False;
   ReadOutTCInFull : Boolean = False;
   ReadOutTCOnce : Boolean = False;
-  RecordLineDrawingMode : Boolean = False;
-  RecordingMonitorScreensMode : Boolean = False;
   RedrawScreen : Boolean = False;
   ReinitialiseFWPRailWindowVariables : Boolean = False;
   ReplayMode : Boolean = False;
@@ -1425,10 +1413,7 @@ VAR
   Restart : Boolean = False;
   RestoreLogsToPreviousState : Boolean = False;
   ReversingAreas : ARRAY OF ReversingAreasRecType;
-  RouteBacktrackDebuggingMode : Boolean = False;
   RouteClearingOnlyMode : Boolean = False;
-  RouteDebuggingMode : Boolean = False;
-  RouteDrawingMode : Boolean = False;
   RouteingByUser : Boolean = False;
   RouteingExceptions : ARRAY OF RouteingExceptionRec;
   RouteingSuspendedForModalDialogue : Boolean = False;
@@ -1456,7 +1441,6 @@ VAR
   SystemStatusStr : String = '';
   TempTrainArray : ARRAY OF TrainIndex;
   TerminatingSpeedReductionMode : Boolean = False;
-  TestingMode : Boolean = False;
   TextWindowHeight : Word;
   ThinLineMode : Boolean = True;
   TimeLastDataReceived : Cardinal = 0;
@@ -1536,8 +1520,6 @@ VAR
   Routes_TheatreIndicatorSettingInitiated : Boolean = False;
   Routes_TotalSubRoutes : IntegerArrayType;
   Routes_Trains : TrainArrayType;
-
-  ShowAdjacentTrackCircuitMode : Boolean = False;
   ShowAreas : Boolean = False;
   ShowByteParam : String;
   ShowOneFeedbackUnitOnly : Boolean = False;
@@ -6190,13 +6172,13 @@ BEGIN
               PointsADOTable.Edit;
               PointsADOTable.FieldByName(Point_NumberFieldName).AsString := IntToStr(Point_Number);
               PointsADOTable.Post;
-              IF PointDebuggingMode THEN
+              IF InPointDebuggingMode THEN
                 Log('P Recording in point database that P=' + IntToStr(P) + ' is now ' + IntToStr(Point_Number));
 
               PointsADOTable.Edit;
               PointsADOTable.FieldByName(Point_StraightLineFieldName).AsString := LineToStr(Point_StraightLine);
               PointsADOTable.Post;
-              IF PointDebuggingMode THEN
+              IF InPointDebuggingMode THEN
                 Log('P Recording in point database that P=' + IntToStr(P) + '''s Straight Line is now ' + LineToStr(Point_StraightLine));
 
               IF Point_DivergingLine <> UnknownLine THEN
@@ -6206,25 +6188,25 @@ BEGIN
               PointsADOTable.Edit;
               PointsADOTable.FieldByName(Point_DivergingLineFieldName).AsString := TempStr;
               PointsADOTable.Post;
-              IF PointDebuggingMode THEN
+              IF InPointDebuggingMode THEN
                 Log('P Recording in point database that P=' + IntToStr(P) + '''s Diverging Line is now "' + TempStr + '"');
 
               PointsADOTable.Edit;
               PointsADOTable.FieldByName(Point_HeelLineFieldName).AsString := LineToStr(Point_HeelLine);
               PointsADOTable.Post;
-              IF PointDebuggingMode THEN
+              IF InPointDebuggingMode THEN
                 Log('P Recording in point database that P=' + IntToStr(P) + '''s Heel Line is now ' + LineToStr(Point_HeelLine));
 
               PointsADOTable.Edit;
               PointsADOTable.FieldByName(Point_OutOfUseFieldName).AsBoolean := Point_OutOfUse;
               PointsADOTable.Post;
-              IF PointDebuggingMode THEN
+              IF InPointDebuggingMode THEN
                 Log('P Recording in point database that P=' + IntToStr(P) + ' is now ' + IfThen(Point_OutOfUse, 'out of use', 'back in use'));
 
               PointsADOTable.Edit;
               PointsADOTable.FieldByName(Point_LockedByUserFieldName).AsBoolean := Point_LockedByUser;
               PointsADOTable.Post;
-              IF PointDebuggingMode THEN
+              IF InPointDebuggingMode THEN
                 Log('P Recording in point database that P=' + IntToStr(P) + ' is now ' + IfThen(Point_LockedByUser, 'locked by user', 'back in use'));
 
               IF Point_RelatedPoint <> UnknownPoint THEN
@@ -6234,13 +6216,13 @@ BEGIN
               PointsADOTable.Edit;
               PointsADOTable.FieldByName(Point_RelatedPointFieldName).AsString := TempStr;
               PointsADOTable.Post;
-              IF PointDebuggingMode THEN
+              IF InPointDebuggingMode THEN
                 Log('P Recording in point database that P=' + IntToStr(P) + '''s Related Point is now "' + TempStr + '"');
 
               PointsADOTable.Edit;
               PointsADOTable.FieldByName(Point_TypeFieldName).AsString := PointTypeToStr(Point_Type);
               PointsADOTable.Post;
-              IF PointDebuggingMode THEN
+              IF InPointDebuggingMode THEN
                 Log('P Recording in point database that P=' + IntToStr(P) + '''s Point Type is now ' + PointTypeToStr(Point_Type));
 
               IF Point_DefaultState <> PointStateUnknown THEN
@@ -6250,7 +6232,7 @@ BEGIN
               PointsADOTable.Edit;
               PointsADOTable.FieldByName(Point_DefaultStateFieldName).AsString := TempStr;
               PointsADOTable.Post;
-              IF PointDebuggingMode THEN
+              IF InPointDebuggingMode THEN
                 Log('P Recording in point database that P=' + IntToStr(P) + '''s Default State is now "' + TempStr + '"');
 
               IF Point_FeedbackInput <> 0 THEN
@@ -6260,13 +6242,13 @@ BEGIN
               PointsADOTable.Edit;
               PointsADOTable.FieldByName(Point_FeedbackInputFieldName).AsString := TempStr;
               PointsADOTable.Post;
-              IF PointDebuggingMode THEN
+              IF InPointDebuggingMode THEN
                 Log('P Recording in point database that P=' + IntToStr(P) + '''s Feedback Input is now "' + TempStr + '"');
 
               PointsADOTable.Edit;
               PointsADOTable.FieldByName(Point_FeedbackOnIsStraightFieldName).AsBoolean := Point_FeedbackOnIsStraight;
               PointsADOTable.Post;
-              IF PointDebuggingMode THEN
+              IF InPointDebuggingMode THEN
                 Log('P Recording in point database that P=' + IntToStr(P) + '''s Feedback On Is Straight flag is now ' + BoolToStr(Point_FeedbackOnIsStraight, True));
 
               IF Point_FeedbackUnit <> 0 THEN
@@ -6276,7 +6258,7 @@ BEGIN
               PointsADOTable.Edit;
               PointsADOTable.FieldByName(Point_FeedbackUnitFieldName).AsString := TempStr;
               PointsADOTable.Post;
-              IF PointDebuggingMode THEN
+              IF InPointDebuggingMode THEN
                 Log('P Recording in point database that P=' + IntToStr(P) + '''s Feedback Unit is now "' + Tempstr + '"');
 
               IF Point_LenzNum <> 0 THEN
@@ -6286,7 +6268,7 @@ BEGIN
               PointsADOTable.Edit;
               PointsADOTable.FieldByName(Point_LenzNumFieldName).AsString := TempStr;
               PointsADOTable.Post;
-              IF PointDebuggingMode THEN
+              IF InPointDebuggingMode THEN
                 Log('P Recording in point database that P=' + IntToStr(P) + '''s Lenz Point Number is now "' + TempStr + '"');
 
               IF Point_LenzUnit <> 0 THEN
@@ -6296,43 +6278,43 @@ BEGIN
               PointsADOTable.Edit;
               PointsADOTable.FieldByName(Point_LenzUnitFieldName).AsString := TempStr;
               PointsADOTable.Post;
-              IF PointDebuggingMode THEN
+              IF InPointDebuggingMode THEN
                 Log('P Recording in point database that P=' + IntToStr(P) + '''s Lenz Point Unit is now "' + TempStr + '"');
 
               PointsADOTable.Edit;
               PointsADOTable.FieldByName(Point_LenzUnitTypeFieldName).AsString := Point_LenzUnitType;
               PointsADOTable.Post;
-              IF PointDebuggingMode THEN
+              IF InPointDebuggingMode THEN
                 Log('P Recording in point database that P=' + IntToStr(P) + '''s Lenz Unit Type is now ' + Point_LenzUnitType);
 
               PointsADOTable.Edit;
               PointsADOTable.FieldByName(Point_LockedIfHeelTCOccupiedFieldName).AsBoolean := Point_LockedIfHeelTCOccupied;
               PointsADOTable.Post;
-              IF PointDebuggingMode THEN
+              IF InPointDebuggingMode THEN
                 Log('P Recording in point database that P=' + IntToStr(P) + '''s Locked If Heel TC Occupied flag is now ' + BoolToStr(Point_LockedIfHeelTCOccupied, True));
 
               PointsADOTable.Edit;
               PointsADOTable.FieldByName(Point_LockedIfNonHeelTCsOccupiedFieldName).AsBoolean := Point_LockedIfNonHeelTCsOccupied;
               PointsADOTable.Post;
-              IF PointDebuggingMode THEN
+              IF InPointDebuggingMode THEN
                 Log('P Recording in point database that P=' + IntToStr(P) + '''s Locked If Non-Heel TCs Occupied flag is now ' + BoolToStr(Point_LockedIfNonHeelTCsOccupied,
                                                                                                                                                                      True));
               PointsADOTable.Edit;
               PointsADOTable.FieldByName(Point_ManualOperationFieldName).AsBoolean := Point_ManualOperation;
               PointsADOTable.Post;
-              IF PointDebuggingMode THEN
+              IF InPointDebuggingMode THEN
                 Log('P Recording in point database that P=' + IntToStr(P) + '''s Manual Operation is now ' + BoolToStr(Point_ManualOperation, True));
 
               PointsADOTable.Edit;
               PointsADOTable.FieldByName(Point_NotesFieldName).AsString := Point_Notes;
               PointsADOTable.Post;
-              IF PointDebuggingMode THEN
+              IF InPointDebuggingMode THEN
                 Log('P Recording in point database that P=' + IntToStr(P) + '''s notes are now ' + Point_Notes);
 
               PointsADOTable.Edit;
               PointsADOTable.FieldByName(Point_WiringReversedFlagFieldName).AsBoolean := Point_WiringReversedFlag;
               PointsADOTable.Post;
-              IF PointDebuggingMode THEN
+              IF InPointDebuggingMode THEN
                 Log('P Recording in point database that P=' + IntToStr(P) + '''s Wiring Reversed flag is now ' + BoolToStr(Point_WiringReversedFlag, True));
             END;
 
@@ -6352,7 +6334,7 @@ BEGIN
                     ELSE
                       PointsADOTable.FieldByName(Point_LastManualStateAsReadInFieldName).AsString := 'Diverging';
                   PointsADOTable.Post;
-                  IF PointDebuggingMode THEN
+                  IF InPointDebuggingMode THEN
                     Log('P Recording in point database that manual P=' + IntToStr(P) + '''s state is now ' + PointStateToStr(Points[P].Point_PresentState));
                 END;
 
@@ -6370,7 +6352,7 @@ BEGIN
                     PointsADOTable.FieldByName(Point_LastFeedbackStateAsReadInFieldName).AsString := DivergingStr;
 
               PointsADOTable.Post;
-              IF PointDebuggingMode THEN
+              IF InPointDebuggingMode THEN
                 Log('P Recording in point database that P=' + IntToStr(P) + '''s feedback state is now ' + PointStateToStr(Points[P].Point_PresentState));
             END;
           END; {WITH}
@@ -6801,7 +6783,7 @@ BEGIN
   { Check that the path to the log files exists - if not, create it }
   IF PathToLogFiles = '' THEN BEGIN
     Log('X! Error - PathToLogFiles is empty - log files directory cannot be opened or created');
-    LogsCurrentlyKept := False;
+    SetMode(LogsCurrentlyKept, False);
   END ELSE BEGIN
     IF NOT DirectoryExists(PathToLogFiles) THEN
       ForceDirectories(PathToLogFiles);
@@ -6824,7 +6806,7 @@ BEGIN
     ELSE BEGIN
       WriteLn(TestLogFile, GetProgramTitle);
       WriteLn(TestLogFile, GetProgramVersion('Test Log File'));
-      IF TestingMode THEN
+      IF InTestingMode THEN
         Flush(TestLogFile);
     END;
 

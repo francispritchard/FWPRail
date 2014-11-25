@@ -735,7 +735,7 @@ BEGIN
     WITH BufferStops[BufferStopNum] DO BEGIN
       { record the current colour }
       BufferStop_CurrentColour := Colour;
-      IF RecordLineDrawingMode THEN
+      IF InRecordLineDrawingMode THEN
         Log('X BS=' + IntToStr(BufferStopNum) + ' ' + ColourToStr(Colour));
 
       { Draw the line and red lamp }
@@ -777,7 +777,7 @@ BEGIN
     IF Window <> FWPRailWindow THEN
       Window.Caption := Caption
     ELSE BEGIN
-      IF NOT TestingMode THEN
+      IF NOT InTestingMode THEN
         FWPRailWindow.Caption := 'FWP''s Railway Program ' + Caption
       ELSE
         FWPRailWindow.Caption := 'FWP''s Railway Program (Version ' + GetVersionInfoAsString + ' Build ' + GetBuildInfoAsString + ') ' + Caption;
@@ -2183,7 +2183,7 @@ BEGIN { DrawSignal }
 
         DrawSignalPost(S);
 
-        IF RecordLineDrawingMode OR NOT FWPRailWindowInitialised OR Signal_StateChanged THEN
+        IF InRecordLineDrawingMode OR NOT FWPRailWindowInitialised OR Signal_StateChanged THEN
           Log('S S=' + IntToStr(S)
                  + ' A=' + AspectToStr(Signals[S].Signal_Aspect, ShortStringType)
                  + ' I=' + IndicatorStateToStr(Signals[S].Signal_IndicatorState));
@@ -2623,7 +2623,7 @@ BEGIN
             Line_CurrentColour := NewLineColour;
           END;
 
-          IF RecordLineDrawingMode THEN BEGIN
+          IF InRecordLineDrawingMode THEN BEGIN
             IF ActiveTrain THEN
               ActiveTrainText := 'Y'
             ELSE
@@ -7243,7 +7243,7 @@ BEGIN { Main drawing procedure }
     WITH FWPRailWindow DO BEGIN
       WITH RailWindowBitmap.Canvas DO BEGIN
         { Do not record the line drawing detail each time DrawMap is called }
-        SaveRecordLineDrawingMode := RecordLineDrawingMode;
+        SaveRecordLineDrawingMode := InRecordLineDrawingMode;
 //        RecordLineDrawingMode := False;
 
         IF NOT FWPRailWindowInitialised THEN
@@ -7557,7 +7557,7 @@ BEGIN { Main drawing procedure }
                   Inc(Line2);
                 END; {WHILE}
 
-                IF ShowAdjacentTrackCircuitMode THEN BEGIN
+                IF InShowAdjacentTrackCircuitMode THEN BEGIN
                   FindAdjoiningTrackCircuits(TrackCircuitHighlighted, AdjacentUpTC, AdjacentDownTC);
                   LinesArray := GetLinesForTrackCircuit(AdjacentUpTC);
                   Line2 := 0;
@@ -7781,7 +7781,7 @@ BEGIN { Main drawing procedure }
         IF ResizeMap THEN
           ResizeMap := False;
 
-        RecordLineDrawingMode := SaveRecordLineDrawingMode;
+        SetMode(RecordLineDrawing, SaveRecordLineDrawingMode);
 
         IF NOT FWPRailWindowInitialised THEN BEGIN
           { and finally... }

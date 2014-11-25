@@ -1723,7 +1723,7 @@ BEGIN
       { redraw it erasing the window first }
       DrawStationMonitorsWindow(StationMonitorsCurrentArea)
     ELSE BEGIN
-      IF RecordingMonitorScreensMode THEN BEGIN
+      IF InRecordingMonitorScreensMode THEN BEGIN
         { ***** I'm not convenced this works now as the areas are defined in an Access database 7/5/14 }
         DrawStationMonitorsWindow(StrToArea('IslandStationArea'));
         DrawStationMonitorsWindow(StrToArea('MainStationArea'));
@@ -3242,7 +3242,7 @@ FUNCTION GetStationNameFromArea(Area : Integer) : String;
 { Return a station name given the area it is in }
 BEGIN
   IF (Area <> UnknownArea) AND (Area <= High(Areas)) THEN BEGIN
-    IF TestingMode THEN
+    IF InTestingMode THEN
       Result := Areas[Area].Area_LongStr
     ELSE BEGIN
 //      Result := Areas[Area].AreaStationNamesUp;

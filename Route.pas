@@ -377,7 +377,7 @@ BEGIN
         Inc(RouteCount);
       END; {FOR}
 
-      IF StationStartMode THEN BEGIN
+      IF InStationStartMode THEN BEGIN
         WITH Signals[Routes_StartSignals[Route]] DO BEGIN
           IF Signal_TRSHeld AND NOT Signal_TRSReleased THEN BEGIN
             { the train is waiting to be released by the station supervisor }

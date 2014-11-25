@@ -150,7 +150,7 @@ END; { ExtractDataFromFeedback }
 PROCEDURE WriteDataToFeedbackWindow{1}(FeedbackString : String); Overload;
 { Overloaded - this is version 1 - write sundry text to the feedback window }
 BEGIN
-  IF FeedbackDebuggingMode THEN BEGIN
+  IF InFeedbackDebuggingMode THEN BEGIN
     FeedbackWindow.Visible := True;
     FeedbackWindow.BringToFront;
     FeedbackWindow.FeedbackLabel.Caption := FeedbackString;
@@ -165,7 +165,7 @@ VAR
   InputStr : String;
 
 BEGIN
-  IF FeedbackDebuggingMode THEN BEGIN
+  IF InFeedbackDebuggingMode THEN BEGIN
     InputStr := IntToStr(Input);
     WITH FeedbackData DO BEGIN
       CASE Feedback_Type OF
@@ -300,7 +300,7 @@ PROCEDURE InitialiseLocoSpeedTiming(L : LocoIndex);
 { Set up the variables for timing locos to ascertain speed in MPH }
 BEGIN
   DefaultLocoSpeedSet := False;
-  LocoSpeedTimingMode := True;
+  SetMode(LocoSpeedTiming, True);
   LocoTimingSlowingTime := 0;
   LocoTimingLenzSpeed := GetLenzSpeed(Locos[L], ForceARead);
 END; { InitialiseLocoSpeedTiming }
@@ -411,7 +411,7 @@ VAR
   //        LocoDialogueBox.LocoDialogueSpeedButtons.Position := 0;
           LocoDialogueWindow.LocoDialogueSpeedDisplay.Color := clBtnFace;
           LocoDialogueWindow.LocoDialogueSpeedDisplay.Caption := '0';
-          LocoSpeedTimingMode := False;
+          SetMode(LocoSpeedTiming, False);
         END ELSE
           { To time loco down the fast straight, then circle the layout }
           IF (TC = LocoTimingSlowingTC) AND NOT LocoTimingStarted THEN BEGIN
@@ -542,7 +542,7 @@ BEGIN { DecodeFeedback }
                       SetTrackCircuitstate(TC, TCFeedbackOccupationButOutOfUse);
 
                     { Speed testing }
-                    IF LocoSpeedTimingMode THEN
+                    IF InLocoSpeedTimingMode THEN
                       ProcessSpeedTiming;
 
                   END ELSE BEGIN
@@ -654,7 +654,7 @@ BEGIN { DecodeFeedback }
                         IF ProgramStartup
                         OR RedrawScreen
                         OR NOT PointIsLocked(P, LockingFailureString)
-                        OR NOT LockingMode
+                        OR NOT InLockingMode
                         THEN
                           Point_MovedWhenLocked := False
                         ELSE BEGIN
@@ -710,7 +710,7 @@ BEGIN { DecodeFeedback }
                 { pressbutton is released }
                 StationStartModeSetUpTime := 0
               ELSE BEGIN
-                IF StationStartMode THEN BEGIN
+                IF InStationStartMode THEN BEGIN
                   { button is pressed down }
                   StationStartModeSetUpTime := Time;
   //                CASE DecodedFeedbackNum OF { Need to change the variable name *** }
@@ -732,7 +732,7 @@ BEGIN { DecodeFeedback }
             END;
         END; {CASE}
 
-        IF FeedbackDebuggingMode AND (FeedbackWindow <> NIL) AND NOT ProgramStartup THEN
+        IF InFeedbackDebuggingMode AND (FeedbackWindow <> NIL) AND NOT ProgramStartup THEN
           WriteDataToFeedbackWindow(FeedbackData, DecodedFeedbackNum)
         ELSE
           IF DisplayFeedbackStringsInDebugWindow THEN

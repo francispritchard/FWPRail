@@ -475,12 +475,12 @@ VAR
     ProcessMessages = True;
 
   BEGIN
-    IF RouteDebuggingMode THEN
+    IF InRouteDebuggingMode THEN
       { slow down the drawing process }
       Pause(50, ProcessMessages);
 
     AppendToStringArray(DraftRouteArray, 'L=' + LineToStr(CurrentLine) + '+');
-    IF RouteDebuggingMode THEN
+    IF InRouteDebuggingMode THEN
       DrawLine(CurrentLine, LineColour, NOT ActiveTrain);
     Lines[CurrentLine].Line_RoutedOver := True;
   END; { RecordLine }
@@ -499,7 +499,7 @@ VAR
       ELSE
         AppendToStringArray(DraftRouteArray, 'TP=' + IntToStr(P) + '/');
     END;
-    IF PointDebuggingMode THEN
+    IF InPointDebuggingMode THEN
       DrawPoint(P, PointColour);
   END; { RecordPoint }
 
@@ -610,7 +610,7 @@ VAR
             OR ((NextPointDummyState = Diverging) AND (IndicatorState <> NoIndicatorLit))
             THEN BEGIN
               { Write out the un-backtracked state }
-              IF RouteBackTrackDebuggingMode THEN BEGIN
+              IF InRouteBackTrackDebuggingMode THEN BEGIN
                 DebugStr := 'BT: ' + DraftRouteArray[High(DraftRouteArray)];
 
               END;
@@ -635,7 +635,7 @@ VAR
               SetLength(DraftRouteArray, DraftRouteArrayPos + 1);
 
               { Now write out the backtracked state }
-              IF RouteBackTrackDebuggingMode THEN BEGIN
+              IF InRouteBackTrackDebuggingMode THEN BEGIN
                 IF Str <> '' THEN
                   DebugStr := DebugStr + ' (' + Str + ' at line ' + LineToStr(CurrentLine) +')';
                 DebugStr := DebugStr + ' to ' + DraftRouteArray[High(DraftRouteArray)];
@@ -1192,7 +1192,7 @@ VAR
       Inc(LinesNotAvailableNum);
       RecordLine(CurrentLine, LineNotAvailableColour);
 
-      IF RouteDebuggingMode THEN BEGIN
+      IF InRouteDebuggingMode THEN BEGIN
         Log('XG ' + IntToStr(LinesNotAvailableNum) + ' ' + LineToStr(CurrentLine) + ': ' + StopStr);
         DrawLine(CurrentLine, LineNotAvailableColour, NOT ActiveTrain, IntToStr(LinesNotAvailableNum));
       END;
@@ -1203,7 +1203,7 @@ VAR
         LinesNotAvailableStr := LinesNotAvailableStr + '; ' + IntToStr(LinesNotAvailableNum) + ' ' + LineToStr(CurrentLine) + ': ' + StopStr
     END;
 
-    IF GetAllRouteDebuggingMode THEN
+    IF InAllRouteDebuggingMode THEN
       Log('R ' + LineToStr(CurrentLine) + ': ' + LineToStr(CurrentLine) + ': ' + StopStr);
   END; { LineAvailable }
 
@@ -1391,12 +1391,12 @@ BEGIN
     PreviousLine := UnknownLine;
     PreviousLineButOne := UnknownLine;
 
-    IF RouteDrawingMode THEN
+    IF InRouteDrawingMode THEN
       DebugStr := '';
 
     { Main loop }
     WHILE ExitFunctionNum = 0 DO BEGIN
-      IF RouteDrawingMode THEN
+      IF InRouteDrawingMode THEN
         DebugStr:= DebugStr + LineToStr(CurrentLine) + ' ';
 
       IF CurrentLine = UnknownLine THEN BEGIN
@@ -1474,7 +1474,7 @@ BEGIN
         END;
       END; {WHILE}
 
-      IF RouteDrawingMode THEN
+      IF InRouteDrawingMode THEN
         Log('R ' + DebugStr);
     END;
     IF ShowCreateRouteExitFunctionNum THEN
@@ -1795,7 +1795,7 @@ BEGIN
             { add the linename data too as it's used for drawing subroutes }
             AppendToStringArray(LockingArray, TempDraftRouteArray[TempDraftRouteArrayPos]);
           END ELSE
-            IF RouteDebuggingMode AND NOT (Signals[FirstSignalFound].Signal_FailMsgWritten) THEN
+            IF InRouteDebuggingMode AND NOT (Signals[FirstSignalFound].Signal_FailMsgWritten) THEN
               Log(LocoChipStr + ' S Line ' + TempDraftRouteArray[TempDraftRouteArrayPos]
                                            + ' is adjacent to S=' + IntToStr(FirstSignalFound) + ' so first TC=' + IntToStr(FirstLineTC) + ' is ignored');
           FirstTrackCircuitFound := True;
@@ -2009,7 +2009,7 @@ BEGIN
     IndicatorState := NoIndicatorLit;
 
     { Now start the search }
-    IF RouteDebuggingMode THEN
+    IF InRouteDebuggingMode THEN
       DrawLine(StartLine, clYellow, NOT ActiveTrain);
 
     IF StartLine = EndLine THEN BEGIN
@@ -2053,7 +2053,7 @@ BEGIN
                           +  ' to ' + LocationToStr(Lines[EndLine].Line_Location, ShortStringType) + ' (' + LineToStr(StartLine) + ' to ' + LineToStr(EndLine) + ')');
 
         { Show what we've found }
-        IF RouteDrawingMode OR RouteDebuggingMode THEN
+        IF InRouteDrawingMode OR InRouteDebuggingMode THEN
           DrawAllPoints;
         { and record any adjacent signal if it's going the same way we are - to allow routeing from signal to signal }
         I := 0;
@@ -2338,7 +2338,7 @@ BEGIN
               IF SearchDirection = Points[NextPoint].Point_FacingDirection THEN BEGIN
                 { a facing point - see which way it's set }
                 IF Points[NextPoint].Point_PresentState = Straight THEN BEGIN
-                  IF LockDebuggingMode THEN
+                  IF InLockDebuggingMode THEN
                     DrawPoint(NextPoint, clLime);
                   DebugStr := DebugStr + ' FP=' + IntToStr(NextPoint) + '-';
                   CurrentLine := Points[NextPoint].Point_StraightLine
@@ -2348,11 +2348,11 @@ BEGIN
                   OR (Points[NextPoint].Point_PresentState = Straight)
                   THEN BEGIN
                     DebugStr := DebugStr + ' FP=' + IntToStr(NextPoint) + '?';
-                    IF LockDebuggingMode THEN
+                    IF InLockDebuggingMode THEN
                       DrawPoint(NextPoint, clRed);
                     ExitFunction := True;
                   END ELSE BEGIN
-                    IF LockDebuggingMode THEN
+                    IF InLockDebuggingMode THEN
                       DrawPoint(NextPoint, clLime);
                     DebugStr := DebugStr + ' FP=' + IntToStr(NextPoint) + '/';
                     CurrentLine := Points[NextPoint].Point_DivergingLine;
@@ -2361,7 +2361,7 @@ BEGIN
                 { a trailing point - if it's not set in our direction, stop searching here }
                 IF (CurrentLine = Points[NextPoint].Point_StraightLine) AND (Points[NextPoint].Point_PresentState = Straight) THEN BEGIN
                   CurrentLine := Points[NextPoint].Point_HeelLine;
-                  IF LockDebuggingMode THEN
+                  IF InLockDebuggingMode THEN
                     DrawPoint(NextPoint, clLime)
                   ELSE
                     DrawPoint(NextPoint, ForegroundColour);
@@ -2369,14 +2369,14 @@ BEGIN
                 END ELSE
                   IF (CurrentLine = Points[NextPoint].Point_DivergingLine) AND (Points[NextPoint].Point_PresentState = Diverging) THEN BEGIN
                     CurrentLine := Points[NextPoint].Point_HeelLine;
-                    IF LockDebuggingMode THEN
+                    IF InLockDebuggingMode THEN
                       DrawPoint(NextPoint, clLime)
                     ELSE
                       DrawPoint(NextPoint, ForegroundColour);
                     DebugStr := DebugStr + ' TP=' + IntToStr(NextPoint) + '/';
                   END ELSE BEGIN
                     { if it's not set in our direction, stop searching here }
-                    IF LockDebuggingMode THEN
+                    IF InLockDebuggingMode THEN
                       DrawPoint(NextPoint, clRed)
                     ELSE
                       DrawPoint(NextPoint, ForegroundColour);

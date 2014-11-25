@@ -46,9 +46,6 @@ TYPE
 VAR
   DebuggingOptionsWindow: TDebuggingOptionsWindow;
 
-FUNCTION GetAllRouteDebuggingMode : Boolean;
-{ Return the status of AllRouteDebuggingMode }
-
 PROCEDURE InitialiseStartupUnit;
 { Such routines as this allow us to initialises the units in the order we wish }
 
@@ -66,12 +63,6 @@ PROCEDURE Log(Str : String);
 BEGIN
   WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
-
-FUNCTION GetAllRouteDebuggingMode : Boolean;
-{ Return the status of AllRouteDebuggingMode }
-BEGIN
-  Result := AllRouteDebuggingMode;
-END; { GetAllRouteDebuggingMode }
 
 PROCEDURE GetWord(VAR Str : String; VAR Word : String);
 { Finds the first word in S (delimited by spaces) and returns it in Word having removed it from Str }
@@ -223,7 +214,7 @@ BEGIN
          ELSE
            IF IndividualParameterString = 'NOLOG' THEN
              { Turn of logging }
-             LogsCurrentlyKept := False
+             SetMode(LogsCurrentlyKept, False)
            ELSE
              IF IndividualParameterString = 'NOBEEP' THEN
                { Turn of the sound made when bold text appears in the debug window }
@@ -397,31 +388,31 @@ BEGIN
 
   Log('A Startup Detail:');
 
-  IF AllRouteDebuggingMode THEN
+  IF InAllRouteDebuggingMode THEN
     Log('AG All Route Debugging Mode ON {INDENT=2}');
 
-  IF NOT AnonymousOccupationMode THEN
+  IF NOT InAnonymousOccupationMode THEN
     Log('AG Anonymous Occupation Mode OFF {INDENT=2}');
 
-  IF DebuggingMode THEN
+  IF InDebuggingMode THEN
     Log('AG Debugging Mode ON {INDENT=2}');
 
-  IF FeedbackDebuggingMode THEN
+  IF InFeedbackDebuggingMode THEN
     Log('AG Feedback Debugging Mode ON {INDENT=2}');
 
-  IF LineDebuggingMode THEN
+  IF InLineDebuggingMode THEN
     Log('AG Line Debugging Mode ON {INDENT=2}');
 
-  IF LockDebuggingMode THEN
+  IF InLockDebuggingMode THEN
     Log('AG Lock Debugging Mode ON {INDENT=2}');
 
-  IF NOT LockingMode THEN
+  IF NOT InLockingMode THEN
     Log('AG Locking State OFF {INDENT=2}');
 
-  IF LocoSpeedTimingMode THEN
+  IF InLocoSpeedTimingMode THEN
     Log('AG Loco Speed Timing ON {INDENT=2}');
 
-  IF NOT LogsCurrentlyKept THEN
+  IF NOT InLogsCurrentlyKeptMode THEN
     Log('AG LogsCurrentlyKept is OFF {INDENT=2}');
 
   IF LogCurrentTimeMode THEN
@@ -430,7 +421,7 @@ BEGIN
   IF NOT MakeSoundWhenDebugWindowBoldTextAppears THEN
     Log('AG Make Sound When Debug Window Bold Text Appears OFF {INDENT=2}');
 
-  IF RDCMode THEN
+  IF InRDCMode THEN
     Log('AG RDC Mode ON {INDENT=2}');
 
   IF ReadOutTCInFull THEN
@@ -445,28 +436,28 @@ BEGIN
         IF ReadOutAdjacentSignalNumber THEN
           Log('AG Read Out Adjacent Signal Number OFF {INDENT=2}');
 
-  IF RecordingMonitorScreensMode THEN
+  IF InRecordingMonitorScreensMode THEN
     Log('AG RecordingMonitorScreensMode is ON {INDENT=2}');
 
-  IF NOT RecordLineDrawingMode THEN
+  IF NOT InRecordLineDrawingMode THEN
     Log('AG Record Line Drawing Mode OFF {INDENT=2}');
 
-  IF RouteBacktrackDebuggingMode THEN
+  IF InRouteBacktrackDebuggingMode THEN
     Log('AG Route Backtrack Debugging Mode ON {INDENT=2}');
 
-  IF RouteDebuggingMode THEN
+  IF InRouteDebuggingMode THEN
     Log('AG Route Debugging Mode ON {INDENT=2}');
 
-  IF RouteDrawingMode THEN
+  IF InRouteDrawingMode THEN
     Log('AG Route Drawing Mode ON {INDENT=2}');
 
-  IF StationStartMode THEN
+  IF InStationStartMode THEN
     Log('AG Station Start Mode ON {INDENT=2}');
 
   IF SystemSetOfflineByCommandLineParameter THEN
     Log('AG System Set Offline By Command Line Parameter ON {INDENT=2}');
 
-  IF TestingMode THEN
+  IF InTestingMode THEN
     Log('AG Testing Mode ON {INDENT=2}');
 
   { Let the user know if the system is offline or in some other odd state at startup }
@@ -601,10 +592,10 @@ PROCEDURE TDebuggingOptionsWindow.Startup_LogsKeptCheckBoxClick(Sender: TObject)
 BEGIN
   WITH Startup_LogsKeptCheckBox DO BEGIN
     IF Checked THEN BEGIN
-      LogsCurrentlyKept := True;
+      SetMode(LogsCurrentlyKept, True);
       Log('A Logs Kept= ON');
     END ELSE BEGIN
-      LogsCurrentlyKept := False;
+      SetMode(LogsCurrentlyKept, False);
       Log('A Logs Kept = OFF');
     END;
   END; {WITH}
@@ -615,31 +606,31 @@ BEGIN
   Left := DebuggingOptionsWindowLeft;
   Top := DebuggingOptionsWindowTop;
 
-  IF AllRouteDebuggingMode THEN
+  IF InAllRouteDebuggingMode THEN
     Startup_AllRouteDebuggingCheckBox.State := cbChecked;
-  IF DebuggingMode THEN
+  IF InDebuggingMode THEN
     Startup_DebuggingCheckBox.State := cbChecked;
-  IF FeedbackDebuggingMode THEN
+  IF InFeedbackDebuggingMode THEN
     Startup_FeedbackDebuggingCheckBox.State := cbChecked;
-  IF LineDebuggingMode THEN
+  IF InLineDebuggingMode THEN
     Startup_LineDebuggingCheckBox.State := cbChecked;
-  IF LockDebuggingMode THEN
+  IF InLockDebuggingMode THEN
     Startup_LockDebuggingCheckBox.State := cbChecked;
-  IF NOT LockingMode THEN
+  IF NOT InLockingMode THEN
     Startup_LockingCheckBox.State := cbChecked;
-  IF LogsCurrentlyKept THEN
+  IF InLogsCurrentlyKeptMode THEN
     Startup_LogsKeptCheckBox.State := cbChecked;
-  IF PointDebuggingMode THEN
+  IF InPointDebuggingMode THEN
     Startup_PointDebuggingCheckBox.State := cbChecked;
-  IF RecordLineDrawingMode THEN
+  IF InRecordLineDrawingMode THEN
     Startup_RecordLineDrawingCheckBox.State := cbChecked;
-  IF RouteDebuggingMode THEN
+  IF InRouteDebuggingMode THEN
     Startup_RouteDebuggingCheckBox.State := cbChecked;
-  IF RouteBacktrackDebuggingMode THEN
+  IF InRouteBacktrackDebuggingMode THEN
     Startup_RouteBacktrackDebuggingCheckBox.State := cbChecked;
-  IF RouteDrawingMode THEN
+  IF InRouteDrawingMode THEN
     Startup_RouteDrawingCheckBox.State := cbChecked;
-  IF TestingMode THEN
+  IF InTestingMode THEN
     Startup_TestingCheckBox.State := cbChecked;
 
   { Save where the mouse cursor is }

@@ -235,7 +235,7 @@ BEGIN
     ReadIniFile;
 
     { Now initialise the log files }
-    IF LogsCurrentlyKept THEN
+    IF InLogsCurrentlyKeptMode THEN
       InitialiseLogFiles;
 
     InitialiseMainUnit;
@@ -251,7 +251,7 @@ BEGIN
     InitialiseWorkingTimetableUnit;
     InitialiseEditUnit;
     InitialiseLenzUnit;
-    IF RDCMode THEN
+    IF InRDCMode THEN
       StartRailDriver;
     InitialiseDisplayColoursWindow;
   EXCEPT
@@ -427,7 +427,7 @@ BEGIN
         ELSE
           Locations[Location].Location_LineAtDownIsEndOfLine := False;
 
-        IF DebuggingMode THEN
+        IF InDebuggingMode THEN
           Log('* Location: ' + LocationToStr(Location, ShortStringType)
                  + IfThen(Location_LineAtUp <> UnknownLine,
                           IfThen(Locations[Location].Location_LineAtUpIsEndOfLine,
@@ -583,7 +583,7 @@ BEGIN
             IF SearchDirection = Points[NextPoint].Point_FacingDirection THEN BEGIN
               { a facing point - see which way it's set }
               IF Points[NextPoint].Point_PresentState = Straight THEN BEGIN
-                IF LockDebuggingMode THEN
+                IF InLockDebuggingMode THEN
                   DrawPoint(NextPoint, clLime);
 
                 CurrentLine := Points[NextPoint].Point_StraightLine;
@@ -591,7 +591,7 @@ BEGIN
                   ExitFunction := True;
               END ELSE
                 IF Points[NextPoint].Point_PresentState = Diverging THEN BEGIN
-                  IF LockDebuggingMode THEN
+                  IF InLockDebuggingMode THEN
                     DrawPoint(NextPoint, clLime);
 
                   CurrentLine := Points[NextPoint].Point_DivergingLine;
@@ -599,7 +599,7 @@ BEGIN
                     ExitFunction := True;
                 END ELSE BEGIN
                   { Points[NextPoint].Point_PresentState = PointStateUnknown }
-                  IF LockDebuggingMode THEN
+                  IF InLockDebuggingMode THEN
                     DrawPoint(NextPoint, clRed);
                   ExitFunction := True;
                 END;
@@ -610,7 +610,7 @@ BEGIN
                 IF (CurrentLine = UnknownLine) OR FindTrackCircuitOrPoint(CurrentLine, TC, AdjoiningUpTC, AdjoiningDownTC) THEN
                     ExitFunction := True;
 
-                IF LockDebuggingMode THEN
+                IF InLockDebuggingMode THEN
                   DrawPoint(NextPoint, clLime)
                 ELSE
                   DrawPoint(NextPoint, ForegroundColour);
@@ -620,13 +620,13 @@ BEGIN
                   IF (CurrentLine = UnknownLine) OR FindTrackCircuitOrPoint(CurrentLine, TC, AdjoiningUpTC, AdjoiningDownTC) THEN
                       ExitFunction := True;
 
-                  IF LockDebuggingMode THEN
+                  IF InLockDebuggingMode THEN
                     DrawPoint(NextPoint, clLime)
                   ELSE
                     DrawPoint(NextPoint, ForegroundColour);
                 END ELSE BEGIN
                   { if it's not set in our direction, stop searching here }
-                  IF LockDebuggingMode THEN
+                  IF InLockDebuggingMode THEN
                     DrawPoint(NextPoint, clRed)
                   ELSE
                     DrawPoint(NextPoint, ForegroundColour);
@@ -936,7 +936,7 @@ BEGIN
             AND ((NewState = TCFeedbackOccupation) OR (NewState = TCLocoOutOfPlaceOccupation))
             AND (TC_LocoChip = UnknownLocoChip)
             AND NOT ProgramStartup
-            AND NOT LocoSpeedTimingMode
+            AND NOT InLocoSpeedTimingMode
             THEN BEGIN
               { we've not been given a loco, so see if we can work out which loco it is }
               Log('E TC=' + IntToStr(TC) + ' feedback occupied but no loco number supplied - searching adjacent TCs...');
@@ -1155,7 +1155,7 @@ BEGIN
     RouteingSuspendedWhenStopPressed := False;
     InAutoMode := True;
 
-    IF NOT Restart AND LogsCurrentlyKept THEN BEGIN
+    IF NOT Restart AND InLogsCurrentlyKeptMode THEN BEGIN
       { First a replay command - this doesn't use Log, as we don;t want the time etc. }
       WriteLn(LargeLogFile, '{Replay Write}');
 
@@ -1482,7 +1482,7 @@ VAR
   BEGIN
     IF (StationStartModeSetUpTime <> 0) AND (Time > IncSecond(StationStartModeSetUpTime, 5)) THEN BEGIN
       StationStartModeSetUpTime := 0;
-      IF StationStartMode THEN
+      IF InStationStartMode THEN
         SetMode(StationStart, TurnOff)
       ELSE BEGIN
         SetMode(StationStart, TurnOn);
@@ -1728,7 +1728,7 @@ BEGIN
   END;
 
   { We have found the watchdog program }
-  IF DebuggingMode THEN
+  IF InDebuggingMode THEN
     Log('X Sending "' + S + '" message to Watchdog program');
 
   CopyData.lpData := PChar(S);
@@ -1742,13 +1742,13 @@ BEGIN
     WatchdogActiveMsgFlag := False;
   END ELSE
     IF Res = 1 THEN BEGIN
-      IF DebuggingMode THEN
+      IF InDebuggingMode THEN
         Log('X FWPRail Watchdog has acknowledged the "FWPRail is running" message');
       WatchdogErrorMsgFlag := False;
       IF NOT WatchdogActiveMsgFlag THEN
         WatchdogActiveMsgFlag := True;
     END ELSE
-      IF DebuggingMode THEN
+      IF InDebuggingMode THEN
         Log('XG FWPRail Watchdog has incorrectly responded to "FWPRail is running" message with the response number: ' + IntToStr(Res));
 END; { SendStringToWatchdogProgram }
 

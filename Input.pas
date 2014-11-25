@@ -111,9 +111,9 @@ PROCEDURE TInputDialogueBox.InputDialogueShowAdjacentTrackCircuitsCheckBoxClick(
 BEGIN
   { Allow ShowAdjacentTrackCircuits mode to be turned on and off in the dialogue box }
   IF InputDialogueShowAdjacentTrackCircuitsCheckBox.Checked THEN
-    ShowAdjacentTrackCircuitMode := True
+    SetMode(ShowAdjacentTrackCircuit, True)
   ELSE
-    ShowAdjacentTrackCircuitMode := False;
+    SetMode(ShowAdjacentTrackCircuit, False);
 END; { InputDialogueShowAdjacentTrackCircuitsCheckBoxClick }
 
 PROCEDURE TInputDialogueBox.InputDialogueMaskEditChange(Sender: TObject);
@@ -314,7 +314,7 @@ BEGIN
       END;
     TrackCircuitDialogueBox:
       BEGIN
-        IF NOT ShowAdjacentTrackCircuitMode THEN BEGIN
+        IF NOT InShowAdjacentTrackCircuitMode THEN BEGIN
           WITH TrackCircuits[InputDialogueTrackCircuit] DO BEGIN
             IF TC_OccupationState = TCFeedbackOccupation THEN
               SetTrackCircuitState(InputDialogueTrackCircuit, TCUnoccupied, 'set by user')
@@ -381,8 +381,8 @@ BEGIN
           TrackCircuitHighlighted := UnknownTrackCircuit;
         InvalidateScreen(UnitRef, 'InputDialogueBoxHide 1');
 
-        IF ShowAdjacentTrackCircuitMode THEN BEGIN
-          ShowAdjacentTrackCircuitMode := False;
+        IF InShowAdjacentTrackCircuitMode THEN BEGIN
+          SetMode(ShowAdjacentTrackCircuit, False);
           WriteToStatusBarPanel(StatusBarPanel2, 'Showing adjacent track circuit mode = OFF');
           InvalidateScreen(UnitRef, 'InputDialogueBoxHide 4');
         END;
@@ -1716,7 +1716,7 @@ BEGIN { KeyPressedDown }
               BEGIN
                 HelpMsg := 'switch feedback debugging mode on/off';
                 IF NOT HelpRequired THEN BEGIN
-                  IF NOT FeedbackDebuggingMode THEN
+                  IF NOT InFeedbackDebuggingMode THEN
                     SetFeedbackDebuggingModeOn('Feedback debugging ON', NOT ReadOutAdjacentSignalNumber, NOT ReadOutTCInFull, NOT ReadOutTCOnce, NOT ReadOutDecoderNumber)
                   ELSE
                     SetFeedbackDebuggingModeOff('Feedback debugging OFF');
@@ -2005,7 +2005,7 @@ BEGIN { KeyPressedDown }
               BEGIN
                 HelpMsg := 'initiate general check';
                 IF NOT HelpRequired THEN BEGIN
-                  IF NOT LogsCurrentlyKept THEN
+                  IF NOT InLogsCurrentlyKeptMode THEN
                     Debug('Cannot initiate general check with LogsCurrentlyKept turned off')
                   ELSE BEGIN
                     WriteToStatusBarPanel(StatusBarPanel2, 'General check initiated');
@@ -2059,11 +2059,11 @@ BEGIN { KeyPressedDown }
               BEGIN
                 HelpMsg := 'logging on/off';
                 IF NOT HelpRequired THEN BEGIN
-                  IF LogsCurrentlyKept THEN BEGIN
+                  IF InLogsCurrentlyKeptMode THEN BEGIN
                     Log('AG LogsCurrentlyKept = OFF');
-                    LogsCurrentlyKept := False;
+                    SetMode(LogsCurrentlyKept, False);
                   END ELSE BEGIN
-                    LogsCurrentlyKept := True;
+                    setMode(LogsCurrentlyKept, True);
                     Log('AG LogsCurrentlyKept = ON');
                   END;
                 END;
@@ -2107,7 +2107,7 @@ BEGIN { KeyPressedDown }
               BEGIN
                 HelpMsg := 'point/signal locking on/off';
                 IF NOT HelpRequired THEN BEGIN
-                  IF LockingMode THEN
+                  IF InLockingMode THEN
                     SetMode(Locking, TurnOff)
                   ELSE
                     SetMode(Locking, TurnOn);
@@ -2528,7 +2528,7 @@ BEGIN { KeyPressedDown }
                       StopSystemTimer;
                       IF InAutoMode THEN
                         TurnAutoModeOff(NOT ByUser);
-                      LogsCurrentlyKept := False;
+                      SetMode(LogsCurrentlyKept, False);
                       StartWithDiagrams := False;
                       SetSystemOffline('System set offline by selecting replay', NOT SoundWarning);
                     END;
@@ -2742,8 +2742,8 @@ BEGIN { KeyPressedDown }
               BEGIN
                 HelpMsg := 'toggle station start mode';
                 IF NOT HelpRequired THEN BEGIN
-                  StationStartMode := NOT StationStartMode;
-                  IF StationStartMode THEN
+                  SetMode(StationStart, NOT InStationStartMode);
+                  IF InStationStartMode THEN
                     Log('AG Station Start Mode = ON')
                   ELSE
                     Log('AG Station Start Mode = OFF');
@@ -4563,11 +4563,11 @@ BEGIN { KeyPressedDown }
               BEGIN
                 HelpMsg := 'toggle show adjacent track circuit mode';
                 IF NOT HelpRequired THEN BEGIN
-                  IF ShowAdjacentTrackCircuitMode THEN BEGIN
-                    ShowAdjacentTrackCircuitMode := False;
+                  IF InShowAdjacentTrackCircuitMode THEN BEGIN
+                    SetMode(ShowAdjacentTrackCircuit, False);
                     WriteToStatusBarPanel(StatusBarPanel2, 'Showing adjacent track circuit mode = OFF');
                   END ELSE BEGIN
-                    ShowAdjacentTrackCircuitMode := True;
+                    SetMode(ShowAdjacentTrackCircuit, True);
                     WriteToStatusBarPanel(StatusBarPanel2, 'Showing adjacent track circuit mode = ON');
                   END;
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
@@ -4696,7 +4696,7 @@ BEGIN { KeyPressedDown }
               BEGIN
                 HelpMsg := 'RDC Mode on/off';
                 IF NOT HelpRequired THEN BEGIN
-                  IF RDCMode THEN
+                  IF InRDCMode THEN
                     SetMode(RDC, TurnOff)
                   ELSE BEGIN
                     SetMode(RDC, TurnOn);
@@ -4708,7 +4708,7 @@ BEGIN { KeyPressedDown }
               BEGIN
                 HelpMsg := 'show RailDriver window';
                 IF NOT HelpRequired THEN BEGIN
-                  IF NOT RDCMode THEN
+                  IF NOT InRDCMode THEN
                     Debug('RDC Mode not on')
                   ELSE BEGIN
                     IF RailDriverWindow.Visible THEN
