@@ -147,6 +147,7 @@ CONST
 
 VAR
   SaveEvent : TNotifyEvent;
+  SaveIconHandle : HICON;
   SaveLineNum : Integer;
   SaveLineRec : LineRec;
   SavePointNum : Integer;
@@ -2599,7 +2600,8 @@ BEGIN
 
     SetCaption(FWPRailWindow, 'EDITING...');
     EditWindow.EditWindowLabel.caption := '';
-    Application.Icon := EditIcon;
+    SaveIconHandle := Application.Icon.Handle;
+    Application.Icon.Handle := EditIcon.Handle;
   END;
 END; { TurnEditModeOn }
 
@@ -2615,7 +2617,9 @@ BEGIN
 
       EditWindow.Visible := False;
       Diagrams.DiagramsWindow.Visible := True;
+
       EditMode := False;
+      Application.Icon.Handle := SaveIconHandle;
 
       ClearEditValueList;
 
