@@ -1383,7 +1383,7 @@ VAR
   Locos : ARRAY OF LocoRec;
   LocoSpeedTimingMode : Boolean = False;
   LocosStopped : Boolean = True;
-  LogsCurrentlyKept : Boolean; { initialised by LogsKeptMode - allows LogsKeptMode to be changed without affecting the current logging }
+  LogsCurrentlyKept : Boolean = True;
   MainPlatformPlungers : ARRAY OF TRSPlungerRec;
   MissingTrainArray : ARRAY [1..9] OF Boolean = (False, False, False, False, False, False, False, False, False);
   MissingTrainCounter : Integer = 0;
@@ -6799,62 +6799,67 @@ VAR
 
 BEGIN
   { Check that the path to the log files exists - if not, create it }
-  IF NOT DirectoryExists(PathToLogFiles) THEN
-    ForceDirectories(PathToLogFiles);
+  IF PathToLogFiles = '' THEN BEGIN
+    Log('X! Error - PathToLogFiles is empty - log files directory cannot be opened or created');
+    LogsCurrentlyKept := False;
+  END ELSE BEGIN
+    IF NOT DirectoryExists(PathToLogFiles) THEN
+      ForceDirectories(PathToLogFiles);
 
-  { First the standard debug (and replay) files }
-  RenameEarlierFiles(LargeLogFile, PathToLogFiles + LogFileName, LogFileNameSuffix);
-  IF NOT OpenOutputFileOK(LargeLogFile, PathToLogFiles + LogFileName + '.' + LogFileNameSuffix, ErrorMsg, NOT AppendToFile) THEN
-    ShowMessage(ErrorMsg)
-  ELSE BEGIN
-    WriteLn(LargeLogFile, GetProgramTitle);
-    WriteLn(LargeLogFile, GetProgramVersion('Debugging (and Replay) Log File'));
-    WriteLn(LargeLogFile, '{Replay NoWrite}');
-    LogFileOpen := True;
-  END;
+    { First the standard debug (and replay) files }
+    RenameEarlierFiles(LargeLogFile, PathToLogFiles + LogFileName, LogFileNameSuffix);
+    IF NOT OpenOutputFileOK(LargeLogFile, PathToLogFiles + LogFileName + '.' + LogFileNameSuffix, ErrorMsg, NOT AppendToFile) THEN
+      ShowMessage(ErrorMsg)
+    ELSE BEGIN
+      WriteLn(LargeLogFile, GetProgramTitle);
+      WriteLn(LargeLogFile, GetProgramVersion('Debugging (and Replay) Log File'));
+      WriteLn(LargeLogFile, '{Replay NoWrite}');
+      LogFileOpen := True;
+    END;
 
-  { Now the test file }
-  RenameEarlierFiles(TestLogFile, PathToLogFiles + LogFileName + '-Test', LogFileNameSuffix);
-  IF NOT OpenOutputFileOK(TestLogFile, PathToLogFiles + LogFileName + '-Test.' + LogFileNameSuffix, ErrorMsg, NOT AppendToFile) THEN
-    ShowMessage(ErrorMsg)
-  ELSE BEGIN
-    WriteLn(TestLogFile, GetProgramTitle);
-    WriteLn(TestLogFile, GetProgramVersion('Test Log File'));
-    IF TestingMode THEN
-      Flush(TestLogFile);
-  END;
+    { Now the test file }
+    RenameEarlierFiles(TestLogFile, PathToLogFiles + LogFileName + '-Test', LogFileNameSuffix);
+    IF NOT OpenOutputFileOK(TestLogFile, PathToLogFiles + LogFileName + '-Test.' + LogFileNameSuffix, ErrorMsg, NOT AppendToFile) THEN
+      ShowMessage(ErrorMsg)
+    ELSE BEGIN
+      WriteLn(TestLogFile, GetProgramTitle);
+      WriteLn(TestLogFile, GetProgramVersion('Test Log File'));
+      IF TestingMode THEN
+        Flush(TestLogFile);
+    END;
 
-  { Now the individual log files }
-  IF MultipleLogFilesRequired THEN BEGIN
-    RenameEarlierFiles(ErrorLogFile, PathToLogFiles + LogFileName + '-Error', LogFileNameSuffix);
-    Rewrite(ErrorLogFile);
-    WriteLn(ErrorLogFile, GetProgramTitle);
-    WriteLn(ErrorLogFile, GetProgramVersion('Error Log File'));
+    { Now the individual log files }
+    IF MultipleLogFilesRequired THEN BEGIN
+      RenameEarlierFiles(ErrorLogFile, PathToLogFiles + LogFileName + '-Error', LogFileNameSuffix);
+      Rewrite(ErrorLogFile);
+      WriteLn(ErrorLogFile, GetProgramTitle);
+      WriteLn(ErrorLogFile, GetProgramVersion('Error Log File'));
 
-    RenameEarlierFiles(LocoLogFile, PathToLogFiles + LogFileName + '-Loco', LogFileNameSuffix);
-    Rewrite(LocoLogFile);
-    WriteLn(LocoLogFile, GetProgramTitle);
-    WriteLn(LocoLogFile, GetProgramVersion('Loco Log File'));
+      RenameEarlierFiles(LocoLogFile, PathToLogFiles + LogFileName + '-Loco', LogFileNameSuffix);
+      Rewrite(LocoLogFile);
+      WriteLn(LocoLogFile, GetProgramTitle);
+      WriteLn(LocoLogFile, GetProgramVersion('Loco Log File'));
 
-    RenameEarlierFiles(RouteLogFile, PathToLogFiles + LogFileName + '-Route', LogFileNameSuffix);
-    Rewrite(RouteLogFile);
-    WriteLn(RouteLogFile, GetProgramTitle);
-    WriteLn(RouteLogFile, GetProgramVersion('Route Log File'));
+      RenameEarlierFiles(RouteLogFile, PathToLogFiles + LogFileName + '-Route', LogFileNameSuffix);
+      Rewrite(RouteLogFile);
+      WriteLn(RouteLogFile, GetProgramTitle);
+      WriteLn(RouteLogFile, GetProgramVersion('Route Log File'));
 
-    RenameEarlierFiles(SignalPointAndTCLogFile, PathToLogFiles + LogFileName + '-SignalPointAndTC', LogFileNameSuffix);
-    Rewrite(SignalPointAndTCLogFile);
-    WriteLn(SignalPointAndTCLogFile, GetProgramTitle);
-    WriteLn(SignalPointAndTCLogFile, GetProgramVersion('Signal Point And TC Log File'));
+      RenameEarlierFiles(SignalPointAndTCLogFile, PathToLogFiles + LogFileName + '-SignalPointAndTC', LogFileNameSuffix);
+      Rewrite(SignalPointAndTCLogFile);
+      WriteLn(SignalPointAndTCLogFile, GetProgramTitle);
+      WriteLn(SignalPointAndTCLogFile, GetProgramVersion('Signal Point And TC Log File'));
 
-    RenameEarlierFiles(DiagramsLogFile, PathToLogFiles + LogFileName + '-Diagrams', LogFileNameSuffix);
-    Rewrite(DiagramsLogFile);
-    WriteLn(DiagramsLogFile, GetProgramTitle);
-    WriteLn(DiagramsLogFile, GetProgramVersion('Diagrams Log File'));
+      RenameEarlierFiles(DiagramsLogFile, PathToLogFiles + LogFileName + '-Diagrams', LogFileNameSuffix);
+      Rewrite(DiagramsLogFile);
+      WriteLn(DiagramsLogFile, GetProgramTitle);
+      WriteLn(DiagramsLogFile, GetProgramVersion('Diagrams Log File'));
 
-    RenameEarlierFiles(WorkingTimetableLogFile, PathToLogFiles + LogFileName + '-WorkingTimetable', LogFileNameSuffix);
-    Rewrite(WorkingTimetableLogFile);
-    WriteLn(WorkingTimetableLogFile, GetProgramTitle);
-    WriteLn(WorkingTimetableLogFile, GetProgramVersion('WorkingTimetable Log File'));
+      RenameEarlierFiles(WorkingTimetableLogFile, PathToLogFiles + LogFileName + '-WorkingTimetable', LogFileNameSuffix);
+      Rewrite(WorkingTimetableLogFile);
+      WriteLn(WorkingTimetableLogFile, GetProgramTitle);
+      WriteLn(WorkingTimetableLogFile, GetProgramVersion('WorkingTimetable Log File'));
+    END;
   END;
 END; { InitialiseLogFiles }
 

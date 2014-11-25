@@ -116,6 +116,9 @@ BEGIN
 END; { Log }
 
 PROCEDURE TMainWindow.MainWindowCreate(Sender: TObject);
+CONST
+  ReadWriteRegistry = True;
+
 BEGIN
   TRY
     IF OptionsWindow = NIL THEN BEGIN
@@ -228,7 +231,12 @@ BEGIN
       FWPRailWindow.Visible := False;
     END;
 
+    InitialiseStartupUnit;
     ReadIniFile;
+
+    { Now initialise the log files }
+    IF LogsCurrentlyKept THEN
+      InitialiseLogFiles;
 
     InitialiseMainUnit;
     InitialiseInitVarsUnit;
@@ -240,7 +248,6 @@ BEGIN
     InitialiseMovementUnit;
     InitialiseRaildrawUnit;
     InitialiseGetTimeUnit;
-    InitialiseStartupUnit;
     InitialiseWorkingTimetableUnit;
     InitialiseEditUnit;
     InitialiseLenzUnit;

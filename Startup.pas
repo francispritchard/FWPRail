@@ -185,7 +185,11 @@ BEGIN
             IF IndividualParameterString = 'IL=ON' THEN
               CheckForIdenticalLinesInLog := True
             ELSE
-              OK := False;
+              IF IndividualParameterString = 'INI' THEN
+                { read from .ini file rather than the registry }
+                ReadFromRegistry := False
+              ELSE
+                OK := False;
       'K':
         IF IndividualParameterString = 'O' THEN
           { used for development }
@@ -390,10 +394,6 @@ BEGIN
         CurrentParametersFromParamStr := CurrentParametersFromParamStr + ParamStr(I) + ' ';
     END;
   END;
-
-  { Now initialise the log files }
-  IF LogsCurrentlyKept THEN
-    InitialiseLogFiles;
 
   Log('A Startup Detail:');
 
@@ -604,7 +604,7 @@ BEGIN
       LogsCurrentlyKept := True;
       Log('A Logs Kept= ON');
     END ELSE BEGIN
-      LogsCurrentlyKept := True;
+      LogsCurrentlyKept := False;
       Log('A Logs Kept = OFF');
     END;
   END; {WITH}

@@ -6848,6 +6848,7 @@ PROCEDURE ShutDownProgram(UnitRef : String; SubroutineStr : String);
 CONST
   Init = True;
   TrainListOnly = True;
+  ReadWriteRegistry = True;
 
 VAR
   OK : Boolean;

@@ -42,7 +42,7 @@ PROCEDURE RestoreScreenDefaults;
 { Restore screen colours, fonts, etc. }
 
 PROCEDURE WriteIniFile;
-{ Write out data to the .ini file or to the Registry }
+{ Write out data to the registry and to the .ini file. (Do both so that the .ini file can be archived but not normally used when options are read in). }
 
 VAR
   OptionsWindow: TOptionsWindow;
@@ -528,6 +528,9 @@ VAR
   DefaultRailFontName : String = 'Arial';
   RailFontName : String;
 
+  { For obvious reasons the following parameter is only used on the command-line }
+  ReadFromRegistry : Boolean = True;
+
   DefaultReplayFilename : String = 'Log';
   ReplayFilename : String;
 
@@ -828,7 +831,7 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES MiscUtils, Raildraw, Locks, LocoUtils, CreateRoute, Diagrams, GetTime, Help, LocationData, Edit, WorkingTimetable, LocoDialogue, Logging;
+USES MiscUtils, Raildraw, Locks, LocoUtils, CreateRoute, Diagrams, GetTime, Help, LocationData, Edit, WorkingTimetable, LocoDialogue, Logging, IniFiles;
 
 CONST
   UnitRef = 'Options';
@@ -1292,390 +1295,415 @@ BEGIN
   TheatreFontHeight := DefaultTheatreFontHeight;
 END; { RestoreScreenDefaults }
 
-PROCEDURE ReadIniFile; //MainProcedure(IniFile : TRegistryIniFile);
+PROCEDURE ReadIniFile;
 { Read in data from the .ini file or from the Registry, except for the track circuit data }
 VAR
-  IniFile : TRegistryIniFile;
+  IniFile : TIniFile;
+  RegistryIniFile : TRegistryIniFile;
   TempStr : String;
+
+  FUNCTION FWPReadString(SectionStr, DataStr, DefaultDataStr : String) : String;
+  BEGIN
+    IF ReadFromRegistry THEN
+      Result := RegistryIniFile.ReadString(SectionStr, DataStr, DefaultDataStr)
+    ELSE
+      Result := IniFile.ReadString(SectionStr, DataStr, DefaultDataStr);
+  END; { FWPReadString }
+
+  FUNCTION FWPReadBool(SectionStr, DataStr: String; DefaultDataBool : Boolean) : Boolean;
+  BEGIN
+    IF ReadFromRegistry THEN
+      Result := RegistryIniFile.ReadBool(SectionStr, DataStr, DefaultDataBool)
+    ELSE
+      Result := IniFile.ReadBool(SectionStr, DataStr, DefaultDataBool);
+  END; { FWPReadBool }
+
+  FUNCTION FWPReadInteger(SectionStr, DataStr : String; DefaultDataInt : Integer) : Integer;
+  BEGIN
+    IF ReadFromRegistry THEN
+      Result := RegistryIniFile.ReadInteger(SectionStr, DataStr, DefaultDataInt)
+    ELSE
+      Result := IniFile.ReadInteger(SectionStr, DataStr, DefaultDataInt);
+  END; { FWPReadInteger }
 
 BEGIN
   TRY
-//    IniFile := TRegistryIniFile.Create(ExtractFilePath(Application.ExeName) + 'Rail.ini');
-    IniFile := TRegistryIniFile.Create('FWPRail');
+    IF ReadFromRegistry THEN
+      RegistryIniFile := TRegistryIniFile.Create('FWPRail')
+    ELSE
+      IniFile := TIniFile.Create(ExtractFilePath(Application.ExeName) + 'Rail.ini');
 
-    WITH IniFile DO BEGIN
-      { Check for various user supplied file data.
-        NB Track circuit data is read in separately in the ReadIniFileForTrackCircuitData routine.
-      }
-      PathToLogFiles := ReadString(FilesSectionStr, PathToLogFilesStr, DefaultPathToLogFiles);
-      PathToRailDataFiles := ReadString(FilesSectionStr, PathToRailDataFilesStr, DefaultPathToRailDataFiles);
-      PathToRailSourceFiles := ReadString(FilesSectionStr, PathToRailSourceFilesStr, DefaultPathToRailSourceFiles);
-      AreaDataFilename := ReadString(FilesSectionStr, AreaDataFilenameStr, DefaultAreaDataFilename);
-      AreaDataFilenameSuffix := ReadString(FilesSectionStr, AreaDataFilenameSuffixStr, DefaultAreaDataFilenameSuffix);
-      DataCheckFileName := ReadString(FilesSectionStr, DataCheckFileNameStr, DefaultDataCheckFileName);
-      DiagramsFilename := ReadString(FilesSectionStr, DiagramsFilenameStr, DefaultDiagramsFilename);
-      DiagramsFilenameSuffix := ReadString(FilesSectionStr, DiagramsFilenameSuffixStr, DefaultDiagramsFilenameSuffix);
-      FeedbackDataFilename := ReadString(FilesSectionStr, FeedbackDataFilenameStr, DefaultFeedbackDataFilename);
-      FeedbackDataFilenameSuffix := ReadString(FilesSectionStr, FeedbackDataFilenameSuffixStr, DefaultFeedbackDataFilenameSuffix);
-      LineDataFilename := ReadString(FilesSectionStr, LineDataFilenameStr, DefaultLineDataFilename);
-      LineDataFilenameSuffix := ReadString(FilesSectionStr, LineDataFilenameSuffixStr, DefaultLineDataFilenameSuffix);
+    { Check for various user supplied file data.
+      NB Track circuit data is read in separately in the ReadIniFileForTrackCircuitData routine.
+    }
+    PathToLogFiles := FWPReadString(FilesSectionStr, PathToLogFilesStr, DefaultPathToLogFiles);
+    PathToRailDataFiles := FWPReadString(FilesSectionStr, PathToRailDataFilesStr, DefaultPathToRailDataFiles);
+    PathToRailSourceFiles := FWPReadString(FilesSectionStr, PathToRailSourceFilesStr, DefaultPathToRailSourceFiles);
+    AreaDataFilename := FWPReadString(FilesSectionStr, AreaDataFilenameStr, DefaultAreaDataFilename);
+    AreaDataFilenameSuffix := FWPReadString(FilesSectionStr, AreaDataFilenameSuffixStr, DefaultAreaDataFilenameSuffix);
+    DataCheckFileName := FWPReadString(FilesSectionStr, DataCheckFileNameStr, DefaultDataCheckFileName);
+    DiagramsFilename := FWPReadString(FilesSectionStr, DiagramsFilenameStr, DefaultDiagramsFilename);
+    DiagramsFilenameSuffix := FWPReadString(FilesSectionStr, DiagramsFilenameSuffixStr, DefaultDiagramsFilenameSuffix);
+    FeedbackDataFilename := FWPReadString(FilesSectionStr, FeedbackDataFilenameStr, DefaultFeedbackDataFilename);
+    FeedbackDataFilenameSuffix := FWPReadString(FilesSectionStr, FeedbackDataFilenameSuffixStr, DefaultFeedbackDataFilenameSuffix);
+    LineDataFilename := FWPReadString(FilesSectionStr, LineDataFilenameStr, DefaultLineDataFilename);
+    LineDataFilenameSuffix := FWPReadString(FilesSectionStr, LineDataFilenameSuffixStr, DefaultLineDataFilenameSuffix);
 
-      LocationDataFilename := ReadString(FilesSectionStr, LocationDataFilenameStr, DefaultLocationDataFilename);
-      LocationDataFilenameSuffix := ReadString(FilesSectionStr, LocationDataFilenameSuffixStr, DefaultLocationDataFilenameSuffix);
-      LocoDataFilename := ReadString(FilesSectionStr, LocoDataFilenameStr, DefaultLocoDataFilename);
-      LocoDataFilenameSuffix := ReadString(FilesSectionStr, LocoDataFilenameSuffixStr, DefaultLocoDataFilenameSuffix);
-      LogFilename := ReadString(FilesSectionStr, LogFilenameStr, DefaultLogFilename);
-      LogFilenameSuffix := ReadString(FilesSectionStr, LogFilenameSuffixStr, DefaultLogFilenameSuffix);
-      PlatformDataFilename := ReadString(FilesSectionStr, PlatformDataFilenameStr, DefaultPlatformDataFilename);
-      PlatformDataFilenameSuffix := ReadString(FilesSectionStr, PlatformDataFilenameSuffixStr, DefaultPlatformDataFilenameSuffix);
-      PointDataFilename := ReadString(FilesSectionStr, PointDataFilenameStr, DefaultPointDataFilename);
-      PointDataFilenameSuffix := ReadString(FilesSectionStr, PointDataFilenameSuffixStr, DefaultPointDataFilenameSuffix);
-      ReplayFilename := ReadString(FilesSectionStr, ReplayFilenameStr, DefaultReplayFilename);
-      ReplayFilenameSuffix := ReadString(FilesSectionStr, ReplayFilenameSuffixStr, DefaultReplayFilenameSuffix);
-      RouteingExceptionDataFilename := ReadString(FilesSectionStr, RouteingExceptionDataFilenameStr, DefaultRouteingExceptionDataFilename);
-      RouteingExceptionDataFilenameSuffix := ReadString(FilesSectionStr, RouteingExceptionDataFilenameSuffixStr, DefaultRouteingExceptionDataFilenameSuffix);
-      SignalDataFilename := ReadString(FilesSectionStr, SignalDataFilenameStr, DefaultSignalDataFilename);
-      SignalDataFilenameSuffix := ReadString(FilesSectionStr, SignalDataFilenameSuffixStr, DefaultSignalDataFilenameSuffix);
-      TrackCircuitDataFilename := ReadString(FilesSectionStr, TrackCircuitDataFilename, DefaultTrackCircuitDataFilename);
-      TrackCircuitDataFilenameSuffix := ReadString(FilesSectionStr, TrackCircuitDataFilenameSuffixStr, DefaultTrackCircuitDataFilenameSuffix);
-      WorkingTimetableFilename := ReadString(FilesSectionStr, WorkingTimetableFilename, DefaultWorkingTimetableFilename);
-      WorkingTimetableFilenameSuffix := ReadString(FilesSectionStr, WorkingTimetableFilenameSuffixStr, DefaultWorkingTimetableFilenameSuffix);
+    LocationDataFilename := FWPReadString(FilesSectionStr, LocationDataFilenameStr, DefaultLocationDataFilename);
+    LocationDataFilenameSuffix := FWPReadString(FilesSectionStr, LocationDataFilenameSuffixStr, DefaultLocationDataFilenameSuffix);
+    LocoDataFilename := FWPReadString(FilesSectionStr, LocoDataFilenameStr, DefaultLocoDataFilename);
+    LocoDataFilenameSuffix := FWPReadString(FilesSectionStr, LocoDataFilenameSuffixStr, DefaultLocoDataFilenameSuffix);
+    LogFilename := FWPReadString(FilesSectionStr, LogFilenameStr, DefaultLogFilename);
+    LogFilenameSuffix := FWPReadString(FilesSectionStr, LogFilenameSuffixStr, DefaultLogFilenameSuffix);
+    PlatformDataFilename := FWPReadString(FilesSectionStr, PlatformDataFilenameStr, DefaultPlatformDataFilename);
+    PlatformDataFilenameSuffix := FWPReadString(FilesSectionStr, PlatformDataFilenameSuffixStr, DefaultPlatformDataFilenameSuffix);
+    PointDataFilename := FWPReadString(FilesSectionStr, PointDataFilenameStr, DefaultPointDataFilename);
+    PointDataFilenameSuffix := FWPReadString(FilesSectionStr, PointDataFilenameSuffixStr, DefaultPointDataFilenameSuffix);
+    ReplayFilename := FWPReadString(FilesSectionStr, ReplayFilenameStr, DefaultReplayFilename);
+    ReplayFilenameSuffix := FWPReadString(FilesSectionStr, ReplayFilenameSuffixStr, DefaultReplayFilenameSuffix);
+    RouteingExceptionDataFilename := FWPReadString(FilesSectionStr, RouteingExceptionDataFilenameStr, DefaultRouteingExceptionDataFilename);
+    RouteingExceptionDataFilenameSuffix := FWPReadString(FilesSectionStr, RouteingExceptionDataFilenameSuffixStr, DefaultRouteingExceptionDataFilenameSuffix);
+    SignalDataFilename := FWPReadString(FilesSectionStr, SignalDataFilenameStr, DefaultSignalDataFilename);
+    SignalDataFilenameSuffix := FWPReadString(FilesSectionStr, SignalDataFilenameSuffixStr, DefaultSignalDataFilenameSuffix);
+    TrackCircuitDataFilename := FWPReadString(FilesSectionStr, TrackCircuitDataFilename, DefaultTrackCircuitDataFilename);
+    TrackCircuitDataFilenameSuffix := FWPReadString(FilesSectionStr, TrackCircuitDataFilenameSuffixStr, DefaultTrackCircuitDataFilenameSuffix);
+    WorkingTimetableFilename := FWPReadString(FilesSectionStr, WorkingTimetableFilename, DefaultWorkingTimetableFilename);
+    WorkingTimetableFilenameSuffix := FWPReadString(FilesSectionStr, WorkingTimetableFilenameSuffixStr, DefaultWorkingTimetableFilenameSuffix);
 
-      { Colours for buffer stops }
-      BufferStopColour := StrToColour(ReadString(ColoursSectionStr, BufferStopColourStr, ColourToStr(DefaultBufferStopColour)));
-      BufferStopNumberColour := StrToColour(ReadString(ColoursSectionStr, BufferStopNumberColourStr, ColourToStr(DefaultBufferStopNumberColour)));
-      BufferStopRed := StrToColour(ReadString(ColoursSectionStr, BufferStopRedStr, ColourToStr(DefaultBufferStopRed)));
+    { Colours for buffer stops }
+    BufferStopColour := StrToColour(FWPReadString(ColoursSectionStr, BufferStopColourStr, ColourToStr(DefaultBufferStopColour)));
+    BufferStopNumberColour := StrToColour(FWPReadString(ColoursSectionStr, BufferStopNumberColourStr, ColourToStr(DefaultBufferStopNumberColour)));
+    BufferStopRed := StrToColour(FWPReadString(ColoursSectionStr, BufferStopRedStr, ColourToStr(DefaultBufferStopRed)));
 
-      { Colours for lines }
-      LineNotAvailableColour := StrToColour(ReadString(ColoursSectionStr, LineNotAvailableColourStr, ColourToStr(DefaultLineNotAvailableColour)));
-      LineRoutedOverColour := StrToColour(ReadString(ColoursSectionStr, LineRoutedOverColourStr, ColourToStr(DefaultLineRoutedOverColour)));
+    { Colours for lines }
+    LineNotAvailableColour := StrToColour(FWPReadString(ColoursSectionStr, LineNotAvailableColourStr, ColourToStr(DefaultLineNotAvailableColour)));
+    LineRoutedOverColour := StrToColour(FWPReadString(ColoursSectionStr, LineRoutedOverColourStr, ColourToStr(DefaultLineRoutedOverColour)));
 
-      { Colours for TRS plungers }
-      TRSPlungerColour := StrToColour(ReadString(ColoursSectionStr, TRSPlungerColourStr, ColourToStr(DefaultTRSPlungerColour)));
-      TRSPlungerOutlineColour := StrToColour(ReadString(ColoursSectionStr, TRSPlungerOutlineColourStr, ColourToStr(DefaultTRSPlungerOutlineColour)));
-      TRSPlungerPressedColour := StrToColour(ReadString(ColoursSectionStr, TRSPlungerPressedColourStr, ColourToStr(DefaultTRSPlungerPressedColour)));
+    { Colours for TRS plungers }
+    TRSPlungerColour := StrToColour(FWPReadString(ColoursSectionStr, TRSPlungerColourStr, ColourToStr(DefaultTRSPlungerColour)));
+    TRSPlungerOutlineColour := StrToColour(FWPReadString(ColoursSectionStr, TRSPlungerOutlineColourStr, ColourToStr(DefaultTRSPlungerOutlineColour)));
+    TRSPlungerPressedColour := StrToColour(FWPReadString(ColoursSectionStr, TRSPlungerPressedColourStr, ColourToStr(DefaultTRSPlungerPressedColour)));
 
-      { Colours for platforms }
-      PlatformColour := StrToColour(ReadString(ColoursSectionStr, PlatformColourStr, ColourToStr(DefaultPlatformColour)));
-      PlatformNumberColour := StrToColour(ReadString(ColoursSectionStr, PlatformNumberColourStr, ColourToStr(DefaultPlatformNumberColour)));
+    { Colours for platforms }
+    PlatformColour := StrToColour(FWPReadString(ColoursSectionStr, PlatformColourStr, ColourToStr(DefaultPlatformColour)));
+    PlatformNumberColour := StrToColour(FWPReadString(ColoursSectionStr, PlatformNumberColourStr, ColourToStr(DefaultPlatformNumberColour)));
 
-      { Colours for points }
-      PointColour := StrToColour(ReadString(ColoursSectionStr, PointColourStr, ColourToStr(DefaultPointColour)));
-      PointDivergingLineColour := StrToColour(ReadString(ColoursSectionStr, PointDivergingLineColourStr, ColourToStr(DefaultPointDivergingLineColour)));
-      PointDownFacingColour := StrToColour(ReadString(ColoursSectionStr, PointDownFacingColourStr, ColourToStr(DefaultPointDownFacingColour)));
-      PointFeedbackDataInUseColour := StrToColour(ReadString(ColoursSectionStr, PointFeedbackDataInUseColourStr, ColourToStr(DefaultPointFeedbackDataInUseColour)));
-      PointFeedbackDataOutOfUseColour := StrToColour(ReadString(ColoursSectionStr, PointFeedbackDataoutOfUseColourStr,
-                                                                                                                      ColourToStr(DefaultPointFeedbackDataOutOfUseColour)));
-      PointHeelLineColour := StrToColour(ReadString(ColoursSectionStr, PointHeelLineColourStr, ColourToStr(DefaultPointHeelLineColour)));
-      PointLenzNumberColour := StrToColour(ReadString(ColoursSectionStr, PointLenzNumberColourStr, ColourToStr(DefaultPointLenzNumberColour)));
-      PointLockedByUserColour := StrToColour(ReadString(ColoursSectionStr, PointLockedByUserColourStr, ColourToStr(DefaultPointLockedByUserColour)));
-      PointManualOperationColour := StrToColour(ReadString(ColoursSectionStr, PointManualOperationColourStr, ColourToStr(DefaultPointManualOperationColour)));
-      PointOutOfUseColour := StrToColour(ReadString(ColoursSectionStr, PointOutOfUseColourStr, ColourToStr(DefaultPointOutOfUseColour)));
-      PointStraightLineColour := StrToColour(ReadString(ColoursSectionStr, PointStraightLineColourStr, ColourToStr(DefaultPointStraightLineColour)));
-      PointsWithoutFeedbackColour := StrToColour(ReadString(ColoursSectionStr, PointsWithoutFeedbackColourStr, ColourToStr(DefaultPointsWithoutFeedbackColour)));
-      PointUndrawColour := StrToColour(ReadString(ColoursSectionStr, PointUndrawColourStr, ColourToStr(DefaultPointUndrawColour)));
-      PointUpFacingColour := StrToColour(ReadString(ColoursSectionStr, PointUpFacingColourStr, ColourToStr(DefaultPointUpFacingColour)));
-      ShowPointDefaultStateColour := StrToColour(ReadString(ColoursSectionStr, ShowPointDefaultStateColourStr, ColourToStr(DefaultShowPointDefaultStateColour)));
-      ShowPointLockedColour := StrToColour(ReadString(ColoursSectionStr, ShowPointLockedColourStr, ColourToStr(DefaultShowPointLockedColour)));
+    { Colours for points }
+    PointColour := StrToColour(FWPReadString(ColoursSectionStr, PointColourStr, ColourToStr(DefaultPointColour)));
+    PointDivergingLineColour := StrToColour(FWPReadString(ColoursSectionStr, PointDivergingLineColourStr, ColourToStr(DefaultPointDivergingLineColour)));
+    PointDownFacingColour := StrToColour(FWPReadString(ColoursSectionStr, PointDownFacingColourStr, ColourToStr(DefaultPointDownFacingColour)));
+    PointFeedbackDataInUseColour := StrToColour(FWPReadString(ColoursSectionStr, PointFeedbackDataInUseColourStr, ColourToStr(DefaultPointFeedbackDataInUseColour)));
+    PointFeedbackDataOutOfUseColour := StrToColour(FWPReadString(ColoursSectionStr, PointFeedbackDataoutOfUseColourStr,
+                                                                                                                    ColourToStr(DefaultPointFeedbackDataOutOfUseColour)));
+    PointHeelLineColour := StrToColour(FWPReadString(ColoursSectionStr, PointHeelLineColourStr, ColourToStr(DefaultPointHeelLineColour)));
+    PointLenzNumberColour := StrToColour(FWPReadString(ColoursSectionStr, PointLenzNumberColourStr, ColourToStr(DefaultPointLenzNumberColour)));
+    PointLockedByUserColour := StrToColour(FWPReadString(ColoursSectionStr, PointLockedByUserColourStr, ColourToStr(DefaultPointLockedByUserColour)));
+    PointManualOperationColour := StrToColour(FWPReadString(ColoursSectionStr, PointManualOperationColourStr, ColourToStr(DefaultPointManualOperationColour)));
+    PointOutOfUseColour := StrToColour(FWPReadString(ColoursSectionStr, PointOutOfUseColourStr, ColourToStr(DefaultPointOutOfUseColour)));
+    PointStraightLineColour := StrToColour(FWPReadString(ColoursSectionStr, PointStraightLineColourStr, ColourToStr(DefaultPointStraightLineColour)));
+    PointsWithoutFeedbackColour := StrToColour(FWPReadString(ColoursSectionStr, PointsWithoutFeedbackColourStr, ColourToStr(DefaultPointsWithoutFeedbackColour)));
+    PointUndrawColour := StrToColour(FWPReadString(ColoursSectionStr, PointUndrawColourStr, ColourToStr(DefaultPointUndrawColour)));
+    PointUpFacingColour := StrToColour(FWPReadString(ColoursSectionStr, PointUpFacingColourStr, ColourToStr(DefaultPointUpFacingColour)));
+    ShowPointDefaultStateColour := StrToColour(FWPReadString(ColoursSectionStr, ShowPointDefaultStateColourStr, ColourToStr(DefaultShowPointDefaultStateColour)));
+    ShowPointLockedColour := StrToColour(FWPReadString(ColoursSectionStr, ShowPointLockedColourStr, ColourToStr(DefaultShowPointLockedColour)));
 
-      { Colours for signal posts }
-      SignalPostColour := StrToColour(ReadString(ColoursSectionStr, SignalPostColourStr, ColourToStr(DefaultSignalPostColour)));
-      SignalPostEmergencyRouteSettingColour := StrToColour(ReadString(ColoursSectionStr, SignalPostEmergencyRouteSettingColourStr,
-                                                                                                                ColourToStr(DefaultSignalPostEmergencyRouteSettingColour)));
-      SignalPostRouteSettingColour := StrToColour(ReadString(ColoursSectionStr, SignalPostRouteSettingColourStr, ColourToStr(DefaultSignalPostRouteSettingColour)));
-      SignalPostStationStartModeColour := StrToColour(ReadString(ColoursSectionStr, SignalPostStationStartModeColourStr,
-                                                                                                                     ColourToStr(DefaultSignalPostStationStartModeColour)));
-      SignalPostTheatreSettingColour := StrToColour(ReadString(ColoursSectionStr, SignalPostTheatreSettingColourStr, ColourToStr(DefaultSignalPostTheatreSettingColour)));
+    { Colours for signal posts }
+    SignalPostColour := StrToColour(FWPReadString(ColoursSectionStr, SignalPostColourStr, ColourToStr(DefaultSignalPostColour)));
+    SignalPostEmergencyRouteSettingColour := StrToColour(FWPReadString(ColoursSectionStr, SignalPostEmergencyRouteSettingColourStr,
+                                                                                                              ColourToStr(DefaultSignalPostEmergencyRouteSettingColour)));
+    SignalPostRouteSettingColour := StrToColour(FWPReadString(ColoursSectionStr, SignalPostRouteSettingColourStr, ColourToStr(DefaultSignalPostRouteSettingColour)));
+    SignalPostStationStartModeColour := StrToColour(FWPReadString(ColoursSectionStr, SignalPostStationStartModeColourStr,
+                                                                                                                   ColourToStr(DefaultSignalPostStationStartModeColour)));
+    SignalPostTheatreSettingColour := StrToColour(FWPReadString(ColoursSectionStr, SignalPostTheatreSettingColourStr, ColourToStr(DefaultSignalPostTheatreSettingColour)));
 
-      { Colours for signals }
-      SignalAspectGreen := StrToColour(ReadString(ColoursSectionStr, SignalAspectGreenStr, ColourToStr(DefaultSignalAspectGreen)));
-      SignalAspectRed := StrToColour(ReadString(ColoursSectionStr, SignalAspectRedStr, ColourToStr(DefaultSignalAspectRed)));
-      SignalAspectUnlit := StrToColour(ReadString(ColoursSectionStr, SignalAspectUnlitStr, ColourToStr(DefaultSignalAspectUnlit)));
-      SignalAspectYellow := StrToColour(ReadString(ColoursSectionStr, SignalAspectYellowStr, ColourToStr(DefaultSignalAspectYellow)));
-      SignalNumberColour := StrToColour(ReadString(ColoursSectionStr, SignalNumberColourStr, ColourToStr(DefaultSignalNumberColour)));
+    { Colours for signals }
+    SignalAspectGreen := StrToColour(FWPReadString(ColoursSectionStr, SignalAspectGreenStr, ColourToStr(DefaultSignalAspectGreen)));
+    SignalAspectRed := StrToColour(FWPReadString(ColoursSectionStr, SignalAspectRedStr, ColourToStr(DefaultSignalAspectRed)));
+    SignalAspectUnlit := StrToColour(FWPReadString(ColoursSectionStr, SignalAspectUnlitStr, ColourToStr(DefaultSignalAspectUnlit)));
+    SignalAspectYellow := StrToColour(FWPReadString(ColoursSectionStr, SignalAspectYellowStr, ColourToStr(DefaultSignalAspectYellow)));
+    SignalNumberColour := StrToColour(FWPReadString(ColoursSectionStr, SignalNumberColourStr, ColourToStr(DefaultSignalNumberColour)));
 
 
-      { Colours for track circuits }
-      TCFeedbackDataInUseColour := StrToColour(ReadString(ColoursSectionStr, TCFeedbackDataInUseColourStr, ColourToStr(DefaultTCFeedbackDataInUseColour)));
-      TCFeedbackDataOutOfUseColour := StrToColour(ReadString(ColoursSectionStr, TCFeedbackDataOutOfUseColourStr, ColourToStr(DefaultTCFeedbackDataOutOfUseColour)));
-      TCFeedbackOccupationColour := StrToColour(ReadString(ColoursSectionStr, TCFeedbackOccupationColourStr, ColourToStr(DefaultTCFeedbackOccupationColour)));
-      TCFeedbackOccupationButOutOfUseColour := StrToColour(ReadString(ColoursSectionStr, TCFeedbackOccupationButOutOfUseColourStr,
-                                                                                                                ColourToStr(DefaultTCFeedbackOccupationButOutOfUseColour)));
-      TCLocoOutOfPlaceOccupationColour := StrToColour(ReadString(ColoursSectionStr, TCLocoOutOfPlaceOccupationColourStr,
-                                                                                                                     ColourToStr(DefaultTCLocoOutOfPlaceOccupationColour)));
-      TCMissingOccupationColour := StrToColour(ReadString(ColoursSectionStr, TCMissingOccupationColourStr, ColourToStr(DefaultTCMissingOccupationColour)));
-      TCOutOfUseSetByUserColour := StrToColour(ReadString(ColoursSectionStr, TCOutOfUseSetByUserColourStr, ColourToStr(DefaultTCOutOfUseSetByUserColour)));
-      TCOutOfUseAsNoFeedbackReceivedColour := StrToColour(ReadString(ColoursSectionStr, TCOutOfUseAsNoFeedbackReceivedColourStr,
-                                                                                                                 ColourToStr(DefaultTCOutOfUseAsNoFeedbackReceivedColour)));
+    { Colours for track circuits }
+    TCFeedbackDataInUseColour := StrToColour(FWPReadString(ColoursSectionStr, TCFeedbackDataInUseColourStr, ColourToStr(DefaultTCFeedbackDataInUseColour)));
+    TCFeedbackDataOutOfUseColour := StrToColour(FWPReadString(ColoursSectionStr, TCFeedbackDataOutOfUseColourStr, ColourToStr(DefaultTCFeedbackDataOutOfUseColour)));
+    TCFeedbackOccupationColour := StrToColour(FWPReadString(ColoursSectionStr, TCFeedbackOccupationColourStr, ColourToStr(DefaultTCFeedbackOccupationColour)));
+    TCFeedbackOccupationButOutOfUseColour := StrToColour(FWPReadString(ColoursSectionStr, TCFeedbackOccupationButOutOfUseColourStr,
+                                                                                                              ColourToStr(DefaultTCFeedbackOccupationButOutOfUseColour)));
+    TCLocoOutOfPlaceOccupationColour := StrToColour(FWPReadString(ColoursSectionStr, TCLocoOutOfPlaceOccupationColourStr,
+                                                                                                                   ColourToStr(DefaultTCLocoOutOfPlaceOccupationColour)));
+    TCMissingOccupationColour := StrToColour(FWPReadString(ColoursSectionStr, TCMissingOccupationColourStr, ColourToStr(DefaultTCMissingOccupationColour)));
+    TCOutOfUseSetByUserColour := StrToColour(FWPReadString(ColoursSectionStr, TCOutOfUseSetByUserColourStr, ColourToStr(DefaultTCOutOfUseSetByUserColour)));
+    TCOutOfUseAsNoFeedbackReceivedColour := StrToColour(FWPReadString(ColoursSectionStr, TCOutOfUseAsNoFeedbackReceivedColourStr,
+                                                                                                               ColourToStr(DefaultTCOutOfUseAsNoFeedbackReceivedColour)));
 
-      TCPermanentFeedbackOccupationColour := StrToColour(ReadString(ColoursSectionStr, TCPermanentFeedbackOccupationColourStr,
-                                                                                                                  ColourToStr(DefaultTCPermanentFeedbackOccupationColour)));
-      TCPermanentOccupationSetByUserColour := StrToColour(ReadString(ColoursSectionStr, TCPermanentOccupationSetByUserColourStr,
-                                                                                                                 ColourToStr(DefaultTCPermanentOccupationSetByUserColour)));
-      TCPermanentSystemOccupationColour := StrToColour(ReadString(ColoursSectionStr, TCPermanentSystemOccupationColourStr,
-                                                                                                                    ColourToStr(DefaultTCPermanentSystemOccupationColour)));
-      TCSpeedRestrictionColour := StrToColour(ReadString(ColoursSectionStr, TCSpeedRestrictionColourStr, ColourToStr(DefaultTCSpeedRestrictionColour)));
-      TCSystemOccupationColour := StrToColour(ReadString(ColoursSectionStr, TCSystemOccupationColourStr, ColourToStr(DefaultTCSystemOccupationColour)));
-      TCUnoccupiedColour := StrToColour(ReadString(ColoursSectionStr, TCUnoccupiedColourStr, ColourToStr(DefaultTCUnoccupiedColour)));
-      TCUserMustDriveColour := StrToColour(ReadString(ColoursSectionStr, TCUserMustDriveColourStr, ColourToStr(DefaultTCUserMustDriveColour)));
-      TrainActiveColour := StrToColour(ReadString(ColoursSectionStr, TrainActiveColourStr, ColourToStr(DefaultTrainActiveColour)));
-      TrainInactiveColour := StrToColour(ReadString(ColoursSectionStr, TrainInactiveColourStr, ColourToStr(DefaultTrainInactiveColour)));
+    TCPermanentFeedbackOccupationColour := StrToColour(FWPReadString(ColoursSectionStr, TCPermanentFeedbackOccupationColourStr,
+                                                                                                                ColourToStr(DefaultTCPermanentFeedbackOccupationColour)));
+    TCPermanentOccupationSetByUserColour := StrToColour(FWPReadString(ColoursSectionStr, TCPermanentOccupationSetByUserColourStr,
+                                                                                                               ColourToStr(DefaultTCPermanentOccupationSetByUserColour)));
+    TCPermanentSystemOccupationColour := StrToColour(FWPReadString(ColoursSectionStr, TCPermanentSystemOccupationColourStr,
+                                                                                                                  ColourToStr(DefaultTCPermanentSystemOccupationColour)));
+    TCSpeedRestrictionColour := StrToColour(FWPReadString(ColoursSectionStr, TCSpeedRestrictionColourStr, ColourToStr(DefaultTCSpeedRestrictionColour)));
+    TCSystemOccupationColour := StrToColour(FWPReadString(ColoursSectionStr, TCSystemOccupationColourStr, ColourToStr(DefaultTCSystemOccupationColour)));
+    TCUnoccupiedColour := StrToColour(FWPReadString(ColoursSectionStr, TCUnoccupiedColourStr, ColourToStr(DefaultTCUnoccupiedColour)));
+    TCUserMustDriveColour := StrToColour(FWPReadString(ColoursSectionStr, TCUserMustDriveColourStr, ColourToStr(DefaultTCUserMustDriveColour)));
+    TrainActiveColour := StrToColour(FWPReadString(ColoursSectionStr, TrainActiveColourStr, ColourToStr(DefaultTrainActiveColour)));
+    TrainInactiveColour := StrToColour(FWPReadString(ColoursSectionStr, TrainInactiveColourStr, ColourToStr(DefaultTrainInactiveColour)));
 
-      { Miscellaneous colours }
-      BackgroundColour := StrToColour(ReadString(ColoursSectionStr, BackgroundColourStr, ColourToStr(DefaultBackgroundColour)));
-      ForegroundColour := StrToColour(ReadString(ColoursSectionStr, ForegroundColourStr, ColourToStr(DefaultForegroundColour)));
-      DiagramsWindowGridBackgroundColour := StrToColour(ReadString(ColoursSectionStr, DiagramsWindowGridBackgroundColourStr,
-                                                                                                                   ColourToStr(DefaultDiagramsWindowGridBackgroundColour)));
-      LinesWithoutTrackCircuitsColour := StrToColour(ReadString(ColoursSectionStr, LinesWithoutTrackCircuitsColourStr,
-                                                                                                                      ColourToStr(DefaultLinesWithoutTrackCircuitsColour)));
-      LocoStalledColour := StrToColour(ReadString(ColoursSectionStr, LocoStalledColourStr, ColourToStr(DefaultLocoStalledColour)));
-      ScreenComponentEditedColour := StrToColour(ReadString(ColoursSectionStr, ScreenComponentEditedColourStr, ColourToStr(DefaultScreenComponentEditedColour)));
-      WorkingTimetableWindowGridBackgroundColour := StrToColour(ReadString(ColoursSectionStr, WorkingTimetableWindowGridBackgroundColourStr,
-                                                                                                           ColourToStr(DefaultWorkingTimetableWindowGridBackgroundColour)));
-      { Pen styles }
-      FiddleyardLinePenStyle := StrToPenStyle(ReadString(PenStylesSectionStr, FiddleyardLinePenStyleStr, PenStyleToStr(DefaultFiddleyardLinePenStyle)));
-      ProjectedLinePenStyle := StrToPenStyle(ReadString(PenStylesSectionStr, ProjectedLinePenStyleStr, PenStyleToStr(DefaultProjectedLinePenStyle)));
-      SidingPenStyle := StrToPenStyle(ReadString(PenStylesSectionStr, SidingPenStyleStr, PenStyleToStr(DefaultSidingPenStyle)));
-      TCLocoOutOfPlaceOccupationPenStyle := StrToPenStyle(ReadString(PenStylesSectionStr, TCLocoOutOfPlaceOccupationPenStyleStr,
-                                                                                                                 PenStyleToStr(DefaultTCLocoOutOfPlaceOccupationPenStyle)));
-      TCOutOfUseAsNoFeedbackReceivedPenStyle := StrToPenStyle(ReadString(PenStylesSectionStr, TCOutOfUseAsNoFeedbackReceivedPenStyleStr,
-                                                                                                             PenStyleToStr(DefaultTCOutOfUseAsNoFeedbackReceivedPenStyle)));
-      TCOutOfUseSetByUserPenStyle := StrToPenStyle(ReadString(PenStylesSectionStr, TCOutOfUseSetByUserPenStyleStr, PenStyleToStr(DefaultTCOutOfUseSetByUserPenStyle)));
-      TCPermanentFeedbackOccupationPenStyle := StrToPenStyle(ReadString(PenStylesSectionStr, TCPermanentFeedbackOccupationPenStyleStr,
-                                                                                                              PenStyleToStr(DefaultTCPermanentFeedbackOccupationPenStyle)));
-      TCPermanentOccupationSetByUserPenStyle := StrToPenStyle(ReadString(PenStylesSectionStr, TCPermanentOccupationSetByUserPenStyleStr,
-                                                                                                             PenStyleToStr(DefaultTCPermanentOccupationSetByUserPenStyle)));
-      TCPermanentSystemOccupationPenStyle := StrToPenStyle(ReadString(PenStylesSectionStr, TCPermanentSystemOccupationPenStyleStr,
-                                                                                                                PenStyleToStr(DefaultTCPermanentSystemOccupationPenStyle)));
-      { Fonts }
-      RailFontName := ReadString(FontsSectionStr, RailFontNameStr, DefaultRailFontName);
-      LineFontHeight := ReadInteger(FontsSectionStr, LineFontHeightStr, DefaultLineFontHeight);
-      LoggingWindowFontName := ReadString(FontsSectionStr, LoggingWindowFontNameStr, DefaultLoggingWindowFontName);
-      LoggingWindowFontSize := ReadInteger(FontsSectionStr, LoggingWindowFontSizeStr, DefaultLoggingWindowFontSize);
-      FWPRailWindowFontHeight := ReadInteger(FontsSectionStr, FWPRailWindowFontHeightStr, DefaultFWPRailWindowFontHeight);
-      PlatformNumberFontHeight := ReadInteger(FontsSectionStr, PlatformNumberFontHeightStr, DefaultPlatformNumberFontHeight);
-      StationMonitorsFontName := ReadString(FontsSectionStr, StationMonitorsFontNameStr, DefaultStationMonitorsFontName);
-      StationMonitorsLargeFontHeight := ReadInteger(FontsSectionStr, StationMonitorsLargeFontHeightStr, DefaultStationMonitorsLargeFontHeight);
-      StationMonitorsSmallFontHeight := ReadInteger(FontsSectionStr, StationMonitorsSmallFontHeightStr, DefaultStationMonitorsSmallFontHeight);
-      TheatreFontHeight := ReadInteger(FontsSectionStr, TheatreFontHeightStr, DefaultTheatreFontHeight);
+    { Miscellaneous colours }
+    BackgroundColour := StrToColour(FWPReadString(ColoursSectionStr, BackgroundColourStr, ColourToStr(DefaultBackgroundColour)));
+    ForegroundColour := StrToColour(FWPReadString(ColoursSectionStr, ForegroundColourStr, ColourToStr(DefaultForegroundColour)));
+    DiagramsWindowGridBackgroundColour := StrToColour(FWPReadString(ColoursSectionStr, DiagramsWindowGridBackgroundColourStr,
+                                                                                                                 ColourToStr(DefaultDiagramsWindowGridBackgroundColour)));
+    LinesWithoutTrackCircuitsColour := StrToColour(FWPReadString(ColoursSectionStr, LinesWithoutTrackCircuitsColourStr,
+                                                                                                                    ColourToStr(DefaultLinesWithoutTrackCircuitsColour)));
+    LocoStalledColour := StrToColour(FWPReadString(ColoursSectionStr, LocoStalledColourStr, ColourToStr(DefaultLocoStalledColour)));
+    ScreenComponentEditedColour := StrToColour(FWPReadString(ColoursSectionStr, ScreenComponentEditedColourStr, ColourToStr(DefaultScreenComponentEditedColour)));
+    WorkingTimetableWindowGridBackgroundColour := StrToColour(FWPReadString(ColoursSectionStr, WorkingTimetableWindowGridBackgroundColourStr,
+                                                                                                         ColourToStr(DefaultWorkingTimetableWindowGridBackgroundColour)));
+    { Pen styles }
+    FiddleyardLinePenStyle := StrToPenStyle(FWPReadString(PenStylesSectionStr, FiddleyardLinePenStyleStr, PenStyleToStr(DefaultFiddleyardLinePenStyle)));
+    ProjectedLinePenStyle := StrToPenStyle(FWPReadString(PenStylesSectionStr, ProjectedLinePenStyleStr, PenStyleToStr(DefaultProjectedLinePenStyle)));
+    SidingPenStyle := StrToPenStyle(FWPReadString(PenStylesSectionStr, SidingPenStyleStr, PenStyleToStr(DefaultSidingPenStyle)));
+    TCLocoOutOfPlaceOccupationPenStyle := StrToPenStyle(FWPReadString(PenStylesSectionStr, TCLocoOutOfPlaceOccupationPenStyleStr,
+                                                                                                               PenStyleToStr(DefaultTCLocoOutOfPlaceOccupationPenStyle)));
+    TCOutOfUseAsNoFeedbackReceivedPenStyle := StrToPenStyle(FWPReadString(PenStylesSectionStr, TCOutOfUseAsNoFeedbackReceivedPenStyleStr,
+                                                                                                           PenStyleToStr(DefaultTCOutOfUseAsNoFeedbackReceivedPenStyle)));
+    TCOutOfUseSetByUserPenStyle := StrToPenStyle(FWPReadString(PenStylesSectionStr, TCOutOfUseSetByUserPenStyleStr, PenStyleToStr(DefaultTCOutOfUseSetByUserPenStyle)));
+    TCPermanentFeedbackOccupationPenStyle := StrToPenStyle(FWPReadString(PenStylesSectionStr, TCPermanentFeedbackOccupationPenStyleStr,
+                                                                                                            PenStyleToStr(DefaultTCPermanentFeedbackOccupationPenStyle)));
+    TCPermanentOccupationSetByUserPenStyle := StrToPenStyle(FWPReadString(PenStylesSectionStr, TCPermanentOccupationSetByUserPenStyleStr,
+                                                                                                           PenStyleToStr(DefaultTCPermanentOccupationSetByUserPenStyle)));
+    TCPermanentSystemOccupationPenStyle := StrToPenStyle(FWPReadString(PenStylesSectionStr, TCPermanentSystemOccupationPenStyleStr,
+                                                                                                              PenStyleToStr(DefaultTCPermanentSystemOccupationPenStyle)));
+    { Fonts }
+    RailFontName := FWPReadString(FontsSectionStr, RailFontNameStr, DefaultRailFontName);
+    LineFontHeight := FWPReadInteger(FontsSectionStr, LineFontHeightStr, DefaultLineFontHeight);
+    LoggingWindowFontName := FWPReadString(FontsSectionStr, LoggingWindowFontNameStr, DefaultLoggingWindowFontName);
+    LoggingWindowFontSize := FWPReadInteger(FontsSectionStr, LoggingWindowFontSizeStr, DefaultLoggingWindowFontSize);
+    FWPRailWindowFontHeight := FWPReadInteger(FontsSectionStr, FWPRailWindowFontHeightStr, DefaultFWPRailWindowFontHeight);
+    PlatformNumberFontHeight := FWPReadInteger(FontsSectionStr, PlatformNumberFontHeightStr, DefaultPlatformNumberFontHeight);
+    StationMonitorsFontName := FWPReadString(FontsSectionStr, StationMonitorsFontNameStr, DefaultStationMonitorsFontName);
+    StationMonitorsLargeFontHeight := FWPReadInteger(FontsSectionStr, StationMonitorsLargeFontHeightStr, DefaultStationMonitorsLargeFontHeight);
+    StationMonitorsSmallFontHeight := FWPReadInteger(FontsSectionStr, StationMonitorsSmallFontHeightStr, DefaultStationMonitorsSmallFontHeight);
+    TheatreFontHeight := FWPReadInteger(FontsSectionStr, TheatreFontHeightStr, DefaultTheatreFontHeight);
 
-      { Dialogue box variables }
-      DebuggingOptionsWindowLeft := ReadInteger(DialogueBoxSectionStr, DebuggingOptionsWindowLeftStr, DefaultDebuggingOptionsWindowLeft);
-      DebuggingOptionsWindowTop := ReadInteger(DialogueBoxSectionStr, DebuggingOptionsWindowTopStr, DefaultDebuggingOptionsWindowTop);
-      LineDialogueBoxLeft := ReadInteger(DialogueBoxSectionStr, LineDialogueBoxLeftStr, DefaultLineDialogueBoxLeft);
-      LineDialogueBoxTop := ReadInteger(DialogueBoxSectionStr, LineDialogueBoxTopStr, DefaultLineDialogueBoxTop);
-      LocoDialogueWindowLeft := ReadInteger(DialogueBoxSectionStr, LocoDialogueWindowLeftStr, DefaultLocoDialogueWindowLeft);
-      LocoDialogueWindowTop := ReadInteger(DialogueBoxSectionStr, LocoDialogueWindowTopStr, DefaultLocoDialogueWindowTop);
-      PointDialogueBoxLeft := ReadInteger(DialogueBoxSectionStr, PointDialogueBoxLeftStr, DefaultPointDialogueBoxLeft);
-      PointDialogueBoxTop := ReadInteger(DialogueBoxSectionStr, PointDialogueBoxTopStr, DefaultPointDialogueBoxTop);
-      SignalDialogueBoxLeft := ReadInteger(DialogueBoxSectionStr, SignalDialogueBoxLeftStr, DefaultSignalDialogueBoxLeft);
-      SignalDialogueBoxTop := ReadInteger(DialogueBoxSectionStr, SignalDialogueBoxTopStr, DefaultSignalDialogueBoxTop);
-      TrackCircuitDialogueBoxLeft := ReadInteger(DialogueBoxSectionStr, TrackCircuitDialogueBoxLeftStr, DefaultTrackCircuitDialogueBoxLeft);
-      TrackCircuitDialogueBoxTop := ReadInteger(DialogueBoxSectionStr, TrackCircuitDialogueBoxTopStr, DefaultTrackCircuitDialogueBoxTop);
+    { Dialogue box variables }
+    DebuggingOptionsWindowLeft := FWPReadInteger(DialogueBoxSectionStr, DebuggingOptionsWindowLeftStr, DefaultDebuggingOptionsWindowLeft);
+    DebuggingOptionsWindowTop := FWPReadInteger(DialogueBoxSectionStr, DebuggingOptionsWindowTopStr, DefaultDebuggingOptionsWindowTop);
+    LineDialogueBoxLeft := FWPReadInteger(DialogueBoxSectionStr, LineDialogueBoxLeftStr, DefaultLineDialogueBoxLeft);
+    LineDialogueBoxTop := FWPReadInteger(DialogueBoxSectionStr, LineDialogueBoxTopStr, DefaultLineDialogueBoxTop);
+    LocoDialogueWindowLeft := FWPReadInteger(DialogueBoxSectionStr, LocoDialogueWindowLeftStr, DefaultLocoDialogueWindowLeft);
+    LocoDialogueWindowTop := FWPReadInteger(DialogueBoxSectionStr, LocoDialogueWindowTopStr, DefaultLocoDialogueWindowTop);
+    PointDialogueBoxLeft := FWPReadInteger(DialogueBoxSectionStr, PointDialogueBoxLeftStr, DefaultPointDialogueBoxLeft);
+    PointDialogueBoxTop := FWPReadInteger(DialogueBoxSectionStr, PointDialogueBoxTopStr, DefaultPointDialogueBoxTop);
+    SignalDialogueBoxLeft := FWPReadInteger(DialogueBoxSectionStr, SignalDialogueBoxLeftStr, DefaultSignalDialogueBoxLeft);
+    SignalDialogueBoxTop := FWPReadInteger(DialogueBoxSectionStr, SignalDialogueBoxTopStr, DefaultSignalDialogueBoxTop);
+    TrackCircuitDialogueBoxLeft := FWPReadInteger(DialogueBoxSectionStr, TrackCircuitDialogueBoxLeftStr, DefaultTrackCircuitDialogueBoxLeft);
+    TrackCircuitDialogueBoxTop := FWPReadInteger(DialogueBoxSectionStr, TrackCircuitDialogueBoxTopStr, DefaultTrackCircuitDialogueBoxTop);
 
-      LocoDialogueSpeedInMPH := ReadBool(DialogueBoxSectionStr, LocoDialogueSpeedInMPHStr, DefaultLocoDialogueSpeedInMPH);
+    LocoDialogueSpeedInMPH := FWPReadBool(DialogueBoxSectionStr, LocoDialogueSpeedInMPHStr, DefaultLocoDialogueSpeedInMPH);
 
-      { Screen settings }
-      LogFileMaxWidthInChars := ReadInteger(ScreenOptionsStr, LogFileMaxWidthInCharsStr, DefaultLogFileMaxWidthInChars);
+    { Screen settings }
+    LogFileMaxWidthInChars := FWPReadInteger(ScreenOptionsStr, LogFileMaxWidthInCharsStr, DefaultLogFileMaxWidthInChars);
 
-      { Windows }
-      TempStr := ReadString(ScreenOptionsStr, ScreenModeStr, '');
-      IF TempStr <> '' THEN BEGIN
-        IF TempStr = FullScreenStr THEN
-          ScreenMode := FullScreenMode
+    { Windows }
+    TempStr := FWPReadString(ScreenOptionsStr, ScreenModeStr, '');
+    IF TempStr <> '' THEN BEGIN
+      IF TempStr = FullScreenStr THEN
+        ScreenMode := FullScreenMode
+      ELSE
+        IF TempStr = FullScreenWithStatusBarStr THEN
+          ScreenMode := FullScreenWithStatusBarMode
         ELSE
-          IF TempStr = FullScreenWithStatusBarStr THEN
-            ScreenMode := FullScreenWithStatusBarMode
-          ELSE
-            IF TempStr = CustomWindowedScreenStr THEN BEGIN
-              ScreenMode := CustomWindowedScreenMode;
-            END;
-      END;
+          IF TempStr = CustomWindowedScreenStr THEN BEGIN
+            ScreenMode := CustomWindowedScreenMode;
+          END;
+    END;
 
-      FWPRailWindowTop := ReadInteger(WindowsSectionStr, FWPRailWindowTopStr, DefaultFWPRailWindowTop);
-      FWPRailWindowLeft := ReadInteger(WindowsSectionStr, FWPRailWindowLeftStr, DefaultFWPRailWindowLeft);
-      FWPRailWindowWidth := ReadInteger(WindowsSectionStr, FWPRailWindowWidthStr, DefaultFWPRailWindowWidth);
-      FWPRailWindowHeight := ReadInteger(WindowsSectionStr, FWPRailWindowHeightStr, DefaultFWPRailWindowHeight);
+    FWPRailWindowTop := FWPReadInteger(WindowsSectionStr, FWPRailWindowTopStr, DefaultFWPRailWindowTop);
+    FWPRailWindowLeft := FWPReadInteger(WindowsSectionStr, FWPRailWindowLeftStr, DefaultFWPRailWindowLeft);
+    FWPRailWindowWidth := FWPReadInteger(WindowsSectionStr, FWPRailWindowWidthStr, DefaultFWPRailWindowWidth);
+    FWPRailWindowHeight := FWPReadInteger(WindowsSectionStr, FWPRailWindowHeightStr, DefaultFWPRailWindowHeight);
 
-      DisplayColoursWindowTop := ReadInteger(WindowsSectionStr, DisplayColoursWindowTopStr, DefaultDisplayColoursWindowTop);
-      DisplayColoursWindowLeft := ReadInteger(WindowsSectionStr, DisplayColoursWindowLeftStr, DefaultDisplayColoursWindowLeft);
-      DisplayColoursWindowWidth := ReadInteger(WindowsSectionStr, DisplayColoursWindowWidthStr, DefaultDisplayColoursWindowWidth);
-      DisplayColoursWindowHeight := ReadInteger(WindowsSectionStr, DisplayColoursWindowHeightStr, DefaultDisplayColoursWindowHeight);
+    DisplayColoursWindowTop := FWPReadInteger(WindowsSectionStr, DisplayColoursWindowTopStr, DefaultDisplayColoursWindowTop);
+    DisplayColoursWindowLeft := FWPReadInteger(WindowsSectionStr, DisplayColoursWindowLeftStr, DefaultDisplayColoursWindowLeft);
+    DisplayColoursWindowWidth := FWPReadInteger(WindowsSectionStr, DisplayColoursWindowWidthStr, DefaultDisplayColoursWindowWidth);
+    DisplayColoursWindowHeight := FWPReadInteger(WindowsSectionStr, DisplayColoursWindowHeightStr, DefaultDisplayColoursWindowHeight);
 
-      DebugWindowTop := ReadInteger(WindowsSectionStr, DebugWindowTopStr, DefaultDebugWindowTop);
-      DebugWindowLeft := ReadInteger(WindowsSectionStr, DebugWindowLeftStr, DefaultDebugWindowLeft);
-      DebugWindowWidth := ReadInteger(WindowsSectionStr, DebugWindowWidthStr, DefaultDebugWindowWidth);
-      DebugWindowHeight := ReadInteger(WindowsSectionStr, DebugWindowHeightStr, DefaultDebugWindowHeight);
+    DebugWindowTop := FWPReadInteger(WindowsSectionStr, DebugWindowTopStr, DefaultDebugWindowTop);
+    DebugWindowLeft := FWPReadInteger(WindowsSectionStr, DebugWindowLeftStr, DefaultDebugWindowLeft);
+    DebugWindowWidth := FWPReadInteger(WindowsSectionStr, DebugWindowWidthStr, DefaultDebugWindowWidth);
+    DebugWindowHeight := FWPReadInteger(WindowsSectionStr, DebugWindowHeightStr, DefaultDebugWindowHeight);
 
-      DiagramsWindowTop := ReadInteger(WindowsSectionStr, DiagramsWindowTopStr, DefaultDiagramsWindowTop);
-      DiagramsWindowLeft := ReadInteger(WindowsSectionStr, DiagramsWindowLeftStr, DefaultDiagramsWindowLeft);
-      DiagramsSmallWindowWidth := ReadInteger(WindowsSectionStr, DiagramsSmallWindowWidthStr, DefaultDiagramsSmallWindowWidth);
-      DiagramsLargeWindowWidth := ReadInteger(WindowsSectionStr, DiagramsLargeWindowWidthStr, DefaultDiagramsLargeWindowWidth);
-      DiagramsWindowHeight := ReadInteger(WindowsSectionStr, DiagramsWindowHeightStr, DefaultDiagramsWindowHeight);
+    DiagramsWindowTop := FWPReadInteger(WindowsSectionStr, DiagramsWindowTopStr, DefaultDiagramsWindowTop);
+    DiagramsWindowLeft := FWPReadInteger(WindowsSectionStr, DiagramsWindowLeftStr, DefaultDiagramsWindowLeft);
+    DiagramsSmallWindowWidth := FWPReadInteger(WindowsSectionStr, DiagramsSmallWindowWidthStr, DefaultDiagramsSmallWindowWidth);
+    DiagramsLargeWindowWidth := FWPReadInteger(WindowsSectionStr, DiagramsLargeWindowWidthStr, DefaultDiagramsLargeWindowWidth);
+    DiagramsWindowHeight := FWPReadInteger(WindowsSectionStr, DiagramsWindowHeightStr, DefaultDiagramsWindowHeight);
 
-      EditWindowTop := ReadInteger(WindowsSectionStr, EditWindowTopStr, DefaultEditWindowTop);
-      EditWindowLeft := ReadInteger(WindowsSectionStr, EditWindowLeftStr, DefaultEditWindowLeft);
-      EditWindowWidth := ReadInteger(WindowsSectionStr, EditWindowWidthStr, DefaultEditWindowWidth);
-      EditWindowHeight := ReadInteger(WindowsSectionStr, EditWindowHeightStr, DefaultEditWindowHeight);
+    EditWindowTop := FWPReadInteger(WindowsSectionStr, EditWindowTopStr, DefaultEditWindowTop);
+    EditWindowLeft := FWPReadInteger(WindowsSectionStr, EditWindowLeftStr, DefaultEditWindowLeft);
+    EditWindowWidth := FWPReadInteger(WindowsSectionStr, EditWindowWidthStr, DefaultEditWindowWidth);
+    EditWindowHeight := FWPReadInteger(WindowsSectionStr, EditWindowHeightStr, DefaultEditWindowHeight);
 
-      LockListWindowTop := ReadInteger(WindowsSectionStr, LockListWindowTopStr, DefaultLockListWindowTop);
-      LockListWindowLeft := ReadInteger(WindowsSectionStr, LockListWindowLeftStr, DefaultLockListWindowLeft);
-      LockListWindowWidth := ReadInteger(WindowsSectionStr, LockListWindowWidthStr, DefaultLockListWindowWidth);
-      LockListWindowHeight := ReadInteger(WindowsSectionStr, LockListWindowHeightStr, DefaultLockListWindowHeight);
+    LockListWindowTop := FWPReadInteger(WindowsSectionStr, LockListWindowTopStr, DefaultLockListWindowTop);
+    LockListWindowLeft := FWPReadInteger(WindowsSectionStr, LockListWindowLeftStr, DefaultLockListWindowLeft);
+    LockListWindowWidth := FWPReadInteger(WindowsSectionStr, LockListWindowWidthStr, DefaultLockListWindowWidth);
+    LockListWindowHeight := FWPReadInteger(WindowsSectionStr, LockListWindowHeightStr, DefaultLockListWindowHeight);
 
-      LocoUtilsWindowTop := ReadInteger(WindowsSectionStr, LocoUtilsWindowTopStr, DefaultLocoUtilsWindowTop);
-      LocoUtilsWindowLeft := ReadInteger(WindowsSectionStr, LocoUtilsWindowLeftStr, DefaultLocoUtilsWindowLeft);
-      LocoUtilsWindowWidth := ReadInteger(WindowsSectionStr, LocoUtilsWindowWidthStr, DefaultLocoUtilsWindowWidth);
-      LocoUtilsWindowHeight := ReadInteger(WindowsSectionStr, LocoUtilsWindowHeightStr, DefaultLocoUtilsWindowHeight);
+    LocoUtilsWindowTop := FWPReadInteger(WindowsSectionStr, LocoUtilsWindowTopStr, DefaultLocoUtilsWindowTop);
+    LocoUtilsWindowLeft := FWPReadInteger(WindowsSectionStr, LocoUtilsWindowLeftStr, DefaultLocoUtilsWindowLeft);
+    LocoUtilsWindowWidth := FWPReadInteger(WindowsSectionStr, LocoUtilsWindowWidthStr, DefaultLocoUtilsWindowWidth);
+    LocoUtilsWindowHeight := FWPReadInteger(WindowsSectionStr, LocoUtilsWindowHeightStr, DefaultLocoUtilsWindowHeight);
 
-      LoggingWindowTop := ReadInteger(WindowsSectionStr, LoggingWindowTopStr, DefaultLoggingWindowTop);
-      LoggingWindowLeft := ReadInteger(WindowsSectionStr, LoggingWindowLeftStr, DefaultLoggingWindowLeft);
-      LoggingWindowWidth := ReadInteger(WindowsSectionStr, LoggingWindowWidthStr, DefaultLoggingWindowWidth);
-      LoggingWindowHeight := ReadInteger(WindowsSectionStr, LoggingWindowHeightStr, DefaultLoggingWindowHeight);
+    LoggingWindowTop := FWPReadInteger(WindowsSectionStr, LoggingWindowTopStr, DefaultLoggingWindowTop);
+    LoggingWindowLeft := FWPReadInteger(WindowsSectionStr, LoggingWindowLeftStr, DefaultLoggingWindowLeft);
+    LoggingWindowWidth := FWPReadInteger(WindowsSectionStr, LoggingWindowWidthStr, DefaultLoggingWindowWidth);
+    LoggingWindowHeight := FWPReadInteger(WindowsSectionStr, LoggingWindowHeightStr, DefaultLoggingWindowHeight);
 
-      MovementWindowTop := ReadInteger(WindowsSectionStr, MovementWindowTopStr, DefaultMovementWindowTop);
-      MovementWindowLeft := ReadInteger(WindowsSectionStr, MovementWindowLeftStr, DefaultMovementWindowLeft);
-      MovementWindowWidth := ReadInteger(WindowsSectionStr, MovementWindowWidthStr, DefaultMovementWindowWidth);
-      MovementWindowHeight := ReadInteger(WindowsSectionStr, MovementWindowHeightStr, DefaultMovementWindowHeight);
+    MovementWindowTop := FWPReadInteger(WindowsSectionStr, MovementWindowTopStr, DefaultMovementWindowTop);
+    MovementWindowLeft := FWPReadInteger(WindowsSectionStr, MovementWindowLeftStr, DefaultMovementWindowLeft);
+    MovementWindowWidth := FWPReadInteger(WindowsSectionStr, MovementWindowWidthStr, DefaultMovementWindowWidth);
+    MovementWindowHeight := FWPReadInteger(WindowsSectionStr, MovementWindowHeightStr, DefaultMovementWindowHeight);
 
-      OptionsWindowTop := ReadInteger(WindowsSectionStr, OptionsWindowTopStr, DefaultOptionsWindowTop);
-      OptionsWindowLeft := ReadInteger(WindowsSectionStr, OptionsWindowLeftStr, DefaultOptionsWindowLeft);
-      OptionsWindowWidth := ReadInteger(WindowsSectionStr, OptionsWindowWidthStr, DefaultOptionsWindowWidth);
-      OptionsWindowHeight := ReadInteger(WindowsSectionStr, OptionsWindowHeightStr, DefaultOptionsWindowHeight);
-      OptionsWindowValueListEditorCol0Width := ReadInteger(WindowsSectionStr, OptionsWindowValueListEditorCol0WidthStr, DefaultOptionsWindowValueListEditorCol0Width);
+    OptionsWindowTop := FWPReadInteger(WindowsSectionStr, OptionsWindowTopStr, DefaultOptionsWindowTop);
+    OptionsWindowLeft := FWPReadInteger(WindowsSectionStr, OptionsWindowLeftStr, DefaultOptionsWindowLeft);
+    OptionsWindowWidth := FWPReadInteger(WindowsSectionStr, OptionsWindowWidthStr, DefaultOptionsWindowWidth);
+    OptionsWindowHeight := FWPReadInteger(WindowsSectionStr, OptionsWindowHeightStr, DefaultOptionsWindowHeight);
+    OptionsWindowValueListEditorCol0Width := FWPReadInteger(WindowsSectionStr, OptionsWindowValueListEditorCol0WidthStr, DefaultOptionsWindowValueListEditorCol0Width);
 
-      WorkingTimetableWindowTop := ReadInteger(WindowsSectionStr, WorkingTimetableWindowTopStr, DefaultWorkingTimetableWindowTop);
-      WorkingTimetableWindowLeft := ReadInteger(WindowsSectionStr, WorkingTimetableWindowLeftStr, DefaultWorkingTimetableWindowLeft);
-      WorkingTimetableWindowHeight := ReadInteger(WindowsSectionStr, WorkingTimetableWindowHeightStr, DefaultWorkingTimetableWindowHeight);
-      WorkingTimetableSmallWindowWidth := ReadInteger(WindowsSectionStr, WorkingTimetableSmallWindowWidthStr, DefaultWorkingTimetableSmallWindowWidth);
-      WorkingTimetableLargeWindowWidth := ReadInteger(WindowsSectionStr, WorkingTimetableLargeWindowWidthStr, DefaultWorkingTimetableLargeWindowWidth);
-      WorkingTimetableWindowHeight := ReadInteger(WindowsSectionStr, WorkingTimetableWindowHeightStr, DefaultWorkingTimetableWindowHeight);
+    WorkingTimetableWindowTop := FWPReadInteger(WindowsSectionStr, WorkingTimetableWindowTopStr, DefaultWorkingTimetableWindowTop);
+    WorkingTimetableWindowLeft := FWPReadInteger(WindowsSectionStr, WorkingTimetableWindowLeftStr, DefaultWorkingTimetableWindowLeft);
+    WorkingTimetableWindowHeight := FWPReadInteger(WindowsSectionStr, WorkingTimetableWindowHeightStr, DefaultWorkingTimetableWindowHeight);
+    WorkingTimetableSmallWindowWidth := FWPReadInteger(WindowsSectionStr, WorkingTimetableSmallWindowWidthStr, DefaultWorkingTimetableSmallWindowWidth);
+    WorkingTimetableLargeWindowWidth := FWPReadInteger(WindowsSectionStr, WorkingTimetableLargeWindowWidthStr, DefaultWorkingTimetableLargeWindowWidth);
+    WorkingTimetableWindowHeight := FWPReadInteger(WindowsSectionStr, WorkingTimetableWindowHeightStr, DefaultWorkingTimetableWindowHeight);
 
-      { Spacing Options }
-      BufferStopVerticalSpacing := ReadInteger(ScreenOptionsStr, BufferStopVerticalSpacingStr, DefaultBufferStopVerticalSpacing);
-      DeltaPointX := ReadInteger(ScreenOptionsStr, DeltaPointXStr, DefaultDeltaPointX);
-      IndicatorHorizontalSpacing := ReadInteger(ScreenOptionsStr, IndicatorHorizontalSpacingStr, DefaultIndicatorHorizontalSpacing);
-      IndicatorVerticalSpacing := ReadInteger(ScreenOptionsStr, IndicatorVerticalSpacingStr, DefaultIndicatorVerticalSpacing);
-      MouseRectangleEdgeVerticalSpacing := ReadInteger(ScreenOptionsStr, MouseRectangleEdgeVerticalSpacingStr, DefaultMouseRectangleEdgeVerticalSpacing);
-      PlatformEdgeVerticalSpacing := ReadInteger(ScreenOptionsStr, PlatformEdgeVerticalSpacingStr, DefaultPlatformEdgeVerticalSpacing);
-      PlatformNumberEdgeHorizontalSpacing := ReadInteger(ScreenOptionsStr, PlatformNumberEdgeHorizontalSpacingStr, DefaultPlatformNumberEdgeHorizontalSpacing);
-      PlatformNumberEdgeVerticalSpacing := ReadInteger(ScreenOptionsStr, PlatformNumberEdgeVerticalSpacingStr, DefaultPlatformNumberEdgeVerticalSpacing);
-      SignalHorizontalSpacing := ReadInteger(ScreenOptionsStr, SignalHorizontalSpacingStr, DefaultSignalHorizontalSpacing);
-      SignalRadius := ReadInteger(ScreenOptionsStr, SignalRadiusStr, DefaultSignalRadius);
-      SignalSemaphoreHeight := ReadInteger(ScreenOptionsStr, SignalSemaphoreHeightStr, DefaultSignalSemaphoreHeight);
-      SignalSemaphoreWidth := ReadInteger(ScreenOptionsStr, SignalSemaphoreWidthStr, DefaultSignalSemaphoreWidth);
-      SignalVerticalSpacing := ReadInteger(ScreenOptionsStr, SignalVerticalSpacingStr, DefaultSignalVerticalSpacing);
-      SpeedRestrictionHorizontalSpacing := ReadInteger(ScreenOptionsStr, SpeedRestrictionHorizontalSpacingStr, DefaultSpeedRestrictionHorizontalSpacing);
-      SpeedRestrictionVerticalSpacing := ReadInteger(ScreenOptionsStr, SpeedRestrictionVerticalSpacingStr, DefaultSpeedRestrictionVerticalSpacing);
-      TheatreIndicatorHorizontalSpacing := ReadInteger(ScreenOptionsStr, TheatreIndicatorHorizontalSpacingStr, DefaultTheatreIndicatorHorizontalSpacing);
-      TheatreIndicatorVerticalSpacing := ReadInteger(ScreenOptionsStr, TheatreIndicatorVerticalSpacingStr, DefaultTheatreIndicatorVerticalSpacing);
-      TRSPlungerLength := ReadInteger(ScreenOptionsStr, TRSPlungerLengthStr, DefaultTRSPlungerLength);
-      WindowRows := ReadInteger(ScreenOptionsStr, WindowRowsStr, DefaultWindowRows);
+    { Spacing Options }
+    BufferStopVerticalSpacing := FWPReadInteger(ScreenOptionsStr, BufferStopVerticalSpacingStr, DefaultBufferStopVerticalSpacing);
+    DeltaPointX := FWPReadInteger(ScreenOptionsStr, DeltaPointXStr, DefaultDeltaPointX);
+    IndicatorHorizontalSpacing := FWPReadInteger(ScreenOptionsStr, IndicatorHorizontalSpacingStr, DefaultIndicatorHorizontalSpacing);
+    IndicatorVerticalSpacing := FWPReadInteger(ScreenOptionsStr, IndicatorVerticalSpacingStr, DefaultIndicatorVerticalSpacing);
+    MouseRectangleEdgeVerticalSpacing := FWPReadInteger(ScreenOptionsStr, MouseRectangleEdgeVerticalSpacingStr, DefaultMouseRectangleEdgeVerticalSpacing);
+    PlatformEdgeVerticalSpacing := FWPReadInteger(ScreenOptionsStr, PlatformEdgeVerticalSpacingStr, DefaultPlatformEdgeVerticalSpacing);
+    PlatformNumberEdgeHorizontalSpacing := FWPReadInteger(ScreenOptionsStr, PlatformNumberEdgeHorizontalSpacingStr, DefaultPlatformNumberEdgeHorizontalSpacing);
+    PlatformNumberEdgeVerticalSpacing := FWPReadInteger(ScreenOptionsStr, PlatformNumberEdgeVerticalSpacingStr, DefaultPlatformNumberEdgeVerticalSpacing);
+    SignalHorizontalSpacing := FWPReadInteger(ScreenOptionsStr, SignalHorizontalSpacingStr, DefaultSignalHorizontalSpacing);
+    SignalRadius := FWPReadInteger(ScreenOptionsStr, SignalRadiusStr, DefaultSignalRadius);
+    SignalSemaphoreHeight := FWPReadInteger(ScreenOptionsStr, SignalSemaphoreHeightStr, DefaultSignalSemaphoreHeight);
+    SignalSemaphoreWidth := FWPReadInteger(ScreenOptionsStr, SignalSemaphoreWidthStr, DefaultSignalSemaphoreWidth);
+    SignalVerticalSpacing := FWPReadInteger(ScreenOptionsStr, SignalVerticalSpacingStr, DefaultSignalVerticalSpacing);
+    SpeedRestrictionHorizontalSpacing := FWPReadInteger(ScreenOptionsStr, SpeedRestrictionHorizontalSpacingStr, DefaultSpeedRestrictionHorizontalSpacing);
+    SpeedRestrictionVerticalSpacing := FWPReadInteger(ScreenOptionsStr, SpeedRestrictionVerticalSpacingStr, DefaultSpeedRestrictionVerticalSpacing);
+    TheatreIndicatorHorizontalSpacing := FWPReadInteger(ScreenOptionsStr, TheatreIndicatorHorizontalSpacingStr, DefaultTheatreIndicatorHorizontalSpacing);
+    TheatreIndicatorVerticalSpacing := FWPReadInteger(ScreenOptionsStr, TheatreIndicatorVerticalSpacingStr, DefaultTheatreIndicatorVerticalSpacing);
+    TRSPlungerLength := FWPReadInteger(ScreenOptionsStr, TRSPlungerLengthStr, DefaultTRSPlungerLength);
+    WindowRows := FWPReadInteger(ScreenOptionsStr, WindowRowsStr, DefaultWindowRows);
 
-      { Other Options }
-      AcceptAllPermanentOccupationsWithoutFeedback := ReadBool(OtherOptionsSectionStr, AcceptAllPermanentOccupationsWithoutFeedbackStr,
-                                                                                                                       DefaultAcceptAllPermanentOccupationsWithoutFeedback);
-      AutomaticallySetFocusWhenInDebugWindow := ReadBool(OtherOptionsSectionStr, AutomaticallySetFocusWhenInDebugWindowStr, DefaultAutomaticallySetFocusWhenInDebugWindow);
-      CancelAllTrainsWithNoFeedbackOccupation := ReadBool(OtherOptionsSectionStr, CancelAllTrainsWithNoFeedbackOccupationStr,
-                                                                                                                            DefaultCancelAllTrainsWithNoFeedbackOccupation);
-      CarriageLengthInInches := ReadInteger(OtherOptionsSectionStr, CarriageLengthInInchesStr, DefaultCarriageLengthInInches);
-      CheckForIdenticalLinesInLog := ReadBool(OtherOptionsSectionStr, CheckForIdenticalLinesInLogStr, DefaultCheckForIdenticalLinesInLog);
-      DisplayDiagrams := ReadBool(OtherOptionsSectionStr, DisplayDiagramsStr, DefaultDisplayDiagrams);
-      DisplayFlashingTrackCircuits := ReadBool(OtherOptionsSectionStr, DisplayFlashingTrackCircuitsStr, DefaultDisplayFlashingTrackCircuits);
-      DisplayLocoChipNums := ReadBool(OtherOptionsSectionStr, DisplayLocoChipNumsStr, DefaultDisplayLocoChipNums);
-      DisplayLocoHeadcodes := ReadBool(OtherOptionsSectionStr, DisplayLocoHeadcodesStr, DefaultDisplayLocoHeadcodes);
-      DisplayNotForPublicUseTrainsInStationMonitors := ReadBool(OtherOptionsSectionStr, DisplayNotForPublicUseTrainsInStationMonitorsStr,
-                                                                                                                      DefaultDisplayNotForPublicUseTrainsInStationMonitors);
-      DisplayRoutesAndJourneys := ReadBool(OtherOptionsSectionStr, DisplayRoutesAndJourneysStr, DefaultDisplayRoutesAndJourneys);
-      DoNotCancelTrainsWithNoFeedbackOccupation := ReadBool(OtherOptionsSectionStr, DoNotCancelTrainsWithNoFeedbackOccupationStr,
-                                                                                                                          DefaultDoNotCancelTrainsWithNoFeedbackOccupation);
-      HighlightTrackCircuitSpeedRestrictions := ReadBool(OtherOptionsSectionStr, HighlightTrackCircuitSpeedRestrictionsStr, DefaultHighlightTrackCircuitSpeedRestrictions);
-      LargeDiagramsWindowSelected := ReadBool(OtherOptionsSectionStr, LargeDiagramsWindowSelectedStr, DefaultLargeDiagramsWindowSelected);
-      LargeWorkingTimetableWindowSelected := ReadBool(OtherOptionsSectionStr, LargeWorkingTimetableWindowSelectedStr, DefaultLargeWorkingTimetableWindowSelected);
-      LineThicknessInFullScreenMode := ReadString(OtherOptionsSectionStr, LineThicknessInFullScreenModeStr, DefaultLineThicknessInFullScreenMode);
-      LocoTimingTimeBeforeAutoStopInSeconds := ReadInteger(OtherOptionsSectionStr, LocoTimingTimeBeforeAutoStopInSecondsStr, DefaultLocoTimingTimeBeforeAutoStopInSeconds);
-      LogCurrentTimeMode := ReadBool(OtherOptionsSectionStr, LogCurrentTimeModeStr, DefaultLogCurrentTimeMode);
-      LogsKeptMode := ReadBool(OtherOptionsSectionStr, LogsKeptModeStr, DefaultLogsKeptMode);
-      LogsCurrentlyKept := LogsKeptMode; { this allows LogsKeptMode to be changed without affecting the current logging } 
-      MakeSoundWhenDebugWindowBoldTextAppears := ReadBool(OtherOptionsSectionStr, MakeSoundWhenDebugWindowBoldTextAppearsStr,
-                                                                                                                            DefaultMakeSoundWhenDebugWindowBoldTextAppears);
-      MaxRectangleUndrawTime := ReadInteger(OtherOptionsSectionStr, MaxRectangleUndrawTimeStr, DefaultMaxRectangleUndrawTime);
-      MenusVisible := ReadBool(OtherOptionsSectionStr, MenusVisibleStr, DefaultMenusVisible);
-      MonitorStrayingTrains := ReadBool(OtherOptionsSectionStr, MonitorStrayingTrainsStr, DefaultMonitorStrayingTrains);
-      PointFeedbackMaximumWaitInSeconds := ReadInteger(OtherOptionsSectionStr, PointFeedbackMaximumWaitInSecondsStr, DefaultPointFeedbackMaximumWaitInSeconds);
-      RouteAheadNotClearWaitTimeInMinutes := ReadInteger(OtherOptionssectionStr, RouteAheadNotClearWaitTimeInMinutesStr, DefaultRouteAheadNotClearWaitTimeInMinutes);
-      RunTestUnitOnStartup := ReadBool(OtherOptionsSectionStr, RunTestUnitOnStartupStr, DefaultRunTestUnitOnStartup);
-      ShowCancelledTrainsInDiagrams := ReadBool(OtherOptionsSectionStr, ShowCancelledTrainsInDiagramsStr, DefaultShowCancelledTrainsInDiagrams);
-      ShowIncorrectDayOfTheWeekEntriesInWorkingTimetable := ReadBool(OtherOptionsSectionStr, ShowIncorrectDayOfTheWeekEntriesInWorkingTimetableStr,
-                                                                                                                 DefaultShowIncorrectDayOfTheWeekEntriesInWorkingTimetable);
-      ShowNonMovingTrainsInDiagrams := ReadBool(OtherOptionsSectionStr, ShowNonMovingTrainsInDiagramsStr, DefaultShowNonMovingTrainsInDiagrams);
-      ShowNonStopsInDiagrams := ReadBool(OtherOptionsSectionStr, ShowNonStopsInDiagramsStr, DefaultShowNonStopsInDiagrams);
-      ShowTrackCircuitsWhereUserMustDrive := ReadBool(OtherOptionsSectionStr, ShowTrackCircuitsWhereUserMustDriveStr, DefaultShowTrackCircuitsWhereUserMustDrive);
-      StartRepeatJourneysOnNewLineInDiagrams := ReadBool(OtherOptionsSectionStr, StartRepeatJourneysOnNewLineInDiagramsStr, DefaultStartRepeatJourneysOnNewLineInDiagrams);
-      StartWithDiagrams := ReadBool(OtherOptionsSectionStr, StartWithDiagramsStr, DefaultStartWithDiagrams);
-      StationEndOfDayPassengerLeavingTimeInMinutes := ReadInteger(OtherOptionsSectionStr, StationEndOfDayPassengerLeavingTimeInMinutesStr,
-                                                                                                                       DefaultStationEndOfDayPassengerLeavingTimeInMinutes);
-      StationMonitorsWebPageRequired := ReadBool(OtherOptionsSectionStr, StationMonitorsWebPageRequiredStr, DefaultStationMonitorsWebPageRequired);
-      StationOppositeDirectionExitMinimumWaitTimeInMinutes := ReadInteger(OtherOptionssectionStr, StationOppositeDirectionExitMinimumWaitTimeInMinutesStr,
-                                                                                                               DefaultStationOppositeDirectionExitMinimumWaitTimeInMinutes);
-      StationSameDirectionExitMinimumWaitTimeInMinutes := ReadInteger(OtherOptionsSectionStr, StationSameDirectionExitMinimumWaitTimeInMinutesStr,
-                                                                                                                   DefaultStationSameDirectionExitMinimumWaitTimeInMinutes);
-      SetMode(StationStart, ReadBool(OtherOptionsSectionStr, StationStartModeStr, DefaultStationStartMode));
-      StationStartOfDayPassengerBoardingTimeInMinutes := ReadInteger(OtherOptionssectionStr, StationStartOfDayPassengerBoardingTimeInMinutesStr,
-                                                                                                                    DefaultStationStartOfDayPassengerBoardingTimeInMinutes);
-      StopAllLocosAtShutDown := ReadBool(OtherOptionsSectionStr, StopAllLocosAtShutDownStr, DefaultStopAllLocosAtShutDown);
-      SwitchActiveLocoLightsOffAtShutDown := ReadBool(OtherOptionsSectionStr, SwitchActiveLocoLightsOffAtShutDownStr, DefaultSwitchActiveLocoLightsOffAtShutDown);
-      TheatreBoxHeight := ReadInteger(OtherOptionsSectionStr, TheatreBoxHeightStr, DefaultTheatreBoxHeight);
-      TheatreBoxWidth := ReadInteger(OtherOptionsSectionStr, TheatreBoxWidthStr, DefaultTheatreBoxWidth);
-      WaitBeforeRerouteInMinutes := ReadInteger(OtherOptionsSectionStr, WaitBeforeRerouteInMinutesStr, DefaultWaitBeforeRerouteInMinutes);
-      WorkingTimetableMode := ReadBool(OtherOptionsSectionStr, WorkingTimetableModeStr, DefaultWorkingTimetableMode);
+    { Other Options }
+    AcceptAllPermanentOccupationsWithoutFeedback := FWPReadBool(OtherOptionsSectionStr, AcceptAllPermanentOccupationsWithoutFeedbackStr,
+                                                                                                                     DefaultAcceptAllPermanentOccupationsWithoutFeedback);
+    AutomaticallySetFocusWhenInDebugWindow := FWPReadBool(OtherOptionsSectionStr, AutomaticallySetFocusWhenInDebugWindowStr, DefaultAutomaticallySetFocusWhenInDebugWindow);
+    CancelAllTrainsWithNoFeedbackOccupation := FWPReadBool(OtherOptionsSectionStr, CancelAllTrainsWithNoFeedbackOccupationStr,
+                                                                                                                          DefaultCancelAllTrainsWithNoFeedbackOccupation);
+    CarriageLengthInInches := FWPReadInteger(OtherOptionsSectionStr, CarriageLengthInInchesStr, DefaultCarriageLengthInInches);
+    CheckForIdenticalLinesInLog := FWPReadBool(OtherOptionsSectionStr, CheckForIdenticalLinesInLogStr, DefaultCheckForIdenticalLinesInLog);
+    DisplayDiagrams := FWPReadBool(OtherOptionsSectionStr, DisplayDiagramsStr, DefaultDisplayDiagrams);
+    DisplayFlashingTrackCircuits := FWPReadBool(OtherOptionsSectionStr, DisplayFlashingTrackCircuitsStr, DefaultDisplayFlashingTrackCircuits);
+    DisplayLocoChipNums := FWPReadBool(OtherOptionsSectionStr, DisplayLocoChipNumsStr, DefaultDisplayLocoChipNums);
+    DisplayLocoHeadcodes := FWPReadBool(OtherOptionsSectionStr, DisplayLocoHeadcodesStr, DefaultDisplayLocoHeadcodes);
+    DisplayNotForPublicUseTrainsInStationMonitors := FWPReadBool(OtherOptionsSectionStr, DisplayNotForPublicUseTrainsInStationMonitorsStr,
+                                                                                                                    DefaultDisplayNotForPublicUseTrainsInStationMonitors);
+    DisplayRoutesAndJourneys := FWPReadBool(OtherOptionsSectionStr, DisplayRoutesAndJourneysStr, DefaultDisplayRoutesAndJourneys);
+    DoNotCancelTrainsWithNoFeedbackOccupation := FWPReadBool(OtherOptionsSectionStr, DoNotCancelTrainsWithNoFeedbackOccupationStr,
+                                                                                                                        DefaultDoNotCancelTrainsWithNoFeedbackOccupation);
+    HighlightTrackCircuitSpeedRestrictions := FWPReadBool(OtherOptionsSectionStr, HighlightTrackCircuitSpeedRestrictionsStr, DefaultHighlightTrackCircuitSpeedRestrictions);
+    LargeDiagramsWindowSelected := FWPReadBool(OtherOptionsSectionStr, LargeDiagramsWindowSelectedStr, DefaultLargeDiagramsWindowSelected);
+    LargeWorkingTimetableWindowSelected := FWPReadBool(OtherOptionsSectionStr, LargeWorkingTimetableWindowSelectedStr, DefaultLargeWorkingTimetableWindowSelected);
+    LineThicknessInFullScreenMode := FWPReadString(OtherOptionsSectionStr, LineThicknessInFullScreenModeStr, DefaultLineThicknessInFullScreenMode);
+    LocoTimingTimeBeforeAutoStopInSeconds := FWPReadInteger(OtherOptionsSectionStr, LocoTimingTimeBeforeAutoStopInSecondsStr, DefaultLocoTimingTimeBeforeAutoStopInSeconds);
+    LogCurrentTimeMode := FWPReadBool(OtherOptionsSectionStr, LogCurrentTimeModeStr, DefaultLogCurrentTimeMode);
+    LogsKeptMode := FWPReadBool(OtherOptionsSectionStr, LogsKeptModeStr, DefaultLogsKeptMode);
+//    LogsCurrentlyKept := LogsKeptMode; { this allows LogsKeptMode to be changed without affecting the current logging }
+    MakeSoundWhenDebugWindowBoldTextAppears := FWPReadBool(OtherOptionsSectionStr, MakeSoundWhenDebugWindowBoldTextAppearsStr,
+                                                                                                                          DefaultMakeSoundWhenDebugWindowBoldTextAppears);
+    MaxRectangleUndrawTime := FWPReadInteger(OtherOptionsSectionStr, MaxRectangleUndrawTimeStr, DefaultMaxRectangleUndrawTime);
+    MenusVisible := FWPReadBool(OtherOptionsSectionStr, MenusVisibleStr, DefaultMenusVisible);
+    MonitorStrayingTrains := FWPReadBool(OtherOptionsSectionStr, MonitorStrayingTrainsStr, DefaultMonitorStrayingTrains);
+    PointFeedbackMaximumWaitInSeconds := FWPReadInteger(OtherOptionsSectionStr, PointFeedbackMaximumWaitInSecondsStr, DefaultPointFeedbackMaximumWaitInSeconds);
+    RouteAheadNotClearWaitTimeInMinutes := FWPReadInteger(OtherOptionssectionStr, RouteAheadNotClearWaitTimeInMinutesStr, DefaultRouteAheadNotClearWaitTimeInMinutes);
+    RunTestUnitOnStartup := FWPReadBool(OtherOptionsSectionStr, RunTestUnitOnStartupStr, DefaultRunTestUnitOnStartup);
+    ShowCancelledTrainsInDiagrams := FWPReadBool(OtherOptionsSectionStr, ShowCancelledTrainsInDiagramsStr, DefaultShowCancelledTrainsInDiagrams);
+    ShowIncorrectDayOfTheWeekEntriesInWorkingTimetable := FWPReadBool(OtherOptionsSectionStr, ShowIncorrectDayOfTheWeekEntriesInWorkingTimetableStr,
+                                                                                                               DefaultShowIncorrectDayOfTheWeekEntriesInWorkingTimetable);
+    ShowNonMovingTrainsInDiagrams := FWPReadBool(OtherOptionsSectionStr, ShowNonMovingTrainsInDiagramsStr, DefaultShowNonMovingTrainsInDiagrams);
+    ShowNonStopsInDiagrams := FWPReadBool(OtherOptionsSectionStr, ShowNonStopsInDiagramsStr, DefaultShowNonStopsInDiagrams);
+    ShowTrackCircuitsWhereUserMustDrive := FWPReadBool(OtherOptionsSectionStr, ShowTrackCircuitsWhereUserMustDriveStr, DefaultShowTrackCircuitsWhereUserMustDrive);
+    StartRepeatJourneysOnNewLineInDiagrams := FWPReadBool(OtherOptionsSectionStr, StartRepeatJourneysOnNewLineInDiagramsStr, DefaultStartRepeatJourneysOnNewLineInDiagrams);
+    StartWithDiagrams := FWPReadBool(OtherOptionsSectionStr, StartWithDiagramsStr, DefaultStartWithDiagrams);
+    StationEndOfDayPassengerLeavingTimeInMinutes := FWPReadInteger(OtherOptionsSectionStr, StationEndOfDayPassengerLeavingTimeInMinutesStr,
+                                                                                                                     DefaultStationEndOfDayPassengerLeavingTimeInMinutes);
+    StationMonitorsWebPageRequired := FWPReadBool(OtherOptionsSectionStr, StationMonitorsWebPageRequiredStr, DefaultStationMonitorsWebPageRequired);
+    StationOppositeDirectionExitMinimumWaitTimeInMinutes := FWPReadInteger(OtherOptionssectionStr, StationOppositeDirectionExitMinimumWaitTimeInMinutesStr,
+                                                                                                             DefaultStationOppositeDirectionExitMinimumWaitTimeInMinutes);
+    StationSameDirectionExitMinimumWaitTimeInMinutes := FWPReadInteger(OtherOptionsSectionStr, StationSameDirectionExitMinimumWaitTimeInMinutesStr,
+                                                                                                                 DefaultStationSameDirectionExitMinimumWaitTimeInMinutes);
+    SetMode(StationStart, FWPReadBool(OtherOptionsSectionStr, StationStartModeStr, DefaultStationStartMode));
+    StationStartOfDayPassengerBoardingTimeInMinutes := FWPReadInteger(OtherOptionssectionStr, StationStartOfDayPassengerBoardingTimeInMinutesStr,
+                                                                                                                  DefaultStationStartOfDayPassengerBoardingTimeInMinutes);
+    StopAllLocosAtShutDown := FWPReadBool(OtherOptionsSectionStr, StopAllLocosAtShutDownStr, DefaultStopAllLocosAtShutDown);
+    SwitchActiveLocoLightsOffAtShutDown := FWPReadBool(OtherOptionsSectionStr, SwitchActiveLocoLightsOffAtShutDownStr, DefaultSwitchActiveLocoLightsOffAtShutDown);
+    TheatreBoxHeight := FWPReadInteger(OtherOptionsSectionStr, TheatreBoxHeightStr, DefaultTheatreBoxHeight);
+    TheatreBoxWidth := FWPReadInteger(OtherOptionsSectionStr, TheatreBoxWidthStr, DefaultTheatreBoxWidth);
+    WaitBeforeRerouteInMinutes := FWPReadInteger(OtherOptionsSectionStr, WaitBeforeRerouteInMinutesStr, DefaultWaitBeforeRerouteInMinutes);
+    WorkingTimetableMode := FWPReadBool(OtherOptionsSectionStr, WorkingTimetableModeStr, DefaultWorkingTimetableMode);
 
-      { Time options }
-      TempStr := ReadString(TimesSectionStr, ProgramStartTimeOptionStr, DefaultProgramStartTimeStr);
-      IF (TempStr <> '') AND (TimeIsValid(TempStr)) THEN BEGIN
-        ProgramStartTime := StrToTime(TempStr);
-        Log('A Program Start Time set to ' + TempStr);
-      END;
+    { Time options }
+    TempStr := FWPReadString(TimesSectionStr, ProgramStartTimeOptionStr, DefaultProgramStartTimeStr);
+    IF (TempStr <> '') AND (TimeIsValid(TempStr)) THEN BEGIN
+      ProgramStartTime := StrToTime(TempStr);
+      Log('A Program Start Time set to ' + TempStr);
+    END;
 
-      TempStr := ReadString(TimesSectionStr, DayLightStartTimeOptionStr, DefaultDayLightStartTimeStr);
-      IF (TempStr <> '') AND (TimeIsValid(TempStr)) THEN
-        DayLightStartTime := StrToTime(TempStr);
+    TempStr := FWPReadString(TimesSectionStr, DayLightStartTimeOptionStr, DefaultDayLightStartTimeStr);
+    IF (TempStr <> '') AND (TimeIsValid(TempStr)) THEN
+      DayLightStartTime := StrToTime(TempStr);
 
-      TempStr := ReadString(TimesSectionStr, DayLightEndTimeOptionStr, DefaultDayLightEndTimeStr);
-      IF (TempStr <> '') AND (TimeIsValid(TempStr)) THEN
-        DayLightEndTime := StrToTime(TempStr);
+    TempStr := FWPReadString(TimesSectionStr, DayLightEndTimeOptionStr, DefaultDayLightEndTimeStr);
+    IF (TempStr <> '') AND (TimeIsValid(TempStr)) THEN
+      DayLightEndTime := StrToTime(TempStr);
 
-      TempStr := ReadString(TimesSectionStr, CurrentRailwayDayOfTheWeekStr, DefaultCurrentRailwayDayOfTheWeek);
-      CurrentRailwayDayOfTheWeek := StrToDayOfTheWeek(TempStr);
-      SetCurrentRailwayTimeAndDayOfTheWeek(ProgramStartTime);
+    TempStr := FWPReadString(TimesSectionStr, CurrentRailwayDayOfTheWeekStr, DefaultCurrentRailwayDayOfTheWeek);
+    CurrentRailwayDayOfTheWeek := StrToDayOfTheWeek(TempStr);
+    SetCurrentRailwayTimeAndDayOfTheWeek(ProgramStartTime);
 
-      { RailDriver Data }
-      RDCBailOffMin := ReadInteger(RDCSectionStr, RDCBailOffMinStr, 0);
-      RDCBailOffMax := ReadInteger(RDCSectionStr, RDCBailOffMaxStr, 0);
-      RDCEmergencyBrakeMin := ReadInteger(RDCSectionStr, RDCEmergencyBrakeMinStr, 0);
-      RDCEmergencyBrakeMax := ReadInteger(RDCSectionStr, RDCEmergencyBrakeMaxStr, 0);
-      RDCLocoBrakeMin := ReadInteger(RDCSectionStr, RDCLocoBrakeMinStr, 0);
-      RDCLocoBrakeMax := ReadInteger(RDCSectionStr, RDCLocoBrakeMaxStr, 0);
-      RDCRegulatorForwardMin := ReadInteger(RDCSectionStr, RDCRegulatorForwardMinStr, 0);
-      RDCRegulatorForwardMax := ReadInteger(RDCSectionStr, RDCRegulatorForwardMaxStr, 0);
-      RDCRegulatorReverseMin := ReadInteger(RDCSectionStr, RDCRegulatorReverseMinStr, 0);
-      RDCRegulatorReverseMax := ReadInteger(RDCSectionStr, RDCRegulatorReverseMaxStr, 0);
-      RDCReverserForwardMin := ReadInteger(RDCSectionStr, RDCReverserForwardMinStr, 0);
-      RDCReverserForwardMax := ReadInteger(RDCSectionStr, RDCReverserForwardMaxStr, 0);
-      RDCReverserReverseMin := ReadInteger(RDCSectionStr, RDCReverserReverseMinStr, 0);
-      RDCReverserReverseMax := ReadInteger(RDCSectionStr, RDCReverserReverseMaxStr, 0);
-      RDCThreeWaySwitchALeftNum := ReadInteger(RDCSectionStr, RDCThreeWaySwitchALeftNumStr, 0);
-      RDCThreeWaySwitchAMidNum := ReadInteger(RDCSectionStr, RDCThreeWaySwitchAMidNumStr, 0);
-      RDCThreeWaySwitchARightNum := ReadInteger(RDCSectionStr, RDCThreeWaySwitchARightNumStr, 0);
-      RDCThreeWaySwitchBLeftNum := ReadInteger(RDCSectionStr, RDCThreeWaySwitchBLeftNumStr, 0);
-      RDCThreeWaySwitchBMidNum := ReadInteger(RDCSectionStr, RDCThreeWaySwitchBMidNumStr, 0);
-      RDCThreeWaySwitchBRightNum := ReadInteger(RDCSectionStr, RDCThreeWaySwitchBRightNumStr, 0);
-      RDCTrainBrakeMin := ReadInteger(RDCSectionStr, RDCTrainBrakeMinStr, 0);
-      RDCTrainBrakeMax := ReadInteger(RDCSectionStr, RDCTrainBrakeMaxStr, 0);
+    { RailDriver Data }
+    RDCBailOffMin := FWPReadInteger(RDCSectionStr, RDCBailOffMinStr, 0);
+    RDCBailOffMax := FWPReadInteger(RDCSectionStr, RDCBailOffMaxStr, 0);
+    RDCEmergencyBrakeMin := FWPReadInteger(RDCSectionStr, RDCEmergencyBrakeMinStr, 0);
+    RDCEmergencyBrakeMax := FWPReadInteger(RDCSectionStr, RDCEmergencyBrakeMaxStr, 0);
+    RDCLocoBrakeMin := FWPReadInteger(RDCSectionStr, RDCLocoBrakeMinStr, 0);
+    RDCLocoBrakeMax := FWPReadInteger(RDCSectionStr, RDCLocoBrakeMaxStr, 0);
+    RDCRegulatorForwardMin := FWPReadInteger(RDCSectionStr, RDCRegulatorForwardMinStr, 0);
+    RDCRegulatorForwardMax := FWPReadInteger(RDCSectionStr, RDCRegulatorForwardMaxStr, 0);
+    RDCRegulatorReverseMin := FWPReadInteger(RDCSectionStr, RDCRegulatorReverseMinStr, 0);
+    RDCRegulatorReverseMax := FWPReadInteger(RDCSectionStr, RDCRegulatorReverseMaxStr, 0);
+    RDCReverserForwardMin := FWPReadInteger(RDCSectionStr, RDCReverserForwardMinStr, 0);
+    RDCReverserForwardMax := FWPReadInteger(RDCSectionStr, RDCReverserForwardMaxStr, 0);
+    RDCReverserReverseMin := FWPReadInteger(RDCSectionStr, RDCReverserReverseMinStr, 0);
+    RDCReverserReverseMax := FWPReadInteger(RDCSectionStr, RDCReverserReverseMaxStr, 0);
+    RDCThreeWaySwitchALeftNum := FWPReadInteger(RDCSectionStr, RDCThreeWaySwitchALeftNumStr, 0);
+    RDCThreeWaySwitchAMidNum := FWPReadInteger(RDCSectionStr, RDCThreeWaySwitchAMidNumStr, 0);
+    RDCThreeWaySwitchARightNum := FWPReadInteger(RDCSectionStr, RDCThreeWaySwitchARightNumStr, 0);
+    RDCThreeWaySwitchBLeftNum := FWPReadInteger(RDCSectionStr, RDCThreeWaySwitchBLeftNumStr, 0);
+    RDCThreeWaySwitchBMidNum := FWPReadInteger(RDCSectionStr, RDCThreeWaySwitchBMidNumStr, 0);
+    RDCThreeWaySwitchBRightNum := FWPReadInteger(RDCSectionStr, RDCThreeWaySwitchBRightNumStr, 0);
+    RDCTrainBrakeMin := FWPReadInteger(RDCSectionStr, RDCTrainBrakeMinStr, 0);
+    RDCTrainBrakeMax := FWPReadInteger(RDCSectionStr, RDCTrainBrakeMaxStr, 0);
 
-      { Other Miscellaneous Data }
-      CurrentParametersFromIniFile := ReadString(MiscellaneousDataSectionStr, CurrentParametersStr, '');
-    END; {WITH}
+    { Other Miscellaneous Data }
+    CurrentParametersFromIniFile := FWPReadString(MiscellaneousDataSectionStr, CurrentParametersStr, '');
 
     { The inifile is freed not here but after the track circuits are read in }
   EXCEPT
@@ -1684,53 +1712,66 @@ BEGIN
   END; {TRY}
 END; { ReadIniFileMainProcedure }
 
-PROCEDURE ReadIniFileForTrackCircuitData; //MainProcedure(IniFile : TRegistryIniFile);
+PROCEDURE ReadIniFileForTrackCircuitData;
 { Read in track circuit data from the .ini file or from the Registry }
 CONST
   Delimiter = ';';
 
 VAR
   DelimiterPos : Integer;
-  IniFile : TRegistryIniFile;
+  IniFile : TIniFile;
+  RegistryIniFile : TRegistryIniFile;
   TempStr : String;
   TempStr2 : String;
   TC : Integer;
 
+  FUNCTION FWPReadString(SectionStr, DataStr, DefaultDataStr : String) : String;
+  BEGIN
+    IF ReadFromRegistry THEN
+      Result := RegistryIniFile.ReadString(SectionStr, DataStr, DefaultDataStr)
+    ELSE
+      Result := IniFile.ReadString(SectionStr, DataStr, DefaultDataStr);
+  END; { FWPReadString }
+
 BEGIN
   TRY
-    IniFile := TRegistryIniFile.Create('FWPRail');
+    IF ReadFromRegistry THEN
+      RegistryIniFile := TRegistryIniFile.Create('FWPRail')
+    ELSE
+      IniFile := TIniFile.Create(ExtractFilePath(Application.ExeName) + 'Rail.ini');
 
-    WITH IniFile DO BEGIN
-      { Now track circuit info. (Can't use SetTrackCircuitState here as it writes to the log file which is not yet open, as the log file name is held in the .ini file). }
-      FOR TC := 0 TO High(TrackCircuits) DO BEGIN
-        TempStr := ReadString(TrackCircuitsSectionStr, IntToStr(TC), '');
-        REPEAT
-          DelimiterPos := Pos(';', TempStr);
-          TempStr2 := Copy(TempStr, 1, DelimiterPos - 1);
-          IF TempStr2 = TrackCircuitOutOfUseSetByUserStr THEN
-            TrackCircuits[TC].TC_OccupationState := TCOutOfUseSetByUser
+    { Now track circuit info. (Can't use SetTrackCircuitState here as it writes to the log file which is not yet open, as the log file name is held in the .ini file). }
+    FOR TC := 0 TO High(TrackCircuits) DO BEGIN
+      TempStr := FWPReadString(TrackCircuitsSectionStr, IntToStr(TC), '');
+      REPEAT
+        DelimiterPos := Pos(';', TempStr);
+        TempStr2 := Copy(TempStr, 1, DelimiterPos - 1);
+        IF TempStr2 = TrackCircuitOutOfUseSetByUserStr THEN
+          TrackCircuits[TC].TC_OccupationState := TCOutOfUseSetByUser
+        ELSE
+          IF TempStr2 = TrackCircuitOutOfUseAsNoFeedbackReceivedStr THEN
+            TrackCircuits[TC].TC_OccupationState := TCOutOfUseAsNoFeedbackReceived
           ELSE
-            IF TempStr2 = TrackCircuitOutOfUseAsNoFeedbackReceivedStr THEN
-              TrackCircuits[TC].TC_OccupationState := TCOutOfUseAsNoFeedbackReceived
+            IF TempStr2 = TrackCircuitPermanentOccupationSetByUserStr THEN
+              TrackCircuits[TC].TC_OccupationState := TCPermanentOccupationSetByUser
             ELSE
-              IF TempStr2 = TrackCircuitPermanentOccupationSetByUserStr THEN
-                TrackCircuits[TC].TC_OccupationState := TCPermanentOccupationSetByUser
-              ELSE
-                IF Pos(TrackCircuitSpeedRestrictionStr, TempStr2) > 0 THEN BEGIN
-                  TempStr2 := Copy(TempStr, Pos('MPH=', TempStr));
-                  TrackCircuits[TC].TC_SpeedRestrictionInMPH := IntToMPH(StrToInt(Copy(TempStr2, 5, Pos(' ', TempStr2) - 5)));
-                  { and its direction }
-                  TrackCircuits[TC].TC_SpeedRestrictionDirection := StrToDirectionType(Copy(TempStr2, Pos('Dir=', TempStr2) + 4, 1));
-                END ELSE
-                  IF TempStr2 = TrackCircuitUserMustDriveStr THEN
-                    TrackCircuits[TC].TC_UserMustDrive := True;
+              IF Pos(TrackCircuitSpeedRestrictionStr, TempStr2) > 0 THEN BEGIN
+                TempStr2 := Copy(TempStr, Pos('MPH=', TempStr));
+                TrackCircuits[TC].TC_SpeedRestrictionInMPH := IntToMPH(StrToInt(Copy(TempStr2, 5, Pos(' ', TempStr2) - 5)));
+                { and its direction }
+                TrackCircuits[TC].TC_SpeedRestrictionDirection := StrToDirectionType(Copy(TempStr2, Pos('Dir=', TempStr2) + 4, 1));
+              END ELSE
+                IF TempStr2 = TrackCircuitUserMustDriveStr THEN
+                  TrackCircuits[TC].TC_UserMustDrive := True;
 
-          TempStr := Copy(TempStr, DelimiterPos + 1);
-        UNTIL (TempStr = '') OR (DelimiterPos = 0);
-      END; {FOR}
-    END; {WITH}
+        TempStr := Copy(TempStr, DelimiterPos + 1);
+      UNTIL (TempStr = '') OR (DelimiterPos = 0);
+    END; {FOR}
 
-    IniFile.Free;
+    IF ReadFromRegistry THEN
+      RegistryIniFile.Free
+    ELSE
+      IniFile.Free;
   EXCEPT
     ON E : Exception DO
       Log('EG ReadIniFileForTrackCircuitData: ' + E.ClassName + ' error raised, with message: ' + E.Message);
@@ -1738,420 +1779,444 @@ BEGIN
 END; { ReadIniFileForTrackCircuitDataMainProcedure }
 
 PROCEDURE WriteIniFile;
-{ Write out data to the .ini file or to the Registry }
+{ Write out data to the registry and to the .ini file. (Do both so that the .ini file can be archived but not normally used when options are read in). Special routines are
+  needed to do the writing as the TIniFile and TRegistryIniFile are different types.
+}
 CONST
   StopTimer = True;
 
 VAR
-  IniFile : TRegistryIniFile;
+  IniFile : TIniFile;
+  RegistryIniFile : TRegistryIniFile;
   TC : Integer;
   TCString : String;
+
+  PROCEDURE WriteStringTwice(SectionStr, Data1Str, Data2Str : String);
+  BEGIN
+    IniFile.WriteString(SectionStr, Data1Str, Data2Str);
+    RegistryIniFile.WriteString(SectionStr, Data1Str, Data2Str);
+  END; { WriteStringTwice }
+
+  PROCEDURE WriteIntegerTwice(SectionStr, DataStr : String; DataInt : Integer);
+  BEGIN
+    IniFile.WriteInteger(SectionStr, DataStr, DataInt);
+    RegistryIniFile.WriteInteger(SectionStr, DataStr, DataInt);
+  END; { WriteIntegerTwice }
+
+  PROCEDURE WriteBoolTwice(SectionStr, DataStr : String; DataBool : Boolean);
+  BEGIN
+    IniFile.WriteBool(SectionStr, DataStr, DataBool);
+    RegistryIniFile.WriteBool(SectionStr, DataStr, DataBool);
+  END; { WriteBoolTwice }
 
 BEGIN
   TRY
     { The .ini file was stored where the executable is }
-//    IniFile := TRegistryIniFile.Create(ExtractFilePath(Application.ExeName) + 'Rail.ini');
-    IniFile := TRegistryIniFile.Create('FWPRail');
+    RegistryIniFile := TRegistryIniFile.Create('FWPRail');
+    IniFile := TIniFile.Create(ExtractFilePath(Application.ExeName) + 'Rail.ini');
 
-    WITH IniFile DO BEGIN
-      { Now track circuits that are user designated as having special properties - delete when no longer special }
-      IF Length(TrackCircuits) > 0 THEN BEGIN
+    { Now track circuits that are user designated as having special properties - delete when no longer special }
+    IF Length(TrackCircuits) > 0 THEN BEGIN
 //        IF (TrackCircuits[183].TC_OccupationState <> TCOutOfUseSetByUser) AND (TrackCircuits[183].TC_OccupationState <> TCOutOfUseAsNoFeedbackReceived) THEN BEGIN
 //          Log('X! .ini error!!! TC=183 not out of use');
 //          ASM
 //            Int 3
 //          END; {ASM}
 //        END ELSE BEGIN
-          FOR TC := 0 TO High(TrackCircuits) DO BEGIN
-            TCString := '';
-            IF TrackCircuits[TC].TC_OccupationState = TCOutOfUseSetByUser THEN
-              TCString := TCString + TrackCircuitOutOfUseSetByUserStr + ';';
+        FOR TC := 0 TO High(TrackCircuits) DO BEGIN
+          TCString := '';
+          IF TrackCircuits[TC].TC_OccupationState = TCOutOfUseSetByUser THEN
+            TCString := TCString + TrackCircuitOutOfUseSetByUserStr + ';';
 
-            IF TrackCircuits[TC].TC_OccupationState = TCPermanentOccupationSetByUser THEN
-              TCString := TCString + TrackCircuitPermanentOccupationSetByUserStr + ';';
+          IF TrackCircuits[TC].TC_OccupationState = TCPermanentOccupationSetByUser THEN
+            TCString := TCString + TrackCircuitPermanentOccupationSetByUserStr + ';';
 
-            IF (TrackCircuits[TC].TC_SpeedRestrictionInMPH <> NoSpecifiedSpeed) AND (TrackCircuits[TC].TC_SpeedRestrictionInMPH <> MPH0) THEN
-              TCString := TCString + TrackCircuitSpeedRestrictionStr
-                                     + ' MPH=' + MPHToStr(TrackCircuits[TC].TC_SpeedRestrictionInMPH)
-                                     + ' Dir=' + DirectionToStr(TrackCircuits[TC].TC_SpeedRestrictionDirection)
-                                     + ';';
+          IF (TrackCircuits[TC].TC_SpeedRestrictionInMPH <> NoSpecifiedSpeed) AND (TrackCircuits[TC].TC_SpeedRestrictionInMPH <> MPH0) THEN
+            TCString := TCString + TrackCircuitSpeedRestrictionStr
+                                   + ' MPH=' + MPHToStr(TrackCircuits[TC].TC_SpeedRestrictionInMPH)
+                                   + ' Dir=' + DirectionToStr(TrackCircuits[TC].TC_SpeedRestrictionDirection)
+                                   + ';';
 
-            IF TrackCircuits[TC].TC_UserMustDrive THEN
-              TCString := TCString + TrackCircuitUserMustDriveStr + ';';
+          IF TrackCircuits[TC].TC_UserMustDrive THEN
+            TCString := TCString + TrackCircuitUserMustDriveStr + ';';
 
-            IF TCString <> '' THEN
-              WriteString(TrackCircuitsSectionStr, IntToStr(TC), TCString)
-            ELSE
-              IF (TrackCircuits[TC].TC_OccupationState <> TCOutOfUseAsNoFeedbackReceived) AND ValueExists(TrackCircuitsSectionStr, IntToStr(TC)) THEN
-                DeleteKey(TrackCircuitsSectionStr, IntToStr(TC));
-          END; {FOR }
+          IF TCString <> '' THEN
+            WriteStringTwice(TrackCircuitsSectionStr, IntToStr(TC), TCString)
+          ELSE BEGIN
+            IF (TrackCircuits[TC].TC_OccupationState <> TCOutOfUseAsNoFeedbackReceived) AND RegistryIniFile.ValueExists(TrackCircuitsSectionStr, IntToStr(TC)) THEN
+              RegistryIniFile.DeleteKey(TrackCircuitsSectionStr, IntToStr(TC));
+            IF (TrackCircuits[TC].TC_OccupationState <> TCOutOfUseAsNoFeedbackReceived) AND IniFile.ValueExists(TrackCircuitsSectionStr, IntToStr(TC)) THEN
+              IniFile.DeleteKey(TrackCircuitsSectionStr, IntToStr(TC));
+            END;
+        END; {FOR }
 //        END;
-      END;
+    END;
 
-      WriteString('User', 'User', GetUserFromWindows);
-      WriteString('User', 'Date', DateTimeToStr(Now));
-      WriteString('User', 'Computer', GetComputerNetName);
-      WriteString('User', 'Version', GetVersionInfoAsString);
-      WriteString('User', 'Build', GetBuildInfoAsString);
+    WriteStringTwice('User', 'User', GetUserFromWindows);
+    WriteStringTwice('User', 'Date', DateTimeToStr(Now));
+    WriteStringTwice('User', 'Computer', GetComputerNetName);
+    WriteStringTwice('User', 'Version', GetVersionInfoAsString);
+    WriteStringTwice('User', 'Build', GetBuildInfoAsString);
 
-      { various file data }
-      WriteString(FilesSectionStr, PathToRailDataFilesStr, PathToRailDataFiles);
-      WriteString(FilesSectionStr, PathToRailSourceFilesStr, PathToRailSourceFiles);
-      WriteString(FilesSectionStr, PathToLogFilesStr, PathToLogFiles);
+    { various file data }
+    WriteStringTwice(FilesSectionStr, PathToRailDataFilesStr, PathToRailDataFiles);
+    WriteStringTwice(FilesSectionStr, PathToRailSourceFilesStr, PathToRailSourceFiles);
+    WriteStringTwice(FilesSectionStr, PathToLogFilesStr, PathToLogFiles);
 
-      WriteString(FilesSectionStr, AreaDataFilenameStr, AreaDataFilename);
-      WriteString(FilesSectionStr, AreaDataFilenameSuffixStr, AreaDataFilenameSuffix);
-      WriteString(FilesSectionStr, DataCheckFileNameStr, DataCheckFileName);
-      IF DiagramsFilename = '' THEN BEGIN
-        { check that we want no diagrams the next time we start }
-        IF MessageDialogueWithDefault('There are no diagrams loaded: do you wish to start the next session with diagrams or without?',
-                                      StopTimer, mtError, [mbYes, mbNo], ['&With', 'With&out'], mbYes) = mrYes
-        THEN
-          DiagramsFilename := DefaultDiagramsFilename;
-      END;
-      WriteString(FilesSectionStr, DiagramsFilenameStr, DiagramsFilename);
-      WriteString(FilesSectionStr, DiagramsFilenameSuffixStr, DiagramsFilenameSuffix);
-      WriteString(FilesSectionStr, FeedbackDataFilenameStr, FeedbackDataFilename);
-      WriteString(FilesSectionStr, FeedbackDataFilenameSuffixStr, FeedbackDataFilenameSuffix);
+    WriteStringTwice(FilesSectionStr, AreaDataFilenameStr, AreaDataFilename);
+    WriteStringTwice(FilesSectionStr, AreaDataFilenameSuffixStr, AreaDataFilenameSuffix);
+    WriteStringTwice(FilesSectionStr, DataCheckFileNameStr, DataCheckFileName);
+    IF DiagramsFilename = '' THEN BEGIN
+      { check that we want no diagrams the next time we start }
+      IF MessageDialogueWithDefault('There are no diagrams loaded: do you wish to start the next session with diagrams or without?',
+                                    StopTimer, mtError, [mbYes, mbNo], ['&With', 'With&out'], mbYes) = mrYes
+      THEN
+        DiagramsFilename := DefaultDiagramsFilename;
+    END;
+    WriteStringTwice(FilesSectionStr, DiagramsFilenameStr, DiagramsFilename);
+    WriteStringTwice(FilesSectionStr, DiagramsFilenameSuffixStr, DiagramsFilenameSuffix);
+    WriteStringTwice(FilesSectionStr, FeedbackDataFilenameStr, FeedbackDataFilename);
+    WriteStringTwice(FilesSectionStr, FeedbackDataFilenameSuffixStr, FeedbackDataFilenameSuffix);
 
-      WriteString(FilesSectionStr, LineDataFilenameStr, LineDataFilename);
-      WriteString(FilesSectionStr, LineDataFilenameSuffixStr, LineDataFilenameSuffix);
-      WriteString(FilesSectionStr, LocationDataFilenameStr, LocationDataFilename);
-      WriteString(FilesSectionStr, LocationDataFilenameSuffixStr, LocationDataFilenameSuffix);
-      WriteString(FilesSectionStr, LocoDataFilenameStr, LocoDataFilename);
-      WriteString(FilesSectionStr, LocoDataFilenameSuffixStr, LocoDataFilenameSuffix);
-      WriteString(FilesSectionStr, LogFilenameStr, LogFilename);
-      WriteString(FilesSectionStr, LogFilenameSuffixStr, LogFilenameSuffix);
-      WriteString(FilesSectionStr, PlatformDataFilenameStr, PlatformDataFilename);
-      WriteString(FilesSectionStr, PlatformDataFilenameSuffixStr, PlatformDataFilenameSuffix);
-      WriteString(FilesSectionStr, PointDataFilenameStr, PointDataFilename);
-      WriteString(FilesSectionStr, PointDataFilenameSuffixStr, PointDataFilenameSuffix);
-      WriteString(FilesSectionStr, ReplayFilenameStr, ReplayFilename);
-      WriteString(FilesSectionStr, ReplayFilenameSuffixStr, ReplayFilenameSuffix);
-      WriteString(FilesSectionStr, RouteingExceptionDataFilenameStr, RouteingExceptionDataFilename);
-      WriteString(FilesSectionStr, RouteingExceptionDataFilenameSuffixStr, RouteingExceptionDataFilenameSuffix);
-      WriteString(FilesSectionStr, SignalDataFilenameStr, SignalDataFilename);
-      WriteString(FilesSectionStr, SignalDataFilenameSuffixStr, SignalDataFilenameSuffix);
-      WriteString(FilesSectionStr, TrackCircuitDataFilenameStr, TrackCircuitDataFilename);
-      WriteString(FilesSectionStr, TrackCircuitDataFilenameSuffixStr, TrackCircuitDataFilenameSuffix);
-      WriteString(FilesSectionStr, WorkingTimetableFilenameStr, WorkingTimetableFilename);
-      WriteString(FilesSectionStr, WorkingTimetableFilenameSuffixStr, WorkingTimetableFilenameSuffix);
+    WriteStringTwice(FilesSectionStr, LineDataFilenameStr, LineDataFilename);
+    WriteStringTwice(FilesSectionStr, LineDataFilenameSuffixStr, LineDataFilenameSuffix);
+    WriteStringTwice(FilesSectionStr, LocationDataFilenameStr, LocationDataFilename);
+    WriteStringTwice(FilesSectionStr, LocationDataFilenameSuffixStr, LocationDataFilenameSuffix);
+    WriteStringTwice(FilesSectionStr, LocoDataFilenameStr, LocoDataFilename);
+    WriteStringTwice(FilesSectionStr, LocoDataFilenameSuffixStr, LocoDataFilenameSuffix);
+    WriteStringTwice(FilesSectionStr, LogFilenameStr, LogFilename);
+    WriteStringTwice(FilesSectionStr, LogFilenameSuffixStr, LogFilenameSuffix);
+    WriteStringTwice(FilesSectionStr, PlatformDataFilenameStr, PlatformDataFilename);
+    WriteStringTwice(FilesSectionStr, PlatformDataFilenameSuffixStr, PlatformDataFilenameSuffix);
+    WriteStringTwice(FilesSectionStr, PointDataFilenameStr, PointDataFilename);
+    WriteStringTwice(FilesSectionStr, PointDataFilenameSuffixStr, PointDataFilenameSuffix);
+    WriteStringTwice(FilesSectionStr, ReplayFilenameStr, ReplayFilename);
+    WriteStringTwice(FilesSectionStr, ReplayFilenameSuffixStr, ReplayFilenameSuffix);
+    WriteStringTwice(FilesSectionStr, RouteingExceptionDataFilenameStr, RouteingExceptionDataFilename);
+    WriteStringTwice(FilesSectionStr, RouteingExceptionDataFilenameSuffixStr, RouteingExceptionDataFilenameSuffix);
+    WriteStringTwice(FilesSectionStr, SignalDataFilenameStr, SignalDataFilename);
+    WriteStringTwice(FilesSectionStr, SignalDataFilenameSuffixStr, SignalDataFilenameSuffix);
+    WriteStringTwice(FilesSectionStr, TrackCircuitDataFilenameStr, TrackCircuitDataFilename);
+    WriteStringTwice(FilesSectionStr, TrackCircuitDataFilenameSuffixStr, TrackCircuitDataFilenameSuffix);
+    WriteStringTwice(FilesSectionStr, WorkingTimetableFilenameStr, WorkingTimetableFilename);
+    WriteStringTwice(FilesSectionStr, WorkingTimetableFilenameSuffixStr, WorkingTimetableFilenameSuffix);
 
-      { Colours for buffer stops }
-      WriteString(ColoursSectionStr, BufferStopColourStr, ColourToStr(BufferStopColour));
-      WriteString(ColoursSectionStr, BufferStopNumberColourStr, ColourToStr(BufferStopNumberColour));
-      WriteString(ColoursSectionStr, BufferStopRedStr, ColourToStr(BufferStopRed));
+    { Colours for buffer stops }
+    WriteStringTwice(ColoursSectionStr, BufferStopColourStr, ColourToStr(BufferStopColour));
+    WriteStringTwice(ColoursSectionStr, BufferStopNumberColourStr, ColourToStr(BufferStopNumberColour));
+    WriteStringTwice(ColoursSectionStr, BufferStopRedStr, ColourToStr(BufferStopRed));
 
-      { Colours for TRS plungers }
-      WriteString(ColoursSectionStr, TRSPlungerColourStr, ColourToStr(TRSPlungerColour));
-      WriteString(ColoursSectionStr, TRSPlungerOutlineColourStr, ColourToStr(TRSPlungerOutlineColour));
-      WriteString(ColoursSectionStr, TRSPlungerPressedColourStr, ColourToStr(TRSPlungerPressedColour));
+    { Colours for TRS plungers }
+    WriteStringTwice(ColoursSectionStr, TRSPlungerColourStr, ColourToStr(TRSPlungerColour));
+    WriteStringTwice(ColoursSectionStr, TRSPlungerOutlineColourStr, ColourToStr(TRSPlungerOutlineColour));
+    WriteStringTwice(ColoursSectionStr, TRSPlungerPressedColourStr, ColourToStr(TRSPlungerPressedColour));
 
-      { Colours for points }
-      WriteString(ColoursSectionStr, PointColourStr, ColourToStr(PointColour));
-      WriteString(ColoursSectionStr, PointDivergingLineColourStr, ColourToStr(PointDivergingLineColour));
-      WriteString(ColoursSectionStr, PointDownFacingColourStr, ColourToStr(PointDownFacingColour));
-      WriteString(ColoursSectionStr, PointFeedbackDataInUseColourStr, ColourToStr(PointFeedbackDataInUseColour));
-      WriteString(ColoursSectionStr, PointFeedbackDataOutOfUseColourStr, ColourToStr(PointFeedbackDataOutOfUseColour));
-      WriteString(ColoursSectionStr, PointHeelLineColourStr, ColourToStr(PointHeelLineColour));
-      WriteString(ColoursSectionStr, PointLenzNumberColourStr, ColourToStr(PointLenzNumberColour));
-      WriteString(ColoursSectionStr, PointLockedByUserColourStr, ColourToStr(PointLockedByUserColour));
-      WriteString(ColoursSectionStr, PointManualOperationColourStr, ColourToStr(PointManualOperationColour));
-      WriteString(ColoursSectionStr, PointOutOfUseColourStr, ColourToStr(PointOutOfUseColour));
-      WriteString(ColoursSectionStr, PointStraightLineColourStr, ColourToStr(PointStraightLineColour));
-      WriteString(ColoursSectionStr, PointsWithoutFeedbackColourStr, ColourToStr(PointsWithoutFeedbackColour));
-      WriteString(ColoursSectionStr, PointUndrawColourStr, ColourToStr(PointUndrawColour));
-      WriteString(ColoursSectionStr, PointUpFacingColourStr, ColourToStr(PointUpFacingColour));
-      WriteString(ColoursSectionStr, ShowPointDefaultStateColourStr, ColourToStr(ShowPointDefaultStateColour));
-      WriteString(ColoursSectionStr, ShowPointLockedColourStr, ColourToStr(ShowPointLockedColour));
+    { Colours for points }
+    WriteStringTwice(ColoursSectionStr, PointColourStr, ColourToStr(PointColour));
+    WriteStringTwice(ColoursSectionStr, PointDivergingLineColourStr, ColourToStr(PointDivergingLineColour));
+    WriteStringTwice(ColoursSectionStr, PointDownFacingColourStr, ColourToStr(PointDownFacingColour));
+    WriteStringTwice(ColoursSectionStr, PointFeedbackDataInUseColourStr, ColourToStr(PointFeedbackDataInUseColour));
+    WriteStringTwice(ColoursSectionStr, PointFeedbackDataOutOfUseColourStr, ColourToStr(PointFeedbackDataOutOfUseColour));
+    WriteStringTwice(ColoursSectionStr, PointHeelLineColourStr, ColourToStr(PointHeelLineColour));
+    WriteStringTwice(ColoursSectionStr, PointLenzNumberColourStr, ColourToStr(PointLenzNumberColour));
+    WriteStringTwice(ColoursSectionStr, PointLockedByUserColourStr, ColourToStr(PointLockedByUserColour));
+    WriteStringTwice(ColoursSectionStr, PointManualOperationColourStr, ColourToStr(PointManualOperationColour));
+    WriteStringTwice(ColoursSectionStr, PointOutOfUseColourStr, ColourToStr(PointOutOfUseColour));
+    WriteStringTwice(ColoursSectionStr, PointStraightLineColourStr, ColourToStr(PointStraightLineColour));
+    WriteStringTwice(ColoursSectionStr, PointsWithoutFeedbackColourStr, ColourToStr(PointsWithoutFeedbackColour));
+    WriteStringTwice(ColoursSectionStr, PointUndrawColourStr, ColourToStr(PointUndrawColour));
+    WriteStringTwice(ColoursSectionStr, PointUpFacingColourStr, ColourToStr(PointUpFacingColour));
+    WriteStringTwice(ColoursSectionStr, ShowPointDefaultStateColourStr, ColourToStr(ShowPointDefaultStateColour));
+    WriteStringTwice(ColoursSectionStr, ShowPointLockedColourStr, ColourToStr(ShowPointLockedColour));
 
-      { Colours for signal posts }
-      WriteString(ColoursSectionStr, SignalPostColourStr, ColourToStr(SignalPostColour));
-      WriteString(ColoursSectionStr, SignalPostEmergencyRouteSettingColourStr, ColourToStr(SignalPostEmergencyRouteSettingColour));
-      WriteString(ColoursSectionStr, SignalPostRouteSettingColourStr, ColourToStr(SignalPostRouteSettingColour));
-      WriteString(ColoursSectionStr, SignalPostStationStartModeColourStr, ColourToStr(SignalPostStationStartModeColour));
-      WriteString(ColoursSectionStr, SignalPostTheatreSettingColourStr, ColourToStr(SignalPostTheatreSettingColour));
+    { Colours for signal posts }
+    WriteStringTwice(ColoursSectionStr, SignalPostColourStr, ColourToStr(SignalPostColour));
+    WriteStringTwice(ColoursSectionStr, SignalPostEmergencyRouteSettingColourStr, ColourToStr(SignalPostEmergencyRouteSettingColour));
+    WriteStringTwice(ColoursSectionStr, SignalPostRouteSettingColourStr, ColourToStr(SignalPostRouteSettingColour));
+    WriteStringTwice(ColoursSectionStr, SignalPostStationStartModeColourStr, ColourToStr(SignalPostStationStartModeColour));
+    WriteStringTwice(ColoursSectionStr, SignalPostTheatreSettingColourStr, ColourToStr(SignalPostTheatreSettingColour));
 
-      { Colours for signals }
-      WriteString(ColoursSectionStr, SignalAspectGreenStr, ColourToStr(SignalAspectGreen));
-      WriteString(ColoursSectionStr, SignalAspectRedStr, ColourToStr(SignalAspectRed));
-      WriteString(ColoursSectionStr, SignalAspectUnlitStr, ColourToStr(SignalAspectUnlit));
-      WriteString(ColoursSectionStr, SignalAspectYellowStr, ColourToStr(SignalAspectYellow));
-      WriteString(ColoursSectionStr, SignalNumberColourStr, ColourToStr(SignalNumberColour));
+    { Colours for signals }
+    WriteStringTwice(ColoursSectionStr, SignalAspectGreenStr, ColourToStr(SignalAspectGreen));
+    WriteStringTwice(ColoursSectionStr, SignalAspectRedStr, ColourToStr(SignalAspectRed));
+    WriteStringTwice(ColoursSectionStr, SignalAspectUnlitStr, ColourToStr(SignalAspectUnlit));
+    WriteStringTwice(ColoursSectionStr, SignalAspectYellowStr, ColourToStr(SignalAspectYellow));
+    WriteStringTwice(ColoursSectionStr, SignalNumberColourStr, ColourToStr(SignalNumberColour));
 
-      { Colours for lines }
-      WriteString(ColoursSectionStr, LineNotAvailableColourStr, ColourToStr(LineNotAvailableColour));
-      WriteString(ColoursSectionStr, LineRoutedOverColourStr, ColourToStr(LineRoutedOverColour));
+    { Colours for lines }
+    WriteStringTwice(ColoursSectionStr, LineNotAvailableColourStr, ColourToStr(LineNotAvailableColour));
+    WriteStringTwice(ColoursSectionStr, LineRoutedOverColourStr, ColourToStr(LineRoutedOverColour));
 
-      { Colours for platforms }
-      WriteString(ColoursSectionStr, PlatformColourStr, ColourToStr(PlatformColour));
-      WriteString(ColoursSectionStr, PlatformNumberColourStr, ColourToStr(PlatformNumberColour));
+    { Colours for platforms }
+    WriteStringTwice(ColoursSectionStr, PlatformColourStr, ColourToStr(PlatformColour));
+    WriteStringTwice(ColoursSectionStr, PlatformNumberColourStr, ColourToStr(PlatformNumberColour));
 
-      { Colours for track circuits }
-      WriteString(ColoursSectionStr, TCFeedbackDataInUseColourStr, ColourToStr(TCFeedbackDataInUseColour));
-      WriteString(ColoursSectionStr, TCFeedbackDataOutOfUseColourStr, ColourToStr(TCFeedbackDataOutOfUseColour));
-      WriteString(ColoursSectionStr, TCFeedbackOccupationColourStr, ColourToStr(TCFeedbackOccupationColour));
-      WriteString(ColoursSectionStr, TCFeedbackOccupationButOutOfUseColourStr, ColourToStr(TCFeedbackOccupationButOutOfUseColour));
-      WriteString(ColoursSectionStr, TCLocoOutOfPlaceOccupationColourStr, ColourToStr(TCLocoOutOfPlaceOccupationColour));
-      WriteString(ColoursSectionStr, TCMissingOccupationColourStr, ColourToStr(TCMissingOccupationColour));
-      WriteString(ColoursSectionStr, TCOutOfUseSetByUserColourStr, ColourToStr(TCOutOfUseSetByUserColour));
-      WriteString(ColoursSectionStr, TCOutOfUseAsNoFeedbackReceivedColourStr, ColourToStr(TCOutOfUseAsNoFeedbackReceivedColour));
-      WriteString(ColoursSectionStr, TCPermanentFeedbackOccupationColourStr, ColourToStr(TCPermanentFeedbackOccupationColour));
-      WriteString(ColoursSectionStr, TCPermanentOccupationSetByUserColourStr, ColourToStr(TCPermanentOccupationSetByUserColour));
-      WriteString(ColoursSectionStr, TCPermanentSystemOccupationColourStr, ColourToStr(TCPermanentSystemOccupationColour));
-      WriteString(ColoursSectionStr, TCSpeedRestrictionColourStr, ColourToStr(TCSpeedRestrictionColour));
-      WriteString(ColoursSectionStr, TCSystemOccupationColourStr, ColourToStr(TCSystemOccupationColour));
-      WriteString(ColoursSectionStr, TCUnoccupiedColourStr, ColourToStr(TCUnoccupiedColour));
-      WriteString(ColoursSectionStr, TCUserMustDriveColourStr, ColourToStr(TCUserMustDriveColour));
+    { Colours for track circuits }
+    WriteStringTwice(ColoursSectionStr, TCFeedbackDataInUseColourStr, ColourToStr(TCFeedbackDataInUseColour));
+    WriteStringTwice(ColoursSectionStr, TCFeedbackDataOutOfUseColourStr, ColourToStr(TCFeedbackDataOutOfUseColour));
+    WriteStringTwice(ColoursSectionStr, TCFeedbackOccupationColourStr, ColourToStr(TCFeedbackOccupationColour));
+    WriteStringTwice(ColoursSectionStr, TCFeedbackOccupationButOutOfUseColourStr, ColourToStr(TCFeedbackOccupationButOutOfUseColour));
+    WriteStringTwice(ColoursSectionStr, TCLocoOutOfPlaceOccupationColourStr, ColourToStr(TCLocoOutOfPlaceOccupationColour));
+    WriteStringTwice(ColoursSectionStr, TCMissingOccupationColourStr, ColourToStr(TCMissingOccupationColour));
+    WriteStringTwice(ColoursSectionStr, TCOutOfUseSetByUserColourStr, ColourToStr(TCOutOfUseSetByUserColour));
+    WriteStringTwice(ColoursSectionStr, TCOutOfUseAsNoFeedbackReceivedColourStr, ColourToStr(TCOutOfUseAsNoFeedbackReceivedColour));
+    WriteStringTwice(ColoursSectionStr, TCPermanentFeedbackOccupationColourStr, ColourToStr(TCPermanentFeedbackOccupationColour));
+    WriteStringTwice(ColoursSectionStr, TCPermanentOccupationSetByUserColourStr, ColourToStr(TCPermanentOccupationSetByUserColour));
+    WriteStringTwice(ColoursSectionStr, TCPermanentSystemOccupationColourStr, ColourToStr(TCPermanentSystemOccupationColour));
+    WriteStringTwice(ColoursSectionStr, TCSpeedRestrictionColourStr, ColourToStr(TCSpeedRestrictionColour));
+    WriteStringTwice(ColoursSectionStr, TCSystemOccupationColourStr, ColourToStr(TCSystemOccupationColour));
+    WriteStringTwice(ColoursSectionStr, TCUnoccupiedColourStr, ColourToStr(TCUnoccupiedColour));
+    WriteStringTwice(ColoursSectionStr, TCUserMustDriveColourStr, ColourToStr(TCUserMustDriveColour));
 
-      { Miscellaneous colours }
-      WriteString(ColoursSectionStr, BackgroundColourStr, ColourToStr(BackgroundColour));
-      WriteString(ColoursSectionStr, ForegroundColourStr, ColourToStr(ForegroundColour));
-      WriteString(ColoursSectionStr, DiagramsWindowGridBackgroundColourStr, ColourToStr(DiagramsWindowGridBackgroundColour));
-      WriteString(ColoursSectionStr, LinesWithoutTrackCircuitsColourStr, ColourToStr(LinesWithoutTrackCircuitsColour));
-      WriteString(ColoursSectionStr, LocoStalledColourStr, ColourToStr(LocoStalledColour));
-      WriteString(ColoursSectionStr, ScreenComponentEditedColourStr, ColourToStr(ScreenComponentEditedColour));
-      WriteString(ColoursSectionStr, TrainActiveColourStr, ColourToStr(TrainActiveColour));
-      WriteString(ColoursSectionStr, TrainInactiveColourStr, ColourToStr(TrainInactiveColour));
-      WriteString(ColoursSectionStr, WorkingTimetableWindowGridBackgroundColourStr, ColourToStr(WorkingTimetableWindowGridBackgroundColour));
+    { Miscellaneous colours }
+    WriteStringTwice(ColoursSectionStr, BackgroundColourStr, ColourToStr(BackgroundColour));
+    WriteStringTwice(ColoursSectionStr, ForegroundColourStr, ColourToStr(ForegroundColour));
+    WriteStringTwice(ColoursSectionStr, DiagramsWindowGridBackgroundColourStr, ColourToStr(DiagramsWindowGridBackgroundColour));
+    WriteStringTwice(ColoursSectionStr, LinesWithoutTrackCircuitsColourStr, ColourToStr(LinesWithoutTrackCircuitsColour));
+    WriteStringTwice(ColoursSectionStr, LocoStalledColourStr, ColourToStr(LocoStalledColour));
+    WriteStringTwice(ColoursSectionStr, ScreenComponentEditedColourStr, ColourToStr(ScreenComponentEditedColour));
+    WriteStringTwice(ColoursSectionStr, TrainActiveColourStr, ColourToStr(TrainActiveColour));
+    WriteStringTwice(ColoursSectionStr, TrainInactiveColourStr, ColourToStr(TrainInactiveColour));
+    WriteStringTwice(ColoursSectionStr, WorkingTimetableWindowGridBackgroundColourStr, ColourToStr(WorkingTimetableWindowGridBackgroundColour));
 
-      { Pen styles }
-      WriteString(PenStylesSectionStr, FiddleyardLinePenStyleStr, PenStyleToStr(FiddleyardLinePenStyle));
-      WriteString(PenStylesSectionStr, ProjectedLinePenStyleStr, PenStyleToStr(ProjectedLinePenStyle));
-      WriteString(PenStylesSectionStr, SidingPenStyleStr, PenStyleToStr(SidingPenStyle));
-      WriteString(PenStylesSectionStr, TCLocoOutOfPlaceOccupationPenStyleStr, PenStyleToStr(TCLocoOutOfPlaceOccupationPenStyle));
-      WriteString(PenStylesSectionStr, TCOutOfUseAsNoFeedbackReceivedPenStyleStr, PenStyleToStr(TCOutOfUseAsNoFeedbackReceivedPenStyle));
-      WriteString(PenStylesSectionStr, TCOutOfUseSetByUserPenStyleStr, PenStyleToStr(TCOutOfUseSetByUserPenStyle));
-      WriteString(PenStylesSectionStr, TCPermanentFeedbackOccupationPenStyleStr, PenStyleToStr(TCPermanentFeedbackOccupationPenStyle));
-      WriteString(PenStylesSectionStr, TCPermanentOccupationSetByUserPenStyleStr, PenStyleToStr(TCPermanentOccupationSetByUserPenStyle));
-      WriteString(PenStylesSectionStr, TCPermanentSystemOccupationPenStyleStr, PenStyleToStr(TCPermanentSystemOccupationPenStyle));
+    { Pen styles }
+    WriteStringTwice(PenStylesSectionStr, FiddleyardLinePenStyleStr, PenStyleToStr(FiddleyardLinePenStyle));
+    WriteStringTwice(PenStylesSectionStr, ProjectedLinePenStyleStr, PenStyleToStr(ProjectedLinePenStyle));
+    WriteStringTwice(PenStylesSectionStr, SidingPenStyleStr, PenStyleToStr(SidingPenStyle));
+    WriteStringTwice(PenStylesSectionStr, TCLocoOutOfPlaceOccupationPenStyleStr, PenStyleToStr(TCLocoOutOfPlaceOccupationPenStyle));
+    WriteStringTwice(PenStylesSectionStr, TCOutOfUseAsNoFeedbackReceivedPenStyleStr, PenStyleToStr(TCOutOfUseAsNoFeedbackReceivedPenStyle));
+    WriteStringTwice(PenStylesSectionStr, TCOutOfUseSetByUserPenStyleStr, PenStyleToStr(TCOutOfUseSetByUserPenStyle));
+    WriteStringTwice(PenStylesSectionStr, TCPermanentFeedbackOccupationPenStyleStr, PenStyleToStr(TCPermanentFeedbackOccupationPenStyle));
+    WriteStringTwice(PenStylesSectionStr, TCPermanentOccupationSetByUserPenStyleStr, PenStyleToStr(TCPermanentOccupationSetByUserPenStyle));
+    WriteStringTwice(PenStylesSectionStr, TCPermanentSystemOccupationPenStyleStr, PenStyleToStr(TCPermanentSystemOccupationPenStyle));
 
-      { Fonts }
-      WriteString(FontsSectionStr, RailFontNameStr, RailFontName);
-      WriteInteger(FontsSectionStr, LineFontHeightStr, LineFontHeight);
-      WriteString(FontsSectionStr, LoggingWindowFontNameStr, LoggingWindowFontName);
-      WriteInteger(FontsSectionStr, LoggingWindowFontSizeStr, LoggingWindowFontSize);
-      WriteInteger(FontsSectionStr, FWPRailWindowFontHeightStr, FWPRailWindowFontHeight);
-      WriteInteger(FontsSectionStr, PlatformNumberFontHeightStr, PlatformNumberFontHeight);
-      WriteString(FontsSectionStr, StationMonitorsFontNameStr, StationMonitorsFontName);
-      WriteInteger(FontsSectionStr, StationMonitorsLargeFontHeightStr, StationMonitorsLargeFontHeight);
-      WriteInteger(FontsSectionStr, StationMonitorsSmallFontHeightStr, StationMonitorsSmallFontHeight);
-      WriteInteger(FontsSectionStr, TheatreFontHeightStr, TheatreFontHeight);
+    { Fonts }
+    WriteStringTwice(FontsSectionStr, RailFontNameStr, RailFontName);
+    WriteIntegerTwice(FontsSectionStr, LineFontHeightStr, LineFontHeight);
+    WriteStringTwice(FontsSectionStr, LoggingWindowFontNameStr, LoggingWindowFontName);
+    WriteIntegerTwice(FontsSectionStr, LoggingWindowFontSizeStr, LoggingWindowFontSize);
+    WriteIntegerTwice(FontsSectionStr, FWPRailWindowFontHeightStr, FWPRailWindowFontHeight);
+    WriteIntegerTwice(FontsSectionStr, PlatformNumberFontHeightStr, PlatformNumberFontHeight);
+    WriteStringTwice(FontsSectionStr, StationMonitorsFontNameStr, StationMonitorsFontName);
+    WriteIntegerTwice(FontsSectionStr, StationMonitorsLargeFontHeightStr, StationMonitorsLargeFontHeight);
+    WriteIntegerTwice(FontsSectionStr, StationMonitorsSmallFontHeightStr, StationMonitorsSmallFontHeight);
+    WriteIntegerTwice(FontsSectionStr, TheatreFontHeightStr, TheatreFontHeight);
 
-      { Dialogue Boxes variables }
-      WriteInteger(DialogueBoxSectionStr, DebuggingOptionsWindowLeftStr, DebuggingOptionsWindowLeft);
-      WriteInteger(DialogueBoxSectionStr, DebuggingOptionsWindowTopStr, DebuggingOptionsWindowTop);
-      WriteInteger(DialogueBoxSectionStr, LineDialogueBoxLeftStr, LineDialogueBoxLeft);
-      WriteInteger(DialogueBoxSectionStr, LineDialogueBoxTopStr, LineDialogueBoxTop);
-      WriteInteger(DialogueBoxSectionStr, LocoDialogueWindowLeftStr, LocoDialogueWindowLeft);
-      WriteInteger(DialogueBoxSectionStr, LocoDialogueWindowTopStr, LocoDialogueWindowTop);
-      WriteBool(DialogueBoxSectionStr, LocoDialogueSpeedInMPHStr, LocoDialogueSpeedInMPH);
-      WriteInteger(DialogueBoxSectionStr, PointDialogueBoxLeftStr, PointDialogueBoxLeft);
-      WriteInteger(DialogueBoxSectionStr, PointDialogueBoxTopStr, PointDialogueBoxTop);
-      WriteInteger(DialogueBoxSectionStr, SignalDialogueBoxLeftStr, SignalDialogueBoxLeft);
-      WriteInteger(DialogueBoxSectionStr, SignalDialogueBoxTopStr, SignalDialogueBoxTop);
-      WriteInteger(DialogueBoxSectionStr, TrackCircuitDialogueBoxLeftStr, TrackCircuitDialogueBoxLeft);
-      WriteInteger(DialogueBoxSectionStr, TrackCircuitDialogueBoxTopStr, TrackCircuitDialogueBoxTop);
+    { Dialogue Boxes variables }
+    WriteIntegerTwice(DialogueBoxSectionStr, DebuggingOptionsWindowLeftStr, DebuggingOptionsWindowLeft);
+    WriteIntegerTwice(DialogueBoxSectionStr, DebuggingOptionsWindowTopStr, DebuggingOptionsWindowTop);
+    WriteIntegerTwice(DialogueBoxSectionStr, LineDialogueBoxLeftStr, LineDialogueBoxLeft);
+    WriteIntegerTwice(DialogueBoxSectionStr, LineDialogueBoxTopStr, LineDialogueBoxTop);
+    WriteIntegerTwice(DialogueBoxSectionStr, LocoDialogueWindowLeftStr, LocoDialogueWindowLeft);
+    WriteIntegerTwice(DialogueBoxSectionStr, LocoDialogueWindowTopStr, LocoDialogueWindowTop);
+    WriteBoolTwice(DialogueBoxSectionStr, LocoDialogueSpeedInMPHStr, LocoDialogueSpeedInMPH);
+    WriteIntegerTwice(DialogueBoxSectionStr, PointDialogueBoxLeftStr, PointDialogueBoxLeft);
+    WriteIntegerTwice(DialogueBoxSectionStr, PointDialogueBoxTopStr, PointDialogueBoxTop);
+    WriteIntegerTwice(DialogueBoxSectionStr, SignalDialogueBoxLeftStr, SignalDialogueBoxLeft);
+    WriteIntegerTwice(DialogueBoxSectionStr, SignalDialogueBoxTopStr, SignalDialogueBoxTop);
+    WriteIntegerTwice(DialogueBoxSectionStr, TrackCircuitDialogueBoxLeftStr, TrackCircuitDialogueBoxLeft);
+    WriteIntegerTwice(DialogueBoxSectionStr, TrackCircuitDialogueBoxTopStr, TrackCircuitDialogueBoxTop);
 
-      { Process RailDriver data }
-      WriteInteger(RDCSectionStr, RDCBailOffMinStr, RDCBailOffMin);
-      WriteInteger(RDCSectionStr, RDCBailOffMaxStr, RDCBailOffMax);
-      WriteInteger(RDCSectionStr, RDCEmergencyBrakeMinStr, RDCEmergencyBrakeMin);
-      WriteInteger(RDCSectionStr, RDCEmergencyBrakeMaxStr, RDCEmergencyBrakeMax);
-      WriteInteger(RDCSectionStr, RDCLocoBrakeMinStr, RDCLocoBrakeMin);
-      WriteInteger(RDCSectionStr, RDCLocoBrakeMaxStr, RDCLocoBrakeMax);
-      WriteInteger(RDCSectionStr, RDCRegulatorForwardMinStr, RDCRegulatorForwardMin);
-      WriteInteger(RDCSectionStr, RDCRegulatorForwardMaxStr, RDCRegulatorForwardMax);
-      WriteInteger(RDCSectionStr, RDCRegulatorReverseMinStr, RDCRegulatorReverseMin);
-      WriteInteger(RDCSectionStr, RDCRegulatorReverseMaxStr, RDCRegulatorReverseMax);
-      WriteInteger(RDCSectionStr, RDCReverserForwardMinStr, RDCReverserForwardMin);
-      WriteInteger(RDCSectionStr, RDCReverserForwardMaxStr, RDCReverserForwardMax);
-      WriteInteger(RDCSectionStr, RDCReverserReverseMinStr, RDCReverserReverseMin);
-      WriteInteger(RDCSectionStr, RDCReverserReverseMaxStr, RDCReverserReverseMax);
-      WriteInteger(RDCSectionStr, RDCTrainBrakeMinStr, RDCTrainBrakeMin);
-      WriteInteger(RDCSectionStr, RDCTrainBrakeMaxStr, RDCTrainBrakeMax);
-      WriteInteger(RDCSectionStr, RDCThreeWaySwitchALeftNumStr, RDCThreeWaySwitchALeftNum);
-      WriteInteger(RDCSectionStr, RDCThreeWaySwitchAMidNumStr, RDCThreeWaySwitchAMidNum);
-      WriteInteger(RDCSectionStr, RDCThreeWaySwitchARightNumStr, RDCThreeWaySwitchARightNum);
-      WriteInteger(RDCSectionStr, RDCThreeWaySwitchBLeftNumStr, RDCThreeWaySwitchBLeftNum);
-      WriteInteger(RDCSectionStr, RDCThreeWaySwitchBMidNumStr, RDCThreeWaySwitchBMidNum);
-      WriteInteger(RDCSectionStr, RDCThreeWaySwitchBRightNumStr, RDCThreeWaySwitchBRightNum);
+    { Process RailDriver data }
+    WriteIntegerTwice(RDCSectionStr, RDCBailOffMinStr, RDCBailOffMin);
+    WriteIntegerTwice(RDCSectionStr, RDCBailOffMaxStr, RDCBailOffMax);
+    WriteIntegerTwice(RDCSectionStr, RDCEmergencyBrakeMinStr, RDCEmergencyBrakeMin);
+    WriteIntegerTwice(RDCSectionStr, RDCEmergencyBrakeMaxStr, RDCEmergencyBrakeMax);
+    WriteIntegerTwice(RDCSectionStr, RDCLocoBrakeMinStr, RDCLocoBrakeMin);
+    WriteIntegerTwice(RDCSectionStr, RDCLocoBrakeMaxStr, RDCLocoBrakeMax);
+    WriteIntegerTwice(RDCSectionStr, RDCRegulatorForwardMinStr, RDCRegulatorForwardMin);
+    WriteIntegerTwice(RDCSectionStr, RDCRegulatorForwardMaxStr, RDCRegulatorForwardMax);
+    WriteIntegerTwice(RDCSectionStr, RDCRegulatorReverseMinStr, RDCRegulatorReverseMin);
+    WriteIntegerTwice(RDCSectionStr, RDCRegulatorReverseMaxStr, RDCRegulatorReverseMax);
+    WriteIntegerTwice(RDCSectionStr, RDCReverserForwardMinStr, RDCReverserForwardMin);
+    WriteIntegerTwice(RDCSectionStr, RDCReverserForwardMaxStr, RDCReverserForwardMax);
+    WriteIntegerTwice(RDCSectionStr, RDCReverserReverseMinStr, RDCReverserReverseMin);
+    WriteIntegerTwice(RDCSectionStr, RDCReverserReverseMaxStr, RDCReverserReverseMax);
+    WriteIntegerTwice(RDCSectionStr, RDCTrainBrakeMinStr, RDCTrainBrakeMin);
+    WriteIntegerTwice(RDCSectionStr, RDCTrainBrakeMaxStr, RDCTrainBrakeMax);
+    WriteIntegerTwice(RDCSectionStr, RDCThreeWaySwitchALeftNumStr, RDCThreeWaySwitchALeftNum);
+    WriteIntegerTwice(RDCSectionStr, RDCThreeWaySwitchAMidNumStr, RDCThreeWaySwitchAMidNum);
+    WriteIntegerTwice(RDCSectionStr, RDCThreeWaySwitchARightNumStr, RDCThreeWaySwitchARightNum);
+    WriteIntegerTwice(RDCSectionStr, RDCThreeWaySwitchBLeftNumStr, RDCThreeWaySwitchBLeftNum);
+    WriteIntegerTwice(RDCSectionStr, RDCThreeWaySwitchBMidNumStr, RDCThreeWaySwitchBMidNum);
+    WriteIntegerTwice(RDCSectionStr, RDCThreeWaySwitchBRightNumStr, RDCThreeWaySwitchBRightNum);
 
-      { Windows }
-      WriteInteger(WindowsSectionStr, FWPRailWindowWidthStr, FWPRailWindow.Width);
-      WriteInteger(WindowsSectionStr, FWPRailWindowHeightStr, FWPRailWindow.Height);
-      WriteInteger(WindowsSectionStr, FWPRailWindowTopStr, FWPRailWindow.Top);
-      WriteInteger(WindowsSectionStr, FWPRailWindowLeftStr, FWPRailWindow.Left);
-      WriteInteger(WindowsSectionStr, FWPRailWindowClientWidthStr, FWPRailWindow.ClientWidth);
-      WriteInteger(WindowsSectionStr, FWPRailWindowClientHeightStr, FWPRailWindow.ClientHeight);
+    { Windows }
+    WriteIntegerTwice(WindowsSectionStr, FWPRailWindowWidthStr, FWPRailWindow.Width);
+    WriteIntegerTwice(WindowsSectionStr, FWPRailWindowHeightStr, FWPRailWindow.Height);
+    WriteIntegerTwice(WindowsSectionStr, FWPRailWindowTopStr, FWPRailWindow.Top);
+    WriteIntegerTwice(WindowsSectionStr, FWPRailWindowLeftStr, FWPRailWindow.Left);
+    WriteIntegerTwice(WindowsSectionStr, FWPRailWindowClientWidthStr, FWPRailWindow.ClientWidth);
+    WriteIntegerTwice(WindowsSectionStr, FWPRailWindowClientHeightStr, FWPRailWindow.ClientHeight);
 
-      IF DisplayColoursWindow <> NIL THEN BEGIN
-        WriteInteger(WindowsSectionStr, DisplayColoursWindowHeightStr, DisplayColoursWindow.Height);
-        WriteInteger(WindowsSectionStr, DisplayColoursWindowLeftStr, DisplayColoursWindow.Left);
-        WriteInteger(WindowsSectionStr, DisplayColoursWindowTopStr, DisplayColoursWindow.Top);
-        WriteInteger(WindowsSectionStr, DisplayColoursWindowWidthStr, DisplayColoursWindow.Width);
-      END;
+    IF DisplayColoursWindow <> NIL THEN BEGIN
+      WriteIntegerTwice(WindowsSectionStr, DisplayColoursWindowHeightStr, DisplayColoursWindow.Height);
+      WriteIntegerTwice(WindowsSectionStr, DisplayColoursWindowLeftStr, DisplayColoursWindow.Left);
+      WriteIntegerTwice(WindowsSectionStr, DisplayColoursWindowTopStr, DisplayColoursWindow.Top);
+      WriteIntegerTwice(WindowsSectionStr, DisplayColoursWindowWidthStr, DisplayColoursWindow.Width);
+    END;
 
-      IF DebugWindow <> NIL THEN BEGIN
-        WriteInteger(WindowsSectionStr, DebugWindowHeightStr, DebugWindow.Height);
-        WriteInteger(WindowsSectionStr, DebugWindowLeftStr, DebugWindow.Left);
-        WriteInteger(WindowsSectionStr, DebugWindowTopStr, DebugWindow.Top);
-        WriteInteger(WindowsSectionStr, DebugWindowWidthStr, DebugWindow.Width);
-      END;
+    IF DebugWindow <> NIL THEN BEGIN
+      WriteIntegerTwice(WindowsSectionStr, DebugWindowHeightStr, DebugWindow.Height);
+      WriteIntegerTwice(WindowsSectionStr, DebugWindowLeftStr, DebugWindow.Left);
+      WriteIntegerTwice(WindowsSectionStr, DebugWindowTopStr, DebugWindow.Top);
+      WriteIntegerTwice(WindowsSectionStr, DebugWindowWidthStr, DebugWindow.Width);
+    END;
 
-      IF DiagramsWindow <> NIL THEN BEGIN
-        WriteInteger(WindowsSectionStr, DiagramsWindowHeightStr, DiagramsWindow.Height);
-        WriteInteger(WindowsSectionStr, DiagramsWindowLeftStr, DiagramsWindow.Left);
-        WriteInteger(WindowsSectionStr, DiagramsWindowTopStr, DiagramsWindow.Top);
-        WriteInteger(WindowsSectionStr, DiagramsLargeWindowWidthStr, DiagramsLargeWindowWidth);
-        WriteInteger(WindowsSectionStr, DiagramsSmallWindowWidthStr, DiagramsSmallWindowWidth);
-      END;
+    IF DiagramsWindow <> NIL THEN BEGIN
+      WriteIntegerTwice(WindowsSectionStr, DiagramsWindowHeightStr, DiagramsWindow.Height);
+      WriteIntegerTwice(WindowsSectionStr, DiagramsWindowLeftStr, DiagramsWindow.Left);
+      WriteIntegerTwice(WindowsSectionStr, DiagramsWindowTopStr, DiagramsWindow.Top);
+      WriteIntegerTwice(WindowsSectionStr, DiagramsLargeWindowWidthStr, DiagramsLargeWindowWidth);
+      WriteIntegerTwice(WindowsSectionStr, DiagramsSmallWindowWidthStr, DiagramsSmallWindowWidth);
+    END;
 
-      IF EditWindow <> NIL THEN BEGIN
-        WriteInteger(WindowsSectionStr, EditWindowHeightStr, EditWindow.Height);
-        WriteInteger(WindowsSectionStr, EditWindowLeftStr, EditWindow.Left);
-        WriteInteger(WindowsSectionStr, EditWindowTopStr, EditWindow.Top);
-        WriteInteger(WindowsSectionStr, EditWindowWidthStr, EditWindowWidth);
-      END;
+    IF EditWindow <> NIL THEN BEGIN
+      WriteIntegerTwice(WindowsSectionStr, EditWindowHeightStr, EditWindow.Height);
+      WriteIntegerTwice(WindowsSectionStr, EditWindowLeftStr, EditWindow.Left);
+      WriteIntegerTwice(WindowsSectionStr, EditWindowTopStr, EditWindow.Top);
+      WriteIntegerTwice(WindowsSectionStr, EditWindowWidthStr, EditWindowWidth);
+    END;
 
-      IF LockListWindow <> NIL THEN BEGIN
-        WriteInteger(WindowsSectionStr, LockListWindowHeightStr, LockListWindow.Height);
-        WriteInteger(WindowsSectionStr, LockListWindowLeftStr, LockListWindow.Left);
-        WriteInteger(WindowsSectionStr, LockListWindowTopStr, LockListWindow.Top);
-        WriteInteger(WindowsSectionStr, LockListWindowWidthStr, LockListWindow.Width);
-      END;
+    IF LockListWindow <> NIL THEN BEGIN
+      WriteIntegerTwice(WindowsSectionStr, LockListWindowHeightStr, LockListWindow.Height);
+      WriteIntegerTwice(WindowsSectionStr, LockListWindowLeftStr, LockListWindow.Left);
+      WriteIntegerTwice(WindowsSectionStr, LockListWindowTopStr, LockListWindow.Top);
+      WriteIntegerTwice(WindowsSectionStr, LockListWindowWidthStr, LockListWindow.Width);
+    END;
 
-      IF LocoUtilsWindow <> NIL THEN BEGIN
-        WriteInteger(WindowsSectionStr, LocoUtilsWindowHeightStr, LocoUtilsWindow.Height);
-        WriteInteger(WindowsSectionStr, LocoUtilsWindowLeftStr, LocoUtilsWindow.Left);
-        WriteInteger(WindowsSectionStr, LocoUtilsWindowTopStr, LocoUtilsWindow.Top);
-        WriteInteger(WindowsSectionStr, LocoUtilsWindowWidthStr, LocoUtilsWindow.Width);
-      END;
+    IF LocoUtilsWindow <> NIL THEN BEGIN
+      WriteIntegerTwice(WindowsSectionStr, LocoUtilsWindowHeightStr, LocoUtilsWindow.Height);
+      WriteIntegerTwice(WindowsSectionStr, LocoUtilsWindowLeftStr, LocoUtilsWindow.Left);
+      WriteIntegerTwice(WindowsSectionStr, LocoUtilsWindowTopStr, LocoUtilsWindow.Top);
+      WriteIntegerTwice(WindowsSectionStr, LocoUtilsWindowWidthStr, LocoUtilsWindow.Width);
+    END;
 
-      IF LoggingWindow <> NIL THEN BEGIN
-        WriteInteger(WindowsSectionStr, LoggingWindowHeightStr, LoggingWindow.Height);
-        WriteInteger(WindowsSectionStr, LoggingWindowLeftStr, LoggingWindow.Left);
-        WriteInteger(WindowsSectionStr, LoggingWindowTopStr, LoggingWindow.Top);
-        WriteInteger(WindowsSectionStr, LoggingWindowWidthStr, LoggingWindow.Width);
-      END;
+    IF LoggingWindow <> NIL THEN BEGIN
+      WriteIntegerTwice(WindowsSectionStr, LoggingWindowHeightStr, LoggingWindow.Height);
+      WriteIntegerTwice(WindowsSectionStr, LoggingWindowLeftStr, LoggingWindow.Left);
+      WriteIntegerTwice(WindowsSectionStr, LoggingWindowTopStr, LoggingWindow.Top);
+      WriteIntegerTwice(WindowsSectionStr, LoggingWindowWidthStr, LoggingWindow.Width);
+    END;
 
-      IF MovementWindow <> NIL THEN BEGIN
-        WriteInteger(WindowsSectionStr, MovementWindowHeightStr, MovementWindow.Height);
-        WriteInteger(WindowsSectionStr, MovementWindowLeftStr, MovementWindow.Left);
-        WriteInteger(WindowsSectionStr, MovementWindowTopStr, MovementWindow.Top);
-        WriteInteger(WindowsSectionStr, MovementWindowWidthStr, MovementWindow.Width);
-      END;
+    IF MovementWindow <> NIL THEN BEGIN
+      WriteIntegerTwice(WindowsSectionStr, MovementWindowHeightStr, MovementWindow.Height);
+      WriteIntegerTwice(WindowsSectionStr, MovementWindowLeftStr, MovementWindow.Left);
+      WriteIntegerTwice(WindowsSectionStr, MovementWindowTopStr, MovementWindow.Top);
+      WriteIntegerTwice(WindowsSectionStr, MovementWindowWidthStr, MovementWindow.Width);
+    END;
 
-      IF OptionsWindow <> NIL THEN BEGIN
-        WriteInteger(WindowsSectionStr, OptionsWindowHeightStr, OptionsWindow.Height);
-        WriteInteger(WindowsSectionStr, OptionsWindowLeftStr, OptionsWindow.Left);
-        WriteInteger(WindowsSectionStr, OptionsWindowTopStr, OptionsWindow.Top);
-        WriteInteger(WindowsSectionStr, OptionsWindowWidthStr, OptionsWindow.Width);
+    IF OptionsWindow <> NIL THEN BEGIN
+      WriteIntegerTwice(WindowsSectionStr, OptionsWindowHeightStr, OptionsWindow.Height);
+      WriteIntegerTwice(WindowsSectionStr, OptionsWindowLeftStr, OptionsWindow.Left);
+      WriteIntegerTwice(WindowsSectionStr, OptionsWindowTopStr, OptionsWindow.Top);
+      WriteIntegerTwice(WindowsSectionStr, OptionsWindowWidthStr, OptionsWindow.Width);
 
-        WriteInteger(WindowsSectionStr, OptionsWindowValueListEditorCol0WidthStr, OptionsWindow.OptionsValueListEditor.ColWidths[0]);
-      END;
+      WriteIntegerTwice(WindowsSectionStr, OptionsWindowValueListEditorCol0WidthStr, OptionsWindow.OptionsValueListEditor.ColWidths[0]);
+    END;
 
-      IF WorkingTimetableWindow <> NIL THEN BEGIN
-        WriteInteger(WindowsSectionStr, WorkingTimetableWindowHeightStr, WorkingTimetableWindow.Height);
-        WriteInteger(WindowsSectionStr, WorkingTimetableWindowLeftStr, WorkingTimetableWindow.Left);
-        WriteInteger(WindowsSectionStr, WorkingTimetableWindowTopStr, WorkingTimetableWindow.Top);
-        WriteInteger(WindowsSectionStr, WorkingTimetableLargeWindowWidthStr, WorkingTimetableLargeWindowWidth);
-        WriteInteger(WindowsSectionStr, WorkingTimetableSmallWindowWidthStr, WorkingTimetableSmallWindowWidth);
-      END;
+    IF WorkingTimetableWindow <> NIL THEN BEGIN
+      WriteIntegerTwice(WindowsSectionStr, WorkingTimetableWindowHeightStr, WorkingTimetableWindow.Height);
+      WriteIntegerTwice(WindowsSectionStr, WorkingTimetableWindowLeftStr, WorkingTimetableWindow.Left);
+      WriteIntegerTwice(WindowsSectionStr, WorkingTimetableWindowTopStr, WorkingTimetableWindow.Top);
+      WriteIntegerTwice(WindowsSectionStr, WorkingTimetableLargeWindowWidthStr, WorkingTimetableLargeWindowWidth);
+      WriteIntegerTwice(WindowsSectionStr, WorkingTimetableSmallWindowWidthStr, WorkingTimetableSmallWindowWidth);
+    END;
 
-      { Other options }
-      WriteBool(OtherOptionsSectionStr, AcceptAllPermanentOccupationsWithoutFeedbackStr, AcceptAllPermanentOccupationsWithoutFeedback);
-      WriteBool(OtherOptionsSectionStr, AutomaticallySetFocusWhenInDebugWindowStr, AutomaticallySetFocusWhenInDebugWindow);
-      WriteBool(OtherOptionsSectionStr, CancelAllTrainsWithNoFeedbackOccupationStr, CancelAllTrainsWithNoFeedbackOccupation);
-      WriteInteger(OtherOptionsSectionStr, CarriageLengthInInchesStr, CarriageLengthInInches);
-      WriteBool(OtherOptionsSectionStr, CheckForIdenticalLinesInLogStr, CheckForIdenticalLinesInLog);
-      WriteBool(OtherOptionsSectionStr, DisplayDiagramsStr, DisplayDiagrams);
-      WriteBool(OtherOptionsSectionStr, DisplayFlashingTrackCircuitsStr, DisplayFlashingTrackCircuits);
-      WriteBool(OtherOptionsSectionStr, DisplayLocoChipNumsStr, DisplayLocoChipNums);
-      WriteBool(OtherOptionsSectionStr, DisplayLocoHeadcodesStr, DisplayLocoHeadcodes);
-      WriteBool(OtherOptionsSectionStr, DisplayNotForPublicUseTrainsInStationMonitorsStr, DisplayNotForPublicUseTrainsInStationMonitors);
-      WriteBool(OtherOptionsSectionStr, DisplayRoutesAndJourneysStr, DisplayRoutesAndJourneys);
-      WriteBool(OtherOptionsSectionStr, DisplayWorkingTimetableStr, DisplayWorkingTimetable);
-      WriteBool(OtherOptionsSectionStr, DoNotCancelTrainsWithNoFeedbackOccupationStr, DoNotCancelTrainsWithNoFeedbackOccupation);
-      WriteBool(OtherOptionsSectionStr, HighlightTrackCircuitSpeedRestrictionsStr, HighlightTrackCircuitSpeedRestrictions);
-      WriteBool(OtherOptionsSectionStr, LargeDiagramsWindowSelectedStr, LargeDiagramsWindowSelected);
-      WriteBool(OtherOptionsSectionStr, LargeWorkingTimetableWindowSelectedStr, LargeWorkingTimetableWindowSelected);
-      WriteString(OtherOptionsSectionStr, LineThicknessInFullScreenModeStr, LineThicknessInFullScreenMode);
-      WriteInteger(OtherOptionsSectionStr, LocoTimingTimeBeforeAutoStopInSecondsStr, LocoTimingTimeBeforeAutoStopInSeconds);
-      WriteBool(OtherOptionsSectionStr, LogCurrentTimeModeStr, LogCurrentTimeMode);
-      WriteBool(OtherOptionsSectionStr, LogsKeptModeStr, LogsKeptMode);
-      WriteBool(OtherOptionsSectionStr, MakeSoundWhenDebugWindowBoldTextAppearsStr, MakeSoundWhenDebugWindowBoldTextAppears);
-      WriteInteger(OtherOptionsSectionStr, MaxRectangleUndrawTimeStr, MaxRectangleUndrawTime);
-      WriteBool(OtherOptionsSectionStr, MenusVisibleStr, MenusVisible);
-      WriteBool(OtherOptionsSectionStr, MonitorStrayingTrainsStr, MonitorStrayingTrains);
-      WriteInteger(OtherOptionsSectionStr, PointFeedbackMaximumWaitInSecondsStr, PointFeedbackMaximumWaitInSeconds);
-      WriteInteger(OtherOptionsSectionStr, RouteAheadNotClearWaitTimeInMinutesStr, RouteAheadNotClearWaitTimeInMinutes);
-      WriteBool(OtherOptionsSectionStr, RunTestUnitOnStartupStr, RunTestUnitOnStartup);
-      WriteBool(OtherOptionsSectionStr, ShowCancelledTrainsInDiagramsStr, ShowCancelledTrainsInDiagrams);
+    { Other options }
+    WriteBoolTwice(OtherOptionsSectionStr, AcceptAllPermanentOccupationsWithoutFeedbackStr, AcceptAllPermanentOccupationsWithoutFeedback);
+    WriteBoolTwice(OtherOptionsSectionStr, AutomaticallySetFocusWhenInDebugWindowStr, AutomaticallySetFocusWhenInDebugWindow);
+    WriteBoolTwice(OtherOptionsSectionStr, CancelAllTrainsWithNoFeedbackOccupationStr, CancelAllTrainsWithNoFeedbackOccupation);
+    WriteIntegerTwice(OtherOptionsSectionStr, CarriageLengthInInchesStr, CarriageLengthInInches);
+    WriteBoolTwice(OtherOptionsSectionStr, CheckForIdenticalLinesInLogStr, CheckForIdenticalLinesInLog);
+    WriteBoolTwice(OtherOptionsSectionStr, DisplayDiagramsStr, DisplayDiagrams);
+    WriteBoolTwice(OtherOptionsSectionStr, DisplayFlashingTrackCircuitsStr, DisplayFlashingTrackCircuits);
+    WriteBoolTwice(OtherOptionsSectionStr, DisplayLocoChipNumsStr, DisplayLocoChipNums);
+    WriteBoolTwice(OtherOptionsSectionStr, DisplayLocoHeadcodesStr, DisplayLocoHeadcodes);
+    WriteBoolTwice(OtherOptionsSectionStr, DisplayNotForPublicUseTrainsInStationMonitorsStr, DisplayNotForPublicUseTrainsInStationMonitors);
+    WriteBoolTwice(OtherOptionsSectionStr, DisplayRoutesAndJourneysStr, DisplayRoutesAndJourneys);
+    WriteBoolTwice(OtherOptionsSectionStr, DisplayWorkingTimetableStr, DisplayWorkingTimetable);
+    WriteBoolTwice(OtherOptionsSectionStr, DoNotCancelTrainsWithNoFeedbackOccupationStr, DoNotCancelTrainsWithNoFeedbackOccupation);
+    WriteBoolTwice(OtherOptionsSectionStr, HighlightTrackCircuitSpeedRestrictionsStr, HighlightTrackCircuitSpeedRestrictions);
+    WriteBoolTwice(OtherOptionsSectionStr, LargeDiagramsWindowSelectedStr, LargeDiagramsWindowSelected);
+    WriteBoolTwice(OtherOptionsSectionStr, LargeWorkingTimetableWindowSelectedStr, LargeWorkingTimetableWindowSelected);
+    WriteStringTwice(OtherOptionsSectionStr, LineThicknessInFullScreenModeStr, LineThicknessInFullScreenMode);
+    WriteIntegerTwice(OtherOptionsSectionStr, LocoTimingTimeBeforeAutoStopInSecondsStr, LocoTimingTimeBeforeAutoStopInSeconds);
+    WriteBoolTwice(OtherOptionsSectionStr, LogCurrentTimeModeStr, LogCurrentTimeMode);
+    WriteBoolTwice(OtherOptionsSectionStr, LogsKeptModeStr, LogsKeptMode);
+    WriteBoolTwice(OtherOptionsSectionStr, MakeSoundWhenDebugWindowBoldTextAppearsStr, MakeSoundWhenDebugWindowBoldTextAppears);
+    WriteIntegerTwice(OtherOptionsSectionStr, MaxRectangleUndrawTimeStr, MaxRectangleUndrawTime);
+    WriteBoolTwice(OtherOptionsSectionStr, MenusVisibleStr, MenusVisible);
+    WriteBoolTwice(OtherOptionsSectionStr, MonitorStrayingTrainsStr, MonitorStrayingTrains);
+    WriteIntegerTwice(OtherOptionsSectionStr, PointFeedbackMaximumWaitInSecondsStr, PointFeedbackMaximumWaitInSeconds);
+    WriteIntegerTwice(OtherOptionsSectionStr, RouteAheadNotClearWaitTimeInMinutesStr, RouteAheadNotClearWaitTimeInMinutes);
+    WriteBoolTwice(OtherOptionsSectionStr, RunTestUnitOnStartupStr, RunTestUnitOnStartup);
+    WriteBoolTwice(OtherOptionsSectionStr, ShowCancelledTrainsInDiagramsStr, ShowCancelledTrainsInDiagrams);
       
-      WriteBool(OtherOptionsSectionStr, ShowIncorrectDayOfTheWeekEntriesInWorkingTimetableStr, ShowIncorrectDayOfTheWeekEntriesInWorkingTimetable);
-      WriteBool(OtherOptionsSectionStr, ShowNonMovingTrainsInDiagramsStr, ShowNonMovingTrainsInDiagrams);
-      WriteBool(OtherOptionsSectionStr, ShowNonStopsInDiagramsStr, ShowNonStopsInDiagrams);
-      WriteBool(OtherOptionsSectionStr, ShowTrackCircuitsWhereUserMustDriveStr, ShowTrackCircuitsWhereUserMustDrive);
-      WriteBool(OtherOptionsSectionStr, StartRepeatJourneysOnNewLineInDiagramsStr, StartRepeatJourneysOnNewLineInDiagrams);
-      WriteBool(OtherOptionsSectionStr, StartWithDiagramsStr, StartWithDiagrams);
-      WriteInteger(OtherOptionsSectionStr, StationEndOfDayPassengerLeavingTimeInMinutesStr, StationEndOfDayPassengerLeavingTimeInMinutes);
-      WriteBool(OtherOptionsSectionStr, StationMonitorsWebPageRequiredStr, StationMonitorsWebPageRequired);
-      WriteInteger(OtherOptionsSectionStr, StationOppositeDirectionExitMinimumWaitTimeInMinutesStr, StationOppositeDirectionExitMinimumWaitTimeInMinutes);
-      WriteInteger(OtherOptionsSectionStr, StationSameDirectionExitMinimumWaitTimeInMinutesStr, StationSameDirectionExitMinimumWaitTimeInMinutes);
-      WriteBool(OtherOptionsSectionStr, StationStartModeStr, StationStartMode);
-      WriteInteger(OtherOptionsSectionStr, StationStartOfDayPassengerBoardingTimeInMinutesStr, StationStartOfDayPassengerBoardingTimeInMinutes);
-      WriteBool(OtherOptionsSectionStr, StopAllLocosAtShutDownStr, StopAllLocosAtShutDown);
-      WriteBool(OtherOptionsSectionStr, SwitchActiveLocoLightsOffAtShutDownStr, SwitchActiveLocoLightsOffAtShutDown);
-      WriteInteger(OtherOptionsSectionStr, TheatreBoxHeightStr, TheatreBoxHeight);
-      WriteInteger(OtherOptionsSectionStr, TheatreBoxWidthStr, TheatreBoxWidth);
-      WriteInteger(OtherOptionsSectionStr, WaitBeforeRerouteInMinutesStr, WaitBeforeRerouteInMinutes);
-      WriteBool(OtherOptionsSectionStr, WorkingTimetableModeStr, WorkingTimetableMode);
+    WriteBoolTwice(OtherOptionsSectionStr, ShowIncorrectDayOfTheWeekEntriesInWorkingTimetableStr, ShowIncorrectDayOfTheWeekEntriesInWorkingTimetable);
+    WriteBoolTwice(OtherOptionsSectionStr, ShowNonMovingTrainsInDiagramsStr, ShowNonMovingTrainsInDiagrams);
+    WriteBoolTwice(OtherOptionsSectionStr, ShowNonStopsInDiagramsStr, ShowNonStopsInDiagrams);
+    WriteBoolTwice(OtherOptionsSectionStr, ShowTrackCircuitsWhereUserMustDriveStr, ShowTrackCircuitsWhereUserMustDrive);
+    WriteBoolTwice(OtherOptionsSectionStr, StartRepeatJourneysOnNewLineInDiagramsStr, StartRepeatJourneysOnNewLineInDiagrams);
+    WriteBoolTwice(OtherOptionsSectionStr, StartWithDiagramsStr, StartWithDiagrams);
+    WriteIntegerTwice(OtherOptionsSectionStr, StationEndOfDayPassengerLeavingTimeInMinutesStr, StationEndOfDayPassengerLeavingTimeInMinutes);
+    WriteBoolTwice(OtherOptionsSectionStr, StationMonitorsWebPageRequiredStr, StationMonitorsWebPageRequired);
+    WriteIntegerTwice(OtherOptionsSectionStr, StationOppositeDirectionExitMinimumWaitTimeInMinutesStr, StationOppositeDirectionExitMinimumWaitTimeInMinutes);
+    WriteIntegerTwice(OtherOptionsSectionStr, StationSameDirectionExitMinimumWaitTimeInMinutesStr, StationSameDirectionExitMinimumWaitTimeInMinutes);
+    WriteBoolTwice(OtherOptionsSectionStr, StationStartModeStr, StationStartMode);
+    WriteIntegerTwice(OtherOptionsSectionStr, StationStartOfDayPassengerBoardingTimeInMinutesStr, StationStartOfDayPassengerBoardingTimeInMinutes);
+    WriteBoolTwice(OtherOptionsSectionStr, StopAllLocosAtShutDownStr, StopAllLocosAtShutDown);
+    WriteBoolTwice(OtherOptionsSectionStr, SwitchActiveLocoLightsOffAtShutDownStr, SwitchActiveLocoLightsOffAtShutDown);
+    WriteIntegerTwice(OtherOptionsSectionStr, TheatreBoxHeightStr, TheatreBoxHeight);
+    WriteIntegerTwice(OtherOptionsSectionStr, TheatreBoxWidthStr, TheatreBoxWidth);
+    WriteIntegerTwice(OtherOptionsSectionStr, WaitBeforeRerouteInMinutesStr, WaitBeforeRerouteInMinutes);
+    WriteBoolTwice(OtherOptionsSectionStr, WorkingTimetableModeStr, WorkingTimetableMode);
 
-      { Various times }
-      WriteString(TimesSectionStr, ProgramStartTimeOptionStr, TimeToHMSStr(ProgramStartTime));
-      WriteString(TimesSectionStr, DayLightStartTimeOptionStr, TimeToHMSStr(DayLightStartTime));
-      WriteString(TimesSectionStr, DayLightEndTimeOptionStr, TimeToHMSStr(DayLightEndTime));
-      WriteString(TimesSectionStr, CurrentRailwayDayOfTheWeekStr, DayOfTheWeekToStr(CurrentRailwayDayOfTheWeek));
+    { Various times }
+    WriteStringTwice(TimesSectionStr, ProgramStartTimeOptionStr, TimeToHMSStr(ProgramStartTime));
+    WriteStringTwice(TimesSectionStr, DayLightStartTimeOptionStr, TimeToHMSStr(DayLightStartTime));
+    WriteStringTwice(TimesSectionStr, DayLightEndTimeOptionStr, TimeToHMSStr(DayLightEndTime));
+    WriteStringTwice(TimesSectionStr, CurrentRailwayDayOfTheWeekStr, DayOfTheWeekToStr(CurrentRailwayDayOfTheWeek));
 
-      { Screen settings }
-      WriteInteger(ScreenOptionsStr, LogFileMaxWidthInCharsStr, LogFileMaxWidthInChars);
+    { Screen settings }
+    WriteIntegerTwice(ScreenOptionsStr, LogFileMaxWidthInCharsStr, LogFileMaxWidthInChars);
 
-      CASE ScreenMode OF
-        DefaultWindowedScreenMode:
-          WriteString(ScreenOptionsStr, ScreenModeStr, DefaultWindowedScreenStr);
-        FullScreenMode:
-          WriteString(ScreenOptionsStr, ScreenModeStr, FullScreenStr);
-        FullScreenWithStatusBarMode:
-          WriteString(ScreenOptionsStr, ScreenModeStr, FullScreenWithStatusBarStr);
-        CustomWindowedScreenMode:
-          WriteString(ScreenOptionsStr, ScreenModeStr, CustomWindowedScreenStr);
-      END; {CASE}
+    CASE ScreenMode OF
+      DefaultWindowedScreenMode:
+        WriteStringTwice(ScreenOptionsStr, ScreenModeStr, DefaultWindowedScreenStr);
+      FullScreenMode:
+        WriteStringTwice(ScreenOptionsStr, ScreenModeStr, FullScreenStr);
+      FullScreenWithStatusBarMode:
+        WriteStringTwice(ScreenOptionsStr, ScreenModeStr, FullScreenWithStatusBarStr);
+      CustomWindowedScreenMode:
+        WriteStringTwice(ScreenOptionsStr, ScreenModeStr, CustomWindowedScreenStr);
+    END; {CASE}
 
-      WriteInteger(ScreenOptionsStr, BufferStopVerticalSpacingStr, BufferStopVerticalSpacing);
-      WriteInteger(ScreenOptionsStr, DeltaPointXStr, DeltaPointX);
-      WriteInteger(ScreenOptionsStr, IndicatorHorizontalSpacingStr, IndicatorHorizontalSpacing);
-      WriteInteger(ScreenOptionsStr, IndicatorVerticalSpacingStr, IndicatorVerticalSpacing);
-      WriteInteger(ScreenOptionsStr, MouseRectangleEdgeVerticalSpacingStr, MouseRectangleEdgeVerticalSpacing);
-      WriteInteger(ScreenOptionsStr, PlatformEdgeVerticalSpacingStr, PlatformEdgeVerticalSpacing);
-      WriteInteger(ScreenOptionsStr, PlatformNumberEdgeHorizontalSpacingStr, PlatformNumberEdgeHorizontalSpacing);
-      WriteInteger(ScreenOptionsStr, PlatformNumberEdgeVerticalSpacingStr, PlatformNumberEdgeVerticalSpacing);
-      WriteInteger(ScreenOptionsStr, SignalHorizontalSpacingStr, SignalHorizontalSpacing);
-      WriteInteger(ScreenOptionsStr, SignalRadiusStr, SignalRadius);
-      WriteInteger(ScreenOptionsStr, SignalSemaphoreHeightStr, SignalSemaphoreHeight);
-      WriteInteger(ScreenOptionsStr, SignalSemaphoreWidthStr, SignalSemaphoreWidth);
-      WriteInteger(ScreenOptionsStr, SignalVerticalSpacingStr, SignalVerticalSpacing);
-      WriteInteger(ScreenOptionsStr, SpeedRestrictionHorizontalSpacingStr, SpeedRestrictionHorizontalSpacing);
-      WriteInteger(ScreenOptionsStr, SpeedRestrictionVerticalSpacingStr, SpeedRestrictionVerticalSpacing);
-      WriteInteger(ScreenOptionsStr, TheatreIndicatorHorizontalSpacingStr, TheatreIndicatorHorizontalSpacing);
-      WriteInteger(ScreenOptionsStr, TheatreIndicatorVerticalSpacingStr, TheatreIndicatorVerticalSpacing);
-      WriteInteger(ScreenOptionsStr, TRSPlungerLengthStr, TRSPlungerLength);
-      WriteInteger(ScreenOptionsStr, WindowRowsStr, WindowRows);
+    WriteIntegerTwice(ScreenOptionsStr, BufferStopVerticalSpacingStr, BufferStopVerticalSpacing);
+    WriteIntegerTwice(ScreenOptionsStr, DeltaPointXStr, DeltaPointX);
+    WriteIntegerTwice(ScreenOptionsStr, IndicatorHorizontalSpacingStr, IndicatorHorizontalSpacing);
+    WriteIntegerTwice(ScreenOptionsStr, IndicatorVerticalSpacingStr, IndicatorVerticalSpacing);
+    WriteIntegerTwice(ScreenOptionsStr, MouseRectangleEdgeVerticalSpacingStr, MouseRectangleEdgeVerticalSpacing);
+    WriteIntegerTwice(ScreenOptionsStr, PlatformEdgeVerticalSpacingStr, PlatformEdgeVerticalSpacing);
+    WriteIntegerTwice(ScreenOptionsStr, PlatformNumberEdgeHorizontalSpacingStr, PlatformNumberEdgeHorizontalSpacing);
+    WriteIntegerTwice(ScreenOptionsStr, PlatformNumberEdgeVerticalSpacingStr, PlatformNumberEdgeVerticalSpacing);
+    WriteIntegerTwice(ScreenOptionsStr, SignalHorizontalSpacingStr, SignalHorizontalSpacing);
+    WriteIntegerTwice(ScreenOptionsStr, SignalRadiusStr, SignalRadius);
+    WriteIntegerTwice(ScreenOptionsStr, SignalSemaphoreHeightStr, SignalSemaphoreHeight);
+    WriteIntegerTwice(ScreenOptionsStr, SignalSemaphoreWidthStr, SignalSemaphoreWidth);
+    WriteIntegerTwice(ScreenOptionsStr, SignalVerticalSpacingStr, SignalVerticalSpacing);
+    WriteIntegerTwice(ScreenOptionsStr, SpeedRestrictionHorizontalSpacingStr, SpeedRestrictionHorizontalSpacing);
+    WriteIntegerTwice(ScreenOptionsStr, SpeedRestrictionVerticalSpacingStr, SpeedRestrictionVerticalSpacing);
+    WriteIntegerTwice(ScreenOptionsStr, TheatreIndicatorHorizontalSpacingStr, TheatreIndicatorHorizontalSpacing);
+    WriteIntegerTwice(ScreenOptionsStr, TheatreIndicatorVerticalSpacingStr, TheatreIndicatorVerticalSpacing);
+    WriteIntegerTwice(ScreenOptionsStr, TRSPlungerLengthStr, TRSPlungerLength);
+    WriteIntegerTwice(ScreenOptionsStr, WindowRowsStr, WindowRows);
 
-      { Other Miscellaneous Data }
-      WriteString(MiscellaneousDataSectionStr, CurrentParametersStr, CurrentParametersFromParamStr);
-    END; {WITH}
+    { Other Miscellaneous Data }
+    WriteStringTwice(MiscellaneousDataSectionStr, CurrentParametersStr, CurrentParametersFromParamStr);
+
     IniFile.Free;
+    RegistryIniFile.Free;
   EXCEPT
     ON E : Exception DO
       Log('EG WriteIniFile: ' + E.ClassName + ' error raised, with message: ' + E.Message);
