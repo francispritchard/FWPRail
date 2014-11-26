@@ -501,7 +501,7 @@ BEGIN
             IF Train_LastLocation <> UnknownLocation THEN BEGIN
               LocationFound := False;
               TrainInitialTrackCircuitCount := 1;
-              WHILE (TrainInitialTrackCircuitCount <= 5) AND (Train_InitialTrackcircuits[TrainInitialTrackCircuitCount] <> UnknownTrackCircuit) AND NOT LocationFound
+              WHILE (TrainInitialTrackCircuitCount <= 5) AND (Train_InitialTrackCircuits[TrainInitialTrackCircuitCount] <> UnknownTrackCircuit) AND NOT LocationFound
               DO BEGIN
                 IF GetLocationFromTrackCircuit(Train_InitialTrackCircuits[TrainInitialTrackCircuitCount]) = Train_LastLocation
                 THEN
@@ -747,7 +747,7 @@ VAR
         Set2nd := True;
 
         IF Train_InitialTrackCircuits[3] <> UnknownTrackCircuit THEN BEGIN
-          TempLocation := GetLocationFromTrackcircuit(Train_InitialTrackCircuits[3]);
+          TempLocation := GetLocationFromTrackCircuit(Train_InitialTrackCircuits[3]);
           IF (TempLocation <> UnknownLocation)
           AND (Locations[TempLocation].Location_IsPlatform OR Locations[TempLocation].Location_IsSiding OR Locations[TempLocation].Location_IsFiddleyard)
           THEN BEGIN
@@ -762,7 +762,7 @@ VAR
         END;
 
         IF Train_InitialTrackCircuits[4] <> UnknownTrackCircuit THEN BEGIN
-          TempLocation := GetLocationFromTrackcircuit(Train_InitialTrackCircuits[4]);
+          TempLocation := GetLocationFromTrackCircuit(Train_InitialTrackCircuits[4]);
           IF (TempLocation <> UnknownLocation)
           AND (Locations[TempLocation].Location_IsPlatform
                OR Locations[TempLocation].Location_IsSiding
@@ -780,7 +780,7 @@ VAR
         END;
 
         IF (Train_InitialTrackCircuits[5] <> UnknownTrackCircuit) THEN BEGIN
-          TempLocation := GetLocationFromTrackcircuit(Train_InitialTrackCircuits[5]);
+          TempLocation := GetLocationFromTrackCircuit(Train_InitialTrackCircuits[5]);
           IF (TempLocation <> UnknownLocation)
           AND (Locations[TempLocation].Location_IsPlatform OR Locations[TempLocation].Location_IsSiding OR Locations[TempLocation].Location_IsFiddleyard)
           THEN BEGIN
@@ -4187,7 +4187,7 @@ BEGIN
   //          Train_Headcode := GetHeadcode(Train_LocoChip, Train_TypeNum, Train_FinalEndStationName);
 
   //          SetInitialTrackCircuits(T);
-  //          IF Train_InitialTrackcircuits[1] = UnknownTrackCircuit THEN
+  //          IF Train_InitialTrackCircuits[1] = UnknownTrackCircuit THEN
   //             ErrorMsg := 'no initial track circuits found';
         END;
 

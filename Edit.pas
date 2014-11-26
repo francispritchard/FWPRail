@@ -2649,7 +2649,7 @@ PROCEDURE DeleteLine(LineToDeleteNum : Integer; OUT CanDelete: Boolean);
 { Delete a line after appropriate checks. NB: this doesn't yet deal with the routeing exceptions database or platform positions database. }
 VAR
   Line : Integer;
-  LineTrackCircuits : IntegerArrayType;
+  MultipleLineTrackCircuits : IntegerArrayType;
   P : Integer;
   QueryStr : String;
   S : Integer;
@@ -2680,17 +2680,17 @@ BEGIN
 
     IF CanDelete THEN BEGIN
       { Ask for confirmation, but first see whether an associated track circuit can be deleted - but only if it is not attached to another line }
-      SetLength(LineTrackCircuits, 0);
+      SetLength(MultipleLineTrackCircuits, 0);
       FOR Line := 0 TO High(Lines) DO BEGIN
         IF Lines[Line].Line_TC = Lines[LineToDeleteNum].Line_TC THEN
-          AppendToIntegerArray(LineTrackCircuits, Lines[Line].Line_TC);
+          AppendToIntegerArray(MultipleLineTrackCircuits, Lines[Line].Line_TC);
       END; {FOR}
 
-      IF Length(LineTrackCircuits) <> 1 THEN
+      IF Length(MultipleLineTrackCircuits) <> 1 THEN
         { there's only one reference to it, so it can't be attached to another line }
         QueryStr := 'Delete line ' + LineToStr(LineToDeleteNum) + '?'
       ELSE
-        QueryStr := 'Delete line ' + LineToStr(LineToDeleteNum) + ' and associated track circuit ' + IntToStr(LineTrackCircuits[0]) + '?';
+        QueryStr := 'Delete line ' + LineToStr(LineToDeleteNum) + ' and associated track circuit ' + IntToStr(MultipleLineTrackCircuits[0]) + '?';
 
       IF MessageDialogueWithDefault(QueryStr, StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo THEN BEGIN
         Debug('Line ' + IntToStr(LineToDeleteNum) + ' not deleted');
@@ -2699,21 +2699,22 @@ BEGIN
     END;
 
     IF CanDelete THEN BEGIN
-      IF Length(LineTrackCircuits) = 1 THEN BEGIN
+      IF Length(MultipleLineTrackCircuits) = 1 THEN BEGIN
         { Move the last record to replace the record we're deleting (a DJW suggestion). First see if the track circuit it represents is in use by the Line database }
         FOR Line := 0 TO High(Lines) DO BEGIN
           IF Lines[Line].Line_TC = High(TrackCircuits) THEN BEGIN
-            Log('T Replacing the database''s last TC ' + IntToStr(Lines[Line].Line_TC) + ' for Line ' + LineToStr(Line) + ' with TC ' + IntToStr(LineTrackCircuits[0]));
-            Lines[Line].Line_TC := LineTrackCircuits[0];
+            Log('T Replacing the database''s last TC ' + IntToStr(Lines[Line].Line_TC) + ' for Line ' + LineToStr(Line)
+                   + ' with TC ' + IntToStr(MultipleLineTrackCircuits[0]));
+            Lines[Line].Line_TC := MultipleLineTrackCircuits[0];
             Lines[Line].Line_DataChanged := True;
             WriteOutLineDataToDatabase;
           END;
         END; {FOR}
 
         { Now remove the last record from the track circuit database }
-        TrackCircuits[LineTrackCircuits[0]] := TrackCircuits[High(TrackCircuits)];
-        TrackCircuits[LineTrackCircuits[0]].TC_Number := LineTrackCircuits[0];
-        TrackCircuits[LineTrackCircuits[0]].TC_DataChanged := True;
+        TrackCircuits[MultipleLineTrackCircuits[0]] := TrackCircuits[High(TrackCircuits)];
+        TrackCircuits[MultipleLineTrackCircuits[0]].TC_Number := MultipleLineTrackCircuits[0];
+        TrackCircuits[MultipleLineTrackCircuits[0]].TC_DataChanged := True;
 
         WriteOutTrackCircuitDataToDatabase;
 
@@ -2917,7 +2918,7 @@ BEGIN
     Line_DownConnectionChBold := False;
     Line_EndOfLineMarker := BufferStopAtDown;
     Line_LockFailureNotedInSubRouteUnit := False;
-    Line_NameStr := '[' + IntToStr(Line) + ']';
+    Line_NameStr := '*' + IntToStr(Line) + '*';
     Line_NextDownIsEndOfLine := BufferStopAtDown;
     Line_NextDownPoint := UnknownPoint;
     Line_NextDownLine := UnknownLine;
@@ -2928,6 +2929,7 @@ BEGIN
     Line_NextUpType := UnknownNextLineRouteingType;
     Line_RouteLockingForDrawing := UnknownRoute;
     Line_RouteSet := UnknownRoute;
+    Line_TC := UnknownTrackCircuit;
     Line_TypeOfLine := NewlyCreatedLine;
     Line_UpConnectionCh := '';
     Line_UpConnectionChBold := False;
@@ -3154,7 +3156,7 @@ BEGIN
       Line_DownConnectionChBold := False;
       Line_EndOfLineMarker := BufferStopAtDown;
       Line_LockFailureNotedInSubRouteUnit := False;
-      Line_NameStr := '[' + IntToStr(NewLine) + ']';
+      Line_NameStr := '*' + IntToStr(NewLine) + '*';
       Line_NextDownIsEndOfLine := Lines[OldLine].Line_NextDownIsEndOfLine;
       Line_NextDownPoint := Lines[OldLine].Line_NextDownPoint;
       Line_NextDownLine := Lines[OldLine].Line_NextDownLine;
@@ -3165,6 +3167,7 @@ BEGIN
       Line_NextUpType := UnknownNextLineRouteingType;
       Line_RouteLockingForDrawing := UnknownRoute;
       Line_RouteSet := UnknownRoute;
+      Line_TC := UnknownTrackCircuit;
       Line_TypeOfLine := Lines[OldLine].Line_TypeOfLine;
       Line_UpConnectionCh := '';
       Line_UpConnectionChBold := False;

@@ -37,6 +37,7 @@ TYPE
     GeneralPopupChangePointManualOperationColour: TMenuItem;
     GeneralPopupChangePointOutOfUseColour: TMenuItem;
     GeneralPopupChangePointUndrawColour: TMenuItem;
+    GeneralPopupChangeScreenComponentEditedColour: TMenuItem;
     GeneralPopupChangeSidingPenStyle: TMenuItem;
     GeneralPopupChangeSignalAspectUnlitColour: TMenuItem;
     GeneralPopupChangeSignalPostRouteSettingColour: TMenuItem;
@@ -79,6 +80,7 @@ TYPE
     GeneralPopupRestorePointLockedByUserColour: TMenuItem;
     GeneralPopupRestorePointOutOfUseColour: TMenuItem;
     GeneralPopupRestorePointUndrawColour: TMenuItem;
+    GeneralPopupRestoreScreenComponentEditedColour: TMenuItem;
     GeneralPopupRestoreSidingPenStyle: TMenuItem;
     GeneralPopupRestoreSignalAspectUnlitColour: TMenuItem;
     GeneralPopupRestoreSignalPostRouteSettingColour: TMenuItem;
@@ -97,6 +99,7 @@ TYPE
     GeneralPopupRunClockFastest: TMenuItem;
     GeneralPopupRunClockNormally: TMenuItem;
     GeneralPopupRunClockSlower: TMenuItem;
+    GeneralPopupScreenComponentEditedColour: TMenuItem;
     GeneralPopupSetCurrentRailwayDayOfTheWeek: TMenuItem;
     GeneralPopupSetCurrentRailwayTime: TMenuItem;
     GeneralPopupSetDaylightEndTime: TMenuItem;
@@ -156,12 +159,6 @@ TYPE
     SetDaylightEnd: TMenuItem;
     SetDayLightStart: TMenuItem;
     SignalPopupMenu: TPopupMenu;
-    LineRoutedOverColour1: TMenuItem;
-    RestoreLineRoutedOverColour2: TMenuItem;
-    ChangeLineRoutedOverColour2: TMenuItem;
-    GeneralPopupScreenComponentEditedColour: TMenuItem;
-    GeneralPopupChangeScreenComponentEditedColour: TMenuItem;
-    GeneralPopupRestoreScreenComponentEditedColour: TMenuItem;
 
     PROCEDURE BufferStopPopupItemClick(Sender: TObject);
     PROCEDURE BufferStopMenuOnPopup(Sender: TObject);
@@ -395,6 +392,7 @@ TYPE
     PROCEDURE MainRunMenuResumeOperationsClick(Sender: TObject);
     PROCEDURE PointPopupMenuOnPopup(Sender: TObject);
     PROCEDURE PointPopupItemClick(Sender: TObject);
+    PROCEDURE PopupTimerTick(Sender: TObject);
     PROCEDURE SetCurrentRailwayTime(Sender: TObject);
     PROCEDURE SetDaylightEndTime(Sender: TObject);
     PROCEDURE SetDaylightStartTime(Sender: TObject);
@@ -624,7 +622,6 @@ VAR
   ZoomScaleFactor : Integer = 1000;
 Region : HRGN;
 testregion : boolean = false;
-
 
 IMPLEMENTATION
 

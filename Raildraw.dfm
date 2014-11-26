@@ -376,15 +376,6 @@ object FWPRailWindow: TFWPRailWindow
             OnClick = GeneralPopupRestoreLineNotAvailableColourClick
           end
         end
-        object LineRoutedOverColour1: TMenuItem
-          Caption = 'Line Routed Over Colour'
-          object ChangeLineRoutedOverColour2: TMenuItem
-            Caption = 'Change Line RoutedOver Colour'
-          end
-          object RestoreLineRoutedOverColour2: TMenuItem
-            Caption = 'Restore Line Routed Over Colour'
-          end
-        end
         object GeneralPopupLocoStalledColour: TMenuItem
           Caption = 'Loco Stalled Colour'
           object GeneralPopupChangeLocoStalledColour: TMenuItem
@@ -1346,5 +1337,11 @@ object FWPRailWindow: TFWPRailWindow
     OnShortCut = FWPRailApplicationEventsShortCut
     Left = 112
     Top = 208
+  end
+  object PopupTimer: TTimer
+    Enabled = False
+    OnTimer = PopupTimerTick
+    Left = 496
+    Top = 200
   end
 end
