@@ -155,6 +155,7 @@ TYPE
     MainRunMenuHaltOperations: TMenuItem;
     MainRunMenuResumeOperations: TMenuItem;
     PointPopupMenu: TPopupMenu;
+    PopupTimer: TTimer;
     RestorePointFeedbackDataInUseColour: TMenuItem;
     SetDaylightEnd: TMenuItem;
     SetDayLightStart: TMenuItem;
@@ -565,6 +566,7 @@ CONST
 
 VAR
   FWPRailWindow : TFWPRailWindow;
+  PopupTimerCount : Integer = 0;
   RailWindowBitmap : TBitmap;
   SaveBackgroundColourForPrinting : TColor;
   SaveBufferStopColourForPrinting : TColor;
@@ -4098,6 +4100,12 @@ BEGIN
     GeneralPopupResetFWPRailWindowSizeAndPosition.Enabled := False;
 END; { FWPRailWindowPopupMenuOnPopup }
 
+PROCEDURE TFWPRailWindow.PopupTimerTick(Sender: TObject);
+{ This is needed to prevent the click that causes the popup menu to pop up also then activating one of the items on the popped-up menu }
+BEGIN
+  Inc(PopupTimerCount);
+END; { PopupTimerTick }
+
 PROCEDURE AddMenuItem(PopupMenu : TPopupMenu; Caption : String; PopupType : MenuPopupTypes; Enabled : Boolean; Click : TNotifyEvent);
 { Add a dynamic menu item }
 VAR
@@ -4118,6 +4126,10 @@ CONST
   SaveVariables = True;
 
 BEGIN
+  { Wait before popping up to avoid the same click that activates the popup menu also providing the menu item click }
+  IF PopupTimerCount < 2 THEN
+    Exit;
+
   WITH Signals[SignalPopupNum] DO BEGIN
     WITH sender As TMenuItemExtended DO BEGIN
       CASE PopupType OF
@@ -4201,10 +4213,17 @@ BEGIN
       AddMenuItem(SignalPopupMenu, 'Delete Signal ' + IntToStr(SignalPopupNum), SignalDeletePopupType, Enabled, SignalPopupItemClick);
     END;
   END; {WITH}
+
+  PopupTimerCount := 0;
+  PopupTimer.Enabled := True;
 END; { SignalPopupMenuOnPopup }
 
 PROCEDURE TFWPRailWindow.PointPopupItemClick(Sender: TObject);
 BEGIN
+  { Wait before popping up to avoid the same click that activates the popup menu also providing the menu item click }
+  IF PopupTimerCount < 2 THEN
+    Exit;
+
   WITH Points[PointPopupNum] DO BEGIN
     WITH Sender AS TMenuItemExtended DO BEGIN
       CASE PopupType OF
@@ -4289,10 +4308,17 @@ BEGIN
       AddMenuItem(PointPopupMenu, 'Delete Point ' + intToStr(PointPopupNum), PointDeletePopupType, Enabled, PointPopupItemClick);
     END;
   END; {WITH}
+
+  PopupTimerCount := 0;
+  PopupTimer.Enabled := True;
 END; { PointPopupMenuOnPopup }
 
 PROCEDURE TFWPRailWindow.BufferStopPopupItemClick(Sender: TObject);
 BEGIN
+  { Wait before popping up to avoid the same click that activates the popup menu also providing the menu item click }
+  IF PopupTimerCount < 2 THEN
+    Exit;
+
   WITH BufferStops[BufferStopPopupNum] DO BEGIN
     WITH Sender AS TMenuItem DO BEGIN
       CASE Tag OF
@@ -4330,6 +4356,9 @@ BEGIN
 
     END;
   END; {WITH}
+
+  PopupTimerCount := 0;
+  PopupTimer.Enabled := True;
 END; { BufferStopMenuOnPopup }
 
 PROCEDURE SetOrClearTrackCircuitSpeedRestriction(Line : Integer);
@@ -4656,6 +4685,10 @@ VAR
   T : TrainIndex;
 
 BEGIN
+  { Wait before popping up to avoid the same click that activates the popup menu also providing the menu item click - DJW }
+  IF PopupTimerCount < 2 THEN
+    Exit;
+
   WITH Sender AS TMenuItemExtended DO BEGIN
     { this code has been separated out from the case statement below as we may well not be on a line, and the "WITH Lines[LinePopupNumArray[0]]" statement would fail }
     IF PopupType = LineEnterCreateLinePopupType THEN
@@ -5006,6 +5039,9 @@ BEGIN
       END;
     END; {WITH}
   END;
+
+  PopupTimerCount := 0;
+  PopupTimer.Enabled := True;
 END; { LinePopupMenuOnPopup }
 
 PROCEDURE TFWPRailWindow.FWPRailApplicationEventsShortCut(VAR Msg: TWMKey; VAR Handled: Boolean);
