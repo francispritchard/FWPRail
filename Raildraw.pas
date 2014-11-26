@@ -4685,7 +4685,7 @@ VAR
   T : TrainIndex;
 
 BEGIN
-  { Wait before popping up to avoid the same click that activates the popup menu also providing the menu item click - DJW }
+  { Wait before popping up to avoid the same click that activates the popup menu also providing the menu item click }
   IF PopupTimerCount < 2 THEN
     Exit;
 
