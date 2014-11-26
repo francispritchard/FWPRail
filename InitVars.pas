@@ -841,7 +841,7 @@ TYPE
 
   TimedRectangleArrayType = ARRAY OF TimedRectangleRec;
 
-  { Trackcircuit-related type declarations }
+  { Track circuit-related type declarations }
   TrackCircuitStateType = (TCFeedbackOccupation, TCFeedbackOccupationButOutOfUse, TCPermanentFeedbackOccupation, TCPermanentOccupationSetByUser, TCSystemOccupation,
                            TCPermanentSystemOccupation, TCMissingOccupation, TCOutOfUseSetByUser, TCOutOfUseAsNoFeedbackReceived, TCLocoOutOfPlaceOccupation, TCUnoccupied);
 

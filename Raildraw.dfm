@@ -96,7 +96,7 @@ object FWPRailWindow: TFWPRailWindow
       end
       object MainOperationsMenuShowTrackCircuit: TMenuItem
         Caption = 'Show &Trackcircuit'
-        OnClick = GeneralPopupShowTrackcircuitClick
+        OnClick = GeneralPopupShowTrackCircuitClick
       end
       object MainOperationsMenuDebugOptions: TMenuItem
         Caption = '&Debug Options'
@@ -1283,7 +1283,7 @@ object FWPRailWindow: TFWPRailWindow
       end
       object GeneralPopupShowTrackcircuit: TMenuItem
         Caption = 'Show &Trackcircuit'
-        OnClick = GeneralPopupShowTrackcircuitClick
+        OnClick = GeneralPopupShowTrackCircuitClick
       end
       object GeneralPopupRuler5: TMenuItem
         Caption = '-'

@@ -518,7 +518,7 @@ BEGIN
           PreviouslyDisplayedInputDialogueBox := TrackCircuitDialogueBox;
         END;
         InputDialogueBox.Caption := 'Find/Set TrackCircuit';
-        InputDialogueMaskEditLabel.Caption := 'Trackcircuit:';
+        InputDialogueMaskEditLabel.Caption := 'TrackCircuit:';
         IF InputDialogueMaskEdit.Text <> '' THEN
           InputDialogueChangeOrSelectButton.Enabled := True;
         InputDialogueChangeOrSelectButton.Visible := True;
@@ -4534,7 +4534,7 @@ BEGIN { KeyPressedDown }
                 END;
               END;
           END; {CASE}
-        vk_F5: { Trackcircuits }
+        vk_F5: { Track Circuits }
           CASE ShiftKeys OF
             NoShiftKeys: {F5}
               BEGIN

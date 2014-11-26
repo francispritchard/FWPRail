@@ -2876,8 +2876,8 @@ END; { GetPositionOfNearestGridLine }
 FUNCTION GetXPositionOfNearestLineIfAny(Line, X, Y : Integer) : Integer;
 { So we can see if a newly-created or extended line can be "snapped" to an existing one. This returns 0 (so there's no "snap") if there's no line near }
 VAR
-  ScreenX : integer;
-  ScreenY : integer;
+  ScreenX : Integer;
+  ScreenY : Integer;
   LineFound : Boolean;
   TempLine : Integer;
 
@@ -3032,7 +3032,7 @@ PROCEDURE JoinLine(LineArray : IntegerArrayType; GridX, GridY : Integer);
 VAR
   DebugStr : String;
   OK : Boolean;
-  P : integer;
+  P : Integer;
 
 BEGIN
   DebugStr := '';

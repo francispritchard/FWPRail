@@ -104,7 +104,7 @@ TYPE
     GeneralPopupSetLogFileMaximumWidth: TMenuItem;
     GeneralPopupSetProgramStartTime: TMenuItem;
     GeneralPopupShowMainMenu: TMenuItem;
-    GeneralPopupShowTrackcircuit: TMenuItem;
+    GeneralPopupShowTrackCircuit: TMenuItem;
     GeneralPopupSidingPenStyle: TMenuItem;
     GeneralPopupSidingPenStyleSolid: TMenuItem;
     GeneralPopupSignalPostRouteSettingColour: TMenuItem;
@@ -331,7 +331,7 @@ TYPE
     PROCEDURE GeneralPopupSetCurrentRailwayDayOfTheWeekClick(Sender: TObject);
     PROCEDURE GeneralPopupSetLogFileMaximumWidthClick(Sender: TObject);
     PROCEDURE GeneralPopupShowMainMenuClick(Sender: TObject);
-    PROCEDURE GeneralPopupShowTrackcircuitClick(Sender: TObject);
+    PROCEDURE GeneralPopupShowTrackCircuitClick(Sender: TObject);
     PROCEDURE GeneralPopupSidingPenStyleClearClick(Sender: TObject);
     PROCEDURE GeneralPopupSidingPenStyleDashClick(Sender: TObject);
     PROCEDURE GeneralPopupSidingPenStyleDashDotClick(Sender: TObject);
@@ -4148,7 +4148,7 @@ BEGIN
         SignalUndoChangesPopupType:
           UndoEditChanges;
       ELSE {CASE}
-        Log('BG Invalid popup type ' + IntToStr(Tag) + ' in LinePopupItemClick');
+        Log('BG Invalid popup type ' + IntToStr(Tag) + ' in SignalPopupItemClick');
       END; {CASE}
     END; {WITH}
   END; {WITH}
@@ -4246,7 +4246,7 @@ BEGIN
         PointEditPopupType:
           TurnEditModeOn(UnknownSignal, PointPopupNum, UnknownBufferStop, UnknownLine, UnknownTrackCircuit);
       ELSE {CASE}
-        Log('BG Invalid popup type ' + IntToStr(Tag) + ' in LinePopupItemClick');
+        Log('BG Invalid popup type ' + IntToStr(Tag) + ' in PointPopupItemClick');
       END; {CASE}
     END; {WITH}
   END; {WITH}
@@ -4970,22 +4970,19 @@ BEGIN
                 LinePopupNumArray[1] := LinePopupNumArray[0];
                 LinePopupNumArray[0] := NextLine;
                 WhetherEnabled := True;
-                  debug('LAP')
-              END else
-                  debug('LANP');
+              END;
             END;
           END ELSE
             IF PointInPolygon(Line_DownHandlePolygon, Point(MouseX, MouseY)) THEN BEGIN
               NextLine := Lines[LinePopupNumArray[0]].Line_NextDownLine;
-              IF NextLine <> UnknownLine THEN
+              IF NextLine <> UnknownLine THEN BEGIN
                 IF LinesAreParallel(LinePopupNumArray[0], NextLine) THEN BEGIN
                   SetLength(LinePopupNumArray, 2);
                   { add the new down-line name so that the array is for these purposes up line followed by down line }
                   LinePopupNumArray[1] := NextLine;
                   WhetherEnabled := True;
-                  debug('LAP')
-                END else
-                  debug('LANP');
+                END;
+              END;
             END;
 
           IF Length(LinePopupNumArray) > 1 THEN
@@ -6864,10 +6861,10 @@ BEGIN
   END;
 END; { GeneralPopupListLocomotivesClick }
 
-PROCEDURE TFWPRailWindow.GeneralPopupShowTrackcircuitClick(Sender: TObject);
+PROCEDURE TFWPRailWindow.GeneralPopupShowTrackCircuitClick(Sender: TObject);
 BEGIN
   SetAndShowInputDialogueBox(TrackCircuitDialogueBox);
-END; { GeneralPopupShowTrackcircuitClick }
+END; { GeneralPopupShowTrackCircuitClick }
 
 PROCEDURE TFWPRailWindow.GeneralPopupDebugOptionsClick(Sender: TObject);
 BEGIN

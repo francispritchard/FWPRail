@@ -924,7 +924,7 @@ CONST
     BackgroundColourStr = 'Background Colour';
     ForegroundColourStr = 'Foreground Colour';
     DiagramsWindowGridBackgroundColourStr = 'Diagrams Window Grid Background Colour';
-    LinesWithoutTrackCircuitsColourStr = 'Lines Without Trackcircuits Colour';
+    LinesWithoutTrackCircuitsColourStr = 'Lines Without Track Circuits Colour';
     LocoStalledColourStr = 'Loco Stalled Colour';
     ScreenComponentEditedColourStr = 'Screen Component Edited Colour';
     WorkingTimetableWindowGridBackgroundColourStr = 'Working Timetable Window Grid Background Colour';
@@ -1012,7 +1012,7 @@ CONST
     CarriageLengthInInchesStr = 'Carriage Length In Inches';
     CheckForIdenticalLinesInLogStr = 'Check For Identical Lines In Log';
     DisplayDiagramsStr = 'Display Diagrams';
-    DisplayFlashingTrackCircuitsStr = 'Display Flashing Trackcircuits';
+    DisplayFlashingTrackCircuitsStr = 'Display Flashing Track Circuits';
     DisplayLocoChipNumsStr = 'Display Loco Chip Numbers';
     DisplayLocoHeadcodesStr = 'Display Loco Headcodes';
     DisplayNotForPublicUseTrainsInStationMonitorsStr = 'Display Not For Public Use Trains In Station Monitors';

@@ -156,9 +156,9 @@ BEGIN
   END;
 
   IF ErrorCount > 0 THEN
-    Debug('Trackcircuit check completed - ' + IntToStr(ErrorCount) + ' errors noted in LogFile')
+    Debug('Track circuit check completed - ' + IntToStr(ErrorCount) + ' errors noted in LogFile')
   ELSE
-    Log('XG Trackcircuit check completed - all feedback inputs accounted for');
+    Log('XG Track circuit check completed - all feedback inputs accounted for');
 
   { Also check for track circuit feedback inputs unused }
   ErrorCount := 0;
@@ -175,12 +175,12 @@ BEGIN
             FeedbackNumFound := True;
 
             IF TrackCircuits[TC].TC_OccupationState = TCOutOfUseSetByUser THEN
-              Log('X Trackcircuit feedback unit ' + IntToStr(I) + ' input no. ' + IntToStr(J) + ' not in use as TC=' + IntToStr(TC) + ' is marked as being set out of use');
+              Log('X Track circuit feedback unit ' + IntToStr(I) + ' input no. ' + IntToStr(J) + ' not in use as TC=' + IntToStr(TC) + ' is marked as being set out of use');
           END;
         END;
 
         IF NOT FeedbackNumFound THEN BEGIN
-          Log('X Trackcircuit feedback unit ' + IntToStr(I) + ' input no. ' + IntToStr(J) + ' not in use ');
+          Log('X Track circuit feedback unit ' + IntToStr(I) + ' input no. ' + IntToStr(J) + ' not in use ');
           Inc(ErrorCount);
         END;
       END;
@@ -188,9 +188,9 @@ BEGIN
   END;
 
   IF ErrorCount > 0 THEN
-    Debug('Trackcircuit feedback check completed - ' + IntToStr(ErrorCount) + ' errors noted in LogFile')
+    Debug('Track circuit feedback check completed - ' + IntToStr(ErrorCount) + ' errors noted in LogFile')
   ELSE BEGIN
-    Log('XG Trackcircuit feedback check completed - all feedback inputs accounted for');
+    Log('XG Track circuit feedback check completed - all feedback inputs accounted for');
   END;
 
   { Debug point data }

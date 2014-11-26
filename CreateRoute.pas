@@ -827,7 +827,7 @@ VAR
 
     { If a line is permanently occupied by something which is out-of-use, do not route over it (unless we're allowed to do so)}
     IF (Lines[CurrentLine].Line_TC <> UnknownTrackCircuit)
-    AND TrackCircuitStateIsPermanentlyOccupied(Trackcircuits[Lines[CurrentLine].Line_TC].TC_OccupationState)
+    AND TrackCircuitStateIsPermanentlyOccupied(TrackCircuits[Lines[CurrentLine].Line_TC].TC_OccupationState)
     AND (CurrentLine <> StartLine)
     AND (CurrentLine <> Lines[StartLine].Line_NextUpLine)
     AND (CurrentLine <> Lines[StartLine].Line_NextDownLine)
