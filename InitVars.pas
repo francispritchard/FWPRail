@@ -883,7 +883,7 @@ TYPE
 
 CONST
   TC_NumberFieldName : String = 'TCNum';
-  TC_LengthFieldName : String = 'Length';
+  TC_LengthInInchesFieldName : String = 'Length';
   TC_FeedbackUnitFieldName : String = 'FeedbackUnit';
   TC_FeedbackInputFieldName : String = 'FeedbackInput';
 
@@ -1609,6 +1609,9 @@ PROCEDURE AddNewRecordToPointDatabase;
 PROCEDURE AddNewRecordToSignalDatabase;
 { Append a record to the signal database }
 
+PROCEDURE AddNewRecordToTrackCircuitDatabase;
+{ Append a record to the track circuit database }
+
 PROCEDURE CalculateLinePolygons(Line : Integer);
 { Work out the position for the various line polygons }
 
@@ -1659,6 +1662,9 @@ PROCEDURE InitialiseLogFiles;
 
 PROCEDURE InitialiseScreenDrawingVariables;
 { Set up the default screen drawing variables }
+
+PROCEDURE InitialiseTrackCircuitVariables(TC : Integer);
+{ Initialise all the variables where the data is not read in from the database or added during the edit process }
 
 PROCEDURE ReadInAreasDataFromDatabase;
 { Initialise the area data }
@@ -1912,6 +1918,43 @@ BEGIN
   TRSPlungerLengthScaled := MulDiv(FWPRailWindow.ClientWidth, TRSPlungerLength, ZoomScaleFactor * 10);
 END; { SetUpLineDrawingVars }
 
+PROCEDURE InitialiseTrackCircuitVariables(TC : Integer);
+{ Initialise all the variables where the data is not read in from the database or added during the edit process }
+BEGIN
+  WITH TrackCircuits[TC] DO BEGIN
+    SetLength(TC_AdjacentSignals, 0);
+    TC_AdjacentBufferStop := UnknownBufferStop;
+    TC_DataChanged := False;
+    TC_EmergencyLocoChip := UnknownLocoChip;
+    TC_EmergencyState := TCUnoccupied;
+    TC_FeedbackOccupation := False;
+    TC_Flashing := False;
+    TC_Gradient := Level;
+    TC_HeadCode := '';
+    TC_Journey := UnknownJourney;
+    TC_LitUp := True;
+    TC_Location := UnknownLocation;
+    TC_LockedForRoute := UnknownRoute;
+    TC_LockFailureNotedInSubRouteUnit := False;
+    TC_LocoChip := UnknownLocoChip;
+    TC_LocoStalled := False;
+    TC_MissingTrainNoted := False;
+    TC_MysteriouslyOccupied := False;
+    TC_OccupationStartTime := 0;
+    TC_OccupationState := TCUnoccupied;
+    TC_PreviousLocoChip := UnknownLocoChip;
+    TC_PreviousOccupationState := TCUnoccupied;
+    TC_ResettingSignal := UnknownSignal;
+    TC_SaveRouteLocking := UnknownRoute;
+    TC_SaveTrackCircuitHeadCode := '';
+    TC_SpeedRestrictionInMPH := NoSpecifiedSpeed;
+    TC_SpeedRestrictionDirection := Bidirectional;
+    TC_UserMustDrive := False;
+
+    SetLength(TC_LineArray, 0);
+  END; {WITH}
+END; { InitialiseTrackCircuitVariables(TC); }
+
 PROCEDURE ReadInTrackCircuitDataFromDatabase;
 { Initialise the track circuit data which depends on lines being initialised first.
 
@@ -1976,7 +2019,7 @@ BEGIN
               ErrorMsg := 'it does not match the line number in the database (' + IntToStr(TC_Number) + ')';
 
             IF ErrorMsg = '' THEN BEGIN
-              TempStr := FieldByName(TC_LengthFieldName).AsString;
+              TempStr := FieldByName(TC_LengthInInchesFieldName).AsString;
               IF TempStr = '' THEN
                 TC_LengthInInches := 0
               ELSE
@@ -2022,40 +2065,8 @@ BEGIN
       Log('T Track circuit data table and connection closed');
     END; {WITH}
 
-    FOR TC := 0 TO High(TrackCircuits) DO BEGIN
-      WITH TrackCircuits[TC] DO BEGIN
-        SetLength(TC_AdjacentSignals, 0);
-        TC_AdjacentBufferStop := UnknownBufferStop;
-        TC_DataChanged := False;
-        TC_EmergencyLocoChip := UnknownLocoChip;
-        TC_EmergencyState := TCUnoccupied;
-        TC_FeedbackOccupation := False;
-        TC_Flashing := False;
-        TC_Gradient := Level;
-        TC_HeadCode := '';
-        TC_Journey := UnknownJourney;
-        TC_LitUp := True;
-        TC_Location := UnknownLocation;
-        TC_LockedForRoute := UnknownRoute;
-        TC_LockFailureNotedInSubRouteUnit := False;
-        TC_LocoChip := UnknownLocoChip;
-        TC_LocoStalled := False;
-        TC_MissingTrainNoted := False;
-        TC_MysteriouslyOccupied := False;
-        TC_OccupationStartTime := 0;
-        TC_OccupationState := TCUnoccupied;
-        TC_PreviousLocoChip := UnknownLocoChip;
-        TC_PreviousOccupationState := TCUnoccupied;
-        TC_ResettingSignal := UnknownSignal;
-        TC_SaveRouteLocking := UnknownRoute;
-        TC_SaveTrackCircuitHeadCode := '';
-        TC_SpeedRestrictionInMPH := NoSpecifiedSpeed;
-        TC_SpeedRestrictionDirection := Bidirectional;
-        TC_UserMustDrive := False;
-
-        SetLength(TC_LineArray, 0);
-      END; {WITH}
-    END; {FOR}
+    FOR TC := 0 TO High(TrackCircuits) DO
+      InitialiseTrackCircuitVariables(TC);
 
     { Initialise track circuit lines and locations }
     CalculateTCAdjacentBufferStops;
@@ -2086,6 +2097,44 @@ BEGIN
   END; {TRY}
 END; { ReadInTrackCircuitDataFromDatabase }
 
+PROCEDURE AddNewRecordToTrackCircuitDatabase;
+{ Append a record to the track circuit database }
+BEGIN
+  TRY
+    WITH InitVarsWindow DO BEGIN
+      IF NOT FileExists(PathToRailDataFiles + TrackCircuitDataFilename + '.' + TrackCircuitDataFilenameSuffix) THEN BEGIN
+        IF MessageDialogueWithDefault('Track circuit database file "' + PathToRailDataFiles + TrackCircuitDataFilename + '.' + TrackCircuitDataFilenameSuffix
+                                      + '" cannot be located'
+                                      + CRLF
+                                      + 'Do you wish to continue?',
+                                      StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
+        THEN
+          ShutDownProgram(UnitRef, 'AddNewRecordToTrackCircuitDatabase')
+        ELSE
+          Exit;
+      END;
+
+      TrackCircuitsADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
+                                                     + PathToRailDataFiles + TrackCircuitDataFilename + '.' + TrackCircuitDataFilenameSuffix
+                                                     + ';Persist Security Info=False';
+      TrackCircuitsADOConnection.Connected := True;
+      TrackCircuitsADOTable.Open;
+      TrackCircuitsADOTable.Append;
+      TrackCircuitsADOTable.FieldByName(TC_NumberFieldName).AsInteger := High(TrackCircuits);
+      TrackCircuitsADOTable.Post;
+
+      Log('S Track circuit data table and connection opened to create record for TrackCircuit ' + IntToStr(High(TrackCircuits)));
+      { Tidy up the database }
+      TrackCircuitsADOTable.Close;
+      TrackCircuitsADOConnection.Connected := False;
+      Log('S Track circuit Data table and connection closed');
+    END;
+  EXCEPT {TRY}
+    ON E : Exception DO
+      Log('EG AddNewRecordToTrackCircuitDatabase: ' + E.ClassName + ' error raised, with message: ' + E.Message);
+  END; {TRY}
+END; { AddNewRecordToTrackCircuitDatabase }
+
 PROCEDURE WriteOutTrackCircuitDataToDatabase;
 { Write out some track circuit data to the track circuit data file }
 VAR
@@ -2115,21 +2164,6 @@ BEGIN
 
       TrackCircuitsADOTable.First;
       TC := 0;
-//      WHILE NOT TrackCircuitsADOTable.EOF DO BEGIN
-//        WITH TrackCircuits[TC] DO BEGIN
-//          IF TC_DataChanged THEN BEGIN
-//            TC_DataChanged := False;
-//
-//            Log('T Recording in track circuit database that TC ' + IntToStr(TC) + ' ' + TC_NumberFieldName + ' is ''' + IntToStr(TC_Number) + '''');
-//            TrackCircuitsADOTable.Edit;
-//            TrackCircuitsADOTable.FieldByName(TC_NumberFieldName).AsString := IntToStr(TC_Number);
-//            TrackCircuitsADOTable.Post;
-//          END;
-//        END; {WITH}
-//
-//        Inc(TC);
-//        TrackCircuitsADOTable.Next;
-//      END; {WHILE}
 
       WHILE TC <= High(TrackCircuits) DO BEGIN
         WITH TrackCircuits[TC] DO BEGIN
@@ -2142,6 +2176,21 @@ BEGIN
               Log('T Track circuit data table and connection opened to record that ' + TC_NumberFieldName + ' is ''' + IntToStr(TC_Number) + '''');
               TrackCircuitsADOTable.Edit;
               TrackCircuitsADOTable.FieldByName(TC_NumberFieldName).AsString := IntToStr(TC_Number);
+              TrackCircuitsADOTable.Post;
+
+              Log('T Track circuit data table and connection opened to record that ' + TC_LengthInInchesFieldName + ' is ''' + FloatToStr(TC_LengthInInches) + '''');
+              TrackCircuitsADOTable.Edit;
+              TrackCircuitsADOTable.FieldByName(TC_LengthInInchesFieldName).AsString := FloatToStr(TC_LengthInInches);
+              TrackCircuitsADOTable.Post;
+
+              Log('T Track circuit data table and connection opened to record that ' + TC_FeedbackUnitFieldName + ' is ''' + IntToStr(TC_FeedbackUnit) + '''');
+              TrackCircuitsADOTable.Edit;
+              TrackCircuitsADOTable.FieldByName(TC_FeedbackUnitFieldName).AsString := IntToStr(TC_FeedbackUnit);
+              TrackCircuitsADOTable.Post;
+
+              Log('T Track circuit data table and connection opened to record that ' + TC_FeedbackInputFieldName + ' is ''' + IntToStr(TC_FeedbackInput) + '''');
+              TrackCircuitsADOTable.Edit;
+              TrackCircuitsADOTable.FieldByName(TC_FeedbackInputFieldName).AsString := IntToStr(TC_FeedbackInput);
               TrackCircuitsADOTable.Post;
             END;
           END;
