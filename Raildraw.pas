@@ -4691,6 +4691,9 @@ BEGIN
 END; { ChangeInternalLocoDirectionToDown }
 
 PROCEDURE TFWPRailWindow.LinePopupItemClick(Sender: TObject);
+CONST
+  NewTrackCircuit = True;
+
 VAR
   LineCount : Integer;
   OK : Boolean;
@@ -4858,13 +4861,23 @@ BEGIN
                 IF ShowTrackCircuitsWhereUserMustDrive THEN
                   InvalidateScreen(UnitRef, 'LinePopupItemClick LineTCUserMustDrivePopupType');
               END;
-            LineAllocateTrackCircuitPopupType:
-              BEGIN
-                IF Line_TC = UnknownTrackcircuit THEN
 
-              END;
+            LineAllocateExistingTrackCircuitPopupType:
+              IF Line_TC = UnknownTrackCircuit THEN
+                AddTrackCircuit(LinePopupNumArray[0], NOT NewTrackCircuit);
+
+            LineAllocateNewTrackCircuitPopupType:
+              IF Line_TC = UnknownTrackCircuit THEN
+                AddTrackCircuit(LinePopupNumArray[0], NewTrackCircuit);
+
             LineRemoveTrackCircuitPopupType:
-              Line_TC := UnknownTrackcircuit;
+              IF MessageDialogueWithDefault('Remove Track Circuit ' + IntToStr(Line_TC) + ' From Line ' + LineToStr(LinePopupNumArray[0]) + '?',
+                                            StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrYes
+              THEN BEGIN
+                { remove the track circuit from the database if it's not in use somewhere else }
+                DeleteTrackCircuit(Line_TC);
+                Line_TC := UnknownTrackCircuit;
+              END;
           ELSE {CASE}
             Log('BG Invalid popup type ' + IntToStr(Tag) + ' in LinePopupItemClick');
           END; {CASE}
@@ -5043,10 +5056,14 @@ BEGIN
           AddMenuItem(LinePopupMenu, 'Delete Line ' + LineToStr(LinePopupNumArray[0]), LineDeletePopupType, Enabled, LinePopupItemClick);
 
           WhetherEnabled := Lines[LinePopupNumArray[0]].Line_TC = UnknownTrackCircuit;
-          AddMenuItem(LinePopupMenu, 'Allocate Track Circuit To Line ' + LineToStr(LinePopupNumArray[0]),
-                                                                                                     LineAllocateTrackCircuitPopupType, WhetherEnabled, LinePopupItemClick);
+          AddMenuItem(LinePopupMenu, 'Allocate Existing Track Circuit To Line ' + LineToStr(LinePopupNumArray[0]),
+                                                                                             LineAllocateExistingTrackCircuitPopupType, WhetherEnabled, LinePopupItemClick);
+          WhetherEnabled := Lines[LinePopupNumArray[0]].Line_TC = UnknownTrackCircuit;
+          AddMenuItem(LinePopupMenu, 'Allocate New Track Circuit To Line ' + LineToStr(LinePopupNumArray[0]),
+                                                                                                  LineAllocateNewTrackCircuitPopupType, WhetherEnabled, LinePopupItemClick);
           WhetherEnabled := Lines[LinePopupNumArray[0]].Line_TC <> UnknownTrackCircuit;
-          AddMenuItem(LinePopupMenu, 'Remove Track Circuit From Line ' + LineToStr(LinePopupNumArray[0]), LineRemoveTrackCircuitPopupType, WhetherEnabled, LinePopupItemClick);
+          AddMenuItem(LinePopupMenu, 'Remove Track Circuit ' + IntToStr(Line_TC) + ' From Line ' + LineToStr(LinePopupNumArray[0]),
+                                                                                                       LineRemoveTrackCircuitPopupType, WhetherEnabled, LinePopupItemClick);
 
           AddMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, NIL);
 

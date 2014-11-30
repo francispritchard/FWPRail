@@ -267,8 +267,8 @@ TYPE
                     LineSplitPopupType, LineJoinPopupType,
                     { Line track circuits }
                     LineTCFeedbackOccupationPopupType, LineTCOutOfUsePopupType, LineTCPermanentOccupationPopupType, LineTCSpeedRestrictionPopupType,
-                    LineTCSystemOccupationPopupType, LineTCUnoccupiedPopupType, LineTCUserMustDrivePopupType, LineAllocateTrackCircuitPopupType,
-                    LineRemoveTrackCircuitPopupType);
+                    LineTCSystemOccupationPopupType, LineTCUnoccupiedPopupType, LineTCUserMustDrivePopupType, LineAllocateExistingTrackCircuitPopupType,
+                    LineAllocateNewTrackCircuitPopupType, LineRemoveTrackCircuitPopupType);
 
   { Line-related type declarations }
   EndOfLineType = (BufferStopAtUp, BufferStopAtDown, ProjectedLineAtUp, ProjectedLineAtDown, NotEndOfLine, UnknownEndOfLine);
@@ -590,7 +590,8 @@ TYPE
     Point_Energised : Boolean;
     Point_EnergisedTime : TDateTime;
     Point_FacingDirection : DirectionType;
-    Point_FarX : Integer; { Position of other ends }    Point_FarY : Integer; { Position of other ends }
+    Point_FarX : Integer; { Position of other ends }
+    Point_FarY : Integer; { Position of other ends }
     Point_FeedbackOnIsStraight : Boolean;
     Point_FeedbackPending : Boolean;
     Point_FeedbackPendingMsgWritten : Boolean;
@@ -2252,7 +2253,7 @@ BEGIN
     END;
   EXCEPT {TRY}
     ON E : Exception DO
-      Log('EG AddNewRecordToTrackCircuitDatabase: ' + E.ClassName + ' error raised, with message: ' + E.Message);
+      Log('EG DeleteRecordFromTrackCircuitDatabase: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { DeleteRecordFromTrackCircuitDatabase }
 
