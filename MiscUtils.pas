@@ -3722,19 +3722,23 @@ END; { GetTrackCircuitStateColour }
 FUNCTION GetTrackCircuitState(TC : Integer) : TrackCircuitStateType;
 { Return whether and how the track circuit is occupied }
 BEGIN
-  IF TC = UnknownTrackCircuit THEN
-    Result := TCUnoccupied
-  ELSE BEGIN
-    Result := TrackCircuits[TC].TC_OccupationState;
-    IF DisplayFlashingTrackCircuits AND (TrackCircuits[TC].TC_Headcode = '?') THEN
-      { only mystery occupation flashes }
-      TrackCircuits[TC].TC_Flashing := True
-    ELSE BEGIN
-      TrackCircuits[TC].TC_Flashing := False;
-      { and, in case it had been flashing, mark it as being in the lit-up state up so it will continue to be drawn }
-      TrackCircuits[TC].TC_LitUp := True;
+  Result := TCUnoccupied;
+  TRY
+    IF TC <> UnknownTrackCircuit THEN BEGIN
+      Result := TrackCircuits[TC].TC_OccupationState;
+      IF DisplayFlashingTrackCircuits AND (TrackCircuits[TC].TC_Headcode = '?') THEN
+        { only mystery occupation flashes }
+        TrackCircuits[TC].TC_Flashing := True
+      ELSE BEGIN
+        TrackCircuits[TC].TC_Flashing := False;
+        { and, in case it had been flashing, mark it as being in the lit-up state up so it will continue to be drawn }
+        TrackCircuits[TC].TC_LitUp := True;
+      END;
     END;
-  END;
+  EXCEPT
+    ON E : Exception DO
+      ShowMessage('GetTrackCircuitState: ' + E.ClassName + ' error raised, with message: ' + E.Message);
+  END; {TRY}
 END; { GetTrackCircuitState }
 
 PROCEDURE HideMenus;
