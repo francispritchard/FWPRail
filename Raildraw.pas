@@ -4127,8 +4127,12 @@ CONST
 
 BEGIN
   { Wait before popping up to avoid the same click that activates the popup menu also providing the menu item click }
-  IF PopupTimerCount < 2 THEN
+  IF PopupTimerCount < 2 THEN BEGIN
+    Debug(Inttostr(PopupTimerCount) + ' ' + testcountstr);
+    MakeSound(1);
+    PopupTimer.Enabled := False;
     Exit;
+  END;
 
   WITH Signals[SignalPopupNum] DO BEGIN
     WITH sender As TMenuItemExtended DO BEGIN
@@ -4221,8 +4225,12 @@ END; { SignalPopupMenuOnPopup }
 PROCEDURE TFWPRailWindow.PointPopupItemClick(Sender: TObject);
 BEGIN
   { Wait before popping up to avoid the same click that activates the popup menu also providing the menu item click }
-  IF PopupTimerCount < 2 THEN
+  IF PopupTimerCount < 2 THEN BEGIN
+    Debug(Inttostr(PopupTimerCount) + ' ' + testcountstr);
+    MakeSound(1);
+    PopupTimer.Enabled := False;
     Exit;
+  END;
 
   WITH Points[PointPopupNum] DO BEGIN
     WITH Sender AS TMenuItemExtended DO BEGIN
@@ -4316,8 +4324,12 @@ END; { PointPopupMenuOnPopup }
 PROCEDURE TFWPRailWindow.BufferStopPopupItemClick(Sender: TObject);
 BEGIN
   { Wait before popping up to avoid the same click that activates the popup menu also providing the menu item click }
-  IF PopupTimerCount < 2 THEN
+  IF PopupTimerCount < 2 THEN BEGIN
+    Debug(Inttostr(PopupTimerCount) + ' ' + testcountstr);
+    MakeSound(1);
+    PopupTimer.Enabled := False;
     Exit;
+  END;
 
   WITH BufferStops[BufferStopPopupNum] DO BEGIN
     WITH Sender AS TMenuItem DO BEGIN
@@ -4686,8 +4698,12 @@ VAR
 
 BEGIN
   { Wait before popping up to avoid the same click that activates the popup menu also providing the menu item click }
-  IF PopupTimerCount < 2 THEN
+  IF PopupTimerCount < 2 THEN BEGIN
+    Debug(Inttostr(PopupTimerCount) + ' ' + testcountstr);
+    MakeSound(1);
+    PopupTimer.Enabled := False;
     Exit;
+  END;
 
   WITH Sender AS TMenuItemExtended DO BEGIN
     { this code has been separated out from the case statement below as we may well not be on a line, and the "WITH Lines[LinePopupNumArray[0]]" statement would fail }
