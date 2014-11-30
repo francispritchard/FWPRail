@@ -1340,6 +1340,7 @@ object FWPRailWindow: TFWPRailWindow
   end
   object PopupTimer: TTimer
     Enabled = False
+    Interval = 500
     OnTimer = PopupTimerTick
     Left = 496
     Top = 200

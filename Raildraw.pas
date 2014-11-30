@@ -3306,7 +3306,7 @@ BEGIN
   TRY
     { Now draw them all }
     FOR P := 0 TO High(Points) DO BEGIN
-      DrawPoint(P, PointColour);
+      DrawPoint(P, PointColour);
       IF ShowPointDetail AND Points[P].Point_OutOfUse THEN
         DrawPointNum(P, PointOutOfUseColour)
       ELSE
