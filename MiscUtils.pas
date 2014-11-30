@@ -285,6 +285,12 @@ FUNCTION GetComputerNetName : String;
 FUNCTION GetElementPosInIntegerArray(IntegerArray : IntegerArrayType; Element : Integer) : Integer;
 { Returns where, if at all, the given array element is found in an integer array }
 
+FUNCTION GetExtendedData(Caption, Prompt, DefaultStr : String) : Extended;
+{ Makes sure an extended number is returned by the user }
+
+FUNCTION GetIntegerData(Caption, Prompt, DefaultStr : String) : Integer;
+{ Makes sure an integer is returned by the user }
+
 FUNCTION GetFollowingChars(LineStr : String; Str : String; EndStr : String) : String;
 { Return the characters after the given characters up to the delimiter supplied (or "CRLF" if it's at a line end) }
 
@@ -3492,6 +3498,36 @@ BEGIN
   ELSE
     Result := '';
 END; { GetComputerNetName }
+
+FUNCTION GetExtendedData(Caption, Prompt, DefaultStr : String) : Extended;
+{ Makes sure an extended number is returned by the user }
+VAR
+  TempInput : String;
+
+BEGIN
+  REPEAT
+    TempInput := InputBox(Caption, Prompt, DefaultStr);
+    IF NOT TryStrToFloat(TempInput, Result) THEN
+      ShowMessage('Invalid number: "' + TempInput + '" - please try again')
+    ELSE
+      TempInput := '';
+  UNTIL TempInput = '';
+END; { GetExtendedData }
+
+FUNCTION GetIntegerData(Caption, Prompt, DefaultStr : String) : Integer;
+{ Makes sure an integer is returned by the user }
+VAR
+  TempInput : String;
+
+BEGIN
+  REPEAT
+    TempInput := InputBox(Caption, Prompt, DefaultStr);
+    IF NOT TryStrToInt(TempInput, Result) THEN
+      ShowMessage('Invalid number: "' + TempInput + '" - please try again')
+    ELSE
+      TempInput := '';
+  UNTIL TempInput = '';
+END; { GetIntegerData }
 
 FUNCTION GetUserFromWindows : String;
 { Return the local user name (by Zarko Gajic, About.com) }
