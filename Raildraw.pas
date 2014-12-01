@@ -4128,8 +4128,7 @@ CONST
 BEGIN
   { Wait before popping up to avoid the same click that activates the popup menu also providing the menu item click }
   IF PopupTimerCount < 2 THEN BEGIN
-    Debug(Inttostr(PopupTimerCount) + ' ' + testcountstr);
-    MakeSound(1);
+    Debug('!Delay required before selecting menu entry');
     PopupTimer.Enabled := False;
     Exit;
   END;
@@ -4226,8 +4225,7 @@ PROCEDURE TFWPRailWindow.PointPopupItemClick(Sender: TObject);
 BEGIN
   { Wait before popping up to avoid the same click that activates the popup menu also providing the menu item click }
   IF PopupTimerCount < 2 THEN BEGIN
-    Debug(Inttostr(PopupTimerCount) + ' ' + testcountstr);
-    MakeSound(1);
+    Debug('!Delay required before selecting menu entry');
     PopupTimer.Enabled := False;
     Exit;
   END;
@@ -4325,8 +4323,7 @@ PROCEDURE TFWPRailWindow.BufferStopPopupItemClick(Sender: TObject);
 BEGIN
   { Wait before popping up to avoid the same click that activates the popup menu also providing the menu item click }
   IF PopupTimerCount < 2 THEN BEGIN
-    Debug(Inttostr(PopupTimerCount) + ' ' + testcountstr);
-    MakeSound(1);
+    Debug('!Delay required before selecting menu entry');
     PopupTimer.Enabled := False;
     Exit;
   END;
@@ -4702,8 +4699,7 @@ VAR
 BEGIN
   { Wait before popping up to avoid the same click that activates the popup menu also providing the menu item click }
   IF PopupTimerCount < 2 THEN BEGIN
-    Debug(Inttostr(PopupTimerCount) + ' ' + testcountstr);
-    MakeSound(1);
+    Debug('!Delay required before selecting menu entry');
     PopupTimer.Enabled := False;
     Exit;
   END;
