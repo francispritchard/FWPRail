@@ -1658,11 +1658,20 @@ FUNCTION GetLineAdjacentSignal(Line : Integer) : Integer;
 PROCEDURE InitialiseInitVarsUnit;
 { Such routines as this allow us to initialises the units in the order we wish }
 
+PROCEDURE InitialiseLineVariables(Line : Integer);
+{ Initialise all the variables where the data is not read in from the database or added during the edit process }
+
 PROCEDURE InitialiseLogFiles;
 { Open a new file for test output - rename two previous ones if they exist }
 
+PROCEDURE InitialisePointVariables(P : Integer);
+{ Initialise all the variables where the data is not read in from the database or added during the edit process }
+
 PROCEDURE InitialiseScreenDrawingVariables;
 { Set up the default screen drawing variables }
+
+PROCEDURE InitialiseSignalVariables(S : Integer);
+{ Initialise all the variables where the data is not read in from the database or added during the edit process }
 
 PROCEDURE InitialiseTrackCircuitVariables(TC : Integer);
 { Initialise all the variables where the data is not read in from the database or added during the edit process }
@@ -2489,6 +2498,21 @@ BEGIN
   END; {TRY}
 END; { ReadInAreasDataFromDatabase }
 
+PROCEDURE InitialiseLocationVariables(Location : Integer);
+{ Initialise all the variables where the data is not read in from the database or added during the edit process }
+BEGIN
+  WITH Locations[Location] DO BEGIN
+    Location_Area := UnknownArea;
+    SetLength(Location_LocosNotAbleToUse, 0);
+    SetLength(Location_LocoClassesReservedFor, 0);
+    Location_PlatformOrFiddleyardAccessViaParallelPlatformOrFiddleyard := UnknownLocation;
+    Location_PlatformOrFiddleyardAccessViaParallelPlatformOrFiddleyardStr := '';
+    Location_PlatformOrFiddleyardDirection := UnknownDirection;
+    Location_PlatformOrFiddleyardNumStr := '';
+    Location_RecordInLocationOccupationArray := False;
+  END; {WITH}
+END; { InitialiseLocationVariables }
+
 PROCEDURE ReadInLocationDataFromDatabase;
 { Initialise the location data }
 CONST
@@ -2559,16 +2583,7 @@ BEGIN
         WHILE NOT LocationsADOTable.EOF DO BEGIN
           SetLength(Locations, Length(Locations) + 1);
           WITH Locations[High(Locations)] DO BEGIN
-            { Some defaults first }
-            Location_Area := UnknownArea;
-            SetLength(Location_LocosNotAbleToUse, 0);
-            SetLength(Location_LocoClassesReservedFor, 0);
-            Location_PlatformOrFiddleyardAccessViaParallelPlatformOrFiddleyard := UnknownLocation;
-            Location_PlatformOrFiddleyardAccessViaParallelPlatformOrFiddleyardStr := '';
-            Location_PlatformOrFiddleyardDirection := UnknownDirection;
-            Location_PlatformOrFiddleyardNumStr := '';
-            Location_RecordInLocationOccupationArray := False;
-
+            InitialiseLocationVariables(High(Locations));
             ErrorMsg := '';
 
             Loc_Num := LocationsADOTable.FieldByName(Location_NumberFieldName).AsInteger;
@@ -3441,6 +3456,33 @@ BEGIN
   END; {WHILE}
 END; { ValidateLineName }
 
+PROCEDURE InitialiseLineVariables(Line : Integer);
+{ Initialise all the variables where the data is not read in from the database or added during the edit process }
+BEGIN
+  WITH Lines[Line] DO BEGIN
+    Line_AdjacentBufferStop := UnknownBufferStop;
+    Line_DownConnectionCh := '';
+    Line_DownConnectionChBold := False;
+    Line_EndOfLineMarker := NotEndOfLine;
+    Line_LockFailureNotedInSubRouteUnit := False;
+    Line_NameStr := '*' + IntToStr(Line) + '*';
+    Line_NextDownIsEndOfLine := NotEndOfLine;
+    Line_NextDownPoint := UnknownPoint;
+    Line_NextDownLine := UnknownLine;
+    Line_NextDownType := UnknownNextLineRouteingType;
+    Line_NextUpIsEndofLine := NotEndOfLine;
+    Line_NextUpLine := UnknownLine;
+    Line_NextUpPoint := UnknownPoint;
+    Line_NextUpType := UnknownNextLineRouteingType;
+    Line_RouteLockingForDrawing := UnknownRoute;
+    Line_RouteSet := UnknownRoute;
+    Line_TC := UnknownTrackCircuit;
+    Line_TypeOfLine := NewlyCreatedLine;
+    Line_UpConnectionCh := '';
+    Line_UpConnectionChBold := False;
+  END; {WITH}
+END; { InitialiseLineVariables }
+
 PROCEDURE ReadInLineDataFromDatabase;
 { Initialise the data for each of the line segments }
 CONST
@@ -3487,35 +3529,14 @@ BEGIN
           Line := High(Lines);
           WITH Lines[Line] DO BEGIN
             ErrorMsg := '';
-
+            InitialiseLineVariables(Line);
+            Line_DataChanged := False;
             Line_GridUpX := 0;
             Line_GridDownX := 0;
             Line_GridUpY := 0;
             Line_GridDownY := 0;
-
-            Line_DataChanged := False;
-            Line_AdjacentBufferStop := UnknownBufferStop;
-            Line_LockFailureNotedInSubRouteUnit := False;
-            Line_RouteLockingForDrawing := UnknownRoute;
-            Line_RouteSet := UnknownRoute;
-
-            Line_NextUpIsEndofLine := NotEndOfLine;
-            Line_NextUpLine := UnknownLine;
-            Line_NextUpPoint := UnknownPoint;
-            Line_NextUpType := UnknownNextLineRouteingType;
-
-            Line_NextDownIsEndOfLine := NotEndOfLine;
-            Line_NextDownLine := UnknownLine;
-            Line_NextDownPoint := UnknownPoint;
-            Line_NextDownType := UnknownNextLineRouteingType;
-
-            Line_UpConnectionCh := '';
-            Line_UpConnectionChBold := False;
-            Line_DownConnectionCh := '';
-            Line_DownConnectionChBold := False;
-
-            Line_IsBeingMovedByHandle := NoHandle;
             Line_IsTempNewLine := False;
+            Line_IsBeingMovedByHandle := NoHandle;
             Line_ShowHandles := False;
 
             Line_Number := FieldByName(Line_NumberFieldName).AsInteger;
@@ -4642,6 +4663,83 @@ BEGIN
   END;
 END; { ValidateSignalDistantHomesArray }
 
+PROCEDURE InitialiseSignalVariables(S : Integer);
+{ Initialise all the variables where the data is not read in from the database or added during the edit process }
+VAR
+  TempJunctionIndicator : JunctionIndicatorType;
+
+BEGIN
+  WITH Signals[S] DO BEGIN
+    Signal_AccessoryAddress := 0;
+    Signal_AdjacentLineXOffset := 0;
+    Signal_AdjacentTC := UnknownTrackCircuit;
+    Signal_ApproachControlAspect := NoAspect;
+    Signal_ApproachLocked := False;
+    Signal_AsTheatreDestination := ''; { what a signal pointing at this signal might display }
+    Signal_Automatic := False; { not yet implemented }
+    Signal_DecoderNum := 0;
+    Signal_Energised := False;
+    Signal_EnergisedTime := 0;
+    Signal_FailedToResetFlag := False;
+    Signal_FailMsgWritten := False;
+    Signal_FindNextSignalBufferStopMsgWritten := False;
+    Signal_HiddenStationSignalAspect := NoAspect;
+    Signal_Indicator := NoIndicator;
+    Signal_IndicatorDecoderFunctionNum := 0;
+    Signal_IndicatorDecoderNum := 0;
+    Signal_IndicatorSpeedRestriction := MPH0; { applicable only if the route indicator is set }
+    Signal_IndicatorState := NoIndicatorLit;
+
+    FOR TempJunctionIndicator := UpperLeftIndicator TO LowerRightIndicator DO BEGIN
+      WITH Signal_JunctionIndicators[TempJunctionIndicator] DO BEGIN
+        JunctionIndicator_Exists := False;
+        JunctionIndicator_TargetSignal := UnknownSignal;
+        JunctionIndicator_TargetBufferStop := UnknownBufferStop;
+      END; {WITH}
+    END; {FOR}
+
+    Signal_LampIsOn := True;
+    SetLength(Signal_LocationsToMonitorArray, 0);
+
+    { Signal_LockedArray and Signal_RouteLockingNeededArray sound similar but serve different purposes - RouteLockingNeededArray covers the lines, track circuits,
+      points, etc. ahead that must be locked before a signal can be pulled off; Signal_LockedArray shows whether a signal is locked either by a specific route or
+      by a user.
+    }
+    SetLength(Signal_LockedArray, 0);
+    Signal_LockedBySemaphoreDistant := False;
+    Signal_LockFailureNotedInRouteUnit := False;
+    Signal_NextSignalIfNoIndicator := UnknownSignal;
+    Signal_NotUsedForRouteing := True;
+    Signal_OppositePassingLoopSignal := UnknownSignal;
+    Signal_OutOfUse := False;
+    Signal_OutOfUseMsgWritten := False;
+    Signal_PossibleRouteHold := False;
+    Signal_PossibleStationStartRouteHold := False;
+    Signal_PostColour := ForegroundColour;
+    Signal_PreviousAspect := NoAspect;
+    Signal_PreviousHiddenStationSignalAspectSignal1 := UnknownSignal;
+    Signal_PreviousHiddenStationSignalAspectSignal2 := UnknownSignal;
+    Signal_PreviousIndicatorState := NoIndicatorLit;
+    Signal_PreviousSignal1 := UnknownSignal;
+    Signal_PreviousSignal2 := UnknownSignal;
+    Signal_PreviousTheatreIndicatorString := '';
+    Signal_Quadrant := NoQuadrant;
+    Signal_ResettingTC := UnknownTrackCircuit;
+
+    { see note above for Signal_LockedArray }
+    SetLength(Signal_RouteLockingNeededArray, 0);
+    SetLength(Signal_SemaphoreDistantHomesArray, 0); { needed to tell a semaphore distant which semaphore homes lock it }
+    Signal_SemaphoreDistantLocking := UnknownSignal;
+    Signal_StateChanged := False;
+    Signal_TheatreIndicatorString := '';
+    Signal_TRSHeld := False;
+    Signal_TRSHeldMsgWritten := False;
+    Signal_TRSReleased := False;
+    Signal_TRSReleasedMsgWritten := False;
+    Signal_Type := TwoAspect;
+  END; {WITH}
+END; { InitialiseSignalVariables }
+
 PROCEDURE ReadInSignalDataFromDatabase(NewSignalData : Boolean);
 { Create entries for the signals }
 CONST
@@ -4656,7 +4754,6 @@ VAR
   ErrorMsg : String;
   I : Integer;
   S : Integer;
-  TempJunctionIndicator : JunctionIndicatorType;
   TempLineArray : IntegerArrayType;
   TempS : Integer;
   TempSignalNumber : Integer;
@@ -4726,91 +4823,25 @@ BEGIN
 
         WITH Signals[S] DO BEGIN
           IF ErrorMsg = '' THEN BEGIN
-            Signal_AccessoryAddress := 0;
-            Signal_AdjacentLine := UnknownLine;
-            Signal_AdjacentLineXOffset := 0;
-            Signal_AdjacentTC := UnknownTrackCircuit;
-            Signal_ApproachControlAspect := NoAspect;
-            Signal_ApproachLocked := False;
-
+            InitialiseSignalVariables(S);
             IF NewSignalData THEN
               { colour-light signals are set to RedAspect just before they're switched on, unless we're reloading the data; semaphore signals are always set to red aspect }
               Signal_Aspect := RedAspect
             ELSE
               Signal_Aspect := NoAspect;
-
-            Signal_AsTheatreDestination := ''; { what a signal pointing at this signal might display }
-            Signal_Automatic := False; { not yet implemented }
+            Signal_AdjacentLine := UnknownLine;
             Signal_DataChanged := False;
-            Signal_DecoderNum := 0;
+            Signal_DataChanged := False;
             Signal_Direction := UnknownDirection;
-            Signal_Energised := False;
-            Signal_EnergisedTime := 0;
-            Signal_FailedToResetFlag := False;
-            Signal_FailMsgWritten := False;
-            Signal_FindNextSignalBufferStopMsgWritten := False;
-            Signal_HiddenStationSignalAspect := NoAspect;
-            Signal_Indicator := NoIndicator;
-            Signal_IndicatorDecoderFunctionNum := 0;
-            Signal_IndicatorDecoderNum := 0;
-            Signal_IndicatorSpeedRestriction := MPH0; { applicable only if the route indicator is set }
-            Signal_IndicatorState := NoIndicatorLit;
-
-            FOR TempJunctionIndicator := UpperLeftIndicator TO LowerRightIndicator DO BEGIN
-              WITH Signal_JunctionIndicators[TempJunctionIndicator] DO BEGIN
-                JunctionIndicator_Exists := False;
-                JunctionIndicator_TargetSignal := UnknownSignal;
-                JunctionIndicator_TargetBufferStop := UnknownBufferStop;
-              END; {WITH}
-            END; {FOR}
-
-            Signal_LampIsOn := True;
+            Signal_LineWithVerticalSpacingY := UnknownLine;
             Signal_LineWithVerticalSpacingY := UnknownLine;
             Signal_LineX := 0;
             Signal_LineY := 0;
-            SetLength(Signal_LocationsToMonitorArray, 0);
-
-            { Signal_LockedArray and Signal_RouteLockingNeededArray sound similar but serve different purposes - RouteLockingNeededArray covers the lines, track circuits,
-              points, etc. ahead that must be locked before a signal can be pulled off; Signal_LockedArray shows whether a signal is locked either by a specific route or
-              by a user.
-            }
-            SetLength(Signal_LockedArray, 0);
-            Signal_LockedBySemaphoreDistant := False;
-            Signal_LockFailureNotedInRouteUnit := False;
-            Signal_NextSignalIfNoIndicator := UnknownSignal;
             Signal_Notes := '';
-            Signal_NotUsedForRouteing := True;
             Signal_Number := TempSignalNumber;
-            Signal_OppositePassingLoopSignal := UnknownSignal;
-            Signal_OutOfUse := False;
-            Signal_OutOfUseMsgWritten := False;
-            Signal_PossibleRouteHold := False;
-            Signal_PossibleStationStartRouteHold := False;
-            Signal_PostColour := ForegroundColour;
-            Signal_PreviousAspect := NoAspect;
-            Signal_PreviousHiddenStationSignalAspectSignal1 := UnknownSignal;
-            Signal_PreviousHiddenStationSignalAspectSignal2 := UnknownSignal;
-            Signal_PreviousIndicatorState := NoIndicatorLit;
             Signal_PreviousLineWithVerticalSpacingY := 0;
             Signal_PreviousLineX := 0;
             Signal_PreviousLineY := 0;
-            Signal_PreviousSignal1 := UnknownSignal;
-            Signal_PreviousSignal2 := UnknownSignal;
-            Signal_PreviousTheatreIndicatorString := '';
-            Signal_Quadrant := NoQuadrant;
-            Signal_ResettingTC := UnknownTrackCircuit;
-
-            { see note above for Signal_LockedArray }
-            SetLength(Signal_RouteLockingNeededArray, 0);
-            SetLength(Signal_SemaphoreDistantHomesArray, 0); { needed to tell a semaphore distant which semaphore homes lock it }
-            Signal_SemaphoreDistantLocking := UnknownSignal;
-            Signal_StateChanged := False;
-            Signal_TheatreIndicatorString := '';
-            Signal_TRSHeld := False;
-            Signal_TRSHeldMsgWritten := False;
-            Signal_TRSReleased := False;
-            Signal_TRSReleasedMsgWritten := False;
-            Signal_Type := TwoAspect;
           END;
 
           IF ErrorMsg = '' THEN
@@ -5824,6 +5855,38 @@ BEGIN
     END;
 END; { ValidatePointDefaultState }
 
+PROCEDURE InitialisePointVariables(P : Integer);
+{ Initialise all the variables where the data is not read in from the database or added during the edit process }
+BEGIN
+  WITH Points[P] DO BEGIN
+    Point_AwaitingManualChange := False;
+    Point_DataChanged := False;
+    Point_Energised := False;
+    Point_EnergisedTime := 0;
+    Point_FeedbackPending := False;
+    Point_FeedbackPendingMsgWritten := False;
+    Point_ForcedDelayMsg1Written := False;
+    Point_ForcedDelayMsg2Written := False;
+    Point_LastChangedTime := 0;
+    Point_LocoChipLockingTheRoute := UnknownLocoChip;
+    Point_LockedByUser := False;
+    Point_LockFailureNotedInLocksUnit := False;
+    Point_LockFailureNotedInSubRouteUnit := False;
+    Point_LockingState := PointStateUnknown;
+    Point_MaybeBeingSetToManual := False;
+    Point_MovedWhenLocked := False;
+    Point_PresentState := PointStateUnknown;
+    Point_RequiredState := PointStateUnknown;
+    Point_ResettingTime := 0;
+    Point_RouteLockedByLocoChip := UnknownRoute;
+    Point_SecondAttempt := False;
+    Point_SetASecondTime := False;
+    Point_WaitTime := 0;
+
+    SetLength(Point_LockingArray, 0);
+  END; {WITH}
+END; { InitialisePointVariables }
+
 PROCEDURE ReadInPointDataFromDatabase;
 { Create all the points; three numbers in each call are Lenz point number, feedback unit and input number on feedback unit.
   FeedbackOnIsStraight indicates whether feedback is on when point is straight; WiredCorrectly shows if point when on = straight or diverging.
@@ -5955,32 +6018,8 @@ BEGIN
           SetLength(Points, Length(Points) + 1);
 
         WITH Points[P] DO BEGIN
-          Point_AwaitingManualChange := False;
-          Point_DataChanged := False;
-          Point_Energised := False;
-          Point_EnergisedTime := 0;
-          Point_FeedbackPending := False;
-          Point_FeedbackPendingMsgWritten := False;
-          Point_ForcedDelayMsg1Written := False;
-          Point_ForcedDelayMsg2Written := False;
-          Point_LastChangedTime := 0;
-          Point_LocoChipLockingTheRoute := UnknownLocoChip;
-          Point_LockedByUser := False;
-          Point_LockFailureNotedInLocksUnit := False;
-          Point_LockFailureNotedInSubRouteUnit := False;
-          Point_LockingState := PointStateUnknown;
-          Point_MaybeBeingSetToManual := False;
-          Point_MovedWhenLocked := False;
+          InitialisePointVariables(P);
           Point_Number := TempPointNumber;
-          Point_PresentState := PointStateUnknown;
-          Point_RequiredState := PointStateUnknown;
-          Point_ResettingTime := 0;
-          Point_RouteLockedByLocoChip := UnknownRoute;
-          Point_SecondAttempt := False;
-          Point_SetASecondTime := False;
-          Point_WaitTime := 0;
-
-          SetLength(Point_LockingArray, 0);
 
           IF ErrorMsg = '' THEN
             Point_HeelLine := ValidatePointHeelLineName(PointsADOTable.FieldByName(Point_HeelLineFieldName).AsString, ErrorMsg);

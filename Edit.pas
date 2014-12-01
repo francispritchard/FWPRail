@@ -1599,66 +1599,14 @@ BEGIN
         SetLength(Signals, Length(Signals) + 1);
         EditedSignal := High(Signals);
 
+        InitialiseSignalVariables(EditedSignal);
         WITH Signals[EditedSignal] DO BEGIN
-          Signal_AccessoryAddress := 0;
           Signal_AdjacentLine := Line;
-          Signal_AdjacentLineXOffset := 0;
-          Signal_AdjacentTC := UnknownTrackCircuit;
-          Signal_ApproachControlAspect := NoAspect;
-          Signal_ApproachLocked := False;
-          Signal_AsTheatreDestination := '';
           Signal_Aspect := RedAspect;
-          Signal_Automatic := False; { not yet implemented }
           Signal_DataChanged := True;
-          Signal_DecoderNum := 0;
           Signal_Direction := Direction;
-          Signal_Energised := False;
-          Signal_EnergisedTime := 0;
-          Signal_FailMsgWritten := False;
-          Signal_FailedToResetFlag := False;
-          Signal_FindNextSignalBufferStopMsgWritten := False;
-          Signal_HiddenStationSignalAspect := NoAspect;
-          Signal_Indicator := NoIndicator;
-          Signal_IndicatorDecoderFunctionNum := 0;
-          Signal_IndicatorDecoderNum := 0;
-          Signal_IndicatorSpeedRestriction := NoSpecifiedSpeed;
-          Signal_IndicatorState := NoIndicatorLit;
-          FOR TempJunctionIndicator := UpperLeftIndicator TO LowerRightIndicator DO BEGIN
-            Signal_JunctionIndicators[TempJunctionIndicator].JunctionIndicator_Exists := False;
-            Signal_JunctionIndicators[TempJunctionIndicator].JunctionIndicator_TargetSignal := UnknownSignal;
-            Signal_JunctionIndicators[TempJunctionIndicator].JunctionIndicator_TargetBufferStop := UnknownBufferStop;
-          END; {FOR}
-          Signal_LampIsOn := True;
-          SetLength(Signal_LocationsToMonitorArray, 0);
-          Signal_LockFailureNotedInRouteUnit := False;
-          SetLength(Signal_LockedArray, 0);
-          Signal_NextSignalIfNoIndicator := UnknownSignal;
-          Signal_NotUsedForRouteing := False;
           Signal_Notes := 'Created by user on ' + DateToStr(Date);
-          Signal_OppositePassingLoopSignal := UnknownSignal;
-          Signal_OutOfUse := False;
-          Signal_OutOfUseMsgWritten := False;
-          Signal_PossibleRouteHold := False;
-          Signal_PossibleStationStartRouteHold := False;
-          Signal_PostColour := ForegroundColour;
-          Signal_PreviousAspect := NoAspect;
-          Signal_PreviousHiddenStationSignalAspectSignal1 := UnknownSignal;
-          Signal_PreviousHiddenStationSignalAspectSignal2 := UnknownSignal;
-          Signal_PreviousIndicatorState := NoIndicatorLit;
-          Signal_PreviousSignal1 := UnknownSignal;
-          Signal_PreviousSignal2 := UnknownSignal;
-          Signal_PreviousTheatreIndicatorString := '';
-          Signal_ResettingTC := UnknownTrackCircuit;
-          SetLength(Signal_RouteLockingNeededArray, 0);
-          SetLength(Signal_SemaphoreDistantHomesArray, 0);
-          Signal_SemaphoreDistantLocking := UnknownSignal;
-          Signal_StateChanged := False;
-          Signal_TRSHeld := False;
-          Signal_TRSHeldMsgWritten := False;
-          Signal_TRSReleased := False;
-          Signal_TRSReleasedMsgWritten := False;
-          Signal_TheatreIndicatorString := '';
-          Signal_Type := TwoAspect;
+          Signal_Number := UnknownSignal;
         END; {WITH}
 
         NoteThatDataHasChanged;
@@ -1990,58 +1938,38 @@ BEGIN
       END; {WHILE}
     END;
 
+    InitialisePointVariables(EditedPoint);
+
     WITH Points[EditedPoint] DO BEGIN
       Point_DivergingLine := DivergingLine;
       Point_HeelLine := HeelLine;
       Point_StraightLine := StraightLine;
-
-      Point_AwaitingManualChange := False;
       Point_DataChanged := True;
       Point_DefaultState := PointStateUnknown;
-      Point_Energised := False;
-      Point_EnergisedTime := 0;
+
       Point_FacingDirection := UnknownDirection;
       Point_FarX := 0;
       Point_FarY := 0;
       Point_FeedbackOnIsStraight := False;
-      Point_FeedbackPending := False;
-      Point_FeedbackPendingMsgWritten := False;
       Point_FeedbackStartTime := 0;
       Point_FeedbackUnit := 0;
       Point_FeedbackInput := 0;
-      Point_ForcedDelayMsg1Written := False;
-      Point_ForcedDelayMsg2Written := False;
       Point_HasFeedback := False;
-      Point_LastChangedTime := 0;
       Point_LastFeedbackStateAsReadIn := PointStateUnknown;
       Point_LastManualStateAsReadIn := PointStateUnknown;
       Point_LenzNum := 0;
       Point_LenzUnit := 0;
       Point_LenzUnitType := '';
-      Point_LockedByUser := False;
       Point_LockedIfHeelTCOccupied := False;
       Point_LockedIfNonHeelTCsOccupied := False;
-      Point_LockFailureNotedInLocksUnit := False;
-      Point_LockFailureNotedInSubRouteUnit := False;
-      SetLength(Point_LockingArray, 0);
-      Point_LockingState := PointStateUnknown;
       Point_ManualOperation := False;
-      Point_MaybeBeingSetToManual := False;
-      Point_MovedWhenLocked := False;
       Point_Notes := 'Created by user on ' + DateToStr(Date);
       Point_Number := EditedPoint;
       Point_OutOfUse := True;
-      Point_PresentState := PointStateUnknown;
       Point_PreviousState := PointStateUnknown;
       Point_RelatedPoint := RelatedPoint;
-      Point_RequiredState := PointStateUnknown;
-      Point_ResettingTime := 0;
-      Point_RouteLockedByLocoChip := UnknownLocoChip;
       Point_TCAtHeel := 0;
       Point_Type := TempPointType;
-      Point_SecondAttempt := False;
-      Point_SetASecondTime := False;
-      Point_WaitTime := 0;
       Point_WiringReversedFlag := False;
       Point_X := 0;
       Point_Y := 0;
@@ -3023,31 +2951,9 @@ END; { GetXPositionOfNearestLineIfAny }
 PROCEDURE CreateLine(Line : Integer);
 { Create a basic line which must then be added to using the value list editor }
 BEGIN
-  WITH Lines[Line] DO BEGIN
-    CalculateLinePositions;
-
-    Line_AdjacentBufferStop := UnknownBufferStop;
-    Line_DataChanged := True;
-    Line_DownConnectionCh := '';
-    Line_DownConnectionChBold := False;
-    Line_EndOfLineMarker := BufferStopAtDown;
-    Line_LockFailureNotedInSubRouteUnit := False;
-    Line_NameStr := '*' + IntToStr(Line) + '*';
-    Line_NextDownIsEndOfLine := BufferStopAtDown;
-    Line_NextDownPoint := UnknownPoint;
-    Line_NextDownLine := UnknownLine;
-    Line_NextDownType := UnknownNextLineRouteingType;
-    Line_NextUpIsEndofLine := BufferStopAtUp;
-    Line_NextUpLine := UnknownLine;
-    Line_NextUpPoint := UnknownPoint;
-    Line_NextUpType := UnknownNextLineRouteingType;
-    Line_RouteLockingForDrawing := UnknownRoute;
-    Line_RouteSet := UnknownRoute;
-    Line_TC := UnknownTrackCircuit;
-    Line_TypeOfLine := NewlyCreatedLine;
-    Line_UpConnectionCh := '';
-    Line_UpConnectionChBold := False;
-  END; {WITH}
+  CalculateLinePositions;
+  InitialiseLineVariables(Line);
+  Lines[Line].Line_DataChanged := True;
 
   NoteThatDataHasChanged;
   CalculateLinePositions;
