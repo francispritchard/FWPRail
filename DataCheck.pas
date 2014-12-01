@@ -364,6 +364,31 @@ BEGIN
   DrawLineInLogFile(UnknownLocoChipAsZeroesStr, 'X', '=', UnitRef);
 END; { DoGeneralCheck }
 
+PROCEDURE CompareString(FieldName, ObjectStr, FileName1, FileNameSuffix1, FileName2, FileNameSuffix2 : String; Table2, Table1 : TADOTable; VAR ErrorFound : Boolean);
+BEGIN
+  IF UpperCase(Table1.FieldByName(FieldName).AsString) <> UpperCase(Table2.FieldByName(FieldName).AsString) THEN BEGIN
+    IF NOT ErrorFound THEN BEGIN
+      Log('XG Differences found in line databases '
+              + '"' + Filename2 + '.' + FilenameSuffix2 + '" and "' + Filename1 + '.' + FilenameSuffix1 + '"');
+      ErrorFound := True;
+    END;
+    Log('XG ' + ObjectStr + ' ' + FieldName + ': "' + Table1.FieldByName(FieldName).AsString + '" to "' + Table2.FieldByName(FieldName).AsString + '"');
+  END;
+END; { CompareString }
+
+PROCEDURE CompareBoolean(FieldName, ObjectStr, FileName1, FileNameSuffix1, FileName2, FileNameSuffix2 : String; Table2, Table1 : TADOTable; VAR ErrorFound : Boolean);
+BEGIN
+  IF Table1.FieldByName(FieldName).AsBoolean <> Table2.FieldByName(FieldName).AsBoolean THEN BEGIN
+    IF NOT ErrorFound THEN BEGIN
+      Log('XG Differences found in line databases '
+              + '"' + Filename2 + '.' + FilenameSuffix2 + '" and "' + Filename1 + '.' + FilenameSuffix1 + '"');
+      ErrorFound := True;
+    END;
+    Log('XG ' + ObjectStr + ' ' + FieldName
+            + ': "' + BoolToStr(Table1.FieldByName(FieldName).AsBoolean, True) + '" to "' + BoolToStr(Table2.FieldByName(FieldName).AsBoolean, True) + '"');
+  END;
+END; { CompareBoolean }
+
 PROCEDURE CompareTwoLineDatabases(Line1DataFilename, Line1DataFilenameSuffix, Line2DataFilename, Line2DataFilenameSuffix : String);
 { Compare two line databases - used for testing }
 CONST
@@ -372,31 +397,6 @@ CONST
 VAR
   ErrorFound : Boolean;
   Line : Integer;
-
-  PROCEDURE CheckString(FieldName : String; Table2, Table1 : TADOTable; VAR ErrorFound : Boolean);
-  BEGIN
-    IF UpperCase(Table1.FieldByName(FieldName).AsString) <> UpperCase(Table2.FieldByName(FieldName).AsString) THEN BEGIN
-      IF NOT ErrorFound THEN BEGIN
-        Log('XG Differences found in line databases '
-                + '"' + Line2DataFilename + '.' + Line2DataFilenameSuffix + '" and "' + Line1DataFilename + '.' + Line1DataFilenameSuffix + '"');
-        ErrorFound := True;
-      END;
-      Log('XG P=' + IntToStr(Line) + ' ' + FieldName + ': "' + Table1.FieldByName(FieldName).AsString + '" to "' + Table2.FieldByName(FieldName).AsString + '"');
-    END;
-  END; { CheckString }
-
-  PROCEDURE CheckBoolean(FieldName : String; Table2, Table1 : TADOTable; VAR ErrorFound : Boolean);
-  BEGIN
-    IF Table1.FieldByName(FieldName).AsBoolean <> Table2.FieldByName(FieldName).AsBoolean THEN BEGIN
-      IF NOT ErrorFound THEN BEGIN
-        Log('XG Differences found in line databases '
-                + '"' + Line2DataFilename + '.' + Line2DataFilenameSuffix + '" and "' + Line1DataFilename + '.' + Line1DataFilenameSuffix + '"');
-        ErrorFound := True;
-      END;
-      Log('XG P=' + IntToStr(Line) + ' ' + FieldName
-              + ': "' + BoolToStr(Table1.FieldByName(FieldName).AsBoolean, True) + '" to "' + BoolToStr(Table2.FieldByName(FieldName).AsBoolean, True) + '"');
-    END;
-  END; { CheckBoolean }
 
 BEGIN
   TRY
@@ -461,21 +461,36 @@ BEGIN
                     + ' has not yet reached end of file');
         END ELSE BEGIN
           WITH Lines[Line] DO BEGIN
-            CheckString(Line_BufferStopTheatreDestinationStrFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
-            CheckString(Line_DirectionFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
-            CheckString(Line_DownConnectionChFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
-            CheckString(Line_EndOfLineMarkerFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
-            CheckString(Line_GradientFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
-            CheckString(Line_GridDownXFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
-            CheckString(Line_GridUpXFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
-            CheckString(Line_InUseFeedbackUnitFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
-            CheckString(Line_LocationStrFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
-            CheckString(Line_NumberFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
-            CheckString(Line_NameStrFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
-            CheckBoolean(Line_OutOfUseFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
-            CheckString(Line_TCFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
-            CheckString(Line_TypeOfLineFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
-            CheckString(Line_UpConnectionChFieldName, LinesADOTable, LinesADOTable2, ErrorFound);
+            CompareString(Line_BufferStopTheatreDestinationStrFieldName, 'Line ' + LineToStr(Line),
+                          Line1DataFileName, Line1DataFileNameSuffix, Line2DataFileName, Line2DataFileNameSuffix, LinesADOTable, LinesADOTable2, ErrorFound);
+            CompareString(Line_DirectionFieldName, 'Line ' + LineToStr(Line),
+                          Line1DataFileName, Line1DataFileNameSuffix, Line2DataFileName, Line2DataFileNameSuffix, LinesADOTable, LinesADOTable2, ErrorFound);
+            CompareString(Line_DownConnectionChFieldName, 'Line ' + LineToStr(Line),
+                          Line1DataFileName, Line1DataFileNameSuffix, Line2DataFileName, Line2DataFileNameSuffix, LinesADOTable, LinesADOTable2, ErrorFound);
+            CompareString(Line_EndOfLineMarkerFieldName, 'Line ' + LineToStr(Line),
+                          Line1DataFileName, Line1DataFileNameSuffix, Line2DataFileName, Line2DataFileNameSuffix, LinesADOTable, LinesADOTable2, ErrorFound);
+            CompareString(Line_GradientFieldName, 'Line ' + LineToStr(Line),
+                          Line1DataFileName, Line1DataFileNameSuffix, Line2DataFileName, Line2DataFileNameSuffix, LinesADOTable, LinesADOTable2, ErrorFound);
+            CompareString(Line_GridDownXFieldName, 'Line ' + LineToStr(Line),
+                          Line1DataFileName, Line1DataFileNameSuffix, Line2DataFileName, Line2DataFileNameSuffix, LinesADOTable, LinesADOTable2, ErrorFound);
+            CompareString(Line_GridUpXFieldName, 'Line ' + LineToStr(Line),
+                          Line1DataFileName, Line1DataFileNameSuffix, Line2DataFileName, Line2DataFileNameSuffix, LinesADOTable, LinesADOTable2, ErrorFound);
+            CompareString(Line_InUseFeedbackUnitFieldName, 'Line ' + LineToStr(Line),
+                          Line1DataFileName, Line1DataFileNameSuffix, Line2DataFileName, Line2DataFileNameSuffix, LinesADOTable, LinesADOTable2, ErrorFound);
+            CompareString(Line_LocationStrFieldName, 'Line ' + LineToStr(Line),
+                          Line1DataFileName, Line1DataFileNameSuffix, Line2DataFileName, Line2DataFileNameSuffix, LinesADOTable, LinesADOTable2, ErrorFound);
+            CompareString(Line_NumberFieldName, 'Line ' + LineToStr(Line),
+                          Line1DataFileName, Line1DataFileNameSuffix, Line2DataFileName, Line2DataFileNameSuffix, LinesADOTable, LinesADOTable2, ErrorFound);
+            CompareString(Line_NameStrFieldName, 'Line ' + LineToStr(Line),
+                          Line1DataFileName, Line1DataFileNameSuffix, Line2DataFileName, Line2DataFileNameSuffix, LinesADOTable, LinesADOTable2, ErrorFound);
+            CompareBoolean(Line_OutOfUseFieldName, 'Line ' + LineToStr(Line),
+                           Line1DataFileName, Line1DataFileNameSuffix, Line2DataFileName, Line2DataFileNameSuffix, LinesADOTable, LinesADOTable2, ErrorFound);
+            CompareString(Line_TCFieldName, 'Line ' + LineToStr(Line),
+                          Line1DataFileName, Line1DataFileNameSuffix, Line2DataFileName, Line2DataFileNameSuffix, LinesADOTable, LinesADOTable2, ErrorFound);
+            CompareString(Line_TypeOfLineFieldName, 'Line ' + LineToStr(Line),
+                          Line1DataFileName, Line1DataFileNameSuffix, Line2DataFileName, Line2DataFileNameSuffix, LinesADOTable, LinesADOTable2, ErrorFound);
+            CompareString(Line_UpConnectionChFieldName, 'Line ' + LineToStr(Line),
+                          Line1DataFileName, Line1DataFileNameSuffix, Line2DataFileName, Line2DataFileNameSuffix, LinesADOTable, LinesADOTable2, ErrorFound);
           END; {WITH}
         END;
 
@@ -520,31 +535,6 @@ CONST
 VAR
   ErrorFound : Boolean;
   TrackCircuit : Integer;
-
-  PROCEDURE CheckString(FieldName : String; Table2, Table1 : TADOTable; VAR ErrorFound : Boolean);
-  BEGIN
-    IF UpperCase(Table1.FieldByName(FieldName).AsString) <> UpperCase(Table2.FieldByName(FieldName).AsString) THEN BEGIN
-      IF NOT ErrorFound THEN BEGIN
-        Log('XG Differences found in TrackCircuit databases '
-                + '"' + TrackCircuit2DataFilename + '.' + TrackCircuit2DataFilenameSuffix + '" and "' + TrackCircuit1DataFilename + '.' + TrackCircuit1DataFilenameSuffix + '"');
-        ErrorFound := True;
-      END;
-      Log('XG P=' + IntToStr(TrackCircuit) + ' ' + FieldName + ': "' + Table1.FieldByName(FieldName).AsString + '" to "' + Table2.FieldByName(FieldName).AsString + '"');
-    END;
-  END; { CheckString }
-
-  PROCEDURE CheckBoolean(FieldName : String; Table2, Table1 : TADOTable; VAR ErrorFound : Boolean);
-  BEGIN
-    IF Table1.FieldByName(FieldName).AsBoolean <> Table2.FieldByName(FieldName).AsBoolean THEN BEGIN
-      IF NOT ErrorFound THEN BEGIN
-        Log('XG Differences found in TrackCircuit databases '
-                + '"' + TrackCircuit2DataFilename + '.' + TrackCircuit2DataFilenameSuffix + '" and "' + TrackCircuit1DataFilename + '.' + TrackCircuit1DataFilenameSuffix + '"');
-        ErrorFound := True;
-      END;
-      Log('XG P=' + IntToStr(TrackCircuit) + ' ' + FieldName
-              + ': "' + BoolToStr(Table1.FieldByName(FieldName).AsBoolean, True) + '" to "' + BoolToStr(Table2.FieldByName(FieldName).AsBoolean, True) + '"');
-    END;
-  END; { CheckBoolean }
 
 BEGIN
   TRY
@@ -611,17 +601,22 @@ BEGIN
                     + ' has not yet reached end of file');
         END ELSE BEGIN
           WITH TrackCircuits[TrackCircuit] DO BEGIN
-            CheckString(TC_LengthFieldName, TrackCircuitsADOTable, TrackCircuitsADOTable2, ErrorFound);
-            CheckString(TC_LengthFieldName, TrackCircuitsADOTable, TrackCircuitsADOTable2, ErrorFound);
-            CheckString(TC_FeedbackUnitFieldName, TrackCircuitsADOTable, TrackCircuitsADOTable2, ErrorFound);
-            CheckString(TC_FeedbackInputFieldName, TrackCircuitsADOTable, TrackCircuitsADOTable2, ErrorFound);
+            CompareString(TC_LengthInInchesFieldName, 'TC' + IntToStr(TrackCircuit),
+                          TrackCircuit1DataFileName, TrackCircuit1DataFileNameSuffix, TrackCircuit2DataFileName, TrackCircuit2DataFileNameSuffix,
+                          TrackCircuitsADOTable, TrackCircuitsADOTable2, ErrorFound);
+            CompareString(TC_FeedbackUnitFieldName, 'TC' + IntToStr(TrackCircuit),
+                          TrackCircuit1DataFileName, TrackCircuit1DataFileNameSuffix, TrackCircuit2DataFileName, TrackCircuit2DataFileNameSuffix,
+                          TrackCircuitsADOTable, TrackCircuitsADOTable2, ErrorFound);
+            CompareString(TC_FeedbackInputFieldName, 'TC' + IntToStr(TrackCircuit),
+                          TrackCircuit1DataFileName, TrackCircuit1DataFileNameSuffix, TrackCircuit2DataFileName, TrackCircuit2DataFileNameSuffix,
+                          TrackCircuitsADOTable, TrackCircuitsADOTable2, ErrorFound);
           END; {WITH}
         END;
 
         IF TrackCircuitsADOTable.EOF AND NOT TrackCircuitsADOTable2.EOF THEN BEGIN
           Log('XG Track circuit database ' + '"' + TrackCircuit1DataFilename + '.' + TrackCircuit1DataFilenameSuffix
                   + '" is shorter than "' + TrackCircuit2DataFilename + '.' + TrackCircuit2DataFilenameSuffix + '"');
-          Log('XG A later entry in track cCircuit database ' + '"' + TrackCircuit1DataFilename + '.' + TrackCircuit1DataFilenameSuffix
+          Log('XG A later entry in track circuit database ' + '"' + TrackCircuit1DataFilename + '.' + TrackCircuit1DataFilenameSuffix
                   + '" is TrackCircuit=' + IntToStr(TrackCircuit));
         END ELSE
           IF NOT TrackCircuitsADOTable.EOF AND TrackCircuitsADOTable2.EOF THEN BEGIN
@@ -662,31 +657,6 @@ CONST
 VAR
   ErrorFound : Boolean;
   Location : Integer;
-
-  PROCEDURE CheckString(FieldName : String; Table2, Table1 : TADOTable; VAR ErrorFound : Boolean);
-  BEGIN
-    IF UpperCase(Table1.FieldByName(FieldName).AsString) <> UpperCase(Table2.FieldByName(FieldName).AsString) THEN BEGIN
-      IF NOT ErrorFound THEN BEGIN
-        Log('XG Differences found in location databases '
-                + '"' + Location2DataFilename + '.' + Location2DataFilenameSuffix + '" and "' + Location1DataFilename + '.' + Location1DataFilenameSuffix + '"');
-        ErrorFound := True;
-      END;
-      Log('XG P=' + IntToStr(Location) + ' ' + FieldName + ': "' + Table1.FieldByName(FieldName).AsString + '" to "' + Table2.FieldByName(FieldName).AsString + '"');
-    END;
-  END; { CheckString }
-
-  PROCEDURE CheckBoolean(FieldName : String; Table2, Table1 : TADOTable; VAR ErrorFound : Boolean);
-  BEGIN
-    IF Table1.FieldByName(FieldName).AsBoolean <> Table2.FieldByName(FieldName).AsBoolean THEN BEGIN
-      IF NOT ErrorFound THEN BEGIN
-        Log('XG Differences found in location databases '
-                + '"' + Location2DataFilename + '.' + Location2DataFilenameSuffix + '" and "' + Location1DataFilename + '.' + Location1DataFilenameSuffix + '"');
-        ErrorFound := True;
-      END;
-      Log('XG P=' + IntToStr(Location) + ' ' + FieldName
-              + ': "' + BoolToStr(Table1.FieldByName(FieldName).AsBoolean, True) + '" to "' + BoolToStr(Table2.FieldByName(FieldName).AsBoolean, True) + '"');
-    END;
-  END; { CheckBoolean }
 
 BEGIN
   TRY
@@ -751,33 +721,93 @@ BEGIN
                     + Location2DataFilename + '.' + Location2DataFilenameSuffix + ' has not yet reached end of file');
         END ELSE BEGIN
           WITH Locations[Location] DO BEGIN
-            CheckString(Location_AccessibleLocationsOrAreasDownFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
-            CheckString(Location_AccessibleLocationsOrAreasUpFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
-            CheckString(Location_AdjoiningPlatformFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
-            CheckString(Location_AreaFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
-            CheckString(Location_DestinationPriorityAreasFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
-            CheckString(Location_DirectionPriorityFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
-            CheckString(Location_FiddleyardFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
-            CheckString(Location_LengthInInchesFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
-            CheckString(Location_LocoClassesReservedForFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
-            CheckString(Location_LocosNotAbleToUseFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
-            CheckString(Location_NameStrFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
-            CheckString(Location_NotesFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
-            CheckString(Location_NumberFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
-            CheckString(Location_OutOfUseFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
-            CheckString(Location_PlatformDirectionFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
-            CheckString(Location_PlatformFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
-            CheckString(Location_PlatformNumberStringFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
-            CheckString(Location_PlatformParallelAccessFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
-            CheckString(Location_PlatformPriorityFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
-            CheckString(Location_RecordInLocationOccupationArrayFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
-            CheckString(Location_ShortStringFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
-            CheckString(Location_SidingFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
-            CheckString(Location_ThroughLocationFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
-            CheckString(Location_ThroughOrStoppingPriorityFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
-            CheckString(Location_TrainPriorityFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
-            CheckString(Location_TRSPlungerXFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
-            CheckString(Location_TRSPlungerYFieldName, LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CompareString(Location_AccessibleLocationsOrAreasDownFieldName, 'Location ' + LocationToStr(Location),
+                          Location1DataFileName, Location1DataFileNameSuffix, Location2DataFileName, Location2DataFileNameSuffix,
+                          LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CompareString(Location_AccessibleLocationsOrAreasUpFieldName, 'Location ' + LocationToStr(Location),
+                          Location1DataFileName, Location1DataFileNameSuffix, Location2DataFileName, Location2DataFileNameSuffix,
+                          LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CompareString(Location_AdjoiningPlatformFieldName, 'Location ' + LocationToStr(Location),
+                          Location1DataFileName, Location1DataFileNameSuffix, Location2DataFileName, Location2DataFileNameSuffix,
+                          LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CompareString(Location_AreaFieldName, 'Location ' + LocationToStr(Location),
+                          Location1DataFileName, Location1DataFileNameSuffix, Location2DataFileName, Location2DataFileNameSuffix,
+                          LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CompareString(Location_DestinationPriorityAreasFieldName, 'Location ' + LocationToStr(Location),
+                          Location1DataFileName, Location1DataFileNameSuffix, Location2DataFileName, Location2DataFileNameSuffix,
+                          LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CompareString(Location_DirectionPriorityFieldName, 'Location ' + LocationToStr(Location),
+                          Location1DataFileName, Location1DataFileNameSuffix, Location2DataFileName, Location2DataFileNameSuffix,
+                          LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CompareString(Location_FiddleyardFieldName, 'Location ' + LocationToStr(Location),
+                          Location1DataFileName, Location1DataFileNameSuffix, Location2DataFileName, Location2DataFileNameSuffix,
+                          LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CompareString(Location_LengthInInchesFieldName, 'Location ' + LocationToStr(Location),
+                          Location1DataFileName, Location1DataFileNameSuffix, Location2DataFileName, Location2DataFileNameSuffix,
+                          LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CompareString(Location_LocoClassesReservedForFieldName, 'Location ' + LocationToStr(Location),
+                          Location1DataFileName, Location1DataFileNameSuffix, Location2DataFileName, Location2DataFileNameSuffix,
+                          LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CompareString(Location_LocosNotAbleToUseFieldName, 'Location ' + LocationToStr(Location),
+                          Location1DataFileName, Location1DataFileNameSuffix, Location2DataFileName, Location2DataFileNameSuffix,
+                          LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CompareString(Location_NameStrFieldName, 'Location ' + LocationToStr(Location),
+                          Location1DataFileName, Location1DataFileNameSuffix, Location2DataFileName, Location2DataFileNameSuffix,
+                          LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CompareString(Location_NotesFieldName, 'Location ' + LocationToStr(Location),
+                          Location1DataFileName, Location1DataFileNameSuffix, Location2DataFileName, Location2DataFileNameSuffix,
+                          LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CompareString(Location_NumberFieldName, 'Location ' + LocationToStr(Location),
+                          Location1DataFileName, Location1DataFileNameSuffix, Location2DataFileName, Location2DataFileNameSuffix,
+                          LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CompareString(Location_OutOfUseFieldName, 'Location ' + LocationToStr(Location),
+                          Location1DataFileName, Location1DataFileNameSuffix, Location2DataFileName, Location2DataFileNameSuffix,
+                          LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CompareString(Location_PlatformDirectionFieldName, 'Location ' + LocationToStr(Location),
+                          Location1DataFileName, Location1DataFileNameSuffix, Location2DataFileName, Location2DataFileNameSuffix,
+                          LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CompareString(Location_PlatformFieldName, 'Location ' + LocationToStr(Location),
+                          Location1DataFileName, Location1DataFileNameSuffix, Location2DataFileName, Location2DataFileNameSuffix,
+                          LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CompareString(Location_PlatformNumberStringFieldName, 'Location ' + LocationToStr(Location),
+                          Location1DataFileName, Location1DataFileNameSuffix, Location2DataFileName, Location2DataFileNameSuffix,
+                          LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CompareString(Location_PlatformParallelAccessFieldName, 'Location ' + LocationToStr(Location),
+                          Location1DataFileName, Location1DataFileNameSuffix, Location2DataFileName, Location2DataFileNameSuffix,
+                          LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CompareString(Location_PlatformParallelAccessFieldName, 'Location ' + LocationToStr(Location),
+                          Location1DataFileName, Location1DataFileNameSuffix, Location2DataFileName, Location2DataFileNameSuffix,
+                          LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CompareString(Location_PlatformPriorityFieldName, 'Location ' + LocationToStr(Location),
+                          Location1DataFileName, Location1DataFileNameSuffix, Location2DataFileName, Location2DataFileNameSuffix,
+                          LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CompareString(Location_PlatformPriorityFieldName, 'Location ' + LocationToStr(Location),
+                          Location1DataFileName, Location1DataFileNameSuffix, Location2DataFileName, Location2DataFileNameSuffix,
+                          LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CompareString(Location_RecordInLocationOccupationArrayFieldName, 'Location ' + LocationToStr(Location),
+                          Location1DataFileName, Location1DataFileNameSuffix, Location2DataFileName, Location2DataFileNameSuffix,
+                          LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CompareString(Location_ShortStringFieldName, 'Location ' + LocationToStr(Location),
+                          Location1DataFileName, Location1DataFileNameSuffix, Location2DataFileName, Location2DataFileNameSuffix,
+                          LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CompareString(Location_SidingFieldName, 'Location ' + LocationToStr(Location),
+                          Location1DataFileName, Location1DataFileNameSuffix, Location2DataFileName, Location2DataFileNameSuffix,
+                          LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CompareString(Location_ThroughLocationFieldName, 'Location ' + LocationToStr(Location),
+                          Location1DataFileName, Location1DataFileNameSuffix, Location2DataFileName, Location2DataFileNameSuffix,
+                          LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CompareString(Location_ThroughOrStoppingPriorityFieldName, 'Location ' + LocationToStr(Location),
+                          Location1DataFileName, Location1DataFileNameSuffix, Location2DataFileName, Location2DataFileNameSuffix,
+                          LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CompareString(Location_TrainPriorityFieldName, 'Location ' + LocationToStr(Location),
+                          Location1DataFileName, Location1DataFileNameSuffix, Location2DataFileName, Location2DataFileNameSuffix,
+                          LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CompareString(Location_TRSPlungerXFieldName, 'Location ' + LocationToStr(Location),
+                          Location1DataFileName, Location1DataFileNameSuffix, Location2DataFileName, Location2DataFileNameSuffix,
+                          LocationsADOTable, LocationsADOTable2, ErrorFound);
+            CompareString(Location_TRSPlungerYFieldName, 'Location ' + LocationToStr(Location),
+                          Location1DataFileName, Location1DataFileNameSuffix, Location2DataFileName, Location2DataFileNameSuffix,
+                          LocationsADOTable, LocationsADOTable2, ErrorFound);
           END; {WITH}
         END;
 
@@ -822,31 +852,6 @@ CONST
 VAR
   ErrorFound : Boolean;
   P : Integer;
-
-  PROCEDURE CheckString(FieldName : String; Table2, Table1 : TADOTable; VAR ErrorFound : Boolean);
-  BEGIN
-    IF UpperCase(Table1.FieldByName(FieldName).AsString) <> UpperCase(Table2.FieldByName(FieldName).AsString) THEN BEGIN
-      IF NOT ErrorFound THEN BEGIN
-        Log('XG Differences found in point databases '
-                + '"' + Point2DataFilename + '.' + Point2DataFilenameSuffix + '" and "' + Point1DataFilename + '.' + Point1DataFilenameSuffix + '"');
-        ErrorFound := True;
-      END;
-      Log('XG P=' + IntToStr(P) + ' ' + FieldName + ': "' + Table1.FieldByName(FieldName).AsString + '" to "' + Table2.FieldByName(FieldName).AsString + '"');
-    END;
-  END; { CheckString }
-
-  PROCEDURE CheckBoolean(FieldName : String; Table2, Table1 : TADOTable; VAR ErrorFound : Boolean);
-  BEGIN
-    IF Table1.FieldByName(FieldName).AsBoolean <> Table2.FieldByName(FieldName).AsBoolean THEN BEGIN
-      IF NOT ErrorFound THEN BEGIN
-        Log('XG Differences found in point databases '
-                + '"' + Point2DataFilename + '.' + Point2DataFilenameSuffix + '" and "' + Point1DataFilename + '.' + Point1DataFilenameSuffix + '"');
-        ErrorFound := True;
-      END;
-      Log('XG P=' + IntToStr(P) + ' ' + FieldName
-              + ': "' + BoolToStr(Table1.FieldByName(FieldName).AsBoolean, True) + '" to "' + BoolToStr(Table2.FieldByName(FieldName).AsBoolean, True) + '"');
-    END;
-  END; { CheckBoolean }
 
 BEGIN
   TRY
@@ -911,25 +916,44 @@ BEGIN
                     + ' has not yet reached end of file');
         END ELSE BEGIN
           WITH Points[P] DO BEGIN
-            CheckString(Point_DefaultStateFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
-            CheckString(Point_DivergingLineFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
-            CheckString(Point_FeedbackInputFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
-            CheckBoolean(Point_FeedbackOnIsStraightFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
-            CheckString(Point_FeedbackUnitFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
-            CheckString(Point_HeelLineFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
-            CheckString(Point_LastManualStateAsReadInFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
-            CheckString(Point_LenzNumFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
-            CheckString(Point_LenzUnitFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
-            CheckString(Point_LenzUnitTypeFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
-            CheckBoolean(Point_LockedIfHeelTCOccupiedFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
-            CheckBoolean(Point_LockedIfNonHeelTCsOccupiedFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
-            CheckBoolean(Point_ManualOperationFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
-            CheckString(Point_NotesFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
-            CheckBoolean(Point_OutOfUseFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
-            CheckString(Point_RelatedPointFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
-            CheckString(Point_StraightLineFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
-            CheckString(Point_TypeFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
-            CheckBoolean(Point_WiringReversedFlagFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
+            CompareString(Point_DefaultStateFieldName, 'P' + IntToStr(P), Point1DataFileName, Point1DataFileNameSuffix, Point2DataFileName, Point2DataFileNameSuffix,
+                          PointsADOTable, PointsADOTable2, ErrorFound);
+            CompareString(Point_DivergingLineFieldName, 'P' + IntToStr(P), Point1DataFileName, Point1DataFileNameSuffix, Point2DataFileName, Point2DataFileNameSuffix,
+                          PointsADOTable, PointsADOTable2, ErrorFound);
+            CompareString(Point_FeedbackInputFieldName, 'P' + IntToStr(P), Point1DataFileName, Point1DataFileNameSuffix, Point2DataFileName, Point2DataFileNameSuffix,
+                          PointsADOTable, PointsADOTable2, ErrorFound);
+            CompareBoolean(Point_FeedbackOnIsStraightFieldName, 'P' + IntToStr(P), Point1DataFileName, Point1DataFileNameSuffix, Point2DataFileName, Point2DataFileNameSuffix,
+                           PointsADOTable, PointsADOTable2, ErrorFound);
+            CompareString(Point_FeedbackUnitFieldName, 'P' + IntToStr(P), Point1DataFileName, Point1DataFileNameSuffix, Point2DataFileName, Point2DataFileNameSuffix,
+                          PointsADOTable, PointsADOTable2, ErrorFound);
+            CompareString(Point_HeelLineFieldName, 'P' + IntToStr(P), Point1DataFileName, Point1DataFileNameSuffix, Point2DataFileName, Point2DataFileNameSuffix,
+                          PointsADOTable, PointsADOTable2, ErrorFound);
+            CompareString(Point_LastManualStateAsReadInFieldName, 'P' + IntToStr(P), Point1DataFileName, Point1DataFileNameSuffix, Point2DataFileName, Point2DataFileNameSuffix,
+                          PointsADOTable, PointsADOTable2, ErrorFound);
+            CompareString(Point_LenzNumFieldName, 'P' + IntToStr(P), Point1DataFileName, Point1DataFileNameSuffix, Point2DataFileName, Point2DataFileNameSuffix,
+                          PointsADOTable, PointsADOTable2, ErrorFound);
+            CompareString(Point_LenzUnitFieldName, 'P' + IntToStr(P), Point1DataFileName, Point1DataFileNameSuffix, Point2DataFileName, Point2DataFileNameSuffix,
+                          PointsADOTable, PointsADOTable2, ErrorFound);
+            CompareString(Point_LenzUnitTypeFieldName, 'P' + IntToStr(P), Point1DataFileName, Point1DataFileNameSuffix, Point2DataFileName, Point2DataFileNameSuffix,
+                          PointsADOTable, PointsADOTable2, ErrorFound);
+            CompareBoolean(Point_LockedIfHeelTCOccupiedFieldName, 'P' + IntToStr(P), Point1DataFileName, Point1DataFileNameSuffix, Point2DataFileName, Point2DataFileNameSuffix,
+                           PointsADOTable, PointsADOTable2, ErrorFound);
+            CompareBoolean(Point_LockedIfNonHeelTCsOccupiedFieldName, 'P' + IntToStr(P), Point1DataFileName, Point1DataFileNameSuffix, Point2DataFileName, Point2DataFileNameSuffix,
+                           PointsADOTable, PointsADOTable2, ErrorFound);
+            CompareBoolean(Point_ManualOperationFieldName, 'P' + IntToStr(P), Point1DataFileName, Point1DataFileNameSuffix, Point2DataFileName, Point2DataFileNameSuffix,
+                           PointsADOTable, PointsADOTable2, ErrorFound);
+            CompareString(Point_NotesFieldName, 'P' + IntToStr(P), Point1DataFileName, Point1DataFileNameSuffix, Point2DataFileName, Point2DataFileNameSuffix,
+                          PointsADOTable, PointsADOTable2, ErrorFound);
+            CompareBoolean(Point_OutOfUseFieldName, 'P' + IntToStr(P), Point1DataFileName, Point1DataFileNameSuffix, Point2DataFileName, Point2DataFileNameSuffix,
+                           PointsADOTable, PointsADOTable2, ErrorFound);
+            CompareString(Point_RelatedPointFieldName, 'P' + IntToStr(P), Point1DataFileName, Point1DataFileNameSuffix, Point2DataFileName, Point2DataFileNameSuffix,
+                          PointsADOTable, PointsADOTable2, ErrorFound);
+            CompareString(Point_StraightLineFieldName, 'P' + IntToStr(P), Point1DataFileName, Point1DataFileNameSuffix, Point2DataFileName, Point2DataFileNameSuffix,
+                          PointsADOTable, PointsADOTable2, ErrorFound);
+            CompareString(Point_TypeFieldName, 'P' + IntToStr(P), Point1DataFileName, Point1DataFileNameSuffix, Point2DataFileName, Point2DataFileNameSuffix,
+                          PointsADOTable, PointsADOTable2, ErrorFound);
+            CompareBoolean(Point_WiringReversedFlagFieldName, 'P' + IntToStr(P), Point1DataFileName, Point1DataFileNameSuffix, Point2DataFileName, Point2DataFileNameSuffix,
+                           PointsADOTable, PointsADOTable2, ErrorFound);
 
             { This is unlikely to be useful
             CheckString(Point_LastFeedbackStateAsReadInFieldName, PointsADOTable, PointsADOTable2, ErrorFound);
@@ -978,31 +1002,6 @@ CONST
 VAR
   ErrorFound : Boolean;
   S : Integer;
-
-  PROCEDURE CheckString(FieldName : String; Table2, Table1 : TADOTable; VAR ErrorFound : Boolean);
-  BEGIN
-    IF UpperCase(Table1.FieldByName(FieldName).AsString) <> UpperCase(Table2.FieldByName(FieldName).AsString) THEN BEGIN
-      IF NOT ErrorFound THEN BEGIN
-        Log('XG Differences found in signal databases '
-                + '"' + Signal2DataFilename + '.' + Signal2DataFilenameSuffix + '" and "' + Signal1DataFilename + '.' + Signal1DataFilenameSuffix + '"');
-        ErrorFound := True;
-      END;
-      Log('XG S=' + IntToStr(S) + ' ' + FieldName + ': "' + Table1.FieldByName(FieldName).AsString + '" to "' + Table2.FieldByName(FieldName).AsString + '"');
-    END;
-  END; { CheckString }
-
-  PROCEDURE CheckBoolean(FieldName : String; Table2, Table1 : TADOTable; VAR ErrorFound : Boolean);
-  BEGIN
-    IF Table1.FieldByName(FieldName).AsBoolean <> Table2.FieldByName(FieldName).AsBoolean THEN BEGIN
-      IF NOT ErrorFound THEN BEGIN
-        Log('XG Differences found in signal databases '
-                + '"' + Signal2DataFilename + '.' + Signal2DataFilenameSuffix + '" and "' + Signal1DataFilename + '.' + Signal1DataFilenameSuffix + '"');
-        ErrorFound := True;
-      END;
-      Log('XG S=' + IntToStr(S) + ' ' + FieldName
-              + ': "' + BoolToStr(Table1.FieldByName(FieldName).AsBoolean, True) + '" to "' + BoolToStr(Table2.FieldByName(FieldName).AsBoolean, True) + '"');
-    END;
-  END; { CheckBoolean }
 
 BEGIN
   TRY
@@ -1067,32 +1066,58 @@ BEGIN
                     + ' has not yet reached end of file');
         END ELSE BEGIN
           WITH Signals[S] DO BEGIN
-            CheckString(Signal_AccessoryAddressFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
-            CheckString(Signal_AdjacentLineFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
-            CheckString(Signal_AdjacentLineXOffsetFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
-            CheckString(Signal_ApproachControlAspectFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
-            CheckString(Signal_AsTheatreDestinationFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
-            CheckString(Signal_DecoderNumFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
-            CheckString(Signal_DirectionFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
-            CheckString(Signal_IndicatorDecoderFunctionNumFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
-            CheckString(Signal_IndicatorDecoderNumFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
-            CheckString(Signal_IndicatorFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
-            CheckString(Signal_IndicatorSpeedRestrictionFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
-            CheckString(Signal_LowerLeftIndicatorTargetFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
-            CheckString(Signal_LowerRightIndicatorTargetFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
-            CheckString(Signal_MiddleLeftIndicatorTargetFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
-            CheckString(Signal_MiddleRightIndicatorTargetFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
-            CheckString(Signal_LocationsToMonitorFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
-            CheckString(Signal_NextSignalIfNoIndicatorFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
-            CheckString(Signal_NotesFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
-            CheckString(Signal_NotUsedForRouteingFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
-            CheckString(Signal_OppositePassingLoopSignalFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
-            CheckBoolean(Signal_OutOfUseFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
-            CheckBoolean(Signal_PossibleRouteHoldFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
-            CheckBoolean(Signal_PossibleStationStartRouteHoldFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
-            CheckString(Signal_TypeFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
-            CheckString(Signal_UpperLeftIndicatorTargetFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
-            CheckString(Signal_UpperRightIndicatorTargetFieldName, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CompareString(Signal_AccessoryAddressFieldName, 'S' + IntToStr(S),
+                           Signal1DataFileName, Signal1DataFileNameSuffix, Signal2DataFileName, Signal2DataFileNameSuffix, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CompareString(Signal_AdjacentLineFieldName, 'S' + IntToStr(S),
+                           Signal1DataFileName, Signal1DataFileNameSuffix, Signal2DataFileName, Signal2DataFileNameSuffix, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CompareString(Signal_AdjacentLineXOffsetFieldName, 'S' + IntToStr(S),
+                           Signal1DataFileName, Signal1DataFileNameSuffix, Signal2DataFileName, Signal2DataFileNameSuffix, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CompareString(Signal_ApproachControlAspectFieldName, 'S' + IntToStr(S),
+                           Signal1DataFileName, Signal1DataFileNameSuffix, Signal2DataFileName, Signal2DataFileNameSuffix, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CompareString(Signal_AsTheatreDestinationFieldName, 'S' + IntToStr(S),
+                           Signal1DataFileName, Signal1DataFileNameSuffix, Signal2DataFileName, Signal2DataFileNameSuffix, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CompareString(Signal_DecoderNumFieldName, 'S' + IntToStr(S),
+                           Signal1DataFileName, Signal1DataFileNameSuffix, Signal2DataFileName, Signal2DataFileNameSuffix, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CompareString(Signal_DirectionFieldName, 'S' + IntToStr(S),
+                           Signal1DataFileName, Signal1DataFileNameSuffix, Signal2DataFileName, Signal2DataFileNameSuffix, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CompareString(Signal_IndicatorDecoderFunctionNumFieldName, 'S' + IntToStr(S),
+                           Signal1DataFileName, Signal1DataFileNameSuffix, Signal2DataFileName, Signal2DataFileNameSuffix, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CompareString(Signal_IndicatorDecoderNumFieldName, 'S' + IntToStr(S),
+                           Signal1DataFileName, Signal1DataFileNameSuffix, Signal2DataFileName, Signal2DataFileNameSuffix, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CompareString(Signal_IndicatorFieldName, 'S' + IntToStr(S),
+                           Signal1DataFileName, Signal1DataFileNameSuffix, Signal2DataFileName, Signal2DataFileNameSuffix, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CompareString(Signal_IndicatorSpeedRestrictionFieldName, 'S' + IntToStr(S),
+                           Signal1DataFileName, Signal1DataFileNameSuffix, Signal2DataFileName, Signal2DataFileNameSuffix, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CompareString(Signal_LowerLeftIndicatorTargetFieldName, 'S' + IntToStr(S),
+                           Signal1DataFileName, Signal1DataFileNameSuffix, Signal2DataFileName, Signal2DataFileNameSuffix, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CompareString(Signal_LowerRightIndicatorTargetFieldName, 'S' + IntToStr(S),
+                           Signal1DataFileName, Signal1DataFileNameSuffix, Signal2DataFileName, Signal2DataFileNameSuffix, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CompareString(Signal_MiddleLeftIndicatorTargetFieldName, 'S' + IntToStr(S),
+                           Signal1DataFileName, Signal1DataFileNameSuffix, Signal2DataFileName, Signal2DataFileNameSuffix, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CompareString(Signal_MiddleRightIndicatorTargetFieldName, 'S' + IntToStr(S),
+                           Signal1DataFileName, Signal1DataFileNameSuffix, Signal2DataFileName, Signal2DataFileNameSuffix, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CompareString(Signal_LocationsToMonitorFieldName, 'S' + IntToStr(S),
+                           Signal1DataFileName, Signal1DataFileNameSuffix, Signal2DataFileName, Signal2DataFileNameSuffix, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CompareString(Signal_NextSignalIfNoIndicatorFieldName, 'S' + IntToStr(S),
+                           Signal1DataFileName, Signal1DataFileNameSuffix, Signal2DataFileName, Signal2DataFileNameSuffix, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CompareString(Signal_NotesFieldName, 'S' + IntToStr(S),
+                           Signal1DataFileName, Signal1DataFileNameSuffix, Signal2DataFileName, Signal2DataFileNameSuffix, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CompareString(Signal_NotUsedForRouteingFieldName, 'S' + IntToStr(S),
+                           Signal1DataFileName, Signal1DataFileNameSuffix, Signal2DataFileName, Signal2DataFileNameSuffix, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CompareString(Signal_OppositePassingLoopSignalFieldName, 'S' + IntToStr(S),
+                           Signal1DataFileName, Signal1DataFileNameSuffix, Signal2DataFileName, Signal2DataFileNameSuffix, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CompareBoolean(Signal_OutOfUseFieldName, 'S' + IntToStr(S),
+                           Signal1DataFileName, Signal1DataFileNameSuffix, Signal2DataFileName, Signal2DataFileNameSuffix, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CompareBoolean(Signal_PossibleRouteHoldFieldName, 'S' + IntToStr(S),
+                           Signal1DataFileName, Signal1DataFileNameSuffix, Signal2DataFileName, Signal2DataFileNameSuffix, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CompareBoolean(Signal_PossibleStationStartRouteHoldFieldName, 'S' + IntToStr(S),
+                           Signal1DataFileName, Signal1DataFileNameSuffix, Signal2DataFileName, Signal2DataFileNameSuffix, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CompareString(Signal_TypeFieldName, 'S' + IntToStr(S),
+                           Signal1DataFileName, Signal1DataFileNameSuffix, Signal2DataFileName, Signal2DataFileNameSuffix, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CompareString(Signal_UpperLeftIndicatorTargetFieldName, 'S' + IntToStr(S),
+                           Signal1DataFileName, Signal1DataFileNameSuffix, Signal2DataFileName, Signal2DataFileNameSuffix, SignalsADOTable, SignalsADOTable2, ErrorFound);
+            CompareString(Signal_UpperRightIndicatorTargetFieldName, 'S' + IntToStr(S),
+                           Signal1DataFileName, Signal1DataFileNameSuffix, Signal2DataFileName, Signal2DataFileNameSuffix, SignalsADOTable, SignalsADOTable2, ErrorFound);
           END; {WITH}
         END;
 
