@@ -4871,7 +4871,7 @@ BEGIN
                                             StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrYes
               THEN BEGIN
                 { remove the track circuit from the database if it's not in use somewhere else }
-                DeleteTrackCircuit(Line_TC);
+                DeleteLineTrackCircuit(LinePopupNumArray[0]);
                 Line_TC := UnknownTrackCircuit;
               END;
           ELSE {CASE}

@@ -40,6 +40,9 @@ TYPE
     { Public declarations }
   END;
 
+PROCEDURE AddTrackCircuit(Line : Integer; NewTrackCircuit : Boolean);
+{ Add a track circuit to a line }
+
 PROCEDURE ChangeSignalDirection(S : Integer);
 { Change a selected signal's direction }
 
@@ -57,6 +60,9 @@ PROCEDURE CreateSignal(Direction : DirectionType; Line : Integer);
 
 PROCEDURE DeleteLine(LineToDeleteNum : Integer; OUT CanDelete: Boolean);
 { Delete a line after appropriate checks }
+
+PROCEDURE DeleteLineTrackCircuit(Line : Integer);
+{ Delete a track circuit from a particular line after appropriate checks }
 
 PROCEDURE DeletePoint(PointToDeleteNum : Integer);
 { Delete a point after appropriate checks }
@@ -2645,6 +2651,137 @@ BEGIN
   END; {TRY}
 END; { TurnEditModeOff }
 
+PROCEDURE AddTrackCircuit(Line : Integer; NewTrackCircuit : Boolean);
+{ Add a track circuit to a line }
+VAR
+  AddTrackCircuitCancelled : Boolean;
+  FeedbackDataOK : Boolean;
+  FeedbackUnitFound : Boolean;
+  FeedbackUnitDataElement : Integer;
+  NewExtendedValue : Extended;
+  NewIntValue : Integer;
+  TC : Integer;
+
+BEGIN
+  AddTrackCircuitCancelled := False;
+  TC := UnknownTrackCircuit;
+
+  IF NOT NewTrackCircuit THEN BEGIN
+    IF NOT GetIntegerDataFromUser('Enter existing track circuit number', '', 0, High(TrackCircuits), 'is not a valid track circuit number', NewIntValue) THEN
+      AddTrackCircuitCancelled := True
+    ELSE
+      TC := NewIntValue;
+  END ELSE BEGIN
+    SetLength(TrackCircuits, Length(TrackCircuits) + 1);
+    TC := High(TrackCircuits);
+    InitialiseTrackCircuitVariables(TC);
+
+    WITH TrackCircuits[TC] DO BEGIN
+      TC_DataChanged := True;
+      TC_Number := TC;
+
+      IF NOT GetExtendedDataFromUser('Enter Track Circuit Length', '', 0, 0, '', NewExtendedValue) THEN
+        TC_LengthInInches := 0
+      ELSE
+        TC_LengthInInches := NewExtendedValue;
+
+      FeedbackDataOK := True;
+      IF NOT GetIntegerDataFromUser('Enter Track Circuit Feedback Unit', '', FirstFeedbackUnit, LastFeedbackUnit, 'is not a valid feedback unit', NewIntValue) THEN
+        FeedbackDataOK := False
+      ELSE
+        TC_FeedbackUnit := NewIntValue;
+
+      IF FeedbackDataOK AND NOT GetIntegerDataFromUser('Enter Track Circuit Feedback Input', '', 1, 8, 'is not a valid feedback input number', NewIntValue) THEN
+        FeedbackDataOK := False
+      ELSE
+        TC_FeedbackInput := NewIntValue;
+
+      IF FeedbackDataOK THEN BEGIN
+        { Also check the track-circuit unit record here, to make sure this input is set to be a track-circuit input }
+        FeedbackUnitFound := False;
+        FeedbackUnitDataElement := 0;
+        WHILE (FeedbackUnitDataElement <= High(FeedbackUnitData)) AND NOT FeedbackUnitFound DO BEGIN
+          IF FeedbackUnitData[FeedbackUnitDataElement].FeedBack_Unit = TC_FeedbackUnit THEN
+            FeedbackUnitFound := True
+          ELSE
+            Inc(FeedbackUnitDataElement);
+        END; {WHILE}
+
+        IF FeedbackUnitDataElement = 0 THEN
+          Log('X! Cannot find feedback record for feedback unit ' + IntToStr(TC_FeedbackUnit))
+        ELSE BEGIN
+          WITH FeedbackUnitData[FeedbackUnitDataElement] DO BEGIN
+            IF Feedback_Type <> TrackCircuitFeedbackdetector THEN BEGIN
+              IF Feedback_Type <> MixedFeedbackDetectors THEN
+                Log('X! FeedbackUnitData database will need to be changed for unit ' + IntToStr(TC_FeedbackUnit)
+                        + ' as the unit is recorded in the Feedback Unit database as being a ' + FeedbackUnitTypeToStr(Feedback_Type))
+              ELSE
+                IF Feedback_InputTypeArray[TC_FeedbackInput] <> TrackCircuitFeedbackDetector THEN
+                  Log('X! FeedbackUnitData database will need to be changed for unit ' + IntToStr(TC_FeedbackUnit) + ' input ' + IntToStr(TC_FeedbackInput)
+                          + ' as the input is recorded in the Feedback Unit database as being a ' + FeedbackUnitTypeToStr(Feedback_InputTypeArray[TC_FeedbackInput]));
+            END;
+          END; {WITH}
+        END;
+      END;
+
+      { do the same for points ********** }
+
+      AddNewRecordToTrackCircuitDatabase;
+      WriteOutTrackCircuitDataToDatabase;
+    END; {WITH}
+  END;
+
+  IF NOT AddTrackCircuitCancelled THEN BEGIN
+    Lines[Line].Line_TC := TC;
+    Lines[Line].Line_DataChanged := True;
+    WriteOutLineDataToDatabase;
+    Log('TG Track circuit ' + IntToStr(TC) + ' now added');
+  END;
+END; { AddTrackCircuit }
+
+PROCEDURE DeleteLineTrackCircuit(Line : Integer);
+{ Delete a track circuit from a particular line after appropriate checks }
+VAR
+  TempLine : Integer;
+
+BEGIN
+  WITH Lines[Line] DO BEGIN
+    { See if the track circuit it represents is in use by the Line database }
+    FOR TempLine := 0 TO High(Lines) DO BEGIN
+      IF Lines[TempLine].Line_TC = High(TrackCircuits) THEN BEGIN
+        Log('T Replacing the database''s last TC ' + IntToStr(Lines[TempLine].Line_TC) + ' for Line ' + LineToStr(TempLine) + ' with TC ' + IntToStr(Line_TC));
+        Lines[TempLine].Line_TC := Line_TC;
+        Lines[TempLine].Line_DataChanged := True;
+        WriteOutLineDataToDatabase;
+      END;
+    END; {FOR}
+
+    { Now see if the feedback unit/input formerly used by the track circuit can be marked as free }
+    Log('TG Feedback Unit ' + IntToStr(TrackCircuits[Line_TC].TC_FeedbackUnit) + ' input ' + IntToStr(TrackCircuits[Line_TC].TC_FeedbackInput) + ' no longer in use');
+
+    { Move the last record from the track circuit database into the deleted record's place in the array  (a DJW suggestion) }
+    TrackCircuits[Line_TC] := TrackCircuits[High(TrackCircuits)];
+
+    WITH TrackCircuits[Line_TC] DO BEGIN
+      TC_Number := Line_TC;
+      TC_DataChanged := True;
+
+      WriteOutTrackCircuitDataToDatabase;
+
+      { and delete the last record which is now a duplicate }
+      DeleteRecordFromTrackCircuitDatabase(High(TrackCircuits));
+
+      { Reload all the track circuits }
+      ReadInTrackCircuitDataFromDatabase;
+    END; {WITH}
+
+    { Finally, remove the track circuit from the line it was attached to }
+    Line_TC := UnknownTrackCircuit;
+    Line_DataChanged := True;
+    WriteOutLineDataToDatabase;
+  END; {WITH}
+END; { DeleteLineTrackCircuit }
+
 PROCEDURE DeleteLine(LineToDeleteNum : Integer; OUT CanDelete: Boolean);
 { Delete a line after appropriate checks. NB: this doesn't yet deal with the routeing exceptions database or platform positions database. }
 VAR
@@ -2699,31 +2836,8 @@ BEGIN
     END;
 
     IF CanDelete THEN BEGIN
-      IF Length(MultipleLineTrackCircuits) = 1 THEN BEGIN
-        { Move the last record to replace the record we're deleting (a DJW suggestion). First see if the track circuit it represents is in use by the Line database }
-        FOR Line := 0 TO High(Lines) DO BEGIN
-          IF Lines[Line].Line_TC = High(TrackCircuits) THEN BEGIN
-            Log('T Replacing the database''s last TC ' + IntToStr(Lines[Line].Line_TC) + ' for Line ' + LineToStr(Line)
-                   + ' with TC ' + IntToStr(MultipleLineTrackCircuits[0]));
-            Lines[Line].Line_TC := MultipleLineTrackCircuits[0];
-            Lines[Line].Line_DataChanged := True;
-            WriteOutLineDataToDatabase;
-          END;
-        END; {FOR}
-
-        { Now remove the last record from the track circuit database }
-        TrackCircuits[MultipleLineTrackCircuits[0]] := TrackCircuits[High(TrackCircuits)];
-        TrackCircuits[MultipleLineTrackCircuits[0]].TC_Number := MultipleLineTrackCircuits[0];
-        TrackCircuits[MultipleLineTrackCircuits[0]].TC_DataChanged := True;
-
-        WriteOutTrackCircuitDataToDatabase;
-
-        DeleteRecordFromTrackCircuitDatabase(High(TrackCircuits));
-        SetLength(TrackCircuits, High(TrackCircuits) - 1);
-
-        { Reload all the track circuits }
-        ReadInTrackCircuitDataFromDatabase;
-      END;
+      IF Length(MultipleLineTrackCircuits) = 1 THEN
+        DeleteLineTrackCircuit(LineToDeleteNum);
 
       WITH InitVarsWindow DO BEGIN
         { change the line endings for associated lines }
