@@ -285,11 +285,11 @@ FUNCTION GetComputerNetName : String;
 FUNCTION GetElementPosInIntegerArray(IntegerArray : IntegerArrayType; Element : Integer) : Integer;
 { Returns where, if at all, the given array element is found in an integer array }
 
-FUNCTION GetExtendedData(Caption, Prompt, DefaultStr : String) : Extended;
-{ Makes sure an extended number is returned by the user }
+FUNCTION GetExtendedDataFromUser(Prompt, DefaultStr : String; LowerBound, UpperBound : Extended; BoundsErrorMsg : String; OUT NewValue : Extended) : Boolean;
+{ Makes sure an extended valuer is returned by the user, and optionally that it is within the bounds set }
 
-FUNCTION GetIntegerData(Caption, Prompt, DefaultStr : String) : Integer;
-{ Makes sure an integer is returned by the user }
+FUNCTION GetIntegerDataFromUser(Prompt, DefaultStr : String; LowerBound, UpperBound : Integer; BoundsErrorMsg : String; OUT NewValue : Integer) : Boolean;
+{ Makes sure an integer is returned by the user, and optionally that it is within the bounds set }
 
 FUNCTION GetFollowingChars(LineStr : String; Str : String; EndStr : String) : String;
 { Return the characters after the given characters up to the delimiter supplied (or "CRLF" if it's at a line end) }
@@ -3499,35 +3499,69 @@ BEGIN
     Result := '';
 END; { GetComputerNetName }
 
-FUNCTION GetExtendedData(Caption, Prompt, DefaultStr : String) : Extended;
-{ Makes sure an extended number is returned by the user }
+FUNCTION GetExtendedDataFromUser(Prompt, DefaultStr : String; LowerBound, UpperBound : Extended; BoundsErrorMsg : String; OUT NewValue : Extended) : Boolean;
+{ Makes sure an extended valuer is returned by the user, and optionally that it is within the bounds set }
+CONST
+  Caption = '';
+
 VAR
-  TempInput : String;
+  OK : Boolean;
+  ValueStr : String;
 
 BEGIN
   REPEAT
-    TempInput := InputBox(Caption, Prompt, DefaultStr);
-    IF NOT TryStrToFloat(TempInput, Result) THEN
-      ShowMessage('Invalid number: "' + TempInput + '" - please try again')
-    ELSE
-      TempInput := '';
-  UNTIL TempInput = '';
-END; { GetExtendedData }
+    IF NOT InputQuery(Caption, Prompt, ValueStr) THEN BEGIN
+      OK := True;
+      Result := False;
+    END ELSE BEGIN
+      Result := True;
+      OK := False;
 
-FUNCTION GetIntegerData(Caption, Prompt, DefaultStr : String) : Integer;
-{ Makes sure an integer is returned by the user }
+      IF NOT TryStrToFloat(ValueStr, NewValue) THEN
+        ShowMessage('Invalid number: "' + ValueStr + '" - please try again')
+      ELSE
+        IF (LowerBound = 0) AND (UpperBound = 0) THEN
+          OK := True
+        ELSE
+          IF (NewValue >= LowerBound) AND (NewValue <= UpperBound) THEN
+            OK := True
+          ELSE
+            ShowMessage(ValueStr + ' ' + BoundsErrorMsg);
+    END;
+  UNTIL OK;
+END; { GetExtendedDataFromUser }
+
+FUNCTION GetIntegerDataFromUser(Prompt, DefaultStr : String; LowerBound, UpperBound : Integer; BoundsErrorMsg : String; OUT NewValue : Integer) : Boolean;
+{ Makes sure an integer is returned by the user, and optionally that it is within the bounds set }
+CONST
+  Caption = '';
+
 VAR
-  TempInput : String;
+  OK : Boolean;
+  ValueStr : String;
 
 BEGIN
   REPEAT
-    TempInput := InputBox(Caption, Prompt, DefaultStr);
-    IF NOT TryStrToInt(TempInput, Result) THEN
-      ShowMessage('Invalid number: "' + TempInput + '" - please try again')
-    ELSE
-      TempInput := '';
-  UNTIL TempInput = '';
-END; { GetIntegerData }
+    IF NOT InputQuery(Caption, Prompt, ValueStr) THEN BEGIN
+      OK := True;
+      Result := False;
+    END ELSE BEGIN
+      Result := True;
+      OK := False;
+
+      IF NOT TryStrToInt(ValueStr, NewValue) THEN
+        ShowMessage('Invalid number: "' + ValueStr + '" - please try again')
+      ELSE
+        IF (LowerBound = 0) AND (UpperBound = 0) THEN
+          OK := True
+        ELSE
+          IF (NewValue >= LowerBound) AND (NewValue <= UpperBound) THEN
+            OK := True
+          ELSE
+            ShowMessage(ValueStr + ' ' + BoundsErrorMsg);
+    END;
+  UNTIL OK;
+END; { GetIntegerDataFromUser }
 
 FUNCTION GetUserFromWindows : String;
 { Return the local user name (by Zarko Gajic, About.com) }
