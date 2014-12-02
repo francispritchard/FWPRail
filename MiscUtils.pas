@@ -514,7 +514,7 @@ FUNCTION LenzConnectionToStr(LenzConnection : LenzConnectionType) : String;
 { Return the kind of connection }
 
 FUNCTION LATS(LineArray : IntegerArrayType) : String;
-{ Return lines as a string - routine designed for use in debugging }
+{ Return line array as a string - routine designed for use in debugging }
 
 FUNCTION LightsTypeToStr(TypeOfLights : LightsType) : String;
 { Return the type of lights the train has }
@@ -5256,7 +5256,7 @@ BEGIN
 END; { LTS }
 
 FUNCTION LATS(LineArray : IntegerArrayType) : String;
-{ Return lines as a string - routine designed for use in debugging }
+{ Return line array as a string - routine designed for use in debugging }
 VAR
   I : Integer;
 
