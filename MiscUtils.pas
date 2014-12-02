@@ -2745,19 +2745,23 @@ END; { Debug-1 }
 PROCEDURE Debug{2}(Str : String); Overload;
 { Write out debug text to the Debug Window }
 VAR
+  AlwaysMakeSound : Boolean;
   SaveStyle : TFontStyles;
-  TempStr : String;
 
 BEGIN
-  { Need to throw away earlier lines? **** }
-  IF FWPRailWindow <> NIL THEN BEGIN
-    { remove prefixes }
-    IF (Copy(Str, 1, 1) = '!') OR (Copy(Str, 1, 1) = '+') OR (Copy(Str, 1, 1) = '&') THEN
-      TempStr := Copy(Str, 2);
+  AlwaysMakeSound := False;
+  IF Pos('!*', Str) > 0 THEN BEGIN
+    AlwaysMakeSound := True;
+    Str := StringReplace(Str, '*', '', []);
   END;
 
   { Needs this to avoid filling the window with identical lines of text }
-  IF (Str <> OldDebugStr) OR (Pos('!*', Str) > 0) THEN BEGIN
+  IF Str =  OldDebugStr THEN BEGIN
+    { if there's an asterisk in position two, don't rewrite the message, but do repeat the sound }
+    IF AlwaysMakeSound THEN
+      IF MakeSoundWhenDebugWindowBoldTextAppears THEN
+        MakeSound(1);
+  END ELSE
     IF DebugWindow = NIL THEN BEGIN
       { store any messages written before the Debug Window is initialised, to be written out when it is }
       SetLength(DebugWindowLines, Length(DebugWindowLines) + 1);
@@ -2769,17 +2773,18 @@ BEGIN
       DebugWindow.DebugRichEdit.Perform(EM_SCROLLCARET, 0, 0);
 
       SaveStyle := DebugWindow.DebugRichEdit.SelAttributes.Style;
+
       IF (Copy(Str, 1, 1) = '!') AND NOT (Copy(Str, 1, 2) = '!!') THEN BEGIN
         { urgent error messages }
         AddRichLine(DebugWindow.DebugRichEdit, '{R}<color=clRed><b>' + Copy(Str, 2) + '</b>');
         IF MakeSoundWhenDebugWindowBoldTextAppears THEN
-          MakeSound(1)
+          MakeSound(1);
       END ELSE
         IF (Copy(Str, 1, 1) = '&') AND NOT (Copy(Str, 1, 2) = '&&') THEN BEGIN
           { urgent error messages }
           AddRichLine(DebugWindow.DebugRichEdit, '{R}<color=clGreen><b>' + Copy(Str, 2) + '</b>');
           IF MakeSoundWhenDebugWindowBoldTextAppears THEN
-            MakeSound(1)
+            MakeSound(1);
         END ELSE
           IF (Copy(Str, 1, 1) = '+') AND NOT (Copy(Str, 1, 2) = '++') THEN BEGIN
             { warning messages }
@@ -2807,7 +2812,6 @@ BEGIN
       OldDebugStr := Str;
       DebugWindow.DebugRichEdit.SelAttributes.Style := SaveStyle;
     END;
-  END;
 END; { Debug-2 }
 
 PROCEDURE Debug{3}(Str : String; WriteToStatusBar : Boolean); Overload;
