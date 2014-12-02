@@ -537,7 +537,7 @@ BEGIN
               END;
             '*':
               BEGIN
-                { deals with specific track circuit occupations that might get in the way }
+                { deals with specific track-circuit occupations that might get in the way }
                 IF (TrackCircuits[Device].TC_LockedForRoute <> UnknownRoute)
                 { if the track circuit that is occupied is the one where the subroute starts, ignore it }
                 AND NOT IsElementInIntegerArray(TrackCircuits[Device].TC_AdjacentSignals, Routes_SubRouteStartSignals[Route, SettingSubRoute])
@@ -563,7 +563,7 @@ BEGIN
                     SaveTCLocoChip := TrackCircuits[Device].TC_LocoChip;
                     TrackCircuits[Device].TC_LocoChip := Routes_LocoChips[Route];
 
-                    { Set the track circuit journey }
+                    { Set the track-circuit journey }
                     IF TCDebugStr <> '' THEN
                       TCDebugStr := TCDebugStr + ' ';
                     { what's TCDebugStr for? ***** 25/7/14 }

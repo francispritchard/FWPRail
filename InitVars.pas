@@ -842,7 +842,7 @@ TYPE
 
   TimedRectangleArrayType = ARRAY OF TimedRectangleRec;
 
-  { Track circuit-related type declarations }
+  { Track-circuit-related type declarations }
   TrackCircuitStateType = (TCFeedbackOccupation, TCFeedbackOccupationButOutOfUse, TCPermanentFeedbackOccupation, TCPermanentOccupationSetByUser, TCSystemOccupation,
                            TCPermanentSystemOccupation, TCMissingOccupation, TCOutOfUseSetByUser, TCOutOfUseAsNoFeedbackReceived, TCLocoOutOfPlaceOccupation, TCUnoccupied);
 
@@ -1611,7 +1611,7 @@ PROCEDURE AddNewRecordToSignalDatabase;
 { Append a record to the signal database }
 
 PROCEDURE AddNewRecordToTrackCircuitDatabase;
-{ Append a record to the track circuit database }
+{ Append a record to the track-circuit database }
 
 PROCEDURE CalculateLinePolygons(Line : Integer);
 { Work out the position for the various line polygons }
@@ -1647,7 +1647,7 @@ FUNCTION DeleteRecordFromSignalDatabase(SignalToDeleteNum : Integer) : Boolean;
 { Remove a record from the signal database }
 
 FUNCTION DeleteRecordFromTrackCircuitDatabase(TrackCircuitToDeleteNum : Integer) : Boolean;
-{ Remove a record from the trackCircuit database }
+{ Remove a record from the track-circuit database }
 
 FUNCTION DescribeActualDateAndTime : String;
 { Return the current real date and time as a String }
@@ -1864,7 +1864,7 @@ PROCEDURE WriteOutSignalDataToDatabase;
 { If a Signal's data has been changed, record it in the database }
 
 PROCEDURE WriteOutTrackCircuitDataToDatabase;
-{ Write out some track circuit data to the track circuit data file }
+{ Write out some track-circuit data to the track-circuit data file }
 
 IMPLEMENTATION
 
@@ -1966,7 +1966,7 @@ BEGIN
 END; { InitialiseTrackCircuitVariables(TC); }
 
 PROCEDURE ReadInTrackCircuitDataFromDatabase;
-{ Initialise the track circuit data which depends on lines being initialised first.
+{ Initialise the track-circuit data which depends on lines being initialised first.
 
   Interesting notes from the past here:
 
@@ -1996,7 +1996,7 @@ BEGIN
 
     WITH InitVarsWindow DO BEGIN
       IF NOT FileExists(PathToRailDataFiles + TrackCircuitDataFilename + '.' + TrackCircuitDataFilenameSuffix) THEN BEGIN
-        IF MessageDialogueWithDefault('Track Circuit database file "' + TrackCircuitDataFilename + '.' + TrackCircuitDataFilenameSuffix + '" cannot be located'
+        IF MessageDialogueWithDefault('Track-circuit database file "' + TrackCircuitDataFilename + '.' + TrackCircuitDataFilenameSuffix + '" cannot be located'
                                       + CRLF
                                       + 'Do you wish to continue?',
                                       StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
@@ -2011,7 +2011,7 @@ BEGIN
                                                      + ';Persist Security Info=False';
       TrackCircuitsADOConnection.Connected := True;
       TrackCircuitsADOTable.Open;
-      Log('T Track circuit data table and connection opened to initialise the trackCircuits');
+      Log('T Track-circuit data table and connection opened to initialise the track circuits');
 
       TrackCircuitsADOTable.Sort := '[' + TC_NumberFieldName + '] ASC';
       TrackCircuitsADOTable.First;
@@ -2072,13 +2072,13 @@ BEGIN
       { Tidy up the database }
       TrackCircuitsADOTable.Close;
       TrackCircuitsADOConnection.Connected := False;
-      Log('T Track circuit data table and connection closed');
+      Log('T Track-circuit data table and connection closed');
     END; {WITH}
 
     FOR TC := 0 TO High(TrackCircuits) DO
       InitialiseTrackCircuitVariables(TC);
 
-    { Initialise track circuit lines and locations }
+    { Initialise track-circuit lines and locations }
     CalculateTCAdjacentBufferStops;
 
     { Check that all track circuits have a TC_LineArray value }
@@ -2089,9 +2089,9 @@ BEGIN
       Inc(TC);
     END; {WHILE}
 
-    { Work out how long individual locations are based on track circuit length. This can be overriden by a specific length given below, however. }
+    { Work out how long individual locations are based on track-circuit length. This can be overriden by a specific length given below, however. }
     FOR Location := 0 TO High(Locations) DO BEGIN
-      { Check that the location doesn't already have a designated preset length - this is necessary in platforms, for instance, as the total track circuit length may well
+      { Check that the location doesn't already have a designated preset length - this is necessary in platforms, for instance, as the total track-circuit length may well
         include the line beyond signals.
       }
       IF Locations[Location].Location_LengthInInches = 0 THEN
@@ -2108,12 +2108,12 @@ BEGIN
 END; { ReadInTrackCircuitDataFromDatabase }
 
 PROCEDURE AddNewRecordToTrackCircuitDatabase;
-{ Append a record to the track circuit database }
+{ Append a record to the track-circuit database }
 BEGIN
   TRY
     WITH InitVarsWindow DO BEGIN
       IF NOT FileExists(PathToRailDataFiles + TrackCircuitDataFilename + '.' + TrackCircuitDataFilenameSuffix) THEN BEGIN
-        IF MessageDialogueWithDefault('Track circuit database file "' + PathToRailDataFiles + TrackCircuitDataFilename + '.' + TrackCircuitDataFilenameSuffix
+        IF MessageDialogueWithDefault('Track-circuit database file "' + PathToRailDataFiles + TrackCircuitDataFilename + '.' + TrackCircuitDataFilenameSuffix
                                       + '" cannot be located'
                                       + CRLF
                                       + 'Do you wish to continue?',
@@ -2133,11 +2133,11 @@ BEGIN
       TrackCircuitsADOTable.FieldByName(TC_NumberFieldName).AsInteger := High(TrackCircuits);
       TrackCircuitsADOTable.Post;
 
-      Log('S Track circuit data table and connection opened to create record for TrackCircuit ' + IntToStr(High(TrackCircuits)));
+      Log('S Track-circuit data table and connection opened to create record for TrackCircuit ' + IntToStr(High(TrackCircuits)));
       { Tidy up the database }
       TrackCircuitsADOTable.Close;
       TrackCircuitsADOConnection.Connected := False;
-      Log('S Track circuit Data table and connection closed');
+      Log('S Track-circuit data table and connection closed');
     END;
   EXCEPT {TRY}
     ON E : Exception DO
@@ -2146,7 +2146,7 @@ BEGIN
 END; { AddNewRecordToTrackCircuitDatabase }
 
 PROCEDURE WriteOutTrackCircuitDataToDatabase;
-{ Write out some track circuit data to the track circuit data file }
+{ Write out some track-circuit data to the track-circuit data file }
 VAR
   TC : Integer;
 
@@ -2154,7 +2154,7 @@ BEGIN
   TRY
     WITH InitVarsWindow DO BEGIN
       IF NOT FileExists(PathToRailDataFiles + TrackCircuitDataFilename + '.' + TrackCircuitDataFilenameSuffix) THEN BEGIN
-        IF MessageDialogueWithDefault('Track circuit database file "' + PathToRailDataFiles + TrackCircuitDataFilename + '.' + TrackCircuitDataFilenameSuffix
+        IF MessageDialogueWithDefault('Track-circuit database file "' + PathToRailDataFiles + TrackCircuitDataFilename + '.' + TrackCircuitDataFilenameSuffix
                                       + '" cannot be located'
                                       + CRLF
                                       + 'Do you wish to continue?',
@@ -2170,7 +2170,7 @@ BEGIN
                                                      + ';Persist Security Info=False';
       TrackCircuitsADOConnection.Connected := True;
       TrackCircuitsADOTable.Open;
-      Log('T Track circuit data table and connection opened to write out track circuit data');
+      Log('T Track-circuit data table and connection opened to write out track-circuit data');
 
       TrackCircuitsADOTable.First;
       TC := 0;
@@ -2181,24 +2181,24 @@ BEGIN
             TC_DataChanged := False;
 
             IF NOT TrackCircuitsADOTable.Locate(TC_NumberFieldName, IntToStr(TC), []) THEN BEGIN
-              Log('T Track circuit data table and connection opened to delete TC ' + TrackCircuitToStr(TC) + ' but it cannot be found');
+              Log('T Track-circuit data table and connection opened to delete TC ' + TrackCircuitToStr(TC) + ' but it cannot be found');
             END ELSE BEGIN
-              Log('T Track circuit data table and connection opened to record that ' + TC_NumberFieldName + ' is ''' + IntToStr(TC_Number) + '''');
+              Log('T Track-circuit data table and connection opened to record that ' + TC_NumberFieldName + ' is ''' + IntToStr(TC_Number) + '''');
               TrackCircuitsADOTable.Edit;
               TrackCircuitsADOTable.FieldByName(TC_NumberFieldName).AsString := IntToStr(TC_Number);
               TrackCircuitsADOTable.Post;
 
-              Log('T Track circuit data table and connection opened to record that ' + TC_LengthInInchesFieldName + ' is ''' + FloatToStr(TC_LengthInInches) + '''');
+              Log('T Track-circuit data table and connection opened to record that ' + TC_LengthInInchesFieldName + ' is ''' + FloatToStr(TC_LengthInInches) + '''');
               TrackCircuitsADOTable.Edit;
               TrackCircuitsADOTable.FieldByName(TC_LengthInInchesFieldName).AsString := FloatToStr(TC_LengthInInches);
               TrackCircuitsADOTable.Post;
 
-              Log('T Track circuit data table and connection opened to record that ' + TC_FeedbackUnitFieldName + ' is ''' + IntToStr(TC_FeedbackUnit) + '''');
+              Log('T Track-circuit data table and connection opened to record that ' + TC_FeedbackUnitFieldName + ' is ''' + IntToStr(TC_FeedbackUnit) + '''');
               TrackCircuitsADOTable.Edit;
               TrackCircuitsADOTable.FieldByName(TC_FeedbackUnitFieldName).AsString := IntToStr(TC_FeedbackUnit);
               TrackCircuitsADOTable.Post;
 
-              Log('T Track circuit data table and connection opened to record that ' + TC_FeedbackInputFieldName + ' is ''' + IntToStr(TC_FeedbackInput) + '''');
+              Log('T Track-circuit data table and connection opened to record that ' + TC_FeedbackInputFieldName + ' is ''' + IntToStr(TC_FeedbackInput) + '''');
               TrackCircuitsADOTable.Edit;
               TrackCircuitsADOTable.FieldByName(TC_FeedbackInputFieldName).AsString := IntToStr(TC_FeedbackInput);
               TrackCircuitsADOTable.Post;
@@ -2212,7 +2212,7 @@ BEGIN
       { Tidy up the database }
       TrackCircuitsADOTable.Close;
       TrackCircuitsADOConnection.Connected := False;
-      Log('L Track circuit data table and connection closed after writing track circuit data');
+      Log('L Track-circuit data table and connection closed after writing track-circuit data');
     END; {WITH}
   EXCEPT {TRY}
     ON E : Exception DO
@@ -2221,13 +2221,13 @@ BEGIN
 END; { WriteOutTrackCircuitDataToDatabase }
 
 FUNCTION DeleteRecordFromTrackCircuitDatabase(TrackCircuitToDeleteNum : Integer) : Boolean;
-{ Remove a record from the trackCircuit database }
+{ Remove a record from the track-circuit database }
 BEGIN
   Result := False;
   TRY
     WITH InitVarsWindow DO BEGIN
       IF NOT FileExists(PathToRailDataFiles + TrackCircuitDataFilename + '.' + TrackCircuitDataFilenameSuffix) THEN BEGIN
-        IF MessageDialogueWithDefault('Track circuit database file "' + PathToRailDataFiles + TrackCircuitDataFilename + '.' + TrackCircuitDataFilenameSuffix
+        IF MessageDialogueWithDefault('Track-circuit database file "' + PathToRailDataFiles + TrackCircuitDataFilename + '.' + TrackCircuitDataFilenameSuffix
                                       + '" cannot be located'
                                       + CRLF
                                       + 'Do you wish to continue?',
@@ -2245,9 +2245,9 @@ BEGIN
       TrackCircuitsADOTable.Open;
 
       IF NOT TrackCircuitsADOTable.Locate(TC_NumberFieldName, IntToStr(TrackCircuitToDeleteNum), []) THEN BEGIN
-        Log('T Track circuit data table and connection opened to delete TC ' + TrackCircuitToStr(TrackCircuitToDeleteNum) + ' but it cannot be found');
+        Log('T Track-circuit data table and connection opened to delete TC ' + TrackCircuitToStr(TrackCircuitToDeleteNum) + ' but it cannot be found');
       END ELSE BEGIN
-        Log('T Track circuit data table and connection opened to delete TC ' + TrackCircuitToStr(TrackCircuitToDeleteNum));
+        Log('T Track-circuit data table and connection opened to delete TC ' + TrackCircuitToStr(TrackCircuitToDeleteNum));
 
         { Now delete the track circuit - we have already checked, in the Edit unit, whether deleting it will cause knock-on problems with other track circuits }
         TrackCircuitsADOTable.Delete;
@@ -2258,7 +2258,7 @@ BEGIN
       { Tidy up the database }
       TrackCircuitsADOTable.Close;
       TrackCircuitsADOConnection.Connected := False;
-      Log('T Track circuit Data table and connection closed');
+      Log('T Track-circuit data table and connection closed');
     END;
   EXCEPT {TRY}
     ON E : Exception DO
@@ -3390,7 +3390,7 @@ BEGIN
       ErrorMsg := 'ValidateLineTrackCircuit: invalid line TC integer "' + LineTCStr + '"'
     ELSE
       IF ((Result < 0) AND (Result > High(TrackCircuits))) OR (Result = UnknownTrackCircuit) THEN
-        ErrorMsg := 'ValidateLineTrackCircuit: track circuit number ' + IntToStr(Result) + ' outside bounds';
+        ErrorMsg := 'ValidateLineTrackCircuit: track-circuit number ' + IntToStr(Result) + ' outside bounds';
 END; { ValidateLineTrackCircuit }
 
 FUNCTION ValidateLineLocation(LineLocationStr : String; OUT ErrorMsg : String) : Integer;

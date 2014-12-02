@@ -118,6 +118,9 @@ PROCEDURE StartPointEdit(P : Integer);
 PROCEDURE StartLineEdit(Line : Integer);
 { Set up a line edit - this is where we save the line's original state so we can revert to it regardless of how many edits there are }
 
+PROCEDURE StartTrackCircuitEdit(TC : Integer);
+{ Set up a track-circuit edit - this is where we save the track circuit's original state so we can revert to it regardless of how many edits there are }
+
 PROCEDURE TurnEditModeOn(S, P, BS, Line, TC : Integer);
 { Turn edit Mode on }
 
@@ -385,6 +388,16 @@ BEGIN
   END; {WITH}
 END; { WriteIntegerValueINcludingZero }
 
+PROCEDURE WriteExtendedValueIncludingZero(Str : String; F : Extended; EditMask : String);
+BEGIN
+  WITH EditWindow.EditValueListEditor DO BEGIN
+    Values[Str] := FloatToStr(F);
+
+    IF EditMask <> '' THEN
+      ItemProps[Str].EditMask := EditMask;
+  END; {WITH}
+END; { WriteExtendedValueIncludingZero }
+
 PROCEDURE WriteBooleanValue(Str : String; Bool : Boolean);
 BEGIN
   WITH EditWindow.EditValueListEditor DO BEGIN
@@ -506,7 +519,7 @@ PROCEDURE WriteLineValuesToValueList;
 BEGIN
   TRY
     WITH EditWindow DO BEGIN
-      { Temporarily deactivate the OnstringsChange event so as not to enable the various buttons until we've written the values to the value list - otherwise the act of
+      { Temporarily deactivate the OnStringsChange event so as not to enable the various buttons until we've written the values to the value list - otherwise the act of
         writing them switches the buttons on before we've done any editing
       }
       SaveEvent := EditValueListEditorStringsChange;
@@ -571,7 +584,7 @@ PROCEDURE UpdateLineValueList(Line : Integer { add other items here });
 BEGIN
   TRY
     WITH EditWindow DO BEGIN
-      { Temporarily deactivate the OnstringsChange event so as not to enable the various buttons until we've written the values to the value list - otherwise the act of
+      { Temporarily deactivate the OnStringsChange event so as not to enable the various buttons until we've written the values to the value list - otherwise the act of
         writing them switches the buttons on before we've done any editing
       }
       SaveEvent := EditWindow.EditValueListEditorStringsChange;
@@ -599,6 +612,7 @@ END; { UpdateLineValueList }
 
 PROCEDURE WritePointValuesToValueList;
 { Create a value list in the edit window with the appropriate values }
+
   PROCEDURE WritePointValue(Str : String; P : Integer; EditMask : String);
   BEGIN
     WITH EditWindow.EditValueListEditor DO BEGIN
@@ -615,7 +629,7 @@ PROCEDURE WritePointValuesToValueList;
 BEGIN { WritePointValuesToValueList }
   TRY
     WITH EditWindow DO BEGIN
-      { Temporarily deactivate the OnstringsChange event so as not to enable the various buttons until we've written the values to the value list - otherwise the act of
+      { Temporarily deactivate the OnStringsChange event so as not to enable the various buttons until we've written the values to the value list - otherwise the act of
         writing them switches the buttons on before we've done any editing
       }
       SaveEvent := EditValueListEditorStringsChange;
@@ -703,7 +717,7 @@ BEGIN { WriteSignalValuesToValueList }
   TRY
     { See if it's merely a reselection of the same signal - in which case do not save its current state }
     WITH EditWindow DO BEGIN
-      { Temporarily deactivate the OnstringsChange event so as not to enable the various buttons until we've written the values to the value list - otherwise the act of
+      { Temporarily deactivate the OnStringsChange event so as not to enable the various buttons until we've written the values to the value list - otherwise the act of
         writing them switches the buttons on before we've done any editing
       }
       SaveEvent := EditWindow.EditValueListEditorStringsChange;
@@ -787,7 +801,7 @@ PROCEDURE UpdateSignalValueList(S : Integer; AdjacentLine : Integer; AdjacentLin
 BEGIN
   TRY
     WITH EditWindow DO BEGIN
-      { Temporarily deactivate the OnstringsChange event so as not to enable the various buttons until we've written the values to the value list - otherwise the act of
+      { Temporarily deactivate the OnStringsChange event so as not to enable the various buttons until we've written the values to the value list - otherwise the act of
         writing them switches the buttons on before we've done any editing
       }
       SaveEvent := EditWindow.EditValueListEditorStringsChange;
@@ -818,7 +832,7 @@ PROCEDURE WriteTrackCircuitValuesToValueList;
 BEGIN
   TRY
     WITH EditWindow DO BEGIN
-      { Temporarily deactivate the OnstringsChange event so as not to enable the various buttons until we've written the values to the value list - otherwise the act of
+      { Temporarily deactivate the OnStringsChange event so as not to enable the various buttons until we've written the values to the value list - otherwise the act of
         writing them switches the buttons on before we've done any editing
       }
       SaveEvent := EditValueListEditorStringsChange;
@@ -828,37 +842,18 @@ BEGIN
         EditWindowLabel.Caption := 'Editing TC ' + IntToStr(EditedTrackCircuit);
 
         WITH TrackCircuits[EditedTrackCircuit] DO BEGIN
-//          WriteIntegerValueExcludingZero(TrackCircuit_NumberFieldName, P, '');
-//          ItemProps[TrackCircuit_NumberFieldName].ReadOnly := True;
-//
-//          Values[TrackCircuit_DivergingLineFieldName] := LineToStr(TrackCircuit_DivergingLine);
-//          Values[TrackCircuit_HeelLineFieldName] := LineToStr(TrackCircuit_HeelLine);
-//          Values[TrackCircuit_StraightLineFieldName] := LineToStr(TrackCircuit_StraightLine);
-//
-//          WriteIntegerValueExcludingZero(TrackCircuit_LenzNumFieldName, TrackCircuit_LenzNum, '9999');
-//          WriteIntegerValueExcludingZero(TrackCircuit_LenzUnitFieldName, TrackCircuit_LenzUnit, '9999');
-//          WritePickListValue(TrackCircuit_LenzUnitTypeFieldName, TrackCircuit_LenzUnitType, ['Ls101', 'LS150']);
-//          WriteBooleanValue(TrackCircuit_ManualOperationFieldName, TrackCircuit_ManualOperation);
-//          WriteIntegerValueExcludingZero(TrackCircuit_FeedbackUnitFieldName, TrackCircuit_FeedbackUnit, '9999');
-//          WriteIntegerValueExcludingZero(TrackCircuit_FeedbackInputFieldName, TrackCircuit_FeedbackInput, '9999');
-//          WriteBooleanValue(TrackCircuit_FeedbackOnIsStraightFieldName, TrackCircuit_FeedbackOnIsStraight);
-//          WriteBooleanValue(TrackCircuit_WiringReversedFlagFieldName, TrackCircuit_WiringReversedFlag);
-//          WritePickListValue(TrackCircuit_TypeFieldName, TrackCircuitTypeToStr(TrackCircuit_Type), ['Ordinary TrackCircuit', 'Cross Over TrackCircuit', 'Three Way TrackCircuit A', 'Three Way TrackCircuit B',
-//                                                                               'Single Slip', 'Double Slip', 'Protected TrackCircuit', 'Catch TrackCircuit Up', 'Catch TrackCircuit Down',
-//                                                                               'Unknown TrackCircuit Type']);
-//          WriteTrackCircuitValue(TrackCircuit_OtherTrackCircuitFieldName, TrackCircuit_OtherTrackCircuit, '9999');
-//          WritePickListValue(TrackCircuit_DefaultStateFieldName, TrackCircuitStateToStr(TrackCircuit_DefaultState), [StraightStr, DivergingStr, UnknownStr, OutOfActionStr]);
-//          WriteBooleanValue(TrackCircuit_LockedIfHeelTCOccupiedFieldName, TrackCircuit_LockedIfHeelTCOccupied);
-//          WriteBooleanValue(TrackCircuit_OutOfUseFieldName, TrackCircuit_OutOfUse);
-//          WriteBooleanValue(TrackCircuit_LockedIfNonHeelTCsOccupiedFieldName, TrackCircuit_LockedIfNonHeelTCsOccupied);
-//          Values[TrackCircuit_NotesFieldName] := TrackCircuit_Notes;
+          WriteIntegerValueExcludingZero(TC_NumberFieldName, EditedTrackCircuit, '');
+          WriteExtendedValueIncludingZero(TC_LengthInInchesFieldName, TC_LengthInInches, '9.9');
+          WriteIntegerValueExcludingZero(TC_FeedbackUnitFieldName, TC_FeedbackUnit, '999');
+          WriteIntegerValueExcludingZero(TC_FeedbackInputFieldName, TC_FeedbackInput, '999');
         END; {WITH}
       END; {WITH}
+
+      ExitWithoutSavingButton.Enabled := True;
+
+      { Reactivate this event so as to enable the various buttons if we do any editing }
+      EditWindow.EditValueListEditor.OnStringsChange := SaveEvent;
     END; {WITH}
-
-    { Reactivate this event so as to enable the various buttons if we do any editing }
-    EditWindow.EditValueListEditor.OnStringsChange := SaveEvent;
-
   EXCEPT {TRY}
     ON E : Exception DO
       Log('EG WriteTrackCircuitValuesToValueList: ' + E.ClassName + ' error raised, with message: '+ E.Message);
@@ -2458,8 +2453,6 @@ BEGIN
       { now add them for the current edited line }
       Lines[EditedLine].Line_ShowHandles := True;
     END;
-
-    DrawLine(EditedLine, ScreenComponentEditedColour, NOT ActiveTrain);
   END;
 END; { StartLineEdit }
 
@@ -2488,7 +2481,7 @@ BEGIN
 END; { StartSignalEdit }
 
 PROCEDURE StartTrackCircuitEdit(TC : Integer);
-{ Set up a trackCircuit edit - this is where we save the TrackCircuit's original state so we can revert to it regardless of how many edits there are }
+{ Set up a track-circuit edit - this is where we save the track circuit's original state so we can revert to it regardless of how many edits there are }
 BEGIN
   IF TC <> EditedTrackCircuit THEN BEGIN
     ClearEditValueList;
@@ -2594,7 +2587,7 @@ BEGIN
   TC := UnknownTrackCircuit;
 
   IF NOT NewTrackCircuit THEN BEGIN
-    IF NOT GetIntegerDataFromUser('Enter existing track circuit number', '', 0, High(TrackCircuits), 'is not a valid track circuit number', NewIntValue) THEN
+    IF NOT GetIntegerDataFromUser('Enter existing track-circuit number', '', 0, High(TrackCircuits), 'is not a valid track-circuit number', NewIntValue) THEN
       AddTrackCircuitCancelled := True
     ELSE
       TC := NewIntValue;
@@ -2607,13 +2600,13 @@ BEGIN
       TC_DataChanged := True;
       TC_Number := TC;
 
-      IF NOT GetExtendedDataFromUser('Enter Track Circuit Length', '', 0, 0, '', NewExtendedValue) THEN
+      IF NOT GetExtendedDataFromUser('Enter Track-Circuit Length', '', 0, 0, '', NewExtendedValue) THEN
         TC_LengthInInches := 0
       ELSE
         TC_LengthInInches := NewExtendedValue;
 
       FeedbackDataOK := True;
-      IF NOT GetIntegerDataFromUser('Enter Track Circuit Feedback Unit', '', FirstFeedbackUnit, LastFeedbackUnit, 'is not a valid feedback unit', NewIntValue) THEN
+      IF NOT GetIntegerDataFromUser('Enter Track-Circuit Feedback Unit', '', FirstFeedbackUnit, LastFeedbackUnit, 'is not a valid feedback unit', NewIntValue) THEN
         FeedbackDataOK := False
       ELSE
         TC_FeedbackUnit := NewIntValue;
@@ -2686,7 +2679,7 @@ BEGIN
     { Now see if the feedback unit/input formerly used by the track circuit can be marked as free }
     Log('TG Feedback Unit ' + IntToStr(TrackCircuits[Line_TC].TC_FeedbackUnit) + ' input ' + IntToStr(TrackCircuits[Line_TC].TC_FeedbackInput) + ' no longer in use');
 
-    { Move the last record from the track circuit database into the deleted record's place in the array  (a DJW suggestion) }
+    { Move the last record from the track-circuit database into the deleted record's place in the array  (a DJW suggestion) }
     TrackCircuits[Line_TC] := TrackCircuits[High(TrackCircuits)];
 
     WITH TrackCircuits[Line_TC] DO BEGIN

@@ -201,7 +201,7 @@ BEGIN
         Train_UserPowerAdjustment := 0; { used by the user to increase or decrease the train speed where necessary }
         Train_UserRequiresInstructions := False;
         Train_UserSpeedInstructionMsg := '';
-        Train_UseTrailingTrackCircuits := False; { where a train doesn't have lights at both ends, it may need artificial track circuit activation to allow the whole length
+        Train_UseTrailingTrackCircuits := False; { where a train doesn't have lights at both ends, it may need artificial track-circuit activation to allow the whole length
                                                    of the train to be detected }
         Train_WaitingForHiddenStationSignalAspectStartTime := 0;
         Train_WorkingTimetableLastArrivalArea := UnknownArea;

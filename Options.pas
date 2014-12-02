@@ -33,10 +33,10 @@ PROCEDURE InitialiseOptionsUnit;
 { Initialises the unit }
 
 PROCEDURE ReadIniFile;
-{ Read in data from the .ini file or from the Registry, except for the track circuit data }
+{ Read in data from the .ini file or from the Registry, except for the track-circuit data }
 
 PROCEDURE ReadIniFileForTrackCircuitData;
-{ Read in track circuit data from the .ini file or from the Registry }
+{ Read in track-circuit data from the .ini file or from the Registry }
 
 PROCEDURE RestoreScreenDefaults;
 { Restore screen colours, fonts, etc. }
@@ -549,8 +549,11 @@ VAR
   DefaultRunTestUnitOnStartup : Boolean = False;
   RunTestUnitOnStartup : Boolean;
 
-  DefaultScreenComponentEditedColour : TColor = clAqua;
-  ScreenComponentEditedColour : TColor = clAqua;
+  DefaultScreenComponentEditedColour1 : TColor = clAqua;
+  ScreenComponentEditedColour1 : TColor = clAqua;
+
+  DefaultScreenComponentEditedColour2 : TColor = clPurple;
+  ScreenComponentEditedColour2 : TColor = clPurple;
 
   DefaultShowCancelledTrainsInDiagrams : Boolean = True;
   ShowCancelledTrainsInDiagrams : Boolean;
@@ -926,7 +929,8 @@ CONST
     DiagramsWindowGridBackgroundColourStr = 'Diagrams Window Grid Background Colour';
     LinesWithoutTrackCircuitsColourStr = 'Lines Without Track Circuits Colour';
     LocoStalledColourStr = 'Loco Stalled Colour';
-    ScreenComponentEditedColourStr = 'Screen Component Edited Colour';
+    ScreenComponentEditedColour1Str = 'Screen Component Edited Colour1';
+    ScreenComponentEditedColour2Str = 'Screen Component Edited Colour2';
     WorkingTimetableWindowGridBackgroundColourStr = 'Working Timetable Window Grid Background Colour';
 
   PenStylesSectionStr = 'Pen Styles';
@@ -964,8 +968,8 @@ CONST
     PointDialogueBoxTopStr = 'Point Dialogue Box Top';
     SignalDialogueBoxLeftStr = 'Signal Dialogue Box Left';
     SignalDialogueBoxTopStr = 'Signal Dialogue Box Top';
-    TrackCircuitDialogueBoxLeftStr = 'Track Circuit Dialogue Box Left';
-    TrackCircuitDialogueBoxTopStr = 'Track Circuit Dialogue Box Top';
+    TrackCircuitDialogueBoxLeftStr = 'Track-circuit Dialogue Box Left';
+    TrackCircuitDialogueBoxTopStr = 'Track-circuit Dialogue Box Top';
 
   FilesSectionStr = 'Files';
     AreaDataFilenameStr = 'Area Data Filename';
@@ -1267,7 +1271,8 @@ BEGIN
   DiagramsWindowGridBackgroundColour := DefaultDiagramsWindowGridBackgroundColour;
   LinesWithoutTrackCircuitsColour := DefaultLinesWithoutTrackCircuitsColour;
   LocoStalledColour := DefaultLocoStalledColour;
-  ScreenComponentEditedColour := DefaultScreenComponentEditedColour;
+  ScreenComponentEditedColour1 := DefaultScreenComponentEditedColour1;
+  ScreenComponentEditedColour2 := DefaultScreenComponentEditedColour2;
   WorkingTimetableWindowGridBackgroundColour := DefaultWorkingTimetableWindowGridBackgroundColour;
 
   { Pen styles }
@@ -1295,7 +1300,7 @@ BEGIN
 END; { RestoreScreenDefaults }
 
 PROCEDURE ReadIniFile;
-{ Read in data from the .ini file or from the Registry, except for the track circuit data }
+{ Read in data from the .ini file or from the Registry, except for the track-circuit data }
 VAR
   IniFile : TIniFile;
   RegistryIniFile : TRegistryIniFile;
@@ -1333,7 +1338,7 @@ BEGIN
       IniFile := TIniFile.Create(ExtractFilePath(Application.ExeName) + 'Rail.ini');
 
     { Check for various user supplied file data.
-      NB Track circuit data is read in separately in the ReadIniFileForTrackCircuitData routine.
+      NB Track-circuit data is read in separately in the ReadIniFileForTrackCircuitData routine.
     }
     PathToLogFiles := FWPReadString(FilesSectionStr, PathToLogFilesStr, DefaultPathToLogFiles);
     PathToRailDataFiles := FWPReadString(FilesSectionStr, PathToRailDataFilesStr, DefaultPathToRailDataFiles);
@@ -1457,7 +1462,8 @@ BEGIN
     LinesWithoutTrackCircuitsColour := StrToColour(FWPReadString(ColoursSectionStr, LinesWithoutTrackCircuitsColourStr,
                                                                                                                     ColourToStr(DefaultLinesWithoutTrackCircuitsColour)));
     LocoStalledColour := StrToColour(FWPReadString(ColoursSectionStr, LocoStalledColourStr, ColourToStr(DefaultLocoStalledColour)));
-    ScreenComponentEditedColour := StrToColour(FWPReadString(ColoursSectionStr, ScreenComponentEditedColourStr, ColourToStr(DefaultScreenComponentEditedColour)));
+    ScreenComponentEditedColour1 := StrToColour(FWPReadString(ColoursSectionStr, ScreenComponentEditedColour1Str, ColourToStr(DefaultScreenComponentEditedColour1)));
+    ScreenComponentEditedColour2 := StrToColour(FWPReadString(ColoursSectionStr, ScreenComponentEditedColour2Str, ColourToStr(DefaultScreenComponentEditedColour2)));
     WorkingTimetableWindowGridBackgroundColour := StrToColour(FWPReadString(ColoursSectionStr, WorkingTimetableWindowGridBackgroundColourStr,
                                                                                                          ColourToStr(DefaultWorkingTimetableWindowGridBackgroundColour)));
     { Pen styles }
@@ -1712,7 +1718,7 @@ BEGIN
 END; { ReadIniFileMainProcedure }
 
 PROCEDURE ReadIniFileForTrackCircuitData;
-{ Read in track circuit data from the .ini file or from the Registry }
+{ Read in track-circuit data from the .ini file or from the Registry }
 CONST
   Delimiter = ';';
 
@@ -1739,7 +1745,7 @@ BEGIN
     ELSE
       IniFile := TIniFile.Create(ExtractFilePath(Application.ExeName) + 'Rail.ini');
 
-    { Now track circuit info. (Can't use SetTrackCircuitState here as it writes to the log file which is not yet open, as the log file name is held in the .ini file). }
+    { Now track-circuit info. (Can't use SetTrackCircuitState here as it writes to the log file which is not yet open, as the log file name is held in the .ini file). }
     FOR TC := 0 TO High(TrackCircuits) DO BEGIN
       TempStr := FWPReadString(TrackCircuitsSectionStr, IntToStr(TC), '');
       REPEAT
@@ -1973,7 +1979,8 @@ BEGIN
     WriteStringTwice(ColoursSectionStr, DiagramsWindowGridBackgroundColourStr, ColourToStr(DiagramsWindowGridBackgroundColour));
     WriteStringTwice(ColoursSectionStr, LinesWithoutTrackCircuitsColourStr, ColourToStr(LinesWithoutTrackCircuitsColour));
     WriteStringTwice(ColoursSectionStr, LocoStalledColourStr, ColourToStr(LocoStalledColour));
-    WriteStringTwice(ColoursSectionStr, ScreenComponentEditedColourStr, ColourToStr(ScreenComponentEditedColour));
+    WriteStringTwice(ColoursSectionStr, ScreenComponentEditedColour1Str, ColourToStr(ScreenComponentEditedColour1));
+    WriteStringTwice(ColoursSectionStr, ScreenComponentEditedColour2Str, ColourToStr(ScreenComponentEditedColour2));
     WriteStringTwice(ColoursSectionStr, TrainActiveColourStr, ColourToStr(TrainActiveColour));
     WriteStringTwice(ColoursSectionStr, TrainInactiveColourStr, ColourToStr(TrainInactiveColour));
     WriteStringTwice(ColoursSectionStr, WorkingTimetableWindowGridBackgroundColourStr, ColourToStr(WorkingTimetableWindowGridBackgroundColour));

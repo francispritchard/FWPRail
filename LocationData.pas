@@ -48,7 +48,7 @@ PROCEDURE SetLocationOccupationAllDayState(L : LocoIndex; Location : Integer; Lo
 { Sets a given location's all day occupation state (to out-of-use or permanently occupied }
 
 PROCEDURE SetUpAllLocationOccupationsAbInitio(IsTimetableLoading : Boolean; OUT OK : Boolean);
-{ Set up all train and track circuit locations }
+{ Set up all train- and track-circuit locations }
 
 PROCEDURE SetUpTrainLocationOccupationsAbInitio(T : TrainIndex; OUT OK : Boolean);
 { Set up a given train's locations }

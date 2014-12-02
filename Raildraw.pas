@@ -37,7 +37,8 @@ TYPE
     GeneralPopupChangePointManualOperationColour: TMenuItem;
     GeneralPopupChangePointOutOfUseColour: TMenuItem;
     GeneralPopupChangePointUndrawColour: TMenuItem;
-    GeneralPopupChangeScreenComponentEditedColour: TMenuItem;
+    GeneralPopupChangeScreenComponentEditedColour1: TMenuItem;
+    GeneralPopupChangeScreenComponentEditedColour2: TMenuItem;
     GeneralPopupChangeSidingPenStyle: TMenuItem;
     GeneralPopupChangeSignalAspectUnlitColour: TMenuItem;
     GeneralPopupChangeSignalPostRouteSettingColour: TMenuItem;
@@ -80,7 +81,8 @@ TYPE
     GeneralPopupRestorePointLockedByUserColour: TMenuItem;
     GeneralPopupRestorePointOutOfUseColour: TMenuItem;
     GeneralPopupRestorePointUndrawColour: TMenuItem;
-    GeneralPopupRestoreScreenComponentEditedColour: TMenuItem;
+    GeneralPopupRestoreScreenComponentEditedColour1: TMenuItem;
+    GeneralPopupRestoreScreenComponentEditedColour2: TMenuItem;
     GeneralPopupRestoreSidingPenStyle: TMenuItem;
     GeneralPopupRestoreSignalAspectUnlitColour: TMenuItem;
     GeneralPopupRestoreSignalPostRouteSettingColour: TMenuItem;
@@ -99,7 +101,8 @@ TYPE
     GeneralPopupRunClockFastest: TMenuItem;
     GeneralPopupRunClockNormally: TMenuItem;
     GeneralPopupRunClockSlower: TMenuItem;
-    GeneralPopupScreenComponentEditedColour: TMenuItem;
+    GeneralPopupScreenComponentEditedColour1: TMenuItem;
+    GeneralPopupScreenComponentEditedColour2: TMenuItem;
     GeneralPopupSetCurrentRailwayDayOfTheWeek: TMenuItem;
     GeneralPopupSetCurrentRailwayTime: TMenuItem;
     GeneralPopupSetDaylightEndTime: TMenuItem;
@@ -209,7 +212,8 @@ TYPE
     PROCEDURE GeneralPopupChangePointsWithoutFeedbackColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangePointUndrawColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangePointUpFacingColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangeScreenComponentEditedColourClick(Sender: TObject);
+    PROCEDURE GeneralPopupChangeScreenComponentEditedColour1Click(Sender: TObject);
+    PROCEDURE GeneralPopupChangeScreenComponentEditedColour2Click(Sender: TObject);
     PROCEDURE GeneralPopupChangeShowPointDefaultStateColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangeSignalAspectGreenClick(Sender: TObject);
     PROCEDURE GeneralPopupChangeSignalAspectRedClick(Sender: TObject);
@@ -288,7 +292,8 @@ TYPE
     PROCEDURE GeneralPopupRestorePointUndrawColourClick(Sender: TObject);
     PROCEDURE GeneralPopupRestorePointUpFacingColourClick(Sender: TObject);
     PROCEDURE GeneralPopupRestoreProjectedLinePenStyleClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreScreenComponentEditedColourClick(Sender: TObject);
+    PROCEDURE GeneralPopupRestoreScreenComponentEditedColour1Click(Sender: TObject);
+    PROCEDURE GeneralPopupRestoreScreenComponentEditedColour2Click(Sender: TObject);
     PROCEDURE GeneralPopupRestoreShowPointDefaultStateColourClick(Sender: TObject);
     PROCEDURE GeneralPopupRestoreSidingPenStyleClick(Sender: TObject);
     PROCEDURE GeneralPopupRestoreSignalAspectGreenClick(Sender: TObject);
@@ -591,7 +596,8 @@ VAR
   SaveShowPointDefaultStateColourForPrinting : TColor;
   SaveShowPointLockedColourForPrinting : TColor;
   SaveShowSignalJunctionDestinations : Boolean = False;
-  SaveScreenComponentEditedColourForPrinting : TColor;
+  SaveScreenComponentEditedColour1ForPrinting : TColor;
+  SaveScreenComponentEditedColour2ForPrinting : TColor;
   SaveSignalNumberColourForPrinting : TColor;
   SaveSignalPostColourForPrinting : TColor;
   SaveSignalPostRouteSettingColourForPrinting : TColor;
@@ -922,7 +928,7 @@ VAR
           ShowOneFeedbackUnitOnly := False;
       END ELSE BEGIN
         FOR TC := 0 TO High(TrackCircuits) DO BEGIN
-          { Write out the track circuit number once only }
+          { Write out the track-circuit number once only }
           Line := 0;
           TrackCircuitNumbered := False;
           WHILE Line <= High(Lines) DO BEGIN
@@ -2257,8 +2263,8 @@ BEGIN { DrawSignal }
           END;
         END ELSE BEGIN
           IF EditedSignal = S THEN BEGIN
-            SColour1 := ScreenComponentEditedColour;
-            SColour2 := ScreenComponentEditedColour;
+            SColour1 := ScreenComponentEditedColour1;
+            SColour2 := ScreenComponentEditedColour1;
           END ELSE BEGIN
             { Now draw indicators if any }
             IF Signal_Indicator <> NoIndicator THEN
@@ -4128,7 +4134,7 @@ CONST
 BEGIN
   { Wait before popping up to avoid the same click that activates the popup menu also providing the menu item click }
   IF PopupTimerCount < 2 THEN BEGIN
-    Debug('!Delay required before selecting menu entry');
+    Debug('!*Delay required before selecting menu entry');
     PopupTimer.Enabled := False;
     Exit;
   END;
@@ -4225,7 +4231,7 @@ PROCEDURE TFWPRailWindow.PointPopupItemClick(Sender: TObject);
 BEGIN
   { Wait before popping up to avoid the same click that activates the popup menu also providing the menu item click }
   IF PopupTimerCount < 2 THEN BEGIN
-    Debug('!Delay required before selecting menu entry');
+    Debug('!*Delay required before selecting menu entry');
     PopupTimer.Enabled := False;
     Exit;
   END;
@@ -4323,7 +4329,7 @@ PROCEDURE TFWPRailWindow.BufferStopPopupItemClick(Sender: TObject);
 BEGIN
   { Wait before popping up to avoid the same click that activates the popup menu also providing the menu item click }
   IF PopupTimerCount < 2 THEN BEGIN
-    Debug('!Delay required before selecting menu entry');
+    Debug('!*Delay required before selecting menu entry');
     PopupTimer.Enabled := False;
     Exit;
   END;
@@ -4699,7 +4705,7 @@ VAR
 BEGIN
   { Wait before popping up to avoid the same click that activates the popup menu also providing the menu item click }
   IF PopupTimerCount < 2 THEN BEGIN
-    Debug('!Delay required before selecting menu entry');
+    Debug('!*Delay required before selecting menu entry');
     PopupTimer.Enabled := False;
     Exit;
   END;
@@ -5501,20 +5507,37 @@ BEGIN
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreTCUserMustDriveColourClick');
 END; { GeneralPopupRestoreTCUserMustDriveColourClick }
 
-PROCEDURE TFWPRailWindow.GeneralPopupChangeScreenComponentEditedColourClick(Sender: TObject);
+PROCEDURE TFWPRailWindow.GeneralPopupChangeScreenComponentEditedColour1Click(Sender: TObject);
 BEGIN
   { Show the default }
-  FWPRailWindowColourDialogue.Color := ScreenComponentEditedColour;
+  FWPRailWindowColourDialogue.Color := ScreenComponentEditedColour1;
   { Allow the user to change it }
   IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    ScreenComponentEditedColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangeScreenComponentEditedColourClick');
+    ScreenComponentEditedColour1 := FWPRailWindowColourDialogue.Color;
+    InvalidateScreen(UnitRef, 'GeneralPopupChangeScreenComponentEditedColour1Click');
   END;
-END; { GeneralPopupChangeScreenComponentEditedColourClick }
+END; { GeneralPopupChangeScreenComponentEditedColour1Click }
 
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreScreenComponentEditedColourClick(Sender: TObject);
+PROCEDURE TFWPRailWindow.GeneralPopupRestoreScreenComponentEditedColour1Click(Sender: TObject);
 BEGIN
-  ScreenComponentEditedColour := DefaultScreenComponentEditedColour;
+  ScreenComponentEditedColour1 := DefaultScreenComponentEditedColour1;
+  InvalidateScreen(UnitRef, 'GeneralPopupRestoreScreenComponentEditedColour1Click');
+END; { GeneralPopupRestoreScreenComponentEditedColour1Click }
+
+PROCEDURE TFWPRailWindow.GeneralPopupChangeScreenComponentEditedColour2Click(Sender: TObject);
+BEGIN
+  { Show the default }
+  FWPRailWindowColourDialogue.Color := ScreenComponentEditedColour2;
+  { Allow the user to change it }
+  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
+    ScreenComponentEditedColour2 := FWPRailWindowColourDialogue.Color;
+    InvalidateScreen(UnitRef, 'GeneralPopupChangeScreenComponentEditedColour2Click');
+  END;
+END; { GeneralPopupChangeScreenComponentEditedColour2Click }
+
+PROCEDURE TFWPRailWindow.GeneralPopupRestoreScreenComponentEditedColour2Click(Sender: TObject);
+BEGIN
+  ScreenComponentEditedColour2 := DefaultScreenComponentEditedColour2;
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreScreenComponentEditedColourClick');
 END; { GeneralPopupRestoreScreenComponentEditedColourClick }
 
@@ -6089,7 +6112,8 @@ BEGIN
   PointStraightLineColour :=DefaultPointStraightLineColour;
   PointsWithoutFeedbackColour := DefaultPointsWithoutFeedbackColour;
   PointUpFacingColour := DefaultPointUpFacingColour;
-  ScreenComponentEditedColour := DefaultScreenComponentEditedColour;
+  ScreenComponentEditedColour1 := DefaultScreenComponentEditedColour1;
+  ScreenComponentEditedColour2 := DefaultScreenComponentEditedColour2;
   ShowPointDefaultStateColour := DefaultShowPointDefaultStateColour;
   ShowPointLockedColour := DefaultShowPointLockedColour;
   SignalAspectGreen := DefaultSignalAspectGreen;
@@ -6157,7 +6181,8 @@ BEGIN
   PointStraightLineColour := SavePointStraightLineColourForPrinting;
   PointsWithoutFeedbackColour := SavePointsWithoutFeedbackColourForPrinting;
   PointUpFacingColour := SavePointUpFacingColourForPrinting;
-  ScreenComponentEditedColour := SaveScreenComponentEditedColourForPrinting;
+  ScreenComponentEditedColour1 := SaveScreenComponentEditedColour1ForPrinting;
+  ScreenComponentEditedColour2 := SaveScreenComponentEditedColour2ForPrinting;
   ShowPointDefaultStateColour := SaveShowPointDefaultStateColourForPrinting;
   ShowPointLockedColour := SaveShowPointLockedColourForPrinting;
   SignalNumberColour := SaveSignalNumberColourForPrinting;
@@ -6247,8 +6272,11 @@ BEGIN
   SavePointUpFacingColourForPrinting := PointUpFacingColour;
   PointUpFacingColour := clBlack;
 
-  SaveScreenComponentEditedColourForPrinting := ScreenComponentEditedColour;
-  ScreenComponentEditedColour := clBlack;
+  SaveScreenComponentEditedColour1ForPrinting := ScreenComponentEditedColour1;
+  ScreenComponentEditedColour1 := clBlack;
+
+  SaveScreenComponentEditedColour2ForPrinting := ScreenComponentEditedColour2;
+  ScreenComponentEditedColour2 := clBlack;
 
   SaveShowPointDefaultStateColourForPrinting := ShowPointDefaultStateColour;
   ShowPointDefaultStateColour := clBlack;
@@ -7383,7 +7411,7 @@ BEGIN { Main drawing procedure }
               END;
             FullScreenWithStatusBarMode:
               BEGIN
-                { Use for checking track circuits. etc., as displays track circuit number on the status bar }
+                { Use for checking track circuits. etc., as displays track-circuit number on the status bar }
                 IF LineThicknessInFullScreenMode = 'Thin' THEN
                   ThinLineMode := True
                 ELSE
@@ -7591,10 +7619,13 @@ BEGIN { Main drawing procedure }
                     Line_CurrentColour := LineRoutedOverColour
                 END;
 
-                IF Line <> EditedLine THEN
-                  DrawLine(Line, Line_CurrentColour, ActiveTrain)
+                IF (EditedTrackCircuit <> UnknownTrackCircuit) AND (Lines[Line].Line_TC = EditedTrackCircuit) THEN
+                  DrawLine(Line, ScreenComponentEditedColour2, ActiveTrain)
                 ELSE
-                  DrawLine(Line, ScreenComponentEditedColour, ActiveTrain);
+                  IF Line = EditedLine THEN
+                    DrawLine(Line, ScreenComponentEditedColour1, ActiveTrain)
+                  ELSE
+                    DrawLine(Line, Line_CurrentColour, ActiveTrain);
               END;
 
               { Draw a rectangle around any line highlighted by the input procedure }

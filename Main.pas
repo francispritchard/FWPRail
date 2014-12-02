@@ -1393,7 +1393,7 @@ VAR
     TRY
       SystemStatus := ReturnSystemStatus;
       IF (SystemStatus.EmergencyOff AND NOT SaveSystemStatusEmergencyOff) THEN BEGIN
-        Log('E Emergency - saving track circuit settings');
+        Log('E Emergency - saving track-circuit settings');
         FOR TC := 0 TO High(TrackCircuits) DO BEGIN
           TrackCircuits[TC].TC_EmergencyState := TrackCircuits[TC].TC_OccupationState;
           TrackCircuits[TC].TC_EmergencyLocoChip := TrackCircuits[TC].TC_LocoChip;
@@ -1419,7 +1419,7 @@ VAR
       AND NOT SystemStatus.EmergencyOff
       AND NOT SystemStatus.EmergencyStop
       THEN BEGIN
-        { Emergency over - can now reload track circuit data after a short wait, then restart trains slowly }
+        { Emergency over - can now reload track-circuit data after a short wait, then restart trains slowly }
         IF SaveSystemStatusEmergencyOff THEN BEGIN
           SaveSystemStatusEmergencyOff := False;
           EmergencyStopMsgDisplayed := False;
@@ -1434,11 +1434,11 @@ VAR
         END;
       END;
       IF PostEmergencyTimeSet AND (Time >= PostEmergencyTime) THEN BEGIN
-        { Restore the track circuit data after an emergency (but wait a short time before doing so, as the feedback system will read in the feedback data again after a system
+        { Restore the track-circuit data after an emergency (but wait a short time before doing so, as the feedback system will read in the feedback data again after a system
           reset, and we need to restore our data after that). Do we need to save and restore other TC data (like PreviousTCstate)? ****
         }
         PostEmergencyTimeSet := False;
-        Log('EG Emergency over - restoring track circuit data');
+        Log('EG Emergency over - restoring track-circuit data');
         FOR TC := 0 TO High(TrackCircuits) DO BEGIN
           IF (TrackCircuits[TC].TC_OccupationState <> TrackCircuits[TC].TC_EmergencyState)
           THEN BEGIN

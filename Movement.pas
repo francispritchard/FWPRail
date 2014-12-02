@@ -2214,7 +2214,7 @@ BEGIN
 
               ChangeTrainStatus(T, WaitingForRemovalFromDiagrams)
             END ELSE BEGIN
-              { Reset all the track circuit occupation arrays... }
+              { Reset all the track-circuit occupation arrays... }
               Log(Train_LocoChipStr + ' T J=' + IntToStr(Train_CurrentJourney) + ': clearing track occupation arrays');
               SetLength(Train_TCsAndSignalsNotClearedArray, 0);
               SetLength(Train_TCsNotClearedArray, 0);

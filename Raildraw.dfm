@@ -895,15 +895,26 @@ object FWPRailWindow: TFWPRailWindow
           end
         end
       end
-      object GeneralPopupScreenComponentEditedColour: TMenuItem
-        Caption = 'Screen Component Edited Colour'
-        object GeneralPopupChangeScreenComponentEditedColour: TMenuItem
-          Caption = 'Change Screen Component Edited Colour'
-          OnClick = GeneralPopupChangeScreenComponentEditedColourClick
+      object GeneralPopupScreenComponentEditedColour1: TMenuItem
+        Caption = 'Screen Component Edited Colour1'
+        object GeneralPopupChangeScreenComponentEditedColour1: TMenuItem
+          Caption = 'Change Screen Component Edited Colour1'
+          OnClick = GeneralPopupChangeScreenComponentEditedColour1Click
         end
-        object GeneralPopupRestoreScreenComponentEditedColour: TMenuItem
-          Caption = 'Restore Screen Component Edited Colour'
-          OnClick = GeneralPopupRestoreScreenComponentEditedColourClick
+        object GeneralPopupRestoreScreenComponentEditedColour1: TMenuItem
+          Caption = 'Restore Screen Component Edited Colour1'
+          OnClick = GeneralPopupRestoreScreenComponentEditedColour1Click
+        end
+      end
+      object GeneralPopupScreenComponentEditedColour2: TMenuItem
+        Caption = 'Screen Component Edited Colour2'
+        object GeneralPopupChangeScreenComponentEditedColour2: TMenuItem
+          Caption = 'Change Screen Component Edited Colour2'
+          OnClick = GeneralPopupChangeScreenComponentEditedColour2Click
+        end
+        object GeneralPopupRestoreScreenComponentEditedColour2: TMenuItem
+          Caption = 'Restore Screen Component Edited Colour2'
+          OnClick = GeneralPopupRestoreScreenComponentEditedColour2Click
         end
       end
       object GeneralPopupRuler4: TMenuItem

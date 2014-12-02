@@ -383,7 +383,7 @@ BEGIN
 
         IF InShowAdjacentTrackCircuitMode THEN BEGIN
           SetMode(ShowAdjacentTrackCircuit, False);
-          WriteToStatusBarPanel(StatusBarPanel2, 'Showing adjacent track circuit mode = OFF');
+          WriteToStatusBarPanel(StatusBarPanel2, 'Showing adjacent-track-circuit mode = OFF');
           InvalidateScreen(UnitRef, 'InputDialogueBoxHide 4');
         END;
       END;
@@ -4561,14 +4561,14 @@ BEGIN { KeyPressedDown }
               END;
             CtrlAlt: {F5}
               BEGIN
-                HelpMsg := 'toggle show adjacent track circuit mode';
+                HelpMsg := 'toggle show adjacent-track-circuit mode';
                 IF NOT HelpRequired THEN BEGIN
                   IF InShowAdjacentTrackCircuitMode THEN BEGIN
                     SetMode(ShowAdjacentTrackCircuit, False);
-                    WriteToStatusBarPanel(StatusBarPanel2, 'Showing adjacent track circuit mode = OFF');
+                    WriteToStatusBarPanel(StatusBarPanel2, 'Showing adjacent-track-circuit mode = OFF');
                   END ELSE BEGIN
                     SetMode(ShowAdjacentTrackCircuit, True);
-                    WriteToStatusBarPanel(StatusBarPanel2, 'Showing adjacent track circuit mode = ON');
+                    WriteToStatusBarPanel(StatusBarPanel2, 'Showing adjacent-track-circuit mode = ON');
                   END;
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
@@ -4584,10 +4584,10 @@ BEGIN { KeyPressedDown }
               END;
             Shift: {F5}
               BEGIN
-                HelpMsg := 'show track circuits lengths in inches';
+                HelpMsg := 'show track-circuits lengths in inches';
                 IF NOT HelpRequired THEN BEGIN
                   ShowTrackCircuitLengths := True;
-                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing track circuit lengths in inches');
+                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing track-circuit lengths in inches');
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
               END;
@@ -4729,9 +4729,9 @@ BEGIN { KeyPressedDown }
           CASE ShiftKeys OF
             NoShiftKeys: {F8}
               BEGIN
-                HelpMsg := 'show track circuit feedback data';
+                HelpMsg := 'show track-circuit feedback data';
                 IF NOT HelpRequired THEN BEGIN
-                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing track circuit feedback data');
+                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing track-circuit feedback data');
                   ShowTrackCircuitFeedbackDataInSeparateColours := True;
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
@@ -4770,9 +4770,9 @@ BEGIN { KeyPressedDown }
               END;
             Shift: {F8}
               BEGIN
-                HelpMsg := 'show track circuit feedback data (' + ColourToStrForUser(TCFeedbackDataOutOfUseColour) + ' = out of use)';
+                HelpMsg := 'show track-circuit feedback data (' + ColourToStrForUser(TCFeedbackDataOutOfUseColour) + ' = out of use)';
                 IF NOT HelpRequired THEN BEGIN
-                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing track circuit feedback data' + ' ('
+                  WriteToStatusBarPanel(StatusBarPanel2, 'Showing track-circuit feedback data' + ' ('
                                                                                                      + ColourToStrForUser(TCFeedbackDataOutOfUseColour) + ' = out of use)');
                   ShowTrackCircuitFeedbackDataInUse := True;
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);

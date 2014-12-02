@@ -756,7 +756,7 @@ VAR
             THEN BEGIN
               Set3rd := True;
               Log(Train_LocoChipStr + ' T TrainLengthInInches=' + IntToStr(Train_CurrentLengthInInches)
-                                    + ' > 2rd track circuit length=' + FloatToStr(TrackCircuits[Train_InitialTrackCircuits[2]].TC_LengthInInches));
+                                    + ' > 2rd track-circuit length=' + FloatToStr(TrackCircuits[Train_InitialTrackCircuits[2]].TC_LengthInInches));
             END;
           END;
         END;
@@ -773,7 +773,7 @@ VAR
             THEN BEGIN
               Set4th := True;
               Log(Train_LocoChipStr + ' T TrainLengthInInches=' + IntToStr(Train_CurrentLengthInInches)
-                                    + ' > 2nd and 3rd track circuit lengths=' + FloatToStr(TrackCircuits[Train_InitialTrackCircuits[2]].TC_LengthInInches
+                                    + ' > 2nd and 3rd track-circuit lengths=' + FloatToStr(TrackCircuits[Train_InitialTrackCircuits[2]].TC_LengthInInches
                                                                               + TrackCircuits[Train_InitialTrackCircuits[3]].TC_LengthInInches));
             END;
           END;
@@ -790,7 +790,7 @@ VAR
             THEN BEGIN
               Set5th := True;
               Log(Train_LocoChipStr + ' T TrainLengthInInches=' + IntToStr(Train_CurrentLengthInInches)
-                                    + ' > 2nd, 3rd and 4th track circuit lengths=' + FloatToStr(TrackCircuits[Train_InitialTrackCircuits[2]].TC_LengthInInches
+                                    + ' > 2nd, 3rd and 4th track-circuit lengths=' + FloatToStr(TrackCircuits[Train_InitialTrackCircuits[2]].TC_LengthInInches
                                                                                   + TrackCircuits[Train_InitialTrackCircuits[3]].TC_LengthInInches
                                                                                   + TrackCircuits[Train_InitialTrackCircuits[4]].TC_LengthInInches));
             END;

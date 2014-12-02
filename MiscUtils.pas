@@ -301,7 +301,7 @@ FUNCTION GetLinesForTrackCircuit(TC : Integer) : IntegerArrayType;
 { Return all the lines on a given track circuit }
 
 FUNCTION GetLocationFromTrackCircuit(TC : Integer) : Integer;
-{ Return a location given a track circuit number }
+{ Return a location given a track-circuit number }
 
 FUNCTION GetLocoIndexFromLocoChip(LocoChip : Integer): LocoIndex;
 { Look for a matching loco record given a loco chip number }
@@ -538,7 +538,7 @@ FUNCTION LocationOccupied(Location : Integer) : Boolean;
 { Returns true if the given location has a feedback occupation }
 
 FUNCTION LocationOutOfUse(Location : Integer; OUT OutOfUseTC : Integer; OUT OutOfUseStr : String) : Boolean;
-{ Returns true if the given location is out of use because of an out-of-use track circuit occupation }
+{ Returns true if the given location is out of use because of an out-of-use track-circuit occupation }
 
 FUNCTION LocationToStr{1}(Location : Integer) : String; Overload;
 { Return a location as a long string }
@@ -844,10 +844,10 @@ FUNCTION TimeToHMSZStr(Time : TDateTime) : String;
 { Return a time string as hh:mm:ss:zzz }
 
 FUNCTION TrackCircuitStateIsPermanentlyOccupied(State : TrackCircuitStateType) : Boolean;
-{ Returns true if a given track circuit state is not set as permanently occupied }
+{ Returns true if a given track-circuit state is not set as permanently occupied }
 
 FUNCTION TrackCircuitStateIsTemporarilyOccupied(State : TrackCircuitStateType) : Boolean;
-{ Returns true if a given track circuit state is set as temporarily occupied }
+{ Returns true if a given track circuit-state is set as temporarily occupied }
 
 FUNCTION TrackCircuitStateToStr(State : TrackCircuitStateType) : String;
 { Describe the current state of a given track circuit }
@@ -3293,7 +3293,7 @@ BEGIN
 END; { ExtractSubStringsFromString }
 
 FUNCTION ExtractTrackCircuitFromString(Str : String): Integer;
-{ Returns a track circuit number from a given string }
+{ Returns a track-circuit number from a given string }
 VAR
   Str2 : String;
 
@@ -3661,7 +3661,7 @@ BEGIN
 END; { GetLastLogLine }
 
 FUNCTION GetLocationFromTrackCircuit(TC : Integer) : Integer;
-{ Return a location given a track circuit number }
+{ Return a location given a track-circuit number }
 VAR
   Line : Integer;
   LocationFound : Boolean;
@@ -4274,7 +4274,7 @@ BEGIN
 END; { MulDiv }
 
 FUNCTION LocationOutOfUse(Location : Integer; OUT OutOfUseTC : Integer; OUT OutOfUseStr : String) : Boolean;
-{ Returns true if the given location is out of use because of an out-of-use or similar track circuit occupation }
+{ Returns true if the given location is out of use because of an out-of-use or similar track-circuit occupation }
 VAR
   I : Integer;
   LocationTCs : IntegerArrayType;
@@ -5070,7 +5070,7 @@ BEGIN
 END; { SignalToStr }
 
 FUNCTION TrackCircuitToStr(TrackCircuit : Integer) : String;
-{ Return the track circuit number as a string }
+{ Return the track-circuit number as a string }
 BEGIN
   IF TrackCircuit = UnknownTrackCircuit THEN
     Result := UnknownTrackCircuitStr
@@ -8194,7 +8194,7 @@ BEGIN
 END; { TimeToHMSZStr }
 
 FUNCTION TrackCircuitStateIsPermanentlyOccupied(State : TrackCircuitStateType) : Boolean;
-{ Returns true if a given track circuit state is not set as permanently occupied }
+{ Returns true if a given track-circuit state is not set as permanently occupied }
 BEGIN
   CASE State OF
     TCOutOfUseSetByUser, TCOutOfUseAsNoFeedbackReceived, TCLocoOutOfPlaceOccupation, TCPermanentFeedbackOccupation, TCPermanentOccupationSetByUser,
@@ -8207,7 +8207,7 @@ BEGIN
 END; { TrackCircuitStateIsPermanentlyOccupied }
 
 FUNCTION TrackCircuitStateIsTemporarilyOccupied(State : TrackCircuitStateType) : Boolean;
-{ Returns true if a given track circuit state is set as temporarily occupied }
+{ Returns true if a given track-circuit state is set as temporarily occupied }
 
 BEGIN
   CASE State OF

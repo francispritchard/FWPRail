@@ -115,14 +115,14 @@ BEGIN
   ELSE
     Log('XG Feedback check completed - no feedback units serving more than one track circuit');
 
-  { Also check for line sections track circuit numbers unused }
+  { Also check for line sections track-circuit numbers unused }
   ErrorCount := 0;
-  Debug('Commencing track circuit check - please wait...');
+  Debug('Commencing track-circuit check - please wait...');
   FOR TC := 0 TO High(TrackCircuits) DO BEGIN
     TCInUse := False;
     TCHasFeedback := False;
 
-    { see if the track circuit number is in use }
+    { see if the track-circuit number is in use }
     FOR L := 0 TO High(Lines) DO BEGIN
       IF Lines[L].Line_TC = TC THEN
         TCInUse := True;
@@ -156,13 +156,13 @@ BEGIN
   END;
 
   IF ErrorCount > 0 THEN
-    Debug('Track circuit check completed - ' + IntToStr(ErrorCount) + ' errors noted in LogFile')
+    Debug('Track-circuit check completed - ' + IntToStr(ErrorCount) + ' errors noted in LogFile')
   ELSE
-    Log('XG Track circuit check completed - all feedback inputs accounted for');
+    Log('XG Track-circuit check completed - all feedback inputs accounted for');
 
   { Also check for track circuit feedback inputs unused }
   ErrorCount := 0;
-  Debug('Commencing track circuit feedback input check - please wait...');
+  Debug('Commencing track-circuit feedback input check - please wait...');
   FOR I := FirstFeedbackUnit TO LastFeedbackUnit DO BEGIN
     FOR J := 1 TO 8 DO BEGIN
       FeedbackData.Feedback_Unit := I;
@@ -175,12 +175,12 @@ BEGIN
             FeedbackNumFound := True;
 
             IF TrackCircuits[TC].TC_OccupationState = TCOutOfUseSetByUser THEN
-              Log('X Track circuit feedback unit ' + IntToStr(I) + ' input no. ' + IntToStr(J) + ' not in use as TC=' + IntToStr(TC) + ' is marked as being set out of use');
+              Log('X Track-circuit feedback unit ' + IntToStr(I) + ' input no. ' + IntToStr(J) + ' not in use as TC=' + IntToStr(TC) + ' is marked as being set out of use');
           END;
         END;
 
         IF NOT FeedbackNumFound THEN BEGIN
-          Log('X Track circuit feedback unit ' + IntToStr(I) + ' input no. ' + IntToStr(J) + ' not in use ');
+          Log('X Track-circuit feedback unit ' + IntToStr(I) + ' input no. ' + IntToStr(J) + ' not in use ');
           Inc(ErrorCount);
         END;
       END;
@@ -188,9 +188,9 @@ BEGIN
   END;
 
   IF ErrorCount > 0 THEN
-    Debug('Track circuit feedback check completed - ' + IntToStr(ErrorCount) + ' errors noted in LogFile')
+    Debug('Track-circuit feedback check completed - ' + IntToStr(ErrorCount) + ' errors noted in LogFile')
   ELSE BEGIN
-    Log('XG Track circuit feedback check completed - all feedback inputs accounted for');
+    Log('XG Track-circuit feedback check completed - all feedback inputs accounted for');
   END;
 
   { Debug point data }
@@ -340,7 +340,7 @@ BEGIN
     This causes a problem in terms of speeds for track circuits.
   }
   SaveLine := UnknownLine;
-  Debug('Checking track circuit line types...');
+  Debug('Checking track-0circuit line types...');
   FOR TC := 0 TO High(TrackCircuits) DO BEGIN
     SaveTypeOfLine := UnknownTypeOfLine;
     FOR L := 0 TO High(Lines) DO BEGIN
@@ -542,7 +542,7 @@ BEGIN
 
     WITH InitVarsWindow DO BEGIN
       IF NOT FileExists(PathToRailDataFiles + TrackCircuit1DataFilename + '.' + TrackCircuit1DataFilenameSuffix) THEN BEGIN
-        IF MessageDialogueWithDefault('Track circuit database file "' + PathToRailDataFiles + TrackCircuit1DataFilename + '.' + TrackCircuit1DataFilenameSuffix + '"'
+        IF MessageDialogueWithDefault('Track-circuit database file "' + PathToRailDataFiles + TrackCircuit1DataFilename + '.' + TrackCircuit1DataFilenameSuffix + '"'
                                       + ' cannot be located'
                                       + CRLF
                                       + 'Do you wish to continue?',
@@ -577,7 +577,7 @@ BEGIN
 
       TrackCircuitsADOTable2.Open;
 
-      Log('S Track circuit data table and connection opened to compare TrackCircuit 1 data with TrackCircuit 2 data');
+      Log('S Track-circuit data table and connection opened to compare TrackCircuit 1 data with TrackCircuit 2 data');
 
       ErrorFound := False;
       TrackCircuit := -1;
@@ -614,15 +614,15 @@ BEGIN
         END;
 
         IF TrackCircuitsADOTable.EOF AND NOT TrackCircuitsADOTable2.EOF THEN BEGIN
-          Log('XG Track circuit database ' + '"' + TrackCircuit1DataFilename + '.' + TrackCircuit1DataFilenameSuffix
+          Log('XG Track-circuit database ' + '"' + TrackCircuit1DataFilename + '.' + TrackCircuit1DataFilenameSuffix
                   + '" is shorter than "' + TrackCircuit2DataFilename + '.' + TrackCircuit2DataFilenameSuffix + '"');
-          Log('XG A later entry in track circuit database ' + '"' + TrackCircuit1DataFilename + '.' + TrackCircuit1DataFilenameSuffix
+          Log('XG A later entry in track-circuit database ' + '"' + TrackCircuit1DataFilename + '.' + TrackCircuit1DataFilenameSuffix
                   + '" is TrackCircuit=' + IntToStr(TrackCircuit));
         END ELSE
           IF NOT TrackCircuitsADOTable.EOF AND TrackCircuitsADOTable2.EOF THEN BEGIN
-            Log('XG Track circuit database ' + '"' + TrackCircuit2DataFilename + '.' + TrackCircuit2DataFilenameSuffix
+            Log('XG Track-circuit database ' + '"' + TrackCircuit2DataFilename + '.' + TrackCircuit2DataFilenameSuffix
                     + '" is shorter than "' + TrackCircuit1DataFilename + '.' + TrackCircuit1DataFilenameSuffix + '"');
-            Log('XG A later entry in track circuit database ' + '"' + TrackCircuit2DataFilename + '.' + TrackCircuit2DataFilenameSuffix
+            Log('XG A later entry in track-circuit database ' + '"' + TrackCircuit2DataFilename + '.' + TrackCircuit2DataFilenameSuffix
                     + '" is TrackCircuit=' + IntToStr(TrackCircuit));
           END;
 
@@ -631,17 +631,17 @@ BEGIN
       UNTIL TrackCircuitsADOTable.EOF AND TrackCircuitsADOTable2.EOF;
 
       IF NOT ErrorFound THEN
-        Log('XG No differences found in track circuit databases '
+        Log('XG No differences found in track-circuit databases '
                 + '"' + TrackCircuit1DataFilename + '.' + TrackCircuit1DataFilenameSuffix
                 + '" and "' + TrackCircuit2DataFilename + '.' + TrackCircuit2DataFilenameSuffix + '"');
 
       { Tidy up the database }
       TrackCircuitsADOTable.Close;
       TrackCircuitsADOConnection.Connected := False;
-      Log('S Track circuit Data 1 table and connection closed');
+      Log('S Track-circuit Data 1 table and connection closed');
       TrackCircuitsADOTable2.Close;
       TrackCircuitsADOConnection.Connected := False;
-      Log('S Track circuit Data 2 table and connection closed');
+      Log('S Track-circuit Data 2 table and connection closed');
     END; {WITH}
   EXCEPT {TRY}
     ON E : Exception DO

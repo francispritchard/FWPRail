@@ -1763,7 +1763,7 @@ BEGIN
           END;
         END;
 
-      { Add track circuit data from lines }
+      { Add track-circuit data from lines }
       IF Pos('L=', TempDraftRouteArray[TempDraftRouteArrayPos]) > 0 THEN BEGIN
         { see if there's any TC data - don't do this for the track circuit adjacent to the signal, or trains stopped at signals at the start of routes would not be allowed
           to proceed, as that line section would always be marked as occupied. Look out for signals that both start and end a route, however (check for them by seeing if
@@ -1937,7 +1937,7 @@ BEGIN
             HoldMarkerFound := False;
           END;
 
-          { Note where it is so we can move the track circuit data to the front }
+          { Note where it is so we can move the track-circuit data to the front }
           TrackCircuitPos := High(RouteArray);
         END;
       END ELSE BEGIN

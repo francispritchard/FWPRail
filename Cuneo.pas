@@ -34,9 +34,9 @@ PROCEDURE SetZoomRect(TempZoomRect : TRect);
 PROCEDURE WhatIsUnderMouse(ScreenClickPosX, ScreenClickPosY : Integer; ShiftState : TShiftState); Overload;
 { Returns the current mouse position and whether a specific item has been found at that position without a keypress being required }
 
-PROCEDURE WhatIsUnderMouse(ScreenClickPosX, ScreenClickPosY : Integer; ShiftState : TShiftState; OUT BufferStopFoundNum : Integer; OUT IndicatorFoundNum : Integer;
-                           OUT IndicatorFoundType : JunctionIndicatorType; OUT PointFoundNum : Integer; OUT SignalFoundNum : Integer; OUT SignalPostFoundNum : Integer;
-                           OUT TheatreIndicatorFoundNum : Integer; OUT TRSPlungerFoundLocation : Integer); Overload;
+PROCEDURE WhatIsUnderMouse(ScreenClickPosX, ScreenClickPosY : Integer; ShiftState : TShiftState; OUT BufferStopFoundNum, IndicatorFoundNum : Integer;
+                           OUT IndicatorFoundType : JunctionIndicatorType; OUT LineFoundNum, PointFoundNum, SignalFoundNum, SignalPostFoundNum : Integer;
+                           OUT TheatreIndicatorFoundNum, TrackCircuitFoundNum, TRSPlungerFoundLocation : Integer); Overload;
 { Returns the current mouse position and whether a specific item has been found at that position without a keypress being required }
 
 VAR
@@ -114,9 +114,9 @@ BEGIN
   ZoomRect := TempZoomRect;
 END; { SetZoomRect }
 
-PROCEDURE WhatIsUnderMouseMainProc(ScreenClickPosX, ScreenClickPosY : Integer; ShiftState : TShiftState; OUT BufferStopFoundNum : Integer; OUT IndicatorFoundNum : Integer;
-                                   OUT IndicatorFoundType : JunctionIndicatorType; OUT PointFoundNum : Integer; OUT SignalFoundNum : Integer;
-                                   OUT SignalPostFoundNum : Integer; OUT TheatreIndicatorFoundNum : Integer; OUT TRSPlungerFoundLocation : Integer);
+PROCEDURE WhatIsUnderMouseMainProc(ScreenClickPosX, ScreenClickPosY : Integer; ShiftState : TShiftState; OUT BufferStopFoundNum, IndicatorFoundNum : Integer;
+                                   OUT IndicatorFoundType : JunctionIndicatorType; OUT LineFoundNum, PointFoundNum, SignalFoundNum, SignalPostFoundNum : Integer;
+                                   OUT TheatreIndicatorFoundNum, TrackCircuitFoundNum, TRSPlungerFoundLocation : Integer); Overload;
 { Returns the current mouse position and whether a specific item has been found at that position without a keypress being required }
 CONST
   IndicatorToBeSet = True;
@@ -153,19 +153,21 @@ BEGIN
     GridX := MapScreenXToGridX(ScreenClickPosX);
     GridY := MapScreenYToGridY(ScreenClickPosY);
 
-    ObjectFound := False;
+    DownLineEndCharacterLine := UnknownLine;
     IndicatorFoundNum := UnknownSignal;
     IndicatorFoundType := UnknownJunctionIndicator;
-    SetLength(LineFoundArray, 0);
-    NewLineFoundNum := UnknownLine;
     BufferStopFoundNum := UnknownPoint;
+    LineFoundNum := UnknownLine;
+    NewLineFoundNum := UnknownLine;
+    ObjectFound := False;
     PointFoundNum := UnknownPoint;
     SignalFoundNum := UnknownSignal;
     SignalPostFoundNum := UnknownSignal;
     TheatreIndicatorFoundNum := UnknownSignal;
+    TrackCircuitFoundNum := UnknownTrackCircuit;
     TRSPlungerFoundLocation := UnknownLocation;
     UpLineEndCharacterLine := UnknownLine;
-    DownLineEndCharacterLine := UnknownLine;
+    SetLength(LineFoundArray, 0);
 
     StatusBarPanel1Str := '';
 
@@ -472,6 +474,7 @@ BEGIN
       WITH Lines[Line] DO BEGIN
         IF PointInPolygon(Line_MousePolygon, Point(MouseX, MouseY)) THEN BEGIN
           ObjectFound := True;
+          LineFoundNum := Line;
 
           { Write out the line name }
           TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' (' + LineToStr(Line) + ' [' + LocationToStr(Lines[Line].Line_Location, ShortStringType) + ']';
@@ -492,6 +495,8 @@ BEGIN
 
           { Look for track circuits }
           IF (Lines[Line].Line_TC <> UnknownTrackCircuit) THEN BEGIN
+            TrackCircuitFoundNum := Lines[Line].Line_TC;
+
             IF TrackCircuits[Lines[Line].Line_TC].TC_LocoChip <> UnknownLocoChip THEN BEGIN
               T := GetTrainIndexFromLocoChip(TrackCircuits[Lines[Line].Line_TC].TC_LocoChip);
               IF T <> UnknownTrainIndex THEN BEGIN
@@ -668,24 +673,26 @@ VAR
   BufferStopFoundNum : Integer;
   IndicatorFoundNum : Integer;
   IndicatorFoundType : JunctionIndicatorType;
+  LineFoundNum : Integer;
   PointFoundNum : Integer;
   SignalFoundNum : Integer;
   SignalPostFoundNum : Integer;
   TheatreIndicatorFoundNum : Integer;
+  TrackCircuitFoundNum : Integer;
   TRSPlungerFoundLocation : Integer;
 
 BEGIN
-  WhatIsUnderMouseMainProc(ScreenClickPosX, ScreenClickPosY, ShiftState, BufferStopFoundNum, IndicatorFoundNum, IndicatorFoundType, PointFoundNum, SignalFoundNum,
-                           SignalPostFoundNum, TheatreIndicatorFoundNum, TRSPlungerFoundLocation);
+  WhatIsUnderMouseMainProc(ScreenClickPosX, ScreenClickPosY, ShiftState, BufferStopFoundNum, IndicatorFoundNum, IndicatorFoundType, LineFoundNum, PointFoundNum,
+                           SignalFoundNum, SignalPostFoundNum, TheatreIndicatorFoundNum, TrackCircuitFoundNum, TRSPlungerFoundLocation);
 END; { WhatIsUnderMouse }
 
-PROCEDURE WhatIsUnderMouse(ScreenClickPosX, ScreenClickPosY : Integer; ShiftState : TShiftState; OUT BufferStopFoundNum : Integer; OUT IndicatorFoundNum : Integer;
-                           OUT IndicatorFoundType : JunctionIndicatorType; OUT PointFoundNum : Integer; OUT SignalFoundNum : Integer; OUT SignalPostFoundNum : Integer;
-                           OUT TheatreIndicatorFoundNum : Integer; OUT TRSPlungerFoundLocation : Integer); Overload;
+PROCEDURE WhatIsUnderMouse(ScreenClickPosX, ScreenClickPosY : Integer; ShiftState : TShiftState; OUT BufferStopFoundNum, IndicatorFoundNum : Integer;
+                           OUT IndicatorFoundType : JunctionIndicatorType; OUT LineFoundNum, PointFoundNum, SignalFoundNum, SignalPostFoundNum : Integer;
+                           OUT TheatreIndicatorFoundNum, TrackCircuitFoundNum, TRSPlungerFoundLocation : Integer); Overload;
 { Returns the current mouse position and whether a specific item has been found at that position without a keypress being required }
 BEGIN
-  WhatIsUnderMouseMainProc(ScreenClickPosX, ScreenClickPosY, ShiftState, BufferStopFoundNum, IndicatorFoundNum, IndicatorFoundType, PointFoundNum, SignalFoundNum,
-                           SignalPostFoundNum, TheatreIndicatorFoundNum, TRSPlungerFoundLocation);
+  WhatIsUnderMouseMainProc(ScreenClickPosX, ScreenClickPosY, ShiftState, BufferStopFoundNum, IndicatorFoundNum, IndicatorFoundType, LineFoundNum, PointFoundNum,
+                           SignalFoundNum, SignalPostFoundNum, TheatreIndicatorFoundNum, TrackCircuitFoundNum, TRSPlungerFoundLocation);
 END; { WhatIsUnderMouse }
 
 PROCEDURE TCuneoWindow.SignalPostFlashingTimerTick(Sender: TObject);
@@ -735,11 +742,13 @@ VAR
   IndicatorFoundNum : Integer;
   IndicatorFoundType : JunctionIndicatorType;
   IrrelevantShiftState : TShiftState;
+  LineFoundNum : Integer;
   PointFoundNum : Integer;
   PointChangedOK : Boolean;
   SignalFoundNum : Integer;
   SignalPostFoundNum : Integer;
   TheatreIndicatorFoundNum : Integer;
+  TrackCircuitFoundNum : Integer;
   TRSPlungerFoundLocation : Integer;
 
   PROCEDURE UpLineEndCharacterSelected(Line : Integer; HelpRequired : Boolean);
@@ -1595,8 +1604,8 @@ BEGIN
       GridX := MapScreenXToGridX(ScreenClickPosX);
       GridY := MapScreenYToGridY(ScreenClickPosY);
 
-      WhatIsUnderMouse(ScreenClickPosX, ScreenClickPosY, ShiftState, BufferStopFoundNum, IndicatorFoundNum, IndicatorFoundType, PointFoundNum, SignalFoundNum,
-                       SignalPostFoundNum, TheatreIndicatorFoundNum, TRSPlungerFoundLocation);
+      WhatIsUnderMouse(ScreenClickPosX, ScreenClickPosY, ShiftState, BufferStopFoundNum, IndicatorFoundNum, IndicatorFoundType, LineFoundNum, PointFoundNum, SignalFoundNum,
+                       SignalPostFoundNum, TheatreIndicatorFoundNum, TrackCircuitFoundNum, TRSPlungerFoundLocation);
 
       { We get the FoundNum data from the WhatIsUnderMouse routine }
       IF EditMode THEN BEGIN
@@ -1614,95 +1623,98 @@ BEGIN
               StartSignalEdit(SignalFoundNum);
           END ELSE
             IF PointFoundNum <> UnknownPoint THEN BEGIN
-              IF (EditedPoint <> UnknownPoint) AND (EditedPoint <> PointFoundNum) THEN BEGIN
-                CheckIfAnyEditedDataHasChanged;
-              END;
-
               IF NOT CreateLineMode THEN
                 StartPointEdit(PointFoundNum);
             END ELSE
-              IF CreateLineMode THEN BEGIN
-                LineHandleFound := False;
+              IF LineFoundNum <> UnknownLine THEN BEGIN
+                IF ssShift IN ShiftState THEN BEGIN
+                  IF TrackCircuitFoundNum <> UnknownTrackCircuit THEN
+                    StartTrackCircuitEdit(TrackCircuitFoundNum);
+                END ELSE
+                  StartLineEdit(LineFoundNum);
+              END ELSE
+                IF CreateLineMode THEN BEGIN
+                  LineHandleFound := False;
 
-                IF EditedLine <> UnknownLine THEN BEGIN
-                  WITH Lines[EditedLine] DO BEGIN
-                    Assert(Line_ShowHandles = True);
+                  IF EditedLine <> UnknownLine THEN BEGIN
+                    WITH Lines[EditedLine] DO BEGIN
+                      Assert(Line_ShowHandles = True);
 
-                    IF PointInPolygon(Line_UpHandlePolygon, Point(ScreenClickPosX, ScreenClickPosY)) AND NOT EndOfLineDragging THEN BEGIN
-                      LineHandleFound := True;
-                      EndOfLineDragging := True;
-                      Line_IsBeingMovedByHandle := UpHandle;
-                      DragEndOfLine(GridX, GridY, ShiftState)
-                    END ELSE
-                      IF PointInPolygon(Line_DownHandlePolygon, Point(ScreenClickPosX, ScreenClickPosY)) AND NOT EndOfLineDragging THEN BEGIN
+                      IF PointInPolygon(Line_UpHandlePolygon, Point(ScreenClickPosX, ScreenClickPosY)) AND NOT EndOfLineDragging THEN BEGIN
                         LineHandleFound := True;
                         EndOfLineDragging := True;
-                        Line_IsBeingMovedByHandle := DownHandle;
+                        Line_IsBeingMovedByHandle := UpHandle;
                         DragEndOfLine(GridX, GridY, ShiftState)
                       END ELSE
-                        IF PointInPolygon(Line_MidHandlePolygon, Point(ScreenClickPosX, ScreenClickPosY)) AND NOT WholeLineDragging THEN BEGIN
+                        IF PointInPolygon(Line_DownHandlePolygon, Point(ScreenClickPosX, ScreenClickPosY)) AND NOT EndOfLineDragging THEN BEGIN
                           LineHandleFound := True;
-                          Line_IsBeingMovedByHandle := MidHandle;
-                          WholeLineDragging := True;
+                          EndOfLineDragging := True;
+                          Line_IsBeingMovedByHandle := DownHandle;
+                          DragEndOfLine(GridX, GridY, ShiftState)
+                        END ELSE
+                          IF PointInPolygon(Line_MidHandlePolygon, Point(ScreenClickPosX, ScreenClickPosY)) AND NOT WholeLineDragging THEN BEGIN
+                            LineHandleFound := True;
+                            Line_IsBeingMovedByHandle := MidHandle;
+                            WholeLineDragging := True;
 
-                          { store where we are so that we can work out the offset to move it }
-                          SaveGridClickPosX := GridX;
-                          SaveGridClickPosY := GridY;
-                          DragWholeLine(GridX, GridY);
-                        END;
-                  END; {WITH}
-                END;
-
-                IF NOT LineHandleFound THEN BEGIN
-                  IF Length(LineFoundArray) = 1 THEN BEGIN
-                    { we're not yet editing a line, so see if we're already on one }
-                    WITH Lines[LineFoundArray[0]] DO BEGIN
-                      { first reset any previously-set variables }
-                      DeselectLine;
-
-                      { now set them }
-                      EditedLine := LineFoundArray[0];
-                      EditingExistingLine := True;
-                      Line_ShowHandles := True;
-
-                      IF ssShift IN ShiftState THEN
-                        { split the line }
-                        SplitLine(LineFoundArray[0], GridX, GridY);
+                            { store where we are so that we can work out the offset to move it }
+                            SaveGridClickPosX := GridX;
+                            SaveGridClickPosY := GridY;
+  //                          DragWholeLine(GridX, GridY);
+                          END;
                     END; {WITH}
-                  END ELSE
-                    IF NOT EndOfLineDragging THEN BEGIN
-                      IF EditedLine <> UnknownLine THEN
+                  END;
+
+                  IF NOT LineHandleFound THEN BEGIN
+                    IF Length(LineFoundArray) = 1 THEN BEGIN
+                      { we're not yet editing a line, so see if we're already on one }
+                      WITH Lines[LineFoundArray[0]] DO BEGIN
+                        { first reset any previously-set variables }
                         DeselectLine;
-                      EndOfLineDragging := True;
-                      StartLineEdit(UnknownLine);
 
-                      { and create a new line record }
-                      SetLength(Lines, Length(Lines) + 1);
-                      WITH Lines[High(Lines)] DO BEGIN
-                        Line_IsTempNewLine := True;
-                        Line_GridUpX := GridX;
-                        Line_GridUpY := GridY;
-                        Line_GridDownX := GridX;
-                        Line_GridDownY := GridY;
-
+                        { now set them }
+                        EditedLine := LineFoundArray[0];
+                        EditingExistingLine := True;
                         Line_ShowHandles := True;
+
+                        IF ssShift IN ShiftState THEN
+                          { split the line }
+                          SplitLine(LineFoundArray[0], GridX, GridY);
                       END; {WITH}
+                    END ELSE
+                      IF NOT EndOfLineDragging THEN BEGIN
+                        IF EditedLine <> UnknownLine THEN
+                          DeselectLine;
+                        EndOfLineDragging := True;
+                        StartLineEdit(UnknownLine);
 
-                      EditedLine := High(Lines);
-                    END;
+                        { and create a new line record }
+                        SetLength(Lines, Length(Lines) + 1);
+                        WITH Lines[High(Lines)] DO BEGIN
+                          Line_IsTempNewLine := True;
+                          Line_GridUpX := GridX;
+                          Line_GridUpY := GridY;
+                          Line_GridDownX := GridX;
+                          Line_GridDownY := GridY;
+
+                          Line_ShowHandles := True;
+                        END; {WITH}
+
+                        EditedLine := High(Lines);
+                      END;
+                  END;
+                END ELSE BEGIN
+                  { reset the timer here, as if we haven't clicked on a signal, point, etc., we don't want dragging to be turned on }
+                  CuneoWindow.MouseButtonDownTimer.Enabled := False;
+
+                  IF NOT EndOfLineDragging AND NOT WholeLineDragging THEN BEGIN
+                    CheckIfAnyEditedDataHasChanged;
+                    ClearEditValueList;
+                  END;
+
+                  IF Zooming THEN
+                    MoveZoomWindowMode := True;
                 END;
-              END ELSE BEGIN
-                { reset the timer here, as if we haven't clicked on a signal, point, etc., we don't want dragging to be turned on }
-                CuneoWindow.MouseButtonDownTimer.Enabled := False;
-
-                IF NOT EndOfLineDragging AND NOT WholeLineDragging THEN BEGIN
-                  CheckIfAnyEditedDataHasChanged;
-                  ClearEditValueList;
-                END;
-
-                IF Zooming THEN
-                  MoveZoomWindowMode := True;
-              END;
         END ELSE
           IF ButtonPress = mbRight THEN BEGIN
             SetSignalPopupNum(UnknownLine);
