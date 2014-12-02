@@ -1574,7 +1574,6 @@ PROCEDURE CreateSignal(Direction : DirectionType; Line : Integer);
 VAR
   ExistingSignalFoundAttachedToLine : Boolean;
   S : Integer;
-  TempJunctionIndicator : JunctionIndicatorType;
 
 BEGIN
   TRY
