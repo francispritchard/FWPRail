@@ -454,9 +454,6 @@ BEGIN
   IF InStationStartMode THEN
     Log('AG Station Start Mode ON {INDENT=2}');
 
-  IF SystemSetOfflineByCommandLineParameter THEN
-    Log('AG System Set Offline By Command Line Parameter ON {INDENT=2}');
-
   IF InTestingMode THEN
     Log('AG Testing Mode ON {INDENT=2}');
 
