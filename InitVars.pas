@@ -261,7 +261,7 @@ TYPE
                     LineLocationOutOfUsePopupType, LineOutOfUsePopupType,
                     { Lines miscellaneous }
                     LineDeletePopupType,
-                    LineEnterCreateLinePopupType, LineExitCreateLinePopupType,
+                    LineEnterCreateLineModePopupType, LineExitCreateLineModePopupType, LineEnterEditModePopupType, LineExitEditModePopupType,
                     LineEditPopupType,
                     LineShowLocoLastErrorMessagePopupType,
                     LineSplitPopupType, LineJoinPopupType,

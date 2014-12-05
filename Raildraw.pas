@@ -4712,10 +4712,10 @@ BEGIN
 
   WITH Sender AS TMenuItemExtended DO BEGIN
     { this code has been separated out from the case statement below as we may well not be on a line, and the "WITH Lines[LinePopupNumArray[0]]" statement would fail }
-    IF PopupType = LineEnterCreateLinePopupType THEN
+    IF PopupType = LineEnterCreateLineModePopupType THEN
       CreateLineMode := True
     ELSE
-      IF PopupType = LineExitCreateLinePopupType THEN BEGIN
+      IF PopupType = LineExitCreateLineModePopupType THEN BEGIN
         CreateLineMode := False;
         ShowLineHandles := False;
       END ELSE BEGIN
@@ -4917,9 +4917,9 @@ BEGIN
       AddMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, NIL);
 
       IF NOT CreateLineMode THEN
-        AddMenuItem(LinePopupMenu, 'Enter Create Line Mode', LineEnterCreateLinePopupType, Enabled, LinePopupItemClick)
+        AddMenuItem(LinePopupMenu, 'Enter Create Line Mode', LineEnterCreateLineModePopupType, Enabled, LinePopupItemClick)
       ELSE
-        AddMenuItem(LinePopupMenu, 'Exit Create Line Mode', LineExitCreateLinePopupType, Enabled, LinePopupItemClick);
+        AddMenuItem(LinePopupMenu, 'Exit Create Line Mode', LineExitCreateLineModePopupType, Enabled, LinePopupItemClick);
     END;
   END ELSE BEGIN
     WITH Lines[LinePopupNumArray[0]] DO BEGIN
