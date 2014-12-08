@@ -121,6 +121,12 @@ PROCEDURE StartLineEdit(Line : Integer);
 PROCEDURE StartTrackCircuitEdit(TC : Integer);
 { Set up a track-circuit edit - this is where we save the track circuit's original state so we can revert to it regardless of how many edits there are }
 
+PROCEDURE TurnCreateLineModeOn;
+{ Turn create-line mode on }
+
+PROCEDURE TurnCreateLineModeOff;
+{ Turn create-line mode off }
+
 PROCEDURE TurnEditModeOn(S, P, BS, Line, TC : Integer);
 { Turn edit Mode on }
 
@@ -2570,6 +2576,21 @@ BEGIN
       Log('EG TurnEditModeOff: ' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { TurnEditModeOff }
+
+PROCEDURE TurnCreateLineModeOn;
+{ Turn create-line mode on }
+BEGIN
+  CreateLineMode := True;
+  InvalidateScreen(UnitRef, 'TurnCreateLineModeOn');
+END; { TurnCreateLineModeOn }
+
+PROCEDURE TurnCreateLineModeOff;
+{ Turn create-line mode off }
+BEGIN
+  CreateLineMode := False;
+  ShowLineHandles := False;
+  InvalidateScreen(UnitRef, 'TurnCreateLineModeOff');
+END; { TurnCreateLineModeOff }
 
 PROCEDURE AddTrackCircuit(Line : Integer; NewTrackCircuit : Boolean);
 { Add a track circuit to a line }

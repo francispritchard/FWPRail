@@ -1544,10 +1544,10 @@ BEGIN { KeyPressedDown }
                 IF NOT HelpRequired THEN BEGIN
                   IF NOT CreateLineMode THEN BEGIN
                     TurnEditModeOn(UnknownSignal, UnknownPoint, UnknownBufferStop, UnknownLine, UnknownTrackCircuit);
-                    CreateLineMode := True;
+                    TurnCreateLineModeOn;
                   END ELSE BEGIN
                     TurnEditModeOff;
-                    CreateLineMode := False;
+                    TurnCreateLineModeOff;
                   END;
                   InvalidateScreen(UnitRef, 'select create line mode');
                 END;
