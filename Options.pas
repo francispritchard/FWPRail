@@ -428,16 +428,16 @@ VAR
   DefaultOptionsWindowValueListEditorCol0Width : Integer = 100;
   OptionsWindowValueListEditorCol0Width : Integer = 100;
 
-  DefaultPathToRailDataFiles : String = 'C:\Doc\Google Drive\RAD Studio\Projects\Rail Data Files\';
+  DefaultPathToRailDataFiles : String = 'C:\Doc\DropBox\RAD Studio\Projects\Rail Data Files\';
   PathToRailDataFiles : String;
 
-  DefaultPathToRailSourceFiles : String = 'C:\Doc\Google Drive\RAD Studio\Projects\Rail\';
+  DefaultPathToRailSourceFiles : String = 'C:\Doc\DropBox\RAD Studio\Projects\Rail\';
   PathToRailSourceFiles : String;
 
-  DefaultPathToLogFiles : String = 'C:\Doc\Google Drive\RAD Studio\Projects\Rail Data Files\Logs\';
+  DefaultPathToLogFiles : String = 'C:\Doc\DropBox\RAD Studio\Projects\Rail Data Files\Logs\';
   PathToLogFiles : String;
 
-  DefaultPathToLocoLogFiles : String = 'C:\Doc\Google Drive\RAD Studio\Projects\Rail Data Files\LocoLogs\';
+  DefaultPathToLocoLogFiles : String = 'C:\Doc\DropBox\RAD Studio\Projects\Rail Data Files\LocoLogs\';
   PathToLocoLogFiles : String;
 
   DefaultPlatformColour : TColour = clFWPPlatformColour;

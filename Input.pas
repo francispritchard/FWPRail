@@ -1476,8 +1476,8 @@ BEGIN { KeyPressedDown }
               BEGIN
                 HelpMsg := 'Save bitmap to file';
                 IF NOT HelpRequired THEN BEGIN
-                  RailWindowBitmap.SaveToFile('C:\Doc\Google Drive\RAD Studio\Projects\Rail\Bitmap.bmp');
-                  Debug('Bitmap saved at C:\Doc\Google Drive\RAD Studio\Projects\Rail\RailTemp.Bitmap.bmp');
+                  RailWindowBitmap.SaveToFile('C:\Doc\DropBox\RAD Studio\Projects\Rail\Bitmap.bmp');
+                  Debug('Bitmap saved at C:\Doc\DropBox\RAD Studio\Projects\Rail\RailTemp.Bitmap.bmp');
                 END;
               END;
             Ctrl: {B}
