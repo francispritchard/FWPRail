@@ -49,7 +49,7 @@ PROCEDURE ChangeSignalDirection(S : Integer);
 FUNCTION CheckIfAnyEditedDataHasChanged : Boolean;
 { Ask whether we want to save amended data (if any) before selecting another signal }
 
-PROCEDURE ClearEditValueList;
+PROCEDURE ClearEditValueListAndEditedItem;
 { Empty the value list so as not to display anyting if we click on an unrecognised item, or a blank bit of screen }
 
 PROCEDURE CreatePoint(LineArray : IntegerArrayType; TempPointType : TypeOfPoint; X, Y : Integer);
@@ -453,7 +453,7 @@ BEGIN
   END; {WITH}
 END; { WritePickListValue }
 
-PROCEDURE ClearEditValueList;
+PROCEDURE ClearEditValueListAndEditedItem;
 { Empty the value list so as not to display anything if we click on an unrecognised item, or a blank bit of screen }
 BEGIN
   ValueListToBeCleared := True;
@@ -482,7 +482,7 @@ BEGIN
     SaveChangesAndExitButton.Enabled := False;
     ExitWithoutSavingButton.Enabled := False;
   END; {WITH}
-END; { ClearEditValueList }
+END; { ClearEditValueListAndEditedItem }
 
 PROCEDURE ProcessLocationsCheckListBoxChecks;
 { See which locations are ticked and update the array. This shouldn't need validation as the user has not been given the opportunity of introducing errors. }
@@ -1489,7 +1489,7 @@ BEGIN
 //      CalculateTrackCircuitPositions;
     END;
 
-    ClearEditValueList;
+    ClearEditValueListAndEditedItem;
 
     { And redraw the screen }
     CalculateTCAdjacentSignals;
@@ -1516,7 +1516,7 @@ BEGIN
     UndoChangesButton.Enabled := False;
     SaveChangesAndExitButton.Enabled := False;
 
-    ClearEditValueList;
+    ClearEditValueListAndEditedItem;
 
     { And redraw the screen }
     InvalidateScreen(UnitRef, 'EditSaveButtonClick');
@@ -1794,7 +1794,7 @@ BEGIN
 
           { Clear the data from the value-list editor }
           WITH EditWindow DO BEGIN
-            ClearEditValueList;
+            ClearEditValueListAndEditedItem;
             UndoChangesButton.Enabled := False;
             SaveChangesAndExitButton.Enabled := False;
             ExitWithoutSavingButton.Enabled := False;
@@ -2068,7 +2068,7 @@ BEGIN
 
         { Clear the data from the value-list editor }
         WITH EditWindow DO BEGIN
-          ClearEditValueList;
+          ClearEditValueListAndEditedItem;
           UndoChangesButton.Enabled := False;
           SaveChangesAndExitButton.Enabled := False;
           ExitWithoutSavingButton.Enabled := False;
@@ -2553,7 +2553,7 @@ BEGIN
       EditMode := False;
       Application.Icon.Handle := SaveIconHandle;
 
-      ClearEditValueList;
+      ClearEditValueListAndEditedItem;
 
       { and force a redraw so that the highlighted signal/point etc. is de-highlighted }
       FWPRailWindow.Repaint;
@@ -2813,7 +2813,7 @@ BEGIN
 
         { Clear the data from the value-list editor }
         WITH EditWindow DO BEGIN
-          ClearEditValueList;
+          ClearEditValueListAndEditedItem;
           UndoChangesButton.Enabled := False;
           SaveChangesAndExitButton.Enabled := False;
           ExitWithoutSavingButton.Enabled := False;

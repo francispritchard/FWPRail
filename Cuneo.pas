@@ -1709,7 +1709,7 @@ BEGIN
 
                   IF NOT EndOfLineDragging AND NOT WholeLineDragging THEN BEGIN
                     CheckIfAnyEditedDataHasChanged;
-                    ClearEditValueList;
+                    ClearEditValueListAndEditedItem;
                   END;
 
                   IF Zooming THEN
