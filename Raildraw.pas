@@ -2262,14 +2262,15 @@ BEGIN { DrawSignal }
             END; {WITH}
           END;
         END ELSE BEGIN
+         { Now draw indicators if any }
+          IF Signal_Indicator <> NoIndicator THEN
+            DrawIndicators(S);
+
+          { Sort out what colour the signal aspect should be }
           IF EditedSignal = S THEN BEGIN
             SColour1 := ScreenComponentEditedColour1;
             SColour2 := ScreenComponentEditedColour1;
           END ELSE BEGIN
-            { Now draw indicators if any }
-            IF Signal_Indicator <> NoIndicator THEN
-              DrawIndicators(S);
-
             IF Signal_OutOfUse
             OR { a safeguard - turn the signal off altogether! }
                ((Signal_AdjacentLine <> UnknownLine) AND (Lines[Signal_AdjacentLine].Line_TC = UnknownTrackCircuit))
