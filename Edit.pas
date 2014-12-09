@@ -2440,12 +2440,18 @@ PROCEDURE StartLineEdit(Line : Integer);
 { Set up a line edit - this is where we save the line's original state so we can revert to it regardless of how many edits there are }
 CONST
   DrawHandles = True;
+
 VAR
+  SaveEditedLine : Integer;
   TempLine : Integer;
 
 BEGIN
-  IF Line <> EditedLine THEN BEGIN
-    ClearEditValueList;
+  SaveEditedLine := EditedLine;
+  ClearEditValueListAndEditedItem;
+
+  { If the line was already being edited, it has now been deselected by ClearEditValueListAndEditedItem, otherwise begin edit it }
+  IF Line <> SaveEditedLine THEN BEGIN
+    ClearEditValueListAndEditedItem;
     EditedLine := Line;
     SaveLineRec := Lines[EditedLine];
     SaveLineNum := EditedLine;
@@ -2464,9 +2470,15 @@ END; { StartLineEdit }
 
 PROCEDURE StartPointEdit(P : Integer);
 { Set up a point edit - this is where we save the signal's original state so we can revert to it regardless of how many edits there are }
+VAR
+  SaveEditedPoint : Integer;
+
 BEGIN
-  IF P <> EditedPoint THEN BEGIN
-    ClearEditValueList;
+  SaveEditedPoint := EditedPoint;
+  ClearEditValueListAndEditedItem;
+
+  { If the point was already being edited, it has now been deselected by ClearEditValueListAndEditedItem, otherwise begin edit it }
+  IF P <> SaveEditedPoint THEN BEGIN
     EditedPoint := P;
     SavePointRec := Points[EditedPoint];
     SavePointNum := EditedPoint;
@@ -2476,9 +2488,15 @@ END; { StartPointEdit }
 
 PROCEDURE StartSignalEdit(S : Integer);
 { Set up a signal edit - this is where we save the signal's original state so we can revert to it regardless of how many edits there are }
+VAR
+  SaveEditedSignal : Integer;
+
 BEGIN
-  IF S <> EditedSignal THEN BEGIN
-    ClearEditValueList;
+  SaveEditedSignal := EditedSignal;
+  ClearEditValueListAndEditedItem;
+
+  { If the signal was already being edited, it has now been deselected by ClearEditValueListAndEditedItem, otherwise begin edit it }
+  IF S <> SaveEditedSignal THEN BEGIN
     EditedSignal := S;
     SaveSignalRec := Signals[EditedSignal];
     SaveSignalNum := EditedSignal;
@@ -2488,9 +2506,15 @@ END; { StartSignalEdit }
 
 PROCEDURE StartTrackCircuitEdit(TC : Integer);
 { Set up a track-circuit edit - this is where we save the track circuit's original state so we can revert to it regardless of how many edits there are }
+VAR
+  SaveEditedTrackCircuit : Integer;
+
 BEGIN
-  IF TC <> EditedTrackCircuit THEN BEGIN
-    ClearEditValueList;
+  SaveEditedTrackCircuit := EditedTrackCircuit;
+  ClearEditValueListAndEditedItem;
+
+  { If the track circuit was already being edited, it has now been deselected by ClearEditValueListAndEditedItem, otherwise begin edit it }
+  IF TC <> SaveEditedTrackCircuit THEN BEGIN
     EditedTrackCircuit := TC;
     SaveTrackCircuitRec := TrackCircuits[EditedTrackCircuit];
     SaveTrackCircuitNum := EditedTrackCircuit;
