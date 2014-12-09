@@ -2981,36 +2981,43 @@ BEGIN
           Pen.Color := clYellow;
           LineTo(ScreenFarX, ScreenFarY);
         END ELSE
-          IF Point_PresentState = PointOutOfAction THEN BEGIN
+          IF P = EditedPoint THEN BEGIN
+            Pen.Color := ScreenComponentEditedColour1;
             Pen.Width := 2;
             LineTo(ScreenFarX, ScreenY);
             MoveTo(ScreenX, ScreenY);
             LineTo(ScreenFarX, ScreenFarY);
-          END ELSE BEGIN
-            { a normal state }
-            IF NOT ShowPointDefaultState THEN BEGIN
-              IF Point_PresentState = Straight THEN
-                LineTo(ScreenFarX, ScreenY)
-              ELSE
-                IF Point_PresentState = Diverging THEN
-                  LineTo(ScreenFarX, ScreenFarY)
-                ELSE BEGIN
-                  { PresentState = PointStateUnknown }
-                  IF ShowPointDefaultState THEN
-                    Pen.Color := ForegroundColour;
-                  LineTo(ScreenFarX, ScreenY);
-                  MoveTo(ScreenX, ScreenY);
-                  LineTo(ScreenFarX, ScreenFarY);
-                END;
+          END ELSE
+            IF Point_PresentState = PointOutOfAction THEN BEGIN
+              Pen.Width := 2;
+              LineTo(ScreenFarX, ScreenY);
+              MoveTo(ScreenX, ScreenY);
+              LineTo(ScreenFarX, ScreenFarY);
             END ELSE BEGIN
-              { ShowPointDefaultState }
-              IF Point_DefaultState = Straight THEN
-                LineTo(ScreenFarX, ScreenY)
-              ELSE
-                IF Point_DefaultState = Diverging THEN
-                  LineTo(ScreenFarX, ScreenFarY);
+              { a normal state }
+              IF NOT ShowPointDefaultState THEN BEGIN
+                IF Point_PresentState = Straight THEN
+                  LineTo(ScreenFarX, ScreenY)
+                ELSE
+                  IF Point_PresentState = Diverging THEN
+                    LineTo(ScreenFarX, ScreenFarY)
+                  ELSE BEGIN
+                    { PresentState = PointStateUnknown }
+                    IF ShowPointDefaultState THEN
+                      Pen.Color := ForegroundColour;
+                    LineTo(ScreenFarX, ScreenY);
+                    MoveTo(ScreenX, ScreenY);
+                    LineTo(ScreenFarX, ScreenFarY);
+                  END;
+              END ELSE BEGIN
+                { ShowPointDefaultState }
+                IF Point_DefaultState = Straight THEN
+                  LineTo(ScreenFarX, ScreenY)
+                ELSE
+                  IF Point_DefaultState = Diverging THEN
+                    LineTo(ScreenFarX, ScreenFarY);
+              END;
             END;
-          END;
       END; {WITH}
     END; {WITH}
   EXCEPT
