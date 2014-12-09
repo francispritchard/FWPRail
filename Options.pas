@@ -428,17 +428,9 @@ VAR
   DefaultOptionsWindowValueListEditorCol0Width : Integer = 100;
   OptionsWindowValueListEditorCol0Width : Integer = 100;
 
-  DefaultPathToRailDataFiles : String = 'C:\Doc\DropBox\RAD Studio\Projects\Rail Data Files\';
   PathToRailDataFiles : String;
-
-  DefaultPathToRailSourceFiles : String = 'C:\Doc\DropBox\RAD Studio\Projects\Rail\';
   PathToRailSourceFiles : String;
-
-  DefaultPathToLogFiles : String = 'C:\Doc\DropBox\RAD Studio\Projects\Rail Data Files\Logs\';
   PathToLogFiles : String;
-
-  DefaultPathToLocoLogFiles : String = 'C:\Doc\DropBox\RAD Studio\Projects\Rail Data Files\LocoLogs\';
-  PathToLocoLogFiles : String;
 
   DefaultPlatformColour : TColour = clFWPPlatformColour;
   PlatformColour : TColour = clFWPPlatformColour;
@@ -1340,9 +1332,9 @@ BEGIN
     { Check for various user supplied file data.
       NB Track-circuit data is read in separately in the ReadIniFileForTrackCircuitData routine.
     }
-    PathToLogFiles := FWPReadString(FilesSectionStr, PathToLogFilesStr, DefaultPathToLogFiles);
-    PathToRailDataFiles := FWPReadString(FilesSectionStr, PathToRailDataFilesStr, DefaultPathToRailDataFiles);
-    PathToRailSourceFiles := FWPReadString(FilesSectionStr, PathToRailSourceFilesStr, DefaultPathToRailSourceFiles);
+    PathToLogFiles := FWPReadString(FilesSectionStr, PathToLogFilesStr, '');
+    PathToRailDataFiles := FWPReadString(FilesSectionStr, PathToRailDataFilesStr, '');
+    PathToRailSourceFiles := FWPReadString(FilesSectionStr, PathToRailSourceFilesStr, '');
     AreaDataFilename := FWPReadString(FilesSectionStr, AreaDataFilenameStr, DefaultAreaDataFilename);
     AreaDataFilenameSuffix := FWPReadString(FilesSectionStr, AreaDataFilenameSuffixStr, DefaultAreaDataFilenameSuffix);
     DataCheckFileName := FWPReadString(FilesSectionStr, DataCheckFileNameStr, DefaultDataCheckFileName);

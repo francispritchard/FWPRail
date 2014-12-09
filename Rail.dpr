@@ -48,7 +48,8 @@ USES
   Logging IN 'Logging.pas' {LoggingWindow},
   Main IN 'Main.pas' {MainWindow},
   Train IN 'Train.pas' {TrainForm},
-  DataCheck IN 'DataCheck.pas' {DataCheckForm};
+  DataCheck IN 'DataCheck.pas' {DataCheckForm},
+  Install IN 'Install.pas' {InstallForm};
 
 VAR
   I : Integer;
@@ -77,6 +78,7 @@ BEGIN
   Application.CreateForm(TMainWindow, MainWindow);
   Application.CreateForm(TTrainForm, TrainForm);
   Application.CreateForm(TDataCheckForm, DataCheckForm);
+  Application.CreateForm(TInstallForm, InstallForm);
   Application.Run;
 END { Rail }.
 
