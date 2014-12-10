@@ -482,6 +482,8 @@ BEGIN
     SaveChangesAndExitButton.Enabled := False;
     ExitWithoutSavingButton.Enabled := False;
   END; {WITH}
+
+  InvalidateScreen(UnitRef, 'ClearEditValueListAndEditedItem');
 END; { ClearEditValueListAndEditedItem }
 
 PROCEDURE ProcessLocationsCheckListBoxChecks;

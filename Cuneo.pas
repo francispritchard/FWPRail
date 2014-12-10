@@ -1717,6 +1717,8 @@ BEGIN
                 END;
         END ELSE
           IF ButtonPress = mbRight THEN BEGIN
+            ClearEditValueListAndEditedItem;
+
             SetSignalPopupNum(UnknownLine);
             SetPointPopupNum(UnknownPoint);
             ClearLinePopupNumArray;
@@ -1926,7 +1928,8 @@ BEGIN
   END;
 
   { Set the signal-dragging timer }
-  CuneoWindow.MouseButtonDownTimer.Enabled := True;
+  IF Button = mbLeft THEN
+    CuneoWindow.MouseButtonDownTimer.Enabled := True;
 
   { See if the keyboard is locked }
   IF KeyBoardandMouseLocked THEN
