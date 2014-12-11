@@ -43,9 +43,6 @@ PROCEDURE InitialiseLocationLines;
 PROCEDURE InitialiseMainUnit;
 { Such routines as this allow us to initialises the units in the order we wish }
 
-PROCEDURE NoteOutOfUseFeedbackUnitTrackCircuitsAtStartup;
-{ Work out which track circuits are unavailable because we're not getting initial feedback from them }
-
 PROCEDURE RestoreAllSignalsToPreviousState;
 { Sets all off signals to how they were before short circuit }
 
@@ -1069,35 +1066,6 @@ PROCEDURE SetTrackCircuitState{4}(TC : Integer; NewState : TrackCircuitStateType
 BEGIN
   SetTrackCircuitStateMainProcedure(UnknownLocoChip, TC, NewState, Explanation);
 END; { SetTrackCircuitState-4 }
-
-PROCEDURE NoteOutOfUseFeedbackUnitTrackCircuitsAtStartup;
-{ Work out which track circuits are unavailable because we're not getting initial feedback from them }
-VAR
-  FeedbackData : FeedbackRec;
-  FeedbackType : TypeOfFeedBackType;
-  I, J : Integer;
-  TC : Integer;
-  TCAboveFeedbackUnit : Integer;
-
-BEGIN
-  TRY
-    FOR I := 0 TO High(NoFeedbackList) DO BEGIN
-      FeedbackData.Feedback_Unit := StrToInt(NoFeedbackList[I]);
-      FOR J := 1 TO 8 DO BEGIN
-        FeedbackData.Feedback_Input := J;
-        ExtractDataFromFeedback(FeedbackData, TCAboveFeedbackUnit, FeedbackType, TC);
-        IF FeedbackType = TrackCircuitFeedbackDetector THEN BEGIN
-          IF TC <> UnknownTrackCircuit THEN
-            IF GetTrackCircuitState(TC) <> TCOutOfUseSetByUser THEN
-              SetTrackCircuitState(TC, TCOutOfUseAsNoFeedbackReceived, 'no feedback obtained at startup');
-        END;
-      END;
-    END; {FOR}
-  EXCEPT
-    ON E : Exception DO
-      Log('EG NoteOutOfUseFeedbackUnitTrackCircuitsAtStartup:' + E.ClassName + ' error raised, with message: '+ E.Message);
-  END; {TRY}
-END; { NoteOutOfUseFeedbackUnitTrackCircuitsAtStartup }
 
 PROCEDURE TurnAutoModeOff(User : Boolean);
 { Turns auto mode off }

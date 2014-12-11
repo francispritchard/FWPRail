@@ -40,6 +40,9 @@ PROCEDURE ExtractDataFromFeedback(Data : FeedbackRec; OUT TCAboveFeedbackUnit : 
 PROCEDURE InitialiseLocoSpeedTiming(L : LocoIndex);
 { Set up the variables for timing locos to ascertain speed in MPH }
 
+PROCEDURE NoteOutOfUseFeedbackUnitTrackCircuitsAtStartup;
+{ Work out which track circuits are unavailable because we're not getting initial feedback from them }
+
 PROCEDURE WriteDataToFeedbackWindow{1}(FeedbackString : String); Overload;
 { Overloaded - this is version 1 (version 2 is not exported) - write text to the feedback window }
 
@@ -68,6 +71,35 @@ PROCEDURE Log(Str : String);
 BEGIN
   WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
+
+PROCEDURE NoteOutOfUseFeedbackUnitTrackCircuitsAtStartup;
+{ Work out which track circuits are unavailable because we're not getting initial feedback from them }
+VAR
+  FeedbackData : FeedbackRec;
+  FeedbackType : TypeOfFeedBackType;
+  I, J : Integer;
+  TC : Integer;
+  TCAboveFeedbackUnit : Integer;
+
+BEGIN
+  TRY
+    FOR I := 0 TO High(NoFeedbackList) DO BEGIN
+      FeedbackData.Feedback_Unit := StrToInt(NoFeedbackList[I]);
+      FOR J := 1 TO 8 DO BEGIN
+        FeedbackData.Feedback_Input := J;
+        ExtractDataFromFeedback(FeedbackData, TCAboveFeedbackUnit, FeedbackType, TC);
+        IF FeedbackType = TrackCircuitFeedbackDetector THEN BEGIN
+          IF TC <> UnknownTrackCircuit THEN
+            IF GetTrackCircuitState(TC) <> TCOutOfUseSetByUser THEN
+              SetTrackCircuitState(TC, TCOutOfUseAsNoFeedbackReceived, 'no feedback obtained at startup');
+        END;
+      END;
+    END; {FOR}
+  EXCEPT
+    ON E : Exception DO
+      Log('EG NoteOutOfUseFeedbackUnitTrackCircuitsAtStartup:' + E.ClassName + ' error raised, with message: '+ E.Message);
+  END; {TRY}
+END; { NoteOutOfUseFeedbackUnitTrackCircuitsAtStartup }
 
 PROCEDURE ExtractDataFromFeedback(Data : FeedbackRec; OUT TCAboveFeedbackUnit : Integer; OUT FeedbackType : TypeOfFeedBackType; OUT Num : Integer);
 { For track circuits only, returns the track-circuit number - otherwise returns other data }
