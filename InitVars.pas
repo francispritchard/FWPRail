@@ -235,7 +235,6 @@ TYPE
 
   FeedbackRec = RECORD
     Feedback_Input : Integer;
-    Feedback_Input1Type : TypeOfFeedbackType;
     Feedback_InputOn : Boolean;
     Feedback_InputTypeArray : ARRAY [1..8] OF TypeOfFeedbackType;
     Feedback_TCAboveUnit : Integer;
@@ -6804,21 +6803,39 @@ BEGIN
             END;
 
             IF ErrorMsg = '' THEN BEGIN
-              IF Feedback_Type = MixedFeedbackDetectors THEN BEGIN
-                { the inputs on the unit are mixed, i.e. they come from different detector types }
-                Input := 1;
-                WHILE (Input <= 8) AND (ErrorMsg = '') DO BEGIN
-                  FieldName := 'Input' + IntToStr(Input) + 'Type';
-                  IF FieldByName(FieldName).AsString = '' THEN
-                    ErrorMsg := 'missing feedback type for Input' + IntToStr(Input) + 'Type'
-                  ELSE BEGIN
-                    Feedback_InputTypeArray[Input] := StrToFeedbackUnitType(FieldByName(FieldName).AsString);
-                    IF Feedback_InputTypeArray[Input] = UnknownFeedbackDetectorType THEN
-                      ErrorMsg := 'unknown feedback type for Innput' + IntToStr(Input) + 'Type';
+              CASE Feedback_Type OF
+                LineFeedbackDetector:
+                  FOR Input := 1 TO 8 DO
+                    Feedback_InputTypeArray[Input] := LineFeedbackDetector;
+                MixedFeedbackDetectors:
+                  BEGIN
+                    { the inputs on the unit are mixed, i.e. they come from different detector types }
+                    Input := 1;
+                    WHILE (Input <= 8) AND (ErrorMsg = '') DO BEGIN
+                      FieldName := 'Input' + IntToStr(Input) + 'Type';
+                      IF FieldByName(FieldName).AsString = '' THEN
+                        ErrorMsg := 'missing feedback type for Input' + IntToStr(Input) + 'Type'
+                      ELSE BEGIN
+                        Feedback_InputTypeArray[Input] := StrToFeedbackUnitType(FieldByName(FieldName).AsString);
+                        IF Feedback_InputTypeArray[Input] = UnknownFeedbackDetectorType THEN
+                          ErrorMsg := 'unknown feedback type for Input' + IntToStr(Input) + 'Type';
+                      END;
+                      Inc(Input);
+                    END; {WHILE}
                   END;
-                  Inc(Input);
-                END; {WHILE}
-              END;
+                PointFeedbackDetector:
+                  FOR Input := 1 TO 8 DO
+                    Feedback_InputTypeArray[Input] := PointFeedbackDetector;
+                TrackCircuitFeedbackDetector:
+                  FOR Input := 1 TO 8 DO
+                    Feedback_InputTypeArray[Input] := TrackCircuitFeedbackDetector;
+                TRSPlungerFeedbackDetector:
+                  FOR Input := 1 TO 8 DO
+                    Feedback_InputTypeArray[Input] := TRSPlungerFeedbackDetector;
+                UnknownFeedbackDetectorType:
+                  FOR Input := 1 TO 8 DO
+                    Feedback_InputTypeArray[Input] := UnknownFeedbackDetectorType;
+              END; {CASE}
             END;
 
             IF ErrorMsg = '' THEN BEGIN
