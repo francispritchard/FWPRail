@@ -37,14 +37,28 @@ BEGIN
   InstallOk := True;
   SetLength(PermissibleStrings, 0);
 
-  IF NOT GetStringDataFromUser('Enter Path To Rail Data Files', '', PermissibleStrings, PathToRailDataFiles) THEN
+  IF NOT GetStringDataFromUser('Enter Path To Rail Data Files', '', PermissibleStrings, PathToRailDataFiles) THEN BEGIN
     ShowMessage('No data file path supplied - install cancelled');
+    InstallOK := False;
+  END;
 
-  IF NOT GetStringDataFromUser('Enter Path To Rail Source Files', '', PermissibleStrings, PathToRailSourceFiles) THEN
-    ShowMessage('No source file path supplied - install cancelled');
+  IF InstallOK THEN BEGIN
+    IF NOT GetStringDataFromUser('Enter Path To Rail Source Files', '', PermissibleStrings, PathToRailSourceFiles) THEN BEGIN
+      ShowMessage('No source file path supplied - install cancelled');
+      InstallOK := False;
+    END;
+  END;
 
-  IF NOT GetStringDataFromUser('Enter Path To Log Files', '', PermissibleStrings, PathToLogFiles) THEN
-    ShowMessage('No log file supplied - install cancelled');
+  IF InstallOk THEN BEGIN
+    IF NOT GetStringDataFromUser('Enter Path To Log Files', '', PermissibleStrings, PathToLogFiles) THEN BEGIN
+      ShowMessage('No log file supplied - install cancelled');
+      InstallOK := False;
+    END;
+  END;
+
+  IF InstallOK THEN BEGIN
+
+  END;
 END; { GetInitialisationData; }
 
 END { Install }.
