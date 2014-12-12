@@ -3335,103 +3335,108 @@ VAR
 BEGIN
   Result := False;
 
-  { Create the TCPIP form here so we know it is available before we start using it }
-  IF TCPIPForm = NIL THEN BEGIN
-    TCPIPForm := TTCPIPForm.Create(Application);
-    TCPIPForm.Update;
-  END;
+  TRY
+    { Create the TCPIP form here so we know it is available before we start using it }
+    IF TCPIPForm = NIL THEN BEGIN
+      TCPIPForm := TTCPIPForm.Create(Application);
+      TCPIPForm.Update;
+    END;
 
-  LenzConnection := NoConnection;
+    LenzConnection := NoConnection;
 
-  CASE DesiredLenzConnection OF
-    EthernetConnection:
-      BEGIN
-        Log('X! Checking Ethernet connection');
-        { See if the Ethernet connection is up and running }
-        TCPIPForm.TCPIPFormShow(LenzWindow);
-        TCPIPForm.CreateTCPClients(EthernetConnection);
-        LenzConnection := EthernetConnection;
-      END;
-    USBConnection:
-      BEGIN
-        Log('X! Checking USB connection');
-        { First see if the Lenz server program is running via the USB Connection. (If it's connected, it's assumed that we wish to try it first). }
-        IF IsProgramRunning('LI-Server') THEN
-          { The LI-Server.exe program is already running - better kill it, as we can't programmaticaly start the server itself }
-          StopLANUSBServer;
-
-        StartLANUSBServer;
-        IF IsProgramRunning('LI-Server') THEN BEGIN
-          Log('X& LI-Server.exe is running');
-
+    CASE DesiredLenzConnection OF
+      EthernetConnection:
+        BEGIN
+          Log('X! Checking Ethernet connection');
+          { See if the Ethernet connection is up and running }
           TCPIPForm.TCPIPFormShow(LenzWindow);
-          TCPIPForm.CreateTCPClients(USBConnection);
-          LenzConnection := USBConnection;
+          TCPIPForm.CreateTCPClients(EthernetConnection);
+          LenzConnection := EthernetConnection;
         END;
-      END;
-  END; {CASE}
+      USBConnection:
+        BEGIN
+          Log('X! Checking USB connection');
+          { First see if the Lenz server program is running via the USB Connection. (If it's connected, it's assumed that we wish to try it first). }
+          IF IsProgramRunning('LI-Server') THEN
+            { The LI-Server.exe program is already running - better kill it, as we can't programmaticaly start the server itself }
+            StopLANUSBServer;
 
-  IF LenzConnection = NoConnection THEN
-    SetSystemOffline('System offline as no connection to the Lenz system {BLANKLINEBEFORE}', SoundWarning)
-  ELSE BEGIN
-    SystemOnline := True;
-    SetCaption(FWPRailWindow, '');
-    Application.Icon := OnlineIcon;
-  END;
+          StartLANUSBServer;
+          IF IsProgramRunning('LI-Server') THEN BEGIN
+            Log('X& LI-Server.exe is running');
 
-  FOR P := 0 TO High(Points) DO
-    IF Points[P].Point_PresentState <> PointStateUnknown THEN
-      Points[P].Point_RequiredState := Points[P].Point_PresentState;
+            TCPIPForm.TCPIPFormShow(LenzWindow);
+            TCPIPForm.CreateTCPClients(USBConnection);
+            LenzConnection := USBConnection;
+          END;
+        END;
+    END; {CASE}
 
-  GetInitialFeedback(OK);
-  CheckOccupiedLinesAndDiagrams;
+    IF LenzConnection = NoConnection THEN
+      SetSystemOffline('System offline as no connection to the Lenz system {BLANKLINEBEFORE}', SoundWarning)
+    ELSE BEGIN
+      SystemOnline := True;
+      SetCaption(FWPRailWindow, '');
+      Application.Icon := OnlineIcon;
+    END;
 
-  IF OK THEN BEGIN
-    SystemOnline := True;
-    Result := LenzConnection <> NoConnection;
-  END;
+    FOR P := 0 TO High(Points) DO
+      IF Points[P].Point_PresentState <> PointStateUnknown THEN
+        Points[P].Point_RequiredState := Points[P].Point_PresentState;
 
-  IF SystemOnline THEN BEGIN
-    { Read in all the feedback }
-    { Update real signals to match virtual signals in case they were changed offline }
-    S := 0;
-    WHILE S <= High(Signals) DO BEGIN
-      SetSignal(UnknownLocoChipStr, S, Signals[S].Signal_Aspect, True, ForceAWrite);
-      Inc(S);
-    END; {WHILE}
-  END;
+    GetInitialFeedback(OK);
+    CheckOccupiedLinesAndDiagrams;
 
-  { Ditto for points }
-  IF SystemOnline THEN BEGIN
-    Log('P Initially resetting all points that are not at their default state');
-    FOR P := 0 TO High(Points) DO BEGIN
-      IF NOT Points[P].Point_OutOfUse THEN BEGIN
-        IF PointIsLocked(P, LockingMsg) THEN
-          Log('P Not initially resetting P=' + PointToStr(P) + ' as point is ' + LockingMsg)
-        ELSE
-          PullPoint(P, NOT ForcePoint);
-      END;
-    END; {FOR}
-  END;
+    IF OK THEN BEGIN
+      SystemOnline := True;
+      Result := LenzConnection <> NoConnection;
+    END;
 
-  IF NOT SystemOnline THEN
-    Log('X& Not connected to Lenz system')
-  ELSE BEGIN
-    Log('X& System now connected via ' + LenzConnectionToStr(LenzConnection));
-    LenzWindow.LenzOneSecondTimerTick.Enabled := True;
+    IF SystemOnline THEN BEGIN
+      { Read in all the feedback }
+      { Update real signals to match virtual signals in case they were changed offline }
+      S := 0;
+      WHILE S <= High(Signals) DO BEGIN
+        SetSignal(UnknownLocoChipStr, S, Signals[S].Signal_Aspect, True, ForceAWrite);
+        Inc(S);
+      END; {WHILE}
+    END;
 
-    SetUpAllLocationOccupationsAbInitio(False, OK);
-    { and recalculate the journey times }
-    T := 0;
-    WHILE T <= High(Trains) DO BEGIN
-      WITH Trains[T] DO BEGIN
-        IF (Train_LocoChip <> UnknownLocoChip) AND Train_DiagramFound AND (Train_CurrentStatus <> Cancelled) AND (Train_CurrentStatus <> NonMoving) THEN
-          RecalculateJourneyTimes(T, 'as the system is now online');
+    { Ditto for points }   { &&&&& }
+    IF SystemOnline THEN BEGIN
+      Log('P Initially resetting all points that are not at their default state');
+      FOR P := 0 TO High(Points) DO BEGIN
+        IF NOT Points[P].Point_OutOfUse THEN BEGIN
+          IF PointIsLocked(P, LockingMsg) THEN
+            Log('P Not initially resetting P=' + PointToStr(P) + ' as point is ' + LockingMsg)
+          ELSE
+            PullPoint(P, NOT ForcePoint);
+        END;
+      END; {FOR}
+    END;
 
-        Inc(T);
-      END; {WITH}
-    END; {WHILE}
-  END;
+    IF NOT SystemOnline THEN
+      Log('X& Not connected to Lenz system')
+    ELSE BEGIN
+      Log('X& System now connected via ' + LenzConnectionToStr(LenzConnection));
+      LenzWindow.LenzOneSecondTimerTick.Enabled := True;
+
+      SetUpAllLocationOccupationsAbInitio(False, OK);
+      { and recalculate the journey times }
+      T := 0;
+      WHILE T <= High(Trains) DO BEGIN
+        WITH Trains[T] DO BEGIN
+          IF (Train_LocoChip <> UnknownLocoChip) AND Train_DiagramFound AND (Train_CurrentStatus <> Cancelled) AND (Train_CurrentStatus <> NonMoving) THEN
+            RecalculateJourneyTimes(T, 'as the system is now online');
+
+          Inc(T);
+        END; {WITH}
+      END; {WHILE}
+    END;
+  EXCEPT
+    ON E : Exception DO
+      Log('EG SetSystemOnline:' + E.ClassName + ' error raised, with message: '+ E.Message);
+  END; {TRY}
 END; { SetSystemOnline }
 
 PROCEDURE InitialiseLenzUnit;
