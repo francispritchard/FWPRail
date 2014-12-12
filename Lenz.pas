@@ -92,9 +92,6 @@ FUNCTION RequestProgrammingModeCV(CV : Integer) : String;
 PROCEDURE ResumeOperations(OUT OK : Boolean);
 { Turns the power back on }
 
-FUNCTION ReturnFeedbackData(UnitNum : Byte; Input : Integer) : Boolean;
-{ Pass data from the feedback array back }
-
 FUNCTION ReturnSystemStatus : LenzSystemRec;
 { Return the present System status }
 
@@ -2701,12 +2698,6 @@ BEGIN
     END;
   END; {WITH}
 END; { SetSignalRouteFunction }
-
-FUNCTION ReturnFeedbackData(UnitNum : Byte; Input : Integer) : Boolean;
-{ Pass data from the feedback array back }
-BEGIN
-  Result := FeedbackDataArray[UnitNum, Input];
-END; { ReturnFeedbackData }
 
 PROCEDURE EmergencyDeselectPoint(P : Integer; VAR OK : Boolean);
 { for use in emergency, when a point remains energised }
