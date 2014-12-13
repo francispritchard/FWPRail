@@ -2683,9 +2683,9 @@ BEGIN
                 Log('X! FeedbackUnitData database will need to be changed for unit ' + IntToStr(TC_FeedbackUnit)
                         + ' as the unit is recorded in the Feedback Unit database as being a ' + FeedbackDetectorTypeToStr(Feedback_DetectorType))
               ELSE
-                IF Feedback_InputTypeArray[TC_FeedbackInput] <> TrackCircuitFeedbackDetector THEN
+                IF Feedback_InputTypeArray[TC_FeedbackInput] <> TrackCircuitFeedback THEN
                   Log('X! FeedbackUnitData database will need to be changed for unit ' + IntToStr(TC_FeedbackUnit) + ' input ' + IntToStr(TC_FeedbackInput)
-                          + ' as the input is recorded in the Feedback Unit database as being a ' + FeedbackDetectorTypeToStr(Feedback_InputTypeArray[TC_FeedbackInput]));
+                          + ' as the input is recorded in the Feedback Unit database as being a ' + FeedbackTypeToStr(Feedback_InputTypeArray[TC_FeedbackInput]));
             END;
           END; {WITH}
         END;

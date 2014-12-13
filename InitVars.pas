@@ -230,6 +230,8 @@ TYPE
   END;
 
   { Feedback-related type declarations }
+  TypeOfFeedback = (TrackCircuitFeedback, TRSPlungerFeedback, PointFeedback, LineFeedback, UnknownFeedback);
+
   TypeOfFeedbackDetector = (TrackCircuitFeedbackDetector, TRSPlungerFeedbackDetector, PointFeedbackDetector, LineFeedbackDetector, MixedFeedbackDetectors,
                             FeedbackDetectorOutOfUse, UnknownFeedbackDetectorType);
 
@@ -237,7 +239,7 @@ TYPE
     Feedback_DetectorType : TypeOfFeedbackDetector;
     Feedback_Input : Integer;
     Feedback_InputOn : Boolean;
-    Feedback_InputTypeArray : ARRAY [1..8] OF TypeOfFeedbackDetector;
+    Feedback_InputTypeArray : ARRAY [1..8] OF TypeOfFeedback;
     Feedback_TCAboveUnit : Integer;
     Feedback_Unit : Byte;
   END;
@@ -1255,8 +1257,14 @@ CONST
   MixedFeedbackDetectorStr = 'Mixed';
   PointFeedbackDetectorStr = 'Point Detector';
   TrackCircuitFeedbackDetectorStr = 'Track Circuit Detector';
-  TRSPlungerFeedbackDetectorStr = 'TRS Plunger';
+  TRSPlungerFeedbackDetectorStr = 'TRS Plunger Detector';
   UnknownFeedbackDetectorStr = 'Unknown';
+
+  LineFeedbackStr = 'Line Feedback';
+  PointFeedbackStr = 'Point Feedback';
+  TrackCircuitFeedbackStr = 'Track Circuit Feedback';
+  TRSPlungerFeedbackStr = 'TRS Plunger Feedback';
+  UnknownFeedbackStr = 'Unknown Feedback Type';
 
   LightLocoStr = 'Light Loco';
   ExpressPassengerStr = 'Express Passenger';
@@ -6799,7 +6807,7 @@ BEGIN
             IF FieldByName(FieldName).AsString = '' THEN
               ErrorMsg := 'missing feedback type'
             ELSE BEGIN
-              Feedback_DetectorType := StrToFeedbackUnitType(FieldByName(FieldName).AsString);
+              Feedback_DetectorType := StrToFeedbackDetectorType(FieldByName(FieldName).AsString);
               IF Feedback_DetectorType = UnknownFeedbackDetectorType THEN
                 ErrorMsg := 'unknown feedback type';
             END;
@@ -6808,18 +6816,19 @@ BEGIN
               CASE Feedback_DetectorType OF
                 LineFeedbackDetector:
                   FOR Input := 1 TO 8 DO
-                    Feedback_InputTypeArray[Input] := LineFeedbackDetector;
+                    Feedback_InputTypeArray[Input] := LineFeedback;
                 MixedFeedbackDetectors:
                   BEGIN
                     { the inputs on the unit are mixed, i.e. they come from different detector types }
                     Input := 1;
                     WHILE (Input <= 8) AND (ErrorMsg = '') DO BEGIN
                       FieldName := 'Input' + IntToStr(Input) + 'Type';
+
                       IF FieldByName(FieldName).AsString = '' THEN
                         ErrorMsg := 'missing feedback type for Input' + IntToStr(Input) + 'Type'
                       ELSE BEGIN
-                        Feedback_InputTypeArray[Input] := StrToFeedbackUnitType(FieldByName(FieldName).AsString);
-                        IF Feedback_InputTypeArray[Input] = UnknownFeedbackDetectorType THEN
+                        Feedback_InputTypeArray[Input] := StrToFeedbackType(FieldByName(FieldName).AsString);
+                        IF Feedback_InputTypeArray[Input] = UnknownFeedback THEN
                           ErrorMsg := 'unknown feedback type for Input' + IntToStr(Input) + 'Type';
                       END;
                       Inc(Input);
@@ -6827,16 +6836,16 @@ BEGIN
                   END;
                 PointFeedbackDetector:
                   FOR Input := 1 TO 8 DO
-                    Feedback_InputTypeArray[Input] := PointFeedbackDetector;
+                    Feedback_InputTypeArray[Input] := PointFeedback;
                 TrackCircuitFeedbackDetector:
                   FOR Input := 1 TO 8 DO
-                    Feedback_InputTypeArray[Input] := TrackCircuitFeedbackDetector;
+                    Feedback_InputTypeArray[Input] := TrackCircuitFeedback;
                 TRSPlungerFeedbackDetector:
                   FOR Input := 1 TO 8 DO
-                    Feedback_InputTypeArray[Input] := TRSPlungerFeedbackDetector;
+                    Feedback_InputTypeArray[Input] := TRSPlungerFeedback;
                 UnknownFeedbackDetectorType:
                   FOR Input := 1 TO 8 DO
-                    Feedback_InputTypeArray[Input] := UnknownFeedbackDetectorType;
+                    Feedback_InputTypeArray[Input] := UnknownFeedback;
               END; {CASE}
             END;
 

@@ -263,8 +263,11 @@ PROCEDURE ExtractSubStringsFromString(Str : String; DelimiterCh : Char; OUT StrA
 FUNCTION ExtractTrackCircuitFromString(Str : String): Integer;
 { Returns a track circuit number from a given string }
 
-FUNCTION FeedbackDetectorTypeToStr(FeedbackType : TypeOfFeedbackDetector) : String;
+FUNCTION FeedbackDetectorTypeToStr(FeedbackDetectorType : TypeOfFeedbackDetector) : String;
 { Convert a feedback detector type to a string }
+
+FUNCTION FeedbackTypeToStr(FeedbackType : TypeOfFeedback) : String;
+{ Convert a feedback type to a string }
 
 FUNCTION FinalJourney(T : TrainIndex; CurrentJourney : Integer) : Boolean;
 { Returns true if the current journey is the final one }
@@ -780,8 +783,11 @@ FUNCTION StrToDirectionType(Str : String) : DirectionType;
 FUNCTION StrToEndOfLine(Str : String) : EndOfLineType;
 { Convert a string to an end of line }
 
-FUNCTION StrToFeedbackUnitType(Str : String) : TypeOfFeedbackDetector;
-{ Convert a string to a feedback unit type }
+FUNCTION StrToFeedbackDetectorType(Str : String) : TypeOfFeedbackDetector;
+{ Convert a string to a feedback detector type }
+
+FUNCTION StrToFeedbackType(Str : String) : TypeOfFeedback;
+{ Convert a striing to feedback type }
 
 FUNCTION StrToGradient(Str : String) : GradientType;
 { Convert a string to a gradient }
@@ -6148,26 +6154,43 @@ BEGIN
   END; {CASE}
 END; { GradientToStr }
 
-FUNCTION FeedbackDetectorTypeToStr(FeedbackType : TypeOfFeedbackDetector) : String;
+FUNCTION FeedbackDetectorTypeToStr(FeedbackDetectorType : TypeOfFeedbackDetector) : String;
 { Convert a feedback detector type to a string }
 BEGIN
-  CASE FeedbackType OF
-    TrackCircuitFeedbackDetector:
-      Result := TrackCircuitFeedbackDetectorStr;
-    TRSPlungerFeedbackDetector:
-      Result := TRSPlungerFeedbackDetectorStr;
-    PointFeedbackDetector:
-      Result := PointFeedbackDetectorStr;
+  CASE FeedbackDetectorType OF
+    FeedbackDetectorOutOfUse:
+      Result := FeedbackDetectorOutOfUseStr;
     LineFeedbackDetector:
       Result := LineFeedbackDetectorStr;
     MixedFeedbackDetectors:
       Result := MixedFeedbackDetectorStr;
-    FeedbackDetectorOutOfUse:
-      Result := FeedbackDetectorOutOfUseStr;
+    PointFeedbackDetector:
+      Result := PointFeedbackDetectorStr;
+    TrackCircuitFeedbackDetector:
+      Result := TrackCircuitFeedbackDetectorStr;
+    TRSPlungerFeedbackDetector:
+      Result := TRSPlungerFeedbackDetectorStr;
   ELSE
     Result := UnknownFeedbackDetectorStr;
   END; {CASE}
 END; { FeedbackDetectorTypeToStr }
+
+FUNCTION FeedbackTypeToStr(FeedbackType : TypeOfFeedback) : String;
+{ Convert a feedback type to a string }
+BEGIN
+  CASE FeedbackType OF
+    LineFeedback:
+      Result := LineFeedbackStr;
+    PointFeedback:
+      Result := PointFeedbackStr;
+    TrackCircuitFeedback:
+      Result := TrackCircuitFeedbackStr;
+    TRSPlungerFeedback:
+      Result := TRSPlungerFeedbackStr;
+  ELSE
+    Result := UnknownFeedbackStr;
+  END; {CASE}
+END; { FeedbackTypeToStr }
 
 FUNCTION NextButton{1}(CONST Dlg: TForm; VAR Context: Integer): TButton;
 { The NextButton can be used to traverse the buttons in a Message Dialogue that has been created with the Dialogs.CreateMessageDialogue function. Initialize the Context
@@ -7803,8 +7826,8 @@ BEGIN
             Result := UnknownEndOfLine;
 END; { StrToEndOfLine }
 
-FUNCTION StrToFeedbackUnitType(Str : String) : TypeOfFeedbackDetector;
-{ Convert a string to a feedback unit type }
+FUNCTION StrToFeedbackDetectorType(Str : String) : TypeOfFeedbackDetector;
+{ Convert a string to a feedback detector type }
 BEGIN
   IF Str = TrackCircuitFeedbackDetectorStr THEN
     Result := TrackCircuitFeedbackDetector
@@ -7825,7 +7848,28 @@ BEGIN
             Result := FeedbackDetectorOutOfUse
           ELSE
              Result := UnknownFeedbackDetectorType;
-END; { StrToFeedbackUnitType }
+END; { StrToFeedbackDetectorType }
+
+FUNCTION StrToFeedbackType(Str : String) : TypeOfFeedback;
+{ Convert a striing to feedback type }
+BEGIN
+  IF Str = LineFeedbackStr THEN
+    Result := LineFeedback
+  ELSE
+    IF Str = LineFeedbackStr THEN
+      Result := LineFeedback
+    ELSE
+      IF Str = PointFeedbackStr THEN
+        Result := PointFeedback
+      ELSE
+        IF Str = TrackCircuitFeedbackStr THEN
+          Result := TrackCircuitFeedback
+        ELSE
+          IF Str = TRSPlungerFeedbackStr THEN
+            Result := TRSPlungerFeedback
+          ELSE
+            Result := UnknownFeedback;
+END; { StrToFeedbackType }
 
 FUNCTION StrToGradient(Str : String) : GradientType;
 { Convert a string to a gradient }

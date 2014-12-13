@@ -146,16 +146,16 @@ BEGIN
           END; {WHILE}
         END ELSE
           IF FeedbackDetectorType = MixedFeedbackDetectors THEN BEGIN
-            IF FeedbackUnitData[F].Feedback_InputTypeArray[Data.Feedback_Input] = PointFeedbackDetector THEN
+            IF FeedbackUnitData[F].Feedback_InputTypeArray[Data.Feedback_Input] = PointFeedback THEN
               FeedbackDetectorType := PointFeedbackDetector
             ELSE
-              IF FeedbackUnitData[F].Feedback_InputTypeArray[Data.Feedback_Input] = TRSPlungerFeedbackDetector THEN
+              IF FeedbackUnitData[F].Feedback_InputTypeArray[Data.Feedback_Input] = TRSPlungerFeedback THEN
                 FeedbackDetectorType := TRSPlungerFeedbackDetector
               ELSE
-                IF FeedbackUnitData[F].Feedback_InputTypeArray[Data.Feedback_Input] = LineFeedbackDetector THEN
+                IF FeedbackUnitData[F].Feedback_InputTypeArray[Data.Feedback_Input] = LineFeedback THEN
                   FeedbackDetectorType := LineFeedbackDetector
                 ELSE
-                  IF FeedbackUnitData[F].Feedback_InputTypeArray[Data.Feedback_Input] = TrackCircuitFeedbackDetector THEN BEGIN
+                  IF FeedbackUnitData[F].Feedback_InputTypeArray[Data.Feedback_Input] = TrackCircuitFeedback THEN BEGIN
                     FeedbackDetectorType := TrackCircuitFeedbackDetector;
                     Num := UnknownTrackCircuit;
                     TCFound := False;
