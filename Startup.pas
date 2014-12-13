@@ -182,7 +182,7 @@ BEGIN
               ELSE
                 OK := False;
       'K':
-        IF IndividualParameterString = 'O' THEN
+        IF IndividualParameterString = 'K' THEN
           { used for development }
           SetMode(LockDebugging, TurnOn);
       'L':
