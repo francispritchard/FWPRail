@@ -209,18 +209,18 @@ BEGIN
             ELSE
               OK := False;
       'N':
-         IF IndividualParameterString = 'NOSPLASH' THEN
-           { do nothing - it's been dealt with at system initialisation (in rail.pas) }
-         ELSE
-           IF IndividualParameterString = 'NOLOG' THEN
-             { Turn of logging }
-             SetMode(LogsCurrentlyKept, False)
-           ELSE
-             IF IndividualParameterString = 'NOBEEP' THEN
-               { Turn of the sound made when bold text appears in the debug window }
-               MakeSoundWhenDebugWindowBoldTextAppears := False
-             ELSE
-               OK := False;
+        IF IndividualParameterString = 'NOSPLASH' THEN
+          { do nothing - it's been dealt with at system initialisation (in rail.pas) }
+        ELSE
+          IF IndividualParameterString = 'NOLOG' THEN
+            { Turn of logging }
+            SetMode(LogsCurrentlyKept, False)
+          ELSE
+            IF IndividualParameterString = 'NOBEEP' THEN
+              { Turn of the sound made when bold text appears in the debug window }
+              MakeSoundWhenDebugWindowBoldTextAppears := False
+            ELSE
+              OK := False;
       'O':
          IF IndividualParameterString = 'OFFLINE' THEN BEGIN
            SystemSetOfflineByCommandLineParameter := True;
