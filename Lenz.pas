@@ -192,7 +192,6 @@ TYPE
 VAR
   ExpectedFeedbackAddress : Byte = 0;
   FeedbackArray : ARRAY [0..127, 0..1] OF Byte; { needs to store upper and lower nibble of data }
-  FeedbackDataArray : ARRAY [1..LastFeedbackUnit + 1, Input1..Input8] OF Boolean;
   OneTimeCodeBeingExecuted : Boolean = False;
   SaveTimeCTSLastFoundSet : Cardinal = 0;
   SaveTimeLastDataReceived : Cardinal = 0;
@@ -619,17 +618,12 @@ VAR
         FOR I := 1 TO 4 DO BEGIN
           IF (B AND BinaryCounter[I]) = BinaryCounter[I] THEN BEGIN
             IF (NewData AND BinaryCounter[I]) = BinaryCounter[I] THEN BEGIN
-              { store the data }
-              FeedbackDataArray[UnitNum + 1, Input + I] := True;
-
               FeedbackChanges.Feedback_Unit := UnitNum + 1;
               FeedbackChanges.Feedback_Input := Input + I;
               FeedbackChanges.Feedback_InputOn := True;
               { decode it and record it for debugging }
               DecodeFeedback(FeedbackChanges);
             END ELSE BEGIN
-              FeedbackDataArray[UnitNum + 1, Input + I] := False;
-
               FeedbackChanges.Feedback_Unit := UnitNum + 1;
               FeedbackChanges.Feedback_Input := Input + I;
               FeedbackChanges.Feedback_InputOn := False;
@@ -3120,18 +3114,10 @@ BEGIN
     FeedbackData.Feedback_Unit := UnitNum + 1;
     FeedbackData.Feedback_Input := Input + I;
     IF (B AND BinaryCounter[I]) = BinaryCounter[I] THEN BEGIN
-      { store it first }
-      {$R-}
-      FeedbackDataArray[UnitNum + 1, Input + I] := True;
-      {$R+}
       FeedbackData.Feedback_InputOn := True;
       { decode it and record it for debugging }
       DecodeFeedback(FeedbackData);
     END ELSE BEGIN
-      { store it first }
-      {$R-}
-      FeedbackDataArray[UnitNum + 1, Input + I] := False;
-      {$R+}
       FeedbackData.Feedback_InputOn := False;
       { decode it and record it for debugging }
       DecodeFeedback(FeedbackData);
@@ -3436,9 +3422,6 @@ CONST
   StopTimer = True;
   WarnUser = True;
 
-VAR
-  I, J : Word;
-
 BEGIN
   { For initial data flow check }
   IF NOT SystemSetOfflineByCommandLineParameter THEN BEGIN
@@ -3465,13 +3448,6 @@ BEGIN
 //        SystemStatus.SecondaryPortEmergencyOff := False;
 //        SystemStatus.SecondaryPortEmergencyStop := False;
 //      END;
-  END;
-
-  { Initialise the feedback data Array }
-  IF SystemOnline THEN BEGIN
-    FOR I := (FirstFeedbackUnit - 1) TO (LastFeedbackUnit - 1) DO
-      FOR J := 1 TO 8 DO
-        FeedbackDataArray[I, J] := False;
   END;
 
   IF SystemOnline THEN
