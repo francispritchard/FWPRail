@@ -34,7 +34,7 @@ VAR
 PROCEDURE DecodeFeedback(FeedbackData : FeedbackRec);
 { Sets track circuits on or off from feedback data supplied }
 
-PROCEDURE ExtractDataFromFeedback(Data : FeedbackRec; OUT TCAboveFeedbackUnit : Integer; OUT FeedbackType : TypeOfFeedBackType; OUT Num : Integer);
+PROCEDURE ExtractDataFromFeedback(Data : FeedbackRec; OUT TCAboveFeedbackUnit : Integer; OUT FeedbackType : TypeOfFeedbackDetector; OUT Num : Integer);
 { For track circuits only, returns the track-circuit number - otherwise returns other data }
 
 PROCEDURE InitialiseLocoSpeedTiming(L : LocoIndex);
@@ -76,7 +76,7 @@ PROCEDURE NoteOutOfUseFeedbackUnitTrackCircuitsAtStartup;
 { Work out which track circuits are unavailable because we're not getting initial feedback from them }
 VAR
   FeedbackData : FeedbackRec;
-  FeedbackType : TypeOfFeedBackType;
+  FeedbackType : TypeOfFeedbackDetector;
   I, J : Integer;
   TC : Integer;
   TCAboveFeedbackUnit : Integer;
@@ -101,7 +101,7 @@ BEGIN
   END; {TRY}
 END; { NoteOutOfUseFeedbackUnitTrackCircuitsAtStartup }
 
-PROCEDURE ExtractDataFromFeedback(Data : FeedbackRec; OUT TCAboveFeedbackUnit : Integer; OUT FeedbackType : TypeOfFeedBackType; OUT Num : Integer);
+PROCEDURE ExtractDataFromFeedback(Data : FeedbackRec; OUT TCAboveFeedbackUnit : Integer; OUT FeedbackType : TypeOfFeedbackDetector; OUT Num : Integer);
 { For track circuits only, returns the track-circuit number - otherwise returns other data }
 VAR
   F : Integer;
@@ -347,7 +347,7 @@ CONST
 VAR
   DebugStr : String;
   DecodedFeedbackNum : Integer;
-  FeedbackType : TypeOfFeedBackType;
+  FeedbackType : TypeOfFeedbackDetector;
   Line : Integer;
   LineFeedbackFound : Boolean;
   LineFound : Boolean;

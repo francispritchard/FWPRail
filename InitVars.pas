@@ -230,15 +230,15 @@ TYPE
   END;
 
   { Feedback-related type declarations }
-  TypeOfFeedbackType = (TrackCircuitFeedbackDetector, TRSPlungerFeedbackDetector, PointFeedbackDetector, LineFeedbackDetector, MixedFeedbackDetectors,
-                        FeedbackDetectorOutOfUse, UnknownFeedbackDetectorType);
+  TypeOfFeedbackDetector = (TrackCircuitFeedbackDetector, TRSPlungerFeedbackDetector, PointFeedbackDetector, LineFeedbackDetector, MixedFeedbackDetectors,
+                            FeedbackDetectorOutOfUse, UnknownFeedbackDetectorType);
 
   FeedbackRec = RECORD
     Feedback_Input : Integer;
     Feedback_InputOn : Boolean;
-    Feedback_InputTypeArray : ARRAY [1..8] OF TypeOfFeedbackType;
+    Feedback_InputTypeArray : ARRAY [1..8] OF TypeOfFeedbackDetector;
     Feedback_TCAboveUnit : Integer;
-    Feedback_Type : TypeOfFeedbackType;
+    Feedback_Type : TypeOfFeedbackDetector;
     Feedback_Unit : Byte;
   END;
 

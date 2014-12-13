@@ -263,7 +263,7 @@ PROCEDURE ExtractSubStringsFromString(Str : String; DelimiterCh : Char; OUT StrA
 FUNCTION ExtractTrackCircuitFromString(Str : String): Integer;
 { Returns a track circuit number from a given string }
 
-FUNCTION FeedbackUnitTypeToStr(FeedbackType : TypeOfFeedBackType) : String;
+FUNCTION FeedbackUnitTypeToStr(FeedbackType : TypeOfFeedbackDetector) : String;
 { Convert a feedback unit type to a string }
 
 FUNCTION FinalJourney(T : TrainIndex; CurrentJourney : Integer) : Boolean;
@@ -780,7 +780,7 @@ FUNCTION StrToDirectionType(Str : String) : DirectionType;
 FUNCTION StrToEndOfLine(Str : String) : EndOfLineType;
 { Convert a string to an end of line }
 
-FUNCTION StrToFeedbackUnitType(Str : String) : TypeOfFeedBackType;
+FUNCTION StrToFeedbackUnitType(Str : String) : TypeOfFeedbackDetector;
 { Convert a string to a feedback unit type }
 
 FUNCTION StrToGradient(Str : String) : GradientType;
@@ -6148,7 +6148,7 @@ BEGIN
   END; {CASE}
 END; { GradientToStr }
 
-FUNCTION FeedbackUnitTypeToStr(FeedbackType : TypeOfFeedBackType) : String;
+FUNCTION FeedbackUnitTypeToStr(FeedbackType : TypeOfFeedbackDetector) : String;
 { Convert a feedback unit type to a string }
 BEGIN
   CASE FeedbackType OF
@@ -7803,7 +7803,7 @@ BEGIN
             Result := UnknownEndOfLine;
 END; { StrToEndOfLine }
 
-FUNCTION StrToFeedbackUnitType(Str : String) : TypeOfFeedBackType;
+FUNCTION StrToFeedbackUnitType(Str : String) : TypeOfFeedbackDetector;
 { Convert a string to a feedback unit type }
 BEGIN
   IF Str = TrackCircuitFeedbackDetectorStr THEN

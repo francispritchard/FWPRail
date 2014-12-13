@@ -828,7 +828,7 @@ VAR
   { Display data relating to track circuits }
   VAR
     ColourNum : Integer;
-    FeedbackType : TypeOfFeedBackType;
+    FeedbackType : TypeOfFeedbackDetector;
     I, J, K : Integer;
     Line : Integer;
     LineDrawn : Boolean;
@@ -3031,7 +3031,7 @@ PROCEDURE DrawPointNum(P : Integer; Colour : TColour);
 VAR
   FeedbackData : FeedbackRec;
   FeedbackNum : Integer;
-  FeedbackType : TypeOfFeedBackType;
+  FeedbackType : TypeOfFeedbackDetector;
   I, J : Integer;
   LockingMsg : String;
   NumberText : String;
@@ -3173,7 +3173,7 @@ VAR
   ColourNum : Integer;
   FeedbackData : FeedbackRec;
   FeedbackNum : Integer;
-  FeedbackType : TypeOfFeedBackType;
+  FeedbackType : TypeOfFeedbackDetector;
   I, J : Integer;
   NumberText : String;
   P : Integer;

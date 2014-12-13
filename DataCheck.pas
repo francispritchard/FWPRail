@@ -77,7 +77,7 @@ VAR
   FeedbackNum1 : Integer;
   FeedbackNumFound : Boolean;
   FeedbackPoint : Integer;
-  FeedbackType : TypeOfFeedBackType;
+  FeedbackType : TypeOfFeedbackDetector;
   I, J : Integer;
   L : Integer;
   LenzPointNum : Integer;
