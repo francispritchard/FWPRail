@@ -339,10 +339,10 @@ BEGIN
               IF ((GetLineAdjacentSignal(L) <> UnknownSignal)
                   AND (Signals[GetLineAdjacentSignal(L)].Signal_Direction = Up)
                   AND NOT Signals[GetLineAdjacentSignal(L)].Signal_OutOfUse)
-              AND (Lines[L].Line_ScreenUpX < SaveScreenUpX)
+              AND (MapGridXToScreenX(Lines[L].Line_GridUpX) < SaveScreenUpX)
               THEN BEGIN
                 Location_LineAtUp := L;
-                SaveScreenUpX := Lines[L].Line_ScreenUpX;
+                SaveScreenUpX := MapGridXToScreenX(Lines[L].Line_GridUpX);
               END ELSE
                 IF ((Lines[L].Line_AdjacentBufferStop <> UnknownBufferStop) AND (GetBufferStopDirection(Lines[L].Line_AdjacentBufferStop) = Up))
                 AND (BufferStops[Lines[L].Line_AdjacentBufferStop].BufferStop_X <= SaveScreenUpX)
@@ -352,10 +352,10 @@ BEGIN
                   IF ((GetLineAdjacentSignal(L) <> UnknownSignal)
                       AND (Signals[GetLineAdjacentSignal(L)].Signal_Direction = Down)
                       AND NOT Signals[GetLineAdjacentSignal(L)].Signal_OutOfUse)
-                  AND (Lines[L].Line_ScreenDownX > SaveScreenDownX)
+                  AND (MapGridXToScreenX(Lines[L].Line_GridDownX) > SaveScreenDownX)
                   THEN BEGIN
                     Location_LineAtDown := L;
-                    SaveScreenDownX := Lines[L].Line_ScreenDownX;
+                    SaveScreenDownX := MapGridXToScreenX(Lines[L].Line_GridDownX);
                   END ELSE
                     IF ((Lines[L].Line_AdjacentBufferStop <> UnknownBufferStop) AND (GetBufferStopDirection(Lines[L].Line_AdjacentBufferStop) = Down))
                     { remember that BufferStops array is dynamic and starts at zero }
