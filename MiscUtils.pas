@@ -263,8 +263,8 @@ PROCEDURE ExtractSubStringsFromString(Str : String; DelimiterCh : Char; OUT StrA
 FUNCTION ExtractTrackCircuitFromString(Str : String): Integer;
 { Returns a track circuit number from a given string }
 
-FUNCTION FeedbackUnitTypeToStr(FeedbackType : TypeOfFeedbackDetector) : String;
-{ Convert a feedback unit type to a string }
+FUNCTION FeedbackDetectorTypeToStr(FeedbackType : TypeOfFeedbackDetector) : String;
+{ Convert a feedback detector type to a string }
 
 FUNCTION FinalJourney(T : TrainIndex; CurrentJourney : Integer) : Boolean;
 { Returns true if the current journey is the final one }
@@ -6148,8 +6148,8 @@ BEGIN
   END; {CASE}
 END; { GradientToStr }
 
-FUNCTION FeedbackUnitTypeToStr(FeedbackType : TypeOfFeedbackDetector) : String;
-{ Convert a feedback unit type to a string }
+FUNCTION FeedbackDetectorTypeToStr(FeedbackType : TypeOfFeedbackDetector) : String;
+{ Convert a feedback detector type to a string }
 BEGIN
   CASE FeedbackType OF
     TrackCircuitFeedbackDetector:
@@ -6167,7 +6167,7 @@ BEGIN
   ELSE
     Result := UnknownFeedbackDetectorStr;
   END; {CASE}
-END; { FeedbackUnitTypeToStr }
+END; { FeedbackDetectorTypeToStr }
 
 FUNCTION NextButton{1}(CONST Dlg: TForm; VAR Context: Integer): TButton;
 { The NextButton can be used to traverse the buttons in a Message Dialogue that has been created with the Dialogs.CreateMessageDialogue function. Initialize the Context

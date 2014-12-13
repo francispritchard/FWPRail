@@ -34,7 +34,7 @@ VAR
 PROCEDURE DecodeFeedback(FeedbackData : FeedbackRec);
 { Sets track circuits on or off from feedback data supplied }
 
-PROCEDURE ExtractDataFromFeedback(Data : FeedbackRec; OUT TCAboveFeedbackUnit : Integer; OUT FeedbackType : TypeOfFeedbackDetector; OUT Num : Integer);
+PROCEDURE ExtractDataFromFeedback(Data : FeedbackRec; OUT TCAboveFeedbackUnit : Integer; OUT FeedbackDetectorType : TypeOfFeedbackDetector; OUT Num : Integer);
 { For track circuits only, returns the track-circuit number - otherwise returns other data }
 
 PROCEDURE InitialiseLocoSpeedTiming(L : LocoIndex);
@@ -101,7 +101,7 @@ BEGIN
   END; {TRY}
 END; { NoteOutOfUseFeedbackUnitTrackCircuitsAtStartup }
 
-PROCEDURE ExtractDataFromFeedback(Data : FeedbackRec; OUT TCAboveFeedbackUnit : Integer; OUT FeedbackType : TypeOfFeedbackDetector; OUT Num : Integer);
+PROCEDURE ExtractDataFromFeedback(Data : FeedbackRec; OUT TCAboveFeedbackUnit : Integer; OUT FeedbackDetectorType : TypeOfFeedbackDetector; OUT Num : Integer);
 { For track circuits only, returns the track-circuit number - otherwise returns other data }
 VAR
   F : Integer;
@@ -127,11 +127,11 @@ BEGIN
         Log('XG Data received from unknown feedback unit ' + IntToStr(Data.Feedback_Unit));
     END ELSE BEGIN
       TCAboveFeedbackUnit := FeedbackUnitData[F].Feedback_TCAboveUnit;
-      FeedbackType := FeedbackUnitData[F].Feedback_Type;
+      FeedbackDetectorType := FeedbackUnitData[F].Feedback_DetectorType;
 
       IF Data.Feedback_Input > 0 THEN BEGIN
         { sometimes this routine is called with Input set to 0 just to ascertain if the unit is active }
-        IF FeedbackType = TrackCircuitFeedbackDetector THEN BEGIN
+        IF FeedbackDetectorType = TrackCircuitFeedbackDetector THEN BEGIN
           Num := UnknownTrackCircuit;
           TCFound := False;
           TC := 0;
@@ -145,18 +145,18 @@ BEGIN
             Inc(TC);
           END; {WHILE}
         END ELSE
-          IF FeedbackType = MixedFeedbackDetectors THEN BEGIN
+          IF FeedbackDetectorType = MixedFeedbackDetectors THEN BEGIN
             IF FeedbackUnitData[F].Feedback_InputTypeArray[Data.Feedback_Input] = PointFeedbackDetector THEN
-              FeedbackType := PointFeedbackDetector
+              FeedbackDetectorType := PointFeedbackDetector
             ELSE
               IF FeedbackUnitData[F].Feedback_InputTypeArray[Data.Feedback_Input] = TRSPlungerFeedbackDetector THEN
-                FeedbackType := TRSPlungerFeedbackDetector
+                FeedbackDetectorType := TRSPlungerFeedbackDetector
               ELSE
                 IF FeedbackUnitData[F].Feedback_InputTypeArray[Data.Feedback_Input] = LineFeedbackDetector THEN
-                  FeedbackType := LineFeedbackDetector
+                  FeedbackDetectorType := LineFeedbackDetector
                 ELSE
                   IF FeedbackUnitData[F].Feedback_InputTypeArray[Data.Feedback_Input] = TrackCircuitFeedbackDetector THEN BEGIN
-                    FeedbackType := TrackCircuitFeedbackDetector;
+                    FeedbackDetectorType := TrackCircuitFeedbackDetector;
                     Num := UnknownTrackCircuit;
                     TCFound := False;
                     TC := 0;
@@ -200,7 +200,7 @@ BEGIN
   IF InFeedbackDebuggingMode THEN BEGIN
     InputStr := IntToStr(Input);
     WITH FeedbackData DO BEGIN
-      CASE Feedback_Type OF
+      CASE Feedback_DetectorType OF
         TrackCircuitFeedbackDetector:
           FeedbackString := ' TC';
         PointFeedbackDetector:
@@ -214,7 +214,7 @@ BEGIN
       ELSE
         FeedbackString := FeedbackString + ' ?';
 
-      IF (Input <> UnknownTrackCircuit) AND (Feedback_Type = TrackCircuitFeedbackDetector) THEN
+      IF (Input <> UnknownTrackCircuit) AND (Feedback_DetectorType = TrackCircuitFeedbackDetector) THEN
         { TCLineArray[0] is only one of a number of possible lines **** }
         IF Length(TrackCircuits[Input].TC_LineArray) > 0 THEN
           FeedbackString := FeedbackString + ' (' + LineToStr(TrackCircuits[Input].TC_LineArray[0]) + ')'
@@ -303,7 +303,7 @@ VAR
 
 BEGIN
   WITH FeedbackData DO BEGIN
-    CASE Feedback_Type OF
+    CASE Feedback_DetectorType OF
       TrackCircuitFeedbackDetector:
         FeedbackString := ' TC';
       PointFeedbackDetector:
@@ -347,7 +347,7 @@ CONST
 VAR
   DebugStr : String;
   DecodedFeedbackNum : Integer;
-  FeedbackType : TypeOfFeedbackDetector;
+  FeedbackDetectorType : TypeOfFeedbackDetector;
   Line : Integer;
   LineFeedbackFound : Boolean;
   LineFound : Boolean;
@@ -515,7 +515,7 @@ BEGIN { DecodeFeedback }
     { Read in the stored data from all the units, in case some has changed whilst we've been busy elsewhere }
     WITH FeedbackData DO BEGIN
       IF (Feedback_Unit >= FirstFeedbackUnit) AND (Feedback_Unit <= LastFeedbackUnit + 1) THEN BEGIN
-        ExtractDataFromFeedback(FeedbackData, TCAboveFeedbackUnit, FeedbackType, DecodedFeedbackNum);
+        ExtractDataFromFeedback(FeedbackData, TCAboveFeedbackUnit, FeedbackDetectorType, DecodedFeedbackNum);
 
         DebugStr := 'Feedback ' + IntToStr(Feedback_Unit) + ' Input ' + IntToStr(Feedback_Input);
         IF FeedbackData.Feedback_InputOn THEN
@@ -523,7 +523,7 @@ BEGIN { DecodeFeedback }
         ELSE
           DebugStr := DebugStr + ' = off';
 
-        CASE FeedbackType OF
+        CASE FeedbackDetectorType OF
           TrackCircuitFeedbackDetector:
             BEGIN
               TC := DecodedFeedbackNum;

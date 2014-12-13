@@ -2678,14 +2678,14 @@ BEGIN
           Log('X! Cannot find feedback record for feedback unit ' + IntToStr(TC_FeedbackUnit))
         ELSE BEGIN
           WITH FeedbackUnitData[FeedbackUnitDataElement] DO BEGIN
-            IF Feedback_Type <> TrackCircuitFeedbackdetector THEN BEGIN
-              IF Feedback_Type <> MixedFeedbackDetectors THEN
+            IF Feedback_DetectorType <> TrackCircuitFeedbackdetector THEN BEGIN
+              IF Feedback_DetectorType <> MixedFeedbackDetectors THEN
                 Log('X! FeedbackUnitData database will need to be changed for unit ' + IntToStr(TC_FeedbackUnit)
-                        + ' as the unit is recorded in the Feedback Unit database as being a ' + FeedbackUnitTypeToStr(Feedback_Type))
+                        + ' as the unit is recorded in the Feedback Unit database as being a ' + FeedbackDetectorTypeToStr(Feedback_DetectorType))
               ELSE
                 IF Feedback_InputTypeArray[TC_FeedbackInput] <> TrackCircuitFeedbackDetector THEN
                   Log('X! FeedbackUnitData database will need to be changed for unit ' + IntToStr(TC_FeedbackUnit) + ' input ' + IntToStr(TC_FeedbackInput)
-                          + ' as the input is recorded in the Feedback Unit database as being a ' + FeedbackUnitTypeToStr(Feedback_InputTypeArray[TC_FeedbackInput]));
+                          + ' as the input is recorded in the Feedback Unit database as being a ' + FeedbackDetectorTypeToStr(Feedback_InputTypeArray[TC_FeedbackInput]));
             END;
           END; {WITH}
         END;

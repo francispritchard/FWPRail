@@ -234,11 +234,11 @@ TYPE
                             FeedbackDetectorOutOfUse, UnknownFeedbackDetectorType);
 
   FeedbackRec = RECORD
+    Feedback_DetectorType : TypeOfFeedbackDetector;
     Feedback_Input : Integer;
     Feedback_InputOn : Boolean;
     Feedback_InputTypeArray : ARRAY [1..8] OF TypeOfFeedbackDetector;
     Feedback_TCAboveUnit : Integer;
-    Feedback_Type : TypeOfFeedbackDetector;
     Feedback_Unit : Byte;
   END;
 
@@ -6429,6 +6429,8 @@ BEGIN
             { And of points from which we've had feedback }
             IF NOT Point_ManualOperation THEN BEGIN
               PointsADOTable.Edit;
+
+              { but only update this if we received feedback from the point at the last startup &&&&&&&&&& }
               IF Points[P].Point_PresentState = PointStateUnknown THEN BEGIN
                 PointsADOTable.FieldByName(Point_LastManualStateAsReadInFieldName).AsString := '';
                 PointsADOTable.FieldByName(Point_LastFeedbackStateAsReadInFieldName).AsString := '';
@@ -6797,13 +6799,13 @@ BEGIN
             IF FieldByName(FieldName).AsString = '' THEN
               ErrorMsg := 'missing feedback type'
             ELSE BEGIN
-              Feedback_Type := StrToFeedbackUnitType(FieldByName(FieldName).AsString);
-              IF Feedback_Type = UnknownFeedbackDetectorType THEN
+              Feedback_DetectorType := StrToFeedbackUnitType(FieldByName(FieldName).AsString);
+              IF Feedback_DetectorType = UnknownFeedbackDetectorType THEN
                 ErrorMsg := 'unknown feedback type';
             END;
 
             IF ErrorMsg = '' THEN BEGIN
-              CASE Feedback_Type OF
+              CASE Feedback_DetectorType OF
                 LineFeedbackDetector:
                   FOR Input := 1 TO 8 DO
                     Feedback_InputTypeArray[Input] := LineFeedbackDetector;
