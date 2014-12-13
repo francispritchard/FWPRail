@@ -598,7 +598,7 @@ VAR
     IF ((UnitNum + 1) < FirstFeedbackUnit) OR ((UnitNum + 1) > LastFeedbackUnit) THEN
       Log('AG Feedback unit number ' + IntToStr(UnitNum + 1) + ' outside designated range')
     ELSE BEGIN
-      { Upper or lower nibble? }
+      { upper or lower nibble? }
       IF (NewData AND 16) <> 16 THEN BEGIN
         { If bit 4 set, inputs are 5 to 8, so increment Input accordingly }
         Input := 0;
@@ -614,19 +614,21 @@ VAR
       IF B = 0 THEN
         // Log('A Feedback unit ' + IntToStr(UnitNum + 1) + ': no change') { caused by lots of *78*s }
       ELSE BEGIN
-        { There is a change - cycle through the four inputs }
+        { there is a change - cycle through the four inputs }
         FOR I := 1 TO 4 DO BEGIN
           IF (B AND BinaryCounter[I]) = BinaryCounter[I] THEN BEGIN
             IF (NewData AND BinaryCounter[I]) = BinaryCounter[I] THEN BEGIN
               FeedbackChanges.Feedback_Unit := UnitNum + 1;
               FeedbackChanges.Feedback_Input := Input + I;
               FeedbackChanges.Feedback_InputOn := True;
+
               { decode it and record it for debugging }
               DecodeFeedback(FeedbackChanges);
             END ELSE BEGIN
               FeedbackChanges.Feedback_Unit := UnitNum + 1;
               FeedbackChanges.Feedback_Input := Input + I;
               FeedbackChanges.Feedback_InputOn := False;
+
               { decode it and record it for debugging }
               DecodeFeedback(FeedbackChanges);
             END;
@@ -641,6 +643,7 @@ VAR
 BEGIN
   { ReadArray can be 66-78, even nos only, as up to 7 feedback inputs can arrive at once - calculate where the data is and whether it has changed }
   NumberOfInputs := (ReadArray[0] - 64) DIV 2;
+
   { Now see which if any have changed, and store the new version }
   FOR I := 1 TO NumberOfInputs DO
     { decoder address is in first byte (and first parameter), data in second byte (and second parameter) }
@@ -737,20 +740,20 @@ BEGIN
 
       { Writes out data first, unless unrequested data has been received }
       IF (WriteReadVar = WriteThenRead) OR (WriteReadVar = WriteOnly) THEN BEGIN
-        { Send any output waiting to the LI101 - check first that it can be accepted }
+        { send any output waiting to the LI101 - check first that it can be accepted }
         IF WriteArray[0] <> 0 THEN BEGIN
           { get the length first from bits 3-0, and add the checkbyte }
           WriteArray[GetCommandLen(WriteArray[0]) + 1] := CheckSum(WriteArray);
           { and write it out }
           IF LenzConnection = USBConnection THEN BEGIN
-            { Send the data as a string }
+            { send the data as a string }
             S := '';
             FOR I := 0 TO GetCommandLen(WriteArray[0]) + 1 DO
               S := S + IntToHex(WriteArray[I], 2);
             TCPIPForm.ResponsesTCPSendText(S);
           END ELSE
             IF LenzConnection = EthernetConnection THEN BEGIN
-              { Add the two required header elements then send the data as an array of bytes }
+              { add the two required header elements then send the data as an array of bytes }
               TempWriteArray[0] := 255;
               TempWriteArray[1] := 254;
               FOR I := 0 TO GetCommandLen(WriteArray[0]) + 1 DO
@@ -969,7 +972,7 @@ BEGIN
             { Examine the first byte returned to identify it, and see if it is what was expected }
             CASE ReadArray[0] OF
               1:
-                { Maybe an acknowledgment or an error - depends what follows the '1' }
+                { maybe an acknowledgment or an error - depends what follows the '1' }
                  CASE ReadArray[1] OF
                   1:
                     BEGIN
@@ -1244,7 +1247,7 @@ BEGIN
               99: { $63 }
                 CASE ReadArray[1] OF
                   16:  { $10 }
-                    { Programming (service) mode response for Register and Page mode }
+                    { programming (service) mode response for Register and Page mode }
                     BEGIN
                       ErrorMsg := 'Programming service) mode response for Register & Page mode ';
                       Log('EG ' + ErrorMsg);
@@ -1252,7 +1255,7 @@ BEGIN
                       ErrorFound := True;
                     END;
                   20: { $14 }
-                    { Programming (service) mode response for Direct CV mode }
+                    { programming (service) mode response for Direct CV mode }
                     BEGIN
                       ErrorMsg := 'Programming (service mode) response for Direct CV mode ';
                       Log('EG ' + ErrorMsg);
@@ -1557,7 +1560,7 @@ PROCEDURE ReadInLocoDetails(VAR Loco : LocoRec; VAR TempSpeedByte : Byte; OUT OK
   FUNCTION Decode128SpeedStep(TempSpeedByte : Byte) : Integer;
   { Decode the speed - new 128 step (v.3) rate }
   BEGIN
-    { Clear top bit first }
+    { clear top bit first }
     IF TempSpeedByte = 0 THEN
       Result := 0
     ELSE
@@ -2359,7 +2362,7 @@ BEGIN
       IF FunctionWasOff AND TurnOff THEN
         DebugStr := 'Setting function ' + IntToStr(FunctionNum) + ' unnecessary: it is already off'
       ELSE BEGIN
-       { If the bit we're testing is set it's in the state we expect - now swap it }
+       { if the bit we're testing is set it's in the state we expect - now swap it }
         TestByte2 := TestByte2 XOR TestByte1;
 
         { Now write the data out }
@@ -2415,6 +2418,7 @@ VAR
 BEGIN
   IDByte := 33; { for functions 5 - 8 }
   Log(LocoChipStr + ' S Setting S=' + IntToStr(SignalNum) + ' (' + DecoderNumString + ')' + ' to ' + AspectString + ' {BLANKLINEBEFORE}');
+
   { Now write the data out }
   WriteArray[0] := 228;
   WriteArray[1] := IDByte;
@@ -3380,17 +3384,17 @@ BEGIN
     END;
 
     { Ditto for points }   { &&&&& }
-    IF SystemOnline THEN BEGIN
-      Log('P Initially resetting all points that are not at their default state');
-      FOR P := 0 TO High(Points) DO BEGIN
-        IF NOT Points[P].Point_OutOfUse THEN BEGIN
-          IF PointIsLocked(P, LockingMsg) THEN
-            Log('P Not initially resetting P=' + PointToStr(P) + ' as point is ' + LockingMsg)
-          ELSE
-            PullPoint(P, NOT ForcePoint);
-        END;
-      END; {FOR}
-    END;
+//    IF SystemOnline THEN BEGIN
+//      Log('P Initially resetting all points that are not at their default state');
+//      FOR P := 0 TO High(Points) DO BEGIN
+//        IF NOT Points[P].Point_OutOfUse THEN BEGIN
+//          IF PointIsLocked(P, LockingMsg) THEN
+//            Log('P Not initially resetting P=' + PointToStr(P) + ' as point is ' + LockingMsg)
+//          ELSE
+//            PullPoint(P, NOT ForcePoint);
+//        END;
+//      END; {FOR}
+//    END;
 
     IF NOT SystemOnline THEN
       Log('X& Not connected to Lenz system')
