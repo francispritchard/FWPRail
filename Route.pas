@@ -620,14 +620,19 @@ BEGIN
                         distant may cover more than one subroute
                       }
                       IF Signals[Device].Signal_Type = SemaphoreHome THEN BEGIN
+                        { check that all the semaphore homes are off before proceeding }
                         SemaphoreHomeSignalsOff := False;
-                        { Check that all the semaphore homes are off before proceeding }
-                        FOR I := 0 TO High(Signals[Signals[Device].Signal_SemaphoreDistantLocking].Signal_SemaphoreDistantHomesArray) DO BEGIN
-                          IF Signals[Signals[Signals[Device].Signal_SemaphoreDistantLocking].Signal_SemaphoreDistantHomesArray[I]].Signal_Aspect <> RedAspect THEN
-                            SemaphoreHomeSignalsOff := True
-                          ELSE
-                            SemaphoreHomeSignalsOff := False;
-                        END; {FOR}
+                        IF Signals[Device].Signal_SemaphoreDistantLocking <> UnknownSignal THEN BEGIN
+                          I := 0;
+                          WHILE (I <= High(Signals[Signals[Device].Signal_SemaphoreDistantLocking].Signal_SemaphoreDistantHomesArray)) AND NOT SemaphoreHomeSignalsOff
+                          DO BEGIN
+                            IF Signals[Signals[Signals[Device].Signal_SemaphoreDistantLocking].Signal_SemaphoreDistantHomesArray[I]].Signal_Aspect <> RedAspect THEN
+                              SemaphoreHomeSignalsOff := True
+                            ELSE
+                              SemaphoreHomeSignalsOff := False;
+                            Inc(I);
+                          END; {WHILE}
+                        END;
 
                         IF SemaphoreHomeSignalsOff THEN BEGIN
                           { lock the home signals }

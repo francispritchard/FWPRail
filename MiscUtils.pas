@@ -2474,7 +2474,7 @@ VAR
   I : Integer;
 
 BEGIN
-  IF Signals[S].Signal_Type = SemaphoreHome THEN BEGIN
+  IF (Signals[S].Signal_Type = SemaphoreHome) AND (Signals[S].Signal_SemaphoreDistantLocking <> UnknownSignal) THEN BEGIN
     I := 0;
     WHILE I <= High(Signals[Signals[S].Signal_SemaphoreDistantLocking].Signal_SemaphoreDistantHomesArray) DO BEGIN
       { unlock the semaphore home signals }
