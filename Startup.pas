@@ -45,6 +45,7 @@ TYPE
 
 VAR
   DebuggingOptionsWindow: TDebuggingOptionsWindow;
+  ShiftKeyHeldDownOnStartup : Boolean;
 
 PROCEDURE InitialiseStartupUnit;
 { Such routines as this allow us to initialises the units in the order we wish }
@@ -222,15 +223,18 @@ BEGIN
             ELSE
               OK := False;
       'O':
-         IF IndividualParameterString = 'OFFLINE' THEN BEGIN
-           SystemSetOfflineByCommandLineParameter := True;
-           SetSystemOffline('by command line parameter', NOT SoundWarning);
-         END ELSE
-           IF IndividualParameterString = 'OFFLINEWITHPREVIOUSPOINTSSET' THEN BEGIN
-             SystemSetOfflineByCommandLineParameter := True;
-             SetSystemOffline('by command line parameter', NOT SoundWarning);
-             SetMode(PreviousPointSettings, TurnOn);
-           END;
+        IF NOT ShiftKeyHeldDownOnStartup THEN BEGIN
+          { holding the shift key down on startup overrides the offline parameter }
+          IF IndividualParameterString = 'OFFLINE' THEN BEGIN
+            SystemSetOfflineByCommandLineParameter := True;
+            SetSystemOffline('by command line parameter', NOT SoundWarning);
+          END ELSE
+            IF IndividualParameterString = 'OFFLINEWITHPREVIOUSPOINTSSET' THEN BEGIN
+              SystemSetOfflineByCommandLineParameter := True;
+              SetSystemOffline('by command line parameter', NOT SoundWarning);
+              SetMode(PreviousPointSettings, TurnOn);
+            END;
+        END;
       'P':
         IF IndividualParameterString = 'PFW:' THEN
           Val(GetFollowingChars(IndividualParameterString, 'PFW:', ''), PointFeedbackMaximumWaitInSeconds, ErrorCode)
@@ -675,6 +679,9 @@ PROCEDURE InitialiseStartupUnit;
 { Such routines as this allow us to initialises the units in the order we wish }
 BEGIN
   { Deal with any user-provided parameters }
+  IF ShiftKeyHeldDownOnStartup THEN
+    Log('AG ShiftKeyHeldDownOnStartup = TRUE');
+
   HandleParameters;
   IF FWPRailWindow.FWPRailWindowStatusBar.Panels[StatusBarPanel0].Text = '' THEN
     WriteToStatusBarPanel(StatusBarPanel0, TimeToHMSStr(CurrentRailwayTime));

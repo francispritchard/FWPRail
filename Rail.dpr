@@ -16,6 +16,7 @@ PROGRAM Rail;
 *)
 USES
   Forms,
+  Windows,
   Raildraw IN 'Raildraw.pas' {FWPRailWindow},
   Diagrams IN 'Diagrams.pas' {DiagramsWindow},
   MiscUtils IN 'MiscUtils.pas' {DebugWindow},
@@ -53,6 +54,7 @@ USES
 
 VAR
   I : Integer;
+  KeyState : TKeyBoardState;
   WantSplash : Boolean;
 
 {$R RailResource.res}
@@ -64,6 +66,13 @@ BEGIN
   Application.Initialize;
   Application.Title := 'FWP''s Rail';
   Application.HelpFile := '';
+
+  GetKeyboardState(KeyState);
+  IF ((KeyState[vk_Shift] AND 128) <> 0) THEN
+    ShiftKeyHeldDownOnStartup := True
+  ELSE
+    ShiftKeyHeldDownOnStartup := False;
+
   FOR I := 1 TO ParamCount DO
     IF ParamStr(I) = '/nosplash' THEN
       WantSplash := False;
