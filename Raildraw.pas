@@ -4161,7 +4161,7 @@ BEGIN
 
         SignalOutOfUsePopupType:
           BEGIN
-            IF NOT Signal_OutOfUse THEN                         { should these be here? ££££££££££ }
+            IF NOT Signal_OutOfUse THEN                         { should these be here? ******* }
               Signal_OutOfUse := True
             ELSE BEGIN
               Signal_OutOfUse := False;
