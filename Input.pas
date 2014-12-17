@@ -1365,7 +1365,7 @@ BEGIN { KeyPressedDown }
                   WriteToLogFileAndTestFile := True;
                   DrawLineInLogFile(UnknownLocoChipAsZeroesStr, 'X', '*', UnitRef);
                   WriteToLogFileAndTestFile := False;
-                  Debug('!*');
+                  Debug('!****');
                 END;
               END;
             Ctrl: {8}
