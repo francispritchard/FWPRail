@@ -31,7 +31,7 @@ TYPE
 VAR
   FeedbackWindow: TFeedbackWindow;
 
-PROCEDURE DecodeFeedback(FeedbackData : FeedbackRec);
+PROCEDURE DecodeFeedback(TempFeedbackData : FeedbackRec);
 { Sets track circuits on or off from feedback data supplied }
 
 PROCEDURE ExtractDataFromFeedback(Data : FeedbackRec; OUT TCAboveFeedbackUnit : Integer; OUT FeedbackDetectorType : TypeOfFeedbackDetector; OUT Num : Integer);
@@ -75,19 +75,19 @@ END; { Log }
 PROCEDURE NoteOutOfUseFeedbackUnitTrackCircuitsAtStartup;
 { Work out which track circuits are unavailable because we're not getting initial feedback from them }
 VAR
-  FeedbackData : FeedbackRec;
   FeedbackType : TypeOfFeedbackDetector;
   I, J : Integer;
   TC : Integer;
   TCAboveFeedbackUnit : Integer;
+  TempFeedbackData : FeedbackRec;
 
 BEGIN
   TRY
     FOR I := 0 TO High(NoFeedbackList) DO BEGIN
-      FeedbackData.Feedback_Unit := StrToInt(NoFeedbackList[I]);
+      TempFeedbackData.Feedback_Unit := StrToInt(NoFeedbackList[I]);
       FOR J := 1 TO 8 DO BEGIN
-        FeedbackData.Feedback_Input := J;
-        ExtractDataFromFeedback(FeedbackData, TCAboveFeedbackUnit, FeedbackType, TC);
+        TempFeedbackData.Feedback_Input := J;
+        ExtractDataFromFeedback(TempFeedbackData, TCAboveFeedbackUnit, FeedbackType, TC);
         IF FeedbackType = TrackCircuitFeedbackDetector THEN BEGIN
           IF TC <> UnknownTrackCircuit THEN
             IF GetTrackCircuitState(TC) <> TCOutOfUseSetByUser THEN
@@ -189,7 +189,7 @@ BEGIN
   END;
 END; { WriteDataToFeedbackWindow-1 }
 
-PROCEDURE WriteDataToFeedbackWindow{2}(FeedbackData : FeedbackRec; Input : Integer); Overload;
+PROCEDURE WriteDataToFeedbackWindow{2}(TempFeedbackData : FeedbackRec; Input : Integer); Overload;
 { Overloaded - this is version 2 - write feedback data to the feedback window }
 VAR
   FeedbackString : String;
@@ -199,7 +199,7 @@ VAR
 BEGIN
   IF InFeedbackDebuggingMode THEN BEGIN
     InputStr := IntToStr(Input);
-    WITH FeedbackData DO BEGIN
+    WITH TempFeedbackData DO BEGIN
       CASE Feedback_DetectorType OF
         TrackCircuitFeedbackDetector:
           FeedbackString := ' TC';
@@ -223,7 +223,7 @@ BEGIN
 
       FeedbackString := FeedbackString + ': ' + IntToStr(Feedback_Unit) + ' (' + IntToStr(Feedback_Input) + ')';
 
-      IF FeedbackData.Feedback_InputOn THEN
+      IF TempFeedbackData.Feedback_InputOn THEN
         FeedbackString := FeedbackString + '+ '
       ELSE
         FeedbackString := FeedbackString + '- ';
@@ -234,7 +234,7 @@ BEGIN
 
       IF ReadOutTCInFull THEN BEGIN
         { we want to know when it's activated and deactivated }
-        IF FeedbackData.Feedback_InputOn THEN BEGIN
+        IF TempFeedbackData.Feedback_InputOn THEN BEGIN
           IF Length(InputStr) <= 2 THEN
             ReadOut(InputStr)
           ELSE
@@ -254,7 +254,7 @@ BEGIN
         InputStr := IntToStr(Input);
         IF ReadOutTCOnce THEN BEGIN
           { all we want is to know where the TC is, and if its length is not known }
-          IF FeedbackData.Feedback_InputOn THEN BEGIN
+          IF TempFeedbackData.Feedback_InputOn THEN BEGIN
             IF (Input < 0) OR (Input > High(TrackCircuits)) THEN
               Readout('IsThatRight')
             ELSE
@@ -281,7 +281,7 @@ BEGIN
           IF ReadOutDecoderNumber THEN BEGIN
             Application.ProcessMessages;
             { or which feedback unit is triggered }
-            IF FeedbackData.Feedback_InputOn THEN BEGIN
+            IF TempFeedbackData.Feedback_InputOn THEN BEGIN
               ReadOut(IntToStr(Feedback_Unit));
               ReadOut(IntToStr(Feedback_Input));
               ReadOut('On');
@@ -296,13 +296,13 @@ BEGIN
   END;
 END; { WriteDataToFeedbackWindow-2 }
 
-PROCEDURE WriteFeedbackDataToDebugWindow(FeedbackData : FeedbackRec; Num : Integer);
+PROCEDURE WriteFeedbackDataToDebugWindow(TempFeedbackData : FeedbackRec; Num : Integer);
 { If required, write feedback data to the debug window }
 VAR
   FeedbackString : String;
 
 BEGIN
-  WITH FeedbackData DO BEGIN
+  WITH TempFeedbackData DO BEGIN
     CASE Feedback_DetectorType OF
       TrackCircuitFeedbackDetector:
         FeedbackString := ' TC';
@@ -319,7 +319,7 @@ BEGIN
 
     FeedbackString := FeedbackString + ': ' + IntToStr(Feedback_Unit) + ' (' + IntToStr(Feedback_Input) + ')';
 
-    IF FeedbackData.Feedback_InputOn THEN
+    IF TempFeedbackData.Feedback_InputOn THEN
       FeedbackString := FeedbackString + '+ '
     ELSE
       FeedbackString := FeedbackString + '- ';
@@ -337,7 +337,7 @@ BEGIN
   LocoTimingLenzSpeed := GetLenzSpeed(Locos[L], ForceARead);
 END; { InitialiseLocoSpeedTiming }
 
-PROCEDURE DecodeFeedback(FeedbackData : FeedbackRec);
+PROCEDURE DecodeFeedback(TempFeedbackData : FeedbackRec);
 { Sets TrackCircuitFeedbackDetectors on or off from feedback data supplied }
 CONST
   ForceRead = True;
@@ -513,12 +513,12 @@ BEGIN { DecodeFeedback }
     DecodedFeedbackNum := 0;
 
     { Read in the stored data from all the units, in case some has changed whilst we've been busy elsewhere }
-    WITH FeedbackData DO BEGIN
+    WITH TempFeedbackData DO BEGIN
       IF (Feedback_Unit >= FirstFeedbackUnit) AND (Feedback_Unit <= LastFeedbackUnit + 1) THEN BEGIN
-        ExtractDataFromFeedback(FeedbackData, TCAboveFeedbackUnit, FeedbackDetectorType, DecodedFeedbackNum);
+        ExtractDataFromFeedback(TempFeedbackData, TCAboveFeedbackUnit, FeedbackDetectorType, DecodedFeedbackNum);
 
         DebugStr := 'Feedback ' + IntToStr(Feedback_Unit) + ' Input ' + IntToStr(Feedback_Input);
-        IF FeedbackData.Feedback_InputOn THEN
+        IF TempFeedbackData.Feedback_InputOn THEN
           DebugStr := DebugStr + ' = on'
         ELSE
           DebugStr := DebugStr + ' = off';
@@ -624,7 +624,7 @@ BEGIN { DecodeFeedback }
           LineFeedbackDetector:
             BEGIN
               LineFeedbackFound := False;
-              WITH FeedbackData DO BEGIN
+              WITH TempFeedbackData DO BEGIN
                 Line := 0;
                 LineFound := False;
                 WHILE (Line <= High(Lines)) AND NOT LineFound DO BEGIN
@@ -658,7 +658,7 @@ BEGIN { DecodeFeedback }
             { Returns the number equivalent to the Lenz point number, and redraws the point that's changed }
             BEGIN
               PointFeedbackFound := False;
-              WITH FeedbackData DO BEGIN
+              WITH TempFeedbackData DO BEGIN
                 FOR P := 0 TO High(Points) DO BEGIN
                   WITH Points[P] DO BEGIN
                     IF (Point_FeedbackUnit = Feedback_Unit) AND (Point_PresentState <> PointOutOfAction) THEN BEGIN
@@ -738,7 +738,7 @@ BEGIN { DecodeFeedback }
             BEGIN
               Log('A ' + DebugStr);
               { If it's a quick button press, it will return here before five seconds are up }
-              IF NOT FeedbackData.Feedback_InputOn THEN
+              IF NOT TempFeedbackData.Feedback_InputOn THEN
                 { pressbutton is released }
                 StationStartModeSetUpTime := 0
               ELSE BEGIN
@@ -765,10 +765,10 @@ BEGIN { DecodeFeedback }
         END; {CASE}
 
         IF InFeedbackDebuggingMode AND (FeedbackWindow <> NIL) AND NOT ProgramStartup THEN
-          WriteDataToFeedbackWindow(FeedbackData, DecodedFeedbackNum)
+          WriteDataToFeedbackWindow(TempFeedbackData, DecodedFeedbackNum)
         ELSE
           IF DisplayFeedbackStringsInDebugWindow THEN
-            WriteFeedbackDataToDebugWindow(FeedbackData, DecodedFeedbackNum);
+            WriteFeedbackDataToDebugWindow(TempFeedbackData, DecodedFeedbackNum);
       END;
     END; {WITH}
   EXCEPT

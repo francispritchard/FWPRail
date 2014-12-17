@@ -3104,7 +3104,7 @@ PROCEDURE WhichFeedbackInputsAreSet(UnitNum, B : Byte);
 { Looks at bits 4-0 to find out, and calls DecodeFeedback to set the on-screen tell-tales }
 VAR
   I, Input : Integer;
-  FeedbackData : FeedbackRec;
+  TempFeedbackData : FeedbackRec;
 
 BEGIN
   { If bit 4 set, inputs are 5 to 8, so increment counter accordingly }
@@ -3115,16 +3115,16 @@ BEGIN
 
   { Cycle through the four inputs }
   FOR I := 1 TO 4 DO BEGIN
-    FeedbackData.Feedback_Unit := UnitNum + 1;
-    FeedbackData.Feedback_Input := Input + I;
+    TempFeedbackData.Feedback_Unit := UnitNum + 1;
+    TempFeedbackData.Feedback_Input := Input + I;
     IF (B AND BinaryCounter[I]) = BinaryCounter[I] THEN BEGIN
-      FeedbackData.Feedback_InputOn := True;
+      TempFeedbackData.Feedback_InputOn := True;
       { decode it and record it for debugging }
-      DecodeFeedback(FeedbackData);
+      DecodeFeedback(TempFeedbackData);
     END ELSE BEGIN
-      FeedbackData.Feedback_InputOn := False;
+      TempFeedbackData.Feedback_InputOn := False;
       { decode it and record it for debugging }
-      DecodeFeedback(FeedbackData);
+      DecodeFeedback(TempFeedbackData);
     END;
   END;
 END; { WhichFeedbackInputsAreSet }
@@ -3135,12 +3135,12 @@ CONST
   ProcessMessages = True;
 
 VAR
-//  FeedbackData : FeedbackRec;
 //  FeedbackNum : Integer;
 //  FeedbackPort : PortType;
 //  FeedbackType : TypeOfFeedBackType;
 //  I, J : Integer;
 //  TCAboveFeedbackUnit : Integer;
+//  TempFeedbackData : FeedbackRec;
 //  TempFeedbackNum : Integer;
   UnitNum : Integer;
   ReadArray : ARRAY [0..ReadArrayLen] OF Byte;
@@ -3222,8 +3222,8 @@ BEGIN
 //  PortNum := -1;
 //
 //  WHILE (UnitNum <= (LastFeedbackUnit - 1)) AND SystemOnline DO BEGIN
-//    FeedbackData.Feedback_Unit := UnitNum + 1;
-//    ExtractDataFromFeedback(FeedbackData, FeedbackPort, TCAboveFeedbackUnit, FeedbackType, TempFeedbackNum);
+//    TempFeedbackData.Feedback_Unit := UnitNum + 1;
+//    ExtractDataFromFeedback(TempFeedbackData, FeedbackPort, TCAboveFeedbackUnit, FeedbackType, TempFeedbackNum);
 //    IF FeedbackType = FeedbackDetectorOutOfUse THEN
 //      Log('T Not requesting feedback data for unit ' + IntToStr(UnitNum + 1) + ' as it is marked as being out of use')
 //    ELSE BEGIN

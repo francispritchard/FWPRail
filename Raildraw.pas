@@ -793,7 +793,6 @@ END; { SetCaption }
 PROCEDURE ShowLinePos;
 { Showing how line segments are sub-divided - for development }
 VAR
-  FeedbackData : FeedbackRec;
   FeedbackNum : Integer;
   FeedbackUnitFound : Boolean;
   LineNameWidth : Word;
@@ -802,6 +801,7 @@ VAR
   ScreenUpX : Integer;
   ScreenUpY : Integer;
   SegmentText : String;
+  TempFeedbackData : FeedbackRec;
   TrackCircuitNumbered : Boolean;
   X, Y : Integer;
 
@@ -875,9 +875,9 @@ VAR
 
           SegmentText := IntToStr(I);
           FOR J := 1 TO 8 DO BEGIN
-            FeedbackData.Feedback_Unit := I;
-            FeedbackData.Feedback_Input := J;
-            ExtractDataFromFeedback(FeedbackData, TCAboveFeedbackUnit, FeedbackType, FeedbackNum);
+            TempFeedbackData.Feedback_Unit := I;
+            TempFeedbackData.Feedback_Input := J;
+            ExtractDataFromFeedback(TempFeedbackData, TCAboveFeedbackUnit, FeedbackType, FeedbackNum);
             IF FeedbackType = PointFeedbackDetector THEN BEGIN
               IF ShowOneFeedbackUnitOnly THEN BEGIN
                 Font.Color := clAqua;
@@ -1040,9 +1040,9 @@ VAR
                       I := FirstFeedbackUnit;
                       WHILE (I <= LastFeedbackUnit) AND NOT FeedbackUnitFound DO BEGIN
                         FOR J := 1 TO 8 DO BEGIN
-                          FeedbackData.Feedback_Unit := I;
-                          FeedbackData.Feedback_Input := J;
-                          ExtractDataFromFeedback(FeedbackData, TCAboveFeedbackUnit, FeedbackType, FeedbackNum);
+                          TempFeedbackData.Feedback_Unit := I;
+                          TempFeedbackData.Feedback_Input := J;
+                          ExtractDataFromFeedback(TempFeedbackData, TCAboveFeedbackUnit, FeedbackType, FeedbackNum);
                           IF FeedbackNum = Line_TC THEN BEGIN
                             FeedbackUnitFound := True;
                             SegmentText := IntToStr(I) + IntToStr(J);
@@ -3029,13 +3029,13 @@ END; { DrawPoint }
 PROCEDURE DrawPointNum(P : Integer; Colour : TColour);
 { Put the number of the point on the diagram }
 VAR
-  FeedbackData : FeedbackRec;
   FeedbackNum : Integer;
   FeedbackType : TypeOfFeedbackDetector;
   I, J : Integer;
   LockingMsg : String;
   NumberText : String;
   TCAboveFeedbackUnit : Integer;
+  TempFeedbackData : FeedbackRec;
 
 BEGIN
   TRY
@@ -3115,11 +3115,11 @@ BEGIN
               { displaying point feedback data }
               NumberText := '';
               FOR I := FirstFeedbackUnit TO LastFeedbackUnit DO BEGIN
-                FeedbackData.Feedback_Unit := I;
+                TempFeedbackData.Feedback_Unit := I;
                 FOR J := 1 TO 8 DO BEGIN
-                  FeedbackData.Feedback_Input := J;
+                  TempFeedbackData.Feedback_Input := J;
                   { extract what kind of feedback it is (FeedbackNum is only use for track circuits) }
-                  ExtractDataFromFeedback(FeedbackData, TCAboveFeedbackUnit, FeedbackType, FeedbackNum);
+                  ExtractDataFromFeedback(TempFeedbackData, TCAboveFeedbackUnit, FeedbackType, FeedbackNum);
                   IF FeedbackType = PointFeedbackDetector THEN BEGIN
                     IF (Point_FeedbackUnit = I) AND (Point_FeedbackInput = J) THEN BEGIN
                       NumberText := IntToStr(I) + IntToStr(J);
@@ -3171,13 +3171,13 @@ PROCEDURE DrawPointFeedbackDataInSeparateColours;
 { Put the number of the point on the diagram }
 VAR
   ColourNum : Integer;
-  FeedbackData : FeedbackRec;
   FeedbackNum : Integer;
   FeedbackType : TypeOfFeedbackDetector;
   I, J : Integer;
   NumberText : String;
   P : Integer;
   TCAboveFeedbackUnit : Integer;
+  TempFeedbackData : FeedbackRec;
   TempNum : Integer;
 
 BEGIN
@@ -3208,10 +3208,10 @@ BEGIN
         Font.Color := ColoursArray[ColourNum];
       
         FOR J := 1 TO 8 DO BEGIN
-          FeedbackData.Feedback_Unit := I;
-          FeedbackData.Feedback_Input := J;
+          TempFeedbackData.Feedback_Unit := I;
+          TempFeedbackData.Feedback_Input := J;
           { extract what kind of feedback it is (FeedbackNum is only use for track circuits) }
-          ExtractDataFromFeedback(FeedbackData, TCAboveFeedbackUnit, FeedbackType, FeedbackNum);
+          ExtractDataFromFeedback(TempFeedbackData, TCAboveFeedbackUnit, FeedbackType, FeedbackNum);
           IF FeedbackType = PointFeedbackDetector THEN BEGIN
             FOR P := 0 TO High(Points) DO BEGIN
               WITH Points[P] DO BEGIN
