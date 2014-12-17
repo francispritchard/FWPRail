@@ -7489,8 +7489,10 @@ BEGIN { Main drawing procedure }
           SetLength(LocationOccupations, Length(Locations));
           ReadInLocoDataFromDatabase(LocoDataTableOK);
           SetUpLineDrawingVars;
-          ReadInLineDataFromDatabase;
+
+          { Acquiring the feedback has to precede acquiring signal, line and point data as we need to know which feedback units to assign points and signals to }
           ReadInFeedbackDataFromDatabase;
+          ReadInLineDataFromDatabase;
           IF NOT TrackCircuitsInitialised THEN BEGIN
             { only initialise track circuit once, as doing so a second time removes the data **** }
             TrackCircuitsInitialised := True;
