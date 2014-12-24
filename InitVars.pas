@@ -3765,7 +3765,7 @@ BEGIN
       Line := 0;
       WHILE Line <= High(Lines) DO BEGIN
         WITH Lines[Line] DO BEGIN
-          { Deal with out of use changes }
+          { Deal with out-of-use changes }
           IF ((Line_OutOfUseState = OutOfUse)
                OR ((Line_Location <> UnknownLocation) AND Locations[Line_Location].Location_OutOfUse))
           AND (Line_InitialOutOfUseState = InUse)

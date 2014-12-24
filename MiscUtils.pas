@@ -4339,7 +4339,7 @@ BEGIN
   WHILE (I <= High(LocationTCs)) AND (Result <> True) DO BEGIN
     IF TrackCircuitStateIsPermanentlyOccupied(TrackCircuits[LocationTCs[I]].TC_OccupationState) THEN BEGIN
       Result := True;
-      { note one of the out of use track circuits for diagnostic purposes }
+      { note one of the out-of-use track circuits for diagnostic purposes }
       OutOfUseTC := LocationTCs[I];
       OutOfUseStr := TrackCircuitStateToStr(TrackCircuits[LocationTCs[I]].TC_OccupationState);
     END ELSE

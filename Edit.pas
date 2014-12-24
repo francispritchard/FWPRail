@@ -3123,9 +3123,9 @@ BEGIN
   IF Lines[LineArray[0]].Line_Location <> Lines[LineArray[1]].Line_Location THEN
     DebugStr := DebugStr + ' line locations do not match;';
   IF Lines[LineArray[0]].Line_OutOfUseState <> Lines[LineArray[1]].Line_OutOfUseState THEN
-    DebugStr := DebugStr + ' out of use states do not match;';
+    DebugStr := DebugStr + ' out-of-use states do not match;';
   IF Lines[LineArray[0]].Line_TypeOfLine <> Lines[LineArray[1]].Line_TypeOfLine THEN
-    DebugStr := DebugStr + ' out of use states do not match;';
+    DebugStr := DebugStr + ' out-of-use states do not match;';
 
   FOR P := 0 TO High(Points) DO BEGIN
     IF Points[P].Point_StraightLine = LineArray[1] THEN
