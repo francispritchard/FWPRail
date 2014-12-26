@@ -6828,14 +6828,24 @@ END; { SameTimeInHoursAndMinutesOnly }
 PROCEDURE SetMode(TypeOfMode : ModeType; OnOrOff : Boolean);
 { Set up one of the various modes, updating the fourth status panel }
 
+  PROCEDURE AddStringToStatusPanel(Str : String);
+  BEGIN
+    IF FWPRailWindow.FWPRailWindowStatusBar.Panels[StatusBarPanel3].Text = '' THEN
+      WriteToStatusBarPanel(StatusBarPanel3, Str)
+    ELSE
+      WriteToStatusBarPanel(StatusBarPanel3, Str + ' ' + FWPRailWindow.FWPRailWindowStatusBar.Panels[StatusBarPanel3].Text);
+  END; { AddStringToStatusPanel }
+
   PROCEDURE RemoveStringFromStatusPanel(Str : String);
   VAR
     TempStr : String;
 
   BEGIN
-    { and remove from the status panel }
     TempStr := FWPRailWindow.FWPRailWindowStatusBar.Panels[StatusBarPanel3].Text;
-    TempStr := StringReplace(TempStr, Str, '', [rfIgnoreCase]);
+    IF Pos(Str + ' ', FWPRailWindow.FWPRailWindowStatusBar.Panels[StatusBarPanel3].Text) > 0 THEN
+      TempStr := StringReplace(TempStr, Str + ' ', '', [rfIgnoreCase])
+    ELSE
+      TempStr := StringReplace(TempStr, Str, '', [rfIgnoreCase]);
     WriteToStatusBarPanel(StatusBarPanel3, TempStr);
   END; { RemoveStringFromStatusPanel }
 
@@ -6846,61 +6856,61 @@ BEGIN
         IF NOT AllRouteDebuggingMode THEN BEGIN
           SetMode(AllRouteDebugging, True);
           Log('A All Route Debugging Mode = ON');
-          WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' ALLROUTE');
+          AddStringToStatusPanel('ALLROUTE');
         END;
       AnonymousOccupation:
         IF NOT AnonymousOccupationMode THEN BEGIN
           AnonymousOccupationMode := True;
           Log('A Anonymous Occupation Mode = ON');
-          WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' ANON');
+          AddStringToStatusPanel('ANON');
         END;
       FeedbackDebugging:
         IF NOT FeedbackDebuggingMode THEN BEGIN
           FeedbackDebuggingMode := True;
           Log('A Feedback Debugging Mode = ON');
-          WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' FBCK ');
+          AddStringToStatusPanel('FBCK ');
         END;
       GeneralDebugging:
         IF NOT DebuggingMode THEN BEGIN
           DebuggingMode := True;
           Log('A Debugging Mode = ON');
-          WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' DEBUG ');
+          AddStringToStatusPanel('DEBUG');
         END;
       LineDebugging:
         IF NOT LineDebuggingMode THEN BEGIN
           LineDebuggingMode := True;
           Log('A Line Debugging Mode = ON');
-          WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' LINE');
+          AddStringToStatusPanel('LINE');
         END;
       LockDebugging:
         IF NOT LockDebuggingMode THEN BEGIN
           LockDebuggingMode := True;
           Log('A Lock Debugging Mode = ON');
-          WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' LOCK');
+          AddStringToStatusPanel('LOCK');
         END;
       Locking:
         IF NOT LockingMode THEN BEGIN
           LockingMode := True;
           Log('AG Locking Mode = ON');
-          WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' LDB');
+          AddStringToStatusPanel('LDB');
         END;
       LocoSpeedTiming:
         IF NOT LocoSpeedTimingMode THEN BEGIN
           LocoSpeedTimingMode := True;
           Log('AG Loco Speed Timing Mode = ON');
-          WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' LST');
+          AddStringToStatusPanel('LST');
         END;
       LogsCurrentlyKept:
         IF NOT LogsCurrentlyKeptMode THEN BEGIN
           LogsCurrentlyKeptMode := True;
           Log('AG Logs Currently Kept Mde = ON');
-          WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' LCK');
+          AddStringToStatusPanel('LCK');
         END;
       PointDebugging:
         IF NOT PointDebuggingMode THEN BEGIN
           PointDebuggingMode := True;
           Log('A Point Debugging Mode = ON');
-          WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' POINT');
+          AddStringToStatusPanel('POINT');
         END;
       PreviousPointSettings:
         { This probably shouldn't really be a mode, as there would be no point in turning it off once the previous point settings are loaded, but it is a way of recording
@@ -6909,61 +6919,61 @@ BEGIN
         IF NOT PreviousPointSettingsMode THEN BEGIN
           PreviousPointSettingsMode := True;
           Log('A Previous Point Settings Mode = ON');
-          WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' PPS');
+          AddStringToStatusPanel('PPS');
         END;
       RDC:
         IF NOT RDCMode THEN BEGIN
           RDCMode := True;
           Log('A RDC Mode = ON');
-          WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' RDC');
+          AddStringToStatusPanel('RDC');
         END;
       RecordingMonitorScreens:
         IF NOT RecordingMonitorScreensMode THEN BEGIN
           RecordingMonitorScreensMode := True;
           Log('A Recording MonitorScreens Mode = ON');
-          WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' RECORDING');
+          AddStringToStatusPanel('RECORDING');
         END;
       RecordLineDrawing:
         IF NOT RecordLineDrawingMode THEN BEGIN
           RecordLineDrawingMode := True;
           Log('A Record Line Drawing = ON');
-          WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' LINEDRAWING');
+          AddStringToStatusPanel('LINEDRAWING');
         END;
       RouteDebugging:
         IF NOT RouteDebuggingMode THEN BEGIN
           RouteDebuggingMode := True;
           Log('A Route Debugging Mode = ON');
-          WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' ROUTE');
+          AddStringToStatusPanel('ROUTE');
         END;
       RouteBacktrackDebugging:
         IF NOT RouteBacktrackDebuggingMode THEN BEGIN
           RouteBacktrackDebuggingMode := True;
           Log('A RouteBacktrack Debugging Mode = ON');
-          WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' BACKTRACK');
+          AddStringToStatusPanel('BACKTRACK');
         END;
       RouteDrawing:
         IF NOT RouteDrawingMode THEN BEGIN
           RouteDrawingMode := True;
           Log('A Route Drawing Mode = ON');
-          WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' DRAWING');
+          AddStringToStatusPanel('DRAWING');
         END;
       ShowAdjacentTrackCircuit:
         IF NOT ShowAdjacentTrackCircuitMode THEN BEGIN
           ShowAdjacentTrackCircuitMode := True;
           Log('A Show Adjacent Track Circuit Mode = ON');
-          WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' ADJ');
+          AddStringToStatusPanel('ADJ');
         END;
       StationStart:
         IF NOT StationStartMode THEN BEGIN
           StationStartMode := True;
           Log('A Station Start Mode = ON');
-          WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' SS');
+          AddStringToStatusPanel('SS');
         END;
       Testing:
         IF NOT TestingMode THEN BEGIN
           TestingMode := True;
           Log('A Test Mode = ON');
-          WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' TEST');
+          AddStringToStatusPanel('TEST');
         END;
     ELSE {CASE}
       Log('XG Unknown mode type found');
