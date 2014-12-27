@@ -288,6 +288,8 @@ PROCEDURE TurnEditModeOff;
 BEGIN
   TRY
     IF EditMode THEN BEGIN
+      SetCaption(FWPRailWindow, '');
+
       EditedPoint := UnknownSignal;
       EditedPoint := UnknownPoint;
       DeselectLine;
