@@ -215,6 +215,133 @@ BEGIN
   EditWindow.Width := EditWindowWidth;
 END; { InitialiseEditUnit }
 
+PROCEDURE WriteEditWindowLabelCaption(S : String);
+BEGIN
+  WITH Edit.EditWindow DO BEGIN
+    EditWindowLabel.Caption := S;
+    EditWindowLabel.Top := (EditWindow.Height - EditWindowLabel.Height) DIV 2;
+  END; {WITH}
+END; { WriteEditWindowLabelCaption }
+
+PROCEDURE TurnEditModeOn(S, P, BS, Line, TC : Integer);
+{ Turn edit mode on }
+VAR
+  EditValueListEditorRight : Integer;
+  EditWindowRight : Integer;
+  EditWindowButtonPanelRight : Integer;
+
+BEGIN
+  IF NOT EditMode THEN BEGIN
+    EditMode := True;
+    Diagrams.DiagramsWindow.Visible := False;
+
+    { The tags are used to tell EditWindow.Visible which value list to edit }
+    Edit.EditWindow.Tag := -1;
+    IF S <> UnknownSignal THEN BEGIN
+      Edit.EditWindow.Tag := 1;
+      StartSignalEdit(S);
+    END ELSE
+      IF P <> UnknownPoint THEN BEGIN
+        Edit.EditWindow.Tag := 2;
+        StartPointEdit(P);
+      END ELSE
+        IF Line <> UnknownLine THEN BEGIN
+          Edit.EditWindow.Tag := 3;
+          StartLineEdit(Line);
+        END ELSE
+          IF TC <> UnknownTrackCircuit THEN BEGIN
+            Edit.EditWindow.Tag := 4;
+            StartTrackCircuitEdit(TC);
+          END;
+
+    WITH Edit.EditWindow DO BEGIN
+      { Position the window based on the available window size }
+      Visible := True;
+
+      { Resize the list editor depending on the size of the window }
+      EditValueListEditor.Height := EditWindow.Height - (EditWindow.Height DIV 4);
+
+      { Space the buttons too }
+      EditWindowButtonPanel.Top := EditValueListEditor.Top + ((EditValueListEditor.Height - EditWindowButtonPanel.Height) DIV 2);
+
+      EditWindowRight := EditWindow.Left + EditWindow.Width;
+      EditValueListEditorRight := EditValueListEditor.Left + EditValueListEditor.Width;
+      EditWindowButtonPanelRight := EditWindowButtonPanel.Left + EditWindowButtonPanel.Width;
+
+      EditWindowButtonPanel.Left := EditValueListEditorRight + (((EditWindowRight - EditValueListEditorRight) - EditWindowButtonPanel.Width) DIV 2);
+
+      EditWindowLabel.Left := EditWindow.Left + (((EditValueListEditor.Left - EditWindow.Left) - EditWindowLabel.Width) DIV 2);
+ //     EditWindowLabel.Top := EditWindow.Top; // + ((EditWindow.Height - EditWindowLabel.Height) DIV 2);
+      EditWindowLabel.Caption := inttostr(EditWindowLabel.top);
+ //     EditWindowLabel.height := 30;
+    END; {WITH}
+
+    SaveSystemOnlineState := SystemOnline;
+    IF SystemOnline THEN
+      SetSystemOffline('System offline as edit mode starting', NOT SoundWarning);
+
+    SetCaption(FWPRailWindow, 'EDITING...');
+    EditWindow.EditWindowLabel.Caption := '';
+    SaveIconHandle := Application.Icon.Handle;
+    Application.Icon.Handle := EditIcon.Handle;
+  END;
+END; { TurnEditModeOn }
+
+PROCEDURE TurnEditModeOff;
+{ Turn edit mode off }
+BEGIN
+  TRY
+    IF EditMode THEN BEGIN
+      EditedPoint := UnknownSignal;
+      EditedPoint := UnknownPoint;
+      DeselectLine;
+      EditedTrackCircuit := UnknownTrackCircuit;
+
+      EditWindow.Visible := False;
+      Diagrams.DiagramsWindow.Visible := True;
+
+      EditMode := False;
+      Application.Icon.Handle := SaveIconHandle;
+
+      ClearEditValueListAndEditedItem;
+
+      { and force a redraw so that the highlighted signal/point etc. is de-highlighted }
+      FWPRailWindow.Repaint;
+
+      IF SaveSystemOnlineState THEN BEGIN
+        IF SetSystemOnline THEN
+          Log('A Edit mode off so system now online again')
+        ELSE
+          Log('A Edit mode off but system failed to go online');
+      END;
+
+      WITH EditWindow DO BEGIN
+        UndoChangesButton.Enabled := False;
+        SaveChangesAndExitButton.Enabled := False;
+        ExitWithoutSavingButton.Enabled := False;
+      END; {WITH}
+    END;
+  EXCEPT {TRY}
+    ON E : Exception DO
+      Log('EG TurnEditModeOff: ' + E.ClassName + ' error raised, with message: '+ E.Message);
+  END; {TRY}
+END; { TurnEditModeOff }
+
+PROCEDURE TurnCreateLineModeOn;
+{ Turn create-line mode on }
+BEGIN
+  CreateLineMode := True;
+  InvalidateScreen(UnitRef, 'TurnCreateLineModeOn');
+END; { TurnCreateLineModeOn }
+
+PROCEDURE TurnCreateLineModeOff;
+{ Turn create-line mode off }
+BEGIN
+  CreateLineMode := False;
+  ShowLineHandles := False;
+  InvalidateScreen(UnitRef, 'TurnCreateLineModeOff');
+END; { TurnCreateLineModeOff }
+
 PROCEDURE NoteThatDataHasChanged;
 { Note that data has changed and enable the undo button }
 BEGIN
@@ -534,15 +661,13 @@ BEGIN
       SaveEvent := EditValueListEditorStringsChange;
       EditValueListEditor.OnStringsChange := NIL;
 
-      EditWindowLabel.Caption := 'Editing Line ' + IntToStr(EditedLine);
-
       WITH EditValueListEditor DO BEGIN
         WITH Lines[EditedLine] DO BEGIN
           WriteIntegerValueExcludingZero(Line_NumberFieldName, EditedLine, '');
           { make the line number read only }
           ItemProps[Line_NumberFieldName].ReadOnly := True;
 
-          EditWindowLabel.Caption := 'Editing Line ' + IntToStr(EditedLine) + ' (' + LineToStr(EditedLine) + ')';
+          WriteEditWindowLabelCaption('Editing Line ' + IntToStr(EditedLine) + ' (' + LineToStr(EditedLine) + ')');
 
           Values[Line_NameStrFieldName] := Line_NameStr;
 
@@ -645,7 +770,7 @@ BEGIN { WritePointValuesToValueList }
       EditValueListEditor.OnStringsChange := NIL;
 
       WITH EditValueListEditor DO BEGIN
-        EditWindowLabel.Caption := 'Editing Point ' + IntToStr(EditedPoint);
+        WriteEditWindowLabelCaption('Editing Point ' + IntToStr(EditedPoint));
 
         WITH Points[EditedPoint] DO BEGIN
           WriteIntegerValueExcludingZero(Point_NumberFieldName, EditedPoint, '');
@@ -732,15 +857,13 @@ BEGIN { WriteSignalValuesToValueList }
       SaveEvent := EditWindow.EditValueListEditorStringsChange;
       EditWindow.EditValueListEditor.OnStringsChange := NIL;
 
-      EditWindowLabel.Caption := 'Editing Signal ' + IntToStr(EditedSignal);
-
       WITH EditValueListEditor DO BEGIN
         WITH Signals[EditedSignal] DO BEGIN
           WriteIntegerValueIncludingZero(Signal_NumberFieldName, EditedSignal, ''); { as the signal number might be zero }
           { make the signal number read only }
           ItemProps[Signal_NumberFieldName].ReadOnly := True;
 
-          EditWindowLabel.Caption := 'Editing Signal ' + IntToStr(EditedSignal);
+          WriteEditWindowLabelCaption('Editing Signal ' + IntToStr(EditedSignal));
 
           WriteIntegerValueExcludingZero(Signal_AccessoryAddressFieldName, Signal_AccessoryAddress, '9999');
 
@@ -848,7 +971,7 @@ BEGIN
       EditValueListEditor.OnStringsChange := NIL;
 
       WITH EditValueListEditor DO BEGIN
-        EditWindowLabel.Caption := 'Editing TC ' + IntToStr(EditedTrackCircuit);
+        WriteEditWindowLabelCaption('Editing TC ' + IntToStr(EditedTrackCircuit));
 
         WITH TrackCircuits[EditedTrackCircuit] DO BEGIN
           WriteIntegerValueExcludingZero(TC_NumberFieldName, EditedTrackCircuit, '');
@@ -2525,107 +2648,13 @@ BEGIN
   END;
 END; { StartTrackCircuitEdit }
 
-PROCEDURE TurnEditModeOn(S, P, BS, Line, TC : Integer);
-{ Turn edit mode on }
-BEGIN
-  IF NOT EditMode THEN BEGIN
-    EditMode := True;
-    Diagrams.DiagramsWindow.Visible := False;
-
-    { The tags are used to tell EditWindow.Visible which value list to edit }
-    Edit.EditWindow.Tag := -1;
-    IF S <> UnknownSignal THEN BEGIN
-      Edit.EditWindow.Tag := 1;
-      StartSignalEdit(S);
-    END ELSE
-      IF P <> UnknownPoint THEN BEGIN
-        Edit.EditWindow.Tag := 2;
-        StartPointEdit(P);
-      END ELSE
-        IF Line <> UnknownLine THEN BEGIN
-          Edit.EditWindow.Tag := 3;
-          StartLineEdit(Line);
-        END ELSE
-          IF TC <> UnknownTrackCircuit THEN BEGIN
-            Edit.EditWindow.Tag := 4;
-            StartTrackCircuitEdit(TC);
-          END;
-
-    Edit.EditWindow.Visible := True;
-
-    SaveSystemOnlineState := SystemOnline;
-    IF SystemOnline THEN
-      SetSystemOffline('System offline as edit mode starting', NOT SoundWarning);
-
-    SetCaption(FWPRailWindow, 'EDITING...');
-    EditWindow.EditWindowLabel.caption := '';
-    SaveIconHandle := Application.Icon.Handle;
-    Application.Icon.Handle := EditIcon.Handle;
-  END;
-END; { TurnEditModeOn }
-
-PROCEDURE TurnEditModeOff;
-{ Turn edit mode off }
-BEGIN
-  TRY
-    IF EditMode THEN BEGIN
-      EditedPoint := UnknownSignal;
-      EditedPoint := UnknownPoint;
-      DeselectLine;
-      EditedTrackCircuit := UnknownTrackCircuit;
-
-      EditWindow.Visible := False;
-      Diagrams.DiagramsWindow.Visible := True;
-
-      EditMode := False;
-      Application.Icon.Handle := SaveIconHandle;
-
-      ClearEditValueListAndEditedItem;
-
-      { and force a redraw so that the highlighted signal/point etc. is de-highlighted }
-      FWPRailWindow.Repaint;
-
-      IF SaveSystemOnlineState THEN BEGIN
-        IF SetSystemOnline THEN
-          Log('A Edit mode off so system now online again')
-        ELSE
-          Log('A Edit mode off but system failed to go online');
-      END;
-
-      WITH EditWindow DO BEGIN
-        UndoChangesButton.Enabled := False;
-        SaveChangesAndExitButton.Enabled := False;
-        ExitWithoutSavingButton.Enabled := False;
-      END; {WITH}
-    END;
-  EXCEPT {TRY}
-    ON E : Exception DO
-      Log('EG TurnEditModeOff: ' + E.ClassName + ' error raised, with message: '+ E.Message);
-  END; {TRY}
-END; { TurnEditModeOff }
-
-PROCEDURE TurnCreateLineModeOn;
-{ Turn create-line mode on }
-BEGIN
-  CreateLineMode := True;
-  InvalidateScreen(UnitRef, 'TurnCreateLineModeOn');
-END; { TurnCreateLineModeOn }
-
-PROCEDURE TurnCreateLineModeOff;
-{ Turn create-line mode off }
-BEGIN
-  CreateLineMode := False;
-  ShowLineHandles := False;
-  InvalidateScreen(UnitRef, 'TurnCreateLineModeOff');
-END; { TurnCreateLineModeOff }
-
 PROCEDURE AddTrackCircuit(Line : Integer; NewTrackCircuit : Boolean);
 { Add a track circuit to a line }
 VAR
   AddTrackCircuitCancelled : Boolean;
   FeedbackDataOK : Boolean;
   FeedbackUnitFound : Boolean;
-  FeedbackUnitDataElement : Integer;
+  FeedbackUnitRecordsElement : Integer;
   NewExtendedValue : Extended;
   NewIntValue : Integer;
   TC : Integer;
