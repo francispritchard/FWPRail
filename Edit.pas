@@ -19,10 +19,11 @@ TYPE
     EditValueListEditor : TValueListEditor;
     EditWindowLabel : TLabel;
     EditWindowPopupMenu : TPopupMenu;
-    ExitWithoutSavingButton : TButton;
     PopupEditWindowResetSizeAndPosition : TMenuItem;
-    SaveChangesAndExitButton : TButton;
-    UndoChangesButton : TButton;
+    EditWindowButtonPanel: TPanel;
+    SaveChangesAndExitButton: TButton;
+    UndoChangesButton: TButton;
+    ExitWithoutSavingButton: TButton;
     PROCEDURE EditValueListEditorEditButtonClick(Sender : TObject);
     PROCEDURE EditValueListEditorExit(Sender : TObject);
     PROCEDURE EditValueListEditorStringsChange(Sender : TObject);

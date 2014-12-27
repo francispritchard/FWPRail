@@ -18,9 +18,10 @@ object EditWindow: TEditWindow
   TextHeight = 13
   object EditWindowLabel: TLabel
     Left = 24
-    Top = 59
-    Width = 6
+    Top = 106
+    Width = 77
     Height = 24
+    Caption = 'Caption'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -20
@@ -43,35 +44,40 @@ object EditWindow: TEditWindow
       245
       199)
   end
-  object SaveChangesAndExitButton: TButton
-    Left = 600
-    Top = 94
-    Width = 142
-    Height = 25
-    Caption = 'Save Changes and Exit'
-    Enabled = False
+  object EditWindowButtonPanel: TPanel
+    Left = 592
+    Top = 48
+    Width = 137
+    Height = 89
+    Caption = 'EditWindowButtonPanel'
     TabOrder = 1
-    OnClick = SaveChangesAndExitButtonClick
-  end
-  object ExitWithoutSavingButton: TButton
-    Left = 600
-    Top = 125
-    Width = 142
-    Height = 25
-    Caption = 'Exit Without Saving'
-    Enabled = False
-    TabOrder = 2
-    OnClick = ExitWithoutSavingButtonClick
-  end
-  object UndoChangesButton: TButton
-    Left = 600
-    Top = 60
-    Width = 142
-    Height = 28
-    Caption = 'Undo Changes'
-    Enabled = False
-    TabOrder = 3
-    OnClick = UndoChangesButtonClick
+    object SaveChangesAndExitButton: TButton
+      Left = 0
+      Top = 31
+      Width = 137
+      Height = 25
+      Caption = 'Save Changes and Exit'
+      TabOrder = 0
+      OnClick = SaveChangesAndExitButtonClick
+    end
+    object UndoChangesButton: TButton
+      Left = 0
+      Top = 0
+      Width = 137
+      Height = 25
+      Caption = 'Undo Changes'
+      TabOrder = 1
+      OnClick = UndoChangesButtonClick
+    end
+    object ExitWithoutSavingButton: TButton
+      Left = 0
+      Top = 62
+      Width = 137
+      Height = 25
+      Caption = 'Exit Without Saving'
+      TabOrder = 2
+      OnClick = ExitWithoutSavingButtonClick
+    end
   end
   object EditWindowPopupMenu: TPopupMenu
     OnPopup = EditWindowPopupMenuPopup
