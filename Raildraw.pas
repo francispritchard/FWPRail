@@ -7634,15 +7634,15 @@ BEGIN { Main drawing procedure }
                   IF Line_RouteSet <> UnknownRoute THEN
                     Line_CurrentColour := LineRoutedOverColour
                 END;
-
-                IF (EditedTrackCircuit <> UnknownTrackCircuit) AND (Lines[Line].Line_TC = EditedTrackCircuit) THEN
-                  DrawLine(Line, ScreenComponentEditedColour2, ActiveTrain)
-                ELSE
-                  IF Line = EditedLine THEN
-                    DrawLine(Line, ScreenComponentEditedColour1, ActiveTrain)
-                  ELSE
-                    DrawLine(Line, Line_CurrentColour, ActiveTrain);
               END;
+
+              IF (EditedTrackCircuit <> UnknownTrackCircuit) AND (Lines[Line].Line_TC = EditedTrackCircuit) THEN
+                DrawLine(Line, ScreenComponentEditedColour2, ActiveTrain)
+              ELSE
+                IF Line = EditedLine THEN
+                  DrawLine(Line, ScreenComponentEditedColour1, ActiveTrain)
+                ELSE
+                  DrawLine(Line, Line_CurrentColour, ActiveTrain);
 
               { Draw a rectangle around any line highlighted by the input procedure }
               IF LineHighlighted <> UnknownLine THEN
