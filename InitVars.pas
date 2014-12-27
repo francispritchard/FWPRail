@@ -154,6 +154,7 @@ CONST
   UnknownTrainIndex = 99999;
   UnknownTrainLength = 99999;
   UnknownTrainTypeNum = 99999;
+  UnknownTRSPlunger = 99999;
   UserMsgRequired = True;
   NoTC = UnknownTrackCircuit;
 
