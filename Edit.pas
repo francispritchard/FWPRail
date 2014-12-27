@@ -17,13 +17,13 @@ USES
 TYPE
   TEditWindow = CLASS(TForm)
     EditValueListEditor : TValueListEditor;
+    EditWindowButtonPanel: TPanel;
     EditWindowLabel : TLabel;
     EditWindowPopupMenu : TPopupMenu;
+    ExitWithoutSavingButton: TButton;
     PopupEditWindowResetSizeAndPosition : TMenuItem;
-    EditWindowButtonPanel: TPanel;
     SaveChangesAndExitButton: TButton;
     UndoChangesButton: TButton;
-    ExitWithoutSavingButton: TButton;
     PROCEDURE EditValueListEditorEditButtonClick(Sender : TObject);
     PROCEDURE EditValueListEditorExit(Sender : TObject);
     PROCEDURE EditValueListEditorStringsChange(Sender : TObject);
@@ -269,11 +269,7 @@ BEGIN
       EditWindowButtonPanelRight := EditWindowButtonPanel.Left + EditWindowButtonPanel.Width;
 
       EditWindowButtonPanel.Left := EditValueListEditorRight + (((EditWindowRight - EditValueListEditorRight) - EditWindowButtonPanel.Width) DIV 2);
-
       EditWindowLabel.Left := EditWindow.Left + (((EditValueListEditor.Left - EditWindow.Left) - EditWindowLabel.Width) DIV 2);
- //     EditWindowLabel.Top := EditWindow.Top; // + ((EditWindow.Height - EditWindowLabel.Height) DIV 2);
-      EditWindowLabel.Caption := inttostr(EditWindowLabel.top);
- //     EditWindowLabel.height := 30;
     END; {WITH}
 
     SaveSystemOnlineState := SystemOnline;
