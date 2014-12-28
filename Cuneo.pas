@@ -1644,13 +1644,15 @@ BEGIN
                         LineHandleFound := True;
                         EndOfLineDragging := True;
                         Line_IsBeingMovedByHandle := UpHandle;
-                        DragEndOfLine(GridX, GridY, ShiftState)
+                        DragEndOfLine(GridX, GridY, ShiftState);
+                        EditingExistingLine := True;
                       END ELSE
                         IF PointInPolygon(Line_DownHandlePolygon, Point(ScreenClickPosX, ScreenClickPosY)) AND NOT EndOfLineDragging THEN BEGIN
                           LineHandleFound := True;
                           EndOfLineDragging := True;
                           Line_IsBeingMovedByHandle := DownHandle;
-                          DragEndOfLine(GridX, GridY, ShiftState)
+                          DragEndOfLine(GridX, GridY, ShiftState);
+                          EditingExistingLine := True;
                         END ELSE
                           IF PointInPolygon(Line_MidHandlePolygon, Point(ScreenClickPosX, ScreenClickPosY)) AND NOT WholeLineDragging THEN BEGIN
                             LineHandleFound := True;
@@ -1661,6 +1663,7 @@ BEGIN
                             SaveGridClickPosX := GridX;
                             SaveGridClickPosY := GridY;
   //                          DragWholeLine(GridX, GridY);
+                            EditingExistingLine := True;
                           END;
                     END; {WITH}
                   END;
