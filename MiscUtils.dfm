@@ -50,7 +50,6 @@ object DebugWindow: TDebugWindow
     Top = 32
   end
   object DebugRichEditPopupMenu: TPopupMenu
-    OnPopup = DebugRichEditPopupMenuOnPopup
     Left = 336
     Top = 52
     object PopupDebugWindowResetSizeAndPosition: TMenuItem

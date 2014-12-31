@@ -28,7 +28,6 @@ TYPE
     PROCEDURE EditValueListEditorExit(Sender : TObject);
     PROCEDURE EditValueListEditorStringsChange(Sender : TObject);
     PROCEDURE EditValueListEditorValidate(Sender: TObject; ACol, ARow : Integer; CONST KeyName, KeyValue : String);
-    PROCEDURE EditWindowPopupMenuPopup(Sender: TObject);
     PROCEDURE EditWindowPopupResetSizeAndPositionClick(Sender: TObject);
     PROCEDURE EditWindowResize(Sender : TObject);
     PROCEDURE EditWindowShow(Sender : TObject);
@@ -215,21 +214,49 @@ BEGIN
   EditWindow.Width := EditWindowWidth;
 END; { InitialiseEditUnit }
 
+PROCEDURE ResizeEditorWindowContents;
+{ Resizes the editor window contents to ensure they fit the available space }
+VAR
+  Border : Integer;
+  EditValueListEditorRight : Integer;
+  EditWindowRight : Integer;
+
+BEGIN
+  WITH Edit.EditWindow DO BEGIN
+    { Position the window based on the available window size }
+    Visible := True;
+    Border := 10; { **** add to options list }
+
+    { Resize the list editor depending on the size of the window }
+    EditValueListEditor.Height := MulDiv(EditWindow.ClientHeight, 19, 20);
+    EditValueListEditor.Top := (EditWindow.ClientHeight - EditValueListEditor.Height) DIV 2;
+    EditValueListEditor.Width := (EditWindow.ClientWidth - EditWindowLabel.Width - EditWindowButtonPanel.Width - (Border * 4));
+    EditValueListEditor.Left := EditWindowLabel.Width + (Border * 2);
+    EditValueListEditor.ColWidths[0] := MulDiv(EditValueListEditor.Width, 2, 3);
+
+    { Space the buttons too }
+    EditWindowButtonPanel.Top := (EditValueListEditor.ClientHeight - EditWindowButtonPanel.Height) DIV 2;
+
+    EditWindowRight := EditWindow.Left + EditWindow.Width;
+    EditValueListEditorRight := EditValueListEditor.Left + EditValueListEditor.Width;
+
+    EditWindowButtonPanel.Left := Border + EditValueListEditorRight;
+    EditWindowLabel.Left := Border;
+
+    EditWindowLabel.Top := (EditWindow.ClientHeight - EditWindowLabel.Height) DIV 2;
+  END; {WITH}
+END; { ResizeEditorWindowContents }
+
 PROCEDURE WriteEditWindowLabelCaption(S : String);
 BEGIN
   WITH Edit.EditWindow DO BEGIN
     EditWindowLabel.Caption := S;
-    EditWindowLabel.Top := (EditWindow.Height - EditWindowLabel.Height) DIV 2;
+    ResizeEditorWindowContents;
   END; {WITH}
 END; { WriteEditWindowLabelCaption }
 
 PROCEDURE TurnEditModeOn(S, P, BS, Line, TC : Integer);
 { Turn edit mode on }
-VAR
-  EditValueListEditorRight : Integer;
-  EditWindowRight : Integer;
-  EditWindowButtonPanelRight : Integer;
-
 BEGIN
   IF NOT EditMode THEN BEGIN
     EditMode := True;
@@ -254,30 +281,14 @@ BEGIN
             StartTrackCircuitEdit(TC);
           END;
 
-    WITH Edit.EditWindow DO BEGIN
-      { Position the window based on the available window size }
-      Visible := True;
-
-      { Resize the list editor depending on the size of the window }
-      EditValueListEditor.Height := EditWindow.Height - (EditWindow.Height DIV 4);
-
-      { Space the buttons too }
-      EditWindowButtonPanel.Top := EditValueListEditor.Top + ((EditValueListEditor.Height - EditWindowButtonPanel.Height) DIV 2);
-
-      EditWindowRight := EditWindow.Left + EditWindow.Width;
-      EditValueListEditorRight := EditValueListEditor.Left + EditValueListEditor.Width;
-      EditWindowButtonPanelRight := EditWindowButtonPanel.Left + EditWindowButtonPanel.Width;
-
-      EditWindowButtonPanel.Left := EditValueListEditorRight + (((EditWindowRight - EditValueListEditorRight) - EditWindowButtonPanel.Width) DIV 2);
-      EditWindowLabel.Left := EditWindow.Left + (((EditValueListEditor.Left - EditWindow.Left) - EditWindowLabel.Width) DIV 2);
-    END; {WITH}
+    EditWindow.EditWindowLabel.Caption := 'Editing...';
+    ResizeEditorWindowContents;
 
     SaveSystemOnlineState := SystemOnline;
     IF SystemOnline THEN
       SetSystemOffline('System offline as edit mode starting', NOT SoundWarning);
 
     SetCaption(FWPRailWindow, 'EDITING...');
-    EditWindow.EditWindowLabel.Caption := '';
     SaveIconHandle := Application.Icon.Handle;
     Application.Icon.Handle := EditIcon.Handle;
   END;
@@ -586,7 +597,7 @@ BEGIN
 
   WITH EditWindow DO BEGIN
     EditValueListEditor.Strings.Clear;
-    EditWindowLabel.Caption := '';
+    EditWindowLabel.Caption := 'Editing...';
   END; {WITH}
 
   IF EditedSignal <> UnknownSignal THEN
@@ -608,6 +619,8 @@ BEGIN
     SaveChangesAndExitButton.Enabled := False;
     ExitWithoutSavingButton.Enabled := False;
   END; {WITH}
+
+  ResizeEditorWindowContents;
 
   InvalidateScreen(UnitRef, 'ClearEditValueListAndEditedItem');
 END; { ClearEditValueListAndEditedItem }
@@ -1673,14 +1686,6 @@ BEGIN
   ResetEditWindowSizeAndPosition;
 END; { EditWindowPopupResetSizeAndPositionClick }
 
-PROCEDURE TEditWindow.EditWindowPopupMenuPopup(Sender: TObject);
-BEGIN
-  IF EditWindow.Top <> DefaultEditWindowTop THEN
-    PopupEditWindowResetSizeAndPosition.Enabled := True
-  ELSE
-    PopupEditWindowResetSizeAndPosition.Enabled := False;
-END; { EditWindowPopupMenupPopup }
-
 PROCEDURE TEditWindow.EditWindowResize(Sender: TObject);
 BEGIN
   { Enable or disable the popup menu item allowing us to return the window to its default size }
@@ -1692,6 +1697,8 @@ BEGIN
     PopupEditWindowResetSizeAndPosition.Enabled := True
   ELSE
     PopupEditWindowResetSizeAndPosition.Enabled := False;
+
+  ResizeEditorWindowContents;
 END; { EditWindowResize }
 
 PROCEDURE CreateSignal(Direction : DirectionType; Line : Integer);

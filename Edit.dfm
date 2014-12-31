@@ -18,16 +18,17 @@ object EditWindow: TEditWindow
   TextHeight = 13
   object EditWindowLabel: TLabel
     Left = 24
-    Top = 106
-    Width = 77
+    Top = 20
+    Width = 89
     Height = 24
-    Caption = 'Caption'
+    Caption = 'Editing...'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -20
     Font.Name = 'Tahoma'
     Font.Style = [fsBold]
     ParentFont = False
+    ShowAccelChar = False
     WordWrap = True
   end
   object EditValueListEditor: TValueListEditor
@@ -80,7 +81,6 @@ object EditWindow: TEditWindow
     end
   end
   object EditWindowPopupMenu: TPopupMenu
-    OnPopup = EditWindowPopupMenuPopup
     Left = 584
     Top = 216
     object PopupEditWindowResetSizeAndPosition: TMenuItem

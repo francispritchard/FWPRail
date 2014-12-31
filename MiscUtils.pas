@@ -17,7 +17,6 @@ TYPE
     PROCEDURE DebugRichEditKeyDown(Sender: TObject; VAR Key: Word; ShiftState: TShiftState);
     PROCEDURE DebugRichEditMouseDown(Sender: TObject; Button: TMouseButton; ShiftState: TShiftState; X, Y: Integer);
     PROCEDURE DebugRichEditMouseMove(Sender: TObject; ShiftState: TShiftState; X, Y: Integer);
-    PROCEDURE DebugRichEditPopupMenuOnPopup(Sender: TObject);
     PROCEDURE DebugWindowClose(Sender: TObject; VAR Action: TCloseAction);
     PROCEDURE DebugWindowHide(Sender: TObject);
     PROCEDURE DebugWindowResize(Sender: TObject);
@@ -9789,14 +9788,6 @@ BEGIN
     END;
   END;
 END; { DebugRichEditMouseMove }
-
-PROCEDURE TDebugWindow.DebugRichEditPopupMenuOnPopup(Sender: TObject);
-BEGIN
-  IF DebugWindow.Top <> DefaultDebugWindowTop THEN
-    PopupDebugWindowResetSizeAndPosition.Enabled := True
-  ELSE
-    PopupDebugWindowResetSizeAndPosition.Enabled := False;
-END; { DebugRichEditPopupMenuOnPopup }
 
 VAR
   TempIntegerArray : IntegerArrayType;
