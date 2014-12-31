@@ -28,3 +28,5 @@ Misc/*
 *.bat
 *.jpg
 Rail Data Files/*Copy.mdb
+TestUnit.dfm
+TestUnit.pas
