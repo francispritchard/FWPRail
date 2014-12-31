@@ -571,6 +571,8 @@ TYPE
     TRSPlunger_AwaitingPressingMsgWritten : Boolean;
     TRSPlunger_HasBeenPressedMsgWritten : Boolean;
     TRSPlunger_Direction : DirectionType;
+    TRSPlunger_FeedbackInput : Integer;
+    TRSPlunger_FeedbackUnit : Integer;
     TRSPlunger_Locked : Boolean;
     TRSPlunger_MouseRect : TRect;
     TRSPlunger_Num : Integer;
