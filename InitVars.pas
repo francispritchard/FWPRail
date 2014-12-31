@@ -242,7 +242,7 @@ TYPE
     Feedback_InputTrackCircuit : ARRAY [1..8] OF Integer;
     Feedback_InputTRSPlunger : ARRAY [1..8] OF Integer;
     Feedback_TCAboveUnit : Integer;
-  end;
+  END;
 
   MenuPopupTypes = (NoClickPopupType,
                     { sinals }
@@ -6872,7 +6872,7 @@ BEGIN
           LastFeedBackUnit := High(FeedbackUnitRecords);
 
           WITH FeedbackUnitRecords[High(FeedbackUnitRecords)] DO BEGIN
-            Feedback_DetectorOutOfUse := False;  { &&&& this needs to be set up? Need to see if there's any trace of how/if it used to be set up }
+            Feedback_DetectorOutOfUse := False;
 
             FOR Input := 1 TO 8 DO BEGIN
               Feedback_InputLine[Input] := UnknownLine;

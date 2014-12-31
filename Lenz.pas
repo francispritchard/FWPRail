@@ -1020,7 +1020,7 @@ BEGIN
                     { see if we've asked for the data (during startup, for instance) }
                     IF (ExpectedReply = FeedbackReply) AND (ExpectedFeedbackAddress = ReadArray[1]) THEN BEGIN
                       ExpectedDataReceived := True;
-                      Log('T Requested feedback for unit ' + IntToStr(ReadArray[1] + 1) + ' has arrived');
+                      Log('T A reply from unit ' + IntToStr(ReadArray[1] + 1) + ' has arrived');
                     END ELSE BEGIN
                       UnrequestedDataFound := True;
 //                      Log('T Unrequested feedback has arrived');
@@ -3123,8 +3123,9 @@ CONST
   ProcessMessages = True;
 
 VAR
-  UnitNum : Integer;
+  NoFeedbackList : String;
   ReadArray : ARRAY [0..ReadArrayLen] OF Byte;
+  UnitNum : Integer;
   WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
 
   PROCEDURE ReadInFeedbackData(FeedbackAddress : Byte; OUT OK : Boolean);
@@ -3154,6 +3155,9 @@ VAR
             Log('TG Feedback for ' + IntToStr(ReadArray[1] + 1) + ' arrived when feedback for ' + IntToStr(FeedbackAddress + 1) + ' expected');
         UNTIL (OK AND (ReadArray[1] = FeedbackAddress))
                OR NOT SystemOnline;
+
+        IF NOT SystemOnline THEN
+          OK := False;
       END;
 
       IF OK THEN BEGIN
@@ -3161,9 +3165,7 @@ VAR
           { there's a problem - keep the user informed }
           OK := False;
           Log('T The feedback from unit ' + IntToStr(ReadArray[1] + 1) + ' has no data in it');
-//          FeedbackUnitInUseArray[ReadArray[1] + 1] := False;
         END ELSE BEGIN
-//          FeedbackUnitInUseArray[ReadArray[1] + 1] := True;
           WhichFeedbackInputsAreSet(FeedbackAddress, ReadArray[2]);
 
           { and store the data for future use - need to store in two halves }
@@ -3189,76 +3191,20 @@ BEGIN
         ReadInFeedbackData(UnitNum, OK);
         IF NOT OK THEN BEGIN
           Log('T No feedback from unit ' + IntToStr(UnitNum + 1));
-  //          IF (Length(NoFeedbackList) = 0) OR (IntToStr(ReadArray[1] + 1) <> NoFeedbackList[High(NoFeedbackList)]) THEN
-  //            AppendToStringArray(NoFeedbackList, IntToStr(ReadArray[1] + 1));
+          FeedbackUnitRecords[UnitNum].Feedback_DetectorOutOfUse := True;
         END;
       END;
     END; {FOR}
   END;
 
+  { Keep the user informed as to which feedback units are out of use, if any }
+  NoFeedbackList := '';
+  FOR UnitNum := FirstFeedbackUnit TO LastFeedbackUnit DO
+    IF FeedbackUnitRecords[UnitNum].Feedback_DetectorOutOfUse THEN
+      NoFeedbackList := NoFeedbackList + IfThen(NoFeedbackList <> '', ', ') + IntToStr(UnitNum);
 
-//  SetLength(NoFeedbackList, 0);
-//
-//  UnitNum := FirstFeedbackUnit - 1;
-//  PortNum := -1;
-//
-//  WHILE (UnitNum <= (LastFeedbackUnit - 1)) AND SystemOnline DO BEGIN
-//    TempFeedbackData.Feedback_Unit := UnitNum + 1;
-//    ExtractDataFromFeedback(TempFeedbackData, FeedbackPort, TCAboveFeedbackUnit, FeedbackType, TempFeedbackNum);
-//    IF FeedbackType = FeedbackDetectorOutOfUse THEN
-//      Log('T Not requesting feedback data for unit ' + IntToStr(UnitNum + 1) + ' as it is marked as being out of use')
-//    ELSE BEGIN
-//      IF FeedbackPort = USBPort THEN
-//        PortNum := USBPortNum;
-//
-//      Log('T Requesting feedback data for unit ' + IntToStr(UnitNum + 1));
-//      ReadInFeedbackData(PortNum, UnitNum, OK);
-//      IF NOT OK THEN BEGIN
-//        PortNum := USBPortNum
-//        Log('T Re-requesting feedback data for unit ' + IntToStr(UnitNum + 1));
-//        ReadInFeedbackData(PortNum, UnitNum, OK);
-//        IF NOT OK THEN BEGIN
-//          Log('T No feedback from unit ' + IntToStr(ReadArray[1] + 1) + ' on either port');
-//          IF (Length(NoFeedbackList) = 0) OR (IntToStr(ReadArray[1] + 1) <> NoFeedbackList[High(NoFeedbackList)]) THEN
-//            AppendToStringArray(NoFeedbackList, IntToStr(ReadArray[1] + 1));
-//        END;
-//      END;
-//    END;
-//
-//    Pause(500, NOT ProcessMessages);
-//
-//    IF SystemOffline THEN
-//      Log('A System offline - noted when reading startup data');
-//    Inc(UnitNum);
-//  END; {WHILE}
-//
-//  { Now to let the user know if there's a problem }
-//  IF Length(NoFeedbackList) <> 0 THEN BEGIN
-//    IF Length(NoFeedbackList) = 1 THEN BEGIN
-//      IF TestingMode THEN
-//        Log('X No feedback received from unit ' + NoFeedbackList[0])
-//      ELSE
-//        Log('X! No feedback received from unit ' + NoFeedbackList[0]);
-//    END ELSE BEGIN
-//      IF TestingMode THEN
-//        Log('X No feedback received from the following units: ')
-//      ELSE
-//        Log('X! No feedback received from the following units: ');
-//
-//      DebugStr := '';
-//      FOR I := 0 TO High(NoFeedbackList) DO BEGIN
-//        DebugStr := DebugStr + NoFeedbackList[I];
-//        IF I < High(NoFeedbackList) THEN
-//          DebugStr := DebugStr + ', '
-//        ELSE
-//          DebugStr := DebugStr + '.';
-//      END;
-//      IF TestingMode THEN
-//        Log('X ' + DebugStr)
-//      ELSE
-//        Log('XG ' + DebugStr);
-//    END;
-//  END;
+  IF NoFeedbackList <> '' THEN
+    Log('XG The following feedback units are out of use: ' + NoFeedbackList);
 END; { GetInitialFeedback }
 
 PROCEDURE SetSystemOffline(OfflineMsg : String; Warning : Boolean);
