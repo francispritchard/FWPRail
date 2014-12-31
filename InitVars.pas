@@ -114,9 +114,6 @@ CONST
   FirstFunctionDecoder = 9001;
   LastFunctionDecoder = 9916;
 
-  FirstFeedbackUnit = 66; { could be 65, but if a feedback unit resets itself, it reverts to 65, and thus causes an error }
-  LastFeedbackUnit = 126; { ************** replace now feedback data is read in from the database }
-
   FirstRouteCreationHeldMsgNumber = 1;
   LastRouteCreationHeldMsgNumber = 12;
 
@@ -231,19 +228,21 @@ TYPE
   END;
 
   { Feedback-related type declarations }
-  TypeOfFeedback = (TrackCircuitFeedback, TRSPlungerFeedback, PointFeedback, LineFeedback, UnknownFeedback);
+  TypeOfFeedback = (TrackCircuitFeedback, TRSPlungerFeedback, PointFeedback, LineFeedback, UnknownFeedbackType);
 
   TypeOfFeedbackDetector = (TrackCircuitFeedbackDetector, TRSPlungerFeedbackDetector, PointFeedbackDetector, LineFeedbackDetector, MixedFeedbackDetectors,
                             FeedbackDetectorOutOfUse, UnknownFeedbackDetectorType);
 
   FeedbackRec = RECORD
-    Feedback_DetectorType : TypeOfFeedbackDetector;
-    Feedback_Input : Integer;
-    Feedback_InputOn : Boolean;
+    Feedback_DetectorOutOfUse : Boolean;
     Feedback_InputTypeArray : ARRAY [1..8] OF TypeOfFeedback;
+    Feedback_InputOnArray : ARRAY [1..8] OF Boolean;
+    Feedback_InputLine : ARRAY [1..8] OF Integer;
+    Feedback_InputPoint : ARRAY [1..8] OF Integer;
+    Feedback_InputTrackCircuit : ARRAY [1..8] OF Integer;
+    Feedback_InputTRSPlunger : ARRAY [1..8] OF Integer;
     Feedback_TCAboveUnit : Integer;
-    Feedback_Unit : Byte;
-  END;
+  end;
 
   MenuPopupTypes = (NoClickPopupType,
                     { sinals }
@@ -413,6 +412,7 @@ CONST
   Line_EndOfLineMarkerFieldName : String = 'End Of Line Marker';
   Line_GradientFieldName : String = 'Gradient';
   Line_InUseFeedbackUnitFieldName : String = 'In Use Feedback Unit';
+  Line_InUseFeedbackInputFieldName : String = 'In Use Feedback Input';
   Line_LocationStrFieldName : String = 'Location';
   Line_NameStrFieldName : String = 'Line Name';
   Line_NumberFieldName : String = 'Line Number';
@@ -1365,8 +1365,9 @@ VAR
   EditMode : Boolean = False;
   EmergencyStopMsgDisplayed : Boolean = False;
   EscKeyStored : Boolean = False;
-  FeedbackUnitData : ARRAY OF FeedbackRec;
-  FeedbackUnitInUseArray : ARRAY [FirstFeedbackUnit..LastFeedbackUnit] OF Boolean;
+  FeedbackUnitRecords : ARRAY OF FeedbackRec;
+  FirstFeedbackUnit : Integer = -1;
+  LastFeedbackUnit : Integer = 99999;
   FullScreenPenWidth : Integer = 5;
   FWPRailWindowInitialised : Boolean = False;
   FWPRailWindowPartInitialised : Boolean = False;
@@ -1732,6 +1733,9 @@ FUNCTION ValidateLineGradient(LineGradientStr : String; OUT ErrorMsg : String) :
 FUNCTION ValidateLineInUseFeedbackUnit(FeedbackUnitStr : String; OUT ErrorMsg : String) : Integer;
 { Only checks that the supplied data is numeric }
 
+FUNCTION ValidateLineInUseFeedbackInput(FeedbackInputStr : String; OUT ErrorMsg : String) : Integer;
+{ Check whether the line-in-use feedback input number is valid }
+
 FUNCTION ValidateLineLocation(LineLocationStr : String; OUT ErrorMsg : String) : Integer;
 { Checks whether the line location is valid }
 
@@ -1757,10 +1761,11 @@ FUNCTION ValidatePointDefaultState(NewStateStr : String; HeelLine, StraightLine,
 FUNCTION ValidatePointDivergingLineName(LineName : String; PointType : TypeOfPoint; OUT ErrorMsg : String) : Integer;
 { Check that a given point's Diverging Line name is valid }
 
-FUNCTION ValidatePointFeedbackInput(FeedbackInputStr : String; PointHasFeedback : Boolean; OUT ErrorMsg : String) : Integer;
-{ Check whether the point feedback input number is valid }
+FUNCTION ValidateFeedbackInput(FeedbackInputStr : String; HasFeedback : Boolean; FeedbackUnit : Integer; FeedbackType : TypeOfFeedback; DataNumber : Integer;
+                               OUT ErrorMsg : String) : Integer;
+{ Check whether the feedback input number is valid }
 
-FUNCTION ValidatePointFeedbackUnit(FeedbackUnitStr : String; OUT PointHasFeedback : Boolean; OUT ErrorMsg : String) : Integer;
+FUNCTION ValidateFeedbackUnit(FeedbackUnitStr : String; OUT HasFeedback : Boolean; OUT ErrorMsg : String) : Integer;
 { Check whether the feedback unit exists and is valid }
 
 FUNCTION ValidatePointHeelLineName(LineName : String; OUT ErrorMsg : String) : Integer;
@@ -1994,6 +1999,7 @@ CONST
 
 VAR
   ErrorMsg : String;
+  HasFeedback : Boolean;
   Location : Integer;
   TC : Integer;
   TempStr : String;
@@ -2045,24 +2051,12 @@ BEGIN
                   Debug('TC=' + IntToStr(TC_Number) + ': invalid length String "' + TempStr + '"');
             END;
 
-            IF ErrorMsg = '' THEN BEGIN
-              TempStr := FieldByName(TC_FeedbackUnitFieldName).AsString;
-              IF TempStr = '' THEN
-                TC_FeedbackUnit := 0
-              ELSE
-                IF NOT TryStrToInt(TempStr, TC_FeedbackUnit) THEN
-                  ErrorMsg := 'invalid feedback unit "' + TempStr + '"';
-            END;
+            IF ErrorMsg = '' THEN
+              TC_FeedbackUnit := ValidateFeedbackUnit(FieldByName(TC_FeedbackUnitFieldName).AsString, HasFeedback, ErrorMsg);
 
-            IF ErrorMsg = '' THEN BEGIN
-              TempStr := FieldByName(TC_FeedbackInputFieldName).AsString;
-              IF TempStr = '' THEN
-                TC_FeedbackInput := 0
-              ELSE
-                IF NOT TryStrToInt(TempStr, TC_FeedbackInput) THEN
-                  ErrorMsg := 'invalid feedback input "' + TempStr + '"';
-            END;
-
+            IF ErrorMsg = '' THEN
+              TC_FeedbackInput := ValidateFeedbackInput(FieldByName(TC_FeedbackInputFieldName).AsString, HasFeedback, TC_FeedbackUnit, TrackCircuitFeedback,
+                                                        TC_Number, ErrorMsg);
             IF ErrorMsg <> '' THEN BEGIN
               IF MessageDialogueWithDefault('Error in creating TC=' + IntToStr(High(TrackCircuits)) + ' (' + IntToStr(TC_Number) + '): '
                                             + '[' + ErrorMsg + ']:'
@@ -3334,6 +3328,21 @@ BEGIN
     ErrorMsg := 'ValidateLineInUseFeedbackUnit: invalid line-in-use feedback unit "' + FeedbackUnitStr + '"';
 END; { ValidateLineInUseFeedbackUnit }
 
+FUNCTION ValidateLineInUseFeedbackInput(FeedbackInputStr : String; OUT ErrorMsg : String) : Integer;
+{ Check whether the line-in-use feedback input number is valid }
+BEGIN
+  ErrorMsg := '';
+
+  IF FeedbackInputStr = '' THEN
+    Result := 0
+  ELSE
+    IF NOT TryStrToInt(FeedbackInputStr, Result) THEN
+      ErrorMsg := 'ValidateLineInUseFeedbackInput: invalid integer "' + FeedbackInputStr + '"'
+    ELSE
+      IF (Result < 1) OR (Result > 8) THEN
+        ErrorMsg := 'ValidateLineInUseFeedbackInput: feedback input number ' + IntToStr(Result) + ' is out of range';
+END; { ValidateLineInUseFeedbackInput }
+
 FUNCTION ValidateLineGradient(LineGradientStr : String; OUT ErrorMsg : String) : GradientType;
 { Checks the line's gradient is valid }
 BEGIN
@@ -3499,6 +3508,7 @@ CONST
 
 VAR
   ErrorMsg : String;
+  HasFeedback : Boolean;
   Line : Integer;
   OtherLine : Integer;
 
@@ -3617,8 +3627,11 @@ BEGIN
             END;
 
             IF ErrorMsg = '' THEN
-              Line_InUseFeedbackUnit := ValidateLineInUseFeedbackUnit(FieldByName(Line_InUseFeedbackUnitFieldName).AsString, ErrorMsg);
+              Line_InUseFeedbackUnit := ValidateFeedbackUnit(FieldByName(Line_InUseFeedbackUnitFieldName).AsString, HasFeedback, ErrorMsg);
 
+            IF ErrorMsg = '' THEN
+              Line_InUseFeedbackInput := ValidateFeedbackInput(FieldByName(Line_InUseFeedbackInputFieldName).AsString, HasFeedback, Line_InUseFeedbackUnit, LineFeedback,
+                                                               Line_Number, ErrorMsg);
             IF ErrorMsg <> '' THEN BEGIN
               IF MessageDialogueWithDefault('Error in creating Line=' + IntToStr(High(Lines)) + ' (' + Line_NameStr + '): '
                                             + '[' + ErrorMsg + ']:'
@@ -3892,6 +3905,15 @@ BEGIN
             Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_InUseFeedbackUnitFieldName + ' is ''' + TempStr + '''');
             LinesADOTable.Edit;
             LinesADOTable.FieldByName(Line_InUseFeedbackUnitFieldName).AsString := TempStr;
+            LinesADOTable.Post;
+
+            IF Line_InUseFeedbackInput <> 0 THEN
+              TempStr := IntToStr(Line_InUseFeedbackInput)
+            ELSE
+              TempStr := '';
+            Log('S Recording in Line database that Line ' + IntToStr(Line) + ' ' + Line_InUseFeedbackInputFieldName + ' is ''' + TempStr + '''');
+            LinesADOTable.Edit;
+            LinesADOTable.FieldByName(Line_InUseFeedbackInputFieldName).AsString := TempStr;
             LinesADOTable.Post;
 
             IF Line_Location <> UnknownLocation THEN
@@ -5780,39 +5802,82 @@ BEGIN
       Result := LenzUnitTypeStr;
 END; { ValidatePointLenzUnitType }
 
-FUNCTION ValidatePointFeedbackUnit(FeedbackUnitStr : String; OUT PointHasFeedback : Boolean; OUT ErrorMsg : String) : Integer;
+FUNCTION ValidateFeedbackUnit(FeedbackUnitStr : String; OUT HasFeedback : Boolean; OUT ErrorMsg : String) : Integer;
 { Check whether the feedback unit exists and is valid }
 BEGIN
   ErrorMsg := '';
   Result := 0;
-  PointHasFeedback := False;
+  HasFeedback := False;
 
   IF (FeedbackUnitStr <> '') AND (FeedbackUnitStr <> '0') THEN BEGIN
     IF NOT TryStrToInt(FeedbackUnitStr, Result) THEN
-      ErrorMsg := 'ValidatePointFeedbackUnit: invalid integer "' + FeedbackUnitStr + '"'
+      ErrorMsg := 'ValidateFeedbackUnit: invalid integer "' + FeedbackUnitStr + '"'
     ELSE
-      PointHasFeedback := True;
+      IF Result < FirstFeedBackUnit THEN
+        ErrorMsg := 'ValidateFeedbackUnit: ' + FeedbackUnitStr + ' is less than the first feedback unit (' + IntToStr(FirstFeedBackUnit) + ')'
+      ELSE
+        IF Result > LastFeedBackUnit THEN
+          ErrorMsg := 'ValidateFeedbackUnit: ' + FeedbackUnitStr + ' is greater than the last feedback unit (' + IntToStr(LastFeedBackUnit) + ')'
+        ELSE
+          HasFeedback := True;
   END;
-END; { ValidatePointFeedbackUnit }
+END; { ValidateFeedbackUnit }
 
-FUNCTION ValidatePointFeedbackInput(FeedbackInputStr : String; PointHasFeedback : Boolean; OUT ErrorMsg : String) : Integer;
+FUNCTION ValidateFeedbackInput(FeedbackInputStr : String; HasFeedback : Boolean; FeedbackUnit : Integer; FeedbackType : TypeOfFeedback; DataNumber : Integer;
+                               OUT ErrorMsg : String) : Integer;
 { Check whether the point feedback input number is valid }
+VAR
+  F : Integer;
+  FeedbackInputFound : Boolean;
+
 BEGIN
   ErrorMsg := '';
 
-  IF NOT PointHasFeedback THEN
-    Result := 0
-  ELSE BEGIN
-    IF FeedbackInputStr = '' THEN
-      Result := 0
+  IF NOT HasFeedback AND (FeedbackInputStr <> '') THEN
+    ErrorMsg := 'ValidateFeedbackInput: a feedback input number has been declared but there is no feedback unit number'
+  ELSE
+    IF HasFeedback AND (FeedbackInputStr = '') THEN
+      ErrorMsg := 'ValidateFeedbackInput: a feedback unit has been declared but there is no feedback input number'
     ELSE
-      IF NOT TryStrToInt(FeedbackInputStr, Result) THEN
-        ErrorMsg := 'ValidatePointFeedbackInput: invalid integer "' + FeedbackInputStr + '"'
+      IF NOT HasFeedback THEN
+        Result := 0
       ELSE
-        IF (Result < 1) OR (Result > 8) THEN
-          ErrorMsg := 'ValidatePointFeedbackInput:  feedback input number ' + IntToStr(Result) + ' is out of range';
+        IF FeedbackInputStr = '' THEN
+          Result := 0
+        ELSE
+          IF NOT TryStrToInt(FeedbackInputStr, Result) THEN
+            ErrorMsg := 'ValidateFeedbackInput: invalid integer "' + FeedbackInputStr + '"'
+          ELSE
+            IF (Result < 1) OR (Result > 8) THEN
+              ErrorMsg := 'ValidateFeedbackInput:  feedback input number ' + IntToStr(Result) + ' is out of range';
+
+  IF ErrorMsg = '' THEN BEGIN
+    IF (FeedbackUnit <> 0) AND (Result <> 0) THEN BEGIN
+      { check that the feedback unit data supplied is valid, and assign it to the appropriate feedback record }
+      F := 0;
+      FeedbackInputFound := False;
+      WHILE (F <= High(FeedbackUnitRecords)) AND NOT FeedbackInputFound DO BEGIN
+        IF F = FeedbackUnit THEN BEGIN
+          IF FeedbackUnitRecords[F].Feedback_InputTypeArray[Result] <> FeedbackType THEN
+            ErrorMsg := 'Cannot assign ' + FeedbackTypeToStr(FeedbackType) + ' to an input that is set to receive ' +
+                        FeedbackTypeToStr(FeedbackUnitRecords[F].Feedback_InputTypeArray[Result])
+          ELSE
+            CASE FeedbackType OF
+              LineFeedback:
+                FeedbackUnitRecords[F].Feedback_InputLine[Result] := DataNumber;
+              PointFeedback:
+                FeedbackUnitRecords[F].Feedback_InputPoint[Result] := DataNumber;
+              TrackCircuitFeedback:
+                FeedbackUnitRecords[F].Feedback_InputTrackCircuit[Result] := DataNumber;
+              TRSPlungerFeedback:
+                FeedbackUnitRecords[F].Feedback_InputTRSPlunger[Result] := DataNumber;
+            END; {CASE}
+        END;
+        Inc(F);
+      END; {WHILE}
+    END;
   END;
-END; { ValidatePointFeedbackInput }
+END; { ValidateFeedbackInput }
 
 FUNCTION ValidatePointRelatedPoint(P : Integer; RelatedPointStr : String; PointType : TypeOfPoint; OUT ErrorMsg : String) : Integer;
 { Check whether the value of the connected point (if any) is valid }
@@ -6069,11 +6134,11 @@ BEGIN
             Point_LenzUnitType := ValidatePointLenzUnitType(PointsADOTable.FieldByName(Point_LenzUnitTypeFieldName).AsString, Point_ManualOperation, ErrorMsg);
 
           IF ErrorMsg = '' THEN
-            Point_FeedbackUnit := ValidatePointFeedbackUnit(PointsADOTable.FieldByName(Point_FeedbackUnitFieldName).AsString, Point_HasFeedback, ErrorMsg);
+            Point_FeedbackUnit := ValidateFeedbackUnit(PointsADOTable.FieldByName(Point_FeedbackUnitFieldName).AsString, Point_HasFeedback, ErrorMsg);
 
           IF ErrorMsg = '' THEN
-            Point_FeedbackInput := ValidatePointFeedbackInput(PointsADOTable.FieldByName(Point_FeedbackInputFieldName).AsString, Point_HasFeedback, ErrorMsg);
-
+            Point_FeedbackInput := ValidateFeedbackInput(PointsADOTable.FieldByName(Point_FeedbackInputFieldName).AsString, Point_HasFeedback, Point_FeedbackUnit,
+                                                         PointFeedback, Point_Number, ErrorMsg);
           IF ErrorMsg = '' THEN
             Point_FeedbackOnIsStraight := PointsADOTable.FieldByName(Point_FeedbackOnIsStraightFieldName).AsBoolean;
 
@@ -6755,10 +6820,9 @@ CONST
 VAR
   ErrorMsg : String;
   FieldName : String;
-  F : Integer;
-  FirstFeedbackUnit : Integer;
+  FeedbackUnit : Integer;
+  FirstFeedbackUnitFound : Boolean;
   Input : Integer;
-  LastFeedbackUnit : Integer;
   TempStr : String;
 
 BEGIN
@@ -6786,91 +6850,86 @@ BEGIN
 
       FeedbackUnitsADOTable.Sort := '[Unit] ASC';
       FeedbackUnitsADOTable.First;
-      SetLength(FeedbackUnitData, 0);
+      SetLength(FeedbackUnitRecords, 0);
+
       FirstFeedbackUnit := 99999;
-      LastFeedbackUnit := 0;
+      LastFeedbackUnit := -1;
+
+      FirstFeedbackUnitFound := False;
 
       WHILE NOT FeedbackUnitsADOTable.EOF DO BEGIN
         WITH FeedbackUnitsADOTable DO BEGIN
-          SetLength(FeedbackUnitData, Length(FeedbackUnitData) + 1);
-          F := High(FeedbackUnitData);
-          WITH FeedbackUnitData[F] DO BEGIN
-            ErrorMsg := '';
+          ErrorMsg := '';
 
-            FieldName := 'Unit';
-            Feedback_Unit := FieldByName(FieldName).AsInteger;
-            IF Feedback_Unit < FirstFeedbackUnit THEN
-              FirstFeedbackUnit := Feedback_Unit;
-            IF Feedback_Unit > LastFeedbackUnit THEN
-              LastFeedbackUnit := Feedback_Unit;
+          FieldName := 'Unit';
+          FeedbackUnit := FieldByName(FieldName).AsInteger;
+          IF NOT FirstFeedbackUnitFound THEN BEGIN
+            { work out where the real start of the dynamic array is }
+            FirstFeedBackUnit := FeedbackUnit;
+            FirstFeedbackUnitFound := True;
+          END;
+          SetLength(FeedbackUnitRecords, FeedbackUnit + 1);
+          LastFeedBackUnit := High(FeedbackUnitRecords);
 
-            FieldName := 'Type';
-            IF FieldByName(FieldName).AsString = '' THEN
-              ErrorMsg := 'missing feedback type'
-            ELSE BEGIN
-              Feedback_DetectorType := StrToFeedbackDetectorType(FieldByName(FieldName).AsString);
-              IF Feedback_DetectorType = UnknownFeedbackDetectorType THEN
+          WITH FeedbackUnitRecords[High(FeedbackUnitRecords)] DO BEGIN
+            Feedback_DetectorOutOfUse := False;  { &&&& this needs to be set up? Need to see if there's any trace of how/if it used to be set up }
+
+            FOR Input := 1 TO 8 DO BEGIN
+              Feedback_InputLine[Input] := UnknownLine;
+              Feedback_InputPoint[Input] := UnknownPoint;
+              Feedback_InputTrackCircuit[Input] := UnknownTrackCircuit;
+              Feedback_InputTRSPlunger[Input] := UnknownTRSPlunger;
+            END; {FOR}
+          END; {WHILE}
+
+          FieldName := 'Input1Type';
+          IF FieldByName(FieldName).AsString = '' THEN
+            ErrorMsg := 'missing feedback type'
+          ELSE BEGIN
+            WITH Feedbackunitrecords[high(Feedbackunitrecords)] DO BEGIN
+              Feedback_InputTypeArray[1] := StrToFeedbackType(FieldByName(FieldName).AsString);
+              IF Feedback_InputTypeArray[1] = UnknownFeedbackType THEN
                 ErrorMsg := 'unknown feedback type';
-            END;
+            END; {with}
+          END;
 
-            IF ErrorMsg = '' THEN BEGIN
-              CASE Feedback_DetectorType OF
-                LineFeedbackDetector:
-                  FOR Input := 1 TO 8 DO
-                    Feedback_InputTypeArray[Input] := LineFeedback;
-                MixedFeedbackDetectors:
-                  BEGIN
-                    { the inputs on the unit are mixed, i.e. they come from different detector types }
-                    Input := 1;
-                    WHILE (Input <= 8) AND (ErrorMsg = '') DO BEGIN
-                      FieldName := 'Input' + IntToStr(Input) + 'Type';
+          IF ErrorMsg = '' THEN BEGIN
+            { propagate the other input types if only the first is occupied }
+            Input := 2;
+            WHILE (Input <= 8) AND (ErrorMsg = '') DO BEGIN
+              FieldName := 'Input' + IntToStr(Input) + 'Type';
+              WITH Feedbackunitrecords[high(Feedbackunitrecords)] DO
+                IF FieldByName(FieldName).AsString = '' THEN
+                  { propagate the other input types if only the first is occupied }
+                  Feedback_InputTypeArray[Input] := Feedback_InputTypeArray[1]
+                ELSE BEGIN
+                  Feedback_InputTypeArray[Input] := StrToFeedbackType(FieldByName(FieldName).AsString);
+                  IF Feedback_InputTypeArray[Input] = UnknownFeedbackType THEN
+                    ErrorMsg := 'unknown feedback type "' + FieldByName(FieldName).AsString + '" for Input' + IntToStr(Input) + 'Type';
+                END;
+              Inc(Input);
+            END; {WHILE}
+          END;
 
-                      IF FieldByName(FieldName).AsString = '' THEN
-                        ErrorMsg := 'missing feedback type for Input' + IntToStr(Input) + 'Type'
-                      ELSE BEGIN
-                        Feedback_InputTypeArray[Input] := StrToFeedbackType(FieldByName(FieldName).AsString);
-                        IF Feedback_InputTypeArray[Input] = UnknownFeedback THEN
-                          ErrorMsg := 'unknown feedback type for Input' + IntToStr(Input) + 'Type';
-                      END;
-                      Inc(Input);
-                    END; {WHILE}
-                  END;
-                PointFeedbackDetector:
-                  FOR Input := 1 TO 8 DO
-                    Feedback_InputTypeArray[Input] := PointFeedback;
-                TrackCircuitFeedbackDetector:
-                  FOR Input := 1 TO 8 DO
-                    Feedback_InputTypeArray[Input] := TrackCircuitFeedback;
-                TRSPlungerFeedbackDetector:
-                  FOR Input := 1 TO 8 DO
-                    Feedback_InputTypeArray[Input] := TRSPlungerFeedback;
-                UnknownFeedbackDetectorType:
-                  FOR Input := 1 TO 8 DO
-                    Feedback_InputTypeArray[Input] := UnknownFeedback;
-              END; {CASE}
-            END;
+          IF ErrorMsg = '' THEN BEGIN
+            FieldName := 'TCAbove';
+            TempStr := FieldByName(FieldName).AsString;
+            IF TempStr = '' THEN
+              Feedbackunitrecords[high(Feedbackunitrecords)].Feedback_TCAboveUnit := UnknownTrackCircuit
+            ELSE
+              IF NOT TryStrToInt(TempStr, Feedbackunitrecords[high(Feedbackunitrecords)].Feedback_TCAboveUnit) THEN
+                ErrorMsg := 'invalid integer ''' + TempStr + ''' in TCAbove field';
+          END;
 
-            IF ErrorMsg = '' THEN BEGIN
-              FieldName := 'TCAbove';
-              TempStr := FieldByName(FieldName).AsString;
-              IF TempStr = '' THEN
-                Feedback_TCAboveUnit := UnknownTrackCircuit
-              ELSE
-                IF NOT TryStrToInt(TempStr, Feedback_TCAboveUnit) THEN
-                  ErrorMsg := 'invalid integer ''' + TempStr + ''' in TCAbove field';
-            END;
-
-            IF ErrorMsg <> '' THEN BEGIN
-              IF MessageDialogueWithDefault('Error in creating Feedback Detector=' + IntToStr(Feedback_Unit) + ': '
-                                            + '[' + ErrorMsg + ']:'
-                                            + CRLF
-                                            + 'Do you wish to continue?',
-                                            StopTimer, mtWarning, [mbYes, mbNo], mbNo) = mrNo
-              THEN
-                ShutDownProgram(UnitRef, 'InitialiseFeedback');
-            END;
-
-          END; {WITH}
+          IF ErrorMsg <> '' THEN BEGIN
+            IF MessageDialogueWithDefault('Error in creating Feedback Detector=' + IntToStr(high(Feedbackunitrecords)) + ': '
+                                          + '[' + ErrorMsg + ']:'
+                                          + CRLF
+                                          + 'Do you wish to continue?',
+                                          StopTimer, mtWarning, [mbYes, mbNo], mbNo) = mrNo
+            THEN
+              ShutDownProgram(UnitRef, 'InitialiseFeedback');
+          END;
         END; {WITH}
         FeedbackUnitsADOTable.Next;
       END; {WHILE}
@@ -7022,8 +7081,8 @@ VAR
 BEGIN
   FOR I := FirstFunctionDecoder TO LastFunctionDecoder DO
     FunctionDecoderBytes[I] := 0;
-  FOR I := FirstFeedbackUnit TO LastFeedbackUnit DO
-    FeedbackUnitInUseArray[I] := False;
+//  FOR I := FirstFeedbackUnit TO LastFeedbackUnit DO
+//    FeedbackUnitInUseArray[I] := False;
 
   DefaultFWPRailWindowTop := 0;
   DefaultFWPRailWindowLeft := 0;

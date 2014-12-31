@@ -73,10 +73,8 @@ CONST
 
 VAR
   ErrorCount : Integer;
-  FeedbackNum1 : Integer;
   FeedbackNumFound : Boolean;
   FeedbackPoint : Integer;
-  FeedbackType : TypeOfFeedbackDetector;
   I, J : Integer;
   L : Integer;
   LenzPointNum : Integer;
@@ -88,11 +86,9 @@ VAR
   SaveLine : Integer;
   SaveTypeOfLine : TypeOfLine;
   TC : Integer;
-  TCAboveFeedbackUnit : Integer;
   TCHasFeedback : Boolean;
   TCInUse : Boolean;
   TempDraftRouteArray : StringArrayType;
-  TempFeedbackData : FeedbackRec;
   TempLinesNotAvailableStr : String;
 
 BEGIN
@@ -103,12 +99,12 @@ BEGIN
   WriteToStatusBarPanel(StatusBarPanel2, 'Feedback check');
   ErrorCount := 0;
   Debug('Commencing feedback unit check - please wait...');
-  FOR I := FirstFeedbackUnit TO LastFeedbackUnit DO BEGIN
-    TempFeedbackData.Feedback_Unit := I;
-    ExtractDataFromFeedback(TempFeedbackData, TCAboveFeedbackUnit, FeedbackType, FeedbackNum1);
-    IF FeedbackType = FeedbackDetectorOutOfUse THEN
-      Log('XG Feedback unit ' + IntToStr(TempFeedbackData.Feedback_Unit) + ' is marked as out of use');
-  END;
+
+  FOR I := FirstFeedbackUnit TO LastFeedbackUnit DO
+    IF FeedbackUnitRecords[I].Feedback_DetectorOutOfUse THEN BEGIN
+      Log('XG Feedback unit ' + IntToStr(I) + ' is marked as out of use');
+      Inc(ErrorCount);
+  END; {FOR}
 
   IF ErrorCount > 0 THEN
     Debug('Feedback check completed - report in LogFile with header ''FFFF'' includes ' + IntToStr(ErrorCount) + ' errors found')
@@ -126,20 +122,16 @@ BEGIN
     FOR L := 0 TO High(Lines) DO BEGIN
       IF Lines[L].Line_TC = TC THEN
         TCInUse := True;
-    END;
+    END; {FOR}
 
     { now see if the track circuit has feedback }
     FOR I := FirstFeedbackUnit TO LastFeedbackUnit DO BEGIN
       FOR J := 1 TO 8 DO BEGIN
-        TempFeedbackData.Feedback_Unit := I;
-        TempFeedbackData.Feedback_Input := J;
-        ExtractDataFromFeedback(TempFeedbackData, TCAboveFeedbackUnit, FeedbackType, FeedbackNum1);
-        IF FeedbackType = TrackCircuitFeedbackDetector THEN BEGIN
-          IF FeedbackNum1 = TC THEN
+        IF FeedbackUnitRecords[I].Feedback_InputTypeArray[J] = TrackCircuitFeedback THEN BEGIN
+          IF FeedbackUnitRecords[I].Feedback_InputTrackCircuit[J] = TC THEN
             TCHasFeedback := True;
         END;
       END;
-    END;
 
       IF NOT TCInUse AND NOT TCHasFeedback THEN BEGIN
         Inc(ErrorCount);
@@ -153,6 +145,7 @@ BEGIN
             Inc(ErrorCount);
             Log('X TC=' + IntToStr(TC) + ' has no feedback');
           END;
+    END; {FOR}
   END;
 
   IF ErrorCount > 0 THEN
@@ -165,13 +158,10 @@ BEGIN
   Debug('Commencing track-circuit feedback input check - please wait...');
   FOR I := FirstFeedbackUnit TO LastFeedbackUnit DO BEGIN
     FOR J := 1 TO 8 DO BEGIN
-      TempFeedbackData.Feedback_Unit := I;
-      TempFeedbackData.Feedback_Input := J;
-      ExtractDataFromFeedback(TempFeedbackData, TCAboveFeedbackUnit, FeedbackType, FeedbackNum1);
-      IF FeedbackType = TrackCircuitFeedbackDetector THEN BEGIN
+      IF FeedbackUnitRecords[I].Feedback_InputTypeArray[J] = TrackCircuitFeedback THEN BEGIN
         FeedbackNumFound := False;
         FOR TC := 0 TO High(TrackCircuits) DO BEGIN
-          IF TC = FeedbackNum1 THEN BEGIN
+          IF TC = FeedbackUnitRecords[I].Feedback_InputTrackCircuit[J] THEN BEGIN
             FeedbackNumFound := True;
 
             IF TrackCircuits[TC].TC_OccupationState = TCOutOfUseSetByUser THEN
@@ -216,10 +206,7 @@ BEGIN
   Debug('Commencing point feedback input check - please wait...');
   FOR I := FirstFeedbackUnit TO LastFeedbackUnit DO BEGIN
     FOR J := 1 TO 8 DO BEGIN
-      TempFeedbackData.Feedback_Unit := I;
-      TempFeedbackData.Feedback_Input := J;
-      ExtractDataFromFeedback(TempFeedbackData, TCAboveFeedbackUnit, FeedbackType, FeedbackNum1);
-      IF FeedbackType = PointFeedbackDetector THEN BEGIN
+      IF FeedbackUnitRecords[I].Feedback_InputTypeArray[J] = PointFeedback THEN BEGIN
         FeedbackNumFound := False;
         FeedbackPoint := UnknownPoint;
         P := 0;

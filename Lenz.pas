@@ -591,7 +591,6 @@ VAR
   { Checks against the stored feedback data to report any changes }
   VAR
     B : Byte;
-    FeedbackChanges : FeedbackRec;
     I, Input, Nibble : Integer;
 
   BEGIN
@@ -618,19 +617,11 @@ VAR
         FOR I := 1 TO 4 DO BEGIN
           IF (B AND BinaryCounter[I]) = BinaryCounter[I] THEN BEGIN
             IF (NewData AND BinaryCounter[I]) = BinaryCounter[I] THEN BEGIN
-              FeedbackChanges.Feedback_Unit := UnitNum + 1;
-              FeedbackChanges.Feedback_Input := Input + I;
-              FeedbackChanges.Feedback_InputOn := True;
-
-              { decode it and record it for debugging }
-              DecodeFeedback(FeedbackChanges);
+              FeedbackUnitRecords[UnitNum + 1].Feedback_Inputonarray[Input + I] := true;
+              DecodeFeedback(UnitNum + 1, Input + I);
             END ELSE BEGIN
-              FeedbackChanges.Feedback_Unit := UnitNum + 1;
-              FeedbackChanges.Feedback_Input := Input + I;
-              FeedbackChanges.Feedback_InputOn := False;
-
-              { decode it and record it for debugging }
-              DecodeFeedback(FeedbackChanges);
+              FeedbackUnitRecords[UnitNum + 1].Feedback_Inputonarray[Input + I] := false;
+              DecodeFeedback(UnitNum + 1, Input + I);
             END;
           END;
         END;
@@ -3104,7 +3095,6 @@ PROCEDURE WhichFeedbackInputsAreSet(UnitNum, B : Byte);
 { Looks at bits 4-0 to find out, and calls DecodeFeedback to set the on-screen tell-tales }
 VAR
   I, Input : Integer;
-  TempFeedbackData : FeedbackRec;
 
 BEGIN
   { If bit 4 set, inputs are 5 to 8, so increment counter accordingly }
@@ -3115,16 +3105,14 @@ BEGIN
 
   { Cycle through the four inputs }
   FOR I := 1 TO 4 DO BEGIN
-    TempFeedbackData.Feedback_Unit := UnitNum + 1;
-    TempFeedbackData.Feedback_Input := Input + I;
     IF (B AND BinaryCounter[I]) = BinaryCounter[I] THEN BEGIN
-      TempFeedbackData.Feedback_InputOn := True;
-      { decode it and record it for debugging }
-      DecodeFeedback(TempFeedbackData);
+      FeedbackUnitRecords[UnitNum + 1].Feedback_Inputonarray[Input + I] := true;
+      //writeoutfeedbackrec(UnitNum + 1);
+      DecodeFeedback(UnitNum + 1, Input + I);
     END ELSE BEGIN
-      TempFeedbackData.Feedback_InputOn := False;
-      { decode it and record it for debugging }
-      DecodeFeedback(TempFeedbackData);
+      FeedbackUnitRecords[UnitNum + 1].Feedback_Inputonarray[Input + I] := False;
+      //writeoutfeedbackrec(UnitNum + 1);
+      DecodeFeedback(UnitNum + 1, Input + I);
     END;
   END;
 END; { WhichFeedbackInputsAreSet }
@@ -3135,13 +3123,6 @@ CONST
   ProcessMessages = True;
 
 VAR
-//  FeedbackNum : Integer;
-//  FeedbackPort : PortType;
-//  FeedbackType : TypeOfFeedBackType;
-//  I, J : Integer;
-//  TCAboveFeedbackUnit : Integer;
-//  TempFeedbackData : FeedbackRec;
-//  TempFeedbackNum : Integer;
   UnitNum : Integer;
   ReadArray : ARRAY [0..ReadArrayLen] OF Byte;
   WriteArray : ARRAY [0..ReadArrayLen] OF Byte;

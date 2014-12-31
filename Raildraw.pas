@@ -793,7 +793,6 @@ END; { SetCaption }
 PROCEDURE ShowLinePos;
 { Showing how line segments are sub-divided - for development }
 VAR
-  FeedbackNum : Integer;
   FeedbackUnitFound : Boolean;
   LineNameWidth : Word;
   ScreenDownX : Integer;
@@ -801,7 +800,6 @@ VAR
   ScreenUpX : Integer;
   ScreenUpY : Integer;
   SegmentText : String;
-  TempFeedbackData : FeedbackRec;
   TrackCircuitNumbered : Boolean;
   X, Y : Integer;
 
@@ -828,63 +826,63 @@ VAR
   { Display data relating to track circuits }
   VAR
     ColourNum : Integer;
+    F : Integer;
+    FirstUnit : Integer;
     FeedbackType : TypeOfFeedbackDetector;
-    I, J, K : Integer;
+    I, J : Integer;
+    LastUnit : Integer;
     Line : Integer;
     LineDrawn : Boolean;
     P : Integer;
     Pos : Word;
     TC : Integer;
-    TCAboveFeedbackUnit : Integer;
     TempNum : Integer;
 
   BEGIN
-    WITH RailWindowBitmap.Canvas DO BEGIN
-      { First clear existing line detail, as it may obscure the data we're writing out }
-      ShowLineOccupationDetail := False;
-      FOR Line := 0 TO High(Lines) DO
-        DrawLine(Line, Lines[Line].Line_CurrentColour, False);
+    TRY
+      WITH RailWindowBitmap.Canvas DO BEGIN
+        { First clear existing line detail, as it may obscure the data we're writing out }
+        ShowLineOccupationDetail := False;
+        FOR Line := 0 TO High(Lines) DO
+          DrawLine(Line, Lines[Line].Line_CurrentColour, False);
 
-      IF ShowOneFeedbackUnitOnly OR ShowTrackCircuitFeedbackDataInSeparateColours THEN BEGIN
-          { show which Lenz feedback unit is being used }
-        IF ShowOneFeedbackUnitOnly THEN BEGIN
-          I := ShowFeedbackUnitNum;
-          K := ShowFeedbackUnitNum;
-        END ELSE BEGIN
-          I := FirstFeedbackUnit;
-          K := LastFeedbackUnit;
-        END;
-
-        { Go through all the colours in sequence, but start randomly - this is better than choosing colours at random, as one can end up with too many colours the same
-          that way. Note: the From in RandomRange is included in the results, but the To is not.
-        }
-        ColourNum := RandomRange(1, MaxColourNum + 1);
-        WHILE I <= K DO BEGIN
-          IF NOT ShowOneFeedbackUnitOnly THEN BEGIN
-            Inc(ColourNum);
-            { Add another bit of randomness to the process, as otherwise the adjoining units might always come out the same colour. Note: the From in RandomRange is
-              included in the results, but the To is not.
-            }
-            TempNum := RandomRange(1, 3);
-            IF TempNum = 1 THEN
-              Inc(ColourNum);
-            IF ColourNum > MaxColourNum THEN
-              ColourNum := 1;
-            Font.Color := ColoursArray[ColourNum];
+        IF ShowOneFeedbackUnitOnly OR ShowTrackCircuitFeedbackDataInSeparateColours THEN BEGIN
+            { show which Lenz feedback unit is being used }
+          IF ShowOneFeedbackUnitOnly THEN BEGIN
+            FirstUnit := ShowFeedbackUnitNum;
+            LastUnit := ShowFeedbackUnitNum;
+          END ELSE BEGIN
+            FirstUnit := FirstFeedbackUnit;
+            LastUnit := LastFeedbackUnit;
           END;
 
-          SegmentText := IntToStr(I);
-          FOR J := 1 TO 8 DO BEGIN
-            TempFeedbackData.Feedback_Unit := I;
-            TempFeedbackData.Feedback_Input := J;
-            ExtractDataFromFeedback(TempFeedbackData, TCAboveFeedbackUnit, FeedbackType, FeedbackNum);
-            IF FeedbackType = PointFeedbackDetector THEN BEGIN
-              IF ShowOneFeedbackUnitOnly THEN BEGIN
-                Font.Color := clAqua;
-                FOR P := 0 TO High(Points) DO BEGIN
-                  WITH Points[P] DO BEGIN
-                    IF (Point_FeedbackUnit = I) AND (Point_FeedbackInput = J) THEN BEGIN
-                      SegmentText := IntToStr(I) + IntToStr(J);
+          { Go through all the colours in sequence, but start randomly - this is better than choosing colours at random, as one can end up with too many colours the same
+            that way. Note: the From in RandomRange is included in the results, but the To is not.
+          }
+          ColourNum := RandomRange(1, MaxColourNum + 1);
+
+          FOR F := FirstUnit TO LastUnit DO BEGIN
+            WITH FeedbackUnitRecords[F] DO BEGIN
+              IF NOT ShowOneFeedbackUnitOnly THEN BEGIN
+                Inc(ColourNum);
+                { Add another bit of randomness to the process, as otherwise the adjoining units might always come out the same colour. Note: the From in RandomRange is
+                  included in the results, but the To is not.
+                }
+                TempNum := RandomRange(1, 3);
+                IF TempNum = 1 THEN
+                  Inc(ColourNum);
+                IF ColourNum > MaxColourNum THEN
+                  ColourNum := 1;
+                Font.Color := ColoursArray[ColourNum];
+              END;
+
+              SegmentText := IntToStr(FirstUnit);
+              FOR J := 1 TO 8 DO BEGIN
+                IF Feedback_InputPoint[J] <> UnknownPoint THEN BEGIN
+                  IF ShowOneFeedbackUnitOnly THEN BEGIN
+                    Font.Color := clAqua;
+                    WITH Points[Feedback_InputPoint[J]] DO BEGIN
+                      SegmentText := IntToStr(F) + IntToStr(J);
                       WITH Point_MouseRect DO BEGIN
                         IF Point_FarY < Point_Y THEN
                           TextOut(Right - ScrollBarXAdjustment,
@@ -895,193 +893,194 @@ VAR
                                   Top + ((Bottom - Top - TextHeight(SegmentText)) DIV 2) - ScrollBarYAdjustment,
                                   SegmentText);
                       END; {WITH}
+                    END; {WITH}
+                  END;
+                END ELSE
+                  IF Feedback_InputTrackCircuit[J] <> UnknownTrackCircuit THEN BEGIN
+                    IF ShowOneFeedbackUnitOnly THEN
+                      Font.Color := clYellow;
+                    IF (Feedback_InputTrackCircuit[J] >= 0) AND (Feedback_InputTrackCircuit[J] <= High(TrackCircuits)) THEN BEGIN
+                      SegmentText := IntToStr(FirstUnit) + IntToStr(J);
+                      IF Length(TrackCircuits[Feedback_InputTrackCircuit[J]].TC_LineArray) > 0 THEN BEGIN
+                        Line := TrackCircuits[Feedback_InputTrackCircuit[J]].TC_LineArray[0];
+                        WITH Lines[Line] DO BEGIN
+                          ScreenUpX := MapGridXToScreenX(Line_GridUpX);
+                          ScreenUpY := MapGridYToScreenY(Line_GridUpY);
+                          ScreenDownX := MapGridXToScreenX(Line_GridDownX);
+                          ScreenDownY := MapGridYToScreenY(Line_GridDownY);
+                          TextOut(ScreenUpX + (ScreenDownX - ScreenUpX) DIV 2 - TextWidth(SegmentText) DIV 2 - ScrollBarXAdjustment,
+                                  (ScreenUpY + (ScreenDownY - ScreenUpY) DIV 2) - TextHeight(SegmentText) DIV 2 - ScrollBarYAdjustment,
+                                  SegmentText);
+                        END; {WITH}
+                        SegmentText := '';
+                      END;
                     END;
-                  END; {WITH}
-                END; {FOR}
-              END;
-            END ELSE
-              IF FeedbackType = TrackCircuitFeedbackDetector THEN BEGIN
-                IF ShowOneFeedbackUnitOnly THEN
-                  Font.Color := clYellow;
-                IF (FeedbackNum >= 0) AND (FeedbackNum <= High(TrackCircuits)) THEN BEGIN
-                  SegmentText := IntToStr(I) + IntToStr(J);
-                  IF Length(TrackCircuits[FeedbackNum].TC_LineArray) > 0 THEN BEGIN
-                    Line := TrackCircuits[FeedbackNum].TC_LineArray[0];
+                  END;
+              END; {FOR}
+            END; {WITH}
+          END; {FOR}
+
+          IF ShowOneFeedbackUnitOnly THEN
+            ShowOneFeedbackUnitOnly := False;
+        END ELSE BEGIN
+          FOR TC := 0 TO High(TrackCircuits) DO BEGIN
+            { Write out the track-circuit number once only }
+            Line := 0;
+            TrackCircuitNumbered := False;
+            WHILE Line <= High(Lines) DO BEGIN
+              IF Lines[Line].Line_TC = TC THEN BEGIN
+                { Draw vertical lines as separators }
+                IF (Lines[Line].Line_NextUpLine <> UnknownLine) AND (Lines[Lines[Line].Line_NextUpLine].Line_TC <> TC) THEN BEGIN
+                  Pen.Color := clWhite;
+                  Pen.Style := psSolid;
+                  FOR Pos := 0 TO 10 DO BEGIN
                     WITH Lines[Line] DO BEGIN
                       ScreenUpX := MapGridXToScreenX(Line_GridUpX);
                       ScreenUpY := MapGridYToScreenY(Line_GridUpY);
                       ScreenDownX := MapGridXToScreenX(Line_GridDownX);
                       ScreenDownY := MapGridYToScreenY(Line_GridDownY);
-                      TextOut(ScreenUpX + (ScreenDownX - ScreenUpX) DIV 2 - TextWidth(SegmentText) DIV 2 - ScrollBarXAdjustment,
-                              (ScreenUpY + (ScreenDownY - ScreenUpY) DIV 2) - TextHeight(SegmentText) DIV 2 - ScrollBarYAdjustment,
-                              SegmentText);
+                      X := ScreenUpX + MulDiv(ScreenDownX - ScreenUpX, Pos, 10);
+                      Y := ScreenUpY + MulDiv(ScreenDownY - ScreenUpY, Pos, 10);
+                      IF Pos = 0 THEN BEGIN
+                        MoveTo(X - ScrollBarXAdjustment, Y - 6 - ScrollBarYAdjustment);
+                        LineTo(X - ScrollBarXAdjustment, Y + 6 - ScrollBarYAdjustment);
+                      END;
                     END; {WITH}
-                    SegmentText := '';
+                  END; {FOR}
+                END;
+
+                IF NOT ShowTrackCircuits THEN BEGIN
+                  { want TCs coloured all the same }
+                  IF TrackCircuits[TC].TC_UserMustDrive THEN
+                    DrawLine(Line, TCUserMustDriveColour, NOT ActiveTrain)
+                  ELSE
+                    DrawLine(Line, TCUnoccupiedColour, NOT ActiveTrain);
+                END ELSE BEGIN
+                  { colour TCs differently to distinguish them }
+                  LineDrawn := False;
+                  IF Lines[Line].Line_NextUpLine <> UnknownLine THEN BEGIN
+                    IF Lines[Lines[Line].Line_NextUpLine].Line_TC <> TC THEN BEGIN
+                      IF Lines[Lines[Line].Line_NextUpLine].Line_CurrentColour <> clLime THEN BEGIN
+                        DrawLine(Line, clLime, NOT ActiveTrain);
+                        LineDrawn := True;
+                        Font.Color := clLime;
+                      END ELSE
+                        IF Lines[Lines[Line].Line_NextUpLine].Line_CurrentColour <> clRed THEN BEGIN
+                          DrawLine(Line, clRed, NOT ActiveTrain);
+                          LineDrawn := True;
+                          Font.Color := clRed;
+                        END ELSE BEGIN
+                          DrawLine(Line, clYellow, NOT ActiveTrain);
+                          LineDrawn := True;
+                          Font.Color := clYellow;
+                        END;
+                    END;
+                  END;
+
+                  IF Lines[Line].Line_NextDownLine <> UnknownLine THEN BEGIN
+                    IF Lines[Lines[Line].Line_NextDownLine].Line_TC <> TC THEN BEGIN
+                      IF Lines[Lines[Line].Line_NextDownLine].Line_CurrentColour <> clLime THEN BEGIN
+                        DrawLine(Line, clLime, NOT ActiveTrain);
+                        LineDrawn := True;
+                        Font.Color := clLime;
+                      END ELSE
+                        IF Lines[Lines[Line].Line_NextDownLine].Line_CurrentColour <> clRed THEN BEGIN
+                          DrawLine(Line, clRed, NOT ActiveTrain);
+                          LineDrawn := True;
+                          Font.Color := clRed;
+                        END ELSE BEGIN
+                          DrawLine(Line, clYellow, NOT ActiveTrain);
+                          LineDrawn := True;
+                          Font.Color := clYellow;
+                        END;
+                    END;
+                  END;
+
+                  IF NOT LineDrawn THEN BEGIN
+                    DrawLine(Line, clYellow, NOT ActiveTrain);
+                    Font.Color := clYellow;
                   END;
                 END;
-              END;
-          END; {FOR}
-          Inc(I);
-        END; {WHILE}
 
-        IF ShowOneFeedbackUnitOnly THEN
-          ShowOneFeedbackUnitOnly := False;
-      END ELSE BEGIN
-        FOR TC := 0 TO High(TrackCircuits) DO BEGIN
-          { Write out the track-circuit number once only }
-          Line := 0;
-          TrackCircuitNumbered := False;
-          WHILE Line <= High(Lines) DO BEGIN
-            IF Lines[Line].Line_TC = TC THEN BEGIN
-              { Draw vertical lines as separators }
-              IF (Lines[Line].Line_NextUpLine <> UnknownLine) AND (Lines[Lines[Line].Line_NextUpLine].Line_TC <> TC) THEN BEGIN
-                Pen.Color := clWhite;
-                Pen.Style := psSolid;
-                FOR Pos := 0 TO 10 DO BEGIN
+                IF NOT TrackCircuitNumbered OR (ScreenMode = FullScreenMode) OR (ScreenMode = FullScreenWithStatusBarMode) THEN BEGIN
                   WITH Lines[Line] DO BEGIN
+                    Font.Style := [fsBold];
+                    IF ShowTrackCircuits THEN
+                      SegmentText := IntToStr(TC);
+
+                    { note: the following options are mutually exclusive, so it doesn't need to be IF THEN ELSE }
+                    IF ShowTrackCircuitLengths THEN BEGIN
+                      IF Line_TC <> UnknownTrackCircuit THEN BEGIN
+                        { how long (in inches) each track circuit is }
+                        IF TrackCircuits[Line_TC].TC_LengthInInches = 0.0 THEN
+                          { a missing length }
+                          Font.Color := clYellow
+                        ELSE
+                          Font.Color := clLime;
+
+                        SegmentText := FloatToStr(TrackCircuits[Line_TC].TC_LengthInInches);
+                        { remove leading 0.s or trailing .0s }
+                        IF Copy(SegmentText, 1, 2) = '0.' THEN
+                          SegmentText := Copy(SegmentText, 2, 255)
+                        ELSE
+                          IF Copy(SegmentText, Length(SegmentText) - 1, 2) = '.0' THEN
+                            SegmentText := Copy(SegmentText, 1, Length(SegmentText) - 2);
+                      END;
+                    END;
+
+                    IF ShowTrackCircuitFeedbackDataInUse THEN BEGIN
+                      { show which Lenz feedback unit is being used }
+                      IF Line_TC <> UnknownTrackCircuit THEN BEGIN
+                        SegmentText := '';
+                        FeedbackUnitFound := False;
+                        I := FirstFeedbackUnit;
+                        WHILE (I <= LastFeedbackUnit) AND NOT FeedbackUnitFound DO BEGIN
+                          FOR J := 1 TO 8 DO BEGIN
+                            IF FeedbackUnitRecords[I].Feedback_InputTypeArray[J] = TrackCircuitFeedback THEN BEGIN
+                              IF FeedbackUnitRecords[I].Feedback_InputTrackCircuit[J] = Line_TC THEN BEGIN
+                                FeedbackUnitFound := True;
+                                SegmentText := IntToStr(I) + IntToStr(J);
+//                              IF FeedbackUnitInUseArray[I] THEN { &&&&&& }
+//                                Font.Color := TCFeedbackDataInUseColour
+//                              ELSE
+//                                Font.Color := TCFeedbackDataOutOfUseColour;
+                              END;
+                            END;
+                          END;
+                          Inc(I);
+                        END; {WHILE}
+                        IF SegmentText = '' THEN BEGIN
+                          Font.Color := clAqua; { TrackCircuitsWithoutFeedbackColour }
+                          SegmentText := '0000';
+                        END;
+                      END;
+                    END;
+
+                    IF ScreenColoursSetForPrinting THEN
+                      Font.Color := clBlack;
+
                     ScreenUpX := MapGridXToScreenX(Line_GridUpX);
                     ScreenUpY := MapGridYToScreenY(Line_GridUpY);
                     ScreenDownX := MapGridXToScreenX(Line_GridDownX);
                     ScreenDownY := MapGridYToScreenY(Line_GridDownY);
-                    X := ScreenUpX + MulDiv(ScreenDownX - ScreenUpX, Pos, 10);
-                    Y := ScreenUpY + MulDiv(ScreenDownY - ScreenUpY, Pos, 10);
-                    IF Pos = 0 THEN BEGIN
-                      MoveTo(X - ScrollBarXAdjustment, Y - 6 - ScrollBarYAdjustment);
-                      LineTo(X - ScrollBarXAdjustment, Y + 6 - ScrollBarYAdjustment);
-                    END;
+                    TextOut(ScreenUpX + (ScreenDownX - ScreenUpX) DIV 2 - TextWidth(SegmentText) DIV 2 - ScrollBarXAdjustment,
+                           (ScreenUpY + (ScreenDownY - ScreenUpY) DIV 2) - TextHeight(SegmentText) DIV 2 - ScrollBarYAdjustment,
+                            SegmentText);
+                    SegmentText := '';
                   END; {WITH}
-                END; {FOR}
-              END;
-
-              IF NOT ShowTrackCircuits THEN BEGIN
-                { want TCs coloured all the same }
-                IF TrackCircuits[TC].TC_UserMustDrive THEN
-                  DrawLine(Line, TCUserMustDriveColour, NOT ActiveTrain)
-                ELSE
-                  DrawLine(Line, TCUnoccupiedColour, NOT ActiveTrain);
-              END ELSE BEGIN
-                { colour TCs differently to distinguish them }
-                LineDrawn := False;
-                IF Lines[Line].Line_NextUpLine <> UnknownLine THEN BEGIN
-                  IF Lines[Lines[Line].Line_NextUpLine].Line_TC <> TC THEN BEGIN
-                    IF Lines[Lines[Line].Line_NextUpLine].Line_CurrentColour <> clLime THEN BEGIN
-                      DrawLine(Line, clLime, NOT ActiveTrain);
-                      LineDrawn := True;
-                      Font.Color := clLime;
-                    END ELSE
-                      IF Lines[Lines[Line].Line_NextUpLine].Line_CurrentColour <> clRed THEN BEGIN
-                        DrawLine(Line, clRed, NOT ActiveTrain);
-                        LineDrawn := True;
-                        Font.Color := clRed;
-                      END ELSE BEGIN
-                        DrawLine(Line, clYellow, NOT ActiveTrain);
-                        LineDrawn := True;
-                        Font.Color := clYellow;
-                      END;
-                  END;
-                END;
-
-                IF Lines[Line].Line_NextDownLine <> UnknownLine THEN BEGIN
-                  IF Lines[Lines[Line].Line_NextDownLine].Line_TC <> TC THEN BEGIN
-                    IF Lines[Lines[Line].Line_NextDownLine].Line_CurrentColour <> clLime THEN BEGIN
-                      DrawLine(Line, clLime, NOT ActiveTrain);
-                      LineDrawn := True;
-                      Font.Color := clLime;
-                    END ELSE
-                      IF Lines[Lines[Line].Line_NextDownLine].Line_CurrentColour <> clRed THEN BEGIN
-                        DrawLine(Line, clRed, NOT ActiveTrain);
-                        LineDrawn := True;
-                        Font.Color := clRed;
-                      END ELSE BEGIN
-                        DrawLine(Line, clYellow, NOT ActiveTrain);
-                        LineDrawn := True;
-                        Font.Color := clYellow;
-                      END;
-                  END;
-                END;
-
-                IF NOT LineDrawn THEN BEGIN
-                  DrawLine(Line, clYellow, NOT ActiveTrain);
-                  Font.Color := clYellow;
+                  TrackCircuitNumbered := True;
                 END;
               END;
-
-              IF NOT TrackCircuitNumbered OR (ScreenMode = FullScreenMode) OR (ScreenMode = FullScreenWithStatusBarMode) THEN BEGIN
-                WITH Lines[Line] DO BEGIN
-                  Font.Style := [fsBold];
-                  IF ShowTrackCircuits THEN
-                    SegmentText := IntToStr(TC);
-
-                  { note: the following options are mutually exclusive, so it doesn't need to be IF THEN ELSE }
-                  IF ShowTrackCircuitLengths THEN BEGIN
-                    IF Line_TC <> UnknownTrackCircuit THEN BEGIN
-                      { how long (in inches) each track circuit is }
-                      IF TrackCircuits[Line_TC].TC_LengthInInches = 0.0 THEN
-                        { a missing length }
-                        Font.Color := clYellow
-                      ELSE
-                        Font.Color := clLime;
-
-                      SegmentText := FloatToStr(TrackCircuits[Line_TC].TC_LengthInInches);
-                      { remove leading 0.s or trailing .0s }
-                      IF Copy(SegmentText, 1, 2) = '0.' THEN
-                        SegmentText := Copy(SegmentText, 2, 255)
-                      ELSE
-                        IF Copy(SegmentText, Length(SegmentText) - 1, 2) = '.0' THEN
-                          SegmentText := Copy(SegmentText, 1, Length(SegmentText) - 2);
-                    END;
-                  END;
-
-                  IF ShowTrackCircuitFeedbackDataInUse THEN BEGIN
-                    { show which Lenz feedback unit is being used }
-                    IF Line_TC <> UnknownTrackCircuit THEN BEGIN
-                      SegmentText := '';
-                      FeedbackUnitFound := False;
-                      I := FirstFeedbackUnit;
-                      WHILE (I <= LastFeedbackUnit) AND NOT FeedbackUnitFound DO BEGIN
-                        FOR J := 1 TO 8 DO BEGIN
-                          TempFeedbackData.Feedback_Unit := I;
-                          TempFeedbackData.Feedback_Input := J;
-                          ExtractDataFromFeedback(TempFeedbackData, TCAboveFeedbackUnit, FeedbackType, FeedbackNum);
-                          IF FeedbackNum = Line_TC THEN BEGIN
-                            FeedbackUnitFound := True;
-                            SegmentText := IntToStr(I) + IntToStr(J);
-                            IF FeedbackUnitInUseArray[I] THEN
-                              Font.Color := TCFeedbackDataInUseColour
-                            ELSE
-                              Font.Color := TCFeedbackDataOutOfUseColour;
-                          END;
-                        END;
-                        Inc(I);
-                      END; {WHILE}
-                      IF SegmentText = '' THEN BEGIN
-                        Font.Color := clAqua; { TrackCircuitsWithoutFeedbackColour }
-                        SegmentText := '0000';
-                      END;
-                    END;
-                  END;
-
-                  IF ScreenColoursSetForPrinting THEN
-                    Font.Color := clBlack;
-
-                  ScreenUpX := MapGridXToScreenX(Line_GridUpX);
-                  ScreenUpY := MapGridYToScreenY(Line_GridUpY);
-                  ScreenDownX := MapGridXToScreenX(Line_GridDownX);
-                  ScreenDownY := MapGridYToScreenY(Line_GridDownY);
-                  TextOut(ScreenUpX + (ScreenDownX - ScreenUpX) DIV 2 - TextWidth(SegmentText) DIV 2 - ScrollBarXAdjustment,
-                         (ScreenUpY + (ScreenDownY - ScreenUpY) DIV 2) - TextHeight(SegmentText) DIV 2 - ScrollBarYAdjustment,
-                          SegmentText);
-                  SegmentText := '';
-                END; {WITH}
-                TrackCircuitNumbered := True;
-              END;
-            END;
-            Inc(Line);
-          END; {WHILE}
-        END; {FOR}
-      END;
-      ShowLineOccupationDetail := True;
-    END; {WITH}
+              Inc(Line);
+            END; {WHILE}
+          END; {FOR}
+        END;
+        ShowLineOccupationDetail := True;
+      END; {WITH}
+    EXCEPT
+      ON E : Exception DO
+        Log('EG ShowTrackCircuitData:' + E.ClassName + ' error raised, with message: ' + E.Message);
+    END; {TRY}
   END; { ShowTrackCircuitData }
 
   PROCEDURE ShowLineData;
@@ -3029,13 +3028,9 @@ END; { DrawPoint }
 PROCEDURE DrawPointNum(P : Integer; Colour : TColour);
 { Put the number of the point on the diagram }
 VAR
-  FeedbackNum : Integer;
-  FeedbackType : TypeOfFeedbackDetector;
   I, J : Integer;
   LockingMsg : String;
   NumberText : String;
-  TCAboveFeedbackUnit : Integer;
-  TempFeedbackData : FeedbackRec;
 
 BEGIN
   TRY
@@ -3115,22 +3110,16 @@ BEGIN
               { displaying point feedback data }
               NumberText := '';
               FOR I := FirstFeedbackUnit TO LastFeedbackUnit DO BEGIN
-                TempFeedbackData.Feedback_Unit := I;
                 FOR J := 1 TO 8 DO BEGIN
-                  TempFeedbackData.Feedback_Input := J;
-                  { extract what kind of feedback it is (FeedbackNum is only use for track circuits) }
-                  ExtractDataFromFeedback(TempFeedbackData, TCAboveFeedbackUnit, FeedbackType, FeedbackNum);
-                  IF FeedbackType = PointFeedbackDetector THEN BEGIN
-                    IF (Point_FeedbackUnit = I) AND (Point_FeedbackInput = J) THEN BEGIN
-                      NumberText := IntToStr(I) + IntToStr(J);
-                      IF ScreenColoursSetForPrinting THEN
-                        Font.Color := clBlack
-                      ELSE
-                        IF FeedbackUnitInUseArray[I] THEN
-                          Font.Color := PointFeedbackDataInUseColour
-                        ELSE
-                          Font.Color := PointFeedbackDataOutOfUseColour;
-                    END;
+                  IF FeedbackUnitRecords[I].Feedback_InputTypeArray[J] = PointFeedback THEN BEGIN
+                    NumberText := IntToStr(I) + IntToStr(J);
+                    IF ScreenColoursSetForPrinting THEN
+                      Font.Color := clBlack
+                    ELSE
+//                      IF FeedbackUnitInUseArray[I] THEN
+//                        Font.Color := PointFeedbackDataInUseColour
+//                      ELSE
+//                        Font.Color := PointFeedbackDataOutOfUseColour;
                   END;
                 END;
               END; {FOR}
@@ -3171,13 +3160,9 @@ PROCEDURE DrawPointFeedbackDataInSeparateColours;
 { Put the number of the point on the diagram }
 VAR
   ColourNum : Integer;
-  FeedbackNum : Integer;
-  FeedbackType : TypeOfFeedbackDetector;
   I, J : Integer;
   NumberText : String;
   P : Integer;
-  TCAboveFeedbackUnit : Integer;
-  TempFeedbackData : FeedbackRec;
   TempNum : Integer;
 
 BEGIN
@@ -3206,13 +3191,9 @@ BEGIN
         IF ColourNum > MaxColourNum THEN
           ColourNum := 1;
         Font.Color := ColoursArray[ColourNum];
-      
+
         FOR J := 1 TO 8 DO BEGIN
-          TempFeedbackData.Feedback_Unit := I;
-          TempFeedbackData.Feedback_Input := J;
-          { extract what kind of feedback it is (FeedbackNum is only use for track circuits) }
-          ExtractDataFromFeedback(TempFeedbackData, TCAboveFeedbackUnit, FeedbackType, FeedbackNum);
-          IF FeedbackType = PointFeedbackDetector THEN BEGIN
+          IF FeedbackUnitRecords[I].Feedback_InputTypeArray[J] = PointFeedback THEN BEGIN
             FOR P := 0 TO High(Points) DO BEGIN
               WITH Points[P] DO BEGIN
                 IF (Point_FeedbackUnit = I) AND (Point_FeedbackInput = J) THEN BEGIN

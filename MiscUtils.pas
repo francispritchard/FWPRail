@@ -7878,7 +7878,7 @@ BEGIN
           IF Str = TRSPlungerFeedbackStr THEN
             Result := TRSPlungerFeedback
           ELSE
-            Result := UnknownFeedback;
+            Result := UnknownFeedbackType;
 END; { StrToFeedbackType }
 
 FUNCTION StrToGradient(Str : String) : GradientType;

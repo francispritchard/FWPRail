@@ -1325,11 +1325,11 @@ BEGIN
 
           IF ErrorMsg = '' THEN
             IF KeyName = Point_FeedbackUnitFieldName THEN
-              Point_FeedbackUnit := ValidatePointFeedbackUnit(NewKeyValue, Point_HasFeedback, ErrorMsg);
+              Point_FeedbackUnit := ValidateFeedbackUnit(NewKeyValue, Point_HasFeedback, ErrorMsg);
 
           IF ErrorMsg = '' THEN
             IF KeyName = Point_FeedbackInputFieldName THEN
-              Point_FeedbackInput := ValidatePointFeedbackInput(NewKeyValue, Point_HasFeedback, ErrorMsg);
+              Point_FeedbackInput := ValidateFeedbackInput(NewKeyValue, Point_HasFeedback, Point_FeedbackUnit, PointFeedback, EditedPoint, ErrorMsg);
 
           IF ErrorMsg = '' THEN
             IF KeyName = Point_FeedbackOnIsStraightFieldName THEN
@@ -2651,8 +2651,6 @@ PROCEDURE AddTrackCircuit(Line : Integer; NewTrackCircuit : Boolean);
 VAR
   AddTrackCircuitCancelled : Boolean;
   FeedbackDataOK : Boolean;
-  FeedbackUnitFound : Boolean;
-  FeedbackUnitRecordsElement : Integer;
   NewExtendedValue : Extended;
   NewIntValue : Integer;
   TC : Integer;
@@ -2693,30 +2691,13 @@ BEGIN
 
       IF FeedbackDataOK THEN BEGIN
         { Also check the track-circuit unit record here, to make sure this input is set to be a track-circuit input }
-        FeedbackUnitFound := False;
-        FeedbackUnitDataElement := 0;
-        WHILE (FeedbackUnitDataElement <= High(FeedbackUnitData)) AND NOT FeedbackUnitFound DO BEGIN
-          IF FeedbackUnitData[FeedbackUnitDataElement].FeedBack_Unit = TC_FeedbackUnit THEN
-            FeedbackUnitFound := True
-          ELSE
-            Inc(FeedbackUnitDataElement);
-        END; {WHILE}
-
-        IF FeedbackUnitDataElement = 0 THEN
-          Log('X! Cannot find feedback record for feedback unit ' + IntToStr(TC_FeedbackUnit))
-        ELSE BEGIN
-          WITH FeedbackUnitData[FeedbackUnitDataElement] DO BEGIN
-            IF Feedback_DetectorType <> TrackCircuitFeedbackdetector THEN BEGIN
-              IF Feedback_DetectorType <> MixedFeedbackDetectors THEN
-                Log('X! FeedbackUnitData database will need to be changed for unit ' + IntToStr(TC_FeedbackUnit)
-                        + ' as the unit is recorded in the Feedback Unit database as being a ' + FeedbackDetectorTypeToStr(Feedback_DetectorType))
-              ELSE
-                IF Feedback_InputTypeArray[TC_FeedbackInput] <> TrackCircuitFeedback THEN
-                  Log('X! FeedbackUnitData database will need to be changed for unit ' + IntToStr(TC_FeedbackUnit) + ' input ' + IntToStr(TC_FeedbackInput)
-                          + ' as the input is recorded in the Feedback Unit database as being a ' + FeedbackTypeToStr(Feedback_InputTypeArray[TC_FeedbackInput]));
-            END;
-          END; {WITH}
-        END;
+        IF (TC_FeedbackUnit < FirstFeedbackUnit) OR (TC_FeedbackUnit > LastFeedbackUnit) THEN
+          Log('X! Cannot find feedback unit ' + IntToStr(TC_FeedbackUnit))
+        ELSE
+          IF FeedbackUnitRecords[TC_FeedbackUnit].Feedback_InputTypeArray[TC_FeedbackInput] <> TrackCircuitFeedback THEN
+            Log('X! FeedbackUnitRecords database will need to be changed for unit ' + IntToStr(TC_FeedbackUnit) + ' input ' + IntToStr(TC_FeedbackInput)
+                    + ' as the input is recorded in the Feedback Unit database as being a '
+                    + FeedbackTypeToStr(FeedbackUnitRecords[TC_FeedbackUnit].Feedback_InputTypeArray[TC_FeedbackInput]));
       END;
 
       { do the same for points ********** }

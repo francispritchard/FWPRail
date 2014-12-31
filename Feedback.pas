@@ -1,5 +1,6 @@
 UNIT Feedback;
-{ Note: point change detectors (LR101) must be programmed with all delays set to the minimum of 10 ms (1 in CVs 11-18)
+{ Note 1: point change detectors (LR101) must be programmed with all delays set to the minimum of 10 ms (1 in CVs 11-18).
+  Note 2: do not set a feedback unit to 65, as if it resets itself, it reverts to 65, and thus causes an error.
 
   Converted to non J/K power:
   71, 74, 78, 86, 88, 92, 94, 96-7, 101, 103-5, 108, 111, 114
@@ -9,7 +10,6 @@ UNIT Feedback;
 
   TC=39 not in use 12/7/14
 }
-
 INTERFACE
 
 USES
@@ -31,11 +31,8 @@ TYPE
 VAR
   FeedbackWindow: TFeedbackWindow;
 
-PROCEDURE DecodeFeedback(TempFeedbackData : FeedbackRec);
-{ Sets track circuits on or off from feedback data supplied }
-
-PROCEDURE ExtractDataFromFeedback(Data : FeedbackRec; OUT TCAboveFeedbackUnit : Integer; OUT FeedbackDetectorType : TypeOfFeedbackDetector; OUT Num : Integer);
-{ For track circuits only, returns the track-circuit number - otherwise returns other data }
+PROCEDURE DecodeFeedback(FeedbackUnit, FeedbackInput : Integer);
+{ Works out what to do from when feedback comes in }
 
 PROCEDURE InitialiseLocoSpeedTiming(L : LocoIndex);
 { Set up the variables for timing locos to ascertain speed in MPH }
@@ -75,24 +72,17 @@ END; { Log }
 PROCEDURE NoteOutOfUseFeedbackUnitTrackCircuitsAtStartup;
 { Work out which track circuits are unavailable because we're not getting initial feedback from them }
 VAR
-  FeedbackType : TypeOfFeedbackDetector;
   I, J : Integer;
-  TC : Integer;
-  TCAboveFeedbackUnit : Integer;
-  TempFeedbackData : FeedbackRec;
 
 BEGIN
   TRY
-    FOR I := 0 TO High(NoFeedbackList) DO BEGIN
-      TempFeedbackData.Feedback_Unit := StrToInt(NoFeedbackList[I]);
-      FOR J := 1 TO 8 DO BEGIN
-        TempFeedbackData.Feedback_Input := J;
-        ExtractDataFromFeedback(TempFeedbackData, TCAboveFeedbackUnit, FeedbackType, TC);
-        IF FeedbackType = TrackCircuitFeedbackDetector THEN BEGIN
-          IF TC <> UnknownTrackCircuit THEN
-            IF GetTrackCircuitState(TC) <> TCOutOfUseSetByUser THEN
-              SetTrackCircuitState(TC, TCOutOfUseAsNoFeedbackReceived, 'no feedback obtained at startup');
-        END;
+    FOR I := FirstFeedbackUnit TO LastFeedbackUnit DO BEGIN
+      IF FeedbackUnitRecords[I].Feedback_DetectorOutOfUse THEN BEGIN
+        FOR J := 1 TO 8 DO BEGIN
+          IF FeedbackUnitRecords[I].Feedback_InputTypeArray[J] = TrackCircuitFeedback THEN
+            IF GetTrackCircuitState(FeedbackUnitRecords[I].Feedback_InputTrackCircuit[J]) <> TCOutOfUseSetByUser THEN
+              SetTrackCircuitState(FeedbackUnitRecords[I].Feedback_InputTrackCircuit[J], TCOutOfUseAsNoFeedbackReceived, 'no feedback obtained at startup');
+        END; {FOR}
       END;
     END; {FOR}
   EXCEPT
@@ -100,84 +90,6 @@ BEGIN
       Log('EG NoteOutOfUseFeedbackUnitTrackCircuitsAtStartup:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { NoteOutOfUseFeedbackUnitTrackCircuitsAtStartup }
-
-PROCEDURE ExtractDataFromFeedback(Data : FeedbackRec; OUT TCAboveFeedbackUnit : Integer; OUT FeedbackDetectorType : TypeOfFeedbackDetector; OUT Num : Integer);
-{ For track circuits only, returns the track-circuit number - otherwise returns other data }
-VAR
-  F : Integer;
-  FeedbackUnitFound : Boolean;
-  TC : Integer;
-  TCFound : Boolean;
-
-BEGIN
-  TRY
-    F := 0;
-    FeedbackUnitFound := False;
-    WHILE (F <= High(FeedbackUnitData)) AND NOT FeedbackUnitFound DO BEGIN
-      IF FeedbackUnitData[F].Feedback_Unit = Data.Feedback_Unit THEN
-        FeedbackUnitFound := True
-      ELSE
-        Inc(F);
-    END; {WHILE}
-
-    IF NOT FeedbackUnitFound THEN BEGIN
-      IF NOT FWPRailWindowInitialised AND NOT GetDiagramsCheckingInProgress THEN
-        Log('X Data received from unknown feedback unit ' + IntToStr(Data.Feedback_Unit) + ' ignored as feedback data not yet initialised')
-      ELSE
-        Log('XG Data received from unknown feedback unit ' + IntToStr(Data.Feedback_Unit));
-    END ELSE BEGIN
-      TCAboveFeedbackUnit := FeedbackUnitData[F].Feedback_TCAboveUnit;
-      FeedbackDetectorType := FeedbackUnitData[F].Feedback_DetectorType;
-
-      IF Data.Feedback_Input > 0 THEN BEGIN
-        { sometimes this routine is called with Input set to 0 just to ascertain if the unit is active }
-        IF FeedbackDetectorType = TrackCircuitFeedbackDetector THEN BEGIN
-          Num := UnknownTrackCircuit;
-          TCFound := False;
-          TC := 0;
-          WHILE (TC <= High(TrackCircuits)) AND NOT TCFound DO BEGIN
-            IF TrackCircuits[TC].TC_FeedbackUnit = Data.Feedback_Unit THEN BEGIN
-              IF TrackCircuits[TC].TC_FeedbackInput = Data.Feedback_Input THEN BEGIN
-                TCFound := True;
-                Num := TC;
-              END;
-            END;
-            Inc(TC);
-          END; {WHILE}
-        END ELSE
-          IF FeedbackDetectorType = MixedFeedbackDetectors THEN BEGIN
-            IF FeedbackUnitData[F].Feedback_InputTypeArray[Data.Feedback_Input] = PointFeedback THEN
-              FeedbackDetectorType := PointFeedbackDetector
-            ELSE
-              IF FeedbackUnitData[F].Feedback_InputTypeArray[Data.Feedback_Input] = TRSPlungerFeedback THEN
-                FeedbackDetectorType := TRSPlungerFeedbackDetector
-              ELSE
-                IF FeedbackUnitData[F].Feedback_InputTypeArray[Data.Feedback_Input] = LineFeedback THEN
-                  FeedbackDetectorType := LineFeedbackDetector
-                ELSE
-                  IF FeedbackUnitData[F].Feedback_InputTypeArray[Data.Feedback_Input] = TrackCircuitFeedback THEN BEGIN
-                    FeedbackDetectorType := TrackCircuitFeedbackDetector;
-                    Num := UnknownTrackCircuit;
-                    TCFound := False;
-                    TC := 0;
-                    WHILE (TC <= High(TrackCircuits)) AND NOT TCFound DO BEGIN
-                      IF TrackCircuits[TC].TC_FeedbackUnit = Data.Feedback_Unit THEN BEGIN
-                        IF TrackCircuits[TC].TC_FeedbackInput = Data.Feedback_Input THEN BEGIN
-                          TCFound := True;
-                          Num := TC;
-                        END;
-                      END;
-                      Inc(TC);
-                    END; {WHILE}
-                  END;
-          END;
-      END;
-    END;
-  EXCEPT {TRY}
-    ON E : Exception DO
-      Log('EG ExtractDataFromFeedback: ' + E.ClassName + ' error raised, with message: '+ E.Message);
-  END; {TRY}
-END; { ExtractDataFromFeedback }
 
 PROCEDURE WriteDataToFeedbackWindow{1}(FeedbackString : String); Overload;
 { Overloaded - this is version 1 - write sundry text to the feedback window }
@@ -189,41 +101,36 @@ BEGIN
   END;
 END; { WriteDataToFeedbackWindow-1 }
 
-PROCEDURE WriteDataToFeedbackWindow{2}(TempFeedbackData : FeedbackRec; Input : Integer); Overload;
+PROCEDURE WriteDataToFeedbackWindow{2}(FeedbackUnit, FeedbackInput : Integer); Overload;
 { Overloaded - this is version 2 - write feedback data to the feedback window }
 VAR
   FeedbackString : String;
   I : Integer;
-  InputStr : String;
 
 BEGIN
   IF InFeedbackDebuggingMode THEN BEGIN
-    InputStr := IntToStr(Input);
-    WITH TempFeedbackData DO BEGIN
-      CASE Feedback_DetectorType OF
-        TrackCircuitFeedbackDetector:
-          FeedbackString := ' TC';
-        PointFeedbackDetector:
+    WITH FeedbackUnitRecords[FeedbackUnit] DO BEGIN
+      CASE Feedback_InputTypeArray[FeedbackInput] OF
+        LineFeedback:
+          FeedbackString := ' Line';
+        PointFeedback:
           FeedbackString := ' Point';
-        TRSPlungerFeedbackDetector:
+        TrackCircuitFeedback:
+          FeedbackString := ' TC';
+        TRSPlungerFeedback:
           FeedbackString := ' SS';
       END; {CASE}
 
-      IF Input <> UnknownTrackCircuit THEN
-        FeedbackString := FeedbackString + ' ' + InputStr
-      ELSE
-        FeedbackString := FeedbackString + ' ?';
-
-      IF (Input <> UnknownTrackCircuit) AND (Feedback_DetectorType = TrackCircuitFeedbackDetector) THEN
+      IF (Feedback_InputTypeArray[FeedbackInput] = TrackCircuitFeedback) AND (Feedback_InputTrackCircuit[FeedbackInput] <> UnknownTrackCircuit) THEN
         { TCLineArray[0] is only one of a number of possible lines **** }
-        IF Length(TrackCircuits[Input].TC_LineArray) > 0 THEN
-          FeedbackString := FeedbackString + ' (' + LineToStr(TrackCircuits[Input].TC_LineArray[0]) + ')'
+        IF Length(TrackCircuits[Feedback_InputTrackCircuit[FeedbackInput]].TC_LineArray) > 0 THEN
+          FeedbackString := FeedbackString + ' (' + LineToStr(TrackCircuits[Feedback_InputTrackCircuit[FeedbackInput]].TC_LineArray[0]) + ')'
         ELSE
           FeedbackString := FeedbackString + ' (TCLineArray empty)';
 
-      FeedbackString := FeedbackString + ': ' + IntToStr(Feedback_Unit) + ' (' + IntToStr(Feedback_Input) + ')';
+      FeedbackString := FeedbackString + ': ' + IntToStr(FeedbackUnit) + ' (' + IntToStr(FeedbackInput) + ')';
 
-      IF TempFeedbackData.Feedback_InputOn THEN
+      IF Feedback_InputOnArray[FeedbackInput] THEN
         FeedbackString := FeedbackString + '+ '
       ELSE
         FeedbackString := FeedbackString + '- ';
@@ -234,92 +141,61 @@ BEGIN
 
       IF ReadOutTCInFull THEN BEGIN
         { we want to know when it's activated and deactivated }
-        IF TempFeedbackData.Feedback_InputOn THEN BEGIN
-          IF Length(InputStr) <= 2 THEN
-            ReadOut(InputStr)
-          ELSE
-            FOR I := 1 TO Length(InputStr) DO
-              ReadOut(InputStr[I]);
-          ReadOut('On');
-        END ELSE BEGIN
-          IF Length(InputStr) <= 2 THEN
-            ReadOut(InputStr)
-          ELSE
-            FOR I := 1 TO Length(InputStr) DO
-              ReadOut(InputStr[I]);
+        ReadOut(IntToStr(Feedback_InputTrackCircuit[FeedbackInput]));
+        IF Feedback_InputOnArray[FeedbackInput] THEN
+          ReadOut('On')
+        ELSE
           ReadOut('Off');
-        END;
       END ELSE BEGIN
-        { read out the number }
-        InputStr := IntToStr(Input);
-        IF ReadOutTCOnce THEN BEGIN
-          { all we want is to know where the TC is, and if its length is not known }
-          IF TempFeedbackData.Feedback_InputOn THEN BEGIN
-            IF (Input < 0) OR (Input > High(TrackCircuits)) THEN
-              Readout('IsThatRight')
-            ELSE
-              IF TrackCircuits[Input].TC_LengthInInches <> 0.0 THEN
-                ReadOut(InputStr)
-              ELSE
-                IF Length(InputStr) <= 2 THEN
-                  ReadOut(InputStr)
-                ELSE
-                  FOR I := 1 TO Length(InputStr) DO
-                    ReadOut(InputStr[I]);
+        { just read out the number }
+        ReadOut(IntToStr(Feedback_InputTrackCircuit[FeedbackInput]));
+        IF ReadOutAdjacentSignalNumber THEN BEGIN
+          IF Length(TrackCircuits[Feedback_InputTrackCircuit[FeedbackInput]].TC_AdjacentSignals) > 0 THEN BEGIN
+            ReadOut('With');
+            FOR I := 0 TO High(TrackCircuits[Feedback_InputTrackCircuit[FeedbackInput]].TC_AdjacentSignals) DO
+              IF TrackCircuits[Feedback_InputTrackCircuit[FeedbackInput]].TC_AdjacentSignals[I] <> UnknownSignal THEN
+                ReadOut(IntToStr(TrackCircuits[Feedback_InputTrackCircuit[FeedbackInput]].TC_AdjacentSignals[I]));
+          END;
+        END;
 
-            IF ReadOutAdjacentSignalNumber THEN BEGIN
-              { and maybe the adjoining signal number too }
-              IF Length(TrackCircuits[Input].TC_AdjacentSignals) > 0 THEN BEGIN
-                ReadOut('With');
-                FOR I := 0 TO High(TrackCircuits[Input].TC_AdjacentSignals) DO
-                  IF TrackCircuits[Input].TC_AdjacentSignals[I] <> UnknownSignal THEN
-                    ReadOut(IntToStr(TrackCircuits[Input].TC_AdjacentSignals[I]));
-              END;
-            END;
+        IF ReadOutDecoderNumber THEN BEGIN
+          Application.ProcessMessages;
+          { or which feedback unit is triggered }
+          IF Feedback_InputOnArray[FeedbackInput] THEN
+            ReadOut(IntToStr(FeedbackUnit));
+            ReadOut(IntToStr(FeedbackInput));
+            ReadOut('On');
+          END ELSE BEGIN
+            ReadOut(IntToStr(FeedbackUnit));
+            ReadOut(IntToStr(FeedbackInput));
+            ReadOut('Off');
           END;
-        END ELSE
-          IF ReadOutDecoderNumber THEN BEGIN
-            Application.ProcessMessages;
-            { or which feedback unit is triggered }
-            IF TempFeedbackData.Feedback_InputOn THEN BEGIN
-              ReadOut(IntToStr(Feedback_Unit));
-              ReadOut(IntToStr(Feedback_Input));
-              ReadOut('On');
-            END ELSE BEGIN
-              ReadOut(IntToStr(Feedback_Unit));
-              ReadOut(IntToStr(Feedback_Input));
-              ReadOut('Off');
-            END;
-          END;
-      END;
+        END;
     END; {WITH}
   END;
 END; { WriteDataToFeedbackWindow-2 }
 
-PROCEDURE WriteFeedbackDataToDebugWindow(TempFeedbackData : FeedbackRec; Num : Integer);
+PROCEDURE WriteFeedbackDataToDebugWindow(FeedbackUnit, FeedbackInput : Integer);
 { If required, write feedback data to the debug window }
 VAR
   FeedbackString : String;
 
 BEGIN
-  WITH TempFeedbackData DO BEGIN
-    CASE Feedback_DetectorType OF
-      TrackCircuitFeedbackDetector:
-        FeedbackString := ' TC';
-      PointFeedbackDetector:
+  WITH FeedbackUnitRecords[FeedbackUnit] DO BEGIN
+    CASE Feedback_InputTypeArray[FeedbackInput] OF
+      LineFeedback:
+        FeedbackString := ' Line';
+      PointFeedback:
         FeedbackString := ' Point';
-      TRSPlungerFeedbackDetector:
+      TrackCircuitFeedback:
+        FeedbackString := ' TC';
+      TRSPlungerFeedback:
         FeedbackString := ' SS';
     END; {CASE}
 
-    IF Num <> 0 THEN
-      FeedbackString := FeedbackString + ' ' + IntToStr(Num)
-    ELSE
-      FeedbackString := FeedbackString + ' ?';
+    FeedbackString := FeedbackString + ': ' + IntToStr(FeedbackUnit) + ' (' + IntToStr(FeedbackInput) + ')';
 
-    FeedbackString := FeedbackString + ': ' + IntToStr(Feedback_Unit) + ' (' + IntToStr(Feedback_Input) + ')';
-
-    IF TempFeedbackData.Feedback_InputOn THEN
+    IF Feedback_InputOnArray[FeedbackInput] THEN
       FeedbackString := FeedbackString + '+ '
     ELSE
       FeedbackString := FeedbackString + '- ';
@@ -337,8 +213,8 @@ BEGIN
   LocoTimingLenzSpeed := GetLenzSpeed(Locos[L], ForceARead);
 END; { InitialiseLocoSpeedTiming }
 
-PROCEDURE DecodeFeedback(TempFeedbackData : FeedbackRec);
-{ Sets TrackCircuitFeedbackDetectors on or off from feedback data supplied }
+PROCEDURE DecodeFeedback(FeedbackUnit, FeedbackInput : Integer);
+{ Works out what to do from when feedback comes in }
 CONST
   ForceRead = True;
   ForceWrite = True;
@@ -346,21 +222,15 @@ CONST
 
 VAR
   DebugStr : String;
-  DecodedFeedbackNum : Integer;
-  FeedbackDetectorType : TypeOfFeedbackDetector;
   Line : Integer;
-  LineFeedbackFound : Boolean;
-  LineFound : Boolean;
   LockingFailureString : String;
   LocoTimingSlowingTC : Integer;
   LocoTimingStartTC : Integer;
   LocoTimingStopTC : Integer;
   OK : Boolean;
   P : Integer;
-  PointFeedbackFound : Boolean;
   T: TrainIndex;
   TC : Integer;
-  TCAboveFeedbackUnit : Integer;
   TempMPHSpeed : Real;
 
   FUNCTION CalculateTrueSpeed(LenzSpeed : Integer; StartingTC, EndingTC : Integer; TCLengthInInches : Real; LocoStartTime, LocoStopTime : TDateTime) : Real;
@@ -508,243 +378,224 @@ VAR
     END;
   END; { ProcessSpeedTiming }
 
-BEGIN { DecodeFeedback }
+BEGIN { newDecodeFeedback }
   TRY
-    DecodedFeedbackNum := 0;
-
     { Read in the stored data from all the units, in case some has changed whilst we've been busy elsewhere }
-    WITH TempFeedbackData DO BEGIN
-      IF (Feedback_Unit >= FirstFeedbackUnit) AND (Feedback_Unit <= LastFeedbackUnit + 1) THEN BEGIN
-        ExtractDataFromFeedback(TempFeedbackData, TCAboveFeedbackUnit, FeedbackDetectorType, DecodedFeedbackNum);
+    WITH FeedbackUnitRecords[FeedbackUnit] DO BEGIN
+      DebugStr := 'Feedback ' + IntToStr(FeedbackUnit) + ' Input ' + IntToStr(FeedbackInput);
 
-        DebugStr := 'Feedback ' + IntToStr(Feedback_Unit) + ' Input ' + IntToStr(Feedback_Input);
-        IF TempFeedbackData.Feedback_InputOn THEN
-          DebugStr := DebugStr + ' = on'
-        ELSE
-          DebugStr := DebugStr + ' = off';
+      IF Feedback_InputOnArray[FeedbackInput] THEN
+        DebugStr := DebugStr + ' = on'
+      ELSE
+        DebugStr := DebugStr + ' = off';
 
-        CASE FeedbackDetectorType OF
-          TrackCircuitFeedbackDetector:
-            BEGIN
-              TC := DecodedFeedbackNum;
-              IF TC <> UnknownTrackCircuit THEN
-                DebugStr := DebugStr + ' (TC=' + IntToStr(TC) + ')' + ' [' + DescribeLineNamesForTrackCircuit(TC) + ']'
-              ELSE
-                DebugStr := DebugStr + ' (*** no TC assigned)';
-              Log('T ' + DebugStr);
-              IF Length(TrackCircuits) > 0 THEN BEGIN
-                IF TC <> UnknownTrackCircuit THEN BEGIN
-                  IF Feedback_InputOn THEN BEGIN
-                    TrackCircuits[TC].TC_FeedbackOccupation := True;
-                    IF RedrawScreen THEN BEGIN
-                      RedrawScreen := False;
+      CASE Feedback_InputTypeArray[FeedbackInput] OF
+        TrackCircuitFeedback:
+          BEGIN
+            TC := Feedback_InputTrackCircuit[FeedbackInput];
 
-                      CASE TrackCircuits[TC].TC_PreviousOccupationState OF
-                        TCFeedbackOccupation:
-                          SetTrackCircuitstate(TC, TCFeedbackOccupation);
-                        TCFeedbackOccupationButOutOfUse:
-                          SetTrackCircuitstate(TC, TCFeedbackOccupationButOutOfUse);
-                        TCLocoOutOfPlaceOccupation:
-                          SetTrackCircuitstate(TC, TCLocoOutOfPlaceOccupation);
-                        TCMissingOccupation:
-                          SetTrackCircuitstate(TC, TCFeedbackOccupation);
-                        TCOutOfUseSetByUser:
-                          SetTrackCircuitstate(TC, TCOutOfUseSetByUser);
-                        TCOutOfUseAsNoFeedbackReceived:
-                          SetTrackCircuitstate(TC, TCOutOfUseAsNoFeedbackReceived);
-                        TCPermanentFeedbackOccupation:
-                          SetTrackCircuitstate(TC, TCPermanentFeedbackOccupation);
-                        TCPermanentOccupationSetByUser:
-                          SetTrackCircuitstate(TC, TCPermanentOccupationSetByUser);
-                        TCPermanentSystemOccupation:
-                          SetTrackCircuitstate(TC, TCPermanentSystemOccupation);
-                        TCSystemOccupation:
-                          SetTrackCircuitstate(TC, TCSystemOccupation);
-                        TCUnoccupied:
-                          SetTrackCircuitstate(TC, TCFeedbackOccupation);
-                      END; {CASE}
-                    END ELSE
-                      IF NOT ProgramStartup AND (TrackCircuits[TC].TC_LengthInInches <> 0.0) THEN
-                        TrackCircuits[TC].TC_OccupationStartTime := Time;
+            IF TC <> UnknownTrackCircuit THEN
+              DebugStr := DebugStr + ' (TC=' + IntToStr(TC) + ')' + ' [' + DescribeLineNamesForTrackCircuit(TC) + ']'
+            ELSE
+              DebugStr := DebugStr + ' (*** no TC assigned)';
+            Log('T ' + DebugStr);
+            IF Length(TrackCircuits) > 0 THEN BEGIN
+              IF TC <> UnknownTrackCircuit THEN BEGIN
+                IF Feedback_InputOnArray[FeedbackInput] THEN BEGIN
+                  TrackCircuits[TC].TC_FeedbackOccupation := True;
+                  IF RedrawScreen THEN BEGIN
+                    RedrawScreen := False;
 
-                    { mark it as occupied }
-                    IF TrackCircuits[TC].TC_OccupationState <> TCOutOfUseSetByUser THEN
-                      SetTrackCircuitstate(TC, TCFeedbackOccupation)
+                    CASE TrackCircuits[TC].TC_PreviousOccupationState OF
+                      TCFeedbackOccupation:
+                        SetTrackCircuitstate(TC, TCFeedbackOccupation);
+                      TCFeedbackOccupationButOutOfUse:
+                        SetTrackCircuitstate(TC, TCFeedbackOccupationButOutOfUse);
+                      TCLocoOutOfPlaceOccupation:
+                        SetTrackCircuitstate(TC, TCLocoOutOfPlaceOccupation);
+                      TCMissingOccupation:
+                        SetTrackCircuitstate(TC, TCFeedbackOccupation);
+                      TCOutOfUseSetByUser:
+                        SetTrackCircuitstate(TC, TCOutOfUseSetByUser);
+                      TCOutOfUseAsNoFeedbackReceived:
+                        SetTrackCircuitstate(TC, TCOutOfUseAsNoFeedbackReceived);
+                      TCPermanentFeedbackOccupation:
+                        SetTrackCircuitstate(TC, TCPermanentFeedbackOccupation);
+                      TCPermanentOccupationSetByUser:
+                        SetTrackCircuitstate(TC, TCPermanentOccupationSetByUser);
+                      TCPermanentSystemOccupation:
+                        SetTrackCircuitstate(TC, TCPermanentSystemOccupation);
+                      TCSystemOccupation:
+                        SetTrackCircuitstate(TC, TCSystemOccupation);
+                      TCUnoccupied:
+                        SetTrackCircuitstate(TC, TCFeedbackOccupation);
+                    END; {CASE}
+                  END ELSE
+                    IF NOT ProgramStartup AND (TrackCircuits[TC].TC_LengthInInches <> 0.0) THEN
+                      TrackCircuits[TC].TC_OccupationStartTime := Time;
+
+                  { mark it as occupied }
+                  IF TrackCircuits[TC].TC_OccupationState <> TCOutOfUseSetByUser THEN
+                    SetTrackCircuitstate(TC, TCFeedbackOccupation)
+                  ELSE
+                    SetTrackCircuitstate(TC, TCFeedbackOccupationButOutOfUse);
+
+                  { Speed testing }
+                  IF InLocoSpeedTimingMode THEN
+                    ProcessSpeedTiming;
+
+                END ELSE BEGIN
+                  { FeedbackInput off }
+                  TrackCircuits[TC].TC_MysteriouslyOccupied := False;
+                  TrackCircuits[TC].TC_FeedbackOccupation := False;
+                  TrackCircuits[TC].TC_OccupationStartTime := 0;
+
+                  IF NOT InAutoMode THEN BEGIN
+                    IF TrackCircuits[TC].TC_OccupationState = TCOutOfUseSetByUser THEN
+                      SetTrackCircuitstate(UnknownLocoChip, TC, TCOutOfUseSetByUser)
                     ELSE
-                      SetTrackCircuitstate(TC, TCFeedbackOccupationButOutOfUse);
-
-                    { Speed testing }
-                    IF InLocoSpeedTimingMode THEN
-                      ProcessSpeedTiming;
-
+                      IF TrackCircuits[TC].TC_OccupationState = TCPermanentOccupationSetByUser THEN
+                        SetTrackCircuitstate(UnknownLocoChip, TC, TCPermanentOccupationSetByUser)
+                      ELSE
+                        SetTrackCircuitstate(TC, TCUnoccupied)
                   END ELSE BEGIN
-                    { FeedbackInput off }
-                    TrackCircuits[TC].TC_MysteriouslyOccupied := False;
-                    TrackCircuits[TC].TC_FeedbackOccupation := False;
-                    TrackCircuits[TC].TC_OccupationStartTime := 0;
+                    IF TrackCircuits[TC].TC_LocoChip <> UnknownLocoChip THEN
+                      T := GetTrainIndexFromLocoChip(TrackCircuits[TC].TC_LocoChip)
+                    ELSE
+                      T := UnknownTrainIndex;
 
-                    IF NOT InAutoMode THEN BEGIN
-                      IF TrackCircuits[TC].TC_OccupationState = TCOutOfUseSetByUser THEN
-                        SetTrackCircuitstate(UnknownLocoChip, TC, TCOutOfUseSetByUser)
+                    IF TrackCircuits[TC].TC_OccupationState = TCOutOfUseSetByUser THEN
+                      SetTrackCircuitstate(UnknownLocoChip, TC, TCOutOfUseSetByUser)
+                    ELSE
+                      IF TrackCircuits[TC].TC_OccupationState = TCPermanentOccupationSetByUser THEN
+                        SetTrackCircuitstate(UnknownLocoChip, TC, TCPermanentOccupationSetByUser)
                       ELSE
-                        IF TrackCircuits[TC].TC_OccupationState = TCPermanentOccupationSetByUser THEN
-                          SetTrackCircuitstate(UnknownLocoChip, TC, TCPermanentOccupationSetByUser)
+                        IF (T <= High(Trains)) AND Trains[T].Train_UseTrailingTrackCircuits THEN
+                          SetTrackCircuitstate(TrackCircuits[TC].TC_LocoChip, TC, TCSystemOccupation)
                         ELSE
-                          SetTrackCircuitstate(TC, TCUnoccupied)
-                    END ELSE BEGIN
-                      IF TrackCircuits[TC].TC_LocoChip <> UnknownLocoChip THEN
-                        T := GetTrainIndexFromLocoChip(TrackCircuits[TC].TC_LocoChip)
-                      ELSE
-                        T := UnknownTrainIndex;
-
-                      IF TrackCircuits[TC].TC_OccupationState = TCOutOfUseSetByUser THEN
-                        SetTrackCircuitstate(UnknownLocoChip, TC, TCOutOfUseSetByUser)
-                      ELSE
-                        IF TrackCircuits[TC].TC_OccupationState = TCPermanentOccupationSetByUser THEN
-                          SetTrackCircuitstate(UnknownLocoChip, TC, TCPermanentOccupationSetByUser)
-                        ELSE
-                          IF (T <= High(Trains)) AND Trains[T].Train_UseTrailingTrackCircuits THEN
-                            SetTrackCircuitstate(TrackCircuits[TC].TC_LocoChip, TC, TCSystemOccupation)
-                          ELSE
-                            IF TrackCircuits[TC].TC_PreviousOccupationState <> TCSystemOccupation THEN
-                              SetTrackCircuitstate(UnknownLocoChip, TC, TCUnoccupied)
-                            ELSE BEGIN
-                              { the track circuit has probably been set then unset then set again - which may happen with bad contacts }
-                              TrackCircuits[TC].TC_LocoChip := TrackCircuits[TC].TC_PreviousLocoChip;
-                              SetTrackCircuitstate(TrackCircuits[TC].TC_LocoChip, TC, TCSystemOccupation);
-                            END;
-                    END;
+                          IF TrackCircuits[TC].TC_PreviousOccupationState <> TCSystemOccupation THEN
+                            SetTrackCircuitstate(UnknownLocoChip, TC, TCUnoccupied)
+                          ELSE BEGIN
+                            { the track circuit has probably been set then unset then set again - which may happen with bad contacts }
+                            TrackCircuits[TC].TC_LocoChip := TrackCircuits[TC].TC_PreviousLocoChip;
+                            SetTrackCircuitstate(TrackCircuits[TC].TC_LocoChip, TC, TCSystemOccupation);
+                          END;
                   END;
                 END;
               END;
-              IF InAutoMode THEN
-                MoveAllTrains;
             END;
+            IF InAutoMode THEN
+              MoveAllTrains;
+          END;
 
-          LineFeedbackDetector:
-            BEGIN
-              LineFeedbackFound := False;
-              WITH TempFeedbackData DO BEGIN
-                Line := 0;
-                LineFound := False;
-                WHILE (Line <= High(Lines)) AND NOT LineFound DO BEGIN
-                  WITH Lines[Line] DO BEGIN
-                    IF Line_InUseFeedbackUnit = Feedback_Unit THEN BEGIN
-                      IF Line_InUseFeedbackInput = Feedback_Input THEN BEGIN
-                        LineFeedbackFound := True;
-                        IF Feedback_InputOn THEN BEGIN
-                          Line_OutOfUseState := InUse;
-                          DebugStr := DebugStr + ' (Line=' + LineToStr(Line) + ')' + ' [line in use]';
-                        END ELSE BEGIN
-                          Line_OutOfUseState := OutOfUse;
-                          DebugStr := DebugStr + ' (Line=' + LineToStr(Line) + ')' + ' [line not in use]';
-                        END;
-                        Log('T ' + DebugStr);
-                        IF NOT ProgramStartup THEN
-                          DrawMap;
-                      END;
-                    END;
-                  Inc(Line);
-                  END; {WITH}
-                END; {WHILE}
+        LineFeedback:
+          BEGIN
+            IF Feedback_InputLine[FeedbackInput] = UnknownLine THEN BEGIN
+              DebugStr := DebugStr + ' (*** no line assigned ***)';
+              Log('L ' + DebugStr);
+            END ELSE BEGIN
+              Line := Feedback_InputLine[FeedbackInput];
+
+              WITH Lines[Feedback_InputLine[FeedbackInput]] DO BEGIN
+                IF Feedback_InputOnArray[FeedbackInput] THEN BEGIN
+                  Line_OutOfUseState := InUse;
+                  DebugStr := DebugStr + ' (Line=' + LineToStr(Line) + ')' + ' [line in use]';
+                END ELSE BEGIN
+                  Line_OutOfUseState := OutOfUse;
+                  DebugStr := DebugStr + ' (Line=' + LineToStr(Line) + ')' + ' [line not in use]';
+                END;
+                Log('L ' + DebugStr);
+
+                IF NOT ProgramStartup THEN
+                  DrawMap;
               END; {WITH}
-              IF NOT LineFeedbackFound THEN BEGIN
-                DebugStr := DebugStr + ' (*** no line assigned ***)';
-                Log('P ' + DebugStr);
-              END;
             END;
+          END;
 
-          PointFeedbackDetector:
-            { Returns the number equivalent to the Lenz point number, and redraws the point that's changed }
-            BEGIN
-              PointFeedbackFound := False;
-              WITH TempFeedbackData DO BEGIN
-                FOR P := 0 TO High(Points) DO BEGIN
-                  WITH Points[P] DO BEGIN
-                    IF (Point_FeedbackUnit = Feedback_Unit) AND (Point_PresentState <> PointOutOfAction) THEN BEGIN
-                      IF Point_FeedbackInput = Feedback_Input THEN BEGIN
-                        DecodedFeedbackNum := P;
-                        IF Feedback_InputOn THEN BEGIN
-                          IF Point_FeedbackOnIsStraight THEN
-                            Point_PresentState := Straight
-                          ELSE
-                            Point_PresentState := Diverging;
-                        END ELSE BEGIN
-                          IF Point_FeedbackOnIsStraight THEN
-                            Point_PresentState := Diverging
-                          ELSE
-                            Point_PresentState := Straight;
+        PointFeedback:
+          { Returns the number equivalent to the Lenz point number, and redraws the point that's changed }
+          BEGIN
+            IF Feedback_InputPoint[FeedbackInput] = UnknownPoint THEN BEGIN
+              DebugStr := DebugStr + ' ( *** no point assigned ***)';
+              Log('P ' + DebugStr);
+            END ELSE BEGIN
+              WITH Points[Feedback_InputPoint[FeedbackInput]] DO BEGIN
+                P := Feedback_InputPoint[FeedbackInput];
+
+                IF Feedback_InputOnArray[FeedbackInput] THEN BEGIN
+                  IF Point_FeedbackOnIsStraight THEN
+                      Point_PresentState := Straight
+                  ELSE
+                    Point_PresentState := Diverging;
+                END ELSE BEGIN
+                  IF Point_FeedbackOnIsStraight THEN
+                    Point_PresentState := Diverging
+                  ELSE
+                    Point_PresentState := Straight;
+                END;
+
+                IF ProgramStartup THEN
+                  Point_PreviousState := Point_PresentState;
+
+                  DebugStr := DebugStr + ' (P=' + IntToStr(P) + ' ' + PointStateToStr(Point_PresentState) + ')';
+                  Log('P ' + DebugStr);
+
+                  { If the point has changed even though locked, notify user and suspend automode if on }
+                  IF ProgramStartup
+                  OR RedrawScreen
+                  OR NOT PointIsLocked(P, LockingFailureString)
+                  OR NOT InLockingMode
+                  THEN
+                    Point_MovedWhenLocked := False
+                  ELSE BEGIN
+                    IF (Point_LockingState <> PointStateUnknown) AND (Point_PresentState <> Point_LockingState) THEN BEGIN
+                      IF Point_LocoChipLockingTheRoute = UnknownLocoChip THEN BEGIN
+                        IF NOT Point_MovedWhenLocked THEN BEGIN
+                          Point_MovedWhenLocked := True;
+                          MakeSound(1);
+                          Log('X! Serious error: P=' + IntToStr(P) + ' (Lenz=' + IntToStr(Point_LenzNum) + ')'
+                                  + ' [' + DescribeLineNamesForTrackCircuit(Point_TCAtHeel) + '] has changed to ' + PointStateToStr(Point_PresentState)
+                                  + ' even though ' + LockingFailureString + ':');
+                          Point_MovedWhenLocked := False;
                         END;
-                        IF ProgramStartup THEN
-                          Point_PreviousState := Point_PresentState;
+                      END ELSE BEGIN
+                        T := GetTrainIndexFromLocoChip(Point_LocoChipLockingTheRoute);
+                        IF T <> UnknownTrainIndex THEN BEGIN
+                          IF (Trains[T].Train_CurrentStatus <> Suspended) AND (Trains[T].Train_CurrentStatus <> MissingAndSuspended) THEN BEGIN
+                            SuspendTrain(T, NOT ByUser, 'point ' + PointToStr(P) + ' has moved');
 
-                        DebugStr := DebugStr + ' (P=' + IntToStr(P) + ' ' + PointStateToStr(Point_PresentState) + ')';
-                        Log('P ' + DebugStr);
-                        PointFeedbackFound := True;
-
-                        { If the point has changed even though locked, notify user and suspend automode if on }
-                        IF ProgramStartup
-                        OR RedrawScreen
-                        OR NOT PointIsLocked(P, LockingFailureString)
-                        OR NOT InLockingMode
-                        THEN
-                          Point_MovedWhenLocked := False
-                        ELSE BEGIN
-                          IF (Point_LockingState <> PointStateUnknown) AND (Point_PresentState <> Point_LockingState) THEN BEGIN
-                            IF Point_LocoChipLockingTheRoute = UnknownLocoChip THEN BEGIN
-                              IF NOT Point_MovedWhenLocked THEN BEGIN
-                                Point_MovedWhenLocked := True;
-                                MakeSound(1);
-                                Log('X! Serious error: P=' + IntToStr(P) + ' (Lenz=' + IntToStr(Point_LenzNum) + ')'
-                                        + ' [' + DescribeLineNamesForTrackCircuit(Point_TCAtHeel) + '] has changed to ' + PointStateToStr(Point_PresentState)
-                                        + ' even though ' + LockingFailureString + ':');
-                                Point_MovedWhenLocked := False;
-                              END;
-                            END ELSE BEGIN
-                              T := GetTrainIndexFromLocoChip(Point_LocoChipLockingTheRoute);
-                              IF T <> UnknownTrainIndex THEN BEGIN
-                                IF (Trains[T].Train_CurrentStatus <> Suspended) AND (Trains[T].Train_CurrentStatus <> MissingAndSuspended) THEN BEGIN
-                                  SuspendTrain(T, NOT ByUser, 'point ' + PointToStr(P) + ' has moved');
-
-                                  IF NOT Point_MovedWhenLocked THEN BEGIN
-                                    Point_MovedWhenLocked := True;
-                                    MakeSound(1);
-                                    Log('X! Serious error: P=' + IntToStr(P) + ' (Lenz=' + IntToStr(Point_LenzNum) + ')'
-                                            + ' [' + DescribeLineNamesForTrackCircuit(Point_TCAtHeel) + '] has changed to ' + PointStateToStr(Point_PresentState)
-                                            + ' even though ' + LockingFailureString + ':' + 'loco ' + LocoChipToStr(Point_LocoChipLockingTheRoute)
-                                            + ' has been suspended');
-                                    Point_MovedWhenLocked := False;
-                                  END;
-                                END;
-                              END;
+                            IF NOT Point_MovedWhenLocked THEN BEGIN
+                              Point_MovedWhenLocked := True;
+                              MakeSound(1);
+                              Log('X! Serious error: P=' + IntToStr(P) + ' (Lenz=' + IntToStr(Point_LenzNum) + ')'
+                                      + ' [' + DescribeLineNamesForTrackCircuit(Point_TCAtHeel) + '] has changed to ' + PointStateToStr(Point_PresentState)
+                                      + ' even though ' + LockingFailureString + ':' + 'loco ' + LocoChipToStr(Point_LocoChipLockingTheRoute)
+                                      + ' has been suspended');
+                              Point_MovedWhenLocked := False;
                             END;
                           END;
                         END;
-                        IF NOT ProgramStartup THEN
-                          InvalidateScreen(UnitRef, 'DecodeFeedback');
                       END;
                     END;
-                  END; {WITH}
-                END;
-              END; {WITH}
-              IF NOT PointFeedbackFound THEN BEGIN
-                DebugStr := DebugStr + ' ( *** no point assigned **8)';
-                Log('P ' + DebugStr);
+                  END;
+                  IF NOT ProgramStartup THEN
+                    InvalidateScreen(UnitRef, 'DecodeFeedback');
+                END; {WITH}
               END;
-            END;
+            END; {WITH}
 
-          TRSPlungerFeedbackDetector:
-            { First see if we're starting/stopping the process - button held down for five seconds will stop/start it }
-            BEGIN
-              Log('A ' + DebugStr);
-              { If it's a quick button press, it will return here before five seconds are up }
-              IF NOT TempFeedbackData.Feedback_InputOn THEN
-                { pressbutton is released }
-                StationStartModeSetUpTime := 0
-              ELSE BEGIN
-                IF InStationStartMode THEN BEGIN
-                  { button is pressed down }
-                  StationStartModeSetUpTime := Time;
+        TRSPlungerFeedback:
+          { First see if we're starting/stopping the process - button held down for five seconds will stop/start it }
+          BEGIN
+  //          Log('A ' + DebugStr);
+  //          { If it's a quick button press, it will return here before five seconds are up }
+  //          IF NOT TempFeedbackData.Feedback_InputOn THEN
+  //            { pressbutton is released }
+  //            StationStartModeSetUpTime := 0
+  //          ELSE BEGIN
+  //            IF InStationStartMode THEN BEGIN
+  //              { button is pressed down }
+  //              StationStartModeSetUpTime := Time;
   //                CASE DecodedFeedbackNum OF { Need to change the variable name *** }
   //                  998:
   //                    IF NOT MainPlatformPlungers[MainPlatform6A].TRSPlunger_Locked THEN BEGIN
@@ -759,16 +610,16 @@ BEGIN { DecodeFeedback }
   //                      DrawTRSPlunger(MainPlatform6B, Pressed);
   //                    END;
   //                END; {CASE}
-                END;
-              END;
-            END;
+  //            END;
+  //          END;
+  //        END;
         END; {CASE}
 
-        IF InFeedbackDebuggingMode AND (FeedbackWindow <> NIL) AND NOT ProgramStartup THEN
-          WriteDataToFeedbackWindow(TempFeedbackData, DecodedFeedbackNum)
-        ELSE
-          IF DisplayFeedbackStringsInDebugWindow THEN
-            WriteFeedbackDataToDebugWindow(TempFeedbackData, DecodedFeedbackNum);
+//        IF InFeedbackDebuggingMode AND (FeedbackWindow <> NIL) AND NOT ProgramStartup THEN
+//          WriteDataToFeedbackWindow(FeedbackUnit, FeedbackInput)
+//        ELSE
+//          IF DisplayFeedbackStringsInDebugWindow THEN
+//            WriteFeedbackDataToDebugWindow(FeedbackUnit, FeedbackInput);
       END;
     END; {WITH}
   EXCEPT
