@@ -228,7 +228,6 @@ object FWPRailWindow: TFWPRailWindow
     end
     object GeneralPopupClock: TMenuItem
       Caption = 'Cloc&k'
-      OnClick = GeneralPopupClockClick
       object GeneralPopupStartClock: TMenuItem
         Caption = 'St&art Clock'
         OnClick = StartClock
@@ -1300,9 +1299,13 @@ object FWPRailWindow: TFWPRailWindow
       OnClick = GeneralPopupSetLogFileMaximumWidthClick
     end
     object GeneralPopupResetFWPRailWindowSizeAndPosition: TMenuItem
-      Caption = 'Reset Window Size && Position'
+      Caption = 'Reset Main Window Size && Position'
       Enabled = False
       OnClick = GeneralPopupResetFWPRailWindowSizeAndPositionClick
+    end
+    object ResetSizeAndPositionOfAllWindows: TMenuItem
+      Caption = 'Reset Size && Position Of All Windows'
+      OnClick = ResetSizeAndPositionOfAllWindowsClick
     end
     object GeneralPopupRestoreAllScreenDrawingDefaultSettings: TMenuItem
       Caption = 'Restore All Screen Drawing Default Settings'

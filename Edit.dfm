@@ -5,6 +5,7 @@ object EditWindow: TEditWindow
   ClientHeight = 302
   ClientWidth = 750
   Color = clBtnFace
+  Enabled = False
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
@@ -58,6 +59,7 @@ object EditWindow: TEditWindow
       Width = 137
       Height = 25
       Caption = 'Save Changes and Exit'
+      Enabled = False
       TabOrder = 0
       OnClick = SaveChangesAndExitButtonClick
     end
@@ -67,6 +69,7 @@ object EditWindow: TEditWindow
       Width = 137
       Height = 25
       Caption = 'Undo Changes'
+      Enabled = False
       TabOrder = 1
       OnClick = UndoChangesButtonClick
     end
@@ -76,6 +79,7 @@ object EditWindow: TEditWindow
       Width = 137
       Height = 25
       Caption = 'Exit Without Saving'
+      Enabled = False
       TabOrder = 2
       OnClick = ExitWithoutSavingButtonClick
     end

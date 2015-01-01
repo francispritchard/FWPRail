@@ -2601,11 +2601,8 @@ BEGIN { KeyPressedDown }
             CtrlShift: {R}
               BEGIN
                 HelpMsg := 'Reset all window size and positions';
-                IF NOT HelpRequired THEN BEGIN
-                  ResetFWPRailWindowSizeAndPosition;
-                  ResetDiagramsWindowSizeAndPosition;
-                  ResetDebugWindowSizeAndPosition;
-                END;
+                IF NOT HelpRequired THEN
+                  ResetAllWindowsSizeAndPosition;
               END;
             Ctrl: {R}
               BEGIN

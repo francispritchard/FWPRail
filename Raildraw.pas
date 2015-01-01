@@ -163,6 +163,7 @@ TYPE
     SetDaylightEnd: TMenuItem;
     SetDayLightStart: TMenuItem;
     SignalPopupMenu: TPopupMenu;
+    ResetSizeAndPositionOfAllWindows: TMenuItem;
 
     PROCEDURE BufferStopPopupItemClick(Sender: TObject);
     PROCEDURE BufferStopMenuOnPopup(Sender: TObject);
@@ -241,7 +242,6 @@ TYPE
     PROCEDURE GeneralPopupChangeTCUserMustDriveColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangeTrainActiveColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangeTrainInactiveColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupClockClick(Sender: TObject);
     PROCEDURE GeneralPopupDebugOptionsClick(Sender: TObject);
     PROCEDURE GeneralPopupFiddleyardLinePenStyleClearClick(Sender: TObject);
     PROCEDURE GeneralPopupFiddleyardLinePenStyleDashClick(Sender: TObject);
@@ -408,6 +408,7 @@ TYPE
     PROCEDURE SignalPopupMenuOnPopup(Sender: TObject);
     PROCEDURE StartClock(Sender: TObject);
     PROCEDURE StopClock(Sender: TObject);
+    procedure ResetSizeAndPositionOfAllWindowsClick(Sender: TObject);
 
   PRIVATE
     { Private declarations }
@@ -531,6 +532,9 @@ PROCEDURE InitialiseRaildrawUnit;
 
 PROCEDURE InvalidateScreen(UnitRefParam, CallingStr : String);
 { Draw the screen by invalidating it }
+
+PROCEDURE ResetAllWindowsSizeAndPosition;
+{ Reset all the windows to their default state }
 
 PROCEDURE ResetFWPRailWindowSizeAndPosition;
 { Reset the window's size and position }
@@ -5802,11 +5806,6 @@ BEGIN
   END;
 END; { GeneralPopupChangeTrainInactiveColourClick }
 
-procedure TFWPRailWindow.GeneralPopupClockClick(Sender: TObject);
-begin
-;
-end;
-
 PROCEDURE TFWPRailWindow.GeneralPopupRestoreTrainInactiveColourClick(Sender: TObject);
 BEGIN
   TrainInactiveColour := DefaultTrainInactiveColour;
@@ -6978,12 +6977,27 @@ END; { ResetFWPRailWindowSizeAndPosition }
 PROCEDURE TFWPRailWindow.GeneralPopupResetFWPRailWindowSizeAndPositionClick(Sender: TObject);
 BEGIN
   ResetFWPRailWindowSizeAndPosition;
-  FWPRailWindow.Height := MulDiv(Screen.WorkAreaHeight, 80, 100);
-  FWPRailWindow.Width := Screen.WorkAreaWidth;
-  FWPRailWindow.Top := 0;
-  FWPRailWindow.Left := 0;
+//  FWPRailWindow.Height := MulDiv(Screen.WorkAreaHeight, 80, 100);
+//  FWPRailWindow.Width := Screen.WorkAreaWidth;
+//  FWPRailWindow.Top := 0;
+//  FWPRailWindow.Left := 0;
   InvalidateScreen(UnitRef, 'ResetFWPRailWindowSizeClick');
 END; { ResetFWPRailWindowSizeClick }
+
+PROCEDURE ResetAllWindowsSizeAndPosition;
+{ Reset all the windows to their default state }
+BEGIN
+  ResetFWPRailWindowSizeAndPosition;
+  ResetEditWindowSizeAndPosition;
+  ResetFWPRailWindowSizeAndPosition;
+  ResetDiagramsWindowSizeAndPosition;
+  ResetDebugWindowSizeAndPosition;
+END; { ResetAllWindowsSizeAndPosition }
+
+PROCEDURE TFWPRailWindow.ResetSizeAndPositionOfAllWindowsClick(Sender: TObject);
+BEGIN
+  ResetAllWindowsSizeAndPosition;
+END; { ResetSizeAndPositionOfAllWindowsClick }
 
 PROCEDURE TFWPRailWindow.FWPRailWindowMouseWheel(Sender: TObject; ShiftState: TShiftState; WheelDelta: Integer; MousePos: TPoint; VAR Handled: Boolean);
 BEGIN

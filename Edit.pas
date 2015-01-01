@@ -106,6 +106,9 @@ PROCEDURE MoveObjectRight;
 PROCEDURE ProcessLocationsCheckListBoxChecks;
 { See which locations are ticked and update the array }
 
+PROCEDURE ResetEditWindowSizeAndPosition;
+{ Reset the edit window's size and position }
+
 PROCEDURE SplitLine(OldLine, GridX, GridY : Integer);
 { Split a line at the point indicated }
 
@@ -219,12 +222,10 @@ PROCEDURE ResizeEditorWindowContents;
 VAR
   Border : Integer;
   EditValueListEditorRight : Integer;
-  EditWindowRight : Integer;
 
 BEGIN
   WITH Edit.EditWindow DO BEGIN
     { Position the window based on the available window size }
-    Visible := True;
     Border := 10; { **** add to options list }
 
     { Resize the list editor depending on the size of the window }
@@ -236,13 +237,11 @@ BEGIN
 
     { Space the buttons too }
     EditWindowButtonPanel.Top := (EditValueListEditor.ClientHeight - EditWindowButtonPanel.Height) DIV 2;
-
-    EditWindowRight := EditWindow.Left + EditWindow.Width;
     EditValueListEditorRight := EditValueListEditor.Left + EditValueListEditor.Width;
-
     EditWindowButtonPanel.Left := Border + EditValueListEditorRight;
-    EditWindowLabel.Left := Border;
 
+    { and deal with the label }
+    EditWindowLabel.Left := Border;
     EditWindowLabel.Top := (EditWindow.ClientHeight - EditWindowLabel.Height) DIV 2;
   END; {WITH}
 END; { ResizeEditorWindowContents }
@@ -258,40 +257,46 @@ END; { WriteEditWindowLabelCaption }
 PROCEDURE TurnEditModeOn(S, P, BS, Line, TC : Integer);
 { Turn edit mode on }
 BEGIN
-  IF NOT EditMode THEN BEGIN
-    EditMode := True;
-    Diagrams.DiagramsWindow.Visible := False;
+  TRY
+    IF NOT EditMode THEN BEGIN
+      EditMode := True;
+      Diagrams.DiagramsWindow.Visible := False;
 
-    { The tags are used to tell EditWindow.Visible which value list to edit }
-    Edit.EditWindow.Tag := -1;
-    IF S <> UnknownSignal THEN BEGIN
-      Edit.EditWindow.Tag := 1;
-      StartSignalEdit(S);
-    END ELSE
-      IF P <> UnknownPoint THEN BEGIN
-        Edit.EditWindow.Tag := 2;
-        StartPointEdit(P);
+      { The tags are used to tell EditWindow.Visible which value list to edit }
+      Edit.EditWindow.Tag := -1;
+      IF S <> UnknownSignal THEN BEGIN
+        Edit.EditWindow.Tag := 1;
+        StartSignalEdit(S);
       END ELSE
-        IF Line <> UnknownLine THEN BEGIN
-          Edit.EditWindow.Tag := 3;
-          StartLineEdit(Line);
+        IF P <> UnknownPoint THEN BEGIN
+          Edit.EditWindow.Tag := 2;
+          StartPointEdit(P);
         END ELSE
-          IF TC <> UnknownTrackCircuit THEN BEGIN
-            Edit.EditWindow.Tag := 4;
-            StartTrackCircuitEdit(TC);
-          END;
+          IF Line <> UnknownLine THEN BEGIN
+            Edit.EditWindow.Tag := 3;
+            StartLineEdit(Line);
+          END ELSE
+            IF TC <> UnknownTrackCircuit THEN BEGIN
+              Edit.EditWindow.Tag := 4;
+              StartTrackCircuitEdit(TC);
+            END;
 
-    EditWindow.EditWindowLabel.Caption := 'Editing...';
-    ResizeEditorWindowContents;
+      EditWindow.EditWindowLabel.Caption := 'Editing...';
+      ResizeEditorWindowContents;
 
-    SaveSystemOnlineState := SystemOnline;
-    IF SystemOnline THEN
-      SetSystemOffline('System offline as edit mode starting', NOT SoundWarning);
+      SaveSystemOnlineState := SystemOnline;
+      IF SystemOnline THEN
+        SetSystemOffline('System offline as edit mode starting', NOT SoundWarning);
 
-    SetCaption(FWPRailWindow, 'EDITING...');
-    SaveIconHandle := Application.Icon.Handle;
-    Application.Icon.Handle := EditIcon.Handle;
-  END;
+      EditWindow.Visible := True;
+      SetCaption(FWPRailWindow, 'EDITING...');
+      SaveIconHandle := Application.Icon.Handle;
+      Application.Icon.Handle := EditIcon.Handle;
+    END;
+  EXCEPT
+    ON E : Exception DO
+      Log('EG TurnEditModeOn:' + E.ClassName + ' error raised, with message: ' + E.Message);
+  END; {TRY}
 END; { TurnEditModeOn }
 
 PROCEDURE TurnEditModeOff;
@@ -1665,7 +1670,7 @@ BEGIN
 END; { ExitWithoutSavingButtonClick }
 
 PROCEDURE ResetEditWindowSizeAndPosition;
-{ Reset the window's size and position }
+{ Reset the edit window's size and position }
 BEGIN
   EditWindowHeight := DefaultEditWindowHeight;
   EditWindowWidth := DefaultEditWindowWidth;
@@ -1677,7 +1682,6 @@ BEGIN
   EditWindow.Top := EditWindowTop;
   EditWindow.Left := EditWindowLeft;
 
-  EditWindow.Visible := True;
   EditWindow.Invalidate;
 END; { ResetEditWindowSizeAndPosition }
 
