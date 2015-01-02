@@ -69,8 +69,8 @@ VAR
 
 CONST
   ProgramTitle = 'FWP''s Railway Program for Windows';
-  CopyrightStatementForDisplaying = 'Copyright © F.W. Pritchard && A.M. Stokes 1988-2014';
-  CopyrightStatementForWritingToFile = 'Copyright © F.W. Pritchard & A.M. Stokes 1988-2014';
+  CopyrightStatementForDisplaying = 'Copyright © F.W. Pritchard && A.M. Stokes 1988-2015';
+  CopyrightStatementForWritingToFile = 'Copyright © F.W. Pritchard & A.M. Stokes 1988-2015';
 
   CRLF : ARRAY [1..2] OF Char = #13#10;
 

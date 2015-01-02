@@ -1,7 +1,7 @@
 PROGRAM Rail;
 (* FWP's Railway Program
 
-  Copyright © F.W. Pritchard & A.M. Stokes 1998-2014. All Rights Reserved.
+  Copyright © F.W. Pritchard & A.M. Stokes 1998-2015. All Rights Reserved.
 
   v5.0  10/04/09 Now using Turbo Delphi (free version of Borland Developer Studio 2006)
   V6.0  27/03/11 And now using Embarcadero Delphi XE Professional

@@ -1,7 +1,7 @@
 UNIT Main;
 { Creates the various windows and runs the timers
 
-  Copyright © F.W. Pritchard 2014. All Rights Reserved.
+  Copyright © F.W. Pritchard 2015. All Rights Reserved.
 
   v0.1  10/04/14 Unit extracted from Raildraw
 }

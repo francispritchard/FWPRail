@@ -1,7 +1,7 @@
 UNIT Edit;
 { Unit that allows the user to construct a layout in diagrammatic form on the screen
 
-  Copyright © F.W. Pritchard 2009-2014. All Rights Reserved.
+  Copyright © F.W. Pritchard 2009-2015. All Rights Reserved.
 
   v0.1  15/07/09 Unit created
   v0.2  10/03/13 writing signal editing code

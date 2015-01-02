@@ -1,7 +1,7 @@
 UNIT Raildraw;
 { Handles graphics display for railway program
 
-  Copyright © F.W. Pritchard 1988-2014. All Rights Reserved.
+  Copyright © F.W. Pritchard 1988-2015. All Rights Reserved.
 
   v0.1  00/00/88 Unit created
   v0.2  24/04/13 Header added; semaphore signal routine rewritten by James D King and FWP
