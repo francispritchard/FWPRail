@@ -114,7 +114,7 @@ PROCEDURE ReadInRouteingExceptionsFromDatabase;
 //  TempTrainTypeNum : Integer;
 
 BEGIN
-  Debug('Routeing exceptons not read in');
+  Debug('Routeing exceptions not read in');
 //  TRY
 //    Log('A INITIALISING ROUTEING EXCEPTIONS {BLANKLINEBEFORE}');
 //
@@ -745,18 +745,18 @@ VAR
     Count : Integer;
     CurrentLineCheck : Boolean;
     CurrentLineStop : Boolean;
-    EndLineCheck : Boolean;
-    EndLineStop : Boolean;
-    EndLineExceptedCheck : Boolean;
-    EndLineExceptedStop : Boolean;
-    EndLocationCheck : Boolean;
-    EndLocationStop : Boolean;
-    EndLocationExceptedCheck : Boolean;
-    EndLocationExceptedStop : Boolean;
     EndAreaCheck : Boolean;
-    EndAreaStop : Boolean;
     EndAreaExceptedCheck : Boolean;
     EndAreaExceptedStop : Boolean;
+    EndAreaStop : Boolean;
+    EndLineCheck : Boolean;
+    EndLineExceptedCheck : Boolean;
+    EndLineExceptedStop : Boolean;
+    EndLineStop : Boolean;
+    EndLocationCheck : Boolean;
+    EndLocationExceptedCheck : Boolean;
+    EndLocationExceptedStop : Boolean;
+    EndLocationStop : Boolean;
     FoundASignalOrBufferStop : String;
     LineRoutedOverCheck : Boolean;
     LineRoutedOverStop : Boolean;
@@ -764,17 +764,17 @@ VAR
     PreviousLineStop : Boolean;
     Rule : Integer;
     StartAreaCheck : Boolean;
-    StartAreaStop : Boolean;
     StartAreaExceptedCheck : Boolean;
     StartAreaExceptedStop : Boolean;
+    StartAreaStop : Boolean;
     StartLineCheck : Boolean;
-    StartLineStop : Boolean;
     StartLineExceptedCheck : Boolean;
     StartLineExceptedStop : Boolean;
+    StartLineStop : Boolean;
     StartLocationCheck : Boolean;
-    StartLocationStop : Boolean;
     StartLocationExceptedCheck : Boolean;
     StartLocationExceptedStop : Boolean;
+    StartLocationStop : Boolean;
     TrainTypeCheck : Boolean;
     TrainTypeStop : Boolean;
 

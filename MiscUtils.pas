@@ -1042,120 +1042,6 @@ VAR
   TestingMode : Boolean = False;
   UserDebugText : String = '';
 
-FUNCTION InAllRouteDebuggingMode : Boolean;
-{ Return the status of AllRouteDebuggingMode }
-BEGIN
-  Result := AllRouteDebuggingMode;
-END; { InAllRouteDebuggingMode }
-
-FUNCTION InAnonymousOccupationMode : Boolean;
-{ Return the status of AnonymousOccupationMode }
-BEGIN
-  Result := AnonymousOccupationMode;
-END; { InAnonymousOccupationMode }
-
-FUNCTION InDebuggingMode : Boolean;
-{ Return the status of DebuggingMode }
-BEGIN
-  Result := DebuggingMode;
-END; { InDebuggingModeMode }
-
-FUNCTION InFeedbackDebuggingMode : Boolean;
-{ Return the status of FeedbackDebuggingMode }
-BEGIN
-  Result := FeedbackDebuggingMode;
-END; { InFeedbackDebuggingModeMode }
-
-FUNCTION InLineDebuggingMode : Boolean;
-{ Return the status of LineDebuggingMode }
-BEGIN
-  Result := LineDebuggingMode;
-END; { InLineDebuggingMode }
-
-FUNCTION InLockDebuggingMode : Boolean;
-{ Return the status of LockDebuggingMode }
-BEGIN
-  Result := LockDebuggingMode;
-END; { InLockDebuggingMode }
-
-FUNCTION InLockingMode : Boolean;
-{ Return the status of LockingMode }
-BEGIN
-  Result := LockingMode;
-END; { InLockingMode }
-
-FUNCTION InLocoSpeedTimingMode : Boolean;
-{ Return the status of LocoSpeedTimingMode }
-BEGIN
-  Result := LocoSpeedTimingMode;
-END; { InLocoSpeedTimingMode }
-
-FUNCTION InLogsCurrentlyKeptMode : Boolean;
-{ Return the status of LogsCurrentlyKeptMode }
-BEGIN
-  Result := LogsCurrentlyKeptMode;
-END; { InLogsCurrentlyKeptMode }
-
-FUNCTION InPointDebuggingMode : Boolean;
-{ Return the status of PointDebuggingMode }
-BEGIN
-  Result := PointDebuggingMode;
-END; { InPointDebuggingMode }
-
-FUNCTION InRDCMode : Boolean;
-{ Return the status of RDCMode }
-BEGIN
-  Result := RDCMode;
-END; { InRDCMode }
-
-FUNCTION InRecordingMonitorScreensMode : Boolean;
-{ Return the status of RecordingMonitorScreensMode }
-BEGIN
-  Result := RecordingMonitorScreensMode;
-END; { InRecordingMonitorScreensMode }
-
-FUNCTION InRecordLineDrawingMode : Boolean;
-{ Return the status of RecordLineDrawingMode }
-BEGIN
-  Result := RecordingMonitorScreensMode;
-END; { InRecordLineDrawingMode }
-
-FUNCTION InRouteDebuggingMode : Boolean;
-{ Return the status of RouteDebuggingMode }
-BEGIN
-  Result := RouteDebuggingMode;
-END; { InRouteDebuggingMode }
-
-FUNCTION InRouteDrawingMode : Boolean;
-{ Return the status of RouteDrawingMode }
-BEGIN
-  Result := RouteDrawingMode;
-END; { InRouteDrawingMode }
-
-FUNCTION InRouteBacktrackDebuggingMode : Boolean;
-{ Return the status of RouteBacktrackDebuggingMode }
-BEGIN
-  Result := RouteBacktrackDebuggingMode;
-END; { InRouteBacktrackDebuggingMode }
-
-FUNCTION InShowAdjacentTrackCircuitMode : Boolean;
-{ Return the status of ShowAdjacentTrackCircuitMode }
-BEGIN
-  Result := ShowAdjacentTrackCircuitMode;
-END; { InShowAdjacentTrackCircuitMode }
-
-FUNCTION InStationStartMode : Boolean;
-{ Return the status of StationStartMode }
-BEGIN
-  Result := StationStartMode;
-END; { InStationStartMode }
-
-FUNCTION InTestingMode : Boolean;
-{ Return the status of TestingMode }
-BEGIN
-  Result := TestingMode;
-END; { InTestingMode }
-
 PROCEDURE WriteToLogFile(LogStr : String); Overload;
 { Write the data to the log file, adding the LocoChip and UnitRef, and wrapping and indenting if required. The syntax is: LocoChip, TypeOfLog, LogString, and parameters
   such as Indent=n Wrap=n Unit=UnitRef.
@@ -2066,6 +1952,120 @@ BEGIN
   PreviousLogTime := Time;
 END; { WriteTimeToLog }
 
+FUNCTION InAllRouteDebuggingMode : Boolean;
+{ Return the status of AllRouteDebuggingMode }
+BEGIN
+  Result := AllRouteDebuggingMode;
+END; { InAllRouteDebuggingMode }
+
+FUNCTION InAnonymousOccupationMode : Boolean;
+{ Return the status of AnonymousOccupationMode }
+BEGIN
+  Result := AnonymousOccupationMode;
+END; { InAnonymousOccupationMode }
+
+FUNCTION InDebuggingMode : Boolean;
+{ Return the status of DebuggingMode }
+BEGIN
+  Result := DebuggingMode;
+END; { InDebuggingModeMode }
+
+FUNCTION InFeedbackDebuggingMode : Boolean;
+{ Return the status of FeedbackDebuggingMode }
+BEGIN
+  Result := FeedbackDebuggingMode;
+END; { InFeedbackDebuggingModeMode }
+
+FUNCTION InLineDebuggingMode : Boolean;
+{ Return the status of LineDebuggingMode }
+BEGIN
+  Result := LineDebuggingMode;
+END; { InLineDebuggingMode }
+
+FUNCTION InLockDebuggingMode : Boolean;
+{ Return the status of LockDebuggingMode }
+BEGIN
+  Result := LockDebuggingMode;
+END; { InLockDebuggingMode }
+
+FUNCTION InLockingMode : Boolean;
+{ Return the status of LockingMode }
+BEGIN
+  Result := LockingMode;
+END; { InLockingMode }
+
+FUNCTION InLocoSpeedTimingMode : Boolean;
+{ Return the status of LocoSpeedTimingMode }
+BEGIN
+  Result := LocoSpeedTimingMode;
+END; { InLocoSpeedTimingMode }
+
+FUNCTION InLogsCurrentlyKeptMode : Boolean;
+{ Return the status of LogsCurrentlyKeptMode }
+BEGIN
+  Result := LogsCurrentlyKeptMode;
+END; { InLogsCurrentlyKeptMode }
+
+FUNCTION InPointDebuggingMode : Boolean;
+{ Return the status of PointDebuggingMode }
+BEGIN
+  Result := PointDebuggingMode;
+END; { InPointDebuggingMode }
+
+FUNCTION InRDCMode : Boolean;
+{ Return the status of RDCMode }
+BEGIN
+  Result := RDCMode;
+END; { InRDCMode }
+
+FUNCTION InRecordingMonitorScreensMode : Boolean;
+{ Return the status of RecordingMonitorScreensMode }
+BEGIN
+  Result := RecordingMonitorScreensMode;
+END; { InRecordingMonitorScreensMode }
+
+FUNCTION InRecordLineDrawingMode : Boolean;
+{ Return the status of RecordLineDrawingMode }
+BEGIN
+  Result := RecordingMonitorScreensMode;
+END; { InRecordLineDrawingMode }
+
+FUNCTION InRouteDebuggingMode : Boolean;
+{ Return the status of RouteDebuggingMode }
+BEGIN
+  Result := RouteDebuggingMode;
+END; { InRouteDebuggingMode }
+
+FUNCTION InRouteDrawingMode : Boolean;
+{ Return the status of RouteDrawingMode }
+BEGIN
+  Result := RouteDrawingMode;
+END; { InRouteDrawingMode }
+
+FUNCTION InRouteBacktrackDebuggingMode : Boolean;
+{ Return the status of RouteBacktrackDebuggingMode }
+BEGIN
+  Result := RouteBacktrackDebuggingMode;
+END; { InRouteBacktrackDebuggingMode }
+
+FUNCTION InShowAdjacentTrackCircuitMode : Boolean;
+{ Return the status of ShowAdjacentTrackCircuitMode }
+BEGIN
+  Result := ShowAdjacentTrackCircuitMode;
+END; { InShowAdjacentTrackCircuitMode }
+
+FUNCTION InStationStartMode : Boolean;
+{ Return the status of StationStartMode }
+BEGIN
+  Result := StationStartMode;
+END; { InStationStartMode }
+
+FUNCTION InTestingMode : Boolean;
+{ Return the status of TestingMode }
+BEGIN
+  Result := TestingMode;
+END; { InTestingMode }
+
 PROCEDURE UnknownLocoChipFound(RoutineName : String);
 { Called if an unknown loco chip is found at the beginning of a subroutine }
 BEGIN
@@ -2777,7 +2777,7 @@ BEGIN
     END ELSE BEGIN
       { Note: without the following two statements, the RichEdit window doesn't initially scroll }
       IF DebugWindow.Visible AND NOT StationMonitorsWindow.Visible THEN
-        DebugWindow.setFocus;
+        DebugWindow.SetFocus;
       DebugWindow.DebugRichEdit.Perform(EM_SCROLLCARET, 0, 0);
 
       SaveStyle := DebugWindow.DebugRichEdit.SelAttributes.Style;
