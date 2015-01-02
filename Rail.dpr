@@ -67,12 +67,6 @@ BEGIN
   Application.Title := 'FWP''s Rail';
   Application.HelpFile := '';
 
-  GetKeyboardState(KeyState);
-  IF ((KeyState[vk_Shift] AND 128) <> 0) THEN
-    ShiftKeyHeldDownOnStartup := True
-  ELSE
-    ShiftKeyHeldDownOnStartup := False;
-
   FOR I := 1 TO ParamCount DO
     IF ParamStr(I) = '/nosplash' THEN
       WantSplash := False;
