@@ -1,5 +1,5 @@
 UNIT Lenz;
-{ Unit that talks to a Lenz Digital Plus LI101F interface via a serial port or to an LI-USB interface
+{ Unit that talks to a Lenz Digital Plus interface via a serial port or to an LI-USB interface
 
   Copyright © F.W. Pritchard 1998-2015. All Rights Reserved.
   (CheckSum subroutine conceived by A.M. Stokes, implemented by FWP).
