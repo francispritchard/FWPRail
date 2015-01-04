@@ -93,14 +93,14 @@ CONST
   ClYellow = 65535      $00 00 FF FF
   }
   { Don't know why Delphi doesn't predefine the following (change ColourToStr and StrToColour in MiscUtils if change any of these) }
-  clFWPDkBlue = $0802040; { 0 128  32  64 }
-  clFWPOrange = $000080FF; { 0   0 128 255 }
-  clFWPLtBrown = $004080FF; { 0  64 128 255 }
-  clFWPDkBrown = $00004080; { 0   0  64 128 }
-  clFWPPink = $008080FF; { 0 128 128 255 }
-  clFWPPlatformColour = $0038ABB1;
-  clFWPDkGrey = $00242424; { 0 36 36 36 }
-  clFWPVeryDkGrey = $00212121; { 0  33  33  33 }
+  clFWPDkBlue = $00802040;         { 0 128  32  64 }
+  clFWPOrange = $000080FF;         { 0   0 128 255 }
+  clFWPLtBrown = $004080FF;        { 0  64 128 255 }
+  clFWPDkBrown = $00004080;        { 0   0  64 128 }
+  clFWPPink = $008080FF;           { 0 128 128 255 }
+  clFWPPlatformColour = $0038ABB1; { 0  56 171 177 }
+  clFWPDkGrey = $00242424;         { 0  36  36  36 }
+  clFWPVeryDkGrey = $00212121;     { 0  33  33  33 }
 
   clFWPDkBlueStr = 'clFWPDkBlue';
   clFWPOrangeStr = 'clFWPOrange';
