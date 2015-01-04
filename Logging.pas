@@ -173,7 +173,7 @@ BEGIN
   StoreRichEditLoggingText := True;
 
   { And let the user know what is happening }
-  AddRichLine(LoggingWindow.LoggingWindowRichEdit, '<B>Pausing writing the log to the logging window screen until the cursor is returned to the logging window</B>');
+  AddRichLine(LoggingWindow.LoggingWindowRichEdit, '<B>Pausing writing the log to the logging window screen until the cursor is removed from the logging window</B>');
 END; { LoggingWindowRichEditMouseEnter }
 
 PROCEDURE TLoggingWindow.LoggingWindowRichEditMouseLeave(Sender: TObject);
@@ -181,7 +181,9 @@ BEGIN
   StoreRichEditLoggingText := False;
 
   { Remove the "paused" message }
-  IF LoggingWindow.LoggingWindowRichEdit.Lines[LoggingWindowRichEdit.Lines.Count - 1] = 'Pausing writing the log to the logging window screen until the cursor is returned to the logging window' THEN
+  IF LoggingWindow.LoggingWindowRichEdit.Lines[LoggingWindowRichEdit.Lines.Count - 1] =
+                                                                  'Pausing writing the log to the logging window screen until the cursor is removed from the logging window'
+  THEN
     LoggingWindow.LoggingWindowRichEdit.Lines.Delete(LoggingWindow.LoggingWindowRichEdit.Lines.Count - 1);
 
   { Now add any stored rich-edit data to the logging window }
