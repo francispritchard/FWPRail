@@ -1,7 +1,7 @@
 UNIT Install;
 { Used only when installing or re-installing FWPRail
 
-  Copyright © F.W. Pritchard 2015. All Rights Reserved.
+  Copyright © F.W. Pritchard 2014-15. All Rights Reserved.
 
   v0.1  09/12/14 First written
 }
