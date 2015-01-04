@@ -1603,7 +1603,6 @@ VAR
   { Effectively these are constants, set up by initialisation }
   FunctionDecoderBytes : ARRAY [FirstFunctionDecoder..LastFunctionDecoder] OF Byte;
 
-  AspectRatio : Real; { Y/X ratio for screen }
 
   HoursUpX, HoursStartY, HoursDownX, HoursEndY : Word;
   MinutesUpX, MinutesStartY, MinutesDownX, MinutesEndY : Word;
