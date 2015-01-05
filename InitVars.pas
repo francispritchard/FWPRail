@@ -7101,10 +7101,10 @@ BEGIN
   DefaultDiagramsSmallWindowWidth := MulDiv(Screen.WorkAreaWidth, 500, 1000);
   DefaultDiagramsLargeWindowWidth := Screen.WorkAreaWidth;
 
-  DefaultDisplayColoursWindowHeight := MulDiv(Screen.WorkAreaHeight, 200, 1000);
-  DefaultDisplayColoursWindowTop := MulDiv(Screen.WorkAreaHeight, 500, 1000);
-  DefaultDisplayColoursWindowLeft := 0;
-  DefaultDisplayColoursWindowWidth := MulDiv(Screen.WorkAreaHeight, 200, 1000);
+  DefaultDisplayLineColoursWindowHeight := MulDiv(Screen.WorkAreaHeight, 200, 1000);
+  DefaultDisplayLineColoursWindowTop := MulDiv(Screen.WorkAreaHeight, 500, 1000);
+  DefaultDisplayLineColoursWindowLeft := 0;
+  DefaultDisplayLineColoursWindowWidth := MulDiv(Screen.WorkAreaHeight, 200, 1000);
 
   DefaultEditWindowHeight := MulDiv(Screen.WorkAreaHeight, 200, 1000);
   DefaultEditWindowTop := MulDiv(Screen.WorkAreaHeight, 800, 1000);

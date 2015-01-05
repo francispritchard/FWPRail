@@ -1121,8 +1121,8 @@ BEGIN { KeyPressedDown }
                 DrawLine(L, Lines[L].Line_OldColour, NOT ActiveTrain);
             END;
 
-            IF DisplayColoursWindow.Visible THEN
-              DisplayColoursWindow.Visible := False;
+            IF DisplayLineColoursWindow.Visible THEN
+              DisplayLineColoursWindow.Visible := False;
 
             IF ShowSignalsWhereRouteingCanBeHeldAndThoseNotUsedForRouteing THEN
               FOR S := 0 TO High(Signals) DO
@@ -4314,12 +4314,12 @@ BEGIN { KeyPressedDown }
                   ShowSignalsWhereRouteingCanBeHeldAndThoseNotUsedForRouteing := True;
 
                   { List the colours for the forgetful }
-                  DisplayColoursWindow.Visible := True;
-                  AddRichLine(DisplayColoursWindow.DisplayColoursWindowRichedit,
+                  DisplayLineColoursWindow.Visible := True;
+                  AddRichLine(DisplayLineColoursWindow.DisplayLineColoursWindowRichedit,
                                                                        '<colour=' + ColourToStr(clLime) + '>' + ColourToStr(clLime) + '= station start hold' + '</colour>');
-                  AddRichLine(DisplayColoursWindow.DisplayColoursWindowRichedit,
+                  AddRichLine(DisplayLineColoursWindow.DisplayLineColoursWindowRichedit,
                                                                            '<colour=' + ColourToStr(clYellow) + '>' + ColourToStr(clYellow) + '= route hold' + '</colour>');
-                  AddRichLine(DisplayColoursWindow.DisplayColoursWindowRichedit,
+                  AddRichLine(DisplayLineColoursWindow.DisplayLineColoursWindowRichedit,
                                                                   '<colour=' + ColourToStr(clAqua) + '>' + ColourToStr(clAqua) + '= not in use for routeing' + '</colour>');
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
@@ -4454,18 +4454,18 @@ BEGIN { KeyPressedDown }
                   { List the line colours for the forgetful (added this bit 12/12/07 because FWP forgot which was which!) }
                   IF ListLineColours THEN BEGIN
                     WriteToStatusBarPanel(StatusBarPanel2, 'Showing line detail');
-                    DisplayColoursWindowHeight := 0;
-                    DisplayColoursWindow.Width := 0;
-                    DisplayColoursWindow.Visible := True;
-                    DisplayColoursWindow.DisplayColoursWindowRichedit.Clear;
+                    DisplayLineColoursWindowHeight := 0;
+                    DisplayLineColoursWindow.Width := 0;
+                    DisplayLineColoursWindow.Visible := True;
+                    DisplayLineColoursWindow.DisplayLineColoursWindowRichedit.Clear;
 
                     FOR XTypeOfLine := FirstTypeOfLine TO LastTypeOfLine DO BEGIN
-                      WITH DisplayColoursWindow.Canvas DO BEGIN
+                      WITH DisplayLineColoursWindow.Canvas DO BEGIN
                         Str := ColourToStrForUser(GetLineTypeColour(XTypeOfLine)) + ' = ' + TypeOfLineToStr(XTypeOfLine);
 
-                        IF TextWidth(Str) > DisplayColoursWindow.Width THEN
-                          DisplayColoursWindow.Width := TextWidth(Str);
-                        AddRichLine(DisplayColoursWindow.DisplayColoursWindowRichedit,
+                        IF TextWidth(Str) > DisplayLineColoursWindow.Width THEN
+                          DisplayLineColoursWindow.Width := TextWidth(Str);
+                        AddRichLine(DisplayLineColoursWindow.DisplayLineColoursWindowRichedit,
                                     '<colour=' + ColourToStr(GetLineTypeColour(XTypeOfLine)) + '>'
                                     + Str
                                      + '</colour>');

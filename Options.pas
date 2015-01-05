@@ -81,17 +81,17 @@ VAR
   DefaultDiagramsLargeWindowWidth : Integer;
   DiagramsLargeWindowWidth : Integer;
 
-  DefaultDisplayColoursWindowHeight : Integer;
-  DisplayColoursWindowHeight : Integer;
+  DefaultDisplayLineColoursWindowHeight : Integer;
+  DisplayLineColoursWindowHeight : Integer;
 
-  DefaultDisplayColoursWindowTop : Integer;
-  DisplayColoursWindowTop : Integer;
+  DefaultDisplayLineColoursWindowTop : Integer;
+  DisplayLineColoursWindowTop : Integer;
 
-  DefaultDisplayColoursWindowLeft : Integer;
-  DisplayColoursWindowLeft : Integer;
+  DefaultDisplayLineColoursWindowLeft : Integer;
+  DisplayLineColoursWindowLeft : Integer;
 
-  DefaultDisplayColoursWindowWidth : Integer;
-  DisplayColoursWindowWidth : Integer;
+  DefaultDisplayLineColoursWindowWidth : Integer;
+  DisplayLineColoursWindowWidth : Integer;
 
   DefaultEditWindowHeight : Integer;
   EditWindowHeight : Integer;
@@ -780,6 +780,9 @@ VAR
   DefaultTRSPlungerPressedColour : TColour = clYellow;
   TRSPlungerPressedColour : TColour = clYellow;
 
+  DefaultUseDisplayLineColoursWindowSettingsOnStartup : Boolean = False;
+  UseDisplayLineColoursWindowSettingsOnStartup :  Boolean = False;
+
   DefaultWaitBeforeRerouteInMinutes : Integer = 5;
   WaitBeforeRerouteInMinutes : Integer;
 
@@ -1046,6 +1049,7 @@ CONST
     SwitchActiveLocoLightsOffAtShutDownStr = 'Switch Active Loco Lights Off At Shut Down';
     TheatreBoxHeightStr = 'Theatre Box Height';
     TheatreBoxWidthStr = 'Theatre Box Width';
+    UseDisplayLineColoursWindowSettingsOnStartupStr = 'Use Display Line Colours Window Settings On Startup';
     WaitBeforeRerouteInMinutesStr = 'Wait Before Reroute In Minutes';
     WorkingTimetableModeStr = 'WorkingTimetable Mode';
 
@@ -1126,10 +1130,10 @@ CONST
     FWPRailWindowClientWidthStr = 'Main Window Client Width';
     FWPRailWindowClientHeightStr = 'Main Window Client Height';
 
-    DisplayColoursWindowHeightStr = 'CreateRoute DisplayColours Window Height';
-    DisplayColoursWindowLeftStr = 'CreateRoute DisplayColours Window Left';
-    DisplayColoursWindowTopStr = 'CreateRoute DisplayColours Window Top';
-    DisplayColoursWindowWidthStr = 'CreateRoute DisplayColours Window Width';
+    DisplayLineColoursWindowHeightStr = 'CreateRoute Display Line Colours Window Height';
+    DisplayLineColoursWindowLeftStr = 'CreateRoute Display Line Colours Window Left';
+    DisplayLineColoursWindowTopStr = 'CreateRoute Display Line Colours Window Top';
+    DisplayLineColoursWindowWidthStr = 'CreateRoute Display Line Colours Window Width';
 
     EditWindowHeightStr = 'Edit Window Height';
     EditWindowLeftStr = 'Edit Window Left';
@@ -1523,11 +1527,6 @@ BEGIN
     FWPRailWindowWidth := FWPReadInteger(WindowsSectionStr, FWPRailWindowWidthStr, DefaultFWPRailWindowWidth);
     FWPRailWindowHeight := FWPReadInteger(WindowsSectionStr, FWPRailWindowHeightStr, DefaultFWPRailWindowHeight);
 
-    DisplayColoursWindowTop := FWPReadInteger(WindowsSectionStr, DisplayColoursWindowTopStr, DefaultDisplayColoursWindowTop);
-    DisplayColoursWindowLeft := FWPReadInteger(WindowsSectionStr, DisplayColoursWindowLeftStr, DefaultDisplayColoursWindowLeft);
-    DisplayColoursWindowWidth := FWPReadInteger(WindowsSectionStr, DisplayColoursWindowWidthStr, DefaultDisplayColoursWindowWidth);
-    DisplayColoursWindowHeight := FWPReadInteger(WindowsSectionStr, DisplayColoursWindowHeightStr, DefaultDisplayColoursWindowHeight);
-
     DebugWindowTop := FWPReadInteger(WindowsSectionStr, DebugWindowTopStr, DefaultDebugWindowTop);
     DebugWindowLeft := FWPReadInteger(WindowsSectionStr, DebugWindowLeftStr, DefaultDebugWindowLeft);
     DebugWindowWidth := FWPReadInteger(WindowsSectionStr, DebugWindowWidthStr, DefaultDebugWindowWidth);
@@ -1653,6 +1652,15 @@ BEGIN
     SwitchActiveLocoLightsOffAtShutDown := FWPReadBool(OtherOptionsSectionStr, SwitchActiveLocoLightsOffAtShutDownStr, DefaultSwitchActiveLocoLightsOffAtShutDown);
     TheatreBoxHeight := FWPReadInteger(OtherOptionsSectionStr, TheatreBoxHeightStr, DefaultTheatreBoxHeight);
     TheatreBoxWidth := FWPReadInteger(OtherOptionsSectionStr, TheatreBoxWidthStr, DefaultTheatreBoxWidth);
+    UseDisplayLineColoursWindowSettingsOnStartup := FWPReadBool(OtherOptionsSectionStr, UseDisplayLineColoursWindowSettingsOnStartupStr,
+                                                                                                                     DefaultUseDisplayLineColoursWindowSettingsOnStartup);
+    IF UseDisplayLineColoursWindowSettingsOnStartup THEN BEGIN
+      DisplayLineColoursWindowTop := FWPReadInteger(WindowsSectionStr, DisplayLineColoursWindowTopStr, DefaultDisplayLineColoursWindowTop);
+      DisplayLineColoursWindowLeft := FWPReadInteger(WindowsSectionStr, DisplayLineColoursWindowLeftStr, DefaultDisplayLineColoursWindowLeft);
+      DisplayLineColoursWindowWidth := FWPReadInteger(WindowsSectionStr, DisplayLineColoursWindowWidthStr, DefaultDisplayLineColoursWindowWidth);
+      DisplayLineColoursWindowHeight := FWPReadInteger(WindowsSectionStr, DisplayLineColoursWindowHeightStr, DefaultDisplayLineColoursWindowHeight);
+    END;
+
     WaitBeforeRerouteInMinutes := FWPReadInteger(OtherOptionsSectionStr, WaitBeforeRerouteInMinutesStr, DefaultWaitBeforeRerouteInMinutes);
     WorkingTimetableMode := FWPReadBool(OtherOptionsSectionStr, WorkingTimetableModeStr, DefaultWorkingTimetableMode);
 
@@ -2047,11 +2055,11 @@ BEGIN
     WriteIntegerTwice(WindowsSectionStr, FWPRailWindowClientWidthStr, FWPRailWindow.ClientWidth);
     WriteIntegerTwice(WindowsSectionStr, FWPRailWindowClientHeightStr, FWPRailWindow.ClientHeight);
 
-    IF DisplayColoursWindow <> NIL THEN BEGIN
-      WriteIntegerTwice(WindowsSectionStr, DisplayColoursWindowHeightStr, DisplayColoursWindow.Height);
-      WriteIntegerTwice(WindowsSectionStr, DisplayColoursWindowLeftStr, DisplayColoursWindow.Left);
-      WriteIntegerTwice(WindowsSectionStr, DisplayColoursWindowTopStr, DisplayColoursWindow.Top);
-      WriteIntegerTwice(WindowsSectionStr, DisplayColoursWindowWidthStr, DisplayColoursWindow.Width);
+    IF (DisplayLineColoursWindow <> NIL) AND (UseDisplayLineColoursWindowSettingsOnStartup) THEN BEGIN
+      WriteIntegerTwice(WindowsSectionStr, DisplayLineColoursWindowHeightStr, DisplayLineColoursWindow.Height);
+      WriteIntegerTwice(WindowsSectionStr, DisplayLineColoursWindowLeftStr, DisplayLineColoursWindow.Left);
+      WriteIntegerTwice(WindowsSectionStr, DisplayLineColoursWindowTopStr, DisplayLineColoursWindow.Top);
+      WriteIntegerTwice(WindowsSectionStr, DisplayLineColoursWindowWidthStr, DisplayLineColoursWindow.Width);
     END;
 
     IF DebugWindow <> NIL THEN BEGIN
@@ -2167,6 +2175,7 @@ BEGIN
     WriteBoolTwice(OtherOptionsSectionStr, SwitchActiveLocoLightsOffAtShutDownStr, SwitchActiveLocoLightsOffAtShutDown);
     WriteIntegerTwice(OtherOptionsSectionStr, TheatreBoxHeightStr, TheatreBoxHeight);
     WriteIntegerTwice(OtherOptionsSectionStr, TheatreBoxWidthStr, TheatreBoxWidth);
+    WriteBoolTwice(OtherOptionsSectionStr, UseDisplayLineColoursWindowSettingsOnStartupStr, UseDisplayLineColoursWindowSettingsOnStartup);
     WriteIntegerTwice(OtherOptionsSectionStr, WaitBeforeRerouteInMinutesStr, WaitBeforeRerouteInMinutes);
     WriteBoolTwice(OtherOptionsSectionStr, WorkingTimetableModeStr, WorkingTimetableMode);
 
@@ -2538,6 +2547,8 @@ BEGIN
       Values[TheatreBoxHeightStr] := IntToStr(TheatreBoxHeight);
       Values[TheatreBoxWidthStr] := IntToStr(TheatreBoxWidth);
 
+      Values[UseDisplayLineColoursWindowSettingsOnStartupStr] := BoolToStr(UseDisplayLineColoursWindowSettingsOnStartup, True);
+
       Values[WaitBeforeRerouteInMinutesStr] := IntToStr(WaitBeforeRerouteInMinutes);
 
       Values[WorkingTimetableModeStr] := BoolToStr(WorkingTimetableMode, True);
@@ -2875,6 +2886,7 @@ BEGIN
       CheckBooleanValueListValue(KeyName, SwitchActiveLocoLightsOffAtShutDownStr, NewKeyValue, SwitchActiveLocoLightsOffAtShutDown);
       CheckIntegerValueListValue(KeyName, TheatreBoxHeightStr, NewKeyValue, TheatreBoxHeight);
       CheckIntegerValueListValue(KeyName, TheatreBoxWidthStr, NewKeyValue, TheatreBoxWidth);
+      CheckBooleanValueListValue(KeyName, UseDisplayLineColoursWindowSettingsOnStartupStr, NewKeyValue, UseDisplayLineColoursWindowSettingsOnStartup);
       CheckIntegerValueListValue(KeyName, WaitBeforeRerouteInMinutesStr, NewKeyValue, WaitBeforeRerouteInMinutes);
       CheckBooleanValueListValue(KeyName, WorkingTimetableModeStr, NewKeyValue, WorkingTimetableMode);
 
@@ -2907,7 +2919,7 @@ BEGIN
     END; {WITH}
   EXCEPT
     ON E : Exception DO
-      Log('EG FillOptionsValueList: ' + E.ClassName + ' error raised, with message: ' + E.Message);
+      Log('EG SaveOptionFromValueList: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { SaveOptionFromValueList }
 

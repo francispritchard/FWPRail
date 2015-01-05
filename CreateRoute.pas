@@ -13,12 +13,13 @@ INTERFACE
 USES InitVars, RailDraw, Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, Dialogs, Grids, StdCtrls, ComCtrls, ExtCtrls, DB, ADODB;
 
 TYPE
-  TDisplayColoursWindow = CLASS(TForm)
-    DisplayColoursWindowRichEdit: TRichEdit;
+  TDisplayLineColoursWindow = CLASS(TForm)
+    DisplayLineColoursWindowRichEdit: TRichEdit;
     RouteingExceptionDataADOConnection: TADOConnection;
     RouteingExceptionDataADOTable: TADOTable;
     RouteingExceptionDataSource: TDataSource;
-    PROCEDURE DisplayColoursWindowRichEditKeyDown(Sender: TObject; VAR Key: Word; Shift: TShiftState);
+    PROCEDURE DisplayLineColoursWindowRichEditKeyDown(Sender: TObject; VAR Key: Word; Shift: TShiftState);
+    procedure DisplayLineColoursWindowRichEditClick(Sender: TObject);
   PRIVATE
     { Private declarations }
   PUBLIC
@@ -26,7 +27,7 @@ TYPE
   END;
 
 VAR
-  DisplayColoursWindow : TDisplayColoursWindow;
+  DisplayLineColoursWindow : TDisplayLineColoursWindow;
 
 PROCEDURE CreateClearingSubRouteArray(Route, SubRoute : Integer);
 { Takes the subroute setting up array and converts it to clear the subroute }
@@ -73,7 +74,7 @@ PROCEDURE FindRouteFromLineAToLineB(LocoChipStr : String; Journey, S, StartLine,
 FUNCTION GetResettingTrackCircuit(LocoChipStr : String; S : Integer; SuppressMessage : Boolean) : Integer;
 { Extract the resetting track circuit (if any) from the Locking Array }
 
-PROCEDURE InitialiseDisplayColoursWindow;
+PROCEDURE InitialiseDisplayLineColoursWindow;
 { Initialises the window }
 
 PROCEDURE ReadInRouteingExceptionsFromDatabase;
@@ -118,7 +119,7 @@ BEGIN
 //  TRY
 //    Log('A INITIALISING ROUTEING EXCEPTIONS {BLANKLINEBEFORE}');
 //
-//    WITH DisplayColoursWindow DO BEGIN
+//    WITH DisplayLineColoursWindow DO BEGIN
 //      IF NOT FileExists(PathToRailDataFiles + RouteingExceptionDataFilename + '.' + RouteingExceptionDataFilenameSuffix) THEN BEGIN
 //        IF MessageDialogueWithDefault('Routeing Exceptions database file "'
 //                                      + PathToRailDataFiles + RouteingExceptionDataFilename + '.' + RouteingExceptionDataFilenameSuffix + '"'
@@ -3732,22 +3733,32 @@ BEGIN
   END; {TRY}
 END; { CreateRouteArraysForTrain }
 
-PROCEDURE InitialiseDisplayColoursWindow;
+PROCEDURE InitialiseDisplayLineColoursWindow;
 { Initialises the window }
 BEGIN
-  DisplayColoursWindow.Height := DisplayColoursWindowHeight;
-  DisplayColoursWindow.Width := DisplayColoursWindowWidth;
-  DisplayColoursWindow.Top := DisplayColoursWindowTop;
-  DisplayColoursWindow.Left := DisplayColoursWindowLeft;
-END; { InitialiseDisplayColoursWindow }
+  IF UseDisplayLineColoursWindowSettingsOnStartup THEN BEGIN
+    DisplayLineColoursWindow.Height := DisplayLineColoursWindowHeight;
+    DisplayLineColoursWindow.Width := DisplayLineColoursWindowWidth;
+    DisplayLineColoursWindow.Top := DisplayLineColoursWindowTop;
+    DisplayLineColoursWindow.Left := DisplayLineColoursWindowLeft;
+  END;
+END; { InitialiseDisplayLineColoursWindow }
 
-PROCEDURE TDisplayColoursWindow.DisplayColoursWindowRichEditKeyDown(Sender: TObject; VAR Key: Word; Shift: TShiftState);
+procedure TDisplayLineColoursWindow.DisplayLineColoursWindowRichEditClick(Sender: TObject);
+begin
+  IF BorderStyle = bsSingle THEN
+    BorderStyle := bsNone
+  ELSE
+    BorderStyle := bsSingle;
+end;
+
+PROCEDURE TDisplayLineColoursWindow.DisplayLineColoursWindowRichEditKeyDown(Sender: TObject; VAR Key: Word; Shift: TShiftState);
 BEGIN
   CASE Key OF
     vk_Escape, vk_Return:
-      DisplayColoursWindow.Hide;
+      DisplayLineColoursWindow.Hide;
   END; {CASE}
-END; { DisplayColoursWindowRichEditKeyDown }
+END; { DisplayLineColoursWindowRichEditKeyDown }
 
 INITIALIZATION
 

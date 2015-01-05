@@ -1,9 +1,11 @@
-object DisplayColoursWindow: TDisplayColoursWindow
+object DisplayLineColoursWindow: TDisplayLineColoursWindow
   Left = 0
   Top = 0
-  Caption = 'DisplayColoursWindow'
-  ClientHeight = 539
-  ClientWidth = 600
+  AutoSize = True
+  BorderStyle = bsNone
+  Caption = 'DisplayLineColoursWindow'
+  ClientHeight = 178
+  ClientWidth = 156
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -14,11 +16,11 @@ object DisplayColoursWindow: TDisplayColoursWindow
   OldCreateOrder = False
   PixelsPerInch = 96
   TextHeight = 13
-  object DisplayColoursWindowRichEdit: TRichEdit
+  object DisplayLineColoursWindowRichEdit: TRichEdit
     Left = 0
     Top = 0
-    Width = 600
-    Height = 539
+    Width = 156
+    Height = 178
     Align = alClient
     Color = clBlack
     Font.Charset = ANSI_CHARSET
@@ -29,11 +31,13 @@ object DisplayColoursWindow: TDisplayColoursWindow
     ParentFont = False
     ReadOnly = True
     TabOrder = 0
-    OnKeyDown = DisplayColoursWindowRichEditKeyDown
+    OnClick = DisplayLineColoursWindowRichEditClick
+    OnKeyDown = DisplayLineColoursWindowRichEditKeyDown
+    ExplicitWidth = 219
   end
   object RouteingExceptionDataSource: TDataSource
-    Left = 308
-    Top = 40
+    Left = 92
+    Top = 64
   end
   object RouteingExceptionDataADOConnection: TADOConnection
     ConnectionString = 
@@ -44,14 +48,14 @@ object DisplayColoursWindow: TDisplayColoursWindow
     LoginPrompt = False
     Mode = cmShareDenyNone
     Provider = 'Microsoft.Jet.OLEDB.4.0'
-    Left = 356
-    Top = 36
+    Left = 84
+    Top = 12
   end
   object RouteingExceptionDataADOTable: TADOTable
     Connection = RouteingExceptionDataADOConnection
     CursorType = ctStatic
     TableName = 'RouteingExceptionDataTable'
-    Left = 404
-    Top = 40
+    Left = 84
+    Top = 120
   end
 end
