@@ -801,7 +801,7 @@ BEGIN
           { Time out stuff }
           IF (ExpectedReply <> NoReplyExpected) AND (ExpectedReply <> TrackPowerOffReply) THEN BEGIN
             TickCount := (GetTickCount - StartTimer);
-            IF TickCount > 1000 THEN BEGIN
+            IF TickCount > 5000 THEN BEGIN
               TimedOut := True;
               RetryFlag := True;
 
