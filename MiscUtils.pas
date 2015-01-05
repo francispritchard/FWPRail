@@ -1087,6 +1087,15 @@ VAR
   VAR
     LogStrWithoutRichEditCommands : String;
 
+    PROCEDURE AddToGeneralLog(RichEditLogStr : String);
+    { Either write to the log immediately or temporarily stores the text }
+    BEGIN
+      IF StoreRichEditLoggingText THEN
+        AppendToStringArray(StoredRichEditLoggingTextArray, RichEditLogStr)
+      ELSE
+        AddRichLine(LoggingWindow.LoggingWindowRichEdit, RichEditLogStr);
+    END; { AddToGeneralLog }
+
     PROCEDURE RemoveRichEditInstructionsFromLogStr(VAR TempLogStr : String);
     { Removes any instructions in angle brackets from the log string }
     VAR
@@ -1165,10 +1174,7 @@ VAR
         'A', 'a', '$':
           { general happenings of relevance to all logs - includes '$' for quick debugging as it is easy to find in the logs }
           BEGIN
-            IF StoreRichEditLoggingText THEN
-              AppendToStringArray(StoredRichEditLoggingTextArray, LogStrWithRichEditCommands)
-            ELSE
-              AddRichLine(LoggingWindow.LoggingWindowRichEdit, LogStrWithRichEditCommands);
+            AddToGeneralLog(LogStrWithRichEditCommands);
 
             WriteLn(LargeLogFile, LogStrWithoutRichEditCommands);
             IF MultipleLogFilesRequired THEN BEGIN
@@ -1179,81 +1185,68 @@ VAR
               WriteLn(WorkingTimetableLogFile, LogStrWithoutRichEditCommands);
             END;
           END;
+
         'P', 'p', 'B', 'b', 'S', 's', 'T', 't':
           BEGIN
-            IF StoreRichEditLoggingText THEN
-              AppendToStringArray(StoredRichEditLoggingTextArray, LogStrWithRichEditCommands)
-            ELSE
-              AddRichLine(LoggingWindow.LoggingWindowRichEdit, LogStrWithRichEditCommands);
-            WriteLn(LargeLogFile, LogStrWithoutRichEditCommands);
+            AddToGeneralLog(LogStrWithRichEditCommands);
 
+            WriteLn(LargeLogFile, LogStrWithoutRichEditCommands);
             IF MultipleLogFilesRequired THEN
               WriteLn(SignalPointAndTCLogFile, LogStrWithoutRichEditCommands);
           END;
+
         'D', 'd':
           BEGIN
-            IF StoreRichEditLoggingText THEN
-              AppendToStringArray(StoredRichEditLoggingTextArray, LogStrWithRichEditCommands)
-            ELSE
-              AddRichLine(LoggingWindow.LoggingWindowRichEdit, LogStrWithRichEditCommands);
-            WriteLn(LargeLogFile, LogStrWithoutRichEditCommands);
+            AddToGeneralLog(LogStrWithRichEditCommands);
 
+            WriteLn(LargeLogFile, LogStrWithoutRichEditCommands);
             IF MultipleLogFilesRequired THEN
               WriteLn(DiagramsLogFile, LogStrWithoutRichEditCommands);
           END;
+
         'W', 'w':
           BEGIN
-            IF StoreRichEditLoggingText THEN
-              AppendToStringArray(StoredRichEditLoggingTextArray, LogStrWithRichEditCommands)
-            ELSE
-              AddRichLine(LoggingWindow.LoggingWindowRichEdit, LogStrWithRichEditCommands);
+            AddToGeneralLog(LogStrWithRichEditCommands);
 
             WriteLn(LargeLogFile, LogStrWithoutRichEditCommands);
             WriteLn(TestLogFile, LogStrWithoutRichEditCommands);
             IF MultipleLogFilesRequired THEN
               WriteLn(WorkingTimetableLogFile, LogStrWithoutRichEditCommands);
           END;
+
         'L', 'l':
           BEGIN
-            IF StoreRichEditLoggingText THEN
-              AppendToStringArray(StoredRichEditLoggingTextArray, LogStrWithRichEditCommands)
-            ELSE
-              AddRichLine(LoggingWindow.LoggingWindowRichEdit, LogStrWithRichEditCommands);
+            AddToGeneralLog(LogStrWithRichEditCommands);
 
             WriteLn(LargeLogFile, LogStrWithoutRichEditCommands);
             IF MultipleLogFilesRequired THEN
               WriteLn(LocoLogFile, LogStrWithoutRichEditCommands);
           END;
+
         'R', 'r':
           BEGIN
-            IF StoreRichEditLoggingText THEN
-              AppendToStringArray(StoredRichEditLoggingTextArray, LogStrWithRichEditCommands)
-            ELSE
-              AddRichLine(LoggingWindow.LoggingWindowRichEdit, LogStrWithRichEditCommands);
+            AddToGeneralLog(LogStrWithRichEditCommands);
 
             WriteLn(LargeLogFile, LogStrWithoutRichEditCommands);
             IF MultipleLogFilesRequired THEN
               WriteLn(RouteLogFile, LogStrWithoutRichEditCommands);
           END;
+
         '*':
           BEGIN
-            IF StoreRichEditLoggingText THEN
-              AppendToStringArray(StoredRichEditLoggingTextArray, LogStrWithRichEditCommands)
-            ELSE
-              AddRichLine(LoggingWindow.LoggingWindowRichEdit, LogStrWithRichEditCommands);
+            AddToGeneralLog(LogStrWithRichEditCommands);
 
             WriteLn(LargeLogFile, LogStrWithoutRichEditCommands);
             WriteLn(TestLogFile, LogStrWithoutRichEditCommands);
           END;
         '+':
+
           { Only write to the test log file }
           WriteLn(TestLogFile, LogStrWithoutRichEditCommands);
+
         'E', 'e', 'X', 'x': { unusual happenings of relevance to all the log files }
           BEGIN
-            IF StoreRichEditLoggingText THEN
-              AppendToStringArray(StoredRichEditLoggingTextArray, LogStrWithRichEditCommands)
-            ELSE
-              AddRichLine(LoggingWindow.LoggingWindowRichEdit, LogStrWithRichEditCommands);
+            AddToGeneralLog(LogStrWithRichEditCommands);
 
             WriteLn(LargeLogFile, LogStrWithoutRichEditCommands);
             IF MultipleLogFilesRequired THEN BEGIN
