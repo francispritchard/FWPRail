@@ -91,7 +91,8 @@ IMPLEMENTATION
 {$R *.dfm}
 
 USES GetTime, Raildraw, MiscUtils, Locks, LocationData, Feedback, Options, System.StrUtils, Lenz, System.DateUtils, TestUnit, Movement, FWPShowMessageUnit, CreateRoute,
-     Diagrams, Route, Replay, Startup, Cuneo, LocoUtils, StationMonitors, ProgressBar, LocoDialogue, Help, WorkingTimetable, Edit, RDCUnit, Input, Train, SyncObjs;
+     Diagrams, Route, Replay, Startup, Cuneo, LocoUtils, StationMonitors, ProgressBar, LocoDialogue, Help, WorkingTimetable, Edit, RDCUnit, Input, Train, SyncObjs,
+     Logging;
 
 CONST
   ConnectedViaUSBStr = 'via USB';
@@ -248,6 +249,7 @@ BEGIN
     InitialiseWorkingTimetableUnit;
     InitialiseEditUnit;
     InitialiseDisplayLineColoursWindow;
+    InitialiseLoggingWindow;
     InitialiseLenzUnit;
     IF InRDCMode THEN
       StartRailDriver;

@@ -12,7 +12,6 @@ object LoggingWindow: TLoggingWindow
   Font.Style = []
   OldCreateOrder = False
   OnClose = LoggingWindowClose
-  OnShow = LoggingWindowShow
   PixelsPerInch = 96
   TextHeight = 13
   object LoggingWindowRichEdit: TRichEdit

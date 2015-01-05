@@ -1564,10 +1564,6 @@ BEGIN
     LoggingWindowTop := FWPReadInteger(WindowsSectionStr, LoggingWindowTopStr, DefaultLoggingWindowTop);
     LoggingWindowLeft := FWPReadInteger(WindowsSectionStr, LoggingWindowLeftStr, DefaultLoggingWindowLeft);
     LoggingWindowWidth := FWPReadInteger(WindowsSectionStr, LoggingWindowWidthStr, DefaultLoggingWindowWidth);
-if LoggingWindowWidth <> 1489 then
-  asm
-    int 3
-  end; {asm}
     LoggingWindowHeight := FWPReadInteger(WindowsSectionStr, LoggingWindowHeightStr, DefaultLoggingWindowHeight);
 
     MovementWindowTop := FWPReadInteger(WindowsSectionStr, MovementWindowTopStr, DefaultMovementWindowTop);

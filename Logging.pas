@@ -24,12 +24,14 @@ TYPE
     PROCEDURE LoggingWindowRichEditMouseDown(Sender : TObject; Button : TMouseButton; Shift : TShiftState; MouseX, MouseY : Integer);
     PROCEDURE LoggingWindowRichEditMouseEnter(Sender: TObject);
     PROCEDURE LoggingWindowRichEditMouseLeave(Sender: TObject);
-    PROCEDURE LoggingWindowShow(Sender: TObject);
   PRIVATE
     { Private declarations }
   PUBLIC
     { Public declarations }
   END;
+
+PROCEDURE InitialiseLoggingWindow;
+{ Such routines as this allow us to initialises the units in the order we wish }
 
 VAR
   LoggingWindow: TLoggingWindow;
@@ -41,23 +43,6 @@ IMPLEMENTATION
 {$R *.dfm}
 
 USES MiscUtils, System.Types, Raildraw, RichEdit, ClipBrd;
-
-PROCEDURE TLoggingWindow.LoggingWindowShow(Sender : TObject);
-BEGIN
-  LoggingWindow.Height := LoggingWindowHeight;
-  LoggingWindow.Width := LoggingWindowWidth;
-if LoggingWindowWidth <> 1489 then
-  asm
-    int 3;
-  end; {asm}
-
-  LoggingWindow.Top := LoggingWindowTop;
-  LoggingWindow.Left := LoggingWindowLeft;
-
-  LoggingWindowRichEdit.Font.Name := LoggingWindowFontName;
-  LoggingWindowRichEdit.Font.Size := LoggingWindowFontSize;
-  LoggingWindowRichEdit.Font.Style := [];
-END; { LoggingWindowShow }
 
 PROCEDURE TLoggingWindow.LoggingWindowPopupChangeFontSizeClick(Sender : TObject);
 BEGIN
@@ -194,5 +179,18 @@ BEGIN
   { Now add any stored rich-edit data to the logging window }
   AddStoredRichEditLoggingTextToLoggingWindow;
 END; { LoggingWindowRichEditMouseLeave }
+
+PROCEDURE InitialiseLoggingWindow;
+{ Such routines as this allow us to initialises the units in the order we wish }
+BEGIN
+  LoggingWindow.Height := LoggingWindowHeight;
+  LoggingWindow.Width := LoggingWindowWidth;
+  LoggingWindow.Top := LoggingWindowTop;
+  LoggingWindow.Left := LoggingWindowLeft;
+
+  LoggingWindow.LoggingWindowRichEdit.Font.Name := LoggingWindowFontName;
+  LoggingWindow.LoggingWindowRichEdit.Font.Size := LoggingWindowFontSize;
+  LoggingWindow.LoggingWindowRichEdit.Font.Style := [];
+END; { InitialiseLoggingWindow }
 
 END { Logging }.
