@@ -135,7 +135,7 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES RailDraw, Feedback, GetTime, Startup, MiscUtils, Diagrams, LocoUtils, IDGlobal, Movement, MMSystem, DateUtils, StrUtils, Input, Main, Locks, LocationData;
+USES RailDraw, Feedback, GetTime, Startup, MiscUtils, Diagrams, LocoUtils, IDGlobal, Movement, MMSystem, DateUtils, StrUtils, Input, Main, Locks, LocationData, Options;
 
 CONST
   UnitRef = 'Lenz';
@@ -2421,7 +2421,7 @@ BEGIN
 
   DebugStr := 'S=' + IntToStr(SignalNum) + ' (' + DecoderNumString + '): ' + AspectString;
   IF OK THEN BEGIN
-    FunctionDecoderBytes[DecoderNum] := DataByte;
+    FunctionDecoderBytes[DecoderNum - FunctionDecoderArrayOffset] := DataByte;
     DebugStr := DebugStr + ' ok';
   END ELSE
     DebugStr := DebugStr + ' failed in change';
@@ -2595,58 +2595,63 @@ VAR
   OK : Boolean;
 
 BEGIN
-  WITH Signals[S] DO BEGIN
-    IF Signal_AccessoryAddress <> 0 THEN BEGIN
+  TRY
+    WITH Signals[S] DO BEGIN
+      IF Signal_AccessoryAddress <> 0 THEN BEGIN
 
-    END ELSE
-      IF Signal_DecoderNum <> 0 THEN BEGIN
-        { initialise AspectByte }
-        AspectByte := 0;
-        DecodernumString := LocoChipToStr(Signal_DecoderNum);
+      END ELSE
+        IF Signal_DecoderNum <> 0 THEN BEGIN
+          { initialise AspectByte }
+          AspectByte := 0;
+          DecodernumString := LocoChipToStr(Signal_DecoderNum);
 
-        CASE Signal_Aspect OF
-          RedAspect:
-            AspectByte := 2; { function 6 - 0000 0010 }
-          GreenAspect:
-            AspectByte := 1; { function 5 - 0000 0001 }
-          SingleYellowAspect:
-            AspectByte := 4; { function 7 - 0000 0100 }
-          DoubleYellowAspect:
-            AspectByte := 12; { function 8 - 0000 1100 }
+          CASE Signal_Aspect OF
+            RedAspect:
+              AspectByte := 2; { function 6 - 0000 0010 }
+            GreenAspect:
+              AspectByte := 1; { function 5 - 0000 0001 }
+            SingleYellowAspect:
+              AspectByte := 4; { function 7 - 0000 0100 }
+            DoubleYellowAspect:
+              AspectByte := 12; { function 8 - 0000 1100 }
 
-          FlashingSingleYellowAspect:
-            IF Signal_LampIsOn THEN
-              AspectByte := 4 { 0000 0100 }
-            ELSE
+            FlashingSingleYellowAspect:
+              IF Signal_LampIsOn THEN
+                AspectByte := 4 { 0000 0100 }
+              ELSE
+                AspectByte := 0; { 0000 0000 }
+            FlashingDoubleYellowAspect:
+              IF Signal_LampIsOn THEN
+                AspectByte := 12 { 0000 1100 }
+              ELSE
+                AspectByte := 0; { 0000 0000 }
+
+            NoAspect:
               AspectByte := 0; { 0000 0000 }
-          FlashingDoubleYellowAspect:
-            IF Signal_LampIsOn THEN
-              AspectByte := 12 { 0000 1100 }
-            ELSE
-              AspectByte := 0; { 0000 0000 }
+          END; {CASE}
+          AspectString := AspectToStr(Signals[S].Signal_Aspect);
 
-          NoAspect:
-            AspectByte := 0; { 0000 0000 }
-        END; {CASE}
-        AspectString := AspectToStr(Signals[S].Signal_Aspect);
-
-        IF Signal_Type = ThreeAspect THEN BEGIN
-          { reset lowest three bits first - don't change fourth, as may be a route indicator }
-          DataByte := FunctionDecoderBytes[Signal_DecoderNum] AND NOT 7;
-          DataByte := DataByte OR AspectByte;
-          WriteSignalData(LocoChipStr, S, Signal_DecoderNum, DataByte, DecoderNumString, AspectString, OK)
-        END ELSE
-          IF Signal_Type = FourAspect THEN BEGIN
-            { reset lowest four bits }
-            IF (Signal_DecoderNum >= FirstFunctionDecoder) AND (Signal_DecoderNum <= LastFunctionDecoder) THEN BEGIN
-              DataByte := FunctionDecoderBytes[Signal_DecoderNum] AND NOT 15;
-              DataByte := DataByte OR AspectByte;
-              WriteSignalData(LocoChipStr, S, Signal_DecoderNum, DataByte, DecoderNumString, AspectString, OK);
-            END ELSE
-              Log(LocoChipStr + ' S Function decoder ' + IntToStr(Signal_DecoderNum) + ' specified is outside allowed range');
-          END;
-      END;
-  END; {WITH}
+          IF Signal_Type = ThreeAspect THEN BEGIN
+            { reset lowest three bits first - don't change fourth, as may be a route indicator }
+            DataByte := FunctionDecoderBytes[Signal_DecoderNum - FunctionDecoderArrayOffset] AND NOT 7;
+            DataByte := DataByte OR AspectByte;
+            WriteSignalData(LocoChipStr, S, Signal_DecoderNum, DataByte, DecoderNumString, AspectString, OK)
+          END ELSE
+            IF Signal_Type = FourAspect THEN BEGIN
+              { reset lowest four bits }
+              IF (Signal_DecoderNum >= FirstFunctionDecoder) AND (Signal_DecoderNum <= LastFunctionDecoder) THEN BEGIN
+                DataByte := FunctionDecoderBytes[Signal_DecoderNum - FunctionDecoderArrayOffset] AND NOT 15;
+                DataByte := DataByte OR AspectByte;
+                WriteSignalData(LocoChipStr, S, Signal_DecoderNum, DataByte, DecoderNumString, AspectString, OK);
+              END ELSE
+                Log(LocoChipStr + ' S Function decoder ' + IntToStr(Signal_DecoderNum) + ' specified is outside allowed range');
+            END;
+        END;
+    END; {WITH}
+  EXCEPT
+    ON E : Exception DO
+      Log('EG SetSignalFunction: ' + E.ClassName + ' error raised, with message: ' + E.Message);
+  END; {TRY}
 END; { SetSignalFunction }
 
 PROCEDURE SetSignalRouteFunction(LocoChipStr : String; S: Integer);
@@ -2677,11 +2682,11 @@ BEGIN
       IF Signal_IndicatorState <> NoIndicatorLit THEN BEGIN
         AspectString := 'Indicator on';
         { now set our bit, but preserve other bits, as this decoder may be being used for more than one signal }
-        DataByte := FunctionDecoderBytes[Signal_IndicatorDecoderNum] OR IndicatorByte;
+        DataByte := FunctionDecoderBytes[Signal_IndicatorDecoderNum - FunctionDecoderArrayOffset] OR IndicatorByte;
       END ELSE BEGIN
         AspectString := 'Indicator off';
         { now reset our bit, but preserve other bits, as this decoder may be being used for more than one signal }
-        DataByte := FunctionDecoderBytes[Signal_IndicatorDecoderNum] AND NOT IndicatorByte;
+        DataByte := FunctionDecoderBytes[Signal_IndicatorDecoderNum - FunctionDecoderArrayOffset] AND NOT IndicatorByte;
       END;
       WriteSignalData(LocoChipStr, S, Signal_IndicatorDecoderNum, DataByte, IndicatorDecoderNumString, AspectString, OK);
     END;

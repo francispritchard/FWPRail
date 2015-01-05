@@ -801,6 +801,9 @@ VAR
   DefaultWorkingTimetableWindowGridBackgroundColour : TColor = clMenu;
   WorkingTimetableWindowGridBackgroundColour : TColour = clMenu;
 
+  FirstFunctionDecoder : Integer = -1;
+  LastFunctionDecoder : Integer = -1;
+
   RDCBailOffMin : Integer = 0;
   RDCBailOffMax : Integer = 0;
   RDCEmergencyBrakeMin : Integer = 0;
@@ -1053,6 +1056,10 @@ CONST
     WaitBeforeRerouteInMinutesStr = 'Wait Before Reroute In Minutes';
     WorkingTimetableModeStr = 'WorkingTimetable Mode';
 
+  LenzSectionStr = 'Lenz Options';
+    FirstFunctionDecoderStr = 'First Function Decoder';
+    LastFunctionDecoderStr = 'Last Function Decoder';
+
   RDCSectionStr = 'RDC';
     RDCBailOffMinStr = 'RDC BailOff Min';
     RDCBailOffMaxStr = 'RDC BailOff Max';
@@ -1298,6 +1305,7 @@ END; { RestoreScreenDefaults }
 PROCEDURE ReadIniFile;
 { Read in data from the .ini file or from the Registry, except for the track-circuit data }
 VAR
+  I : Integer;
   IniFile : TIniFile;
   RegistryIniFile : TRegistryIniFile;
   TempStr : String;
@@ -1683,6 +1691,17 @@ BEGIN
     CurrentRailwayDayOfTheWeek := StrToDayOfTheWeek(TempStr);
     SetCurrentRailwayTimeAndDayOfTheWeek(ProgramStartTime);
 
+    { Lenz Options }
+    FirstFunctionDecoder := FWPReadInteger(LenzSectionStr, FirstFunctionDecoderStr, 0);
+    LastFunctionDecoder := FWPReadInteger(LenzSectionStr, LastFunctionDecoderStr, 0);
+
+    IF (FirstFunctionDecoder <> 0) AND (LastFunctionDecoder <> 0) THEN BEGIN
+      SetLength(FunctionDecoderBytes, LastFunctionDecoder - FirstFunctionDecoder + 1);
+      FunctionDecoderArrayOffset := FirstFunctionDecoder;
+      FOR I := FirstFunctionDecoder TO LastFunctionDecoder DO
+        FunctionDecoderBytes[I - FunctionDecoderArrayOffset] := 0;
+    END;
+
     { RailDriver Data }
     RDCBailOffMin := FWPReadInteger(RDCSectionStr, RDCBailOffMinStr, 0);
     RDCBailOffMax := FWPReadInteger(RDCSectionStr, RDCBailOffMaxStr, 0);
@@ -2023,7 +2042,11 @@ BEGIN
     WriteIntegerTwice(DialogueBoxSectionStr, TrackCircuitDialogueBoxLeftStr, TrackCircuitDialogueBoxLeft);
     WriteIntegerTwice(DialogueBoxSectionStr, TrackCircuitDialogueBoxTopStr, TrackCircuitDialogueBoxTop);
 
-    { Process RailDriver data }
+    { Lenz Data }
+    WriteIntegerTwice(LenzSectionStr, FirstFunctionDecoderStr, FirstFunctionDecoder);
+    WriteIntegerTwice(LenzSectionStr, LastFunctionDecoderStr, LastFunctionDecoder);
+
+    { RailDriver data }
     WriteIntegerTwice(RDCSectionStr, RDCBailOffMinStr, RDCBailOffMin);
     WriteIntegerTwice(RDCSectionStr, RDCBailOffMaxStr, RDCBailOffMax);
     WriteIntegerTwice(RDCSectionStr, RDCEmergencyBrakeMinStr, RDCEmergencyBrakeMin);
@@ -2240,6 +2263,7 @@ CONST
   ScreenSpacingValuesStr = '<B>Screen Spacing Values<\B>';
   FontsStr = '<B>Fonts<\B>';
   TimeOfDayValuesStr ='<B>Time of Day Values<\B>';
+  LenzStr = '<B>Lenz Options<\B>';
   RDCStr = '<B>Rail Driver Values<\B>';
 
 BEGIN
@@ -2555,6 +2579,11 @@ BEGIN
       ItemProps[WorkingTimetableModeStr].PickList.Add('True');
       ItemProps[WorkingTimetableModeStr].PickList.Add('False');
       ItemProps[WorkingTimetableModeStr].EditStyle := esPickList;
+
+      Values[LenzStr] := '';
+      ItemProps[LenzStr].ReadOnly := True;
+      Values[FirstFunctionDecoderStr] := IntToStr(FirstFunctionDecoder);
+      Values[LastFunctionDecoderStr] := IntToStr(LastFunctionDecoder);
 
       { Add the RailDriver data - one wouldn't expect it to be changed this way, but it's a way of zeroing it if the wrong data has been accidentally acquired }
       Values[RDCStr] := '';
@@ -2889,6 +2918,10 @@ BEGIN
       CheckBooleanValueListValue(KeyName, UseDisplayLineColoursWindowSettingsOnStartupStr, NewKeyValue, UseDisplayLineColoursWindowSettingsOnStartup);
       CheckIntegerValueListValue(KeyName, WaitBeforeRerouteInMinutesStr, NewKeyValue, WaitBeforeRerouteInMinutes);
       CheckBooleanValueListValue(KeyName, WorkingTimetableModeStr, NewKeyValue, WorkingTimetableMode);
+
+      { Lenz Options }
+      CheckIntegerValueListValue(KeyName, FirstFunctionDecoderStr, NewKeyValue, FirstFunctionDecoder);
+      CheckIntegerValueListValue(KeyName, LastFunctionDecoderStr, NewKeyValue, LastFunctionDecoder);
 
       { RDC }
       Values[RDCSectionStr] := '';

@@ -111,9 +111,6 @@ CONST
   clFWPDkGreyStr = 'clFWPDkGrey';
   clFWPVeryDkGreyStr = 'clFWPVeryDkGrey';
 
-  FirstFunctionDecoder = 9001;
-  LastFunctionDecoder = 9916;
-
   FirstRouteCreationHeldMsgNumber = 1;
   LastRouteCreationHeldMsgNumber = 12;
 
@@ -1601,8 +1598,9 @@ CONST
 
 VAR
   { Effectively these are constants, set up by initialisation }
-  FunctionDecoderBytes : ARRAY [FirstFunctionDecoder..LastFunctionDecoder] OF Byte;
-
+//  FunctionDecoderBytes : ARRAY [FirstFunctionDecoder..LastFunctionDecoder] OF Byte;
+  FunctionDecoderBytes : ARRAY OF Byte;
+  FunctionDecoderArrayOffset : Integer;
 
   HoursUpX, HoursStartY, HoursDownX, HoursEndY : Word;
   MinutesUpX, MinutesStartY, MinutesDownX, MinutesEndY : Word;
@@ -7080,8 +7078,8 @@ VAR
   I : Integer;
 
 BEGIN
-  FOR I := FirstFunctionDecoder TO LastFunctionDecoder DO
-    FunctionDecoderBytes[I] := 0;
+//    FOR I := FirstFunctionDecoder TO LastFunctionDecoder DO
+//      FunctionDecoderBytes[I] := 0;
 //  FOR I := FirstFeedbackUnit TO LastFeedbackUnit DO
 //    FeedbackUnitInUseArray[I] := False;
 
