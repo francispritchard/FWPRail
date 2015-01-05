@@ -3239,7 +3239,7 @@ END; { SetSystemOffline }
 FUNCTION SetSystemOnline : Boolean;
 { Change the caption and the icons to show we're online - needs a test to see if we are, actually, online *************** 6/2/14 }
 VAR
-  LockingMsg : String;
+//  LockingMsg : String;
   OK : Boolean;
   P : Integer;
   S : Integer;

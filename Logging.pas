@@ -46,6 +46,11 @@ PROCEDURE TLoggingWindow.LoggingWindowShow(Sender : TObject);
 BEGIN
   LoggingWindow.Height := LoggingWindowHeight;
   LoggingWindow.Width := LoggingWindowWidth;
+if LoggingWindowWidth <> 1489 then
+  asm
+    int 3;
+  end; {asm}
+
   LoggingWindow.Top := LoggingWindowTop;
   LoggingWindow.Left := LoggingWindowLeft;
 

@@ -7074,15 +7074,7 @@ END; { InitialiseScreenDrawingVariables }
 
 PROCEDURE InitialiseInitVarsUnit;
 { Such routines as this allow us to initialises the units in the order we wish }
-VAR
-  I : Integer;
-
 BEGIN
-//    FOR I := FirstFunctionDecoder TO LastFunctionDecoder DO
-//      FunctionDecoderBytes[I] := 0;
-//  FOR I := FirstFeedbackUnit TO LastFeedbackUnit DO
-//    FeedbackUnitInUseArray[I] := False;
-
   DefaultFWPRailWindowTop := 0;
   DefaultFWPRailWindowLeft := 0;
   DefaultFWPRailWindowHeight := MulDiv(Screen.WorkAreaHeight, DefaultFWPRailWindowHeight, 100);

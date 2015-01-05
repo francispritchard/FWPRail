@@ -54,7 +54,6 @@ USES
 
 VAR
   I : Integer;
-  KeyState : TKeyBoardState;
   WantSplash : Boolean;
 
 {$R RailResource.res}
