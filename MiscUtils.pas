@@ -2747,10 +2747,15 @@ PROCEDURE Debug{2}(Str : String); Overload;
 { Write out debug text to the Debug Window }
 VAR
   AlwaysMakeSound : Boolean;
+  FWPRailWindowWasFocused : Boolean;
+  LoggingWindowWasFocused : Boolean;
   SaveStyle : TFontStyles;
 
 BEGIN
   AlwaysMakeSound := False;
+  FWPRailWindowWasFocused := False;
+  LoggingWindowWasFocused := False;
+
   IF Pos('!*', Str) > 0 THEN BEGIN
     AlwaysMakeSound := True;
     Str := StringReplace(Str, '*', '', []);
@@ -2769,8 +2774,15 @@ BEGIN
       DebugWindowLines[High(DebugWindowLines)] := Str;
     END ELSE BEGIN
       { Note: without the following two statements, the RichEdit window doesn't initially scroll }
-      IF DebugWindow.Visible AND NOT StationMonitorsWindow.Visible THEN
+      IF DebugWindow.Visible AND NOT StationMonitorsWindow.Visible THEN BEGIN
+        IF FWPRailWindow.Focused THEN
+          FWPRailWindowWasFocused := True
+        ELSE
+          IF LoggingWindow.Visible THEN
+            LoggingWindowWasFocused := True;
+
         DebugWindow.SetFocus;
+      END;
       DebugWindow.DebugRichEdit.Perform(EM_SCROLLCARET, 0, 0);
 
       SaveStyle := DebugWindow.DebugRichEdit.SelAttributes.Style;
