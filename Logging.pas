@@ -44,6 +44,33 @@ IMPLEMENTATION
 
 USES MiscUtils, System.Types, Raildraw, RichEdit, ClipBrd;
 
+VAR
+  LoggingPausedByFindDialogue : Boolean;
+  LoggingPausedByUserEnteringLoggingWindow : Boolean;
+
+PROCEDURE PauseLogging;
+{ Pause the logging to screenm and inform the user }
+BEGIN
+  StoreRichEditLoggingText := True;
+
+  { And let the user know what is happening }
+  AddRichLine(LoggingWindow.LoggingWindowRichEdit, '<B>Pausing writing the log to the logging window screen until the cursor is removed from the logging window</B>');
+END; { PauseLogging }
+
+PROCEDURE ResumeLogging;
+{ Resume the logging to screen and inform the user }
+BEGIN
+  StoreRichEditLoggingText := False;
+
+  { Remove the "paused" message }
+  WITH LoggingWindow.LoggingWindowRichEdit DO
+    IF Lines[Lines.Count - 1] = 'Pausing writing the log to the logging window screen until the cursor is removed from the logging window' THEN
+      Lines.Delete(LoggingWindow.LoggingWindowRichEdit.Lines.Count - 1);
+
+  { Now add any stored rich-edit data to the logging window }
+  AddStoredRichEditLoggingTextToLoggingWindow;
+END; { ResumeLogging }
+
 PROCEDURE TLoggingWindow.LoggingWindowPopupChangeFontSizeClick(Sender : TObject);
 BEGIN
   { Show the default }
@@ -81,6 +108,10 @@ END; { LoggingWindowClose }
 PROCEDURE TLoggingWindow.LoggingWindowFindDialogueClose(Sender: TObject);
 BEGIN
   LoggingWindowFindDialogueActive := False;
+  IF NOT LoggingPausedByUserEnteringLoggingWindow THEN
+    ResumeLogging;
+
+  LoggingPausedByFindDialogue := False;
 END; { LoggingWindowFindDialogClose }
 
 PROCEDURE TLoggingWindow.LoggingWindowFindDialogueShow(Sender: TObject);
@@ -90,6 +121,10 @@ BEGIN
 
   LoggingWindowFindDialogue.Top := LoggingWindow.Top;
   LoggingWindowFindDialogueActive := True;
+
+  LoggingPausedByFindDialogue := True;
+  IF NOT LoggingPausedByUserEnteringLoggingWindow THEN
+    PauseLogging;
 END; { LoggingWindowFindDialogShow }
 
 PROCEDURE TLoggingWindow.LoggingWindowFindDialogueFind(Sender: TObject);
@@ -154,30 +189,26 @@ END; { LoggingWindowRichEditMouseDown }
 
 PROCEDURE TLoggingWindow.LoggingWindowRichEditMouseEnter(Sender: TObject);
 BEGIN
-  { Reset the cursor in case we enter the logging window with a non-default mouse cursor, e.g. having immediately previously hovered over a point }
-  ChangeCursor(crDefault);
+  IF NOT LoggingPausedByFindDialogue THEN BEGIN
+    { Reset the cursor in case we enter the logging window with a non-default mouse cursor, e.g. having immediately previously hovered over a point }
+    ChangeCursor(crDefault);
 
-  { Prevent new additions to the log automatically scrolling the logging window if the mouse cursor is within it - otherwise the window automatically scrolls to the bottom
-    of the text even if we're examing text further up.
-  }
-  StoreRichEditLoggingText := True;
+    { Prevent new additions to the log automatically scrolling the logging window if the mouse cursor is within it - otherwise the window automatically scrolls to the bottom
+      of the text even if we're examining text further up.
+    }
+    PauseLogging;
+  END;
 
-  { And let the user know what is happening }
-  AddRichLine(LoggingWindow.LoggingWindowRichEdit, '<B>Pausing writing the log to the logging window screen until the cursor is removed from the logging window</B>');
+  LoggingPausedByUserEnteringLoggingWindow := True;
 END; { LoggingWindowRichEditMouseEnter }
 
 PROCEDURE TLoggingWindow.LoggingWindowRichEditMouseLeave(Sender: TObject);
 BEGIN
-  StoreRichEditLoggingText := False;
+  { now we can continue writing to the log window }
+  IF NOT LoggingPausedByFindDialogue THEN
+    ResumeLogging;
 
-  { Remove the "paused" message }
-  IF LoggingWindow.LoggingWindowRichEdit.Lines[LoggingWindowRichEdit.Lines.Count - 1] =
-                                                                  'Pausing writing the log to the logging window screen until the cursor is removed from the logging window'
-  THEN
-    LoggingWindow.LoggingWindowRichEdit.Lines.Delete(LoggingWindow.LoggingWindowRichEdit.Lines.Count - 1);
-
-  { Now add any stored rich-edit data to the logging window }
-  AddStoredRichEditLoggingTextToLoggingWindow;
+  LoggingPausedByUserEnteringLoggingWindow := False;
 END; { LoggingWindowRichEditMouseLeave }
 
 PROCEDURE InitialiseLoggingWindow;
@@ -191,6 +222,9 @@ BEGIN
   LoggingWindow.LoggingWindowRichEdit.Font.Name := LoggingWindowFontName;
   LoggingWindow.LoggingWindowRichEdit.Font.Size := LoggingWindowFontSize;
   LoggingWindow.LoggingWindowRichEdit.Font.Style := [];
+
+  LoggingPausedByFindDialogue := False;
+  LoggingPausedByUserEnteringLoggingWindow := False;
 END; { InitialiseLoggingWindow }
 
 END { Logging }.
