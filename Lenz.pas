@@ -3202,14 +3202,16 @@ BEGIN
     END; {FOR}
   END;
 
-  { Keep the user informed as to which feedback units are out of use, if any }
-  NoFeedbackList := '';
-  FOR UnitNum := FirstFeedbackUnit TO LastFeedbackUnit DO
-    IF FeedbackUnitRecords[UnitNum].Feedback_DetectorOutOfUse THEN
-      NoFeedbackList := NoFeedbackList + IfThen(NoFeedbackList <> '', ', ') + IntToStr(UnitNum);
+  IF SystemOnline THEN BEGIN
+    { Keep the user informed as to which feedback units are out of use, if any }
+    NoFeedbackList := '';
+    FOR UnitNum := FirstFeedbackUnit TO LastFeedbackUnit DO
+      IF FeedbackUnitRecords[UnitNum].Feedback_DetectorOutOfUse THEN
+        NoFeedbackList := NoFeedbackList + IfThen(NoFeedbackList <> '', ', ') + IntToStr(UnitNum);
 
-  IF NoFeedbackList <> '' THEN
-    Log('XG The following feedback units are out of use: ' + NoFeedbackList);
+    IF NoFeedbackList <> '' THEN
+      Log('XG The following feedback units are out of use: ' + NoFeedbackList);
+  END;
 END; { GetInitialFeedback }
 
 PROCEDURE SetSystemOffline(OfflineMsg : String; Warning : Boolean);
