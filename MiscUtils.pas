@@ -2785,6 +2785,12 @@ BEGIN
       END;
       DebugWindow.DebugRichEdit.Perform(EM_SCROLLCARET, 0, 0);
 
+      IF FWPRailWindowWasFocused THEN
+        FWPRailWindow.SetFocus
+      ELSE
+        IF LoggingWindowWasFocused THEN
+          LoggingWindow.SetFocus;
+
       SaveStyle := DebugWindow.DebugRichEdit.SelAttributes.Style;
 
       IF (Copy(Str, 1, 1) = '!') AND NOT (Copy(Str, 1, 2) = '!!') THEN BEGIN
