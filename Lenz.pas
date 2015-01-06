@@ -2730,7 +2730,7 @@ BEGIN
 
     { set bit 3 off to deselect }
     WriteArray[2] := 128; {1000 0000}
-    Log('E Writing out data to EMERGENCY DESELECT ' + 'S=' + IntToStr(S) + ' [accessoryaddress=' + IntToStr(Signals[S].Signal_AccessoryAddress - 1)
+    Log('E Writing out data to EMERGENCY DESELECT ' + 'S=' + IntToStr(S) + ' [accessoryaddress=' + IntToStr(Signals[S].Signal_AccessoryAddress)
            + '] at ' + TimeToHMSZStr(Time)
            + ' {BLANKLINEBEFORE}');
     DataIO('E', WriteArray, Acknowledgment, OK);
@@ -2751,9 +2751,8 @@ VAR
 
   PROCEDURE ActivateSignal;
   BEGIN
-    AccessoryAddress := AccessoryAddress - 1;
-    DecoderUnitNum := AccessoryAddress DIV 4;
-    DecoderOutputNum := (AccessoryAddress MOD 4) + 1;
+    DecoderUnitNum := (AccessoryAddress - 1) DIV 4;
+    DecoderOutputNum := ((AccessoryAddress - 1) MOD 4) + 1;
 
     { select first }
     WriteArray[0] := 82;
@@ -2800,16 +2799,15 @@ VAR
 
   PROCEDURE DeactivateSignal;
   BEGIN
-    AccessoryAddress := AccessoryAddress - 1;
-    DecoderUnitNum := AccessoryAddress DIV 4;
+    DecoderUnitNum := (AccessoryAddress - 1) DIV 4;
 
     WriteArray[0] := 82;
     WriteArray[1] := DecoderUnitNum;
 
     { set bit 3 off to deselect }
     WriteArray[2] := 128; {1000 0000}
-    Log('S Writing out data to deselect semaphore S=' + IntToStr(S)
-           + ' (accessory address ' + IntToStr(AccessoryAddress) + '] at ' + TimeToHMSZStr(Time) + '  {BLANKLINEBEFORE}');
+    Log('S Writing out data to deselect semaphore S=' + IntToStr(S) + ' (accessory address ' + IntToStr(AccessoryAddress)
+           + '] at ' + TimeToHMSZStr(Time) + '  {BLANKLINEBEFORE}');
     DataIO('S', WriteArray, Acknowledgment, OK);
 
     { Now turn off the burn-out checking }
