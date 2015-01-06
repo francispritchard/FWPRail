@@ -1298,14 +1298,9 @@ BEGIN
                             IF MessageDialogueWithDefault('R=' + IntToStr(Route) + ' has been cancelled as a result of the failure'
                                                           + ' of point ' + IntToStr(Routes_PointResultPendingPoint[Route]) + ':'
                                                           + CRLF
-                                                          + 'Do you want to cancel this train?',
-                                                          NOT StopTimer, mtError, [mbYes, mbNo], ['&Cancel', '&Don''t Cancel'], mbYes)
-                                                          = mrNo
+                                                          + 'Do you want to cancel the train as well?',
+                                                          NOT StopTimer, mtError, [mbYes, mbNo], ['&Cancel', '&Don''t Cancel'], mbYes) = mrYes
                             THEN BEGIN
-
-                            { may want to set the route by hand *** }
-
-                            END ELSE BEGIN
                               IF Routes_LocoChips[Route] <> UnknownLocoChip THEN BEGIN
                                 Log(LocoChipToStr(Routes_LocoChips[Route]) + ' DG System occupation and diagram entry cancelled by user');
                                 { look for our train }
@@ -1313,6 +1308,10 @@ BEGIN
                                 IF T <> UnknownTrainIndex THEN
                                   CancelTrain(T, ByUser, TrainExists);
                               END;
+                            END ELSE BEGIN
+
+                              { may want to set the route by hand *** }
+
                             END;
                             Routes_PointResultPendingPoint[Route] := UnknownPoint;
                             RouteFound := True;
