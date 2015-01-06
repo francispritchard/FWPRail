@@ -2421,11 +2421,11 @@ BEGIN { KeyPressedDown }
               END;
             Shift: {P}
               BEGIN
-                HelpMsg := 'Load latest point settings';
+                HelpMsg := 'Display latest point settings';
                 IF NOT HelpRequired THEN BEGIN
                   SetMode(PreviousPointSettings, TurnOn);
-                  LoadPreviousPointSettings;
-                  InvalidateScreen(UnitRef, 'Load latest point settings in offline mode');
+                  DisplayPreviousPointSettings;
+                  InvalidateScreen(UnitRef, 'Display latest point settings in offline mode');
                 END;
               END;
             Ctrl: {P}
@@ -2569,7 +2569,7 @@ BEGIN { KeyPressedDown }
                   Log('A READ IN POINT DATA FROM DATABASE');
                   ReadInPointDataFromDatabase;
                   IF PreviousPointSettingsMode THEN
-                    LoadPreviousPointSettings;
+                    DisplayPreviousPointSettings;
 
                   Log('A READ IN PLATFORM DATA FROM DATABASE');
                   ReadInPlatformDataFromDatabase;

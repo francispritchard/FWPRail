@@ -2212,7 +2212,7 @@ BEGIN
         { Reload all the points }
         ReadInPointDataFromDatabase;
         IF PreviousPointSettingsMode THEN
-          LoadPreviousPointSettings;
+          DisplayPreviousPointSettings;
         InvalidateScreen(UnitRef, 'DeletePoint');
         Log('D Screen invalidated by DeletePoint');
       END;
@@ -2872,7 +2872,7 @@ BEGIN
         ReadInSignalDataFromDatabase(NewData);
         ReadInPointDataFromDatabase;
         IF PreviousPointSettingsMode THEN
-          LoadPreviousPointSettings;
+          DisplayPreviousPointSettings;
 
         InvalidateScreen(UnitRef, 'DeleteLine');
         Log('D Screen invalidated by Delete Line');

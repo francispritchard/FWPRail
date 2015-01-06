@@ -217,6 +217,9 @@ FUNCTION DirectionWillChangeAfterGivenJourney(T : TrainIndex; CurrentJourney : I
 FUNCTION DirectionArrayToStr(DirectionsArray : DirectionArrayType) : String;
 { List the contents of an array }
 
+PROCEDURE DisplayPreviousPointSettings;
+{ Display the previous settings - generally used when starting up offline }
+
 FUNCTION DistanceBetween(X1, Y1, X2, Y2 : Integer) : Extended;
 { Returns the Euclidean distance between (X1, Y1) and (X2, Y2) }
 
@@ -532,9 +535,6 @@ FUNCTION LinesAreAdjacent(L1, L2 : Integer; ErrorMsg : String) : Boolean;
 
 FUNCTION ListLocoChipsInIntegerArray(IntegerArray : IntegerArrayType) : String;
 { Lists loco chips from an integer array }
-
-PROCEDURE LoadPreviousPointSettings;
-{ Load the previous settings - generally used when starting up offline }
 
 FUNCTION LocationOccupationStateToStr(OccupationState : LocationOccupationStateType) : String;
 { Return the state of the Location Occupation as a string }
@@ -5339,16 +5339,16 @@ BEGIN
   END;
 END; { LATS }
 
-PROCEDURE LoadPreviousPointSettings;
-{ Load the previous settings - generally used when starting up offline }
+PROCEDURE DisplayPreviousPointSettings;
+{ dispalys on screen the previous settings - generally used when starting up offline }
 VAR
   P : Integer;
 
 BEGIN
   IF SystemOnline THEN BEGIN
-    IF MessageDialogueWithDefault('Load previous point settings even though the system is online?', NOT StopTimer, mtConfirmation, [mbOK, mbAbort], mbAbort) = mrAbort
+    IF MessageDialogueWithDefault('Display previous point settings even though the system is online?', NOT StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
     THEN BEGIN
-      Debug('Cannot load previous point settings if system online');
+      Debug('Cannot display previous point settings if system online');
       Exit;
     END;
   END;
@@ -5359,10 +5359,10 @@ BEGIN
     ELSE
       Points[P].Point_PresentState := Points[P].Point_LastFeedbackStateAsReadIn;
   END; {FOR}
-  Debug('Previous point settings loaded');
+  Debug('Previous point settings displayed');
 
-  InvalidateScreen(UnitRef, 'Load latest point settings in offline mode');
-END; { LoadPreviousPointSettings }
+  InvalidateScreen(UnitRef, 'Display latest point settings in offline mode');
+END; { DisplayPreviousPointSettings }
 
 FUNCTION LocationToStrMainProcedure(Location : Integer; LongOrShortString : StringType) : String;
 { Return a location as a string }

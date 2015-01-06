@@ -7496,7 +7496,7 @@ BEGIN { Main drawing procedure }
           END;
           ReadInPointDataFromDatabase;
           IF PreviousPointSettingsMode THEN
-            LoadPreviousPointSettings;
+            DisplayPreviousPointSettings;
           ReadInPlatformDataFromDatabase;
           ReadInSignalDataFromDatabase(NOT NewData);
           ReadInRouteingExceptionsFromDatabase;
