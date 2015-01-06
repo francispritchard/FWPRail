@@ -5345,19 +5345,23 @@ VAR
   P : Integer;
 
 BEGIN
-  IF SystemOnline THEN
-    Debug('Cannot load previous point settings if system online')
-  ELSE BEGIN
-    FOR P := 0 TO High(Points) DO BEGIN
-      IF Points[P].Point_ManualOperation THEN
-        Points[P].Point_PresentState := Points[P].Point_LastManualStateAsReadIn
-      ELSE
-        Points[P].Point_PresentState := Points[P].Point_LastFeedbackStateAsReadIn;
-    END; {FOR}
-    Debug('Previous point settings loaded');
-
-    InvalidateScreen(UnitRef, 'Load latest point settings in offline mode');
+  IF SystemOnline THEN BEGIN
+    IF MessageDialogueWithDefault('Load previous point settings even though the system is online?', NOT StopTimer, mtConfirmation, [mbOK, mbAbort], mbAbort) = mrAbort
+    THEN BEGIN
+      Debug('Cannot load previous point settings if system online');
+      Exit;
+    END;
   END;
+
+  FOR P := 0 TO High(Points) DO BEGIN
+    IF Points[P].Point_ManualOperation THEN
+      Points[P].Point_PresentState := Points[P].Point_LastManualStateAsReadIn
+    ELSE
+      Points[P].Point_PresentState := Points[P].Point_LastFeedbackStateAsReadIn;
+  END; {FOR}
+  Debug('Previous point settings loaded');
+
+  InvalidateScreen(UnitRef, 'Load latest point settings in offline mode');
 END; { LoadPreviousPointSettings }
 
 FUNCTION LocationToStrMainProcedure(Location : Integer; LongOrShortString : StringType) : String;

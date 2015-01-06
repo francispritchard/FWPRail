@@ -2421,16 +2421,11 @@ BEGIN { KeyPressedDown }
               END;
             Shift: {P}
               BEGIN
-                HelpMsg := 'Load latest point settings in offline mode';
+                HelpMsg := 'Load latest point settings';
                 IF NOT HelpRequired THEN BEGIN
-                  IF SystemOnline THEN
-                    Debug('Cannot load previous point settings if system online')
-                  ELSE BEGIN
-                    Debug('Loading previous point settings');
-                    SetMode(PreviousPointSettings, TurnOn);
-                    LoadPreviousPointSettings;
-                    InvalidateScreen(UnitRef, 'Load latest point settings in offline mode');
-                  END;
+                  SetMode(PreviousPointSettings, TurnOn);
+                  LoadPreviousPointSettings;
+                  InvalidateScreen(UnitRef, 'Load latest point settings in offline mode');
                 END;
               END;
             Ctrl: {P}
