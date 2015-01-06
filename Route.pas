@@ -641,6 +641,12 @@ BEGIN
 
                           { and set the distant off }
                           Signals[Signals[Device].Signal_SemaphoreDistantLocking].Signal_Aspect := GreenAspect;
+                          MakeSemaphoreSignalChange(LocoChipStr, Signals[Device].Signal_SemaphoreDistantLocking,
+                                                    Signals[Signals[Device].Signal_SemaphoreDistantLocking].Signal_AccessoryAddress, SignalOff, OK);
+                          IF OK THEN
+                            DebugStr := 'S=' + IntToStr(Signals[Device].Signal_SemaphoreDistantLocking) + ' off'
+                          ELSE
+                            DebugStr := 'S=' + IntToStr(Signals[Device].Signal_SemaphoreDistantLocking) + ' setting to off failed';
                         END;
                       END;
                     END;

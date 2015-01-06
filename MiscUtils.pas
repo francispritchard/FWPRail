@@ -978,7 +978,7 @@ IMPLEMENTATION
 {$R *.dfm}
 
 USES GetTime, Lenz, Diagrams, RailDraw, Types, LocoUtils, Math {sic}, IDGlobal, StrUtils, Feedback, RDCUnit, CreateRoute, IniFiles, DateUtils, Startup, Cuneo, Movement,
-     LocoDialogue, FWPShowMessageUnit, Options, Help, MMSystem, TCPIP, Main, StationMonitors, Train, Edit;
+     LocoDialogue, FWPShowMessageUnit, Options, Help, MMSystem, TCPIP, Main, StationMonitors, Train, Edit, Locks;
 
 CONST
   UnitRef = 'MiscUtils';
@@ -2492,6 +2492,7 @@ PROCEDURE CheckSemaphoreDistantBeforeSemaphoreHomeCleared(S : Integer);
 { Sees if semaphore distants need automatically to be reset to allow a semaphore home to be put on }
 VAR
   I : Integer;
+  OK : Boolean;
 
 BEGIN
   IF (Signals[S].Signal_Type = SemaphoreHome) AND (Signals[S].Signal_SemaphoreDistantLocking <> UnknownSignal) THEN BEGIN
@@ -2505,6 +2506,12 @@ BEGIN
 
     { and set the distant on }
     Signals[Signals[S].Signal_SemaphoreDistantLocking].Signal_Aspect := RedAspect;
+    MakeSemaphoreSignalChange(UnknownLocoChipStr, Signals[S].Signal_SemaphoreDistantLocking, Signals[Signals[S].Signal_SemaphoreDistantLocking].Signal_AccessoryAddress,
+                              SignalOn, OK);
+    IF OK THEN
+      Log('S S=' + IntToStr(Signals[S].Signal_SemaphoreDistantLocking) + ' on')
+    ELSE
+      Log('S S=' + IntToStr(Signals[S].Signal_SemaphoreDistantLocking) + ' setting to on failed');
   END;
 END; { CheckSemaphoreDistantBeforeSemaphoreHomeCleared }
 

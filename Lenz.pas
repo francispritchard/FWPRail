@@ -80,7 +80,7 @@ PROCEDURE InitialiseLenzUnit;
 FUNCTION MakePointChange(LocoChipStr : String; P : Integer; Direction : PointStateType; VAR Count : Integer) : Boolean;
 { Select which decoder, which output and which direction (LS100/100 decoders have four outputs. Need to select then deselect after 200 ms! }
 
-PROCEDURE MakeSemaphoreSignalChange(LocoChipStr : String; S, AccessoryAddress : Integer; OnOrOff : SignalStateType);
+PROCEDURE MakeSemaphoreSignalChange(LocoChipStr : String; S, AccessoryAddress : Integer; OnOrOff : SignalStateType; OUT OK : Boolean);
 { Pull a semaphore signal or or off using TrainTech's SC3 }
 
 PROCEDURE ProgramOnTheMain(VAR Loco : LocoRec; ProgramOnTheMainRequest : ProgramOnTheMainType; NewValue : Integer);
@@ -2737,7 +2737,7 @@ BEGIN
   END; {WITH}
 END; { EmergencyDeselectSignal }
 
-PROCEDURE MakeSemaphoreSignalChange(LocoChipStr : String; S, AccessoryAddress : Integer; OnOrOff : SignalStateType);
+PROCEDURE MakeSemaphoreSignalChange(LocoChipStr : String; S, AccessoryAddress : Integer; OnOrOff : SignalStateType; OUT OK : Boolean);
 { Pull a semaphore signal or or off using TrainTech's SC3, which "learns" given an accessory address by the LH100 }
 CONST
   ProcessMessages = True;
@@ -2746,7 +2746,6 @@ VAR
   B : Byte;
   DebugStr : String;
   DecoderUnitNum, DecoderOutputNum : Byte;
-  OK : Boolean;
   WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
 
   PROCEDURE ActivateSignal;

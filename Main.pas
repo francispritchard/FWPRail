@@ -261,6 +261,9 @@ END; { MainWindowCreate }
 
 PROCEDURE SetSignal(LocoChipStr : String; S : Integer; NewAspect : AspectType; LogSignalData, ForceWriting : Boolean);
 { Set the state of a particular signal and draws it }
+VAR
+  OK : Boolean;
+
 BEGIN
   TRY
     WITH Signals[S] DO BEGIN
@@ -283,9 +286,9 @@ BEGIN
             IF Signal_AccessoryAddress <> 0 THEN
               { uses TrainTech SC3 units for controlling Dapol semaphores }
               IF NewAspect = RedAspect THEN
-                MakeSemaphoreSignalChange(LocoChipStr, S, Signal_AccessoryAddress, SignalOn)
+                MakeSemaphoreSignalChange(LocoChipStr, S, Signal_AccessoryAddress, SignalOn, OK)
               ELSE
-                MakeSemaphoreSignalChange(LocoChipStr, S, Signal_AccessoryAddress, SignalOff);
+                MakeSemaphoreSignalChange(LocoChipStr, S, Signal_AccessoryAddress, SignalOff, OK);
         END;
 
         IF NOT ProgramStartup THEN
