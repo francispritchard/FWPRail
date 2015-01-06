@@ -1304,6 +1304,10 @@ CONST
   RedAspectShortStr = 'R';
   NoAspectShortStr = 'N';
 
+  SemaphoreAspectOff = 'off';
+  SemaphoreAspectOn = 'on';
+  UnknownSemaphoreAspect = 'Unknown Semaphore Aspect';
+
   LeftTopStr = 'Left Top';
   RightTopStr = 'Right Top';
   CentreTopStr = 'Centre Top';

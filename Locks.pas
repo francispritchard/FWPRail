@@ -1632,10 +1632,6 @@ BEGIN
                   NewAspect := RedAspect;
 
                 SetSignal(LocoChipStr, S, NewAspect, NOT LogSignalData, NOT ForceAWrite);
-                IF NOT User THEN
-                  DebugStr := 'S=' + IntToStr(S) + ' successfully set to ' + AspectToStr(Signals[S].Signal_Aspect)
-                ELSE
-                  DebugStr := 'S=' + IntToStr(S) + ' User successfully set to ' + AspectToStr(Signals[S].Signal_Aspect);
                 IF Route <> NoRoute THEN
                   DebugStr := DebugStr + ' for R=' + IntToStr(Route);
                 Log(LocoChipStr + ' S ' + DebugStr);

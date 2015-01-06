@@ -266,8 +266,12 @@ BEGIN
     WITH Signals[S] DO BEGIN
       IF (Signal_Aspect <> NewAspect) OR ForceWriting THEN BEGIN
         Signal_Aspect := NewAspect;
-        IF NOT ProgramStartup AND LogSignalData THEN
-          Log(LocoChipStr + ' S S=' + IntToStr(S) + ' successfully set to ' + AspectToStr(Signals[S].Signal_Aspect));
+        IF NOT ProgramStartup AND LogSignalData THEN BEGIN
+          IF (Signals[S].Signal_Type <> SemaphoreHome) AND (Signals[S].Signal_Type <> SemaphoreDistant) THEN
+            Log('S S=' + IntToStr(S) + ' successfully set to ' + AspectToStr(Signals[S].Signal_Aspect))
+          ELSE
+            Log('S S=' + IntToStr(S) + ' successfully set to ' + SemaphoreAspectToStr(Signals[S].Signal_Aspect));
+        END;
 
         IF SystemOnline AND NOT ResizeMap THEN BEGIN
           IF Signal_DecoderNum <> 0 THEN

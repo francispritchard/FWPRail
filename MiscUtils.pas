@@ -702,6 +702,9 @@ FUNCTION SameTimeInHoursAndMinutesOnly(Time1, Time2 : TDateTime) : Boolean;
 { Compares two given times and returns true if they are the same in terms of hours and minutes (the system routine SameTime compares times down to the millisecond level,
   and comparing two times by means of Time1 = Time2 also fails if there is a franction of a difference between them).
 }
+FUNCTION SemaphoreAspectToStr(Aspect : AspectType): String; Overload;
+{ Return a semaphore signal aspect as a long string }
+
 FUNCTION SetDefaultButton(CONST Dlg: TForm; CONST ModalResult: Integer): Boolean;
 { SetDefaultButton sets the default button in a Message Dialogue that has been created with the Dialogs.CreateMessageDialogue function. The result is a success indicator.
   The function only fails, if the specified button is not present in the dialogue [from uDialogsExt from Borland website]
@@ -2394,6 +2397,25 @@ BEGIN
   SetLength(TrainTypes, Length(TrainTypes) + 1);
   TrainTypes[High(TrainTypes)] := NewElement;
 END; { AppendToTrainTypeArray }
+
+FUNCTION SemaphoreAspectToStr(Aspect : AspectType): String; Overload;
+{ Return a semaphore signal aspect as a long string }
+BEGIN
+  CASE Aspect OF
+    DoubleYellowAspect:
+      Result := SemaphoreAspectOff;
+    SingleYellowAspect:
+      Result := SemaphoreAspectOff;
+    GreenAspect:
+      Result := SemaphoreAspectOff;
+    RedAspect:
+      Result := SemaphoreAspectOn;
+    NoAspect:
+      Result := NoAspectStr;
+  ELSE {CASE}
+    Result := UnknownSemaphoreAspect;
+  END; {CASE}
+END; { SemaphoreAspectToStr }
 
 FUNCTION AspectToStr{1}(Aspect : AspectType): String; Overload;
 { Return the signal aspect as a long string }
