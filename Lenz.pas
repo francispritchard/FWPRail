@@ -2780,7 +2780,7 @@ VAR
     DebugStr := DebugStr +  ' {BLANKLINEBEFORE}';
 
     { Bit 0 is the direction }
-    IF OnOrOff = SignalOff THEN
+    IF OnOrOff = SignalOn THEN
       { Straight doesn't need setting so can stay 0 }
       B := B OR 1;
 

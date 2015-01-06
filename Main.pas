@@ -279,9 +279,9 @@ BEGIN
             IF Signal_AccessoryAddress <> 0 THEN
               { uses TrainTech SC3 units for controlling Dapol semaphores }
               IF NewAspect = RedAspect THEN
-                MakeSemaphoreSignalChange(LocoChipStr, S, Signal_AccessoryAddress, SignalOff)
+                MakeSemaphoreSignalChange(LocoChipStr, S, Signal_AccessoryAddress, SignalOn)
               ELSE
-                MakeSemaphoreSignalChange(LocoChipStr, S, Signal_AccessoryAddress, SignalOn);
+                MakeSemaphoreSignalChange(LocoChipStr, S, Signal_AccessoryAddress, SignalOff);
         END;
 
         IF NOT ProgramStartup THEN
