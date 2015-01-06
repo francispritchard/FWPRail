@@ -1397,8 +1397,9 @@ BEGIN
                 IF SemaphoreHomeSignalOnFound THEN BEGIN
                   OK := False;
                   DrawFailure(Signals[S].Signal_SemaphoreDistantHomesArray[SemaphoreDistantHomesArrayPos], '=');
-                  Log(LocoChipStr + ' S Cannot pull off semaphore distant S=' + IntToStr(S)
-                                  + ' as semaphore home signal S=' + IntToStr(Signals[S].Signal_SemaphoreDistantHomesArray[SemaphoreDistantHomesArrayPos]) + ' is on');
+                  IF InLockingMode THEN
+                    Log(LocoChipStr + ' S Cannot pull off semaphore distant S=' + IntToStr(S)
+                                    + ' as semaphore home signal S=' + IntToStr(Signals[S].Signal_SemaphoreDistantHomesArray[SemaphoreDistantHomesArrayPos]) + ' is on');
                   Signals[S].Signal_FailMsgWritten := True;
                 END ELSE BEGIN
                   { we now have to lock the home signals that are off, which are then locked by the semaphore distant }
