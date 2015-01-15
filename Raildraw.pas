@@ -4023,11 +4023,10 @@ BEGIN
       FOR Line := 0 TO High(Lines) DO BEGIN
         IF Lines[Line].Line_TC <> UnknownTrackCircuit THEN BEGIN
           IF DisplayFlashingTrackCircuits AND (TrackCircuits[Lines[Line].Line_TC].TC_Flashing) THEN BEGIN
-            IF TrackCircuits[Lines[Line].Line_TC].TC_LitUp THEN BEGIN
-              TrackCircuits[Lines[Line].Line_TC].TC_LitUp := False;
-            END ELSE BEGIN
+            IF TrackCircuits[Lines[Line].Line_TC].TC_LitUp THEN
+              TrackCircuits[Lines[Line].Line_TC].TC_LitUp := False
+            ELSE
               TrackCircuits[Lines[Line].Line_TC].TC_LitUp := True;
-            END;
             InvalidateScreen(UnitRef, 'FlashTimerTick 2');
           END;
         END;
