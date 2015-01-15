@@ -78,10 +78,6 @@ object FWPRailWindow: TFWPRailWindow
     object MainOperationsMenu: TMenuItem
       Caption = '&Operations'
       Visible = False
-      object MainOperationsMenuDriveLocomotive: TMenuItem
-        Caption = '&Drive Locomotive'
-        OnClick = MainOperationsMenuDriveLocomotiveClick
-      end
       object ChangePoint: TMenuItem
         Caption = 'Change &Point'
         OnClick = GeneralPopupChangePointClick

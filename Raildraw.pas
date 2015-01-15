@@ -394,7 +394,6 @@ TYPE
     PROCEDURE MainDisplayMenuWorkingTimetableWindowClick(Sender: TObject);
     PROCEDURE MainDisplayMenuZoomClick(Sender: TObject);
     PROCEDURE MainHelpMenuRailHelpClick(Sender: TObject);
-    PROCEDURE MainOperationsMenuDriveLocomotiveClick(Sender: TObject);
     PROCEDURE MainRunMenuResumeOperationsClick(Sender: TObject);
     PROCEDURE PointPopupMenuOnPopup(Sender: TObject);
     PROCEDURE PointPopupItemClick(Sender: TObject);
@@ -3988,11 +3987,6 @@ PROCEDURE TFWPRailWindow.MainHelpMenuRailHelpClick(Sender: TObject);
 BEGIN
   Application.HelpCommand(HELP_FINDER, 0);
 END; { MainHelpMenuRailHelpClick }
-
-PROCEDURE TFWPRailWindow.MainOperationsMenuDriveLocomotiveClick(Sender: TObject);
-BEGIN
-  { **** }
-END; { MainOperationsMenuDriveLocomotiveClick }
 
 PROCEDURE InvalidateScreen(UnitRefParam, CallingStr : String);
 { Draw the screen by invalidating it }
