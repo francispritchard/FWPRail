@@ -1285,7 +1285,7 @@ BEGIN
             Forbid;
           END;
         END ELSE BEGIN
-          { Check that both the signals and the track circuit occupation resetting them, if locked, are locked by the same route }
+          { Check that both the signals and the track-circuit occupation resetting them, if locked, are locked by the same route }
           IF InLockingMode AND (ResetTC <> UnknownTrackCircuit) THEN BEGIN
             IF SignalIsLockedByAnyRoute(S, RouteLockingArray) THEN BEGIN
               IF NOT IsElementInIntegerArray(RouteLockingArray, TrackCircuits[ResetTC].TC_LockedForRoute) THEN BEGIN

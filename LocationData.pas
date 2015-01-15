@@ -2555,7 +2555,7 @@ PROCEDURE SetUpAllLocationOccupationsAbInitio(IsTimetableLoading : Boolean; OUT 
                   ELSE
                     Debug('!' + ErrorMsg);
                 END ELSE
-                  { We also need to record locations where there's a track circuit occupation and we don't know which train it belongs to, so we have to assume it's there
+                  { We also need to record locations where there's a track-circuit occupation and we don't know which train it belongs to, so we have to assume it's there
                     all day
                   }
                   IF (TrackCircuits[LocationTCs[I]].TC_OccupationState = TCFeedbackOccupation)

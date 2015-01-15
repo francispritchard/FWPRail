@@ -4919,7 +4919,7 @@ BEGIN
           AddMenuItem(LinePopupMenu, 'Set Track Circuit ' + IntToStr(Line_TC) + ' To Unoccupied', LineTCUnoccupiedPopupType, WhetherEnabled, LinePopupItemClick);
 
           WhetherEnabled := TrackCircuits[Line_TC].TC_OccupationState <> TCFeedbackOccupation;
-          AddMenuItem(LinePopupMenu, 'Set Track Circuit  ' + IntToStr(Line_TC) + 'To Feedback Occupation', LineTCFeedbackOccupationPopupType, WhetherEnabled,
+          AddMenuItem(LinePopupMenu, 'Set Track Circuit ' + IntToStr(Line_TC) + ' To Feedback Occupation', LineTCFeedbackOccupationPopupType, WhetherEnabled,
                                                                                                                                                         LinePopupItemClick);
 
           WhetherEnabled := TrackCircuits[Line_TC].TC_OccupationState <> TCSystemOccupation;
