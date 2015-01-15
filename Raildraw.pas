@@ -4138,16 +4138,7 @@ BEGIN
           TurnEditModeOn(SignalPopupNum, UnknownPoint, UnknownBufferStop, UnknownLine, UnknownTrackCircuit);
 
         SignalOutOfUsePopupType:
-          BEGIN
-            IF NOT Signal_OutOfUse THEN                         { should these be here? ******* }
-              Signal_OutOfUse := True
-            ELSE BEGIN
-              Signal_OutOfUse := False;
-              Signal_Aspect := RedAspect;
-            END;
-            Signal_DataChanged := True;
-            InvalidateScreen(UnitRef, 'SignalPopupItemClick SignalOutOfUsePopupType');
-          END;
+          SwitchSignalOutOfUseState(SignalPopupNum);
 
         SignalUndoChangesPopupType:
           UndoEditChanges;

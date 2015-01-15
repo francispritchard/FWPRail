@@ -124,6 +124,9 @@ PROCEDURE StartLineEdit(Line : Integer);
 PROCEDURE StartTrackCircuitEdit(TC : Integer);
 { Set up a track-circuit edit - this is where we save the track circuit's original state so we can revert to it regardless of how many edits there are }
 
+PROCEDURE SwitchSignalOutOfUseState(S : Integer);
+{ Set a signal in use or out of use }
+
 PROCEDURE TurnCreateLineModeOn;
 { Turn create-line mode on }
 
@@ -2465,6 +2468,21 @@ BEGIN
 
   FWPRailWindow.Repaint;
 END; { ChangeSignalDirection }
+
+PROCEDURE SwitchSignalOutOfUseState(S : Integer);
+{ Set a signal in use or out of use }
+BEGIN
+  WITH Signals[S] DO BEGIN
+    IF NOT Signal_OutOfUse THEN
+      Signal_OutOfUse := True
+    ELSE BEGIN
+      Signal_OutOfUse := False;
+      Signal_Aspect := RedAspect;
+    END;
+    Signal_DataChanged := True;
+    InvalidateScreen(UnitRef, 'SignalPopupItemClick SignalOutOfUsePopupType');
+  END; {WITH}
+END; { SetSignalOutOfUseState }
 
 FUNCTION CheckIfAnyEditedDataHasChanged : Boolean;
 { Ask whether we want to save amended data (if any) before selecting another signal }
