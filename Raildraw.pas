@@ -4385,7 +4385,7 @@ BEGIN
             DefaultSpeedStr := MPHTOStr(TC_SpeedRestrictionInMPH);
             DefaultDirectionStr := DirectionToStr(TC_SpeedRestrictionDirection);
 
-            SpeedStr := InputBox('Speed Restriction at TrackCircuit Occupation', 'Maximum Speed?', DefaultSpeedStr);
+            SpeedStr := InputBox('Speed Restriction at Track-Circuit Occupation', 'Maximum Speed?', DefaultSpeedStr);
             IF NOT TryStrToInt(SpeedStr, Speed) THEN
               ShowMessage('"' + SpeedStr + '" is not a valid speed')
             ELSE BEGIN
@@ -4482,7 +4482,7 @@ BEGIN
         InputQueryLocoChipStr := IntToStr(PossibleLocoChip);
         IF InputQueryLocoChipStr = IntToStr(UnknownLocoChip) THEN
           InputQueryLocoChipStr := '';
-        IF InputQuery('TrackCircuit Occupation', 'Loco chip no?', InputQueryLocoChipStr)THEN BEGIN
+        IF InputQuery('Track-Circuit Occupation', 'Loco chip no?', InputQueryLocoChipStr)THEN BEGIN
           IF InputQueryLocoChipStr = '' THEN
             { we're presumably clearing the loco chip from the occupation }
             PossibleLocoChip := UnknownLocoChip
