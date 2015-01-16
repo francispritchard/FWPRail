@@ -1768,7 +1768,7 @@ BEGIN
                       Signal_LineX + SignalRadiusScaled + MulDiv(FWPRailWindow.ClientWidth, 10, ZoomScalefactor) - ScrollBarXAdjustment,
                       Signal_LineWithVerticalSpacingY + SignalRadiusScaled - ScrollBarYAdjustment);
 
-            IF Signal_UserMustDrive THEN
+            IF ShowSignalsFromWhichUserMustDrive AND Signal_UserMustDrive THEN
               Pen.Color := SignalsUserMustDriveSignalPostColour
             ELSE
               Pen.Color := Signals[S].Signal_PostColour;
@@ -1794,7 +1794,7 @@ BEGIN
                         Signal_LineX - SignalRadiusScaled - ScrollBarXAdjustment,
                         Signal_LineWithVerticalSpacingY + SignalVerticalSpacingScaled - RailWindowBitmapCanvasPenWidth - ScrollBarYAdjustment);
 
-              IF Signal_UserMustDrive THEN
+              IF ShowSignalsFromWhichUserMustDrive AND Signal_UserMustDrive THEN
                 Pen.Color := SignalsUserMustDriveSignalPostColour
               ELSE
                 Pen.Color := Signals[S].Signal_PostColour;
