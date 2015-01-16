@@ -127,6 +127,9 @@ PROCEDURE StartTrackCircuitEdit(TC : Integer);
 PROCEDURE SwitchSignalOutOfUseState(S : Integer);
 { Set a signal in use or out of use }
 
+PROCEDURE SwitchSignalUserMustDriveFromState(S : Integer);
+{ Switch the state of the SignalUserMustDrive variable }
+
 PROCEDURE TurnCreateLineModeOn;
 { Turn create-line mode on }
 
@@ -2483,6 +2486,20 @@ BEGIN
     InvalidateScreen(UnitRef, 'SignalPopupItemClick SignalOutOfUsePopupType');
   END; {WITH}
 END; { SetSignalOutOfUseState }
+
+PROCEDURE SwitchSignalUserMustDriveFromState(S : Integer);
+{ Switch the state of the SignalUserMustDrive variable }
+BEGIN
+  WITH Signals[S] DO BEGIN
+    IF Signal_UserMustDrive THEN
+      Signal_UserMustDrive := False
+    ELSE
+      Signal_UserMustDrive := True;
+
+    Signal_DataChanged := True;
+    InvalidateScreen(UnitRef, 'SignalPopupItemClick SignalOutOfUsePopupType');
+  END; {WITH}
+END; { SignalUserMustDrivePopupType }
 
 FUNCTION CheckIfAnyEditedDataHasChanged : Boolean;
 { Ask whether we want to save amended data (if any) before selecting another signal }

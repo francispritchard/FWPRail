@@ -625,8 +625,8 @@ VAR
   SignalSemaphoreWidth : Integer;
   SignalSemaphoreWidthScaled : Integer;
 
-  DefaultSignalsUserMustDriveFromSignalPostColour : TColour = clYellow;
-  SignalsUserMustDriveFromSignalPostColour : TColour = clYellow;
+  DefaultSignalsUserMustDriveSignalPostColour : TColour = clFWPOrange;
+  SignalsUserMustDriveSignalPostColour : TColour = clFWPOrange;
 
   DefaultSignalVerticalSpacing : Integer = 150;
   SignalVerticalSpacing : Integer;
@@ -879,7 +879,7 @@ CONST
     SignalPostRouteSettingColourStr = 'Signal Post Route Setting Colour';
     SignalPostStationStartModeColourStr = 'Signal Post Station Start Mode Colour';
     SignalPostTheatreSettingColourStr = 'Signal Post Theatre Setting Colour';
-    SignalsUserMustDriveFromSignalPostColourStr = 'Signals User Must Drive From Signal Post Colour';
+    SignalsUserMustDriveSignalPostColourStr = 'Signals User Must Drive Signal Post Colour';
 
     { Colours for signals }
     SignalAspectUnlitStr = 'Signal Aspect Unlit';
@@ -912,7 +912,6 @@ CONST
     TCSystemOccupationColourStr = 'TC System Occupation Colour';
     TCUnknownOccupationColourStr = 'TC Unknown Occupation Colour';
     TCUnoccupiedColourStr = 'TC Unoccupied Colour';
-    TCUserMustDriveColourStr = 'TC User Must Drive Colour';
 
     TrainActiveColourStr = 'Train Active Colour';
     TrainInactiveColourStr = 'Train Inactive Colour';
@@ -1237,7 +1236,7 @@ BEGIN
   SignalPostRouteSettingColour := DefaultSignalPostRouteSettingColour;
   SignalPostStationStartModeColour := DefaultSignalPostStationStartModeColour;
   SignalPostTheatreSettingColour := DefaultSignalPostTheatreSettingColour;
-  SignalsUserMustDriveFromSignalPostColour := DefaultSignalsUserMustDriveFromSignalPostColour;
+  SignalsUserMustDriveSignalPostColour := DefaultSignalsUserMustDriveSignalPostColour;
 
   { Colours for signals }
   SignalAspectGreen := DefaultSignalAspectGreen;
@@ -1423,8 +1422,8 @@ BEGIN
     SignalPostStationStartModeColour := StrToColour(FWPReadString(ColoursSectionStr, SignalPostStationStartModeColourStr,
                                                                                                                     ColourToStr(DefaultSignalPostStationStartModeColour)));
     SignalPostTheatreSettingColour := StrToColour(FWPReadString(ColoursSectionStr, SignalPostTheatreSettingColourStr, ColourToStr(DefaultSignalPostTheatreSettingColour)));
-    SignalsUserMustDriveFromSignalPostColour := StrToColour(FWPReadString(ColoursSectionStr, SignalsUserMustDriveFromSignalPostColourStr,
-                                                                                                            ColourToStr(DefaultSignalsUserMustDriveFromSignalPostColour)));
+    SignalsUserMustDriveSignalPostColour := StrToColour(FWPReadString(ColoursSectionStr, SignalsUserMustDriveSignalPostColourStr,
+                                                                                                                ColourToStr(DefaultSignalsUserMustDriveSignalPostColour)));
     { Colours for signals }
     SignalAspectGreen := StrToColour(FWPReadString(ColoursSectionStr, SignalAspectGreenStr, ColourToStr(DefaultSignalAspectGreen)));
     SignalAspectRed := StrToColour(FWPReadString(ColoursSectionStr, SignalAspectRedStr, ColourToStr(DefaultSignalAspectRed)));
@@ -1953,7 +1952,7 @@ BEGIN
     WriteStringTwice(ColoursSectionStr, SignalPostRouteSettingColourStr, ColourToStr(SignalPostRouteSettingColour));
     WriteStringTwice(ColoursSectionStr, SignalPostStationStartModeColourStr, ColourToStr(SignalPostStationStartModeColour));
     WriteStringTwice(ColoursSectionStr, SignalPostTheatreSettingColourStr, ColourToStr(SignalPostTheatreSettingColour));
-    WriteStringTwice(ColoursSectionStr, SignalsUserMustDriveFromSignalPostColourStr, ColourToStr(SignalsUserMustDriveFromSignalPostColour));
+    WriteStringTwice(ColoursSectionStr, SignalsUserMustDriveSignalPostColourStr, ColourToStr(SignalsUserMustDriveSignalPostColour));
 
     { Colours for signals }
     WriteStringTwice(ColoursSectionStr, SignalAspectGreenStr, ColourToStr(SignalAspectGreen));

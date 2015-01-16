@@ -42,11 +42,10 @@ TYPE
     GeneralPopupChangeSidingPenStyle: TMenuItem;
     GeneralPopupChangeSignalAspectUnlitColour: TMenuItem;
     GeneralPopupChangeSignalPostRouteSettingColour: TMenuItem;
-    GeneralPopupChangeSignalsUserMustDriveFromSignalPostColour: TMenuItem;
+    GeneralPopupChangeSignalsUserMustDriveSignalPostColour: TMenuItem;
     GeneralPopupChangeTCFeedbackDataInUseColour: TMenuItem;
     GeneralPopupChangeTCFeedbackDataOutOfUseColour: TMenuItem;
     GeneralPopupChangeTCFeedbackOccupationColour: TMenuItem;
-    GeneralPopupChangeTCUserMustDriveColour: TMenuItem;
     GeneralPopupChangeTCOutOfUseSetByUserColour: TMenuItem;
     GeneralPopupChangeTCPermanentFeedbackOccupationColour: TMenuItem;
     GeneralPopupChangeTCPermanentOccupationSetByUserColour: TMenuItem;
@@ -87,11 +86,10 @@ TYPE
     GeneralPopupRestoreSidingPenStyle: TMenuItem;
     GeneralPopupRestoreSignalAspectUnlitColour: TMenuItem;
     GeneralPopupRestoreSignalPostRouteSettingColour: TMenuItem;
-    GeneralPopupRestoreSignalsUserMustDriveFromSignalPostColour: TMenuItem;
+    GeneralPopupRestoreSignalsUserMustDriveSignalPostColour: TMenuItem;
     GeneralPopupRestoreTCFeedbackDataInUseColour: TMenuItem;
     GeneralPopupRestoreTCFeedbackDataOutOfUseColour: TMenuItem;
     GeneralPopupRestoreTCFeedbackOccupationColour: TMenuItem;
-    GeneralPopupRestoreTCUserMustDriveColour: TMenuItem;
     GeneralPopupRestoreTCOutOfUseSetByUserColour: TMenuItem;
     GeneralPopupRestoreTCPermanentFeedbackOccupationColour: TMenuItem;
     GeneralPopupRestoreTCPermanentOccupationSetByUserColour: TMenuItem;
@@ -121,7 +119,6 @@ TYPE
     GeneralPopupTCFeedbackDataInUseColour: TMenuItem;
     GeneralPopupTCFeedbackDataOutOfUseColour: TMenuItem;
     GeneralPopupTCFeedbackOccupationColour: TMenuItem;
-    GeneralPopupTCUserMustDriveColour: TMenuItem;
     GeneralPopupTCOutOfUseSetByUserColour: TMenuItem;
     GeneralPopupTCPermanentFeedbackOccupationColour: TMenuItem;
     GeneralPopupTCPermanentOccupationSetByUserColour: TMenuItem;
@@ -227,7 +224,7 @@ TYPE
     PROCEDURE GeneralPopupChangeSignalPostEmergencyRouteSettingColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangeSignalPostRouteSettingColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangeSignalPostTheatreSettingColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangeSignalsUserMustDriveFromSignalPostColourClick(Sender: TObject);
+    PROCEDURE GeneralPopupChangeSignalsUserMustDriveSignalPostColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangeTCFeedbackDataInUseColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangeTCFeedbackDataOutOfUseColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangeTCFeedbackOccupationButOutOfUseColourClick(Sender: TObject);
@@ -306,7 +303,7 @@ TYPE
     PROCEDURE GeneralPopupRestoreSignalPostEmergencyRouteSettingColourClick(Sender: TObject);
     PROCEDURE GeneralPopupRestoreSignalPostRouteSettingColourClick(Sender: TObject);
     PROCEDURE GeneralPopupRestoreSignalPostTheatreSettingColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreSignalsUserMustDriveFromSignalPostColourClick(Sender: TObject);
+    PROCEDURE GeneralPopupRestoreSignalsUserMustDriveSignalPostColourClick(Sender: TObject);
     PROCEDURE GeneralPopupRestoreTCFeedbackDataInUseColourClick(Sender: TObject);
     PROCEDURE GeneralPopupRestoreTCFeedbackDataOutOfUseColourClick(Sender: TObject);
     PROCEDURE GeneralPopupRestoreTCFeedbackOccupationButOutOfUseColourClick(Sender: TObject);
@@ -607,7 +604,7 @@ VAR
   SaveSignalPostColourForPrinting : TColor;
   SaveSignalPostRouteSettingColourForPrinting : TColor;
   SaveSignalPostTheatreSettingColourForPrinting : TColor;
-  SaveSignalsUserMustDriveFromSignalPostColour : TColor;
+  SaveSignalsUserMustDriveSignalPostColour : TColor;
   SaveTCMissingOccupationColourForPrinting : TColor;
   SaveTCFeedbackOccupationColourForPrinting : TColor;
   SaveTCOutOfUseSetByUserColourForPrinting : TColor;
@@ -617,7 +614,6 @@ VAR
   SaveTCPermanentSystemOccupationColourForPrinting : TColor;
   SaveTCSystemOccupationColourForPrinting : TColor;
   SaveTCUnoccupiedColourForPrinting : TColor;
-  SaveTCUserMustDriveColourForPrinting : TColor;
   SaveTrainActiveColourForPrinting : TColor;
   SaveTrainInactiveColourForPrinting : TColor;
   SaveTRSPlungerColourForPrinting : TColor;
@@ -1772,7 +1768,10 @@ BEGIN
                       Signal_LineX + SignalRadiusScaled + MulDiv(FWPRailWindow.ClientWidth, 10, ZoomScalefactor) - ScrollBarXAdjustment,
                       Signal_LineWithVerticalSpacingY + SignalRadiusScaled - ScrollBarYAdjustment);
 
-            Pen.Color := Signals[S].Signal_PostColour;
+            IF Signal_UserMustDrive THEN
+              Pen.Color := SignalsUserMustDriveSignalPostColour
+            ELSE
+              Pen.Color := Signals[S].Signal_PostColour;
 
             { Pen.Width is the width of the line outlining the signal }
             IF (Signal_Type = SemaphoreHome) OR (Signal_Type = SemaphoreDistant) THEN
@@ -1795,7 +1794,10 @@ BEGIN
                         Signal_LineX - SignalRadiusScaled - ScrollBarXAdjustment,
                         Signal_LineWithVerticalSpacingY + SignalVerticalSpacingScaled - RailWindowBitmapCanvasPenWidth - ScrollBarYAdjustment);
 
-              Pen.Color := Signals[S].Signal_PostColour;
+              IF Signal_UserMustDrive THEN
+                Pen.Color := SignalsUserMustDriveSignalPostColour
+              ELSE
+                Pen.Color := Signals[S].Signal_PostColour;
 
               { Pen.Width is the width of the line outlining the signal }
               IF (Signal_Type = SemaphoreHome) OR (Signal_Type = SemaphoreDistant) THEN
@@ -4219,6 +4221,9 @@ BEGIN
         SignalOutOfUsePopupType:
           SwitchSignalOutOfUseState(SignalPopupNum);
 
+        SignalUserMustDriveFromPopupType:
+          SwitchSignalUserMustDriveFromState(SignalPopupNum);
+
         SignalUndoChangesPopupType:
           UndoEditChanges;
       ELSE {CASE}
@@ -4247,6 +4252,13 @@ BEGIN
         AddMenuItem(SignalPopupMenu, 'Set Signal ' + IntToStr(SignalPopupNum) + ' Out Of Use', SignalOutOfUsePopupType, Enabled, SignalPopupItemClick)
       ELSE
         AddMenuItem(SignalPopupMenu, 'Set Signal ' + IntToStr(SignalPopupNum) + ' Back In Use', SignalOutOfUsePopupType, Enabled, SignalPopupItemClick);
+
+      IF NOT Signal_UserMustDrive THEN
+        AddMenuItem(SignalPopupMenu, 'Set Signal ' + IntToStr(SignalPopupNum) + ' Set "User Must Drive From Here"', SignalUserMustDriveFromPopupType, Enabled,
+                    SignalPopupItemClick)
+      ELSE
+        AddMenuItem(SignalPopupMenu, 'Set Signal ' + IntToStr(SignalPopupNum) + ' Cancel "User Must Drive From Here"', SignalUserMustDriveFromPopupType, Enabled,
+                    SignalPopupItemClick);
 
       AddMenuItem(SignalPopupMenu, '-', NoClickPopupType, Enabled, NIL);
       AddMenuItem(SignalPopupMenu, 'Edit Signal ' + IntToStr(SignalPopupNum) + ' Details', SignalEditPopupType, Enabled, SignalPopupItemClick);
@@ -5787,22 +5799,22 @@ BEGIN
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreSignalPostTheatreSettingColourClick');
 END; { GeneralPopupRestoreSignalPostTheatreSettingColourClick }
 
-PROCEDURE TFWPRailWindow.GeneralPopupChangeSignalsUserMustDriveFromSignalPostColourClick(Sender: TObject);
+PROCEDURE TFWPRailWindow.GeneralPopupChangeSignalsUserMustDriveSignalPostColourClick(Sender: TObject);
 BEGIN
   { Show the default }
-  FWPRailWindowColourDialogue.Color := SignalsUserMustDriveFromSignalPostColour;
+  FWPRailWindowColourDialogue.Color := SignalsUserMustDriveSignalPostColour;
   { Allow the user to change it }
   IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    SignalsUserMustDriveFromSignalPostColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangeSignalsUserMustDriveFromSignalPostColourClick');
+    SignalsUserMustDriveSignalPostColour := FWPRailWindowColourDialogue.Color;
+    InvalidateScreen(UnitRef, 'GeneralPopupChangeSignalsUserMustDriveSignalPostColourClick');
   END;
-END; { GeneralPopupChangeSignalsUserMustDriveFromSignalPostColourClick }
+END; { GeneralPopupChangeSignalsUserMustDriveSignalPostColourClick }
 
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreSignalsUserMustDriveFromSignalPostColourClick(Sender: TObject);
+PROCEDURE TFWPRailWindow.GeneralPopupRestoreSignalsUserMustDriveSignalPostColourClick(Sender: TObject);
 BEGIN
-  SignalsUserMustDriveFromSignalPostColour := DefaultSignalsUserMustDriveFromSignalPostColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreSignalsUserMustDriveFromSignalPostColourClick');
-END; { GeneralPopupRestoreSignalsUserMustDriveFromSignalPostColourClick }
+  SignalsUserMustDriveSignalPostColour := DefaultSignalsUserMustDriveSignalPostColour;
+  InvalidateScreen(UnitRef, 'GeneralPopupRestoreSignalsUserMustDriveSignalPostColourClick');
+END; { GeneralPopupRestoreSignalsUserMustDriveSignalPostColourClick }
 
 PROCEDURE TFWPRailWindow.GeneralPopupChangeSignalNumberColourClick(Sender: TObject);
 BEGIN
@@ -6161,7 +6173,7 @@ BEGIN
   SignalPostColour := DefaultSignalPostColour;
   SignalPostRouteSettingColour := DefaultSignalPostRouteSettingColour;
   SignalPostTheatreSettingColour := DefaultSignalPostTheatreSettingColour;
-  SignalsUserMustDriveFromSignalPostColour := DefaultSignalsUserMustDriveFromSignalPostColour;
+  SignalsUserMustDriveSignalPostColour := DefaultSignalsUserMustDriveSignalPostColour;
   TCMissingOccupationColour := DefaultTCMissingOccupationColour;
   TCFeedbackOccupationColour := DefaultTCFeedbackOccupationColour;
   TCOutOfUseSetByUserColour := DefaultTCOutOfUseSetByUserColour;
@@ -6226,7 +6238,7 @@ BEGIN
   SignalPostColour := SaveSignalPostColourForPrinting;
   SignalPostRouteSettingColour := SaveSignalPostRouteSettingColourForPrinting;
   SignalPostTheatreSettingColour := SaveSignalPostTheatreSettingColourForPrinting;
-  SignalsUserMustDriveFromSignalPostColour := SaveSignalsUserMustDriveFromSignalPostColour;
+  SignalsUserMustDriveSignalPostColour := SaveSignalsUserMustDriveSignalPostColour;
   TCMissingOccupationColour := SaveTCMissingOccupationColourForPrinting;
   TCFeedbackOccupationColour := SaveTCFeedbackOccupationColourForPrinting;
   TCOutOfUseSetByUserColour := SaveTCOutOfUseSetByUserColourForPrinting;
@@ -6333,8 +6345,8 @@ BEGIN
   SaveSignalPostTheatreSettingColourForPrinting := SignalPostTheatreSettingColour;
   SignalPostTheatreSettingColour := clBlack;
 
-  SaveSignalsUserMustDriveFromSignalPostColour := SignalsUserMustDriveFromSignalPostColour;
-  SignalsUserMustDriveFromSignalPostColour := clBlack;
+  SaveSignalsUserMustDriveSignalPostColour := SignalsUserMustDriveSignalPostColour;
+  SignalsUserMustDriveSignalPostColour := clBlack;
 
   SaveTCMissingOccupationColourForPrinting := TCMissingOccupationColour;
   TCMissingOccupationColour := clBlack;

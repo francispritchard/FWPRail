@@ -244,6 +244,7 @@ TYPE
   MenuPopupTypes = (NoClickPopupType,
                     { sinals }
                     SignalChangeDirectionPopupType, SignalDeletePopupType, SignalEditPopupType, SignalOutOfUsePopupType, SignalUndoChangesPopupType,
+                    SignalUserMustDriveFromPopupType,
                     { Points }
                     PointDeletePopupType, PointEditPopupType, PointOutOfUsePopupType, PointToManualPopupType, PointUnlockPopupType,
                     { BufferStops }
@@ -265,7 +266,7 @@ TYPE
                     LineSplitPopupType, LineJoinPopupType,
                     { Line track circuits }
                     LineTCFeedbackOccupationPopupType, LineTCOutOfUsePopupType, LineTCPermanentOccupationPopupType, LineTCSpeedRestrictionPopupType,
-                    LineTCSystemOccupationPopupType, LineTCUnoccupiedPopupType, LineTCUserMustDrivePopupType, LineAllocateExistingTrackCircuitPopupType,
+                    LineTCSystemOccupationPopupType, LineTCUnoccupiedPopupType, LineAllocateExistingTrackCircuitPopupType,
                     LineAllocateNewTrackCircuitPopupType, LineRemoveTrackCircuitPopupType);
 
   { Line-related type declarations }
@@ -764,6 +765,7 @@ TYPE
     Signal_TRSReleased : Boolean;
     Signal_TRSReleasedMsgWritten : Boolean;
     Signal_Type : TypeOfSignal;
+    Signal_UserMustDrive : Boolean;
   END;
 
   WriteReadType = (ReadOnly, WriteOnly, WriteThenRead);
@@ -801,6 +803,7 @@ CONST
   Signal_UpDownFieldName : String = 'Signal Direction';
   Signal_UpperLeftIndicatorTargetFieldName : String = 'Signal Upper Left Indicator Target';
   Signal_UpperRightIndicatorTargetFieldName : String = 'Signal Upper Right Indicator Target';
+  Signal_UserMustDriveFieldName : String = 'Signal User Must Drive';
   Signal_VerticalSpacingFieldName : String = 'Signal Vertical Spacing';
 
 TYPE
@@ -4768,6 +4771,7 @@ BEGIN
     Signal_TRSReleased := False;
     Signal_TRSReleasedMsgWritten := False;
     Signal_Type := TwoAspect;
+    Signal_UserMustDrive := False;
   END; {WITH}
 END; { InitialiseSignalVariables }
 
@@ -4996,6 +5000,8 @@ BEGIN
             Signal_SemaphoreDistantHomesArray := ValidateSignalDistantHomesArray(S, Signal_Type,
                                                                                  SignalsADOTable.FieldByName(Signal_SemaphoreDistantHomesArrayFieldName).AsString,
                                                                                  ErrorMsg);
+          IF ErrorMsg = '' THEN
+            Signal_UserMustDrive := SignalsADOTable.FieldByName(Signal_UserMustDriveFieldName).AsBoolean;
 
           IF Signal_PossibleRouteHold AND Signal_PossibleStationStartRouteHold THEN
             { both shouldn't be ticked }
@@ -5277,7 +5283,6 @@ BEGIN
               SignalsADOTable.FieldByName(Signal_SemaphoreDistantHomesArrayFieldName).AsString := DebugStr;
               SignalsADOTable.Post;
 
-
               Log('S Recording in signal database that S=' + IntToStr(S) + ' ' + Signal_AsTheatreDestinationFieldName + ' is ''' + Signal_AsTheatreDestination + '''');
               SignalsADOTable.Edit;
               SignalsADOTable.FieldByName(Signal_AsTheatreDestinationFieldName).AsString := Signal_AsTheatreDestination;
@@ -5464,8 +5469,8 @@ BEGIN
               SignalsADOTable.FieldByName(Signal_PossibleRouteHoldFieldName).AsBoolean := Signal_PossibleRouteHold;
               SignalsADOTable.Post;
 
-              Log('S Recording in signal database that S=' + IntToStr(S) + ' ' + Signal_PossibleStationStartRouteHoldFieldName +
-                    ' is ''' + IfThen(Signals[S].Signal_PossibleStationStartRouteHold,
+              Log('S Recording in signal database that S=' + IntToStr(S) + ' ' + Signal_PossibleStationStartRouteHoldFieldName
+                     + ' is ''' + IfThen(Signals[S].Signal_PossibleStationStartRouteHold,
                                       'a possible station start route hold',
                                       'not a possible station start route hold') + '''');
               SignalsADOTable.Edit;
@@ -5483,6 +5488,12 @@ BEGIN
               Log('S Recording in signal database that S=' + IntToStr(S) + ' ' + Signal_TypeFieldName + ' is ''' + SignalTypeToStr(Signal_Type, LongStringType) + '''');
               SignalsADOTable.Edit;
               SignalsADOTable.FieldByName(Signal_TypeFieldName).AsString := SignalTypeToStr(Signal_Type, ShortStringType);
+              SignalsADOTable.Post;
+
+              Log('S Recording in signal database that S=' + IntToStr(S) + ' ' + Signal_UserMustDriveFieldName + ' is '''
+                     + IfThen(Signal_UserMustDrive, 'on', 'off') + '''');
+              SignalsADOTable.Edit;
+              SignalsADOTable.FieldByName(Signal_UserMustDriveFieldName).AsBoolean := Signal_UserMustDrive;
               SignalsADOTable.Post;
             END; {WITH}
           END;

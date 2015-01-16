@@ -88,12 +88,12 @@ PROCEDURE PullSignal{2}(LocoChipStr: String; S : Integer; NewIndicatorState : In
                         TrainTypeForRouteing : TypeOfTrainType; User : Boolean; OUT OK : Boolean); Overload;
 { Changes the state of a signal if legal }
 
-PROCEDURE PullSignal{3}(LocoChipStr: String; S : Integer; NewIndicatorState : IndicatorStateType; Route, SubRoute : Integer; PlatformOrFiddleyardLine : Integer; ResetTC : Integer;
-                        User : Boolean; OUT OK : Boolean); Overload;
+PROCEDURE PullSignal{3}(LocoChipStr: String; S : Integer; NewIndicatorState : IndicatorStateType; Route, SubRoute : Integer; PlatformOrFiddleyardLine : Integer;
+                        ResetTC : Integer; User : Boolean; OUT OK : Boolean); Overload;
 { Changes the state of a signal if legal. This version is only used by signals resetting track circuits, which can happen even if the signal is locked by a route,}
 
-PROCEDURE PullSignal{4}(LocoChipStr: String; S : Integer; NewIndicatorState : IndicatorStateType; Route, SubRoute : Integer; PlatformOrFiddleyardLine : Integer; SettingString : String;
-                        TrainTypeForRouteing : TypeOfTrainType; User : Boolean; OUT OK : Boolean); Overload;
+PROCEDURE PullSignal{4}(LocoChipStr: String; S : Integer; NewIndicatorState : IndicatorStateType; Route, SubRoute : Integer; PlatformOrFiddleyardLine : Integer;
+                        SettingString : String; TrainTypeForRouteing : TypeOfTrainType; User : Boolean; OUT OK : Boolean); Overload;
 { Changes the state of a signal if legal; includes the original setting string for saving if necessary }
 
 FUNCTION RouteAheadOutOfUse(RouteArray : StringArrayType; OUT LockingMsg : String) : Boolean;
