@@ -529,11 +529,9 @@ object FWPRailWindow: TFWPRailWindow
           Caption = 'TC User Must Drive Colour'
           object GeneralPopupChangeTCUserMustDriveColour: TMenuItem
             Caption = 'Change TC User Must Drive Colour'
-            OnClick = GeneralPopupChangeTCUserMustDriveColourClick
           end
           object GeneralPopupRestoreTCUserMustDriveColour: TMenuItem
             Caption = 'Restore TC User Must Drive Colour'
-            OnClick = GeneralPopupRestoreTCUserMustDriveColourClick
           end
         end
       end

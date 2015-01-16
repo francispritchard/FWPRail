@@ -565,8 +565,6 @@ VAR
   DefaultShowPointLockedColour : TColour = clYellow;
   ShowPointLockedColour : TColour = clYellow;
 
-  DefaultShowTrackCircuitsWhereUserMustDrive : Boolean = True;
-  ShowTrackCircuitsWhereUserMustDrive : Boolean;
 
   DefaultSidingPenStyle : TPenStyle = psDot;
   SidingPenStyle : TPenStyle = psDot;
@@ -742,9 +740,6 @@ VAR
 
   DefaultTCUnoccupiedColour : TColour = clDkGray; { the default line colour }
   TCUnoccupiedColour : TColour = clDkGray; { the default line colour }
-
-  DefaultTCUserMustDriveColour : TColour = clGreen;
-  TCUserMustDriveColour : TColour = clGreen;
 
   DefaultTheatreBoxHeight : Integer = 10;
   TheatreBoxHeight : Integer;
@@ -1039,7 +1034,6 @@ CONST
     ShowIncorrectDayOfTheWeekEntriesInWorkingTimetableStr = 'Show Incorrect Day Of The Week Entries In Working Timetable';
     ShowNonMovingTrainsInDiagramsStr = 'Show Non-Moving Trains In Diagrams';
     ShowNonStopsInDiagramsStr = 'Show Non Stops In Diagrams';
-    ShowTrackCircuitsWhereUserMustDriveStr = 'Show Track Circuits Where User Must Drive';
     StartRepeatJourneysOnNewLineInDiagramsStr = 'Start Repeat Journeys On New Line In Diagrams';
     StartWithDiagramsStr = 'Start With Diagrams';
     StationEndOfDayPassengerLeavingTimeInMinutesStr = 'Station End Of Day Passenger Leaving Time In Minutes';
@@ -1264,7 +1258,6 @@ BEGIN
   TCSpeedRestrictionColour := DefaultTCSpeedRestrictionColour;
   TCSystemOccupationColour := DefaultTCSystemOccupationColour;
   TCUnoccupiedColour := DefaultTCUnoccupiedColour;
-  TCUserMustDriveColour := DefaultTCUserMustDriveColour;
   TrainActiveColour := DefaultTrainActiveColour;
   TrainInactiveColour := DefaultTrainInactiveColour;
 
@@ -1454,7 +1447,6 @@ BEGIN
     TCSpeedRestrictionColour := StrToColour(FWPReadString(ColoursSectionStr, TCSpeedRestrictionColourStr, ColourToStr(DefaultTCSpeedRestrictionColour)));
     TCSystemOccupationColour := StrToColour(FWPReadString(ColoursSectionStr, TCSystemOccupationColourStr, ColourToStr(DefaultTCSystemOccupationColour)));
     TCUnoccupiedColour := StrToColour(FWPReadString(ColoursSectionStr, TCUnoccupiedColourStr, ColourToStr(DefaultTCUnoccupiedColour)));
-    TCUserMustDriveColour := StrToColour(FWPReadString(ColoursSectionStr, TCUserMustDriveColourStr, ColourToStr(DefaultTCUserMustDriveColour)));
     TrainActiveColour := StrToColour(FWPReadString(ColoursSectionStr, TrainActiveColourStr, ColourToStr(DefaultTrainActiveColour)));
     TrainInactiveColour := StrToColour(FWPReadString(ColoursSectionStr, TrainInactiveColourStr, ColourToStr(DefaultTrainInactiveColour)));
 
@@ -1643,7 +1635,6 @@ BEGIN
                                                                                                                DefaultShowIncorrectDayOfTheWeekEntriesInWorkingTimetable);
     ShowNonMovingTrainsInDiagrams := FWPReadBool(OtherOptionsSectionStr, ShowNonMovingTrainsInDiagramsStr, DefaultShowNonMovingTrainsInDiagrams);
     ShowNonStopsInDiagrams := FWPReadBool(OtherOptionsSectionStr, ShowNonStopsInDiagramsStr, DefaultShowNonStopsInDiagrams);
-    ShowTrackCircuitsWhereUserMustDrive := FWPReadBool(OtherOptionsSectionStr, ShowTrackCircuitsWhereUserMustDriveStr, DefaultShowTrackCircuitsWhereUserMustDrive);
     StartRepeatJourneysOnNewLineInDiagrams := FWPReadBool(OtherOptionsSectionStr, StartRepeatJourneysOnNewLineInDiagramsStr, DefaultStartRepeatJourneysOnNewLineInDiagrams);
     StartWithDiagrams := FWPReadBool(OtherOptionsSectionStr, StartWithDiagramsStr, DefaultStartWithDiagrams);
     StationEndOfDayPassengerLeavingTimeInMinutes := FWPReadInteger(OtherOptionsSectionStr, StationEndOfDayPassengerLeavingTimeInMinutesStr,
@@ -1784,9 +1775,7 @@ BEGIN
                 TrackCircuits[TC].TC_SpeedRestrictionInMPH := IntToMPH(StrToInt(Copy(TempStr2, 5, Pos(' ', TempStr2) - 5)));
                 { and its direction }
                 TrackCircuits[TC].TC_SpeedRestrictionDirection := StrToDirectionType(Copy(TempStr2, Pos('Dir=', TempStr2) + 4, 1));
-              END ELSE
-                IF TempStr2 = TrackCircuitUserMustDriveStr THEN
-                  TrackCircuits[TC].TC_UserMustDrive := True;
+              END;
 
         TempStr := Copy(TempStr, DelimiterPos + 1);
       UNTIL (TempStr = '') OR (DelimiterPos = 0);
@@ -1860,10 +1849,6 @@ BEGIN
                                    + ' MPH=' + MPHToStr(TrackCircuits[TC].TC_SpeedRestrictionInMPH)
                                    + ' Dir=' + DirectionToStr(TrackCircuits[TC].TC_SpeedRestrictionDirection)
                                    + ';';
-
-          IF TrackCircuits[TC].TC_UserMustDrive THEN
-            TCString := TCString + TrackCircuitUserMustDriveStr + ';';
-
           IF TCString <> '' THEN
             WriteStringTwice(TrackCircuitsSectionStr, IntToStr(TC), TCString)
           ELSE BEGIN
@@ -1990,7 +1975,6 @@ BEGIN
     WriteStringTwice(ColoursSectionStr, TCSpeedRestrictionColourStr, ColourToStr(TCSpeedRestrictionColour));
     WriteStringTwice(ColoursSectionStr, TCSystemOccupationColourStr, ColourToStr(TCSystemOccupationColour));
     WriteStringTwice(ColoursSectionStr, TCUnoccupiedColourStr, ColourToStr(TCUnoccupiedColour));
-    WriteStringTwice(ColoursSectionStr, TCUserMustDriveColourStr, ColourToStr(TCUserMustDriveColour));
 
     { Miscellaneous colours }
     WriteStringTwice(ColoursSectionStr, BackgroundColourStr, ColourToStr(BackgroundColour));
@@ -2185,7 +2169,6 @@ BEGIN
     WriteBoolTwice(OtherOptionsSectionStr, ShowIncorrectDayOfTheWeekEntriesInWorkingTimetableStr, ShowIncorrectDayOfTheWeekEntriesInWorkingTimetable);
     WriteBoolTwice(OtherOptionsSectionStr, ShowNonMovingTrainsInDiagramsStr, ShowNonMovingTrainsInDiagrams);
     WriteBoolTwice(OtherOptionsSectionStr, ShowNonStopsInDiagramsStr, ShowNonStopsInDiagrams);
-    WriteBoolTwice(OtherOptionsSectionStr, ShowTrackCircuitsWhereUserMustDriveStr, ShowTrackCircuitsWhereUserMustDrive);
     WriteBoolTwice(OtherOptionsSectionStr, StartRepeatJourneysOnNewLineInDiagramsStr, StartRepeatJourneysOnNewLineInDiagrams);
     WriteBoolTwice(OtherOptionsSectionStr, StartWithDiagramsStr, StartWithDiagrams);
     WriteIntegerTwice(OtherOptionsSectionStr, StationEndOfDayPassengerLeavingTimeInMinutesStr, StationEndOfDayPassengerLeavingTimeInMinutes);
@@ -2524,11 +2507,6 @@ BEGIN
       ItemProps[ShowNonStopsInDiagramsStr].PickList.Add('True');
       ItemProps[ShowNonStopsInDiagramsStr].PickList.Add('False');
       ItemProps[ShowNonStopsInDiagramsStr].EditStyle := esPickList;
-
-      Values[ShowTrackCircuitsWhereUserMustDriveStr] := BoolToStr(ShowTrackCircuitsWhereUserMustDrive, True);
-      ItemProps[ShowTrackCircuitsWhereUserMustDriveStr].PickList.Add('True');
-      ItemProps[ShowTrackCircuitsWhereUserMustDriveStr].PickList.Add('False');
-      ItemProps[ShowTrackCircuitsWhereUserMustDriveStr].EditStyle := esPickList;
 
       Values[StartRepeatJourneysOnNewLineInDiagramsStr] := BoolToStr(StartRepeatJourneysOnNewLineInDiagrams, True);
       ItemProps[StartRepeatJourneysOnNewLineInDiagramsStr].PickList.Add('True');
@@ -2901,7 +2879,6 @@ BEGIN
       CheckBooleanValueListValue(KeyName, ShowIncorrectDayOfTheWeekEntriesInWorkingTimetableStr, NewKeyValue, ShowIncorrectDayOfTheWeekEntriesInWorkingTimetable);
       CheckBooleanValueListValue(KeyName, ShowNonMovingTrainsInDiagramsStr, NewKeyValue, ShowNonMovingTrainsInDiagrams);
       CheckBooleanValueListValue(KeyName, ShowNonStopsInDiagramsStr, NewKeyValue, ShowNonStopsInDiagrams);
-      CheckBooleanValueListValue(KeyName, ShowTrackCircuitsWhereUserMustDriveStr, NewKeyValue, ShowTrackCircuitsWhereUserMustDrive);
       CheckBooleanValueListValue(KeyName, StartRepeatJourneysOnNewLineInDiagramsStr, NewKeyValue, StartRepeatJourneysOnNewLineInDiagrams);
       CheckBooleanValueListValue(KeyName, StartWithDiagramsStr, NewKeyValue, StartWithDiagrams);
       CheckIntegerValueListValue(KeyName, StationEndOfDayPassengerLeavingTimeInMinutesStr, NewKeyValue, StationEndOfDayPassengerLeavingTimeInMinutes);

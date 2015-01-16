@@ -532,8 +532,6 @@ BEGIN
                   { TrackCircuits[Lines[L].Line_TC].TC_SpeedRestrictionDirection = Down }
                   TempStatusBarPanel1Str := TempStatusBarPanel1Str + '>';
             END;
-            IF TrackCircuits[Lines[Line].Line_TC].TC_UserMustDrive THEN
-              TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' {U}';
 
             TempStatusBarPanel1Str := TempStatusBarPanel1Str + ' [' + TrackCircuitStateToStr(TrackCircuits[Lines[Line].Line_TC].TC_OccupationState);
             IF (TrackCircuits[Lines[Line].Line_TC].TC_LocoChip <> UnknownLocoChip) AND (TrackCircuits[Lines[Line].Line_TC].TC_OccupationState <> TCUnoccupied) THEN

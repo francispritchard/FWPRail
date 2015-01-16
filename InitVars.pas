@@ -880,7 +880,6 @@ TYPE
     TC_SaveTrackCircuitHeadCode : String;
     TC_SpeedRestrictionInMPH : MPHType;
     TC_SpeedRestrictionDirection : DirectionType;
-    TC_UserMustDrive : Boolean;
   END;
 
 CONST
@@ -1975,7 +1974,6 @@ BEGIN
     TC_SaveTrackCircuitHeadCode := '';
     TC_SpeedRestrictionInMPH := NoSpecifiedSpeed;
     TC_SpeedRestrictionDirection := Bidirectional;
-    TC_UserMustDrive := False;
 
     SetLength(TC_LineArray, 0);
   END; {WITH}

@@ -4539,16 +4539,8 @@ BEGIN { KeyPressedDown }
               END;
             ShiftAlt: {F5}
               BEGIN
-                HelpMsg := 'toggle showing track circuits where user must drive';
+                HelpMsg := '';
                 IF NOT HelpRequired THEN BEGIN
-                  IF ShowTrackCircuitsWhereUserMustDrive THEN BEGIN
-                    ShowTrackCircuitsWhereUserMustDrive := False;
-                    WriteToStatusBarPanel(StatusBarPanel2, 'Show track circuits where user must drive = OFF');
-                  END ELSE BEGIN
-                    ShowTrackCircuitsWhereUserMustDrive := True;
-                    WriteToStatusBarPanel(StatusBarPanel2, 'Show track circuits where user must drive = ON');
-                  END;
-                  InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
               END;
             CtrlAlt: {F5}

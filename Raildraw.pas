@@ -159,11 +159,11 @@ TYPE
     MainRunMenuResumeOperations: TMenuItem;
     PointPopupMenu: TPopupMenu;
     PopupTimer: TTimer;
+    ResetSizeAndPositionOfAllWindows: TMenuItem;
     RestorePointFeedbackDataInUseColour: TMenuItem;
     SetDaylightEnd: TMenuItem;
     SetDayLightStart: TMenuItem;
     SignalPopupMenu: TPopupMenu;
-    ResetSizeAndPositionOfAllWindows: TMenuItem;
 
     PROCEDURE BufferStopPopupItemClick(Sender: TObject);
     PROCEDURE BufferStopMenuOnPopup(Sender: TObject);
@@ -239,7 +239,6 @@ TYPE
     PROCEDURE GeneralPopupChangeTCSpeedRestrictionColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangeTCSystemOccupationColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangeTCUnoccupiedColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangeTCUserMustDriveColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangeTrainActiveColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangeTrainInactiveColourClick(Sender: TObject);
     PROCEDURE GeneralPopupDebugOptionsClick(Sender: TObject);
@@ -324,7 +323,6 @@ TYPE
     PROCEDURE GeneralPopupRestoreTCSpeedRestrictionColourClick(Sender: TObject);
     PROCEDURE GeneralPopupRestoreTCSystemOccupationColourClick(Sender: TObject);
     PROCEDURE GeneralPopupRestoreTCUnoccupiedColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreTCUserMustDriveColourClick(Sender: TObject);
     PROCEDURE GeneralPopupRestoreTrainActiveColourClick(Sender: TObject);
     PROCEDURE GeneralPopupRestoreTrainInactiveColourClick(Sender: TObject);
     PROCEDURE GeneralPopupRunClockFasterClick(Sender: TObject);
@@ -398,6 +396,7 @@ TYPE
     PROCEDURE PointPopupMenuOnPopup(Sender: TObject);
     PROCEDURE PointPopupItemClick(Sender: TObject);
     PROCEDURE PopupTimerTick(Sender: TObject);
+    PROCEDURE ResetSizeAndPositionOfAllWindowsClick(Sender: TObject);
     PROCEDURE SetCurrentRailwayTime(Sender: TObject);
     PROCEDURE SetDaylightEndTime(Sender: TObject);
     PROCEDURE SetDaylightStartTime(Sender: TObject);
@@ -407,7 +406,6 @@ TYPE
     PROCEDURE SignalPopupMenuOnPopup(Sender: TObject);
     PROCEDURE StartClock(Sender: TObject);
     PROCEDURE StopClock(Sender: TObject);
-    procedure ResetSizeAndPositionOfAllWindowsClick(Sender: TObject);
 
   PRIVATE
     { Private declarations }
@@ -952,32 +950,24 @@ VAR
                   END; {FOR}
                 END;
 
-                IF NOT ShowTrackCircuits THEN BEGIN
-                  { want TCs coloured all the same }
-                  IF TrackCircuits[TC].TC_UserMustDrive THEN
-                    DrawLine(Line, TCUserMustDriveColour, NOT ActiveTrain)
-                  ELSE
-                    DrawLine(Line, TCUnoccupiedColour, NOT ActiveTrain);
-                END ELSE BEGIN
-                  { colour TCs differently to distinguish them }
-                  LineDrawn := False;
-                  IF Lines[Line].Line_NextUpLine <> UnknownLine THEN BEGIN
-                    IF Lines[Lines[Line].Line_NextUpLine].Line_TC <> TC THEN BEGIN
-                      IF Lines[Lines[Line].Line_NextUpLine].Line_CurrentColour <> clLime THEN BEGIN
-                        DrawLine(Line, clLime, NOT ActiveTrain);
+                { Colour TCs differently to distinguish them }
+                LineDrawn := False;
+                IF Lines[Line].Line_NextUpLine <> UnknownLine THEN BEGIN
+                  IF Lines[Lines[Line].Line_NextUpLine].Line_TC <> TC THEN BEGIN
+                    IF Lines[Lines[Line].Line_NextUpLine].Line_CurrentColour <> clLime THEN BEGIN
+                      DrawLine(Line, clLime, NOT ActiveTrain);
+                      LineDrawn := True;
+                      Font.Color := clLime;
+                    END ELSE
+                      IF Lines[Lines[Line].Line_NextUpLine].Line_CurrentColour <> clRed THEN BEGIN
+                        DrawLine(Line, clRed, NOT ActiveTrain);
                         LineDrawn := True;
-                        Font.Color := clLime;
-                      END ELSE
-                        IF Lines[Lines[Line].Line_NextUpLine].Line_CurrentColour <> clRed THEN BEGIN
-                          DrawLine(Line, clRed, NOT ActiveTrain);
-                          LineDrawn := True;
-                          Font.Color := clRed;
-                        END ELSE BEGIN
-                          DrawLine(Line, clYellow, NOT ActiveTrain);
-                          LineDrawn := True;
-                          Font.Color := clYellow;
-                        END;
-                    END;
+                        Font.Color := clRed;
+                      END ELSE BEGIN
+                        DrawLine(Line, clYellow, NOT ActiveTrain);
+                        LineDrawn := True;
+                        Font.Color := clYellow;
+                      END;
                   END;
 
                   IF Lines[Line].Line_NextDownLine <> UnknownLine THEN BEGIN
@@ -2643,13 +2633,6 @@ BEGIN
             ELSE
               Log('T ' + StringOfChar(' ', 68) + '<<' + LineToStr(Line) + ' ' + ColourToStr(NewLineColour) + ' ' + LineTextStr
                        + ' ' + ActiveTrainText + '>>');
-          END;
-
-          IF LineTextStr = '' THEN BEGIN
-            IF ShowTrackCircuitsWhereUserMustDrive THEN
-              IF Lines[Line].Line_TC <> UnknownTrackCircuit THEN
-                IF TrackCircuits[Lines[Line].Line_TC].TC_UserMustDrive THEN
-                  LineTextStr := 'U';
           END;
 
           { Clear any previous text away }
@@ -4830,20 +4813,6 @@ BEGIN
                   InvalidateScreen(UnitRef, 'LinePopupItemClick LineTCUnoccupiedPopupType');
                 END;
 
-              LineTCUserMustDrivePopupType:
-                BEGIN
-                  IF TrackCircuits[Line_TC].TC_UserMustDrive THEN BEGIN
-                    TrackCircuits[Line_TC].TC_UserMustDrive := False;
-                    Log('T TC=' + IntToStr(Line_TC) + ' set to automatic operation');
-                  END ELSE BEGIN
-                    TrackCircuits[Line_TC].TC_UserMustDrive := True;
-                    Log('T TC=' + IntToStr(Line_TC) + ' set to manual operation');
-                  END;
-
-                  IF ShowTrackCircuitsWhereUserMustDrive THEN
-                    InvalidateScreen(UnitRef, 'LinePopupItemClick LineTCUserMustDrivePopupType');
-                END;
-
               LineAllocateExistingTrackCircuitPopupType:
                 IF Line_TC = UnknownTrackCircuit THEN
                   AddTrackCircuit(LinePopupNumArray[0], NOT NewTrackCircuit);
@@ -4938,12 +4907,6 @@ BEGIN
             AddMenuItem(LinePopupMenu, 'Set Track Circuit ' + IntToStr(Line_TC) + ' Speed Restriction', LineTCSpeedRestrictionPopupType, Enabled, LinePopupItemClick)
           ELSE
             AddMenuItem(LinePopupMenu, 'Clear Track Circuit ' + IntToStr(Line_TC) + ' Speed Restriction', LineTCSpeedRestrictionPopupType, Enabled, LinePopupItemClick);
-
-          IF NOT TrackCircuits[Line_TC].TC_UserMustDrive THEN
-             { how do we show this is in effect? ****** 6/8/14 }
-            AddMenuItem(LinePopupMenu, 'Set Track Circuit ' + IntToStr(Line_TC) + ' To User Must Drive', LineTCUserMustDrivePopupType, Enabled, LinePopupItemClick)
-          ELSE
-            AddMenuItem(LinePopupMenu, 'Set Track Circuit ' + IntToStr(Line_TC) + ' To Auto', LineTCUserMustDrivePopupType, Enabled, LinePopupItemClick);
         END;
 
         AddMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, NIL);
@@ -5472,23 +5435,6 @@ BEGIN
   TCOutOfUseSetByUserColour := DefaultTCOutOfUseSetByUserColour;
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreTCOutOfUseSetByUserColourClick');
 END; { GeneralPopupRestoreTCOutOfUseSetByUserColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangeTCUserMustDriveColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := TCUserMustDriveColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    TCUserMustDriveColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangeTCUserMustDriveColourClick');
-  END;
-END; { GeneralPopupChangeTCUserMustDriveColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreTCUserMustDriveColourClick(Sender: TObject);
-BEGIN
-  TCUserMustDriveColour := DefaultTCUserMustDriveColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreTCUserMustDriveColourClick');
-END; { GeneralPopupRestoreTCUserMustDriveColourClick }
 
 PROCEDURE TFWPRailWindow.GeneralPopupChangeScreenComponentEditedColour1Click(Sender: TObject);
 BEGIN
@@ -6111,7 +6057,6 @@ BEGIN
   TCPermanentSystemOccupationColour := DefaultTCPermanentSystemOccupationColour;
   TCSystemOccupationColour := DefaultTCSystemOccupationColour;
   TCUnoccupiedColour := DefaultTCUnoccupiedColour;
-  TCUserMustDriveColour := DefaultTCUserMustDriveColour;
   TrainActiveColour := DefaultTrainActiveColour;
   TrainInactiveColour := DefaultTrainInactiveColour;
   TRSPlungerColour := DefaultTRSPlungerColour;
@@ -6176,7 +6121,6 @@ BEGIN
   TCPermanentSystemOccupationColour := SaveTCPermanentSystemOccupationColourForPrinting;
   TCSystemOccupationColour := SaveTCSystemOccupationColourForPrinting;
   TCUnoccupiedColour := SaveTCUnoccupiedColourForPrinting;
-  TCUserMustDriveColour := SaveTCUserMustDriveColourForPrinting;
   TrainActiveColour := SaveTrainActiveColourForPrinting;
   TrainInactiveColour := SaveTrainInactiveColourForPrinting;
   TRSPlungerColour := SaveTRSPlungerColourForPrinting;
@@ -6300,9 +6244,6 @@ BEGIN
 
   SaveTCUnoccupiedColourForPrinting := TCUnoccupiedColour;
   TCUnoccupiedColour := clBlack;
-
-  SaveTCUserMustDriveColourForPrinting := TCUserMustDriveColour;
-  TCUserMustDriveColour := clBlack;
 
   SaveTrainActiveColourForPrinting := TrainActiveColour;
   TrainActiveColour := clBlack;
