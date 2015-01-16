@@ -4563,8 +4563,12 @@ BEGIN { KeyPressedDown }
               END;
             CtrlAltShift: {F2}
               BEGIN
-                HelpMsg := '';
+                HelpMsg := 'show signals from which user must drive';
                 IF NOT HelpRequired THEN BEGIN
+                  IF ShowSignalsFromWhichUserMustDrive THEN
+                    ShowSignalsFromWhichUserMustDrive := False
+                  ELSE
+                    ShowSignalsFromWhichUserMustDrive := True;
                 END;
               END;
             ShiftAlt: {F2}

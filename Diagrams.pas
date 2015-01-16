@@ -2981,22 +2981,6 @@ BEGIN
                                                                 + ' to ' + LineToStr(TrainJourney_EndLine)
                                                                 + ': ', JourneyRouteArray, 2, 190, 'SR=');
 
-                  { See if any part of the journey is set for manual operation }
-                  JourneyRouteArrayPos := 0;
-                  JourneyRouteArrayUserMustDriveTCFound := False;
-                  WHILE (JourneyRouteArrayPos < High(JourneyRouteArray)) AND NOT JourneyRouteArrayUserMustDriveTCFound DO BEGIN
-                    L := ExtractLineFromString(JourneyRouteArray[JourneyRouteArrayPos]);
-                    IF L <> UnknownLine THEN BEGIN
-                      IF (Lines[L].Line_TC <> UnknownTrackCircuit) AND (TrackCircuits[Lines[L].Line_TC].TC_UserMustDrive) THEN BEGIN
-                        JourneyRouteArrayUserMustDriveTCFound := True;
-                        Log(Train_LocoChipStr + ' D J=' + IntToStr(Journey) + ': user set to drive as TC=' + IntToStr(Lines[L].Line_TC)
-                                              + ' [' + LineToStr(L) + '] is marked as to ''User Must Drive''');
-                        TrainJourney_UserToDrive := True;
-                      END;
-                    END;
-                    Inc(JourneyRouteArrayPos);
-                  END; {WHILE}
-
                   { Now locate the first track circuit in the array }
                   I := 0;
                   FirstLineFound := False;

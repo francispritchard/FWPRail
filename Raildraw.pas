@@ -42,6 +42,7 @@ TYPE
     GeneralPopupChangeSidingPenStyle: TMenuItem;
     GeneralPopupChangeSignalAspectUnlitColour: TMenuItem;
     GeneralPopupChangeSignalPostRouteSettingColour: TMenuItem;
+    GeneralPopupChangeSignalsUserMustDriveFromSignalPostColour: TMenuItem;
     GeneralPopupChangeTCFeedbackDataInUseColour: TMenuItem;
     GeneralPopupChangeTCFeedbackDataOutOfUseColour: TMenuItem;
     GeneralPopupChangeTCFeedbackOccupationColour: TMenuItem;
@@ -86,6 +87,7 @@ TYPE
     GeneralPopupRestoreSidingPenStyle: TMenuItem;
     GeneralPopupRestoreSignalAspectUnlitColour: TMenuItem;
     GeneralPopupRestoreSignalPostRouteSettingColour: TMenuItem;
+    GeneralPopupRestoreSignalsUserMustDriveFromSignalPostColour: TMenuItem;
     GeneralPopupRestoreTCFeedbackDataInUseColour: TMenuItem;
     GeneralPopupRestoreTCFeedbackDataOutOfUseColour: TMenuItem;
     GeneralPopupRestoreTCFeedbackOccupationColour: TMenuItem;
@@ -225,6 +227,7 @@ TYPE
     PROCEDURE GeneralPopupChangeSignalPostEmergencyRouteSettingColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangeSignalPostRouteSettingColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangeSignalPostTheatreSettingColourClick(Sender: TObject);
+    PROCEDURE GeneralPopupChangeSignalsUserMustDriveFromSignalPostColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangeTCFeedbackDataInUseColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangeTCFeedbackDataOutOfUseColourClick(Sender: TObject);
     PROCEDURE GeneralPopupChangeTCFeedbackOccupationButOutOfUseColourClick(Sender: TObject);
@@ -303,6 +306,7 @@ TYPE
     PROCEDURE GeneralPopupRestoreSignalPostEmergencyRouteSettingColourClick(Sender: TObject);
     PROCEDURE GeneralPopupRestoreSignalPostRouteSettingColourClick(Sender: TObject);
     PROCEDURE GeneralPopupRestoreSignalPostTheatreSettingColourClick(Sender: TObject);
+    PROCEDURE GeneralPopupRestoreSignalsUserMustDriveFromSignalPostColourClick(Sender: TObject);
     PROCEDURE GeneralPopupRestoreTCFeedbackDataInUseColourClick(Sender: TObject);
     PROCEDURE GeneralPopupRestoreTCFeedbackDataOutOfUseColourClick(Sender: TObject);
     PROCEDURE GeneralPopupRestoreTCFeedbackOccupationButOutOfUseColourClick(Sender: TObject);
@@ -603,6 +607,7 @@ VAR
   SaveSignalPostColourForPrinting : TColor;
   SaveSignalPostRouteSettingColourForPrinting : TColor;
   SaveSignalPostTheatreSettingColourForPrinting : TColor;
+  SaveSignalsUserMustDriveFromSignalPostColour : TColor;
   SaveTCMissingOccupationColourForPrinting : TColor;
   SaveTCFeedbackOccupationColourForPrinting : TColor;
   SaveTCOutOfUseSetByUserColourForPrinting : TColor;
@@ -2442,10 +2447,27 @@ END; { DrawConnectionCh }
 PROCEDURE DrawLineMainProcedure(Line : Integer; NewLineColour : Integer; ActiveTrain : Boolean; TempLineText : String);
 { Draw an individual line, with headcode if required, and store the line colour }
 VAR
+//  ActiveTrainText : Char;
+//  DeltaX, DeltaY : Extended;
+//  DownLineColour : TColor;
+//  LineTextStr : String;
+//  T : TrainIndex;
+//  ScreenUpX : Integer;
+//  ScreenUpY : Integer;
+//  ScreenDownX : Integer;
+//  ScreenDownY : Integer;
+//  TempLine : Integer;
+//  UpLineColour : TColor;
+//  X1, X2, Y1, Y2 : Integer;
   ActiveTrainText : Char;
+  AdjX, AdjY : Extended;
+  DeltaX, DeltaY : Extended;
   DownLineColour : TColor;
   LineTextStr : String;
   T : TrainIndex;
+  TextCos, TextSin : Extended;
+  TextX, TextY : Integer;
+  Theta : Extended;
   ScreenUpX : Integer;
   ScreenUpY : Integer;
   ScreenDownX : Integer;
@@ -2453,6 +2475,9 @@ VAR
   TempLine : Integer;
   UpLineColour : TColor;
   X1, X2, Y1, Y2 : Integer;
+topleftx, toprightx, bottomleftx, bottomrightx : integer;
+toplefty, toprighty, bottomlefty, bottomrighty : integer;
+label endlabel;
 
   PROCEDURE DrawDottedLine(UpX, UpY, DownX, DownY : Integer);
   { Draw a dotted line - Delphi does not provide this option at a greater line width than one }
@@ -2668,8 +2693,10 @@ BEGIN
             Pen.Color := NewLineColour;
 
           IF ThinLineMode THEN BEGIN
-            MoveTo(ScreenUpX, ScreenUpY - ScrollBarYAdjustment);
-            LineTo(ScreenDownX, ScreenDownY - ScrollBarYAdjustment);
+//            MoveTo(ScreenUpX, ScreenUpY - ScrollBarYAdjustment);
+//            LineTo(ScreenDownX, ScreenDownY - ScrollBarYAdjustment);
+            MoveTo(ScreenUpX - ScrollBarXAdjustment, ScreenUpY - ScrollBarYAdjustment);
+            LineTo(ScreenDownX - ScrollBarXAdjustment, ScreenDownY - ScrollBarYAdjustment);
           END ELSE BEGIN
             CASE Pen.Style OF
               psDashDot, psDot, psDashDotDot:
@@ -2682,11 +2709,32 @@ BEGIN
             END; {CASE}
           END;
 
-          { if there's some text and there's room for it, and the line is horizontal, then add it }
-          IF ShowLineOccupationDetail AND (LineTextStr <> '') AND (TempLineText <> ClearLineString) THEN BEGIN
-            { needs text if there's room }
-            IF (ScreenUpY = ScreenDownY)
-            AND ((ScreenDownX - ScreenUpX > TextWidth(LineTextStr)) OR (ScreenUpX - ScreenDownX > TextWidth(LineTextStr)))
+//          IF ShowLineOccupationDetail AND (LineTextStr <> '') AND (TempLineText <> ClearLineString) THEN BEGIN
+//            { needs text if there's room }
+//            IF ((ScreenDownX - ScreenUpX > TextWidth(LineTextStr)) OR (ScreenUpX - ScreenDownX > TextWidth(LineTextStr)))
+//            THEN BEGIN
+//              { clear space for the text }
+//              Brush.Color := BackgroundColour;
+//              IF ScreenColoursSetForPrinting THEN
+//                Font.Color := clBlack;
+//              Font.Height := -MulDiv(FWPRailWindow.ClientHeight, LineFontHeight, ZoomScalefactor);
+//
+//              DeltaX := ScreenUpX - ScreenDownX;
+//              DeltaY := ScreenUpY - ScreenDownY;
+//
+//              Font.Orientation := - Round(RadToDeg(ArcTan(DeltaY / DeltaX)) * 10);
+//              TextOut(ScreenUpX + ((ScreenDownX - ScreenUpX - TextWidth(LineTextStr)) DIV 2) - ScrollBarXAdjustment,
+//                      ((ScreenUpY + ScreenDownY) DIV 2) - (LineFontHeight DIV 2) - ScrollBarYAdjustment,
+//                      LineTextStr);
+//            END;
+//          END;
+
+//          IF ShowLineOccupationDetail AND (LineTextStr <> '') AND (TempLineText <> ClearLineString) THEN BEGIN
+//            { needs text if there's room }
+goto endlabel;
+begin
+linetextstr := 'hello';
+            IF ((ScreenDownX - ScreenUpX > TextWidth(LineTextStr)) OR (ScreenUpX - ScreenDownX > TextWidth(LineTextStr)))
             THEN BEGIN
               { clear space for the text }
               Brush.Color := BackgroundColour;
@@ -2694,14 +2742,62 @@ BEGIN
                 Font.Color := clBlack;
               Font.Height := -MulDiv(FWPRailWindow.ClientHeight, LineFontHeight, ZoomScalefactor);
 
-              TextOut(ScreenUpX + ((ScreenDownX - ScreenUpX - TextWidth(LineTextStr)) DIV 2) - ScrollBarXAdjustment,
-                      ScreenUpY - (LineFontHeight DIV 2) - ScrollBarYAdjustment,
-                      LineTextStr);
+              DeltaX := ScreenUpX - ScreenDownX;
+              DeltaY := ScreenUpY - ScreenDownY;
+              Theta := -ArcTan(DeltaY / DeltaX);
+              TextX := (ScreenUpX + ScreenDownX) DIV 2;
+              TextY := (ScreenUpY + ScreenDownY) DIV 2;
+	      AdjX := -TextWidth(LineTextStr) * 2;
+              AdjY := -abs(Font.Height * 2);
+//if linetostr(line) = 'DMC24' then begin
+//  debug(floattostr(radtodeg(theta)));
+//  debug('adx=' + floattostr(adjx) + ' adjy=' + floattostr(adjy));
+//end;
+
+              TextCos := cos(Theta);
+              TextSin := sin(Theta);
+if linetostr(line) = 'DMC24' then begin
+  debug(floattostr(round(AdjX * TextCos - AdjY * TextSin)));
+  debug(floattostr(round(AdjX * TextSin - AdjY * TextCos)));
+end;
+              X1 := TextX + Round(AdjX * TextCos - AdjY * TextSin);
+              Y1 := TextY - Round(AdjX * TextSin - AdjY * TextCos);
+              Font.Orientation := Round(RadToDeg(Theta) * 10);
+font.Color := clfwporange;
+              TextOut(X1 - ScrollBarXAdjustment, Y1 - ScrollBarYAdjustment, LineTextStr);
+              X2 := TextX - Round(AdjX * TextCos - AdjY * TextSin);
+              Y2 := TextY + Round(AdjX * TextSin - AdjY * TextCos);
+
+topleftx := TextX + Round(AdjX * TextCos - AdjY * TextSin);
+toprightx := TextX + Round(-AdjX * TextCos - AdjY * TextSin);
+bottomleftx := TextX + Round(AdjX * TextCos - -AdjY * TextSin);
+bottomrightx := TextX + Round(-AdjX * TextCos - -AdjY * TextSin);
+
+toplefty := TextY + Round(AdjX * TextSin - AdjY * TextCos);
+toprighty := TextY + Round(-AdjX * TextSin - AdjY * TextCos);
+bottomlefty := TextY + Round(AdjX * TextSin - -AdjY * TextCos);
+bottomrighty := TextY + Round(-AdjX * TextSin - -AdjY * TextCos);
+
+if linetostr(line) = 'DMC24' then begin
+  debug('topleft = ' + inttostr(topleftx) + ' ' + inttostr(toplefty));
+  debug('topright = ' + inttostr(toprightx) + ' ' + inttostr(toprighty));
+  debug('bottomright = ' + inttoStr(bottomrightx) + ' ' + inttostr(bottomrighty));
+  debug('bottomleft = ' + inttostr(bottomleftx) + ' ' + inttostr(bottomlefty));
+end;
+Moveto(topleftx, toplefty);
+pen.Color := claqua;
+lineto(toprightx, toprighty);
+pen.Color := clred;
+lineto(bottomrightx, bottomrighty);
+pen.Color := clfwporange;
+lineto(bottomleftx, bottomlefty);
+pen.Color := clpurple;
+lineto(topleftx, toplefty);
+
             END;
           END;
 
-          { what if the line is not horizontal? *** }
-
+endlabel:
           { Draw adjacent lines if they are not track circuited }
           IF (Line_NextUpLine <> UnknownLine) AND (Line_NextDownLine <> UnknownLine) THEN BEGIN
             IF (Lines[Line_NextUpLine].Line_TC = UnknownTrackCircuit) AND (Lines[Line_NextDownLine].Line_TC = UnknownTrackCircuit) THEN BEGIN
@@ -5691,6 +5787,23 @@ BEGIN
   InvalidateScreen(UnitRef, 'GeneralPopupRestoreSignalPostTheatreSettingColourClick');
 END; { GeneralPopupRestoreSignalPostTheatreSettingColourClick }
 
+PROCEDURE TFWPRailWindow.GeneralPopupChangeSignalsUserMustDriveFromSignalPostColourClick(Sender: TObject);
+BEGIN
+  { Show the default }
+  FWPRailWindowColourDialogue.Color := SignalsUserMustDriveFromSignalPostColour;
+  { Allow the user to change it }
+  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
+    SignalsUserMustDriveFromSignalPostColour := FWPRailWindowColourDialogue.Color;
+    InvalidateScreen(UnitRef, 'GeneralPopupChangeSignalsUserMustDriveFromSignalPostColourClick');
+  END;
+END; { GeneralPopupChangeSignalsUserMustDriveFromSignalPostColourClick }
+
+PROCEDURE TFWPRailWindow.GeneralPopupRestoreSignalsUserMustDriveFromSignalPostColourClick(Sender: TObject);
+BEGIN
+  SignalsUserMustDriveFromSignalPostColour := DefaultSignalsUserMustDriveFromSignalPostColour;
+  InvalidateScreen(UnitRef, 'GeneralPopupRestoreSignalsUserMustDriveFromSignalPostColourClick');
+END; { GeneralPopupRestoreSignalsUserMustDriveFromSignalPostColourClick }
+
 PROCEDURE TFWPRailWindow.GeneralPopupChangeSignalNumberColourClick(Sender: TObject);
 BEGIN
   { Show the default }
@@ -6048,6 +6161,7 @@ BEGIN
   SignalPostColour := DefaultSignalPostColour;
   SignalPostRouteSettingColour := DefaultSignalPostRouteSettingColour;
   SignalPostTheatreSettingColour := DefaultSignalPostTheatreSettingColour;
+  SignalsUserMustDriveFromSignalPostColour := DefaultSignalsUserMustDriveFromSignalPostColour;
   TCMissingOccupationColour := DefaultTCMissingOccupationColour;
   TCFeedbackOccupationColour := DefaultTCFeedbackOccupationColour;
   TCOutOfUseSetByUserColour := DefaultTCOutOfUseSetByUserColour;
@@ -6112,6 +6226,7 @@ BEGIN
   SignalPostColour := SaveSignalPostColourForPrinting;
   SignalPostRouteSettingColour := SaveSignalPostRouteSettingColourForPrinting;
   SignalPostTheatreSettingColour := SaveSignalPostTheatreSettingColourForPrinting;
+  SignalsUserMustDriveFromSignalPostColour := SaveSignalsUserMustDriveFromSignalPostColour;
   TCMissingOccupationColour := SaveTCMissingOccupationColourForPrinting;
   TCFeedbackOccupationColour := SaveTCFeedbackOccupationColourForPrinting;
   TCOutOfUseSetByUserColour := SaveTCOutOfUseSetByUserColourForPrinting;
@@ -6217,6 +6332,9 @@ BEGIN
 
   SaveSignalPostTheatreSettingColourForPrinting := SignalPostTheatreSettingColour;
   SignalPostTheatreSettingColour := clBlack;
+
+  SaveSignalsUserMustDriveFromSignalPostColour := SignalsUserMustDriveFromSignalPostColour;
+  SignalsUserMustDriveFromSignalPostColour := clBlack;
 
   SaveTCMissingOccupationColourForPrinting := TCMissingOccupationColour;
   TCMissingOccupationColour := clBlack;

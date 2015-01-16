@@ -854,12 +854,23 @@ object FWPRailWindow: TFWPRailWindow
         object GeneralPopupSignalPostTheatreSettingColour: TMenuItem
           Caption = 'Signal Post Theatre Setting Colour'
           object GeneralPopupChangeSignalPostTheatreSettingColour: TMenuItem
-            Caption = 'Change Signal Post TheatreSetting Colour'
+            Caption = 'Change Signal Post Theatre Setting Colour'
             OnClick = GeneralPopupChangeSignalPostTheatreSettingColourClick
           end
           object GeneralPopupRestoreSignalPostTheatreSettingColour: TMenuItem
             Caption = 'Restore Signal Post Theatre Setting Colour'
             OnClick = GeneralPopupRestoreSignalPostTheatreSettingColourClick
+          end
+        end
+        object GeneralPopupSignalsUserMustDriveFromSignalPostColour1: TMenuItem
+          Caption = 'Signals User Must Drive From Signal Post Colour'
+          object GeneralPopupChangeSignalsUserMustDriveFromSignalPostColour: TMenuItem
+            Caption = 'Change Signals User Must Drive From Signal Post Colour'
+            OnClick = GeneralPopupChangeSignalsUserMustDriveFromSignalPostColourClick
+          end
+          object GeneralPopupRestoreSignalsUserMustDriveFromSignalPostColour: TMenuItem
+            Caption = 'Restore Signals User Must Drive From Signal Post Colour'
+            OnClick = GeneralPopupRestoreSignalsUserMustDriveFromSignalPostColourClick
           end
         end
       end

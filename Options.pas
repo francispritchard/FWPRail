@@ -565,6 +565,8 @@ VAR
   DefaultShowPointLockedColour : TColour = clYellow;
   ShowPointLockedColour : TColour = clYellow;
 
+  DefaultShowSignalsFromWhichUserMustDrive : Boolean = True;
+  ShowSignalsFromWhichUserMustDrive : Boolean = True;
 
   DefaultSidingPenStyle : TPenStyle = psDot;
   SidingPenStyle : TPenStyle = psDot;
@@ -622,6 +624,9 @@ VAR
   DefaultSignalSemaphoreWidth : Integer = 70;
   SignalSemaphoreWidth : Integer;
   SignalSemaphoreWidthScaled : Integer;
+
+  DefaultSignalsUserMustDriveFromSignalPostColour : TColour = clYellow;
+  SignalsUserMustDriveFromSignalPostColour : TColour = clYellow;
 
   DefaultSignalVerticalSpacing : Integer = 150;
   SignalVerticalSpacing : Integer;
@@ -874,6 +879,7 @@ CONST
     SignalPostRouteSettingColourStr = 'Signal Post Route Setting Colour';
     SignalPostStationStartModeColourStr = 'Signal Post Station Start Mode Colour';
     SignalPostTheatreSettingColourStr = 'Signal Post Theatre Setting Colour';
+    SignalsUserMustDriveFromSignalPostColourStr = 'Signals User Must Drive From Signal Post Colour';
 
     { Colours for signals }
     SignalAspectUnlitStr = 'Signal Aspect Unlit';
@@ -1034,6 +1040,7 @@ CONST
     ShowIncorrectDayOfTheWeekEntriesInWorkingTimetableStr = 'Show Incorrect Day Of The Week Entries In Working Timetable';
     ShowNonMovingTrainsInDiagramsStr = 'Show Non-Moving Trains In Diagrams';
     ShowNonStopsInDiagramsStr = 'Show Non Stops In Diagrams';
+    ShowSignalsFromWhichUserMustDriveStr = 'Show Signals From Which User Must Drive';
     StartRepeatJourneysOnNewLineInDiagramsStr = 'Start Repeat Journeys On New Line In Diagrams';
     StartWithDiagramsStr = 'Start With Diagrams';
     StationEndOfDayPassengerLeavingTimeInMinutesStr = 'Station End Of Day Passenger Leaving Time In Minutes';
@@ -1230,6 +1237,7 @@ BEGIN
   SignalPostRouteSettingColour := DefaultSignalPostRouteSettingColour;
   SignalPostStationStartModeColour := DefaultSignalPostStationStartModeColour;
   SignalPostTheatreSettingColour := DefaultSignalPostTheatreSettingColour;
+  SignalsUserMustDriveFromSignalPostColour := DefaultSignalsUserMustDriveFromSignalPostColour;
 
   { Colours for signals }
   SignalAspectGreen := DefaultSignalAspectGreen;
@@ -1394,8 +1402,7 @@ BEGIN
     PointDivergingLineColour := StrToColour(FWPReadString(ColoursSectionStr, PointDivergingLineColourStr, ColourToStr(DefaultPointDivergingLineColour)));
     PointDownFacingColour := StrToColour(FWPReadString(ColoursSectionStr, PointDownFacingColourStr, ColourToStr(DefaultPointDownFacingColour)));
     PointFeedbackDataInUseColour := StrToColour(FWPReadString(ColoursSectionStr, PointFeedbackDataInUseColourStr, ColourToStr(DefaultPointFeedbackDataInUseColour)));
-    PointFeedbackDataOutOfUseColour := StrToColour(FWPReadString(ColoursSectionStr, PointFeedbackDataoutOfUseColourStr,
-                                                                                                                    ColourToStr(DefaultPointFeedbackDataOutOfUseColour)));
+    PointFeedbackDataOutOfUseColour := StrToColour(FWPReadString(ColoursSectionStr, PointFeedbackDataoutOfUseColourStr,                                                                                                                      ColourToStr(DefaultPointFeedbackDataOutOfUseColour)));
     PointHeelLineColour := StrToColour(FWPReadString(ColoursSectionStr, PointHeelLineColourStr, ColourToStr(DefaultPointHeelLineColour)));
     PointLenzNumberColour := StrToColour(FWPReadString(ColoursSectionStr, PointLenzNumberColourStr, ColourToStr(DefaultPointLenzNumberColour)));
     PointLockedByUserColour := StrToColour(FWPReadString(ColoursSectionStr, PointLockedByUserColourStr, ColourToStr(DefaultPointLockedByUserColour)));
@@ -1411,12 +1418,13 @@ BEGIN
     { Colours for signal posts }
     SignalPostColour := StrToColour(FWPReadString(ColoursSectionStr, SignalPostColourStr, ColourToStr(DefaultSignalPostColour)));
     SignalPostEmergencyRouteSettingColour := StrToColour(FWPReadString(ColoursSectionStr, SignalPostEmergencyRouteSettingColourStr,
-                                                                                                              ColourToStr(DefaultSignalPostEmergencyRouteSettingColour)));
+                                                                                                               ColourToStr(DefaultSignalPostEmergencyRouteSettingColour)));
     SignalPostRouteSettingColour := StrToColour(FWPReadString(ColoursSectionStr, SignalPostRouteSettingColourStr, ColourToStr(DefaultSignalPostRouteSettingColour)));
     SignalPostStationStartModeColour := StrToColour(FWPReadString(ColoursSectionStr, SignalPostStationStartModeColourStr,
-                                                                                                                   ColourToStr(DefaultSignalPostStationStartModeColour)));
+                                                                                                                    ColourToStr(DefaultSignalPostStationStartModeColour)));
     SignalPostTheatreSettingColour := StrToColour(FWPReadString(ColoursSectionStr, SignalPostTheatreSettingColourStr, ColourToStr(DefaultSignalPostTheatreSettingColour)));
-
+    SignalsUserMustDriveFromSignalPostColour := StrToColour(FWPReadString(ColoursSectionStr, SignalsUserMustDriveFromSignalPostColourStr,
+                                                                                                            ColourToStr(DefaultSignalsUserMustDriveFromSignalPostColour)));
     { Colours for signals }
     SignalAspectGreen := StrToColour(FWPReadString(ColoursSectionStr, SignalAspectGreenStr, ColourToStr(DefaultSignalAspectGreen)));
     SignalAspectRed := StrToColour(FWPReadString(ColoursSectionStr, SignalAspectRedStr, ColourToStr(DefaultSignalAspectRed)));
@@ -1635,6 +1643,7 @@ BEGIN
                                                                                                                DefaultShowIncorrectDayOfTheWeekEntriesInWorkingTimetable);
     ShowNonMovingTrainsInDiagrams := FWPReadBool(OtherOptionsSectionStr, ShowNonMovingTrainsInDiagramsStr, DefaultShowNonMovingTrainsInDiagrams);
     ShowNonStopsInDiagrams := FWPReadBool(OtherOptionsSectionStr, ShowNonStopsInDiagramsStr, DefaultShowNonStopsInDiagrams);
+    ShowSignalsFromWhichUserMustDrive := FWPReadBool(OtherOptionsSectionStr, ShowSignalsFromWhichUserMustDriveStr, DefaultShowSignalsFromWhichUserMustDrive);
     StartRepeatJourneysOnNewLineInDiagrams := FWPReadBool(OtherOptionsSectionStr, StartRepeatJourneysOnNewLineInDiagramsStr, DefaultStartRepeatJourneysOnNewLineInDiagrams);
     StartWithDiagrams := FWPReadBool(OtherOptionsSectionStr, StartWithDiagramsStr, DefaultStartWithDiagrams);
     StationEndOfDayPassengerLeavingTimeInMinutes := FWPReadInteger(OtherOptionsSectionStr, StationEndOfDayPassengerLeavingTimeInMinutesStr,
@@ -1944,6 +1953,7 @@ BEGIN
     WriteStringTwice(ColoursSectionStr, SignalPostRouteSettingColourStr, ColourToStr(SignalPostRouteSettingColour));
     WriteStringTwice(ColoursSectionStr, SignalPostStationStartModeColourStr, ColourToStr(SignalPostStationStartModeColour));
     WriteStringTwice(ColoursSectionStr, SignalPostTheatreSettingColourStr, ColourToStr(SignalPostTheatreSettingColour));
+    WriteStringTwice(ColoursSectionStr, SignalsUserMustDriveFromSignalPostColourStr, ColourToStr(SignalsUserMustDriveFromSignalPostColour));
 
     { Colours for signals }
     WriteStringTwice(ColoursSectionStr, SignalAspectGreenStr, ColourToStr(SignalAspectGreen));
@@ -2169,6 +2179,7 @@ BEGIN
     WriteBoolTwice(OtherOptionsSectionStr, ShowIncorrectDayOfTheWeekEntriesInWorkingTimetableStr, ShowIncorrectDayOfTheWeekEntriesInWorkingTimetable);
     WriteBoolTwice(OtherOptionsSectionStr, ShowNonMovingTrainsInDiagramsStr, ShowNonMovingTrainsInDiagrams);
     WriteBoolTwice(OtherOptionsSectionStr, ShowNonStopsInDiagramsStr, ShowNonStopsInDiagrams);
+    WriteBoolTwice(OtherOptionsSectionStr, ShowSignalsFromWhichUserMustDriveStr, ShowSignalsFromWhichUserMustDrive);
     WriteBoolTwice(OtherOptionsSectionStr, StartRepeatJourneysOnNewLineInDiagramsStr, StartRepeatJourneysOnNewLineInDiagrams);
     WriteBoolTwice(OtherOptionsSectionStr, StartWithDiagramsStr, StartWithDiagrams);
     WriteIntegerTwice(OtherOptionsSectionStr, StationEndOfDayPassengerLeavingTimeInMinutesStr, StationEndOfDayPassengerLeavingTimeInMinutes);
@@ -2507,6 +2518,11 @@ BEGIN
       ItemProps[ShowNonStopsInDiagramsStr].PickList.Add('True');
       ItemProps[ShowNonStopsInDiagramsStr].PickList.Add('False');
       ItemProps[ShowNonStopsInDiagramsStr].EditStyle := esPickList;
+
+      Values[ShowSignalsFromWhichUserMustDriveStr] := BoolToStr(ShowSignalsFromWhichUserMustDrive, True);
+      ItemProps[ShowSignalsFromWhichUserMustDriveStr].PickList.Add('True');
+      ItemProps[ShowSignalsFromWhichUserMustDriveStr].PickList.Add('False');
+      ItemProps[ShowSignalsFromWhichUserMustDriveStr].EditStyle := esPickList;
 
       Values[StartRepeatJourneysOnNewLineInDiagramsStr] := BoolToStr(StartRepeatJourneysOnNewLineInDiagrams, True);
       ItemProps[StartRepeatJourneysOnNewLineInDiagramsStr].PickList.Add('True');
@@ -2879,6 +2895,7 @@ BEGIN
       CheckBooleanValueListValue(KeyName, ShowIncorrectDayOfTheWeekEntriesInWorkingTimetableStr, NewKeyValue, ShowIncorrectDayOfTheWeekEntriesInWorkingTimetable);
       CheckBooleanValueListValue(KeyName, ShowNonMovingTrainsInDiagramsStr, NewKeyValue, ShowNonMovingTrainsInDiagrams);
       CheckBooleanValueListValue(KeyName, ShowNonStopsInDiagramsStr, NewKeyValue, ShowNonStopsInDiagrams);
+      CheckBooleanValueListValue(KeyName, ShowSignalsFromWhichUserMustDriveStr, NewKeyValue, ShowSignalsFromWhichUserMustDrive);
       CheckBooleanValueListValue(KeyName, StartRepeatJourneysOnNewLineInDiagramsStr, NewKeyValue, StartRepeatJourneysOnNewLineInDiagrams);
       CheckBooleanValueListValue(KeyName, StartWithDiagramsStr, NewKeyValue, StartWithDiagrams);
       CheckIntegerValueListValue(KeyName, StationEndOfDayPassengerLeavingTimeInMinutesStr, NewKeyValue, StationEndOfDayPassengerLeavingTimeInMinutes);
