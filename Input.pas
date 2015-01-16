@@ -1402,6 +1402,12 @@ BEGIN { KeyPressedDown }
                 IF NOT HelpRequired THEN BEGIN
                 END;
               END;
+            CtrlAltShift: {A}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
             ShiftAlt: {A}
               BEGIN
                 HelpMsg := '';
@@ -1452,6 +1458,12 @@ BEGIN { KeyPressedDown }
                     BreakPointRequiredInMakeSoundRoutine := True;
                     Log('XG BreakPointRequiredInMakeSoundRoutine = ON');
                   END;
+                END;
+              END;
+            CtrlAltShift: {B}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
                 END;
               END;
             ShiftAlt: {B}
@@ -1506,6 +1518,12 @@ BEGIN { KeyPressedDown }
                     GetTime.ClockWindow.Clock.Time := CurrentRailwayTime;
                     GetTime.ClockWindow.Caption := SetCurrentRailwayTimeCaption;
                   END;
+                END;
+              END;
+            CtrlAltShift: {C}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
                 END;
               END;
             ShiftAlt: {C}
@@ -1592,6 +1610,12 @@ BEGIN { KeyPressedDown }
                   Startup.DebuggingOptionsWindow.SetFocus;
                 END;
               END;
+            CtrlAltShift: {D}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
             ShiftAlt: {D}
               BEGIN
                 HelpMsg := '';
@@ -1658,6 +1682,12 @@ BEGIN { KeyPressedDown }
                 IF NOT HelpRequired THEN
                   LocoDialogue.LocoDialogueWindow.Show;
               END;
+            CtrlAltShift: {E}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
             ShiftAlt: {E}
               BEGIN
                 HelpMsg := '';
@@ -1722,6 +1752,12 @@ BEGIN { KeyPressedDown }
                     SetFeedbackDebuggingModeOff('Feedback debugging OFF');
                 END;
               END;
+            CtrlAltShift: {F}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
             ShiftAlt: {F}
               BEGIN
                 HelpMsg := '';
@@ -1782,6 +1818,12 @@ BEGIN { KeyPressedDown }
                 HelpMsg := 'Open/close the logging window';
                 IF NOT HelpRequired THEN BEGIN
                   LoggingWindow.Visible := NOT LoggingWindow.Visible;
+                END;
+              END;
+            CtrlAltShift: {G}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
                 END;
               END;
             ShiftAlt: {G}
@@ -1849,6 +1891,12 @@ BEGIN { KeyPressedDown }
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
               END;
+            CtrlAltShift: {H}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
             ShiftAlt: {H}
               BEGIN
                 HelpMsg := '';
@@ -1894,6 +1942,12 @@ BEGIN { KeyPressedDown }
                 IF NOT HelpRequired THEN BEGIN
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                   Log('AG Screen invalidated by user');
+                END;
+              END;
+            CtrlAltShift: {I}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
                 END;
               END;
             ShiftAlt: {I}
@@ -1950,6 +2004,12 @@ BEGIN { KeyPressedDown }
                 IF NOT HelpRequired THEN BEGIN
                 END;
               END;
+            CtrlAltShift: {J}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
             ShiftAlt: {J}
               BEGIN
                 HelpMsg := '';
@@ -1989,6 +2049,12 @@ BEGIN { KeyPressedDown }
           END; {CASE}
         Ord('K'):
           CASE ShiftKeys OF
+            CtrlAltShift: {K}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
             ShiftAlt: {K}
               BEGIN
                 HelpMsg := '';
@@ -2160,6 +2226,12 @@ BEGIN { KeyPressedDown }
                   END;
                 END;
               END;
+            CtrlAltShift: {M}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
             ShiftAlt: {M}
               BEGIN
                 HelpMsg := '';
@@ -2227,6 +2299,12 @@ BEGIN { KeyPressedDown }
                   END;
                 END;
               END;
+            CtrlAltShift: {N}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
             ShiftAlt: {N}
               BEGIN
                 HelpMsg := '';
@@ -2280,6 +2358,12 @@ BEGIN { KeyPressedDown }
                   END;
                 END;
               END;
+            CtrlAltShift: {O}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
             ShiftAlt: {O}
               BEGIN
                 HelpMsg := '';
@@ -2325,6 +2409,12 @@ BEGIN { KeyPressedDown }
                 IF NOT HelpRequired THEN BEGIN
                   InputDialogueBoxRequired := PointDialogueBox;
                   InputDialogueBox.Show;
+                END;
+              END;
+            CtrlAltShift: {P}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
                 END;
               END;
             ShiftAlt: {P}
@@ -2466,6 +2556,12 @@ BEGIN { KeyPressedDown }
                 IF NOT HelpRequired THEN BEGIN
                 END;
               END;
+            CtrlAltShift: {Q}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
             ShiftAlt: {Q}
               BEGIN
                 HelpMsg := '';
@@ -2585,6 +2681,12 @@ BEGIN { KeyPressedDown }
 
                   Debug('All data reinitialised');
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
+                END;
+              END;
+            CtrlAltShift: {R}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
                 END;
               END;
             ShiftAlt: {R}
@@ -2712,6 +2814,12 @@ BEGIN { KeyPressedDown }
                   InputDialogueBox.Show;
                 END;
               END;
+            CtrlAltShift: {S}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
             ShiftAlt: {S}
               BEGIN
                 HelpMsg := '';
@@ -2783,6 +2891,12 @@ BEGIN { KeyPressedDown }
                 IF NOT HelpRequired THEN BEGIN
                   InputDialogueBoxRequired := TrackCircuitDialogueBox;
                   InputDialogueBox.Show;
+                END;
+              END;
+            CtrlAltShift: {T}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
                 END;
               END;
             ShiftAlt: {T}
@@ -2867,6 +2981,12 @@ BEGIN { KeyPressedDown }
                 IF NOT HelpRequired THEN BEGIN
                 END;
               END;
+            CtrlAltShift: {U}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
             ShiftAlt: {U}
               BEGIN
                 HelpMsg := '';
@@ -2915,6 +3035,12 @@ BEGIN { KeyPressedDown }
                   ELSE
                     DisplayFlashingTrackCircuits := True;
                   LOg('A Verbose flag set to ' + BoolToStr(DisplayFlashingTrackCircuits, True));
+                END;
+              END;
+            CtrlAltShift: {V}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
                 END;
               END;
             ShiftAlt: {V}
@@ -2973,6 +3099,12 @@ BEGIN { KeyPressedDown }
                   DrawWorkingTimetable(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
               END;
+            CtrlAltShift: {W}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
             ShiftAlt: {W}
               BEGIN
                 HelpMsg := '';
@@ -3026,6 +3158,12 @@ BEGIN { KeyPressedDown }
                 IF NOT HelpRequired THEN BEGIN
                 END;
               END;
+            CtrlAltShift: {X}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
             ShiftAlt: {X}
               BEGIN
                 HelpMsg := '';
@@ -3066,6 +3204,12 @@ BEGIN { KeyPressedDown }
         Ord('Y'):
           CASE ShiftKeys OF
             NoShiftKeys: {Y}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
+            CtrlAltShift: {Y}
               BEGIN
                 HelpMsg := '';
                 IF NOT HelpRequired THEN BEGIN
@@ -3193,6 +3337,12 @@ BEGIN { KeyPressedDown }
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
               END;
+            CtrlAltShift: {Z}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
             ShiftAlt: {Z}
               BEGIN
                 HelpMsg := '';
@@ -3233,6 +3383,12 @@ BEGIN { KeyPressedDown }
         Ord(187): { = or + } { used by numeric + and minus }
           CASE ShiftKeys OF
             NoShiftKeys: {=}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
+            CtrlAltShift: {+}
               BEGIN
                 HelpMsg := '';
                 IF NOT HelpRequired THEN BEGIN
@@ -3283,6 +3439,12 @@ BEGIN { KeyPressedDown }
                 IF NOT HelpRequired THEN BEGIN
                 END;
               END;
+            CtrlAltShift: {_}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
             ShiftAlt: {_}
               BEGIN
                 HelpMsg := '';
@@ -3328,6 +3490,12 @@ BEGIN { KeyPressedDown }
                 IF NOT HelpRequired THEN BEGIN
                 END;
               END;
+            CtrlAltShift: {<}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
             ShiftAlt: {<}
               BEGIN
                 HelpMsg := '';
@@ -3368,6 +3536,12 @@ BEGIN { KeyPressedDown }
         Ord(190): { . or > }
           CASE ShiftKeys OF
             NoShiftKeys: {.}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
+            CtrlAltShift: {>}
               BEGIN
                 HelpMsg := '';
                 IF NOT HelpRequired THEN BEGIN
@@ -3419,6 +3593,12 @@ BEGIN { KeyPressedDown }
                 IF NOT HelpRequired THEN
                   TestProc(OK);
               END;
+            CtrlAltShift: {?}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
             ShiftAlt: {?}
               BEGIN
                 HelpMsg := '';
@@ -3468,6 +3648,12 @@ BEGIN { KeyPressedDown }
                 IF NOT HelpRequired THEN BEGIN
                 END;
               END;
+            CtrlAltShift: {@}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
             ShiftAlt: {@}
               BEGIN
                 HelpMsg := '';
@@ -3508,6 +3694,12 @@ BEGIN { KeyPressedDown }
         Ord(220): {\ or |}
           CASE ShiftKeys OF
             NoShiftKeys: {\}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
+            CtrlAltShift: {|}
               BEGIN
                 HelpMsg := '';
                 IF NOT HelpRequired THEN BEGIN
@@ -3562,6 +3754,12 @@ BEGIN { KeyPressedDown }
                   CurrentRailwayTime := EncodeTime(Hour, Min, Sec, MSec);
                 END;
               END;
+            CtrlAltShift: {~}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
             ShiftAlt: {~}
               BEGIN
                 HelpMsg := '';
@@ -3612,6 +3810,12 @@ BEGIN { KeyPressedDown }
                   Debug('!*');
                 END;
               END;
+            CtrlAltShift: {Multiply}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
             ShiftAlt: {Multiply}
               BEGIN
                 HelpMsg := '';
@@ -3657,6 +3861,12 @@ BEGIN { KeyPressedDown }
                 IF NOT HelpRequired THEN BEGIN
                 END;
               END;
+            CtrlAltShift: {Insert}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
             ShiftAlt: {Insert}
               BEGIN
                 HelpMsg := '';
@@ -3697,6 +3907,12 @@ BEGIN { KeyPressedDown }
         vk_Delete:
           CASE ShiftKeys OF
             NoShiftKeys: {Delete}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
+            CtrlAltShift: {Delete}
               BEGIN
                 HelpMsg := '';
                 IF NOT HelpRequired THEN BEGIN
@@ -3749,6 +3965,12 @@ BEGIN { KeyPressedDown }
                     TurnAutoModeOff(ByUser)
                   ELSE
                     TurnAutoModeOn;
+                END;
+              END;
+            CtrlAltShift: {Enter}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
                 END;
               END;
             ShiftAlt: {Enter}
@@ -3827,6 +4049,12 @@ BEGIN { KeyPressedDown }
         //            Log('A Route clearing mode = on, clock set to midnight');
         //          END;
         //        END;
+              END;
+            CtrlAltShift: {Backspace}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
               END;
             ShiftAlt: {Backspace}
               BEGIN
@@ -3958,6 +4186,12 @@ BEGIN { KeyPressedDown }
                 IF NOT HelpRequired THEN BEGIN
                 END;
               END;
+            CtrlAltShift: {Left}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
             CtrlAlt: {Left}
               BEGIN
                 HelpMsg := '';
@@ -3997,6 +4231,12 @@ BEGIN { KeyPressedDown }
                 IF NOT HelpRequired THEN BEGIN
                   IF EditMode THEN
                     MoveObjectRight;
+                END;
+              END;
+            CtrlAltShift: {Right}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
                 END;
               END;
             ShiftAlt: {Right}
@@ -4039,6 +4279,12 @@ BEGIN { KeyPressedDown }
         vk_Up:
           CASE ShiftKeys OF
             NoShiftKeys: {Up}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
+            CtrlAltShift: {Up}
               BEGIN
                 HelpMsg := '';
                 IF NOT HelpRequired THEN BEGIN
@@ -4089,6 +4335,12 @@ BEGIN { KeyPressedDown }
                 IF NOT HelpRequired THEN BEGIN
                 END;
               END;
+            CtrlAltShift: {Down}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
             ShiftAlt: {Down}
               BEGIN
                 HelpMsg := '';
@@ -4133,6 +4385,12 @@ BEGIN { KeyPressedDown }
                 HelpMsg := 'stop or resume all operations';
                 IF NOT HelpRequired THEN
                   StopOrResumeAllOperations(DescribeKey(KeyToTest, InputShiftState));
+              END;
+            CtrlAltShift: {Space}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
               END;
             ShiftAlt: {Space}
               BEGIN
@@ -4195,6 +4453,12 @@ BEGIN { KeyPressedDown }
                     SetRailwayTimeInterval(Faster)
                 END;
               END;
+            CtrlAltShift: {Tab}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
             ShiftAlt: {Tab}
               BEGIN
                 HelpMsg := '';
@@ -4243,6 +4507,12 @@ BEGIN { KeyPressedDown }
                 IF NOT HelpRequired THEN
                   WriteHelpText(HelpMsg);
               END;
+            CtrlAltShift: {F1}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
             ShiftAlt: {F1}
               BEGIN
                 HelpMsg := '';
@@ -4289,6 +4559,12 @@ BEGIN { KeyPressedDown }
                   ShowSignalAndBufferStopNums := True;
                   WriteToStatusBarPanel(StatusBarPanel2, 'Showing signal and bufferstop numbers');
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
+                END;
+              END;
+            CtrlAltShift: {F2}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
                 END;
               END;
             ShiftAlt: {F2}
@@ -4372,6 +4648,12 @@ BEGIN { KeyPressedDown }
                   WriteToStatusBarPanel(StatusBarPanel2, 'Showing point numbers');
                   ShowPointDetail := True;
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
+                END;
+              END;
+            CtrlAltShift: {F3}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
                 END;
               END;
             ShiftAlt: {F3}
@@ -4471,6 +4753,12 @@ BEGIN { KeyPressedDown }
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
               END;
+            CtrlAltShift: {F4}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
             ShiftAlt: {F4}
               BEGIN
                 HelpMsg := 'Show which heel and non-heel lines that lock points';
@@ -4535,6 +4823,12 @@ BEGIN { KeyPressedDown }
                   WriteToStatusBarPanel(StatusBarPanel2, 'Showing track circuits');
                   ShowTrackCircuits := True;
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
+                END;
+              END;
+            CtrlAltShift: {F5}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
                 END;
               END;
             ShiftAlt: {F5}
@@ -4607,6 +4901,12 @@ BEGIN { KeyPressedDown }
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
               END;
+            CtrlAltShift: {F6}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
             ShiftAlt: {F6}
               BEGIN
                 HelpMsg := '';
@@ -4656,6 +4956,12 @@ BEGIN { KeyPressedDown }
                   ShowAreas := True;
                   WriteToStatusBarPanel(StatusBarPanel2, 'Showing areas (Holding=Yellow; Reversing=Red; H&R=Aqua; Neither=Green)');
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
+                END;
+              END;
+            CtrlAltShift: {F7}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
                 END;
               END;
             ShiftAlt: {F7}
@@ -4718,6 +5024,12 @@ BEGIN { KeyPressedDown }
                   WriteToStatusBarPanel(StatusBarPanel2, 'Showing track-circuit feedback data');
                   ShowTrackCircuitFeedbackDataInSeparateColours := True;
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
+                END;
+              END;
+            CtrlAltShift: {F8}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
                 END;
               END;
             ShiftAlt: {F8}
@@ -4787,6 +5099,12 @@ BEGIN { KeyPressedDown }
           CASE ShiftKeys OF
             NoShiftKeys: {F9}
               ; {avoid using F9 as that's the Delphi run key }
+            CtrlAltShift: {F8}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
             ShiftAlt: {F8}
               BEGIN
               END;
@@ -4857,6 +5175,12 @@ BEGIN { KeyPressedDown }
                 IF NOT HelpRequired THEN
                   ProcessLocationOccupations(NOT Rebuild, NOT WriteToFile);
               END;
+            CtrlAltShift: {F10}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
             ShiftAlt: {F10}
               BEGIN
                 HelpMsg := '';
@@ -4901,6 +5225,12 @@ BEGIN { KeyPressedDown }
                 HelpMsg := 'toggle lock list window visibility';
                 IF NOT HelpRequired THEN
                   WriteRouteInfoToLockListWindow;
+              END;
+            CtrlAltShift: {F11}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
               END;
             ShiftAlt: {F11}
               BEGIN
@@ -4971,6 +5301,12 @@ BEGIN { KeyPressedDown }
           { Note: this used to start the debugger if running in Delphi IDE debugger mode }
           CASE ShiftKeys OF
             NoShiftKeys: {F12}
+              BEGIN
+                HelpMsg := '';
+                IF NOT HelpRequired THEN BEGIN
+                END;
+              END;
+            CtrlAltShift: {F12}
               BEGIN
                 HelpMsg := '';
                 IF NOT HelpRequired THEN BEGIN
