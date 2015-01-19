@@ -2186,7 +2186,10 @@ BEGIN { DiagramsWindowGridMouseDown }
   ELSE BEGIN
     ColsAndRows := DiagramsWindowGrid.MouseCoord(X, Y);
 
-    IF (ColsAndRows.X > -1) AND (ColsAndRows.Y > -1) THEN BEGIN
+    IF (ColsAndRows.X = -1) AND (ColsAndRows.Y = -1) THEN
+      { there's no grid, or we're not on it, so just display the popup menu }
+      DiagramsPopupMenu.Popup(0, 0)
+    ELSE BEGIN
       IF (ColsAndRows.Y <> HeadingRow) AND (ColsAndRows.X <> SpeedCol) AND (Button = mbRight) THEN BEGIN
         { If it's a right click, do nothing if we are in the speed column, otherwise see if we want to control a train via the popup }
         T := FindTrainRecordFromColumnOne(ColsAndRows.Y);
