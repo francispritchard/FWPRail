@@ -4569,6 +4569,7 @@ BEGIN { KeyPressedDown }
                     ShowSignalsFromWhichUserMustDrive := False
                   ELSE
                     ShowSignalsFromWhichUserMustDrive := True;
+                  InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
                 END;
               END;
             ShiftAlt: {F2}

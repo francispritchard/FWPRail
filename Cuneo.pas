@@ -1827,7 +1827,7 @@ BEGIN
                           LineFoundArray[0] := UnknownLine;
                         END;
                       END ELSE
-                        FWPRailWindow.PopupMenu.Popup(MouseX, MouseY);
+                        FWPRailWindow.GeneralPopupMenu.Popup(MouseX, MouseY);
           END;
       END;
     END;

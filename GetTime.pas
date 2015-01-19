@@ -39,8 +39,23 @@ PROCEDURE RunTime(TimeSpeed : Integer);
 PROCEDURE SetRailwayTimeInterval(Interval : RailwayTimeIntervalType);
 { Sets the number of milliseconds required for a second }
 
+PROCEDURE SetCurrentRailwayDayOfTheWeek;
+{ Set a new day of the week }
+
+PROCEDURE NewSetCurrentRailwayTime;
+{ Sets the current railway time }
+
 PROCEDURE SetCurrentRailwayTimeAndDayOfTheWeek(TimeToSet : TDateTime);
 { Initialise the time and day of the week }
+
+PROCEDURE NewSetProgramStartTime;
+{ The result from this action is picked up in the TClockWindow.OKButtonClick routine in the GetTime unit }
+
+PROCEDURE NewSetDaylightStartTime;
+{ The result from this action is picked up in the TClockWindow.OKButtonClick routine in the GetTime unit }
+
+PROCEDURE NewSetDaylightEndTime;
+{ The result from this action is picked up in the TClockWindow.OKButtonClick routine in the GetTime unit }
 
 VAR
   ClockWindow: TClockWindow;
@@ -342,6 +357,64 @@ BEGIN
       Log('EG ControlTimeByMouseWheel: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { ClockWindowMouseWheel }
+
+PROCEDURE SetCurrentRailwayDayOfTheWeek;
+{ Set a new day of the week }
+VAR
+  DefaultStr : String;
+  NextDayOfTheWeek : DayOfTheWeekType;
+  Str : String;
+  UpperCaseStr : String;
+
+BEGIN
+  NextDayOfTheWeek := GetNextDayOfTheWeek(CurrentRailwayDayOfTheWeek);
+  DefaultStr := DayOfTheWeekToStr(NextDayOfTheWeek);
+
+  Str := InputBox('New Day of the Week', 'Enter new day of the week', DefaultStr);
+  UpperCaseStr := UpperCase(Str);
+
+  CurrentRailwayDayOfTheWeek := StrToDayOfTheWeek(UpperCaseStr);
+  IF CurrentRailwayDayOfTheWeek <> UnknownDayOfTheWeek THEN
+    SetCurrentRailwayTimeAndDayOfTheWeek(CurrentRailwayTime)
+  ELSE
+    Debug('!"' + Str + '" is an invalid day of the week');
+END; { SetCurrentRailwayDayOfTheWeekClick }
+
+PROCEDURE NewSetCurrentRailwayTime;
+{ Sets the current railway time }
+BEGIN
+  ClockWindow.Clock.Time := StrToTime(CurrentRailwayTimeStr);
+  ClockWindow.Caption := SetCurrentRailwayTimeCaption;
+  ClockWindow.Visible := True;
+  ClockWindow.OKButton.SetFocus;
+END; { SetCurrentRailwayTime }
+
+PROCEDURE NewSetProgramStartTime;
+{ The result from this action is picked up in the TClockWindow.OKButtonClick routine in the GetTime unit }
+BEGIN
+  ClockWindow.Clock.Time := ProgramStartTime;
+  ClockWindow.Caption := SetProgramStartTimeCaption;
+  ClockWindow.Visible := True;
+  ClockWindow.OKButton.SetFocus;
+END; { SetProgramStartTime }
+
+PROCEDURE NewSetDaylightStartTime;
+{ The result from this action is picked up in the TClockWindow.OKButtonClick routine in the GetTime unit }
+BEGIN
+  ClockWindow.Clock.Time := StrToTime(DaylightStartTimeStr);
+  ClockWindow.Caption := SetDaylightStartTimeCaption;
+  ClockWindow.Visible := True;
+  ClockWindow.OKButton.SetFocus;
+END; { SetDaylightStartTime }
+
+PROCEDURE NewSetDaylightEndTime;
+{ The result from this action is picked up in the TClockWindow.OKButtonClick routine in the GetTime unit }
+BEGIN
+  ClockWindow.Clock.Time := StrToTime(DaylightEndTimeStr);
+  ClockWindow.Caption := SetDaylightEndTimeCaption;
+  ClockWindow.Visible := True;
+  ClockWindow.OKButton.SetFocus;
+END; { SetDaylightEndTime }
 
 PROCEDURE InitialiseGetTimeUnit;
 { Such routines as this allow us to initialises the units in the order we wish }

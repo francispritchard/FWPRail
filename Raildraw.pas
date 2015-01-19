@@ -18,114 +18,12 @@ TYPE
     FlashTimer: TTimer;
     BufferStopPopupMenu: TPopupMenu;
     ChangePoint: TMenuItem;
-    ChangeSignal: TMenuItem;
     FWPRailApplicationEvents: TApplicationEvents;
     FWPRailWindowColourDialogue: TColorDialog;
     FWPRailWindowMenu: TMainMenu;
     FWPRailWindowPopupOpenDialogue: TOpenDialog;
     FWPRailWindowStatusBar: TStatusBar;
-    GeneralPopupBackgroundColour: TMenuItem;
-    GeneralPopupBufferStopColours: TMenuItem;
-    GeneralPopupChangeBackgroundColour: TMenuItem;
-    GeneralPopupChangeColours: TMenuItem;
-    GeneralPopupChangeDefaultPointColour: TMenuItem;
-    GeneralPopupChangeForegroundColour: TMenuItem;
-    GeneralPopupChangePenStyles: TMenuItem;
-    GeneralPopupChangePoint: TMenuItem;
-    GeneralPopupChangePointLockedBySystemColour: TMenuItem;
-    GeneralPopupChangePointLockedByUserColour: TMenuItem;
-    GeneralPopupChangePointManualOperationColour: TMenuItem;
-    GeneralPopupChangePointOutOfUseColour: TMenuItem;
-    GeneralPopupChangePointUndrawColour: TMenuItem;
-    GeneralPopupChangeScreenComponentEditedColour1: TMenuItem;
-    GeneralPopupChangeScreenComponentEditedColour2: TMenuItem;
-    GeneralPopupChangeSidingPenStyle: TMenuItem;
-    GeneralPopupChangeSignalAspectUnlitColour: TMenuItem;
-    GeneralPopupChangeSignalPostRouteSettingColour: TMenuItem;
-    GeneralPopupChangeSignalsUserMustDriveSignalPostColour: TMenuItem;
-    GeneralPopupChangeTCFeedbackDataInUseColour: TMenuItem;
-    GeneralPopupChangeTCFeedbackDataOutOfUseColour: TMenuItem;
-    GeneralPopupChangeTCFeedbackOccupationColour: TMenuItem;
-    GeneralPopupChangeTCOutOfUseSetByUserColour: TMenuItem;
-    GeneralPopupChangeTCPermanentFeedbackOccupationColour: TMenuItem;
-    GeneralPopupChangeTCPermanentOccupationSetByUserColour: TMenuItem;
-    GeneralPopupChangeTCPermanentOccupationSetByUserPenStyle: TMenuItem;
-    GeneralPopupChangeTCPermanentSystemOccupationColour: TMenuItem;
-    GeneralPopupChangeTCSpeedRestrictionColour: TMenuItem;
-    GeneralPopupClock: TMenuItem;
-    GeneralPopupDebugOptions: TMenuItem;
-    GeneralPopupDefaultLineColourTCUnoccupiedColourMessage: TMenuItem;
-    GeneralPopupDefaultPointColours: TMenuItem;
-    GeneralPopupForegroundColour: TMenuItem;
-    GeneralPopupLineColours: TMenuItem;
-    GeneralPopupLineRoutedOverColour: TMenuItem;
-    GeneralPopupListLocomotives: TMenuItem;
     GeneralPopupMenu: TPopupMenu;
-    GeneralPopupOperations: TMenuItem;
-    GeneralPopupPlatformColour: TMenuItem;
-    GeneralPopupPlungerColour: TMenuItem;
-    GeneralPopupPlungerOutlineColour: TMenuItem;
-    GeneralPopupPointColours: TMenuItem;
-    GeneralPopupPointFeedbackDataInUseColour: TMenuItem;
-    GeneralPopupPointLockedBySystemColour: TMenuItem;
-    GeneralPopupPointLockedByUserColour: TMenuItem;
-    GeneralPopupPointOutOfUseColour: TMenuItem;
-    GeneralPopupPointUndrawColour: TMenuItem;
-    GeneralPopupResetFWPRailWindowSizeAndPosition: TMenuItem;
-    GeneralPopupRestoreAllProgramDefaultSettings: TMenuItem;
-    GeneralPopupRestoreAllScreenDrawingDefaultSettings: TMenuItem;
-    GeneralPopupRestoreDefaultBackgroundColour: TMenuItem;
-    GeneralPopupRestoreForegroundColour: TMenuItem;
-    GeneralPopupRestorePointDefaultColour: TMenuItem;
-    GeneralPopupRestorePointLockedBySystemColour: TMenuItem;
-    GeneralPopupRestorePointLockedByUserColour: TMenuItem;
-    GeneralPopupRestorePointOutOfUseColour: TMenuItem;
-    GeneralPopupRestorePointUndrawColour: TMenuItem;
-    GeneralPopupRestoreScreenComponentEditedColour1: TMenuItem;
-    GeneralPopupRestoreScreenComponentEditedColour2: TMenuItem;
-    GeneralPopupRestoreSidingPenStyle: TMenuItem;
-    GeneralPopupRestoreSignalAspectUnlitColour: TMenuItem;
-    GeneralPopupRestoreSignalPostRouteSettingColour: TMenuItem;
-    GeneralPopupRestoreSignalsUserMustDriveSignalPostColour: TMenuItem;
-    GeneralPopupRestoreTCFeedbackDataInUseColour: TMenuItem;
-    GeneralPopupRestoreTCFeedbackDataOutOfUseColour: TMenuItem;
-    GeneralPopupRestoreTCFeedbackOccupationColour: TMenuItem;
-    GeneralPopupRestoreTCOutOfUseSetByUserColour: TMenuItem;
-    GeneralPopupRestoreTCPermanentFeedbackOccupationColour: TMenuItem;
-    GeneralPopupRestoreTCPermanentOccupationSetByUserColour: TMenuItem;
-    GeneralPopupRestoreTCPermanentOccupationSetByUserPenStyle: TMenuItem;
-    GeneralPopupRestoreTCPermanentSystemOccupationColour: TMenuItem;
-    GeneralPopupRestoreTCSpeedRestrictionColour: TMenuItem;
-    GeneralPopupRuler5: TMenuItem;
-    GeneralPopupRunClockFaster: TMenuItem;
-    GeneralPopupRunClockFastest: TMenuItem;
-    GeneralPopupRunClockNormally: TMenuItem;
-    GeneralPopupRunClockSlower: TMenuItem;
-    GeneralPopupScreenComponentEditedColour1: TMenuItem;
-    GeneralPopupScreenComponentEditedColour2: TMenuItem;
-    GeneralPopupSetCurrentRailwayDayOfTheWeek: TMenuItem;
-    GeneralPopupSetCurrentRailwayTime: TMenuItem;
-    GeneralPopupSetDaylightEndTime: TMenuItem;
-    GeneralPopupSetDaylightStartTime: TMenuItem;
-    GeneralPopupSetLogFileMaximumWidth: TMenuItem;
-    GeneralPopupSetProgramStartTime: TMenuItem;
-    GeneralPopupShowMainMenu: TMenuItem;
-    GeneralPopupShowTrackCircuit: TMenuItem;
-    GeneralPopupSidingPenStyle: TMenuItem;
-    GeneralPopupSidingPenStyleSolid: TMenuItem;
-    GeneralPopupSignalPostRouteSettingColour: TMenuItem;
-    GeneralPopupStartClock: TMenuItem;
-    GeneralPopupStopClock: TMenuItem;
-    GeneralPopupTCFeedbackDataInUseColour: TMenuItem;
-    GeneralPopupTCFeedbackDataOutOfUseColour: TMenuItem;
-    GeneralPopupTCFeedbackOccupationColour: TMenuItem;
-    GeneralPopupTCOutOfUseSetByUserColour: TMenuItem;
-    GeneralPopupTCPermanentFeedbackOccupationColour: TMenuItem;
-    GeneralPopupTCPermanentOccupationSetByUserColour: TMenuItem;
-    GeneralPopupTCPermanentOccupationSetByUserPenStyle: TMenuItem;
-    GeneralPopupTCPermanentSystemOccupation: TMenuItem;
-    GeneralPopupTCSpeedRestrictionColour: TMenuItem;
-    GeneralPopupTrainColours: TMenuItem;
     LinePopupMenu: TPopupMenu;
     MainClockMenu: TMenuItem;
     MainClockMenuRunClockFastest: TMenuItem;
@@ -158,8 +56,6 @@ TYPE
     MainRunMenuResumeOperations: TMenuItem;
     PointPopupMenu: TPopupMenu;
     PopupTimer: TTimer;
-    ResetSizeAndPositionOfAllWindows: TMenuItem;
-    RestorePointFeedbackDataInUseColour: TMenuItem;
     SetDaylightEnd: TMenuItem;
     SetDayLightStart: TMenuItem;
     SignalPopupMenu: TPopupMenu;
@@ -184,205 +80,8 @@ TYPE
     PROCEDURE FWPRailWindowShortCut(VAR Msg: TWMKey; VAR Handled: Boolean);
     PROCEDURE FWPRailWindowStatusBarClick(Sender: TObject);
     PROCEDURE FWPRailWindowStatusBarMouseMove(Sender: TObject; ShiftState: TShiftState; X, Y: Integer);
-    PROCEDURE GeneralPopupChangeBackgroundColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangeBufferStopColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangeBufferStopNumberColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangeBufferStopRedClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangeDefaultPointColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangeForegroundColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangePointLenzNumberColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangeLineNotAvailableColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangeLineRoutedOverColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangeLocoStalledColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangePlatformColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangePlungerColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangePlungerOutlineColour(Sender: TObject);
-    PROCEDURE GeneralPopupChangePlungerPressedColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangePointClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangePointDivergingLineColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangePointDownFacingColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangePointFeedbackDataInUseColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangePointFeedbackDataOutOfUseColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangePointHeelLineColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangePointLockedBySystemColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangePointLockedByUserColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangePointManualOperationColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangePointOutOfUseColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangePointStraightLineColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangePointsWithoutFeedbackColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangePointUndrawColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangePointUpFacingColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangeScreenComponentEditedColour1Click(Sender: TObject);
-    PROCEDURE GeneralPopupChangeScreenComponentEditedColour2Click(Sender: TObject);
-    PROCEDURE GeneralPopupChangeShowPointDefaultStateColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangeSignalAspectGreenClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangeSignalAspectRedClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangeSignalAspectUnlitColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangeSignalAspectYellowClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangeSignalClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangeSignalNumberColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangeSignalPostEmergencyRouteSettingColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangeSignalPostRouteSettingColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangeSignalPostTheatreSettingColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangeSignalsUserMustDriveSignalPostColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangeTCFeedbackDataInUseColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangeTCFeedbackDataOutOfUseColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangeTCFeedbackOccupationButOutOfUseColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangeTCFeedbackOccupationColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangeTCLocoOutOfPlaceColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangeTCMissingOccupationColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangeTCOutOfUseAsNoFeedbackReceivedColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangeTCOutOfUseSetByUserColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangeTCPermanentFeedbackOccupationColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangeTCPermanentOccupationSetByUserColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangeTCPermanentSystemOccupationColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangeTCSpeedRestrictionColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangeTCSystemOccupationColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangeTCUnoccupiedColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangeTrainActiveColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupChangeTrainInactiveColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupDebugOptionsClick(Sender: TObject);
-    PROCEDURE GeneralPopupFiddleyardLinePenStyleClearClick(Sender: TObject);
-    PROCEDURE GeneralPopupFiddleyardLinePenStyleDashClick(Sender: TObject);
-    PROCEDURE GeneralPopupFiddleyardLinePenStyleDashDotClick(Sender: TObject);
-    PROCEDURE GeneralPopupFiddleyardLinePenStyleDashDotDotClick(Sender: TObject);
-    PROCEDURE GeneralPopupFiddleyardLinePenStyleDotClick(Sender: TObject);
-    PROCEDURE GeneralPopupFiddleyardLinePenStyleInsideFrameClick(Sender: TObject);
-    PROCEDURE GeneralPopupFiddleyardLinePenStyleSolidClick(Sender: TObject);
-    PROCEDURE GeneralPopupListLocomotivesClick(Sender: TObject);
+    PROCEDURE GeneralPopupItemClick(Sender: TObject);
     PROCEDURE GeneralPopupMenuOnPopup(Sender: TObject);
-    PROCEDURE GeneralPopupProjectedLinePenStyleClearClick(Sender: TObject);
-    PROCEDURE GeneralPopupProjectedLinePenStyleDashClick(Sender: TObject);
-    PROCEDURE GeneralPopupProjectedLinePenStyleDashDotClick(Sender: TObject);
-    PROCEDURE GeneralPopupProjectedLinePenStyleDashDotDotClick(Sender: TObject);
-    PROCEDURE GeneralPopupProjectedLinePenStyleDotClick(Sender: TObject);
-    PROCEDURE GeneralPopupProjectedLinePenStyleInsideFrameClick(Sender: TObject);
-    PROCEDURE GeneralPopupProjectedLinePenStyleSolidClick(Sender: TObject);
-    PROCEDURE GeneralPopupResetFWPRailWindowSizeAndPositionClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreAllDefaultColoursClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreAllProgramDefaultSettingsClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreAllScreenDrawingDefaultSettingsClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreBufferStopColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreBufferStopNumberColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreBufferStopRedClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreDefaultBackgroundColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreFiddleyardLinePenStyleClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreForegroundColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestorePointLenzNumberColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreLineNotAvailableColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreLineRoutedOverColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreLocoStalledColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestorePlatformColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestorePlungerColour(Sender: TObject);
-    PROCEDURE GeneralPopupRestorePlungerOutlineColour(Sender: TObject);
-    PROCEDURE GeneralPopupRestorePlungerPressedColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestorePointDefaultColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestorePointDivergingLineColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestorePointDownFacingColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestorePointFeedbackDataInUseColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestorePointFeedbackDataOutOfUseColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestorePointHeelLineColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestorePointLockedBySystemColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestorePointLockedByUserColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestorePointManualOperationColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestorePointOutOfUseColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestorePointStraightLineColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestorePointsWithoutFeedbackColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestorePointUndrawColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestorePointUpFacingColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreProjectedLinePenStyleClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreScreenComponentEditedColour1Click(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreScreenComponentEditedColour2Click(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreShowPointDefaultStateColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreSidingPenStyleClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreSignalAspectGreenClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreSignalAspectRedClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreSignalAspectUnlitColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreSignalAspectYellowClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreSignalNumberColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreSignalPostEmergencyRouteSettingColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreSignalPostRouteSettingColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreSignalPostTheatreSettingColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreSignalsUserMustDriveSignalPostColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreTCFeedbackDataInUseColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreTCFeedbackDataOutOfUseColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreTCFeedbackOccupationButOutOfUseColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreTCFeedbackOccupationColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreTCLocoOutOfPlaceColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreTCLocoOutOfPlaceOccupationPenStyleClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreTCMissingOccupationColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreTCOutOfUseAsNoFeedbackReceivedColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreTCOutOfUseAsNoFeedbackReceivedPenStyleClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreTCOutOfUseSetByUserColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreTCOutOfUseSetByUserPenStyleClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreTCPermanentFeedbackOccupationColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreTCPermanentFeedbackOccupationPenStyleClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreTCPermanentOccupationSetByUserColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreTCPermanentOccupationSetByUserPenStyleClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreTCPermanentSystemOccupationColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreTCPermanentSystemOccupationPenStyleClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreTCSpeedRestrictionColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreTCSystemOccupationColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreTCUnoccupiedColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreTrainActiveColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRestoreTrainInactiveColourClick(Sender: TObject);
-    PROCEDURE GeneralPopupRunClockFasterClick(Sender: TObject);
-    PROCEDURE GeneralPopupRunClockFastestClick(Sender: TObject);
-    PROCEDURE GeneralPopupRunClockNormallyClick(Sender: TObject);
-    PROCEDURE GeneralPopupRunClockSlowerClick(Sender: TObject);
-    PROCEDURE GeneralPopupSetCurrentRailwayDayOfTheWeekClick(Sender: TObject);
-    PROCEDURE GeneralPopupSetLogFileMaximumWidthClick(Sender: TObject);
-    PROCEDURE GeneralPopupShowMainMenuClick(Sender: TObject);
-    PROCEDURE GeneralPopupShowTrackCircuitClick(Sender: TObject);
-    PROCEDURE GeneralPopupSidingPenStyleClearClick(Sender: TObject);
-    PROCEDURE GeneralPopupSidingPenStyleDashClick(Sender: TObject);
-    PROCEDURE GeneralPopupSidingPenStyleDashDotClick(Sender: TObject);
-    PROCEDURE GeneralPopupSidingPenStyleDashDotDotClick(Sender: TObject);
-    PROCEDURE GeneralPopupSidingPenStyleDotClick(Sender: TObject);
-    PROCEDURE GeneralPopupSidingPenStyleInsideFrameClick(Sender: TObject);
-    PROCEDURE GeneralPopupSidingPenStyleSolidClick(Sender: TObject);
-    PROCEDURE GeneralPopupTCLocoOutOfPlaceOccupationPenStyleClearClick(Sender: TObject);
-    PROCEDURE GeneralPopupTCLocoOutOfPlaceOccupationPenStyleDashClick(Sender: TObject);
-    PROCEDURE GeneralPopupTCLocoOutOfPlaceOccupationPenStyleDashDotClick(Sender: TObject);
-    PROCEDURE GeneralPopupTCLocoOutOfPlaceOccupationPenStyleDashDotDotClick(Sender: TObject);
-    PROCEDURE GeneralPopupTCLocoOutOfPlaceOccupationPenStyleDotClick(Sender: TObject);
-    PROCEDURE GeneralPopupTCLocoOutOfPlaceOccupationPenStyleInsideFrameClick(Sender: TObject);
-    PROCEDURE GeneralPopupTCLocoOutOfPlaceOccupationPenStyleSolidClick(Sender: TObject);
-    PROCEDURE GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleClearClick(Sender: TObject);
-    PROCEDURE GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleDashClick(Sender: TObject);
-    PROCEDURE GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleDashDotClick(Sender: TObject);
-    PROCEDURE GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleDashDotDotClick(Sender: TObject);
-    PROCEDURE GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleDotClick(Sender: TObject);
-    PROCEDURE GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleInsideFrameClick(Sender: TObject);
-    PROCEDURE GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleSolidClick(Sender: TObject);
-    PROCEDURE GeneralPopupTCOutOfUseSetByUserPenStyleClearClick(Sender: TObject);
-    PROCEDURE GeneralPopupTCOutOfUseSetByUserPenStyleDashClick(Sender: TObject);
-    PROCEDURE GeneralPopupTCOutOfUseSetByUserPenStyleDashDotClick(Sender: TObject);
-    PROCEDURE GeneralPopupTCOutOfUseSetByUserPenStyleDashDotDotClick(Sender: TObject);
-    PROCEDURE GeneralPopupTCOutOfUseSetByUserPenStyleDotClick(Sender: TObject);
-    PROCEDURE GeneralPopupTCOutOfUseSetByUserPenStyleInsideFrameClick(Sender: TObject);
-    PROCEDURE GeneralPopupTCOutOfUseSetByUserPenStyleSolidClick(Sender: TObject);
-    PROCEDURE GeneralPopupTCPermanentFeedbackOccupationPenStyleClearClick(Sender: TObject);
-    PROCEDURE GeneralPopupTCPermanentFeedbackOccupationPenStyleDashClick(Sender: TObject);
-    PROCEDURE GeneralPopupTCPermanentFeedbackOccupationPenStyleDashDotClick(Sender: TObject);
-    PROCEDURE GeneralPopupTCPermanentFeedbackOccupationPenStyleDashDotDotClick(Sender: TObject);
-    PROCEDURE GeneralPopupTCPermanentFeedbackOccupationPenStyleDotClick(Sender: TObject);
-    PROCEDURE GeneralPopupTCPermanentFeedbackOccupationPenStyleInsideFrameClick(Sender: TObject);
-    PROCEDURE GeneralPopupTCPermanentFeedbackOccupationPenStyleSolidClick(Sender: TObject);
-    PROCEDURE GeneralPopupTCPermanentOccupationSetByUserPenStyleClearClick(Sender: TObject);
-    PROCEDURE GeneralPopupTCPermanentOccupationSetByUserPenStyleDashClick(Sender: TObject);
-    PROCEDURE GeneralPopupTCPermanentOccupationSetByUserPenStyleDashDotClick(Sender: TObject);
-    PROCEDURE GeneralPopupTCPermanentOccupationSetByUserPenStyleDashDotDotClick(Sender: TObject);
-    PROCEDURE GeneralPopupTCPermanentOccupationSetByUserPenStyleDotClick(Sender: TObject);
-    PROCEDURE GeneralPopupTCPermanentOccupationSetByUserPenStyleInsideFrameClick(Sender: TObject);
-    PROCEDURE GeneralPopupTCPermanentOccupationSetByUserPenStyleSolidClick(Sender: TObject);
-    PROCEDURE GeneralPopupTCPermanentSystemOccupationPenStyleClearClick(Sender: TObject);
-    PROCEDURE GeneralPopupTCPermanentSystemOccupationPenStyleDashClick(Sender: TObject);
-    PROCEDURE GeneralPopupTCPermanentSystemOccupationPenStyleDashDotClick(Sender: TObject);
-    PROCEDURE GeneralPopupTCPermanentSystemOccupationPenStyleDashDotDotClick(Sender: TObject);
-    PROCEDURE GeneralPopupTCPermanentSystemOccupationPenStyleDotClick(Sender: TObject);
-    PROCEDURE GeneralPopupTCPermanentSystemOccupationPenStyleInsideFrameClick(Sender: TObject);
-    PROCEDURE GeneralPopupTCPermanentSystemOccupationPenStyleSolidClick(Sender: TObject);
     PROCEDURE HelpMenuAboutClick(Sender: TObject);
     PROCEDURE LinePopupItemClick(Sender: TObject);
     PROCEDURE LinePopupMenuOnPopup(Sender: TObject);
@@ -433,14 +132,126 @@ TYPE
     { Third of three routines which allow the program to be minimised by pressing the "minimize" button and then maximised from the taskbar }
   END;
 
+  MenuPopupTypes = (NoClickPopupType,
+                    { General Menu }
+                    ShowMainMenusPopupType, ClockSubMenuPopupType, StartClockPopupType, StopClockPopupType,
+                    RunClockNormallyPopupType, RunClockSlowerPopupType, RunClockFasterPopupType, RunClockFastestPopupType,
+                    SetCurrentRailwayTimePopupType, SetCurrentRailwayDayOfTheWeekPopupType, SetProgramStartTimePopupType,
+                    SetDaylightStartTimePopupType, SetDaylightEndTimePopupType,
+
+                    ChangeBackgroundColourPopupType, RestoreBackgroundColourPopupType,
+                    ChangeForegroundColourPopupType, RestoreForegroundColourPopupType,
+                    ChangeBufferStopColourPopupType, RestoreBufferStopColourPopupType,
+                    ChangeBufferStopNumberColourPopupType, RestoreBufferStopNumberColourPopupType,
+                    ChangeBufferStopRedPopupType, RestoreBufferStopRedPopupType,
+                    ChangeLineRoutedOverColourPopupType, RestoreLineRoutedOverColourPopupType,
+                    ChangeLineNotAvailableColourPopupType, RestoreLineNotAvailableColourPopupType,
+                    ChangeLocoStalledColourPopupType, RestoreLocoStalledColourPopupType,
+                    ChangeTCFeedbackOccupationColourPopupType, RestoreTCFeedbackOccupationColourPopupType,
+                    ChangeTCFeedbackOccupationButOutOfUseColourPopupType, RestoreTCFeedbackOccupationButOutOfUseColourPopupType,
+                    ChangeTCFeedbackDataInUseColourPopupType, RestoreTCFeedbackDataInUseColourPopupType,
+                    ChangeTCFeedbackDataOutOfUseColourPopupType, RestoreTCFeedbackDataOutOfUseColourPopupType,
+                    ChangeTCMissingOccupationColourPopupType, RestoreTCMissingOccupationColourPopupType,
+                    ChangeTCPermanentFeedbackOccupationColourPopupType, RestoreTCPermanentFeedbackOccupationColourPopupType,
+                    ChangeTCPermanentOccupationSetByUserColourPopupType, RestoreTCPermanentOccupationSetByUserColourPopupType,
+                    ChangeTCPermanentSystemOccupationColourPopupType, RestoreTCPermanentSystemOccupationColourPopupType,
+                    ChangeTCSpeedRestrictionColourPopupType, RestoreTCSpeedRestrictionColourPopupType,
+                    ChangeTCSystemOccupationColourPopupType, RestoreTCSystemOccupationColourPopupType,
+                    ChangeTCOutOfUseSetByUserColourPopupType, RestoreTCOutOfUseSetByUserColourPopupType,
+                    ChangeTCOutOfUseAsNoFeedbackReceivedColourPopupType, RestoreTCOutOfUseAsNoFeedbackReceivedColourPopupType,
+                    ChangeTCUnoccupiedColourPopupType, RestoreTCUnoccupiedColourPopupType,
+
+                    ChangePlatformColourPopupType, RestorePlatformColourPopupType,
+                    ChangeTRSPlungerColourPopupType, RestoreTRSPlungerColourPopupType,
+                    ChangeTRSPlungerPressedColourPopupType, RestoreTRSPlungerPressedColourPopupType,
+                    ChangeTRSPlungerOutlineColourPopupType, RestoreTRSPlungerOutlineColourPopupType,
+
+                    ChangeDefaultPointColourPopupType, RestoreDefaultPointColourPopupType,
+                    ChangePointDivergingLineColourPopupType, RestorePointDivergingLineColourPopupType,
+                    ChangePointDownFacingColourPopupType, RestorePointDownFacingColourPopupType,
+                    ChangePointFeedbackDataInUseColourPopupType, RestorePointFeedbackDataInUseColourPopupType,
+                    ChangePointFeedbackDataOutOfUseColourPopupType, RestorePointFeedbackDataOutOfUseColourPopupType,
+                    ChangePointHeelLineColourPopupType, RestorePointHeelLineColourPopupType,
+                    ChangePointLenzNumberColourPopupType, RestorePointLenzNumberColourPopupType,
+                    ChangePointLockedBySystemColourPopupType, RestorePointLockedBySystemColourPopupType,
+                    ChangePointLockedByUserColourPopupType, RestorePointLockedByUserColourPopupType,
+                    ChangePointManualOperationColourPopupType, RestorePointManualOperationColourPopupType,
+                    ChangePointOutOfUseColourPopupType, RestorePointOutOfUseColourPopupType,
+                    ChangePointStraightLineColourPopupType, RestorePointStraightLineColourPopupType,
+                    ChangePointUndrawColourPopupType, RestorePointUndrawColourPopupType,
+                    ChangePointUpFacingColourPopupType, RestorePointUpFacingColourPopupType,
+                    ChangePointsWithoutFeedbackColourPopupType, RestorePointsWithoutFeedbackColourPopupType,
+                    ChangePointDefaultStateColourPopupType, RestorePointDefaultStateColourPopupType,
+
+                    ChangeSignalAspectRedPopupType, RestoreSignalAspectRedPopupType,
+                    ChangeSignalAspectGreenPopupType, RestoreSignalAspectGreenPopupType,
+                    ChangeSignalAspectYellowPopupType, RestoreSignalAspectYellowPopupType,
+                    ChangeSignalAspectUnlitPopupType, RestoreSignalAspectUnlitPopupType,
+                    ChangeSignalNumberColourPopupType, RestoreSignalNumberColourPopupType,
+                    ChangeSignalPostBaseColourPopupType, RestoreSignalPostBaseColourPopupType,
+                    ChangeSignalPostRouteSettingColourPopupType, RestoreSignalPostRouteSettingColourPopupType,
+                    ChangeSignalPostEmergencyRouteSettingColourPopupType, RestoreSignalPostEmergencyRouteSettingColourPopupType,
+                    ChangeSignalPostTheatreSettingColourPopupType, RestoreSignalPostTheatreSettingColourPopupType,
+                    ChangeSignalsFromWhichUserMustDriveSignalPostColourPopupType, RestoreSignalsFromWhichUserMustDriveSignalPostColourPopupType,
+
+                    ChangeTrainActiveColourPopupType, RestoreTrainActiveColourPopupType,
+                    ChangeTrainInactiveColourPopupType, RestoreTrainInactiveColourPopupType,
+                    ChangeScreenComponentEditedColour1PopupType, RestoreScreenComponentEditedColour1PopupType,
+                    ChangeScreenComponentEditedColour2PopupType, RestoreScreenComponentEditedColour2PopupType,
+
+                    RestoreAllDefaultColoursPopupType,
+
+                    SolidPenStylePopupType, DashPenStylePopupType, DotPenStylePopupType, DashDotPenStylePopupType, DashDotDotPenStylePopupType, ClearPenStylePopupType,
+                    InsideFramePenStylePopupType,
+
+                    ChangePointPopupType, ChangeSignalPopupType, ListLocomotivesPopupType, ShowTrackCircuitPopupType, DebugOptionsPopupType,
+
+                    ResetMainWindowSizeAndPositionPopupType, ResetSizeAndPositionOfAllWindowsPopupType, RestoreAllScreenDrawingDefaultSettingsPopupType,
+                    RestoreAllProgramDefaultSettingsPopupType,
+
+                    { Signals Menu }
+                    SignalChangeDirectionPopupType, SignalDeletePopupType, SignalEditPopupType, SignalOutOfUsePopupType, SignalUndoChangesPopupType,
+                    SignalUserMustDriveFromPopupType,
+
+                    { Points Menu}
+                    PointDeletePopupType, PointEditPopupType, PointOutOfUsePopupType, PointToManualPopupType, PointUnlockPopupType,
+
+                    { BufferStops Menu }
+                    BufferStopEditPopupType,
+                    { Lines with locos }
+                    LineAllocateLocoToTrackCircuitPopupType, LineChangeInternalLocoDirectionToDownPopupType, LineChangeInternalLocoDirectionToUpPopupType,
+                    { Lines with points }
+                    LineCreateCatchPointUpPopupType, LineCreateCatchPointDownPopupType, LineCreateOrdinaryPointPopupType, LineCreateCrossOverPointPopupType,
+                    LineCreateThreeWayPointAPopupType, LineCreateThreeWayPointBPopupType,
+                    { Lines with signals }
+                    LineCreateDownSignalPopupType, LineCreateUpSignalPopupType,
+                    { Lines out of use }
+                    LineLocationOutOfUsePopupType, LineOutOfUsePopupType,
+                    { Lines miscellaneous }
+                    LineDeletePopupType,
+                    LineEnterCreateLineModePopupType, LineExitCreateLineModePopupType, LineEnterEditModePopupType, LineExitEditModePopupType,
+                    LineEditPopupType,
+                    LineShowLocoLastErrorMessagePopupType,
+                    LineSplitPopupType, LineJoinPopupType,
+                    { Line track circuits }
+                    LineTCFeedbackOccupationPopupType, LineTCOutOfUsePopupType, LineTCPermanentOccupationPopupType, LineTCSpeedRestrictionPopupType,
+                    LineTCSystemOccupationPopupType, LineTCUnoccupiedPopupType, LineAllocateExistingTrackCircuitPopupType,
+                    LineAllocateNewTrackCircuitPopupType, LineRemoveTrackCircuitPopupType);
+
+  PenStylePopupTypes = (SidingPenStylePopupType, FiddleyardLinePenStylePopupType, ProjectedLinePenStylePopupType, TCOutOfUseAsNoFeedbackReceivedPenStylePopupType,
+                        TCOutOfUseSetByUserPenStylePopupType, TCPermanentFeedbackOccupationPenStylePopupType, TCPermanentOccupationSetByUserPenStylePopupType,
+                        TCPermanentSystemOccupationPenStylePopupType, TCLocoOutOfPlacePenStylePopupType, NoPenStylePopupType);
+
  TMenuItemExtended = CLASS(TMenuItem)
  PRIVATE
    fValue: String;
-   fPopupType : MenuPopupTypes;
+   fMenuPopupType : MenuPopupTypes;
+   fPenStylePopupType : PenStylePopupTypes;
 
  PUBLISHED
    PROPERTY Value : String Read fValue Write fValue;
-   PROPERTY PopupType : MenuPopupTypes Read fPopupType Write fPopupType;
+   PROPERTY MenuPopupType : MenuPopupTypes Read fMenuPopupType Write fMenuPopupType;
+   PROPERTY PenStylePopupType : PenStylePopupTypes Read fPenStylePopupType Write fPenStylePopupType;
  END;
 
 PROCEDURE CanvasTextOutAngle(X, Y : Integer; D : Word; S : String);
@@ -585,18 +396,18 @@ VAR
   SaveLocoStalledColourForPrinting : TColor;
   SavePlatformColourForPrinting : TColor;
   SavePointColourForPrinting : TColor;
+  SavePointDefaultStateColourForPrinting : TColor;
   SavePointDivergingLineColourForPrinting : TColor;
   SavePointDownFacingColourForPrinting : TColor;
   SavePointFeedbackDataInUseColourForPrinting : TColor;
   SavePointFeedbackDataOutOfUseColourForPrinting : TColor;
   SavePointHeelLineColourForPrinting : TColor;
   SavePointLenzNumberColourForPrinting : TColor;
+  SavePointLockedBySystemColourForPrinting : TColor;
   SavePointManualOperationColourForPrinting : TColor;
   SavePointStraightLineColourForPrinting :TColor;
   SavePointsWithoutFeedbackColourForPrinting : TColor;
   SavePointUpFacingColourForPrinting : TColor;
-  SaveShowPointDefaultStateColourForPrinting : TColor;
-  SaveShowPointLockedColourForPrinting : TColor;
   SaveShowSignalJunctionDestinations : Boolean = False;
   SaveScreenComponentEditedColour1ForPrinting : TColor;
   SaveScreenComponentEditedColour2ForPrinting : TColor;
@@ -604,7 +415,7 @@ VAR
   SaveSignalPostColourForPrinting : TColor;
   SaveSignalPostRouteSettingColourForPrinting : TColor;
   SaveSignalPostTheatreSettingColourForPrinting : TColor;
-  SaveSignalsUserMustDriveSignalPostColour : TColor;
+  SaveSignalsFromWhichUserMustDriveSignalPostColour : TColor;
   SaveTCMissingOccupationColourForPrinting : TColor;
   SaveTCFeedbackOccupationColourForPrinting : TColor;
   SaveTCOutOfUseSetByUserColourForPrinting : TColor;
@@ -1769,7 +1580,7 @@ BEGIN
                       Signal_LineWithVerticalSpacingY + SignalRadiusScaled - ScrollBarYAdjustment);
 
             IF ShowSignalsFromWhichUserMustDrive AND Signal_UserMustDrive THEN
-              Pen.Color := SignalsUserMustDriveSignalPostColour
+              Pen.Color := SignalsFromWhichUserMustDriveSignalPostColour
             ELSE
               Pen.Color := Signals[S].Signal_PostColour;
 
@@ -1795,7 +1606,7 @@ BEGIN
                         Signal_LineWithVerticalSpacingY + SignalVerticalSpacingScaled - RailWindowBitmapCanvasPenWidth - ScrollBarYAdjustment);
 
               IF ShowSignalsFromWhichUserMustDrive AND Signal_UserMustDrive THEN
-                Pen.Color := SignalsUserMustDriveSignalPostColour
+                Pen.Color := SignalsFromWhichUserMustDriveSignalPostColour
               ELSE
                 Pen.Color := Signals[S].Signal_PostColour;
 
@@ -2479,6 +2290,7 @@ VAR
   X1, X2, Y1, Y2 : Integer;
 topleftx, toprightx, bottomleftx, bottomrightx : integer;
 toplefty, toprighty, bottomlefty, bottomrighty : integer;
+	AX, AY, BX, BY, DX, DY, MX, MY : Integer;
 label endlabel;
 
   PROCEDURE DrawDottedLine(UpX, UpY, DownX, DownY : Integer);
@@ -2710,32 +2522,10 @@ BEGIN
                 END;
             END; {CASE}
           END;
-
 //          IF ShowLineOccupationDetail AND (LineTextStr <> '') AND (TempLineText <> ClearLineString) THEN BEGIN
-//            { needs text if there's room }
-//            IF ((ScreenDownX - ScreenUpX > TextWidth(LineTextStr)) OR (ScreenUpX - ScreenDownX > TextWidth(LineTextStr)))
-//            THEN BEGIN
-//              { clear space for the text }
-//              Brush.Color := BackgroundColour;
-//              IF ScreenColoursSetForPrinting THEN
-//                Font.Color := clBlack;
-//              Font.Height := -MulDiv(FWPRailWindow.ClientHeight, LineFontHeight, ZoomScalefactor);
-//
-//              DeltaX := ScreenUpX - ScreenDownX;
-//              DeltaY := ScreenUpY - ScreenDownY;
-//
-//              Font.Orientation := - Round(RadToDeg(ArcTan(DeltaY / DeltaX)) * 10);
-//              TextOut(ScreenUpX + ((ScreenDownX - ScreenUpX - TextWidth(LineTextStr)) DIV 2) - ScrollBarXAdjustment,
-//                      ((ScreenUpY + ScreenDownY) DIV 2) - (LineFontHeight DIV 2) - ScrollBarYAdjustment,
-//                      LineTextStr);
-//            END;
-//          END;
-
-//          IF ShowLineOccupationDetail AND (LineTextStr <> '') AND (TempLineText <> ClearLineString) THEN BEGIN
-//            { needs text if there's room }
-goto endlabel;
+            { needs text if there's room }
 begin
-linetextstr := 'hello';
+//linetextstr := 'hello';
             IF ((ScreenDownX - ScreenUpX > TextWidth(LineTextStr)) OR (ScreenUpX - ScreenDownX > TextWidth(LineTextStr)))
             THEN BEGIN
               { clear space for the text }
@@ -2744,73 +2534,33 @@ linetextstr := 'hello';
                 Font.Color := clBlack;
               Font.Height := -MulDiv(FWPRailWindow.ClientHeight, LineFontHeight, ZoomScalefactor);
 
-              DeltaX := ScreenUpX - ScreenDownX;
-              DeltaY := ScreenUpY - ScreenDownY;
-              Theta := -ArcTan(DeltaY / DeltaX);
-              TextX := (ScreenUpX + ScreenDownX) DIV 2;
-              TextY := (ScreenUpY + ScreenDownY) DIV 2;
-	      AdjX := -TextWidth(LineTextStr) * 2;
-              AdjY := -abs(Font.Height * 2);
-//if linetostr(line) = 'DMC24' then begin
-//  debug(floattostr(radtodeg(theta)));
-//  debug('adx=' + floattostr(adjx) + ' adjy=' + floattostr(adjy));
-//end;
+              { this might not be needed if (ScreenUpX<ScreenDownX) is constant }
+              if ScreenUpX<ScreenDownX THEN BEGIN
+ 	              AX := ScreenUpX;
+ 	              AY := ScreenUpY;
+ 	              BX := ScreenDownX;
+ 	              BY := ScreenDownY;
+ 	            END ELSE BEGIN
+ 	              AX := ScreenDownX;
+ 	              AY := ScreenDownY;
+ 	              BX := ScreenUpX;
+ 	              BY := ScreenUpY;
+ 	            END;
 
-              TextCos := cos(Theta);
-              TextSin := sin(Theta);
-if linetostr(line) = 'DMC24' then begin
-  debug(floattostr(round(AdjX * TextCos - AdjY * TextSin)));
-  debug(floattostr(round(AdjX * TextSin - AdjY * TextCos)));
-end;
-              X1 := TextX + Round(AdjX * TextCos - AdjY * TextSin);
-              Y1 := TextY - Round(AdjX * TextSin - AdjY * TextCos);
+              DX := BX-AX;
+              DY := BY-AY;
+              Theta := ArcTan2(-DY, DX); // -DY because ArcTan2 uses up as +ve y, not down.
+
+							AdjX := -TextWidth(LineTextStr)/2;
+							AdjY := -abs(Font.Height/2);
+							TextCos := cos(Theta);
+							TextSin := sin(Theta);
+							TextX := ((AX+BX) DIV 2) + Round(AdjX*TextCos - AdjY*TextSin);
+							TextY := ((AY+BY) DIV 2) - Round(AdjX*TextSin - AdjY*TextCos);
+
               Font.Orientation := Round(RadToDeg(Theta) * 10);
-font.Color := clfwporange;
-              TextOut(X1 - ScrollBarXAdjustment, Y1 - ScrollBarYAdjustment, LineTextStr);
-              X2 := TextX - Round(AdjX * TextCos - AdjY * TextSin);
-              Y2 := TextY + Round(AdjX * TextSin - AdjY * TextCos);
+              TextOut(TextX - ScrollBarXAdjustment, TextY - ScrollBarYAdjustment, LineTextStr);
 
-topleftx := TextX + Round(AdjX * TextCos - AdjY * TextSin);
-toprightx := TextX + Round(-AdjX * TextCos - AdjY * TextSin);
-bottomleftx := TextX + Round(AdjX * TextCos - -AdjY * TextSin);
-bottomrightx := TextX + Round(-AdjX * TextCos - -AdjY * TextSin);
-
-toplefty := TextY + Round(AdjX * TextSin - AdjY * TextCos);
-toprighty := TextY + Round(-AdjX * TextSin - AdjY * TextCos);
-bottomlefty := TextY + Round(AdjX * TextSin - -AdjY * TextCos);
-bottomrighty := TextY + Round(-AdjX * TextSin - -AdjY * TextCos);
-
-if linetostr(line) = 'DMC24' then begin
-  debug('topleft = ' + inttostr(topleftx) + ' ' + inttostr(toplefty));
-  debug('topright = ' + inttostr(toprightx) + ' ' + inttostr(toprighty));
-  debug('bottomright = ' + inttoStr(bottomrightx) + ' ' + inttostr(bottomrighty));
-  debug('bottomleft = ' + inttostr(bottomleftx) + ' ' + inttostr(bottomlefty));
-end;
-Moveto(topleftx, toplefty);
-pen.Color := claqua;
-lineto(toprightx, toprighty);
-pen.Color := clred;
-lineto(bottomrightx, bottomrighty);
-pen.Color := clfwporange;
-lineto(bottomleftx, bottomlefty);
-pen.Color := clpurple;
-lineto(topleftx, toplefty);
-
-            END;
-          END;
-
-endlabel:
-          { Draw adjacent lines if they are not track circuited }
-          IF (Line_NextUpLine <> UnknownLine) AND (Line_NextDownLine <> UnknownLine) THEN BEGIN
-            IF (Lines[Line_NextUpLine].Line_TC = UnknownTrackCircuit) AND (Lines[Line_NextDownLine].Line_TC = UnknownTrackCircuit) THEN BEGIN
-              MoveTo(MapGridXToScreenX(Lines[Line_NextUpLine].Line_GridUpX),
-                     MapGridYToScreenY(Lines[Line_NextUpLine].Line_GridUpY));
-              LineTo(MapGridXToScreenX(Lines[Line_NextUpLine].Line_GridDownX),
-                     MapGridYToScreenY(Lines[Line_NextUpLine].Line_GridDownY));
-              MoveTo(MapGridXToScreenX(Lines[Line_NextDownLine].Line_GridDownX),
-                     MapGridYToScreenY(Lines[Line_NextDownLine].Line_GridDownY));
-              LineTo(MapGridXToScreenX(Lines[Line_NextDownLine].Line_GridDownX),
-                     MapGridYToScreenY(Lines[Line_NextDownLine].Line_GridDownY));
             END;
           END;
 
@@ -3017,7 +2767,7 @@ BEGIN
             ELSE
               IF ShowPointDefaultState THEN BEGIN
                 Point_PresentState := Point_DefaultState;
-                Pen.Color := ShowPointDefaultStateColour;
+                Pen.Color := PointDefaultStateColour;
               END ELSE BEGIN
                 { if it's not a catch point, see if the point is track occupied }
                 IF PointIsCatchPoint(P) THEN
@@ -3411,11 +3161,11 @@ BEGIN
                       DrawLenzPointUnitGroups
                     ELSE
                       IF ShowPointsThatAreLocked THEN
-                        DrawPointNum(P, ShowPointLockedColour)
+                        DrawPointNum(P, PointLockedBySystemColour)
                       ELSE
                         IF ShowPointDefaultState AND (Points[P].Point_DefaultState <> PointStateUnknown) THEN
                           { only draw the point number if the point has a default state }
-                          DrawPointNum(P, ShowPointDefaultStateColour);
+                          DrawPointNum(P, PointDefaultStateColour);
 
        { Draw a rectangle around any point highlighted by the input procedure }
        IF PointHighlighted <> UnknownPoint THEN
@@ -4160,39 +3910,1113 @@ BEGIN
   RailWindowBitmap.Free;
 END; { FWPRailWindowDestroy }
 
-PROCEDURE TFWPRailWindow.GeneralPopupMenuOnPopup(Sender: TObject);
-BEGIN
-  IF (FWPRailWindow.Top <> DefaultFWPRailWindowTop)
-  OR (FWPRailWindow.Height <> DefaultFWPRailWindowHeight)
-  OR (FWPRailWindow.Left <> DefaultFWPRailWindowLeft)
-  OR (FWPRailWindow.Top <> DefaultFWPRailWindowTop)
-  OR (FWPRailWindow.Width <> DefaultFWPRailWindowWidth)
-  THEN
-    GeneralPopupResetFWPRailWindowSizeAndPosition.Enabled := True
-  ELSE
-    GeneralPopupResetFWPRailWindowSizeAndPosition.Enabled := False;
-END; { FWPRailWindowPopupMenuOnPopup }
-
 PROCEDURE TFWPRailWindow.PopupTimerTick(Sender: TObject);
 { This is needed to prevent the click that causes the popup menu to pop up also then activating one of the items on the popped-up menu }
 BEGIN
   Inc(PopupTimerCount);
 END; { PopupTimerTick }
 
-PROCEDURE AddMenuItem(PopupMenu : TPopupMenu; Caption : String; PopupType : MenuPopupTypes; Enabled : Boolean; Click : TNotifyEvent);
-{ Add a dynamic menu item }
-VAR
-  MenuItemEx : TMenuItemExtended;
+FUNCTION AddMainMenuItem(PopupMenu : TPopupMenu; Caption : String; MenuPopupType : MenuPopupTypes; Enabled, Visible, Checked : Boolean;
+                         Click : TNotifyEvent) : TMenuItemExtended;
+{ Add a dynamic main menu item }
+BEGIN
+  Result := TMenuItemExtended.Create(PopupMenu);
+  Result.Caption := Caption;
+  Result.Value := 'test string'; { not used }
+  Result.Enabled := Enabled;
+  Result.Visible := Visible;
+  Result.Checked := Checked;
+  Result.MenuPopupType := MenuPopupType;
+  Result.PenStylePopupType := NoPenStylePopupType;
+  Result.OnClick := Click;
+  PopupMenu.Items.Add(Result) ;
+END; { AddMainMenuItem }
+
+FUNCTION AddSubMenuItem{1}(SubMenuItem : TMenuItemExtended; Caption : String; MenuPopupType : MenuPopupTypes; Enabled, Visible, Checked : Boolean;
+                           PenStylePopupType : PenStylePopupTypes; Click : TNotifyEvent) : TMenuItemExtended; Overload;
+{ Add a dynamic sub-menu item }
+BEGIN
+  Result := TMenuItemExtended.Create(SubMenuItem);
+  Result.Caption := Caption;
+  Result.Value := 'test string'; { not used }
+  Result.Enabled := Enabled;
+  Result.Visible := Visible;
+  Result.Checked := Checked;
+  Result.MenuPopupType := MenuPopupType;
+  Result.PenStylePopupType := PenStylePopupType;
+  Result.OnClick := Click;
+  SubMenuItem.Add(Result) ;
+END; { AddSubMenuItem-1 }
+
+FUNCTION AddSubMenuItem{2}(SubMenuItem : TMenuItemExtended; Caption : String; PopupType : MenuPopupTypes; Enabled, Visible, Checked : Boolean;
+                           Click : TNotifyEvent) : TMenuItemExtended; Overload;
+{ Add a dynamic sub-menu item }
+BEGIN
+  Result := AddSubMenuItem(SubMenuItem, Caption, PopupType, Enabled, Visible, Checked, NoPenStylePopupType, Click);
+END; { AddSubMenuItem-2 }
+
+PROCEDURE TFWPRailWindow.GeneralPopupItemClick(Sender: TObject);
+
+  PROCEDURE ChangeColour(VAR Colour : TColor);
+  BEGIN
+    { Show the default }
+    FWPRailWindowColourDialogue.Color := Colour;
+    { Allow the user to change it }
+    IF FWPRailWindowColourDialogue.Execute THEN BEGIN
+      Colour := FWPRailWindowColourDialogue.Color;
+      InvalidateScreen(UnitRef, 'GeneralPopupItemClick Change ' + ColourToStr(Colour) + 'PopupType');
+    END;
+  END; { ChangeColour }
+
+  PROCEDURE RestoreColour(VAR Colour : TColor; DefaultColour : TColor);
+  BEGIN
+    Colour := DefaultColour;
+    InvalidateScreen(UnitRef, 'GeneralPopupItemClick Restore' + ColourToStr(Colour) + 'PopupType');
+  END; { RestoreColour }
 
 BEGIN
-  MenuItemEx := TMenuItemExtended.Create(PopupMenu);
-  MenuItemEx.Caption := Caption;
-  MenuItemEx.Value := 'test string'; { not used }
-  MenuItemEx.Enabled := Enabled;
-  MenuItemEx.PopupType := PopupType;
-  MenuItemEx.OnClick := Click;
-  PopupMenu.Items.Add(MenuItemEx) ;
-END; { AddMenuItem }
+  { Wait before popping up to avoid the same click that activates the popup menu also providing the menu item click }
+  IF PopupTimerCount < 2 THEN BEGIN
+    Debug('!*Delay required before selecting menu entry');
+    PopupTimer.Enabled := False;
+    Exit;
+  END;
+
+  WITH Sender AS TMenuItemExtended DO BEGIN
+    CASE MenuPopupType OF
+      ShowMainMenusPopupType:
+        IF NOT MenusVisible THEN
+          ShowMenus
+        ELSE
+          HideMenus;
+
+      StartClockPopupType:
+        TurnAutoModeOn;
+
+      StopClockPopupType:
+        TurnAutoModeOff(ByUser);
+
+      RunClockNormallyPopupType:
+        SetRailwayTimeInterval(Normal);
+
+      RunClockSlowerPopupType:
+        SetRailwayTimeInterval(Slower);
+
+      RunClockFasterPopupType:
+        SetRailwayTimeInterval(Faster);
+
+      RunClockFastestPopupType:
+        SetRailwayTimeInterval(Fastest);
+
+      SetCurrentRailwayTimePopupType:
+        NewSetCurrentRailwayTime;
+
+      SetCurrentRailwayDayOfTheWeekPopupType:
+        SetCurrentRailwayDayOfTheWeek;
+
+      SetProgramStartTimePopupType:
+        NewSetProgramStartTime;
+
+      SetDaylightStartTimePopupType:
+        NewSetDaylightStartTime;
+
+      SetDaylightEndTimePopupType:
+        NewSetDaylightEndTime;
+
+      ChangeBackgroundColourPopupType:
+        ChangeColour(BackgroundColour);
+
+      RestoreBackgroundColourPopupType:
+        RestoreColour(BackgroundColour, DefaultBackgroundColour);
+
+      ChangeForegroundColourPopupType:
+        ChangeColour(ForegroundColour);
+
+      RestoreForegroundColourPopupType:
+        RestoreColour(ForegroundColour, DefaultForegroundColour);
+
+      ChangeBufferStopNumberColourPopupType:
+        ChangeColour(BufferStopNumberColour);
+
+      RestoreBufferStopNumberColourPopupType:
+        RestoreColour(BufferStopNumberColour, DefaultBufferStopNumberColour);
+
+      ChangeBufferStopRedPopupType:
+        ChangeColour(BufferStopRed);
+
+      RestoreBufferStopRedPopupType:
+        RestoreColour(BufferStopRed, DefaultBufferStopRed);
+
+      ChangeLineRoutedOverColourPopupType:
+        ChangeColour(LineRoutedOverColour);
+
+      RestoreLineRoutedOverColourPopupType:
+        RestoreColour(LineRoutedOverColour, DefaultLineRoutedOverColour);
+
+      ChangeLineNotAvailableColourPopupType:
+        ChangeColour(LineNotAvailableColour);
+
+      RestoreLineNotAvailableColourPopupType:
+        RestoreColour(LineNotAvailableColour, DefaultLineNotAvailableColour);
+
+      ChangeLocoStalledColourPopupType:
+        ChangeColour(LocoStalledColour);
+
+      RestoreLocoStalledColourPopupType:
+        RestoreColour(LocoStalledColour, DefaultLocoStalledColour);
+
+      ChangeTCFeedbackOccupationColourPopupType:
+        ChangeColour(TCFeedbackOccupationColour);
+
+      RestoreTCFeedbackOccupationColourPopupType:
+        RestoreColour(TCFeedbackOccupationColour, DefaultTCFeedbackOccupationColour);
+
+      ChangeTCFeedbackOccupationButOutOfUseColourPopupType:
+        ChangeColour(TCFeedbackOccupationButOutOfUseColour);
+
+      RestoreTCFeedbackOccupationButOutOfUseColourPopupType:
+        RestoreColour(TCFeedbackOccupationButOutOfUseColour, DefaultTCFeedbackOccupationButOutOfUseColour);
+
+      ChangeTCFeedbackDataInUseColourPopupType:
+        ChangeColour(TCFeedbackDataInUseColour);
+
+      RestoreTCFeedbackDataInUseColourPopupType:
+        RestoreColour(TCFeedbackDataInUseColour, DefaultTCFeedbackDataInUseColour);
+
+      ChangeTCFeedbackDataOutOfUseColourPopupType:
+        ChangeColour(TCFeedbackDataOutOfUseColour);
+
+      RestoreTCFeedbackDataOutOfUseColourPopupType:
+        RestoreColour(TCFeedbackDataOutOfUseColour, DefaultTCFeedbackDataOutOfUseColour);
+
+      ChangeTCMissingOccupationColourPopupType:
+        ChangeColour(TCMissingOccupationColour);
+
+      RestoreTCMissingOccupationColourPopupType:
+        RestoreColour(TCMissingOccupationColour, DefaultTCMissingOccupationColour);
+
+      ChangeTCPermanentFeedbackOccupationColourPopupType:
+        ChangeColour(TCPermanentFeedbackOccupationColour);
+
+      RestoreTCPermanentFeedbackOccupationColourPopupType:
+        RestoreColour(TCPermanentFeedbackOccupationColour, DefaultTCPermanentFeedbackOccupationColour);
+
+      ChangeTCPermanentOccupationSetByUserColourPopupType:
+        ChangeColour(TCPermanentOccupationSetByUserColour);
+
+      RestoreTCPermanentOccupationSetByUserColourPopupType:
+        RestoreColour(TCPermanentOccupationSetByUserColour, DefaultTCPermanentOccupationSetByUserColour);
+
+      ChangeTCPermanentSystemOccupationColourPopupType:
+        ChangeColour(TCPermanentSystemOccupationColour);
+
+      RestoreTCPermanentSystemOccupationColourPopupType:
+        RestoreColour(TCPermanentSystemOccupationColour, DefaultTCPermanentSystemOccupationColour);
+
+      ChangeTCSpeedRestrictionColourPopupType:
+        ChangeColour(TCSpeedRestrictionColour);
+
+      RestoreTCSpeedRestrictionColourPopupType:
+        RestoreColour(TCSpeedRestrictionColour, DefaultTCSpeedRestrictionColour);
+
+      ChangeTCSystemOccupationColourPopupType:
+        ChangeColour(TCSystemOccupationColour);
+
+      RestoreTCSystemOccupationColourPopupType:
+        RestoreColour(TCSystemOccupationColour, DefaultTCSystemOccupationColour);
+
+      ChangeTCOutOfUseSetByUserColourPopupType:
+        ChangeColour(TCOutOfUseSetByUserColour);
+
+      RestoreTCOutOfUseSetByUserColourPopupType:
+        RestoreColour(TCOutOfUseSetByUserColour, DefaultTCOutOfUseSetByUserColour);
+
+      ChangeTCOutOfUseAsNoFeedbackReceivedColourPopupType:
+        ChangeColour(TCOutOfUseAsNoFeedbackReceivedColour);
+
+      RestoreTCOutOfUseAsNoFeedbackReceivedColourPopupType:
+        RestoreColour(TCOutOfUseAsNoFeedbackReceivedColour, DefaultTCOutOfUseAsNoFeedbackReceivedColour);
+
+      ChangeTCUnoccupiedColourPopupType:
+        ChangeColour(TCUnoccupiedColour);
+
+      RestoreTCUnoccupiedColourPopupType:
+        RestoreColour(TCUnoccupiedColour, DefaultTCUnoccupiedColour);
+
+      ChangePlatformColourPopupType:
+        ChangeColour(PlatformColour);
+
+      RestorePlatformColourPopupType:
+        RestoreColour(PlatformColour, DefaultPlatformColour);
+
+      ChangeTRSPlungerColourPopupType:
+        ChangeColour(TRSPlungerColour);
+
+      RestoreTRSPlungerColourPopupType:
+        RestoreColour(TRSPlungerColour, DefaultTRSPlungerColour);
+
+      ChangeTRSPlungerPressedColourPopupType:
+        ChangeColour(TRSPlungerPressedColour);
+
+      RestoreTRSPlungerPressedColourPopupType:
+        RestoreColour(TRSPlungerPressedColour, DefaultTRSPlungerPressedColour);
+
+      ChangeTRSPlungerOutlineColourPopupType:
+        ChangeColour(TRSPlungerOutlineColour);
+
+      RestoreTRSPlungerOutlineColourPopupType:
+        RestoreColour(TRSPlungerOutlineColour, DefaultTRSPlungerOutlineColour);
+
+      ChangeDefaultPointColourPopupType:
+        ChangeColour(PointColour);
+
+      RestoreDefaultPointColourPopupType:
+        RestoreColour(PointColour, DefaultPointColour);
+
+      ChangePointDefaultStateColourPopupType:
+        ChangeColour(PointDefaultStateColour);
+
+      RestorePointDefaultStateColourPopupType:
+        RestoreColour(PointDefaultStateColour, DefaultPointDefaultStateColour);
+
+      ChangePointDivergingLineColourPopupType:
+        ChangeColour(PointDivergingLineColour);
+
+      RestorePointDivergingLineColourPopupType:
+        RestoreColour(PointDivergingLineColour, DefaultPointDivergingLineColour);
+
+      ChangePointDownFacingColourPopupType:
+        ChangeColour(PointDownFacingColour);
+
+      RestorePointDownFacingColourPopupType:
+        RestoreColour(PointDownFacingColour, DefaultPointDownFacingColour);
+
+      ChangePointFeedbackDataInUseColourPopupType:
+        ChangeColour(PointFeedbackDataInUseColour);
+
+      RestorePointFeedbackDataInUseColourPopupType:
+        RestoreColour(PointFeedbackDataInUseColour, DefaultPointFeedbackDataInUseColour);
+
+      ChangePointFeedbackDataOutOfUseColourPopupType:
+        ChangeColour(PointFeedbackDataOutOfUseColour);
+
+      RestorePointFeedbackDataOutOfUseColourPopupType:
+        RestoreColour(PointFeedbackDataOutOfUseColour, DefaultPointFeedbackDataOutOfUseColour);
+
+      ChangePointHeelLineColourPopupType:
+        ChangeColour(PointHeelLineColour);
+
+      RestorePointHeelLineColourPopupType:
+        RestoreColour(PointHeelLineColour, DefaultPointHeelLineColour);
+
+      ChangePointLenzNumberColourPopupType:
+        ChangeColour(PointLenzNumberColour);
+
+      RestorePointLenzNumberColourPopupType:
+        RestoreColour(PointLenzNumberColour, DefaultPointLenzNumberColour);
+
+      ChangePointLockedBySystemColourPopupType:
+        ChangeColour(PointLockedBySystemColour);
+
+      RestorePointLockedBySystemColourPopupType:
+        RestoreColour(PointLockedBySystemColour, DefaultPointLockedBySystemColour);
+
+      ChangePointLockedByUserColourPopupType:
+        ChangeColour(PointLockedByUserColour);
+
+      RestorePointLockedByUserColourPopupType:
+        RestoreColour(PointLockedByUserColour, DefaultPointLockedByUserColour);
+
+      ChangePointManualOperationColourPopupType:
+        ChangeColour(PointManualOperationColour);
+
+      RestorePointManualOperationColourPopupType:
+        RestoreColour(PointManualOperationColour, DefaultPointManualOperationColour);
+
+      ChangePointOutOfUseColourPopupType:
+        ChangeColour(PointOutOfUseColour);
+
+      RestorePointOutOfUseColourPopupType:
+        RestoreColour(PointOutOfUseColour, DefaultPointOutOfUseColour);
+
+      ChangePointStraightLineColourPopupType:
+        ChangeColour(PointStraightLineColour);
+
+      RestorePointStraightLineColourPopupType:
+        RestoreColour(PointStraightLineColour, DefaultPointStraightLineColour);
+
+      ChangePointUndrawColourPopupType:
+        ChangeColour(PointUndrawColour);
+
+      RestorePointUndrawColourPopupType:
+        RestoreColour(PointUndrawColour, DefaultPointUndrawColour);
+
+      ChangePointUpFacingColourPopupType:
+        ChangeColour(PointUpFacingColour);
+
+      RestorePointUpFacingColourPopupType:
+        RestoreColour(PointUpFacingColour, DefaultPointUpFacingColour);
+
+      ChangePointsWithoutFeedbackColourPopupType:
+        ChangeColour(PointsWithoutFeedbackColour);
+
+      RestorePointsWithoutFeedbackColourPopupType:
+        RestoreColour(PointsWithoutFeedbackColour, DefaultPointsWithoutFeedbackColour);
+
+      ChangeSignalAspectRedPopupType:
+        ChangeColour(SignalAspectRed);
+
+      RestoreSignalAspectRedPopupType:
+        RestoreColour(SignalAspectRed, DefaultSignalAspectRed);
+
+      ChangeSignalAspectGreenPopupType:
+        ChangeColour(SignalAspectGreen);
+
+      RestoreSignalAspectGreenPopupType:
+        RestoreColour(SignalAspectGreen, DefaultSignalAspectGreen);
+
+      ChangeSignalAspectYellowPopupType:
+        ChangeColour(SignalAspectYellow);
+
+      RestoreSignalAspectYellowPopupType:
+        RestoreColour(SignalAspectYellow, DefaultSignalAspectYellow);
+
+      ChangeSignalAspectUnlitPopupType:
+        ChangeColour(SignalAspectUnlit);
+
+      RestoreSignalAspectUnlitPopupType:
+        RestoreColour(SignalAspectUnlit, DefaultSignalAspectUnlit);
+
+      ChangeSignalNumberColourPopupType:
+        ChangeColour(SignalNumberColour);
+
+      RestoreSignalNumberColourPopupType:
+        RestoreColour(SignalNumberColour, DefaultSignalNumberColour);
+
+      ChangeSignalPostBaseColourPopupType:
+        ChangeColour(SignalPostColour);
+
+      RestoreSignalPostBaseColourPopupType:
+        RestoreColour(SignalPostColour, DefaultSignalPostColour);
+
+      ChangeSignalPostRouteSettingColourPopupType:
+        ChangeColour(SignalPostRouteSettingColour);
+
+      RestoreSignalPostRouteSettingColourPopupType:
+        RestoreColour(SignalPostRouteSettingColour, DefaultSignalPostRouteSettingColour);
+
+      ChangeSignalPostEmergencyRouteSettingColourPopupType:
+        ChangeColour(SignalPostEmergencyRouteSettingColour);
+
+      RestoreSignalPostEmergencyRouteSettingColourPopupType:
+        RestoreColour(SignalPostEmergencyRouteSettingColour, DefaultSignalPostEmergencyRouteSettingColour);
+
+      ChangeSignalPostTheatreSettingColourPopupType:
+        ChangeColour(SignalPostTheatreSettingColour);
+
+      RestoreSignalPostTheatreSettingColourPopupType:
+        RestoreColour(SignalPostTheatreSettingColour, DefaultSignalPostTheatreSettingColour);
+
+      ChangeSignalsFromWhichUserMustDriveSignalPostColourPopupType:
+        ChangeColour(SignalsFromWhichUserMustDriveSignalPostColour);
+
+      RestoreSignalsFromWhichUserMustDriveSignalPostColourPopupType:
+        RestoreColour(SignalsFromWhichUserMustDriveSignalPostColour, DefaultSignalsFromWhichUserMustDriveSignalPostColour);
+
+      ChangeTrainActiveColourPopupType:
+        ChangeColour(TrainActiveColour);
+
+      RestoreTrainActiveColourPopupType:
+        RestoreColour(TrainActiveColour, DefaultTrainActiveColour);
+
+      ChangeTrainInactiveColourPopupType:
+        ChangeColour(TrainInactiveColour);
+
+      RestoreTrainInactiveColourPopupType:
+        RestoreColour(TrainInactiveColour, DefaultTrainInactiveColour);
+
+      ChangeScreenComponentEditedColour1PopupType:
+        ChangeColour(ScreenComponentEditedColour1);
+
+      RestoreScreenComponentEditedColour1PopupType:
+        RestoreColour(ScreenComponentEditedColour1, DefaultScreenComponentEditedColour1);
+
+      ChangeScreenComponentEditedColour2PopupType:
+        ChangeColour(ScreenComponentEditedColour2);
+
+      RestoreScreenComponentEditedColour2PopupType:
+        RestoreColour(ScreenComponentEditedColour2, DefaultScreenComponentEditedColour2);
+
+      SolidPenStylePopupType:
+        BEGIN
+          CASE PenStylePopupType OF
+            SidingPenStylePopupType:
+              SidingPenStyle := psSolid;
+            FiddleyardLinePenStylePopupType:
+              FiddleyardLinePenStyle := psSolid;
+            ProjectedLinePenStylePopupType:
+              ProjectedLinePenStyle := psSolid;
+            TCOutOfUseAsNoFeedbackReceivedPenStylePopupType:
+              TCOutOfUseAsNoFeedbackReceivedPenStyle := psSolid;
+            TCOutOfUseSetByUserPenStylePopupType:
+              TCOutOfUseSetByUserPenStyle := psSolid;
+            TCPermanentFeedbackOccupationPenStylePopupType:
+              TCPermanentFeedbackOccupationPenStyle := psSolid;
+            TCPermanentOccupationSetByUserPenStylePopupType:
+              TCPermanentOccupationSetByUserPenStyle := psSolid;
+            TCPermanentSystemOccupationPenStylePopupType:
+              TCPermanentSystemOccupationPenStyle := psSolid;
+            TCLocoOutOfPlacePenStylePopupType:
+              TCLocoOutOfPlaceOccupationPenStyle := psSolid;
+          END; {CASE}
+          InvalidateScreen(UnitRef, 'GeneralPopupItemClick');
+        END;
+
+      DashPenStylePopupType:
+        BEGIN
+          CASE PenStylePopupType OF
+            SidingPenStylePopupType:
+              SidingPenStyle := psDash;
+            FiddleyardLinePenStylePopupType:
+              FiddleyardLinePenStyle := psDash;
+            ProjectedLinePenStylePopupType:
+              ProjectedLinePenStyle := psDash;
+            TCOutOfUseAsNoFeedbackReceivedPenStylePopupType:
+              TCOutOfUseAsNoFeedbackReceivedPenStyle := psDash;
+            TCOutOfUseSetByUserPenStylePopupType:
+              TCOutOfUseSetByUserPenStyle := psDash;
+            TCPermanentFeedbackOccupationPenStylePopupType:
+              TCPermanentFeedbackOccupationPenStyle := psDash;
+            TCPermanentOccupationSetByUserPenStylePopupType:
+              TCPermanentOccupationSetByUserPenStyle := psDash;
+            TCPermanentSystemOccupationPenStylePopupType:
+              TCPermanentSystemOccupationPenStyle := psDash;
+            TCLocoOutOfPlacePenStylePopupType:
+              TCLocoOutOfPlaceOccupationPenStyle := psDash;
+          END; {CASE}
+          InvalidateScreen(UnitRef, 'GeneralPopupItemClick');
+        END;
+
+      DotPenStylePopupType:
+        BEGIN
+          CASE PenStylePopupType OF
+            SidingPenStylePopupType:
+              SidingPenStyle := psDot;
+            FiddleyardLinePenStylePopupType:
+              FiddleyardLinePenStyle := psDot;
+            ProjectedLinePenStylePopupType:
+              ProjectedLinePenStyle := psDot;
+            TCOutOfUseAsNoFeedbackReceivedPenStylePopupType:
+              TCOutOfUseAsNoFeedbackReceivedPenStyle := psDot;
+            TCOutOfUseSetByUserPenStylePopupType:
+              TCOutOfUseSetByUserPenStyle := psDot;
+            TCPermanentFeedbackOccupationPenStylePopupType:
+              TCPermanentFeedbackOccupationPenStyle := psDot;
+            TCPermanentOccupationSetByUserPenStylePopupType:
+              TCPermanentOccupationSetByUserPenStyle := psDot;
+            TCPermanentSystemOccupationPenStylePopupType:
+              TCPermanentSystemOccupationPenStyle := psDot;
+            TCLocoOutOfPlacePenStylePopupType:
+              TCLocoOutOfPlaceOccupationPenStyle := psDot;
+          END; {CASE}
+          InvalidateScreen(UnitRef, 'GeneralPopupItemClick');
+        END;
+
+      DashDotPenStylePopupType:
+        BEGIN
+          CASE PenStylePopupType OF
+            SidingPenStylePopupType:
+              SidingPenStyle := psDashDot;
+            FiddleyardLinePenStylePopupType:
+              FiddleyardLinePenStyle := psDashDot;
+            ProjectedLinePenStylePopupType:
+              ProjectedLinePenStyle := psDashDot;
+            TCOutOfUseAsNoFeedbackReceivedPenStylePopupType:
+              TCOutOfUseAsNoFeedbackReceivedPenStyle := psDashDot;
+            TCOutOfUseSetByUserPenStylePopupType:
+              TCOutOfUseSetByUserPenStyle := psDashDot;
+            TCPermanentFeedbackOccupationPenStylePopupType:
+              TCPermanentFeedbackOccupationPenStyle := psDashDot;
+            TCPermanentOccupationSetByUserPenStylePopupType:
+              TCPermanentOccupationSetByUserPenStyle := psDashDot;
+            TCPermanentSystemOccupationPenStylePopupType:
+              TCPermanentSystemOccupationPenStyle := psDashDot;
+            TCLocoOutOfPlacePenStylePopupType:
+              TCLocoOutOfPlaceOccupationPenStyle := psDashDot;
+          END; {CASE}
+          InvalidateScreen(UnitRef, 'GeneralPopupItemClick');
+        END;
+
+      DashDotDotPenStylePopupType:
+        BEGIN
+          CASE PenStylePopupType OF
+            SidingPenStylePopupType:
+              SidingPenStyle := psDashDotDot;
+            FiddleyardLinePenStylePopupType:
+              FiddleyardLinePenStyle := psDashDotDot;
+            ProjectedLinePenStylePopupType:
+              ProjectedLinePenStyle := psDashDotDot;
+            TCOutOfUseAsNoFeedbackReceivedPenStylePopupType:
+              TCOutOfUseAsNoFeedbackReceivedPenStyle := psDashDotDot;
+            TCOutOfUseSetByUserPenStylePopupType:
+              TCOutOfUseSetByUserPenStyle := psDashDotDot;
+            TCPermanentFeedbackOccupationPenStylePopupType:
+              TCPermanentFeedbackOccupationPenStyle := psDashDotDot;
+            TCPermanentOccupationSetByUserPenStylePopupType:
+              TCPermanentOccupationSetByUserPenStyle := psDashDotDot;
+            TCPermanentSystemOccupationPenStylePopupType:
+              TCPermanentSystemOccupationPenStyle := psDashDotDot;
+            TCLocoOutOfPlacePenStylePopupType:
+              TCLocoOutOfPlaceOccupationPenStyle := psDashDotDot;
+          END; {CASE}
+          InvalidateScreen(UnitRef, 'GeneralPopupItemClick');
+        END;
+
+      ClearPenStylePopupType:
+        BEGIN
+          CASE PenStylePopupType OF
+            SidingPenStylePopupType:
+              SidingPenStyle := psClear;
+            FiddleyardLinePenStylePopupType:
+              FiddleyardLinePenStyle := psClear;
+            ProjectedLinePenStylePopupType:
+              ProjectedLinePenStyle := psClear;
+            TCOutOfUseAsNoFeedbackReceivedPenStylePopupType:
+              TCOutOfUseAsNoFeedbackReceivedPenStyle := psClear;
+            TCOutOfUseSetByUserPenStylePopupType:
+              TCOutOfUseSetByUserPenStyle := psClear;
+            TCPermanentFeedbackOccupationPenStylePopupType:
+              TCPermanentFeedbackOccupationPenStyle := psClear;
+            TCPermanentOccupationSetByUserPenStylePopupType:
+              TCPermanentOccupationSetByUserPenStyle := psClear;
+            TCPermanentSystemOccupationPenStylePopupType:
+              TCPermanentSystemOccupationPenStyle := psClear;
+            TCLocoOutOfPlacePenStylePopupType:
+              TCLocoOutOfPlaceOccupationPenStyle := psClear;
+          END; {CASE}
+          InvalidateScreen(UnitRef, 'GeneralPopupItemClick');
+        END;
+
+      InsideFramePenStylePopupType:
+        BEGIN
+          CASE PenStylePopupType OF
+            SidingPenStylePopupType:
+              SidingPenStyle := psInsideFrame;
+            FiddleyardLinePenStylePopupType:
+              FiddleyardLinePenStyle := psInsideFrame;
+            ProjectedLinePenStylePopupType:
+              ProjectedLinePenStyle := psInsideFrame;
+            TCOutOfUseAsNoFeedbackReceivedPenStylePopupType:
+              TCOutOfUseAsNoFeedbackReceivedPenStyle := psInsideFrame;
+            TCOutOfUseSetByUserPenStylePopupType:
+              TCOutOfUseSetByUserPenStyle := psInsideFrame;
+            TCPermanentFeedbackOccupationPenStylePopupType:
+              TCPermanentFeedbackOccupationPenStyle := psInsideFrame;
+            TCPermanentOccupationSetByUserPenStylePopupType:
+              TCPermanentOccupationSetByUserPenStyle := psInsideFrame;
+            TCPermanentSystemOccupationPenStylePopupType:
+              TCPermanentSystemOccupationPenStyle := psInsideFrame;
+            TCLocoOutOfPlacePenStylePopupType:
+              TCLocoOutOfPlaceOccupationPenStyle := psInsideFrame;
+          END; {CASE}
+          InvalidateScreen(UnitRef, 'GeneralPopupItemClick');
+        END;
+
+        ChangePointPopupType:
+            SetAndShowInputDialogueBox(PointDialogueBox);
+
+        ChangeSignalPopupType:
+            SetAndShowInputDialogueBox(SignalDialogueBox);
+
+        ListLocomotivesPopupType:
+          IF LocoUtilsWindow.Visible THEN BEGIN
+            LocoUtilsWindow.Visible := False;
+            Log('A "?" key hides List of Locos');
+          END ELSE BEGIN
+            LocoUtilsWindow.Visible := True;
+            Log('A "?" key makes List of Locos visible');
+          END;
+
+        ShowTrackCircuitPopupType:
+          SetAndShowInputDialogueBox(TrackCircuitDialogueBox);
+
+        DebugOptionsPopupType:
+          Startup.DebuggingOptionsWindow.Show;
+
+        ResetMainWindowSizeAndPositionPopupType:
+          BEGIN
+            ResetFWPRailWindowSizeAndPosition;
+            InvalidateScreen(UnitRef, 'ResetFWPRailWindowSizeClick');
+          END;
+
+        ResetSizeAndPositionOfAllWindowsPopupType:
+          ResetAllWindowsSizeAndPosition;
+
+        RestoreAllScreenDrawingDefaultSettingsPopupType:
+          IF MessageDialogueWithDefault('Do you wish to continue?', NOT StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrYes THEN
+            RestoreScreenDefaults;
+    END; {CASE}
+  END; {WITH}
+END; { GeneralPopupItemClick }
+
+PROCEDURE TFWPRailWindow.GeneralPopupMenuOnPopup(Sender: TObject);
+{ This has been extracted into a subroutine as it is called multiple times }
+
+  PROCEDURE AddPenStylesSubmenu(VAR SubSubMenuItems : TMenuItemExtended; PenStylePopupType : PenStylePopupTypes);
+  BEGIN
+    AddSubMenuItem(SubSubMenuItems, 'Solid', SolidPenStylePopupType, Enabled, Visible, NOT Checked, PenStylePopupType, GeneralPopupItemClick);
+    AddSubMenuItem(SubSubMenuItems, 'Dash', DashPenStylePopupType, Enabled, Visible, NOT Checked, PenStylePopupType, GeneralPopupItemClick);
+    AddSubMenuItem(SubSubMenuItems, 'Dot', DotPenStylePopupType, Enabled, Visible, NOT Checked, PenStylePopupType, GeneralPopupItemClick);
+    AddSubMenuItem(SubSubMenuItems, 'Dash Dot', DashDotPenStylePopupType, Enabled, Visible, NOT Checked, PenStylePopupType, GeneralPopupItemClick);
+    AddSubMenuItem(SubSubMenuItems, 'DashDotDot', DashDotDotPenStylePopupType, Enabled, Visible, NOT Checked, PenStylePopupType, GeneralPopupItemClick);
+    AddSubMenuItem(SubSubMenuItems, 'Clear', ClearPenStylePopupType, Enabled, Visible, NOT Checked, PenStylePopupType, GeneralPopupItemClick);
+    AddSubMenuItem(SubSubMenuItems, 'Inside Frame', InsideFramePenStylePopupType, Enabled, Visible, NOT Checked, PenStylePopupType, GeneralPopupItemClick);
+  END; { AddPenStylesSubmenu }
+
+VAR
+  MainMenuItemExtended : TMenuItemExtended;
+  SubMenuItems : TMenuItemExtended;
+  SubSubMenuItems : TMenuItemExtended;
+  WhetherChecked : Boolean;
+  WhetherEnabled : Boolean;
+
+BEGIN
+  GeneralPopupMenu.Items.Clear;
+
+  Caption := 'General Menu';
+  AddMainMenuItem(GeneralPopupMenu, Caption, NoClickPopupType, NOT Enabled, Visible, NOT Checked, NIL);
+  AddMainMenuItem(GeneralPopupMenu, '-', NoClickPopupType, Enabled, Visible, NOT Checked, NIL);
+
+  IF NOT MenusVisible THEN
+    AddMainMenuItem(GeneralPopupMenu, 'Show Main Menus', ShowMainMenusPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick)
+  ELSE
+    AddMainMenuItem(GeneralPopupMenu, 'Hide Main Menus', ShowMainMenusPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+  MainMenuItemExtended := AddMainMenuItem(GeneralPopupMenu, 'Clock', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+    WhetherEnabled := InAutoMode;
+    AddSubMenuItem(MainMenuItemExtended, 'Start Clock', StartClockPopupType, NOT WhetherEnabled, Visible, NOT Checked, GeneralPopupItemClick);
+    AddSubMenuItem(MainMenuItemExtended, 'Stop Clock', StopClockPopupType, WhetherEnabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+    AddSubMenuItem(MainMenuItemExtended, '-', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+    WhetherChecked := RailwayTimeInterval = Normal;
+    AddSubMenuItem(MainMenuItemExtended, 'Run Clock Normally', RunClockNormallyPopupType, Enabled, Visible, WhetherChecked, GeneralPopupItemClick);
+    WhetherChecked := RailwayTimeInterval = Slower;
+    AddSubMenuItem(MainMenuItemExtended, 'Run Clock Slower', RunClockSlowerPopupType, Enabled, Visible, WhetherChecked, GeneralPopupItemClick);
+    WhetherChecked := RailwayTimeInterval = Faster;
+    AddSubMenuItem(MainMenuItemExtended, 'Run Clock Faster', RunClockFasterPopupType, Enabled, Visible, WhetherChecked, GeneralPopupItemClick);
+    WhetherChecked := RailwayTimeInterval = Fastest;
+    AddSubMenuItem(MainMenuItemExtended, 'Run Clock Fastest', RunClockFastestPopupType, Enabled, Visible, WhetherChecked, GeneralPopupItemClick);
+
+    AddSubMenuItem(MainMenuItemExtended, '-', NoClickPopupType, Enabled, Visible, WhetherChecked, GeneralPopupItemClick);
+
+    AddSubMenuItem(MainMenuItemExtended, 'Set Current Railway Time', SetCurrentRailwayTimePopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+    AddSubMenuItem(MainMenuItemExtended, 'Set Current Railway Day Of The Week', SetCurrentRailwayDayOfTheWeekPopupType, Enabled, Visible, NOT Checked,
+                   GeneralPopupItemClick);
+    AddSubMenuItem(MainMenuItemExtended, 'Set Program Start Time', SetProgramStartTimePopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+    AddSubMenuItem(MainMenuItemExtended, 'Set Daylight Start Time', SetDaylightStartTimePopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+    AddSubMenuItem(MainMenuItemExtended, 'Set Daylight End Time', SetDaylightEndTimePopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+  MainMenuItemExtended := AddMainMenuItem(GeneralPopupMenu, 'Change Colours', NoclickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+    SubMenuItems := AddSubMenuItem(MainMenuItemExtended, 'Background Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+      AddSubMenuItem(SubMenuItems, 'Change Background Colour', ChangeBackgroundColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+      AddSubMenuItem(SubMenuItems, 'Restore Background Colour', RestoreBackgroundColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+    SubMenuItems := AddSubMenuItem(MainMenuItemExtended, 'Foreground Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+      AddSubMenuItem(SubMenuItems, 'Change Foreground Colour', ChangeForegroundColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+      AddSubMenuItem(SubMenuItems, 'Restore Foreground Colour', RestoreForegroundColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+    AddSubMenuItem(MainMenuItemExtended, '-', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+    SubMenuItems := AddSubMenuItem(MainMenuItemExtended, 'Buffer Stop Colours', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Buffer Stop Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change Buffer Stop Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore Buffer Stop Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Buffer Stop Number Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change Buffer Stop Number Colour', ChangeBufferStopNumberColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore Buffer Stop Number Colour', RestoreBufferStopNumberColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Buffer Stop Red', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change Buffer Stop Red', ChangeBufferStopRedPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore Buffer Stop Red', RestoreBufferStopRedPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+      SubMenuItems := AddSubMenuItem(MainMenuItemExtended, 'Line & Track Circuit Colours', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubMenuItems, 'N.B. Default Line Colour = TCUnoccupiedColour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubMenuItems, '-', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Line Routed Over Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change Line Routed Over Colour', ChangeLineRoutedOverColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore Line Routed Over Colour', RestoreLineRoutedOverColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Line Not Available Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change Line Not Available Colour', ChangeLineNotAvailableColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore Line Not Available Colour', RestoreLineNotAvailableColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Loco Stalled Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change Loco Stalled Colour', ChangeLocoStalledColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore Loco Stalled Colour', RestoreLocoStalledColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'TC Feedback Occupation Colour Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change TC Feedback Occupation Colour Colour', ChangeTCFeedbackOccupationColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore TC Feedback Occupation Colour Colour', RestoreTCFeedbackOccupationColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'TC Feedback Occupation But Out Of Use Colour Colour', NoClickPopupType, Enabled, Visible, NOT Checked,
+                                        GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change TC Feedback Occupation But Out Of Use Colour Colour', ChangeTCFeedbackOccupationButOutOfUseColourPopupType, Enabled,
+                       Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore TC Feedback Occupation But Out Of Use Colour Colour', RestoreTCFeedbackOccupationButOutOfUseColourPopupType, Enabled,
+                       Visible, NOT Checked, GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'TC Feedback Data In Use Colour Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change TC Feedback Data In Use Colour Colour', ChangeTCFeedbackDataInUseColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore TC Feedback Data In Use Colour Colour', RestoreTCFeedbackDataInUseColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'TC Data Out Of Use Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change TC Feedback Data Out Of Use Colour', ChangeTCFeedbackDataOutOfUseColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore TC Feedback Data Out Of Use Colour', RestoreTCFeedbackDataOutOfUseColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'TC Missing Occupation Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change TC Missing Occupation Colour', ChangeTCMissingOccupationColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore TC Missing Occupation Colour', RestoreTCMissingOccupationColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'TC Permanent Feedback Occupation Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change TC Permanent Feedback Occupation Colour', ChangeTCPermanentFeedbackOccupationColourPopupType, Enabled, Visible,
+                       NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore TC Permanent Feedback Occupation Colour', RestoreTCPermanentFeedbackOccupationColourPopupType, Enabled, Visible,
+                       NOT Checked, GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'TC Permanent Occupation Set By User Colour', NoClickPopupType, Enabled, Visible, NOT Checked,
+                                        GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change TC Permanent Occupation Set By User Colour', ChangeTCPermanentOccupationSetByUserColourPopupType, Enabled, Visible,
+                       NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore TC Permanent Occupation Set By User Colour', RestoreTCPermanentOccupationSetByUserColourPopupType, Enabled, Visible,
+                       NOT Checked, GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'TC Permanent System Occupation Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change TC Permanent System Occupation Colour', ChangeTCPermanentSystemOccupationColourPopupType, Enabled, Visible,
+                       NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore TC Permanent System Occupation Colour', RestoreTCPermanentSystemOccupationColourPopupType, Enabled, Visible,
+                       NOT Checked, GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'TC Speed Restriction Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change TC Speed Restriction Colour', ChangeTCSpeedRestrictionColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore TC Speed Restriction Colour', RestoreTCSpeedRestrictionColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'TC System Occupation Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change TC System Occupation Colour', ChangeTCSystemOccupationColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore TC System Occupation Colour', RestoreTCSystemOccupationColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'TC Out Of Use Set By User Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change TC Out Of Use Set By User Colour', ChangeTCOutOfUseSetByUserColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore TC Out Of Use Set By User Colour', RestoreTCOutOfUseSetByUserColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'TC Out Of Use As No Feedback Received Colour', NoClickPopupType, Enabled, Visible, NOT Checked,
+                                        GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change TC Out Of Use As No Feedback Received Colour', ChangeTCOutOfUseAsNoFeedbackReceivedColourPopupType, Enabled, Visible,
+                       NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore TC Out Of Use As No Feedback Received Colour', RestoreTCOutOfUseAsNoFeedbackReceivedColourPopupType, Enabled,
+                       Visible, NOT Checked, GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'TC Unoccupied Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change TC Unoccupied Colour', ChangeTCUnoccupiedColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore TC Unoccupied Colour', RestoreTCUnoccupiedColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+    SubMenuItems := AddSubMenuItem(MainMenuItemExtended, 'Platform Colours', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Platform Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change Platform Colour', ChangePlatformColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore Platform Colour', RestorePlatformColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'TRS Plunger Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change TRS Plunger Colour', ChangeTRSPlungerColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore TRS Plunger Colour', RestoreTRSPlungerColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'TRS Plunger Pressed Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change TRS Plunger Pressed Colour', ChangeTRSPlungerPressedColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore TRS Plunger Pressed Colour', RestoreTRSPlungerPressedColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'TRS Plunger Outline Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change TRS Plunger Outline Colour', ChangeTRSPlungerOutlineColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore TRS Plunger Outline Colour', RestoreTRSPlungerOutlineColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+
+    SubMenuItems := AddSubMenuItem(MainMenuItemExtended, 'Point Colours', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Default Point Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change Default Point Colour', ChangeDefaultPointColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore Default Point Colour', RestoreDefaultPointColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Point Default State Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change Point Default State Colour', ChangePointDefaultStateColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore Point Default State Colour', RestorePointDefaultStateColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Point Diverging Line Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change Point Diverging Line Colour', ChangePointDivergingLineColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore Point Diverging Line Colour', RestorePointDivergingLineColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Point Down Facing Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change Point Down Facing Colour', ChangePointDownFacingColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore Point Down Facing Colour', RestorePointDownFacingColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Point Feedback Data In Use Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change Point Feedback Data In Use Colour', ChangePointFeedbackDataInUseColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore Point Feedback Data In Use Colour', RestorePointFeedbackDataInUseColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Point Feedback Data Out Of Use Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change Point Feedback Data Out Of Use Colour', ChangePointFeedbackDataOutOfUseColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore Point Feedback Data Out Of Use Colour', RestorePointFeedbackDataOutOfUseColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Point Heel Line Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change Heel Line Point Colour', ChangePointHeelLineColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore Heel Line Point Colour', RestorePointHeelLineColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Point Lenz Number Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change Point Lenz Number Colour', ChangePointLenzNumberColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore Point Lenz Number Colour', RestorePointLenzNumberColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Point Locked By System Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change Point Locked By System Colour', ChangePointLockedBySystemColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore Point Locked By System Colour', RestorePointLockedBySystemColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Point Locked By User Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change Point Locked By User Colour', ChangePointLockedByUserColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore Point Locked By User Colour', RestorePointLockedByUserColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Point Manual Operation Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change Point Manual Operation Colour', ChangePointManualOperationColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore Point Manual Operation Colour', RestorePointManualOperationColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Point Out Of Use Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change Point Out Of Use Colour', ChangePointOutOfUseColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore Point Out Of Use Colour', RestorePointOutOfUseColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Point Straight Line Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change Point Straight Line Colour', ChangePointStraightLineColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore Point Straight Line Colour', RestorePointStraightLineColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Point Undraw Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change Point Undraw Colour', ChangePointUndrawColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore Point Undraw Colour', RestorePointUndrawColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Point Up Facing Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change Point Up Facing Colour', ChangePointUpFacingColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore Point Up Facing Colour', RestorePointUpFacingColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Points Without Feedback Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change Points Without Feedback Colour', ChangePointsWithoutFeedbackColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore Points Without Feedback Colour', RestorePointsWithoutFeedbackColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+
+    SubMenuItems := AddSubMenuItem(MainMenuItemExtended, 'Signal Colours', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Signal Aspect Red', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change Signal Aspect Red', ChangeSignalAspectRedPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore Signal Aspect Red', RestoreSignalAspectRedPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Signal Aspect Green', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change Signal Aspect Green', ChangeSignalAspectGreenPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore Signal Aspect Green', RestoreSignalAspectGreenPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Signal Aspect Yellow', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change Signal Aspect Yellow', ChangeSignalAspectYellowPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore Signal Aspect Yellow', RestoreSignalAspectYellowPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Signal Aspect Unlit', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change Signal Aspect Unlit', ChangeSignalAspectUnlitPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore Signal Aspect Unlit', RestoreSignalAspectUnlitPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Signal Number Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change Signal Number Colour', ChangeSignalNumberColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore Signal Number Colour', RestoreSignalNumberColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Signal Post Base Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change Signal Post Base Colour', ChangeSignalPostBaseColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore Signal Post Base Colour', RestoreSignalPostBaseColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Signal Post Route Setting Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change Signal Post Route Setting Colour', ChangeSignalPostRouteSettingColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore Signal Post Route Setting Colour', RestoreSignalPostRouteSettingColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Signal Post Emergency Route Setting Colour', NoClickPopupType, Enabled, Visible, NOT Checked,
+                                        GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change Signal Post Emergency Route Setting Colour', ChangeSignalPostEmergencyRouteSettingColourPopupType, Enabled,
+                       Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore Signal Post Emergency Route Setting Colour', RestoreSignalPostEmergencyRouteSettingColourPopupType, Enabled,
+                       Visible, NOT Checked, GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Signal Post Theatre Setting Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change Signal Post Theatre Setting Colour', ChangeSignalPostTheatreSettingColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore Signal Post Theatre Setting Colour', RestoreSignalPostTheatreSettingColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Signals From Which User Must Drive Signal Post Colour', NoClickPopupType, Enabled, Visible, NOT Checked,
+                                        GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change Signals From Which User Must Drive Signal Post Colour', ChangeSignalsFromWhichUserMustDriveSignalPostColourPopupType,
+                       Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore Signals From Which User Must Drive Signal Post Colour',
+                       RestoreSignalsFromWhichUserMustDriveSignalPostColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+    SubMenuItems := AddSubMenuItem(MainMenuItemExtended, 'Train Colours', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Train Active Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change Train Active Colour', ChangeTrainActiveColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore Train Active Colour', RestoreTrainActiveColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Train Inactive Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change Train Inactive Colour', ChangeTrainInactiveColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore Train Inactive Colour', RestoreTrainInactiveColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+    SubMenuItems := AddSubMenuItem(MainMenuItemExtended, 'Editing Colours', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Screen Component Edited 1 Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change Screen Component Edited 1 Colour', ChangeScreenComponentEditedColour1PopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore Screen Component Edited 1 Colour', RestoreScreenComponentEditedColour1PopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Screen Component Edited 2 Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change Screen Component Edited 2 Colour', ChangeScreenComponentEditedColour2PopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore Screen Component Edited 2 Colour', RestoreScreenComponentEditedColour2PopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+
+    AddSubMenuItem(MainMenuItemExtended, '-', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+    AddSubMenuItem(MainMenuItemExtended, 'Restore All Default Colours', RestoreAllDefaultColoursPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+  MainMenuItemExtended := AddMainMenuItem(GeneralPopupMenu, 'Change Pen Styles', NoclickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+    SubMenuItems := AddSubMenuItem(MainMenuItemExtended, 'Siding Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Change Siding Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddPenStylesSubMenu(SubSubMenuItems, SidingPenStylePopupType);
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Restore Siding Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddPenStylesSubMenu(SubSubMenuItems, SidingPenStylePopupType);
+
+    SubMenuItems := AddSubMenuItem(MainMenuItemExtended, 'Fiddleyard-Line Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Change Fiddleyard-Line Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddPenStylesSubMenu(SubSubMenuItems, FiddleyardLinePenStylePopupType);
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Restore Fiddleyard-Line Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddPenStylesSubMenu(SubSubMenuItems, FiddleyardLinePenStylePopupType);
+
+    SubMenuItems := AddSubMenuItem(MainMenuItemExtended, 'Projected-Line Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Change Projected-Line Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddPenStylesSubMenu(SubSubMenuItems, ProjectedLinePenStylePopupType);
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Restore Projected-Line Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddPenStylesSubMenu(SubSubMenuItems, ProjectedLinePenStylePopupType);
+
+    SubMenuItems := AddSubMenuItem(MainMenuItemExtended, 'TC Out Of Use As No Feedback Received Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
+                                   GeneralPopupItemClick);
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Change TC Out Of Use As No Feedback Received Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
+                                        GeneralPopupItemClick);
+        AddPenStylesSubMenu(SubSubMenuItems, TCOutOfUseAsNoFeedbackReceivedPenStylePopupType);
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Restore TC Out Of Use As No Feedback Received Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
+                                        GeneralPopupItemClick);
+        AddPenStylesSubMenu(SubSubMenuItems, TCOutOfUseAsNoFeedbackReceivedPenStylePopupType);
+
+    SubMenuItems := AddSubMenuItem(MainMenuItemExtended, 'TC Out Of Use Set By User Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Change TC Out Of Use Set By User Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
+                                        GeneralPopupItemClick);
+        AddPenStylesSubMenu(SubSubMenuItems, TCOutOfUseSetByUserPenStylePopupType);
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Restore TC Out Of Use Set By User Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
+                                        GeneralPopupItemClick);
+        AddPenStylesSubMenu(SubSubMenuItems, TCOutOfUseSetByUserPenStylePopupType);
+
+    SubMenuItems := AddSubMenuItem(MainMenuItemExtended, 'TC Permanent Feedback Occupation Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
+                                   GeneralPopupItemClick);
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Change TC Permanent Feedback Occupation Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
+                                        GeneralPopupItemClick);
+        AddPenStylesSubMenu(SubSubMenuItems, TCPermanentFeedbackOccupationPenStylePopupType);
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems,'Restore TC Permanent Feedback Occupation Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
+                                        GeneralPopupItemClick);
+        AddPenStylesSubMenu(SubSubMenuItems, TCPermanentFeedbackOccupationPenStylePopupType);
+
+    SubMenuItems := AddSubMenuItem(MainMenuItemExtended, 'TC Permanent Occupation Set By User Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
+                                   GeneralPopupItemClick);
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Change TC Permanent Occupation Set By User Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
+                                        GeneralPopupItemClick);
+        AddPenStylesSubMenu(SubSubMenuItems, TCPermanentOccupationSetByUserPenStylePopupType);
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Restore TC Permanent Occupation Set By User Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
+                                        GeneralPopupItemClick);
+        AddPenStylesSubMenu(SubSubMenuItems, TCPermanentOccupationSetByUserPenStylePopupType);
+
+    SubMenuItems := AddSubMenuItem(MainMenuItemExtended, 'TC Permanent System Occupation Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
+                                   GeneralPopupItemClick);
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Change TC Permanent System Occupation Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
+                                        GeneralPopupItemClick);
+        AddPenStylesSubMenu(SubSubMenuItems, TCPermanentSystemOccupationPenStylePopupType);
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Restore TC Permanent System Occupation Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
+                                        GeneralPopupItemClick);
+        AddPenStylesSubMenu(SubSubMenuItems, TCPermanentSystemOccupationPenStylePopupType);
+
+    SubMenuItems := AddSubMenuItem(MainMenuItemExtended, 'TC Loco Out Of Place Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Change TC Loco Out Of Place Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddPenStylesSubMenu(SubSubMenuItems, TCLocoOutOfPlacePenStylePopupType);
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Restore TC Loco Out Of Place Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddPenStylesSubMenu(SubSubMenuItems, TCLocoOutOfPlacePenStylePopupType);
+
+  MainMenuItemExtended := AddMainMenuItem(GeneralPopupMenu, 'Operations', NoclickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+    AddSubMenuItem(MainMenuItemExtended, 'Change Point', ChangePointPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+    AddSubMenuItem(MainMenuItemExtended, 'Change Signal', ChangeSignalPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+    AddSubMenuItem(MainMenuItemExtended, 'List Locomotives', ListLocomotivesPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+    AddSubMenuItem(MainMenuItemExtended, 'Show TrackCircuit', ShowTrackCircuitPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+    AddSubMenuItem(MainMenuItemExtended, '-', NoClickPopupType, Enabled, Visible, WhetherChecked, GeneralPopupItemClick);
+    AddSubMenuItem(MainMenuItemExtended, 'Debug Options', DebugOptionsPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+  MainMenuItemExtended := AddMainMenuItem(GeneralPopupMenu, 'Resetting Options', NoclickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+    WhetherEnabled := (FWPRailWindow.Top <> DefaultFWPRailWindowTop)
+                       OR (FWPRailWindow.Height <> DefaultFWPRailWindowHeight)
+                       OR (FWPRailWindow.Left <> DefaultFWPRailWindowLeft)
+                       OR (FWPRailWindow.Top <> DefaultFWPRailWindowTop)
+                       OR (FWPRailWindow.Width <> DefaultFWPRailWindowWidth);
+    AddSubMenuItem(MainMenuItemExtended, 'Reset Main Window Size And Position', ResetMainWindowSizeAndPositionPopupType, WhetherEnabled, Visible, NOT Checked,
+                   GeneralPopupItemClick);
+    AddSubMenuItem(MainMenuItemExtended, 'Reset Size And Position Of All Windows', ResetSizeAndPositionOfAllWindowsPopupType, Enabled, Visible, NOT Checked,
+                   GeneralPopupItemClick);
+    AddSubMenuItem(MainMenuItemExtended, 'Restore All Screen Drawing Default Settings', RestoreAllScreenDrawingDefaultSettingsPopupType, Enabled, Visible, NOT Checked,
+                   GeneralPopupItemClick);
+
+  PopupTimerCount := 0;
+  PopupTimer.Enabled := True;
+END; { GeneralPopupMenuPopup }
 
 PROCEDURE TFWPRailWindow.SignalPopupItemClick(Sender: TObject);
 CONST
@@ -4207,8 +5031,8 @@ BEGIN
   END;
 
   WITH Signals[SignalPopupNum] DO BEGIN
-    WITH sender As TMenuItemExtended DO BEGIN
-      CASE PopupType OF
+    WITH Sender AS TMenuItemExtended DO BEGIN
+      CASE MenuPopupType OF
         SignalChangeDirectionPopupType:
           ChangeSignalDirection(SignalPopupNum);
 
@@ -4244,24 +5068,25 @@ BEGIN
         Caption := 'Signals'
       ELSE
         Caption := 'Signal ' + IntToStr(SignalPopupNum);
-      AddMenuItem(SignalPopupMenu, Caption, NoClickPopupType, NOT Enabled, NIL);
-      AddMenuItem(SignalPopupMenu, '-', NoClickPopupType, Enabled, NIL);
+      AddMainMenuItem(SignalPopupMenu, Caption, NoClickPopupType, NOT Enabled, Visible, NOT Checked, NIL);
+      AddMainMenuItem(SignalPopupMenu, '-', NoClickPopupType, Enabled, Visible, NOT Checked, NIL);
 
       { ...and now the individual items }
       IF NOT Signal_OutOfUse THEN
-        AddMenuItem(SignalPopupMenu, 'Set Signal ' + IntToStr(SignalPopupNum) + ' Out Of Use', SignalOutOfUsePopupType, Enabled, SignalPopupItemClick)
+        AddMainMenuItem(SignalPopupMenu, 'Set Signal ' + IntToStr(SignalPopupNum) + ' Out Of Use', SignalOutOfUsePopupType, Enabled, Visible, NOT Checked, SignalPopupItemClick)
       ELSE
-        AddMenuItem(SignalPopupMenu, 'Set Signal ' + IntToStr(SignalPopupNum) + ' Back In Use', SignalOutOfUsePopupType, Enabled, SignalPopupItemClick);
-
-      IF NOT Signal_UserMustDrive THEN
-        AddMenuItem(SignalPopupMenu, 'Set Signal ' + IntToStr(SignalPopupNum) + ' Set "User Must Drive From Here"', SignalUserMustDriveFromPopupType, Enabled,
-                    SignalPopupItemClick)
-      ELSE
-        AddMenuItem(SignalPopupMenu, 'Set Signal ' + IntToStr(SignalPopupNum) + ' Cancel "User Must Drive From Here"', SignalUserMustDriveFromPopupType, Enabled,
+        AddMainMenuItem(SignalPopupMenu, 'Set Signal ' + IntToStr(SignalPopupNum) + ' Back In Use', SignalOutOfUsePopupType, Enabled, Visible, NOT Checked,
                     SignalPopupItemClick);
 
-      AddMenuItem(SignalPopupMenu, '-', NoClickPopupType, Enabled, NIL);
-      AddMenuItem(SignalPopupMenu, 'Edit Signal ' + IntToStr(SignalPopupNum) + ' Details', SignalEditPopupType, Enabled, SignalPopupItemClick);
+      IF NOT Signal_UserMustDrive THEN
+        AddMainMenuItem(SignalPopupMenu, 'Set Signal ' + IntToStr(SignalPopupNum) + ' Set "User Must Drive From Here"', SignalUserMustDriveFromPopupType, Enabled, Visible,
+                    NOT Checked, SignalPopupItemClick)
+      ELSE
+        AddMainMenuItem(SignalPopupMenu, 'Set Signal ' + IntToStr(SignalPopupNum) + ' Cancel "User Must Drive From Here"', SignalUserMustDriveFromPopupType, Enabled, Visible,
+                    NOT Checked, SignalPopupItemClick);
+
+      AddMainMenuItem(SignalPopupMenu, '-', NoClickPopupType, Enabled, Visible, NOT Checked, NIL);
+      AddMainMenuItem(SignalPopupMenu, 'Edit Signal ' + IntToStr(SignalPopupNum) + ' Details', SignalEditPopupType, Enabled, Visible, NOT Checked, SignalPopupItemClick);
     END ELSE BEGIN
       { EditMode }
 
@@ -4270,24 +5095,25 @@ BEGIN
         Caption := 'Editing Signals'
       ELSE
         Caption := 'Editing Signal ' + IntToStr(SignalPopupNum);
-      AddMenuItem(SignalPopupMenu, Caption, NoClickPopupType, NOT Enabled, NIL);
-      AddMenuItem(SignalPopupMenu, '-', NoClickPopupType, Enabled, NIL);
+      AddMainMenuItem(SignalPopupMenu, Caption, NoClickPopupType, NOT Enabled, Visible, NOT Checked, NIL);
+      AddMainMenuItem(SignalPopupMenu, '-', NoClickPopupType, Enabled, Visible, NOT Checked, NIL);
 
       { ...and now the individual items }
       IF NOT Signal_OutOfUse THEN
-        AddMenuItem(SignalPopupMenu, 'Set Signal ' + IntToStr(SignalPopupNum) + ' Out Of Use', SignalOutOfUsePopupType, Enabled, SignalPopupItemClick)
+        AddMainMenuItem(SignalPopupMenu, 'Set Signal ' + IntToStr(SignalPopupNum) + ' Out Of Use', SignalOutOfUsePopupType, Enabled, Visible, NOT Checked, SignalPopupItemClick)
       ELSE
-        AddMenuItem(SignalPopupMenu, 'Set Signal ' + IntToStr(SignalPopupNum) + ' Back In Use', SignalOutOfUsePopupType, Enabled, SignalPopupItemClick);
+        AddMainMenuItem(SignalPopupMenu, 'Set Signal ' + IntToStr(SignalPopupNum) + ' Back In Use', SignalOutOfUsePopupType, Enabled, Visible, NOT Checked, SignalPopupItemClick);
 
-      AddMenuItem(SignalPopupMenu, 'Change Signal ' + IntToStr(SignalPopupNum) + ' Direction', SignalChangeDirectionPopupType, Enabled, SignalPopupItemClick);
+      AddMainMenuItem(SignalPopupMenu, 'Change Signal ' + IntToStr(SignalPopupNum) + ' Direction', SignalChangeDirectionPopupType, Enabled, Visible, NOT Checked,
+                  SignalPopupItemClick);
 
       IF Signal_PreviousLineX <> 0 THEN
         { the signal has been moved }
-        AddMenuItem(SignalPopupMenu, 'Undo Changes', SignalUndoChangesPopupType, Enabled, SignalPopupItemClick);
+        AddMainMenuItem(SignalPopupMenu, 'Undo Changes', SignalUndoChangesPopupType, Enabled, Visible, NOT Checked, SignalPopupItemClick);
 
-      AddMenuItem(SignalPopupMenu, '-', NoClickPopupType, Enabled, NIL);
+      AddMainMenuItem(SignalPopupMenu, '-', NoClickPopupType, Enabled, Visible, NOT Checked, NIL);
 
-      AddMenuItem(SignalPopupMenu, 'Delete Signal ' + IntToStr(SignalPopupNum), SignalDeletePopupType, Enabled, SignalPopupItemClick);
+      AddMainMenuItem(SignalPopupMenu, 'Delete Signal ' + IntToStr(SignalPopupNum), SignalDeletePopupType, Enabled, Visible, NOT Checked, SignalPopupItemClick);
     END;
   END; {WITH}
 
@@ -4306,7 +5132,7 @@ BEGIN
 
   WITH Points[PointPopupNum] DO BEGIN
     WITH Sender AS TMenuItemExtended DO BEGIN
-      CASE PopupType OF
+      CASE MenuPopupType OF
         PointOutOfUsePopupType:
           BEGIN
             IF NOT Point_OutOfUse THEN
@@ -4356,36 +5182,36 @@ BEGIN
     IF NOT EditMode THEN BEGIN
       { Add the caption... }
       Caption := 'Point ' + IntToStr(PointPopupNum);
-      AddMenuItem(PointPopupMenu, Caption, NoClickPopupType, NOT Enabled, NIL);
-      AddMenuItem(PointPopupMenu, '-', NoClickPopupType, Enabled, NIL);
+      AddMainMenuItem(PointPopupMenu, Caption, NoClickPopupType, NOT Enabled, Visible, NOT Checked, NIL);
+      AddMainMenuItem(PointPopupMenu, '-', NoClickPopupType, Enabled, Visible, NOT Checked, NIL);
 
       { ...and now the individual items }
       IF Point_OutOfUse THEN
-        AddMenuItem(PointPopupMenu, 'Set Point ' + IntToStr(PointPopupNum) + ' Back In Use', PointOutOfUsePopupType, Enabled, PointPopupItemClick)
+        AddMainMenuItem(PointPopupMenu, 'Set Point ' + IntToStr(PointPopupNum) + ' Back In Use', PointOutOfUsePopupType, Enabled, Visible, NOT Checked, PointPopupItemClick)
       ELSE
-        AddMenuItem(PointPopupMenu, 'Set Point ' + IntToStr(PointPopupNum) + ' Out Of Use', PointOutOfUsePopupType, Enabled, PointPopupItemClick);
+        AddMainMenuItem(PointPopupMenu, 'Set Point ' + IntToStr(PointPopupNum) + ' Out Of Use', PointOutOfUsePopupType, Enabled, Visible, NOT Checked, PointPopupItemClick);
 
       IF Point_ManualOperation THEN
-        AddMenuItem(PointPopupMenu, 'Set Point ' + IntToStr(PointPopupNum) + ' To Manual', PointToManualPopupType, Enabled, PointPopupItemClick)
+        AddMainMenuItem(PointPopupMenu, 'Set Point ' + IntToStr(PointPopupNum) + ' To Manual', PointToManualPopupType, Enabled, Visible, NOT Checked, PointPopupItemClick)
       ELSE
-        AddMenuItem(PointPopupMenu, 'Set Point ' + IntToStr(PointPopupNum) + ' To Automatic', PointToManualPopupType, Enabled, PointPopupItemClick);
+        AddMainMenuItem(PointPopupMenu, 'Set Point ' + IntToStr(PointPopupNum) + ' To Automatic', PointToManualPopupType, Enabled, Visible, NOT Checked, PointPopupItemClick);
 
       IF Point_LockedByUser THEN
-        AddMenuItem(PointPopupMenu, 'Unlock Point ' + IntToStr(PointPopupNum), PointUnlockPopupType, Enabled, PointPopupItemClick)
+        AddMainMenuItem(PointPopupMenu, 'Unlock Point ' + IntToStr(PointPopupNum), PointUnlockPopupType, Enabled, Visible, NOT Checked, PointPopupItemClick)
       ELSE
-        AddMenuItem(PointPopupMenu, 'Lock Point ' + IntToStr(PointPopupNum), PointUnlockPopupType, Enabled, PointPopupItemClick);
+        AddMainMenuItem(PointPopupMenu, 'Lock Point ' + IntToStr(PointPopupNum), PointUnlockPopupType, Enabled, Visible, NOT Checked, PointPopupItemClick);
 
-      AddMenuItem(PointPopupMenu, 'Edit Point ' + IntToStr(PointPopupNum), PointEditPopupType, Enabled, PointPopupItemClick);
+      AddMainMenuItem(PointPopupMenu, 'Edit Point ' + IntToStr(PointPopupNum), PointEditPopupType, Enabled, Visible, NOT Checked, PointPopupItemClick);
     END ELSE BEGIN
       { EditMode }
 
       { Add the caption... }
       Caption := 'Editing Point ' + IntToStr(PointPopupNum);
-      AddMenuItem(PointPopupMenu, Caption, NoClickPopupType, NOT Enabled, NIL);
-      AddMenuItem(PointPopupMenu, '-', NoClickPopupType, Enabled, NIL);
+      AddMainMenuItem(PointPopupMenu, Caption, NoClickPopupType, NOT Enabled, Visible, NOT Checked, NIL);
+      AddMainMenuItem(PointPopupMenu, '-', NoClickPopupType, Enabled, Visible, NOT Checked, NIL);
 
       { ...and now the individual items }
-      AddMenuItem(PointPopupMenu, 'Delete Point ' + intToStr(PointPopupNum), PointDeletePopupType, Enabled, PointPopupItemClick);
+      AddMainMenuItem(PointPopupMenu, 'Delete Point ' + intToStr(PointPopupNum), PointDeletePopupType, Enabled, Visible, NOT Checked, PointPopupItemClick);
     END;
   END; {WITH}
 
@@ -4422,18 +5248,18 @@ BEGIN
     IF NOT EditMode THEN BEGIN
       { Add the caption... }
       Caption := 'BufferStop ' + IntToStr(BufferStopPopupNum);
-      AddMenuItem(BufferStopPopupMenu, Caption, NoClickPopupType, NOT Enabled, NIL);
-      AddMenuItem(BufferStopPopupMenu, '-', NoClickPopupType, Enabled, NIL);
+      AddMainMenuItem(BufferStopPopupMenu, Caption, NoClickPopupType, NOT Enabled, Visible, NOT Checked, NIL);
+      AddMainMenuItem(BufferStopPopupMenu, '-', NoClickPopupType, Enabled, Visible, NOT Checked, NIL);
 
       { ...and now the individual items }
-      AddMenuItem(BufferStopPopupMenu, 'Edit ' + IntToStr(BufferStopPopupNum) + '  BufferStop', BufferStopEditPopupType, Enabled, BufferStopPopupItemClick)
+      AddMainMenuItem(BufferStopPopupMenu, 'Edit ' + IntToStr(BufferStopPopupNum) + '  BufferStop', BufferStopEditPopupType, Enabled, Visible, NOT Checked, BufferStopPopupItemClick)
     END ELSE BEGIN
       { EditMode }
 
       { Add the caption... }
       Caption := 'Editing BufferStop ' + IntToStr(BufferStopPopupNum);
-      AddMenuItem(BufferStopPopupMenu, Caption, NoClickPopupType, NOT Enabled, NIL);
-      AddMenuItem(BufferStopPopupMenu, '-', NoClickPopupType, Enabled, NIL);
+      AddMainMenuItem(BufferStopPopupMenu, Caption, NoClickPopupType, NOT Enabled, Visible, NOT Checked, NIL);
+      AddMainMenuItem(BufferStopPopupMenu, '-', NoClickPopupType, Enabled, Visible, NOT Checked, NIL);
 
       { ...and now the individual items }
 
@@ -4780,18 +5606,18 @@ BEGIN
 
   WITH Sender AS TMenuItemExtended DO BEGIN
     { this code has been separated out from the case statement below as we may well not be on a line, and the "WITH Lines[LinePopupNumArray[0]]" statement would fail }
-    IF PopupType = LineExitEditModePopupType THEN BEGIN
+    IF MenuPopupType = LineExitEditModePopupType THEN BEGIN
       TurnEditModeOff;
       TurnCreateLineModeOff;
     END ELSE
-      IF PopupType = LineEnterCreateLineModePopupType THEN
+      IF MenuPopupType = LineEnterCreateLineModePopupType THEN
         TurnCreateLineModeOn
       ELSE
-        IF PopupType = LineExitCreateLineModePopupType THEN BEGIN
+        IF MenuPopupType = LineExitCreateLineModePopupType THEN BEGIN
           TurnCreateLineModeOff
         END ELSE BEGIN
           WITH Lines[LinePopupNumArray[0]] DO BEGIN
-            CASE PopupType OF
+            CASE MenuPopupType OF
               LineAllocateLocoToTrackCircuitPopupType:
                 IF TrackCircuits[Line_TC].TC_LocoChip = UnknownLocoChip THEN
                   AllocateLocoToTrackCircuit(LinePopupNumArray[0])
@@ -4970,16 +5796,16 @@ BEGIN
   IF Length(LinePopupNumArray) = 0 THEN BEGIN
     { we're not on a line, so all we can do is create a line here }
     IF EditMode THEN BEGIN
-      AddMenuItem(LinePopupMenu, 'Create a New Line', NoClickPopupType, NOT Enabled, NIL);
-      AddMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, NIL);
+      AddMainMenuItem(LinePopupMenu, 'Create a New Line', NoClickPopupType, NOT Enabled, Visible, NOT Checked, NIL);
+      AddMainMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, Visible, NOT Checked, NIL);
 
       IF NOT CreateLineMode THEN
-        AddMenuItem(LinePopupMenu, 'Enter Create Line Mode', LineEnterCreateLineModePopupType, Enabled, LinePopupItemClick)
+        AddMainMenuItem(LinePopupMenu, 'Enter Create Line Mode', LineEnterCreateLineModePopupType, Enabled, Visible, NOT Checked, LinePopupItemClick)
       ELSE
-        AddMenuItem(LinePopupMenu, 'Exit Create Line Mode', LineExitCreateLineModePopupType, Enabled, LinePopupItemClick);
+        AddMainMenuItem(LinePopupMenu, 'Exit Create Line Mode', LineExitCreateLineModePopupType, Enabled, Visible, NOT Checked, LinePopupItemClick);
 
       IF EditMode THEN
-        AddMenuItem(LinePopupMenu, 'Exit Edit Mode', LineExitEditModePopupType, Enabled, LinePopupItemClick);
+        AddMainMenuItem(LinePopupMenu, 'Exit Edit Mode', LineExitEditModePopupType, Enabled, Visible, NOT Checked, LinePopupItemClick);
     END;
   END ELSE BEGIN
     WITH Lines[LinePopupNumArray[0]] DO BEGIN
@@ -4987,76 +5813,89 @@ BEGIN
         { Add the caption... }
         Caption := 'Line ' + LineToStr(LinePopupNumArray[0]) + ' ' + IfThen(Line_TC <> UnknownTrackCircuit,
                                                                     'TC' + IntToStr(Line_TC));
-        AddMenuItem(LinePopupMenu, Caption, NoClickPopupType, NOT Enabled, NIL);
-        AddMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, NIL);
+        AddMainMenuItem(LinePopupMenu, Caption, NoClickPopupType, NOT Enabled, Visible, NOT Checked, NIL);
+        AddMainMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, Visible, NOT Checked, NIL);
 
         { ...and now the individual items }
         IF Line_TC <> UnknownTrackCircuit THEN BEGIN
           WhetherEnabled := TrackCircuits[Line_TC].TC_OccupationState <> TCUnOccupied;
-          AddMenuItem(LinePopupMenu, 'Set Track Circuit ' + IntToStr(Line_TC) + ' To Unoccupied', LineTCUnoccupiedPopupType, WhetherEnabled, LinePopupItemClick);
+          AddMainMenuItem(LinePopupMenu, 'Set Track Circuit ' + IntToStr(Line_TC) + ' To Unoccupied', LineTCUnoccupiedPopupType, WhetherEnabled, Visible, NOT Checked,
+                        LinePopupItemClick);
 
           WhetherEnabled := TrackCircuits[Line_TC].TC_OccupationState <> TCFeedbackOccupation;
-          AddMenuItem(LinePopupMenu, 'Set Track Circuit ' + IntToStr(Line_TC) + ' To Feedback Occupation', LineTCFeedbackOccupationPopupType, WhetherEnabled,
-                                                                                                                                                        LinePopupItemClick);
+          AddMainMenuItem(LinePopupMenu, 'Set Track Circuit ' + IntToStr(Line_TC) + ' To Feedback Occupation', LineTCFeedbackOccupationPopupType, WhetherEnabled,
+                      Visible, NOT Checked, LinePopupItemClick);
 
           WhetherEnabled := TrackCircuits[Line_TC].TC_OccupationState <> TCSystemOccupation;
-        AddMenuItem(LinePopupMenu, 'Set Track Circuit ' + IntToStr(Line_TC) + ' To System Occupation', LineTCSystemOccupationPopupType, WhetherEnabled, LinePopupItemClick);
+          AddMainMenuItem(LinePopupMenu, 'Set Track Circuit ' + IntToStr(Line_TC) + ' To System Occupation', LineTCSystemOccupationPopupType, WhetherEnabled, Visible, NOT Checked,
+                      LinePopupItemClick);
 
           WhetherEnabled := (TrackCircuits[Line_TC].TC_OccupationState <> TCPermanentFeedbackOccupation)
                              AND (TrackCircuits[Line_TC].TC_OccupationState <> TCPermanentOccupationSetByUser);
 
-          AddMenuItem(LinePopupMenu, 'Set Track Circuit ' + IntToStr(Line_TC) + ' To Permanent Occupation', LineTCPermanentOccupationPopupType, WhetherEnabled,
-                                                                                                                                                        LinePopupItemClick);
+          AddMainMenuItem(LinePopupMenu, 'Set Track Circuit ' + IntToStr(Line_TC) + ' To Permanent Occupation', LineTCPermanentOccupationPopupType, WhetherEnabled,
+                      Visible, NOT Checked, LinePopupItemClick);
 
           WhetherEnabled := TrackCircuits[Line_TC].TC_OccupationState <> TCOutOfUseSetByUser;
-          AddMenuItem(LinePopupMenu, 'Set Track Circuit ' + IntToStr(Line_TC) + ' Out Of Use', LineTCOutOfUsePopupType, WhetherEnabled, LinePopupItemClick);
+          AddMainMenuItem(LinePopupMenu, 'Set Track Circuit ' + IntToStr(Line_TC) + ' Out Of Use', LineTCOutOfUsePopupType, WhetherEnabled, Visible, NOT Checked,
+                      LinePopupItemClick);
 
           IF TrackCircuits[Line_TC].TC_SpeedRestrictionInMPH = NoSpecifiedSpeed THEN
-            AddMenuItem(LinePopupMenu, 'Set Track Circuit ' + IntToStr(Line_TC) + ' Speed Restriction', LineTCSpeedRestrictionPopupType, Enabled, LinePopupItemClick)
+            AddMainMenuItem(LinePopupMenu, 'Set Track Circuit ' + IntToStr(Line_TC) + ' Speed Restriction', LineTCSpeedRestrictionPopupType, Enabled, Visible, NOT Checked,
+                        LinePopupItemClick)
           ELSE
-            AddMenuItem(LinePopupMenu, 'Clear Track Circuit ' + IntToStr(Line_TC) + ' Speed Restriction', LineTCSpeedRestrictionPopupType, Enabled, LinePopupItemClick);
+            AddMainMenuItem(LinePopupMenu, 'Clear Track Circuit ' + IntToStr(Line_TC) + ' Speed Restriction', LineTCSpeedRestrictionPopupType, Enabled, Visible, NOT Checked,
+                        LinePopupItemClick);
         END;
 
-        AddMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, NIL);
+        AddMainMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, Visible, NOT Checked, NIL);
 
         { Can't have both locations and lines out of use at the same time }
         IF (Line_Location <> UnknownLocation) AND Locations[Line_Location].Location_OutOfUse THEN BEGIN
-          AddMenuItem(LinePopupMenu, 'Put Line ''' + LineToStr(LinePopupNumArray[0]) + ''' Out Of Use', LineTCOutOfUsePopupType, NOT Enabled, LinePopupItemClick);
-          AddMenuItem(LinePopupMenu, 'Return Location ''' + LocationToStr(Line_Location) + ''' To Use', LineLocationOutOfUsePopupType, Enabled, LinePopupItemClick);
+          AddMainMenuItem(LinePopupMenu, 'Put Line ''' + LineToStr(LinePopupNumArray[0]) + ''' Out Of Use', LineTCOutOfUsePopupType, NOT Enabled, Visible, NOT Checked,
+                      LinePopupItemClick);
+          AddMainMenuItem(LinePopupMenu, 'Return Location ''' + LocationToStr(Line_Location) + ''' To Use', LineLocationOutOfUsePopupType, Enabled, Visible, NOT Checked,
+                      LinePopupItemClick);
         END ELSE
           IF Line_OutOfUseState = OutOfUse THEN BEGIN
-            AddMenuItem(LinePopupMenu, 'Return Line ''' + LineToStr(LinePopupNumArray[0]) + ''' To Use', LineTCOutOfUsePopupType, Enabled, LinePopupItemClick);
-            AddMenuItem(LinePopupMenu, 'Put Location ''' + LocationToStr(Line_Location) + ''' Out Of Use', LineLocationOutOfUsePopupType, NOT Enabled, LinePopupItemClick);
+            AddMainMenuItem(LinePopupMenu, 'Return Line ''' + LineToStr(LinePopupNumArray[0]) + ''' To Use', LineTCOutOfUsePopupType, Enabled, Visible, NOT Checked,
+                        LinePopupItemClick);
+            AddMainMenuItem(LinePopupMenu, 'Put Location ''' + LocationToStr(Line_Location) + ''' Out Of Use', LineLocationOutOfUsePopupType, NOT Enabled, Visible, NOT Checked,
+                        LinePopupItemClick);
           END ELSE BEGIN
-            AddMenuItem(LinePopupMenu, 'Put Line ''' + LineToStr(LinePopupNumArray[0]) + ''' Out Of Use', LineTCOutOfUsePopupType, Enabled, LinePopupItemClick);
-            AddMenuItem(LinePopupMenu, 'Put Location ''' + LocationToStr(Line_Location) + ''' Out Of Use', LineLocationOutOfUsePopupType, Enabled, LinePopupItemClick);
+            AddMainMenuItem(LinePopupMenu, 'Put Line ''' + LineToStr(LinePopupNumArray[0]) + ''' Out Of Use', LineTCOutOfUsePopupType, Enabled, Visible, NOT Checked,
+                        LinePopupItemClick);
+            AddMainMenuItem(LinePopupMenu, 'Put Location ''' + LocationToStr(Line_Location) + ''' Out Of Use', LineLocationOutOfUsePopupType, Enabled, Visible, NOT Checked,
+                        LinePopupItemClick);
           END;
 
-        AddMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, NIL);
+        AddMainMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, Visible, NOT Checked, NIL);
 
         IF Line_TC <> UnknownTrackCircuit THEN BEGIN
           IF TrackCircuits[Line_TC].TC_LocoChip = UnknownLocoChip THEN
-            AddMenuItem(LinePopupMenu, 'Allocate Loco To Track Circuit', LineAllocateLocoToTrackCircuitPopupType, Enabled, LinePopupItemClick)
+            AddMainMenuItem(LinePopupMenu, 'Allocate Loco To Track Circuit', LineAllocateLocoToTrackCircuitPopupType, Enabled, Visible, NOT Checked, LinePopupItemClick)
           ELSE
-            AddMenuItem(LinePopupMenu, 'Clear Loco Allocation From Track Circuit', LineAllocateLocoToTrackCircuitPopupType, Enabled, LinePopupItemClick);
+            AddMainMenuItem(LinePopupMenu, 'Clear Loco Allocation From Track Circuit', LineAllocateLocoToTrackCircuitPopupType, Enabled, Visible, NOT Checked, LinePopupItemClick);
 
           IF (Line_TC = UnknownTrackCircuit) OR (TrackCircuits[Line_TC].TC_LocoChip = UnknownLocoChip) THEN BEGIN
-            AddMenuItem(LinePopupMenu, 'Change Internal Loco Chip Direction to Up', LineChangeInternalLocoDirectionToUpPopupType, Enabled, LinePopupItemClick);
-            AddMenuItem(LinePopupMenu, 'Change Internal Loco Chip Direction to Down', LineChangeInternalLocoDirectionToDownPopupType, Enabled, LinePopupItemClick);
+            AddMainMenuItem(LinePopupMenu, 'Change Internal Loco Chip Direction to Up', LineChangeInternalLocoDirectionToUpPopupType, Enabled, Visible, NOT Checked,
+                        LinePopupItemClick);
+            AddMainMenuItem(LinePopupMenu, 'Change Internal Loco Chip Direction to Down', LineChangeInternalLocoDirectionToDownPopupType, Enabled, Visible, NOT Checked,
+                        LinePopupItemClick);
           END ELSE BEGIN
-            AddMenuItem(LinePopupMenu, 'Change ' + LocoChipToStr(TrackCircuits[Line_TC].TC_LocoChip) + '''s Internal Loco Chip Direction to Up',
-                                                                                                 LineChangeInternalLocoDirectionToUpPopupType, Enabled, LinePopupItemClick);
-            AddMenuItem(LinePopupMenu, 'Change ' + LocoChipToStr(TrackCircuits[Line_TC].TC_LocoChip) + '''s Internal Loco Chip Direction to Down',
-                                                                                               LineChangeInternalLocoDirectionToDownPopupType, Enabled, LinePopupItemClick);
+            AddMainMenuItem(LinePopupMenu, 'Change ' + LocoChipToStr(TrackCircuits[Line_TC].TC_LocoChip) + '''s Internal Loco Chip Direction to Up',
+                        LineChangeInternalLocoDirectionToUpPopupType, Enabled, Visible, NOT Checked, LinePopupItemClick);
+            AddMainMenuItem(LinePopupMenu, 'Change ' + LocoChipToStr(TrackCircuits[Line_TC].TC_LocoChip) + '''s Internal Loco Chip Direction to Down',
+                        LineChangeInternalLocoDirectionToDownPopupType, Enabled, Visible, NOT Checked, LinePopupItemClick);
           END;
 
           WhetherEnabled := TrackCircuits[Line_TC].TC_LocoChip <> UnknownLocoChip;
-          AddMenuItem(LinePopupMenu, 'Show Loco''s Last Error Message', LineShowLocoLastErrorMessagePopupType, WhetherEnabled, LinePopupItemClick);
+          AddMainMenuItem(LinePopupMenu, 'Show Loco''s Last Error Message', LineShowLocoLastErrorMessagePopupType, WhetherEnabled, Visible, NOT Checked, LinePopupItemClick);
         END;
 
-        AddMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, NIL);
+        AddMainMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, Visible, NOT Checked, NIL);
 
-        AddMenuItem(LinePopupMenu, 'Edit Line ' + LineToStr(LinePopupNumArray[0]), LineEditPopupType, Enabled, LinePopupItemClick)
+        AddMainMenuItem(LinePopupMenu, 'Edit Line ' + LineToStr(LinePopupNumArray[0]), LineEditPopupType, Enabled, Visible, NOT Checked, LinePopupItemClick)
       END ELSE BEGIN
         { EditMode }
 
@@ -5065,19 +5904,19 @@ BEGIN
           { if we're at the junction of two lines, add point-type items }
           Caption := 'Creating new points at junction of lines ' + LineToStr(LinePopupNumArray[0]) + ' and ' + LineToStr(LinePopupNumArray[1]);
 
-          AddMenuItem(LinePopupMenu, Caption, NoClickPopupType, NOT Enabled, NIL);
-          AddMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, NIL);
+          AddMainMenuItem(LinePopupMenu, Caption, NoClickPopupType, NOT Enabled, Visible, NOT Checked, NIL);
+          AddMainMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, Visible, NOT Checked, NIL);
 
-          AddMenuItem(LinePopupMenu, 'Create Ordinary Point', LineCreateOrdinaryPointPopupType, Enabled, LinePopupItemClick);
-          AddMenuItem(LinePopupMenu, 'Create Cross-Over Point', LineCreateCrossOverPointPopupType, Enabled, LinePopupItemClick);
-          AddMenuItem(LinePopupMenu, 'Create Three-Way Point A', LineCreateThreeWayPointAPopupType, Enabled, LinePopupItemClick);
-          AddMenuItem(LinePopupMenu, 'Create Three-Way Point B', LineCreateThreeWayPointBPopupType, Enabled, LinePopupItemClick);
+          AddMainMenuItem(LinePopupMenu, 'Create Ordinary Point', LineCreateOrdinaryPointPopupType, Enabled, Visible, NOT Checked, LinePopupItemClick);
+          AddMainMenuItem(LinePopupMenu, 'Create Cross-Over Point', LineCreateCrossOverPointPopupType, Enabled, Visible, NOT Checked, LinePopupItemClick);
+          AddMainMenuItem(LinePopupMenu, 'Create Three-Way Point A', LineCreateThreeWayPointAPopupType, Enabled, Visible, NOT Checked, LinePopupItemClick);
+          AddMainMenuItem(LinePopupMenu, 'Create Three-Way Point B', LineCreateThreeWayPointBPopupType, Enabled, Visible, NOT Checked, LinePopupItemClick);
         END ELSE BEGIN
           { otherwise add line-type items (and catch points) }
           Caption := 'Editing Line ' + LineToStr(LinePopupNumArray[0]) + ' ' + IfThen(Line_TC <> UnknownTrackCircuit,
                                                                                       'TC' + IntToStr(Line_TC));
-          AddMenuItem(LinePopupMenu, Caption, NoClickPopupType, NOT Enabled, NIL);
-          AddMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, NIL);
+          AddMainMenuItem(LinePopupMenu, Caption, NoClickPopupType, NOT Enabled, Visible, NOT Checked, NIL);
+          AddMainMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, Visible, NOT Checked, NIL);
 
           { Join two lines - see if the cursor is in one of the handle polygons, and the next line is at the same angle }
           WhetherEnabled := False;
@@ -5106,33 +5945,33 @@ BEGIN
             END;
 
           IF Length(LinePopupNumArray) > 1 THEN
-            AddMenuItem(LinePopupMenu, 'Join Lines ' + LineToStr(LinePopupNumArray[0]) + ' and ' + LineToStr(LinePopupNumArray[1]),
-                                                                                                                     LineJoinPopupType, WhetherEnabled, LinePopupItemClick);
-          AddMenuItem(LinePopupMenu, 'Split Line ' + LineToStr(LinePopupNumArray[0]), LineSplitPopupType, Enabled, LinePopupItemClick);
-          AddMenuItem(LinePopupMenu, 'Delete Line ' + LineToStr(LinePopupNumArray[0]), LineDeletePopupType, Enabled, LinePopupItemClick);
+            AddMainMenuItem(LinePopupMenu, 'Join Lines ' + LineToStr(LinePopupNumArray[0]) + ' and ' + LineToStr(LinePopupNumArray[1]), LineJoinPopupType, WhetherEnabled,
+                        Visible, NOT Checked, LinePopupItemClick);
+          AddMainMenuItem(LinePopupMenu, 'Split Line ' + LineToStr(LinePopupNumArray[0]), LineSplitPopupType, Enabled, Visible, NOT Checked, LinePopupItemClick);
+          AddMainMenuItem(LinePopupMenu, 'Delete Line ' + LineToStr(LinePopupNumArray[0]), LineDeletePopupType, Enabled, Visible, NOT Checked, LinePopupItemClick);
 
           WhetherEnabled := Lines[LinePopupNumArray[0]].Line_TC = UnknownTrackCircuit;
-          AddMenuItem(LinePopupMenu, 'Allocate Existing Track Circuit To Line ' + LineToStr(LinePopupNumArray[0]),
-                                                                                             LineAllocateExistingTrackCircuitPopupType, WhetherEnabled, LinePopupItemClick);
+          AddMainMenuItem(LinePopupMenu, 'Allocate Existing Track Circuit To Line ' + LineToStr(LinePopupNumArray[0]), LineAllocateExistingTrackCircuitPopupType,
+                      WhetherEnabled, Visible, NOT Checked, LinePopupItemClick);
           WhetherEnabled := Lines[LinePopupNumArray[0]].Line_TC = UnknownTrackCircuit;
-          AddMenuItem(LinePopupMenu, 'Allocate New Track Circuit To Line ' + LineToStr(LinePopupNumArray[0]),
-                                                                                                  LineAllocateNewTrackCircuitPopupType, WhetherEnabled, LinePopupItemClick);
+          AddMainMenuItem(LinePopupMenu, 'Allocate New Track Circuit To Line ' + LineToStr(LinePopupNumArray[0]), LineAllocateNewTrackCircuitPopupType, WhetherEnabled,
+                      Visible, NOT Checked, LinePopupItemClick);
           WhetherEnabled := Lines[LinePopupNumArray[0]].Line_TC <> UnknownTrackCircuit;
-          AddMenuItem(LinePopupMenu, 'Remove Track Circuit ' + IntToStr(Line_TC) + ' From Line ' + LineToStr(LinePopupNumArray[0]),
-                                                                                                       LineRemoveTrackCircuitPopupType, WhetherEnabled, LinePopupItemClick);
+          AddMainMenuItem(LinePopupMenu, 'Remove Track Circuit ' + IntToStr(Line_TC) + ' From Line ' + LineToStr(LinePopupNumArray[0]), LineRemoveTrackCircuitPopupType,
+                      Visible, NOT Checked, WhetherEnabled, LinePopupItemClick);
 
-          AddMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, NIL);
+          AddMainMenuItem(LinePopupMenu, '-', NoClickPopupType, Enabled, Visible, NOT Checked, NIL);
 
           WhetherEnabled := SignalAdjacentLineOK(LinePopupNumArray[0]);
-          AddMenuItem(LinePopupMenu, 'Create Up Signal', LineCreateUpSignalPopupType, WhetherEnabled, LinePopupItemClick);
-          AddMenuItem(LinePopupMenu, 'Create Down Signal', LineCreateDownSignalPopupType, WhetherEnabled, LinePopupItemClick);
+          AddMainMenuItem(LinePopupMenu, 'Create Up Signal', LineCreateUpSignalPopupType, WhetherEnabled, Visible, NOT Checked, LinePopupItemClick);
+          AddMainMenuItem(LinePopupMenu, 'Create Down Signal', LineCreateDownSignalPopupType, WhetherEnabled, Visible, NOT Checked, LinePopupItemClick);
 
           { Catch points: check to see if the line we're on is horizontal, and use the handle polygons to work out whether we want the up or down end of the line }
           WhetherEnabled := (Lines[LinePopupNumArray[0]].Line_GridUpY = Lines[LinePopupNumArray[0]].Line_GridDownY)
                             AND ((PointInPolygon(Line_UpHandlePolygon, Point(MouseX, MouseY)))
                                 OR (PointInPolygon(Line_DownHandlePolygon, Point(MouseX, MouseY))));
-          AddMenuItem(LinePopupMenu, 'Create Up Catch Point', LineCreateCatchPointUpPopupType, WhetherEnabled, LinePopupItemClick);
-          AddMenuItem(LinePopupMenu, 'Create Down Catch Point', LineCreateCatchPointDownPopupType, WhetherEnabled, LinePopupItemClick);
+          AddMainMenuItem(LinePopupMenu, 'Create Up Catch Point', LineCreateCatchPointUpPopupType, WhetherEnabled, Visible, NOT Checked, LinePopupItemClick);
+          AddMainMenuItem(LinePopupMenu, 'Create Down Catch Point', LineCreateCatchPointDownPopupType, WhetherEnabled, Visible, NOT Checked, LinePopupItemClick);
         END;
       END;
     END; {WITH}
@@ -5207,938 +6046,6 @@ BEGIN
   END; {TRY}
 END; { RailApplicationEventsShortCut }
 
-PROCEDURE TFWPRailWindow.GeneralPopupChangePointLockedBySystemColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := ShowPointLockedColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    ShowPointLockedColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangePointLockedColourClick');
-  END;
-END; { GeneralPopupChangePointLockedBySystemColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestorePointLockedBySystemColourClick(Sender: TObject);
-BEGIN
-  ShowPointLockedColour := DefaultShowPointLockedColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestorePointLockedColourClick');
-END; { GeneralPopupRestorePointLockedBySystemColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangePointLockedByUserColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := PointLockedByUserColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    PointLockedByUserColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangePointLockedByUserColourClick');
-  END;
-END; { GeneralPopupChangePointLockedByUserColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestorePointLockedByUserColourClick(Sender: TObject);
-BEGIN
-  PointLockedByUserColour := DefaultPointLockedByUserColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestorePointLockedByUserColourClick');
-END; { GeneralPopupRestorePointLockedByUserColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangeDefaultPointColourClick(Sender: TObject);
-BEGIN
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    PointColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangePointDefaultColourClick');
-  END;
-END; { GeneralPopupChangePointDefaultColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestorePointDefaultColourClick(Sender: TObject);
-BEGIN
-  PointColour := DefaultPointColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestorePointDefaultColourClick');
-END; { GeneralPopupRestorePointDefaultColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreDefaultBackgroundColourClick(Sender: TObject);
-BEGIN
-  BackgroundColour := DefaultBackgroundColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreDefaultBackgroundColourClick');
-END; { GeneralPopupRestoreDefaultBackgroundColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangeBackgroundColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := BackgroundColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    BackgroundColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangeBackgroundColourClick');
-  END;
-END; { GeneralPopupChangeBackgroundColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangeForegroundColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := ForegroundColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    ForegroundColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangeForegroundColourClick');
-  END;
-END; { GeneralPopupChangeForegroundColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreForegroundColourClick(Sender: TObject);
-BEGIN
-  ForegroundColour := DefaultForegroundColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreForegroundColourClick');
-END; { GeneralPopupRestoreForegroundColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangePlatformColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := PlatformColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    PlatformColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangePlatformColourClick');
-  END;
-END; { GeneralPopupChangePlatformColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestorePlatformColourClick(Sender: TObject);
-BEGIN
-  PlatformColour := DefaultPlatformColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestorePlatformColourClick');
-END; { GeneralPopupRestorePlatformColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangeTCMissingOccupationColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := TCMissingOccupationColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    TCMissingOccupationColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangeTCMissingOccupationColourClick');
-  END;
-END; { GeneralPopupChangeMissingOccupationColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreTCMissingOccupationColourClick(Sender: TObject);
-BEGIN
-  TCMissingOccupationColour := DefaultTCMissingOccupationColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreTCMissingOccupationColourClick');
-END; { GeneralPopupRestoreTCMissingOccupationColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangeLocoStalledColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := LocoStalledColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    LocoStalledColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangeLocoStalledColourClick');
-  END;
-END; { GeneralPopupChangeLocoStalledColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreLocoStalledColourClick(Sender: TObject);
-BEGIN
-  LocoStalledColour := DefaultLocoStalledColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreLocoStalledColourClick');
-END; { GeneralPopupRestoreLocoStalledColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangeTCPermanentFeedbackOccupationColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := TCPermanentFeedbackOccupationColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    TCPermanentFeedbackOccupationColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangeTCPermanentFeedbackOccupationColourClick');
-  END;
-END; { GeneralPopupChangeTCPermanentFeedbackOccupationColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreTCPermanentFeedbackOccupationColourClick(Sender: TObject);
-BEGIN
-  TCPermanentFeedbackOccupationColour := DefaultTCPermanentFeedbackOccupationColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreTCPermanentFeedbackOccupationColourClick');
-END; { GeneralPopupRestoreTCPermanentFeedbackOccupationColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangeTCPermanentSystemOccupationColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := TCPermanentSystemOccupationColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    TCPermanentSystemOccupationColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangeTCPermanentSystemOccupationColourClick');
-  END;
-END; { GeneralPopupChangeTCPermanentSystemOccupationColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreTCPermanentSystemOccupationColourClick(Sender: TObject);
-BEGIN
-  TCPermanentSystemOccupationColour := DefaultTCPermanentSystemOccupationColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreTCPermanentSystemOccupationColourClick');
-END; { GeneralPopupRestoreTCPermanentSystemOccupationColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangeTCPermanentOccupationSetByUserColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := TCPermanentOccupationSetByUserColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    TCPermanentOccupationSetByUserColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangeTCPermanentOccupationSetByUserColourClick');
-  END;
-END; { GeneralPopupChangeTCPermanentOccupationSetByUserColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreTCPermanentOccupationSetByUserColourClick(Sender: TObject);
-BEGIN
-  TCPermanentOccupationSetByUserColour := DefaultTCPermanentOccupationSetByUserColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreTCPermanentOccupationSetByUserColourClick');
-END; { GeneralPopupRestoreTCPermanentOccupationSetByUserColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangeTCSpeedRestrictionColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := TCSpeedRestrictionColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    TCSpeedRestrictionColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangeTCSpeedRestrictionColourClick');
-  END;
-END; { GeneralPopupChangeTCSpeedRestrictionColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreTCSpeedRestrictionColourClick(Sender: TObject);
-BEGIN
-  TCSpeedRestrictionColour := DefaultTCSpeedRestrictionColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreTCSpeedRestrictionColourClick');
-END; { GeneralPopupRestoreTCSpeedRestrictionColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangeTCLocoOutOfPlaceColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := TCLocoOutOfPlaceOccupationColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    TCLocoOutOfPlaceOccupationColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangeTCLocoOutOfPlaceColourClick');
-  END;
-END; { GeneralPopupChangeTCLocoOutOfPlaceColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreTCLocoOutOfPlaceColourClick(Sender: TObject);
-BEGIN
-  TCLocoOutOfPlaceOccupationColour := DefaultTCLocoOutOfPlaceOccupationColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreTCLocoOutOfPlaceColourClick');
-END; { GeneralPopupRestoreTCLocoOutOfPlaceColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangeTCFeedbackDataInUseColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := TCFeedbackDataInUseColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    TCFeedbackDataInUseColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangeTCFeedbackDataInUseColourClick');
-  END;
-END; { GeneralPopupChangeTCFeedbackDataInUseColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreTCFeedbackDataInUseColourClick(Sender: TObject);
-BEGIN
-  TCFeedbackDataInUseColour := DefaultTCFeedbackDataInUseColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreTCFeedbackDataInUseColourClick');
-END; { GeneralPopupRestoreTCFeedbackDataInUseColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangeTCFeedbackDataOutOfUseColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := TCFeedbackDataOutOfUseColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    TCFeedbackDataOutOfUseColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangeTCFeedbackDataOutOfUseColourClick');
-  END;
-END; { GeneralPopupChangeTCFeedbackDataOutOfUseColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreTCFeedbackDataOutOfUseColourClick(Sender: TObject);
-BEGIN
-  TCFeedbackDataOutOfUseColour := DefaultTCFeedbackDataOutOfUseColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreTCFeedbackDataOutOfUseColourClick');
-END; { GeneralPopupRestoreTCFeedbackDataOutOfUseColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangeTCFeedbackOccupationColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := TCFeedbackOccupationColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    TCFeedbackOccupationColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangeTCFeedbackOccupationColourClick');
-  END;
-END; { GeneralPopupChangeFeedbackOccupationColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreTCFeedbackOccupationColourClick(Sender: TObject);
-BEGIN
-  TCFeedbackOccupationColour := DefaultTCFeedbackOccupationColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreTCFeedbackOccupationColourClick');
-END; { GeneralPopupRestoreTCFeedbackOccupationColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangeTCFeedbackOccupationButOutOfUseColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := TCFeedbackOccupationButOutOfUseColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    TCFeedbackOccupationButOutOfUseColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangeTCFeedbackOccupationButOutOfUseColourClick');
-  END;
-END; { GeneralPopupChangeFeedbackOccupationButOutOfUseColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreTCFeedbackOccupationButOutOfUseColourClick(Sender: TObject);
-BEGIN
-  TCFeedbackOccupationButOutOfUseColour := DefaultTCFeedbackOccupationButOutOfUseColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreTCFeedbackOccupationButOutOfUseColourClick');
-END; { GeneralPopupRestoreTCFeedbackOccupationColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangeTCSystemOccupationColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := TCSystemOccupationColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    TCSystemOccupationColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangeTCSystemOccupationColourClick');
-  END;
-END; { GeneralPopupChangeTCSystemOccupationColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreTCSystemOccupationColourClick(Sender: TObject);
-BEGIN
-  TCSystemOccupationColour := DefaultTCSystemOccupationColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreTCSystemOccupationColourClick');
-END; { GeneralPopupRestoreTCSystemOccupationColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangeTCUnoccupiedColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := TCUnoccupiedColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    TCUnoccupiedColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangeTCUnoccupiedColourClick');
-  END;
-END; { GeneralPopupChangeTCUnoccupiedColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreTCUnoccupiedColourClick(Sender: TObject);
-BEGIN
-  TCUnoccupiedColour := DefaultTCUnoccupiedColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreTCUnoccupiedColourClick');
-END; { GeneralPopupRestoreTCUnoccupiedColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangeTCOutOfUseSetByUserColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := TCOutOfUseSetByUserColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    TCOutOfUseSetByUserColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangeTCOutOfUseSetByUserColourClick');
-  END;
-END; { GeneralPopupChangeTCOutOfUseSetByUserColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreTCOutOfUseSetByUserColourClick(Sender: TObject);
-BEGIN
-  TCOutOfUseSetByUserColour := DefaultTCOutOfUseSetByUserColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreTCOutOfUseSetByUserColourClick');
-END; { GeneralPopupRestoreTCOutOfUseSetByUserColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangeScreenComponentEditedColour1Click(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := ScreenComponentEditedColour1;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    ScreenComponentEditedColour1 := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangeScreenComponentEditedColour1Click');
-  END;
-END; { GeneralPopupChangeScreenComponentEditedColour1Click }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreScreenComponentEditedColour1Click(Sender: TObject);
-BEGIN
-  ScreenComponentEditedColour1 := DefaultScreenComponentEditedColour1;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreScreenComponentEditedColour1Click');
-END; { GeneralPopupRestoreScreenComponentEditedColour1Click }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangeScreenComponentEditedColour2Click(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := ScreenComponentEditedColour2;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    ScreenComponentEditedColour2 := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangeScreenComponentEditedColour2Click');
-  END;
-END; { GeneralPopupChangeScreenComponentEditedColour2Click }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreScreenComponentEditedColour2Click(Sender: TObject);
-BEGIN
-  ScreenComponentEditedColour2 := DefaultScreenComponentEditedColour2;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreScreenComponentEditedColourClick');
-END; { GeneralPopupRestoreScreenComponentEditedColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangeTCOutOfUseAsNoFeedbackReceivedColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := TCOutOfUseAsNoFeedbackReceivedColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    TCOutOfUseAsNoFeedbackReceivedColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangeTCOutOfUseAsNoFeedbackReceivedColourClick');
-  END;
-END; { GeneralPopupChangeMysteryOccupationColour2Click }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreTCOutOfUseAsNoFeedbackReceivedColourClick(Sender: TObject);
-BEGIN
-  TCOutOfUseAsNoFeedbackReceivedColour := DefaultTCOutOfUseAsNoFeedbackReceivedColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreTCOutOfUseAsNoFeedbackReceivedColourClick');
-END; { GeneralPopupRestoreTCOutOfUseColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangeBufferStopColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := BufferStopColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    BufferStopColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangeBufferStopColourClick');
-  END;
-END; { GeneralPopupChangeBufferStopColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreBufferStopColourClick(Sender: TObject);
-BEGIN
-  BufferStopColour := DefaultBufferStopColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreBufferStopColourClick');
-END; { GeneralPopupRestoreBufferStopColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangeBufferStopNumberColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := BufferStopNumberColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    BufferStopNumberColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangeBufferStopNumberColourClick');
-  END;
-END; { GeneralPopupChangeBufferStopNumberColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreBufferStopNumberColourClick(Sender: TObject);
-BEGIN
-  BufferStopNumberColour := DefaultBufferStopNumberColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreBufferStopNumberColourClick');
-END; { GeneralPopupRestoreBufferStopNumberColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangeBufferStopRedClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := BufferStopRed;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    BufferStopRed := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupRestoreBufferStopNumberColourClick');
-  END;
-END; { GeneralPopupChangeBufferStopRedClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreBufferStopRedClick(Sender: TObject);
-BEGIN
-  BufferStopRed := DefaultBufferStopRed;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreBufferStopRedClick');
-END; { GeneralPopupRestoreBufferStopRedClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangeLineNotAvailableColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := LineNotAvailableColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    LineNotAvailableColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangeLineNotAvailableColourClick');
-  END;
-END; { GeneralPopupChangeLineNotAvailableColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreLineNotAvailableColourClick(Sender: TObject);
-BEGIN
-  LineNotAvailableColour := DefaultLineNotAvailableColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreLineNotAvailableColourClick');
-END; { GeneralPopupRestoreLineNotAvailableColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangePlungerPressedColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := TRSPlungerPressedColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    TRSPlungerPressedColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangePlungerPressedColourClick');
-  END;
-END; { GeneralPopupChangePlungerPressedColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestorePlungerPressedColourClick(Sender: TObject);
-BEGIN
-  TRSPlungerPressedColour := DefaultTRSPlungerPressedColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestorePlungerPressedColourClick');
-END; { GeneralPopupRestorePlungerPressedColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangeSignalAspectUnlitColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := SignalAspectUnlit;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    SignalAspectUnlit := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangeSignalAspectUnlitColourClick');
-  END;
-END; { GeneralPopupChangeSignalAspectUnlitClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreSignalAspectUnlitColourClick(Sender: TObject);
-BEGIN
-  SignalAspectUnlit := DefaultSignalAspectUnlit;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreSignalAspectUnlitColourClick');
-END; { GeneralPopupRestoreSignalAspectUnlitColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangeSignalAspectYellowClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := SignalAspectYellow;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    SignalAspectYellow := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangeSignalAspectYellowClick');
-  END;
-END; { GeneralPopupChangeSignalAspectYellowClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreSignalAspectYellowClick(Sender: TObject);
-BEGIN
-  SignalAspectYellow := DefaultSignalAspectYellow;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreSignalAspectYellowClick');
-END; { GeneralPopupRestoreSignalAspectYellowClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangeSignalAspectRedClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := SignalAspectRed;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    SignalAspectRed := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangeSignalAspectRedClick');
-  END;
-END; { GeneralPopupChangeSignalAspectRedClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreSignalAspectRedClick(Sender: TObject);
-BEGIN
-  SignalAspectRed := DefaultSignalAspectRed;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreSignalAspectRedClick');
-END; { GeneralPopupRestoreSignalAspectRedClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangeSignalAspectGreenClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := SignalAspectGreen;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    SignalAspectGreen := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangeSignalAspectGreenClick');
-  END;
-END; { GeneralPopupChangeSignalAspectGreenClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreSignalAspectGreenClick(Sender: TObject);
-BEGIN
-  SignalAspectGreen := DefaultSignalAspectGreen;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreSignalAspectGreenClick');
-END; { GeneralPopupRestoreSignalAspectGreenClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangeSignalPostRouteSettingColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := SignalPostRouteSettingColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    SignalPostRouteSettingColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangeSignalPostRouteSettingColourClick');
-  END;
-END; { GeneralPopupChangeSignalPostRouteSettingColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreSignalPostRouteSettingColourClick(Sender: TObject);
-BEGIN
-  SignalPostRouteSettingColour := DefaultSignalPostRouteSettingColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreSignalPostRouteSettingColourClick');
-END; { GeneralPopupRestoreSignalPostRouteSettingColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangeSignalPostEmergencyRouteSettingColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := SignalPostRouteSettingColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    SignalPostRouteSettingColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangeSignalPostEmergencyRouteSettingColourClick');
-  END;
-END; { GeneralPopupChangeSignalPostEmergencyRouteSettingColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreSignalPostEmergencyRouteSettingColourClick(Sender: TObject);
-BEGIN
-  SignalPostRouteSettingColour := DefaultSignalPostRouteSettingColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreSignalPostEmergencyRouteSettingColourClick');
-END; { GeneralPopupRestoreSignalPostEmergencyRouteSettingColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangeSignalPostTheatreSettingColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := SignalPostTheatreSettingColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    SignalPostTheatreSettingColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangeSignalPostTheatreSettingColourClick');
-  END;
-END; { GeneralPopupChangePostTheatreSettingColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreSignalPostTheatreSettingColourClick(Sender: TObject);
-BEGIN
-  SignalPostTheatreSettingColour := DefaultSignalPostTheatreSettingColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreSignalPostTheatreSettingColourClick');
-END; { GeneralPopupRestoreSignalPostTheatreSettingColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangeSignalsUserMustDriveSignalPostColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := SignalsUserMustDriveSignalPostColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    SignalsUserMustDriveSignalPostColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangeSignalsUserMustDriveSignalPostColourClick');
-  END;
-END; { GeneralPopupChangeSignalsUserMustDriveSignalPostColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreSignalsUserMustDriveSignalPostColourClick(Sender: TObject);
-BEGIN
-  SignalsUserMustDriveSignalPostColour := DefaultSignalsUserMustDriveSignalPostColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreSignalsUserMustDriveSignalPostColourClick');
-END; { GeneralPopupRestoreSignalsUserMustDriveSignalPostColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangeSignalNumberColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := SignalNumberColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    SignalNumberColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangeSignalNumberColourClick');
-  END;
-END; { GeneralPopupChangeSignalberColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreSignalNumberColourClick(Sender: TObject);
-BEGIN
-  SignalNumberColour := DefaultSignalNumberColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreSignalNumberColourClick');
-END; { GeneralPopupRestoreSignalNumberColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangeTrainActiveColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := TrainActiveColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    TrainActiveColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangeTrainActiveColourClick');
-  END;
-END; { GeneralPopupChangeTrainActiveColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreTrainActiveColourClick(Sender: TObject);
-BEGIN
-  TrainActiveColour := DefaultTrainActiveColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreTrainActiveColourClick');
-END; { GeneralPopupRestoreTrainActiveColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangeTrainInactiveColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := TrainInactiveColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    TrainInactiveColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangeTrainInactiveColourClick');
-  END;
-END; { GeneralPopupChangeTrainInactiveColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreTrainInactiveColourClick(Sender: TObject);
-BEGIN
-  TrainInactiveColour := DefaultTrainInactiveColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreTrainInactiveColourClick');
-END; { GeneralPopupRestoreTrainInactiveColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangePointUpFacingColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := PointUpFacingColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    PointUpFacingColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangePointUpFacingColourClick');
-  END;
-END; { GeneralPopupChangeUpFacingPointColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestorePointUpFacingColourClick(Sender: TObject);
-BEGIN
-  PointUpFacingColour := DefaultPointUpFacingColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestorePointUpFacingColourClick');
-END; { GeneralPopupRestorePointUpFacingColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangePointDownFacingColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := PointDownFacingColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    PointDownFacingColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangePointDownFacingColourClick');
-  END;
-END; { GeneralPopupChangeDownFacingPointColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestorePointDownFacingColourClick(Sender: TObject);
-BEGIN
-  PointDownFacingColour := DefaultPointDownFacingColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestorePointDownFacingColourClick');
-END; { GeneralPopupRestorePointDownFacingColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangeShowPointDefaultStateColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := ShowPointDefaultStateColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    ShowPointDefaultStateColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangeShowPointDefaultStateColourClick');
-  END;
-END; { GeneralPopupChangeShowPointDefaultStateColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreShowPointDefaultStateColourClick(Sender: TObject);
-BEGIN
-  ShowPointDefaultStateColour := DefaultShowPointDefaultStateColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreShowPointDefaultStateColourClick');
-END; { GeneralPopupRestoreShowPointDefaultStateColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangePointLenzNumberColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := PointLenzNumberColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    PointLenzNumberColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangePointLenzNumberColourClick');
-  END;
-END; { GeneralPopupChangePointLenzNumberColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestorePointLenzNumberColourClick(Sender: TObject);
-BEGIN
-  PointLenzNumberColour := DefaultPointLenzNumberColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestorePointLenzNumberColourClick');
-END; { GeneralPopupRestorePointLenzNumberColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangePointManualOperationColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := PointManualOperationColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    PointManualOperationColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangePointManualOperationColourClick');
-  END;
-END; { GeneralPopupChangePointManualOperationColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestorePointManualOperationColourClick(Sender: TObject);
-BEGIN
-  PointManualOperationColour := DefaultPointManualOperationColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestorePointManualOperationColourClick');
-END; { GeneralPopupRestorePointManualOperationColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangePointFeedbackDataInUseColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := PointFeedbackDataInUseColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    PointFeedbackDataInUseColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangePointFeedbackDataInUseColourClick');
-  END;
-END; { GeneralPopupChangePointFeedbackDataInUseColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestorePointFeedbackDataInUseColourClick(Sender: TObject);
-BEGIN
-  PointFeedbackDataInUseColour := DefaultPointFeedbackDataInUseColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestorePointFeedbackDataInUseColourClick');
-END; { GeneralPopupRestorePointFeedbackDataInUseColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangePointFeedbackDataOutOfUseColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := PointFeedbackDataOutOfUseColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    PointFeedbackDataOutOfUseColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangePointFeedbackDataOutOfUseColourClick');
-  END;
-END; { GeneralPopupChangePointFeedbackDataOutOfUseColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestorePointFeedbackDataOutOfUseColourClick(Sender: TObject);
-BEGIN
-  PointFeedbackDataOutOfUseColour := DefaultPointFeedbackDataOutOfUseColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestorePointFeedbackDataOutOfUseColourClick');
-END; { GeneralPopupRestorePointFeedbackDataOutOfUseColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangePointsWithoutFeedbackColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := PointsWithoutFeedbackColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    PointsWithoutFeedbackColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangePointsWithoutFeedbackColourClick');
-  END;
-END; { GeneralPopupChangePointsWithoutFeedbackColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestorePointsWithoutFeedbackColourClick(Sender: TObject);
-BEGIN
-  PointsWithoutFeedbackColour := DefaultPointsWithoutFeedbackColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestorePointsWithoutFeedbackColourClick');
-END; { GeneralPopupRestorePointsWithoutFeedbackColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangePointHeelLineColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := PointHeelLineColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    PointHeelLineColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangePointHeelLineColourClick');
-  END;
-END; { GeneralPopupChangePointHeelLineColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestorePointHeelLineColourClick(Sender: TObject);
-BEGIN
-  PointHeelLineColour := DefaultPointHeelLineColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestorePointHeelLineColourClick');
-END; { GeneralPopupRestorePointHeelLineColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangePointStraightLineColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := PointStraightLineColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    PointStraightLineColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangePointStraightLineColourClick');
-  END;
-END; { GeneralPopupChangePointStraightLineColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestorePointStraightLineColourClick(Sender: TObject);
-BEGIN
-  PointStraightLineColour := DefaultPointStraightLineColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestorePointStraightLineColourClick');
-END; { GeneralPopupRestorePointStraightLineColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangeLineRoutedOverColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := LineRoutedOverColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    LineRoutedOverColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangeLineRoutedOverColourClick');
-  END;
-END; { GeneralPopupChangeLineRoutedOverColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreLineRoutedOverColourClick(Sender: TObject);
-BEGIN
-  LineRoutedOverColour := DefaultLineRoutedOverColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreLineRoutedOverColourClick');
-END; { GeneralPopupRestoreLineRoutedOverColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangePointDivergingLineColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := PointDivergingLineColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    PointDivergingLineColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangePointDivergingLineColourClick');
-  END;
-END; { GeneralPopupChangePointDivergingLineColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestorePointDivergingLineColourClick(Sender: TObject);
-BEGIN
-  PointDivergingLineColour := DefaultPointDivergingLineColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestorePointDivergingLineColourClick');
-END; { GeneralPopupRestorePointDivergingLineColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangePointUndrawColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := PointUndrawColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    PointUndrawColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangePointUndrawColourClick');
-  END;
-END; { GeneralPopupChangePointUndrawColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestorePointUndrawColourClick(Sender: TObject);
-BEGIN
-  PointUndrawColour := DefaultPointUndrawColour;
-  InvalidateScreen(UnitRef, 'END; { GeneralPopupChangePointU');
-END; { GeneralPopupRestorePointUndrawColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangePointOutOfUseColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := PointOutOfUseColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    PointOutOfUseColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangePointOutOfUseColourClick');
-  END;
-END; { GeneralPopupChangePointOutOfUseColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestorePointOutOfUseColourClick(Sender: TObject);
-BEGIN
-  PointOutOfUseColour := DefaultPointOutOfUseColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestorePointOutOfUseColourClick');
-END; { GeneralPopupRestorePointOutOfUseColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangePlungerColourClick(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := TRSPlungerColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    TRSPlungerColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangePlungerColourClick');
-  END;
-END; { GeneralPopupChangePlungerColourClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestorePlungerColour(Sender: TObject);
-BEGIN
-  TRSPlungerColour := DefaultTRSPlungerColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestorePlungerColour');
-END; { GeneralPopupRestorePlungerColour }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangePlungerOutlineColour(Sender: TObject);
-BEGIN
-  { Show the default }
-  FWPRailWindowColourDialogue.Color := TRSPlungerOutlineColour;
-  { Allow the user to change it }
-  IF FWPRailWindowColourDialogue.Execute THEN BEGIN
-    TRSPlungerOutlineColour := FWPRailWindowColourDialogue.Color;
-    InvalidateScreen(UnitRef, 'GeneralPopupChangePlungerOutlineColour');
-  END;
-END; { GeneralPopupChangePlungerOutlineColour }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestorePlungerOutlineColour(Sender: TObject);
-BEGIN
-  TRSPlungerOutlineColour := DefaultTRSPlungerOutlineColour;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestorePlungerOutlineColour');
-END; { GeneralPopupRestorePlungerOutlineColour }
-
 PROCEDURE ResetScreenColoursToDefault;
 BEGIN
   BackgroundColour := DefaultBackgroundColour;
@@ -6151,6 +6058,7 @@ BEGIN
   LocoStalledColour := DefaultLocoStalledColour;
   PlatformColour := DefaultPlatformColour;
   PointColour := DefaultPointColour;
+  PointDefaultStateColour := DefaultPointDefaultStateColour;
   PointDivergingLineColour := DefaultPointDivergingLineColour;
   PointDownFacingColour := DefaultPointDownFacingColour;
   PointFeedbackDataInUseColour := DefaultPointFeedbackDataInUseColour;
@@ -6163,8 +6071,7 @@ BEGIN
   PointUpFacingColour := DefaultPointUpFacingColour;
   ScreenComponentEditedColour1 := DefaultScreenComponentEditedColour1;
   ScreenComponentEditedColour2 := DefaultScreenComponentEditedColour2;
-  ShowPointDefaultStateColour := DefaultShowPointDefaultStateColour;
-  ShowPointLockedColour := DefaultShowPointLockedColour;
+  PointLockedBySystemColour := DefaultPointLockedBySystemColour;
   SignalAspectGreen := DefaultSignalAspectGreen;
   SignalAspectRed := DefaultSignalAspectRed;
   SignalAspectUnlit := DefaultSignalAspectUnlit;
@@ -6173,7 +6080,7 @@ BEGIN
   SignalPostColour := DefaultSignalPostColour;
   SignalPostRouteSettingColour := DefaultSignalPostRouteSettingColour;
   SignalPostTheatreSettingColour := DefaultSignalPostTheatreSettingColour;
-  SignalsUserMustDriveSignalPostColour := DefaultSignalsUserMustDriveSignalPostColour;
+  SignalsFromWhichUserMustDriveSignalPostColour := DefaultSignalsFromWhichUserMustDriveSignalPostColour;
   TCMissingOccupationColour := DefaultTCMissingOccupationColour;
   TCFeedbackOccupationColour := DefaultTCFeedbackOccupationColour;
   TCOutOfUseSetByUserColour := DefaultTCOutOfUseSetByUserColour;
@@ -6192,21 +6099,6 @@ BEGIN
   InvalidateScreen(UnitRef, 'ResetScreenColoursToDefault');
 END; { ResetScreenColoursToDefault }
 
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreAllDefaultColoursClick(Sender: TObject);
-BEGIN
-  ResetScreenColoursToDefault;
-END; { RestoreAllDefaultColoursClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreAllProgramDefaultSettingsClick(Sender: TObject);
-BEGIN
-
-END;{ GeneralPopupRestoreAllProgramDefaultSettingsClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreAllScreenDrawingDefaultSettingsClick(Sender: TObject);
-BEGIN
-  RestoreScreenDefaults;
-END; { GeneralPopupRestoreAllScreenDrawingDefaultSettingsClick }
-
 PROCEDURE ResetScreenColoursAfterPrinting;
 { Restore the colours to those saved before printing the screen in printer-friendly colours }
 BEGIN
@@ -6221,24 +6113,24 @@ BEGIN
   LocoStalledColour := SaveLocoStalledColourForPrinting;
   PlatformColour := SavePlatformColourForPrinting;
   PointColour := SavePointColourForPrinting;
+  PointDefaultStateColour := SavePointDefaultStateColourForPrinting;
   PointDivergingLineColour := SavePointDivergingLineColourForPrinting;
   PointDownFacingColour := SavePointDownFacingColourForPrinting;
   PointFeedbackDataInUseColour := SavePointFeedbackDataInUseColourForPrinting;
   PointFeedbackDataOutOfUseColour := SavePointFeedbackDataOutOfUseColourForPrinting;
   PointHeelLineColour := SavePointHeelLineColourForPrinting;
+  PointLockedBySystemColour := SavePointLockedBySystemColourForPrinting;
   PointManualOperationColour := SavePointManualOperationColourForPrinting;
   PointStraightLineColour := SavePointStraightLineColourForPrinting;
   PointsWithoutFeedbackColour := SavePointsWithoutFeedbackColourForPrinting;
   PointUpFacingColour := SavePointUpFacingColourForPrinting;
   ScreenComponentEditedColour1 := SaveScreenComponentEditedColour1ForPrinting;
   ScreenComponentEditedColour2 := SaveScreenComponentEditedColour2ForPrinting;
-  ShowPointDefaultStateColour := SaveShowPointDefaultStateColourForPrinting;
-  ShowPointLockedColour := SaveShowPointLockedColourForPrinting;
   SignalNumberColour := SaveSignalNumberColourForPrinting;
   SignalPostColour := SaveSignalPostColourForPrinting;
   SignalPostRouteSettingColour := SaveSignalPostRouteSettingColourForPrinting;
   SignalPostTheatreSettingColour := SaveSignalPostTheatreSettingColourForPrinting;
-  SignalsUserMustDriveSignalPostColour := SaveSignalsUserMustDriveSignalPostColour;
+  SignalsFromWhichUserMustDriveSignalPostColour := SaveSignalsFromWhichUserMustDriveSignalPostColour;
   TCMissingOccupationColour := SaveTCMissingOccupationColourForPrinting;
   TCFeedbackOccupationColour := SaveTCFeedbackOccupationColourForPrinting;
   TCOutOfUseSetByUserColour := SaveTCOutOfUseSetByUserColourForPrinting;
@@ -6327,11 +6219,11 @@ BEGIN
   SaveScreenComponentEditedColour2ForPrinting := ScreenComponentEditedColour2;
   ScreenComponentEditedColour2 := clBlack;
 
-  SaveShowPointDefaultStateColourForPrinting := ShowPointDefaultStateColour;
-  ShowPointDefaultStateColour := clBlack;
+  SavePointDefaultStateColourForPrinting := PointDefaultStateColour;
+  PointDefaultStateColour := clBlack;
 
-  SaveShowPointLockedColourForPrinting := ShowPointLockedColour;
-  ShowPointLockedColour := clBlack;
+  SavePointLockedBySystemColourForPrinting := PointLockedBySystemColour;
+  PointLockedBySystemColour := clBlack;
 
   SaveSignalNumberColourForPrinting := SignalNumberColour;
   SignalNumberColour := clBlack;
@@ -6345,8 +6237,8 @@ BEGIN
   SaveSignalPostTheatreSettingColourForPrinting := SignalPostTheatreSettingColour;
   SignalPostTheatreSettingColour := clBlack;
 
-  SaveSignalsUserMustDriveSignalPostColour := SignalsUserMustDriveSignalPostColour;
-  SignalsUserMustDriveSignalPostColour := clBlack;
+  SaveSignalsFromWhichUserMustDriveSignalPostColour := SignalsFromWhichUserMustDriveSignalPostColour;
+  SignalsFromWhichUserMustDriveSignalPostColour := clBlack;
 
   SaveTCMissingOccupationColourForPrinting := TCMissingOccupationColour;
   TCMissingOccupationColour := clBlack;
@@ -6392,484 +6284,6 @@ BEGIN
 
   Debug('Resetting screen colours');
 END; { ResetScreenColoursBeforePrinting }
-
-PROCEDURE TFWPRailWindow.GeneralPopupSidingPenStyleSolidClick(Sender: TObject);
-BEGIN
-  SidingPenStyle := psSolid;
-  InvalidateScreen(UnitRef, 'GeneralPopupSidingPenStyleSolidClick');
-END; { GeneralPopupSidingPenStyleSolidClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupSidingPenStyleDashClick(Sender: TObject);
-BEGIN
-  SidingPenStyle := psDash;
-  InvalidateScreen(UnitRef, 'GeneralPopupSidingPenStyleDashClick');
-END; { GeneralPopupSidingPenStyleDashClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupSidingPenStyleDotClick(Sender: TObject);
-BEGIN
-  SidingPenStyle := psDot;
-  InvalidateScreen(UnitRef, 'GeneralPopupSidingPenStyleDotClick');
-END; { GeneralPopupSidingPenStyleDotClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupSidingPenStyleDashDotClick(Sender: TObject);
-BEGIN
-  SidingPenStyle := psDashDot;
-  InvalidateScreen(UnitRef, 'GeneralPopupSidingPenStyleDashDotClick');
-END; { GeneralPopupSidingPenStyleDashDotClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupSidingPenStyleDashDotDotClick(Sender: TObject);
-BEGIN
-  SidingPenStyle := psDashDotDot;
-  InvalidateScreen(UnitRef, 'GeneralPopupSidingPenStyleDashDotDotClick');
-END; { GeneralPopupSidingPenStyleDashDotDotClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupSidingPenStyleClearClick(Sender: TObject);
-BEGIN
-  SidingPenStyle := psClear;
-  InvalidateScreen(UnitRef, 'GeneralPopupSidingPenStyleClearClick');
-END; { GeneralPopupSidingPenStyleClearClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupSidingPenStyleInsideFrameClick(Sender: TObject);
-BEGIN
-  SidingPenStyle := psInsideFrame;
-  InvalidateScreen(UnitRef, 'GeneralPopupSidingPenStyleInsideFrameClick');
-END; { GeneralPopupSidingPenStyleInsideFrameClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreSidingPenStyleClick(Sender: TObject);
-BEGIN
-  SidingPenStyle := DefaultSidingPenStyle;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreSidingPenStyleClick');
-END; { GeneralPopupRestoreSidingPenStyleClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupFiddleyardLinePenStyleSolidClick(Sender: TObject);
-BEGIN
-  FiddleyardLinePenStyle := psSolid;
-  InvalidateScreen(UnitRef, 'GeneralPopupFiddleyardLinePenStyleSolidClick');
-END; { GeneralPopupFiddleyardLinePenStyleSolidClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupFiddleyardLinePenStyleDashClick(Sender: TObject);
-BEGIN
-  FiddleyardLinePenStyle := psDash;
-  InvalidateScreen(UnitRef, 'GeneralPopupFiddleyardLinePenStyleDashClick');
-END; { GeneralPopupFiddleyardLinePenStyleDashClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupFiddleyardLinePenStyleDotClick(Sender: TObject);
-BEGIN
-  FiddleyardLinePenStyle := psDot;
-  InvalidateScreen(UnitRef, 'GeneralPopupFiddleyardLinePenStyleDotClick');
-END; { GeneralPopupFiddleyardLinePenStyleDotClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupFiddleyardLinePenStyleDashDotClick(Sender: TObject);
-BEGIN
-  FiddleyardLinePenStyle := psDashDot;
-  InvalidateScreen(UnitRef, 'GeneralPopupFiddleyardLinePenStyleDashDotClick');
-END; { GeneralPopupFiddleyardLinePenStyleDashDotClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupFiddleyardLinePenStyleDashDotDotClick(Sender: TObject);
-BEGIN
-  FiddleyardLinePenStyle := psDashDotDot;
-  InvalidateScreen(UnitRef, 'GeneralPopupFiddleyardLinePenStyleDashDotDotClick');
-END; { GeneralPopupFiddleyardLinePenStyleDashDotDotClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupFiddleyardLinePenStyleClearClick(Sender: TObject);
-BEGIN
-  FiddleyardLinePenStyle := psClear;
-  InvalidateScreen(UnitRef, 'GeneralPopupFiddleyardLinePenStyleClearClick');
-END; { GeneralPopupFiddleyardLinePenStyleClearClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupFiddleyardLinePenStyleInsideFrameClick(Sender: TObject);
-BEGIN
-  FiddleyardLinePenStyle := psInsideFrame;
-  InvalidateScreen(UnitRef, 'GeneralPopupFiddleyardLinePenStyleInsideFrameClick');
-END; { GeneralPopupFiddleyardLinePenStyleInsideFrameClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreFiddleyardLinePenStyleClick(Sender: TObject);
-BEGIN
-  FiddleyardLinePenStyle := DefaultFiddleyardLinePenStyle;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreFiddleyardLinePenStyleClick');
-END; { GeneralPopupRestoreFiddleyardLinePenStyleClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupProjectedLinePenStyleSolidClick(Sender: TObject);
-BEGIN
-  ProjectedLinePenStyle := psSolid;
-  InvalidateScreen(UnitRef, 'GeneralPopupProjectedLinePenStyleSolidClick');
-END; { GeneralPopupProjectedLinePenStyleSolidClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupProjectedLinePenStyleDashClick(Sender: TObject);
-BEGIN
-  ProjectedLinePenStyle := psDash;
-  InvalidateScreen(UnitRef, 'GeneralPopupProjectedLinePenStyleDashClick');
-END; { GeneralPopupProjectedLinePenStyleDashClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupProjectedLinePenStyleDotClick(Sender: TObject);
-BEGIN
-  ProjectedLinePenStyle := psDot;
-  InvalidateScreen(UnitRef, 'GeneralPopupProjectedLinePenStyleDotClick');
-END; { GeneralPopupProjectedLinePenStyleDotClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupProjectedLinePenStyleDashDotClick(Sender: TObject);
-BEGIN
-  ProjectedLinePenStyle := psDashDot;
-  InvalidateScreen(UnitRef, 'GeneralPopupProjectedLinePenStyleDashDotClick');
-END; { GeneralPopupProjectedLinePenStyleDashDotClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupProjectedLinePenStyleDashDotDotClick(Sender: TObject);
-BEGIN
-  ProjectedLinePenStyle := psDashDotDot;
-  InvalidateScreen(UnitRef, 'GeneralPopupProjectedLinePenStyleDashDotDotClick');
-END; { GeneralPopupProjectedLinePenStyleDashDotDotClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupProjectedLinePenStyleClearClick(Sender: TObject);
-BEGIN
-  ProjectedLinePenStyle := psClear;
-  InvalidateScreen(UnitRef, 'GeneralPopupProjectedLinePenStyleClearClick');
-END; { GeneralPopupProjectedLinePenStyleClearClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupProjectedLinePenStyleInsideFrameClick(Sender: TObject);
-BEGIN
-  ProjectedLinePenStyle := psInsideFrame;
-  InvalidateScreen(UnitRef, 'GeneralPopupProjectedLinePenStyleInsideFrameClick');
-END; { GeneralPopupProjectedLinePenStyleInsideFrameClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreProjectedLinePenStyleClick(Sender: TObject);
-BEGIN
-  ProjectedLinePenStyle := DefaultProjectedLinePenStyle;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreProjectedLinePenStyleClick');
-END; { GeneralPopupRestoreProjectedLinePenStyleClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleSolidClick(Sender: TObject);
-BEGIN
-  TCOutOfUseAsNoFeedbackReceivedPenStyle := psSolid;
-  InvalidateScreen(UnitRef, 'GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleSolidClick');
-END; { GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleSolidClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleDashClick(Sender: TObject);
-BEGIN
-  TCOutOfUseAsNoFeedbackReceivedPenStyle := psDash;
-  InvalidateScreen(UnitRef, 'GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleDashClick');
-END; { GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleDashClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleDotClick(Sender: TObject);
-BEGIN
-  TCOutOfUseAsNoFeedbackReceivedPenStyle := psDot;
-  InvalidateScreen(UnitRef, 'GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleDotClick');
-END; { GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleDotClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleDashDotClick(Sender: TObject);
-BEGIN
-  TCOutOfUseAsNoFeedbackReceivedPenStyle := psDashDot;
-  InvalidateScreen(UnitRef, 'GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleDashDotClick');
-END; { GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleDashDotClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleDashDotDotClick(Sender: TObject);
-BEGIN
-  TCOutOfUseAsNoFeedbackReceivedPenStyle := psDashDotDot;
-  InvalidateScreen(UnitRef, 'GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleDashDotDotClick');
-END; { GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleDashDotDotClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleClearClick(Sender: TObject);
-BEGIN
-  TCOutOfUseAsNoFeedbackReceivedPenStyle := psClear;
-  InvalidateScreen(UnitRef, 'GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleClearClick');
-END; { GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleClearClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleInsideFrameClick(Sender: TObject);
-BEGIN
-  TCOutOfUseAsNoFeedbackReceivedPenStyle := psInsideFrame;
-  InvalidateScreen(UnitRef, 'GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleInsideFrameClick');
-END; { GeneralPopupTCOutOfUseAsNoFeedbackReceivedPenStyleInsideFrameClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreTCOutOfUseAsNoFeedbackReceivedPenStyleClick(Sender: TObject);
-BEGIN
-  TCOutOfUseAsNoFeedbackReceivedPenStyle := DefaultTCOutOfUseAsNoFeedbackReceivedPenStyle;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreTCOutOfUseAsNoFeedbackReceivedPenStyleClick');
-END; { GeneralPopupRestoreTCOutOfUseAsNoFeedbackReceivedPenStyleClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupTCOutOfUseSetByUserPenStyleSolidClick(Sender: TObject);
-BEGIN
-  TCOutOfUseSetByUserPenStyle := psSolid;
-  InvalidateScreen(UnitRef, 'GeneralPopupTCOutOfUseSetByUserPenStyleSolidClick');
-END; { GeneralPopupTCOutOfUseSetByUserPenStyleSolidClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupTCOutOfUseSetByUserPenStyleDashClick(Sender: TObject);
-BEGIN
-  TCOutOfUseSetByUserPenStyle := psDash;
-  InvalidateScreen(UnitRef, 'GeneralPopupTCOutOfUseSetByUserPenStyleDashClick');
-END; { GeneralPopupTCOutOfUseSetByUserPenStyleDashClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupTCOutOfUseSetByUserPenStyleDotClick(Sender: TObject);
-BEGIN
-  TCOutOfUseSetByUserPenStyle := psDot;
-  InvalidateScreen(UnitRef, 'GeneralPopupTCOutOfUseSetByUserPenStyleDotClick');
-END; { GeneralPopupTCOutOfUseSetByUserPenStyleDotClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupTCOutOfUseSetByUserPenStyleDashDotClick(Sender: TObject);
-BEGIN
-  TCOutOfUseSetByUserPenStyle := psDashDot;
-  InvalidateScreen(UnitRef, 'GeneralPopupTCOutOfUseSetByUserPenStyleDashDotClick');
-END; { GeneralPopupTCOutOfUseSetByUserPenStyleDashDotClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupTCOutOfUseSetByUserPenStyleDashDotDotClick(Sender: TObject);
-BEGIN
-  TCOutOfUseSetByUserPenStyle := psDashDotDot;
-  InvalidateScreen(UnitRef, 'GeneralPopupTCOutOfUseSetByUserPenStyleDashDotDotClick');
-END; { GeneralPopupTCOutOfUseSetByUserPenStyleDashDotDotClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupTCOutOfUseSetByUserPenStyleClearClick(Sender: TObject);
-BEGIN
-  TCOutOfUseSetByUserPenStyle := psClear;
-  InvalidateScreen(UnitRef, 'GeneralPopupTCOutOfUseSetByUserPenStyleClearClick');
-END; { GeneralPopupTCOutOfUseSetByUserPenStyleClearClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupTCOutOfUseSetByUserPenStyleInsideFrameClick(Sender: TObject);
-BEGIN
-  TCOutOfUseSetByUserPenStyle := psInsideFrame;
-  InvalidateScreen(UnitRef, 'GeneralPopupTCOutOfUseSetByUserPenStyleInsideFrameClick');
-END; { GeneralPopupTCOutOfUseSetByUserPenStyleInsideFrameClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreTCOutOfUseSetByUserPenStyleClick(Sender: TObject);
-BEGIN
-  TCOutOfUseSetByUserPenStyle := DefaultTCOutOfUseSetByUserPenStyle;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreTCOutOfUseSetByUserPenStyleClick');
-END; { GeneralPopupRestoreTCOutOfUseSetByUserPenStyleClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupTCPermanentFeedbackOccupationPenStyleSolidClick(Sender: TObject);
-BEGIN
-  TCPermanentFeedbackOccupationPenStyle := psSolid;
-  InvalidateScreen(UnitRef, 'GeneralPopupTCPermanentFeedbackOccupationPenStyleSolidClick');
-END; { GeneralPopupTCPermanentFeedbackOccupationPenStyleSolidClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupTCPermanentFeedbackOccupationPenStyleDashClick(Sender: TObject);
-BEGIN
-  TCPermanentFeedbackOccupationPenStyle := psDash;
-  InvalidateScreen(UnitRef, 'GeneralPopupTCPermanentFeedbackOccupationPenStyleDashClick');
-END; { GeneralPopupTCPermanentFeedbackOccupationPenStyleDashClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupTCPermanentFeedbackOccupationPenStyleDotClick(Sender: TObject);
-BEGIN
-  TCPermanentFeedbackOccupationPenStyle := psDot;
-  InvalidateScreen(UnitRef, 'GeneralPopupTCPermanentFeedbackOccupationPenStyleDotClick');
-END; { GeneralPopupTCPermanentFeedbackOccupationPenStyleDotClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupTCPermanentFeedbackOccupationPenStyleDashDotClick(Sender: TObject);
-BEGIN
-  TCPermanentFeedbackOccupationPenStyle := psDashDot;
-  InvalidateScreen(UnitRef, 'GeneralPopupTCPermanentFeedbackOccupationPenStyleDashDotClick');
-END; { GeneralPopupTCPermanentFeedbackOccupationPenStyleDashDotClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupTCPermanentFeedbackOccupationPenStyleDashDotDotClick(Sender: TObject);
-BEGIN
-  TCPermanentFeedbackOccupationPenStyle := psDashDotDot;
-  InvalidateScreen(UnitRef, 'GeneralPopupTCPermanentFeedbackOccupationPenStyleDashDotDotClick');
-END; { GeneralPopupTCPermanentFeedbackOccupationPenStyleDashDotDotClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupTCPermanentFeedbackOccupationPenStyleClearClick(Sender: TObject);
-BEGIN
-  TCPermanentFeedbackOccupationPenStyle := psClear;
-  InvalidateScreen(UnitRef, 'GeneralPopupTCPermanentFeedbackOccupationPenStyleClearClick');
-END; { GeneralPopupTCPermanentFeedbackOccupationPenStyleClearClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupTCPermanentFeedbackOccupationPenStyleInsideFrameClick(Sender: TObject);
-BEGIN
-  TCPermanentFeedbackOccupationPenStyle := psInsideFrame;
-  InvalidateScreen(UnitRef, 'GeneralPopupTCPermanentFeedbackOccupationPenStyleInsideFrameClick');
-END; { GeneralPopupTCPermanentFeedbackOccupationPenStyleInsideFrameClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreTCPermanentFeedbackOccupationPenStyleClick(Sender: TObject);
-BEGIN
-  TCPermanentFeedbackOccupationPenStyle := DefaultTCPermanentFeedbackOccupationPenStyle;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreTCPermanentFeedbackOccupationPenStyleClick');
-END; { GeneralPopupRestoreTCPermanentFeedbackOccupationPenStyleClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupTCPermanentSystemOccupationPenStyleSolidClick(Sender: TObject);
-BEGIN
-  TCPermanentSystemOccupationPenStyle := psSolid;
-  InvalidateScreen(UnitRef, 'GeneralPopupTCPermanentSystemOccupationPenStyleSolidClick');
-END; { GeneralPopupTCPermanentSystemOccupationPenStyleSolidClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupTCPermanentSystemOccupationPenStyleDashClick(Sender: TObject);
-BEGIN
-  TCPermanentSystemOccupationPenStyle := psDash;
-  InvalidateScreen(UnitRef, 'GeneralPopupTCPermanentSystemOccupationPenStyleDashClick');
-END; { GeneralPopupTCPermanentSystemOccupationPenStyleDashClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupTCPermanentSystemOccupationPenStyleDotClick(Sender: TObject);
-BEGIN
-  TCPermanentSystemOccupationPenStyle := psDot;
-  InvalidateScreen(UnitRef, 'GeneralPopupTCPermanentSystemOccupationPenStyleDotClick');
-END; { GeneralPopupTCPermanentSystemOccupationPenStyleDotClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupTCPermanentSystemOccupationPenStyleDashDotClick(Sender: TObject);
-BEGIN
-  TCPermanentSystemOccupationPenStyle := psDashDot;
-  InvalidateScreen(UnitRef, 'GeneralPopupTCPermanentSystemOccupationPenStyleDashDotClick');
-END; { GeneralPopupTCPermanentSystemOccupationPenStyleDashDotClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupTCPermanentSystemOccupationPenStyleDashDotDotClick(Sender: TObject);
-BEGIN
-  TCPermanentSystemOccupationPenStyle := psDashDotDot;
-  InvalidateScreen(UnitRef, 'GeneralPopupTCPermanentSystemOccupationPenStyleDashDotDotClick');
-END; { GeneralPopupTCPermanentSystemOccupationPenStyleDashDotDotClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupTCPermanentSystemOccupationPenStyleClearClick(Sender: TObject);
-BEGIN
-  TCPermanentSystemOccupationPenStyle := psClear;
-  InvalidateScreen(UnitRef, 'GeneralPopupTCPermanentSystemOccupationPenStyleClearClick');
-END; { GeneralPopupTCPermanentSystemOccupationPenStyleClearClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupTCPermanentSystemOccupationPenStyleInsideFrameClick(Sender: TObject);
-BEGIN
-  TCPermanentSystemOccupationPenStyle := psInsideFrame;
-  InvalidateScreen(UnitRef, 'GeneralPopupTCPermanentSystemOccupationPenStyleInsideFrameClick');
-END; { GeneralPopupTCPermanentSystemOccupationPenStyleInsideFrameClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreTCPermanentSystemOccupationPenStyleClick(Sender: TObject);
-BEGIN
-  TCPermanentSystemOccupationPenStyle := DefaultTCPermanentSystemOccupationPenStyle;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreTCPermanentSystemOccupationPenStyleClick');
-END; { GeneralPopupRestoreTCPermanentSystemOccupationPenStyleClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupTCLocoOutOfPlaceOccupationPenStyleSolidClick(Sender: TObject);
-BEGIN
-  TCLocoOutOfPlaceOccupationPenStyle := psSolid;
-  InvalidateScreen(UnitRef, 'GeneralPopupTCLocoOutOfPlaceOccupationPenStyleSolidClick');
-END; { GeneralPopupTCLocoOutOfPlaceOccupationPenStyleSolidClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupTCLocoOutOfPlaceOccupationPenStyleDashClick(Sender: TObject);
-BEGIN
-  TCLocoOutOfPlaceOccupationPenStyle := psDash;
-  InvalidateScreen(UnitRef, 'GeneralPopupTCLocoOutOfPlaceOccupationPenStyleDashClick');
-END; { GeneralPopupTCLocoOutOfPlaceOccupationPenStyleDashClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupTCLocoOutOfPlaceOccupationPenStyleDotClick(Sender: TObject);
-BEGIN
-  TCLocoOutOfPlaceOccupationPenStyle := psDot;
-  InvalidateScreen(UnitRef, 'GeneralPopupTCLocoOutOfPlaceOccupationPenStyleDotClick');
-END; { GeneralPopupTCLocoOutOfPlaceOccupationPenStyleDotClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupTCLocoOutOfPlaceOccupationPenStyleDashDotClick(Sender: TObject);
-BEGIN
-  TCLocoOutOfPlaceOccupationPenStyle := psDashDot;
-  InvalidateScreen(UnitRef, 'GeneralPopupTCLocoOutOfPlaceOccupationPenStyleDashDotClick');
-END; { GeneralPopupTCLocoOutOfPlaceOccupationPenStyleDashDotClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupTCLocoOutOfPlaceOccupationPenStyleDashDotDotClick(Sender: TObject);
-BEGIN
-  TCLocoOutOfPlaceOccupationPenStyle := psDashDotDot;
-  InvalidateScreen(UnitRef, 'GeneralPopupTCLocoOutOfPlaceOccupationPenStyleDashDotDotClick');
-END; { GeneralPopupTCLocoOutOfPlaceOccupationPenStyleDashDotDotClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupTCLocoOutOfPlaceOccupationPenStyleClearClick(Sender: TObject);
-BEGIN
-  TCLocoOutOfPlaceOccupationPenStyle := psClear;
-  InvalidateScreen(UnitRef, 'GeneralPopupTCLocoOutOfPlaceOccupationPenStyleClearClick');
-END; { GeneralPopupTCLocoOutOfPlaceOccupationPenStyleClearClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupTCLocoOutOfPlaceOccupationPenStyleInsideFrameClick(Sender: TObject);
-BEGIN
-  TCLocoOutOfPlaceOccupationPenStyle := psInsideFrame;
-  InvalidateScreen(UnitRef, 'GeneralPopupTCLocoOutOfPlaceOccupationPenStyleInsideFrameClick');
-END; { GeneralPopupTCLocoOutOfPlaceOccupationPenStyleInsideFrameClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreTCLocoOutOfPlaceOccupationPenStyleClick(Sender: TObject);
-BEGIN
-  TCLocoOutOfPlaceOccupationPenStyle := DefaultTCLocoOutOfPlaceOccupationPenStyle;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreTCLocoOutOfPlaceOccupationPenStyleClick');
-END; { GeneralPopupRestoreTCLocoOutOfPlaceOccupationPenStyleClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupTCPermanentOccupationSetByUserPenStyleSolidClick(Sender: TObject);
-BEGIN
-  TCPermanentOccupationSetByUserPenStyle := psSolid;
-  InvalidateScreen(UnitRef, 'GeneralPopupTCPermanentOccupationSetByUserPenStyleSolidClick');
-END; { GeneralPopupTCPermanentOccupationSetByUserPenStyleSolidClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupTCPermanentOccupationSetByUserPenStyleDashClick(Sender: TObject);
-BEGIN
-  TCPermanentOccupationSetByUserPenStyle := psDash;
-  InvalidateScreen(UnitRef, 'GeneralPopupTCPermanentOccupationSetByUserPenStyleDashClick');
-END; { GeneralPopupTCPermanentOccupationSetByUserPenStyleDashClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupTCPermanentOccupationSetByUserPenStyleDotClick(Sender: TObject);
-BEGIN
-  TCPermanentOccupationSetByUserPenStyle := psDot;
-  InvalidateScreen(UnitRef, 'GeneralPopupTCPermanentOccupationSetByUserPenStyleDotClick');
-END; { GeneralPopupTCPermanentOccupationSetByUserPenStyleDotClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupTCPermanentOccupationSetByUserPenStyleDashDotClick(Sender: TObject);
-BEGIN
-  TCPermanentOccupationSetByUserPenStyle := psDashDot;
-  InvalidateScreen(UnitRef, 'GeneralPopupTCPermanentOccupationSetByUserPenStyleDashDotClick');
-END; { GeneralPopupTCPermanentOccupationSetByUserPenStyleDashDotClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupTCPermanentOccupationSetByUserPenStyleDashDotDotClick(Sender: TObject);
-BEGIN
-  TCPermanentOccupationSetByUserPenStyle := psDashDotDot;
-  InvalidateScreen(UnitRef, 'GeneralPopupTCPermanentOccupationSetByUserPenStyleDashDotDotClick');
-END; { GeneralPopupTCPermanentOccupationSetByUserPenStyleDashDotDotClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupTCPermanentOccupationSetByUserPenStyleClearClick(Sender: TObject);
-BEGIN
-  TCPermanentOccupationSetByUserPenStyle := psClear;
-  InvalidateScreen(UnitRef, 'GeneralPopupTCPermanentOccupationSetByUserPenStyleClearClick');
-END; { GeneralPopupTCPermanentOccupationSetByUserPenStyleClearClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupTCPermanentOccupationSetByUserPenStyleInsideFrameClick(Sender: TObject);
-BEGIN
-  TCPermanentOccupationSetByUserPenStyle := psInsideFrame;
-  InvalidateScreen(UnitRef, 'GeneralPopupTCPermanentOccupationSetByUserPenStyleInsideFrameClick');
-END; { GeneralPopupTCPermanentOccupationSetByUserPenStyleInsideFrameClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRestoreTCPermanentOccupationSetByUserPenStyleClick(Sender: TObject);
-BEGIN
-  TCPermanentOccupationSetByUserPenStyle := DefaultTCPermanentOccupationSetByUserPenStyle;
-  InvalidateScreen(UnitRef, 'GeneralPopupRestoreTCPermanentOccupationSetByUserPenStyleClick');
-END; { GeneralPopupRestoreTCPermanentOccupationSetByUserPenStyleClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupShowMainMenuClick(Sender: TObject);
-BEGIN
-  IF NOT MenusVisible THEN BEGIN
-    ShowMenus;
-    GeneralPopupShowMainMenu.Caption := 'Hide Main Menus';
-  END ELSE BEGIN
-    HideMenus;
-    GeneralPopupShowMainMenu.Caption := 'Show Main Menus';
-  END;
-END; { GeneralPopupShowMainMenuClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupSetCurrentRailwayDayOfTheWeekClick(Sender: TObject);
-VAR
-  DefaultStr : String;
-  NextDayOfTheWeek : DayOfTheWeekType;
-  Str : String;
-  UpperCaseStr : String;
-
-BEGIN
-  NextDayOfTheWeek := GetNextDayOfTheWeek(CurrentRailwayDayOfTheWeek);
-  DefaultStr := DayOfTheWeekToStr(NextDayOfTheWeek);
-
-  Str := InputBox('New Day of the Week', 'Enter new day of the week', DefaultStr);
-  UpperCaseStr := UpperCase(Str);
-
-  CurrentRailwayDayOfTheWeek := StrToDayOfTheWeek(UpperCaseStr);
-  IF CurrentRailwayDayOfTheWeek <> UnknownDayOfTheWeek THEN
-    SetCurrentRailwayTimeAndDayOfTheWeek(CurrentRailwayTime)
-  ELSE
-    Debug('!"' + Str + '" is an invalid day of the week');
-END; { GeneralPopupSetCurrentRailwayDayOfTheWeekClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupSetLogFileMaximumWidthClick(Sender: TObject);
-VAR
-  SaveLogFileMaxWidthInChars : Integer;
-  TempInput : String;
-
-BEGIN
-  SaveLogFileMaxWidthInChars := LogFileMaxWidthInChars;
-  TempInput := InputBox('Maximum Log File Width', 'Maximum Log File Width (In Characters)?', IntToStr(LogFileMaxWidthInChars));
-  IF NOT TryStrToInt(TempInput, LogFileMaxWidthInChars) THEN BEGIN
-    ShowMessage('Input must be an integer: ' + TempInput + ' is not valid');
-    LogFileMaxWidthInChars := SaveLogFileMaxWidthInChars;
-  END;
-END; { GeneralPopupSetLogFileMaximumWidthClick }
 
 PROCEDURE TFWPRailWindow.FWPRailWindowStatusBarMouseMove(Sender: TObject; ShiftState: TShiftState; X, Y: Integer);
 { Save the XY position of the cursor as it passes over a status bar to work out where it is should the mouse key be pressed }
@@ -6935,46 +6349,10 @@ BEGIN
   GetTime.ClockWindow.OKButton.SetFocus;
 END; { SetDaylightEndTime }
 
-PROCEDURE TFWPRailWindow.GeneralPopupRunClockNormallyClick(Sender: TObject);
-BEGIN
-  GeneralPopupRunClockNormally.Checked := True;
-  GeneralPopupRunClockSlower.Checked := False;
-  GeneralPopupRunClockFaster.Checked := False;
-  GeneralPopupRunClockFastest.Checked := False;
-  SetRailwayTimeInterval(Normal);
-END; { GeneralPopupRunClockNormallyClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRunClockSlowerClick;
-BEGIN
-  GeneralPopupRunClockNormally.Checked := False;
-  GeneralPopupRunClockSlower.Checked := True;
-  GeneralPopupRunClockFaster.Checked := False;
-  GeneralPopupRunClockFastest.Checked := False;
-  SetRailwayTimeInterval(Slower);
-END; { GeneralPopupRunClockSlowerExecute }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRunClockFasterClick;
-BEGIN
-  GeneralPopupRunClockNormally.Checked := False;
-  GeneralPopupRunClockSlower.Checked := False;
-  GeneralPopupRunClockFaster.Checked := True;
-  GeneralPopupRunClockFastest.Checked := False;
-  SetRailwayTimeInterval(Faster);
-END; { GeneralPopupRunClockFasterClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupRunClockFastestClick;
-BEGIN
-  GeneralPopupRunClockNormally.Checked := False;
-  GeneralPopupRunClockSlower.Checked := False;
-  GeneralPopupRunClockFaster.Checked := False;
-  GeneralPopupRunClockFastest.Checked := True;
-  SetRailwayTimeInterval(Fastest);
-END; { GeneralPopupRunClockFastestClick }
-
 PROCEDURE TFWPRailWindow.StartClock(Sender: TObject);
 BEGIN
-  GeneralPopupStartClock.Visible := False;
-  GeneralPopupStopClock.Visible := True;
+//  GeneralPopupStartClock.Visible := False;
+//  GeneralPopupStopClock.Visible := True;
   TurnAutoModeOn;
 END; { StartClock }
 
@@ -6983,41 +6361,10 @@ CONST
   UserInCharge = True;
 
 BEGIN
-  GeneralPopupStartClock.Visible := True;
-  GeneralPopupStopClock.Visible := False;
+//  GeneralPopupStartClock.Visible := True;
+//  GeneralPopupStopClock.Visible := False;
   TurnAutoModeOff(UserInCharge);
 END; { StopClock }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangePointClick(Sender: TObject);
-BEGIN
-  SetAndShowInputDialogueBox(PointDialogueBox);
-END; { GeneralPopupChangePoint }
-
-PROCEDURE TFWPRailWindow.GeneralPopupChangeSignalClick(Sender: TObject);
-BEGIN
-  SetAndShowInputDialogueBox(SignalDialogueBox);
-END; { GeneralPopupChangeSignalClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupListLocomotivesClick(Sender: TObject);
-BEGIN
-  IF LocoUtilsWindow.Visible THEN BEGIN
-    LocoUtilsWindow.Visible := False;
-    Log('A "?" key hides List of Locos');
-  END ELSE BEGIN
-    LocoUtilsWindow.Visible := True;
-    Log('A "?" key makes List of Locos visible');
-  END;
-END; { GeneralPopupListLocomotivesClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupShowTrackCircuitClick(Sender: TObject);
-BEGIN
-  SetAndShowInputDialogueBox(TrackCircuitDialogueBox);
-END; { GeneralPopupShowTrackCircuitClick }
-
-PROCEDURE TFWPRailWindow.GeneralPopupDebugOptionsClick(Sender: TObject);
-BEGIN
-  Startup.DebuggingOptionsWindow.Show;
-END; { GeneralPopupDebugOptionsClick }
 
 PROCEDURE ResetFWPRailWindowSizeAndPosition;
 { Reset the window's size and position }
@@ -7028,16 +6375,6 @@ BEGIN
   FWPRailWindow.Left := 0;
   InvalidateScreen(UnitRef, 'ResetFWPRailWindowSizeClick');
 END; { ResetFWPRailWindowSizeAndPosition }
-
-PROCEDURE TFWPRailWindow.GeneralPopupResetFWPRailWindowSizeAndPositionClick(Sender: TObject);
-BEGIN
-  ResetFWPRailWindowSizeAndPosition;
-//  FWPRailWindow.Height := MulDiv(Screen.WorkAreaHeight, 80, 100);
-//  FWPRailWindow.Width := Screen.WorkAreaWidth;
-//  FWPRailWindow.Top := 0;
-//  FWPRailWindow.Left := 0;
-  InvalidateScreen(UnitRef, 'ResetFWPRailWindowSizeClick');
-END; { ResetFWPRailWindowSizeClick }
 
 PROCEDURE ResetAllWindowsSizeAndPosition;
 { Reset all the windows to their default state }

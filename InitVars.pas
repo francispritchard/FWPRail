@@ -117,6 +117,7 @@ CONST
   ActiveTrain = True;
   Bold = True;
   ByUser = True;
+  Checked = True;
   ForceARead = True;
   ForceAWrite = True;
   ForcePoint = True;
@@ -240,34 +241,6 @@ TYPE
     Feedback_InputTRSPlunger : ARRAY [1..8] OF Integer;
     Feedback_TCAboveUnit : Integer;
   END;
-
-  MenuPopupTypes = (NoClickPopupType,
-                    { sinals }
-                    SignalChangeDirectionPopupType, SignalDeletePopupType, SignalEditPopupType, SignalOutOfUsePopupType, SignalUndoChangesPopupType,
-                    SignalUserMustDriveFromPopupType,
-                    { Points }
-                    PointDeletePopupType, PointEditPopupType, PointOutOfUsePopupType, PointToManualPopupType, PointUnlockPopupType,
-                    { BufferStops }
-                    BufferStopEditPopupType,
-                    { Lines with locos }
-                    LineAllocateLocoToTrackCircuitPopupType, LineChangeInternalLocoDirectionToDownPopupType, LineChangeInternalLocoDirectionToUpPopupType,
-                    { Lines with points }
-                    LineCreateCatchPointUpPopupType, LineCreateCatchPointDownPopupType, LineCreateOrdinaryPointPopupType, LineCreateCrossOverPointPopupType,
-                    LineCreateThreeWayPointAPopupType, LineCreateThreeWayPointBPopupType,
-                    { Lines with signals }
-                    LineCreateDownSignalPopupType, LineCreateUpSignalPopupType,
-                    { Lines out of use }
-                    LineLocationOutOfUsePopupType, LineOutOfUsePopupType,
-                    { Lines miscellaneous }
-                    LineDeletePopupType,
-                    LineEnterCreateLineModePopupType, LineExitCreateLineModePopupType, LineEnterEditModePopupType, LineExitEditModePopupType,
-                    LineEditPopupType,
-                    LineShowLocoLastErrorMessagePopupType,
-                    LineSplitPopupType, LineJoinPopupType,
-                    { Line track circuits }
-                    LineTCFeedbackOccupationPopupType, LineTCOutOfUsePopupType, LineTCPermanentOccupationPopupType, LineTCSpeedRestrictionPopupType,
-                    LineTCSystemOccupationPopupType, LineTCUnoccupiedPopupType, LineAllocateExistingTrackCircuitPopupType,
-                    LineAllocateNewTrackCircuitPopupType, LineRemoveTrackCircuitPopupType);
 
   { Line-related type declarations }
   EndOfLineType = (BufferStopAtUp, BufferStopAtDown, ProjectedLineAtUp, ProjectedLineAtDown, NotEndOfLine, UnknownEndOfLine);

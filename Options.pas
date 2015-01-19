@@ -559,11 +559,11 @@ VAR
   DefaultShowNonStopsInDiagrams : Boolean = True;
   ShowNonStopsInDiagrams : Boolean;
 
-  DefaultShowPointDefaultStateColour : TColour = clWhite;
-  ShowPointDefaultStateColour : TColour = clWhite;
+  DefaultPointDefaultStateColour : TColour = clWhite;
+  PointDefaultStateColour : TColour = clWhite;
 
-  DefaultShowPointLockedColour : TColour = clYellow;
-  ShowPointLockedColour : TColour = clYellow;
+  DefaultPointLockedBySystemColour : TColour = clYellow;
+  PointLockedBySystemColour : TColour = clYellow;
 
   DefaultShowSignalsFromWhichUserMustDrive : Boolean = True;
   ShowSignalsFromWhichUserMustDrive : Boolean = True;
@@ -625,8 +625,8 @@ VAR
   SignalSemaphoreWidth : Integer;
   SignalSemaphoreWidthScaled : Integer;
 
-  DefaultSignalsUserMustDriveSignalPostColour : TColour = clFWPOrange;
-  SignalsUserMustDriveSignalPostColour : TColour = clFWPOrange;
+  DefaultSignalsFromWhichUserMustDriveSignalPostColour : TColour = clFWPOrange;
+  SignalsFromWhichUserMustDriveSignalPostColour : TColour = clFWPOrange;
 
   DefaultSignalVerticalSpacing : Integer = 150;
   SignalVerticalSpacing : Integer;
@@ -857,12 +857,14 @@ CONST
 
     { Colours for points }
     PointColourStr = 'Point Colour';
+    PointDefaultStateColourStr = 'Point Default State Colour';
     PointDivergingLineColourStr = 'Point Diverging Line Colour';
     PointDownFacingColourStr = 'Point Down Facing Colour';
     PointFeedbackDataInUseColourStr = 'Point Feedback Data In Use Colour';
     PointFeedbackDataOutOfUseColourStr = 'Point Feedback Data Out Of Use Colour';
     PointHeelLineColourStr = 'Point Heel Line Colour';
     PointLenzNumberColourStr = 'Point Lenz Number Colour';
+    PointLockedBySystemColourStr = 'Point Locked By System Colour';
     PointLockedByUserColourStr = 'Point Locked By User Colour';
     PointManualOperationColourStr = 'Point Manual Operation Colour';
     PointOutOfUseColourStr = 'Point Out Of Use Colour';
@@ -870,8 +872,6 @@ CONST
     PointsWithoutFeedbackColourStr = 'Points Without Feedback Colour';
     PointUndrawColourStr = 'Point Undraw Colour';
     PointUpFacingColourStr = 'Up Facing Point Colour';
-    ShowPointDefaultStateColourStr = 'Show Point Default State Colour';
-    ShowPointLockedColourStr = 'Show Point Locked Colour';
 
     { Colours for signal posts }
     SignalPostColourStr = 'Signal Post Colour';
@@ -1214,12 +1214,14 @@ BEGIN
 
   { Colours for points }
   PointColour := DefaultPointColour;
+  PointDefaultStateColour := DefaultPointDefaultStateColour;
   PointDivergingLineColour := DefaultPointDivergingLineColour;
   PointDownFacingColour := DefaultPointDownFacingColour;
   PointFeedbackDataInUseColour := DefaultPointFeedbackDataInUseColour;
   PointFeedbackDataOutOfUseColour := DefaultPointFeedbackDataOutOfUseColour;
   PointHeelLineColour := DefaultPointHeelLineColour;
   PointLenzNumberColour := DefaultPointLenzNumberColour;
+  PointLockedBySystemColour := DefaultPointLockedBySystemColour;
   PointLockedByUserColour := DefaultPointLockedByUserColour;
   PointManualOperationColour := DefaultPointManualOperationColour;
   PointOutOfUseColour := DefaultPointOutOfUseColour;
@@ -1227,8 +1229,6 @@ BEGIN
   PointsWithoutFeedbackColour := DefaultPointsWithoutFeedbackColour;
   PointUndrawColour := DefaultPointUndrawColour;
   PointUpFacingColour := DefaultPointUpFacingColour;
-  ShowPointDefaultStateColour := DefaultShowPointDefaultStateColour;
-  ShowPointLockedColour := DefaultShowPointLockedColour;
 
   { Colours for signal posts }
   SignalPostColour := DefaultSignalPostColour;
@@ -1236,7 +1236,7 @@ BEGIN
   SignalPostRouteSettingColour := DefaultSignalPostRouteSettingColour;
   SignalPostStationStartModeColour := DefaultSignalPostStationStartModeColour;
   SignalPostTheatreSettingColour := DefaultSignalPostTheatreSettingColour;
-  SignalsUserMustDriveSignalPostColour := DefaultSignalsUserMustDriveSignalPostColour;
+  SignalsFromWhichUserMustDriveSignalPostColour := DefaultSignalsFromWhichUserMustDriveSignalPostColour;
 
   { Colours for signals }
   SignalAspectGreen := DefaultSignalAspectGreen;
@@ -1399,11 +1399,13 @@ BEGIN
     { Colours for points }
     PointColour := StrToColour(FWPReadString(ColoursSectionStr, PointColourStr, ColourToStr(DefaultPointColour)));
     PointDivergingLineColour := StrToColour(FWPReadString(ColoursSectionStr, PointDivergingLineColourStr, ColourToStr(DefaultPointDivergingLineColour)));
+    PointDefaultStateColour := StrToColour(FWPReadString(ColoursSectionStr, PointDefaultStateColourStr, ColourToStr(DefaultPointDefaultStateColour)));
     PointDownFacingColour := StrToColour(FWPReadString(ColoursSectionStr, PointDownFacingColourStr, ColourToStr(DefaultPointDownFacingColour)));
     PointFeedbackDataInUseColour := StrToColour(FWPReadString(ColoursSectionStr, PointFeedbackDataInUseColourStr, ColourToStr(DefaultPointFeedbackDataInUseColour)));
     PointFeedbackDataOutOfUseColour := StrToColour(FWPReadString(ColoursSectionStr, PointFeedbackDataoutOfUseColourStr,                                                                                                                      ColourToStr(DefaultPointFeedbackDataOutOfUseColour)));
     PointHeelLineColour := StrToColour(FWPReadString(ColoursSectionStr, PointHeelLineColourStr, ColourToStr(DefaultPointHeelLineColour)));
     PointLenzNumberColour := StrToColour(FWPReadString(ColoursSectionStr, PointLenzNumberColourStr, ColourToStr(DefaultPointLenzNumberColour)));
+    PointLockedBySystemColour := StrToColour(FWPReadString(ColoursSectionStr, PointLockedBySystemColourStr, ColourToStr(DefaultPointLockedBySystemColour)));
     PointLockedByUserColour := StrToColour(FWPReadString(ColoursSectionStr, PointLockedByUserColourStr, ColourToStr(DefaultPointLockedByUserColour)));
     PointManualOperationColour := StrToColour(FWPReadString(ColoursSectionStr, PointManualOperationColourStr, ColourToStr(DefaultPointManualOperationColour)));
     PointOutOfUseColour := StrToColour(FWPReadString(ColoursSectionStr, PointOutOfUseColourStr, ColourToStr(DefaultPointOutOfUseColour)));
@@ -1411,8 +1413,6 @@ BEGIN
     PointsWithoutFeedbackColour := StrToColour(FWPReadString(ColoursSectionStr, PointsWithoutFeedbackColourStr, ColourToStr(DefaultPointsWithoutFeedbackColour)));
     PointUndrawColour := StrToColour(FWPReadString(ColoursSectionStr, PointUndrawColourStr, ColourToStr(DefaultPointUndrawColour)));
     PointUpFacingColour := StrToColour(FWPReadString(ColoursSectionStr, PointUpFacingColourStr, ColourToStr(DefaultPointUpFacingColour)));
-    ShowPointDefaultStateColour := StrToColour(FWPReadString(ColoursSectionStr, ShowPointDefaultStateColourStr, ColourToStr(DefaultShowPointDefaultStateColour)));
-    ShowPointLockedColour := StrToColour(FWPReadString(ColoursSectionStr, ShowPointLockedColourStr, ColourToStr(DefaultShowPointLockedColour)));
 
     { Colours for signal posts }
     SignalPostColour := StrToColour(FWPReadString(ColoursSectionStr, SignalPostColourStr, ColourToStr(DefaultSignalPostColour)));
@@ -1422,8 +1422,8 @@ BEGIN
     SignalPostStationStartModeColour := StrToColour(FWPReadString(ColoursSectionStr, SignalPostStationStartModeColourStr,
                                                                                                                     ColourToStr(DefaultSignalPostStationStartModeColour)));
     SignalPostTheatreSettingColour := StrToColour(FWPReadString(ColoursSectionStr, SignalPostTheatreSettingColourStr, ColourToStr(DefaultSignalPostTheatreSettingColour)));
-    SignalsUserMustDriveSignalPostColour := StrToColour(FWPReadString(ColoursSectionStr, SignalsUserMustDriveSignalPostColourStr,
-                                                                                                                ColourToStr(DefaultSignalsUserMustDriveSignalPostColour)));
+    SignalsFromWhichUserMustDriveSignalPostColour := StrToColour(FWPReadString(ColoursSectionStr, SignalsUserMustDriveSignalPostColourStr,
+                                                                                                       ColourToStr(DefaultSignalsFromWhichUserMustDriveSignalPostColour)));
     { Colours for signals }
     SignalAspectGreen := StrToColour(FWPReadString(ColoursSectionStr, SignalAspectGreenStr, ColourToStr(DefaultSignalAspectGreen)));
     SignalAspectRed := StrToColour(FWPReadString(ColoursSectionStr, SignalAspectRedStr, ColourToStr(DefaultSignalAspectRed)));
@@ -1930,12 +1930,14 @@ BEGIN
 
     { Colours for points }
     WriteStringTwice(ColoursSectionStr, PointColourStr, ColourToStr(PointColour));
+    WriteStringTwice(ColoursSectionStr, PointDefaultStateColourStr, ColourToStr(PointDefaultStateColour));
     WriteStringTwice(ColoursSectionStr, PointDivergingLineColourStr, ColourToStr(PointDivergingLineColour));
     WriteStringTwice(ColoursSectionStr, PointDownFacingColourStr, ColourToStr(PointDownFacingColour));
     WriteStringTwice(ColoursSectionStr, PointFeedbackDataInUseColourStr, ColourToStr(PointFeedbackDataInUseColour));
     WriteStringTwice(ColoursSectionStr, PointFeedbackDataOutOfUseColourStr, ColourToStr(PointFeedbackDataOutOfUseColour));
     WriteStringTwice(ColoursSectionStr, PointHeelLineColourStr, ColourToStr(PointHeelLineColour));
     WriteStringTwice(ColoursSectionStr, PointLenzNumberColourStr, ColourToStr(PointLenzNumberColour));
+    WriteStringTwice(ColoursSectionStr, PointLockedBySystemColourStr, ColourToStr(PointLockedBySystemColour));
     WriteStringTwice(ColoursSectionStr, PointLockedByUserColourStr, ColourToStr(PointLockedByUserColour));
     WriteStringTwice(ColoursSectionStr, PointManualOperationColourStr, ColourToStr(PointManualOperationColour));
     WriteStringTwice(ColoursSectionStr, PointOutOfUseColourStr, ColourToStr(PointOutOfUseColour));
@@ -1943,8 +1945,6 @@ BEGIN
     WriteStringTwice(ColoursSectionStr, PointsWithoutFeedbackColourStr, ColourToStr(PointsWithoutFeedbackColour));
     WriteStringTwice(ColoursSectionStr, PointUndrawColourStr, ColourToStr(PointUndrawColour));
     WriteStringTwice(ColoursSectionStr, PointUpFacingColourStr, ColourToStr(PointUpFacingColour));
-    WriteStringTwice(ColoursSectionStr, ShowPointDefaultStateColourStr, ColourToStr(ShowPointDefaultStateColour));
-    WriteStringTwice(ColoursSectionStr, ShowPointLockedColourStr, ColourToStr(ShowPointLockedColour));
 
     { Colours for signal posts }
     WriteStringTwice(ColoursSectionStr, SignalPostColourStr, ColourToStr(SignalPostColour));
@@ -1952,7 +1952,7 @@ BEGIN
     WriteStringTwice(ColoursSectionStr, SignalPostRouteSettingColourStr, ColourToStr(SignalPostRouteSettingColour));
     WriteStringTwice(ColoursSectionStr, SignalPostStationStartModeColourStr, ColourToStr(SignalPostStationStartModeColour));
     WriteStringTwice(ColoursSectionStr, SignalPostTheatreSettingColourStr, ColourToStr(SignalPostTheatreSettingColour));
-    WriteStringTwice(ColoursSectionStr, SignalsUserMustDriveSignalPostColourStr, ColourToStr(SignalsUserMustDriveSignalPostColour));
+    WriteStringTwice(ColoursSectionStr, SignalsUserMustDriveSignalPostColourStr, ColourToStr(SignalsFromWhichUserMustDriveSignalPostColour));
 
     { Colours for signals }
     WriteStringTwice(ColoursSectionStr, SignalAspectGreenStr, ColourToStr(SignalAspectGreen));
