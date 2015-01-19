@@ -66,132 +66,54 @@ object FWPRailWindow: TFWPRailWindow
   object FWPRailWindowMenu: TMainMenu
     Left = 60
     Top = 48
-    object MainFileMenu: TMenuItem
+    object MainDropDownMenuFile: TMenuItem
       Caption = '&File'
       Visible = False
-      object MainFileMenuExit: TMenuItem
+      object MainDropDownMenuFileExit: TMenuItem
         Caption = 'E&xit'
-        OnClick = FWPRailWindowExitClick
+        OnClick = MainDropDownMenuFileExitClick
       end
     end
-    object MainOperationsMenu: TMenuItem
-      Caption = '&Operations'
-      Visible = False
-      object ChangePoint: TMenuItem
-        Caption = 'Change &Point'
-      end
-      object MainOperationsMenuChangeSignal: TMenuItem
-        Caption = 'Change &Signal'
-      end
-      object MainOperationsMenuListLocomotives: TMenuItem
-        Caption = '&List Locomotives'
-      end
-      object MainOperationsMenuShowTrackCircuit: TMenuItem
-        Caption = 'Show &Trackcircuit'
-      end
-      object MainOperationsMenuDebugOptions: TMenuItem
-        Caption = '&Debug Options'
-      end
-    end
-    object MainClockMenu: TMenuItem
-      Caption = '&Clock'
-      Visible = False
-      object MainClockMenuStartClock: TMenuItem
-        Caption = 'St&art Clock'
-        OnClick = StartClock
-      end
-      object MainMenuStopClock: TMenuItem
-        Caption = 'St&op Clock'
-        Visible = False
-        OnClick = StopClock
-      end
-      object MainClockMenuRuler1: TMenuItem
-        Caption = '-'
-      end
-      object MainClockMenuRunTimeNormally: TMenuItem
-        AutoCheck = True
-        Caption = 'Run Clock Normally'
-        Checked = True
-      end
-      object MainClockMenuRunTimeFaster: TMenuItem
-        AutoCheck = True
-        Caption = 'Run Clock Faster'
-      end
-      object MainClockMenuRunClockFastest: TMenuItem
-        Caption = 'Run Clock Fastest'
-      end
-      object MainClockMenuRunTimeSlower: TMenuItem
-        AutoCheck = True
-        Caption = 'Run Clock Slower'
-      end
-      object MainClockMenuRuler2: TMenuItem
-        Caption = '-'
-      end
-      object MainClockMenuSetCurrentRailwayTime: TMenuItem
-        Caption = 'Set Current Railway Time'
-        OnClick = SetCurrentRailwayTime
-      end
-      object MainClockMenuSetStartupTime: TMenuItem
-        Caption = 'Set &Program Start Time'
-      end
-      object SetDayLightStart: TMenuItem
-        Caption = 'Set Daylight Start Time'
-      end
-      object SetDaylightEnd: TMenuItem
-        Caption = 'Set Daylight End Time'
-      end
-    end
-    object MainDisplayMenu: TMenuItem
+    object MainDropDownMenuDisplay: TMenuItem
       Caption = '&Display'
-      object MainDisplayMenuDebug: TMenuItem
+      object MainDropdownMenuDisplayShowDebugOutputWindow: TMenuItem
         Caption = 'Show De&bug Output Window'
         Checked = True
-        OnClick = MainDisplayMenuDebugClick
+        OnClick = MainDropdownMenuDisplayShowDebugOutputWindowClick
       end
-      object MainDisplayMenuShowStatusbar: TMenuItem
+      object MainDropdownMenuDisplayShowStatusBar: TMenuItem
         Caption = 'Show Status &Bar'
         Checked = True
         OnClick = ShowStatusBarClick
       end
-      object MainDisplayMenuShow: TMenuItem
+      object MainDropdownMenuDisplayShowMainMenu: TMenuItem
         AutoCheck = True
         Caption = 'Show &Main Menu'
-        OnClick = MainDisplayMenuShowClick
+        OnClick = MainDropdownMenuDisplayShowMainMenuClick
       end
-      object MainDisplayMenuDiagramsWindow: TMenuItem
+      object MainDropdownMenuDisplayDiagramsWindow: TMenuItem
         Caption = '&Diagrams Window'
         Checked = True
-        OnClick = MainDisplayMenuDiagramsWindowClick
+        OnClick = MainDropdownMenuDisplayDiagramsWindowClick
       end
-      object MainDisplayMenuWorkingTimetableWindow: TMenuItem
+      object MainDropdownMenuDisplayWorkingTimetableWindow: TMenuItem
         Caption = '&Working Timetable Window'
-        OnClick = MainDisplayMenuWorkingTimetableWindowClick
+        OnClick = MainDropdownMenuDisplayWorkingTimetableWindowClick
       end
-      object MainDisplayMenuZoom: TMenuItem
+      object MainDropdownMenuDisplayZoomScreen: TMenuItem
         Caption = '&Zoom Screen'
-        OnClick = MainDisplayMenuZoomClick
+        OnClick = MainDropdownMenuDisplayZoomScreenClick
       end
     end
-    object MainRunMenu: TMenuItem
-      Caption = '&Run'
-      Visible = False
-      object MainRunMenuResumeOperations: TMenuItem
-        Caption = '&Resume Operations'
-        OnClick = MainRunMenuResumeOperationsClick
-      end
-      object MainRunMenuHaltOperations: TMenuItem
-        Caption = '&Halt All Operations'
-      end
-    end
-    object MainHelpMenu: TMenuItem
+    object MainDropdownMenuHelp: TMenuItem
       Caption = 'Help'
       Hint = #39'Isn'#39#39't'#39' FWP wonderful?'#39
       Visible = False
-      object MainHelpMenuRailHelp: TMenuItem
+      object MainDropdownMenuHelpRailHelp: TMenuItem
         Caption = 'Rail Help'
-        OnClick = MainHelpMenuRailHelpClick
+        OnClick = MainDropdownMenuHelpRailHelpClick
       end
-      object MainHelpMenuAboutRail: TMenuItem
+      object MainDropDownMenuHelpAboutRail: TMenuItem
         Caption = 'About Rail'
         OnClick = HelpMenuAboutClick
       end

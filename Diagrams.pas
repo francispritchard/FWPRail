@@ -2380,14 +2380,14 @@ END; { DiagramsWindowGridMouseDown }
 PROCEDURE TDiagramsWindow.DiagramsWindowHide(Sender: TObject);
 { Un-check the window menu item }
 BEGIN
-  FWPRailWindow.MainDisplayMenuDiagramsWindow.Checked := False;
+  FWPRailWindow.MainDropdownMenuDisplayDiagramsWindow.Checked := False;
 END; { DiagramsWindowHide }
 
 PROCEDURE TDiagramsWindow.DiagramsWindowShow(Sender: TObject);
 { Check the window menu item }
 BEGIN
-  FWPRailWindow.MainDisplayMenuDiagramsWindow.Checked := True;
-  FWPRailWindow.MainDisplayMenuWorkingTimetableWindow.Checked := False;
+  FWPRailWindow.MainDropdownMenuDisplayDiagramsWindow.Checked := True;
+  FWPRailWindow.MainDropdownMenuDisplayWorkingTimetableWindow.Checked := False;
   DiagramsWindowGrid.Color := DiagramsWindowGridBackgroundColour;
 END; { DiagramsWindowShow }
 

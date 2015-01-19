@@ -17,7 +17,6 @@ TYPE
   TFWPRailWindow = CLASS(TForm)
     FlashTimer: TTimer;
     BufferStopPopupMenu: TPopupMenu;
-    ChangePoint: TMenuItem;
     FWPRailApplicationEvents: TApplicationEvents;
     FWPRailWindowColourDialogue: TColorDialog;
     FWPRailWindowMenu: TMainMenu;
@@ -25,39 +24,20 @@ TYPE
     FWPRailWindowStatusBar: TStatusBar;
     GeneralPopupMenu: TPopupMenu;
     LinePopupMenu: TPopupMenu;
-    MainClockMenu: TMenuItem;
-    MainClockMenuRunClockFastest: TMenuItem;
-    MainClockMenuRunTimeFaster: TMenuItem;
-    MainClockMenuRunTimeNormally: TMenuItem;
-    MainClockMenuRunTimeSlower: TMenuItem;
-    MainClockMenuSetCurrentRailwayTime: TMenuItem;
-    MainClockMenuSetStartupTime: TMenuItem;
-    MainClockMenuStartClock: TMenuItem;
-    MainDisplayMenu: TMenuItem;
-    MainDisplayMenuDebug: TMenuItem;
-    MainDisplayMenuDiagramsWindow: TMenuItem;
-    MainDisplayMenuShow: TMenuItem;
-    MainDisplayMenuShowStatusbar: TMenuItem;
-    MainDisplayMenuWorkingTimetableWindow: TMenuItem;
-    MainDisplayMenuZoom: TMenuItem;
-    MainFileMenu: TMenuItem;
-    MainFileMenuExit: TMenuItem;
-    MainHelpMenu: TMenuItem;
-    MainHelpMenuAboutRail: TMenuItem;
-    MainHelpMenuRailHelp: TMenuItem;
-    MainMenuStopClock: TMenuItem;
-    MainOperationsMenu: TMenuItem;
-    MainOperationsMenuChangeSignal: TMenuItem;
-    MainOperationsMenuDebugOptions: TMenuItem;
-    MainOperationsMenuListLocomotives: TMenuItem;
-    MainOperationsMenuShowTrackCircuit: TMenuItem;
-    MainRunMenu: TMenuItem;
-    MainRunMenuHaltOperations: TMenuItem;
-    MainRunMenuResumeOperations: TMenuItem;
+    MainDropDownMenuDisplay: TMenuItem;
+    MainDropdownMenuDisplayShowDebugOutputWindow: TMenuItem;
+    MainDropdownMenuDisplayDiagramsWindow: TMenuItem;
+    MainDropdownMenuDisplayShowMainMenu: TMenuItem;
+    MainDropdownMenuDisplayShowStatusBar: TMenuItem;
+    MainDropdownMenuDisplayWorkingTimetableWindow: TMenuItem;
+    MainDropdownMenuDisplayZoomScreen: TMenuItem;
+    MainDropDownMenuFile: TMenuItem;
+    MainDropDownMenuFileExit: TMenuItem;
+    MainDropdownMenuHelp: TMenuItem;
+    MainDropDownMenuHelpAboutRail: TMenuItem;
+    MainDropdownMenuHelpRailHelp: TMenuItem;
     PointPopupMenu: TPopupMenu;
     PopupTimer: TTimer;
-    SetDaylightEnd: TMenuItem;
-    SetDayLightStart: TMenuItem;
     SignalPopupMenu: TPopupMenu;
 
     PROCEDURE BufferStopPopupItemClick(Sender: TObject);
@@ -69,7 +49,6 @@ TYPE
     PROCEDURE FWPRailWindowDestroy(Sender: TObject);
     PROCEDURE FWPRailWindowDragDrop(Sender, Source: TObject; X, Y: Integer);
     PROCEDURE FWPRailWindowDragOver(Sender, Source: TObject; X, Y: Integer; State: TDragState; var Accept: Boolean);
-    PROCEDURE FWPRailWindowExitClick(Sender: TObject);
     PROCEDURE FWPRailWindowKeyDown(Sender: TObject; VAR Key: Word; ShiftState: TShiftState);
     PROCEDURE FWPRailWindowMouseDown(Sender: TObject; Button: TMouseButton; ShiftState: TShiftState; X, Y: Integer);
     PROCEDURE FWPRailWindowMouseMove(Sender: TObject; ShiftState: TShiftState; X, Y: Integer);
@@ -86,26 +65,21 @@ TYPE
     PROCEDURE LinePopupItemClick(Sender: TObject);
     PROCEDURE LinePopupMenuOnPopup(Sender: TObject);
     PROCEDURE LocoInfoMenuItemClick(Sender: TObject);
-    PROCEDURE MainDisplayMenuDebugClick(Sender: TObject);
-    PROCEDURE MainDisplayMenuDiagramsWindowClick(Sender: TObject);
-    PROCEDURE MainDisplayMenuShowClick(Sender: TObject);
-    PROCEDURE MainDisplayMenuWorkingTimetableWindowClick(Sender: TObject);
-    PROCEDURE MainDisplayMenuZoomClick(Sender: TObject);
-    PROCEDURE MainHelpMenuRailHelpClick(Sender: TObject);
+    PROCEDURE MainDropdownMenuDisplayShowDebugOutputWindowClick(Sender: TObject);
+    PROCEDURE MainDropdownMenuDisplayDiagramsWindowClick(Sender: TObject);
+    PROCEDURE MainDropdownMenuDisplayShowMainMenuClick(Sender: TObject);
+    PROCEDURE MainDropdownMenuDisplayWorkingTimetableWindowClick(Sender: TObject);
+    PROCEDURE MainDropdownMenuDisplayZoomScreenClick(Sender: TObject);
+    PROCEDURE MainDropDownMenuFileExitClick(Sender: TObject);
+    PROCEDURE MainDropdownMenuHelpRailHelpClick(Sender: TObject);
     PROCEDURE MainRunMenuResumeOperationsClick(Sender: TObject);
     PROCEDURE PointPopupMenuOnPopup(Sender: TObject);
     PROCEDURE PointPopupItemClick(Sender: TObject);
     PROCEDURE PopupTimerTick(Sender: TObject);
     PROCEDURE ResetSizeAndPositionOfAllWindowsClick(Sender: TObject);
-    PROCEDURE SetCurrentRailwayTime(Sender: TObject);
-    PROCEDURE SetDaylightEndTime(Sender: TObject);
-    PROCEDURE SetDaylightStartTime(Sender: TObject);
-    PROCEDURE SetProgramStartTime(Sender: TObject);
     PROCEDURE ShowStatusBarClick(Sender: TObject);
     PROCEDURE SignalPopupItemClick(Sender: TObject);
     PROCEDURE SignalPopupMenuOnPopup(Sender: TObject);
-    PROCEDURE StartClock(Sender: TObject);
-    PROCEDURE StopClock(Sender: TObject);
 
   PRIVATE
     { Private declarations }
@@ -3356,15 +3330,6 @@ BEGIN
   END;
 END; { FWPRailWindowPaint }
 
-PROCEDURE TFWPRailWindow.FWPRailWindowExitClick(Sender: TObject);
-CONST
-  ExitProgram = True;
-
-BEGIN
-  Log('A Shutdown requested by user selecting exit menu item');
-  ShutDownProgram(UnitRef, 'FWPRailWindowExitClick');
-END; { FWPRailWindowExitClick }
-
 PROCEDURE TFWPRailWindow.FWPRailWindowShortCut(VAR Msg: TWMKey; VAR Handled: Boolean);
 { Replaced by RailApplicationEventsShortcut 16/6/14 }
 //VAR
@@ -3701,26 +3666,26 @@ BEGIN
   Accept := (Source IS TImage);
 END; { FWPRailWindowDragOver }
 
-PROCEDURE TFWPRailWindow.MainDisplayMenuDiagramsWindowClick(Sender: TObject);
+PROCEDURE TFWPRailWindow.MainDropdownMenuDisplayDiagramsWindowClick(Sender: TObject);
 BEGIN
   IF DiagramsWindow.Visible THEN BEGIN
     DiagramsWindow.Hide;
-    MainDisplayMenuDiagramsWindow.Checked := False;
+    MainDropdownMenuDisplayDiagramsWindow.Checked := False;
   END ELSE BEGIN
     DiagramsWindow.Show;
-    MainDisplayMenuDiagramsWindow.Checked := True;
+    MainDropdownMenuDisplayDiagramsWindow.Checked := True;
     DrawDiagrams(UnitRef, 'MainDisplayMenuDiagramsClick');
   END;
 END; { MainDisplayMenuDiagramsClick }
 
-PROCEDURE TFWPRailWindow.MainDisplayMenuWorkingTimetableWindowClick(Sender: TObject);
+PROCEDURE TFWPRailWindow.MainDropdownMenuDisplayWorkingTimetableWindowClick(Sender: TObject);
 BEGIN
   IF WorkingTimetableWindow.Visible THEN BEGIN
     WorkingTimetableWindow.Hide;
-    MainDisplayMenuWorkingTimetableWindow.Checked := False;
+    MainDropdownMenuDisplayWorkingTimetableWindow.Checked := False;
   END ELSE BEGIN
     WorkingTimetableWindow.Show;
-    MainDisplayMenuWorkingTimetableWindow.Checked := True;
+    MainDropdownMenuDisplayWorkingTimetableWindow.Checked := True;
     DrawWorkingTimetable(UnitRef, 'MainDisplayMenuWorkingTimetableClick');
   END;
 END; { MainDisplayMenuWorkingTimetableWindowClick }
@@ -3746,14 +3711,14 @@ begin
 
 end;
 *)
-PROCEDURE TFWPRailWindow.MainDisplayMenuDebugClick(Sender: TObject);
+PROCEDURE TFWPRailWindow.MainDropdownMenuDisplayShowDebugOutputWindowClick(Sender: TObject);
 BEGIN
   IF DebugWindow.Visible THEN BEGIN
     DebugWindow.Hide;
-    MainDisplayMenuDebug.Checked := False;
+    MainDropdownMenuDisplayShowDebugOutputWindow.Checked := False;
   END ELSE BEGIN
     DebugWindow.Show;
-    MainDisplayMenuDebug.Checked := True;
+    MainDropdownMenuDisplayShowDebugOutputWindow.Checked := True;
   END;
 END; { MainDisplayMenuDebugClick }
 
@@ -3774,37 +3739,37 @@ PROCEDURE TFWPRailWindow.ShowStatusBarClick(Sender: TObject);
 BEGIN
   IF FWPRailWindow.FWPRailWindowStatusBar.Visible THEN BEGIN
     FWPRailWindow.FWPRailWindowStatusBar.Hide;
-    MainDisplayMenuShowStatusBar.Checked := False;
+    MainDropdownMenuDisplayShowStatusBar.Checked := False;
   END ELSE BEGIN
     FWPRailWindow.FWPRailWindowStatusBar.Show;
-    MainDisplayMenuShowStatusBar.Checked := True;
+    MainDropdownMenuDisplayShowStatusBar.Checked := True;
   END;
 END; { ShowStatusBarClick }
 
-PROCEDURE TFWPRailWindow.MainDisplayMenuShowClick(Sender: TObject);
+PROCEDURE TFWPRailWindow.MainDropdownMenuDisplayShowMainMenuClick(Sender: TObject);
 { Make menus visible if they're not and vice versa }
 BEGIN
   IF MenusVisible THEN
     HideMenus
   ELSE
     ShowMenus;
-END; { ShowMenuItemClick }
+END; { MainDropdownMenuDisplayShowMainMenuClick }
 
-PROCEDURE TFWPRailWindow.MainDisplayMenuZoomClick(Sender: TObject);
+PROCEDURE TFWPRailWindow.MainDropdownMenuDisplayZoomScreenClick(Sender: TObject);
 BEGIN
-  MainDisplayMenuZoom.Checked := NOT MainDisplayMenuZoom.Checked;
-  IF MainDisplayMenuZoom.Checked THEN
+  MainDropdownMenuDisplayZoomScreen.Checked := NOT MainDropdownMenuDisplayZoomScreen.Checked;
+  IF MainDropdownMenuDisplayZoomScreen.Checked THEN
     ScreenMode := FullScreenMode
   ELSE BEGIN
     ScreenMode := DefaultWindowedScreenMode;
     InvalidateScreen(UnitRef, 'MainDisplayMenuZoomClick');
   END;
-END; { MainDisplayMenuZoomClick }
+END; { MainDropdownMenuDisplayZoomScreenClick }
 
 PROCEDURE TFWPRailWindow.MainRunMenuResumeOperationsClick(Sender: TObject);
 VAR
   OK : Boolean;
-  
+
 BEGIN
   ResumeOperations(OK);
   IF OK THEN
@@ -3814,7 +3779,7 @@ BEGIN
   InvalidateScreen(UnitRef, 'MainRunMenuResumeOperationsClick');
 END; { MainRunMenuResumeOperationsClick }
 
-PROCEDURE TFWPRailWindow.MainHelpMenuRailHelpClick(Sender: TObject);
+PROCEDURE TFWPRailWindow.MainDropdownMenuHelpRailHelpClick(Sender: TObject);
 BEGIN
   Application.HelpCommand(HELP_FINDER, 0);
 END; { MainHelpMenuRailHelpClick }
@@ -5270,6 +5235,15 @@ BEGIN
   PopupTimer.Enabled := True;
 END; { BufferStopMenuOnPopup }
 
+PROCEDURE TFWPRailWindow.MainDropDownMenuFileExitClick(Sender: TObject);
+CONST
+  ExitProgram = True;
+
+BEGIN
+  Log('A Shutdown requested by user selecting exit menu item');
+  ShutDownProgram(UnitRef, 'FWPRailWindowExitClick');
+END; { MainDropDownMenuFileExitClick }
+
 PROCEDURE SetOrClearTrackCircuitSpeedRestriction(Line : Integer);
 VAR
   DefaultDirectionStr : String;
@@ -6313,59 +6287,6 @@ BEGIN
   END;
 END; { FWPRailWindowStatusBarClick }
 
-PROCEDURE TFWPRailWindow.SetCurrentRailwayTime(Sender: TObject);
-{ The result from this action is picked up in the TClockWindow.OKButtonClick routine in the GetTime unit }
-BEGIN
-  GetTime.ClockWindow.Clock.Time := StrToTime(CurrentRailwayTimeStr);
-  GetTime.ClockWindow.Caption := SetCurrentRailwayTimeCaption;
-  GetTime.ClockWindow.Visible := True;
-  GetTime.ClockWindow.OKButton.SetFocus;
-END; { SetCurrentRailwayTime }
-
-PROCEDURE TFWPRailWindow.SetProgramStartTime(Sender: TObject);
-{ The result from this action is picked up in the TClockWindow.OKButtonClick routine in the GetTime unit }
-BEGIN
-  GetTime.ClockWindow.Clock.Time := ProgramStartTime;
-  GetTime.ClockWindow.Caption := SetProgramStartTimeCaption;
-  GetTime.ClockWindow.Visible := True;
-  GetTime.ClockWindow.OKButton.SetFocus;
-END; { SetProgramStartTime }
-
-PROCEDURE TFWPRailWindow.SetDaylightStartTime(Sender: TObject);
-{ The result from this action is picked up in the TClockWindow.OKButtonClick routine in the GetTime unit }
-BEGIN
-  GetTime.ClockWindow.Clock.Time := StrToTime(DaylightStartTimeStr);
-  GetTime.ClockWindow.Caption := SetDaylightStartTimeCaption;
-  GetTime.ClockWindow.Visible := True;
-  GetTime.ClockWindow.OKButton.SetFocus;
-END; { SetDaylightStartTime }
-
-PROCEDURE TFWPRailWindow.SetDaylightEndTime(Sender: TObject);
-{ The result from this action is picked up in the TClockWindow.OKButtonClick routine in the GetTime unit }
-BEGIN
-  GetTime.ClockWindow.Clock.Time := StrToTime(DaylightEndTimeStr);
-  GetTime.ClockWindow.Caption := SetDaylightEndTimeCaption;
-  GetTime.ClockWindow.Visible := True;
-  GetTime.ClockWindow.OKButton.SetFocus;
-END; { SetDaylightEndTime }
-
-PROCEDURE TFWPRailWindow.StartClock(Sender: TObject);
-BEGIN
-//  GeneralPopupStartClock.Visible := False;
-//  GeneralPopupStopClock.Visible := True;
-  TurnAutoModeOn;
-END; { StartClock }
-
-PROCEDURE TFWPRailWindow.StopClock(Sender: TObject);
-CONST
-  UserInCharge = True;
-
-BEGIN
-//  GeneralPopupStartClock.Visible := True;
-//  GeneralPopupStopClock.Visible := False;
-  TurnAutoModeOff(UserInCharge);
-END; { StopClock }
-
 PROCEDURE ResetFWPRailWindowSizeAndPosition;
 { Reset the window's size and position }
 BEGIN
@@ -6612,12 +6533,9 @@ BEGIN
       END; {WITH}
 
       { Set up menus - hide them until they are requested }
-      MainClockMenu.Visible := False;
-      MainDisplayMenu.Visible := False;
-      MainFileMenu.Visible := False;
-      MainHelpMenu.Visible := False;
-      MainOperationsMenu.Visible := False;
-      MainRunMenu.Visible := False;
+      MainDropdownMenuDisplay.Visible := False;
+      MainDropdownMenuFile.Visible := False;
+      MainDropdownMenuHelp.Visible := False;
 
       InitialiseScreenDrawingVariables;
 

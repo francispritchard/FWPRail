@@ -1508,7 +1508,7 @@ BEGIN { KeyPressedDown }
         Ord('C'):
           CASE ShiftKeys OF
             NoShiftKeys: {C}
-              IF NOT FWPRailWindow.MainClockMenu.Visible THEN BEGIN
+              BEGIN
                 HelpMsg := 'set clock';
                 IF NOT HelpRequired THEN BEGIN
                   IF GetTime.ClockWindow.Visible THEN

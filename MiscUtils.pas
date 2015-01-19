@@ -18,9 +18,7 @@ TYPE
     PROCEDURE DebugRichEditMouseDown(Sender: TObject; Button: TMouseButton; ShiftState: TShiftState; X, Y: Integer);
     PROCEDURE DebugRichEditMouseMove(Sender: TObject; ShiftState: TShiftState; X, Y: Integer);
     PROCEDURE DebugWindowClose(Sender: TObject; VAR Action: TCloseAction);
-    PROCEDURE DebugWindowHide(Sender: TObject);
     PROCEDURE DebugWindowResize(Sender: TObject);
-    PROCEDURE DebugWindowShow(Sender: TObject);
   PRIVATE
     { Private declarations }
   PUBLIC
@@ -3913,16 +3911,13 @@ BEGIN
   WITH FWPRailWindow DO BEGIN
     MenusVisible := False;
 
-    MainClockMenu.Visible := False;
-    MainDisplayMenu.Visible := False;
-    MainFileMenu.Visible := False;
-    MainHelpMenu.Visible := False;
-    MainOperationsMenu.Visible := False;
-    MainRunMenu.Visible := False;
+    MainDropdownMenuDisplay.Visible := False;
+    MainDropdownMenuFile.Visible := False;
+    MainDropdownMenuHelp.Visible := False;
 
     { this is a bit daft, as if the menus aren't visible, one is never going to see the tick, but I've no doubt that it is part of the AMS standard! }
-    IF MainDisplayMenu.Visible THEN
-      MainDisplayMenuShow.Checked := False;
+    IF MainDropdownMenuDisplay.Visible THEN
+      MainDropdownMenuDisplay.Checked := False;
   END; {WITH}
 END; { HideMenus }
 
@@ -7258,16 +7253,13 @@ BEGIN
   WITH FWPRailWindow DO BEGIN
     MenusVisible := True;
 
-    MainClockMenu.Visible := True;
-    MainDisplayMenu.Visible := True;
-    MainFileMenu.Visible := True;
-    MainHelpMenu.Visible := True;
-    MainOperationsMenu.Visible := True;
-    MainRunMenu.Visible := True;
+    MainDropdownMenuDisplay.Visible := True;
+    MainDropdownMenuFile.Visible := True;
+    MainDropdownMenuHelp.Visible := True;
 
     { this is a bit daft, as if the menus aren't visible, one is never going to see the tick, but I've no doubt that it is part of the AMS standard! }
-    IF MainDisplayMenu.Visible THEN
-      MainDisplayMenuShow.Checked := True;
+    IF MainDropdownMenuDisplay.Visible THEN
+      MainDropdownMenuDisplay.Checked := True;
   END; {WITH}
 END; { ShowMenus }
 
@@ -9668,18 +9660,6 @@ begin
    SetLength(X, Length(X) - 1);
 end;
 *)
-PROCEDURE TDebugWindow.DebugWindowHide(Sender: TObject);
-{ Un-check the window menu item }
-BEGIN
-  FWPRailWindow.MainOperationsMenuDebugOptions.Checked := False;
-END; { DebugWindowHide }
-
-PROCEDURE TDebugWindow.DebugWindowShow(Sender: TObject);
-{ Check the window menu item }
-BEGIN
-  FWPRailWindow.MainOperationsMenuDebugOptions.Checked := True;
-END; { TDebugWindow }
-
 FUNCTION TimeIsValid(TimeStr : String) : Boolean;
 { Checking a given time string - an hour/min separator is permissible. Also ignore a trailing asterisk }
 VAR

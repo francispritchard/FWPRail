@@ -16,9 +16,7 @@ object DebugWindow: TDebugWindow
   OldCreateOrder = False
   Position = poDefault
   OnClose = DebugWindowClose
-  OnHide = DebugWindowHide
   OnResize = DebugWindowResize
-  OnShow = DebugWindowShow
   PixelsPerInch = 96
   TextHeight = 13
   object DebugRichEdit: TRichEdit
