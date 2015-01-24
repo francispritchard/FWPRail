@@ -2213,73 +2213,79 @@ VAR
   END;
 
 BEGIN
-  RichTextFound := False; { need to use this to allow lines with single < (not yet implemented) ***** }
-  IF Pos('{R}', StrToAdd) > 0 THEN
-    StrToAdd := Copy(StrToAdd, 4);
-  TempStyle := RichEdit.Font.Style;
-  StrLeft := StrToAdd;
-  RichEdit.SelStart := Length(RichEdit.Text);
-  WHILE StrLeft <> '' DO BEGIN
-    IF StrStartsWith(StrLeft, '<', True, False) THEN BEGIN
-
-      { Bold }
-      IF StrStartsWith(StrLeft, '<b>', True, True) THEN BEGIN
-        RichTextFound := True;
-        AddToStyle(TempStyle, fsBold);
-      END;
-      IF StrStartsWith(StrLeft, '</b>', True, True) THEN BEGIN
-        RichTextFound := True;
-        RemoveFromStyle(TempStyle, fsBold);
-      END;
-
-      { Italics }
-      IF StrStartsWith(StrLeft, '<i>', True, True) THEN BEGIN
-        RichTextFound := True;
-        AddToStyle(TempStyle, fsItalic);
-      END;
-      IF StrStartsWith(StrLeft, '</i>', True, True) THEN BEGIN
-        RichTextFound := True;
-        RemoveFromStyle(TempStyle, fsItalic);
-      END;
-
-      { Underline }
-      IF StrStartsWith(StrLeft, '<u>', True, True) THEN BEGIN
-        RichTextFound := True;
-        AddToStyle(TempStyle, fsUnderLine);
-      END;
-      IF StrStartsWith(StrLeft, '</u>', True, True) THEN BEGIN
-        RichTextFound := True;
-        RemoveFromStyle(TempStyle, fsUnderLine);
-      END;
-
-      { Colour [Note: the background colour can only be set by changing the colour of the RichEdit control] }
-      IF (StrStartsWith(StrLeft, '</color>', True, True)) OR (StrStartsWith(StrLeft, '</colour>', True, True)) THEN BEGIN
-        RichTextFound := True;
-        RichEdit.SelAttributes.Color := RichEdit.Font.Color;
-      END;
-      IF (StrStartsWith(StrLeft, '<color=', True, True)) OR (StrStartsWith(StrLeft, '<colour=', True, True)) THEN BEGIN
-        RichTextFound := True;
-        TempStr := FromLeftUntilStr(StrLeft, '>', False, True);
-        TRY
-          RichEdit.SelAttributes.Color := StrToColour(TempStr);
-        EXCEPT
-          RichEdit.SelAttributes.Color := RichEdit.Font.Color;
-        END; {TRY}
-        Delete(StrLeft, 1, 1);
-      END;
-
-      IF RichTextFound THEN
-        RichTextFound := False
-      ELSE
-        Delete(StrLeft, 1, 1);
-    END ELSE BEGIN
-      RichEdit.SelAttributes.Style := TempStyle;
-      RichEdit.SelText := FromLeftUntilStr(StrLeft, '<', True, True);
-    END;
-
+  TRY
+    RichTextFound := False; { need to use this to allow lines with single < (not yet implemented) ***** }
+    IF Pos('{R}', StrToAdd) > 0 THEN
+      StrToAdd := Copy(StrToAdd, 4);
+    TempStyle := RichEdit.Font.Style;
+    StrLeft := StrToAdd;
     RichEdit.SelStart := Length(RichEdit.Text);
-  END;
-  RichEdit.SelText := #13#10;
+    WHILE StrLeft <> '' DO BEGIN
+      IF StrStartsWith(StrLeft, '<', True, False) THEN BEGIN
+
+        { Bold }
+        IF StrStartsWith(StrLeft, '<b>', True, True) THEN BEGIN
+          RichTextFound := True;
+          AddToStyle(TempStyle, fsBold);
+        END;
+        IF StrStartsWith(StrLeft, '</b>', True, True) THEN BEGIN
+          RichTextFound := True;
+          RemoveFromStyle(TempStyle, fsBold);
+        END;
+
+        { Italics }
+        IF StrStartsWith(StrLeft, '<i>', True, True) THEN BEGIN
+          RichTextFound := True;
+          AddToStyle(TempStyle, fsItalic);
+        END;
+        IF StrStartsWith(StrLeft, '</i>', True, True) THEN BEGIN
+          RichTextFound := True;
+          RemoveFromStyle(TempStyle, fsItalic);
+        END;
+
+        { Underline }
+        IF StrStartsWith(StrLeft, '<u>', True, True) THEN BEGIN
+          RichTextFound := True;
+          AddToStyle(TempStyle, fsUnderLine);
+        END;
+        IF StrStartsWith(StrLeft, '</u>', True, True) THEN BEGIN
+          RichTextFound := True;
+          RemoveFromStyle(TempStyle, fsUnderLine);
+        END;
+
+        { Colour [Note: the background colour can only be set by changing the colour of the RichEdit control] }
+        IF (StrStartsWith(StrLeft, '</color>', True, True)) OR (StrStartsWith(StrLeft, '</colour>', True, True)) THEN BEGIN
+          RichTextFound := True;
+          RichEdit.SelAttributes.Color := RichEdit.Font.Color;
+        END;
+        IF (StrStartsWith(StrLeft, '<color=', True, True)) OR (StrStartsWith(StrLeft, '<colour=', True, True)) THEN BEGIN
+          RichTextFound := True;
+          TempStr := FromLeftUntilStr(StrLeft, '>', False, True);
+          TRY
+            RichEdit.SelAttributes.Color := StrToColour(TempStr);
+          EXCEPT
+            RichEdit.SelAttributes.Color := RichEdit.Font.Color;
+          END; {TRY}
+          Delete(StrLeft, 1, 1);
+        END;
+
+        IF RichTextFound THEN
+          RichTextFound := False
+        ELSE
+          Delete(StrLeft, 1, 1);
+      END ELSE BEGIN
+        RichEdit.SelAttributes.Style := TempStyle;
+        RichEdit.SelText := FromLeftUntilStr(StrLeft, '<', True, True);
+      END;
+
+      RichEdit.SelStart := Length(RichEdit.Text);
+    END;
+    RichEdit.SelText := #13#10;
+  EXCEPT {TRY}
+    ON E : Exception DO
+      { Cannot call Log here as we are already in it }
+      Debug('EG AddRichLine: ' + E.ClassName + ' error raised, with message: '+ E.Message);
+  END; {TRY}
 END; { AddRichLine }
 
 PROCEDURE AddStoredRichEditLoggingTextToLoggingWindow;
@@ -7357,7 +7363,7 @@ BEGIN { ShutDownProgram }
     IF LenzConnection = USBConnection THEN
       StopLANUSBServer;
 
-    Log('A Shut down initiated in ' + UnitRef + ' unit, ' + SubroutineStr + ' subroutine' + ' is now complete (' + DescribeActualDateAndTime + ')');
+    Log('A Shut down initiated in ' + UnitRef + ' unit, ' + SubroutineStr + ' subroutine, is now complete (' + DescribeActualDateAndTime + ')');
     IF InLogsCurrentlyKeptMode THEN BEGIN
       CloseFile(TestLogFile);
       CloseFile(LargeLogFile);
@@ -7369,6 +7375,9 @@ BEGIN { ShutDownProgram }
         CloseFile(DiagramsLogFile);
         CloseFile(WorkingTimetableLogFile);
       END;
+
+      { Now reset the mode so that we don't try to write to log files after they've been closed }
+      SetMode(LogsCurrentlyKept, False);
     END;
 
     IF RestoreLogsToPreviousState THEN BEGIN
