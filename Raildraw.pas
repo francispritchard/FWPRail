@@ -4001,6 +4001,12 @@ BEGIN
       RestoreForegroundColourPopupType:
         RestoreColour(ForegroundColour, DefaultForegroundColour);
 
+      ChangeBufferStopColourPopupType:
+        ChangeColour(BufferStopColour);
+
+      RestoreBufferStopColourPopupType:
+        RestoreColour(BufferStopColour, DefaultBufferStopColour);
+
       ChangeBufferStopNumberColourPopupType:
         ChangeColour(BufferStopNumberColour);
 
@@ -4599,8 +4605,8 @@ BEGIN
     SubMenuItems := AddSubMenuItem(MainMenuItemExtended, 'Buffer Stop Colours', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
 
       SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Buffer Stop Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change Buffer Stop Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore Buffer Stop Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change Buffer Stop Colour', ChangeBufferStopColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Restore Buffer Stop Colour', RestoreBufferStopColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
 
       SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Buffer Stop Number Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
         AddSubMenuItem(SubSubMenuItems, 'Change Buffer Stop Number Colour', ChangeBufferStopNumberColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
@@ -4611,7 +4617,7 @@ BEGIN
         AddSubMenuItem(SubSubMenuItems, 'Change Buffer Stop Red', ChangeBufferStopRedPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
         AddSubMenuItem(SubSubMenuItems, 'Restore Buffer Stop Red', RestoreBufferStopRedPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
 
-      SubMenuItems := AddSubMenuItem(MainMenuItemExtended, 'Line & Track Circuit Colours', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+      SubMenuItems := AddSubMenuItem(MainMenuItemExtended, 'Line and Track Circuit Colours', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
         AddSubMenuItem(SubMenuItems, 'N.B. Default Line Colour = TCUnoccupiedColour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
         AddSubMenuItem(SubMenuItems, '-', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
 
@@ -4628,23 +4634,23 @@ BEGIN
         AddSubMenuItem(SubSubMenuItems, 'Change Loco Stalled Colour', ChangeLocoStalledColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
         AddSubMenuItem(SubSubMenuItems, 'Restore Loco Stalled Colour', RestoreLocoStalledColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
 
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'TC Feedback Occupation Colour Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change TC Feedback Occupation Colour Colour', ChangeTCFeedbackOccupationColourPopupType, Enabled, Visible, NOT Checked,
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'TC Feedback Occupation Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change TC Feedback Occupation Colour', ChangeTCFeedbackOccupationColourPopupType, Enabled, Visible, NOT Checked,
                        GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore TC Feedback Occupation Colour Colour', RestoreTCFeedbackOccupationColourPopupType, Enabled, Visible, NOT Checked,
+        AddSubMenuItem(SubSubMenuItems, 'Restore TC Feedback Occupation Colour', RestoreTCFeedbackOccupationColourPopupType, Enabled, Visible, NOT Checked,
                        GeneralPopupItemClick);
 
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'TC Feedback Occupation But Out Of Use Colour Colour', NoClickPopupType, Enabled, Visible, NOT Checked,
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'TC Feedback Occupation But Out Of Use Colour', NoClickPopupType, Enabled, Visible, NOT Checked,
                                         GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change TC Feedback Occupation But Out Of Use Colour Colour', ChangeTCFeedbackOccupationButOutOfUseColourPopupType, Enabled,
+        AddSubMenuItem(SubSubMenuItems, 'Change TC Feedback Occupation But Out Of Use Colour', ChangeTCFeedbackOccupationButOutOfUseColourPopupType, Enabled,
                        Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore TC Feedback Occupation But Out Of Use Colour Colour', RestoreTCFeedbackOccupationButOutOfUseColourPopupType, Enabled,
+        AddSubMenuItem(SubSubMenuItems, 'Restore TC Feedback Occupation But Out Of Use Colour', RestoreTCFeedbackOccupationButOutOfUseColourPopupType, Enabled,
                        Visible, NOT Checked, GeneralPopupItemClick);
 
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'TC Feedback Data In Use Colour Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change TC Feedback Data In Use Colour Colour', ChangeTCFeedbackDataInUseColourPopupType, Enabled, Visible, NOT Checked,
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'TC Feedback Data In Use Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubSubMenuItems, 'Change TC Feedback Data In Use Colour', ChangeTCFeedbackDataInUseColourPopupType, Enabled, Visible, NOT Checked,
                        GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore TC Feedback Data In Use Colour Colour', RestoreTCFeedbackDataInUseColourPopupType, Enabled, Visible, NOT Checked,
+        AddSubMenuItem(SubSubMenuItems, 'Restore TC Feedback Data In Use Colour', RestoreTCFeedbackDataInUseColourPopupType, Enabled, Visible, NOT Checked,
                        GeneralPopupItemClick);
 
       SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'TC Data Out Of Use Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
@@ -5048,17 +5054,18 @@ BEGIN
 
       { ...and now the individual items }
       IF NOT Signal_OutOfUse THEN
-        AddMainMenuItem(SignalPopupMenu, 'Set Signal ' + IntToStr(SignalPopupNum) + ' Out Of Use', SignalOutOfUsePopupType, Enabled, Visible, NOT Checked, SignalPopupItemClick)
+        AddMainMenuItem(SignalPopupMenu, 'Set Signal ' + IntToStr(SignalPopupNum) + ' Out Of Use', SignalOutOfUsePopupType, Enabled, Visible, NOT Checked,
+                        SignalPopupItemClick)
       ELSE
         AddMainMenuItem(SignalPopupMenu, 'Set Signal ' + IntToStr(SignalPopupNum) + ' Back In Use', SignalOutOfUsePopupType, Enabled, Visible, NOT Checked,
-                    SignalPopupItemClick);
+                        SignalPopupItemClick);
 
-      IF NOT Signal_UserMustDrive THEN
-        AddMainMenuItem(SignalPopupMenu, 'Set Signal ' + IntToStr(SignalPopupNum) + ' Set "User Must Drive From Here"', SignalUserMustDriveFromPopupType, Enabled, Visible,
-                    NOT Checked, SignalPopupItemClick)
+      IF NOT Signal_FromWhichUserMustDrive THEN
+        AddMainMenuItem(SignalPopupMenu, 'Set Signal ' + IntToStr(SignalPopupNum) + ' "User Must Drive From Here"', SignalUserMustDriveFromPopupType, Enabled, Visible,
+                        NOT Checked, SignalPopupItemClick)
       ELSE
-        AddMainMenuItem(SignalPopupMenu, 'Set Signal ' + IntToStr(SignalPopupNum) + ' Cancel "User Must Drive From Here"', SignalUserMustDriveFromPopupType, Enabled, Visible,
-                    NOT Checked, SignalPopupItemClick);
+        AddMainMenuItem(SignalPopupMenu, 'Cancel Signal ' + IntToStr(SignalPopupNum) + ' "User Must Drive From Here"', SignalUserMustDriveFromPopupType, Enabled, Visible,
+                        NOT Checked, SignalPopupItemClick);
 
       AddMainMenuItem(SignalPopupMenu, '-', NoClickPopupType, Enabled, Visible, NOT Checked, NIL);
       AddMainMenuItem(SignalPopupMenu, 'Edit Signal ' + IntToStr(SignalPopupNum) + ' Details', SignalEditPopupType, Enabled, Visible, NOT Checked, SignalPopupItemClick);
@@ -5075,12 +5082,14 @@ BEGIN
 
       { ...and now the individual items }
       IF NOT Signal_OutOfUse THEN
-        AddMainMenuItem(SignalPopupMenu, 'Set Signal ' + IntToStr(SignalPopupNum) + ' Out Of Use', SignalOutOfUsePopupType, Enabled, Visible, NOT Checked, SignalPopupItemClick)
+        AddMainMenuItem(SignalPopupMenu, 'Set Signal ' + IntToStr(SignalPopupNum) + ' Out Of Use', SignalOutOfUsePopupType, Enabled, Visible, NOT Checked,
+                        SignalPopupItemClick)
       ELSE
-        AddMainMenuItem(SignalPopupMenu, 'Set Signal ' + IntToStr(SignalPopupNum) + ' Back In Use', SignalOutOfUsePopupType, Enabled, Visible, NOT Checked, SignalPopupItemClick);
+        AddMainMenuItem(SignalPopupMenu, 'Set Signal ' + IntToStr(SignalPopupNum) + ' Back In Use', SignalOutOfUsePopupType, Enabled, Visible, NOT Checked,
+                        SignalPopupItemClick);
 
       AddMainMenuItem(SignalPopupMenu, 'Change Signal ' + IntToStr(SignalPopupNum) + ' Direction', SignalChangeDirectionPopupType, Enabled, Visible, NOT Checked,
-                  SignalPopupItemClick);
+                      SignalPopupItemClick);
 
       IF Signal_PreviousLineX <> 0 THEN
         { the signal has been moved }
