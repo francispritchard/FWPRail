@@ -3942,7 +3942,7 @@ PROCEDURE TFWPRailWindow.GeneralPopupItemClick(Sender: TObject);
 
 BEGIN
   { Wait before popping up to avoid the same click that activates the popup menu also providing the menu item click }
-  IF PopupTimerCount < 2 THEN BEGIN
+  IF PopupTimerCount < 1 THEN BEGIN
     Debug('!*Delay required before selecting menu entry');
     PopupTimer.Enabled := False;
     Exit;
@@ -4999,7 +4999,7 @@ CONST
 
 BEGIN
   { Wait before popping up to avoid the same click that activates the popup menu also providing the menu item click }
-  IF PopupTimerCount < 2 THEN BEGIN
+  IF PopupTimerCount < 1 THEN BEGIN
     Debug('!*Delay required before selecting menu entry');
     PopupTimer.Enabled := False;
     Exit;
@@ -5099,7 +5099,7 @@ END; { SignalPopupMenuOnPopup }
 PROCEDURE TFWPRailWindow.PointPopupItemClick(Sender: TObject);
 BEGIN
   { Wait before popping up to avoid the same click that activates the popup menu also providing the menu item click }
-  IF PopupTimerCount < 2 THEN BEGIN
+  IF PopupTimerCount < 1 THEN BEGIN
     Debug('!*Delay required before selecting menu entry');
     PopupTimer.Enabled := False;
     Exit;
@@ -5197,7 +5197,7 @@ END; { PointPopupMenuOnPopup }
 PROCEDURE TFWPRailWindow.BufferStopPopupItemClick(Sender: TObject);
 BEGIN
   { Wait before popping up to avoid the same click that activates the popup menu also providing the menu item click }
-  IF PopupTimerCount < 2 THEN BEGIN
+  IF PopupTimerCount < 1 THEN BEGIN
     Debug('!*Delay required before selecting menu entry');
     PopupTimer.Enabled := False;
     Exit;
@@ -5582,7 +5582,7 @@ VAR
 
 BEGIN
   { Wait before popping up to avoid the same click that activates the popup menu also providing the menu item click }
-  IF PopupTimerCount < 2 THEN BEGIN
+  IF PopupTimerCount < 1 THEN BEGIN
     Debug('!*Delay required before selecting menu entry');
     PopupTimer.Enabled := False;
     Exit;
