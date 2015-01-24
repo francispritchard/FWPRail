@@ -213,17 +213,17 @@ TYPE
                         TCOutOfUseSetByUserPenStylePopupType, TCPermanentFeedbackOccupationPenStylePopupType, TCPermanentOccupationSetByUserPenStylePopupType,
                         TCPermanentSystemOccupationPenStylePopupType, TCLocoOutOfPlacePenStylePopupType, NoPenStylePopupType);
 
- TMenuItemExtended = CLASS(TMenuItem)
- PRIVATE
-   fValue: String;
-   fMenuPopupType : MenuPopupTypes;
-   fPenStylePopupType : PenStylePopupTypes;
+  TMenuItemExtended = CLASS(TMenuItem)
+  PRIVATE
+    fValue: String;
+    fMenuPopupType : MenuPopupTypes;
+    fPenStylePopupType : PenStylePopupTypes;
 
- PUBLISHED
-   PROPERTY Value : String Read fValue Write fValue;
-   PROPERTY MenuPopupType : MenuPopupTypes Read fMenuPopupType Write fMenuPopupType;
-   PROPERTY PenStylePopupType : PenStylePopupTypes Read fPenStylePopupType Write fPenStylePopupType;
- END;
+  PUBLISHED
+    PROPERTY Value : String Read fValue Write fValue;
+    PROPERTY MenuPopupType : MenuPopupTypes Read fMenuPopupType Write fMenuPopupType;
+    PROPERTY PenStylePopupType : PenStylePopupTypes Read fPenStylePopupType Write fPenStylePopupType;
+  END;
 
 PROCEDURE CanvasTextOutAngle(X, Y : Integer; D : Word; S : String);
 { D is in tenths if a degree - i.e. 450 - 45 degrees. This is not used, but might come in useful }
