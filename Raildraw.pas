@@ -90,11 +90,6 @@ TYPE
 
     PROCEDURE WMCopyData(VAR Msg : TWMCopyData); Message WM_COPYDATA;
     { Receives data from the Watchdog program }
-
-//    { Added to handle Windows messages }
-//    PROCEDURE CM_MenuClosed(VAR Msg : TMessage); MESSAGE CM_MENU_CLOSED;
-//    PROCEDURE CM_EnterMenuLoop(VAR Msg : TMessage); MESSAGE CM_ENTER_MENU_LOOP;
-//    PROCEDURE CM_ExitMenuLoop(VAR Msg : TMessage); MESSAGE CM_EXIT_MENU_LOOP;
   PUBLIC
     { Public declarations }
     PROCEDURE WMHScroll(VAR ScrollData: TMessage); MESSAGE wm_HScroll;
@@ -442,7 +437,6 @@ VAR
   StatusBarY : Integer = 0;
   TimeRectangleDrawn : Cardinal = 0;
   TrackCircuitPopupLine : Integer;
-  TrackCircuitPopupMenuActive : Boolean = False;
   UpDownMarkersVisible : Boolean = True;
 
 PROCEDURE Log(Str : String);
@@ -3550,8 +3544,6 @@ BEGIN
       AND NOT (RailDriverWindow.Active OR RailDriverWindow.Visible)
       AND NOT (OptionsWindow.Active OR OptionsWindow.Visible)
       AND NOT (LoggingWindow.Active OR LoggingWindow.Visible)
-      AND NOT TrackCircuitPopupMenuActive { a global variable, owing to the special nature of GeneralPopup menus which means one cannot normally detect whether they are
-                                            "popped up" or not }
       THEN
         FWPRailWindow.SetFocus;
 
@@ -6296,7 +6288,7 @@ BEGIN
   IF (StatusBarX > 0) AND (StatusBarX <= FWPRailWindowStatusBar.Panels[StatusBarPanel0].Width) THEN
     GetTime.ClockWindow.Visible := True
   ELSE BEGIN
-    { Work out where panel 3 is } { why? **** }
+    { Work out where panel 3 is [not currently in use ] }
     WITH FWPRailWindowStatusBar DO BEGIN
       Panel3X := Panels[StatusBarPanel0].Width + Panels[StatusBarPanel1].Width + Panels[StatusBarPanel2].Width;
       IF (StatusBarX > 0) AND (StatusBarX >= Panel3X) THEN BEGIN
@@ -6344,23 +6336,6 @@ BEGIN
           FWPRailWindow.VertScrollBar.Position := FWPRailWindow.VertScrollBar.Position + 25;
     END;
 END; { FWPRailWindowMouseWheel }
-
-//PROCEDURE TFWPRailWindow.CM_EnterMenuLoop(var Msg : TMessage);
-//BEGIN
-//  TrackCircuitPopupMenuActive := True;
-//  Debug('PopupMenu entered');
-//END; { CM_EnterMenuLoop }
-//
-//PROCEDURE TFWPRailWindow.CM_ExitMenuLoop(var Msg : TMessage);
-//BEGIN
-//  TrackCircuitPopupMenuActive := False;
-//  Debug('PopMenu exited');
-//END; { CM_ExitMenuLoop }
-//
-//PROCEDURE TFWPRailWindow.CM_MenuClosed(var Msg : TMessage);
-//BEGIN
-//  Debug('PopMenu closed');
-//END; { CM_MenuClosed }
 
 PROCEDURE CanvasTextOutAngle(X, Y : Integer; D : Word; S : String);
 { D is in tenths if a degree - i.e. 450 - 45 degrees. This is not used, but might come in useful }
