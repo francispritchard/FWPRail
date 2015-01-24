@@ -44,7 +44,6 @@ TYPE
     PROCEDURE BufferStopMenuOnPopup(Sender: TObject);
     PROCEDURE FlashTimerTick(Sender: TObject);
     PROCEDURE FWPRailApplicationEventsShortCut(VAR Msg: TWMKey; VAR Handled: Boolean);
-    PROCEDURE FWPRailWindowCreate(Sender: TObject);
     PROCEDURE FWPRailWindowClose(Sender: TObject; VAR Action: TCloseAction);
     PROCEDURE FWPRailWindowDestroy(Sender: TObject);
     PROCEDURE FWPRailWindowDragDrop(Sender, Source: TObject; X, Y: Integer);
@@ -86,8 +85,8 @@ TYPE
 //    PROCEDURE ApplicationMessage(VAR Msg: TMsg; VAR Handled: Boolean);
 //    { Intercept messages - only way of getting at the tab key! Now replaced by ShortCut above Sept 2009 }
 
-    PROCEDURE ApplicationRestore(Sender: TObject);
-    { First of three routines which allow the program to be minimised by pressing the "minimize" button and then maximised from the taskbar }
+    PROCEDURE wmSize( var msg: TWMSize ); message WM_SIZE;
+    { Called when a window has been resized }
 
     PROCEDURE WMCopyData(VAR Msg : TWMCopyData); Message WM_COPYDATA;
     { Receives data from the Watchdog program }
@@ -102,8 +101,6 @@ TYPE
     { Added to allow interception of scroll bar events }
     PROCEDURE WMVScroll(VAR ScrollData: TMessage); MESSAGE wm_VScroll;
     { Added to allow interception of scroll bar events }
-    PROCEDURE WMSysCommand(VAR Msg: TWMSysCommand); MESSAGE WM_SYSCOMMAND;
-    { Third of three routines which allow the program to be minimised by pressing the "minimize" button and then maximised from the taskbar }
   END;
 
   MenuPopupTypes = (NoClickPopupType,
@@ -3834,41 +3831,34 @@ BEGIN
   END; {TRY}
 END; { FlashTimerTick }
 
-PROCEDURE TFWPRailWindow.ApplicationRestore(Sender: TObject);
-{ First of three routines which allow the program to be minimised by pressing the "minimize" button and then maximised from the taskbar }
+PROCEDURE TFWPRailWindow.wmSize(VAR Msg: TWMSize);
+{ The window will get a notification message, WM_SIZE, when it is minimized. It will also get this message on other occasions, you have to check the message parameters to
+  figure out why you got it. This is an after-the-fact notification, so you cannot use to prevent the window from being minimized. You can restore it and minimize the
+  application, however. (https://groups.google.com/forum/#!msg/borland.public.delphi.nativeapi/xnJJNfhrPrc/Exlqfmmpx5AJ)
+}
 BEGIN
- IF FWPRailWindow <> NIL THEN
-   FWPRailWindow.WindowState := wsNormal;
- IF DebugWindow <> NIL THEN
-   DebugWindow.WindowState := wsNormal;
- IF DiagramsWindow <> NIL THEN
-   DiagramsWindow.WindowState := wsNormal;
-END; { ApplicationRestore }
+  Inherited;
 
-PROCEDURE TFWPRailWindow.FWPRailWindowCreate(Sender: TObject);
-{ Second of three routines which allow the program to be minimised by pressing the "minimize" button and then maximised from the taskbar }
-BEGIN
-  Application.OnRestore := ApplicationRestore;
-END; { FWPRailWindowCreate }
-
-PROCEDURE TFWPRailWindow.WMSysCommand;
-{ Third of three routines which allow the program to be minimised by pressing the "minimize" button and then maximised from the taskbar }
-BEGIN
-  CASE Msg.CmdType OF
-    SC_MINIMIZE:
+  CASE Msg.SizeType OF
+    SIZE_MAXHIDE:
+      Log('A Main Window Msg.SizeType=SIZE_MAXHIDE');
+    SIZE_MINIMIZED:
       BEGIN
-        IF FWPRailWindow <> NIL THEN
-          FWPRailWindow.WindowState := wsMinimized;
-        IF DebugWindow <> NIL THEN
-          DebugWindow.WindowState := wsMinimized;
-        IF DiagramsWindow <> NIL THEN
-           DiagramsWindow.WindowState := wsMinimized;
+        Log('A Main Window Msg.SizeType=SIZE_MINIMIZED');
+        WindowState := wsNormal;
+        IF NOT IsIconic(Application.Handle) THEN
+          Application.Minimize;
       END;
+    SIZE_MAXSHOW:
+      Log('A Main Window Msg.SizeType=SIZE_MAXSHOW');
+    SIZE_MAXIMIZED:
+      Log('A Main Window Msg.SizeType=SIZE_MAXIMIZED');
+    SIZE_RESTORED:
+      Log('A Main Window Msg.SizeType=SIZE_RESTORED');
+  ELSE {CASE}
+    Log('A Main Window Msg.SizeType is of unknown size type');
   END; {CASE}
-
-  { This is here as we want normal minimising/maximising to continue too }
-  DefaultHandler(Msg);
-END; { WMSysCommand }
+END; { wmSize }
 
 PROCEDURE TFWPRailWindow.FWPRailWindowDestroy(Sender: TObject);
 BEGIN
