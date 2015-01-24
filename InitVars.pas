@@ -680,6 +680,7 @@ TYPE
     Signal_FailedToResetFlag : Boolean;
     Signal_FailMsgWritten : Boolean;
     Signal_FindNextSignalBufferStopMsgWritten : Boolean;
+    Signal_FromWhichUserMustDrive : Boolean;
     Signal_HiddenStationSignalAspect : AspectType; { used to force stopping at stations where signal is potentially off }
     Signal_Indicator : IndicatorType;
     Signal_IndicatorDecoderNum : Integer;
@@ -738,7 +739,6 @@ TYPE
     Signal_TRSReleased : Boolean;
     Signal_TRSReleasedMsgWritten : Boolean;
     Signal_Type : TypeOfSignal;
-    Signal_UserMustDrive : Boolean;
   END;
 
   WriteReadType = (ReadOnly, WriteOnly, WriteThenRead);
@@ -752,6 +752,7 @@ CONST
   Signal_AutomaticFieldName : String = 'Signal Automatic'; { not in use }
   Signal_DirectionFieldName : String = 'Signal Direction';
   Signal_DecoderNumFieldName : String = 'Signal Decoder Num';
+  Signal_FromWhichUserMustDriveFieldName : String = 'Signal From Which User Must Drive';
   Signal_IndicatorDecoderFunctionNumFieldName : String = 'Signal Indicator Decoder Function Num';
   Signal_IndicatorDecoderNumFieldName : String = 'Signal Indicator Decoder Num';
   Signal_IndicatorSpeedRestrictionFieldName : String = 'Signal Indicator Speed Restriction';
@@ -776,7 +777,6 @@ CONST
   Signal_UpDownFieldName : String = 'Signal Direction';
   Signal_UpperLeftIndicatorTargetFieldName : String = 'Signal Upper Left Indicator Target';
   Signal_UpperRightIndicatorTargetFieldName : String = 'Signal Upper Right Indicator Target';
-  Signal_UserMustDriveFieldName : String = 'Signal User Must Drive';
   Signal_VerticalSpacingFieldName : String = 'Signal Vertical Spacing';
 
 TYPE
@@ -4690,6 +4690,7 @@ BEGIN
     Signal_FailedToResetFlag := False;
     Signal_FailMsgWritten := False;
     Signal_FindNextSignalBufferStopMsgWritten := False;
+    Signal_FromWhichUserMustDrive := False;
     Signal_HiddenStationSignalAspect := NoAspect;
     Signal_Indicator := NoIndicator;
     Signal_IndicatorDecoderFunctionNum := 0;
@@ -4744,7 +4745,6 @@ BEGIN
     Signal_TRSReleased := False;
     Signal_TRSReleasedMsgWritten := False;
     Signal_Type := TwoAspect;
-    Signal_UserMustDrive := False;
   END; {WITH}
 END; { InitialiseSignalVariables }
 
@@ -4974,7 +4974,7 @@ BEGIN
                                                                                  SignalsADOTable.FieldByName(Signal_SemaphoreDistantHomesArrayFieldName).AsString,
                                                                                  ErrorMsg);
           IF ErrorMsg = '' THEN
-            Signal_UserMustDrive := SignalsADOTable.FieldByName(Signal_UserMustDriveFieldName).AsBoolean;
+            Signal_FromWhichUserMustDrive := SignalsADOTable.FieldByName(Signal_FromWhichUserMustDriveFieldName).AsBoolean;
 
           IF Signal_PossibleRouteHold AND Signal_PossibleStationStartRouteHold THEN
             { both shouldn't be ticked }
@@ -5463,10 +5463,10 @@ BEGIN
               SignalsADOTable.FieldByName(Signal_TypeFieldName).AsString := SignalTypeToStr(Signal_Type, ShortStringType);
               SignalsADOTable.Post;
 
-              Log('S Recording in signal database that S=' + IntToStr(S) + ' ' + Signal_UserMustDriveFieldName + ' is '''
-                     + IfThen(Signal_UserMustDrive, 'on', 'off') + '''');
+              Log('S Recording in signal database that S=' + IntToStr(S) + ' ' + Signal_FromWhichUserMustDriveFieldName + ' is '''
+                     + IfThen(Signal_FromWhichUserMustDrive, 'on', 'off') + '''');
               SignalsADOTable.Edit;
-              SignalsADOTable.FieldByName(Signal_UserMustDriveFieldName).AsBoolean := Signal_UserMustDrive;
+              SignalsADOTable.FieldByName(Signal_FromWhichUserMustDriveFieldName).AsBoolean := Signal_FromWhichUserMustDrive;
               SignalsADOTable.Post;
             END; {WITH}
           END;

@@ -209,9 +209,10 @@ TYPE
                     LineTCSystemOccupationPopupType, LineTCUnoccupiedPopupType, LineAllocateExistingTrackCircuitPopupType,
                     LineAllocateNewTrackCircuitPopupType, LineRemoveTrackCircuitPopupType);
 
-  PenStylePopupTypes = (SidingPenStylePopupType, FiddleyardLinePenStylePopupType, ProjectedLinePenStylePopupType, TCOutOfUseAsNoFeedbackReceivedPenStylePopupType,
-                        TCOutOfUseSetByUserPenStylePopupType, TCPermanentFeedbackOccupationPenStylePopupType, TCPermanentOccupationSetByUserPenStylePopupType,
-                        TCPermanentSystemOccupationPenStylePopupType, TCLocoOutOfPlacePenStylePopupType, NoPenStylePopupType);
+  PenStylePopupTypes = (SidingPenStylePopupType, FiddleyardLinePenStylePopupType, ProjectedLinePenStylePopupType, SignalsFromWhichUserMustDriveSignalPostPenStylePopupType,
+                        TCOutOfUseAsNoFeedbackReceivedPenStylePopupType, TCOutOfUseSetByUserPenStylePopupType, TCPermanentFeedbackOccupationPenStylePopupType,
+                        TCPermanentOccupationSetByUserPenStylePopupType, TCPermanentSystemOccupationPenStylePopupType, TCLocoOutOfPlacePenStylePopupType,
+                        NoPenStylePopupType);
 
   TMenuItemExtended = CLASS(TMenuItem)
   PRIVATE
@@ -1539,6 +1540,7 @@ BEGIN
   TRY
     IF S <> UnknownSignal THEN BEGIN
       InitialiseScreenDrawingVariables;
+
       WITH RailWindowBitmap.Canvas DO BEGIN
         WITH Signals[S] DO BEGIN
           IF Signal_Direction = Up THEN BEGIN
@@ -1550,10 +1552,13 @@ BEGIN
                       Signal_LineX + SignalRadiusScaled + MulDiv(FWPRailWindow.ClientWidth, 10, ZoomScalefactor) - ScrollBarXAdjustment,
                       Signal_LineWithVerticalSpacingY + SignalRadiusScaled - ScrollBarYAdjustment);
 
-            IF ShowSignalsFromWhichUserMustDrive AND Signal_UserMustDrive THEN
+            IF ShowSignalsFromWhichUserMustDrive AND Signal_FromWhichUserMustDrive THEN
               Pen.Color := SignalsFromWhichUserMustDriveSignalPostColour
             ELSE
               Pen.Color := Signals[S].Signal_PostColour;
+
+            IF Signal_FromWhichUserMustDrive THEN
+              Pen.Style := SignalsFromWhichUserMustDriveSignalPostPenStyle;
 
             { Pen.Width is the width of the line outlining the signal }
             IF (Signal_Type = SemaphoreHome) OR (Signal_Type = SemaphoreDistant) THEN
@@ -1576,10 +1581,13 @@ BEGIN
                         Signal_LineX - SignalRadiusScaled - ScrollBarXAdjustment,
                         Signal_LineWithVerticalSpacingY + SignalVerticalSpacingScaled - RailWindowBitmapCanvasPenWidth - ScrollBarYAdjustment);
 
-              IF ShowSignalsFromWhichUserMustDrive AND Signal_UserMustDrive THEN
+              IF ShowSignalsFromWhichUserMustDrive AND Signal_FromWhichUserMustDrive THEN
                 Pen.Color := SignalsFromWhichUserMustDriveSignalPostColour
               ELSE
                 Pen.Color := Signals[S].Signal_PostColour;
+
+              IF Signal_FromWhichUserMustDrive THEN
+                Pen.Style := SignalsFromWhichUserMustDriveSignalPostPenStyle;
 
               { Pen.Width is the width of the line outlining the signal }
               IF (Signal_Type = SemaphoreHome) OR (Signal_Type = SemaphoreDistant) THEN
@@ -1594,6 +1602,9 @@ BEGIN
                      Signal_LineWithVerticalSpacingY + SignalVerticalSpacingScaled - (RailWindowBitmapCanvasPenWidth DIV 2) - ScrollBarYAdjustment);
             END;
         END; {WITH}
+
+        { and reset any screen drawing variables we've changed }
+        InitialiseScreenDrawingVariables;
       END; {WITH}
     END;
   EXCEPT
@@ -4883,6 +4894,15 @@ BEGIN
         AddPenStylesSubMenu(SubSubMenuItems, SidingPenStylePopupType);
       SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Restore Siding Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
         AddPenStylesSubMenu(SubSubMenuItems, SidingPenStylePopupType);
+
+    SubMenuItems := AddSubMenuItem(MainMenuItemExtended, 'Signals From Which User Must Drive Signal Post Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
+                                   GeneralPopupItemClick);
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Change Signals From Which User Must Drive Signal Post Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
+                                        GeneralPopupItemClick);
+        AddPenStylesSubMenu(SubSubMenuItems, SignalsFromWhichUserMustDriveSignalPostPenStylePopupType);
+      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Restore Signals From Which User Must Drive Signal Post Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
+                                        GeneralPopupItemClick);
+        AddPenStylesSubMenu(SubSubMenuItems, SignalsFromWhichUserMustDriveSignalPostPenStylePopupType);
 
     SubMenuItems := AddSubMenuItem(MainMenuItemExtended, 'Fiddleyard-Line Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
       SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Change Fiddleyard-Line Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);

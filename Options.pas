@@ -628,6 +628,9 @@ VAR
   DefaultSignalsFromWhichUserMustDriveSignalPostColour : TColour = clFWPOrange;
   SignalsFromWhichUserMustDriveSignalPostColour : TColour = clFWPOrange;
 
+  DefaultSignalsFromWhichUserMustDriveSignalPostPenStyle : TPenStyle = psDot;
+  SignalsFromWhichUserMustDriveSignalPostPenStyle : TPenStyle = psDot;
+
   DefaultSignalVerticalSpacing : Integer = 150;
   SignalVerticalSpacing : Integer;
   SignalVerticalSpacingScaled : Integer;
@@ -935,6 +938,7 @@ CONST
     FiddleyardLinePenStyleStr = 'Fiddleyard Line Pen Style';
     ProjectedLinePenStyleStr = 'Projected Line Pen Style';
     SidingPenStyleStr = 'Siding Pen Style';
+    SignalsFromWhichUserMustDriveSignalPostPenStyleStr = 'Signals From Which User Must Drive Signal Post Pen Style';
     TCOutOfUseAsNoFeedbackReceivedPenStyleStr = 'TC Out Of Use As No Feedback Received Pen Style';
     TCOutOfUseSetByUserPenStyleStr = 'TC Out Of Use Set By User Pen Style';
     TCPermanentFeedbackOccupationPenStyleStr = 'TC Permanent Feedback Occupation Pen Style';
@@ -1282,6 +1286,7 @@ BEGIN
   FiddleyardLinePenStyle := DefaultFiddleyardLinePenStyle;
   ProjectedLinePenStyle := DefaultProjectedLinePenStyle;
   SidingPenStyle := DefaultSidingPenStyle;
+  SignalsFromWhichUserMustDriveSignalPostPenStyle := DefaultSignalsFromWhichUserMustDriveSignalPostPenStyle;
   TCLocoOutOfPlaceOccupationPenStyle := DefaultTCLocoOutOfPlaceOccupationPenStyle;
   TCOutOfUseAsNoFeedbackReceivedPenStyle := DefaultTCOutOfUseAsNoFeedbackReceivedPenStyle;
   TCOutOfUseSetByUserPenStyle := DefaultTCOutOfUseSetByUserPenStyle;
@@ -1439,18 +1444,18 @@ BEGIN
     TCFeedbackOccupationButOutOfUseColour := StrToColour(FWPReadString(ColoursSectionStr, TCFeedbackOccupationButOutOfUseColourStr,
                                                                                                               ColourToStr(DefaultTCFeedbackOccupationButOutOfUseColour)));
     TCLocoOutOfPlaceOccupationColour := StrToColour(FWPReadString(ColoursSectionStr, TCLocoOutOfPlaceOccupationColourStr,
-                                                                                                                   ColourToStr(DefaultTCLocoOutOfPlaceOccupationColour)));
+                                                                                                                     ColourToStr(DefaultTCLocoOutOfPlaceOccupationColour)));
     TCMissingOccupationColour := StrToColour(FWPReadString(ColoursSectionStr, TCMissingOccupationColourStr, ColourToStr(DefaultTCMissingOccupationColour)));
     TCOutOfUseSetByUserColour := StrToColour(FWPReadString(ColoursSectionStr, TCOutOfUseSetByUserColourStr, ColourToStr(DefaultTCOutOfUseSetByUserColour)));
     TCOutOfUseAsNoFeedbackReceivedColour := StrToColour(FWPReadString(ColoursSectionStr, TCOutOfUseAsNoFeedbackReceivedColourStr,
-                                                                                                               ColourToStr(DefaultTCOutOfUseAsNoFeedbackReceivedColour)));
+                                                                                                                 ColourToStr(DefaultTCOutOfUseAsNoFeedbackReceivedColour)));
 
     TCPermanentFeedbackOccupationColour := StrToColour(FWPReadString(ColoursSectionStr, TCPermanentFeedbackOccupationColourStr,
-                                                                                                                ColourToStr(DefaultTCPermanentFeedbackOccupationColour)));
+                                                                                                                  ColourToStr(DefaultTCPermanentFeedbackOccupationColour)));
     TCPermanentOccupationSetByUserColour := StrToColour(FWPReadString(ColoursSectionStr, TCPermanentOccupationSetByUserColourStr,
-                                                                                                               ColourToStr(DefaultTCPermanentOccupationSetByUserColour)));
+                                                                                                                 ColourToStr(DefaultTCPermanentOccupationSetByUserColour)));
     TCPermanentSystemOccupationColour := StrToColour(FWPReadString(ColoursSectionStr, TCPermanentSystemOccupationColourStr,
-                                                                                                                  ColourToStr(DefaultTCPermanentSystemOccupationColour)));
+                                                                                                                    ColourToStr(DefaultTCPermanentSystemOccupationColour)));
     TCSpeedRestrictionColour := StrToColour(FWPReadString(ColoursSectionStr, TCSpeedRestrictionColourStr, ColourToStr(DefaultTCSpeedRestrictionColour)));
     TCSystemOccupationColour := StrToColour(FWPReadString(ColoursSectionStr, TCSystemOccupationColourStr, ColourToStr(DefaultTCSystemOccupationColour)));
     TCUnoccupiedColour := StrToColour(FWPReadString(ColoursSectionStr, TCUnoccupiedColourStr, ColourToStr(DefaultTCUnoccupiedColour)));
@@ -1461,29 +1466,32 @@ BEGIN
     BackgroundColour := StrToColour(FWPReadString(ColoursSectionStr, BackgroundColourStr, ColourToStr(DefaultBackgroundColour)));
     ForegroundColour := StrToColour(FWPReadString(ColoursSectionStr, ForegroundColourStr, ColourToStr(DefaultForegroundColour)));
     DiagramsWindowGridBackgroundColour := StrToColour(FWPReadString(ColoursSectionStr, DiagramsWindowGridBackgroundColourStr,
-                                                                                                                 ColourToStr(DefaultDiagramsWindowGridBackgroundColour)));
+                                                                                                                   ColourToStr(DefaultDiagramsWindowGridBackgroundColour)));
     LinesWithoutTrackCircuitsColour := StrToColour(FWPReadString(ColoursSectionStr, LinesWithoutTrackCircuitsColourStr,
-                                                                                                                    ColourToStr(DefaultLinesWithoutTrackCircuitsColour)));
+                                                                                                                      ColourToStr(DefaultLinesWithoutTrackCircuitsColour)));
     LocoStalledColour := StrToColour(FWPReadString(ColoursSectionStr, LocoStalledColourStr, ColourToStr(DefaultLocoStalledColour)));
     ScreenComponentEditedColour1 := StrToColour(FWPReadString(ColoursSectionStr, ScreenComponentEditedColour1Str, ColourToStr(DefaultScreenComponentEditedColour1)));
     ScreenComponentEditedColour2 := StrToColour(FWPReadString(ColoursSectionStr, ScreenComponentEditedColour2Str, ColourToStr(DefaultScreenComponentEditedColour2)));
     WorkingTimetableWindowGridBackgroundColour := StrToColour(FWPReadString(ColoursSectionStr, WorkingTimetableWindowGridBackgroundColourStr,
-                                                                                                         ColourToStr(DefaultWorkingTimetableWindowGridBackgroundColour)));
+                                                                                                           ColourToStr(DefaultWorkingTimetableWindowGridBackgroundColour)));
     { Pen styles }
     FiddleyardLinePenStyle := StrToPenStyle(FWPReadString(PenStylesSectionStr, FiddleyardLinePenStyleStr, PenStyleToStr(DefaultFiddleyardLinePenStyle)));
     ProjectedLinePenStyle := StrToPenStyle(FWPReadString(PenStylesSectionStr, ProjectedLinePenStyleStr, PenStyleToStr(DefaultProjectedLinePenStyle)));
     SidingPenStyle := StrToPenStyle(FWPReadString(PenStylesSectionStr, SidingPenStyleStr, PenStyleToStr(DefaultSidingPenStyle)));
+    SignalsFromWhichUserMustDriveSignalPostPenStyle := StrToPenStyle(FWPReadString(SignalsFromWhichUserMustDriveSignalPostPenStyleStr,
+                                                SignalsFromWhichUserMustDriveSignalPostPenStyleStr, PenStyleToStr(DefaultSignalsFromWhichUserMustDriveSignalPostPenStyle)));
+
     TCLocoOutOfPlaceOccupationPenStyle := StrToPenStyle(FWPReadString(PenStylesSectionStr, TCLocoOutOfPlaceOccupationPenStyleStr,
-                                                                                                               PenStyleToStr(DefaultTCLocoOutOfPlaceOccupationPenStyle)));
+                                                                                                                 PenStyleToStr(DefaultTCLocoOutOfPlaceOccupationPenStyle)));
     TCOutOfUseAsNoFeedbackReceivedPenStyle := StrToPenStyle(FWPReadString(PenStylesSectionStr, TCOutOfUseAsNoFeedbackReceivedPenStyleStr,
-                                                                                                           PenStyleToStr(DefaultTCOutOfUseAsNoFeedbackReceivedPenStyle)));
+                                                                                                             PenStyleToStr(DefaultTCOutOfUseAsNoFeedbackReceivedPenStyle)));
     TCOutOfUseSetByUserPenStyle := StrToPenStyle(FWPReadString(PenStylesSectionStr, TCOutOfUseSetByUserPenStyleStr, PenStyleToStr(DefaultTCOutOfUseSetByUserPenStyle)));
     TCPermanentFeedbackOccupationPenStyle := StrToPenStyle(FWPReadString(PenStylesSectionStr, TCPermanentFeedbackOccupationPenStyleStr,
-                                                                                                            PenStyleToStr(DefaultTCPermanentFeedbackOccupationPenStyle)));
+                                                                                                              PenStyleToStr(DefaultTCPermanentFeedbackOccupationPenStyle)));
     TCPermanentOccupationSetByUserPenStyle := StrToPenStyle(FWPReadString(PenStylesSectionStr, TCPermanentOccupationSetByUserPenStyleStr,
-                                                                                                           PenStyleToStr(DefaultTCPermanentOccupationSetByUserPenStyle)));
+                                                                                                             PenStyleToStr(DefaultTCPermanentOccupationSetByUserPenStyle)));
     TCPermanentSystemOccupationPenStyle := StrToPenStyle(FWPReadString(PenStylesSectionStr, TCPermanentSystemOccupationPenStyleStr,
-                                                                                                              PenStyleToStr(DefaultTCPermanentSystemOccupationPenStyle)));
+                                                                                                                PenStyleToStr(DefaultTCPermanentSystemOccupationPenStyle)));
     { Fonts }
     RailFontName := FWPReadString(FontsSectionStr, RailFontNameStr, DefaultRailFontName);
     LineFontHeight := FWPReadInteger(FontsSectionStr, LineFontHeightStr, DefaultLineFontHeight);
@@ -2001,6 +2009,7 @@ BEGIN
     WriteStringTwice(PenStylesSectionStr, FiddleyardLinePenStyleStr, PenStyleToStr(FiddleyardLinePenStyle));
     WriteStringTwice(PenStylesSectionStr, ProjectedLinePenStyleStr, PenStyleToStr(ProjectedLinePenStyle));
     WriteStringTwice(PenStylesSectionStr, SidingPenStyleStr, PenStyleToStr(SidingPenStyle));
+    WriteStringTwice(PenStylesSectionStr, SignalsFromWhichUserMustDriveSignalPostPenStyleStr, PenStyleToStr(SignalsFromWhichUserMustDriveSignalPostPenStyle));
     WriteStringTwice(PenStylesSectionStr, TCLocoOutOfPlaceOccupationPenStyleStr, PenStyleToStr(TCLocoOutOfPlaceOccupationPenStyle));
     WriteStringTwice(PenStylesSectionStr, TCOutOfUseAsNoFeedbackReceivedPenStyleStr, PenStyleToStr(TCOutOfUseAsNoFeedbackReceivedPenStyle));
     WriteStringTwice(PenStylesSectionStr, TCOutOfUseSetByUserPenStyleStr, PenStyleToStr(TCOutOfUseSetByUserPenStyle));

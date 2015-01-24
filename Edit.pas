@@ -2491,10 +2491,10 @@ PROCEDURE SwitchSignalUserMustDriveFromState(S : Integer);
 { Switch the state of the SignalUserMustDrive variable }
 BEGIN
   WITH Signals[S] DO BEGIN
-    IF Signal_UserMustDrive THEN
-      Signal_UserMustDrive := False
+    IF Signal_FromWhichUserMustDrive THEN
+      Signal_FromWhichUserMustDrive := False
     ELSE
-      Signal_UserMustDrive := True;
+      Signal_FromWhichUserMustDrive := True;
 
     Signal_DataChanged := True;
     InvalidateScreen(UnitRef, 'SignalPopupItemClick SignalOutOfUsePopupType');
