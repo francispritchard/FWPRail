@@ -1381,7 +1381,7 @@ VAR
   PostEmergencyTimeSet : Boolean = False;
   PreviousPointSettingsMode : Boolean = False;
   ProgramShuttingDown : Boolean = False;
-  ProgramStartup : Boolean = True;
+  ProgramStarting : Boolean = True;
   RailWindowBitmapCanvasPenWidth : Integer;
   RailDriverCalibrated : Boolean = False;
   RailDriverCalibrationStarted : Boolean = False;
@@ -3117,7 +3117,7 @@ VAR
     WITH BufferStops[High(BufferStops)] DO BEGIN
       BufferStop_AdjacentLine := L;
       BufferStop_AdjacentTrackCircuit := Lines[BufferStop_AdjacentLine].Line_TC;
-      IF (BufferStop_AdjacentTrackCircuit = UnknownTrackCircuit) AND ProgramStartup THEN
+      IF (BufferStop_AdjacentTrackCircuit = UnknownTrackCircuit) AND ProgramStarting THEN
         Log('E Buffer stop ' + IntToStr(High(BufferStops)) + ' (at line' + ' ' + Lines[BufferStop_AdjacentLine].Line_NameStr + ') has no adjacent track circuit');
 
       BufferStop_AsTheatreDestination := BSTheatreDestination;

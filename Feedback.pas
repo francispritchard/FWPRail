@@ -431,7 +431,7 @@ BEGIN { newDecodeFeedback }
                         SetTrackCircuitstate(TC, TCFeedbackOccupation);
                     END; {CASE}
                   END ELSE
-                    IF NOT ProgramStartup AND (TrackCircuits[TC].TC_LengthInInches <> 0.0) THEN
+                    IF NOT ProgramStarting AND (TrackCircuits[TC].TC_LengthInInches <> 0.0) THEN
                       TrackCircuits[TC].TC_OccupationStartTime := Time;
 
                   { mark it as occupied }
@@ -506,7 +506,7 @@ BEGIN { newDecodeFeedback }
                 END;
                 Log('L ' + DebugStr);
 
-                IF NOT ProgramStartup THEN
+                IF NOT ProgramStarting THEN
                   DrawMap;
               END; {WITH}
             END;
@@ -534,14 +534,14 @@ BEGIN { newDecodeFeedback }
                     Point_PresentState := Straight;
                 END;
 
-                IF ProgramStartup THEN
+                IF ProgramStarting THEN
                   Point_PreviousState := Point_PresentState;
 
                   DebugStr := DebugStr + ' (P=' + IntToStr(P) + ' ' + PointStateToStr(Point_PresentState) + ')';
                   Log('P ' + DebugStr);
 
                   { If the point has changed even though locked, notify user and suspend automode if on }
-                  IF ProgramStartup
+                  IF ProgramStarting
                   OR RedrawScreen
                   OR NOT PointIsLocked(P, LockingFailureString)
                   OR NOT InLockingMode
@@ -578,7 +578,7 @@ BEGIN { newDecodeFeedback }
                       END;
                     END;
                   END;
-                  IF NOT ProgramStartup THEN
+                  IF NOT ProgramStarting THEN
                     InvalidateScreen(UnitRef, 'DecodeFeedback');
                 END; {WITH}
               END;
@@ -615,7 +615,7 @@ BEGIN { newDecodeFeedback }
   //        END;
         END; {CASE}
 
-//        IF InFeedbackDebuggingMode AND (FeedbackWindow <> NIL) AND NOT ProgramStartup THEN
+//        IF InFeedbackDebuggingMode AND (FeedbackWindow <> NIL) AND NOT ProgramStarting THEN
 //          WriteDataToFeedbackWindow(FeedbackUnit, FeedbackInput)
 //        ELSE
 //          IF DisplayFeedbackStringsInDebugWindow THEN

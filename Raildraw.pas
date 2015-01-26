@@ -3538,7 +3538,7 @@ BEGIN
       THEN
         FWPRailWindow.SetFocus;
 
-      IF NOT ProgramStartup THEN
+      IF NOT ProgramStarting THEN
         WhatIsUnderMouse(X, Y, ShiftState);
     END;
   EXCEPT
@@ -3590,7 +3590,7 @@ PROCEDURE TFWPRailWindow.FWPRailWindowResize(Sender: TObject);
 { This is called after a window is resized }
 BEGIN
   TRY
-    IF FWPRailWindowInitialised THEN BEGIN
+    IF NOT ProgramStarting THEN BEGIN
       { Resize is called when we start up, so don't set ResizeMap then }
       ResizeMap := True;
       FWPRailWindow.FWPRailWindowStatusBar.Visible := True;
@@ -3792,7 +3792,7 @@ VAR
 
 BEGIN
   TRY
-    IF NOT ProgramStartup THEN BEGIN
+    IF NOT ProgramStarting THEN BEGIN
       { Deal with flashing signals }
       FOR S := 0 TO High(Signals) DO BEGIN
         IF NOT Signals[S].Signal_OutOfUse THEN BEGIN

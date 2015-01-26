@@ -269,7 +269,7 @@ BEGIN
     WITH Signals[S] DO BEGIN
       IF (Signal_Aspect <> NewAspect) OR ForceWriting THEN BEGIN
         Signal_Aspect := NewAspect;
-        IF NOT ProgramStartup AND LogSignalData THEN BEGIN
+        IF NOT ProgramStarting AND LogSignalData THEN BEGIN
           IF (Signals[S].Signal_Type <> SemaphoreHome) AND (Signals[S].Signal_Type <> SemaphoreDistant) THEN
             Log('S S=' + IntToStr(S) + ' successfully set to ' + AspectToStr(Signals[S].Signal_Aspect))
           ELSE
@@ -291,7 +291,7 @@ BEGIN
                 MakeSemaphoreSignalChange(LocoChipStr, S, Signal_AccessoryAddress, SignalOff, OK);
         END;
 
-        IF NOT ProgramStartup THEN
+        IF NOT ProgramStarting THEN
           { calling invalidate here didn't redraw the signal in time - repaint causes the screen to be redrawn instantly and not via the message queue }
           FWPRailWindow.Repaint;
       END;
@@ -941,7 +941,7 @@ BEGIN
             IF NOT InAutoMode
             AND ((NewState = TCFeedbackOccupation) OR (NewState = TCLocoOutOfPlaceOccupation))
             AND (TC_LocoChip = UnknownLocoChip)
-            AND NOT ProgramStartup
+            AND NOT ProgramStarting
             AND NOT InLocoSpeedTimingMode
             THEN BEGIN
               { we've not been given a loco, so see if we can work out which loco it is }
@@ -1006,7 +1006,7 @@ BEGIN
             Log(LocoChipToStr(TC_LocoChip) + ' T Setting TC=' + IntToStr(TC) + ' [' + DescribeLineNamesForTrackCircuit(TC) + ']'
                                            + ' ' + TrackCircuitStateToStr(NewState));
 
-          IF NOT ProgramStartup THEN
+          IF NOT ProgramStarting THEN
             InvalidateScreen(UnitRef, 'SetTrackCircuitStateMainProcedure');
         END;
       END; {WITH}
@@ -1184,7 +1184,7 @@ VAR
 
 BEGIN
   TRY
-    IF NOT ProgramStartup THEN BEGIN
+    IF NOT ProgramStarting THEN BEGIN
       FOR P := 0 TO High(Points) DO BEGIN
         WITH Points[P] DO BEGIN
           LocoChipStr := LocoChipToStr(Point_LocoChipLockingTheRoute);

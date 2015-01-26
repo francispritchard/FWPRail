@@ -2536,7 +2536,7 @@ BEGIN
   ELSE
     OneTimeCodeBeingExecuted := True;
 
-  IF NOT ProgramStartup AND SystemOnline THEN BEGIN
+  IF NOT ProgramStarting AND SystemOnline THEN BEGIN
     FOR P := 0 TO High(Points) DO BEGIN
       IF Points[P].Point_Energised THEN BEGIN
         IF MilliSecondsBetween(Time, Points[P].Point_EnergisedTime) > 2 THEN BEGIN
