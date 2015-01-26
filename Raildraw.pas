@@ -1497,7 +1497,7 @@ BEGIN
     FOR S := 0 TO High(Signals) DO BEGIN
       WITH Signals[S] DO BEGIN
         { initialise them to red - to force SetSignal to switch them on and draw them }
-        IF NOT FWPRailWindowInitialised THEN
+        IF ProgramStarting THEN
           SetSignal(UnknownLocoChipStr, S, RedAspect, LogSignalData, NOT ForceAWrite);
 
         DrawSignal(S);
@@ -1965,7 +1965,7 @@ BEGIN { DrawSignal }
 
         DrawSignalPost(S);
 
-        IF InRecordLineDrawingMode OR NOT FWPRailWindowInitialised OR Signal_StateChanged THEN
+        IF InRecordLineDrawingMode OR ProgramStarting OR Signal_StateChanged THEN
           Log('S S=' + IntToStr(S)
                  + ' A=' + AspectToStr(Signals[S].Signal_Aspect, ShortStringType)
                  + ' I=' + IndicatorStateToStr(Signals[S].Signal_IndicatorState));
@@ -6478,11 +6478,119 @@ BEGIN
    END; {WITH}
 END; { WMVScroll }
 
+PROCEDURE SetScreenMode;
+{ Set the screen mode }
+VAR
+  WindowsTaskbar: HWND;
+
+BEGIN
+  WITH FWPRailWindow DO BEGIN
+    SaveScreenMode := ScreenMode;
+    CASE ScreenMode OF
+      CustomWindowedScreenMode:
+        BEGIN
+          { If the screen has been restored to its normal size, restore the screen mode to default }
+          IF (Height = MulDiv(Screen.WorkAreaHeight, 80, 100)) AND (Width = Screen.WorkAreaWidth) THEN BEGIN
+            ScreenMode := DefaultWindowedScreenMode;
+            WriteToStatusBarPanel(StatusBarPanel2, 'Screen set to default size');
+            Log('A Main Window set to default size');
+          END;
+          ThinLineMode := True;
+          Borderstyle := bsSizeable;
+          IF NOT FWPRailWindowStatusBar.Visible THEN
+            FWPRailWindowStatusBar.Show;
+          Log('A Main Window set to user-defined size');
+
+          IF WindowsTaskbarDisabled THEN BEGIN
+
+            { Find handle of TASKBAR }
+            WindowsTaskBar := FindWindow('Shell_TrayWnd', NIL);
+            { Enable the taskbar }
+            EnableWindow(WindowsTaskBar, True);
+            { Show the taskbar }
+            ShowWindow(WindowsTaskbar, SW_SHOW);
+
+            WindowsTaskbarDisabled := False;
+          END;
+        END;
+      DefaultWindowedScreenMode:
+        BEGIN
+          ThinLineMode := True;
+          Borderstyle := bsSizeable;
+          Height := MulDiv(Screen.WorkAreaHeight, 80, 100);
+          IF NOT FWPRailWindowStatusBar.Visible THEN
+            FWPRailWindowStatusBar.Show;
+          Log('A Main Window set to default size');
+
+          IF WindowsTaskbarDisabled THEN BEGIN
+            { Find handle of TASKBAR }
+            WindowsTaskBar := FindWindow('Shell_TrayWnd', NIL);
+            { Enable the taskbar }
+            EnableWindow(WindowsTaskBar, True);
+            { Show the taskbar }
+            ShowWindow(WindowsTaskbar, SW_SHOW);
+
+            WindowsTaskbarDisabled := False;
+          END;
+        END;
+      FullScreenMode:
+        BEGIN
+          IF LineThicknessInFullScreenMode = 'Thin' THEN
+            ThinLineMode := True
+          ELSE
+            ThinLineMode := False;
+          Borderstyle := bsNone;
+          Height := Screen.DeskTopHeight;
+          Top := 0;
+          Left := 0;
+          IF FWPRailWindowStatusBar.Visible THEN
+            FWPRailWindowStatusBar.Hide;
+          Log('A Main Window now full screen');
+          Width := Screen.DeskTopWidth;
+
+          IF NOT WindowsTaskbarDisabled THEN BEGIN
+            { Find handle of TASKBAR }
+            WindowsTaskBar := FindWindow('Shell_TrayWnd', NIL);
+            { Disable the taskbar }
+            EnableWindow(WindowsTaskBar, False);
+            { Hide the taskbar }
+            ShowWindow(WindowsTaskbar, SW_HIDE);
+
+            WindowsTaskbarDisabled := True;
+          END;
+        END;
+      FullScreenWithStatusBarMode:
+        BEGIN
+          { Use for checking track circuits. etc., as displays track-circuit number on the status bar }
+          IF LineThicknessInFullScreenMode = 'Thin' THEN
+            ThinLineMode := True
+          ELSE
+            ThinLineMode := False;
+          Borderstyle := bsNone;
+          Height := Screen.DeskTopHeight;
+          IF NOT FWPRailWindowStatusBar.Visible THEN
+            FWPRailWindowStatusBar.Show;
+          Log('A Main Window now full screen with border');
+        END;
+    END; {CASE}
+  END; {WITH}
+END; { SetScreenMode }
+
 PROCEDURE InitialiseRaildrawUnit;
 { Initialises the unit }
+VAR
+  DiagramsMissing : Boolean;
+  DiagramsOK : Boolean;
+  ErrorMsg : String;
+  LocoDataTableOK : Boolean;
+  WorkingTimetableMissing : Boolean;
+  WorkingTimetableOK : Boolean;
+
 BEGIN
   TRY
     WITH FWPRailWindow DO BEGIN
+      ChangeCursor(crHourGlass);
+
 //      { Intercept messages }
 //      Application.OnMessage := ApplicationMessage;
 
@@ -6504,7 +6612,6 @@ BEGIN
       RailWindowBitmap.Width := FWPRailWindowWidth;
       RailWindowBitmap.Height := FWPRailWindowHeight;
 
-      FWPRailWindowInitialised := False;
       ResizeMap := False;
 
       { Set up the status bar panels - the combined width should be 100% of the screen width }
@@ -6525,6 +6632,95 @@ BEGIN
       InitialiseScreenDrawingVariables;
 
       FWPRailWindow.Visible := True;
+
+      Randomize;
+      ReadInAreasDataFromDatabase; { ************ problem for all file loading if registry entry empty - no prompt to find directory they're in - 21/1/14 }
+      ReadInLocationDataFromDatabase;
+      SetLength(LocationOccupations, Length(Locations));
+      ReadInLocoDataFromDatabase(LocoDataTableOK);
+      SetUpLineDrawingVars;
+
+      { Acquiring the feedback has to precede acquiring signal, line and point data as we need to know which feedback units to assign points and signals to }
+      ReadInFeedbackDataFromDatabase;
+      ReadInLineDataFromDatabase;
+      IF NOT TrackCircuitsInitialised THEN BEGIN
+        { only initialise track circuit once, as doing so a second time removes the data **** }
+        TrackCircuitsInitialised := True;
+        ReadInTrackCircuitDataFromDatabase;
+        CheckLineConnectionsAreOK;
+      END;
+      ReadInPointDataFromDatabase;
+      IF PreviousPointSettingsMode THEN
+        DisplayPreviousPointSettings;
+      ReadInPlatformDataFromDatabase;
+      ReadInSignalDataFromDatabase(NOT NewData);
+      ReadInRouteingExceptionsFromDatabase;
+      IF NOT LocationLinesInitialised THEN BEGIN
+        Log('A INITIALISING LOCATION LINES {BLANKLINEBEFORE}');
+        InitialiseLocationLines;
+        LocationLinesInitialised := True;
+      END;
+
+      { Load feedback data and the diagrams datat and compare the data (these routines are here, as the various windows are created by this stage) }
+      DiagramsCheckingInProgress := True;
+
+      { but change the state of any that we know are out-of-use }
+      ReadIniFileForTrackCircuitData;
+
+      { and see if any are out of use because the detectors are out of use }
+      NoteOutOfUseFeedbackUnitTrackCircuitsAtStartup;
+
+      WorkingTimetableOK := False;
+      DiagramsOK := False;
+      IF NOT WorkingTimetableMode THEN
+        Log('AG Starting without the working timetable - WorkingTimetableMode is not set {BLANKLINEBEFORE}')
+      ELSE BEGIN
+        LoadWorkingTimetableFromDatabase(WorkingTimetableMissing, WorkingTimetableOK);
+        IF NOT WorkingTimetableMissing AND WorkingTimetableOK THEN BEGIN
+          ProcessWorkingTimetable;
+          ProcessDiagrams(ErrorMsg, DiagramsOK);
+        END;
+      END;
+
+      IF WorkingTimetableOK THEN
+        Log('AG Working timetable loaded - so starting without loading the diagrams from disc {BLANKLINEBEFORE}')
+      ELSE
+        IF NOT StartWithDiagrams THEN BEGIN
+          Log('AG Starting without the diagrams loaded - StartWithDiagrams is not set {BLANKLINEBEFORE}');
+          CheckOccupiedLinesAndDiagrams;
+        END ELSE BEGIN
+          InitialiseDiagramsUnit;
+          ReadInDiagramsFromDatabase(ErrorMsg, DiagramsMissing, DiagramsOK);
+          IF DiagramsOK AND NOT DiagramsMissing THEN
+            ProcessDiagrams(ErrorMsg, DiagramsOK);
+          IF NOT DiagramsOK THEN BEGIN
+            IF MessageDialogueWithDefault('The diagrams file ''' + DiagramsFilename + '.' + DiagramsFilenameSuffix
+                                          + IfThen(DiagramsMissing,
+                                                   ' cannot be found',
+                                                   ''' has errors:')
+                                          + CRLF
+                                          + '"' + ErrorMsg + '"'
+                                          + CRLF
+                                          + 'Do you wish to start without it or exit the program?',
+                                          StopTimer, mtError, [mbYes, mbNo], ['&Start', '&Exit'], mbNo)
+                                          = mrYes
+            THEN BEGIN
+              Log('XG Diagrams are faulty and have not been loaded, but starting without them');
+              DiagramsLoaded := False;
+              InvalidateScreen(UnitRef, 'DrawMap');
+            END ELSE BEGIN
+              Log('X Exiting - Diagrams are faulty');
+              ShutDownProgram(UnitRef, 'DrawMap');
+            END;
+          END ELSE
+            Log('A Diagrams loaded - StartWithoutDiagrams is not set');
+        END;
+
+      DiagramsCheckingInProgress := False;
+
+      ChangeCursor(crDefault);
+      SetScreenMode;
+      ProgramStarting := False;
     END; {WITH}
   EXCEPT
     ON E : Exception DO
@@ -6545,13 +6741,9 @@ VAR
   AdjacentDownTC : Integer;
   AdjacentUpTC : Integer;
   B, I, J : Integer;
-  DiagramsMissing : Boolean;
-  DiagramsOK : Boolean;
   ShowPointNum : Boolean;
-  ErrorMsg : String;
   Line, Line2 : Integer;
   LinesArray : IntegerArrayType;
-  LocoDataTableOK : Boolean;
   P : Integer;
   S : Integer;
   SaveLineOldColour : Integer;
@@ -6562,11 +6754,7 @@ VAR
   ScreenUpY : Integer;
   ShowArea : Boolean;
   SegmentText : String;
-  WindowsTaskbar: HWND;
   TempLocationYArray : IntegerArrayType;
-  WorkingTimetableMissing : Boolean;
-  WorkingTimetableOK : Boolean;
-  // PreviousDebugTime : TDateTime;
 
   PROCEDURE DrawAllBufferStopData(ShowSignalAndBufferStopNums, ShowTheatreDestinations : Boolean);
   { Draw all the buffer stops }
@@ -6624,110 +6812,16 @@ VAR
 BEGIN { Main drawing procedure }
   TRY
     // RailWindowBitmap.Canvas.FillRect(RailWindowBitmap.Canvas.ClipRect);
-    // Log('X (1) ' + TimeToHMSZStr(Time));
-    // PreviousDebugTime := Time;
     WITH FWPRailWindow DO BEGIN
       WITH RailWindowBitmap.Canvas DO BEGIN
         { Do not record the line drawing detail each time DrawMap is called }
         SaveRecordLineDrawingMode := InRecordLineDrawingMode;
-//        RecordLineDrawingMode := False;
 
-        IF NOT FWPRailWindowInitialised THEN
-          IF Screen.Cursor <> crHourGlass THEN
-            ChangeCursor(crHourGlass);
+        IF ScreenMode <> SaveScreenMode THEN
+          SetScreenMode;
 
         RailWindowBitmapCanvasPenWidth := Canvas.Pen.Width;
 
-        IF (ScreenMode <> SaveScreenMode) OR NOT FWPRailWindowInitialised THEN BEGIN
-          SaveScreenMode := ScreenMode;
-          CASE ScreenMode OF
-            CustomWindowedScreenMode:
-              BEGIN
-                { If the screen has been restored to its normal size, restore the screen mode to default }
-                IF (Height = MulDiv(Screen.WorkAreaHeight, 80, 100)) AND (Width = Screen.WorkAreaWidth) THEN BEGIN
-                  ScreenMode := DefaultWindowedScreenMode;
-                  WriteToStatusBarPanel(StatusBarPanel2, 'Screen set to default size');
-                  Log('A Main Window set to default size');
-                END;
-                ThinLineMode := True;
-                Borderstyle := bsSizeable;
-                IF NOT FWPRailWindowStatusBar.Visible THEN
-                  FWPRailWindowStatusBar.Show;
-                Log('A Main Window set to user-defined size');
-
-                IF WindowsTaskbarDisabled THEN BEGIN
-
-                  { Find handle of TASKBAR }
-                  WindowsTaskBar := FindWindow('Shell_TrayWnd', NIL);
-                  { Enable the taskbar }
-                  EnableWindow(WindowsTaskBar, True);
-                  { Show the taskbar }
-                  ShowWindow(WindowsTaskbar, SW_SHOW);
-
-                  WindowsTaskbarDisabled := False;
-                END;
-              END;
-            DefaultWindowedScreenMode:
-              BEGIN
-                ThinLineMode := True;
-                Borderstyle := bsSizeable;
-                Height := MulDiv(Screen.WorkAreaHeight, 80, 100);
-                IF NOT FWPRailWindowStatusBar.Visible THEN
-                  FWPRailWindowStatusBar.Show;
-                Log('A Main Window set to default size');
-
-                IF WindowsTaskbarDisabled THEN BEGIN
-                  { Find handle of TASKBAR }
-                  WindowsTaskBar := FindWindow('Shell_TrayWnd', NIL);
-                  { Enable the taskbar }
-                  EnableWindow(WindowsTaskBar, True);
-                  { Show the taskbar }
-                  ShowWindow(WindowsTaskbar, SW_SHOW);
-
-                  WindowsTaskbarDisabled := False;
-                END;
-              END;
-            FullScreenMode:
-              BEGIN
-                IF LineThicknessInFullScreenMode = 'Thin' THEN
-                  ThinLineMode := True
-                ELSE
-                  ThinLineMode := False;
-                Borderstyle := bsNone;
-                Height := Screen.DeskTopHeight;
-                Top := 0;
-                Left := 0;
-                IF FWPRailWindowStatusBar.Visible THEN
-                  FWPRailWindowStatusBar.Hide;
-                Log('A Main Window now full screen');
-                Width := Screen.DeskTopWidth;
-
-                IF NOT WindowsTaskbarDisabled THEN BEGIN
-                  { Find handle of TASKBAR }
-                  WindowsTaskBar := FindWindow('Shell_TrayWnd', NIL);
-                  { Disable the taskbar }
-                  EnableWindow(WindowsTaskBar, False);
-                  { Hide the taskbar }
-                  ShowWindow(WindowsTaskbar, SW_HIDE);
-
-                  WindowsTaskbarDisabled := True;
-                END;
-              END;
-            FullScreenWithStatusBarMode:
-              BEGIN
-                { Use for checking track circuits. etc., as displays track-circuit number on the status bar }
-                IF LineThicknessInFullScreenMode = 'Thin' THEN
-                  ThinLineMode := True
-                ELSE
-                  ThinLineMode := False;
-                Borderstyle := bsNone;
-                Height := Screen.DeskTopHeight;
-                IF NOT FWPRailWindowStatusBar.Visible THEN
-                  FWPRailWindowStatusBar.Show;
-                Log('A Main Window now full screen with border');
-              END;
-          END; {CASE}
-        END;
 // if testregion then begin
 //   Region := CreateRectRgn(220, 240, 320, 300);
 //   SelectClipRgn(Canvas.Handle, Region);
@@ -6766,42 +6860,6 @@ BEGIN { Main drawing procedure }
         Brush.Color := BackgroundColour;
         FillRect(Rect(0, 0, ClientWidth, ClientHeight));
 
-        // Canvas.Brush.Color := clAqua;
-        // Canvas.FillRect(Canvas.ClipRect);
-
-        // Log('X (2) ' + TimeToHMSZStr(Time));
-        // PreviousDebugTime := Time;
-
-        IF NOT FWPRailWindowInitialised THEN BEGIN
-          Randomize;
-          ReadInAreasDataFromDatabase; { ************ problem for all file loading if registry entry empty - no prompt to find directory they're in - 21/1/14 }
-          ReadInLocationDataFromDatabase;
-          SetLength(LocationOccupations, Length(Locations));
-          ReadInLocoDataFromDatabase(LocoDataTableOK);
-          SetUpLineDrawingVars;
-
-          { Acquiring the feedback has to precede acquiring signal, line and point data as we need to know which feedback units to assign points and signals to }
-          ReadInFeedbackDataFromDatabase;
-          ReadInLineDataFromDatabase;
-          IF NOT TrackCircuitsInitialised THEN BEGIN
-            { only initialise track circuit once, as doing so a second time removes the data **** }
-            TrackCircuitsInitialised := True;
-            ReadInTrackCircuitDataFromDatabase;
-            CheckLineConnectionsAreOK;
-          END;
-          ReadInPointDataFromDatabase;
-          IF PreviousPointSettingsMode THEN
-            DisplayPreviousPointSettings;
-          ReadInPlatformDataFromDatabase;
-          ReadInSignalDataFromDatabase(NOT NewData);
-          ReadInRouteingExceptionsFromDatabase;
-          IF NOT LocationLinesInitialised THEN BEGIN
-            Log('A INITIALISING LOCATION LINES {BLANKLINEBEFORE}');
-            InitialiseLocationLines;
-            LocationLinesInitialised := True;
-          END;
-        END;
-
         { Position the status bar allowing for the window scrolling }
         FWPRailWindowStatusBar.Left := 0;
         FWPRailWindowStatusBar.Top := ClientHeight - FWPRailWindowStatusBar.Height;
@@ -6816,69 +6874,6 @@ BEGIN { Main drawing procedure }
 
           IF ReinitialiseFWPRailWindowVariables THEN
             ReinitialiseFWPRailWindowVariables := False;
-        END;
-  //TransparentColorValue := BackgroundColour;
-  //TransparentColor := True;
-        // Log('X (3a) ' + TimeToHMSZStr(Time));
-        // PreviousDebugTime := Time;
-        IF NOT FWPRailWindowInitialised AND NOT DiagramsCheckingInProgress AND LocoDataTableOK THEN BEGIN
-          { Load feedback data and the diagrams datat and compare the data (these routines are here, as the various windows are created by this stage) }
-          DiagramsCheckingInProgress := True;
-          // Log('X (3b) ' + TimeToHMSZStr(Time));
-
-          { but change the state of any that we know are out-of-use }
-          ReadIniFileForTrackCircuitData;
-
-          { and see if any are out of use because the detectors are out of use }
-          NoteOutOfUseFeedbackUnitTrackCircuitsAtStartup;
-
-          WorkingTimetableOK := False;
-          DiagramsOK := False;
-          IF NOT WorkingTimetableMode THEN
-            Log('AG Starting without the working timetable - WorkingTimetableMode is not set {BLANKLINEBEFORE}')
-          ELSE BEGIN
-            LoadWorkingTimetableFromDatabase(WorkingTimetableMissing, WorkingTimetableOK);
-            IF NOT WorkingTimetableMissing AND WorkingTimetableOK THEN BEGIN
-              ProcessWorkingTimetable;
-              ProcessDiagrams(ErrorMsg, DiagramsOK);
-            END;
-          END;
-
-          IF WorkingTimetableOK THEN
-            Log('AG Working timetable loaded - so starting without loading the diagrams from disc {BLANKLINEBEFORE}')
-          ELSE
-            IF NOT StartWithDiagrams THEN BEGIN
-              Log('AG Starting without the diagrams loaded - StartWithDiagrams is not set {BLANKLINEBEFORE}');
-              CheckOccupiedLinesAndDiagrams;
-            END ELSE BEGIN
-              InitialiseDiagramsUnit;
-              ReadInDiagramsFromDatabase(ErrorMsg, DiagramsMissing, DiagramsOK);
-              IF DiagramsOK AND NOT DiagramsMissing THEN
-                ProcessDiagrams(ErrorMsg, DiagramsOK);
-              IF NOT DiagramsOK THEN BEGIN
-                IF MessageDialogueWithDefault('The diagrams file ''' + DiagramsFilename + '.' + DiagramsFilenameSuffix
-                                              + IfThen(DiagramsMissing,
-                                                       ' cannot be found',
-                                                       ''' has errors:')
-                                              + CRLF
-                                              + '"' + ErrorMsg + '"'
-                                              + CRLF
-                                              + 'Do you wish to start without it or exit the program?',
-                                              StopTimer, mtError, [mbYes, mbNo], ['&Start', '&Exit'], mbNo)
-                                              = mrYes
-                THEN BEGIN
-                  Log('XG Diagrams are faulty and have not been loaded, but starting without them');
-                  DiagramsLoaded := False;
-                  InvalidateScreen(UnitRef, 'DrawMap');
-                END ELSE BEGIN
-                  Log('X Exiting - Diagrams are faulty');
-                  ShutDownProgram(UnitRef, 'DrawMap');
-                END;
-              END ELSE
-                Log('A Diagrams loaded - StartWithoutDiagrams is not set');
-            END;
-
-          DiagramsCheckingInProgress := False;
         END;
 
         { Draw the Y grid where lines could be created. This procedure has to be executed before the line drawing routines, as otherwise these temporary lines would
@@ -7080,7 +7075,6 @@ BEGIN { Main drawing procedure }
                     { the main calling point }
                     DrawAllSignals(NOT ShowNums, NOT ShowTheatreDestinationChar);
                     DrawAllBufferStopData(NOT ShowNums, NOT ShowTheatreDestinationChar);
-  //debug('called from drawmap ' + TestcOunTstr);
                   END;
 
         IF ShowLinesWhichLockPoints THEN BEGIN
@@ -7173,14 +7167,6 @@ BEGIN { Main drawing procedure }
           ResizeMap := False;
 
         SetMode(RecordLineDrawing, SaveRecordLineDrawingMode);
-
-        IF NOT FWPRailWindowInitialised THEN BEGIN
-          { and finally... }
-          FWPRailWindowInitialised := True;
-          ChangeCursor(crDefault);
-          ProgramStartup := False;
-          InvalidateScreen(UnitRef, 'DrawMap 4');
-        END;
       END; {WITH Canvas}
 
       IF MenusVisible THEN

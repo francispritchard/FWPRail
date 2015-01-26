@@ -1347,8 +1347,6 @@ VAR
   FirstFeedbackUnit : Integer = -1;
   LastFeedbackUnit : Integer = 99999;
   FullScreenPenWidth : Integer = 5;
-  FWPRailWindowInitialised : Boolean = False;
-  FWPRailWindowPartInitialised : Boolean = False;
   GridInterLineSpacing : Integer = 0;
   InAutoMode : Boolean = False;
   InterLineSpacing : Integer = 0;

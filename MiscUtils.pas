@@ -7311,7 +7311,7 @@ BEGIN { ShutDownProgram }
       WindowsTaskbarDisabled := False;
     END;
 
-    IF FWPRailWindowInitialised THEN BEGIN
+    IF NOT ProgramStarting THEN BEGIN
       WriteOutLineDataToDatabase;
       WriteOutLocationDataToDatabase;
       WriteOutPointDataToDatabase;
@@ -7353,9 +7353,8 @@ BEGIN { ShutDownProgram }
       StopSystemTimer;
 
       { Write things back to the .ini file }
-      IF NOT ReplayMode AND FWPRailWindowInitialised THEN BEGIN
+      IF NOT ReplayMode AND NOT ProgramStarting THEN BEGIN
         Log('A Writing .ini file');
-        FWPRailWindowInitialised := True;
         WriteIniFile;
       END;
     END;
