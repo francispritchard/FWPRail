@@ -6,6 +6,7 @@ UNIT RailDraw;
   v0.1  00/00/88 Unit created
   v0.2  24/04/13 Header added; semaphore signal routine rewritten by James D King and FWP
   v1.0  08/04/14 Separated out screen drawing
+  v1.1  26/01/15 Moved initialisation code to separate routine
 }
 
 INTERFACE
