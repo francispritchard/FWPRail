@@ -1,4 +1,4 @@
-UNIT Raildraw;
+UNIT RailDraw;
 { Handles graphics display for railway program
 
   Copyright © F.W. Pritchard 1988-2015. All Rights Reserved.
@@ -300,7 +300,7 @@ FUNCTION GetSaveCursor : TCursor;
 PROCEDURE HideStatusBarAndUpDownIndications;
 { Before a zoomed screen move, hide the status bar and the "up" and "down" markers }
 
-PROCEDURE InitialiseRaildrawUnit;
+PROCEDURE InitialiseRailDrawUnit;
 { Initialises the unit }
 
 PROCEDURE InvalidateScreen(UnitRefParam, CallingStr : String);
@@ -6576,7 +6576,7 @@ BEGIN
   END; {WITH}
 END; { SetScreenMode }
 
-PROCEDURE InitialiseRaildrawUnit;
+PROCEDURE InitialiseRailDrawUnit;
 { Initialises the unit }
 VAR
   DiagramsMissing : Boolean;
@@ -6726,7 +6726,7 @@ BEGIN
     ON E : Exception DO
       Log('EG FWPRailWindowCreate:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
-END; { InitialiseRaildrawUnit }
+END; { InitialiseRailDrawUnit }
 
 PROCEDURE DrawMap;
 { Draws the track layout }
@@ -7184,7 +7184,7 @@ BEGIN { Main drawing procedure }
 END; { DrawMap }
 
 PROCEDURE TFWPRailWindow.WMCopyData(VAR Msg: TWMCopyData);
-{ Receives data from the Watchdog program. (This code is here as the Raildraw window is the de facto main window visible to other programs). }
+{ Receives data from the Watchdog program. (This code is here as the RailDraw window is the de facto main window visible to other programs). }
 VAR
   S : String;
 

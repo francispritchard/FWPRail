@@ -42,7 +42,7 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES MiscUtils, System.Types, Raildraw, RichEdit, ClipBrd;
+USES MiscUtils, System.Types, RailDraw, RichEdit, ClipBrd;
 
 VAR
   LoggingPausedByFindDialogue : Boolean;

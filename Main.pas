@@ -3,7 +3,7 @@ UNIT Main;
 
   Copyright © F.W. Pritchard 2015. All Rights Reserved.
 
-  v0.1  10/04/14 Unit extracted from Raildraw
+  v0.1  10/04/14 Unit extracted from RailDraw
 }
 
 INTERFACE
@@ -90,7 +90,7 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES GetTime, Raildraw, MiscUtils, Locks, LocationData, Feedback, Options, System.StrUtils, Lenz, System.DateUtils, TestUnit, Movement, FWPShowMessageUnit, CreateRoute,
+USES GetTime, RailDraw, MiscUtils, Locks, LocationData, Feedback, Options, System.StrUtils, Lenz, System.DateUtils, TestUnit, Movement, FWPShowMessageUnit, CreateRoute,
      Diagrams, Route, Replay, Startup, Cuneo, LocoUtils, StationMonitors, ProgressBar, LocoDialogue, Help, WorkingTimetable, Edit, RDCUnit, Input, Train, SyncObjs,
      Logging;
 
@@ -244,7 +244,7 @@ BEGIN
     InitialiseLocoUtilsUnit;
     InitialiseMiscUtilsUnit;
     InitialiseMovementUnit;
-    InitialiseRaildrawUnit;
+    InitialiseRailDrawUnit;
     InitialiseGetTimeUnit;
     InitialiseWorkingTimetableUnit;
     InitialiseEditUnit;

@@ -17,7 +17,7 @@ PROGRAM Rail;
 USES
   Forms,
   Windows,
-  Raildraw IN 'Raildraw.pas' {FWPRailWindow},
+  RailDraw IN 'RailDraw.pas' {FWPRailWindow},
   Diagrams IN 'Diagrams.pas' {DiagramsWindow},
   MiscUtils IN 'MiscUtils.pas' {DebugWindow},
   Input IN 'Input.pas' {InputDialogueBox},

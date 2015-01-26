@@ -609,7 +609,7 @@ BEGIN
       TempStatusBarPanel1Str := '';
     END;
 
-    { Is it a line-end character? - if so, highlight the corresponding line-end } { move this to Raildraw? ********* }
+    { Is it a line-end character? - if so, highlight the corresponding line-end } { move this to RailDraw? ********* }
     FOR Line := 0 TO High(Lines) DO BEGIN
       WITH Lines[Line] DO BEGIN
         WITH RailWindowBitmap.Canvas DO BEGIN
