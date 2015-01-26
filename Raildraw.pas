@@ -294,9 +294,6 @@ PROCEDURE DrawTrackCircuitsWithAdjoiningTrackCircuits(TC : Integer; TCColour1, T
 PROCEDURE DrawTRSPlunger(Location : Integer; Pressed : Boolean);
 { Indicate on a platform that a train-ready-to-start plunger has been pressed }
 
-FUNCTION GetDiagramsCheckingInProgress : Boolean;
-{ Return the DiagramsCheckingInProgress variable state }
-
 FUNCTION GetSaveCursor : TCursor;
 { Return the SaveCursor variable state }
 
@@ -479,12 +476,6 @@ PROCEDURE SetSignalPopupNum(Num : Integer);
 BEGIN
   SignalPopupNum := Num;
 END; { SetSignalPopupNum }
-
-FUNCTION GetDiagramsCheckingInProgress : Boolean;
-{ Return the DiagramsCheckingInProgress variable state }
-BEGIN
-  Result := DiagramsCheckingInProgress;
-END; { GetDiagramsCheckingInProgress }
 
 PROCEDURE SetBufferStopPopupNum(Num : Integer);
 { Assign to the buffer stop popup number }
