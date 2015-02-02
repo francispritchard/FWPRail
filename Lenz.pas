@@ -3204,7 +3204,7 @@ BEGIN
     NoFeedbackList := '';
     FOR UnitNum := FirstFeedbackUnit TO LastFeedbackUnit DO
       IF FeedbackUnitRecords[UnitNum].Feedback_DetectorOutOfUse THEN
-        NoFeedbackList := NoFeedbackList + IfThen(NoFeedbackList <> '', ', ') + IntToStr(UnitNum);
+        NoFeedbackList := NoFeedbackList + IfThen(NoFeedbackList <> '', ', ') + IntToStr(UnitNum + 1);
 
     IF NoFeedbackList <> '' THEN
       Log('XG The following feedback units are out of use: ' + NoFeedbackList);
