@@ -25,17 +25,8 @@ TYPE
     { Public declarations }
   END;
 
-PROCEDURE CheckLineConnectionsAreOK;
-{ To check each line has the requisite connection data, as locking depends on this }
-
 PROCEDURE FindAdjoiningTrackCircuits(TC : Integer; OUT AdjoiningUpTrackCircuit, AdjoiningDownTrackCircuit : Integer);
 { Work out which are the adjacent track circuits. Does not trace along all lines, just the way points are set. }
-
-PROCEDURE FindNextPoint(TC : Integer; SearchDirection : DirectionType; OUT NextPoint : Integer);
-{ Work out which is the next point }
-
-FUNCTION GetBufferStopDirection(BufferStopNum : Integer) : DirectionType;
-{ Return a buffer stop's direction }
 
 PROCEDURE InitialiseLocationLines;
 { Now we have set up the lines and signals, we can work out how they relate to locations. Some long locations (UFY for instance) will have multiple lines attached *** }
@@ -77,7 +68,7 @@ IMPLEMENTATION
 
 USES GetTime, RailDraw, MiscUtils, Locks, LocationData, Feedback, Options, System.StrUtils, Lenz, System.DateUtils, TestUnit, Movement, FWPShowMessageUnit, CreateRoute,
      Diagrams, Route, Replay, Startup, Cuneo, LocoUtils, StationMonitors, ProgressBar, LocoDialogue, Help, WorkingTimetable, Edit, RDCUnit, Input, Train, SyncObjs,
-     Logging, Signal;
+     Logging, SignalsUnit, PointsUnit, LinesUnit;
 
 CONST
   ConnectedViaUSBStr = 'via USB';
@@ -388,137 +379,6 @@ BEGIN
   MainWindow.MainTimer.Enabled := False;
 END; { StopSystemTimer }
 
-FUNCTION GetBufferStopDirection(BufferStopNum : Integer) : DirectionType;
-{ Return a buffer stop's direction }
-BEGIN
-  Result := BufferStops[BufferStopNum].BufferStop_Direction;
-END; { GetBufferStopDirection }
-
-PROCEDURE FollowThatLine(CurrentLine, TC : Integer; SearchDirection : DirectionType; FindPoint : Boolean; OUT AdjoiningUpTC, AdjoiningDownTC, NextPoint : Integer);
-{ Follow lines and points until we find a different track circuit }
-
-  FUNCTION FindTrackCircuitOrPoint(CurrentLine, TC : Integer; OUT AdjoiningUpTC, AdjoiningDownTC : Integer) : Boolean;
-  BEGIN
-    Result := False;
-    TRY
-      IF (Lines[CurrentLine].Line_TC <> UnknownTrackCircuit) AND (Lines[CurrentLine].Line_TC <> TC) THEN BEGIN
-        Result := True;
-        CASE SearchDirection OF
-          Up:
-            AdjoiningUpTC := Lines[CurrentLine].Line_TC;
-          Down:
-            AdjoiningDownTC := Lines[CurrentLine].Line_TC;
-        END; {CASE}
-      END;
-    EXCEPT
-      ON E : Exception DO
-        Log('EG FoundAdjacentTrackCircuit:' + E.ClassName + ' error raised, with message: '+ E.Message);
-    END; {TRY}
-  END; { FindTrackCircuitOrPoint }
-
-VAR
-  ExitFunction : Boolean;
-  Next : NextLineRouteingType;
-
-BEGIN
-  TRY
-    ExitFunction := False;
-    WHILE NOT ExitFunction DO BEGIN
-      IF SearchDirection = Up THEN
-        Next := Lines[CurrentLine].Line_NextUpType
-      ELSE
-        Next := Lines[CurrentLine].Line_NextDownType;
-
-      CASE Next OF
-        PointIsNext:
-          BEGIN
-            IF SearchDirection = Up THEN
-              NextPoint := Lines[CurrentLine].Line_NextUpPoint
-            ELSE
-              NextPoint := Lines[CurrentLine].Line_NextDownPoint;
-
-            IF FindPoint THEN
-              Exit;
-
-            { where to go next }
-            IF SearchDirection = Points[NextPoint].Point_FacingDirection THEN BEGIN
-              { a facing point - see which way it's set }
-              IF Points[NextPoint].Point_PresentState = Straight THEN BEGIN
-                IF InLockDebuggingMode THEN
-                  DrawPoint(NextPoint, clLime);
-
-                CurrentLine := Points[NextPoint].Point_StraightLine;
-                IF FindTrackCircuitOrPoint(CurrentLine, TC, AdjoiningUpTC, AdjoiningDownTC) THEN
-                  ExitFunction := True;
-              END ELSE
-                IF Points[NextPoint].Point_PresentState = Diverging THEN BEGIN
-                  IF InLockDebuggingMode THEN
-                    DrawPoint(NextPoint, clLime);
-
-                  CurrentLine := Points[NextPoint].Point_DivergingLine;
-                  IF (CurrentLine = UnknownLine) OR FindTrackCircuitOrPoint(CurrentLine, TC, AdjoiningUpTC, AdjoiningDownTC) THEN
-                    ExitFunction := True;
-                END ELSE BEGIN
-                  { Points[NextPoint].Point_PresentState = PointStateUnknown }
-                  IF InLockDebuggingMode THEN
-                    DrawPoint(NextPoint, clRed);
-                  ExitFunction := True;
-                END;
-            END ELSE BEGIN
-              { a trailing point - if it's not set in our direction, stop searching here }
-              IF ((CurrentLine = Points[NextPoint].Point_StraightLine) AND (Points[NextPoint].Point_PresentState = Straight)) THEN BEGIN
-                CurrentLine := Points[NextPoint].Point_HeelLine;
-                IF (CurrentLine = UnknownLine) OR FindTrackCircuitOrPoint(CurrentLine, TC, AdjoiningUpTC, AdjoiningDownTC) THEN
-                    ExitFunction := True;
-
-                IF InLockDebuggingMode THEN
-                  DrawPoint(NextPoint, clLime)
-                ELSE
-                  DrawPoint(NextPoint, ForegroundColour);
-              END ELSE
-                IF ((CurrentLine = Points[NextPoint].Point_DivergingLine) AND (Points[NextPoint].Point_PresentState = Diverging)) THEN BEGIN
-                  CurrentLine := Points[NextPoint].Point_HeelLine;
-                  IF (CurrentLine = UnknownLine) OR FindTrackCircuitOrPoint(CurrentLine, TC, AdjoiningUpTC, AdjoiningDownTC) THEN
-                      ExitFunction := True;
-
-                  IF InLockDebuggingMode THEN
-                    DrawPoint(NextPoint, clLime)
-                  ELSE
-                    DrawPoint(NextPoint, ForegroundColour);
-                END ELSE BEGIN
-                  { if it's not set in our direction, stop searching here }
-                  IF InLockDebuggingMode THEN
-                    DrawPoint(NextPoint, clRed)
-                  ELSE
-                    DrawPoint(NextPoint, ForegroundColour);
-                  ExitFunction := True;
-                END;
-            END;
-          END;
-        LineIsNext:
-          BEGIN
-            { where to go next }
-            IF SearchDirection = Up THEN
-              CurrentLine := Lines[CurrentLine].Line_NextUpLine
-            ELSE
-              CurrentLine := Lines[CurrentLine].Line_NextDownLine;
-
-            IF NOT FindPoint THEN
-              IF FindTrackCircuitOrPoint(CurrentLine, TC, AdjoiningUpTC, AdjoiningDownTC) THEN
-                ExitFunction := True;
-          END;
-        EndOfLineIsNext:
-          ExitFunction := True;
-        UnknownNextLineRouteingType:
-          ShowMessage('UnknownNextLineRouteingType at ' + LineToStr(CurrentLine));
-      END; {CASE}
-    END;
-  EXCEPT
-    ON E : Exception DO
-      Log('EG FollowThatLine:' + E.ClassName + ' error raised, with message: '+ E.Message);
-  END; {TRY}
-END; { FollowThatLine }
-
 PROCEDURE FindAdjoiningTrackCircuits(TC : Integer; OUT AdjoiningUpTrackCircuit, AdjoiningDownTrackCircuit : Integer);
 { Work out which are the adjacent track circuits. Does not trace along all lines, just the way points are set. }
 CONST
@@ -552,81 +412,6 @@ BEGIN
       Log('EG FindAdjoiningTrackCircuits:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { FindAdjoiningTrackCircuits }
-
-PROCEDURE FindNextPoint(TC : Integer; SearchDirection : DirectionType; OUT NextPoint : Integer);
-{ Work out which is the next point }
-CONST
-  FindPoint = True;
-
-VAR
-  AdjoiningUpTrackCircuit : Integer;
-  AdjoiningDownTrackCircuit : Integer;
-  Line : Integer;
-  TCFound : Boolean;
-
-BEGIN
-  TRY
-    NextPoint := UnknownPoint;
-
-    IF TC <> UnknownTrackCircuit THEN BEGIN
-      Line := 0;
-      TCFound := False;
-      WHILE (Line <= High(Lines)) AND NOT TCFound DO BEGIN
-        IF Lines[Line].Line_TC = TC THEN BEGIN
-          TCFound := True;
-
-          IF SearchDirection = Up THEN
-            FollowThatLine(Line, TC, Up, FindPoint, AdjoiningUpTrackCircuit, AdjoiningDownTrackCircuit, NextPoint)
-          ELSE
-            FollowThatLine(Line, TC, Down, FindPoint, AdjoiningUpTrackCircuit, AdjoiningDownTrackCircuit, NextPoint);
-        END;
-        Inc(Line);
-      END; {WHILE}
-    END;
-  EXCEPT
-    ON E : Exception DO
-      Log('EG FindAdjoiningTrackCircuits:' + E.ClassName + ' error raised, with message: '+ E.Message);
-  END; {TRY}
-END; { FindNextPoint }
-
-PROCEDURE CheckLineConnectionsAreOK;
-{ To check each line has the requisite connection data, as locking depends on this }
-VAR
-  L : Integer;
-
-BEGIN
-  TRY
-    Log('A CHECKING LINE CONNECTIONS ARE OK');
-
-    FOR L := 0 TO High(Lines) DO BEGIN
-      WITH Lines[L] DO BEGIN
-        IF (Line_NextUpLine = UnknownLine)
-        AND (Line_NextUpPoint = UnknownPoint)
-        AND (Line_NextUpIsEndOfLine = NotEndOfLine)
-        THEN BEGIN
-//          Log('X No line continuation data for up of line ' + LineToStr(L));
-//          IF MessageDialogueWithDefault('No line continuation data for up of line ' + LineToStr(L),
-//                                        StopTimer, mtWarning, [mbOK, mbAbort], ['&Continue', '&Exit'], mbOK) = mrAbort
-//          THEN
-//            ShutDownProgram(UnitRef, 'CheckLinesAreOK');
-        END;
-        IF (Line_NextDownLine = UnknownLine)
-        AND (Line_NextDownPoint = UnknownPoint)
-        AND (Line_NextDownIsEndOfLine = NotEndOfLine)
-        THEN BEGIN
-//          Log('X No line continuation data for down of line ' + LineToStr(L));
-//          IF MessageDialogueWithDefault('No line continuation data for down of line ' + LineToStr(L),
-//                                        StopTimer, mtWarning, [mbOK, mbAbort], ['&Continue', '&Exit'], mbOK) = mrAbort
-//          THEN
-//            ShutDownProgram(UnitRef, 'CheckLinesAreOK');
-        END;
-      END; {WITH}
-    END; {FOR}
-  EXCEPT
-    ON E : Exception DO
-      Log('EG CheckLinesAreOK:' + E.ClassName + ' error raised, with message: '+ E.Message);
-  END; {TRY}
-END; { CheckLinesAreOK }
 
 PROCEDURE SetTrackCircuitStateMainProcedure(LocoChip : Integer; TC : Integer; NewState : TrackCircuitStateType; Explanation : String);
 { Set whether and how the track circuit is occupied and give an explanation if any }

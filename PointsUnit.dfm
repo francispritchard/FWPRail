@@ -1,7 +1,7 @@
-object SignalForm: TSignalForm
+object PointForm: TPointForm
   Left = 0
   Top = 0
-  Caption = 'SignalForm'
+  Caption = 'PointForm'
   ClientHeight = 336
   ClientWidth = 527
   Color = clBtnFace

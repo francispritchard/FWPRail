@@ -51,7 +51,9 @@ USES
   Train IN 'Train.pas' {TrainForm},
   DataCheck IN 'DataCheck.pas' {DataCheckForm},
   Install IN 'Install.pas' {InstallForm},
-  Signal IN 'Signal.pas' {SignalForm};
+  SignalsUnit IN 'SignalsUnit.pas' {SignalUnitForm},
+  PointsUnit IN 'PointsUnit.pas' {PointForm},
+  LinesUnit IN 'LinesUnit.pas' {LinesUnitForm};
 
 VAR
   I : Integer;
@@ -82,7 +84,9 @@ BEGIN
   Application.CreateForm(TTrainForm, TrainForm);
   Application.CreateForm(TDataCheckForm, DataCheckForm);
   Application.CreateForm(TInstallForm, InstallForm);
-  Application.CreateForm(TSignalForm, SignalForm);
+  Application.CreateForm(TSignalUnitForm, SignalUnitForm);
+  Application.CreateForm(TPointForm, PointForm);
+  Application.CreateForm(TLinesUnitForm, LinesUnitForm);
   Application.Run;
 END { Rail }.
 

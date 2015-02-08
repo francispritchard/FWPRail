@@ -334,6 +334,9 @@ PROCEDURE SetSignalPopupNum(Num : Integer);
 PROCEDURE SetScreenColoursBeforePrinting;
 { Save the screen colours before printing the screen in printer-friendly colours }
 
+PROCEDURE SetUpLineDrawingVars;
+{ Set up the positions of the lines and platforms }
+
 PROCEDURE ShowStatusBarAndUpDownIndications;
 { After a zoomed screen move, restore the status bar and the "up" and "down" markers }
 
@@ -413,8 +416,9 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES MiscUtils, Startup, Lenz, Input, Locks, Cuneo, Movement, GetTime, CreateRoute, Diagrams, RDCUnit, Types, Feedback, Route, LocoUtils, IniFiles, LocoDialogue,
-     StrUtils, Help, Math {sic}, LocationData, FWPShowMessageUnit, Replay, TestUnit, WorkingTimetable, Options, Registry, Edit, Logging, Main, Splash, Signal;
+USES MiscUtils, Startup, Lenz, Input, Locks, Cuneo, Movement, GetTime, CreateRoute, Diagrams, RDCUnit, Types, Feedback, Route, LocoUtils, IniFiles, LocoDialogue, StrUtils,
+     Help, Math {sic}, LocationData, FWPShowMessageUnit, Replay, TestUnit, WorkingTimetable, Options, Registry, Edit, Logging, Main, Splash, SignalsUnit, PointsUnit,
+     LinesUnit;
 
 CONST
   UnitRef = 'RailDraw';
@@ -442,6 +446,31 @@ PROCEDURE Log(Str : String);
 BEGIN
   WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
+
+PROCEDURE SetUpLineDrawingVars;
+{ Set up the positions of the lines and plaforms }
+BEGIN
+  { Interval spacing : the following data has been read in from the registry }
+  BufferStopVerticalSpacingScaled := MulDiv(FWPRailWindow.ClientHeight, BufferStopVerticalSpacing, ZoomScaleFactor * 10);
+  GridInterLineSpacing := 1000 DIV (WindowRows + 1);
+  IndicatorHorizontalSpacingScaled := MulDiv(FWPRailWindow.ClientWidth, IndicatorHorizontalSpacing, ZoomScaleFactor * 10);
+  IndicatorVerticalSpacingScaled := MulDiv(FWPRailWindow.ClientHeight, IndicatorVerticalSpacing, ZoomScaleFactor * 10);
+  InterLineSpacing := (FWPRailWindow.ClientHeight * 1000) DIV ((WindowRows + 1) * ZoomScalefactor);
+  MouseRectangleEdgeVerticalSpacingScaled := MulDiv(FWPRailWindow.ClientHeight, MouseRectangleEdgeVerticalSpacing, ZoomScaleFactor * 10);
+  PlatformEdgeVerticalSpacingScaled := MulDiv(FWPRailWindow.ClientHeight, PlatformEdgeVerticalSpacing, ZoomScaleFactor * 10);
+  PlatformNumberEdgeHorizontalSpacingScaled := MulDiv(FWPRailWindow.ClientWidth, PlatformNumberEdgeHorizontalSpacing, ZoomScaleFactor * 10);
+  PlatformNumberEdgeVerticalSpacingScaled := MulDiv(FWPRailWindow.ClientHeight, PlatformNumberEdgeVerticalSpacing, ZoomScaleFactor * 10);
+  SignalHorizontalSpacingScaled := MulDiv(FWPRailWindow.ClientWidth, SignalHorizontalSpacing, ZoomScaleFactor * 10);
+  SignalRadiusScaled := MulDiv(FWPRailWindow.ClientWidth, SignalRadius, ZoomScaleFactor * 10);
+  SignalSemaphoreHeightScaled := MulDiv(FWPRailWindow.ClientWidth, SignalSemaphoreHeight, ZoomScaleFactor * 10);
+  SignalSemaphoreWidthScaled := MulDiv(FWPRailWindow.ClientHeight, SignalSemaphoreWidth, ZoomScaleFactor * 10);
+  SignalVerticalSpacingScaled := MulDiv(FWPRailWindow.ClientHeight, SignalVerticalSpacing, ZoomScaleFactor * 10);
+  SpeedRestrictionHorizontalSpacingScaled := MulDiv(FWPRailWindow.ClientWidth, SpeedRestrictionHorizontalSpacing, ZoomScaleFactor * 10);
+  SpeedRestrictionVerticalSpacingScaled := MulDiv(FWPRailWindow.ClientWidth, SpeedRestrictionVerticalSpacing, ZoomScaleFactor * 10);
+  TheatreIndicatorHorizontalSpacingScaled := MulDiv(FWPRailWindow.ClientWidth, TheatreIndicatorHorizontalSpacing, ZoomScaleFactor * 10);
+  TheatreIndicatorVerticalSpacingScaled := MulDiv(FWPRailWindow.ClientHeight, TheatreIndicatorVerticalSpacing, ZoomScaleFactor * 10);
+  TRSPlungerLengthScaled := MulDiv(FWPRailWindow.ClientWidth, TRSPlungerLength, ZoomScaleFactor * 10);
+END; { SetUpLineDrawingVars }
 
 FUNCTION GetSaveCursor : TCursor;
 { Return the SaveCursor variable state }

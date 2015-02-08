@@ -12,7 +12,7 @@ INTERFACE
 
 USES
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, Dialogs, Options, ExtCtrls, Grids, ValEdit, InitVars, MiscUtils, Movement, StdCtrls, RailDraw,
-  Vcl.Menus;
+  Vcl.Menus, PointsUnit;
 
 TYPE
   TEditWindow = CLASS(TForm)
@@ -164,7 +164,7 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES Diagrams, Input, Cuneo, Lenz, Types, Math {sic}, Main;
+USES Diagrams, Input, Cuneo, Lenz, Types, Math {sic}, Main, SignalsUnit, LinesUnit;
 
 CONST
   UnitRef = 'Edit';

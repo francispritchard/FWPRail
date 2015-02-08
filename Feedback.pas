@@ -47,7 +47,7 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES RailDraw, GetTime, Startup, MiscUtils, Movement, IDGlobal, Input, Locks, DateUtils, mmSystem, LocoDialogue, LocoUtils, Diagrams, Options, Main;
+USES RailDraw, GetTime, Startup, MiscUtils, Movement, IDGlobal, Input, Locks, DateUtils, mmSystem, LocoDialogue, LocoUtils, Diagrams, Options, Main, PointsUnit;
 
 CONST
   DefaultLocoSpeed = 24;

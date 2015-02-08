@@ -54,7 +54,8 @@ IMPLEMENTATION
 {$R *.dfm}
 
 USES InitVars, Locks, RailDraw, MiscUtils, Cuneo, LocoUtils, Lenz, MaskUtils, Startup, Diagrams, GetTime, CreateRoute, Feedback, IDGlobal, RDCUnit, Route, StrUtils, Menus,
-     DateUtils, TestUnit, StationMonitors, LocoDialogue, Help, LocationData, Replay, Options, Edit, WorkingTimetable, TCPIP, Logging, Main, Train, DataCheck, Signal;
+     DateUtils, TestUnit, StationMonitors, LocoDialogue, Help, LocationData, Replay, Options, Edit, WorkingTimetable, TCPIP, Logging, Main, Train, DataCheck, SignalsUnit,
+     PointsUnit, LinesUnit;
 
 CONST
   UnitRef = 'Input';

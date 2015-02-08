@@ -2,8 +2,8 @@
 
 INTERFACE
 
-USES
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, InitVars, Input, Menus, ComCtrls, System.UITypes, TLHelp32, Logging;
+USES Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, InitVars, Input, Menus, ComCtrls, System.UITypes, TLHelp32, Logging,
+     PointsUnit;
 
 TYPE
   TDebugWindow = CLASS(TForm)
@@ -644,9 +644,6 @@ FUNCTION PenStyleToStr(PenStyle : TPenStyle) : String;
 FUNCTION PointInPolygon(CONST Polygon: ARRAY OF TPoint; Point: TPoint): Boolean;
 { Returns true if a point is in a defined region }
 
-FUNCTION PointIsCatchPoint(P : Integer) : Boolean;
-{ Returns whether a given point is a catch point }
-
 FUNCTION PointStateToStr(PointState : PointStateType) : String;
 { Return the point state as a string }
 
@@ -976,7 +973,7 @@ IMPLEMENTATION
 {$R *.dfm}
 
 USES GetTime, Lenz, Diagrams, RailDraw, Types, LocoUtils, Math {sic}, IDGlobal, StrUtils, Feedback, RDCUnit, CreateRoute, IniFiles, DateUtils, Startup, Cuneo, Movement,
-     LocoDialogue, FWPShowMessageUnit, Options, Help, MMSystem, TCPIP, Main, StationMonitors, Train, Edit, Locks, Signal;
+     LocoDialogue, FWPShowMessageUnit, Options, Help, MMSystem, TCPIP, Main, StationMonitors, Train, Edit, Locks, SignalsUnit, LinesUnit;
 
 CONST
   UnitRef = 'MiscUtils';
@@ -6114,58 +6111,6 @@ BEGIN
     Result := Result + ', X=' + IntToStr(Polygon[I].X) + ' Y=' + IntToStr(Polygon[I].Y);
 END; { DescribePolygon }
 
-FUNCTION PointIsCatchPoint(P : Integer) : Boolean;
-{ Returns whether a given point is a catch point }
-BEGIN
-  IF (Points[P].Point_Type = CatchPointUp) OR (Points[P].Point_Type = CatchPointDown) THEN
-    Result := True
-  ELSE
-    Result := False;
-END; { PointIsCatchPoint }
-
-FUNCTION PointStateToStr(PointState : PointStateType) : String;
-{ Return the point state as a string }
-BEGIN
-  IF PointState = Straight THEN
-    Result := StraightStr
-  ELSE
-    IF PointState = Diverging THEN
-      Result := DivergingStr
-    ELSE
-      IF PointState = PointStateUnknown THEN
-        Result := UnknownStr
-      ELSE
-        IF PointState = PointOutOfAction THEN
-          Result := OutOfActionStr;
-END; { PointStateToStr }
-
-FUNCTION PointTypeToStr(PType : TypeOfPoint) : String;
-{ Return the point type }
-BEGIN
-  CASE PType OF
-    OrdinaryPoint:
-      Result := OrdinaryPointStr;
-    CrossOverPoint:
-      Result := CrossOverPointStr;
-    ThreeWayPointA:
-      Result := ThreeWayPointAStr;
-    ThreeWayPointB:
-      Result := ThreeWayPointBStr;
-    SingleSlip:
-      Result := SingleSlipStr;
-    DoubleSlip:
-      Result := DoubleSlipStr;
-    ProtectedPoint:
-      Result := ProtectedPointStr;
-    CatchPointUp:
-      Result := CatchPointUpStr;
-    CatchPointDown:
-      Result := CatchPointDownStr;
-  ELSE
-    Result := UnknownPointTypeStr;
-  END; {CASE}
-END; { PointTypeToStr }
-
 FUNCTION NextLineRouteingToStr(NextLineRouteing : NextLineRouteingType) : String;
 { Return a description of the next line routeing type }
 BEGIN
@@ -6528,6 +6473,49 @@ BEGIN
     Result := 'Unknown pen style';
   END; {CASE}
 END; { PenStyleToStr }
+
+FUNCTION PointStateToStr(PointState : PointStateType) : String;
+{ Return the point state as a string }
+BEGIN
+  IF PointState = Straight THEN
+    Result := StraightStr
+  ELSE
+    IF PointState = Diverging THEN
+      Result := DivergingStr
+    ELSE
+      IF PointState = PointStateUnknown THEN
+        Result := UnknownStr
+      ELSE
+        IF PointState = PointOutOfAction THEN
+          Result := OutOfActionStr;
+END; { PointStateToStr }
+
+FUNCTION PointTypeToStr(PType : TypeOfPoint) : String;
+{ Return the point type }
+BEGIN
+  CASE PType OF
+    OrdinaryPoint:
+      Result := OrdinaryPointStr;
+    CrossOverPoint:
+      Result := CrossOverPointStr;
+    ThreeWayPointA:
+      Result := ThreeWayPointAStr;
+    ThreeWayPointB:
+      Result := ThreeWayPointBStr;
+    SingleSlip:
+      Result := SingleSlipStr;
+    DoubleSlip:
+      Result := DoubleSlipStr;
+    ProtectedPoint:
+      Result := ProtectedPointStr;
+    CatchPointUp:
+      Result := CatchPointUpStr;
+    CatchPointDown:
+      Result := CatchPointDownStr;
+  ELSE
+    Result := UnknownPointTypeStr;
+  END; {CASE}
+END; { PointTypeToStr }
 
 FUNCTION RoundTimeToNextWholeMinute(Time : TDateTime) : TDateTime;
 { Round the time to the next whole minute, i.e. 06:30:00 becomes 06:31:00, but 06:30:20 becomes 06:32:00 }
