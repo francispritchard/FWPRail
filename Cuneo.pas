@@ -50,7 +50,7 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES RailDraw, Locks, Startup, Route, GetTime, Diagrams, MiscUtils, Movement, Lenz, Input, LocoUtils, Types, CreateRoute, LocoDialogue, LocationData, Help, StrUtils,
+USES RailDraw, Locks, Startup, Route, GetTime, Diagrams, MiscUtils, Movement, Lenz, Input, LocoUtils, Types, CreateRoute, LocoDialogue, LocationsUnit, Help, StrUtils,
      Options, Main, DateUtils, SignalsUnit, PointsUnit, TrackCircuitsUnit, LinesUnit, Train;
 
 CONST

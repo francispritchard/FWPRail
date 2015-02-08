@@ -30,7 +30,7 @@ PROCEDURE DrawStationMonitorsWindow(Area : Integer);
 
 IMPLEMENTATION
 
-USES MiscUtils, StrUtils, DateUtils, Input, GetTime, Diagrams, Options, RailDraw, Types, SyncObjs, Train;
+USES MiscUtils, StrUtils, DateUtils, Input, GetTime, Diagrams, Options, RailDraw, Types, SyncObjs, Train, LocationsUnit;
 
 CONST
   UnitRef = 'StationMonitors';
@@ -726,4 +726,3 @@ BEGIN
 END;
 
 END { StationMonitors }.
-

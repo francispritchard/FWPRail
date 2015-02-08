@@ -40,7 +40,7 @@ USES
   LocoDialogue IN 'LocoDialogue.pas' {LocoDialogueWindow},
   Help IN 'Help.pas' {HelpWindow},
   IniFiles IN 'IniFiles.pas',
-  LocationData IN 'LocationData.pas' {LocationDataWindow},
+  LocationsUnit IN 'LocationsUnit.pas' {LocationsUnitForm},
   FWPShowMessageUnit IN 'FWPShowMessageUnit.pas' {FWPShowMessageWindow},
   Replay IN 'Replay.pas' {ReplayForm},
   Options IN 'Options.pas' {OptionsWindow},

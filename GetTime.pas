@@ -65,7 +65,7 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES RailDraw, IDGlobal, MiscUtils, Input, DateUtils, LocoUtils, StationMonitors, LocationData, Options, Train;
+USES RailDraw, IDGlobal, MiscUtils, Input, DateUtils, LocoUtils, StationMonitors, LocationsUnit, Options, Train;
 
 CONST
   UnitRef = 'Time';
@@ -311,8 +311,8 @@ BEGIN
       OR (Copy(SaveCurrentRailwayTimeStr, 1, 5) <> Copy(CurrentRailwayTimeStr, 1, 5))
       THEN BEGIN
         DrawStationMonitorsWindow(StationMonitorsCurrentArea);
-        IF (LocationDataWindow <> NIL) AND (LocationDataWindow.Visible) THEN
-          LocationDataWindow.Caption := 'LocationDataWindow (' + CurrentRailwayTimeStr + ')';
+        IF (LocationsUnitWindow <> NIL) AND (LocationsUnitWindow.Visible) THEN
+          LocationsUnitWindow.Caption := 'LocationsUnitWindow (' + CurrentRailwayTimeStr + ')';
       END;
 
       WriteTimeToStatusBar(TimeStr);

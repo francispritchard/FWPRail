@@ -54,7 +54,7 @@ IMPLEMENTATION
 {$R *.dfm}
 
 USES InitVars, Locks, RailDraw, MiscUtils, Cuneo, LocoUtils, Lenz, MaskUtils, Startup, Diagrams, GetTime, CreateRoute, Feedback, IDGlobal, RDCUnit, Route, StrUtils, Menus,
-     DateUtils, TestUnit, StationMonitors, LocoDialogue, Help, LocationData, Replay, Options, Edit, WorkingTimetable, TCPIP, Logging, Main, Train, DataCheck, SignalsUnit,
+     DateUtils, TestUnit, StationMonitors, LocoDialogue, Help, LocationsUnit, Replay, Options, Edit, WorkingTimetable, TCPIP, Logging, Main, Train, DataCheck, SignalsUnit,
      PointsUnit, LinesUnit, TrackCircuitsUnit;
 
 CONST
@@ -1034,7 +1034,7 @@ VAR
       DrawLineInLogFile(UnknownLocoChipAsZeroesStr, '*', '+', UnitRef);
     END;
 
-    IF LocationDataWindow.Visible THEN BEGIN
+    IF LocationsUnitWindow.Visible THEN BEGIN
       IF IncludeLocationOccupationStateFlag THEN BEGIN
         IncludeLocationOccupationStateFlag := False;
         WriteLocationOccupations(IncludeLocationOccupationStateFlag, WriteToFileFlag);
@@ -1045,7 +1045,7 @@ VAR
     END ELSE BEGIN
       IncludeLocationOccupationStateFlag := False;
       WriteLocationOccupations(IncludeLocationOccupationStateFlag, WriteToFileFlag);
-      LocationDataWindow.Show;
+      LocationsUnitWindow.Show;
     END;
   END; { ProcessLocationOccupations }
 

@@ -300,7 +300,7 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES RailDraw, Route, MiscUtils, Lenz, StrUtils, Locks, CreateRoute, Options, PointsUnit, TrackCircuitsUnit, LinesUnit;
+USES RailDraw, Route, MiscUtils, Lenz, StrUtils, Locks, CreateRoute, Options, PointsUnit, TrackCircuitsUnit, LinesUnit, LocationsUnit, Main;
 
 CONST
   UnitRef = 'Signal';

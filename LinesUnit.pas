@@ -189,7 +189,7 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES MiscUtils, RailDraw, Options, PointsUnit, TrackCircuitsUnit, System.Types;
+USES MiscUtils, RailDraw, Options, PointsUnit, TrackCircuitsUnit, System.Types, Feedback, LocationsUnit, Main;
 
 CONST
   UnitRef = 'LinesUnit';

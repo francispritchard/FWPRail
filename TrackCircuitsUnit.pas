@@ -115,7 +115,7 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES MiscUtils, PointsUnit, SignalsUnit, RailDraw, Route, LocationData;
+USES MiscUtils, PointsUnit, SignalsUnit, RailDraw, Route, LocationsUnit, Feedback, Main;
 
 CONST
   UnitRef = 'TrackCircuitsUnit';

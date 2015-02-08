@@ -164,9 +164,9 @@ BEGIN
       HelpWindow := THelpWindow.Create(Application);
       HelpWindow.Update;
     END;
-    IF LocationDataWindow = NIL THEN BEGIN
-      LocationDataWindow := TLocationDataWindow.Create(Application);
-      LocationDataWindow.Update;
+    IF LocationsUnitWindow = NIL THEN BEGIN
+      LocationsUnitWindow := TLocationsUnitWindow.Create(Application);
+      LocationsUnitWindow.Update;
     END;
     IF FWPShowMessageWindow = NIL THEN BEGIN
       FWPShowMessageWindow := TFWPShowMessageWindow.Create(Application);

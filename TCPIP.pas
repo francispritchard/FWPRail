@@ -3,7 +3,7 @@ UNIT TCPIP;
 INTERFACE
 
 USES
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls, Buttons, ScktComp, InitVars, ShellAPI, MiscUtils;
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls, Buttons, ScktComp, InitVars, ShellAPI;
 
 TYPE
   TTCPIPForm = CLASS(TForm)
@@ -72,7 +72,7 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES Lenz, Options;
+USES Lenz, Options, MiscUtils;
 
 VAR
   UnitRef : String = 'TCPIP';

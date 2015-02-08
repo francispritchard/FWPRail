@@ -3,7 +3,7 @@
 INTERFACE
 
 USES Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, InitVars, Input, Menus, ComCtrls, System.UITypes, TLHelp32, Logging,
-     PointsUnit, TrackCircuitsUnit, LinesUnit, Train;
+     PointsUnit, TrackCircuitsUnit, LinesUnit, Train, Feedback, LocationsUnit;
 
 TYPE
   TDebugWindow = CLASS(TForm)
@@ -969,8 +969,8 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES GetTime, Lenz, Diagrams, RailDraw, Types, LocoUtils, Math {sic}, IDGlobal, StrUtils, Feedback, RDCUnit, CreateRoute, IniFiles, DateUtils, Startup, Cuneo, Movement,
-     LocoDialogue, FWPShowMessageUnit, Options, Help, MMSystem, TCPIP, Main, StationMonitors, Edit, Locks, SignalsUnit, Route;
+USES GetTime, Lenz, Diagrams, RailDraw, Types, LocoUtils, Math {sic}, IDGlobal, StrUtils, RDCUnit, CreateRoute, IniFiles, DateUtils, Startup, Cuneo, Movement, LocoDialogue,
+     FWPShowMessageUnit, Options, Help, MMSystem, TCPIP, Main, StationMonitors, Edit, Locks, SignalsUnit, Route;
 
 CONST
   UnitRef = 'MiscUtils';

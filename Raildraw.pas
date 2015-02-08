@@ -426,7 +426,7 @@ IMPLEMENTATION
 {$R *.dfm}
 
 USES MiscUtils, Startup, Lenz, Input, Locks, Cuneo, Movement, GetTime, CreateRoute, Diagrams, RDCUnit, Types, Feedback, Route, LocoUtils, IniFiles, LocoDialogue, StrUtils,
-     Help, Math {sic}, LocationData, FWPShowMessageUnit, Replay, TestUnit, WorkingTimetable, Options, Registry, Edit, Logging, Main, Splash, SignalsUnit, PointsUnit,
+     Help, Math {sic}, LocationsUnit, FWPShowMessageUnit, Replay, TestUnit, WorkingTimetable, Options, Registry, Edit, Logging, Main, Splash, SignalsUnit, PointsUnit,
      LinesUnit, TrackCircuitsUnit, Train;
 
 CONST
@@ -3619,7 +3619,7 @@ BEGIN
       AND NOT (DebuggingOptionsWindow.Active OR DebuggingOptionsWindow.Visible)
       AND NOT (FeedbackWindow.Active OR FeedbackWindow.Visible)
       AND NOT (HelpWindow.Active OR HelpWindow.Visible)
-      AND NOT (LocationDataWindow.Active OR LocationDataWindow.Visible)
+      AND NOT (LocationsUnitWindow.Active OR LocationsUnitWindow.Visible)
       AND NOT (LockListWindow.Active OR LockListWindow.Visible)
       AND NOT (LocoUtilsWindow.Active OR LocoUtilsWindow.Visible)
       AND NOT (RailDriverWindow.Active OR RailDriverWindow.Visible)
