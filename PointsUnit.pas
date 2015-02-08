@@ -74,13 +74,6 @@ FUNCTION ValidatePointDefaultState(NewStateStr : String; HeelLine, StraightLine,
 FUNCTION ValidatePointDivergingLineName(LineName : String; PointType : TypeOfPoint; OUT ErrorMsg : String) : Integer;
 { Check that a given point's Diverging Line name is valid }
 
-FUNCTION ValidateFeedbackInput(FeedbackInputStr : String; HasFeedback : Boolean; FeedbackUnit : Integer; FeedbackType : TypeOfFeedback; DataNumber : Integer;
-                               OUT ErrorMsg : String) : Integer;
-{ Check whether the feedback input number is valid }
-
-FUNCTION ValidateFeedbackUnit(FeedbackUnitStr : String; OUT HasFeedback : Boolean; OUT ErrorMsg : String) : Integer;
-{ Check whether the feedback unit exists and is valid }
-
 FUNCTION ValidatePointHeelLineName(LineName : String; OUT ErrorMsg : String) : Integer;
 { Check that a given point's Heel Line name is valid }
 
@@ -205,7 +198,7 @@ IMPLEMENTATION
 {$R *.dfm}
 
 USES Route, FWPShowMessageUnit, AnsiStrings, MiscUtils, Locks, DateUtils, Lenz, RailDraw, Main, LinesUnit, Options, Data.DB, StrUtils, TrackCircuitsUnit, SignalsUnit,
-     CreateRoute;
+     CreateRoute, Feedback;
 
 CONST
   UnitRef = 'PointUnit';
@@ -1075,83 +1068,6 @@ BEGIN
     ELSE
       Result := LenzUnitTypeStr;
 END; { ValidatePointLenzUnitType }
-
-FUNCTION ValidateFeedbackUnit(FeedbackUnitStr : String; OUT HasFeedback : Boolean; OUT ErrorMsg : String) : Integer;
-{ Check whether the feedback unit exists and is valid }
-BEGIN
-  ErrorMsg := '';
-  Result := 0;
-  HasFeedback := False;
-
-  IF (FeedbackUnitStr <> '') AND (FeedbackUnitStr <> '0') THEN BEGIN
-    IF NOT TryStrToInt(FeedbackUnitStr, Result) THEN
-      ErrorMsg := 'ValidateFeedbackUnit: invalid integer "' + FeedbackUnitStr + '"'
-    ELSE
-      IF Result < FirstFeedBackUnit THEN
-        ErrorMsg := 'ValidateFeedbackUnit: ' + FeedbackUnitStr + ' is less than the first feedback unit (' + IntToStr(FirstFeedBackUnit) + ')'
-      ELSE
-        IF Result > LastFeedBackUnit THEN
-          ErrorMsg := 'ValidateFeedbackUnit: ' + FeedbackUnitStr + ' is greater than the last feedback unit (' + IntToStr(LastFeedBackUnit) + ')'
-        ELSE
-          HasFeedback := True;
-  END;
-END; { ValidateFeedbackUnit }
-
-FUNCTION ValidateFeedbackInput(FeedbackInputStr : String; HasFeedback : Boolean; FeedbackUnit : Integer; FeedbackType : TypeOfFeedback; DataNumber : Integer;
-                               OUT ErrorMsg : String) : Integer;
-{ Check whether the point feedback input number is valid }
-VAR
-  F : Integer;
-  FeedbackInputFound : Boolean;
-
-BEGIN
-  ErrorMsg := '';
-
-  IF NOT HasFeedback AND (FeedbackInputStr <> '') THEN
-    ErrorMsg := 'ValidateFeedbackInput: a feedback input number has been declared but there is no feedback unit number'
-  ELSE
-    IF HasFeedback AND (FeedbackInputStr = '') THEN
-      ErrorMsg := 'ValidateFeedbackInput: a feedback unit has been declared but there is no feedback input number'
-    ELSE
-      IF NOT HasFeedback THEN
-        Result := 0
-      ELSE
-        IF FeedbackInputStr = '' THEN
-          Result := 0
-        ELSE
-          IF NOT TryStrToInt(FeedbackInputStr, Result) THEN
-            ErrorMsg := 'ValidateFeedbackInput: invalid integer "' + FeedbackInputStr + '"'
-          ELSE
-            IF (Result < 1) OR (Result > 8) THEN
-              ErrorMsg := 'ValidateFeedbackInput:  feedback input number ' + IntToStr(Result) + ' is out of range';
-
-  IF ErrorMsg = '' THEN BEGIN
-    IF (FeedbackUnit <> 0) AND (Result <> 0) THEN BEGIN
-      { check that the feedback unit data supplied is valid, and assign it to the appropriate feedback record }
-      F := 0;
-      FeedbackInputFound := False;
-      WHILE (F <= High(FeedbackUnitRecords)) AND NOT FeedbackInputFound DO BEGIN
-        IF F = FeedbackUnit THEN BEGIN
-          IF FeedbackUnitRecords[F].Feedback_InputTypeArray[Result] <> FeedbackType THEN
-            ErrorMsg := 'Cannot assign ' + FeedbackTypeToStr(FeedbackType) + ' to an input that is set to receive ' +
-                        FeedbackTypeToStr(FeedbackUnitRecords[F].Feedback_InputTypeArray[Result])
-          ELSE
-            CASE FeedbackType OF
-              LineFeedback:
-                FeedbackUnitRecords[F].Feedback_InputLine[Result] := DataNumber;
-              PointFeedback:
-                FeedbackUnitRecords[F].Feedback_InputPoint[Result] := DataNumber;
-              TrackCircuitFeedback:
-                FeedbackUnitRecords[F].Feedback_InputTrackCircuit[Result] := DataNumber;
-              TRSPlungerFeedback:
-                FeedbackUnitRecords[F].Feedback_InputTRSPlunger[Result] := DataNumber;
-            END; {CASE}
-        END;
-        Inc(F);
-      END; {WHILE}
-    END;
-  END;
-END; { ValidateFeedbackInput }
 
 FUNCTION ValidatePointRelatedPoint(P : Integer; RelatedPointStr : String; PointType : TypeOfPoint; OUT ErrorMsg : String) : Integer;
 { Check whether the value of the connected point (if any) is valid }

@@ -28,6 +28,11 @@ TYPE
     { Public declarations }
   END;
 
+TYPE
+  TypeOfFeedback = (TrackCircuitFeedback, TRSPlungerFeedback, PointFeedback, LineFeedback, UnknownFeedbackType);
+
+  TypeOfFeedbackDetector = (TrackCircuitFeedbackDetector, TRSPlungerFeedbackDetector, PointFeedbackDetector, LineFeedbackDetector, MixedFeedbackDetectors,
+                            FeedbackDetectorOutOfUse, UnknownFeedbackDetectorType);
 VAR
   FeedbackWindow: TFeedbackWindow;
 
@@ -40,8 +45,35 @@ PROCEDURE InitialiseLocoSpeedTiming(L : LocoIndex);
 PROCEDURE NoteOutOfUseFeedbackUnitTrackCircuitsAtStartup;
 { Work out which track circuits are unavailable because we're not getting initial feedback from them }
 
+PROCEDURE ReadInFeedbackDataFromDatabase;
+{ Initialise the feedback unit data }
+
+FUNCTION ValidateFeedbackInput(FeedbackInputStr : String; HasFeedback : Boolean; FeedbackUnit : Integer; FeedbackType : TypeOfFeedback; DataNumber : Integer;
+                               OUT ErrorMsg : String) : Integer;
+{ Check whether the feedback input number is valid }
+
+FUNCTION ValidateFeedbackUnit(FeedbackUnitStr : String; OUT HasFeedback : Boolean; OUT ErrorMsg : String) : Integer;
+{ Check whether the feedback unit exists and is valid }
+
 PROCEDURE WriteDataToFeedbackWindow{1}(FeedbackString : String); Overload;
 { Overloaded - this is version 1 (version 2 is not exported) - write text to the feedback window }
+
+TYPE
+  FeedbackRec = RECORD
+    Feedback_DetectorOutOfUse : Boolean;
+    Feedback_InputTypeArray : ARRAY [1..8] OF TypeOfFeedback;
+    Feedback_InputOnArray : ARRAY [1..8] OF Boolean;
+    Feedback_InputLine : ARRAY [1..8] OF Integer;
+    Feedback_InputPoint : ARRAY [1..8] OF Integer;
+    Feedback_InputTrackCircuit : ARRAY [1..8] OF Integer;
+    Feedback_InputTRSPlunger : ARRAY [1..8] OF Integer;
+    Feedback_TCAboveUnit : Integer;
+  END;
+
+VAR
+  FeedbackUnitRecords : ARRAY OF FeedbackRec;
+  FirstFeedbackUnit : Integer = -1;
+  LastFeedbackUnit : Integer = 99999;
 
 IMPLEMENTATION
 
@@ -69,6 +101,218 @@ PROCEDURE Log(Str : String);
 BEGIN
   WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
+
+FUNCTION ValidateFeedbackUnit(FeedbackUnitStr : String; OUT HasFeedback : Boolean; OUT ErrorMsg : String) : Integer;
+{ Check whether the feedback unit exists and is valid }
+BEGIN
+  ErrorMsg := '';
+  Result := 0;
+  HasFeedback := False;
+
+  IF (FeedbackUnitStr <> '') AND (FeedbackUnitStr <> '0') THEN BEGIN
+    IF NOT TryStrToInt(FeedbackUnitStr, Result) THEN
+      ErrorMsg := 'ValidateFeedbackUnit: invalid integer "' + FeedbackUnitStr + '"'
+    ELSE
+      IF Result < FirstFeedBackUnit THEN
+        ErrorMsg := 'ValidateFeedbackUnit: ' + FeedbackUnitStr + ' is less than the first feedback unit (' + IntToStr(FirstFeedBackUnit) + ')'
+      ELSE
+        IF Result > LastFeedBackUnit THEN
+          ErrorMsg := 'ValidateFeedbackUnit: ' + FeedbackUnitStr + ' is greater than the last feedback unit (' + IntToStr(LastFeedBackUnit) + ')'
+        ELSE
+          HasFeedback := True;
+  END;
+END; { ValidateFeedbackUnit }
+
+FUNCTION ValidateFeedbackInput(FeedbackInputStr : String; HasFeedback : Boolean; FeedbackUnit : Integer; FeedbackType : TypeOfFeedback; DataNumber : Integer;
+                               OUT ErrorMsg : String) : Integer;
+{ Check whether the point feedback input number is valid }
+VAR
+  F : Integer;
+  FeedbackInputFound : Boolean;
+
+BEGIN
+  ErrorMsg := '';
+
+  IF NOT HasFeedback AND (FeedbackInputStr <> '') THEN
+    ErrorMsg := 'ValidateFeedbackInput: a feedback input number has been declared but there is no feedback unit number'
+  ELSE
+    IF HasFeedback AND (FeedbackInputStr = '') THEN
+      ErrorMsg := 'ValidateFeedbackInput: a feedback unit has been declared but there is no feedback input number'
+    ELSE
+      IF NOT HasFeedback THEN
+        Result := 0
+      ELSE
+        IF FeedbackInputStr = '' THEN
+          Result := 0
+        ELSE
+          IF NOT TryStrToInt(FeedbackInputStr, Result) THEN
+            ErrorMsg := 'ValidateFeedbackInput: invalid integer "' + FeedbackInputStr + '"'
+          ELSE
+            IF (Result < 1) OR (Result > 8) THEN
+              ErrorMsg := 'ValidateFeedbackInput:  feedback input number ' + IntToStr(Result) + ' is out of range';
+
+  IF ErrorMsg = '' THEN BEGIN
+    IF (FeedbackUnit <> 0) AND (Result <> 0) THEN BEGIN
+      { check that the feedback unit data supplied is valid, and assign it to the appropriate feedback record }
+      F := 0;
+      FeedbackInputFound := False;
+      WHILE (F <= High(FeedbackUnitRecords)) AND NOT FeedbackInputFound DO BEGIN
+        IF F = FeedbackUnit THEN BEGIN
+          IF FeedbackUnitRecords[F].Feedback_InputTypeArray[Result] <> FeedbackType THEN
+            ErrorMsg := 'Cannot assign ' + FeedbackTypeToStr(FeedbackType) + ' to an input that is set to receive ' +
+                        FeedbackTypeToStr(FeedbackUnitRecords[F].Feedback_InputTypeArray[Result])
+          ELSE
+            CASE FeedbackType OF
+              LineFeedback:
+                FeedbackUnitRecords[F].Feedback_InputLine[Result] := DataNumber;
+              PointFeedback:
+                FeedbackUnitRecords[F].Feedback_InputPoint[Result] := DataNumber;
+              TrackCircuitFeedback:
+                FeedbackUnitRecords[F].Feedback_InputTrackCircuit[Result] := DataNumber;
+              TRSPlungerFeedback:
+                FeedbackUnitRecords[F].Feedback_InputTRSPlunger[Result] := DataNumber;
+            END; {CASE}
+        END;
+        Inc(F);
+      END; {WHILE}
+    END;
+  END;
+END; { ValidateFeedbackInput }
+
+PROCEDURE ReadInFeedbackDataFromDatabase;
+{ Initialise the feedback unit data }
+CONST
+  StopTimer = True;
+
+VAR
+  ErrorMsg : String;
+  FieldName : String;
+  FeedbackUnit : Integer;
+  FirstFeedbackUnitFound : Boolean;
+  Input : Integer;
+  TempStr : String;
+
+BEGIN
+  TRY
+    Log('A INITIALISING FEEDBACK UNIT DATA {BLANKLINEBEFORE}');
+
+    WITH InitVarsWindow DO BEGIN
+      IF NOT FileExists(PathToRailDataFiles + FeedbackDataFilename + '.' + FeedbackDataFilenameSuffix) THEN BEGIN
+        IF MessageDialogueWithDefault('Feedback database file "' + PathToRailDataFiles + FeedbackDataFilename + '.' + FeedbackDataFilenameSuffix + '" cannot be located'
+                                      + CRLF
+                                      + 'Do you wish to continue?',
+                                      StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
+        THEN
+          ShutDownProgram(UnitRef, 'ReadInFeedbackDataFromDatabase')
+        ELSE
+          Exit;
+      END;
+
+      FeedbackUnitsADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
+                                                        + PathToRailDataFiles + FeedbackDataFilename + '.' + FeedbackDataFilenameSuffix
+                                                        + ';Persist Security Info=False';
+      FeedbackUnitsADOConnection.Connected := True;
+      FeedbackUnitsADOTable.Open;
+      Log('T Feedback data table and connection opened to initialise the feedback unit data');
+
+      FeedbackUnitsADOTable.Sort := '[Unit] ASC';
+      FeedbackUnitsADOTable.First;
+      SetLength(FeedbackUnitRecords, 0);
+
+      FirstFeedbackUnit := 99999;
+      LastFeedbackUnit := -1;
+
+      FirstFeedbackUnitFound := False;
+
+      WHILE NOT FeedbackUnitsADOTable.EOF DO BEGIN
+        WITH FeedbackUnitsADOTable DO BEGIN
+          ErrorMsg := '';
+
+          FieldName := 'Unit';
+          FeedbackUnit := FieldByName(FieldName).AsInteger;
+          IF NOT FirstFeedbackUnitFound THEN BEGIN
+            { work out where the real start of the dynamic array is }
+            FirstFeedBackUnit := FeedbackUnit;
+            FirstFeedbackUnitFound := True;
+          END;
+          SetLength(FeedbackUnitRecords, FeedbackUnit + 1);
+          LastFeedBackUnit := High(FeedbackUnitRecords);
+
+          WITH FeedbackUnitRecords[High(FeedbackUnitRecords)] DO BEGIN
+            Feedback_DetectorOutOfUse := False;
+
+            FOR Input := 1 TO 8 DO BEGIN
+              Feedback_InputLine[Input] := UnknownLine;
+              Feedback_InputPoint[Input] := UnknownPoint;
+              Feedback_InputTrackCircuit[Input] := UnknownTrackCircuit;
+              Feedback_InputTRSPlunger[Input] := UnknownTRSPlunger;
+            END; {FOR}
+          END; {WHILE}
+
+          FieldName := 'Input1Type';
+          IF FieldByName(FieldName).AsString = '' THEN
+            ErrorMsg := 'missing feedback type'
+          ELSE BEGIN
+            WITH Feedbackunitrecords[high(Feedbackunitrecords)] DO BEGIN
+              Feedback_InputTypeArray[1] := StrToFeedbackType(FieldByName(FieldName).AsString);
+              IF Feedback_InputTypeArray[1] = UnknownFeedbackType THEN
+                ErrorMsg := 'unknown feedback type';
+            END; {with}
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            { propagate the other input types if only the first is occupied }
+            Input := 2;
+            WHILE (Input <= 8) AND (ErrorMsg = '') DO BEGIN
+              FieldName := 'Input' + IntToStr(Input) + 'Type';
+              WITH Feedbackunitrecords[high(Feedbackunitrecords)] DO
+                IF FieldByName(FieldName).AsString = '' THEN
+                  { propagate the other input types if only the first is occupied }
+                  Feedback_InputTypeArray[Input] := Feedback_InputTypeArray[1]
+                ELSE BEGIN
+                  Feedback_InputTypeArray[Input] := StrToFeedbackType(FieldByName(FieldName).AsString);
+                  IF Feedback_InputTypeArray[Input] = UnknownFeedbackType THEN
+                    ErrorMsg := 'unknown feedback type "' + FieldByName(FieldName).AsString + '" for Input' + IntToStr(Input) + 'Type';
+                END;
+              Inc(Input);
+            END; {WHILE}
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            FieldName := 'TCAbove';
+            TempStr := FieldByName(FieldName).AsString;
+            IF TempStr = '' THEN
+              Feedbackunitrecords[high(Feedbackunitrecords)].Feedback_TCAboveUnit := UnknownTrackCircuit
+            ELSE
+              IF NOT TryStrToInt(TempStr, Feedbackunitrecords[high(Feedbackunitrecords)].Feedback_TCAboveUnit) THEN
+                ErrorMsg := 'invalid integer ''' + TempStr + ''' in TCAbove field';
+          END;
+
+          IF ErrorMsg <> '' THEN BEGIN
+            IF MessageDialogueWithDefault('Error in creating Feedback Detector=' + IntToStr(high(Feedbackunitrecords)) + ': '
+                                          + '[' + ErrorMsg + ']:'
+                                          + CRLF
+                                          + 'Do you wish to continue?',
+                                          StopTimer, mtWarning, [mbYes, mbNo], mbNo) = mrNo
+            THEN
+              ShutDownProgram(UnitRef, 'InitialiseFeedback');
+          END;
+        END; {WITH}
+        FeedbackUnitsADOTable.Next;
+      END; {WHILE}
+
+      { Tidy up the database }
+      FeedbackUnitsADOTable.Close;
+      FeedbackUnitsADOConnection.Connected := False;
+      Log('T Feedback unit data table and connection closed');
+
+      Log('T Reading in feedback data from unit ' + IntToStr(FirstFeedbackUnit) + ' to unit ' + IntToStr(LastFeedbackUnit) + ' from database');
+    END; {WITH}
+  EXCEPT {TRY}
+    ON E : Exception DO
+      Log('EG ReadInFeedbackDataFromDatabase: ' + E.ClassName + ' error raised, with message: ' + E.Message);
+  END; {TRY}
+END; { ReadInFeedbackDataFromDatabase }
 
 PROCEDURE NoteOutOfUseFeedbackUnitTrackCircuitsAtStartup;
 { Work out which track circuits are unavailable because we're not getting initial feedback from them }

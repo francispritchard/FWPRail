@@ -212,23 +212,6 @@ TYPE
   END;
 
 TYPE
-  { Feedback-related type declarations }
-  TypeOfFeedback = (TrackCircuitFeedback, TRSPlungerFeedback, PointFeedback, LineFeedback, UnknownFeedbackType);
-
-  TypeOfFeedbackDetector = (TrackCircuitFeedbackDetector, TRSPlungerFeedbackDetector, PointFeedbackDetector, LineFeedbackDetector, MixedFeedbackDetectors,
-                            FeedbackDetectorOutOfUse, UnknownFeedbackDetectorType);
-
-  FeedbackRec = RECORD
-    Feedback_DetectorOutOfUse : Boolean;
-    Feedback_InputTypeArray : ARRAY [1..8] OF TypeOfFeedback;
-    Feedback_InputOnArray : ARRAY [1..8] OF Boolean;
-    Feedback_InputLine : ARRAY [1..8] OF Integer;
-    Feedback_InputPoint : ARRAY [1..8] OF Integer;
-    Feedback_InputTrackCircuit : ARRAY [1..8] OF Integer;
-    Feedback_InputTRSPlunger : ARRAY [1..8] OF Integer;
-    Feedback_TCAboveUnit : Integer;
-  END;
-
   HandleType = (UpHandle, MidHandle, DownHandle, NoHandle);
   MPHType = (MPH0, MPH10, MPH20, MPH30, MPH40, MPH50, MPH60, MPH70, MPH80, MPH90, MPH100, MPH110, MPH120, UnknownMPH, NoSpecifiedSpeed);
   NextLineRouteingType = (EndOfLineIsNext, LineIsNext, PointIsNext, UnknownNextLineRouteingType);
@@ -949,12 +932,6 @@ PROCEDURE InitialiseLogFiles;
 
 PROCEDURE ReadInAreasDataFromDatabase;
 { Initialise the area data }
-
-PROCEDURE ReadInFeedbackDataFromDatabase;
-{ Initialise the feedback unit data }
-
-PROCEDURE ReadInLocationDataFromDatabase;
-{ Initialise the location data }
 
 PROCEDURE ReadInPlatformDataFromDatabase;
 { Initialise the platform data }
@@ -2104,141 +2081,6 @@ BEGIN
   // END; {FOR}
 // END;
 END; { ReadInPlatformDataFromDatabase }
-
-PROCEDURE ReadInFeedbackDataFromDatabase;
-{ Initialise the feedback unit data }
-CONST
-  StopTimer = True;
-
-VAR
-  ErrorMsg : String;
-  FieldName : String;
-  FeedbackUnit : Integer;
-  FirstFeedbackUnitFound : Boolean;
-  Input : Integer;
-  TempStr : String;
-
-BEGIN
-  TRY
-    Log('A INITIALISING FEEDBACK UNIT DATA {BLANKLINEBEFORE}');
-
-    WITH InitVarsWindow DO BEGIN
-      IF NOT FileExists(PathToRailDataFiles + FeedbackDataFilename + '.' + FeedbackDataFilenameSuffix) THEN BEGIN
-        IF MessageDialogueWithDefault('Feedback database file "' + PathToRailDataFiles + FeedbackDataFilename + '.' + FeedbackDataFilenameSuffix + '" cannot be located'
-                                      + CRLF
-                                      + 'Do you wish to continue?',
-                                      StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
-        THEN
-          ShutDownProgram(UnitRef, 'ReadInFeedbackDataFromDatabase')
-        ELSE
-          Exit;
-      END;
-
-      FeedbackUnitsADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
-                                                        + PathToRailDataFiles + FeedbackDataFilename + '.' + FeedbackDataFilenameSuffix
-                                                        + ';Persist Security Info=False';
-      FeedbackUnitsADOConnection.Connected := True;
-      FeedbackUnitsADOTable.Open;
-      Log('T Feedback data table and connection opened to initialise the feedback unit data');
-
-      FeedbackUnitsADOTable.Sort := '[Unit] ASC';
-      FeedbackUnitsADOTable.First;
-      SetLength(FeedbackUnitRecords, 0);
-
-      FirstFeedbackUnit := 99999;
-      LastFeedbackUnit := -1;
-
-      FirstFeedbackUnitFound := False;
-
-      WHILE NOT FeedbackUnitsADOTable.EOF DO BEGIN
-        WITH FeedbackUnitsADOTable DO BEGIN
-          ErrorMsg := '';
-
-          FieldName := 'Unit';
-          FeedbackUnit := FieldByName(FieldName).AsInteger;
-          IF NOT FirstFeedbackUnitFound THEN BEGIN
-            { work out where the real start of the dynamic array is }
-            FirstFeedBackUnit := FeedbackUnit;
-            FirstFeedbackUnitFound := True;
-          END;
-          SetLength(FeedbackUnitRecords, FeedbackUnit + 1);
-          LastFeedBackUnit := High(FeedbackUnitRecords);
-
-          WITH FeedbackUnitRecords[High(FeedbackUnitRecords)] DO BEGIN
-            Feedback_DetectorOutOfUse := False;
-
-            FOR Input := 1 TO 8 DO BEGIN
-              Feedback_InputLine[Input] := UnknownLine;
-              Feedback_InputPoint[Input] := UnknownPoint;
-              Feedback_InputTrackCircuit[Input] := UnknownTrackCircuit;
-              Feedback_InputTRSPlunger[Input] := UnknownTRSPlunger;
-            END; {FOR}
-          END; {WHILE}
-
-          FieldName := 'Input1Type';
-          IF FieldByName(FieldName).AsString = '' THEN
-            ErrorMsg := 'missing feedback type'
-          ELSE BEGIN
-            WITH Feedbackunitrecords[high(Feedbackunitrecords)] DO BEGIN
-              Feedback_InputTypeArray[1] := StrToFeedbackType(FieldByName(FieldName).AsString);
-              IF Feedback_InputTypeArray[1] = UnknownFeedbackType THEN
-                ErrorMsg := 'unknown feedback type';
-            END; {with}
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            { propagate the other input types if only the first is occupied }
-            Input := 2;
-            WHILE (Input <= 8) AND (ErrorMsg = '') DO BEGIN
-              FieldName := 'Input' + IntToStr(Input) + 'Type';
-              WITH Feedbackunitrecords[high(Feedbackunitrecords)] DO
-                IF FieldByName(FieldName).AsString = '' THEN
-                  { propagate the other input types if only the first is occupied }
-                  Feedback_InputTypeArray[Input] := Feedback_InputTypeArray[1]
-                ELSE BEGIN
-                  Feedback_InputTypeArray[Input] := StrToFeedbackType(FieldByName(FieldName).AsString);
-                  IF Feedback_InputTypeArray[Input] = UnknownFeedbackType THEN
-                    ErrorMsg := 'unknown feedback type "' + FieldByName(FieldName).AsString + '" for Input' + IntToStr(Input) + 'Type';
-                END;
-              Inc(Input);
-            END; {WHILE}
-          END;
-
-          IF ErrorMsg = '' THEN BEGIN
-            FieldName := 'TCAbove';
-            TempStr := FieldByName(FieldName).AsString;
-            IF TempStr = '' THEN
-              Feedbackunitrecords[high(Feedbackunitrecords)].Feedback_TCAboveUnit := UnknownTrackCircuit
-            ELSE
-              IF NOT TryStrToInt(TempStr, Feedbackunitrecords[high(Feedbackunitrecords)].Feedback_TCAboveUnit) THEN
-                ErrorMsg := 'invalid integer ''' + TempStr + ''' in TCAbove field';
-          END;
-
-          IF ErrorMsg <> '' THEN BEGIN
-            IF MessageDialogueWithDefault('Error in creating Feedback Detector=' + IntToStr(high(Feedbackunitrecords)) + ': '
-                                          + '[' + ErrorMsg + ']:'
-                                          + CRLF
-                                          + 'Do you wish to continue?',
-                                          StopTimer, mtWarning, [mbYes, mbNo], mbNo) = mrNo
-            THEN
-              ShutDownProgram(UnitRef, 'InitialiseFeedback');
-          END;
-        END; {WITH}
-        FeedbackUnitsADOTable.Next;
-      END; {WHILE}
-
-      { Tidy up the database }
-      FeedbackUnitsADOTable.Close;
-      FeedbackUnitsADOConnection.Connected := False;
-      Log('T Feedback unit data table and connection closed');
-
-      Log('T Reading in feedback data from unit ' + IntToStr(FirstFeedbackUnit) + ' to unit ' + IntToStr(LastFeedbackUnit) + ' from database');
-    END; {WITH}
-  EXCEPT {TRY}
-    ON E : Exception DO
-      Log('EG ReadInFeedbackDataFromDatabase: ' + E.ClassName + ' error raised, with message: ' + E.Message);
-  END; {TRY}
-END; { ReadInFeedbackDataFromDatabase }
 
 PROCEDURE InitialiseLogFiles;
 { Open a new file for test output - rename two previous ones if they exist }
