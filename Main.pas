@@ -32,6 +32,9 @@ PROCEDURE InitialiseLocationLines;
 PROCEDURE InitialiseMainUnit;
 { Such routines as this allow us to initialises the units in the order we wish }
 
+PROCEDURE ShutDownProgram(UnitRef : String; SubroutineStr : String);
+{ Shut down the program neatly }
+
 PROCEDURE StartSystemTimer;
 { Starts the system timer only }
 
@@ -51,9 +54,9 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES GetTime, RailDraw, MiscUtils, Locks, LocationData, Feedback, Options, System.StrUtils, Lenz, System.DateUtils, TestUnit, Movement, FWPShowMessageUnit, CreateRoute,
+USES GetTime, RailDraw, MiscUtils, Locks, LocationsUnit, Feedback, Options, System.StrUtils, Lenz, System.DateUtils, TestUnit, Movement, FWPShowMessageUnit, CreateRoute,
      Diagrams, Route, Replay, Startup, Cuneo, LocoUtils, StationMonitors, ProgressBar, LocoDialogue, Help, WorkingTimetable, Edit, RDCUnit, Input, Train, SyncObjs,
-     Logging, SignalsUnit, PointsUnit, LinesUnit;
+     Logging, SignalsUnit, PointsUnit, LinesUnit, TCPIP;
 
 CONST
   ConnectedViaUSBStr = 'via USB';
@@ -1014,6 +1017,142 @@ BEGIN
       IF InDebuggingMode THEN
         Log('XG FWPRail Watchdog has incorrectly responded to "FWPRail is running" message with the response number: ' + IntToStr(Res));
 END; { SendStringToWatchdogProgram }
+
+PROCEDURE ShutDownProgram(UnitRef : String; SubroutineStr : String);
+{ Shut down the program neatly }
+
+CONST
+  Init = True;
+  TrainListOnly = True;
+  ReadWriteRegistry = True;
+
+VAR
+  OK : Boolean;
+  T : TrainIndex;
+  WindowsTaskBar : HWND;
+
+BEGIN { ShutDownProgram }
+  TRY
+    { Write out the locations of the locos so we know where they are when we start up next time (locations are the last known location, added when a loco moves, or is
+      purged)
+    }
+    Log('A! Shut down initiated');
+    ProgramShuttingDown := True;
+
+    IF ScreenColoursSetForPrinting THEN
+      { we need to do this or the wrong colours are saved in the registry }
+      ResetScreenColoursAfterPrinting;
+
+    { Close the station monitor web page if it exists }
+    CloseStationMonitorsWebPage(OK);
+    IF OK THEN
+      Log('A Station Monitors web page closed');
+
+    { Restore the Windows taskbar if we're in full screen mode and it's been disabled }
+    IF WindowsTaskbarDisabled THEN BEGIN
+      { Find handle of TASKBAR }
+      WindowsTaskBar := FindWindow('Shell_TrayWnd', NIL);
+      { Enable the taskbar }
+      EnableWindow(WindowsTaskBar, True);
+      { Show the taskbar }
+      ShowWindow(WindowsTaskbar, SW_SHOW);
+
+      WindowsTaskbarDisabled := False;
+    END;
+
+    IF NOT ProgramStarting THEN BEGIN
+      WriteOutLineDataToDatabase;
+      WriteOutLocationDataToDatabase;
+      WriteOutPointDataToDatabase;
+      WriteOutSignalDataToDatabase;
+
+      IF SystemOnline THEN
+        WriteOutLocoDataToDatabase;
+
+      { Stop any trains that are currently moving - better than leaving them running }
+      IF StopAllLocosAtShutDown THEN
+        StopLocos('shutdown');
+
+      IF NOT AllSignalsSwitchedOff THEN
+        SetAllSignalsToDanger;
+
+      IF SwitchActiveLocoLightsOffAtShutDown THEN BEGIN
+        T := 0;
+        WHILE T <= High(Trains) DO BEGIN
+          WITH Trains[T] DO BEGIN
+            IF (Train_LocoIndex <> UnknownLocoIndex) AND (TrainFoundInDiagrams(Train_LocoIndex) <> 0) THEN BEGIN
+              IF Train_HasLights THEN BEGIN
+                TurnTrainLightsOff(T, OK);
+                IF TrainHasCabLights(T) AND Train_CabLightsAreOn THEN
+                  TurnTrainCabLightsOff(T, OK);
+              END;
+            END;
+          END; {WITH}
+          Inc(T);
+        END; {WHILE}
+      END;
+
+      { Write then close the log file }
+      WriteToLogFileAndTestFile := True;
+      IF InRDCMode AND RailDriverInitialised THEN BEGIN
+        WriteToRailDriverLEDs('');
+        CloseRailDriver;
+      END;
+
+      StopSystemTimer;
+
+      { Write things back to the .ini file }
+      IF NOT ReplayMode AND NOT ProgramStarting THEN BEGIN
+        Log('A Writing .ini file');
+        WriteIniFile;
+      END;
+    END;
+
+    IF LenzConnection = USBConnection THEN
+      StopLANUSBServer;
+
+    Log('A Shut down initiated in ' + UnitRef + ' unit, ' + SubroutineStr + ' subroutine, is now complete (' + DescribeActualDateAndTime + ')');
+    IF InLogsCurrentlyKeptMode THEN BEGIN
+      CloseFile(TestLogFile);
+      CloseFile(LargeLogFile);
+      IF MultipleLogFilesRequired THEN BEGIN
+        CloseFile(ErrorLogFile);
+        CloseFile(LocoLogFile);
+        CloseFile(RouteLogFile);
+        CloseFile(SignalPointAndTCLogFile);
+        CloseFile(DiagramsLogFile);
+        CloseFile(WorkingTimetableLogFile);
+      END;
+
+      { Now reset the mode so that we don't try to write to log files after they've been closed }
+      SetMode(LogsCurrentlyKept, False);
+    END;
+
+    IF RestoreLogsToPreviousState THEN BEGIN
+      { Erase the newly created log file (if we're only doing a replay, not running a proper sequence, or else logging is off and rename the previous ones if they exist }
+      RenameLaterFiles(LargeLogFile, PathToLogFiles + LogFileName, LogFileNameSuffix);
+      RenameLaterFiles(TestLogFile, PathToLogFiles + LogFileName + '-Test', LogFileNameSuffix);
+      IF MultipleLogFilesRequired THEN BEGIN
+        RenameLaterFiles(ErrorLogFile, PathToLogFiles + LogFileName + '-Error', LogFileNameSuffix);
+        RenameLaterFiles(LocoLogFile, PathToLogFiles + LogFileName + '-Loco', LogFileNameSuffix);
+        RenameLaterFiles(RouteLogFile, PathToLogFiles + LogFileName + '-Route', LogFileNameSuffix);
+        RenameLaterFiles(SignalPointAndTCLogFile, PathToLogFiles + LogFileName + '-SignalPointAndTC', LogFileNameSuffix);
+        RenameLaterFiles(DiagramsLogFile, PathToLogFiles + LogFileName + '-Diagrams', LogFileNameSuffix);
+        RenameLaterFiles(WorkingTimetableLogFile, PathToLogFiles + LogFileName + '-WorkingTimetable', LogFileNameSuffix);
+      END;
+    END;
+
+    { and stop }
+    IF NOT ReplayMode THEN BEGIN
+      Application.Terminate;
+      IF NOT Application.Terminated THEN
+        Halt(12);
+    END;
+  EXCEPT
+    ON E : Exception DO
+      Log('EG ShutDownProgram: ' + E.ClassName + ' error raised, with message: ' + E.Message);
+  END; {TRY}
+END; { ShutDownProgram }
 
 PROCEDURE InitialiseMainUnit;
 { Such routines as this allow us to initialises the units in the order we wish }
