@@ -51,7 +51,7 @@ IMPLEMENTATION
 {$R *.dfm}
 
 USES RailDraw, Locks, Startup, Route, GetTime, Diagrams, MiscUtils, Movement, Lenz, Input, LocoUtils, Types, CreateRoute, LocoDialogue, LocationData, Help, StrUtils,
-     Options, Main, DateUtils;
+     Options, Main, DateUtils, Signal;
 
 CONST
   UnitRef = 'Cuneo';

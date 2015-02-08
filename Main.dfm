@@ -23,7 +23,7 @@ object MainWindow: TMainWindow
   end
   object WatchdogOneSecondTimer: TTimer
     OnTimer = WatchdogOneSecondTimerTick
-    Left = 216
+    Left = 272
     Top = 48
   end
 end

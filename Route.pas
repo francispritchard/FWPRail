@@ -19,6 +19,9 @@ TYPE
     { Public declarations }
   END;
 
+PROCEDURE CheckRouteAheadLocking(T : TrainIndex; RouteArray : StringArrayType; OUT RouteCurrentlyLocked, RoutePermanentlyLocked : Boolean; OUT LockingMsg : String);
+{ Tests a given route array to see if anything on it is locked }
+
 PROCEDURE ClearARoute(Route : Integer);
 { Use a string consisting of pairs of signal/point name then '/' or '-' etc. to clear the route }
 
@@ -34,6 +37,9 @@ PROCEDURE ProcessApproachLockedSignals(Route : Integer);
 PROCEDURE ReleaseSubRoutes;
 { If train has cleared last (or only) track circuit in a subroute, subroute can be released }
 
+FUNCTION RouteAheadOutOfUse(RouteArray : StringArrayType; OUT LockingMsg : String) : Boolean;
+{ Tests a given route locking array to see if anything on it is out of use }
+
 PROCEDURE SetUpASubRoute(Route : Integer);
 { Set up a subroute using the supplied route array }
 
@@ -44,7 +50,7 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES Locks, Startup, Diagrams, Movement, Input, MiscUtils, LocoUtils, IDGlobal, DateUtils, StrUtils, LocationData, Options, Main;
+USES Locks, Startup, Diagrams, Movement, Input, MiscUtils, LocoUtils, IDGlobal, DateUtils, StrUtils, LocationData, Options, Main, Signal;
 
 CONST
   UnitRef = 'Route';
@@ -1705,6 +1711,185 @@ BEGIN
     END;
   END;
 END; { ReleaseSubRoutes }
+
+PROCEDURE CheckRouteAheadLocking(T : TrainIndex; RouteArray : StringArrayType; OUT RouteCurrentlyLocked, RoutePermanentlyLocked : Boolean; OUT LockingMsg : String);
+{ Tests a given route array to see if anything on it is locked. The test stops at any subsequent signal which is a route holding signal though. }
+
+  FUNCTION PointIsLockedByAnySignal(P : Integer; OUT SignalLockingArray : IntegerArrayType) : Boolean;
+  { Returns true of the point is locked by any signal }
+  VAR
+    PointLockCount : Integer;
+
+  BEGIN
+    Result := False;
+    WITH Points[P] DO BEGIN
+      PointLockCount := 0;
+      WHILE (PointLockCount < Length(Point_LockingArray)) DO BEGIN
+        IF Pos('S=', Point_LockingArray[PointLockCount]) > 0 THEN BEGIN
+          AppendToIntegerArray(SignalLockingArray, ExtractSignalFromString(Point_LockingArray[PointLockCount]));
+          Result := True;
+        END;
+        Inc(PointLockCount);
+      END; {WHILE}
+    END; {WITH}
+  END; { PointIsLockedByAnySignal }
+
+  FUNCTION TrackCircuitLocked(LocoChip, TC : Integer; OUT LockingMsg : String) : Boolean;
+  { Returns true if the track circuit is locked by anything other than the given loco }
+  BEGIN
+    Result := False;
+    LockingMsg := 'not locked';
+
+    IF TrackCircuits[TC].TC_LockedForRoute <> UnknownRoute THEN BEGIN
+      IF LocoChip <> Routes_LocoChips[TrackCircuits[TC].TC_LockedForRoute] THEN BEGIN
+        { ignore locking by the supplied loco }
+        Result := True;
+        LockingMsg := 'locked by ' + LocoChipToStr(Routes_LocoChips[TrackCircuits[TC].TC_LockedForRoute]) + ' for R=' + IntToStr(TrackCircuits[TC].TC_LockedForRoute);
+      END;
+    END;
+  END; { TrackCircuitLocked }
+
+VAR
+  FirstRouteHoldSignalFound : Boolean;
+  I : Integer;
+  L : Integer;
+  P : Integer;
+  RouteLockingArray : IntegerArrayType;
+  S : Integer;
+  SecondRouteHoldSignalFound : Boolean;
+  SignalLockingArray : IntegerArrayType;
+  TC : Integer;
+  TempRouteArray : StringArrayType;
+
+BEGIN
+  IF T = UnknownTrainIndex THEN
+    UnknownTrainRecordFound('CheckRouteAheadLocking')
+  ELSE BEGIN
+    FirstRouteHoldSignalFound := False;
+    SecondRouteHoldSignalFound := False;
+    RouteCurrentlyLocked := False;
+    RoutePermanentlyLocked := False;
+
+    SetLength(TempRouteArray, 0);
+    I := 0;
+    WHILE (I <= High(RouteArray)) AND NOT SecondRouteHoldSignalFound DO BEGIN
+      { Look out for subsequent route holding signals, as it doesn't matter if the route is locked beyond one of those }
+      S := ExtractSignalFromString(RouteArray[I]);
+      IF S <> UnknownSignal THEN BEGIN
+        IF Signals[S].Signal_PossibleRouteHold THEN BEGIN
+          IF NOT FirstRouteHoldSignalFound THEN
+            FirstRouteHoldSignalFound := True
+          ELSE
+            SecondRouteHoldSignalFound := True;
+        END;
+      END;
+
+      IF NOT SecondRouteHoldSignalFound THEN BEGIN
+        SetLength(TempRouteArray, Length(TempRouteArray) + 1);
+        TempRouteArray[High(TempRouteArray)] := RouteArray[I];
+        Inc(I)
+      END;
+    END;
+
+    I := 0;
+    WHILE (I <= High(TempRouteArray)) AND NOT RouteCurrentlyLocked AND NOT RoutePermanentlyLocked DO BEGIN
+      { Test each element in turn, having first seen what kind of element it is }
+      S := ExtractSignalFromString(TempRouteArray[I]);
+      { signals which are to stay on and are already locked on are ok }
+      IF (S <> UnknownSignal) AND (ExtractSignalStateFromString(TempRouteArray[I]) <> SignalOn) THEN BEGIN
+        IF SignalIsLocked(S, LockingMsg) THEN BEGIN
+          LockingMsg := 'S=' + IntToStr(S) + ' (' + LockingMsg + ')';
+          RouteCurrentlyLocked := True;
+        END;
+      END ELSE BEGIN
+        P := ExtractPointFromString(TempRouteArray[I]);
+        IF (P <> UnknownPoint) AND (Points[P].Point_PresentState <> ExtractPointStateFromString(TempRouteArray[I])) THEN BEGIN
+          { we need to deal with three way points specially here - one half of the point is normally locked if the other half is diverging, but for the purpose of checking
+            whether it can be changed if the route is set up in due course, the test is really whether the other half is locked - because if so, the half we're testing can't
+            be moved. If the other half is not actually locked, then our half can be moved if we first move the other half. (The usual point lock test doesn't check this, and
+            thus three way points are always returned as locked if called by this subroutine).
+          }
+          IF Points[P].Point_Type = ThreeWayPointA THEN BEGIN
+            IF PointIsLocked(Points[P].Point_RelatedPoint, LockingMsg) THEN
+              { check that the point B isn't just locked by point A }
+              IF PointIsLockedByAnySignal(Points[P].Point_RelatedPoint, SignalLockingArray) OR PointIsLockedByAnyRoute(P, RouteLockingArray)
+              THEN
+                RouteCurrentlyLocked := True;
+          END ELSE
+            IF Points[P].Point_Type = ThreeWayPointB THEN BEGIN
+              IF PointIsLockedByAnySignal(P, SignalLockingArray) OR PointIsLockedByAnyRoute(P, RouteLockingArray) THEN
+                RouteCurrentlyLocked := True;
+            END ELSE
+              IF (Points[P].Point_Type = CatchPointUp) OR (Points[P].Point_Type = CatchPointDown) THEN BEGIN
+                { the problem described above also applies to catch points: the test is whether the catch point is locked other than by the point it is protecting. }
+                IF PointIsLocked(P, LockingMsg) THEN
+                  IF PointIsLockedByAnySignal(P, SignalLockingArray) OR PointIsLockedByAnyRoute(P, RouteLockingArray) THEN
+                    RouteCurrentlyLocked := True;
+              END ELSE
+                IF PointIsLocked(P, LockingMsg) THEN BEGIN
+                  LockingMsg := 'P=' + IntToStr(P) + ' (' + LockingMsg + ')';
+                  RouteCurrentlyLocked := True;
+                END;
+        END ELSE BEGIN
+          L := ExtractLineFromString(TempRouteArray[I]);
+          IF L <> UnknownLine THEN BEGIN
+            TC := Lines[L].Line_TC;
+            IF TC <> UnknownTrackCircuit THEN BEGIN
+              IF TrackCircuitLocked(Trains[T].Train_LocoChip, TC, LockingMsg) THEN BEGIN
+                LockingMsg := 'TC=' + IntToStr(TC) + ' (' + LockingMsg + ')';
+                RouteCurrentlyLocked := True;
+              END ELSE
+                IF (TrackCircuits[TC].TC_OccupationState <> TCUnoccupied) AND (TrackCircuits[TC].TC_LocoChip <> Trains[T].Train_LocoChip) THEN BEGIN
+                  IF (TrackCircuits[TC].TC_OccupationState = TCPermanentFeedbackOccupation)
+                  OR (TrackCircuits[TC].TC_OccupationState = TCPermanentOccupationSetByUser)
+                  OR (TrackCircuits[TC].TC_OccupationState = TCPermanentSystemOccupation)
+                  OR (TrackCircuits[TC].TC_OccupationState = TCOutOfUseSetByUser)
+                  OR (TrackCircuits[TC].TC_OccupationState = TCOutOfUseAsNoFeedbackReceived)
+                  THEN BEGIN
+                    RoutePermanentlyLocked := True;
+                    LockingMsg := 'TC=' + IntToStr(TC) + ' locked (' + TrackCircuitStateToStr(TrackCircuits[TC].TC_OccupationState) + ')';
+                  END ELSE
+                    IF TrackCircuits[TC].TC_OccupationState = TCFeedbackOccupation THEN BEGIN
+                      RouteCurrentlyLocked := True;
+                      LockingMsg := 'TC=' + IntToStr(TC) + ' locked (' + TrackCircuitStateToStr(TrackCircuits[TC].TC_OccupationState) + ')';
+                    END;
+                END;
+            END;
+          END;
+        END;
+      END;
+      Inc(I);
+    END; {WHILE}
+
+    IF RouteCurrentlyLocked OR RoutePermanentlyLocked THEN
+      Trains[T].Train_LastRouteLockedMsgStr := LockingMsg;
+  END;
+END; { CheckRouteAheadLocking }
+
+FUNCTION RouteAheadOutOfUse(RouteArray : StringArrayType; OUT LockingMsg : String) : Boolean;
+{ Tests a given route locking array to see if anything on it is out of use }
+VAR
+  I : Integer;
+  L : Integer;
+
+BEGIN
+  I := 0;
+  Result := False;
+  WHILE (I <= High(RouteArray)) AND (Result <> True) DO BEGIN
+    L := ExtractLineFromString(RouteArray[I]);
+    IF L <> UnknownLine THEN BEGIN
+      IF Lines[L].Line_TC <> UnknownTrackCircuit THEN BEGIN
+        IF (TrackCircuits[Lines[L].Line_TC].TC_OccupationState = TCOutOfUseSetByUser)
+        OR (TrackCircuits[Lines[L].Line_TC].TC_OccupationState = TCOutOfUseAsNoFeedbackReceived)
+        THEN BEGIN
+          Result := True;
+          LockingMsg := 'TC=' + IntToStr(Lines[L].Line_TC) + ' is out of use';
+        END;
+      END;
+    END;
+    Inc(I);
+  END; {WHILE}
+END; { RouteAheadOutOfUse }
 
 INITIALIZATION
 

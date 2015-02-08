@@ -135,7 +135,8 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES RailDraw, Feedback, GetTime, Startup, MiscUtils, Diagrams, LocoUtils, IDGlobal, Movement, MMSystem, DateUtils, StrUtils, Input, Main, Locks, LocationData, Options;
+USES RailDraw, Feedback, GetTime, Startup, MiscUtils, Diagrams, LocoUtils, IDGlobal, Movement, MMSystem, DateUtils, StrUtils, Input, Main, Locks, LocationData, Options,
+     Signal;
 
 CONST
   UnitRef = 'Lenz';
@@ -3134,7 +3135,7 @@ VAR
   { Ask for feedback on specified device and store it. Usually only called on startup.
 
     Feedback comes in two nibbles - have to ask for both to get all the inputs, which comes in bits 3-0 (in nibble 1, bit 0 is input 1, bit 1 is input 2, etc. In nibble 2,
-    bit 0 is input 5, bit 1 is input 6, etc.) FeedbackAddress is one less than the one shown on the LH100 and the one programmed into the device
+    bit 0 is input 5, bit 1 is input 6, etc.) The FeedbackAddress is one less than the one shown on the LH100 and the one programmed into the device.
   }
   VAR
     I : Integer;

@@ -50,7 +50,8 @@ USES
   Main IN 'Main.pas' {MainWindow},
   Train IN 'Train.pas' {TrainForm},
   DataCheck IN 'DataCheck.pas' {DataCheckForm},
-  Install IN 'Install.pas' {InstallForm};
+  Install IN 'Install.pas' {InstallForm},
+  Signal IN 'Signal.pas' {SignalForm};
 
 VAR
   I : Integer;
@@ -81,6 +82,7 @@ BEGIN
   Application.CreateForm(TTrainForm, TrainForm);
   Application.CreateForm(TDataCheckForm, DataCheckForm);
   Application.CreateForm(TInstallForm, InstallForm);
+  Application.CreateForm(TSignalForm, SignalForm);
   Application.Run;
 END { Rail }.
 

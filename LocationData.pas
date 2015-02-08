@@ -61,7 +61,7 @@ VAR
 
 IMPLEMENTATION
 
-USES MiscUtils, StrUtils, LocoUtils, Diagrams, DateUtils, RailDraw, Locks, Input, GetTime, Lenz, Options, Startup;
+USES MiscUtils, StrUtils, LocoUtils, Diagrams, DateUtils, RailDraw, Locks, Input, GetTime, Lenz, Options, Startup, Route;
 
 {$R *.dfm}
 

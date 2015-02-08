@@ -43,18 +43,6 @@ PROCEDURE InitialiseLocationLines;
 PROCEDURE InitialiseMainUnit;
 { Such routines as this allow us to initialises the units in the order we wish }
 
-PROCEDURE RestoreAllSignalsToPreviousState;
-{ Sets all off signals to how they were before short circuit }
-
-PROCEDURE SaveSignalsCurrentState;
-{ Save all the previous state of all signals }
-
-PROCEDURE SetAllSignalsToDanger;
-{ Sets all off signals to on }
-
-PROCEDURE SetSignal(LocoChipStr : String; S : Integer; NewAspect : AspectType; LogSignalData, ForceWriting : Boolean);
-{ Set the state of a particular signal and draws it }
-
 PROCEDURE SetTrackCircuitState{1}(LocoChip : Integer; TC : Integer; NewState : TrackCircuitStateType); Overload;
 { Set whether and how the track circuit is occupied, and mark it with a loco chip number }
 
@@ -74,9 +62,6 @@ PROCEDURE StartSystemTimer;
 PROCEDURE StopSystemTimer;
 { Stops the system timer only }
 
-PROCEDURE TurnAllSignalsOff;
-{ Turn off the LEDs in the signals }
-
 PROCEDURE TurnAutoModeOff(User : Boolean);
 { Turns auto mode off }
 
@@ -92,7 +77,7 @@ IMPLEMENTATION
 
 USES GetTime, RailDraw, MiscUtils, Locks, LocationData, Feedback, Options, System.StrUtils, Lenz, System.DateUtils, TestUnit, Movement, FWPShowMessageUnit, CreateRoute,
      Diagrams, Route, Replay, Startup, Cuneo, LocoUtils, StationMonitors, ProgressBar, LocoDialogue, Help, WorkingTimetable, Edit, RDCUnit, Input, Train, SyncObjs,
-     Logging;
+     Logging, Signal;
 
 CONST
   ConnectedViaUSBStr = 'via USB';
@@ -103,7 +88,7 @@ CONST
   UnitRef = 'Main';
 
 VAR
-  MainCriticalSection : TCriticalSection;
+  InMainLoop : Boolean = False;
   NumbersArrayCounter : Integer = -1;
   SaveSystemStatusEmergencyOff : Boolean;
 
@@ -259,70 +244,6 @@ BEGIN
   END; {TRY}
 END; { MainWindowCreate }
 
-PROCEDURE SetSignal(LocoChipStr : String; S : Integer; NewAspect : AspectType; LogSignalData, ForceWriting : Boolean);
-{ Set the state of a particular signal and draws it }
-VAR
-  OK : Boolean;
-
-BEGIN
-  TRY
-    WITH Signals[S] DO BEGIN
-      IF (Signal_Aspect <> NewAspect) OR ForceWriting THEN BEGIN
-        Signal_Aspect := NewAspect;
-        IF NOT ProgramStarting AND LogSignalData THEN BEGIN
-          IF (Signals[S].Signal_Type <> SemaphoreHome) AND (Signals[S].Signal_Type <> SemaphoreDistant) THEN
-            Log('S S=' + IntToStr(S) + ' successfully set to ' + AspectToStr(Signals[S].Signal_Aspect))
-          ELSE
-            Log('S S=' + IntToStr(S) + ' successfully set to ' + SemaphoreAspectToStr(Signals[S].Signal_Aspect));
-        END;
-
-        IF SystemOnline AND NOT ResizeMap THEN BEGIN
-          IF Signal_DecoderNum <> 0 THEN
-            { uses LF100 decoders - bits usually set as follows:
-              green is bit 1, red 2, single yellow 3, double yellow 3 + 4; the indicator is bit 4 (not necessarily on same decoder though)
-            }
-            SetSignalFunction(LocoChipStr, S)
-          ELSE
-            IF Signal_AccessoryAddress <> 0 THEN
-              { uses TrainTech SC3 units for controlling Dapol semaphores }
-              IF NewAspect = RedAspect THEN
-                MakeSemaphoreSignalChange(LocoChipStr, S, Signal_AccessoryAddress, SignalOn, OK)
-              ELSE
-                MakeSemaphoreSignalChange(LocoChipStr, S, Signal_AccessoryAddress, SignalOff, OK);
-        END;
-
-        IF NOT ProgramStarting THEN
-          { calling invalidate here didn't redraw the signal in time - repaint causes the screen to be redrawn instantly and not via the message queue }
-          FWPRailWindow.Repaint;
-      END;
-    END; {WITH}
-  EXCEPT
-    ON E : Exception DO
-      Log('EG SetSignal:' + E.ClassName + ' error raised, with message: '+ E.Message);
-  END; {TRY}
-END; { SetSignal }
-
-PROCEDURE SetAllSignalsToDanger;
-{ Sets all off signals to on }
-VAR
-  S : Integer;
-
-BEGIN
-  TRY
-    FOR S := 0 TO High(Signals) DO BEGIN
-      IF NOT Signals[S].Signal_OutOfUse THEN BEGIN
-        IF (GetSignalAspect(S) <> RedAspect) THEN
-          SetSignal(UnknownLocoChipStr, S, RedAspect, LogSignalData, NOT ForceAWrite);
-        IF Signals[S].Signal_IndicatorState <> NoIndicatorLit THEN
-          SetIndicator(UnknownLocoChipStr, S, NoIndicatorLit, '', NoRoute, NOT ByUser);
-      END;
-    END; {FOR}
-  EXCEPT
-    ON E : Exception DO
-      Log('EG SetAllSignalsToDanger:' + E.ClassName + ' error raised, with message: '+ E.Message);
-  END; {TRY}
-END; { SetAllSignalsToDanger }
-
 PROCEDURE InitialiseLocationLines;
 { Now we have set up the lines and signals, we can work out how they relate to locations. Some long locations (UFY for instance) will have multiple lines attached *** }
 VAR
@@ -466,72 +387,6 @@ PROCEDURE StopSystemTimer;
 BEGIN
   MainWindow.MainTimer.Enabled := False;
 END; { StopSystemTimer }
-
-PROCEDURE SaveSignalsCurrentState;
-{ Save all the previous state of all signals }
-VAR
-  S : Integer;
-
-BEGIN
-  TRY
-    FOR S := 0 TO High(Signals) DO BEGIN
-      WITH Signals[S] DO BEGIN
-        IF NOT Signal_OutOfUse THEN BEGIN
-          Signal_PreviousAspect := Signals[S].Signal_Aspect;
-          Signal_PreviousIndicatorState := Signals[S].Signal_IndicatorState;
-          Signal_PreviousTheatreIndicatorString := Signal_TheatreIndicatorString;
-        END;
-      END; {WITH}
-    END; {FOR}
-  EXCEPT
-    ON E : Exception DO
-      Log('EG SaveSignalsCurrentState:' + E.ClassName + ' error raised, with message: '+ E.Message);
-  END; {TRY}
-END; { SaveSignalsCurrentState }
-
-PROCEDURE TurnAllSignalsOff;
-{ Turn off the LEDs in the signals }
-VAR
-  S : Integer;
-
-BEGIN
-  TRY
-    FOR S := 0 TO High(Signals) DO BEGIN
-      SetSignal(UnknownLocoChipStr, S, NoAspect, LogSignalData, NOT ForceAWrite);
-      IF Signals[S].Signal_IndicatorState <> NoIndicatorLit THEN
-        SetIndicator(UnknownLocoChipStr, S, NoIndicatorLit, '', NoRoute, NOT ByUser);
-    END; {FOR}
-  EXCEPT
-    ON E : Exception DO
-      Log('EG TurnAllSignalsOff:' + E.ClassName + ' error raised, with message: '+ E.Message);
-  END; {TRY}
-END; { TurnAllSignalsOff }
-
-PROCEDURE RestoreAllSignalsToPreviousState;
-{ Sets all off signals to how they were before short circuit }
-VAR
-  S : Integer;
-
-BEGIN
-  TRY
-    Log('S Restoring all signals to their previous aspects');
-    FOR S := 0 TO High(Signals) DO BEGIN
-      WITH Signals[S] DO BEGIN
-        IF NOT Signal_OutOfUse THEN BEGIN
-          { have to set state to NoAspect, or SetSignal won't redraw the SignalAspect/indicator }
-          Signal_Aspect := NoAspect;
-          Signal_IndicatorState := NoIndicatorLit;
-          SetSignal(UnknownLocoChipStr, S, Signal_PreviousAspect, LogSignalData, NOT ForceAWrite);
-          IF Signal_PreviousIndicatorState <> NoIndicatorLit THEN
-            SetIndicator(UnknownLocoChipStr, S, Signal_PreviousIndicatorState, Signal_PreviousTheatreIndicatorString, NoRoute, NOT ByUser);
-        END;
-      END; {WITH}
-    END; {FOR}
-  EXCEPT
-    ON E : Exception DO
-      Log('EG RestoreAllSignalsToPreviousState:' + E.ClassName + ' error raised, with message: '+ E.Message);
-  END; {TRY}
-END; { RestoreAllSignalsToPreviousState }
 
 FUNCTION GetBufferStopDirection(BufferStopNum : Integer) : DirectionType;
 { Return a buffer stop's direction }
@@ -1471,11 +1326,11 @@ VAR
 
 BEGIN
   TRY
-    { TCriticalSection allows a thread in a multithreaded application to temporarily block other threads from accessing a block of code }
-    MainCriticalSection.Enter;
-    StopSystemTimer;
+    IF NOT InMainLoop THEN BEGIN
+      InMainLoop := True;
 
-    TRY
+//      StopSystemTimer;
+
       IF RunTestUnitOnStartup THEN BEGIN
         Debug('Running test unit on startup');
         TestProc(KeyOut);
@@ -1660,9 +1515,8 @@ BEGIN
 
         CheckStationStartMode;
       END;
-    FINALLY
-      StartSystemTimer;
-      MainCriticalSection.Leave;
+
+      InMainLoop := False;
     END;
   EXCEPT
     ON E : Exception DO
@@ -1737,9 +1591,5 @@ BEGIN
 END; { InitialiseGetTimeUnit }
 
 INITIALIZATION
-
-BEGIN
-  MainCriticalSection := TCriticalSection.Create;
-END;
 
 END { Main }.

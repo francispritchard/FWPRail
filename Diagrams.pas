@@ -168,7 +168,7 @@ IMPLEMENTATION
 {$R *.dfm}
 
 USES ComObj, Lenz, MiscUtils, Startup, LocoUtils, IDGlobal, RailDraw, Input, Movement, CreateRoute, DateUtils, Math {sic}, Route, Types, StrUtils, StationMonitors, Locks,
-     LocoDialogue, LocationData, Help, Options, Main, Train;
+     LocoDialogue, LocationData, Help, Options, Main, Train, Signal;
 
 CONST
   BoldStyleStr = '<B>';
