@@ -9,7 +9,7 @@ UNIT Route;
 }
 INTERFACE
 
-USES Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, Dialogs, RailDraw, GetTime, Lenz, InitVars, CreateRoute, StdCtrls;
+USES Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, Dialogs, RailDraw, GetTime, Lenz, InitVars, CreateRoute, StdCtrls, Train;
 
 TYPE
   TRouteWindow = CLASS(TForm)
@@ -45,6 +45,57 @@ PROCEDURE SetUpASubRoute(Route : Integer);
 
 VAR
   RouteWindow: TRouteWindow; { not in use }
+
+  Routes_ApproachControlledSignals : ARRAY OF IntegerArrayType;
+  Routes_ApproachControlSignalsMsgWrittenArray : BooleanArrayType;
+  Routes_ApproachControlSignalsWaitingToBeSet : ARRAY OF StringArrayType;
+  Routes_ApproachControlsSet : BooleanArrayType; { once this on, all subsequent route setting is done using it }
+  Routes_AutoSettingMode : BooleanArrayType;
+  Routes_Cleared : BooleanArrayType;
+  Routes_ClearingFailuresMsg1WrittenArray : BooleanArrayType;
+  Routes_ClearingFailuresMsg2WrittenArray : BooleanArrayType;
+  Routes_ClearingFailuresMsg3WrittenArray : BooleanArrayType;
+  Routes_CurrentClearingSubRoute : IntegerArrayType;
+  Routes_CurrentSettingSubRoute : IntegerArrayType;
+  Routes_CurrentSubRouteClearingPos : IntegerArrayType;
+  Routes_CurrentSubRouteSettingPos : IntegerArrayType;
+  Routes_Directions : DirectionArrayType;
+  Routes_EndBufferStops : IntegerArrayType;
+  Routes_EndLines : IntegerArrayType;
+  Routes_EndSignals : IntegerArrayType;
+  Routes_Journeys : IntegerArrayType;
+  Routes_LocoChips : IntegerArrayType;
+  Routes_NearestSignalTestingInitiated : Boolean = False; { This is for testing route saving }
+  Routes_PointResultPendingMsgWrittenArray : BooleanArrayType;
+  Routes_PointResultPendingPoint : IntegerArrayType;
+  Routes_PointResultPendingPointMsgWrittenArray : BooleanArrayType;
+  Routes_PossibleRerouteTime : DateTimeArrayType;
+  Routes_RouteClearingsInProgress : BooleanArrayType;
+  Routes_RouteClearingsWithoutPointResetting : BooleanArrayType;
+  Routes_RouteCounter : Integer = -1;
+  Routes_RouteingsCancelled : BooleanArrayType;
+  Routes_Routes : IntegerArrayType;
+  Routes_RouteSettingByEmergencyRoute : Boolean = False;
+  Routes_RouteSettingByHand : Boolean = False;
+  Routes_RouteSettingsCompleted : BooleanArrayType;
+  Routes_RouteSettingsInProgress : BooleanArrayType;
+  Routes_RoutesSettingUpHeldMsgWrittenArray : BooleanArrayType;
+  Routes_RoutesSettingUpStalledMsgArray : StringArrayType;
+  Routes_RoutesSettingUpStalledMsgWrittenArray : BooleanArrayType;
+  Routes_RoutesSettingUpStalledTimeArray : DateTimeArrayType;
+  Routes_SettingUpFailuresMsgWrittenArray : BooleanArrayType;
+  Routes_StartLines : IntegerArrayType;
+  Routes_StartSignals : IntegerArrayType;
+  Routes_SubRouteClearingStrings : ARRAY OF ARRAY OF StringArrayType; { ie a 3-dimensional ARRAY OF String }
+  Routes_SubRouteEndLines : ARRAY OF IntegerArrayType;
+  Routes_SubRoutesAheadNotClearMsgWrittenArray : BooleanArrayType;
+  Routes_SubRouteSettingStrings : ARRAY OF ARRAY OF StringArrayType; { ie a 3-dimensional ARRAY OF String }
+  Routes_SubRouteStartLines : ARRAY OF IntegerArrayType;
+  Routes_SubRouteStartSignals : ARRAY OF IntegerArrayType;
+  Routes_SubRouteStates : ARRAY OF SubRouteStateArrayType; { 2D as there are 3 states per subroute }
+  Routes_TheatreIndicatorSettingInitiated : Boolean = False;
+  Routes_TotalSubRoutes : IntegerArrayType;
+  Routes_Trains : TrainArrayType;
 
 IMPLEMENTATION
 

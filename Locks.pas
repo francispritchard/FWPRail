@@ -56,9 +56,6 @@ PROCEDURE Forbid;
 PROCEDURE InitialiseLocksUnit;
 { Initialise the unit }
 
-PROCEDURE UnlockTrackCircuitRouteLocking(TC : Integer);
-{ Unlock a given track circuit }
-
 PROCEDURE WriteLockingDataToLockListWindow;
 { Writes locking data to a popup screen }
 
@@ -89,26 +86,6 @@ BEGIN
   IF NOT InAutoMode THEN
     MakeSound(1);
 END; { Forbid }
-
-PROCEDURE UnlockTrackCircuitRouteLocking(TC : Integer);
-{ Unlock a given track circuit }
-BEGIN
-  IF TC <> UnknownTrackCircuit THEN BEGIN
-    WITH TrackCircuits[TC] DO BEGIN
-      IF TC_Journey <> UnknownJourney THEN BEGIN
-        Log(LocoChipToStr(TC_LocoChip) + ' R TC=' + IntToStr(TC) + ': TC_Journey was ' + IntToStr(TC_Journey) + ' now set to unknown journey');
-        TrackCircuits[TC].TC_Journey := UnknownJourney;
-      END;
-
-      IF TC_LockedForRoute <> UnknownRoute THEN BEGIN
-        TC_SaveRouteLocking := UnknownRoute;
-        Log(LocoChipToStr(TC_LocoChip) + ' R TC=' + IntToStr(TC) + ': TC_LockedForRoute was R=' + IntToStr(TC_LockedForRoute)
-                            + ' (' + LocoChipToStr(Routes_LocoChips[TrackCircuits[TC].TC_LockedForRoute]) + ')' + ' now reset to unknown route');
-        TC_LockedForRoute := UnknownRoute;
-      END;
-    END; {WITH}
-  END;
-END; { UnlockTrackCircuitRouteLocking }
 
 PROCEDURE WriteLockingDataToLockListWindow;
 { Writes locking data to a popup screen }

@@ -10,7 +10,7 @@ UNIT CreateRoute;
 
 INTERFACE
 
-USES InitVars, RailDraw, Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, Dialogs, Grids, StdCtrls, ComCtrls, ExtCtrls, DB, ADODB;
+USES InitVars, RailDraw, Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, Dialogs, Grids, StdCtrls, ComCtrls, ExtCtrls, DB, ADODB, Train;
 
 TYPE
   TDisplayLineColoursWindow = CLASS(TForm)
@@ -80,6 +80,39 @@ PROCEDURE InitialiseDisplayLineColoursWindow;
 PROCEDURE ReadInRouteingExceptionsFromDatabase;
 { Read in from file parameters that indicate routes that are explicitly not allowed }
 
+TYPE
+  RouteingExceptionRec = RECORD
+    RouteingException_AllowedInEmergency : Boolean;
+    RouteingException_CurrentLines : IntegerArrayType;
+    RouteingException_CurrentLinesExcepted : IntegerArrayType;
+    RouteingException_EndAreas : IntegerArrayType;
+    RouteingException_EndAreasExcepted : IntegerArrayType;
+    RouteingException_EndLines : IntegerArrayType;
+    RouteingException_EndLinesExcepted : IntegerArrayType;
+    RouteingException_EndLocations : IntegerArrayType;
+    RouteingException_EndLocationsExcepted : IntegerArrayType;
+    RouteingException_LinesRoutedOver : IntegerArrayType;
+    RouteingException_LinesRoutedOverExcepted : IntegerArrayType;
+    RouteingException_MaxTrainLength : Integer;
+    RouteingException_PreviousLines : IntegerArrayType;
+    RouteingException_PreviousLinesExcepted : IntegerArrayType;
+    RouteingException_RouteDirection : DirectionType;
+    RouteingException_Rule : Integer;
+    RouteingException_StartAreas : IntegerArrayType;
+    RouteingException_StartAreasExcepted : IntegerArrayType;
+    RouteingException_StartLines : IntegerArrayType;
+    RouteingException_StartLinesExcepted : IntegerArrayType;
+    RouteingException_StartLocations : IntegerArrayType;
+    RouteingException_StartLocationsExcepted : IntegerArrayType;
+    RouteingException_StopStr : String;
+    RouteingException_TrainTypes : TrainTypeArray;
+  END;
+
+VAR
+  RouteingByUser : Boolean = False;
+  RouteingExceptions : ARRAY OF RouteingExceptionRec;
+  RouteingSuspendedForModalDialogue : Boolean = False;
+  RouteingSuspendedWhenStopPressed : Boolean = False;
 IMPLEMENTATION
 
 {$R *.dfm}

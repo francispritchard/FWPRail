@@ -6,7 +6,7 @@ UNIT LocationData;
 
 INTERFACE
 
-USES Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, Dialogs, InitVars, DB, ADODB, StdCtrls, ExtCtrls, Grids;
+USES Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, Dialogs, InitVars, DB, ADODB, StdCtrls, ExtCtrls, Grids, Train;
 
 TYPE
   TLocationDataWindow = CLASS(TForm)

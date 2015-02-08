@@ -2,7 +2,8 @@ UNIT Diagrams;
 
 INTERFACE
 
-USES Windows, Messages, Variants, Classes, Graphics, Controls, Forms, StdCtrls, Grids, Menus, InitVars, GetTime, Dialogs, SysUtils, DB, ADODB, DBGrids, ExtCtrls, DBCtrls;
+USES Windows, Messages, Variants, Classes, Graphics, Controls, Forms, StdCtrls, Grids, Menus, InitVars, GetTime, Dialogs, SysUtils, DB, ADODB, DBGrids, ExtCtrls, DBCtrls,
+     Train;
 
 TYPE
   TDiagramsWindow = CLASS(TForm)
@@ -168,7 +169,7 @@ IMPLEMENTATION
 {$R *.dfm}
 
 USES ComObj, Lenz, MiscUtils, Startup, LocoUtils, IDGlobal, RailDraw, Input, Movement, CreateRoute, DateUtils, Math {sic}, Route, Types, StrUtils, StationMonitors, Locks,
-     LocoDialogue, LocationData, Help, Options, Main, Train, SignalsUnit, TrackCircuitsUnit, LinesUnit;
+     LocoDialogue, LocationData, Help, Options, Main, SignalsUnit, TrackCircuitsUnit, LinesUnit;
 
 CONST
   BoldStyleStr = '<B>';

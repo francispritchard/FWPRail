@@ -204,7 +204,8 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES Route, FWPShowMessageUnit, AnsiStrings, MiscUtils, Locks, DateUtils, Lenz, RailDraw, Main, LinesUnit, Options, Data.DB, StrUtils, TrackCircuitsUnit, SignalsUnit;
+USES Route, FWPShowMessageUnit, AnsiStrings, MiscUtils, Locks, DateUtils, Lenz, RailDraw, Main, LinesUnit, Options, Data.DB, StrUtils, TrackCircuitsUnit, SignalsUnit,
+     CreateRoute;
 
 CONST
   UnitRef = 'PointUnit';

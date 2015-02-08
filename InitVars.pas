@@ -519,230 +519,6 @@ TYPE
   TimedRectangleArrayType = ARRAY OF TimedRectangleRec;
 
 TYPE
-  { Train-related type declarations }
-  TypeOfTrainType = (LightLocoType, ExpressPassengerType, OrdinaryPassengerType, ExpressFreightType, Freight75mphType, EmptyCoachingStockType, Freight60mphType,
-                     Freight45mphType, Freight35mphType, InternationalType, UnknownTrainType);
-  TrainTypeArray = ARRAY OF TypeOfTrainType;
-
-  TrainJourneyRec = RECORD
-    TrainJourney_ActualArrivalTime : TDateTime;
-    TrainJourney_ActualDepartureTime : TDateTime;
-    TrainJourney_AdditionalRequiredStationWaitInMinutes : Integer;
-    TrainJourney_Cleared : Boolean;
-    { TrainJourney_Commenced : Boolean; - use TrainJourney_ActualDepartureTime <> 0 instead }
-    TrainJourney_Created : Boolean;
-    TrainJourney_CurrentArrivalTime : TDateTime;
-    TrainJourney_CurrentDepartureTime : TDateTime;
-    TrainJourney_DiagrammedArrivalTime : TDateTime;
-    TrainJourney_DiagrammedDepartureTime : TDateTime;
-    TrainJourney_DiagrammedStartLocation : Integer;
-    TrainJourney_DiagrammedEndLocation : Integer;
-    TrainJourney_Direction : DirectionType;
-    TrainJourney_DurationInMinutes : Integer;
-    TrainJourney_EndArea : Integer;
-    TrainJourney_EndBufferStop : Integer;
-    TrainJourney_EndLine : Integer;
-    TrainJourney_EndLocation : Integer;
-    TrainJourney_EndStationName : String;
-    TrainJourney_EndSignal : Integer;
-    TrainJourney_FirstTC : Integer;
-    TrainJourney_LengthInInches : Real;
-    TrainJourney_LocationsPending : Boolean;
-    TrainJourney_LockingArray : StringArrayType;
-    TrainJourney_NotForPublicUse : Boolean;
-    TrainJourney_Route : Integer;
-    TrainJourney_RouteArray : StringArrayType;
-    TrainJourney_SetUp : Boolean;
-    TrainJourney_StartArea : Integer;
-    TrainJourney_StartLine : Integer;
-    TrainJourney_StartLocation : Integer;
-    TrainJourney_StartStationName : String;
-    TrainJourney_StartOfRepeatJourney : Boolean;
-    TrainJourney_StartSignal : Integer;
-    TrainJourney_StoppingOnArrival : Boolean;
-    TrainJourney_UserToDrive : Boolean;
-  END;
-
-  TrainJourneyRecArrayType = ARRAY OF TrainJourneyRec;
-
-  { Note: we need Missing, Suspended, and MissingAndSuspended as otherwise the status can oscillate between Missing and Suspended if a train is suspended while missing - in
-    that case, unsuspending renders it missing even though it may no longer be missing, and it's then a status we can't get out of.
-  }
-  TrainStatusType = (ReadyForCreation, WaitingForLightsOn, WaitingForHiddenStationSignalAspectToClear, WaitingForRouteing, InLightsOnTime, ReadyForRouteing,
-                     CommencedRouteing, ReadyToDepart, Departed, RouteingWhileDeparted, RouteCompleted, WaitingForRemovalFromDiagrams, ToBeRemovedFromDiagrams,
-                     RemovedFromDiagrams, Missing, MissingAndSuspended, Suspended, NonMoving, Cancelled, UnknownTrainStatus);
-  TrainIndex = Integer;
-
-  TrainRec = RECORD
-    Train_LocoChip : Integer;
-    Train_DoubleHeaderLocoChip : Integer;
-    Train_LocoChipStr : String; { from loco record }
-    Train_DoubleHeaderLocoChipStr : String; { from loco record }
-    Train_LocoIndex : LocoIndex;
-    Train_DoubleHeaderLocoIndex : LocoIndex;
-
-//    Train_Accelerating : Boolean;
-//    Train_AccelerationAdjustRange : Integer;
-//    Train_AccelerationStartTime : TDateTime;
-//    Train_AccelerationStr : String;
-    Train_AccelerationTimeInSeconds : Real;
-//    Train_AccelerationTimeInterval : Real;
-    Train_ActualNumStr : String; { from loco record }
-    Train_AtCurrentBufferStop : Integer;
-    Train_AtCurrentSignal : Integer;
-    Train_AtHiddenStationSignalAspectSignal : Integer; { to stop trains at signals that otherwise would be off }
-    Train_BeingAdvanced : Boolean;
-    Train_BeingAdvancedTC : Integer;
-    Train_CabLightsAreOn : Boolean;
-    Train_CabLightsHaveBeenOn : Boolean;
-//    Train_ControlState : LocoControlStateType;
-    Train_CurrentArrivalTime : TDateTime;
-    Train_CurrentBufferStop : Integer;
-    Train_CurrentDirection : DirectionType;
-    Train_CurrentJourney : Integer;
-    Train_CurrentLengthInInches : Integer;
-    Train_CurrentRoute : Integer;
-    Train_CurrentSignal : Integer;
-    Train_CurrentSourceLocation : Integer;
-    Train_CurrentSpeedInMPH : MPHType;
-    Train_CurrentStatus : TrainStatusType;
-    Train_CurrentTC : Integer;
-//    Train_Decelerating : Boolean;
-    Train_Description : String;
-    Train_DesiredSpeedInMPH : MPHType;
-    Train_DiagramFound : Boolean;
-    Train_DiagramsGridRowNums : IntegerArrayType;
-    Train_DistanceToCurrentSignalOrBufferStop : Real;
-    Train_DistanceToNextSignalButOneOrBufferStop : Real;
-    Train_DistanceToNextSignalOrBufferStop : Real;
-    Train_EmergencyRouteing : Boolean;
-    Train_ExtraPowerAdjustment : Integer; { used temporarily to increase the train speed where necessary }
-    Train_FirstStationSpecifiedStartTime : TDateTime;
-    Train_FixedDirection : DirectionType;
-    Train_FixedLengthInInches : Integer; { from loco record }
-//    Train_Functions : ARRAY [0..12] OF Boolean;
-//    Train_Functions0To4Byte : Byte;
-//    Train_Functions5To12Byte : Byte;
-    Train_GradientSpeedAdjustment : Integer;
-    Train_GradientSpeedAdjustmentMsgWritten : Boolean;
-    Train_HasLights : Boolean;
-    Train_Headcode : String;
-    Train_InitialTrackCircuits : ARRAY [1..5] OF Integer;
-    Train_InLightsOnTime : Boolean; { train inactive but for lights being on }
-    Train_JourneysArray : TrainJourneyRecArrayType;
-    Train_LastLengthInInches : Integer; { from loco record }
-    Train_LastLocation : Integer;
-    Train_LastMissingTC : Integer;
-    Train_LastRouteLockedMsgStr : String;
-    Train_LastSignal : Integer;
-    Train_LastTC : Integer; { from loco record }
-    Train_LightsOn : Boolean;
-    Train_LightsOnTime : TDateTime;
-    Train_LightsRemainOnWhenJourneysComplete : Boolean;
-    Train_LocatedAtStartup : Boolean;
-    Train_Locations : IntegerArrayType;
-    Train_LocoClassStr : String; { from loco record }
-    Train_LocoName : String; { from loco record }
-    Train_LocoTypeStr : String; { from loco record }
-    Train_MaximumSpeedInMPH : MPHType;
-    Train_MinimumAccelerationTimeInSeconds : Integer; { needed as we only calculate it once when we enter a track circuit }
-    Train_MissingMessage : Boolean;
-    Train_MissingNum : Integer;
-    Train_NextTC : Integer;
-    Train_NextButOneTC : Integer;
-    Train_NotInPlaceMsgWritten : Boolean;
-    Train_NotLocatedAtStartupMsgWritten : Boolean;
-    Train_NumberOfCarriages : Integer;
-    Train_PossibleRerouteTime : TDateTime;
-//    Train_PreviousControlState : LocoControlStateType;
-    Train_PreviousStatus : TrainStatusType;
-    Train_PreviousTC : Integer;
-    Train_Reversing : Boolean;
-    Train_ReversingDelayInSeconds : Cardinal;
-    Train_ReversingStartTime : TDateTime;
-    Train_ReversingWaitStarted : Boolean;
-    Train_RouteCheckedTime : TDateTime;
-    Train_RouteCreationHeldJourney : Integer;
-    Train_RouteCreationHeldMsgWrittenArray : ARRAY [FirstRouteCreationHeldMsgNumber..LastRouteCreationHeldMsgNumber] OF Boolean;
-    Train_RouteCreationHoldNum : Integer;
-    Train_RouteCreationHoldMsg : String;
-    Train_RouteCreationPlatformHeldStr : String;
-    Train_RouteCreationReleasedMsg : String;
-    Train_RouteingHeldAtSignal : Integer;
-    Train_SaveCurrentTC : Integer;
-    Train_SavedLocation : Integer;
-    Train_SavedRoute : Integer;
-    Train_SaveSpeedInFiddleyardMsg : String;
-    Train_SaveTCsClearedStr : String;
-    Train_SaveTCsForReleaseStr : String;
-    Train_SaveTCsOccupiedStr : String;
-    Train_SectionStartTime : TDateTime;
-    Train_SpeedString : String;
-    Train_StalledMsgWritten : Boolean;
-    Train_SubRouteAheadCheckedTime : TDateTime;
-    Train_TakenOverByUserMsgWritten : Boolean;
-    Train_TCsAndSignalsNotClearedArray : StringArrayType;
-    Train_TCsAndSignalsNotClearedStr : String;
-    Train_TCsNotClearedArray : StringArrayType;
-    Train_TCsNotClearedStr : String;
-    Train_TCsOccupiedOrClearedArray : StringArrayType;
-    Train_TCsOccupiedOrClearedStr : String;
-    Train_TCsReleasedArray : StringArrayType;
-    Train_TCsReleasedStr : String;
-    Train_TempDraftRouteArray : StringArrayType;
-    Train_TempLockingArray : StringArrayType;
-    Train_TerminatingSpeedReductionMsgWritten : Boolean;
-    Train_TotalJourneys : Integer; { starts at 0 }
-    Train_Type : TypeOfTrainType;
-    Train_TypeNum : Integer;
-    Train_UserDriving : Boolean;
-    Train_UserPowerAdjustment : Integer; { used by the user to increase or decrease the train speed where necessary }
-    Train_UserRequiresInstructions : Boolean;
-    Train_UserSpeedInstructionMsg : String;
-    Train_UseTrailingTrackCircuits : Boolean;
-    { where a train doesn't have lights at both ends, it may need artificial track-circuit activation }
-    Train_WaitingForHiddenStationSignalAspectStartTime : TDateTime;
-    Train_WorkingTimetableLastArrivalArea : Integer;
-    Train_WorkingTimetableLastArrivalTime : TDateTime;
-    Train_WorkingTimetableLastEntryNumStr : String;
-  END;
-
-  RouteingExceptionRec = RECORD
-    RouteingException_AllowedInEmergency : Boolean;
-    RouteingException_CurrentLines : IntegerArrayType;
-    RouteingException_CurrentLinesExcepted : IntegerArrayType;
-    RouteingException_EndAreas : IntegerArrayType;
-    RouteingException_EndAreasExcepted : IntegerArrayType;
-    RouteingException_EndLines : IntegerArrayType;
-    RouteingException_EndLinesExcepted : IntegerArrayType;
-    RouteingException_EndLocations : IntegerArrayType;
-    RouteingException_EndLocationsExcepted : IntegerArrayType;
-    RouteingException_LinesRoutedOver : IntegerArrayType;
-    RouteingException_LinesRoutedOverExcepted : IntegerArrayType;
-    RouteingException_MaxTrainLength : Integer;
-    RouteingException_PreviousLines : IntegerArrayType;
-    RouteingException_PreviousLinesExcepted : IntegerArrayType;
-    RouteingException_RouteDirection : DirectionType;
-    RouteingException_Rule : Integer;
-    RouteingException_StartAreas : IntegerArrayType;
-    RouteingException_StartAreasExcepted : IntegerArrayType;
-    RouteingException_StartLines : IntegerArrayType;
-    RouteingException_StartLinesExcepted : IntegerArrayType;
-    RouteingException_StartLocations : IntegerArrayType;
-    RouteingException_StartLocationsExcepted : IntegerArrayType;
-    RouteingException_StopStr : String;
-    RouteingException_TrainTypes : TrainTypeArray;
-  END;
-
-  LightsToBeSwitchedOnRec = RECORD
-    LightsToBeSwitchedOn_Train: TrainIndex;
-    LightsToBeSwitchedOn_ColourStr1 : String;
-    LightsToBeSwitchedOn_ColourStr2 : String;
-    LightsToBeSwitchedOn_Direction1 : DirectionType;
-    LightsToBeSwitchedOn_Direction2 : DirectionType;
-    LightsToBeSwitchedOn_SwitchOnTime : TDateTime;
-  END;
-
   WorkingTimetableStatusType = (EntryCreatedFromWorkingTimetable, AdditionalEntryCreated, IncorrectDayOfTheWeekForEntry, EntryCancelled, UnknownEntryStatus);
   DayOfTheWeekType = (Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday, UnknownDayOfTheWeek);
   DaysOfTheWeekSetType = SET OF DayOfTheWeekType;
@@ -781,7 +557,6 @@ TYPE
   StationMonitorsType = (StationArrivalsDisplay, StationArrivalsAndDeparturesDisplay, StationDeparturesDisplay, StationClockDisplay);
   StatusBarStateType = (Visible, Hidden);
   StringType = (LongStringType, ShortStringType, VeryShortStringType);
-  TrainArrayType = ARRAY OF TrainIndex;
 
   LenzSystemRec = RECORD
                 EmergencyStop : Boolean;
@@ -789,16 +564,6 @@ TYPE
                 ProgrammingMode : Boolean;
                 StartMode : Boolean;
               END;
-
-  { not yet in use - failed in testing 1/09 }
-  SavedRouteRec = RECORD
-    SavedRoute_Array : StringArrayType;
-    SavedRoute_StartLine : Integer;
-    SavedRoute_EndLine : Integer;
-    SavedRoute_Direction : DirectionType;
-    SavedRoute_TrainType : TypeOfTrainType;
-    SavedRoute_EmergencyRouteing : Boolean;
-  END;
 
 CONST
   NoTime = True;
@@ -1004,7 +769,6 @@ VAR
   LastPointChanged : Integer = UnknownPoint;
   LastTimeAnyPointChanged : TDateTime = 0;
   LenzConnection : LenzConnectionType = NoConnection;
-  LightsToBeSwitchedOnArray : ARRAY OF LightsToBeSwitchedOnRec;
   LineHighlighted : Integer = UnknownLine;
   Locations : ARRAY OF LocationRec;
   LocationOccupations : ARRAY OF ARRAY OF LocationOccupationRec;
@@ -1047,10 +811,6 @@ VAR
   RestoreLogsToPreviousState : Boolean = False;
   ReversingAreas : ARRAY OF ReversingAreasRecType;
   RouteClearingOnlyMode : Boolean = False;
-  RouteingByUser : Boolean = False;
-  RouteingExceptions : ARRAY OF RouteingExceptionRec;
-  RouteingSuspendedForModalDialogue : Boolean = False;
-  RouteingSuspendedWhenStopPressed : Boolean = False;
   RouteWritingCancel : Boolean = False;
   SaveStationMonitorsCurrentArea : Integer = UnknownArea;
   SaveLocoDialogueMaskEditText : String = '';
@@ -1071,13 +831,11 @@ VAR
   SystemOnline : Boolean = False;
   SystemSetOfflineByCommandLineParameter : Boolean = False;
   SystemStatusStr : String = '';
-  TempTrainArray : ARRAY OF TrainIndex;
   TerminatingSpeedReductionMode : Boolean = False;
   TextWindowHeight : Word;
   ThinLineMode : Boolean = True;
   TimeLastDataReceived : Cardinal = 0;
   TimeOutMsgWritten : Boolean = False;
-  Trains : ARRAY OF TrainRec;
   UpLineY, DownLineY : Word;
   VerboseFlag : Boolean = False;
   WatchdogTimerCount : Integer = 0;
@@ -1097,56 +855,6 @@ VAR
   WriteToLogFileAndTestFile : Boolean = False;
 
   { Other variables }
-  Routes_ApproachControlledSignals : ARRAY OF IntegerArrayType;
-  Routes_ApproachControlSignalsMsgWrittenArray : BooleanArrayType;
-  Routes_ApproachControlSignalsWaitingToBeSet : ARRAY OF StringArrayType;
-  Routes_ApproachControlsSet : BooleanArrayType; { once this on, all subsequent route setting is done using it }
-  Routes_AutoSettingMode : BooleanArrayType;
-  Routes_Cleared : BooleanArrayType;
-  Routes_ClearingFailuresMsg1WrittenArray : BooleanArrayType;
-  Routes_ClearingFailuresMsg2WrittenArray : BooleanArrayType;
-  Routes_ClearingFailuresMsg3WrittenArray : BooleanArrayType;
-  Routes_CurrentClearingSubRoute : IntegerArrayType;
-  Routes_CurrentSettingSubRoute : IntegerArrayType;
-  Routes_CurrentSubRouteClearingPos : IntegerArrayType;
-  Routes_CurrentSubRouteSettingPos : IntegerArrayType;
-  Routes_Directions : DirectionArrayType;
-  Routes_EndBufferStops : IntegerArrayType;
-  Routes_EndLines : IntegerArrayType;
-  Routes_EndSignals : IntegerArrayType;
-  Routes_Journeys : IntegerArrayType;
-  Routes_LocoChips : IntegerArrayType;
-  Routes_NearestSignalTestingInitiated : Boolean = False; { This is for testing route saving }
-  Routes_PointResultPendingMsgWrittenArray : BooleanArrayType;
-  Routes_PointResultPendingPoint : IntegerArrayType;
-  Routes_PointResultPendingPointMsgWrittenArray : BooleanArrayType;
-  Routes_PossibleRerouteTime : DateTimeArrayType;
-  Routes_RouteClearingsInProgress : BooleanArrayType;
-  Routes_RouteClearingsWithoutPointResetting : BooleanArrayType;
-  Routes_RouteCounter : Integer = -1;
-  Routes_RouteingsCancelled : BooleanArrayType;
-  Routes_Routes : IntegerArrayType;
-  Routes_RouteSettingByEmergencyRoute : Boolean = False;
-  Routes_RouteSettingByHand : Boolean = False;
-  Routes_RouteSettingsCompleted : BooleanArrayType;
-  Routes_RouteSettingsInProgress : BooleanArrayType;
-  Routes_RoutesSettingUpHeldMsgWrittenArray : BooleanArrayType;
-  Routes_RoutesSettingUpStalledMsgArray : StringArrayType;
-  Routes_RoutesSettingUpStalledMsgWrittenArray : BooleanArrayType;
-  Routes_RoutesSettingUpStalledTimeArray : DateTimeArrayType;
-  Routes_SettingUpFailuresMsgWrittenArray : BooleanArrayType;
-  Routes_StartLines : IntegerArrayType;
-  Routes_StartSignals : IntegerArrayType;
-  Routes_SubRouteClearingStrings : ARRAY OF ARRAY OF StringArrayType; { ie a 3-dimensional ARRAY OF String }
-  Routes_SubRouteEndLines : ARRAY OF IntegerArrayType;
-  Routes_SubRoutesAheadNotClearMsgWrittenArray : BooleanArrayType;
-  Routes_SubRouteSettingStrings : ARRAY OF ARRAY OF StringArrayType; { ie a 3-dimensional ARRAY OF String }
-  Routes_SubRouteStartLines : ARRAY OF IntegerArrayType;
-  Routes_SubRouteStartSignals : ARRAY OF IntegerArrayType;
-  Routes_SubRouteStates : ARRAY OF SubRouteStateArrayType; { 2D as there are 3 states per subroute }
-  Routes_TheatreIndicatorSettingInitiated : Boolean = False;
-  Routes_TotalSubRoutes : IntegerArrayType;
-  Routes_Trains : TrainArrayType;
   ShowAreas : Boolean = False;
   ShowByteParam : String;
   ShowOneFeedbackUnitOnly : Boolean = False;
@@ -1239,9 +947,6 @@ PROCEDURE InitialiseInitVarsUnit;
 PROCEDURE InitialiseLogFiles;
 { Open a new file for test output - rename two previous ones if they exist }
 
-PROCEDURE InitialiseScreenDrawingVariables;
-{ Set up the default screen drawing variables }
-
 PROCEDURE ReadInAreasDataFromDatabase;
 { Initialise the area data }
 
@@ -1253,12 +958,6 @@ PROCEDURE ReadInLocationDataFromDatabase;
 
 PROCEDURE ReadInPlatformDataFromDatabase;
 { Initialise the platform data }
-
-PROCEDURE RestoreScreenDrawingVariables;
-{ Restore the default screen drawing variables }
-
-PROCEDURE SaveScreenDrawingVariables;
-{ Save the screen drawing variables }
 
 FUNCTION ValidateGridX(Str : String; OUT ErrorMsg : String) : Integer;
 { Converts grid string to number }
@@ -1273,8 +972,8 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES
-  LocoUtils, MiscUtils, Lenz, RailDraw, IniFiles, Startup, DateUtils, GetTime, Diagrams, StrUtils, Grids, Movement, LocationData, Feedback, Options, PointsUnit, LinesUnit;
+USES LocoUtils, MiscUtils, Lenz, RailDraw, IniFiles, Startup, DateUtils, GetTime, Diagrams, StrUtils, Grids, Movement, LocationData, Feedback, Options, PointsUnit,
+     LinesUnit, Train;
 
 CONST
   UnitRef = 'InitVars';
@@ -2615,57 +2314,6 @@ BEGIN
     END;
   END;
 END; { InitialiseLogFiles }
-
-PROCEDURE SaveScreenDrawingVariables;
-{ Save the screen drawing variables }
-BEGIN
-  WITH RailWindowBitmap.Canvas DO BEGIN
-    SaveBrushColour := Brush.Color;
-    SaveBrushStyle := Brush.Style;
-    SaveFontColour := Font.Color;
-    SaveFontHeight := Font.Height;
-    SaveFontName := Font.Name;
-    SaveFontStyle := Font.Style;
-    SavePenColour := Pen.Color;
-    SavePenMode := Pen.Mode;
-    SavePenStyle := Pen.Style;
-    SavePenWidth := Pen.Width;
-  END; {WITH}
-END; { SaveScreenDrawingVariables }
-
-PROCEDURE RestoreScreenDrawingVariables;
-{ Restore the default screen drawing variables }
-BEGIN
-  WITH RailWindowBitmap.Canvas DO BEGIN
-    Brush.Color := SaveBrushColour;
-    Brush.Style := SaveBrushStyle;
-    Font.Color := SaveFontColour;
-    Font.Height := SaveFontHeight;
-    Font.Name := SaveFontName;
-    Font.Style := SaveFontStyle;
-    Pen.Color := SavePenColour;
-    Pen.Mode := SavePenMode;
-    Pen.Style := SavePenStyle;
-    Pen.Width := SavePenWidth;
-  END; {WITH}
-END; { RestoreScreenDrawingVariables }
-
-PROCEDURE InitialiseScreenDrawingVariables;
-{ Set up the default screen drawing variables }
-BEGIN
-  WITH RailWindowBitmap.Canvas DO BEGIN
-    Brush.Color := BackgroundColour;
-    Brush.Style := bsSolid;
-    Font.Color := ForegroundColour;
-    Font.Height := -MulDiv(FWPRailWindow.ClientHeight, 11, 1000);
-    Font.Name := RailFontName;
-    Font.Style := [];
-    Pen.Color := ForegroundColour;
-    Pen.Mode := pmCopy;
-    Pen.Style := psSolid;
-    Pen.Width := 1;
-  END; {WITH}
-END; { InitialiseScreenDrawingVariables }
 
 PROCEDURE InitialiseInitVarsUnit;
 { Such routines as this allow us to initialises the units in the order we wish }

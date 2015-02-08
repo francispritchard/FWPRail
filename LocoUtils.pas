@@ -51,7 +51,7 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES GetTime, Lenz, Diagrams, MiscUtils, RailDraw, Types, Math {sic}, IDGlobal, StrUtils, Feedback, Input, LocoDialogue, Options, Main, LinesUnit;
+USES GetTime, Lenz, Diagrams, MiscUtils, RailDraw, Types, Math {sic}, IDGlobal, StrUtils, Feedback, Input, LocoDialogue, Options, Main, LinesUnit, Train;
 
 CONST
   UnitRef = 'LocoUtils';

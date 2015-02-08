@@ -8,7 +8,7 @@ UNIT SignalsUnit;
 INTERFACE
 
 USES
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, InitVars;
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, InitVars, Train;
 
 TYPE
   TSignalUnitForm = CLASS(TForm)

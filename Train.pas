@@ -16,6 +16,8 @@ TYPE
     { Public declarations }
   END;
 
+  TrainIndex = Integer;
+
 VAR
   TrainForm: TTrainForm;
 
@@ -42,6 +44,209 @@ PROCEDURE TurnTrainLightsOff(T : TrainIndex; OUT OK : Boolean);
 
 PROCEDURE TurnTrainLightsOn(T : TrainIndex; OUT OK : Boolean);
 { Turn the lights on for a train's locos }
+
+TYPE
+  { Train-related type declarations }
+  TypeOfTrainType = (LightLocoType, ExpressPassengerType, OrdinaryPassengerType, ExpressFreightType, Freight75mphType, EmptyCoachingStockType, Freight60mphType,
+                     Freight45mphType, Freight35mphType, InternationalType, UnknownTrainType);
+  TrainTypeArray = ARRAY OF TypeOfTrainType;
+
+  TrainJourneyRec = RECORD
+    TrainJourney_ActualArrivalTime : TDateTime;
+    TrainJourney_ActualDepartureTime : TDateTime;
+    TrainJourney_AdditionalRequiredStationWaitInMinutes : Integer;
+    TrainJourney_Cleared : Boolean;
+    { TrainJourney_Commenced : Boolean; - use TrainJourney_ActualDepartureTime <> 0 instead }
+    TrainJourney_Created : Boolean;
+    TrainJourney_CurrentArrivalTime : TDateTime;
+    TrainJourney_CurrentDepartureTime : TDateTime;
+    TrainJourney_DiagrammedArrivalTime : TDateTime;
+    TrainJourney_DiagrammedDepartureTime : TDateTime;
+    TrainJourney_DiagrammedStartLocation : Integer;
+    TrainJourney_DiagrammedEndLocation : Integer;
+    TrainJourney_Direction : DirectionType;
+    TrainJourney_DurationInMinutes : Integer;
+    TrainJourney_EndArea : Integer;
+    TrainJourney_EndBufferStop : Integer;
+    TrainJourney_EndLine : Integer;
+    TrainJourney_EndLocation : Integer;
+    TrainJourney_EndStationName : String;
+    TrainJourney_EndSignal : Integer;
+    TrainJourney_FirstTC : Integer;
+    TrainJourney_LengthInInches : Real;
+    TrainJourney_LocationsPending : Boolean;
+    TrainJourney_LockingArray : StringArrayType;
+    TrainJourney_NotForPublicUse : Boolean;
+    TrainJourney_Route : Integer;
+    TrainJourney_RouteArray : StringArrayType;
+    TrainJourney_SetUp : Boolean;
+    TrainJourney_StartArea : Integer;
+    TrainJourney_StartLine : Integer;
+    TrainJourney_StartLocation : Integer;
+    TrainJourney_StartStationName : String;
+    TrainJourney_StartOfRepeatJourney : Boolean;
+    TrainJourney_StartSignal : Integer;
+    TrainJourney_StoppingOnArrival : Boolean;
+    TrainJourney_UserToDrive : Boolean;
+  END;
+
+  TrainJourneyRecArrayType = ARRAY OF TrainJourneyRec;
+
+  { Note: we need Missing, Suspended, and MissingAndSuspended as otherwise the status can oscillate between Missing and Suspended if a train is suspended while missing - in
+    that case, unsuspending renders it missing even though it may no longer be missing, and it's then a status we can't get out of.
+  }
+  TrainStatusType = (ReadyForCreation, WaitingForLightsOn, WaitingForHiddenStationSignalAspectToClear, WaitingForRouteing, InLightsOnTime, ReadyForRouteing,
+                     CommencedRouteing, ReadyToDepart, Departed, RouteingWhileDeparted, RouteCompleted, WaitingForRemovalFromDiagrams, ToBeRemovedFromDiagrams,
+                     RemovedFromDiagrams, Missing, MissingAndSuspended, Suspended, NonMoving, Cancelled, UnknownTrainStatus);
+  TrainRec = RECORD
+    Train_LocoChip : Integer;
+    Train_DoubleHeaderLocoChip : Integer;
+    Train_LocoChipStr : String; { from loco record }
+    Train_DoubleHeaderLocoChipStr : String; { from loco record }
+    Train_LocoIndex : LocoIndex;
+    Train_DoubleHeaderLocoIndex : LocoIndex;
+
+//    Train_Accelerating : Boolean;
+//    Train_AccelerationAdjustRange : Integer;
+//    Train_AccelerationStartTime : TDateTime;
+//    Train_AccelerationStr : String;
+    Train_AccelerationTimeInSeconds : Real;
+//    Train_AccelerationTimeInterval : Real;
+    Train_ActualNumStr : String; { from loco record }
+    Train_AtCurrentBufferStop : Integer;
+    Train_AtCurrentSignal : Integer;
+    Train_AtHiddenStationSignalAspectSignal : Integer; { to stop trains at signals that otherwise would be off }
+    Train_BeingAdvanced : Boolean;
+    Train_BeingAdvancedTC : Integer;
+    Train_CabLightsAreOn : Boolean;
+    Train_CabLightsHaveBeenOn : Boolean;
+//    Train_ControlState : LocoControlStateType;
+    Train_CurrentArrivalTime : TDateTime;
+    Train_CurrentBufferStop : Integer;
+    Train_CurrentDirection : DirectionType;
+    Train_CurrentJourney : Integer;
+    Train_CurrentLengthInInches : Integer;
+    Train_CurrentRoute : Integer;
+    Train_CurrentSignal : Integer;
+    Train_CurrentSourceLocation : Integer;
+    Train_CurrentSpeedInMPH : MPHType;
+    Train_CurrentStatus : TrainStatusType;
+    Train_CurrentTC : Integer;
+//    Train_Decelerating : Boolean;
+    Train_Description : String;
+    Train_DesiredSpeedInMPH : MPHType;
+    Train_DiagramFound : Boolean;
+    Train_DiagramsGridRowNums : IntegerArrayType;
+    Train_DistanceToCurrentSignalOrBufferStop : Real;
+    Train_DistanceToNextSignalButOneOrBufferStop : Real;
+    Train_DistanceToNextSignalOrBufferStop : Real;
+    Train_EmergencyRouteing : Boolean;
+    Train_ExtraPowerAdjustment : Integer; { used temporarily to increase the train speed where necessary }
+    Train_FirstStationSpecifiedStartTime : TDateTime;
+    Train_FixedDirection : DirectionType;
+    Train_FixedLengthInInches : Integer; { from loco record }
+//    Train_Functions : ARRAY [0..12] OF Boolean;
+//    Train_Functions0To4Byte : Byte;
+//    Train_Functions5To12Byte : Byte;
+    Train_GradientSpeedAdjustment : Integer;
+    Train_GradientSpeedAdjustmentMsgWritten : Boolean;
+    Train_HasLights : Boolean;
+    Train_Headcode : String;
+    Train_InitialTrackCircuits : ARRAY [1..5] OF Integer;
+    Train_InLightsOnTime : Boolean; { train inactive but for lights being on }
+    Train_JourneysArray : TrainJourneyRecArrayType;
+    Train_LastLengthInInches : Integer; { from loco record }
+    Train_LastLocation : Integer;
+    Train_LastMissingTC : Integer;
+    Train_LastRouteLockedMsgStr : String;
+    Train_LastSignal : Integer;
+    Train_LastTC : Integer; { from loco record }
+    Train_LightsOn : Boolean;
+    Train_LightsOnTime : TDateTime;
+    Train_LightsRemainOnWhenJourneysComplete : Boolean;
+    Train_LocatedAtStartup : Boolean;
+    Train_Locations : IntegerArrayType;
+    Train_LocoClassStr : String; { from loco record }
+    Train_LocoName : String; { from loco record }
+    Train_LocoTypeStr : String; { from loco record }
+    Train_MaximumSpeedInMPH : MPHType;
+    Train_MinimumAccelerationTimeInSeconds : Integer; { needed as we only calculate it once when we enter a track circuit }
+    Train_MissingMessage : Boolean;
+    Train_MissingNum : Integer;
+    Train_NextTC : Integer;
+    Train_NextButOneTC : Integer;
+    Train_NotInPlaceMsgWritten : Boolean;
+    Train_NotLocatedAtStartupMsgWritten : Boolean;
+    Train_NumberOfCarriages : Integer;
+    Train_PossibleRerouteTime : TDateTime;
+//    Train_PreviousControlState : LocoControlStateType;
+    Train_PreviousStatus : TrainStatusType;
+    Train_PreviousTC : Integer;
+    Train_Reversing : Boolean;
+    Train_ReversingDelayInSeconds : Cardinal;
+    Train_ReversingStartTime : TDateTime;
+    Train_ReversingWaitStarted : Boolean;
+    Train_RouteCheckedTime : TDateTime;
+    Train_RouteCreationHeldJourney : Integer;
+    Train_RouteCreationHeldMsgWrittenArray : ARRAY [FirstRouteCreationHeldMsgNumber..LastRouteCreationHeldMsgNumber] OF Boolean;
+    Train_RouteCreationHoldNum : Integer;
+    Train_RouteCreationHoldMsg : String;
+    Train_RouteCreationPlatformHeldStr : String;
+    Train_RouteCreationReleasedMsg : String;
+    Train_RouteingHeldAtSignal : Integer;
+    Train_SaveCurrentTC : Integer;
+    Train_SavedLocation : Integer;
+    Train_SavedRoute : Integer;
+    Train_SaveSpeedInFiddleyardMsg : String;
+    Train_SaveTCsClearedStr : String;
+    Train_SaveTCsForReleaseStr : String;
+    Train_SaveTCsOccupiedStr : String;
+    Train_SectionStartTime : TDateTime;
+    Train_SpeedString : String;
+    Train_StalledMsgWritten : Boolean;
+    Train_SubRouteAheadCheckedTime : TDateTime;
+    Train_TakenOverByUserMsgWritten : Boolean;
+    Train_TCsAndSignalsNotClearedArray : StringArrayType;
+    Train_TCsAndSignalsNotClearedStr : String;
+    Train_TCsNotClearedArray : StringArrayType;
+    Train_TCsNotClearedStr : String;
+    Train_TCsOccupiedOrClearedArray : StringArrayType;
+    Train_TCsOccupiedOrClearedStr : String;
+    Train_TCsReleasedArray : StringArrayType;
+    Train_TCsReleasedStr : String;
+    Train_TempDraftRouteArray : StringArrayType;
+    Train_TempLockingArray : StringArrayType;
+    Train_TerminatingSpeedReductionMsgWritten : Boolean;
+    Train_TotalJourneys : Integer; { starts at 0 }
+    Train_Type : TypeOfTrainType;
+    Train_TypeNum : Integer;
+    Train_UserDriving : Boolean;
+    Train_UserPowerAdjustment : Integer; { used by the user to increase or decrease the train speed where necessary }
+    Train_UserRequiresInstructions : Boolean;
+    Train_UserSpeedInstructionMsg : String;
+    Train_UseTrailingTrackCircuits : Boolean;
+    { where a train doesn't have lights at both ends, it may need artificial track-circuit activation }
+    Train_WaitingForHiddenStationSignalAspectStartTime : TDateTime;
+    Train_WorkingTimetableLastArrivalArea : Integer;
+    Train_WorkingTimetableLastArrivalTime : TDateTime;
+    Train_WorkingTimetableLastEntryNumStr : String;
+  END;
+
+  LightsToBeSwitchedOnRec = RECORD
+    LightsToBeSwitchedOn_Train: TrainIndex;
+    LightsToBeSwitchedOn_ColourStr1 : String;
+    LightsToBeSwitchedOn_ColourStr2 : String;
+    LightsToBeSwitchedOn_Direction1 : DirectionType;
+    LightsToBeSwitchedOn_Direction2 : DirectionType;
+    LightsToBeSwitchedOn_SwitchOnTime : TDateTime;
+  END;
+
+  TrainArrayType = ARRAY OF TrainIndex;
+
+VAR
+  LightsToBeSwitchedOnArray : ARRAY OF LightsToBeSwitchedOnRec;
+  TempTrainArray : ARRAY OF TrainIndex;
+  Trains : ARRAY OF TrainRec;
 
 IMPLEMENTATION
 

@@ -65,7 +65,7 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES RailDraw, IDGlobal, MiscUtils, Input, DateUtils, LocoUtils, StationMonitors, LocationData, Options;
+USES RailDraw, IDGlobal, MiscUtils, Input, DateUtils, LocoUtils, StationMonitors, LocationData, Options, Train;
 
 CONST
   UnitRef = 'Time';

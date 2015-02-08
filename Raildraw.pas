@@ -304,6 +304,9 @@ PROCEDURE HideStatusBarAndUpDownIndications;
 PROCEDURE InitialiseRailDrawUnit;
 { Initialises the unit }
 
+PROCEDURE InitialiseScreenDrawingVariables;
+{ Set up the default screen drawing variables }
+
 PROCEDURE InvalidateScreen(UnitRefParam, CallingStr : String);
 { Draw the screen by invalidating it }
 
@@ -315,6 +318,12 @@ PROCEDURE ResetFWPRailWindowSizeAndPosition;
 
 PROCEDURE ResetScreenColoursAfterPrinting;
 { Restore the colours to those saved before printing the screen in printer-friendly colours }
+
+PROCEDURE RestoreScreenDrawingVariables;
+{ Restore the default screen drawing variables }
+
+PROCEDURE SaveScreenDrawingVariables;
+{ Save the screen drawing variables }
 
 PROCEDURE SetBufferStopPopupNum(Num : Integer);
 { Assign to the buffer stop popup number }
@@ -418,7 +427,7 @@ IMPLEMENTATION
 
 USES MiscUtils, Startup, Lenz, Input, Locks, Cuneo, Movement, GetTime, CreateRoute, Diagrams, RDCUnit, Types, Feedback, Route, LocoUtils, IniFiles, LocoDialogue, StrUtils,
      Help, Math {sic}, LocationData, FWPShowMessageUnit, Replay, TestUnit, WorkingTimetable, Options, Registry, Edit, Logging, Main, Splash, SignalsUnit, PointsUnit,
-     LinesUnit, TrackCircuitsUnit;
+     LinesUnit, TrackCircuitsUnit, Train;
 
 CONST
   UnitRef = 'RailDraw';
@@ -477,6 +486,57 @@ FUNCTION GetSaveCursor : TCursor;
 BEGIN
   Result := SaveCursor;
 END; { SaveCursor }
+
+PROCEDURE SaveScreenDrawingVariables;
+{ Save the screen drawing variables }
+BEGIN
+  WITH RailWindowBitmap.Canvas DO BEGIN
+    SaveBrushColour := Brush.Color;
+    SaveBrushStyle := Brush.Style;
+    SaveFontColour := Font.Color;
+    SaveFontHeight := Font.Height;
+    SaveFontName := Font.Name;
+    SaveFontStyle := Font.Style;
+    SavePenColour := Pen.Color;
+    SavePenMode := Pen.Mode;
+    SavePenStyle := Pen.Style;
+    SavePenWidth := Pen.Width;
+  END; {WITH}
+END; { SaveScreenDrawingVariables }
+
+PROCEDURE RestoreScreenDrawingVariables;
+{ Restore the default screen drawing variables }
+BEGIN
+  WITH RailWindowBitmap.Canvas DO BEGIN
+    Brush.Color := SaveBrushColour;
+    Brush.Style := SaveBrushStyle;
+    Font.Color := SaveFontColour;
+    Font.Height := SaveFontHeight;
+    Font.Name := SaveFontName;
+    Font.Style := SaveFontStyle;
+    Pen.Color := SavePenColour;
+    Pen.Mode := SavePenMode;
+    Pen.Style := SavePenStyle;
+    Pen.Width := SavePenWidth;
+  END; {WITH}
+END; { RestoreScreenDrawingVariables }
+
+PROCEDURE InitialiseScreenDrawingVariables;
+{ Set up the default screen drawing variables }
+BEGIN
+  WITH RailWindowBitmap.Canvas DO BEGIN
+    Brush.Color := BackgroundColour;
+    Brush.Style := bsSolid;
+    Font.Color := ForegroundColour;
+    Font.Height := -MulDiv(FWPRailWindow.ClientHeight, 11, 1000);
+    Font.Name := RailFontName;
+    Font.Style := [];
+    Pen.Color := ForegroundColour;
+    Pen.Mode := pmCopy;
+    Pen.Style := psSolid;
+    Pen.Width := 1;
+  END; {WITH}
+END; { InitialiseScreenDrawingVariables }
 
 PROCEDURE ClearLinePopupNumArray;
 { Empties the line popup num array }
