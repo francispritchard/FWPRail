@@ -51,6 +51,9 @@ FUNCTION GetBufferStopDirection(BufferStopNum : Integer) : DirectionType;
 PROCEDURE InitialiseLineVariables(Line : Integer);
 { Initialise all the variables where the data is not read in from the database or added during the edit process }
 
+FUNCTION LinesAreAdjacent(L1, L2 : Integer; ErrorMsg : String) : Boolean;
+{ Returns true if the two given lines are adjacent }
+
 PROCEDURE ReadInLineDataFromDatabase;
 { Initialise the data for each of the line segments }
 
@@ -205,6 +208,30 @@ FUNCTION GetBufferStopDirection(BufferStopNum : Integer) : DirectionType;
 BEGIN
   Result := BufferStops[BufferStopNum].BufferStop_Direction;
 END; { GetBufferStopDirection }
+
+FUNCTION LinesAreAdjacent(L1, L2 : Integer; ErrorMsg : String) : Boolean;
+{ Returns true if the two given lines are adjacent }
+BEGIN
+  Result := False;
+  ErrorMsg := '';
+
+  IF Lines[L1].Line_NextUpLine = L2 THEN BEGIN
+    Result := True;
+    ErrorMsg := 'Next line up to ' + LineToStr(L1) + ' is ' + LineToStr(L2);
+  END ELSE
+    IF Lines[L1].Line_NextDownLine = L2 THEN BEGIN
+      Result := True;
+      ErrorMsg := 'Next line down to ' + LineToStr(L1) + ' is ' + LineToStr(L2);
+    END ELSE
+      IF Lines[L2].Line_NextUpLine = L1 THEN BEGIN
+        Result := True;
+        ErrorMsg := 'Next line up to ' + LineToStr(L2) + ' is ' + LineToStr(L1);
+      END ELSE
+        IF Lines[L2].Line_NextDownLine = L1 THEN BEGIN
+          Result := True;
+          ErrorMsg := 'Next line down to ' + LineToStr(L2) + ' is ' + LineToStr(L1);
+        END;
+END; { LinesAreAdjacent }
 
 PROCEDURE CheckLineConnectionsAreOK;
 { To check each line has the requisite connection data, as locking depends on this }

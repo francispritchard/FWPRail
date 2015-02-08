@@ -18,6 +18,24 @@ TYPE
     { Public declarations }
   END;
 
+  AspectType = (DoubleYellowAspect, FlashingDoubleYellowAspect, GreenAspect, SingleYellowAspect, FlashingSingleYellowAspect, RedAspect, NoAspect, UnknownAspectType);
+  TypeOfSignal = (CallingOn, TwoAspect, ThreeAspect, FourAspect, SemaphoreHome, SemaphoreDistant, UnknownSignalType);
+  IndicatorType = (NoIndicator, JunctionIndicator, TheatreIndicator, QueryIndicator, UnknownIndicator);
+  IndicatorStateType = (NoIndicatorLit, LeftIndicatorLit, RightIndicatorLit, UpperLeftIndicatorLit, MiddleLeftIndicatorLit, LowerLeftIndicatorLit, UpperRightIndicatorLit,
+                        MiddleRightIndicatorLit, LowerRightIndicatorLit, TheatreIndicatorLit, QueryIndicatorLit);
+  SignalStateType = (SignalOff, SignalOn, UnknownSignalState);
+
+  JunctionIndicatorType = (UpperLeftIndicator, MiddleLeftIndicator, LowerLeftIndicator, UpperRightIndicator, MiddleRightIndicator, LowerRightIndicator,
+                           UnknownJunctionIndicator);
+  JunctionIndicatorRec = RECORD
+    JunctionIndicator_Exists : Boolean;
+    JunctionIndicator_TargetSignal : Integer;
+    JunctionIndicator_TargetBufferStop : Integer;
+    JunctionIndicator_MouseRect : TRect;
+  END;
+
+  QuadrantType = (UpperQuadrant, LowerQuadrant, NoQuadrant);
+
 PROCEDURE AddNewRecordToSignalDatabase;
 { Append a record to the signal database }
 
@@ -27,6 +45,9 @@ PROCEDURE CalculateAllSignalPositions;
 PROCEDURE CalculateSignalPosition(S : Integer);
 { Work out where a signal is on the screen }
 
+PROCEDURE CheckSemaphoreDistantBeforeSemaphoreHomeCleared(S : Integer);
+{ Sees if semaphore distants need automatically to be reset to allow a semaphore home to be put on }
+
 PROCEDURE ClearHiddenStationSignalAspectSignals(T : TrainIndex; HiddenStationSignalAspectSignal : Integer);
 { Clear the hidden station aspects of a given signal }
 
@@ -35,6 +56,12 @@ FUNCTION DeleteRecordFromSignalDatabase(SignalToDeleteNum : Integer) : Boolean;
 
 FUNCTION GetLineAdjacentSignal(Line : Integer) : Integer;
 { Return the signal nearest the line }
+
+FUNCTION GetSignalAdjacentLine(S : Integer) : Integer;
+{ Return the line adjacent to the given signal }
+
+FUNCTION GetSignalAspect(S : Integer) : AspectType;
+{ Return the state of a signal }
 
 PROCEDURE InitialiseSignalVariables(S : Integer);
 { Initialise all the variables where the data is not read in from the database or added during the edit process }
@@ -78,6 +105,15 @@ PROCEDURE SetPreviousSignals(LocoChipStr : String; S : Integer);
 
 PROCEDURE SetSignal(LocoChipStr : String; S : Integer; NewAspect : AspectType; LogSignalData, ForceWriting : Boolean);
 { Set the state of a particular signal and draws it }
+
+FUNCTION SignalAdjacentLineOK(Line : Integer) : Boolean;
+{ Returns true if a signal can be created next to the current line }
+
+FUNCTION SignalHasLeftJunctionIndicator(S : Integer; OUT Indicator : JunctionIndicatorType) : Boolean;
+{ Returns true if the signal has a left junction indicator }
+
+FUNCTION SignalHasRightJunctionIndicator(S : Integer; OUT Indicator : JunctionIndicatorType) : Boolean;
+{ Returns true if the signal has a right junction indicator }
 
 FUNCTION SignalIsLocked(S : Integer; OUT LockingMsg : String) : Boolean;
 { Returns true if the signal is locked }
@@ -310,6 +346,125 @@ PROCEDURE Log(Str : String);
 BEGIN
   WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
+
+PROCEDURE CheckSemaphoreDistantBeforeSemaphoreHomeCleared(S : Integer);
+{ Sees if semaphore distants need automatically to be reset to allow a semaphore home to be put on }
+VAR
+  I : Integer;
+  OK : Boolean;
+
+BEGIN
+  IF (Signals[S].Signal_Type = SemaphoreHome) AND (Signals[S].Signal_SemaphoreDistantLocking <> UnknownSignal) THEN BEGIN
+    I := 0;
+    WHILE I <= High(Signals[Signals[S].Signal_SemaphoreDistantLocking].Signal_SemaphoreDistantHomesArray) DO BEGIN
+      { unlock the semaphore home signals }
+      IF Signals[Signals[Signals[S].Signal_SemaphoreDistantLocking].Signal_SemaphoreDistantHomesArray[I]].Signal_Aspect = RedAspect THEN
+        Signals[Signals[Signals[S].Signal_SemaphoreDistantLocking].Signal_SemaphoreDistantHomesArray[I]].Signal_LockedBySemaphoreDistant := False;
+      Inc(I);
+    END; {WHILE}
+
+    { and set the distant on }
+    Signals[Signals[S].Signal_SemaphoreDistantLocking].Signal_Aspect := RedAspect;
+    MakeSemaphoreSignalChange(UnknownLocoChipStr, Signals[S].Signal_SemaphoreDistantLocking, Signals[Signals[S].Signal_SemaphoreDistantLocking].Signal_AccessoryAddress,
+                              SignalOn, OK);
+    IF OK THEN
+      Log('S S=' + IntToStr(Signals[S].Signal_SemaphoreDistantLocking) + ' on')
+    ELSE
+      Log('S S=' + IntToStr(Signals[S].Signal_SemaphoreDistantLocking) + ' setting to on failed');
+  END;
+END; { CheckSemaphoreDistantBeforeSemaphoreHomeCleared }
+
+FUNCTION SignalAdjacentLineOK(Line : Integer) : Boolean;
+{ Returns true if a signal can be created next to the current line }
+VAR
+  S : Integer;
+  SignalAdjacentLineFound : Boolean;
+
+BEGIN
+  Result := False;
+
+  IF Line <> UnknownLine THEN BEGIN
+    { only create a signal next to a line if there isn't one already attached to it }
+    S := 0;
+    SignalAdjacentLineFound := False;
+    WHILE (S <= High(Signals)) AND NOT SignalAdjacentLineFound DO BEGIN
+      IF Signals[S].Signal_AdjacentLine = Line THEN
+        SignalAdjacentLineFound := True;
+      Inc(S);
+    END; {WHILE}
+
+    IF NOT SignalAdjacentLineFound THEN
+      { the line has to be horizontal }
+      IF Lines[Line].Line_GridUpY = Lines[Line].Line_GridDownY THEN
+        Result := True;
+  END;
+END; { SignalAdjacentLineOK }
+
+FUNCTION GetSignalAdjacentLine(S : Integer) : Integer;
+{ Return the line adjacent to the given signal }
+BEGIN
+  IF S <> UnknownSignal THEN
+    Result := Signals[S].Signal_AdjacentLine
+  ELSE
+    Result := UnknownLine;
+END; { GetSignalAdjacentLine }
+
+FUNCTION GetSignalAspect(S : Integer) : AspectType;
+{ Return the state of a signal }
+BEGIN
+  IF S <> UnknownSignal THEN
+    Result := Signals[S].Signal_Aspect
+  ELSE BEGIN
+    ShowMessage('Signal is zero');
+    Result := NoAspect;
+  END;
+END; { GetSignalAspect }
+
+FUNCTION SignalHasLeftJunctionIndicator(S : Integer; OUT Indicator : JunctionIndicatorType) : Boolean;
+{ Returns true if the signal has a left junction indicator }
+BEGIN
+  Result := False;
+
+  WITH Signals[S] DO BEGIN
+    IF Signal_Indicator = JunctionIndicator THEN BEGIN
+      Indicator := UnknownJunctionIndicator;
+      IF Signal_JunctionIndicators[UpperLeftIndicator].JunctionIndicator_Exists THEN
+        Indicator := UpperLeftIndicator
+      ELSE
+        IF Signal_JunctionIndicators[MiddleLeftIndicator].JunctionIndicator_Exists THEN
+          Indicator := MiddleLeftIndicator
+        ELSE
+          IF Signal_JunctionIndicators[LowerLeftIndicator].JunctionIndicator_Exists THEN
+            Indicator := LowerLeftIndicator;
+
+      IF Indicator <> UnknownJunctionIndicator THEN
+        Result := True;
+    END; {WITH}
+  END;
+END; { SignalHasLeftJunctionIndicator }
+
+FUNCTION SignalHasRightJunctionIndicator(S : Integer; OUT Indicator : JunctionIndicatorType) : Boolean;
+{ Returns true if the signal has a right junction indicator }
+BEGIN
+  Result := False;
+
+  WITH Signals[S] DO BEGIN
+    IF Signal_Indicator = JunctionIndicator THEN BEGIN
+      Indicator := UnknownJunctionIndicator;
+      IF Signal_JunctionIndicators[UpperRightIndicator].JunctionIndicator_Exists THEN
+        Indicator := UpperRightIndicator
+      ELSE
+        IF Signal_JunctionIndicators[MiddleRightIndicator].JunctionIndicator_Exists THEN
+          Indicator := MiddleRightIndicator
+        ELSE
+          IF Signal_JunctionIndicators[LowerRightIndicator].JunctionIndicator_Exists THEN
+            Indicator := LowerRightIndicator;
+
+      IF Indicator <> UnknownJunctionIndicator THEN
+        Result := True;
+    END; {WITH}
+  END;
+END; { SignalHasRightJunctionIndicator }
 
 PROCEDURE CalculateSignalPosition(S : Integer);
 { Work out where a signal is on the screen }

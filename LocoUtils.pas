@@ -8,7 +8,7 @@ UNIT LocoUtils;
 INTERFACE
 
 USES
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, Dialogs, Startup, InitVars, StdCtrls, Route, DB, ADODB, Grids, DBGrids;
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, Dialogs, Startup, InitVars, StdCtrls, Route, DB, ADODB, Grids, DBGrids, Train;
 
 TYPE
   TLocoUtilsWindow = CLASS(TForm)
@@ -32,6 +32,15 @@ TYPE
     { Public declarations }
   END;
 
+FUNCTION GetLocoIndexFromLocoChip(LocoChip : Integer): LocoIndex;
+{ Look for a matching loco record given a loco chip number }
+
+FUNCTION GetLocoIndexFromTrainIndex(T : TrainIndex): LocoIndex;
+{ Look for a matching loco record given a train index }
+
+FUNCTION GetLocoRecFromLocoChip(LocoChip : Integer; OUT Loco : LocoRec) : Boolean;
+{ Look for a matching loco record given a loco chip number }
+
 PROCEDURE InitialiseLocoUtilsUnit;
 { Initialises the unit }
 
@@ -41,6 +50,13 @@ PROCEDURE ListLocosByChip;
 PROCEDURE ReadInLocoDataFromDatabase(VAR OK : Boolean);
 { Read in the loco table data from the MSAccess file - the data is not read in loco chip order, but that does not matter }
 
+PROCEDURE StartLocos(Restart : Boolean);
+{ Restart all the locos that were running before the enforced stop }
+
+PROCEDURE StopLocos(Msg : String);
+{ Stop all the locos currently in the diagram list. This is a better approach than the brute force approach which is to send a "StopAllLocomotives" command, which produces
+  an "emergency off" situation.
+}
 PROCEDURE WriteOutLocoDataToDatabase;
 { Write out some loco data to the loco data file }
 
@@ -51,21 +67,21 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES GetTime, Lenz, Diagrams, MiscUtils, RailDraw, Types, Math {sic}, IDGlobal, StrUtils, Feedback, Input, LocoDialogue, Options, Main, LinesUnit, Train;
+USES GetTime, Lenz, Diagrams, MiscUtils, RailDraw, Types, Math {sic}, IDGlobal, StrUtils, Feedback, Input, LocoDialogue, Options, Main, LinesUnit, Movement;
 
 CONST
   UnitRef = 'LocoUtils';
 
 TYPE
   LocoUtilsWindowType = (ListedByLocoClass, ListedByLocoName, ListedByChip, ListedByLocoNumber);
-  SortGridDirectionType = (Up, Down);
+  SortGridDirectionType = (SortGridUp, SortGridDown);
 
 VAR
   SaveLocoStringGridSearchCol : Integer = 0;
   SaveLocoStringGridSearchRow : Integer = 0;
   SaveLocoStringGridSearchStr : String = '';
   SaveSortGridColNum : Integer = 0;
-  SortGridDirection : SortGridDirectionType = Up;
+  SortGridDirection : SortGridDirectionType = SortGridUp;
   TypeOfLocoUtilsWindow : LocoUtilsWindowType;
 
 PROCEDURE Log(Str : String);
@@ -73,6 +89,209 @@ PROCEDURE Log(Str : String);
 BEGIN
   WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
+
+{$O-}
+PROCEDURE StartLocos(Restart : Boolean);
+{ Restart all the locos that were running before the enforced stop }
+CONST
+  ForceDraw = True;
+  GoingForward = True;
+  LightsOn = True;
+
+VAR
+  T : TrainIndex;
+  OK : Boolean;
+  TrainsRestarted : Boolean;
+
+BEGIN
+  TrainsRestarted := False;
+  T := 0;
+  WHILE T <= High(Trains) DO BEGIN
+    WITH Trains[T] DO BEGIN
+      IF (Train_LocoChip <> UnknownLocoChip)
+      AND Train_DiagramFound
+      AND (Train_CurrentStatus <> Suspended)
+      AND (Train_CurrentStatus <> MissingAndSuspended)
+      AND (Train_CurrentStatus <> Cancelled)
+      THEN BEGIN
+        IF SystemOnline THEN BEGIN
+          IF Train_CurrentDirection = Up THEN BEGIN
+            { may want to read in saved data before setting direction - ******* }
+            IF NOT Train_UserDriving THEN BEGIN
+              SetTrainDirection(T, Up, NOT ForceAWrite, OK);
+              SetTwoLightingChips(Train_LocoIndex, Up, Up, LightsOn);
+            END ELSE BEGIN
+              IF Train_UserDriving AND Train_UserRequiresInstructions THEN
+                Log(Train_LocoChipStr + ' L= User instructed to set direction to Up');
+            END;
+          END ELSE
+            IF Train_CurrentDirection = Down THEN BEGIN
+              IF NOT Train_UserDriving THEN BEGIN
+                SetTrainDirection(T, Down, NOT ForceAWrite, OK);
+                SetTwoLightingChips(Train_LocoIndex, Down, Down, LightsOn);
+              END ELSE BEGIN
+                IF Train_UserDriving AND Train_UserRequiresInstructions THEN
+                  Log(Train_LocoChipStr + ' L= User instructed to set direction to Down');
+              END;
+            END;
+        END;
+//        Train_Accelerating := True;
+//        Train_AccelerationTimeInSeconds := 5.0;
+//        Train_AccelerationStartTime := 0; &&&&&
+
+//        Train_Decelerating := False;
+//        Train_DesiredLenzSpeed := Train_SaveDesiredLenzSpeed;
+//        Train_SaveDesiredLenzSpeed := 0;
+//        Train_CurrentLenzSpeed := 0; &&&&&
+
+        SetDesiredLocoLenzSpeed(Train_LocoIndex, 0, Train_UserDriving, Train_UserRequiresInstructions);
+        IF Train_DoubleHeaderLocoChip <> UnknownLocoChip THEN
+          SetDesiredLocoLenzSpeed(Train_DoubleHeaderLocoIndex, 0, Train_UserDriving, Train_UserRequiresInstructions);
+        TrainsRestarted := True;
+      END; {WITH}
+    END;
+    Inc(T);
+  END; {WHILE}
+
+  IF Restart AND TrainsRestarted THEN
+    Log('AG All locos restarted')
+  ELSE
+    IF Restart THEN
+      Log('AG No locos to restart');
+END; { StartLocos }
+
+PROCEDURE StopLocos(Msg : String);
+{ Stop all the locos currently in the diagram list. This is a better approach than the brute force approach which is to send a "StopAllLocomotives" command, which produces
+  an "emergency off" situation.
+}
+VAR
+  T : TrainIndex;
+
+BEGIN
+  Log('AG Stopping any locos - initiated by ' + Msg);
+
+  T := 0;
+  WHILE T <= High(Trains) DO BEGIN
+    WITH Trains[T] DO BEGIN
+      IF (Train_LocoChip <> UnknownLocoChip)
+      AND Train_DiagramFound
+      AND (Train_CurrentStatus <> Cancelled)
+      AND (Train_LocoChip <> UnknownLocoChip)
+      THEN BEGIN
+        StopAParticularTrain(T);
+        LocosStopped := True;
+        DrawDiagramsSpeedCell(T);
+      END;
+    END; {WITH}
+    Inc(T);
+  END; {WHILE}
+
+  IF LocosStopped THEN
+    Log('AG All locos stopped')
+  ELSE
+    Log('AG No locos to stop');
+END; { StopLocos }
+
+FUNCTION GetLocoRecFromLocoChip(LocoChip : Integer; OUT Loco : LocoRec) : Boolean;
+{ Look for a matching loco record given a loco chip number }
+VAR
+  L : LocoIndex;
+  LocoFound : Boolean;
+
+BEGIN
+  Result := False;
+
+  TRY
+    IF LocoChip = UnknownLocoChip THEN
+      Exit
+    ELSE BEGIN
+      L := 0;
+      LocoFound := False;
+      WHILE (L <= High(Locos)) AND NOT LocoFound DO BEGIN
+        { run through the train list, to find our train }
+        IF Locos[L].Loco_LocoChip = LocoChip THEN
+          LocoFound := True
+        ELSE
+          Inc(L);
+      END; {WHILE}
+
+      IF LocoFound THEN BEGIN
+        Loco := Locos[L];
+        Result := True;
+      END;
+    END;
+  EXCEPT
+    ON E : Exception DO
+      Log('EG GetLocoIndexFromLocoChip: ' + E.ClassName + ' error raised, with message: ' + E.Message);
+  END; {TRY}
+END; { GetLocoIndexFromLocoChip }
+
+FUNCTION GetLocoIndexFromLocoChip(LocoChip : Integer) : LocoIndex;
+{ Look for a matching loco record given a loco chip number }
+VAR
+  L : LocoIndex;
+  LocoFound : Boolean;
+
+BEGIN
+  Result := UnknownLocoIndex;
+  TRY
+    IF LocoChip = UnknownLocoChip THEN
+      Exit
+    ELSE BEGIN
+      L := 0;
+      LocoFound := False;
+      WHILE (L <= High(Locos)) AND NOT LocoFound DO BEGIN
+        { run through the train list, to find our train }
+        IF Locos[L].Loco_LocoChip = LocoChip THEN
+          LocoFound := True
+        ELSE
+          Inc(L);
+      END; {WHILE}
+
+      IF LocoFound THEN
+        Result := L
+      ELSE
+        Result := UnknownLocoIndex;
+    END;
+  EXCEPT
+    ON E : Exception DO
+      Log('EG GetLocoIndexFromLocoChip: ' + E.ClassName + ' error raised, with message: ' + E.Message);
+  END; {TRY}
+END; { GetLocoIndexFromLocoChip }
+
+FUNCTION GetLocoIndexFromTrainIndex(T : TrainIndex) : LocoIndex;  { should this include DG chips? &&&& }
+{ Look for a matching loco record given a train index }
+VAR
+  L : LocoIndex;
+  LocoFound : Boolean;
+
+BEGIN
+  Result := UnknownLocoIndex;
+  TRY
+    IF T = UnknownTrainIndex THEN BEGIN
+      UnknownTrainRecordFound('GetLocoIndexFromTrainIndex');
+      Exit;
+    END ELSE BEGIN
+      L := 0;
+      LocoFound := False;
+      WHILE (L <= High(Locos)) AND NOT LocoFound DO BEGIN
+        { run through the train list, to find our train }
+        IF Locos[L].Loco_LocoChip = Trains[T].Train_LocoChip THEN
+          LocoFound := True
+        ELSE
+          Inc(L);
+      END; {WHILE}
+
+      IF LocoFound THEN
+        Result := L
+      ELSE
+        Result := UnknownLocoIndex;
+    END;
+  EXCEPT
+    ON E : Exception DO
+      Log('EG GetLocoIndexFromTrainIndex: ' + E.ClassName + ' error raised, with message: ' + E.Message);
+  END; {TRY}
+END; { GetLocoIndexFromTrainIndex }
 
 PROCEDURE InitialiseLocoRecord(L : LocoIndex);
 { Do the initialisations, or reinitialisations if specified }
@@ -870,7 +1089,7 @@ BEGIN
     WITH Grid DO BEGIN
       FOR I := FixedRows TO RowCount - 2 DO BEGIN { because last row has no next row }
         FOR J := I + 1 TO RowCount - 1 DO BEGIN { from next row to end }
-          IF SortGridDirection = Up THEN BEGIN
+          IF SortGridDirection = SortGridUp THEN BEGIN
             IF (AnsiCompareText(Cells[SortCol, I], Cells[SortCol, J]) > 0) AND (Cells[SortCol, J] <> '') THEN BEGIN
               Temp.Assign(Rows[J]);
               Rows[J].Assign(Rows[I]);
@@ -889,10 +1108,10 @@ BEGIN
 
     Temp.Free;
 
-    IF SortGridDirection = Up THEN
-      SortGridDirection := Down
+    IF SortGridDirection = SortGridUp THEN
+      SortGridDirection := SortGridDown
     ELSE
-      SortGridDirection := Up;
+      SortGridDirection := SortGridUp;
   EXCEPT {TRY}
     ON E : Exception DO
       Log('EG SortGrid: ' + E.ClassName + ' error raised, with message: ' + E.Message);
@@ -1047,7 +1266,7 @@ BEGIN
         END;
 
         IF SaveSortGridColNum <> ColNum THEN
-          SortGridDirection := Up;
+          SortGridDirection := SortGridUp;
 
         SortGrid(LocoStringGrid, ColNum);
         SaveSortGridColNum := ColNum;

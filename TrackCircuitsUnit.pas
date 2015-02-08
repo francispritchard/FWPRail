@@ -18,7 +18,6 @@ TYPE
     { Public declarations }
   END;
 
-  { Track-circuit-related type declarations }
   TrackCircuitStateType = (TCFeedbackOccupation, TCFeedbackOccupationButOutOfUse, TCPermanentFeedbackOccupation, TCPermanentOccupationSetByUser, TCSystemOccupation,
                            TCPermanentSystemOccupation, TCMissingOccupation, TCOutOfUseSetByUser, TCOutOfUseAsNoFeedbackReceived, TCLocoOutOfPlaceOccupation, TCUnoccupied);
 
@@ -36,6 +35,15 @@ FUNCTION DeleteRecordFromTrackCircuitDatabase(TrackCircuitToDeleteNum : Integer)
 
 PROCEDURE FindAdjoiningTrackCircuits(TC : Integer; OUT AdjoiningUpTrackCircuit, AdjoiningDownTrackCircuit : Integer);
 { Work out which are the adjacent track circuits. Does not trace along all lines, just the way points are set. }
+
+FUNCTION GetTrackCircuitsForLocation(Location : Integer) : IntegerArrayType;
+{ Return all the track circuits for a given location }
+
+FUNCTION GetTrackCircuitState(TC : Integer) : TrackCircuitStateType;
+{ Return whether and how the track circuit is occupied }
+
+FUNCTION GetTrackCircuitStateColour(TC : Integer) : TColour;
+{ Return whether and how the track circuit is occupied }
 
 PROCEDURE InitialiseTrackCircuitVariables(TC : Integer);
 { Initialise all the variables where the data is not read in from the database or added during the edit process }
@@ -125,6 +133,62 @@ PROCEDURE Log(Str : String);
 BEGIN
   WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
+
+FUNCTION GetTrackCircuitStateColour(TC : Integer) : TColour;
+{ Return whether and how the track circuit is occupied }
+BEGIN
+  IF TC = UnknownTrackCircuit THEN
+    GetTrackCircuitStateColour := TCUnoccupiedColour
+  ELSE
+    CASE GetTrackCircuitState(TC) OF
+      TCFeedbackOccupation:
+        Result := TCFeedbackOccupationColour;
+      TCFeedbackOccupationButOutOfUse:
+        Result := TCFeedbackOccupationButOutOfUseColour;
+      TCLocoOutOfPlaceOccupation:
+        Result := TCLocoOutOfPlaceOccupationColour;
+      TCMissingOccupation:
+        Result := TCMissingOccupationColour;
+      TCOutOfUseSetByUser:
+        Result := TCOutOfUseSetByUserColour;
+      TCOutOfUseAsNoFeedbackReceived:
+        Result := TCOutOfUseAsNoFeedbackReceivedColour;
+      TCPermanentFeedbackOccupation:
+        Result := TCPermanentFeedbackOccupationColour;
+      TCPermanentOccupationSetByUser:
+        Result := TCPermanentOccupationSetByUserColour;
+      TCPermanentSystemOccupation:
+        Result := TCPermanentSystemOccupationColour;
+      TCSystemOccupation:
+        Result := TCSystemOccupationColour;
+      TCUnoccupied:
+        Result := TCUnoccupiedColour;
+    ELSE
+      Result := TCUnoccupiedColour;
+    END; {CASE}
+END; { GetTrackCircuitStateColour }
+
+FUNCTION GetTrackCircuitState(TC : Integer) : TrackCircuitStateType;
+{ Return whether and how the track circuit is occupied }
+BEGIN
+  Result := TCUnoccupied;
+  TRY
+    IF TC <> UnknownTrackCircuit THEN BEGIN
+      Result := TrackCircuits[TC].TC_OccupationState;
+      IF DisplayFlashingTrackCircuits AND (TrackCircuits[TC].TC_Headcode = '?') THEN
+        { only mystery occupation flashes }
+        TrackCircuits[TC].TC_Flashing := True
+      ELSE BEGIN
+        TrackCircuits[TC].TC_Flashing := False;
+        { and, in case it had been flashing, mark it as being in the lit-up state up so it will continue to be drawn }
+        TrackCircuits[TC].TC_LitUp := True;
+      END;
+    END;
+  EXCEPT
+    ON E : Exception DO
+      ShowMessage('GetTrackCircuitState: ' + E.ClassName + ' error raised, with message: ' + E.Message);
+  END; {TRY}
+END; { GetTrackCircuitState }
 
 PROCEDURE UnlockTrackCircuitRouteLocking(TC : Integer);
 { Unlock a given track circuit }
@@ -859,5 +923,24 @@ BEGIN
       Log('EG DeleteRecordFromTrackCircuitDatabase: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { DeleteRecordFromTrackCircuitDatabase }
+
+FUNCTION GetTrackCircuitsForLocation(Location : Integer) : IntegerArrayType;
+{ Return all the track circuits for a given location }
+VAR
+  L : Integer;
+
+BEGIN
+  SetLength(Result, 0);
+  IF Location <> UnknownLocation THEN BEGIN
+    FOR L := 0 TO High(Lines) DO BEGIN
+      { only append a new TC if it's not there already }
+      IF Lines[L].Line_Location = Location THEN BEGIN
+        IF (Length(Result) = 0) OR (Result[High(Result)] <> Lines[L].Line_TC) THEN
+          IF Lines[L].Line_TC <> UnknownTrackCircuit THEN
+            AppendToIntegerArray(Result, Lines[L].Line_TC)
+      END;
+    END;
+  END;
+END; { GetTrackCircuitsForLocation }
 
 END { TrackCircuitsUnit }.

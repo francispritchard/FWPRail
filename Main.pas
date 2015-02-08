@@ -35,6 +35,9 @@ PROCEDURE ShutDownProgram(UnitRef : String; SubroutineStr : String);
 PROCEDURE StartSystemTimer;
 { Starts the system timer only }
 
+PROCEDURE StopOrResumeAllOperations(Str : String);
+{ Deal with emergency situations by stopping operations or restarting them }
+
 PROCEDURE StopSystemTimer;
 { Stops the system timer only }
 
@@ -64,6 +67,7 @@ CONST
 VAR
   InMainLoop : Boolean = False;
   NumbersArrayCounter : Integer = -1;
+  OperationsStopped : Boolean = False;
   SaveSystemStatusEmergencyOff : Boolean;
 
 PROCEDURE Log(Str : String);
@@ -71,6 +75,48 @@ PROCEDURE Log(Str : String);
 BEGIN
   WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
+
+PROCEDURE StopOrResumeAllOperations(Str : String);
+{ Deal with emergency situations by stopping operations or restarting them }
+VAR
+  OK : Boolean;
+  P : Integer;
+  S : Integer;
+
+BEGIN
+  IF NOT SystemOnline THEN
+    Debug('Cannot stop or resume operations - system offline')
+  ELSE BEGIN
+    IF OperationsStopped THEN BEGIN
+      IF MessageDialogueWithDefault('Resume operations?', NOT StopTimer, mtConfirmation, [mbOK, mbAbort], mbAbort) = mrOK THEN BEGIN
+        Log('A ' + Str + ' pressed : requesting resume all operations');
+        ResumeOperations(OK);
+        IF OK THEN BEGIN
+          Log('AG Operations resumed');
+          OperationsStopped := False;
+        END ELSE
+          Log('A! Operations not resumed');
+
+        InvalidateScreen(UnitRef, 'StopOrResumeAllOperations');
+      END;
+    END ELSE BEGIN
+      Log('A ' + Str + ' pressed : requesting stop all operations');
+      StopOperations(OK);
+      IF OK THEN BEGIN
+        Log('A! All operations stopped');
+        OperationsStopped := True;
+      END;
+
+      FOR P := 0 TO High(Points) DO
+        EmergencyDeselectPoint(P, OK);
+      Log('P! User has switched all points off');
+
+      FOR S := 0 TO High(Signals) DO
+        EmergencyDeselectSignal(S, OK);
+      Log('S! User has switched all signals off');
+    END;
+  END;
+END; { StopOrResumeAllOperations }
 
 PROCEDURE TMainWindow.MainWindowCreate(Sender: TObject);
 CONST

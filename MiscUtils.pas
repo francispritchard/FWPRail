@@ -3,7 +3,7 @@
 INTERFACE
 
 USES Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, InitVars, Input, Menus, ComCtrls, System.UITypes, TLHelp32, Logging,
-     PointsUnit, TrackCircuitsUnit, LinesUnit, Train, Feedback, LocationsUnit;
+     PointsUnit, TrackCircuitsUnit, LinesUnit, Train, Feedback, LocationsUnit, SignalsUnit;
 
 TYPE
   TDebugWindow = CLASS(TForm)
@@ -109,12 +109,6 @@ FUNCTION BufferStopToStr(BufferStop : Integer) : String;
 
 FUNCTION CardinalMulDiv(A, B, C : Cardinal) : Cardinal;
 { Returns (A * B) / C; intermediate result is held double-length to avoid overflow. FWP version }
-
-PROCEDURE ChangeTrainStatus(T : TrainIndex; NewStatus : TrainStatusType);
-{ Change the current train status and record it }
-
-PROCEDURE CheckSemaphoreDistantBeforeSemaphoreHomeCleared(S : Integer);
-{ Sees if semaphore distants need automatically to be reset to allow a semaphore home to be put on }
 
 PROCEDURE CloseInputOrOutputFile(VAR InputOrOutputFile : Text; Filename : String);
 { Close a file, capturing the error message if any }
@@ -306,15 +300,6 @@ FUNCTION GetLinesForTrackCircuit(TC : Integer) : IntegerArrayType;
 FUNCTION GetLocationFromTrackCircuit(TC : Integer) : Integer;
 { Return a location given a track-circuit number }
 
-FUNCTION GetLocoIndexFromLocoChip(LocoChip : Integer): LocoIndex;
-{ Look for a matching loco record given a loco chip number }
-
-FUNCTION GetLocoIndexFromTrainIndex(T : TrainIndex): LocoIndex;
-{ Look for a matching loco record given a train index }
-
-FUNCTION GetLocoRecFromLocoChip(LocoChip : Integer; OUT Loco : LocoRec) : Boolean;
-{ Look for a matching loco record given a loco chip number }
-
 FUNCTION GetMidPos(I1, I2 : Integer) : Integer;
 { Return the mid position between two given values }
 
@@ -330,12 +315,6 @@ FUNCTION GetProgramTitle : String;
 FUNCTION GetProgramVersion(Str : String) : String;
 { Returns the program version }
 
-FUNCTION GetSignalAdjacentLine(S : Integer) : Integer;
-{ Return the line adjacent to the given signal }
-
-FUNCTION GetSignalAspect(S : Integer) : AspectType;
-{ Return the state of a signal }
-
 FUNCTION GetStationMonitorsDisplayOrderStr(OrderNum : Integer) : String;
 { Return the description of the Area indicated by the station monitors' display order number }
 
@@ -344,21 +323,6 @@ FUNCTION GetStationNumFromStationMonitorsDisplayOrderNum(StationMonitorsDisplayO
 
 FUNCTION GetStringDataFromUser(Prompt, DefaultStr : String; PermissibleStrings : StringArrayType; OUT NewString : String) : Boolean;
 { Makes sure a non-empty string is returned by the user, and optionally that it is matches one of the strings supplied }
-
-FUNCTION GetTrackCircuitsForLocation(Location : Integer) : IntegerArrayType;
-{ Return all the track circuits for a given location }
-
-FUNCTION GetTrackCircuitStateColour(TC : Integer) : TColour;
-{ Return whether and how the track circuit is occupied }
-
-FUNCTION GetTrackCircuitState(TC : Integer) : TrackCircuitStateType;
-{ Return whether and how the track circuit is occupied }
-
-FUNCTION GetTrainIndexFromLocoChip(LocoChip : Integer): TrainIndex;
-{ Look for a matching train record given a locochip }
-
-FUNCTION GetTrainTypeFromLocoChip(LocoChip : Integer) : TypeOfTrainType;
-{ Returns the train type given the loco number }
 
 FUNCTION GetUserFromWindows : String;
 { Return the local user name (by Zarko Gajic, About.com) }
@@ -528,20 +492,11 @@ FUNCTION LightsTypeToStr(TypeOfLights : LightsType) : String;
 FUNCTION LineToStr(L : Integer) : String;
 { Return a line's name as a string }
 
-FUNCTION LinesAreAdjacent(L1, L2 : Integer; ErrorMsg : String) : Boolean;
-{ Returns true if the two given lines are adjacent }
-
 FUNCTION ListLocoChipsInIntegerArray(IntegerArray : IntegerArrayType) : String;
 { Lists loco chips from an integer array }
 
 FUNCTION LocationOccupationStateToStr(OccupationState : LocationOccupationStateType) : String;
 { Return the state of the Location Occupation as a string }
-
-FUNCTION LocationOccupied(Location : Integer) : Boolean;
-{ Returns true if the given location has a feedback occupation }
-
-FUNCTION LocationOutOfUse(Location : Integer; OUT OutOfUseTC : Integer; OUT OutOfUseStr : String) : Boolean;
-{ Returns true if the given location is out of use because of an out-of-use track-circuit occupation }
 
 FUNCTION LocationToStr{1}(Location : Integer) : String; Overload;
 { Return a location as a long string }
@@ -569,21 +524,6 @@ FUNCTION LTS(L : Integer) : String;
 
 PROCEDURE MakeSound(SoundNum : Integer);
 { Make a warning sound }
-
-FUNCTION MapGridYToRow(GridY : Integer) : Extended;
-{ Map grid co-ordinate to row }
-
-FUNCTION MapGridXToScreenX(GridX : Integer) : Integer;
-{ Map grid co-ordinate to screen co-ordinate }
-
-FUNCTION MapGridYToScreenY(GridY : Integer) : Integer;
-{ Map grid co-ordinate to screen co-ordinate }
-
-FUNCTION MapScreenXToGridX(ScreenX : Integer) : Integer;
-{ Map screen co-ordinate to grid co-ordinate }
-
-FUNCTION MapScreenYToGridY(ScreenY : Integer) : Integer;
-{ Map screen co-ordinate to grid co-ordinate }
 
 FUNCTION MessageDialogueWithDefault{1}(DialogueText: String; StopTimer : Boolean; DlgType : TMsgDlgType; Buttons : TMsgDlgButtons; DefaultButton : TMsgDlgBtn) : Word;
                                        Overload;
@@ -684,9 +624,6 @@ PROCEDURE ResetTestCount;
 FUNCTION ReturnFixedLengthStr(Str : String; FixedLength : Integer) : String;
 { Return a short string of a fixed length }
 
-PROCEDURE ReturnTrainFromMissing(T : TrainIndex);
-{ Set a train as being no longer missing }
-
 FUNCTION RoundTimeToNextWholeMinute(Time : TDateTime) : TDateTime;
 { Round the time to the next whole minute, i.e. 06:30:00 becomes 0G:31:00, but 06:30:20 becomes 06:32:00 }
 
@@ -719,15 +656,6 @@ PROCEDURE SetTwoLightingChips(L : LocoIndex; LightsAtUp, LightsAtDown : Directio
 PROCEDURE ShowMenus;
 { Make all the menus visible }
 
-FUNCTION SignalAdjacentLineOK(Line : Integer) : Boolean;
-{ Returns true if a signal can be created next to the current line }
-
-FUNCTION SignalHasLeftJunctionIndicator(S : Integer; OUT Indicator : JunctionIndicatorType) : Boolean;
-{ Returns true if the signal has a left junction indicator }
-
-FUNCTION SignalHasRightJunctionIndicator(S : Integer; OUT Indicator : JunctionIndicatorType) : Boolean;
-{ Returns true if the signal has a right junction indicator }
-
 FUNCTION SignalQuadrantToStr(Q : QuadrantType) : String;
 { Return a string with the supplied signal quadrant details }
 
@@ -739,19 +667,6 @@ FUNCTION SignalTypeToStr(ST : TypeOfSignal; LongOrShortString : StringType) : St
 
 FUNCTION SpeedInMPHToLocoLenzSpeed(L : LocoIndex; Speed : MPHType) : Integer;
 { Return the appropriate Lenz speed for the given loco }
-
-PROCEDURE StartLocos(Restart : Boolean);
-{ Restart all the locos that were running before the enforced stop }
-
-PROCEDURE StopAParticularTrain(T : TrainIndex);
-{ Stops just one train }
-
-PROCEDURE StopLocos(Msg : String);
-{ Stop all the locos currently in the diagram list. This is a better approach than the brute force approach which is to send a "StopAllLocomotives" command, which produces
-  an "emergency off" situation.
-}
-PROCEDURE StopOrResumeAllOperations(Str : String);
-{ Deal with emergency situations by stopping operations or restarting them }
 
 FUNCTION StringArraysCompareOK(FirstArray, SecondArray : StringArrayType; OUT ErrorMsg : String) : Boolean;
 { Does an element by element comparison of two string arrays }
@@ -970,7 +885,7 @@ IMPLEMENTATION
 {$R *.dfm}
 
 USES GetTime, Lenz, Diagrams, RailDraw, Types, LocoUtils, Math {sic}, IDGlobal, StrUtils, RDCUnit, CreateRoute, IniFiles, DateUtils, Startup, Cuneo, Movement, LocoDialogue,
-     FWPShowMessageUnit, Options, Help, MMSystem, TCPIP, Main, StationMonitors, Edit, Locks, SignalsUnit, Route;
+     FWPShowMessageUnit, Options, Help, MMSystem, TCPIP, Main, StationMonitors, Edit, Locks, Route;
 
 CONST
   UnitRef = 'MiscUtils';
@@ -1019,7 +934,6 @@ VAR
   LogArray : StringArrayType;
   LogsCurrentlyKeptMode : Boolean = True;
   OldDebugStr : String = '';
-  OperationsStopped : Boolean = False;
   PointDebuggingMode : Boolean = False;
   PreviousLogTime : TDateTime = 0;
   RDCMode : Boolean = False;
@@ -2486,33 +2400,6 @@ BEGIN
   Result := X DIV C;
 END; { CardinalMulDiv }
 
-PROCEDURE CheckSemaphoreDistantBeforeSemaphoreHomeCleared(S : Integer);
-{ Sees if semaphore distants need automatically to be reset to allow a semaphore home to be put on }
-VAR
-  I : Integer;
-  OK : Boolean;
-
-BEGIN
-  IF (Signals[S].Signal_Type = SemaphoreHome) AND (Signals[S].Signal_SemaphoreDistantLocking <> UnknownSignal) THEN BEGIN
-    I := 0;
-    WHILE I <= High(Signals[Signals[S].Signal_SemaphoreDistantLocking].Signal_SemaphoreDistantHomesArray) DO BEGIN
-      { unlock the semaphore home signals }
-      IF Signals[Signals[Signals[S].Signal_SemaphoreDistantLocking].Signal_SemaphoreDistantHomesArray[I]].Signal_Aspect = RedAspect THEN
-        Signals[Signals[Signals[S].Signal_SemaphoreDistantLocking].Signal_SemaphoreDistantHomesArray[I]].Signal_LockedBySemaphoreDistant := False;
-      Inc(I);
-    END; {WHILE}
-
-    { and set the distant on }
-    Signals[Signals[S].Signal_SemaphoreDistantLocking].Signal_Aspect := RedAspect;
-    MakeSemaphoreSignalChange(UnknownLocoChipStr, Signals[S].Signal_SemaphoreDistantLocking, Signals[Signals[S].Signal_SemaphoreDistantLocking].Signal_AccessoryAddress,
-                              SignalOn, OK);
-    IF OK THEN
-      Log('S S=' + IntToStr(Signals[S].Signal_SemaphoreDistantLocking) + ' on')
-    ELSE
-      Log('S S=' + IntToStr(Signals[S].Signal_SemaphoreDistantLocking) + ' setting to on failed');
-  END;
-END; { CheckSemaphoreDistantBeforeSemaphoreHomeCleared }
-
 FUNCTION ColourToStr(Colour : TColour) : String;
 { Checks if it's a Delphi colour or an FWP one }
 BEGIN
@@ -3810,101 +3697,6 @@ BEGIN
     Result := Str + ' : version ' + GetVersionInfoAsString + ' build ' + GetBuildInfoAsString + ' at ' + DescribeActualDateAndTime;
 END; { GetProgramVersion }
 
-FUNCTION GetSignalAdjacentLine(S : Integer) : Integer;
-{ Return the line adjacent to the given signal }
-BEGIN
-  IF S <> UnknownSignal THEN
-    Result := Signals[S].Signal_AdjacentLine
-  ELSE
-    Result := UnknownLine;
-END; { GetSignalAdjacentLine }
-
-FUNCTION GetSignalAspect(S : Integer) : AspectType;
-{ Return the state of a signal }
-BEGIN
-  IF S <> UnknownSignal THEN
-    Result := Signals[S].Signal_Aspect
-  ELSE BEGIN
-    ShowMessage('Signal is zero');
-    Result := NoAspect;
-  END;
-END; { GetSignalAspect }
-
-FUNCTION GetTrackCircuitsForLocation(Location : Integer) : IntegerArrayType;
-{ Return all the track circuits for a given location }
-VAR
-  L : Integer;
-
-BEGIN
-  SetLength(Result, 0);
-  IF Location <> UnknownLocation THEN BEGIN
-    FOR L := 0 TO High(Lines) DO BEGIN
-      { only append a new TC if it's not there already }
-      IF Lines[L].Line_Location = Location THEN BEGIN
-        IF (Length(Result) = 0) OR (Result[High(Result)] <> Lines[L].Line_TC) THEN
-          IF Lines[L].Line_TC <> UnknownTrackCircuit THEN
-            AppendToIntegerArray(Result, Lines[L].Line_TC)
-      END;
-    END;
-  END;
-END; { GetTrackCircuitsForLocation }
-
-FUNCTION GetTrackCircuitStateColour(TC : Integer) : TColour;
-{ Return whether and how the track circuit is occupied }
-BEGIN
-  IF TC = UnknownTrackCircuit THEN
-    GetTrackCircuitStateColour := TCUnoccupiedColour
-  ELSE
-    CASE GetTrackCircuitState(TC) OF
-      TCFeedbackOccupation:
-        Result := TCFeedbackOccupationColour;
-      TCFeedbackOccupationButOutOfUse:
-        Result := TCFeedbackOccupationButOutOfUseColour;
-      TCLocoOutOfPlaceOccupation:
-        Result := TCLocoOutOfPlaceOccupationColour;
-      TCMissingOccupation:
-        Result := TCMissingOccupationColour;
-      TCOutOfUseSetByUser:
-        Result := TCOutOfUseSetByUserColour;
-      TCOutOfUseAsNoFeedbackReceived:
-        Result := TCOutOfUseAsNoFeedbackReceivedColour;
-      TCPermanentFeedbackOccupation:
-        Result := TCPermanentFeedbackOccupationColour;
-      TCPermanentOccupationSetByUser:
-        Result := TCPermanentOccupationSetByUserColour;
-      TCPermanentSystemOccupation:
-        Result := TCPermanentSystemOccupationColour;
-      TCSystemOccupation:
-        Result := TCSystemOccupationColour;
-      TCUnoccupied:
-        Result := TCUnoccupiedColour;
-    ELSE
-      Result := TCUnoccupiedColour;
-    END; {CASE}
-END; { GetTrackCircuitStateColour }
-
-FUNCTION GetTrackCircuitState(TC : Integer) : TrackCircuitStateType;
-{ Return whether and how the track circuit is occupied }
-BEGIN
-  Result := TCUnoccupied;
-  TRY
-    IF TC <> UnknownTrackCircuit THEN BEGIN
-      Result := TrackCircuits[TC].TC_OccupationState;
-      IF DisplayFlashingTrackCircuits AND (TrackCircuits[TC].TC_Headcode = '?') THEN
-        { only mystery occupation flashes }
-        TrackCircuits[TC].TC_Flashing := True
-      ELSE BEGIN
-        TrackCircuits[TC].TC_Flashing := False;
-        { and, in case it had been flashing, mark it as being in the lit-up state up so it will continue to be drawn }
-        TrackCircuits[TC].TC_LitUp := True;
-      END;
-    END;
-  EXCEPT
-    ON E : Exception DO
-      ShowMessage('GetTrackCircuitState: ' + E.ClassName + ' error raised, with message: ' + E.Message);
-  END; {TRY}
-END; { GetTrackCircuitState }
-
 PROCEDURE HideMenus;
 { Make all the menus invisible }
 BEGIN
@@ -4308,48 +4100,6 @@ BEGIN
   END; {CASE}
 END; { LightsTypeToStr }
 
-FUNCTION LocationOccupied(Location : Integer) : Boolean;
-{ Returns true if the given location has a feedback occupation }
-VAR
-  I : Integer;
-  LocationTCs : IntegerArrayType;
-
-BEGIN
-  LocationTCs := GetTrackCircuitsForLocation(Location);
-  Result := False;
-  I := 0;
-  WHILE (I <= High(LocationTCs)) AND (Result <> True) DO BEGIN
-    IF TrackCircuits[LocationTCs[I]].TC_OccupationState = TCFeedbackOccupation THEN
-      Result := True
-    ELSE
-      Inc(I);
-  END; {WHILE}
-END; { LocationOccupied }
-
-FUNCTION LinesAreAdjacent(L1, L2 : Integer; ErrorMsg : String) : Boolean;
-{ Returns true if the two given lines are adjacent }
-BEGIN
-  Result := False;
-  ErrorMsg := '';
-
-  IF Lines[L1].Line_NextUpLine = L2 THEN BEGIN
-    Result := True;
-    ErrorMsg := 'Next line up to ' + LineToStr(L1) + ' is ' + LineToStr(L2);
-  END ELSE
-    IF Lines[L1].Line_NextDownLine = L2 THEN BEGIN
-      Result := True;
-      ErrorMsg := 'Next line down to ' + LineToStr(L1) + ' is ' + LineToStr(L2);
-    END ELSE
-      IF Lines[L2].Line_NextUpLine = L1 THEN BEGIN
-        Result := True;
-        ErrorMsg := 'Next line up to ' + LineToStr(L2) + ' is ' + LineToStr(L1);
-      END ELSE
-        IF Lines[L2].Line_NextDownLine = L1 THEN BEGIN
-          Result := True;
-          ErrorMsg := 'Next line down to ' + LineToStr(L2) + ' is ' + LineToStr(L1);
-        END;
-END; { LinesAreAdjacent }
-
 FUNCTION MulDiv(A, B, C : Integer) : Integer;
 { Returns (A * B) / C; intermediate result is held double-length to avoid overflow }
 VAR
@@ -4359,27 +4109,6 @@ BEGIN
   X := (A * B);
   Result := X DIV C;
 END; { MulDiv }
-
-FUNCTION LocationOutOfUse(Location : Integer; OUT OutOfUseTC : Integer; OUT OutOfUseStr : String) : Boolean;
-{ Returns true if the given location is out of use because of an out-of-use or similar track-circuit occupation }
-VAR
-  I : Integer;
-  LocationTCs : IntegerArrayType;
-
-BEGIN
-  LocationTCs := GetTrackCircuitsForLocation(Location);
-  Result := False;
-  I := 0;
-  WHILE (I <= High(LocationTCs)) AND (Result <> True) DO BEGIN
-    IF TrackCircuitStateIsPermanentlyOccupied(TrackCircuits[LocationTCs[I]].TC_OccupationState) THEN BEGIN
-      Result := True;
-      { note one of the out-of-use track circuits for diagnostic purposes }
-      OutOfUseTC := LocationTCs[I];
-      OutOfUseStr := TrackCircuitStateToStr(TrackCircuits[LocationTCs[I]].TC_OccupationState);
-    END ELSE
-      Inc(I);
-  END; {WHILE}
-END; { LocationOutOfUse }
 
 FUNCTION GetLocoRecFromLocoChip(LocoChip : Integer; OUT Loco : LocoRec) : Boolean;
 { Look for a matching loco record given a loco chip number }
@@ -4588,25 +4317,6 @@ BEGIN
     END; { CASE}
   END;
 END; { IOError }
-
-FUNCTION GetTrainTypeFromLocoChip(LocoChip : Integer) : TypeOfTrainType;
-{ Returns the train type given the loco number }
-VAR
-  LocoChipFound : Boolean;
-  T : TrainIndex;
-
-BEGIN
-  Result := UnknownTrainType;
-  T := 0;
-  LocoChipFound := False;
-  WHILE (T <= High(Trains)) AND NOT LocoChipFound DO BEGIN
-    IF Trains[T].Train_LocoChip = LocoChip THEN BEGIN
-      LocoChipFound := True;
-      Result := Trains[T].Train_Type;
-    END;
-   Inc(T);
-  END; {WHILE}
-END; { GetTrainTypeFromLocoChip }
 
 PROCEDURE ReadOut(SoundStr : String);
 { Uses system API SndPlaySound to read out the given text, by playing a .wav file. text is held in the system resource file, itself compiled by using "brcc32 -v rail.rc"
@@ -5458,38 +5168,6 @@ FUNCTION LocationToStr{2}(Location : Integer; LongOrShortString : StringType) : 
 BEGIN
   Result := LocationToStrMainProcedure(Location, LongOrShortString);
 END; { LocationToStr-2 }
-
-FUNCTION MapGridYToRow(GridY : Integer) : Extended;
-{ Map grid co-ordinate to row }
-BEGIN
-  Result := MapGridYToScreenY(GridY);
-  Result := Result / GridInterLineSpacing;
-  Result := Round(Result * 10) / 10;
-END; { MapGridYToRow }
-
-FUNCTION MapGridXToScreenX(GridX : Integer) : Integer;
-{ Map grid co-ordinate to screen co-ordinate }
-BEGIN
-  Result := MulDiv(FWPRailWindow.ClientWidth, GridX, ZoomScaleFactor) - ScrollBarXAdjustment;
-END; { MapGridXToScreenX }
-
-FUNCTION MapGridYToScreenY(GridY : Integer) : Integer;
-{ Map grid co-ordinate to screen co-ordinate }
-BEGIN
-  Result := MulDiv(FWPRailWindow.ClientHeight, GridY, ZoomScaleFactor) - ScrollBarYAdjustment;
-END; { MapGridYToScreenY }
-
-FUNCTION MapScreenXToGridX(ScreenX : Integer) : Integer;
-{ Map screen co-ordinate to grid co-ordinate }
-BEGIN
-  Result := MulDiv(ZoomScaleFactor, ScreenX + ScrollBarXAdjustment, FWPRailWindow.ClientWidth);
-END; { MapScreenXToGridX }
-
-FUNCTION MapScreenYToGridY(ScreenY : Integer) : Integer;
-{ Map screen co-ordinate to grid co-ordinate }
-BEGIN
-  Result := MulDiv(ZoomScaleFactor, ScreenY + ScrollBarYAdjustment, FWPRailWindow.ClientHeight);
-END; { MapScreenYToGridY }
 
 FUNCTION MPHToInt(MPH : MPHType) : Integer;
 { Returns the given MPH as an integer }
@@ -6535,94 +6213,6 @@ BEGIN
   Result := EncodeTime(Hour, Min, Sec, mSec);
 END; { RoundTimeToNextWholeMinute }
 
-PROCEDURE StopOrResumeAllOperations(Str : String);
-{ Deal with emergency situations by stopping operations or restarting them }
-VAR
-  OK : Boolean;
-  P : Integer;
-  S : Integer;
-
-BEGIN
-  IF NOT SystemOnline THEN
-    Debug('Cannot stop or resume operations - system offline')
-  ELSE BEGIN
-    IF OperationsStopped THEN BEGIN
-      IF MessageDialogueWithDefault('Resume operations?', NOT StopTimer, mtConfirmation, [mbOK, mbAbort], mbAbort) = mrOK THEN BEGIN
-        Log('A ' + Str + ' pressed : requesting resume all operations');
-        ResumeOperations(OK);
-        IF OK THEN BEGIN
-          Log('AG Operations resumed');
-          OperationsStopped := False;
-        END ELSE
-          Log('A! Operations not resumed');
-
-        InvalidateScreen(UnitRef, 'StopOrResumeAllOperations');
-      END;
-    END ELSE BEGIN
-      Log('A ' + Str + ' pressed : requesting stop all operations');
-      StopOperations(OK);
-      IF OK THEN BEGIN
-        Log('A! All operations stopped');
-        OperationsStopped := True;
-      END;
-
-      FOR P := 0 TO High(Points) DO
-        EmergencyDeselectPoint(P, OK);
-      Log('P! User has switched all points off');
-
-      FOR S := 0 TO High(Signals) DO
-        EmergencyDeselectSignal(S, OK);
-      Log('S! User has switched all signals off');
-    END;
-  END;
-END; { StopOrResumeAllOperations }
-
-PROCEDURE ChangeTrainStatus(T : TrainIndex; NewStatus : TrainStatusType);
- { Change the current train status and record it }
-VAR
-  DebugStr : String;
-  OK : Boolean;
-
-BEGIN
-  DebugStr := '';
-
-  IF T = UnknownTrainIndex THEN
-    UnknownTrainRecordFound('ChangeTrainStatus')
-  ELSE BEGIN
-    WITH Trains[T] DO BEGIN
-      { we need to make special provision for missing trains, as their status can switch back and fore continuously from Missing to MissingAndSuspended }
-      IF (Train_CurrentStatus = Missing) OR (Train_CurrentStatus = MissingAndSuspended) THEN
-        DebugStr := ' (immediate previous status was ' + TrainStatusToStr(Train_CurrentStatus) + ')'
-      ELSE
-        Train_PreviousStatus := Train_CurrentStatus;
-
-      Train_CurrentStatus := NewStatus;
-      Log(Train_LocoChipStr + ' L New status: ' + TrainStatusToStr(Train_CurrentStatus)
-                            + '; previous status: ' + TrainStatusToStr(Train_PreviousStatus) + DebugStr);
-      { update the diagrams window }
-      DrawDiagramsStatusCell(T, Normalstyle);
-
-      { And make any necessary changes to the train record, etc. }
-      CASE Train_CurrentStatus OF
-        ToBeRemovedFromDiagrams:
-          BEGIN
-            { Take it off the diagram grid }
-            RemoveTrainFromDiagrams(T);
-            ChangeTrainStatus(T, RemovedFromDiagrams);
-            DrawDiagrams(UnitRef, 'Change Train Status');
-
-            { Deal with the loco's lights (if any) }
-            IF NOT Train_LightsRemainOnWhenJourneysComplete THEN
-              TurnTrainLightsOff(T, OK);
-
-            IF TrainHasCablights(T) AND Train_CabLightsAreOn THEN
-              TurnTrainCabLightsOff(T, OK);
-          END;
-      END; {CASE}
-    END; {WITH}
-  END;
-END; { ChangeTrainStatus }
-
 FUNCTION DescribeTrainList{1} : String; Overload;
 { Describe the contents of the train list, the full list of locos and trains if DescribeFullTrainList is set }
 VAR
@@ -6801,39 +6391,6 @@ FUNCTION ReturnFixedLengthStr(Str : String; FixedLength : Integer) : String;
 BEGIN
   Result := Str + StringOfChar(' ', 4 - Length(Str))
 END; { ReturnFixedLengthStr }
-
-PROCEDURE ReturnTrainFromMissing(T : TrainIndex);
-{ Set a train as being no longer missing }
-VAR
-  TC : Integer;
-
-BEGIN
-  IF T = UnknownTrainIndex THEN
-    UnknownTrainRecordFound('ReturnTrainFromMissing')
-  ELSE BEGIN
-    WITH Trains[T] DO BEGIN
-      IF Train_CurrentStatus = MissingAndSuspended THEN
-        ChangeTrainStatus(T, Suspended)
-      ELSE
-        IF Train_CurrentStatus = Missing THEN
-          ChangeTrainStatus(T, Train_PreviousStatus);
-
-      Train_MissingMessage := False;
-      Train_LastMissingTC := Train_CurrentTC;
-      Dec(MissingTrainCounter);
-
-      FOR TC := 0 TO High(TrackCircuits) DO BEGIN
-        IF (TrackCircuits[TC].TC_LocoChip = Train_LocoChip) AND (TrackCircuits[TC].TC_OccupationState = TCMissingOccupation) THEN BEGIN
-          TrackCircuits[TC].TC_MissingTrainNoted := False;
-          SetTrackCircuitState(Train_LocoChip, TC, TCFeedbackOccupation);
-        END;
-      END;
-
-      Log(Train_LocoChipStr + ' LG Train has been restarted');
-      DrawDiagramsStatusCell(T, NormalStyle);
-    END; {WITH}
-  END;
-END; { ReturnTrainFromMissing }
 
 FUNCTION SameTimeInHoursAndMinutesOnly(Time1, Time2 : TDateTime) : Boolean;
 { Compares two given times and returns true if they are the same in terms of hours and minutes (the system routine SameTime compares times down to the millisecond level,
@@ -7254,78 +6811,6 @@ BEGIN
   END; {WITH}
 END; { ShowMenus }
 
-FUNCTION SignalAdjacentLineOK(Line : Integer) : Boolean;
-{ Returns true if a signal can be created next to the current line }
-VAR
-  S : Integer;
-  SignalAdjacentLineFound : Boolean;
-
-BEGIN
-  Result := False;
-
-  IF Line <> UnknownLine THEN BEGIN
-    { only create a signal next to a line if there isn't one already attached to it }
-    S := 0;
-    SignalAdjacentLineFound := False;
-    WHILE (S <= High(Signals)) AND NOT SignalAdjacentLineFound DO BEGIN
-      IF Signals[S].Signal_AdjacentLine = Line THEN
-        SignalAdjacentLineFound := True;
-      Inc(S);
-    END; {WHILE}
-
-    IF NOT SignalAdjacentLineFound THEN
-      { the line has to be horizontal }
-      IF Lines[Line].Line_GridUpY = Lines[Line].Line_GridDownY THEN
-        Result := True;
-  END;
-END; { SignalAdjacentLineOK }
-
-FUNCTION SignalHasLeftJunctionIndicator(S : Integer; OUT Indicator : JunctionIndicatorType) : Boolean;
-{ Returns true if the signal has a left junction indicator }
-BEGIN
-  Result := False;
-
-  WITH Signals[S] DO BEGIN
-    IF Signal_Indicator = JunctionIndicator THEN BEGIN
-      Indicator := UnknownJunctionIndicator;
-      IF Signal_JunctionIndicators[UpperLeftIndicator].JunctionIndicator_Exists THEN
-        Indicator := UpperLeftIndicator
-      ELSE
-        IF Signal_JunctionIndicators[MiddleLeftIndicator].JunctionIndicator_Exists THEN
-          Indicator := MiddleLeftIndicator
-        ELSE
-          IF Signal_JunctionIndicators[LowerLeftIndicator].JunctionIndicator_Exists THEN
-            Indicator := LowerLeftIndicator;
-
-      IF Indicator <> UnknownJunctionIndicator THEN
-        Result := True;
-    END; {WITH}
-  END;
-END; { SignalHasLeftJunctionIndicator }
-
-FUNCTION SignalHasRightJunctionIndicator(S : Integer; OUT Indicator : JunctionIndicatorType) : Boolean;
-{ Returns true if the signal has a right junction indicator }
-BEGIN
-  Result := False;
-
-  WITH Signals[S] DO BEGIN
-    IF Signal_Indicator = JunctionIndicator THEN BEGIN
-      Indicator := UnknownJunctionIndicator;
-      IF Signal_JunctionIndicators[UpperRightIndicator].JunctionIndicator_Exists THEN
-        Indicator := UpperRightIndicator
-      ELSE
-        IF Signal_JunctionIndicators[MiddleRightIndicator].JunctionIndicator_Exists THEN
-          Indicator := MiddleRightIndicator
-        ELSE
-          IF Signal_JunctionIndicators[LowerRightIndicator].JunctionIndicator_Exists THEN
-            Indicator := LowerRightIndicator;
-
-      IF Indicator <> UnknownJunctionIndicator THEN
-        Result := True;
-    END; {WITH}
-  END;
-END; { SignalHasRightJunctionIndicator }
-
 FUNCTION SignalQuadrantToStr(Q : QuadrantType) : String;
 { Return a string with the supplied signal quadrant details }
 BEGIN
@@ -7374,133 +6859,6 @@ BEGIN
     END; {CASE}
   END;
 END; { SignalTypeToStr }
-
-{$O-}
-PROCEDURE StartLocos(Restart : Boolean);
-{ Restart all the locos that were running before the enforced stop }
-CONST
-  ForceDraw = True;
-  GoingForward = True;
-  LightsOn = True;
-
-VAR
-  T : TrainIndex;
-  OK : Boolean;
-  TrainsRestarted : Boolean;
-
-BEGIN
-  TrainsRestarted := False;
-  T := 0;
-  WHILE T <= High(Trains) DO BEGIN
-    WITH Trains[T] DO BEGIN
-      IF (Train_LocoChip <> UnknownLocoChip)
-      AND Train_DiagramFound
-      AND (Train_CurrentStatus <> Suspended)
-      AND (Train_CurrentStatus <> MissingAndSuspended)
-      AND (Train_CurrentStatus <> Cancelled)
-      THEN BEGIN
-        IF SystemOnline THEN BEGIN
-          IF Train_CurrentDirection = Up THEN BEGIN
-            { may want to read in saved data before setting direction - ******* }
-            IF NOT Train_UserDriving THEN BEGIN
-              SetTrainDirection(T, Up, NOT ForceAWrite, OK);
-              SetTwoLightingChips(Train_LocoIndex, Up, Up, LightsOn);
-            END ELSE BEGIN
-              IF Train_UserDriving AND Train_UserRequiresInstructions THEN
-                Log(Train_LocoChipStr + ' L= User instructed to set direction to Up');
-            END;
-          END ELSE
-            IF Train_CurrentDirection = Down THEN BEGIN
-              IF NOT Train_UserDriving THEN BEGIN
-                SetTrainDirection(T, Down, NOT ForceAWrite, OK);
-                SetTwoLightingChips(Train_LocoIndex, Down, Down, LightsOn);
-              END ELSE BEGIN
-                IF Train_UserDriving AND Train_UserRequiresInstructions THEN
-                  Log(Train_LocoChipStr + ' L= User instructed to set direction to Down');
-              END;
-            END;
-        END;
-//        Train_Accelerating := True;
-//        Train_AccelerationTimeInSeconds := 5.0;
-//        Train_AccelerationStartTime := 0; &&&&&
-
-//        Train_Decelerating := False;
-//        Train_DesiredLenzSpeed := Train_SaveDesiredLenzSpeed;
-//        Train_SaveDesiredLenzSpeed := 0;
-//        Train_CurrentLenzSpeed := 0; &&&&&
-
-        SetDesiredLocoLenzSpeed(Train_LocoIndex, 0, Train_UserDriving, Train_UserRequiresInstructions);
-        IF Train_DoubleHeaderLocoChip <> UnknownLocoChip THEN
-          SetDesiredLocoLenzSpeed(Train_DoubleHeaderLocoIndex, 0, Train_UserDriving, Train_UserRequiresInstructions);
-        TrainsRestarted := True;
-      END; {WITH}
-    END;
-    Inc(T);
-  END; {WHILE}
-
-  IF Restart AND TrainsRestarted THEN
-    Log('AG All locos restarted')
-  ELSE
-    IF Restart THEN
-      Log('AG No locos to restart');
-END; { StartLocos }
-
-PROCEDURE StopAParticularTrain(T : TrainIndex);
-{ Stops just one train }
-VAR
-  DebugStr : String;
-  OK : Boolean;
-
-BEGIN
-  IF T = UnknownTrainIndex THEN
-    UnknownTrainRecordFound('StopAParticularTrain')
-  ELSE BEGIN
-    WITH Trains[T] DO BEGIN
-      IF SystemOnline THEN BEGIN
-        DebugStr := 'Train stop requested';
-        StopAParticularLocomotive(Locos[Train_LocoIndex], OK);
-        IF Train_DoubleHeaderLocoChip <> UnknownLocoChip THEN BEGIN
-          StopAParticularLocomotive(Locos[Train_DoubleHeaderLocoIndex], OK);
-          DebugStr := DebugStr + '. DH Loco ' + LocoChipToStr(Train_DoubleHeaderLocoChip) + ' also stopped';
-        END;
-
-        Log(Train_LocoChipStr + ' L ' + DebugStr);
-      END;
-    END; {WITH}
-  END;
-END; { StopAParticularTrain }
-
-PROCEDURE StopLocos(Msg : String);
-{ Stop all the locos currently in the diagram list. This is a better approach than the brute force approach which is to send a "StopAllLocomotives" command, which produces
-  an "emergency off" situation.
-}
-VAR
-  T : TrainIndex;
-
-BEGIN
-  Log('AG Stopping any locos - initiated by ' + Msg);
-
-  T := 0;
-  WHILE T <= High(Trains) DO BEGIN
-    WITH Trains[T] DO BEGIN
-      IF (Train_LocoChip <> UnknownLocoChip)
-      AND Train_DiagramFound
-      AND (Train_CurrentStatus <> Cancelled)
-      AND (Train_LocoChip <> UnknownLocoChip)
-      THEN BEGIN
-        StopAParticularTrain(T);
-        LocosStopped := True;
-        DrawDiagramsSpeedCell(T);
-      END;
-    END; {WITH}
-    Inc(T);
-  END; {WHILE}
-
-  IF LocosStopped THEN
-    Log('AG All locos stopped')
-  ELSE
-    Log('AG No locos to stop');
-END; { StopLocos }
 
 FUNCTION StringArraysCompareOK(FirstArray, SecondArray : StringArrayType; OUT ErrorMsg : String) : Boolean;
 { Does an element by element comparison of two string arrays }

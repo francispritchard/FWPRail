@@ -51,6 +51,12 @@ PROCEDURE InsertDataInLocationOccupationArray(T : TrainIndex; JourneyA, JourneyB
                                               LocationState : LocationOccupationStateType; OUT ErrorMsg : String; OUT OK : Boolean);
 { Insert data in the Location Occupation array }
 
+FUNCTION LocationOccupied(Location : Integer) : Boolean;
+{ Returns true if the given location has a feedback occupation }
+
+FUNCTION LocationOutOfUse(Location : Integer; OUT OutOfUseTC : Integer; OUT OutOfUseStr : String) : Boolean;
+{ Returns true if the given location is out of use because of an out-of-use track-circuit occupation }
+
 PROCEDURE ReadInLocationDataFromDatabase;
 { Initialise the location data }
 
@@ -70,7 +76,6 @@ PROCEDURE WriteOutLocationDataToDatabase;
 { Write out some location data to the location data file }
 
 TYPE
-  { Location-related type declarations }
   LocationRec = RECORD
     Location_AccessibleLocationsUp : IntegerArrayType;
     Location_AccessibleLocationsOrAreasUpStrArray : StringArrayType; { to store the data for later test }
@@ -177,6 +182,45 @@ PROCEDURE Log(Str : String);
 BEGIN
   WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
+
+FUNCTION LocationOutOfUse(Location : Integer; OUT OutOfUseTC : Integer; OUT OutOfUseStr : String) : Boolean;
+{ Returns true if the given location is out of use because of an out-of-use or similar track-circuit occupation }
+VAR
+  I : Integer;
+  LocationTCs : IntegerArrayType;
+
+BEGIN
+  LocationTCs := GetTrackCircuitsForLocation(Location);
+  Result := False;
+  I := 0;
+  WHILE (I <= High(LocationTCs)) AND (Result <> True) DO BEGIN
+    IF TrackCircuitStateIsPermanentlyOccupied(TrackCircuits[LocationTCs[I]].TC_OccupationState) THEN BEGIN
+      Result := True;
+      { note one of the out-of-use track circuits for diagnostic purposes }
+      OutOfUseTC := LocationTCs[I];
+      OutOfUseStr := TrackCircuitStateToStr(TrackCircuits[LocationTCs[I]].TC_OccupationState);
+    END ELSE
+      Inc(I);
+  END; {WHILE}
+END; { LocationOutOfUse }
+
+FUNCTION LocationOccupied(Location : Integer) : Boolean;
+{ Returns true if the given location has a feedback occupation }
+VAR
+  I : Integer;
+  LocationTCs : IntegerArrayType;
+
+BEGIN
+  LocationTCs := GetTrackCircuitsForLocation(Location);
+  Result := False;
+  I := 0;
+  WHILE (I <= High(LocationTCs)) AND (Result <> True) DO BEGIN
+    IF TrackCircuits[LocationTCs[I]].TC_OccupationState = TCFeedbackOccupation THEN
+      Result := True
+    ELSE
+      Inc(I);
+  END; {WHILE}
+END; { LocationOccupied }
 
 PROCEDURE InitialiseLocationVariables(Location : Integer);
 { Initialise all the variables where the data is not read in from the database or added during the edit process }

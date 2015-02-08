@@ -310,6 +310,21 @@ PROCEDURE InitialiseScreenDrawingVariables;
 PROCEDURE InvalidateScreen(UnitRefParam, CallingStr : String);
 { Draw the screen by invalidating it }
 
+FUNCTION MapGridYToRow(GridY : Integer) : Extended;
+{ Map grid co-ordinate to row }
+
+FUNCTION MapGridXToScreenX(GridX : Integer) : Integer;
+{ Map grid co-ordinate to screen co-ordinate }
+
+FUNCTION MapGridYToScreenY(GridY : Integer) : Integer;
+{ Map grid co-ordinate to screen co-ordinate }
+
+FUNCTION MapScreenXToGridX(ScreenX : Integer) : Integer;
+{ Map screen co-ordinate to grid co-ordinate }
+
+FUNCTION MapScreenYToGridY(ScreenY : Integer) : Integer;
+{ Map screen co-ordinate to grid co-ordinate }
+
 PROCEDURE ResetAllWindowsSizeAndPosition;
 { Reset all the windows to their default state }
 
@@ -453,6 +468,38 @@ PROCEDURE Log(Str : String);
 BEGIN
   WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
+
+FUNCTION MapGridYToRow(GridY : Integer) : Extended;
+{ Map grid co-ordinate to row }
+BEGIN
+  Result := MapGridYToScreenY(GridY);
+  Result := Result / GridInterLineSpacing;
+  Result := Round(Result * 10) / 10;
+END; { MapGridYToRow }
+
+FUNCTION MapGridXToScreenX(GridX : Integer) : Integer;
+{ Map grid co-ordinate to screen co-ordinate }
+BEGIN
+  Result := MulDiv(FWPRailWindow.ClientWidth, GridX, ZoomScaleFactor) - ScrollBarXAdjustment;
+END; { MapGridXToScreenX }
+
+FUNCTION MapGridYToScreenY(GridY : Integer) : Integer;
+{ Map grid co-ordinate to screen co-ordinate }
+BEGIN
+  Result := MulDiv(FWPRailWindow.ClientHeight, GridY, ZoomScaleFactor) - ScrollBarYAdjustment;
+END; { MapGridYToScreenY }
+
+FUNCTION MapScreenXToGridX(ScreenX : Integer) : Integer;
+{ Map screen co-ordinate to grid co-ordinate }
+BEGIN
+  Result := MulDiv(ZoomScaleFactor, ScreenX + ScrollBarXAdjustment, FWPRailWindow.ClientWidth);
+END; { MapScreenXToGridX }
+
+FUNCTION MapScreenYToGridY(ScreenY : Integer) : Integer;
+{ Map screen co-ordinate to grid co-ordinate }
+BEGIN
+  Result := MulDiv(ZoomScaleFactor, ScreenY + ScrollBarYAdjustment, FWPRailWindow.ClientHeight);
+END; { MapScreenYToGridY }
 
 PROCEDURE SetUpLineDrawingVars;
 { Set up the positions of the lines and plaforms }

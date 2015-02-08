@@ -18,14 +18,39 @@ TYPE
 
   TrainIndex = Integer;
 
+  { Note: we need Missing, Suspended, and MissingAndSuspended as otherwise the status can oscillate between Missing and Suspended if a train is suspended while missing - in
+    that case, unsuspending renders it missing even though it may no longer be missing, and it's then a status we can't get out of.
+  }
+  TrainStatusType = (ReadyForCreation, WaitingForLightsOn, WaitingForHiddenStationSignalAspectToClear, WaitingForRouteing, InLightsOnTime, ReadyForRouteing,
+                     CommencedRouteing, ReadyToDepart, Departed, RouteingWhileDeparted, RouteCompleted, WaitingForRemovalFromDiagrams, ToBeRemovedFromDiagrams,
+                     RemovedFromDiagrams, Missing, MissingAndSuspended, Suspended, NonMoving, Cancelled, UnknownTrainStatus);
+  TypeOfTrainType = (LightLocoType, ExpressPassengerType, OrdinaryPassengerType, ExpressFreightType, Freight75mphType, EmptyCoachingStockType, Freight60mphType,
+                     Freight45mphType, Freight35mphType, InternationalType, UnknownTrainType);
+  TrainTypeArray = ARRAY OF TypeOfTrainType;
+
 VAR
   TrainForm: TTrainForm;
+
+PROCEDURE ChangeTrainStatus(T : TrainIndex; NewStatus : TrainStatusType);
+{ Change the current train status and record it }
+
+FUNCTION GetTrainIndexFromLocoChip(LocoChip : Integer): TrainIndex;
+{ Look for a matching train record given a locochip }
+
+FUNCTION GetTrainTypeFromLocoChip(LocoChip : Integer) : TypeOfTrainType;
+{ Returns the train type given the loco number }
 
 PROCEDURE InitialiseTrainRecord(T : TrainIndex);
 { Do the initialisations, or reinitialisations if specified }
 
+PROCEDURE ReturnTrainFromMissing(T : TrainIndex);
+{ Set a train as being no longer missing }
+
 PROCEDURE SetTrainDirection(T : TrainIndex; DirectionRequired : DirectionType; ForceWrite : Boolean; VAR OK : Boolean);
 { Change the direction for a train's locos }
+
+PROCEDURE StopAParticularTrain(T : TrainIndex);
+{ Stops just one train }
 
 FUNCTION TrainHasCabLights(T : TrainIndex) : Boolean;
 { Returns true if one or both of a train's locos have cab lights }
@@ -47,10 +72,6 @@ PROCEDURE TurnTrainLightsOn(T : TrainIndex; OUT OK : Boolean);
 
 TYPE
   { Train-related type declarations }
-  TypeOfTrainType = (LightLocoType, ExpressPassengerType, OrdinaryPassengerType, ExpressFreightType, Freight75mphType, EmptyCoachingStockType, Freight60mphType,
-                     Freight45mphType, Freight35mphType, InternationalType, UnknownTrainType);
-  TrainTypeArray = ARRAY OF TypeOfTrainType;
-
   TrainJourneyRec = RECORD
     TrainJourney_ActualArrivalTime : TDateTime;
     TrainJourney_ActualDepartureTime : TDateTime;
@@ -92,12 +113,6 @@ TYPE
 
   TrainJourneyRecArrayType = ARRAY OF TrainJourneyRec;
 
-  { Note: we need Missing, Suspended, and MissingAndSuspended as otherwise the status can oscillate between Missing and Suspended if a train is suspended while missing - in
-    that case, unsuspending renders it missing even though it may no longer be missing, and it's then a status we can't get out of.
-  }
-  TrainStatusType = (ReadyForCreation, WaitingForLightsOn, WaitingForHiddenStationSignalAspectToClear, WaitingForRouteing, InLightsOnTime, ReadyForRouteing,
-                     CommencedRouteing, ReadyToDepart, Departed, RouteingWhileDeparted, RouteCompleted, WaitingForRemovalFromDiagrams, ToBeRemovedFromDiagrams,
-                     RemovedFromDiagrams, Missing, MissingAndSuspended, Suspended, NonMoving, Cancelled, UnknownTrainStatus);
   TrainRec = RECORD
     Train_LocoChip : Integer;
     Train_DoubleHeaderLocoChip : Integer;
@@ -252,7 +267,7 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES Lenz, MiscUtils;
+USES Lenz, MiscUtils, Diagrams, TrackCircuitsUnit;
 
 CONST
   UnitRef = 'Train';
@@ -262,6 +277,160 @@ PROCEDURE Log(Str : String);
 BEGIN
   WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
+
+PROCEDURE StopAParticularTrain(T : TrainIndex);
+{ Stops just one train }
+VAR
+  DebugStr : String;
+  OK : Boolean;
+
+BEGIN
+  IF T = UnknownTrainIndex THEN
+    UnknownTrainRecordFound('StopAParticularTrain')
+  ELSE BEGIN
+    WITH Trains[T] DO BEGIN
+      IF SystemOnline THEN BEGIN
+        DebugStr := 'Train stop requested';
+        StopAParticularLocomotive(Locos[Train_LocoIndex], OK);
+        IF Train_DoubleHeaderLocoChip <> UnknownLocoChip THEN BEGIN
+          StopAParticularLocomotive(Locos[Train_DoubleHeaderLocoIndex], OK);
+          DebugStr := DebugStr + '. DH Loco ' + LocoChipToStr(Train_DoubleHeaderLocoChip) + ' also stopped';
+        END;
+
+        Log(Train_LocoChipStr + ' L ' + DebugStr);
+      END;
+    END; {WITH}
+  END;
+END; { StopAParticularTrain }
+
+PROCEDURE ReturnTrainFromMissing(T : TrainIndex);
+{ Set a train as being no longer missing }
+VAR
+  TC : Integer;
+
+BEGIN
+  IF T = UnknownTrainIndex THEN
+    UnknownTrainRecordFound('ReturnTrainFromMissing')
+  ELSE BEGIN
+    WITH Trains[T] DO BEGIN
+      IF Train_CurrentStatus = MissingAndSuspended THEN
+        ChangeTrainStatus(T, Suspended)
+      ELSE
+        IF Train_CurrentStatus = Missing THEN
+          ChangeTrainStatus(T, Train_PreviousStatus);
+
+      Train_MissingMessage := False;
+      Train_LastMissingTC := Train_CurrentTC;
+      Dec(MissingTrainCounter);
+
+      FOR TC := 0 TO High(TrackCircuits) DO BEGIN
+        IF (TrackCircuits[TC].TC_LocoChip = Train_LocoChip) AND (TrackCircuits[TC].TC_OccupationState = TCMissingOccupation) THEN BEGIN
+          TrackCircuits[TC].TC_MissingTrainNoted := False;
+          SetTrackCircuitState(Train_LocoChip, TC, TCFeedbackOccupation);
+        END;
+      END;
+
+      Log(Train_LocoChipStr + ' LG Train has been restarted');
+      DrawDiagramsStatusCell(T, NormalStyle);
+    END; {WITH}
+  END;
+END; { ReturnTrainFromMissing }
+
+FUNCTION GetTrainTypeFromLocoChip(LocoChip : Integer) : TypeOfTrainType;
+{ Returns the train type given the loco number }
+VAR
+  LocoChipFound : Boolean;
+  T : TrainIndex;
+
+BEGIN
+  Result := UnknownTrainType;
+  T := 0;
+  LocoChipFound := False;
+  WHILE (T <= High(Trains)) AND NOT LocoChipFound DO BEGIN
+    IF Trains[T].Train_LocoChip = LocoChip THEN BEGIN
+      LocoChipFound := True;
+      Result := Trains[T].Train_Type;
+    END;
+   Inc(T);
+  END; {WHILE}
+END; { GetTrainTypeFromLocoChip }
+
+FUNCTION GetTrainIndexFromLocoChip(LocoChip : Integer) : TrainIndex;
+{ Look for a matching train index given a locochip }
+VAR
+  T : TrainIndex;
+  TrainFound : Boolean;
+
+BEGIN
+  Result := UnknownTrainIndex;
+  TRY
+    IF LocoChip = UnknownLocoChip THEN
+      Exit
+    ELSE BEGIN
+      T := 0;
+      TrainFound := False;
+      WHILE (T <= High(Trains)) AND NOT TrainFound DO BEGIN
+        { run through the train list, to find our train }
+        IF Trains[T].Train_LocoChip = LocoChip THEN
+          TrainFound := True
+        ELSE
+          Inc(T);
+      END; {WHILE}
+
+      IF TrainFound THEN
+        Result := T;
+    END;
+  EXCEPT
+    ON E : Exception DO
+      Log('EG GetTrainIndexFromLocoChip: ' + E.ClassName + ' error raised, with message: ' + E.Message);
+  END; {TRY}
+END; { GetTrainIndexFromLocoChip }
+
+PROCEDURE ChangeTrainStatus(T : TrainIndex; NewStatus : TrainStatusType);
+ { Change the current train status and record it }
+VAR
+  DebugStr : String;
+  OK : Boolean;
+
+BEGIN
+  DebugStr := '';
+
+  IF T = UnknownTrainIndex THEN
+    UnknownTrainRecordFound('ChangeTrainStatus')
+  ELSE BEGIN
+    WITH Trains[T] DO BEGIN
+      { we need to make special provision for missing trains, as their status can switch back and fore continuously from Missing to MissingAndSuspended }
+      IF (Train_CurrentStatus = Missing) OR (Train_CurrentStatus = MissingAndSuspended) THEN
+        DebugStr := ' (immediate previous status was ' + TrainStatusToStr(Train_CurrentStatus) + ')'
+      ELSE
+        Train_PreviousStatus := Train_CurrentStatus;
+
+      Train_CurrentStatus := NewStatus;
+      Log(Train_LocoChipStr + ' L New status: ' + TrainStatusToStr(Train_CurrentStatus)
+                            + '; previous status: ' + TrainStatusToStr(Train_PreviousStatus) + DebugStr);
+      { update the diagrams window }
+      DrawDiagramsStatusCell(T, Normalstyle);
+
+      { And make any necessary changes to the train record, etc. }
+      CASE Train_CurrentStatus OF
+        ToBeRemovedFromDiagrams:
+          BEGIN
+            { Take it off the diagram grid }
+            RemoveTrainFromDiagrams(T);
+            ChangeTrainStatus(T, RemovedFromDiagrams);
+            DrawDiagrams(UnitRef, 'Change Train Status');
+
+            { Deal with the loco's lights (if any) }
+            IF NOT Train_LightsRemainOnWhenJourneysComplete THEN
+              TurnTrainLightsOff(T, OK);
+
+            IF TrainHasCablights(T) AND Train_CabLightsAreOn THEN
+              TurnTrainCabLightsOff(T, OK);
+          END;
+      END; {CASE}
+    END; {WITH}
+  END;
+END; { ChangeTrainStatus }
 
 PROCEDURE InitialiseTrainRecord(T : TrainIndex);
 { Do the initialisations, or reinitialisations if specified }

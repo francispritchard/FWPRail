@@ -2,7 +2,7 @@ UNIT Cuneo;
 
 INTERFACE
 
-USES Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, Dialogs, InitVars, ExtCtrls, StdCtrls, Edit;
+USES Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, Dialogs, InitVars, ExtCtrls, StdCtrls, Edit, SignalsUnit;
 
 TYPE
   TCuneoWindow = CLASS(TForm)
@@ -51,7 +51,7 @@ IMPLEMENTATION
 {$R *.dfm}
 
 USES RailDraw, Locks, Startup, Route, GetTime, Diagrams, MiscUtils, Movement, Lenz, Input, LocoUtils, Types, CreateRoute, LocoDialogue, LocationsUnit, Help, StrUtils,
-     Options, Main, DateUtils, SignalsUnit, PointsUnit, TrackCircuitsUnit, LinesUnit, Train;
+     Options, Main, DateUtils, PointsUnit, TrackCircuitsUnit, LinesUnit, Train;
 
 CONST
   UnitRef = 'Cuneo';

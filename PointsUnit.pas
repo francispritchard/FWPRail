@@ -17,7 +17,6 @@ TYPE
     { Public declarations }
   END;
 
-  { Point-related type declarations }
   PointStateType = (Diverging, Straight, PointOutOfAction, PointStateUnknown);
   TypeOfPoint = (OrdinaryPoint, CrossOverPoint, ThreeWayPointA, ThreeWayPointB, SingleSlip, DoubleSlip, ProtectedPoint, CatchPointUp, CatchPointDown, PointTypeUnknown);
 
@@ -109,7 +108,6 @@ PROCEDURE WriteOutPointDataToDatabase;
 { If a point's data has been changed, record it in the database }
 
 TYPE
-  { Point-related type declarations }
   PointRec = RECORD
     Point_AwaitingManualChange : Boolean;
     Point_DataChanged : Boolean;

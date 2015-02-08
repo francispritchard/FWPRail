@@ -357,26 +357,6 @@ TYPE
 TYPE
   ProgramOnTheMainType = (ChangeDirectionToUp, ChangeDirectionToDown, ChangeAcceleration, ChangeDeceleration);
 
-  { Signal-related type declarations }
-  TypeOfSignal = (CallingOn, TwoAspect, ThreeAspect, FourAspect, SemaphoreHome, SemaphoreDistant, UnknownSignalType);
-  AspectType = (DoubleYellowAspect, FlashingDoubleYellowAspect, GreenAspect, SingleYellowAspect, FlashingSingleYellowAspect, RedAspect, NoAspect, UnknownAspectType);
-
-  IndicatorType = (NoIndicator, JunctionIndicator, TheatreIndicator, QueryIndicator, UnknownIndicator);
-  IndicatorStateType = (NoIndicatorLit, LeftIndicatorLit, RightIndicatorLit, UpperLeftIndicatorLit, MiddleLeftIndicatorLit, LowerLeftIndicatorLit, UpperRightIndicatorLit,
-                        MiddleRightIndicatorLit, LowerRightIndicatorLit, TheatreIndicatorLit, QueryIndicatorLit);
-  SignalStateType = (SignalOff, SignalOn, UnknownSignalState);
-
-  JunctionIndicatorType = (UpperLeftIndicator, MiddleLeftIndicator, LowerLeftIndicator, UpperRightIndicator, MiddleRightIndicator, LowerRightIndicator,
-                           UnknownJunctionIndicator);
-  JunctionIndicatorRec = RECORD
-    JunctionIndicator_Exists : Boolean;
-    JunctionIndicator_TargetSignal : Integer;
-    JunctionIndicator_TargetBufferStop : Integer;
-    JunctionIndicator_MouseRect : TRect;
-  END;
-
-  QuadrantType = (UpperQuadrant, LowerQuadrant, NoQuadrant);
-
 TYPE
   SuitableAdditionalTrainsRec = RECORD
     SuitableAdditionalTrains_DepartureTime1 : TDateTime;
