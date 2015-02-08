@@ -122,8 +122,6 @@ CONST
   SetUp = True;
   StartButton = True;
   Surround = True;
-  UndrawRequired = True;
-  UndrawToBeAutomatic = True;
 
 BEGIN
   IF NOT InputDialogueCharValid THEN BEGIN
@@ -279,8 +277,6 @@ CONST
   RecordInLocationOccupationArray = True;
   StartButton = True;
   Surround = True;
-  UndrawRequired = True;
-  UndrawToBeAutomatic = True;
 
 VAR
   DebugStr : String;

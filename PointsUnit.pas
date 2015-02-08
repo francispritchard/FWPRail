@@ -27,6 +27,9 @@ PROCEDURE AddNewRecordToPointDatabase;
 PROCEDURE CalculatePointPositions;
 { Create where the points are on the screen }
 
+PROCEDURE CheckPointsAwaitingFeedback;
+{ See if any point changes are pending - i.e. we're waiting for feedback that confirms the change }
+
 FUNCTION DeleteRecordFromPointDatabase(PointToDeleteNum : Integer) : Boolean;
 { Remove a record from the point database }
 
@@ -198,7 +201,7 @@ IMPLEMENTATION
 {$R *.dfm}
 
 USES Route, FWPShowMessageUnit, AnsiStrings, MiscUtils, Locks, DateUtils, Lenz, RailDraw, Main, LinesUnit, Options, Data.DB, StrUtils, TrackCircuitsUnit, SignalsUnit,
-     CreateRoute, Feedback;
+     CreateRoute, Feedback, Train, Diagrams;
 
 CONST
   UnitRef = 'PointUnit';
@@ -208,6 +211,183 @@ PROCEDURE Log(Str : String);
 BEGIN
   WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
+
+PROCEDURE CheckPointsAwaitingFeedback;
+{ See if any point changes are pending - i.e. we're waiting for feedback that confirms the change }
+CONST
+  ErrorMessageRequired = True;
+
+VAR
+  DebugStr : String;
+  LocoChipStr : String;
+  OK : Boolean;
+  P : Integer;
+  PointFeedbackWaitInSeconds : Double;
+  PointResultPending : Boolean;
+  RouteFound : Boolean;
+  Route : Integer;
+  SubRoute : Integer;
+  T : TrainIndex;
+  TempDivergingLineStr : String;
+
+BEGIN
+  TRY
+    IF NOT ProgramStarting THEN BEGIN
+      FOR P := 0 TO High(Points) DO BEGIN
+        WITH Points[P] DO BEGIN
+          LocoChipStr := LocoChipToStr(Point_LocoChipLockingTheRoute);
+          IF Point_FeedbackPending THEN BEGIN
+            IF Point_PresentState = Point_RequiredState THEN BEGIN
+              IF Point_ManualOperation THEN BEGIN
+                Point_FeedbackPending := False;
+                Point_AwaitingManualChange := False;
+                Log(LocoChipStr + ' P P=' + IntToStr(P) + ' pending change to ' + PointStateToStr(Point_RequiredState) + ' was successful');
+                IF FWPShowMessageWindow.Visible THEN
+                  FWPShowMessageWindow.Visible := False;
+              END ELSE BEGIN
+                { No need to draw it, as the change will have made the system draw it }
+                DebugStr := 'P=' + IntToStr(P) + ' pending change to ';
+                DebugStr := DebugStr + PointStateToStr(Point_RequiredState) + ' was successful after a '
+                                     + FloatToStr(MilliSecondsBetween(Time, Point_FeedbackStartTime) / 1000) + ' second wait';
+                Log(LocoChipStr + ' P ' + DebugStr);
+                Point_FeedbackPending := False;
+                Point_FeedbackPendingMsgWritten := False;
+              END;
+
+              IF Point_RequiredState = Straight THEN
+                Log(LocoChipStr + ' P P=' + IntToStr(P) + ' D=S')
+              ELSE
+                Log(LocoChipStr + ' P P=' + IntToStr(P) + ' D=D');
+
+            END ELSE BEGIN
+              IF NOT Point_ManualOperation THEN BEGIN
+                { PresentState <> RequiredState: a five second wait should be sufficient }
+                PointFeedbackWaitInSeconds := Round(SecondSpan(Time, Point_FeedbackStartTime));
+                IF PointFeedbackWaitInSeconds >= PointFeedbackMaximumWaitInSeconds THEN BEGIN
+                  DebugStr := DebugStr + 'P=' + IntToStr(P) + ' pending change to ' + PointStateToStr(Point_RequiredState)
+                                                              + ' failed after a ' + FloatToStr(PointFeedbackWaitInSeconds) + ' second wait';
+                  Point_FeedbackPending := False;
+                  Point_FeedbackPendingMsgWritten := False;
+                  Log(LocoChipStr + ' P ' + DebugStr);
+
+                  IF NOT Point_SecondAttempt THEN BEGIN
+                    { have one more attempt at making it switch }
+                    Point_SecondAttempt := True;
+                    Log(LocoChipStr + ' P Second attempt to switch P=' + IntToStr(P));
+                    PullPoint(LocoChipToStr(Point_LocoChipLockingTheRoute), P, NoRoute, NoSubRoute, NOT ForcePoint, ByUser, NOT ErrorMessageRequired, PointResultPending,
+                              DebugStr, OK);
+                    Exit;
+                  END;
+
+                  { Illustrate where the offending turnout is; note: blue is the new yellow here (!) - as clBlue comes out as pmNotXored clYellow }
+                  DrawOutline(Point_MouseRect, clBlue, UndrawRequired, NOT UndrawToBeAutomatic);
+                  Point_MaybeBeingSetToManual := True;
+
+                  IF (Points[P].Point_Type <> CatchPointUp) AND (Points[P].Point_Type <> CatchPointDown) THEN
+                    { we need to do this as an IfThen clause seems to evaluate the whole expression and we therefore get a range check error when a catch point does not
+                      have a diverging line
+                    }
+                    TempDivergingLineStr := ' ' + Lines[Points[P].Point_DivergingLine].Line_NameStr
+                  ELSE
+                    TempDivergingLineStr := '';
+
+                  { and produce a pop up message for the user, as this is important }
+                  MakeSound(1);
+                  CASE MessageDialogueWithDefault('P=' + IntToStr(P) + ' [Lenz ' + IntToStr(Points[P].Point_LenzNum)
+                                                  + '] ('
+                                                  + Lines[Points[P].Point_HeelLine].Line_NameStr
+                                                  + ' ' + Lines[Points[P].Point_StraightLine].Line_NameStr
+                                                  + TempDivergingLineStr
+                                                  + ') has failed to change to ' + PointStateToStr(Point_RequiredState) + ':' + CRLF
+                                                  + 'Retry, or set this point manually to ' + PointStateToStr(Point_RequiredState)
+                                                  + ' and press ''Now Set'' when completed, or Retry or Ignore the problem',
+                                                  NOT StopTimer, mtWarning, [mbAbort, mbOK, mbRetry],
+                                                  ['&Now Set', '&Ignore', '&Retry'], mbAbort)
+                  OF
+                    mrOK: { Point Set }
+                      BEGIN
+                        Log(LocoChipStr + ' P P=' + IntToStr(P) + ' manually set to ' + PointStateToStr(Point_RequiredState));
+                        Point_PreviousState := Point_PresentState;
+                        Point_PresentState := Point_RequiredState;
+                        InvalidateScreen(UnitRef, 'CheckPointsAwaitingFeedback');
+                        IF MessageDialogueWithDefault('Set this point to manual for the rest of this session?',
+                                                      NOT StopTimer, mtWarning, [mbYes, mbNo], mbYes) = mrYes
+                        THEN BEGIN
+                          Point_ManualOperation := True;
+                          Log('P P=' + IntToStr(P) + ' set to manual operation');
+                        END;
+                      END;
+                    mrRetry:
+                      BEGIN
+                        { Try forcing the point to switch the other way first - sometimes unsticks a point }
+                        IF Point_RequiredState = Diverging THEN
+                          Point_RequiredState := Straight
+                        ELSE
+                          Point_RequiredState := Diverging;
+                        PullPoint(LocoChipToStr(Point_LocoChipLockingTheRoute), P, NoRoute, NoSubRoute, ForcePoint, ByUser, NOT ErrorMessageRequired,
+                                                PointResultPending, DebugStr, OK);
+
+                        IF Point_RequiredState = Diverging THEN
+                          Point_RequiredState := Straight
+                        ELSE
+                          Point_RequiredState := Diverging;
+                        PullPoint(LocoChipToStr(Point_LocoChipLockingTheRoute), P, NoRoute, NoSubRoute, {NOT} ForcePoint, ByUser, NOT ErrorMessageRequired,
+                                                PointResultPending, DebugStr, OK);
+                      END;
+                    mrAbort: { Ignore }
+                      { a major problem: cancel the route, and the train }
+                      BEGIN
+                        Route := 0;
+                        RouteFound := False;
+                        WHILE (Route <= High(Routes_Routes)) AND NOT RouteFound DO BEGIN
+                          IF Routes_PointResultPendingPoint[Route] <> UnknownPoint THEN BEGIN
+                            Log(LocoChipToStr(Routes_LocoChips[Route]) + ' R P=' + IntToStr(Routes_PointResultPendingPoint[Route])
+                                                                       + ' pending point change and R=' + IntToStr(Route)
+                                                                       + ' setting up cancelled by user');
+                            Routes_RouteSettingsInProgress[Route] := False;
+                            Routes_RouteClearingsInProgress[Route] := True;
+                            FOR SubRoute := 0 TO High(Routes_SubRouteStates[Route]) DO BEGIN
+                              CreateClearingSubRouteArray(Route, SubRoute);
+                              Routes_SubRouteStates[Route, SubRoute] := SubRouteToBeCleared;
+                            END;
+                            IF MessageDialogueWithDefault('R=' + IntToStr(Route) + ' has been cancelled as a result of the failure'
+                                                          + ' of point ' + IntToStr(Routes_PointResultPendingPoint[Route]) + ':'
+                                                          + CRLF
+                                                          + 'Do you want to cancel the train as well?',
+                                                          NOT StopTimer, mtError, [mbYes, mbNo], ['&Cancel', '&Don''t Cancel'], mbYes) = mrYes
+                            THEN BEGIN
+                              IF Routes_LocoChips[Route] <> UnknownLocoChip THEN BEGIN
+                                Log(LocoChipToStr(Routes_LocoChips[Route]) + ' DG System occupation and diagram entry cancelled by user');
+                                { look for our train }
+                                T := GetTrainIndexFromLocoChip(Routes_LocoChips[Route]);
+                                IF T <> UnknownTrainIndex THEN
+                                  CancelTrain(T, ByUser, TrainExists);
+                              END;
+                            END ELSE BEGIN
+
+                              { may want to set the route by hand *** }
+
+                            END;
+                            Routes_PointResultPendingPoint[Route] := UnknownPoint;
+                            RouteFound := True;
+                          END;
+                          Inc(Route);
+                        END; {WHILE}
+                      END;
+                  END; {CASE}
+                  Point_MaybeBeingSetToManual := False;
+                END;
+              END;
+            END;
+          END;
+        END; {WITH}
+      END; {FOR}
+    END;
+  EXCEPT
+    ON E : Exception DO
+      Log('EG CheckPointsAwaitingFeedback:' + E.ClassName + ' error raised, with message: '+ E.Message);
+  END; {TRY}
+END; { CheckPointsAwaitingFeedback }
 
 FUNCTION PointIsCatchPoint(P : Integer) : Boolean;
 { Returns whether a given point is a catch point }

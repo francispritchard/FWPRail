@@ -169,7 +169,7 @@ IMPLEMENTATION
 {$R *.dfm}
 
 USES ComObj, Lenz, MiscUtils, Startup, LocoUtils, IDGlobal, RailDraw, Input, Movement, CreateRoute, DateUtils, Math {sic}, Route, Types, StrUtils, StationMonitors, Locks,
-     LocoDialogue, LocationData, Help, Options, Main, SignalsUnit, TrackCircuitsUnit, LinesUnit;
+     LocoDialogue, LocationsUnit, Help, Options, Main, SignalsUnit, TrackCircuitsUnit, LinesUnit;
 
 CONST
   BoldStyleStr = '<B>';
@@ -1731,7 +1731,7 @@ BEGIN
       END;
 
       { Move the focus back to the main window }
-      IF (FWPRailWindow.Visible AND NOT LocationDataWindow.Visible) AND NOT (HelpWindow.Active OR HelpWindow.Visible) THEN
+      IF (FWPRailWindow.Visible AND NOT LocationSUnitWindow.Visible) AND NOT (HelpWindow.Active OR HelpWindow.Visible) THEN
         FWPRailWindow.SetFocus;
     END;
   EXCEPT

@@ -431,8 +431,6 @@ USES MiscUtils, Startup, Lenz, Input, Locks, Cuneo, Movement, GetTime, CreateRou
 
 CONST
   UnitRef = 'RailDraw';
-  UndrawRequired = True;
-  UndrawToBeAutomatic = True;
 
 VAR
   BufferStopPopupNum : Integer;

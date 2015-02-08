@@ -132,6 +132,8 @@ CONST
   TrainExists = True;
   TurnOn = True;
   TurnOff = False;
+  UndrawRequired = True;
+  UndrawToBeAutomatic = True;
   UnknownArea = 99999;
   UnknownBufferStop = 99999;
   UnknownJourney = 99999;

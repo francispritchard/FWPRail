@@ -284,8 +284,6 @@ CONST
   SetUp = True;
   StartButton = True;
   Surround = True;
-  UndrawRequired = True;
-  UndrawToBeAutomatic = True;
 
 BEGIN
   TRY
@@ -1611,8 +1609,6 @@ CONST
   ErrorMessageRequired = True;
   StartButton = True;
   Surround = True;
-  UndrawRequired = True;
-  UndrawToBeAutomatic = True;
 
 BEGIN
   WITH LocoDialogueWindow DO BEGIN
@@ -1635,8 +1631,6 @@ CONST
   ErrorMessageRequired = True;
   StartButton = True;
   Surround = True;
-  UndrawRequired = True;
-  UndrawToBeAutomatic = True;
 
 BEGIN
   CheckEmergencyStop(Button, ShiftState);

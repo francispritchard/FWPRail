@@ -44,6 +44,9 @@ PROCEDURE DeleteTrainLocationOccupation(T : TrainIndex);
 PROCEDURE FindPendingLocations(IsTimetableLoading : Boolean; OUT OK : Boolean);
 { Process those trains where some or all of the locations are waiting to be allocated }
 
+PROCEDURE InitialiseLocationLines;
+{ Once we have set up the lines and signals, we can work out how they relate to locations. Some long locations (UFY for instance) will have multiple lines attached *** }
+
 PROCEDURE InsertDataInLocationOccupationArray(T : TrainIndex; JourneyA, JourneyB : Integer; Location : Integer; StartTime, EndTime : TDateTime;
                                               LocationState : LocationOccupationStateType; OUT ErrorMsg : String; OUT OK : Boolean);
 { Insert data in the Location Occupation array }
@@ -159,7 +162,7 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES MiscUtils, StrUtils, LocoUtils, Diagrams, DateUtils, RailDraw, Locks, Input, GetTime, Lenz, Options, Startup, Route, TrackCircuitsUnit, LinesUnit, Main;
+USES MiscUtils, StrUtils, LocoUtils, Diagrams, DateUtils, RailDraw, Locks, Input, GetTime, Lenz, Options, Startup, Route, TrackCircuitsUnit, LinesUnit, Main, SignalsUnit;
 
 CONST
   BoldCh = '@';
@@ -189,6 +192,138 @@ BEGIN
     Location_RecordInLocationOccupationArray := False;
   END; {WITH}
 END; { InitialiseLocationVariables }
+
+PROCEDURE InitialiseLocationLines;
+{ Once we have set up the lines and signals, we can work out how they relate to locations. Some long locations (UFY for instance) will have multiple lines attached *** }
+VAR
+  L : Integer;
+  LineAtDownStr : String;
+  LineAtUpStr : String;
+  Location : Integer;
+  SaveScreenDownX : Integer;
+  SaveScreenUpX : Integer;
+
+BEGIN
+  TRY
+    FOR Location := 0 TO High(Locations) DO BEGIN
+      WITH Locations[Location] DO BEGIN
+        Location_LineAtUp := UnknownLine;
+        Location_LineAtDown := UnknownLine;
+        SaveScreenUpX := FWPRailWindow.ClientWidth;
+        SaveScreenDownX := 0;
+        { Set up L to contain the lines at the ends of locations - if there is more than one line related to a location, use the one nearest to up or down }
+        FOR L := 0 TO High(Lines) DO BEGIN
+          WITH Lines[L] DO BEGIN
+            IF Lines[L].Line_Location = Location THEN BEGIN
+              IF ((GetLineAdjacentSignal(L) <> UnknownSignal)
+                  AND (Signals[GetLineAdjacentSignal(L)].Signal_Direction = Up)
+                  AND NOT Signals[GetLineAdjacentSignal(L)].Signal_OutOfUse)
+              AND (MapGridXToScreenX(Lines[L].Line_GridUpX) < SaveScreenUpX)
+              THEN BEGIN
+                Location_LineAtUp := L;
+                SaveScreenUpX := MapGridXToScreenX(Lines[L].Line_GridUpX);
+              END ELSE
+                IF ((Lines[L].Line_AdjacentBufferStop <> UnknownBufferStop) AND (GetBufferStopDirection(Lines[L].Line_AdjacentBufferStop) = Up))
+                AND (BufferStops[Lines[L].Line_AdjacentBufferStop].BufferStop_X <= SaveScreenUpX)
+                THEN
+                  Location_LineAtUp := L
+                ELSE
+                  IF ((GetLineAdjacentSignal(L) <> UnknownSignal)
+                      AND (Signals[GetLineAdjacentSignal(L)].Signal_Direction = Down)
+                      AND NOT Signals[GetLineAdjacentSignal(L)].Signal_OutOfUse)
+                  AND (MapGridXToScreenX(Lines[L].Line_GridDownX) > SaveScreenDownX)
+                  THEN BEGIN
+                    Location_LineAtDown := L;
+                    SaveScreenDownX := MapGridXToScreenX(Lines[L].Line_GridDownX);
+                  END ELSE
+                    IF ((Lines[L].Line_AdjacentBufferStop <> UnknownBufferStop) AND (GetBufferStopDirection(Lines[L].Line_AdjacentBufferStop) = Down))
+                    { remember that BufferStops array is dynamic and starts at zero }
+                    AND (BufferStops[Lines[L].Line_AdjacentBufferStop].BufferStop_X >= SaveScreenDownX)
+                    THEN
+                      Location_LineAtDown := L;
+
+            END; {WITH}
+          END;
+        END;
+
+        { Now record whether platforms have other platforms up or down from them - this is needed as otherwise, for example, the routeing will attempt to route up trains
+          from the down lines into the furthest up platform (PlatformA) even if the adjacent and nearer platform (PlatformB) is already occupied.
+        }
+        Location_PlatformOrFiddleyardAtUp := UnknownLocation;
+        Location_PlatformOrFiddleyardAtDown := UnknownLocation;
+
+        IF Location_IsPlatform THEN BEGIN
+          IF Location_LineAtUp = UnknownLine THEN BEGIN
+            LineAtUpStr := UnknownLineStr;
+            Location_PlatformOrFiddleyardAtUp := UnknownLocation;
+            IF Location_DirectionPriority <> DownOnly THEN
+              Log('E Line up of ' + LocationToStr(Location, ShortStringType) + ' is unknown (is there an adjacent signal missing?)');
+          END ELSE BEGIN
+            LineAtUpStr := LineToStr(Location_LineAtUp);
+            IF Lines[Location_LineAtUp].Line_NextUpLine = UnknownLine THEN
+              Location_PlatformOrFiddleyardAtUp := UnknownLocation
+            ELSE
+              IF (Lines[Location_LineAtUp].Line_NextUpLine <> UnknownLine)
+              AND (Lines[Lines[Location_LineAtUp].Line_NextUpLine].Line_Location <> UnknownLocation)
+              AND (Lines[Lines[Location_LineAtUp].Line_NextUpLine].Line_Location <> Location)
+              AND (Locations[Lines[Lines[Location_LineAtUp].Line_NextUpLine].Line_Location].Location_IsPlatform)
+              THEN
+                Location_PlatformOrFiddleyardAtUp := Lines[Lines[Location_LineAtUp].Line_NextUpLine].Line_Location;
+          END;
+        END;
+
+        IF Location_IsPlatform THEN BEGIN
+          IF Location_LineAtDown = UnknownLine THEN BEGIN
+            LineAtDownStr := UnknownLineStr;
+            Location_PlatformOrFiddleyardAtDown := UnknownLocation;
+            IF Location_DirectionPriority <> UpOnly THEN
+              Log('E Line down of ' + LocationToStr(Location, ShortStringType) + ' is unknown (is there an adjacent signal missing?)');
+          END ELSE BEGIN
+            LineAtDownStr := LineToStr(Location_LineAtDown);
+            IF Lines[Location_LineAtDown].Line_NextDownLine = UnknownLine THEN
+              Location_PlatformOrFiddleyardAtDown := UnknownLocation
+            ELSE
+              IF (Lines[Location_LineAtDown].Line_NextDownLine <> UnknownLine)
+              AND (Lines[Lines[Location_LineAtDown].Line_NextDownLine].Line_Location <> UnknownLocation)
+              AND (Lines[Lines[Location_LineAtDown].Line_NextDownLine].Line_Location <> Location)
+              AND (Locations[Lines[Lines[Location_LineAtDown].Line_NextDownLine].Line_Location].Location_IsPlatform)
+              THEN
+                Location_PlatformOrFiddleyardAtDown := Lines[Lines[Location_LineAtDown].Line_NextDownLine].Line_Location;
+          END;
+        END;
+
+        { Now record if locations are cul-de-sacs }
+        IF (Locations[Location].Location_LineAtUp <> UnknownLine) AND (Lines[Locations[Location].Location_LineAtUp].Line_NextUpIsEndOfLine <> NotEndOfLine) THEN
+          Locations[Location].Location_LineAtUpIsEndOfLine := True
+        ELSE
+          Locations[Location].Location_LineAtUpIsEndOfLine := False;
+
+        IF (Locations[Location].Location_LineAtDown <> UnknownLine) AND (Lines[Locations[Location].Location_LineAtDown].Line_NextDownIsEndOfLine <> NotEndOfLine) THEN
+          Locations[Location].Location_LineAtDownIsEndOfLine := True
+        ELSE
+          Locations[Location].Location_LineAtDownIsEndOfLine := False;
+
+        IF InDebuggingMode THEN
+          Log('* Location: ' + LocationToStr(Location, ShortStringType)
+                 + IfThen(Location_LineAtUp <> UnknownLine,
+                          IfThen(Locations[Location].Location_LineAtUpIsEndOfLine,
+                                 ' - End of line at Up',
+                                 ' - Line at Up is ' + Lines[Location_LineAtUp].Line_NameStr))
+                 + IfThen(Location_LineAtUp <> UnknownLine,
+                          IfThen(Locations[Location].Location_LineAtDownIsEndOfLine,
+                                 ' - End of line at Down',
+                                 ' - Line at Down is ' + Lines[Location_LineAtDown].Line_NameStr))
+                 + IfThen(Location_PlatformOrFiddleyardAtUp <> UnknownLocation,
+                          ' - Location at Up is ' + LocationToStr(Location_PlatformOrFiddleyardAtUp))
+                 + IfThen(Location_PlatformOrFiddleyardAtDown <> UnknownLocation,
+                          ' - Location at Down is ' + LocationToStr(Location_PlatformOrFiddleyardAtDown)));
+      END; {WITH}
+    END; {FOR}
+  EXCEPT {TRY}
+    ON E : Exception DO
+      Log('EG InitialiseLocationLines: ' + E.ClassName + ' error raised, with message: '+ E.Message);
+  END; {TRY}
+END; { InitialiseLocationLines }
 
 PROCEDURE ReadInLocationDataFromDatabase;
 { Initialise the location data }

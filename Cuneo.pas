@@ -55,8 +55,6 @@ USES RailDraw, Locks, Startup, Route, GetTime, Diagrams, MiscUtils, Movement, Le
 
 CONST
   UnitRef = 'Cuneo';
-  UndrawRequired = True;
-  UndrawToBeAutomatic = True;
 
 TYPE
   MouseButton = TMouseButton;
