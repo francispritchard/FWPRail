@@ -3,7 +3,7 @@ UNIT SignalsUnit;
 
   Copyright © F.W. Pritchard 2015. All Rights Reserved.
 
-  v0.1  02/02/15 Unit extracted from Main and Locks
+  v0.1  02/02/15 Code mainly extracted from Main and Locks
 }
 INTERFACE
 
@@ -172,14 +172,135 @@ FUNCTION ValidateSignalType(Str : String; Quadrant : QuadrantType; DistantHomesA
 PROCEDURE WriteOutSignalDataToDatabase;
 { If a Signal's data has been changed, record it in the database }
 
+TYPE
+  SignalRec = RECORD
+    Signal_AccessoryAddress : Integer;
+    Signal_Aspect : AspectType;
+    Signal_AdjacentLine : Integer;
+    Signal_AdjacentLineXOffset : Integer;
+    Signal_AdjacentTC : Integer;
+    Signal_ApproachControlAspect : AspectType;
+    Signal_ApproachLocked : Boolean;
+    Signal_AsTheatreDestination : String; { what a signal pointing at this signal might display }
+    Signal_Automatic : Boolean; { not yet implemented }
+    Signal_DataChanged : Boolean;
+    Signal_DecoderNum : Integer;
+    Signal_Direction : DirectionType;
+    Signal_Energised : Boolean;
+    Signal_EnergisedTime : TDateTime;
+    Signal_FailedToResetFlag : Boolean;
+    Signal_FailMsgWritten : Boolean;
+    Signal_FindNextSignalBufferStopMsgWritten : Boolean;
+    Signal_FromWhichUserMustDrive : Boolean;
+    Signal_HiddenStationSignalAspect : AspectType; { used to force stopping at stations where signal is potentially off }
+    Signal_Indicator : IndicatorType;
+    Signal_IndicatorDecoderNum : Integer;
+    Signal_IndicatorDecoderFunctionNum : Integer;
+    Signal_IndicatorMouseRect : TRect; { mouse access rectangle for indicators }
+    Signal_IndicatorSpeedRestriction : MPHType; { applicable only if the route indicator is set }
+    Signal_IndicatorState : IndicatorStateType;
+    Signal_JunctionIndicators : ARRAY [JunctionIndicatorType] OF JunctionIndicatorRec;
+    Signal_LampIsOn : Boolean; { used for flashing aspects }
+    Signal_LineX : Integer;
+    Signal_LineY : Integer;
+    Signal_LineWithVerticalSpacingY : Integer;
+    Signal_LocationsToMonitorArray : IntegerArrayType;
+
+    { Signal_LockedArray and Signal_RouteLockingNeededArray sound similar but serve different purposes - RouteLockingNeededArray covers the lines, track circuits, points,
+      etc. ahead that must be locked before a signal can be pulled off; Signal_LockedArray shows whether a signal is locked either by a specific route or by a user.
+    }
+    Signal_LockedArray : StringArrayType;
+    Signal_LockedBySemaphoreDistant : Boolean;
+
+    Signal_LockFailureNotedInRouteUnit : Boolean;
+    Signal_MouseRect : TRect; { mouse access rectangle for signal }
+    Signal_NextSignalIfNoIndicator : Integer;
+    Signal_NotUsedForRouteing : Boolean;
+    Signal_Notes : String;
+    Signal_Number : Integer;
+    Signal_OppositePassingLoopSignal : Integer;
+    Signal_OutOfUse : Boolean;
+    Signal_OutOfUseMsgWritten : Boolean;
+    Signal_PossibleRouteHold : Boolean;
+    Signal_PossibleStationStartRouteHold : Boolean;
+    Signal_PostColour : TColour;
+    Signal_PostMouseRect : TRect; { mouse access rectangle for signal posts }
+    Signal_PreviousAspect : AspectType;
+    Signal_PreviousIndicatorState : IndicatorStateType;
+    Signal_PreviousTheatreIndicatorString : String;
+    Signal_PreviousSignal1 : Integer;
+    Signal_PreviousSignal2 : Integer;
+    Signal_PreviousHiddenStationSignalAspectSignal1 : Integer;
+    Signal_PreviousHiddenStationSignalAspectSignal2 : Integer;
+    Signal_PreviousLineX : Integer;
+    Signal_PreviousLineY : Integer;
+    Signal_PreviousLineWithVerticalSpacingY : Integer;
+    Signal_Quadrant : QuadrantType;
+    Signal_ResettingTC : Integer;
+
+    { see note above for Signal_LockedArray }
+    Signal_RouteLockingNeededArray : StringArrayType;
+
+    Signal_SemaphoreDistantHomesArray : IntegerArrayType; { needed to tell a semaphore distant which semaphore homes lock it }
+    Signal_SemaphoreDistantLocking : Integer;
+    Signal_StateChanged : Boolean;
+    Signal_TheatreIndicatorString : String; { what this signal might display }
+    Signal_TRSHeld : Boolean;
+    Signal_TRSHeldMsgWritten : Boolean;
+    Signal_TRSReleased : Boolean;
+    Signal_TRSReleasedMsgWritten : Boolean;
+    Signal_Type : TypeOfSignal;
+  END;
+
+  WriteReadType = (ReadOnly, WriteOnly, WriteThenRead);
+
+CONST
+  Signal_AccessoryAddressFieldName : String = 'Signal Accessory Address';
+  Signal_AdjacentLineFieldName : String = 'Signal Adjacent Line';
+  Signal_AdjacentLineXOffsetFieldName : String = 'Signal AdjacentLine XOffset';
+  Signal_ApproachControlAspectFieldName : String = 'Signal Approach Control Aspect';
+  Signal_AsTheatreDestinationFieldName : String = 'Signal As Theatre Destination';
+  Signal_AutomaticFieldName : String = 'Signal Automatic'; { not in use }
+  Signal_DirectionFieldName : String = 'Signal Direction';
+  Signal_DecoderNumFieldName : String = 'Signal Decoder Num';
+  Signal_FromWhichUserMustDriveFieldName : String = 'Signal From Which User Must Drive';
+  Signal_IndicatorDecoderFunctionNumFieldName : String = 'Signal Indicator Decoder Function Num';
+  Signal_IndicatorDecoderNumFieldName : String = 'Signal Indicator Decoder Num';
+  Signal_IndicatorSpeedRestrictionFieldName : String = 'Signal Indicator Speed Restriction';
+  Signal_IndicatorFieldName : String = 'Signal Indicator';
+  Signal_JunctionIndicatorsFieldName : String = 'Signal Junction Indicators';
+  Signal_LocationsToMonitorFieldName : String = 'Signal Locations To Monitor';
+  Signal_LowerLeftIndicatorTargetFieldName : String = 'Signal Lower Left Indicator Target';
+  Signal_LowerRightIndicatorTargetFieldName : String = 'Signal Lower Right Indicator Target';
+  Signal_MiddleLeftIndicatorTargetFieldName : String = 'Signal Middle Left Indicator Target';
+  Signal_MiddleRightIndicatorTargetFieldName : String = 'Signal Middle Right Indicator Target';
+  Signal_NextSignalIfNoIndicatorFieldName : String = 'Signal Next Signal If No Indicator';
+  Signal_NotesFieldName : String = 'Signal Notes';
+  Signal_NotUsedForRouteingFieldName : String = 'Signal Not Used For Routeing';
+  Signal_NumberFieldName : String = 'Signal Number';
+  Signal_OppositePassingLoopSignalFieldName : String = 'Signal Opposite Passing Loop Signal';
+  Signal_OutOfUseFieldName : String = 'Signal Out Of Use';
+  Signal_PossibleRouteHoldFieldName : String = 'Signal Possible Route Hold';
+  Signal_PossibleStationStartRouteHoldFieldName : String = 'Signal Possible Station Start Route Hold';
+  Signal_QuadrantFieldName : String = 'Signal Quadrant';
+  Signal_SemaphoreDistantHomesArrayFieldName : String = 'Signal Distant Homes';
+  Signal_TypeFieldName : String = 'Signal Type';
+  Signal_UpDownFieldName : String = 'Signal Direction';
+  Signal_UpperLeftIndicatorTargetFieldName : String = 'Signal Upper Left Indicator Target';
+  Signal_UpperRightIndicatorTargetFieldName : String = 'Signal Upper Right Indicator Target';
+  Signal_VerticalSpacingFieldName : String = 'Signal Vertical Spacing';
+
 VAR
   SignalUnitForm: TSignalUnitForm;
+
+  SignalHighlighted : Integer = UnknownSignal;
+  Signals : ARRAY OF SignalRec;
 
 IMPLEMENTATION
 
 {$R *.dfm}
 
-USES RailDraw, Route, MiscUtils, Lenz, StrUtils, Locks, CreateRoute, Options, PointsUnit;
+USES RailDraw, Route, MiscUtils, Lenz, StrUtils, Locks, CreateRoute, Options, PointsUnit, TrackCircuitsUnit, LinesUnit;
 
 CONST
   UnitRef = 'Signal';

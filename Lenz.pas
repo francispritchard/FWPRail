@@ -36,7 +36,7 @@ UNIT Lenz;
 INTERFACE
 
 USES Initvars, Forms, ExtCtrls, Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Dialogs, DB, ADODB, DBCtrls, Grids, DBGrids, StdCtrls, ComCtrls,
-     TCPIP;
+     TCPIP, PointsUnit;
 
 TYPE
   TLenzWindow = CLASS(TForm)
@@ -136,7 +136,7 @@ IMPLEMENTATION
 {$R *.dfm}
 
 USES RailDraw, Feedback, GetTime, Startup, MiscUtils, Diagrams, LocoUtils, IDGlobal, Movement, MMSystem, DateUtils, StrUtils, Input, Main, Locks, LocationData, Options,
-     SignalsUnit, PointsUnit;
+     SignalsUnit, LinesUnit;
 
 CONST
   UnitRef = 'Lenz';

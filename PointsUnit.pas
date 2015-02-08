@@ -3,7 +3,7 @@ UNIT PointsUnit;
 
   Copyright © F.W. Pritchard 2015. All Rights Reserved.
 
-  v0.1  08/02/15 Unit extracted from Main and Locks
+  v0.1  08/02/15 Code mainly extracted from Main and Locks
 }
 INTERFACE
 
@@ -18,6 +18,7 @@ TYPE
   END;
 
   { Point-related type declarations }
+  PointStateType = (Diverging, Straight, PointOutOfAction, PointStateUnknown);
   TypeOfPoint = (OrdinaryPoint, CrossOverPoint, ThreeWayPointA, ThreeWayPointB, SingleSlip, DoubleSlip, ProtectedPoint, CatchPointUp, CatchPointDown, PointTypeUnknown);
 
 PROCEDURE AddNewRecordToPointDatabase;
@@ -203,7 +204,7 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES Route, FWPShowMessageUnit, AnsiStrings, MiscUtils, Locks, DateUtils, Lenz, RailDraw, Main, LinesUnit, Options, Data.DB, StrUtils;
+USES Route, FWPShowMessageUnit, AnsiStrings, MiscUtils, Locks, DateUtils, Lenz, RailDraw, Main, LinesUnit, Options, Data.DB, StrUtils, TrackCircuitsUnit, SignalsUnit;
 
 CONST
   UnitRef = 'PointUnit';

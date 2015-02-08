@@ -1,5 +1,10 @@
 UNIT LinesUnit;
+{ Controls the various lines and line-related things
 
+  Copyright © F.W. Pritchard 2015. All Rights Reserved.
+
+  v0.1  02/02/15 Code mainly extracted mainly from InitVars
+}
 INTERFACE
 
 USES Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, InitVars;
@@ -11,6 +16,16 @@ TYPE
   PUBLIC
     { Public declarations }
   END;
+
+  EndOfLineType = (BufferStopAtUp, BufferStopAtDown, ProjectedLineAtUp, ProjectedLineAtDown, NotEndOfLine, UnknownEndOfLine);
+  GradientType = (Level, RisingIfUp, RisingIfDown, UnknownGradientType);
+  TypeOfLine = (MainOrGoods, MainLine, GoodsLine, BranchLineDouble, BranchLineSingle, IslandStationLine, MainStationLine, BranchStationLine, WindowStationLine, SidingLine,
+                FiddleyardLine, SidingsApproach, StationAvoiding, ProjectedLine, NewlyCreatedLine, UnknownTypeOfLine);
+  { adjust FirstTypeOfLine or LastTypeOfLine if alteration made to above declaration }
+
+CONST
+  FirstTypeOfLine = MainOrGoods;
+  LastTypeOfLine = ProjectedLine;
 
 PROCEDURE AddNewRecordToLineDatabase;
 { Append a record to the line database }
@@ -72,14 +87,109 @@ FUNCTION ValidateLineType(LineTypeStr : String; OUT ErrorMsg : String) : TypeOfL
 PROCEDURE WriteOutLineDataToDatabase;
 { Write out some line data to the line data file }
 
+TYPE
+  BufferStopRec = RECORD
+    BufferStop_AdjacentLine : Integer;
+    BufferStop_AdjacentTrackCircuit : Integer;
+    BufferStop_AsTheatreDestination : String;
+    BufferStop_CurrentColour : TColour;
+    BufferStop_Direction : DirectionType;
+    BufferStop_MouseRect : TRect; { mouse access rectangle }
+    BufferStop_Number : Integer;
+    BufferStop_X : Integer;
+    BufferStop_Y1 : Integer;
+    BufferStop_Y2 : Integer;
+  END;
+
+  LineRec = RECORD
+    Line_AdjacentBufferStop : Integer;
+    Line_BufferStopTheatreDestinationStr : String;
+    Line_CurrentColour : TColour;
+    Line_DataChanged : Boolean;
+    Line_Direction : DirectionType;
+    Line_DownConnectionCh : String;
+    Line_DownConnectionChRect : TRect;
+    Line_DownConnectionChBold : Boolean;
+    Line_DownRow : Extended;
+    Line_EndOfLineMarker : EndOfLineType;
+    Line_Gradient : GradientType;
+    Line_GridDownX : Integer;
+    Line_GridDownY : Integer;
+    Line_GridUpX : Integer;
+    Line_GridUpY : Integer;
+    Line_InitialOutOfUseState : OutOfUseState;
+    Line_InUseFeedbackUnit : Integer;
+    Line_InUseFeedbackInput : Integer;
+    Line_Location : Integer;
+    Line_LockFailureNotedInSubRouteUnit : Boolean;
+    Line_MousePolygon : ARRAY [0..4] OF TPoint; { mouse access for indicators }
+    Line_NameStr : String;
+    Line_NextDownIsEndOfLine : EndOfLineType;
+    Line_NextDownLine : Integer;
+    Line_NextDownPoint : Integer;
+    Line_NextDownType : NextLineRouteingType;
+    Line_NextUpIsEndofLine : EndOfLineType;
+    Line_NextUpLine : Integer;
+    Line_NextUpPoint : Integer;
+    Line_NextUpType : NextLineRouteingType;
+    Line_NoLongerOutOfUse : Boolean;
+    Line_Number : Integer;
+    Line_OldColour : TColour;
+    Line_OutOfUseState : OutOfUseState;
+    Line_RoutedOver : Boolean;
+    Line_RouteLockingForDrawing : Integer; { used for drawing those bits of Line that are routed over }
+    Line_RouteSet : Integer;
+    Line_SaveOutOfUseState : OutOfUseState;
+    Line_TC : Integer;
+    Line_TypeOfLine : TypeOfLine;
+    Line_UpConnectionCh : String;
+    Line_UpConnectionChRect : TRect;
+    Line_UpConnectionChBold : Boolean;
+    Line_UpRow : Extended;
+
+    { For line editing }
+    Line_DownHandlePolygon : ARRAY [0..4] OF TPoint;
+    Line_IsBeingMovedByHandle : HandleType;
+    Line_IsTempNewLine : Boolean;
+    Line_MidHandlePolygon : ARRAY [0..4] OF TPoint;
+    Line_ShowHandles : Boolean;
+    Line_UpHandlePolygon : ARRAY [0..4] OF TPoint;
+  END;
+
+CONST
+  Line_BufferStopTheatreDestinationStrFieldName : String = 'Buffer Stop Theatre Destination';
+  Line_DirectionFieldName : String = 'Direction';
+  Line_DownConnectionChFieldName : String = 'Down Connection Ch';
+  Line_DownRowFieldName : String = 'Down Row';
+  Line_GridDownXFieldName : String = 'Grid Down X';
+  Line_GridDownYFieldName : String = 'Grid Down Y';
+  Line_EndOfLineMarkerFieldName : String = 'End Of Line Marker';
+  Line_GradientFieldName : String = 'Gradient';
+  Line_InUseFeedbackUnitFieldName : String = 'In Use Feedback Unit';
+  Line_InUseFeedbackInputFieldName : String = 'In Use Feedback Input';
+  Line_LocationStrFieldName : String = 'Location';
+  Line_NameStrFieldName : String = 'Line Name';
+  Line_NumberFieldName : String = 'Line Number';
+  Line_OutOfUseFieldName : String = 'Out Of Use';
+  Line_TCFieldName : String = 'Line TC';
+  Line_TypeOfLineFieldName : String = 'Type Of Line';
+  Line_UpConnectionChFieldName : String = 'Up Connection Ch';
+  Line_UpRowFieldName : String = 'Up Row';
+  Line_GridUpXFieldName : String = 'Grid Up X';
+  Line_GridUpYFieldName : String = 'Grid Up Y';
+
 VAR
   LinesUnitForm: TLinesUnitForm;
+
+  BufferStops : ARRAY OF BufferStopRec;
+  Lines : ARRAY OF LineRec;
+  LinesInitialised : Boolean = False;
 
 IMPLEMENTATION
 
 {$R *.dfm}
 
-USES MiscUtils, RailDraw, Options, PointsUnit;
+USES MiscUtils, RailDraw, Options, PointsUnit, TrackCircuitsUnit;
 
 CONST
   UnitRef = 'LinesUnit';

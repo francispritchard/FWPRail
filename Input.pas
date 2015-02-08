@@ -55,7 +55,7 @@ IMPLEMENTATION
 
 USES InitVars, Locks, RailDraw, MiscUtils, Cuneo, LocoUtils, Lenz, MaskUtils, Startup, Diagrams, GetTime, CreateRoute, Feedback, IDGlobal, RDCUnit, Route, StrUtils, Menus,
      DateUtils, TestUnit, StationMonitors, LocoDialogue, Help, LocationData, Replay, Options, Edit, WorkingTimetable, TCPIP, Logging, Main, Train, DataCheck, SignalsUnit,
-     PointsUnit, LinesUnit;
+     PointsUnit, LinesUnit, TrackCircuitsUnit;
 
 CONST
   UnitRef = 'Input';

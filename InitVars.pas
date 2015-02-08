@@ -212,19 +212,6 @@ TYPE
   END;
 
 TYPE
-  BufferStopRec = RECORD
-    BufferStop_AdjacentLine : Integer;
-    BufferStop_AdjacentTrackCircuit : Integer;
-    BufferStop_AsTheatreDestination : String;
-    BufferStop_CurrentColour : TColour;
-    BufferStop_Direction : DirectionType;
-    BufferStop_MouseRect : TRect; { mouse access rectangle }
-    BufferStop_Number : Integer;
-    BufferStop_X : Integer;
-    BufferStop_Y1 : Integer;
-    BufferStop_Y2 : Integer;
-  END;
-
   { Feedback-related type declarations }
   TypeOfFeedback = (TrackCircuitFeedback, TRSPlungerFeedback, PointFeedback, LineFeedback, UnknownFeedbackType);
 
@@ -242,19 +229,10 @@ TYPE
     Feedback_TCAboveUnit : Integer;
   END;
 
-  { Line-related type declarations }
-  EndOfLineType = (BufferStopAtUp, BufferStopAtDown, ProjectedLineAtUp, ProjectedLineAtDown, NotEndOfLine, UnknownEndOfLine);
-
-  TypeOfLine = (MainOrGoods, MainLine, GoodsLine, BranchLineDouble, BranchLineSingle, IslandStationLine, MainStationLine, BranchStationLine, WindowStationLine, SidingLine,
-                FiddleyardLine, SidingsApproach, StationAvoiding, ProjectedLine, NewlyCreatedLine, UnknownTypeOfLine);
-  { adjust FirstTypeOfLine or LastTypeOfLine if alteration made to above declaration }
-
-  GradientType = (Level, RisingIfUp, RisingIfDown, UnknownGradientType);
   HandleType = (UpHandle, MidHandle, DownHandle, NoHandle);
   MPHType = (MPH0, MPH10, MPH20, MPH30, MPH40, MPH50, MPH60, MPH70, MPH80, MPH90, MPH100, MPH110, MPH120, UnknownMPH, NoSpecifiedSpeed);
   NextLineRouteingType = (EndOfLineIsNext, LineIsNext, PointIsNext, UnknownNextLineRouteingType);
   OutOfUseState = (InUse, OutOfUse);
-  PointStateType = (Diverging, Straight, PointOutOfAction, PointStateUnknown);
 
   LightsType = (NoLights, HeadlightsAndTailLightsConnected, HeadlightsAndTailLightsSeparatelySwitched, ExpressModelsSeparateHeadlights, LightsOperatedByTwoChips,
                 LightsShouldBeDimmed, CustomLightingKit);
@@ -317,83 +295,6 @@ TYPE
     Loco_TrainIndex : Integer;
     Loco_UseTrailingTrackCircuits : Boolean;
   END;
-
-  LineRec = RECORD
-    Line_AdjacentBufferStop : Integer;
-    Line_BufferStopTheatreDestinationStr : String;
-    Line_CurrentColour : TColour;
-    Line_DataChanged : Boolean;
-    Line_Direction : DirectionType;
-    Line_DownConnectionCh : String;
-    Line_DownConnectionChRect : TRect;
-    Line_DownConnectionChBold : Boolean;
-    Line_DownRow : Extended;
-    Line_EndOfLineMarker : EndOfLineType;
-    Line_Gradient : GradientType;
-    Line_GridDownX : Integer;
-    Line_GridDownY : Integer;
-    Line_GridUpX : Integer;
-    Line_GridUpY : Integer;
-    Line_InitialOutOfUseState : OutOfUseState;
-    Line_InUseFeedbackUnit : Integer;
-    Line_InUseFeedbackInput : Integer;
-    Line_Location : Integer;
-    Line_LockFailureNotedInSubRouteUnit : Boolean;
-    Line_MousePolygon : ARRAY [0..4] OF TPoint; { mouse access for indicators }
-    Line_NameStr : String;
-    Line_NextDownIsEndOfLine : EndOfLineType;
-    Line_NextDownLine : Integer;
-    Line_NextDownPoint : Integer;
-    Line_NextDownType : NextLineRouteingType;
-    Line_NextUpIsEndofLine : EndOfLineType;
-    Line_NextUpLine : Integer;
-    Line_NextUpPoint : Integer;
-    Line_NextUpType : NextLineRouteingType;
-    Line_NoLongerOutOfUse : Boolean;
-    Line_Number : Integer;
-    Line_OldColour : TColour;
-    Line_OutOfUseState : OutOfUseState;
-    Line_RoutedOver : Boolean;
-    Line_RouteLockingForDrawing : Integer; { used for drawing those bits of Line that are routed over }
-    Line_RouteSet : Integer;
-    Line_SaveOutOfUseState : OutOfUseState;
-    Line_TC : Integer;
-    Line_TypeOfLine : TypeOfLine;
-    Line_UpConnectionCh : String;
-    Line_UpConnectionChRect : TRect;
-    Line_UpConnectionChBold : Boolean;
-    Line_UpRow : Extended;
-
-    { For line editing }
-    Line_DownHandlePolygon : ARRAY [0..4] OF TPoint;
-    Line_IsBeingMovedByHandle : HandleType;
-    Line_IsTempNewLine : Boolean;
-    Line_MidHandlePolygon : ARRAY [0..4] OF TPoint;
-    Line_ShowHandles : Boolean;
-    Line_UpHandlePolygon : ARRAY [0..4] OF TPoint;
-  END;
-
-CONST
-  Line_BufferStopTheatreDestinationStrFieldName : String = 'Buffer Stop Theatre Destination';
-  Line_DirectionFieldName : String = 'Direction';
-  Line_DownConnectionChFieldName : String = 'Down Connection Ch';
-  Line_DownRowFieldName : String = 'Down Row';
-  Line_GridDownXFieldName : String = 'Grid Down X';
-  Line_GridDownYFieldName : String = 'Grid Down Y';
-  Line_EndOfLineMarkerFieldName : String = 'End Of Line Marker';
-  Line_GradientFieldName : String = 'Gradient';
-  Line_InUseFeedbackUnitFieldName : String = 'In Use Feedback Unit';
-  Line_InUseFeedbackInputFieldName : String = 'In Use Feedback Input';
-  Line_LocationStrFieldName : String = 'Location';
-  Line_NameStrFieldName : String = 'Line Name';
-  Line_NumberFieldName : String = 'Line Number';
-  Line_OutOfUseFieldName : String = 'Out Of Use';
-  Line_TCFieldName : String = 'Line TC';
-  Line_TypeOfLineFieldName : String = 'Type Of Line';
-  Line_UpConnectionChFieldName : String = 'Up Connection Ch';
-  Line_UpRowFieldName : String = 'Up Row';
-  Line_GridUpXFieldName : String = 'Grid Up X';
-  Line_GridUpYFieldName : String = 'Grid Up Y';
 
 TYPE
   DirectionPriorityType = (PreferablyUp, UpOnly, TerminatingAtUp, PreferablyDown, DownOnly, TerminatingAtDown, NoDirectionPriority);
@@ -577,123 +478,6 @@ TYPE
 
   QuadrantType = (UpperQuadrant, LowerQuadrant, NoQuadrant);
 
-  SignalRec = RECORD
-    Signal_AccessoryAddress : Integer;
-    Signal_Aspect : AspectType;
-    Signal_AdjacentLine : Integer;
-    Signal_AdjacentLineXOffset : Integer;
-    Signal_AdjacentTC : Integer;
-    Signal_ApproachControlAspect : AspectType;
-    Signal_ApproachLocked : Boolean;
-    Signal_AsTheatreDestination : String; { what a signal pointing at this signal might display }
-    Signal_Automatic : Boolean; { not yet implemented }
-    Signal_DataChanged : Boolean;
-    Signal_DecoderNum : Integer;
-    Signal_Direction : DirectionType;
-    Signal_Energised : Boolean;
-    Signal_EnergisedTime : TDateTime;
-    Signal_FailedToResetFlag : Boolean;
-    Signal_FailMsgWritten : Boolean;
-    Signal_FindNextSignalBufferStopMsgWritten : Boolean;
-    Signal_FromWhichUserMustDrive : Boolean;
-    Signal_HiddenStationSignalAspect : AspectType; { used to force stopping at stations where signal is potentially off }
-    Signal_Indicator : IndicatorType;
-    Signal_IndicatorDecoderNum : Integer;
-    Signal_IndicatorDecoderFunctionNum : Integer;
-    Signal_IndicatorMouseRect : TRect; { mouse access rectangle for indicators }
-    Signal_IndicatorSpeedRestriction : MPHType; { applicable only if the route indicator is set }
-    Signal_IndicatorState : IndicatorStateType;
-    Signal_JunctionIndicators : ARRAY [JunctionIndicatorType] OF JunctionIndicatorRec;
-    Signal_LampIsOn : Boolean; { used for flashing aspects }
-    Signal_LineX : Integer;
-    Signal_LineY : Integer;
-    Signal_LineWithVerticalSpacingY : Integer;
-    Signal_LocationsToMonitorArray : IntegerArrayType;
-
-    { Signal_LockedArray and Signal_RouteLockingNeededArray sound similar but serve different purposes - RouteLockingNeededArray covers the lines, track circuits, points,
-      etc. ahead that must be locked before a signal can be pulled off; Signal_LockedArray shows whether a signal is locked either by a specific route or by a user.
-    }
-    Signal_LockedArray : StringArrayType;
-    Signal_LockedBySemaphoreDistant : Boolean;
-
-    Signal_LockFailureNotedInRouteUnit : Boolean;
-    Signal_MouseRect : TRect; { mouse access rectangle for signal }
-    Signal_NextSignalIfNoIndicator : Integer;
-    Signal_NotUsedForRouteing : Boolean;
-    Signal_Notes : String;
-    Signal_Number : Integer;
-    Signal_OppositePassingLoopSignal : Integer;
-    Signal_OutOfUse : Boolean;
-    Signal_OutOfUseMsgWritten : Boolean;
-    Signal_PossibleRouteHold : Boolean;
-    Signal_PossibleStationStartRouteHold : Boolean;
-    Signal_PostColour : TColour;
-    Signal_PostMouseRect : TRect; { mouse access rectangle for signal posts }
-    Signal_PreviousAspect : AspectType;
-    Signal_PreviousIndicatorState : IndicatorStateType;
-    Signal_PreviousTheatreIndicatorString : String;
-    Signal_PreviousSignal1 : Integer;
-    Signal_PreviousSignal2 : Integer;
-    Signal_PreviousHiddenStationSignalAspectSignal1 : Integer;
-    Signal_PreviousHiddenStationSignalAspectSignal2 : Integer;
-    Signal_PreviousLineX : Integer;
-    Signal_PreviousLineY : Integer;
-    Signal_PreviousLineWithVerticalSpacingY : Integer;
-    Signal_Quadrant : QuadrantType;
-    Signal_ResettingTC : Integer;
-
-    { see note above for Signal_LockedArray }
-    Signal_RouteLockingNeededArray : StringArrayType;
-
-    Signal_SemaphoreDistantHomesArray : IntegerArrayType; { needed to tell a semaphore distant which semaphore homes lock it }
-    Signal_SemaphoreDistantLocking : Integer;
-    Signal_StateChanged : Boolean;
-    Signal_TheatreIndicatorString : String; { what this signal might display }
-    Signal_TRSHeld : Boolean;
-    Signal_TRSHeldMsgWritten : Boolean;
-    Signal_TRSReleased : Boolean;
-    Signal_TRSReleasedMsgWritten : Boolean;
-    Signal_Type : TypeOfSignal;
-  END;
-
-  WriteReadType = (ReadOnly, WriteOnly, WriteThenRead);
-
-CONST
-  Signal_AccessoryAddressFieldName : String = 'Signal Accessory Address';
-  Signal_AdjacentLineFieldName : String = 'Signal Adjacent Line';
-  Signal_AdjacentLineXOffsetFieldName : String = 'Signal AdjacentLine XOffset';
-  Signal_ApproachControlAspectFieldName : String = 'Signal Approach Control Aspect';
-  Signal_AsTheatreDestinationFieldName : String = 'Signal As Theatre Destination';
-  Signal_AutomaticFieldName : String = 'Signal Automatic'; { not in use }
-  Signal_DirectionFieldName : String = 'Signal Direction';
-  Signal_DecoderNumFieldName : String = 'Signal Decoder Num';
-  Signal_FromWhichUserMustDriveFieldName : String = 'Signal From Which User Must Drive';
-  Signal_IndicatorDecoderFunctionNumFieldName : String = 'Signal Indicator Decoder Function Num';
-  Signal_IndicatorDecoderNumFieldName : String = 'Signal Indicator Decoder Num';
-  Signal_IndicatorSpeedRestrictionFieldName : String = 'Signal Indicator Speed Restriction';
-  Signal_IndicatorFieldName : String = 'Signal Indicator';
-  Signal_JunctionIndicatorsFieldName : String = 'Signal Junction Indicators';
-  Signal_LocationsToMonitorFieldName : String = 'Signal Locations To Monitor';
-  Signal_LowerLeftIndicatorTargetFieldName : String = 'Signal Lower Left Indicator Target';
-  Signal_LowerRightIndicatorTargetFieldName : String = 'Signal Lower Right Indicator Target';
-  Signal_MiddleLeftIndicatorTargetFieldName : String = 'Signal Middle Left Indicator Target';
-  Signal_MiddleRightIndicatorTargetFieldName : String = 'Signal Middle Right Indicator Target';
-  Signal_NextSignalIfNoIndicatorFieldName : String = 'Signal Next Signal If No Indicator';
-  Signal_NotesFieldName : String = 'Signal Notes';
-  Signal_NotUsedForRouteingFieldName : String = 'Signal Not Used For Routeing';
-  Signal_NumberFieldName : String = 'Signal Number';
-  Signal_OppositePassingLoopSignalFieldName : String = 'Signal Opposite Passing Loop Signal';
-  Signal_OutOfUseFieldName : String = 'Signal Out Of Use';
-  Signal_PossibleRouteHoldFieldName : String = 'Signal Possible Route Hold';
-  Signal_PossibleStationStartRouteHoldFieldName : String = 'Signal Possible Station Start Route Hold';
-  Signal_QuadrantFieldName : String = 'Signal Quadrant';
-  Signal_SemaphoreDistantHomesArrayFieldName : String = 'Signal Distant Homes';
-  Signal_TypeFieldName : String = 'Signal Type';
-  Signal_UpDownFieldName : String = 'Signal Direction';
-  Signal_UpperLeftIndicatorTargetFieldName : String = 'Signal Upper Left Indicator Target';
-  Signal_UpperRightIndicatorTargetFieldName : String = 'Signal Upper Right Indicator Target';
-  Signal_VerticalSpacingFieldName : String = 'Signal Vertical Spacing';
-
 TYPE
   SuitableAdditionalTrainsRec = RECORD
     SuitableAdditionalTrains_DepartureTime1 : TDateTime;
@@ -733,51 +517,6 @@ TYPE
   END;
 
   TimedRectangleArrayType = ARRAY OF TimedRectangleRec;
-
-  { Track-circuit-related type declarations }
-  TrackCircuitStateType = (TCFeedbackOccupation, TCFeedbackOccupationButOutOfUse, TCPermanentFeedbackOccupation, TCPermanentOccupationSetByUser, TCSystemOccupation,
-                           TCPermanentSystemOccupation, TCMissingOccupation, TCOutOfUseSetByUser, TCOutOfUseAsNoFeedbackReceived, TCLocoOutOfPlaceOccupation, TCUnoccupied);
-
-  TrackCircuitRec = RECORD
-    TC_AdjacentBufferStop : Integer;
-    TC_AdjacentSignals : IntegerArrayType;
-    TC_DataChanged : Boolean;
-    TC_EmergencyLocoChip : Integer;
-    TC_EmergencyState : TrackCircuitStateType;
-    TC_FeedbackInput : Integer;
-    TC_FeedbackUnit : Integer;
-    TC_FeedbackOccupation : Boolean;
-    TC_Flashing : Boolean;
-    TC_Gradient : GradientType;
-    TC_HeadCode : String;
-    TC_Journey : Integer;
-    TC_LengthInInches : Extended;
-    TC_LineArray : IntegerArrayType;
-    TC_LitUp : Boolean; { used for flashing }
-    TC_Location : Integer;
-    TC_LockedForRoute : Integer;
-    TC_LockFailureNotedInSubRouteUnit : Boolean;
-    TC_LocoChip : Integer;
-    TC_LocoStalled : Boolean;
-    TC_MissingTrainNoted : Boolean;
-    TC_MysteriouslyOccupied : Boolean;
-    TC_Number : Integer;
-    TC_OccupationStartTime : TDateTime;
-    TC_OccupationState : TrackCircuitStateType;
-    TC_PreviousLocoChip : Integer;
-    TC_PreviousOccupationState : TrackCircuitStateType;
-    TC_ResettingSignal : Integer;
-    TC_SaveRouteLocking : Integer;
-    TC_SaveTrackCircuitHeadCode : String;
-    TC_SpeedRestrictionInMPH : MPHType;
-    TC_SpeedRestrictionDirection : DirectionType;
-  END;
-
-CONST
-  TC_NumberFieldName : String = 'TCNum';
-  TC_LengthInInchesFieldName : String = 'Length';
-  TC_FeedbackUnitFieldName : String = 'FeedbackUnit';
-  TC_FeedbackInputFieldName : String = 'FeedbackInput';
 
 TYPE
   { Train-related type declarations }
@@ -1062,9 +801,6 @@ TYPE
   END;
 
 CONST
-  FirstTypeOfLine = MainOrGoods;
-  LastTypeOfLine = ProjectedLine;
-
   NoTime = True;
   NoUnitRef = True;
   NumberElements = True;
@@ -1245,7 +981,6 @@ VAR
   Areas : ARRAY OF AreaRec;
   AutoModeInitiated : Boolean = False;
   BreakPointRequiredInMakeSoundRoutine : Boolean = False;
-  BufferStops : ARRAY OF BufferStopRec;
   CreateLineMode : Boolean = False;
   CrossHairCursor : TCursor;
   DapolCleaningWagonLocoChip : Integer = UnknownLocoChip;
@@ -1271,8 +1006,6 @@ VAR
   LenzConnection : LenzConnectionType = NoConnection;
   LightsToBeSwitchedOnArray : ARRAY OF LightsToBeSwitchedOnRec;
   LineHighlighted : Integer = UnknownLine;
-  Lines : ARRAY OF LineRec;
-  LinesInitialised : Boolean = False;
   Locations : ARRAY OF LocationRec;
   LocationOccupations : ARRAY OF ARRAY OF LocationOccupationRec;
   Locos : ARRAY OF LocoRec;
@@ -1327,7 +1060,6 @@ VAR
   ScreenMode : ScreenModeType = DefaultWindowedScreenMode;
   ShowCreateRouteExitFunctionNum : Boolean = False;
   ShowRouteLengths : Boolean = False;
-  SignalHighlighted : Integer = UnknownSignal;
   SourcePos, Destination1Pos, Destination2Pos, Destination3Pos : Integer;
   StationStartModeSetUpTime : TDateTime = 0;
   StationMonitorDisplay : StationMonitorsType;
@@ -1345,9 +1077,6 @@ VAR
   ThinLineMode : Boolean = True;
   TimeLastDataReceived : Cardinal = 0;
   TimeOutMsgWritten : Boolean = False;
-  TrackCircuitHighlighted : Integer = UnknownTrackCircuit;
-  TrackCircuits : ARRAY OF TrackCircuitRec;
-  TrackCircuitsInitialised : Boolean = False;
   Trains : ARRAY OF TrainRec;
   UpLineY, DownLineY : Word;
   VerboseFlag : Boolean = False;
@@ -1368,8 +1097,6 @@ VAR
   WriteToLogFileAndTestFile : Boolean = False;
 
   { Other variables }
-  Signals : ARRAY OF SignalRec;
-
   Routes_ApproachControlledSignals : ARRAY OF IntegerArrayType;
   Routes_ApproachControlSignalsMsgWrittenArray : BooleanArrayType;
   Routes_ApproachControlSignalsWaitingToBeSet : ARRAY OF StringArrayType;
@@ -1500,20 +1227,8 @@ VAR
 PROCEDURE AddLineToStationMonitorsWebDiagnosticsMemo(S : String);
 { Adds a line of text to the station monitor unit's web diagnostics memo }
 
-PROCEDURE AddNewRecordToTrackCircuitDatabase;
-{ Append a record to the track-circuit database }
-
 PROCEDURE CalculatePlatformPositions;
 { Create the platform rectangle }
-
-PROCEDURE CalculateTCAdjacentSignals;
-{ Work out which track circuits are next the signal }
-
-PROCEDURE CalculateTCAdjacentBufferStops;
-{ Work out which track circuits are next a buffer stop }
-
-FUNCTION DeleteRecordFromTrackCircuitDatabase(TrackCircuitToDeleteNum : Integer) : Boolean;
-{ Remove a record from the track-circuit database }
 
 FUNCTION DescribeActualDateAndTime : String;
 { Return the current real date and time as a String }
@@ -1527,9 +1242,6 @@ PROCEDURE InitialiseLogFiles;
 PROCEDURE InitialiseScreenDrawingVariables;
 { Set up the default screen drawing variables }
 
-PROCEDURE InitialiseTrackCircuitVariables(TC : Integer);
-{ Initialise all the variables where the data is not read in from the database or added during the edit process }
-
 PROCEDURE ReadInAreasDataFromDatabase;
 { Initialise the area data }
 
@@ -1541,9 +1253,6 @@ PROCEDURE ReadInLocationDataFromDatabase;
 
 PROCEDURE ReadInPlatformDataFromDatabase;
 { Initialise the platform data }
-
-PROCEDURE ReadInTrackCircuitDataFromDatabase;
-{ Initialise the track circuit data which depends on lines being initialised first }
 
 PROCEDURE RestoreScreenDrawingVariables;
 { Restore the default screen drawing variables }
@@ -1560,15 +1269,12 @@ FUNCTION ValidateRow(RowStr : String; OUT ErrorMsg : String) : Extended;
 PROCEDURE WriteOutLocationDataToDatabase;
 { Write out some location data to the location data file }
 
-PROCEDURE WriteOutTrackCircuitDataToDatabase;
-{ Write out some track-circuit data to the track-circuit data file }
-
 IMPLEMENTATION
 
 {$R *.dfm}
 
 USES
-  LocoUtils, MiscUtils, Lenz, RailDraw, IniFiles, Startup, DateUtils, GetTime, Diagrams, StrUtils, Grids, Movement, LocationData, Feedback, Options, PointsUnit;
+  LocoUtils, MiscUtils, Lenz, RailDraw, IniFiles, Startup, DateUtils, GetTime, Diagrams, StrUtils, Grids, Movement, LocationData, Feedback, Options, PointsUnit, LinesUnit;
 
 CONST
   UnitRef = 'InitVars';
@@ -1599,332 +1305,6 @@ BEGIN
       Log('EG AddLineToStationMonitorsWebDiagnosticsMemo:' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { AddLineToStationMonitorsWebDiagnosticsMemo }
-
-PROCEDURE InitialiseTrackCircuitVariables(TC : Integer);
-{ Initialise all the variables where the data is not read in from the database or added during the edit process }
-BEGIN
-  WITH TrackCircuits[TC] DO BEGIN
-    SetLength(TC_AdjacentSignals, 0);
-    TC_AdjacentBufferStop := UnknownBufferStop;
-    TC_DataChanged := False;
-    TC_EmergencyLocoChip := UnknownLocoChip;
-    TC_EmergencyState := TCUnoccupied;
-    TC_FeedbackOccupation := False;
-    TC_Flashing := False;
-    TC_Gradient := Level;
-    TC_HeadCode := '';
-    TC_Journey := UnknownJourney;
-    TC_LitUp := True;
-    TC_Location := UnknownLocation;
-    TC_LockedForRoute := UnknownRoute;
-    TC_LockFailureNotedInSubRouteUnit := False;
-    TC_LocoChip := UnknownLocoChip;
-    TC_LocoStalled := False;
-    TC_MissingTrainNoted := False;
-    TC_MysteriouslyOccupied := False;
-    TC_OccupationStartTime := 0;
-    TC_OccupationState := TCUnoccupied;
-    TC_PreviousLocoChip := UnknownLocoChip;
-    TC_PreviousOccupationState := TCUnoccupied;
-    TC_ResettingSignal := UnknownSignal;
-    TC_SaveRouteLocking := UnknownRoute;
-    TC_SaveTrackCircuitHeadCode := '';
-    TC_SpeedRestrictionInMPH := NoSpecifiedSpeed;
-    TC_SpeedRestrictionDirection := Bidirectional;
-
-    SetLength(TC_LineArray, 0);
-  END; {WITH}
-END; { InitialiseTrackCircuitVariables(TC); }
-
-PROCEDURE ReadInTrackCircuitDataFromDatabase;
-{ Initialise the track-circuit data which depends on lines being initialised first.
-
-  Interesting notes from the past here:
-
-  Unit 77 inputs 5-8 free
-  Unit 78 (tunnel) for UMC
-  Unit 86 input 5 does not have a corresponding LB101 as 6-8 are photocell inputs
-  Unit 94 input 6 reserved for new siding point (1 to 5 are points already)
-  Unit 112 input 8 (FY) is free [TC input]
-
-  Unit 93 inputs 2-3 reserved for new siding A
-  Unit 95 inputs 5-6 reserved for new siding B
-  Unit 99 inputs 3-4 reserved for cross over points from platforms 5 to 6
-  Unit 116 input 2 free [point input]
-}
-CONST
-  StopTimer = True;
-
-VAR
-  ErrorMsg : String;
-  HasFeedback : Boolean;
-  Location : Integer;
-  TC : Integer;
-  TempStr : String;
-
-BEGIN
-  TRY
-    Log('A INITIALISING TRACK CIRCUITS {BLANKLINEBEFORE}');
-
-    WITH InitVarsWindow DO BEGIN
-      IF NOT FileExists(PathToRailDataFiles + TrackCircuitDataFilename + '.' + TrackCircuitDataFilenameSuffix) THEN BEGIN
-        IF MessageDialogueWithDefault('Track-circuit database file "' + TrackCircuitDataFilename + '.' + TrackCircuitDataFilenameSuffix + '" cannot be located'
-                                      + CRLF
-                                      + 'Do you wish to continue?',
-                                      StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
-        THEN
-          ShutDownProgram(UnitRef, 'ReadInTrackCircuitDataFromDatabase')
-        ELSE
-          Exit;
-      END;
-
-      TrackCircuitsADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
-                                                     + PathToRailDataFiles + TrackCircuitDataFilename + '.' + TrackCircuitDataFilenameSuffix
-                                                     + ';Persist Security Info=False';
-      TrackCircuitsADOConnection.Connected := True;
-      TrackCircuitsADOTable.Open;
-      Log('T Track-circuit data table and connection opened to initialise the track circuits');
-
-      TrackCircuitsADOTable.Sort := '[' + TC_NumberFieldName + '] ASC';
-      TrackCircuitsADOTable.First;
-      SetLength(TrackCircuits, 0);
-
-      WHILE NOT TrackCircuitsADOTable.EOF DO BEGIN
-        WITH TrackCircuitsADOTable DO BEGIN
-          SetLength(TrackCircuits, Length(TrackCircuits) + 1);
-          TC := High(TrackCircuits);
-          WITH TrackCircuits[TC] DO BEGIN
-            ErrorMsg := '';
-
-            TC_Number := TrackCircuitsADOTable.FieldByName(TC_NumberFieldName).AsInteger;
-            IF TC_Number <> TC THEN
-              ErrorMsg := 'it does not match the line number in the database (' + IntToStr(TC_Number) + ')';
-
-            IF ErrorMsg = '' THEN BEGIN
-              TempStr := FieldByName(TC_LengthInInchesFieldName).AsString;
-              IF TempStr = '' THEN
-                TC_LengthInInches := 0
-              ELSE
-                IF NOT TryStrToFloat(TempStr, TC_LengthInInches) THEN
-                  Debug('TC=' + IntToStr(TC_Number) + ': invalid length String "' + TempStr + '"');
-            END;
-
-            IF ErrorMsg = '' THEN
-              TC_FeedbackUnit := ValidateFeedbackUnit(FieldByName(TC_FeedbackUnitFieldName).AsString, HasFeedback, ErrorMsg);
-
-            IF ErrorMsg = '' THEN
-              TC_FeedbackInput := ValidateFeedbackInput(FieldByName(TC_FeedbackInputFieldName).AsString, HasFeedback, TC_FeedbackUnit, TrackCircuitFeedback,
-                                                        TC_Number, ErrorMsg);
-            IF ErrorMsg <> '' THEN BEGIN
-              IF MessageDialogueWithDefault('Error in creating TC=' + IntToStr(High(TrackCircuits)) + ' (' + IntToStr(TC_Number) + '): '
-                                            + '[' + ErrorMsg + ']:'
-                                            + CRLF
-                                            + 'Do you wish to continue?',
-                                            StopTimer, mtWarning, [mbYes, mbNo], mbNo) = mrNo
-              THEN
-                ShutDownProgram(UnitRef, 'ReadInTrackCircuitDataFromDatabase');
-            END;
-          END; {WITH}
-        END; {WITH}
-        TrackCircuitsADOTable.Next;
-      END; {WHILE}
-
-      { Tidy up the database }
-      TrackCircuitsADOTable.Close;
-      TrackCircuitsADOConnection.Connected := False;
-      Log('T Track-circuit data table and connection closed');
-    END; {WITH}
-
-    FOR TC := 0 TO High(TrackCircuits) DO
-      InitialiseTrackCircuitVariables(TC);
-
-    { Initialise track-circuit lines and locations }
-    CalculateTCAdjacentBufferStops;
-
-    { Check that all track circuits have a TC_LineArray value }
-    TC := 0;
-    WHILE TC <= High(TrackCircuits) DO BEGIN
-      IF Length(TrackCircuits[TC].TC_LineArray) = 0 THEN
-        Debug('!TC=' + IntToStr(TC) + ': has no entry in the LineData file');
-      Inc(TC);
-    END; {WHILE}
-
-    { Work out how long individual locations are based on track-circuit length. This can be overriden by a specific length given below, however. }
-    FOR Location := 0 TO High(Locations) DO BEGIN
-      { Check that the location doesn't already have a designated preset length - this is necessary in platforms, for instance, as the total track-circuit length may well
-        include the line beyond signals.
-      }
-      IF Locations[Location].Location_LengthInInches = 0 THEN
-        FOR TC := 0 TO High(TrackCircuits) DO BEGIN
-          IF TrackCircuits[TC].TC_Location = Location THEN BEGIN
-            Locations[Location].Location_LengthInInches := Locations[Location].Location_LengthInInches + TrackCircuits[TC].TC_LengthInInches;
-          END;
-        END;
-    END;
-  EXCEPT {TRY}
-    ON E : Exception DO
-      Log('EG ReadInTrackCircuitDataFromDatabase: ' + E.ClassName + ' error raised, with message: ' + E.Message);
-  END; {TRY}
-END; { ReadInTrackCircuitDataFromDatabase }
-
-PROCEDURE AddNewRecordToTrackCircuitDatabase;
-{ Append a record to the track-circuit database }
-BEGIN
-  TRY
-    WITH InitVarsWindow DO BEGIN
-      IF NOT FileExists(PathToRailDataFiles + TrackCircuitDataFilename + '.' + TrackCircuitDataFilenameSuffix) THEN BEGIN
-        IF MessageDialogueWithDefault('Track-circuit database file "' + PathToRailDataFiles + TrackCircuitDataFilename + '.' + TrackCircuitDataFilenameSuffix
-                                      + '" cannot be located'
-                                      + CRLF
-                                      + 'Do you wish to continue?',
-                                      StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
-        THEN
-          ShutDownProgram(UnitRef, 'AddNewRecordToTrackCircuitDatabase')
-        ELSE
-          Exit;
-      END;
-
-      TrackCircuitsADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
-                                                     + PathToRailDataFiles + TrackCircuitDataFilename + '.' + TrackCircuitDataFilenameSuffix
-                                                     + ';Persist Security Info=False';
-      TrackCircuitsADOConnection.Connected := True;
-      TrackCircuitsADOTable.Open;
-      TrackCircuitsADOTable.Append;
-      TrackCircuitsADOTable.FieldByName(TC_NumberFieldName).AsInteger := High(TrackCircuits);
-      TrackCircuitsADOTable.Post;
-
-      Log('S Track-circuit data table and connection opened to create record for TrackCircuit ' + IntToStr(High(TrackCircuits)));
-      { Tidy up the database }
-      TrackCircuitsADOTable.Close;
-      TrackCircuitsADOConnection.Connected := False;
-      Log('S Track-circuit data table and connection closed');
-    END;
-  EXCEPT {TRY}
-    ON E : Exception DO
-      Log('EG AddNewRecordToTrackCircuitDatabase: ' + E.ClassName + ' error raised, with message: ' + E.Message);
-  END; {TRY}
-END; { AddNewRecordToTrackCircuitDatabase }
-
-PROCEDURE WriteOutTrackCircuitDataToDatabase;
-{ Write out some track-circuit data to the track-circuit data file }
-VAR
-  TC : Integer;
-
-BEGIN
-  TRY
-    WITH InitVarsWindow DO BEGIN
-      IF NOT FileExists(PathToRailDataFiles + TrackCircuitDataFilename + '.' + TrackCircuitDataFilenameSuffix) THEN BEGIN
-        IF MessageDialogueWithDefault('Track-circuit database file "' + PathToRailDataFiles + TrackCircuitDataFilename + '.' + TrackCircuitDataFilenameSuffix
-                                      + '" cannot be located'
-                                      + CRLF
-                                      + 'Do you wish to continue?',
-                                      StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
-        THEN
-          ShutDownProgram(UnitRef, 'WriteOutTrackCircuitDataFromDatabase')
-        ELSE
-          Exit;
-      END;
-
-      TrackCircuitsADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
-                                                     + PathToRailDataFiles + TrackCircuitDataFilename + '.' + TrackCircuitDataFilenameSuffix
-                                                     + ';Persist Security Info=False';
-      TrackCircuitsADOConnection.Connected := True;
-      TrackCircuitsADOTable.Open;
-      Log('T Track-circuit data table and connection opened to write out track-circuit data');
-
-      TrackCircuitsADOTable.First;
-      TC := 0;
-
-      WHILE TC <= High(TrackCircuits) DO BEGIN
-        WITH TrackCircuits[TC] DO BEGIN
-          IF TC_DataChanged THEN BEGIN
-            TC_DataChanged := False;
-
-            IF NOT TrackCircuitsADOTable.Locate(TC_NumberFieldName, IntToStr(TC), []) THEN BEGIN
-              Log('T Track-circuit data table and connection opened to delete TC ' + TrackCircuitToStr(TC) + ' but it cannot be found');
-            END ELSE BEGIN
-              Log('T Track-circuit data table and connection opened to record that ' + TC_NumberFieldName + ' is ''' + IntToStr(TC_Number) + '''');
-              TrackCircuitsADOTable.Edit;
-              TrackCircuitsADOTable.FieldByName(TC_NumberFieldName).AsString := IntToStr(TC_Number);
-              TrackCircuitsADOTable.Post;
-
-              Log('T Track-circuit data table and connection opened to record that ' + TC_LengthInInchesFieldName + ' is ''' + FloatToStr(TC_LengthInInches) + '''');
-              TrackCircuitsADOTable.Edit;
-              TrackCircuitsADOTable.FieldByName(TC_LengthInInchesFieldName).AsString := FloatToStr(TC_LengthInInches);
-              TrackCircuitsADOTable.Post;
-
-              Log('T Track-circuit data table and connection opened to record that ' + TC_FeedbackUnitFieldName + ' is ''' + IntToStr(TC_FeedbackUnit) + '''');
-              TrackCircuitsADOTable.Edit;
-              TrackCircuitsADOTable.FieldByName(TC_FeedbackUnitFieldName).AsString := IntToStr(TC_FeedbackUnit);
-              TrackCircuitsADOTable.Post;
-
-              Log('T Track-circuit data table and connection opened to record that ' + TC_FeedbackInputFieldName + ' is ''' + IntToStr(TC_FeedbackInput) + '''');
-              TrackCircuitsADOTable.Edit;
-              TrackCircuitsADOTable.FieldByName(TC_FeedbackInputFieldName).AsString := IntToStr(TC_FeedbackInput);
-              TrackCircuitsADOTable.Post;
-            END;
-          END;
-        END; {WITH}
-
-        Inc(TC);
-      END; {WHILE}
-
-      { Tidy up the database }
-      TrackCircuitsADOTable.Close;
-      TrackCircuitsADOConnection.Connected := False;
-      Log('L Track-circuit data table and connection closed after writing track-circuit data');
-    END; {WITH}
-  EXCEPT {TRY}
-    ON E : Exception DO
-      Log('EG WriteOutTrackCircuitData: ' + E.ClassName + ' error raised, with message: ' + E.Message);
-  END; {TRY}
-END; { WriteOutTrackCircuitDataToDatabase }
-
-FUNCTION DeleteRecordFromTrackCircuitDatabase(TrackCircuitToDeleteNum : Integer) : Boolean;
-{ Remove a record from the track-circuit database }
-BEGIN
-  Result := False;
-  TRY
-    WITH InitVarsWindow DO BEGIN
-      IF NOT FileExists(PathToRailDataFiles + TrackCircuitDataFilename + '.' + TrackCircuitDataFilenameSuffix) THEN BEGIN
-        IF MessageDialogueWithDefault('Track-circuit database file "' + PathToRailDataFiles + TrackCircuitDataFilename + '.' + TrackCircuitDataFilenameSuffix
-                                      + '" cannot be located'
-                                      + CRLF
-                                      + 'Do you wish to continue?',
-                                      StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
-        THEN
-          ShutDownProgram(UnitRef, 'DeleteRecordFromTrackCircuitDatabase')
-        ELSE
-          Exit;
-      END;
-
-      TrackCircuitsADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
-                                                     + PathToRailDataFiles + TrackCircuitDataFilename + '.' + TrackCircuitDataFilenameSuffix
-                                                     + ';Persist Security Info=False';
-      TrackCircuitsADOConnection.Connected := True;
-      TrackCircuitsADOTable.Open;
-
-      IF NOT TrackCircuitsADOTable.Locate(TC_NumberFieldName, IntToStr(TrackCircuitToDeleteNum), []) THEN BEGIN
-        Log('T Track-circuit data table and connection opened to delete TC ' + TrackCircuitToStr(TrackCircuitToDeleteNum) + ' but it cannot be found');
-      END ELSE BEGIN
-        Log('T Track-circuit data table and connection opened to delete TC ' + TrackCircuitToStr(TrackCircuitToDeleteNum));
-
-        { Now delete the track circuit - we have already checked, in the Edit unit, whether deleting it will cause knock-on problems with other track circuits }
-        TrackCircuitsADOTable.Delete;
-        Log('TG TrackCircuit ' + IntToStr(TrackCircuitToDeleteNum) + ' has been deleted');
-        Result := True;
-      END;
-
-      { Tidy up the database }
-      TrackCircuitsADOTable.Close;
-      TrackCircuitsADOConnection.Connected := False;
-      Log('T Track-circuit data table and connection closed');
-    END;
-  EXCEPT {TRY}
-    ON E : Exception DO
-      Log('EG DeleteRecordFromTrackCircuitDatabase: ' + E.ClassName + ' error raised, with message: ' + E.Message);
-  END; {TRY}
-END; { DeleteRecordFromTrackCircuitDatabase }
 
 PROCEDURE ReadInAreasDataFromDatabase;
 { Initialise the area data }
@@ -2748,57 +2128,6 @@ BEGIN
     IF NOT TryStrToInt(Str, Result) THEN
       ErrorMsg := 'ValidateGridX: invalid integer "' + Str + '"';
 END; { ValidateGridX }
-
-PROCEDURE CalculateTCAdjacentBufferStops;
-{ Work out which track circuits are next a buffer stop }
-VAR
-  L : Integer;
-  TC : Integer;
-  TCLocationFound : Boolean;
-
-BEGIN
-  FOR TC := 0 TO High(TrackCircuits) DO BEGIN
-    TCLocationFound := False;
-    L := 0;
-    WHILE (L <= High(Lines)) AND NOT TCLocationFound DO BEGIN
-      IF Lines[L].Line_TC = TC THEN BEGIN
-        TCLocationFound := True;
-        AppendToLineArray(TrackCircuits[TC].TC_LineArray, L);
-        TrackCircuits[TC].TC_Location := Lines[L].Line_Location;
-
-        { also initialise the buffer stop data }
-        TrackCircuits[TC].TC_AdjacentBufferStop := Lines[L].Line_AdjacentBufferStop;
-
-        { and the gradient - give the track circuit the benefit of the doubt so that if any line comprising it is not level, that gradient is the one recorded as being at
-          the track circuit
-        }
-        IF Lines[L].Line_Gradient <> Level THEN
-          TrackCircuits[TC].TC_Gradient := Lines[L].Line_Gradient;
-      END;
-      Inc(L);
-    END; {WHILE}
-  END; {FOR}
-END; { CalculateTCAdjacentBufferStops }
-
-PROCEDURE CalculateTCAdjacentSignals;
-{ Work out which track circuits are next the signal and/or a bufferstop }
-VAR
-  S : Integer;
-  TC : Integer;
-
-BEGIN
-  TRY
-    FOR TC := 0 TO High(TrackCircuits) DO
-      SetLength(TrackCircuits[TC].TC_AdjacentSignals, 0);
-
-    FOR S := 0 TO High(Signals) DO
-      IF Signals[S].Signal_AdjacentLine <> UnknownLine THEN
-        AppendToIntegerArray(TrackCircuits[Lines[Signals[S].Signal_AdjacentLine].Line_TC].TC_AdjacentSignals, S);
-  EXCEPT {TRY}
-    ON E : Exception DO
-      Log('EG CalculateTCAdjacentSignals: ' + E.ClassName + ' error raised, with message: ' + E.Message);
-  END; {TRY}
-END; { CalculateTCAdjacentSignals }
 
 PROCEDURE CalculatePlatformPositions;
 { Create the platform rectangle }

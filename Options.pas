@@ -834,7 +834,7 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES MiscUtils, RailDraw, Locks, LocoUtils, CreateRoute, Diagrams, GetTime, Help, LocationData, Edit, WorkingTimetable, LocoDialogue, Logging, IniFiles;
+USES MiscUtils, RailDraw, Locks, LocoUtils, CreateRoute, Diagrams, GetTime, Help, LocationData, Edit, WorkingTimetable, LocoDialogue, Logging, IniFiles, TrackCircuitsUnit;
 
 CONST
   UnitRef = 'Options';

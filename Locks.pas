@@ -34,7 +34,8 @@ UNIT Locks;
 
 INTERFACE
 
-USES Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, Dialogs, StartUp, Diagrams, GetTime, InitVars, StdCtrls, FWPShowMessageUnit, PointsUnit;
+USES Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, Dialogs, StartUp, Diagrams, GetTime, InitVars, StdCtrls, FWPShowMessageUnit, PointsUnit,
+     LinesUnit;
 
 TYPE
   TLockListWindow = CLASS(TForm)
@@ -71,7 +72,7 @@ VAR
 
 IMPLEMENTATION
 
-USES RailDraw, MiscUtils, CreateRoute, Route, Lenz, StrUtils, DateUtils, Input, Options, Main, SignalsUnit;
+USES RailDraw, MiscUtils, CreateRoute, Route, Lenz, StrUtils, DateUtils, Input, Options, Main, SignalsUnit, TrackCircuitsUnit;
 
 VAR
   UnitRef : String = 'Locks';

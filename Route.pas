@@ -50,7 +50,8 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES Locks, Startup, Diagrams, Movement, Input, MiscUtils, LocoUtils, IDGlobal, DateUtils, StrUtils, LocationData, Options, Main, SignalsUnit, PointsUnit;
+USES Locks, Startup, Diagrams, Movement, Input, MiscUtils, LocoUtils, IDGlobal, DateUtils, StrUtils, LocationData, Options, Main, SignalsUnit, PointsUnit,
+     TrackCircuitsUnit, LinesUnit;
 
 CONST
   UnitRef = 'Route';

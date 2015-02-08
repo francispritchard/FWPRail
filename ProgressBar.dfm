@@ -1,10 +1,10 @@
 object RoutesWritingProgressBarWindow: TRoutesWritingProgressBarWindow
   Left = 0
   Top = 0
-  Width = 434
-  Height = 127
   BorderIcons = [biSystemMenu, biMinimize]
   Caption = 'Writing Out Routes'
+  ClientHeight = 88
+  ClientWidth = 418
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText

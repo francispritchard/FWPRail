@@ -418,7 +418,7 @@ IMPLEMENTATION
 
 USES MiscUtils, Startup, Lenz, Input, Locks, Cuneo, Movement, GetTime, CreateRoute, Diagrams, RDCUnit, Types, Feedback, Route, LocoUtils, IniFiles, LocoDialogue, StrUtils,
      Help, Math {sic}, LocationData, FWPShowMessageUnit, Replay, TestUnit, WorkingTimetable, Options, Registry, Edit, Logging, Main, Splash, SignalsUnit, PointsUnit,
-     LinesUnit;
+     LinesUnit, TrackCircuitsUnit;
 
 CONST
   UnitRef = 'RailDraw';

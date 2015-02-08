@@ -8,7 +8,8 @@ UNIT Main;
 
 INTERFACE
 
-USES Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, InitVars, Vcl.ExtCtrls;
+USES Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, InitVars, Vcl.ExtCtrls,
+     TrackCircuitsUnit;
 
 TYPE
   TMainWindow = CLASS(TForm)

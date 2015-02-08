@@ -53,7 +53,8 @@ USES
   Install IN 'Install.pas' {InstallForm},
   SignalsUnit IN 'SignalsUnit.pas' {SignalUnitForm},
   PointsUnit IN 'PointsUnit.pas' {PointForm},
-  LinesUnit IN 'LinesUnit.pas' {LinesUnitForm};
+  LinesUnit IN 'LinesUnit.pas' {LinesUnitForm},
+  TrackCircuitsUnit IN 'TrackCircuitsUnit.pas' {TrackCircuitsUnitForm};
 
 VAR
   I : Integer;
@@ -87,6 +88,7 @@ BEGIN
   Application.CreateForm(TSignalUnitForm, SignalUnitForm);
   Application.CreateForm(TPointForm, PointForm);
   Application.CreateForm(TLinesUnitForm, LinesUnitForm);
+  Application.CreateForm(TTrackCircuitsUnitForm, TrackCircuitsUnitForm);
   Application.Run;
 END { Rail }.
 
