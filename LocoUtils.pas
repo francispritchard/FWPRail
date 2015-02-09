@@ -50,6 +50,12 @@ PROCEDURE ListLocosByChip;
 PROCEDURE ReadInLocoDataFromDatabase(VAR OK : Boolean);
 { Read in the loco table data from the MSAccess file - the data is not read in loco chip order, but that does not matter }
 
+PROCEDURE SetTwoLightingChips(L : LocoIndex; LightsAtUp, LightsAtDown : DirectionType; LightsOn : Boolean);
+{ When appropriate switch two lighting chips }
+
+FUNCTION SpeedInMPHToLocoLenzSpeed(L : LocoIndex; Speed : MPHType) : Integer;
+{ Return the appropriate Lenz speed for the given loco }
+
 PROCEDURE StartLocos(Restart : Boolean);
 { Restart all the locos that were running before the enforced stop }
 
@@ -57,6 +63,27 @@ PROCEDURE StopLocos(Msg : String);
 { Stop all the locos currently in the diagram list. This is a better approach than the brute force approach which is to send a "StopAllLocomotives" command, which produces
   an "emergency off" situation.
 }
+PROCEDURE TurnLocoCabLightsOff(L : LocoIndex; UserMsgRequired : Boolean; OUT UserMsg : String; OUT OK : Boolean);
+{ Turns cab lights off. Assumes that the cab lights are operated by function one }
+
+PROCEDURE TurnLocoCabLightsOn(L : LocoIndex; UserMsgRequired : Boolean; OUT UserMsg : String; OUT OK : Boolean);
+{ Turns cab lights off. Assumes that the cab lights are operated by function one }
+
+PROCEDURE TurnLocoHeadLightsOff(L : LocoIndex; UserMsgRequired : Boolean; OUT UserMsg : String; OUT OK : Boolean);
+{ Turn off a loco's headlights }
+
+PROCEDURE TurnLocoLightsOff(L : LocoIndex; UserMsgRequired : Boolean; OUT UserMsg : String; OUT OK : Boolean);
+{ Turns the lights off by changing functions on the loco chip and optional second chip }
+
+PROCEDURE TurnLocoLightsOn(L : LocoIndex; NonMoving, LightLoco : Boolean; UserMsgRequired : Boolean; OUT UserMsg : String; OUT OK : Boolean);
+{ Turns the lights on by changing functions on the loco chip and optional second chip }
+
+PROCEDURE UnknownLocoChipFound(RoutineName : String);
+{ Called if an unknown loco chip is found at the beginning of a subroutine }
+
+PROCEDURE UnknownLocoRecordFound(RoutineName : String);
+{ Called if an unknown loco record is found at the beginning of a subroutine }
+
 PROCEDURE WriteOutLocoDataToDatabase;
 { Write out some loco data to the loco data file }
 
@@ -67,7 +94,8 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES GetTime, Lenz, Diagrams, MiscUtils, RailDraw, Types, Math {sic}, IDGlobal, StrUtils, Feedback, Input, LocoDialogue, Options, Main, LinesUnit, Movement;
+USES GetTime, Lenz, Diagrams, MiscUtils, RailDraw, Types, Math {sic}, IDGlobal, StrUtils, Feedback, Input, LocoDialogue, Options, Main, LinesUnit, Movement, Logging,
+     LocationsUnit, TrackCircuitsUnit;
 
 CONST
   UnitRef = 'LocoUtils';
@@ -89,6 +117,477 @@ PROCEDURE Log(Str : String);
 BEGIN
   WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
+
+PROCEDURE SetTwoLightingChips(L : LocoIndex; LightsAtUp, LightsAtDown : DirectionType; LightsOn : Boolean);
+{ When appropriate switch two lighting chips }
+VAR
+  DebugStr : String;
+  OK : Boolean;
+  UserMsg : String;
+
+BEGIN
+  IF L = UnknownLocoIndex THEN
+    UnknownLocoRecordFound('SetTwoLightingChips')
+  ELSE BEGIN
+    WITH Locos[L] DO BEGIN
+      IF NOT LightsOn THEN BEGIN
+        TurnLocoLightsOff(L, NOT UserMsgRequired, UserMsg, OK);
+        Log(Loco_LocoChipStr + ' L Up and down lights turned off');
+      END ELSE BEGIN
+        IF NOT Loco_LightsOn THEN
+          TurnLocoLightsOn(L, NOT NonMovingLoco, NOT LightLoco, NOT UserMsgRequired, UserMsg, OK);
+
+          IF Loco_LightingChipUp = Loco_LocoChip THEN BEGIN
+            IF Loco_CurrentDirection <> LightsAtUp THEN
+              SetLocoDirection(Locos[L], LightsAtUp, OK)
+          END ELSE
+            IF Loco_LightingChipUpIndex <> UnknownLocoIndex THEN BEGIN
+              IF Locos[Loco_LightingChipUpIndex].Loco_CurrentDirection <> LightsAtUp THEN
+                SetLocoDirection(Locos[Loco_LightingChipUpIndex], LightsAtUp, OK);
+            END;
+
+          IF Loco_LightingChipDown = Loco_LocoChip THEN BEGIN
+            IF Loco_CurrentDirection <> LightsAtDown THEN
+              SetLocoDirection(Locos[L], LightsAtDown, OK)
+          END ELSE
+            IF Loco_LightingChipDownIndex <> UnknownLocoIndex THEN
+              IF Locos[Loco_LightingChipDownIndex].Loco_CurrentDirection <> LightsAtDown THEN
+                SetLocoDirection(Locos[Loco_LightingChipDownIndex], LightsAtDown, OK);
+
+        DebugStr := 'Lights at Up set to ' + IfThen(LightsAtUp = Up,
+                                                    'White',
+                                                    'Red') + '; '
+                    + 'Lights at Down set to ' + IfThen(LightsAtDown = Down,
+                                                       'White',
+                                                       'Red');
+        IF DebugStr <> Loco_LightsMsg THEN BEGIN
+          Log(Loco_LocoChipStr + ' L ' + DebugStr);
+          Loco_LightsMsg := DebugStr;
+        END;
+      END;
+    END; {WITH}
+  END;
+END; { SetTwoLightingChips }
+
+FUNCTION SpeedInMPHToLocoLenzSpeed(L : LocoIndex; Speed : MPHType) : Integer;
+{ Return the appropriate Lenz speed for the given loco }
+BEGIN
+  Result := 0;
+
+  IF L = UnknownLocoIndex THEN
+   UnknownLocoRecordFound('SpeedInMPHToLocoLenzSpeed')
+  ELSE BEGIN
+    WITH Locos[L] DO BEGIN
+      IF L <> UnknownLocoIndex THEN BEGIN
+         CASE Speed OF
+          MPH0:
+            Result := 0;
+          MPH10:
+            Result := Loco_Speed10;
+          MPH20:
+            Result := Loco_Speed20;
+          MPH30:
+            Result := Loco_Speed30;
+          MPH40:
+            Result := Loco_Speed40;
+          MPH50:
+            Result := Loco_Speed50;
+          MPH60:
+            Result := Loco_Speed60;
+          MPH70:
+            Result := Loco_Speed70;
+          MPH80:
+            Result := Loco_Speed80;
+          MPH90:
+            Result := Loco_Speed90;
+          MPH100:
+            Result := Loco_Speed100;
+          MPH110:
+            Result := Loco_Speed110;
+          MPH120:
+            Result := Loco_Speed120;
+        ELSE
+          Log('XG Unknown speed type found in SpeedInMPHToLocoLenzSpeed');
+        END; {CASE}
+      END; {WITH}
+    END;
+  END;
+END; { SpeedInMPHToLocoLenzSpeed }
+
+PROCEDURE UnknownLocoChipFound(RoutineName : String);
+{ Called if an unknown loco chip is found at the beginning of a subroutine }
+BEGIN
+  Log('X! Unknown locochip found in routine ' + RoutineName);
+  ASM
+    Int 3
+  END; {ASM}
+END; { UnknownLocoChipFound }
+
+PROCEDURE UnknownLocoRecordFound(RoutineName : String);
+{ Called if an unknown loco record is found at the beginning of a subroutine }
+BEGIN
+  Log('X! Unknown loco record found in routine ' + RoutineName);
+  ASM
+    Int 3
+  END; {ASM}
+END; { UnknownLocoRecordFound }
+
+PROCEDURE TurnLocoHeadLightsOff(L : LocoIndex; UserMsgRequired : Boolean; OUT UserMsg : String; OUT OK : Boolean);
+{ Turn off a loco's headlight }
+CONST
+  LightsOff = False;
+
+BEGIN
+  IF L = UnknownLocoIndex THEN
+    UnknownLocoRecordFound('TurnLocoHeadLightsOff')
+  ELSE BEGIN
+    WITH Locos[L] DO BEGIN
+      IF UserMsgRequired THEN
+        UserMsg := 'User instructed to turn lights on by means of function 0'
+      ELSE BEGIN
+        Log(Locos[L].Loco_LocoChipStr + ' L Turning lights off');
+        SetSingleLocoFunction(Locos[L], Function0, LightsOff, OK);
+      END;
+    END; {WITH}
+  END;
+END; { TurnLocoHeadLightsOff }
+
+PROCEDURE TurnLocoHeadLightsOn(L : LocoIndex; Direction : DirectionType; UserMsgRequired : Boolean; OUT UserMsg : String; OUT OK : Boolean);
+{ Turn on a loco's headlight, and tail light if they are connected }
+CONST
+  ForceRead = True;
+  LightsOn = True;
+  LightsOff = False;
+
+VAR
+  DebugStr : String;
+
+BEGIN
+  OK := True;
+
+  IF L = UnknownLocoIndex THEN
+    UnknownLocoRecordFound('TurnLocoHeadLightsOn')
+  ELSE BEGIN
+    WITH Locos[L] DO BEGIN
+      DebugStr := 'Turning lights on';
+      IF L <> UnknownLocoIndex THEN BEGIN
+        IF SingleLocoFunctionIsOn(Locos[L], Function0, NOT ForceRead, OK) THEN BEGIN
+          IF UserMsgRequired THEN
+            UserMsg := 'User: no action is required as lights are already on';
+          DebugStr := DebugStr + ' is not necessary as lights are already on'
+        END ELSE
+          IF UserMsgRequired THEN
+            UserMsg := 'User: turn loco ' + Loco_LocoChipStr + '''s lights on - direction ' + DirectionToStr(Direction) + ' - by means of function 0'
+          ELSE BEGIN
+            SetSingleLocoFunction(Locos[L], Function0, LightsOn, OK);
+            DebugStr := DebugStr + ' - direction ' + DirectionToStr(Direction);
+          END;
+
+        Log(Loco_LocoChipStr + ' L ' + DebugStr);
+      END;
+    END; {WITH}
+  END;
+END; { TurnLocoHeadLightsOn }
+
+PROCEDURE TurnLocoTailLightsOnAtOneEnd(L : LocoIndex; Direction : DirectionType; UserMsgRequired : Boolean; OUT UserMsg : String; OUT OK : Boolean);
+{ Turn on a loco's tail lights at one particular end }
+CONST
+  ForceRead = True;
+  LightsOn = True;
+  LightsOff = False;
+
+BEGIN
+  OK := True;
+  IF UserMsgRequired THEN BEGIN
+    IF Direction = Up THEN
+      UserMsg := 'User: turn tail lights at up end on by setting function 1 on and function 2 off'
+    ELSE
+      UserMsg := 'User: turn tail lights at down end on by setting function 1 off and function 2 on';
+  END ELSE BEGIN
+    IF L = UnknownLocoIndex THEN
+      UnknownLocoRecordFound('TurnLocoTailLightsOnAtOneEnd')
+    ELSE BEGIN
+      WITH Locos[L] DO BEGIN
+        IF Direction = Up THEN BEGIN
+          Log(Loco_LocoChipStr + ' L Turning up tail lights on');
+          SetSingleLocoFunction(Locos[L], Function1, LightsOn, OK);
+          SetSingleLocoFunction(Locos[L], Function2, LightsOff, OK);
+        END ELSE BEGIN
+          Log(Loco_LocoChipStr + ' L Turning down tail lights on');
+          SetSingleLocoFunction(Locos[L], Function1, LightsOff, OK);
+          SetSingleLocoFunction(Locos[L], Function2, LightsOn, OK);
+        END;
+      END; {WITH}
+    END;
+  END;
+END; { TurnLocoTailLightsOnAtOneEnd }
+
+PROCEDURE TurnLocoTailLightsOnAtBothEnds(L : LocoIndex; UserMsgRequired : Boolean; OUT UserMsg : String; OUT OK : Boolean);
+{ Turn on a loco's tail lights at both ends - used for stationary locos }
+CONST
+  ForceRead = True;
+  LightsOn = True;
+  LightsOff = False;
+
+BEGIN
+  OK := True;
+
+  IF UserMsgRequired THEN
+    UserMsg := 'User: turn tail lights on at both ends by setting functions 1 and 2 on'
+  ELSE BEGIN
+    IF L = UnknownLocoIndex THEN
+      UnknownLocoRecordFound('TurnLocoTailLightsOnAtBothEnds')
+    ELSE BEGIN
+      WITH Locos[L] DO BEGIN
+        Log(Loco_LocoChipStr + ' L Turning tail lights on at both ends');
+        SetSingleLocoFunction(Locos[L], Function1, LightsOn, OK);
+        SetSingleLocoFunction(Locos[L], Function2, LightsOn, OK);
+      END; {WITH}
+    END;
+  END;
+END; { TurnLocoTailLightsOnAtBothEnds }
+
+PROCEDURE TurnLocoLightsOn(L : LocoIndex; NonMoving, LightLoco : Boolean; UserMsgRequired : Boolean; OUT UserMsg : String; OUT OK : Boolean);
+{ Turns the lights on by changing functions on the loco chip and optional second chip }
+CONST
+  ForceRead = True;
+  LightsOn = True;
+  LightsOff = False;
+
+  PROCEDURE TurnExpressModelsLocoHeadlightsOn(L : LocoIndex; Direction : DirectionType; UserMsgRequired : Boolean; OUT UserMsg : String; OUT OK : Boolean);
+  { Turn on a loco's head lights in day and night mode }
+  BEGIN
+    IF L <> UnknownLocoIndex THEN BEGIN
+      WITH Locos[L] DO BEGIN
+        IF Direction = Up THEN BEGIN
+          { Is it daytime or night time? }
+          IF DayTime THEN BEGIN
+            IF UserMsgRequired THEN
+              UserMsg := 'User: turn day-time up lights on by setting function 6 off and 7 on'
+            ELSE BEGIN
+              Log(Loco_LocoChipStr + ' L Turning day-time up lights on');
+              SetSingleLocoFunction(Locos[L], Function6, LightsOff, OK);
+              SetSingleLocoFunction(Locos[L], Function7, LightsOn, OK);
+            END;
+          END ELSE BEGIN
+            IF UserMsgRequired THEN
+              UserMsg := 'User: turn night-time up lights on by setting function 6 on and 7 off'
+            ELSE BEGIN
+              Log(Loco_LocoChipStr + ' L Turning night-time up lights on');
+              SetSingleLocoFunction(Locos[L], Function6, LightsOn, OK);
+              SetSingleLocoFunction(Locos[L], Function7, LightsOff, OK);
+            END;
+          END;
+        END ELSE BEGIN
+          { Direction = Down }
+          { Is it daytime or night time? }
+          IF DayTime THEN BEGIN
+            IF UserMsgRequired THEN
+              UserMsg := 'User: turn day-time down lights on by setting function 4 off and 5 on'
+            ELSE BEGIN
+              Log(Loco_LocoChipStr + ' L Turning day-time down lights on');
+              SetSingleLocoFunction(Locos[L], Function4, LightsOff, OK);
+              SetSingleLocoFunction(Locos[L], Function5, LightsOn, OK);
+            END;
+          END ELSE BEGIN
+            IF UserMsgRequired THEN
+              UserMsg := 'User instructed to turn night-time down lights on by setting function 4 on and 5 off'
+            ELSE BEGIN
+              Log(Loco_LocoChipStr + ' L Turning night-time down lights on');
+              SetSingleLocoFunction(Locos[L], Function4, LightsOn, OK);
+              SetSingleLocoFunction(Locos[L], Function5, LightsOff, OK);
+            END;
+          END;
+        END;
+      END; {WITH}
+    END;
+  END; { TurnExpressModelsLocoHeadlightsOn }
+
+BEGIN
+  OK := False;
+  IF SystemOnline THEN BEGIN
+    IF L = UnknownLocoIndex THEN
+      UnknownLocoRecordFound('TurnLocoLightsOn')
+    ELSE BEGIN
+      WITH Locos[L] DO BEGIN
+        IF Loco_LightsType <> NoLights THEN BEGIN
+          IF NonMoving THEN BEGIN
+            IF Loco_LightsType = HeadlightsAndTailLightsConnected THEN
+              TurnLocoHeadLightsOn(L, Loco_CurrentDirection, UserMsgRequired, UserMsg, OK)
+            ELSE
+              IF Loco_LightsType = LightsOperatedByTwoChips THEN BEGIN
+                TurnLocoHeadLightsOn(L, Down, UserMsgRequired, UserMsg, OK);
+                TurnLocoHeadLightsOn(L, Up, UserMsgRequired, UserMsg, OK);
+              END ELSE
+                IF LightLoco THEN
+                  { If train isn't moving, and is a light loco, needs red lights at both ends }
+                  TurnLocoTailLightsOnAtBothEnds(L, UserMsgRequired, UserMsg, OK)
+                ELSE BEGIN
+                  { If train isn't moving, and is not a light loco, needs a red light at the front }
+                  IF Loco_CurrentDirection = Up THEN
+                    TurnLocoTailLightsOnAtOneEnd(L, Up, UserMsgRequired, UserMsg, OK)
+                  ELSE
+                    TurnLocoTailLightsOnAtOneEnd(L, Down, UserMsgRequired, UserMsg, OK);
+                END;
+          END ELSE BEGIN
+            { a moving Loco }
+            IF (Loco_LightsType = HeadlightsAndTailLightsConnected) THEN
+              TurnLocoHeadLightsOn(L, Loco_CurrentDirection, UserMsgRequired, UserMsg, OK)
+            ELSE
+              IF Loco_LightsType = HeadlightsAndTailLightsSeparatelySwitched THEN BEGIN
+                TurnLocoHeadLightsOn(L, Loco_CurrentDirection, UserMsgRequired, UserMsg, OK);
+                { If train is a light loco, needs a red light at the rear }
+                IF LightLoco THEN BEGIN
+                  IF Loco_CurrentDirection = Up THEN
+                    TurnLocoTailLightsOnAtOneEnd(L, Down, UserMsgRequired, UserMsg, OK)
+                  ELSE
+                    TurnLocoTailLightsOnAtOneEnd(L, Up, UserMsgRequired, UserMsg, OK);
+                END;
+              END ELSE
+                IF Loco_LightsType = ExpressModelsSeparateHeadlights THEN
+                  TurnExpressModelsLocoHeadlightsOn(L, Loco_CurrentDirection, UserMsgRequired, UserMsg, OK)
+                ELSE
+                  IF Loco_LightsType = LightsOperatedByTwoChips THEN BEGIN
+                    TurnLocoHeadLightsOn(L, Loco_CurrentDirection, UserMsgRequired, UserMsg, OK);
+                    TurnLocoHeadLightsOn(L, Loco_CurrentDirection, UserMsgRequired, UserMsg, OK);
+                  END ELSE
+                    IF Loco_LightsType = CustomLightingKit THEN BEGIN
+                     { **** }
+                    END;
+          END;
+        END;
+      END; {WITH}
+    END;
+  END;
+END; { TurnLocoLightsOn }
+
+PROCEDURE TurnLocoTailLightsOff(L : LocoIndex; UserMsgRequired : Boolean; OUT UserMsg : String; OUT OK : Boolean);
+{ Turn off a loco's tail lights }
+CONST
+  LightsOff = True;
+
+BEGIN
+  IF UserMsgRequired THEN
+    UserMsg := 'User: turn up and down tail lights off by setting functions 1 and 2 off'
+  ELSE BEGIN
+    IF L = UnknownLocoIndex THEN
+      UnknownLocoRecordFound('TurnTailLightsOff')
+    ELSE BEGIN
+      Log(Locos[L].Loco_LocoChipStr + ' L Turning up and down tail lights off');
+      SetSingleLocoFunction(Locos[L], Function1, LightsOff, OK);
+      SetSingleLocoFunction(Locos[L], Function2, LightsOff, OK);
+    END;
+  END;
+END; { TurnTailLightsOff }
+
+PROCEDURE TurnLocoLightsOff(L : LocoIndex; UserMsgRequired : Boolean; OUT UserMsg : String; OUT OK : Boolean);
+{ Turns the lights off by changing functions on the loco chip and optional second chip }
+CONST
+  LightsOn = True;
+  LightsOff = True;
+
+  PROCEDURE TurnExpressModelsLocoHeadlightsOff(L : LocoIndex; UserMsgRequired : Boolean; OUT UserMsg : String; OUT OK : Boolean);
+  { Turn off a loco's head lights in day and night mode }
+  BEGIN
+    IF UserMsgRequired THEN
+      UserMsg := 'User: turn day-time and night-time lights off by setting functions 4-7 off'
+    ELSE BEGIN
+      IF L <> UnknownLocoIndex THEN BEGIN
+        WITH Locos[L] DO BEGIN
+          Log(Loco_LocoChipStr + ' L Turning day-time and night-time down and up lights off');
+          SetSingleLocoFunction(Locos[L], Function4, LightsOff, OK);
+          SetSingleLocoFunction(Locos[L], Function5, LightsOff, OK);
+          SetSingleLocoFunction(Locos[L], Function6, LightsOff, OK);
+          SetSingleLocoFunction(Locos[L], Function7, LightsOff, OK);
+        END; {WITH}
+      END;
+    END;
+  END; { TurnExpressModelsLocoHeadlightsOff }
+
+BEGIN
+  IF SystemOnline THEN BEGIN
+    IF L = UnknownLocoIndex THEN
+      UnknownLocoRecordFound('TurnLocoLightsOff')
+    ELSE BEGIN
+      WITH Locos[L] DO BEGIN
+        IF Loco_LightsType <> NoLights THEN BEGIN
+          IF Loco_LightsType = HeadlightsAndTailLightsConnected THEN
+            TurnLocoHeadLightsOff(L, UserMsgRequired, UserMsg, OK)
+          ELSE
+            IF Loco_LightsType = HeadlightsAndTailLightsSeparatelySwitched THEN BEGIN
+              TurnLocoHeadLightsOff(L, UserMsgRequired, UserMsg, OK);
+              TurnLocoTailLightsOff(L, UserMsgRequired, UserMsg, OK);
+            END ELSE
+              IF Loco_LightsType = ExpressModelsSeparateHeadlights THEN BEGIN
+                TurnLocoHeadLightsOff(L, UserMsgRequired, UserMsg, OK);
+                TurnLocoTailLightsOff(L, UserMsgRequired, UserMsg, OK);
+                TurnExpressModelsLocoHeadlightsOff(L, UserMsgRequired, UserMsg, OK);
+              END ELSE
+                IF Loco_LightsType = LightsOperatedByTwoChips THEN BEGIN
+                  TurnLocoHeadLightsOff(L, UserMsgRequired, UserMsg, OK);
+                  TurnLocoHeadLightsOff(L, UserMsgRequired, UserMsg, OK);
+                END ELSE
+                  IF Loco_LightsType = CustomLightingKit THEN BEGIN
+                  END;
+
+          IF OK THEN BEGIN
+            Loco_LightsOn := False;
+            Log(Loco_LocoChipStr + ' L Lights turned off');
+          END ELSE
+            Log(Loco_LocoChipStr + ' L Lights did not turn off');
+        END;
+      END; {WITH}
+    END;
+  END;
+END; { TurnLocoLightsOff }
+
+PROCEDURE TurnLocoCabLightsOn(L : LocoIndex; UserMsgRequired : Boolean; OUT UserMsg : String; OUT OK : Boolean);
+{ Turns cab lights on or off. Assumes that the cab lights are operated by function one }
+CONST
+  LightsOn = True;
+
+BEGIN
+  OK := False;
+
+  IF L = UnknownLocoIndex THEN
+    UnknownLocoRecordFound('TurnLocoCabLightsOn')
+  ELSE BEGIN
+    WITH Locos[L] DO BEGIN
+      IF Loco_HasCabLights THEN BEGIN
+        IF UserMsgRequired THEN
+          UserMsg := 'User: turn cab lights on by setting functions 1 on'
+        ELSE BEGIN
+          SetSingleLocoFunction(Locos[L], Function1, LightsOn, OK);
+          Log(Loco_LocoChipStr + ' L Cab lights turned on');
+        END;
+      END;
+    END; {WITH}
+  END;
+END; { TurnLocoCabLightsOn }
+
+PROCEDURE TurnLocoCabLightsOff(L : LocoIndex; UserMsgRequired : Boolean; OUT UserMsg : String; OUT OK : Boolean);
+{ Turns cab lights off. Assumes that the cab lights are operated by function one }
+CONST
+  LightsOn = True;
+
+BEGIN
+  OK := False;
+
+  IF L = UnknownLocoIndex THEN
+    UnknownLocoRecordFound('TurnLocoCabLightsOff')
+  ELSE BEGIN
+    WITH Locos[L] DO BEGIN
+      IF Loco_HasCabLights THEN BEGIN
+        IF UserMsgRequired THEN
+          UserMsg := 'User: turn cab lights off by setting functions 1 off'
+        ELSE BEGIN
+          SetSingleLocoFunction(Locos[L], Function1, NOT LightsOn, OK);
+          Log(Loco_LocoChipStr + ' L Cab lights turned off');
+        END;
+      END;
+    END; {WITH}
+  END;
+END; { TurnLocoCabLightsOff }
 
 {$O-}
 PROCEDURE StartLocos(Restart : Boolean);

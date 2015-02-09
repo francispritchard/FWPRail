@@ -69,7 +69,7 @@ VAR
 
 IMPLEMENTATION
 
-USES RailDraw, MiscUtils, CreateRoute, Route, Lenz, StrUtils, DateUtils, Input, Options, Main, SignalsUnit, TrackCircuitsUnit;
+USES RailDraw, MiscUtils, CreateRoute, Route, Lenz, StrUtils, DateUtils, Input, Options, Main, SignalsUnit, TrackCircuitsUnit, Logging;
 
 VAR
   UnitRef : String = 'Locks';

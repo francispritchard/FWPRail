@@ -134,7 +134,7 @@ PROCEDURE WriteToRailDriverLEDs(LEDStr : String);
 
 IMPLEMENTATION
 
-USES MiscUtils, GetTime, Startup, Lenz, StrUtils, LocoUtils, Diagrams, Input, DateUtils, Movement, FWPShowMessageUnit, Options, Train;
+USES MiscUtils, GetTime, Startup, Lenz, StrUtils, LocoUtils, Diagrams, Input, DateUtils, Movement, FWPShowMessageUnit, Options, Train, Logging;
 
 TYPE
   ThreeWaySwitchPosType = (Left, Centre, Right);

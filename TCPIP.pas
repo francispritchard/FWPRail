@@ -72,7 +72,7 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES Lenz, Options, MiscUtils;
+USES Lenz, Options, MiscUtils, Logging;
 
 VAR
   UnitRef : String = 'TCPIP';

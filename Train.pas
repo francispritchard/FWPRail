@@ -31,8 +31,21 @@ TYPE
 VAR
   TrainForm: TTrainForm;
 
+PROCEDURE AddLightsToLightsToBeSwitchedOnArray(T : TrainIndex; DesiredDirection1, DesiredDirection2 : DirectionType; MinSeconds, MaxSeconds : Integer;
+                                               LightsOnTime : TDateTime);
+{ Set up a train's lights to switch on at a random time ahead }
+
+FUNCTION AllJourneysComplete(T : TrainIndex) : Boolean;
+{ Returns true if all a train's journeys are complete }
+
 PROCEDURE ChangeTrainStatus(T : TrainIndex; NewStatus : TrainStatusType);
 { Change the current train status and record it }
+
+FUNCTION DirectionWillChangeAfterGivenJourney(T : TrainIndex; CurrentJourney : Integer) : Boolean;
+{ Returns true if the direction will change on the journey after the given journey }
+
+FUNCTION FinalJourney(T : TrainIndex; CurrentJourney : Integer) : Boolean;
+{ Returns true if the current journey is the final one }
 
 FUNCTION GetTrainIndexFromLocoChip(LocoChip : Integer): TrainIndex;
 { Look for a matching train record given a locochip }
@@ -69,6 +82,9 @@ PROCEDURE TurnTrainLightsOff(T : TrainIndex; OUT OK : Boolean);
 
 PROCEDURE TurnTrainLightsOn(T : TrainIndex; OUT OK : Boolean);
 { Turn the lights on for a train's locos }
+
+PROCEDURE UnknownTrainRecordFound(RoutineName : String);
+{ Called if an unknown train record is found at the beginning of a subroutine }
 
 TYPE
   { Train-related type declarations }
@@ -267,7 +283,7 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES Lenz, MiscUtils, Diagrams, TrackCircuitsUnit;
+USES Lenz, MiscUtils, Diagrams, TrackCircuitsUnit, Logging, LocoUtils, DateUtils;
 
 CONST
   UnitRef = 'Train';
@@ -277,6 +293,109 @@ PROCEDURE Log(Str : String);
 BEGIN
   WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
+
+FUNCTION FinalJourney(T : TrainIndex; CurrentJourney : Integer) : Boolean;
+{ Returns true if the current journey is the final one }
+BEGIN
+  Result := False;
+
+  IF T = UnknownTrainIndex THEN
+    UnknownTrainRecordFound('FinalJourney')
+  ELSE
+    IF CurrentJourney = High(Trains[T].Train_JourneysArray) THEN
+      Result := True;
+END; { FinalJourney }
+
+FUNCTION DirectionWillChangeAfterGivenJourney(T : TrainIndex; CurrentJourney : Integer) : Boolean;
+{ Returns true if the direction will change on the journey after the current journey }
+BEGIN
+  Result := False;
+
+  IF T = UnknownTrainIndex THEN
+    UnknownTrainRecordFound('DirectionWillChangeAfterGivenJourney')
+  ELSE BEGIN
+    WITH Trains[T] DO BEGIN
+      IF FinalJourney(T, CurrentJourney) THEN
+        Result := False
+      ELSE
+        Result := Train_JourneysArray[CurrentJourney].TrainJourney_Direction <> Train_JourneysArray[CurrentJourney + 1].TrainJourney_Direction;
+    END; {WITH}
+  END;
+END; { DirectionWillChangeAfterGivenJourney }
+
+FUNCTION AllJourneysComplete(T : TrainIndex) : Boolean;
+{ Returns true if all a train's journeys are complete }
+VAR
+  JourneyCount : Integer;
+
+BEGIN
+  Result := True;
+
+  IF T = UnknownTrainIndex THEN
+    UnknownTrainRecordFound('AllJourneysComplete')
+  ELSE BEGIN
+    JourneyCount := 0;
+    WHILE JourneyCount <= High(Trains[T].Train_JourneysArray) DO BEGIN
+      IF NOT Trains[T].Train_JourneysArray[JourneyCount].TrainJourney_Cleared THEN
+        Result := False;
+      Inc(JourneyCount);
+    END; {WHILE}
+  END;
+END; { AllJourneysComplete }
+
+PROCEDURE AddLightsToLightsToBeSwitchedOnArray(T : TrainIndex; DesiredDirection1, DesiredDirection2 : DirectionType; MinSeconds, MaxSeconds : Integer; LightsOnTime : TDateTime);
+{ Set up a train's lights to switch on at a random time ahead }
+VAR
+  DebugStr : String;
+  Seconds : Integer;
+  SwitchOnTime : TDateTime;
+
+BEGIN
+  IF T = UnknownTrainIndex THEN
+    UnknownTrainRecordFound('AddLightsToLightsToBeSwitchedOnArray')
+  ELSE BEGIN
+    SetLength(LightsToBeSwitchedOnArray, Length(LightsToBeSwitchedOnArray) + 1);
+    WITH LightsToBeSwitchedOnArray[High(LightsToBeSwitchedOnArray)] DO BEGIN
+      LightsToBeSwitchedOn_Direction1 := DesiredDirection1;
+      LightsToBeSwitchedOn_Direction2 := DesiredDirection2;
+      IF DesiredDirection2 = UnknownDirection THEN
+        DebugStr := 'L Switch on time for ' + DirectionToStr(DesiredDirection1) + ' lights'
+      ELSE BEGIN
+        IF DesiredDirection1 = Up THEN
+          LightsToBeSwitchedOn_ColourStr1 := 'white'
+        ELSE
+          LightsToBeSwitchedOn_ColourStr1 := 'red';
+        IF DesiredDirection2 = Up THEN
+          LightsToBeSwitchedOn_ColourStr2 := 'red'
+        ELSE
+          LightsToBeSwitchedOn_ColourStr2 := 'white';
+
+        DebugStr := 'L Switch on time for ' + LightsToBeSwitchedOn_ColourStr1 + ' lights at up' + ' and ' + LightsToBeSwitchedOn_ColourStr2 + ' lights at down';
+      END;
+
+      Seconds := MaxSeconds - MinSeconds;
+      Seconds := Random(Seconds);
+      Seconds := Seconds + MinSeconds;
+
+      SwitchOnTime := IncSecond(LightsOnTime, Seconds);
+      DebugStr := DebugStr + ' set to ' + TimeToHMSStr(SwitchOnTime) + ' (' + IntToStr(Seconds) + ' = between ' + IntToStr(MinSeconds)
+                  + ' and ' + IntToStr(MaxSeconds) + ' seconds of ' + TimeToHMSStr(LightsOnTime) + ')';
+      Log(Trains[T].Train_LocoChipStr + ' X ' + DebugStr);
+
+      LightsToBeSwitchedOn_SwitchOnTime := SwitchOnTime;
+      LightsToBeSwitchedOn_Train := T;
+    END; {WITH}
+  END;
+END; { AddLightsToLightsToBeSwitchedOnArray }
+
+PROCEDURE UnknownTrainRecordFound(RoutineName : String);
+{ Called if an unknown train record is found at the beginning of a subroutine }
+BEGIN
+  Log('X! Unknown train record found in routine ' + RoutineName);
+  ASM
+    Int 3
+  END; {ASM}
+END; { UnknownTrainRecordFound }
 
 PROCEDURE StopAParticularTrain(T : TrainIndex);
 { Stops just one train }

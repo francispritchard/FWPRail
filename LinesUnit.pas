@@ -48,6 +48,9 @@ PROCEDURE FollowThatLine(CurrentLine, TC : Integer; SearchDirection : DirectionT
 FUNCTION GetBufferStopDirection(BufferStopNum : Integer) : DirectionType;
 { Return a buffer stop's direction }
 
+FUNCTION GetLinesForTrackCircuit(TC : Integer) : IntegerArrayType;
+{ Return all the lines on a given track circuit }
+
 PROCEDURE InitialiseLineVariables(Line : Integer);
 { Initialise all the variables where the data is not read in from the database or added during the edit process }
 
@@ -192,7 +195,7 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES MiscUtils, RailDraw, Options, PointsUnit, TrackCircuitsUnit, System.Types, Feedback, LocationsUnit, Main;
+USES MiscUtils, RailDraw, Options, PointsUnit, TrackCircuitsUnit, System.Types, Feedback, LocationsUnit, Main, Logging;
 
 CONST
   UnitRef = 'LinesUnit';
@@ -232,6 +235,19 @@ BEGIN
           ErrorMsg := 'Next line down to ' + LineToStr(L2) + ' is ' + LineToStr(L1);
         END;
 END; { LinesAreAdjacent }
+
+FUNCTION GetLinesForTrackCircuit(TC : Integer) : IntegerArrayType;
+{ Return all the lines on a given track circuit }
+VAR
+  L : Integer;
+
+BEGIN
+  SetLength(Result, 0);
+
+  FOR L := 0 TO High(Lines) DO
+    IF (TC <> UnknownTrackCircuit) AND (TC = Lines[L].Line_TC) THEN
+      AppendToLineArray(Result, L);
+END; { GetLinesForTrackCircuit }
 
 PROCEDURE CheckLineConnectionsAreOK;
 { To check each line has the requisite connection data, as locking depends on this }

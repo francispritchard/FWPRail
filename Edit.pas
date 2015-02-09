@@ -164,7 +164,7 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES Diagrams, Input, Cuneo, Lenz, Types, Math {sic}, Main, SignalsUnit, LinesUnit, TrackCircuitsUnit, Feedback, LocationsUnit;
+USES Diagrams, Input, Cuneo, Lenz, Types, Math {sic}, Main, SignalsUnit, LinesUnit, TrackCircuitsUnit, Feedback, LocationsUnit, Logging;
 
 CONST
   UnitRef = 'Edit';

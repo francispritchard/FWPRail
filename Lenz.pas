@@ -136,7 +136,7 @@ IMPLEMENTATION
 {$R *.dfm}
 
 USES RailDraw, Feedback, GetTime, Startup, MiscUtils, Diagrams, LocoUtils, IDGlobal, Movement, MMSystem, DateUtils, StrUtils, Input, Main, Locks, LocationsUnit, Options,
-     LinesUnit, Train;
+     LinesUnit, Train, Logging;
 
 CONST
   UnitRef = 'Lenz';

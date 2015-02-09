@@ -838,7 +838,7 @@ IMPLEMENTATION
 {$R *.dfm}
 
 USES LocoUtils, MiscUtils, Lenz, RailDraw, IniFiles, Startup, DateUtils, GetTime, Diagrams, StrUtils, Grids, Movement, LocationsUnit, Feedback, Options, PointsUnit,
-     LinesUnit, Train, Main;
+     LinesUnit, Train, Main, Logging;
 
 CONST
   UnitRef = 'InitVars';

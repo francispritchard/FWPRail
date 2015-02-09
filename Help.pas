@@ -35,7 +35,7 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES MiscUtils, Input, Options, Lenz, InitVars, Cuneo;
+USES MiscUtils, Input, Options, Lenz, InitVars, Cuneo, Logging;
 
 CONST
   UnitRef = 'Help';

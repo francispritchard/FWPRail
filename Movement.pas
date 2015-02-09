@@ -51,7 +51,7 @@ VAR
 IMPLEMENTATION
 
 USES Locks, GetTime, Startup, MiscUtils, Diagrams, LocoUtils, IDGlobal, RDCUnit, Route, DateUtils, RailDraw, Lenz, Input, StrUtils, LocationsUnit, Options, Edit, Main,
-     Train, SignalsUnit, TrackCircuitsUnit, LinesUnit;
+     Train, SignalsUnit, TrackCircuitsUnit, LinesUnit, Logging;
 
 CONST
   UnitRef = 'Movement';

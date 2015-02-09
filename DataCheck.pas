@@ -50,7 +50,7 @@ IMPLEMENTATION
 {$R *.dfm}
 
 USES MiscUtils, StrUtils, InitVars, ADODB, Options, RailDraw, Feedback, CreateRoute, System.UITypes, PointsUnit, TrackCircuitsUnit, SignalsUnit, LinesUnit, LocationsUnit,
-     Main;
+     Main, Logging;
 
 CONST
   UnitRef = 'DataCheck';

@@ -36,6 +36,9 @@ FUNCTION DeleteRecordFromTrackCircuitDatabase(TrackCircuitToDeleteNum : Integer)
 PROCEDURE FindAdjoiningTrackCircuits(TC : Integer; OUT AdjoiningUpTrackCircuit, AdjoiningDownTrackCircuit : Integer);
 { Work out which are the adjacent track circuits. Does not trace along all lines, just the way points are set. }
 
+FUNCTION GetLocationFromTrackCircuit(TC : Integer) : Integer;
+{ Return a location given a track-circuit number }
+
 FUNCTION GetTrackCircuitsForLocation(Location : Integer) : IntegerArrayType;
 { Return all the track circuits for a given location }
 
@@ -47,6 +50,9 @@ FUNCTION GetTrackCircuitStateColour(TC : Integer) : TColour;
 
 PROCEDURE InitialiseTrackCircuitVariables(TC : Integer);
 { Initialise all the variables where the data is not read in from the database or added during the edit process }
+
+FUNCTION IsTrackCircuitInStringArray(StringArray : StringArrayType; TC : Integer; OUT Pos : Integer) : Boolean;
+{ Returns whether and where the given track circuit is found in a string array }
 
 PROCEDURE ReadInTrackCircuitDataFromDatabase;
 { Initialise the track circuit data which depends on lines being initialised first }
@@ -64,6 +70,12 @@ PROCEDURE SetTrackCircuitState{4}(TC : Integer; NewState : TrackCircuitStateType
 { Set whether and how the track circuit is occupied and give an explanation. Also see whether we want it recorded in the Location occupation array - this is to avoid
   duplicate recordings at startup.
 }
+FUNCTION TrackCircuitStateIsPermanentlyOccupied(State : TrackCircuitStateType) : Boolean;
+{ Returns true if a given track-circuit state is not set as permanently occupied }
+
+FUNCTION TrackCircuitStateIsTemporarilyOccupied(State : TrackCircuitStateType) : Boolean;
+{ Returns true if a given track circuit-state is set as temporarily occupied }
+
 PROCEDURE UnlockTrackCircuitRouteLocking(TC : Integer);
 { Unlock a given track circuit }
 
@@ -123,7 +135,7 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES MiscUtils, PointsUnit, SignalsUnit, RailDraw, Route, LocationsUnit, Feedback, Main;
+USES MiscUtils, PointsUnit, SignalsUnit, RailDraw, Route, LocationsUnit, Feedback, Main, Logging;
 
 CONST
   UnitRef = 'TrackCircuitsUnit';
@@ -133,6 +145,67 @@ PROCEDURE Log(Str : String);
 BEGIN
   WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
+
+FUNCTION IsTrackCircuitInStringArray(StringArray : StringArrayType; TC : Integer; OUT Pos : Integer) : Boolean;
+{ Returns whether and where the given track circuit is found in a string array }
+BEGIN
+  Pos := 0;
+  Result := False;
+  WHILE (Pos <= High(StringArray)) AND (Result = False) DO BEGIN
+    IF (TC <> UnknownTrackCircuit) AND (TC = ExtractTrackCircuitFromString(StringArray[Pos])) THEN
+      Result := True
+    ELSE
+      Inc(Pos);
+  END; {WHILE}
+END; { IsTrackCircuitInStringArray }
+
+FUNCTION GetLocationFromTrackCircuit(TC : Integer) : Integer;
+{ Return a location given a track-circuit number }
+VAR
+  Line : Integer;
+  LocationFound : Boolean;
+
+BEGIN
+  Line := 0;
+  Result := UnknownLocation;
+
+  LocationFound := False;
+  WHILE (Line <= High(Lines)) AND NOT LocationFound DO BEGIN
+    IF Lines[Line].Line_TC = TC THEN BEGIN
+      IF Lines[Line].Line_Location <> UnknownLocation THEN BEGIN
+        LocationFound := True;
+        Result := Lines[Line].Line_Location;
+      END;
+    END;
+    Inc(Line);
+  END; {WHILE}
+END; { GetLocationFromTrackCircuit }
+
+FUNCTION TrackCircuitStateIsPermanentlyOccupied(State : TrackCircuitStateType) : Boolean;
+{ Returns true if a given track-circuit state is not set as permanently occupied }
+BEGIN
+  CASE State OF
+    TCOutOfUseSetByUser, TCOutOfUseAsNoFeedbackReceived, TCLocoOutOfPlaceOccupation, TCPermanentFeedbackOccupation, TCPermanentOccupationSetByUser,
+    TCPermanentSystemOccupation:
+      Result := True;
+  ELSE
+    { all other occupation types }
+    Result := False;
+  END; {CASE}
+END; { TrackCircuitStateIsPermanentlyOccupied }
+
+FUNCTION TrackCircuitStateIsTemporarilyOccupied(State : TrackCircuitStateType) : Boolean;
+{ Returns true if a given track-circuit state is set as temporarily occupied }
+
+BEGIN
+  CASE State OF
+    TCFeedbackOccupation, TCFeedbackOccupationButOutOfUse, TCSystemOccupation:
+      Result := True;
+  ELSE
+    { all other occupation types }
+    Result := False;
+  END; {CASE}
+END; { TrackCircuitStateIsTemporarilyOccupied }
 
 FUNCTION GetTrackCircuitStateColour(TC : Integer) : TColour;
 { Return whether and how the track circuit is occupied }

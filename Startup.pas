@@ -54,7 +54,7 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES LocoUtils, MiscUtils, Input, RailDraw, RDCUnit, DateUtils, Feedback, CreateRoute, Diagrams, StrUtils, LocationsUnit, Options;
+USES LocoUtils, MiscUtils, Input, RailDraw, RDCUnit, DateUtils, Feedback, CreateRoute, Diagrams, StrUtils, LocationsUnit, Options, Logging;
 
 CONST
   UnitRef = 'Startup';

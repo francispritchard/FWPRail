@@ -61,7 +61,7 @@ IMPLEMENTATION
 {$R *.dfm}
 
 USES ComObj, Lenz, MiscUtils, Startup, LocoUtils, IDGlobal, RailDraw, Input, Movement, CreateRoute, DateUtils, Math {sic}, Route, Types, StrUtils, StationMonitors, Locks,
-     LocoDialogue, LocationsUnit, Help, Options, Diagrams, Train, Main;
+     LocoDialogue, LocationsUnit, Help, Options, Diagrams, Train, Main, Logging;
 
 TYPE
   TextAlignment = (LeftAlign, RightAlign, CentreAlign);

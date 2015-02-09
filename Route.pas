@@ -102,7 +102,7 @@ IMPLEMENTATION
 {$R *.dfm}
 
 USES Locks, Startup, Diagrams, Movement, Input, MiscUtils, LocoUtils, IDGlobal, DateUtils, StrUtils, LocationsUnit, Options, Main, SignalsUnit, PointsUnit,
-     TrackCircuitsUnit, LinesUnit;
+     TrackCircuitsUnit, LinesUnit, Logging;
 
 CONST
   UnitRef = 'Route';

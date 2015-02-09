@@ -32,11 +32,17 @@ PROCEDURE CheckPointsAwaitingFeedback;
 FUNCTION DeleteRecordFromPointDatabase(PointToDeleteNum : Integer) : Boolean;
 { Remove a record from the point database }
 
+PROCEDURE DisplayPreviousPointSettings;
+{ Display the previous settings - generally used when starting up offline }
+
 PROCEDURE FindNextPoint(TC : Integer; SearchDirection : DirectionType; OUT NextPoint : Integer);
 { Work out which is the next point }
 
 PROCEDURE InitialisePointVariables(P : Integer);
 { Initialise all the variables where the data is not read in from the database or added during the edit process }
+
+FUNCTION IsPointInStringArray(StringArray : StringArrayType; Point : Integer) : Boolean;
+{ Returns whether the given point is found in a string array }
 
 PROCEDURE LockPointByRoute(LocoChip, P, Route : Integer; DoNotWriteMessage : Boolean);
 { Mark the point as locked by a specific route }
@@ -199,7 +205,7 @@ IMPLEMENTATION
 {$R *.dfm}
 
 USES Route, FWPShowMessageUnit, AnsiStrings, MiscUtils, Locks, DateUtils, Lenz, RailDraw, Main, LinesUnit, Options, Data.DB, StrUtils, TrackCircuitsUnit, SignalsUnit,
-     CreateRoute, Feedback, Train, Diagrams;
+     CreateRoute, Feedback, Train, Diagrams, Logging;
 
 CONST
   UnitRef = 'PointUnit';
@@ -209,6 +215,47 @@ PROCEDURE Log(Str : String);
 BEGIN
   WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
+
+FUNCTION IsPointInStringArray(StringArray : StringArrayType; Point : Integer) : Boolean;
+{ Returns whether the given point is found in a string array }
+VAR
+  I : Integer;
+
+BEGIN
+  I := 0;
+  Result := False;
+  WHILE (I <= High(StringArray)) AND (Result = False) DO BEGIN
+    IF (Point <> UnknownPoint) AND (Point = ExtractPointFromString(StringArray[I])) THEN
+      Result := True
+    ELSE
+      Inc(I);
+  END; {WHILE}
+END; { IsPointInStringArray }
+
+PROCEDURE DisplayPreviousPointSettings;
+{ Displays on screen the previous settings - generally used when starting up offline }
+VAR
+  P : Integer;
+
+BEGIN
+  IF SystemOnline THEN BEGIN
+    IF MessageDialogueWithDefault('Display previous point settings even though the system is online?', NOT StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
+    THEN BEGIN
+      Debug('Cannot display previous point settings if system online');
+      Exit;
+    END;
+  END;
+
+  FOR P := 0 TO High(Points) DO BEGIN
+    IF Points[P].Point_ManualOperation THEN
+      Points[P].Point_PresentState := Points[P].Point_LastManualStateAsReadIn
+    ELSE
+      Points[P].Point_PresentState := Points[P].Point_LastFeedbackStateAsReadIn;
+  END; {FOR}
+  Debug('Previous point settings displayed');
+
+  InvalidateScreen(UnitRef, 'Display latest point settings in offline mode');
+END; { DisplayPreviousPointSettings }
 
 PROCEDURE CheckPointsAwaitingFeedback;
 { See if any point changes are pending - i.e. we're waiting for feedback that confirms the change }

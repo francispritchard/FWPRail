@@ -167,7 +167,8 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES MiscUtils, StrUtils, LocoUtils, Diagrams, DateUtils, RailDraw, Locks, Input, GetTime, Lenz, Options, Startup, Route, TrackCircuitsUnit, LinesUnit, Main, SignalsUnit;
+USES MiscUtils, StrUtils, LocoUtils, Diagrams, DateUtils, RailDraw, Locks, Input, GetTime, Lenz, Options, Startup, Route, TrackCircuitsUnit, LinesUnit, Main, SignalsUnit,
+     Logging;
 
 CONST
   BoldCh = '@';

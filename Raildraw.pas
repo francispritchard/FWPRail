@@ -298,6 +298,9 @@ PROCEDURE DrawTRSPlunger(Location : Integer; Pressed : Boolean);
 FUNCTION GetSaveCursor : TCursor;
 { Return the SaveCursor variable state }
 
+PROCEDURE HideMenus;
+{ Make all the menus invisible }
+
 PROCEDURE HideStatusBarAndUpDownIndications;
 { Before a zoomed screen move, hide the status bar and the "up" and "down" markers }
 
@@ -360,6 +363,9 @@ PROCEDURE SetScreenColoursBeforePrinting;
 
 PROCEDURE SetUpLineDrawingVars;
 { Set up the positions of the lines and platforms }
+
+PROCEDURE ShowMenus;
+{ Make all the menus visible }
 
 PROCEDURE ShowStatusBarAndUpDownIndications;
 { After a zoomed screen move, restore the status bar and the "up" and "down" markers }
@@ -468,6 +474,38 @@ PROCEDURE Log(Str : String);
 BEGIN
   WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
+
+PROCEDURE HideMenus;
+{ Make all the menus invisible }
+BEGIN
+  WITH FWPRailWindow DO BEGIN
+    MenusVisible := False;
+
+    MainDropdownMenuDisplay.Visible := False;
+    MainDropdownMenuFile.Visible := False;
+    MainDropdownMenuHelp.Visible := False;
+
+    { this is a bit daft, as if the menus aren't visible, one is never going to see the tick, but I've no doubt that it is part of the AMS standard! }
+    IF MainDropdownMenuDisplay.Visible THEN
+      MainDropdownMenuDisplay.Checked := False;
+  END; {WITH}
+END; { HideMenus }
+
+PROCEDURE ShowMenus;
+{ Make all the menus visible }
+BEGIN
+  WITH FWPRailWindow DO BEGIN
+    MenusVisible := True;
+
+    MainDropdownMenuDisplay.Visible := True;
+    MainDropdownMenuFile.Visible := True;
+    MainDropdownMenuHelp.Visible := True;
+
+    { this is a bit daft, as if the menus aren't visible, one is never going to see the tick, but I've no doubt that it is part of the AMS standard! }
+    IF MainDropdownMenuDisplay.Visible THEN
+      MainDropdownMenuDisplay.Checked := True;
+  END; {WITH}
+END; { ShowMenus }
 
 FUNCTION MapGridYToRow(GridY : Integer) : Extended;
 { Map grid co-ordinate to row }

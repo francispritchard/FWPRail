@@ -66,6 +66,12 @@ FUNCTION GetSignalAspect(S : Integer) : AspectType;
 PROCEDURE InitialiseSignalVariables(S : Integer);
 { Initialise all the variables where the data is not read in from the database or added during the edit process }
 
+FUNCTION IsSignalInStringArray(StringArray : StringArrayType; Signal : Integer) : Boolean;
+{ Returns whether the given signal is found in a string array }
+
+FUNCTION JunctionIndicatorLit(S : Integer) : Boolean;
+{ Return true if a junction indicator is lit }
+
 PROCEDURE PullSignal{1}(LocoChipStr: String; S : Integer; NewIndicatorState : IndicatorStateType; Route, SubRoute : Integer; PlatformOrFiddleyardLine : Integer;
                         SettingString : String; User : Boolean; OUT OK : Boolean); Overload;
 { Changes the state of a signal if legal }
@@ -336,7 +342,7 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES RailDraw, Route, MiscUtils, Lenz, StrUtils, Locks, CreateRoute, Options, PointsUnit, TrackCircuitsUnit, LinesUnit, LocationsUnit, Main;
+USES RailDraw, Route, MiscUtils, Lenz, StrUtils, Locks, CreateRoute, Options, PointsUnit, TrackCircuitsUnit, LinesUnit, LocationsUnit, Main, Logging;
 
 CONST
   UnitRef = 'Signal';
@@ -346,6 +352,45 @@ PROCEDURE Log(Str : String);
 BEGIN
   WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
+
+FUNCTION JunctionIndicatorLit(S : Integer) : Boolean;
+{ Return true if a junction indicator is lit }
+BEGIN
+  Result := False;
+
+  WITH Signals[S] DO BEGIN
+    CASE Signals[S].Signal_IndicatorState OF
+      UpperLeftIndicatorLit:
+        Result := True;
+      MiddleLeftIndicatorLit:
+        Result := True;
+      LowerLeftIndicatorLit:
+        Result := True;
+      UpperRightIndicatorLit:
+        Result := True;
+      MiddleRightIndicatorLit:
+        Result := True;
+      LowerRightIndicatorLit:
+        Result := True;
+    END; { CASE }
+  END; {WITH}
+END; { JunctionIndicatorLit }
+
+FUNCTION IsSignalInStringArray(StringArray : StringArrayType; Signal : Integer) : Boolean;
+{ Returns whether the given signal is found in a string array }
+VAR
+  I : Integer;
+
+BEGIN
+  I := 0;
+  Result := False;
+  WHILE (I <= High(StringArray)) AND (Result = False) DO BEGIN
+    IF (Signal <> UnknownSignal) AND (Signal = ExtractSignalFromString(StringArray[I])) THEN
+      Result := True
+    ELSE
+      Inc(I);
+  END; {WHILE}
+END; { IsSignalInStringArray }
 
 PROCEDURE CheckSemaphoreDistantBeforeSemaphoreHomeCleared(S : Integer);
 { Sees if semaphore distants need automatically to be reset to allow a semaphore home to be put on }

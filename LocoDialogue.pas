@@ -150,7 +150,7 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES InitVars, LocoUtils, MiscUtils, Lenz, Feedback, DateUtils, Input, Options;
+USES InitVars, LocoUtils, MiscUtils, Lenz, Feedback, DateUtils, Input, Options, Logging;
 
 CONST
   UnitRef = 'LocoDialogue';

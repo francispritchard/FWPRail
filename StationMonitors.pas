@@ -26,11 +26,17 @@ PROCEDURE CloseStationMonitorsWebPage(OUT OK : Boolean);
 PROCEDURE DrawStationMonitorsWindow(Area : Integer);
 { Collate, sort and display station monitors entries }
 
+FUNCTION GetStationMonitorsDisplayOrderStr(OrderNum : Integer) : String;
+{ Return the description of the Area indicated by the station monitors' display order number }
+
+FUNCTION GetStationNumFromStationMonitorsDisplayOrderNum(StationMonitorsDisplayOrderStr : String) : Integer;
+{ Return the station monitors' display order number from the description of the Area }
+
 {$R *.dfm}
 
 IMPLEMENTATION
 
-USES MiscUtils, StrUtils, DateUtils, Input, GetTime, Diagrams, Options, RailDraw, Types, SyncObjs, Train, LocationsUnit;
+USES MiscUtils, StrUtils, DateUtils, Input, GetTime, Diagrams, Options, RailDraw, Types, SyncObjs, Train, LocationsUnit, Logging;
 
 CONST
   UnitRef = 'StationMonitors';
@@ -50,6 +56,69 @@ PROCEDURE Log(Str : String);
 BEGIN
   WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
+
+FUNCTION GetAreaFromStationMonitorsDisplayOrderNum(OrderNum : Integer) : Integer;
+{ Return the Area indicated by the station monitors' display order number }
+VAR
+  A : Integer;
+  OrderNumFound : Boolean;
+
+BEGIN
+  Result := -1;
+
+  A := 0;
+  OrderNumFound := False;
+  WHILE (A <= High(Areas)) AND NOT OrderNumFound DO BEGIN
+    IF Areas[A].Area_StationMonitorsDisplayOrderNum = OrderNum THEN BEGIN
+      Result := A;
+      OrderNumFound := True;
+    END ELSE
+      Inc(A);
+  END; {WHILE}
+END; { GetStationMonitorsDisplayOrderStr }
+
+FUNCTION GetStationMonitorsDisplayOrderStr(OrderNum : Integer) : String;
+{ Return the long description of the Area indicated by the station monitors' display order number }
+VAR
+  A : Integer;
+  OrderNumFound : Boolean;
+
+BEGIN
+  Result := '';
+
+  A := 0;
+  OrderNumFound := False;
+  WHILE (A <= High(Areas)) AND NOT OrderNumFound DO BEGIN
+    IF Areas[A].Area_StationMonitorsDisplayOrderNum = OrderNum THEN BEGIN
+      Result := Areas[A].Area_LongStr;
+      OrderNumFound := True;
+    END ELSE
+      Inc(A);
+  END; {WHILE}
+END; { GetStationMonitorsDisplayOrderStr }
+
+FUNCTION GetStationNumFromStationMonitorsDisplayOrderNum(StationMonitorsDisplayOrderStr : String) : Integer;
+{ returns the station monitors' display order number from the long or short station name }
+VAR
+  A : Integer;
+  OrderNumFound : Boolean;
+
+BEGIN
+  Result := -1;
+
+  A := 0;
+  OrderNumFound := False;
+  WHILE (A <= High(Areas)) AND NOT OrderNumFound DO BEGIN
+    StationMonitorsDisplayOrderStr := RemoveAllSpacesFromAString(StationMonitorsDisplayOrderStr);
+    IF (Pos(UpperCase(StationMonitorsDisplayOrderStr), UpperCase(RemoveAllSpacesFromAString(Areas[A].Area_LongStr))) > 0)
+    OR (Pos(UpperCase(StationMonitorsDisplayOrderStr), UpperCase(RemoveAllSpacesFromAString(Areas[A].Area_ShortStr))) > 0)
+    THEN BEGIN
+      Result := A;
+      OrderNumFound := True;
+    END ELSE
+      Inc(A);
+  END; {WHILE}
+END; { GetStationNumFromStationMonitorsDisplayOrderNum }
 
 PROCEDURE DrawStationMonitorsWindow(Area : Integer);
 { Collate, sort and display timetable entries }
