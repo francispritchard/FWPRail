@@ -136,361 +136,361 @@ END; { Log }
 
 PROCEDURE ReadInRouteingExceptionsFromDatabase;
 { Read in from file parameters that indicate routes that are explicitly not allowed }
-//VAR
-//  ErrorMsg : String;
-//  FieldName : String;
-//  I : Integer;
-//  NotLine : Boolean;
-//  TempArea : Integer;
-//  TempLine : Integer;
-//  TempLocation : Integer;
-//  TempStr : String;
-//  TempStrArray : StringArrayType;
-//  TempTrainTypeNum : Integer;
+VAR
+  ErrorMsg : String;
+  FieldName : String;
+  I : Integer;
+  NotLine : Boolean;
+  TempArea : Integer;
+  TempLine : Integer;
+  TempLocation : Integer;
+  TempStr : String;
+  TempStrArray : StringArrayType;
+  TempTrainTypeNum : Integer;
 
 BEGIN
   Debug('Routeing exceptions not read in');
-//  TRY
-//    Log('A INITIALISING ROUTEING EXCEPTIONS {BLANKLINEBEFORE}');
-//
-//    WITH DisplayLineColoursWindow DO BEGIN
-//      IF NOT FileExists(PathToRailDataFiles + RouteingExceptionDataFilename + '.' + RouteingExceptionDataFilenameSuffix) THEN BEGIN
-//        IF MessageDialogueWithDefault('Routeing Exceptions database file "'
-//                                      + PathToRailDataFiles + RouteingExceptionDataFilename + '.' + RouteingExceptionDataFilenameSuffix + '"'
-//                                      + ' cannot be located'
-//                                      + CRLF
-//                                      + 'Do you wish to continue?',
-//                                      StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
-//        THEN
-//          ShutDownProgram(UnitRef, 'ReadInRouteingExceptionsFromDatabase')
-//        ELSE
-//          Exit;
-//      END;
-//
-//      RouteingExceptionDataADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
-//                                                             + PathToRailDataFiles + RouteingExceptionDataFilename + '.' + RouteingExceptionDataFilenameSuffix
-//                                                             + ';Persist Security Info=False';
-//      RouteingExceptionDataADOConnection.Connected := True;
-//      RouteingExceptionDataADOTable.Open;
-//      Log('T RouteingExceptionData data table and connection opened to initialise the RouteingExceptionData data');
-//
-//      RouteingExceptionDataADOTable.Sort := '[Rule] ASC';
-//      RouteingExceptionDataADOTable.First;
-//      WHILE NOT RouteingExceptionDataADOTable.EOF DO BEGIN
-//        ErrorMsg := '';
-//
-//        SetLength(RouteingExceptions, Length(RouteingExceptions) + 1);
-//        WITH RouteingExceptions[High(RouteingExceptions)] DO BEGIN
-//          RouteingException_AllowedInEmergency := False;
-//          SetLength(RouteingException_CurrentLines, 0);
-//          SetLength(RouteingException_CurrentLinesExcepted, 0);
-//          SetLength(RouteingException_EndAreas, 0);
-//          SetLength(RouteingException_EndAreasExcepted, 0);
-//          SetLength(RouteingException_EndLines, 0);
-//          SetLength(RouteingException_EndLinesExcepted, 0);
-//          SetLength(RouteingException_EndLocations, 0);
-//          SetLength(RouteingException_EndLocationsExcepted, 0);
-//          SetLength(RouteingException_LinesRoutedOver, 0);
-//          SetLength(RouteingException_PreviousLines, 0);
-//          SetLength(RouteingException_StartAreas, 0);
-//          SetLength(RouteingException_StartAreasExcepted, 0);
-//          SetLength(RouteingException_StartLines, 0);
-//          SetLength(RouteingException_StartLinesExcepted, 0);
-//          SetLength(RouteingException_StartLocations, 0);
-//          SetLength(RouteingException_StartLocationsExcepted, 0);
-//
-//          FieldName := 'Rule';
-//          IF RouteingExceptionDataADOTable.FieldByName(FieldName).AsString = '' THEN
-//            ErrorMsg := 'No rule number supplied'
-//          ELSE
-//            RouteingException_Rule := StrToInt(RouteingExceptionDataADOTable.FieldByName(FieldName).AsString);
-//
-//          IF ErrorMsg = '' THEN BEGIN
-//            FieldName := 'Allow In Emergency';
-//            RouteingException_AllowedInEmergency := RouteingExceptionDataADOTable.FieldByName(FieldName).AsBoolean;
-//          END;
-//
-//          IF ErrorMsg = '' THEN BEGIN
-//            FieldName := 'Start Lines';
-//            TempStr := RouteingExceptionDataADOTable.FieldByName(FieldName).AsString;
-//            IF TempStr <> '' THEN BEGIN
-//              ExtractSubStringsFromString(TempStr, ',', TempStrArray);
-//              FOR I := 0 TO High(TempStrArray) DO BEGIN
-//                NotLine := False;
-//                IF Copy(TempStrArray[I], 1, 4) = 'NOT ' THEN BEGIN
-//                  TempStrArray[I] := Copy(TempStrArray[I], 5);
-//                  NotLine := True;
-//                END;
-//                TempLine := StrToLine(TempStrArray[I]);
-//                IF TempLine = UnknownLine THEN
-//                  ErrorMsg := 'invalid start line "' + TempStrArray[I] + '" in rule ' + IntToStr(RouteingException_Rule)
-//                ELSE
-//                  IF NotLine THEN
-//                    AppendToIntegerArray(RouteingException_StartLinesExcepted, TempLine)
-//                  ELSE
-//                    AppendToIntegerArray(RouteingException_StartLines, TempLine);
-//              END; {FOR}
-//            END;
-//          END;
-//
-//          IF ErrorMsg = '' THEN BEGIN
-//            FieldName := 'Start Locations';
-//            TempStr := RouteingExceptionDataADOTable.FieldByName(FieldName).AsString;
-//            IF TempStr <> '' THEN BEGIN
-//              ExtractSubStringsFromString(TempStr, ',', TempStrArray);
-//              FOR I := 0 TO High(TempStrArray) DO BEGIN
-//                NotLine := False;
-//                IF Copy(TempStrArray[I], 1, 4) = 'NOT ' THEN BEGIN
-//                  TempStrArray[I] := Copy(TempStrArray[I], 5);
-//                  NotLine := True;
-//                END;
-//                TempLocation := StrToLocation(TempStrArray[I]);
-//                IF TempLocation = UnknownLine THEN
-//                  ErrorMsg := 'invalid start location "' + TempStrArray[I] + '" in rule ' + IntToStr(RouteingException_Rule)
-//                ELSE
-//                  IF NotLine THEN
-//                    AppendToIntegerArray(RouteingException_StartLocationsExcepted, TempLocation)
-//                  ELSE
-//                    AppendToIntegerArray(RouteingException_StartLocations, TempLocation);
-//              END; {FOR}
-//            END;
-//          END;
-//
-//          IF ErrorMsg = '' THEN BEGIN
-//            FieldName := 'Start Areas';
-//            TempStr := RouteingExceptionDataADOTable.FieldByName(FieldName).AsString;
-//            IF TempStr <> '' THEN BEGIN
-//              ExtractSubStringsFromString(TempStr, ',', TempStrArray);
-//              FOR I := 0 TO High(TempStrArray) DO BEGIN
-//                NotLine := False;
-//                IF Copy(TempStrArray[I], 1, 4) = 'NOT ' THEN BEGIN
-//                  TempStrArray[I] := Copy(TempStrArray[I], 5);
-//                  NotLine := True;
-//                END;
-//                TempArea := StrToArea(TempStrArray[I]);
-//                IF TempArea = UnknownArea THEN
-//                  ErrorMsg := 'invalid start area "' + TempStrArray[I] + '" in rule ' + IntToStr(RouteingException_Rule)
-//                ELSE
-//                  IF NotLine THEN
-//                    AppendToIntegerArray(RouteingException_StartAreasExcepted, TempArea)
-//                  ELSE
-//                    AppendToIntegerArray(RouteingException_StartAreas, TempArea);
-//              END; {FOR}
-//            END;
-//          END;
-//
-//          IF ErrorMsg = '' THEN BEGIN
-//            FieldName := 'End Lines';
-//            TempStr := RouteingExceptionDataADOTable.FieldByName(FieldName).AsString;
-//            IF TempStr <> '' THEN BEGIN
-//              ExtractSubStringsFromString(TempStr, ',', TempStrArray);
-//              FOR I := 0 TO High(TempStrArray) DO BEGIN
-//                NotLine := False;
-//                IF Copy(TempStrArray[I], 1, 4) = 'NOT ' THEN BEGIN
-//                  TempStrArray[I] := Copy(TempStrArray[I], 5);
-//                  NotLine := True;
-//                END;
-//                TempStrArray[I] := TrimRemoveSpacesAndMakeUpperCase(TempStrArray[I]);
-//                IF Pos('UNKNOWNLINE', TempStrArray[I]) > 0 THEN
-//                  AppendToIntegerArray(RouteingException_EndLinesExcepted, UnknownLine)
-//                ELSE BEGIN
-//                  TempLine := StrToLine(TempStrArray[I]);
-//
-//                  IF TempLine = UnknownLine THEN
-//                    ErrorMsg := 'invalid end line "' + TempStrArray[I] + '" in rule ' + IntToStr(RouteingException_Rule)
-//                  ELSE
-//                    IF NotLine THEN
-//                      AppendToIntegerArray(RouteingException_EndLinesExcepted, TempLine)
-//                    ELSE
-//                      AppendToIntegerArray(RouteingException_EndLines, TempLine);
-//                 END;
-//              END; {FOR}
-//            END;
-//          END;
-//
-//          IF ErrorMsg = '' THEN BEGIN
-//            FieldName := 'End Locations';
-//            TempStr := RouteingExceptionDataADOTable.FieldByName(FieldName).AsString;
-//            IF TempStr <> '' THEN BEGIN
-//              ExtractSubStringsFromString(TempStr, ',', TempStrArray);
-//              FOR I := 0 TO High(TempStrArray) DO BEGIN
-//                NotLine := False;
-//                IF Copy(TempStrArray[I], 1, 4) = 'NOT ' THEN BEGIN
-//                  TempStrArray[I] := Copy(TempStrArray[I], 5);
-//                  NotLine := True;
-//                END;
-//                TempLocation := StrToLocation(TempStrArray[I]);
-//                IF TempLocation = UnknownLine THEN
-//                  ErrorMsg := 'invalid end location "' + TempStrArray[I] + '" in rule ' + IntToStr(RouteingException_Rule)
-//                ELSE
-//                  IF NotLine THEN
-//                    AppendToIntegerArray(RouteingException_EndLocationsExcepted, TempLocation)
-//                  ELSE
-//                    AppendToIntegerArray(RouteingException_EndLocations, TempLocation);
-//              END; {FOR}
-//            END;
-//          END;
-//
-//          IF ErrorMsg = '' THEN BEGIN
-//            FieldName := 'End Areas';
-//            TempStr := RouteingExceptionDataADOTable.FieldByName(FieldName).AsString;
-//            IF TempStr <> '' THEN BEGIN
-//              ExtractSubStringsFromString(TempStr, ',', TempStrArray);
-//              FOR I := 0 TO High(TempStrArray) DO BEGIN
-//                NotLine := False;
-//                IF Copy(TempStrArray[I], 1, 4) = 'NOT ' THEN BEGIN
-//                  TempStrArray[I] := Copy(TempStrArray[I], 5);
-//                  NotLine := True;
-//                END;
-//                TempArea := StrToArea(TempStrArray[I]);
-//                IF TempArea = UnknownArea THEN
-//                  ErrorMsg := 'invalid end area "' + TempStrArray[I] + '" in rule ' + IntToStr(RouteingException_Rule)
-//                ELSE
-//                  IF NotLine THEN
-//                    AppendToIntegerArray(RouteingException_EndAreasExcepted, TempArea)
-//                  ELSE
-//                    AppendToIntegerArray(RouteingException_EndAreas, TempArea);
-//              END; {FOR}
-//            END;
-//          END;
-//
-//          IF ErrorMsg = '' THEN BEGIN
-//            FieldName := 'Current Lines';
-//            TempStr := RouteingExceptionDataADOTable.FieldByName(FieldName).AsString;
-//            IF TempStr <> '' THEN BEGIN
-//              ExtractSubStringsFromString(TempStr, ',', TempStrArray);
-//              FOR I := 0 TO High(TempStrArray) DO BEGIN
-//                NotLine := False;
-//                IF Copy(TempStrArray[I], 1, 4) = 'NOT ' THEN BEGIN
-//                  TempStrArray[I] := Copy(TempStrArray[I], 5);
-//                  NotLine := True;
-//                END;
-//                TempLine := StrToLine(TempStrArray[I]);
-//                IF TempLine = UnknownLine THEN
-//                  ErrorMsg := 'invalid current line "' + TempStrArray[I] + '" in rule ' + IntToStr(RouteingException_Rule)
-//                ELSE
-//                  IF NotLine THEN
-//                    AppendToIntegerArray(RouteingException_CurrentLinesExcepted, TempLine)
-//                  ELSE
-//                    AppendToIntegerArray(RouteingException_CurrentLines, TempLine);
-//              END; {FOR}
-//            END;
-//          END;
-//
-//          IF ErrorMsg = '' THEN BEGIN
-//            FieldName := 'Previous Lines';
-//            TempStr := RouteingExceptionDataADOTable.FieldByName(FieldName).AsString;
-//            IF TempStr <> '' THEN BEGIN
-//              ExtractSubStringsFromString(TempStr, ',', TempStrArray);
-//              FOR I := 0 TO High(TempStrArray) DO BEGIN
-//                NotLine := False;
-//                IF Copy(TempStrArray[I], 1, 4) = 'NOT ' THEN BEGIN
-//                  TempStrArray[I] := Copy(TempStrArray[I], 5);
-//                  NotLine := True;
-//                END;
-//                TempLine := StrToLine(TempStrArray[I]);
-//                IF TempLine = UnknownLine THEN
-//                  ErrorMsg := 'invalid previous line "' + TempStrArray[I] + '" in rule ' + IntToStr(RouteingException_Rule)
-//                ELSE
-//                  IF NotLine THEN
-//                    AppendToIntegerArray(RouteingException_PreviousLinesExcepted, TempLine)
-//                  ELSE
-//                    AppendToIntegerArray(RouteingException_PreviousLines, TempLine);
-//              END; {FOR}
-//            END;
-//          END;
-//
-//          IF ErrorMsg = '' THEN BEGIN
-//            FieldName := 'Lines Routed Over';
-//            TempStr := RouteingExceptionDataADOTable.FieldByName(FieldName).AsString;
-//            IF TempStr <> '' THEN BEGIN
-//              ExtractSubStringsFromString(TempStr, ',', TempStrArray);
-//              FOR I := 0 TO High(TempStrArray) DO BEGIN
-//                NotLine := False;
-//                IF Copy(TempStrArray[I], 1, 4) = 'NOT ' THEN BEGIN
-//                  TempStrArray[I] := Copy(TempStrArray[I], 5);
-//                  NotLine := True;
-//                END;
-//                TempLine := StrToLine(TempStrArray[I]);
-//                IF TempLine = UnknownLine THEN
-//                  ErrorMsg := 'invalid line routed over "' + TempStrArray[I] + '" in rule ' + IntToStr(RouteingException_Rule)
-//                ELSE
-//                  IF NotLine THEN
-//                    AppendToIntegerArray(RouteingException_LinesRoutedOverexcepted, TempLine)
-//                  ELSE
-//                    AppendToIntegerArray(RouteingException_LinesRoutedOver, TempLine);
-//              END; {FOR}
-//            END;
-//          END;
-//
-//          IF ErrorMsg = '' THEN BEGIN
-//            FieldName := 'Route Direction';
-//            TempStr := RouteingExceptionDataADOTable.FieldByName(FieldName).AsString;
-//            IF TempStr = '' THEN
-//              RouteingException_RouteDirection := UnknownDirection
-//            ELSE BEGIN
-//              RouteingException_RouteDirection := StrToDirectionType(TempStr);
-//              IF RouteingException_RouteDirection = UnknownDirection THEN
-//                ErrorMsg := 'Invalid route direction "' + TempStr + '" in rule ' + IntToStr(RouteingException_Rule);
-//            END;
-//          END;
-//
-//          IF ErrorMsg = '' THEN BEGIN
-//            FieldName := 'Train Type Numbers';
-//            TempStr := RouteingExceptionDataADOTable.FieldByName(FieldName).AsString;
-//            IF TempStr <> '' THEN BEGIN
-//              ExtractSubStringsFromString(TempStr, ',', TempStrArray);
-//              FOR I := 0 TO High(TempStrArray) DO BEGIN
-//                IF NOT TryStrToInt(TempStrArray[I], TempTrainTypeNum) THEN
-//                  ErrorMsg := 'invalid train type number "' + TempStrArray[I] + '" in rule ' + IntToStr(RouteingException_Rule)
-//                ELSE
-//                  IF (TempTrainTypeNum < 0) OR (TempTrainTypeNum > 9) THEN
-//                    ErrorMsg := 'invalid train type number "' + TempStrArray[I] + '" in rule ' + IntToStr(RouteingException_Rule)
-//                  ELSE
-//                    AppendToTrainTypeArray(RouteingException_TrainTypes, TrainTypeNumToTrainType(TempTrainTypeNum));
-//              END; {FOR}
-//            END;
-//          END;
-//
-//          IF ErrorMsg = '' THEN BEGIN
-//            FieldName := 'Max Train Length';
-//            TempStr := RouteingExceptionDataADOTable.FieldByName(FieldName).AsString;
-//            IF TempStr = '' THEN
-//              RouteingException_MaxTrainLength := 0
-//            ELSE
-//              IF NOT TryStrToInt(TempStr, RouteingException_MaxTrainLength) THEN
-//                ErrorMsg := 'Invalid Max Train Length "' + TempStr + '" in rule ' + IntToStr(RouteingException_Rule);
-//          END;
-//
-//          IF ErrorMsg = '' THEN BEGIN
-//            FieldName := 'Stop String';
-//            RouteingException_StopStr := RouteingExceptionDataADOTable.FieldByName(FieldName).AsString;
-//            IF RouteingException_StopStr = '' THEN
-//              ErrorMsg := 'Missing stop string in rule ' + IntToStr(RouteingException_Rule)
-//          END;
-//
-//          IF ErrorMsg <> '' THEN BEGIN
-//            IF MessageDialogueWithDefault('Error in creating routeing exception : ' + ErrorMsg
-//                                          + CRLF
-//                                          + 'Do you wish to continue?',
-//                                          StopTimer, mtWarning, [mbYes, mbNo], mbNo) = mrNo
-//            THEN
-//              ShutDownProgram(UnitRef, 'ReadInRouteingExceptionsFromDatabase');
-//          END;
-//
-//          RouteingExceptionDataADOTable.Next;
-//        END; {WITH}
-//      END; {WHILE}
-//
-//      { Tidy up the database }
-//      RouteingExceptionDataADOTable.Close;
-//      RouteingExceptionDataADOConnection.Connected := False;
-//      Log('T RouteingExceptionData data table and connection closed');
-//    END; {WITH}
-//  EXCEPT {TRY}
-//    ON E : Exception DO
-//      Log('EG ReadInRouteingExceptionsFromDatabase: ' + E.ClassName + ' error raised, with message: '+ E.Message);
-//  END; {TRY}
+  TRY
+    Log('A INITIALISING ROUTEING EXCEPTIONS {BLANKLINEBEFORE}');
+
+    WITH DisplayLineColoursWindow DO BEGIN
+      IF NOT FileExists(PathToRailDataFiles + RouteingExceptionDataFilename + '.' + RouteingExceptionDataFilenameSuffix) THEN BEGIN
+        IF MessageDialogueWithDefault('Routeing Exceptions database file "'
+                                      + PathToRailDataFiles + RouteingExceptionDataFilename + '.' + RouteingExceptionDataFilenameSuffix + '"'
+                                      + ' cannot be located'
+                                      + CRLF
+                                      + 'Do you wish to continue?',
+                                      StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
+        THEN
+          ShutDownProgram(UnitRef, 'ReadInRouteingExceptionsFromDatabase')
+        ELSE
+          Exit;
+      END;
+
+      RouteingExceptionDataADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source='
+                                                             + PathToRailDataFiles + RouteingExceptionDataFilename + '.' + RouteingExceptionDataFilenameSuffix
+                                                             + ';Persist Security Info=False';
+      RouteingExceptionDataADOConnection.Connected := True;
+      RouteingExceptionDataADOTable.Open;
+      Log('T RouteingExceptionData data table and connection opened to initialise the RouteingExceptionData data');
+
+      RouteingExceptionDataADOTable.Sort := '[Rule] ASC';
+      RouteingExceptionDataADOTable.First;
+      WHILE NOT RouteingExceptionDataADOTable.EOF DO BEGIN
+        ErrorMsg := '';
+
+        SetLength(RouteingExceptions, Length(RouteingExceptions) + 1);
+        WITH RouteingExceptions[High(RouteingExceptions)] DO BEGIN
+          RouteingException_AllowedInEmergency := False;
+          SetLength(RouteingException_CurrentLines, 0);
+          SetLength(RouteingException_CurrentLinesExcepted, 0);
+          SetLength(RouteingException_EndAreas, 0);
+          SetLength(RouteingException_EndAreasExcepted, 0);
+          SetLength(RouteingException_EndLines, 0);
+          SetLength(RouteingException_EndLinesExcepted, 0);
+          SetLength(RouteingException_EndLocations, 0);
+          SetLength(RouteingException_EndLocationsExcepted, 0);
+          SetLength(RouteingException_LinesRoutedOver, 0);
+          SetLength(RouteingException_PreviousLines, 0);
+          SetLength(RouteingException_StartAreas, 0);
+          SetLength(RouteingException_StartAreasExcepted, 0);
+          SetLength(RouteingException_StartLines, 0);
+          SetLength(RouteingException_StartLinesExcepted, 0);
+          SetLength(RouteingException_StartLocations, 0);
+          SetLength(RouteingException_StartLocationsExcepted, 0);
+
+          FieldName := 'Rule';
+          IF RouteingExceptionDataADOTable.FieldByName(FieldName).AsString = '' THEN
+            ErrorMsg := 'No rule number supplied'
+          ELSE
+            RouteingException_Rule := StrToInt(RouteingExceptionDataADOTable.FieldByName(FieldName).AsString);
+
+          IF ErrorMsg = '' THEN BEGIN
+            FieldName := 'Allow In Emergency';
+            RouteingException_AllowedInEmergency := RouteingExceptionDataADOTable.FieldByName(FieldName).AsBoolean;
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            FieldName := 'Start Lines';
+            TempStr := RouteingExceptionDataADOTable.FieldByName(FieldName).AsString;
+            IF TempStr <> '' THEN BEGIN
+              ExtractSubStringsFromString(TempStr, ',', TempStrArray);
+              FOR I := 0 TO High(TempStrArray) DO BEGIN
+                NotLine := False;
+                IF Copy(TempStrArray[I], 1, 4) = 'NOT ' THEN BEGIN
+                  TempStrArray[I] := Copy(TempStrArray[I], 5);
+                  NotLine := True;
+                END;
+                TempLine := StrToLine(TempStrArray[I]);
+                IF TempLine = UnknownLine THEN
+                  ErrorMsg := 'invalid start line "' + TempStrArray[I] + '" in rule ' + IntToStr(RouteingException_Rule)
+                ELSE
+                  IF NotLine THEN
+                    AppendToIntegerArray(RouteingException_StartLinesExcepted, TempLine)
+                  ELSE
+                    AppendToIntegerArray(RouteingException_StartLines, TempLine);
+              END; {FOR}
+            END;
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            FieldName := 'Start Locations';
+            TempStr := RouteingExceptionDataADOTable.FieldByName(FieldName).AsString;
+            IF TempStr <> '' THEN BEGIN
+              ExtractSubStringsFromString(TempStr, ',', TempStrArray);
+              FOR I := 0 TO High(TempStrArray) DO BEGIN
+                NotLine := False;
+                IF Copy(TempStrArray[I], 1, 4) = 'NOT ' THEN BEGIN
+                  TempStrArray[I] := Copy(TempStrArray[I], 5);
+                  NotLine := True;
+                END;
+                TempLocation := StrToLocation(TempStrArray[I]);
+                IF TempLocation = UnknownLine THEN
+                  ErrorMsg := 'invalid start location "' + TempStrArray[I] + '" in rule ' + IntToStr(RouteingException_Rule)
+                ELSE
+                  IF NotLine THEN
+                    AppendToIntegerArray(RouteingException_StartLocationsExcepted, TempLocation)
+                  ELSE
+                    AppendToIntegerArray(RouteingException_StartLocations, TempLocation);
+              END; {FOR}
+            END;
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            FieldName := 'Start Areas';
+            TempStr := RouteingExceptionDataADOTable.FieldByName(FieldName).AsString;
+            IF TempStr <> '' THEN BEGIN
+              ExtractSubStringsFromString(TempStr, ',', TempStrArray);
+              FOR I := 0 TO High(TempStrArray) DO BEGIN
+                NotLine := False;
+                IF Copy(TempStrArray[I], 1, 4) = 'NOT ' THEN BEGIN
+                  TempStrArray[I] := Copy(TempStrArray[I], 5);
+                  NotLine := True;
+                END;
+                TempArea := StrToArea(TempStrArray[I]);
+                IF TempArea = UnknownArea THEN
+                  ErrorMsg := 'invalid start area "' + TempStrArray[I] + '" in rule ' + IntToStr(RouteingException_Rule)
+                ELSE
+                  IF NotLine THEN
+                    AppendToIntegerArray(RouteingException_StartAreasExcepted, TempArea)
+                  ELSE
+                    AppendToIntegerArray(RouteingException_StartAreas, TempArea);
+              END; {FOR}
+            END;
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            FieldName := 'End Lines';
+            TempStr := RouteingExceptionDataADOTable.FieldByName(FieldName).AsString;
+            IF TempStr <> '' THEN BEGIN
+              ExtractSubStringsFromString(TempStr, ',', TempStrArray);
+              FOR I := 0 TO High(TempStrArray) DO BEGIN
+                NotLine := False;
+                IF Copy(TempStrArray[I], 1, 4) = 'NOT ' THEN BEGIN
+                  TempStrArray[I] := Copy(TempStrArray[I], 5);
+                  NotLine := True;
+                END;
+                TempStrArray[I] := TrimRemoveSpacesAndMakeUpperCase(TempStrArray[I]);
+                IF Pos('UNKNOWNLINE', TempStrArray[I]) > 0 THEN
+                  AppendToIntegerArray(RouteingException_EndLinesExcepted, UnknownLine)
+                ELSE BEGIN
+                  TempLine := StrToLine(TempStrArray[I]);
+
+                  IF TempLine = UnknownLine THEN
+                    ErrorMsg := 'invalid end line "' + TempStrArray[I] + '" in rule ' + IntToStr(RouteingException_Rule)
+                  ELSE
+                    IF NotLine THEN
+                      AppendToIntegerArray(RouteingException_EndLinesExcepted, TempLine)
+                    ELSE
+                      AppendToIntegerArray(RouteingException_EndLines, TempLine);
+                 END;
+              END; {FOR}
+            END;
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            FieldName := 'End Locations';
+            TempStr := RouteingExceptionDataADOTable.FieldByName(FieldName).AsString;
+            IF TempStr <> '' THEN BEGIN
+              ExtractSubStringsFromString(TempStr, ',', TempStrArray);
+              FOR I := 0 TO High(TempStrArray) DO BEGIN
+                NotLine := False;
+                IF Copy(TempStrArray[I], 1, 4) = 'NOT ' THEN BEGIN
+                  TempStrArray[I] := Copy(TempStrArray[I], 5);
+                  NotLine := True;
+                END;
+                TempLocation := StrToLocation(TempStrArray[I]);
+                IF TempLocation = UnknownLine THEN
+                  ErrorMsg := 'invalid end location "' + TempStrArray[I] + '" in rule ' + IntToStr(RouteingException_Rule)
+                ELSE
+                  IF NotLine THEN
+                    AppendToIntegerArray(RouteingException_EndLocationsExcepted, TempLocation)
+                  ELSE
+                    AppendToIntegerArray(RouteingException_EndLocations, TempLocation);
+              END; {FOR}
+            END;
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            FieldName := 'End Areas';
+            TempStr := RouteingExceptionDataADOTable.FieldByName(FieldName).AsString;
+            IF TempStr <> '' THEN BEGIN
+              ExtractSubStringsFromString(TempStr, ',', TempStrArray);
+              FOR I := 0 TO High(TempStrArray) DO BEGIN
+                NotLine := False;
+                IF Copy(TempStrArray[I], 1, 4) = 'NOT ' THEN BEGIN
+                  TempStrArray[I] := Copy(TempStrArray[I], 5);
+                  NotLine := True;
+                END;
+                TempArea := StrToArea(TempStrArray[I]);
+                IF TempArea = UnknownArea THEN
+                  ErrorMsg := 'invalid end area "' + TempStrArray[I] + '" in rule ' + IntToStr(RouteingException_Rule)
+                ELSE
+                  IF NotLine THEN
+                    AppendToIntegerArray(RouteingException_EndAreasExcepted, TempArea)
+                  ELSE
+                    AppendToIntegerArray(RouteingException_EndAreas, TempArea);
+              END; {FOR}
+            END;
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            FieldName := 'Current Lines';
+            TempStr := RouteingExceptionDataADOTable.FieldByName(FieldName).AsString;
+            IF TempStr <> '' THEN BEGIN
+              ExtractSubStringsFromString(TempStr, ',', TempStrArray);
+              FOR I := 0 TO High(TempStrArray) DO BEGIN
+                NotLine := False;
+                IF Copy(TempStrArray[I], 1, 4) = 'NOT ' THEN BEGIN
+                  TempStrArray[I] := Copy(TempStrArray[I], 5);
+                  NotLine := True;
+                END;
+                TempLine := StrToLine(TempStrArray[I]);
+                IF TempLine = UnknownLine THEN
+                  ErrorMsg := 'invalid current line "' + TempStrArray[I] + '" in rule ' + IntToStr(RouteingException_Rule)
+                ELSE
+                  IF NotLine THEN
+                    AppendToIntegerArray(RouteingException_CurrentLinesExcepted, TempLine)
+                  ELSE
+                    AppendToIntegerArray(RouteingException_CurrentLines, TempLine);
+              END; {FOR}
+            END;
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            FieldName := 'Previous Lines';
+            TempStr := RouteingExceptionDataADOTable.FieldByName(FieldName).AsString;
+            IF TempStr <> '' THEN BEGIN
+              ExtractSubStringsFromString(TempStr, ',', TempStrArray);
+              FOR I := 0 TO High(TempStrArray) DO BEGIN
+                NotLine := False;
+                IF Copy(TempStrArray[I], 1, 4) = 'NOT ' THEN BEGIN
+                  TempStrArray[I] := Copy(TempStrArray[I], 5);
+                  NotLine := True;
+                END;
+                TempLine := StrToLine(TempStrArray[I]);
+                IF TempLine = UnknownLine THEN
+                  ErrorMsg := 'invalid previous line "' + TempStrArray[I] + '" in rule ' + IntToStr(RouteingException_Rule)
+                ELSE
+                  IF NotLine THEN
+                    AppendToIntegerArray(RouteingException_PreviousLinesExcepted, TempLine)
+                  ELSE
+                    AppendToIntegerArray(RouteingException_PreviousLines, TempLine);
+              END; {FOR}
+            END;
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            FieldName := 'Lines Routed Over';
+            TempStr := RouteingExceptionDataADOTable.FieldByName(FieldName).AsString;
+            IF TempStr <> '' THEN BEGIN
+              ExtractSubStringsFromString(TempStr, ',', TempStrArray);
+              FOR I := 0 TO High(TempStrArray) DO BEGIN
+                NotLine := False;
+                IF Copy(TempStrArray[I], 1, 4) = 'NOT ' THEN BEGIN
+                  TempStrArray[I] := Copy(TempStrArray[I], 5);
+                  NotLine := True;
+                END;
+                TempLine := StrToLine(TempStrArray[I]);
+                IF TempLine = UnknownLine THEN
+                  ErrorMsg := 'invalid line routed over "' + TempStrArray[I] + '" in rule ' + IntToStr(RouteingException_Rule)
+                ELSE
+                  IF NotLine THEN
+                    AppendToIntegerArray(RouteingException_LinesRoutedOverexcepted, TempLine)
+                  ELSE
+                    AppendToIntegerArray(RouteingException_LinesRoutedOver, TempLine);
+              END; {FOR}
+            END;
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            FieldName := 'Route Direction';
+            TempStr := RouteingExceptionDataADOTable.FieldByName(FieldName).AsString;
+            IF TempStr = '' THEN
+              RouteingException_RouteDirection := UnknownDirection
+            ELSE BEGIN
+              RouteingException_RouteDirection := StrToDirectionType(TempStr);
+              IF RouteingException_RouteDirection = UnknownDirection THEN
+                ErrorMsg := 'Invalid route direction "' + TempStr + '" in rule ' + IntToStr(RouteingException_Rule);
+            END;
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            FieldName := 'Train Type Numbers';
+            TempStr := RouteingExceptionDataADOTable.FieldByName(FieldName).AsString;
+            IF TempStr <> '' THEN BEGIN
+              ExtractSubStringsFromString(TempStr, ',', TempStrArray);
+              FOR I := 0 TO High(TempStrArray) DO BEGIN
+                IF NOT TryStrToInt(TempStrArray[I], TempTrainTypeNum) THEN
+                  ErrorMsg := 'invalid train type number "' + TempStrArray[I] + '" in rule ' + IntToStr(RouteingException_Rule)
+                ELSE
+                  IF (TempTrainTypeNum < 0) OR (TempTrainTypeNum > 9) THEN
+                    ErrorMsg := 'invalid train type number "' + TempStrArray[I] + '" in rule ' + IntToStr(RouteingException_Rule)
+                  ELSE
+                    AppendToTrainTypeArray(RouteingException_TrainTypes, TrainTypeNumToTrainType(TempTrainTypeNum));
+              END; {FOR}
+            END;
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            FieldName := 'Max Train Length';
+            TempStr := RouteingExceptionDataADOTable.FieldByName(FieldName).AsString;
+            IF TempStr = '' THEN
+              RouteingException_MaxTrainLength := 0
+            ELSE
+              IF NOT TryStrToInt(TempStr, RouteingException_MaxTrainLength) THEN
+                ErrorMsg := 'Invalid Max Train Length "' + TempStr + '" in rule ' + IntToStr(RouteingException_Rule);
+          END;
+
+          IF ErrorMsg = '' THEN BEGIN
+            FieldName := 'Stop String';
+            RouteingException_StopStr := RouteingExceptionDataADOTable.FieldByName(FieldName).AsString;
+            IF RouteingException_StopStr = '' THEN
+              ErrorMsg := 'Missing stop string in rule ' + IntToStr(RouteingException_Rule)
+          END;
+
+          IF ErrorMsg <> '' THEN BEGIN
+            IF MessageDialogueWithDefault('Error in creating routeing exception : ' + ErrorMsg
+                                          + CRLF
+                                          + 'Do you wish to continue?',
+                                          StopTimer, mtWarning, [mbYes, mbNo], mbNo) = mrNo
+            THEN
+              ShutDownProgram(UnitRef, 'ReadInRouteingExceptionsFromDatabase');
+          END;
+
+          RouteingExceptionDataADOTable.Next;
+        END; {WITH}
+      END; {WHILE}
+
+      { Tidy up the database }
+      RouteingExceptionDataADOTable.Close;
+      RouteingExceptionDataADOConnection.Connected := False;
+      Log('T RouteingExceptionData data table and connection closed');
+    END; {WITH}
+  EXCEPT {TRY}
+    ON E : Exception DO
+      Log('EG ReadInRouteingExceptionsFromDatabase: ' + E.ClassName + ' error raised, with message: '+ E.Message);
+  END; {TRY}
 END; { ReadInRouteingExceptionsFromDatabase }
 
 PROCEDURE CreateDraftRouteArray(LocoChipStr : String; OUT DraftRouteArray : StringArrayType; StartLine, EndLine : Integer; RouteDirection : DirectionType;
@@ -515,8 +515,11 @@ VAR
       Pause(50, ProcessMessages);
 
     AppendToStringArray(DraftRouteArray, 'L=' + LineToStr(CurrentLine) + '+');
-    IF InRouteDebuggingMode THEN
-      DrawLine(CurrentLine, LineColour, NOT ActiveTrain);
+    IF InRouteDebuggingMode THEN BEGIn
+      Lines[CurrentLine].Line_RouteDrawnOver := True;
+      InvalidateScreen(UnitRef, 'RecordLine');;
+    END;
+
     Lines[CurrentLine].Line_RoutedOver := True;
   END; { RecordLine }
 

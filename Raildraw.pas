@@ -7073,66 +7073,71 @@ BEGIN { Main drawing procedure }
             IF ReplayMode THEN
               DrawLine(Line, Line_OldColour, ActiveTrain)
             ELSE BEGIN
-              { If the line is not associated with a track circuit }
-              IF Line_TC = UnknownTrackCircuit THEN BEGIN
-                IF Line_RouteSet <> UnknownRoute THEN
-                  Line_CurrentColour := LineRoutedOverColour
-                ELSE
-                  Line_CurrentColour := SaveLineOldColour;
-                DrawLine(Line, Line_CurrentColour, ActiveTrain);
-              END ELSE BEGIN
-                { LineTC <> UnknownTrackCircuit - see if it's an occupied track circuit etc. If in auto mode, only highlight the bits that are routed over. }
-                IF NOT DisplayFlashingTrackCircuits OR TrackCircuits[Line_TC].TC_LitUp THEN
-                  Line_CurrentColour := GetTrackCircuitStateColour(Line_TC)
-                ELSE
-                  Line_CurrentColour := BackgroundColour;
-
-                IF Line_CurrentColour = TCUnoccupiedColour THEN BEGIN
-                  { if not, see if a subroute is set over the line }
+              IF Line_RouteDrawnOver THEN
+                DrawLine(Line, clWhite, ActiveTrain)
+              ELSE BEGIN
+                { If the line is not associated with a track circuit }
+                IF Line_TC = UnknownTrackCircuit THEN BEGIN
                   IF Line_RouteSet <> UnknownRoute THEN
                     Line_CurrentColour := LineRoutedOverColour
+                  ELSE
+                    Line_CurrentColour := SaveLineOldColour;
+                  DrawLine(Line, Line_CurrentColour, ActiveTrain);
+                END ELSE BEGIN
+                  { LineTC <> UnknownTrackCircuit - see if it's an occupied track circuit etc. If in auto mode, only highlight the bits that are routed over. }
+                  IF NOT DisplayFlashingTrackCircuits OR TrackCircuits[Line_TC].TC_LitUp THEN
+                    Line_CurrentColour := GetTrackCircuitStateColour(Line_TC)
+                  ELSE
+                    Line_CurrentColour := BackgroundColour;
+
+                  IF Line_CurrentColour = TCUnoccupiedColour THEN BEGIN
+                    { if not, see if a subroute is set over the line }
+                    IF Line_RouteSet <> UnknownRoute THEN
+                      Line_CurrentColour := LineRoutedOverColour
+                  END;
+                END;
+
+                IF (EditedTrackCircuit <> UnknownTrackCircuit) AND (Lines[Line].Line_TC = EditedTrackCircuit) THEN
+                  DrawLine(Line, ScreenComponentEditedColour2, ActiveTrain)
+                ELSE
+                  IF Line = EditedLine THEN
+                    DrawLine(Line, ScreenComponentEditedColour1, ActiveTrain)
+                  ELSE
+                    DrawLine(Line, Line_CurrentColour, ActiveTrain);
+
+                { Draw a rectangle around any line highlighted by the input procedure }
+                IF LineHighlighted <> UnknownLine THEN
+                  WITH Lines[LineHighlighted] DO
+                    DrawOutline(Line_MousePolygon, clWhite, NOT UndrawRequired, NOT UndrawToBeAutomatic);
+
+                { Draw a rectangle around any track circuit highlighted by the input procedure }
+                IF TrackCircuitHighlighted <> UnknownLine THEN BEGIN
+                  LinesArray := GetLinesForTrackCircuit(TrackCircuitHighlighted);
+                  Line2 := 0;
+                  WHILE Line2 <= High(LinesArray) DO BEGIN
+                    DrawOutline(Lines[LinesArray[Line2]].Line_MousePolygon, clWhite, NOT UndrawRequired, NOT UndrawToBeAutomatic);
+                    Inc(Line2);
+                  END; {WHILE}
+
+                  IF InShowAdjacentTrackCircuitMode THEN BEGIN
+                    FindAdjoiningTrackCircuits(TrackCircuitHighlighted, AdjacentUpTC, AdjacentDownTC);
+                    LinesArray := GetLinesForTrackCircuit(AdjacentUpTC);
+                    Line2 := 0;
+                    WHILE Line2 <= High(LinesArray) DO BEGIN
+                      DrawOutline(Lines[LinesArray[Line2]].Line_MousePolygon, clAqua, NOT UndrawRequired, NOT UndrawToBeAutomatic);
+                      Inc(Line2);
+                    END; {WHILE}
+
+                    FindAdjoiningTrackCircuits(TrackCircuitHighlighted, AdjacentUpTC, AdjacentDownTC);
+                    LinesArray := GetLinesForTrackCircuit(AdjacentDownTC);
+                    Line2 := 0;
+                    WHILE Line2 <= High(LinesArray) DO BEGIN
+                      DrawOutline(Lines[LinesArray[Line2]].Line_MousePolygon, clYellow, NOT UndrawRequired, NOT UndrawToBeAutomatic);
+                      Inc(Line2);
+                    END; {WHILE}
+                  END;
                 END;
               END;
-
-              IF (EditedTrackCircuit <> UnknownTrackCircuit) AND (Lines[Line].Line_TC = EditedTrackCircuit) THEN
-                DrawLine(Line, ScreenComponentEditedColour2, ActiveTrain)
-              ELSE
-                IF Line = EditedLine THEN
-                  DrawLine(Line, ScreenComponentEditedColour1, ActiveTrain)
-                ELSE
-                  DrawLine(Line, Line_CurrentColour, ActiveTrain);
-
-              { Draw a rectangle around any line highlighted by the input procedure }
-              IF LineHighlighted <> UnknownLine THEN
-                WITH Lines[LineHighlighted] DO
-                  DrawOutline(Line_MousePolygon, clWhite, NOT UndrawRequired, NOT UndrawToBeAutomatic);
-
-              { Draw a rectangle around any track circuit highlighted by the input procedure }
-              IF TrackCircuitHighlighted <> UnknownLine THEN
-                LinesArray := GetLinesForTrackCircuit(TrackCircuitHighlighted);
-                Line2 := 0;
-                WHILE Line2 <= High(LinesArray) DO BEGIN
-                  DrawOutline(Lines[LinesArray[Line2]].Line_MousePolygon, clWhite, NOT UndrawRequired, NOT UndrawToBeAutomatic);
-                  Inc(Line2);
-                END; {WHILE}
-
-                IF InShowAdjacentTrackCircuitMode THEN BEGIN
-                  FindAdjoiningTrackCircuits(TrackCircuitHighlighted, AdjacentUpTC, AdjacentDownTC);
-                  LinesArray := GetLinesForTrackCircuit(AdjacentUpTC);
-                  Line2 := 0;
-                  WHILE Line2 <= High(LinesArray) DO BEGIN
-                    DrawOutline(Lines[LinesArray[Line2]].Line_MousePolygon, clAqua, NOT UndrawRequired, NOT UndrawToBeAutomatic);
-                    Inc(Line2);
-                  END; {WHILE}
-
-                  FindAdjoiningTrackCircuits(TrackCircuitHighlighted, AdjacentUpTC, AdjacentDownTC);
-                  LinesArray := GetLinesForTrackCircuit(AdjacentDownTC);
-                  Line2 := 0;
-                  WHILE Line2 <= High(LinesArray) DO BEGIN
-                    DrawOutline(Lines[LinesArray[Line2]].Line_MousePolygon, clYellow, NOT UndrawRequired, NOT UndrawToBeAutomatic);
-                    Inc(Line2);
-                  END; {WHILE}
-                END;
             END;
 
             { And restore the saved colour }

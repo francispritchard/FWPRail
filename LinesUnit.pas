@@ -118,6 +118,7 @@ TYPE
     Line_DownConnectionChBold : Boolean;
     Line_DownRow : Extended;
     Line_EndOfLineMarker : EndOfLineType;
+    Line_RouteDrawnOver : Boolean; { use for route debugging }
     Line_Gradient : GradientType;
     Line_GridDownX : Integer;
     Line_GridDownY : Integer;
@@ -787,6 +788,7 @@ BEGIN
     Line_NextUpLine := UnknownLine;
     Line_NextUpPoint := UnknownPoint;
     Line_NextUpType := UnknownNextLineRouteingType;
+    Line_RouteDrawnOver := False;
     Line_RouteLockingForDrawing := UnknownRoute;
     Line_RouteSet := UnknownRoute;
     Line_TC := UnknownTrackCircuit;
