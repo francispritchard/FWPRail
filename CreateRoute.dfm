@@ -33,7 +33,6 @@ object DisplayLineColoursWindow: TDisplayLineColoursWindow
     TabOrder = 0
     OnClick = DisplayLineColoursWindowRichEditClick
     OnKeyDown = DisplayLineColoursWindowRichEditKeyDown
-    ExplicitWidth = 219
   end
   object RouteingExceptionDataSource: TDataSource
     Left = 92
