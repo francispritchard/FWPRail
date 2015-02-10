@@ -410,12 +410,14 @@ BEGIN
 
     { and set the distant on }
     Signals[Signals[S].Signal_SemaphoreDistantLocking].Signal_Aspect := RedAspect;
-    MakeSemaphoreSignalChange(UnknownLocoChipStr, Signals[S].Signal_SemaphoreDistantLocking, Signals[Signals[S].Signal_SemaphoreDistantLocking].Signal_AccessoryAddress,
-                              SignalOn, OK);
-    IF OK THEN
-      Log('S S=' + IntToStr(Signals[S].Signal_SemaphoreDistantLocking) + ' on')
-    ELSE
-      Log('S S=' + IntToStr(Signals[S].Signal_SemaphoreDistantLocking) + ' setting to on failed');
+    IF SystemOnline THEN BEGIN
+      MakeSemaphoreSignalChange(UnknownLocoChipStr, Signals[S].Signal_SemaphoreDistantLocking, Signals[Signals[S].Signal_SemaphoreDistantLocking].Signal_AccessoryAddress,
+                                SignalOn, OK);
+      IF OK THEN
+        Log('S S=' + IntToStr(Signals[S].Signal_SemaphoreDistantLocking) + ' on')
+      ELSE
+        Log('S S=' + IntToStr(Signals[S].Signal_SemaphoreDistantLocking) + ' setting to on failed');
+    END;
   END;
 END; { CheckSemaphoreDistantBeforeSemaphoreHomeCleared }
 
