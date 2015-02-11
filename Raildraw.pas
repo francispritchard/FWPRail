@@ -51,6 +51,7 @@ TYPE
     PROCEDURE FWPRailWindowDragOver(Sender, Source: TObject; X, Y: Integer; State: TDragState; var Accept: Boolean);
     PROCEDURE FWPRailWindowKeyDown(Sender: TObject; VAR Key: Word; ShiftState: TShiftState);
     PROCEDURE FWPRailWindowMouseDown(Sender: TObject; Button: TMouseButton; ShiftState: TShiftState; X, Y: Integer);
+    PROCEDURE FWPRailWindowMouseLeave(Sender: TObject);
     PROCEDURE FWPRailWindowMouseMove(Sender: TObject; ShiftState: TShiftState; X, Y: Integer);
     PROCEDURE FWPRailWindowMouseUp(Sender: TObject; Button: TMouseButton; ShiftState: TShiftState; X, Y: Integer);
     PROCEDURE FWPRailWindowMouseWheel(Sender: TObject; ShiftState: TShiftState; WheelDelta: Integer; MousePos: TPoint; VAR Handled: Boolean);
@@ -3997,6 +3998,12 @@ BEGIN
       Log('EG FlashTimerTick:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { FlashTimerTick }
+
+PROCEDURE TFWPRailWindow.FWPRailWindowMouseLeave(Sender: TObject);
+{ Restricts any cursor changes we've made to the main window. (We don't need to set up MouseEnter as the normal mopuse regime takes care of that.) }
+BEGIN
+  ChangeCursor(crDefault);
+END; { FWPRailWindowMouseLeave }
 
 PROCEDURE TFWPRailWindow.wmSize(VAR Msg: TWMSize);
 { The window will get a notification message, WM_SIZE, when it is minimized. It will also get this message on other occasions, you have to check the message parameters to
