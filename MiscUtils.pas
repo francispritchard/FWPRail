@@ -161,9 +161,6 @@ FUNCTION GetIntegerDataFromUser(Prompt, DefaultStr : String; LowerBound, UpperBo
 FUNCTION GetFollowingChars(LineStr : String; Str : String; EndStr : String) : String;
 { Return the characters after the given characters up to the delimiter supplied (or "CRLF" if it's at a line end) }
 
-FUNCTION GetStringDataFromUser(Prompt, DefaultStr : String; PermissibleStrings : StringArrayType; OUT NewString : String) : Boolean;
-{ Makes sure a non-empty string is returned by the user, and optionally that it is matches one of the strings supplied }
-
 FUNCTION InAllRouteDebuggingMode : Boolean;
 { Return the status of AllRouteDebuggingMode }
 
@@ -1046,50 +1043,6 @@ BEGIN
     END;
   UNTIL OK;
 END; { GetIntegerDataFromUser }
-
-FUNCTION GetStringDataFromUser(Prompt, DefaultStr : String; PermissibleStrings : StringArrayType; OUT NewString : String) : Boolean;
-{ Makes sure a non-empty string is returned by the user, and optionally that it is matches one of the strings supplied }
-CONST
-  Caption = '';
-
-VAR
-  I : Integer;
-  OK : Boolean;
-  PermissibleStringFound : Boolean;
-
-BEGIN
-  REPEAT
-    IF NOT InputQuery(Caption, Prompt, NewString) THEN BEGIN
-      OK := True;
-      Result := False;
-    END ELSE BEGIN
-      Result := True;
-      OK := False;
-
-      IF NewString = '' THEN
-        ShowMessage('Empty string - please try again')
-      ELSE
-        IF Length(PermissibleStrings) = 0 THEN
-          OK := True
-        ELSE BEGIN
-          I := 0;
-          PermissibleStringFound := False;
-
-          WHILE (I <= High(PermissibleStrings)) AND NOT PermissibleStringFound DO BEGIN
-            IF PermissibleStrings[I] = NewString THEN
-              PermissibleStringFound := True
-            ELSE
-              Inc(I);
-          END;
-
-          IF NOT PermissibleStringFound THEN
-            ShowMessage('"' + NewString + '" does not match the list of permissible strings')
-          ELSE
-            OK := True;
-        END;
-    END;
-  UNTIL OK;
-END; { GetStringDataFromUser }
 
 FUNCTION GetLineTypeColour(T : TypeOfLine) : TColour;
 { Return the colour for a specific line type, unless the screen is set to be printed from, in which case return black }
