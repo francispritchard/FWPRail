@@ -342,7 +342,7 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES RailDraw, Route, MiscUtils, Lenz, StrUtils, Locks, CreateRoute, Options, PointsUnit, TrackCircuitsUnit, LinesUnit, LocationsUnit, Main, Logging;
+USES RailDraw, Route, MiscUtils, Lenz, StrUtils, Locks, CreateRoute, Options, PointsUnit, TrackCircuitsUnit, LinesUnit, LocationsUnit, Main, Logging, Edit;
 
 CONST
   UnitRef = 'Signal';
@@ -2278,13 +2278,11 @@ BEGIN
 
   Str := UpperCase(Str);
   IF Str <> '' THEN BEGIN
-    IF Copy(Str, 1, 1) <> 'S' THEN
-      ErrorMsg := 'ValidateNextSignalIfNoIndicator: next signal if no indicator: "' + Str + '" not preceded by ''S'''
-    ELSE BEGIN
+    IF Copy(Str, 1, 1) = 'S' THEN
       Str := Copy(Str, 2);
-      IF NOT TryStrToInt(Trim(Str), Result) THEN
-        ErrorMsg := 'ValidateNextSignalIfNoIndicator: invalid signal integer string "' + Str + '"';
-    END;
+
+    IF NOT TryStrToInt(Trim(Str), Result) THEN
+      ErrorMsg := 'ValidateNextSignalIfNoIndicator: invalid signal integer string "' + Str + '"';
   END;
 END; { ValidateNextSignalIfNoIndicator }
 
@@ -2389,14 +2387,13 @@ BEGIN
   Result := UnknownSignal;
 
   Str := UpperCase(Str);
+
   IF Str <> '' THEN BEGIN
-    IF Copy(Str, 1, 1) <> 'S' THEN
-      ErrorMsg := 'ValidateSignalOppositePassingLoopSignal: next signal if no indicator: "' + Str + '" not preceded by ''S'''
-    ELSE BEGIN
+    IF Copy(Str, 1, 1) = 'S' THEN
       Str := Copy(Str, 2);
-      IF NOT TryStrToInt(Trim(Str), Result) THEN
-        ErrorMsg := 'ValidateSignalOppositePassingLoopSignal: invalid signal integer string "' + Str + '"';
-    END;
+
+    IF NOT TryStrToInt(Trim(Str), Result) THEN
+      ErrorMsg := 'ValidateSignalOppositePassingLoopSignal: invalid signal integer string "' + Str + '"';
   END;
 END; { ValidateSignalOppositePassingLoopSignal }
 
@@ -2446,17 +2443,15 @@ END; { ValidateSignalQuadrant }
 
 FUNCTION ValidateSignalType(Str : String; OUT Quadrant : QuadrantType; DistantHomesArray : IntegerArrayType; OUT ErrorMsg : String) : TypeOfSignal;
 { Validates and if ok returns the signal type }
+VAR
+  QuadrantStr : String;
+
 BEGIN
   ErrorMsg := '';
   Result := StrToSignalType(Str);
 
   IF Result = UnknownSignalType THEN
-    ErrorMsg := 'ValidateSignalType: invalid signal type'
-  ELSE
-    IF ((Result = SemaphoreHome) OR (Result = SemaphoreDistant))
-    AND (Quadrant = NoQuadrant)
-    THEN
-      ErrorMsg := 'ValidateSignalType: missing quadrant';
+    ErrorMsg := 'ValidateSignalType: invalid signal type';
 
   IF (Result = CallingOn) OR (Result = TwoAspect) OR (Result = ThreeAspect) OR (Result = FourAspect) THEN BEGIN
     IF Quadrant <> NoQuadrant THEN BEGIN
@@ -2468,8 +2463,21 @@ BEGIN
         ErrorMsg := 'ValidateSignalType: non-semaphore signals cannot have upper or lower quadrants'
       ELSE
         Quadrant := NoQuadrant;
+
+      WriteSignalValuesToValueList;
     END;
-  END;
+  END ELSE
+    IF (Result = SemaphoreDistant) OR (Result = SemaphoreHome) THEN BEGIN
+      IF Quadrant = NoQuadrant THEN BEGIN
+        QuadrantStr := InputBox('Quadrant Type', 'A semaphore signal must have a quadrant. Enter "U" for upper quadrant or "L" for lower quadrant', 'L');
+        IF UpperCase(QuadrantStr) = 'U' THEN
+          Quadrant := UpperQuadrant
+        ELSE
+          Quadrant := LowerQuadrant;
+
+        WriteSignalValuesToValueList;
+      END;
+    END;
 
   IF Length(DistantHomesArray) <> 0 THEN
     IF Result <> SemaphoreDistant THEN

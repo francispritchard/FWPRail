@@ -145,6 +145,9 @@ PROCEDURE TurnEditModeOff;
 PROCEDURE UndoEditChanges;
 { Undo any changes made by moving the item on screen or editing it in the value list editor }
 
+PROCEDURE WriteSignalValuesToValueList;
+{ Create or update a value list in the edit window with the appropriate values }
+
 VAR
   EditedBufferStop : Integer = UnknownBufferStop;
   EditedLine : Integer = UnknownLine;
