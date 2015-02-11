@@ -208,7 +208,7 @@ FUNCTION ValidateSignalPossibleStationStartRouteHold(Flag : Boolean; PossibleRou
 FUNCTION ValidateSignalQuadrant(Str : String; OUT ErrorMsg : String) : QuadrantType;
 { Validates and if ok returns the quadrant type }
 
-FUNCTION ValidateSignalType(Str : String; OUT Quadrant : QuadrantType; DistantHomesArray : IntegerArrayType; OUT ErrorMsg : String) : TypeOfSignal;
+FUNCTION ValidateSignalType(Str : String; VAR Quadrant : QuadrantType; VAR DistantHomesArray : IntegerArrayType; OUT ErrorMsg : String) : TypeOfSignal;
 { Validates and if ok returns the signal type }
 
 PROCEDURE WriteOutSignalDataToDatabase;
@@ -2441,7 +2441,7 @@ BEGIN
         ErrorMsg := 'Invalid signal quadrant type';
 END; { ValidateSignalQuadrant }
 
-FUNCTION ValidateSignalType(Str : String; OUT Quadrant : QuadrantType; DistantHomesArray : IntegerArrayType; OUT ErrorMsg : String) : TypeOfSignal;
+FUNCTION ValidateSignalType(Str : String; VAR Quadrant : QuadrantType; VAR DistantHomesArray : IntegerArrayType; OUT ErrorMsg : String) : TypeOfSignal;
 { Validates and if ok returns the signal type }
 VAR
   QuadrantStr : String;
@@ -2453,35 +2453,44 @@ BEGIN
   IF Result = UnknownSignalType THEN
     ErrorMsg := 'ValidateSignalType: invalid signal type';
 
-  IF (Result = CallingOn) OR (Result = TwoAspect) OR (Result = ThreeAspect) OR (Result = FourAspect) THEN BEGIN
-    IF Quadrant <> NoQuadrant THEN BEGIN
-      IF MessageDialogueWithDefault('A non-semaphore signal cannot have a quadrant'
-                                    + CRLF
-                                    + 'Do you wish to remove the quadrant?',
-                                    StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
-      THEN
-        ErrorMsg := 'ValidateSignalType: non-semaphore signals cannot have upper or lower quadrants'
-      ELSE
-        Quadrant := NoQuadrant;
-
-      WriteSignalValuesToValueList;
-    END;
-  END ELSE
-    IF (Result = SemaphoreDistant) OR (Result = SemaphoreHome) THEN BEGIN
-      IF Quadrant = NoQuadrant THEN BEGIN
-        QuadrantStr := InputBox('Quadrant Type', 'A semaphore signal must have a quadrant. Enter "U" for upper quadrant or "L" for lower quadrant', 'L');
-        IF UpperCase(QuadrantStr) = 'U' THEN
-          Quadrant := UpperQuadrant
+  IF EditMode THEN BEGIN
+    IF (Result <> SemaphoreDistant) AND (Result <> SemaphoreHome) THEN BEGIN
+      IF Quadrant <> NoQuadrant THEN BEGIN
+        IF MessageDialogueWithDefault('A non-semaphore signal cannot have a quadrant'
+                                      + CRLF
+                                      + 'Do you wish to remove the quadrant?',
+                                      StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
+        THEN
+          ErrorMsg := 'ValidateSignalType: non-semaphore signals cannot have upper or lower quadrants'
         ELSE
-          Quadrant := LowerQuadrant;
+          Quadrant := NoQuadrant;
 
         WriteSignalValuesToValueList;
       END;
-    END;
 
-  IF Length(DistantHomesArray) <> 0 THEN
-    IF Result <> SemaphoreDistant THEN
-      ErrorMsg := 'ValidateSignalType: only semaphore distants can have "Distant Homes"';
+      IF Length(DistantHomesArray) <> 0 THEN BEGIN
+        IF MessageDialogueWithDefault('only semaphore distants can have "Distant Homes". Delete "Distant Homes"?',
+                                      StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
+        THEN
+          ErrorMsg := 'ValidateSignalType: non-semaphore signals cannot have upper or lower quadrants'
+        ELSE
+          SetLength(DistantHomesArray, 0);
+
+        WriteSignalValuesToValueList;
+      END;
+    END ELSE
+      IF (Result = SemaphoreDistant) OR (Result = SemaphoreHome) THEN BEGIN
+        IF Quadrant = NoQuadrant THEN BEGIN
+          QuadrantStr := InputBox('Quadrant Type', 'A semaphore signal must have a quadrant. Enter "U" for upper quadrant or "L" for lower quadrant', 'L');
+          IF UpperCase(QuadrantStr) = 'U' THEN
+            Quadrant := UpperQuadrant
+          ELSE
+            Quadrant := LowerQuadrant;
+
+          WriteSignalValuesToValueList;
+        END;
+      END;
+  END;
 END; { ValidateSignalType }
 
 FUNCTION ValidateSignalAdjacentLineXOffset(Str : String; OUT ErrorMsg : String) : Integer;
