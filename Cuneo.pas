@@ -214,7 +214,10 @@ BEGIN
         IF SignalDragging THEN
           ChangeCursor(crDrag)
         ELSE
-          ChangeCursor(crDefault);
+          IF EditMode THEN
+            ChangeCursor(crCross)
+          ELSE
+            ChangeCursor(crDefault);
 
     MouseX := ScreenClickPosX + ScrollBarXAdjustment;
     MouseY := ScreenClickPosY + ScrollBarYAdjustment;
@@ -361,7 +364,7 @@ BEGIN
 
           { Change the cursor as often points are difficult to focus on }
           IF NOT SignalDragging AND NOT CreateLineMode AND (Screen.Cursor <> crCross) THEN
-            ChangeCursor(crCross);
+            ChangeCursor(crHandPoint);
 
           TempStatusBarPanel1Str := 'P' + IntToStr(P);
 

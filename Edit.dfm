@@ -5,7 +5,6 @@ object EditWindow: TEditWindow
   ClientHeight = 302
   ClientWidth = 750
   Color = clBtnFace
-  Enabled = False
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11

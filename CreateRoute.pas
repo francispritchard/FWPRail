@@ -896,7 +896,7 @@ VAR
       AND ((EndLine <> UnknownLine) AND (Lines[EndLine].Line_TypeOfLine <> SidingLine))
       THEN
         StopStr := 'sidings as through routes (embedded rule)';
-    END; { End of non-emergency Routeing }
+    END; { End of non-emergency routeing }
 
     Rule := 0;
     WHILE (Rule <= High(RouteingExceptions)) AND (StopStr = '') DO BEGIN
