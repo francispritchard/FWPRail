@@ -838,7 +838,7 @@ PROCEDURE WriteSignalValuesToValueList;
   BEGIN
     WITH EditWindow.EditValueListEditor DO BEGIN
       IF S <> UnknownSignal THEN
-        Values[Str] := 'S' + IntToStr(S)
+        Values[Str] := IntToStr(S)
       ELSE
         Values[Str] := '';
 
@@ -928,7 +928,7 @@ BEGIN { WriteSignalValuesToValueList }
           WriteIntegerArrayValues(Signal_LocationsToMonitorFieldName, Signal_LocationsToMonitorArray, '(No Locations)', '(Locations)');
           Values[Signal_NotesFieldName] := Signal_Notes;
           WriteBooleanValue(Signal_NotUsedForRouteingFieldName, Signal_NotUsedForRouteing);
-          WriteSignalValue(Signal_OppositePassingLoopSignalFieldName, Signal_OppositePassingLoopSignal, 'S999');
+          WriteSignalValue(Signal_OppositePassingLoopSignalFieldName, Signal_OppositePassingLoopSignal, '999');
           WriteBooleanValue(Signal_OutOfUseFieldName, Signal_OutOfUse);
           WriteBooleanValue(Signal_PossibleRouteHoldFieldName, Signal_PossibleRouteHold);
           WriteBooleanValue(Signal_PossibleStationStartRouteHoldFieldName, Signal_PossibleStationStartRouteHold);
