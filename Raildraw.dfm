@@ -30,6 +30,7 @@ object FWPRailWindow: TFWPRailWindow
   OnDragOver = FWPRailWindowDragOver
   OnKeyDown = FWPRailWindowKeyDown
   OnMouseDown = FWPRailWindowMouseDown
+  OnMouseLeave = FWPRailWindowMouseLeave
   OnMouseMove = FWPRailWindowMouseMove
   OnMouseUp = FWPRailWindowMouseUp
   OnMouseWheel = FWPRailWindowMouseWheel

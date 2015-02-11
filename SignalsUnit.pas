@@ -208,7 +208,7 @@ FUNCTION ValidateSignalPossibleStationStartRouteHold(Flag : Boolean; PossibleRou
 FUNCTION ValidateSignalQuadrant(Str : String; OUT ErrorMsg : String) : QuadrantType;
 { Validates and if ok returns the quadrant type }
 
-FUNCTION ValidateSignalType(Str : String; Quadrant : QuadrantType; DistantHomesArray : IntegerArrayType; OUT ErrorMsg : String) : TypeOfSignal;
+FUNCTION ValidateSignalType(Str : String; OUT Quadrant : QuadrantType; DistantHomesArray : IntegerArrayType; OUT ErrorMsg : String) : TypeOfSignal;
 { Validates and if ok returns the signal type }
 
 PROCEDURE WriteOutSignalDataToDatabase;
@@ -2444,7 +2444,7 @@ BEGIN
         ErrorMsg := 'Invalid signal quadrant type';
 END; { ValidateSignalQuadrant }
 
-FUNCTION ValidateSignalType(Str : String; Quadrant : QuadrantType; DistantHomesArray : IntegerArrayType; OUT ErrorMsg : String) : TypeOfSignal;
+FUNCTION ValidateSignalType(Str : String; OUT Quadrant : QuadrantType; DistantHomesArray : IntegerArrayType; OUT ErrorMsg : String) : TypeOfSignal;
 { Validates and if ok returns the signal type }
 BEGIN
   ErrorMsg := '';
@@ -2458,9 +2458,18 @@ BEGIN
     THEN
       ErrorMsg := 'ValidateSignalType: missing quadrant';
 
-  IF (Result = CallingOn) OR (Result = TwoAspect) OR (Result = ThreeAspect) OR (Result = FourAspect) THEN
-    IF Quadrant <> NoQuadrant THEN
-      ErrorMsg := 'ValidateSignalType: non-semaphore signals cannot have upper or lower quadrants';
+  IF (Result = CallingOn) OR (Result = TwoAspect) OR (Result = ThreeAspect) OR (Result = FourAspect) THEN BEGIN
+    IF Quadrant <> NoQuadrant THEN BEGIN
+      IF MessageDialogueWithDefault('A non-semaphore signal cannot have a quadrant'
+                                    + CRLF
+                                    + 'Do you wish to remove the quadrant?',
+                                    StopTimer, mtConfirmation, [mbYes, mbNo], mbNo) = mrNo
+      THEN
+        ErrorMsg := 'ValidateSignalType: non-semaphore signals cannot have upper or lower quadrants'
+      ELSE
+        Quadrant := NoQuadrant;
+    END;
+  END;
 
   IF Length(DistantHomesArray) <> 0 THEN
     IF Result <> SemaphoreDistant THEN
