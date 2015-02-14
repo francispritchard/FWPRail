@@ -3274,7 +3274,7 @@ BEGIN
     crVSplit:
       Result := 'VSplit';
   ELSE {CASE}
-    Result := 'Unknwon Cursor';
+    Result := 'Unknown Cursor';
   END; {CASE}
 END; { CursorToStr }
 

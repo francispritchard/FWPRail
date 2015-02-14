@@ -374,12 +374,12 @@ PROCEDURE ShowStatusBarAndUpDownIndications;
 PROCEDURE WriteToStatusBarPanel(PanelNum : Integer; Str : String);
 { Write the text in the chosen panel }
 
-CONST
-  crCrossHair = 5;
-  crCrossHairForUpSignal = 6;
-  crCrossHairForDownSignal = 7;
-  crPointLever = 8;
-  crArrowRed = 9;
+//CONST
+//  crCrossHair = 5;
+//  crCrossHairForUpSignal = 6;
+//  crCrossHairForDownSignal = 7;
+//  crPointLever = 8;
+//  crArrowRed = 9;
 
 VAR
   FWPRailWindow : TFWPRailWindow;
@@ -6775,10 +6775,10 @@ BEGIN
 //      Application.OnMessage := ApplicationMessage;
 
       { initialize parameters }
-      Screen.Cursors[crCrossHair] := LoadCursor(HInstance, 'CrossHair');
-      Screen.Cursors[crCrossHairForUpSignal] := LoadCursor(HInstance, 'CrossHair-UpSignal');
-      Screen.Cursors[crCrossHairForDownSignal] := LoadCursor(HInstance, 'CrossHair-DownSignal');
-      Screen.Cursors[crPointLever] := LoadCursor(HInstance, 'PointLever');
+//      Screen.Cursors[crCrossHair] := LoadCursor(HInstance, 'CrossHair');
+//      Screen.Cursors[crCrossHairForUpSignal] := LoadCursor(HInstance, 'CrossHair-UpSignal');
+//      Screen.Cursors[crCrossHairForDownSignal] := LoadCursor(HInstance, 'CrossHair-DownSignal');
+//      Screen.Cursors[crPointLever] := LoadCursor(HInstance, 'PointLever');
 
       { Set up default window size }
       Position := poDesigned;
