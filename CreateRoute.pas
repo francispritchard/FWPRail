@@ -1552,6 +1552,7 @@ END; { CreateDraftRouteArray }
 PROCEDURE CreateLockingArrayFromDraftRouteArray(LocoChipStr : string; DraftRouteArray : StringArrayType; OUT LockingArray : StringArrayType);
 { Creates locking based on the route previously found - adds the original line-name data as it's used in drawing the subroute }
 VAR
+  BS : Integer;
   BufferStopFound : Boolean;
   CrossOverPointStr : String;
   FirstLineTC : Integer;
@@ -1594,17 +1595,17 @@ BEGIN
     TempDraftRouteArrayPos := 0;
     WHILE (TempDraftRouteArrayPos < Length(TempDraftRouteArray)) DO BEGIN
       { Look at signals first }
-      IF (Pos('FS=', TempDraftRouteArray[TempDraftRouteArrayPos]) > 0)
-      OR (Pos('BS=', TempDraftRouteArray[TempDraftRouteArrayPos]) > 0)
+      TempSignal := ExtractSignalFromString(TempDraftRouteArray[TempDraftRouteArrayPos]);
+      TempBufferStop := ExtractBufferStopFromString(TempDraftRouteArray[TempDraftRouteArrayPos]);
+
+      IF ((TempSignal <> UnknownSignal) AND NOT Signals[TempSignal].Signal_OutOfUse)
+      OR (TempBufferStop <> UnknownBufferStop)
       THEN BEGIN
-        IF (Pos('FS=', TempDraftRouteArray[TempDraftRouteArrayPos]) > 0) THEN BEGIN
-          { found a signal }
-          TempSignal := ExtractSignalFromString(TempDraftRouteArray[TempDraftRouteArrayPos]);
-          RouteDirection := Signals[TempSignal].Signal_Direction;
-        END ELSE BEGIN
+        IF TempSignal <> UnknownSignal THEN
+          RouteDirection := Signals[TempSignal].Signal_Direction
+        ELSE BEGIN
           { found a buffer stop }
           BufferStopFound := True;
-          TempBufferStop := ExtractBufferStopFromString(TempDraftRouteArray[TempDraftRouteArrayPos]);
           RouteDirection := BufferStops[TempBufferStop].BufferStop_Direction;
         END;
 
