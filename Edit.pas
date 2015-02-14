@@ -564,6 +564,7 @@ BEGIN
       Values[Str] := 'False';
 
     ItemProps[Str].ReadOnly := True;
+    ItemProps[Str].PickList.Clear;
     ItemProps[Str].PickList.Add('True');
     ItemProps[Str].PickList.Add('False');
     ItemProps[Str].EditStyle := esPickList;
