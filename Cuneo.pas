@@ -357,13 +357,13 @@ BEGIN
 
     PointFoundNum := UnknownPoint;
     P := 0;
-    WHILE (P <= High(Points)) AND (PointFoundNum = Unknownpoint) DO BEGIN
+    WHILE (P <= High(Points)) AND (PointFoundNum = UnknownPoint) DO BEGIN
       WITH Points[P] DO BEGIN
         IF PtInRect(Point_MouseRect, Point(MouseX, MouseY)) THEN BEGIN
           ObjectFound := True;
 
           { Change the cursor as often points are difficult to focus on }
-          IF NOT SignalDragging AND NOT CreateLineMode AND (Screen.Cursor <> crCross) THEN
+          IF NOT SignalDragging AND NOT CreateLineMode AND NOT EditMode THEN
             ChangeCursor(crHandPoint);
 
           TempStatusBarPanel1Str := 'P' + IntToStr(P);
