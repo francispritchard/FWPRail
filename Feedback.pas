@@ -253,7 +253,7 @@ BEGIN
           IF FieldByName(FieldName).AsString = '' THEN
             ErrorMsg := 'missing feedback type'
           ELSE BEGIN
-            WITH Feedbackunitrecords[high(Feedbackunitrecords)] DO BEGIN
+            WITH FeedbackUnitRecords[high(FeedbackUnitRecords)] DO BEGIN
               Feedback_InputTypeArray[1] := StrToFeedbackType(FieldByName(FieldName).AsString);
               IF Feedback_InputTypeArray[1] = UnknownFeedbackType THEN
                 ErrorMsg := 'unknown feedback type';
@@ -265,7 +265,7 @@ BEGIN
             Input := 2;
             WHILE (Input <= 8) AND (ErrorMsg = '') DO BEGIN
               FieldName := 'Input' + IntToStr(Input) + 'Type';
-              WITH Feedbackunitrecords[high(Feedbackunitrecords)] DO
+              WITH FeedbackUnitRecords[high(FeedbackUnitRecords)] DO
                 IF FieldByName(FieldName).AsString = '' THEN
                   { propagate the other input types if only the first is occupied }
                   Feedback_InputTypeArray[Input] := Feedback_InputTypeArray[1]
@@ -282,14 +282,14 @@ BEGIN
             FieldName := 'TCAbove';
             TempStr := FieldByName(FieldName).AsString;
             IF TempStr = '' THEN
-              Feedbackunitrecords[high(Feedbackunitrecords)].Feedback_TCAboveUnit := UnknownTrackCircuit
+              FeedbackUnitRecords[High(FeedbackUnitRecords)].Feedback_TCAboveUnit := UnknownTrackCircuit
             ELSE
-              IF NOT TryStrToInt(TempStr, Feedbackunitrecords[high(Feedbackunitrecords)].Feedback_TCAboveUnit) THEN
+              IF NOT TryStrToInt(TempStr, FeedbackUnitRecords[High(FeedbackUnitRecords)].Feedback_TCAboveUnit) THEN
                 ErrorMsg := 'invalid integer ''' + TempStr + ''' in TCAbove field';
           END;
 
           IF ErrorMsg <> '' THEN BEGIN
-            IF MessageDialogueWithDefault('Error in creating Feedback Detector=' + IntToStr(high(Feedbackunitrecords)) + ': '
+            IF MessageDialogueWithDefault('Error in creating Feedback Detector=' + IntToStr(High(FeedbackUnitRecords)) + ': '
                                           + '[' + ErrorMsg + ']:'
                                           + CRLF
                                           + 'Do you wish to continue?',
@@ -623,7 +623,7 @@ VAR
     END;
   END; { ProcessSpeedTiming }
 
-BEGIN { newDecodeFeedback }
+BEGIN { DecodeFeedback }
   TRY
     { Read in the stored data from all the units, in case some has changed whilst we've been busy elsewhere }
     WITH FeedbackUnitRecords[FeedbackUnit] DO BEGIN

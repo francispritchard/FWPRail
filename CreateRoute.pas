@@ -1552,7 +1552,6 @@ END; { CreateDraftRouteArray }
 PROCEDURE CreateLockingArrayFromDraftRouteArray(LocoChipStr : string; DraftRouteArray : StringArrayType; OUT LockingArray : StringArrayType);
 { Creates locking based on the route previously found - adds the original line-name data as it's used in drawing the subroute }
 VAR
-  BS : Integer;
   BufferStopFound : Boolean;
   CrossOverPointStr : String;
   FirstLineTC : Integer;
@@ -1578,8 +1577,6 @@ BEGIN
     RouteDirection := UnknownDirection;
     HoldMarkerFound := False;
     JourneyStr := '';
-    TempBufferStop := UnknownBufferStop;
-    TempSignal := UnknownSignal;
     TheatreIndicatorPos := 0;
     SetLength(TempDraftRouteArray, 0);
 
