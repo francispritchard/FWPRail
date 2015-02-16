@@ -188,7 +188,6 @@ TYPE
                EmergencyStopReply, EverythingTurnedOnReply, FeedbackReply, LocoReply, LocoTakenoverReply, PointReply, ProgrammingModeReply, SystemStatusReply,
                TrackPowerOffReply, NoReplyExpected);
 VAR
-  ExpectedFeedbackAddress : Byte = 0;
   FeedbackArray : ARRAY [0..127, 0..1] OF Byte; { needs to store upper and lower nibble of data }
   OneTimeCodeBeingExecuted : Boolean = False;
   SaveTimeCTSLastFoundSet : Cardinal = 0;
@@ -585,15 +584,17 @@ VAR
   I : Integer;
   NumberOfInputs : Integer;
 
-  PROCEDURE WhichFeedbackInputsHaveChanged(UnitNum, NewData : Byte);
+  PROCEDURE WhichFeedbackInputsHaveChanged(XpressNetUnit, NewData : Byte);
   { Checks against the stored feedback data to report any changes }
   VAR
     B : Byte;
+    FeedbackUnit : Integer;
     I, Input, Nibble : Integer;
 
   BEGIN
-    IF ((UnitNum + 1) < FirstFeedbackUnit) OR ((UnitNum + 1) > LastFeedbackUnit) THEN
-      Log('AG Feedback unit number ' + IntToStr(UnitNum + 1) + ' outside designated range')
+    FeedbackUnit := XpressNetUnit + 1;
+    IF ((FeedbackUnit) < FirstFeedbackUnit) OR ((FeedbackUnit) > LastFeedbackUnit) THEN
+      Log('AG Feedback unit number ' + IntToStr(FeedbackUnit) + ' outside designated range')
     ELSE BEGIN
       { upper or lower nibble? }
       IF (NewData AND 16) <> 16 THEN BEGIN
@@ -606,25 +607,25 @@ VAR
       END;
 
       { XORing only sets in B the bits which are not the same }
-      B := FeedbackArray[UnitNum, Nibble] XOR NewData;
+      B := FeedbackArray[FeedbackUnit, Nibble] XOR NewData;
 
       IF B = 0 THEN
-        // Log('A Feedback unit ' + IntToStr(UnitNum + 1) + ': no change') { caused by lots of *78*s }
+        // Log('A Feedback unit ' + IntToStr(FeedbackUnit) + ': no change') { caused by lots of *78*s }
       ELSE BEGIN
         { there is a change - cycle through the four inputs }
         FOR I := 1 TO 4 DO BEGIN
           IF (B AND BinaryCounter[I]) = BinaryCounter[I] THEN BEGIN
             IF (NewData AND BinaryCounter[I]) = BinaryCounter[I] THEN BEGIN
-              FeedbackUnitRecords[UnitNum + 1].Feedback_Inputonarray[Input + I] := true;
-              DecodeFeedback(UnitNum + 1, Input + I);
+              FeedbackUnitRecords[FeedbackUnit].Feedback_InputOnArray[Input + I] := true;
+              DecodeFeedback(FeedbackUnit, Input + I);
             END ELSE BEGIN
-              FeedbackUnitRecords[UnitNum + 1].Feedback_Inputonarray[Input + I] := false;
-              DecodeFeedback(UnitNum + 1, Input + I);
+              FeedbackUnitRecords[FeedbackUnit].Feedback_InputOnArray[Input + I] := false;
+              DecodeFeedback(FeedbackUnit, Input + I);
             END;
           END;
         END;
         { now store the new data instead }
-        FeedbackArray[UnitNum, Nibble] := NewData;
+        FeedbackArray[FeedbackUnit, Nibble] := NewData;
       END;
     END;
   END; { WhichFeedbackInputsHaveChanged }
@@ -697,6 +698,7 @@ VAR
   DebugStr, UnknownReplyString : String;
   ErrorFound : Boolean;
   ErrorMsg : String;
+  ExpectedFeedbackAddress : Integer;
   I : Integer;
   Loco : LocoRec;
   LocoChip : Integer;
@@ -723,6 +725,7 @@ BEGIN
 
     ResponseOrBroadcast := NoResponse;
     RetryCount := 0;
+    ExpectedFeedbackAddress := 0;
 
     REPEAT
       RetryFlag := False;
@@ -755,6 +758,10 @@ BEGIN
         DebugStr := 'PC request: ';
 
         CommandLen := GetCommandLen(WriteArray[0]);
+
+        { If we're requesting feedback data, note which unit's data we're looking for }
+        IF WriteArray[0] = 66 THEN
+          ExpectedFeedbackAddress := WriteArray[1];
 
         FOR I := 0 TO CommandLen DO
           DebugStr := DebugStr + IntToStr(WriteArray[I]) + '-';
@@ -1013,12 +1020,12 @@ BEGIN
                   IF (ExpectedReply = NoReplyExpected) AND (WhatSortOfDecoderIsIt(ReadArray[1], ReadArray[2]) = AccessoryDecoderWithoutFeedbackStr) THEN BEGIN
                     { see if it's point data, as that seems to be an acknowledgment }
                     ExpectedDataReceived := True;
-                    Log('T Feedback broadcast for point selection has arrived');
+                    Log('T An unexpected feedback broadcast for point selection has arrived');
                   END ELSE
                     { see if we've asked for the data (during startup, for instance) }
                     IF (ExpectedReply = FeedbackReply) AND (ExpectedFeedbackAddress = ReadArray[1]) THEN BEGIN
                       ExpectedDataReceived := True;
-                      Log('T A reply from unit ' + IntToStr(ReadArray[1] + 1) + ' has arrived');
+                      Log('T An expected reply from unit ' + IntToStr(ReadArray[1] + 1) + ' has arrived');
                     END ELSE BEGIN
                       UnrequestedDataFound := True;
 //                      Log('T Unrequested feedback has arrived');
@@ -1411,9 +1418,9 @@ CONST
   CheckTimeOuts = True;
 
 VAR
-  TimedOut : Boolean;
   ExpectedDataReceived : Boolean;
   ReadArray : ARRAY[0..15] OF Byte;
+  TimedOut : Boolean;
   WriteArray : ARRAY[0..15] OF Byte;
   WriteReadVar : WriteReadType;
 
@@ -1428,9 +1435,9 @@ CONST
   CheckTimeOuts = True;
 
 VAR
-  TimedOut : Boolean;
   ExpectedDataReceived : Boolean;
   ReadArray : ARRAY[0..15] OF Byte;
+  TimedOut : Boolean;
   WriteReadVar : WriteReadType;
 
 BEGIN
@@ -1444,8 +1451,8 @@ CONST
   CheckTimeOuts = True;
 
 VAR
-  TimedOut : Boolean;
   ReadArray : ARRAY[0..15] OF Byte;
+  TimedOut : Boolean;
   WriteReadVar : WriteReadType;
 
 BEGIN
@@ -3106,29 +3113,19 @@ BEGIN
   { Cycle through the four inputs }
   FOR I := 1 TO 4 DO BEGIN
     IF (B AND BinaryCounter[I]) = BinaryCounter[I] THEN BEGIN
-      FeedbackUnitRecords[UnitNum + 1].Feedback_Inputonarray[Input + I] := true;
-      //writeoutfeedbackrec(UnitNum + 1);
-      DecodeFeedback(UnitNum + 1, Input + I);
+      FeedbackUnitRecords[UnitNum].Feedback_InputOnArray[Input + I] := True;
+      DecodeFeedback(UnitNum, Input + I);
     END ELSE BEGIN
-      FeedbackUnitRecords[UnitNum + 1].Feedback_Inputonarray[Input + I] := False;
-      //writeoutfeedbackrec(UnitNum + 1);
-      DecodeFeedback(UnitNum + 1, Input + I);
+      FeedbackUnitRecords[UnitNum].Feedback_InputOnArray[Input + I] := False;
+      DecodeFeedback(UnitNum, Input + I);
     END;
   END;
 END; { WhichFeedbackInputsAreSet }
 
 PROCEDURE GetInitialFeedback(OUT OK : Boolean);
 { Read in the feedback before we start, or after an interruption }
-CONST
-  ProcessMessages = True;
 
-VAR
-  NoFeedbackList : String;
-  ReadArray : ARRAY [0..ReadArrayLen] OF Byte;
-  UnitNum : Integer;
-  WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
-
-  PROCEDURE ReadInFeedbackData(FeedbackAddress : Byte; OUT OK : Boolean);
+  PROCEDURE ReadInFeedbackData(TempUnit : Integer; OUT OK : Boolean);
   { Ask for feedback on specified device and store it. Usually only called on startup.
 
     Feedback comes in two nibbles - have to ask for both to get all the inputs, which comes in bits 3-0 (in nibble 1, bit 0 is input 1, bit 1 is input 2, etc. In nibble 2,
@@ -3136,12 +3133,16 @@ VAR
   }
   VAR
     I : Integer;
+    ReadArray : ARRAY [0..ReadArrayLen] OF Byte;
+    WriteArray : ARRAY [0..ReadArrayLen] OF Byte;
+    XpressNetUnit : Byte;
 
   BEGIN
+    XpressNetUnit := TempUnit - 1;
+
     FOR I := 128 TO 129 DO BEGIN
-      ExpectedFeedbackAddress := FeedbackAddress;
       WriteArray[0] := 66;
-      WriteArray[1] := FeedbackAddress;
+      WriteArray[1] := XpressNetUnit;
       WriteArray[2] := I;
 
       IF NOT SystemOnline THEN
@@ -3151,9 +3152,9 @@ VAR
           DataIO('T', WriteArray, ReadArray, FeedbackReply, OK);
 
           { Check it's for the unit we specified, in case some unrequested feedback data comes in while we're starting up }
-          IF OK AND (ReadArray[1] <> FeedbackAddress) THEN
-            Log('TG Feedback for ' + IntToStr(ReadArray[1] + 1) + ' arrived when feedback for ' + IntToStr(FeedbackAddress + 1) + ' expected');
-        UNTIL (OK AND (ReadArray[1] = FeedbackAddress))
+          IF OK AND (ReadArray[1] <> XpressNetUnit) THEN
+            Log('TG Feedback for ' + IntToStr(ReadArray[1] + 1) + ' arrived when feedback for ' + IntToStr(TempUnit) + ' expected');
+        UNTIL (OK AND (ReadArray[1] = XpressNetUnit))
                OR NOT SystemOnline;
 
         IF NOT SystemOnline THEN
@@ -3164,33 +3165,39 @@ VAR
         IF ReadArray[2] = 0 THEN BEGIN
           { there's a problem - keep the user informed }
           OK := False;
-          Log('T The feedback from unit ' + IntToStr(ReadArray[1] + 1) + ' has no data in it');
+          Log('T The feedback from unit ' + IntToStr(TempUnit) + ' has no data in it');
         END ELSE BEGIN
-          WhichFeedbackInputsAreSet(FeedbackAddress, ReadArray[2]);
+          WhichFeedbackInputsAreSet(TempUnit, ReadArray[2]);
 
-          { and store the data for future use - need to store in two halves }
-          IF I = 128 THEN BEGIN
+          { and store the data in the global feedback-data array for future use - need to store in two halves }
+          IF I = 128 THEN
             { inputs 1 to 4 }
-            FeedbackArray[FeedbackAddress, 0] := ReadArray[2];
-          END ELSE BEGIN
+            FeedbackArray[TempUnit, 0] := ReadArray[2]
+          ELSE
             { inputs 5 to 8 }
-            FeedbackArray[FeedbackAddress, 1] := ReadArray[2]
-          END;
+            FeedbackArray[TempUnit, 1] := ReadArray[2]
         END;
       END;
     END;
   END; { ReadInFeedbackData }
 
+CONST
+  ProcessMessages = True;
+
+VAR
+  NoFeedbackList : String;
+  UnitNum : Integer;
+
 BEGIN
   IF SystemOnline THEN BEGIN
     FOR UnitNum := FirstFeedbackUnit TO LastFeedbackUnit DO BEGIN
-      Log('T Requesting feedback data for unit ' + IntToStr(UnitNum + 1) + ' {BLANKLINEBEFORE}');
+      Log('T Requesting feedback data for unit ' + IntToStr(UnitNum) + ' {BLANKLINEBEFORE}');
       ReadInFeedbackData(UnitNum, OK);
       IF NOT OK THEN BEGIN
-        Log('T Re-requesting feedback data for unit ' + IntToStr(UnitNum + 1) + ' {BLANKLINEBEFORE}');
+        Log('T Re-requesting feedback data for unit ' + IntToStr(UnitNum) + ' {BLANKLINEBEFORE}');
         ReadInFeedbackData(UnitNum, OK);
         IF NOT OK THEN BEGIN
-          Log('T No feedback from unit ' + IntToStr(UnitNum + 1));
+          Log('T No feedback from unit ' + IntToStr(UnitNum));
           FeedbackUnitRecords[UnitNum].Feedback_DetectorOutOfUse := True;
         END;
       END;
@@ -3202,7 +3209,7 @@ BEGIN
     NoFeedbackList := '';
     FOR UnitNum := FirstFeedbackUnit TO LastFeedbackUnit DO
       IF FeedbackUnitRecords[UnitNum].Feedback_DetectorOutOfUse THEN
-        NoFeedbackList := NoFeedbackList + IfThen(NoFeedbackList <> '', ', ') + IntToStr(UnitNum + 1);
+        NoFeedbackList := NoFeedbackList + IfThen(NoFeedbackList <> '', ', ') + IntToStr(UnitNum);
 
     IF NoFeedbackList <> '' THEN
       Log('XG The following feedback units are out of use: ' + NoFeedbackList);
