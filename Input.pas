@@ -1174,6 +1174,7 @@ BEGIN { KeyPressedDown }
               ShowLocationLengthDetail := False;
               ShowLocations := False;
               ShowMouseRectangles := False;
+              ShowOneFeedbackUnitOnly := False;
               ShowPointDefaultState := False;
               ShowPointDetail := False;
               ShowPointFeedbackDataInSeparateColours := False;

@@ -844,7 +844,7 @@ VAR
                     IF ShowOneFeedbackUnitOnly THEN
                       Font.Color := clYellow;
                     IF (Feedback_InputTrackCircuit[J] >= 0) AND (Feedback_InputTrackCircuit[J] <= High(TrackCircuits)) THEN BEGIN
-                      SegmentText := IntToStr(FirstUnit) + IntToStr(J);
+                      SegmentText := IntToStr(F) + IntToStr(J);
                       IF Length(TrackCircuits[Feedback_InputTrackCircuit[J]].TC_LineArray) > 0 THEN BEGIN
                         Line := TrackCircuits[Feedback_InputTrackCircuit[J]].TC_LineArray[0];
                         WITH Lines[Line] DO BEGIN
@@ -863,9 +863,6 @@ VAR
               END; {FOR}
             END; {WITH}
           END; {FOR}
-
-          IF ShowOneFeedbackUnitOnly THEN
-            ShowOneFeedbackUnitOnly := False;
         END ELSE BEGIN
           FOR TC := 0 TO High(TrackCircuits) DO BEGIN
             { Write out the track-circuit number once only }
@@ -976,10 +973,10 @@ VAR
                               IF FeedbackUnitRecords[I].Feedback_InputTrackCircuit[J] = Line_TC THEN BEGIN
                                 FeedbackUnitFound := True;
                                 SegmentText := IntToStr(I) + IntToStr(J);
-//                              IF FeedbackUnitInUseArray[I] THEN { &&&&&& }
-//                                Font.Color := TCFeedbackDataInUseColour
-//                              ELSE
-//                                Font.Color := TCFeedbackDataOutOfUseColour;
+                                IF NOT FeedbackUnitRecords[I].Feedback_DetectorOutOfUse THEN
+                                  Font.Color := TCFeedbackDataInUseColour
+                                ELSE
+                                  Font.Color := TCFeedbackDataOutOfUseColour;
                               END;
                             END;
                           END;
@@ -3003,6 +3000,7 @@ END; { DrawPoint }
 PROCEDURE DrawPointNum(P : Integer; Colour : TColour);
 { Put the number of the point on the diagram }
 VAR
+  PointFeedbackFound : Boolean;
   I, J : Integer;
   LockingMsg : String;
   NumberText : String;
@@ -3084,20 +3082,25 @@ BEGIN
             IF ShowPointFeedbackDataInUse THEN BEGIN
               { displaying point feedback data }
               NumberText := '';
-              FOR I := FirstFeedbackUnit TO LastFeedbackUnit DO BEGIN
+              PointFeedbackFound := False;
+              I := FirstFeedbackUnit;
+              WHILE (I <= LastFeedbackUnit) AND NOT PointFeedbackFound DO BEGIN
                 FOR J := 1 TO 8 DO BEGIN
-                  IF FeedbackUnitRecords[I].Feedback_InputTypeArray[J] = PointFeedback THEN BEGIN
+                  IF FeedbackUnitRecords[I].Feedback_InputPoint[J] = P THEN BEGIN
+                    PointFeedbackFound := True;
                     NumberText := IntToStr(I) + IntToStr(J);
                     IF ScreenColoursSetForPrinting THEN
                       Font.Color := clBlack
                     ELSE
-//                      IF FeedbackUnitInUseArray[I] THEN
-//                        Font.Color := PointFeedbackDataInUseColour
-//                      ELSE
-//                        Font.Color := PointFeedbackDataOutOfUseColour;
+                      IF NOT FeedbackUnitRecords[I].Feedback_DetectorOutOfUse THEN
+                        Font.Color := TCFeedbackDataInUseColour
+                      ELSE
+                        Font.Color := TCFeedbackDataOutOfUseColour;
                   END;
                 END;
-              END; {FOR}
+                Inc(I);
+              END; {WHILE}
+
               IF NumberText = '' THEN BEGIN
                 { no feedback unit assigned }
                 Font.Color := PointsWithoutFeedbackColour;
