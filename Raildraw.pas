@@ -211,7 +211,7 @@ TYPE
                         TCPermanentOccupationSetByUserPenStylePopupType, TCPermanentSystemOccupationPenStylePopupType, TCLocoOutOfPlacePenStylePopupType,
                         NoPenStylePopupType);
 
-  TMenuItemExtended = CLASS(TMenuItem)
+  TFWPMenuItem = CLASS(TMenuItem)
   PRIVATE
     fValue: String;
     fMenuPopupType : MenuPopupTypes;
@@ -2662,6 +2662,7 @@ BEGIN
           END;
 //          IF ShowLineOccupationDetail AND (LineTextStr <> '') AND (TempLineText <> ClearLineString) THEN BEGIN
             { needs text if there's room }
+
 begin
 //linetextstr := 'hello';
             IF ((ScreenDownX - ScreenUpX > TextWidth(LineTextStr)) OR (ScreenUpX - ScreenDownX > TextWidth(LineTextStr)))
@@ -4049,10 +4050,10 @@ BEGIN
 END; { PopupTimerTick }
 
 FUNCTION AddMainMenuItem(PopupMenu : TPopupMenu; Caption : String; MenuPopupType : MenuPopupTypes; Enabled, Visible, Checked : Boolean;
-                         Click : TNotifyEvent) : TMenuItemExtended;
+                         Click : TNotifyEvent) : TFWPMenuItem;
 { Add a dynamic main menu item }
 BEGIN
-  Result := TMenuItemExtended.Create(PopupMenu);
+  Result := TFWPMenuItem.Create(PopupMenu);
   Result.Caption := Caption;
   Result.Value := 'test string'; { not used }
   Result.Enabled := Enabled;
@@ -4064,11 +4065,11 @@ BEGIN
   PopupMenu.Items.Add(Result) ;
 END; { AddMainMenuItem }
 
-FUNCTION AddSubMenuItem{1}(SubMenuItem : TMenuItemExtended; Caption : String; MenuPopupType : MenuPopupTypes; Enabled, Visible, Checked : Boolean;
-                           PenStylePopupType : PenStylePopupTypes; Click : TNotifyEvent) : TMenuItemExtended; Overload;
+FUNCTION AddSubMenuItem{1}(SubMenuItem : TFWPMenuItem; Caption : String; MenuPopupType : MenuPopupTypes; Enabled, Visible, Checked : Boolean;
+                           PenStylePopupType : PenStylePopupTypes; Click : TNotifyEvent) : TFWPMenuItem; Overload;
 { Add a dynamic sub-menu item }
 BEGIN
-  Result := TMenuItemExtended.Create(SubMenuItem);
+  Result := TFWPMenuItem.Create(SubMenuItem);
   Result.Caption := Caption;
   Result.Value := 'test string'; { not used }
   Result.Enabled := Enabled;
@@ -4080,8 +4081,8 @@ BEGIN
   SubMenuItem.Add(Result) ;
 END; { AddSubMenuItem-1 }
 
-FUNCTION AddSubMenuItem{2}(SubMenuItem : TMenuItemExtended; Caption : String; PopupType : MenuPopupTypes; Enabled, Visible, Checked : Boolean;
-                           Click : TNotifyEvent) : TMenuItemExtended; Overload;
+FUNCTION AddSubMenuItem{2}(SubMenuItem : TFWPMenuItem; Caption : String; PopupType : MenuPopupTypes; Enabled, Visible, Checked : Boolean;
+                           Click : TNotifyEvent) : TFWPMenuItem; Overload;
 { Add a dynamic sub-menu item }
 BEGIN
   Result := AddSubMenuItem(SubMenuItem, Caption, PopupType, Enabled, Visible, Checked, NoPenStylePopupType, Click);
@@ -4114,7 +4115,7 @@ BEGIN
     Exit;
   END;
 
-  WITH Sender AS TMenuItemExtended DO BEGIN
+  WITH Sender AS TFWPMenuItem DO BEGIN
     CASE MenuPopupType OF
       ShowMainMenusPopupType:
         IF NOT MenusVisible THEN
@@ -4700,7 +4701,7 @@ END; { GeneralPopupItemClick }
 PROCEDURE TFWPRailWindow.GeneralPopupMenuOnPopup(Sender: TObject);
 { This has been extracted into a subroutine as it is called multiple times }
 
-  PROCEDURE AddPenStylesSubmenu(VAR SubSubMenuItems : TMenuItemExtended; PenStylePopupType : PenStylePopupTypes);
+  PROCEDURE AddPenStylesSubmenu(VAR SubSubMenuItems : TFWPMenuItem; PenStylePopupType : PenStylePopupTypes);
   BEGIN
     AddSubMenuItem(SubSubMenuItems, 'Solid', SolidPenStylePopupType, Enabled, Visible, NOT Checked, PenStylePopupType, GeneralPopupItemClick);
     AddSubMenuItem(SubSubMenuItems, 'Dash', DashPenStylePopupType, Enabled, Visible, NOT Checked, PenStylePopupType, GeneralPopupItemClick);
@@ -4712,9 +4713,9 @@ PROCEDURE TFWPRailWindow.GeneralPopupMenuOnPopup(Sender: TObject);
   END; { AddPenStylesSubmenu }
 
 VAR
-  MainMenuItemExtended : TMenuItemExtended;
-  SubMenuItems : TMenuItemExtended;
-  SubSubMenuItems : TMenuItemExtended;
+  MainMenuItemExtended : TFWPMenuItem;
+  SubMenuItems : TFWPMenuItem;
+  SubSubMenuItems : TFWPMenuItem;
   WhetherChecked : Boolean;
   WhetherEnabled : Boolean;
 
@@ -5178,7 +5179,7 @@ BEGIN
   END;
 
   WITH Signals[SignalPopupNum] DO BEGIN
-    WITH Sender AS TMenuItemExtended DO BEGIN
+    WITH Sender AS TFWPMenuItem DO BEGIN
       CASE MenuPopupType OF
         SignalChangeDirectionPopupType:
           ChangeSignalDirection(SignalPopupNum);
@@ -5281,7 +5282,7 @@ BEGIN
   END;
 
   WITH Points[PointPopupNum] DO BEGIN
-    WITH Sender AS TMenuItemExtended DO BEGIN
+    WITH Sender AS TFWPMenuItem DO BEGIN
       CASE MenuPopupType OF
         PointOutOfUsePopupType:
           BEGIN
@@ -5763,7 +5764,7 @@ BEGIN
     Exit;
   END;
 
-  WITH Sender AS TMenuItemExtended DO BEGIN
+  WITH Sender AS TFWPMenuItem DO BEGIN
     { this code has been separated out from the case statement below as we may well not be on a line, and the "WITH Lines[LinePopupNumArray[0]]" statement would fail }
     IF MenuPopupType = LineExitEditModePopupType THEN BEGIN
       TurnEditModeOff;
