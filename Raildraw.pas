@@ -4713,9 +4713,9 @@ PROCEDURE TFWPRailWindow.GeneralPopupMenuOnPopup(Sender: TObject);
   END; { AddPenStylesSubmenu }
 
 VAR
-  MainMenuItemExtended : TFWPMenuItem;
-  SubMenuItems : TFWPMenuItem;
-  SubSubMenuItems : TFWPMenuItem;
+  FWPMenuItem : TFWPMenuItem;
+  FWPSubMenuItems : TFWPMenuItem;
+  SubFWPSubMenuItems : TFWPMenuItem;
   WhetherChecked : Boolean;
   WhetherEnabled : Boolean;
 
@@ -4731,435 +4731,435 @@ BEGIN
   ELSE
     AddMainMenuItem(GeneralPopupMenu, 'Hide Main Menus', ShowMainMenusPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
 
-  MainMenuItemExtended := AddMainMenuItem(GeneralPopupMenu, 'Clock', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+  FWPMenuItem := AddMainMenuItem(GeneralPopupMenu, 'Clock', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
 
     WhetherEnabled := InAutoMode;
-    AddSubMenuItem(MainMenuItemExtended, 'Start Clock', StartClockPopupType, NOT WhetherEnabled, Visible, NOT Checked, GeneralPopupItemClick);
-    AddSubMenuItem(MainMenuItemExtended, 'Stop Clock', StopClockPopupType, WhetherEnabled, Visible, NOT Checked, GeneralPopupItemClick);
+    AddSubMenuItem(FWPMenuItem, 'Start Clock', StartClockPopupType, NOT WhetherEnabled, Visible, NOT Checked, GeneralPopupItemClick);
+    AddSubMenuItem(FWPMenuItem, 'Stop Clock', StopClockPopupType, WhetherEnabled, Visible, NOT Checked, GeneralPopupItemClick);
 
-    AddSubMenuItem(MainMenuItemExtended, '-', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+    AddSubMenuItem(FWPMenuItem, '-', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
 
     WhetherChecked := RailwayTimeInterval = Normal;
-    AddSubMenuItem(MainMenuItemExtended, 'Run Clock Normally', RunClockNormallyPopupType, Enabled, Visible, WhetherChecked, GeneralPopupItemClick);
+    AddSubMenuItem(FWPMenuItem, 'Run Clock Normally', RunClockNormallyPopupType, Enabled, Visible, WhetherChecked, GeneralPopupItemClick);
     WhetherChecked := RailwayTimeInterval = Slower;
-    AddSubMenuItem(MainMenuItemExtended, 'Run Clock Slower', RunClockSlowerPopupType, Enabled, Visible, WhetherChecked, GeneralPopupItemClick);
+    AddSubMenuItem(FWPMenuItem, 'Run Clock Slower', RunClockSlowerPopupType, Enabled, Visible, WhetherChecked, GeneralPopupItemClick);
     WhetherChecked := RailwayTimeInterval = Faster;
-    AddSubMenuItem(MainMenuItemExtended, 'Run Clock Faster', RunClockFasterPopupType, Enabled, Visible, WhetherChecked, GeneralPopupItemClick);
+    AddSubMenuItem(FWPMenuItem, 'Run Clock Faster', RunClockFasterPopupType, Enabled, Visible, WhetherChecked, GeneralPopupItemClick);
     WhetherChecked := RailwayTimeInterval = Fastest;
-    AddSubMenuItem(MainMenuItemExtended, 'Run Clock Fastest', RunClockFastestPopupType, Enabled, Visible, WhetherChecked, GeneralPopupItemClick);
+    AddSubMenuItem(FWPMenuItem, 'Run Clock Fastest', RunClockFastestPopupType, Enabled, Visible, WhetherChecked, GeneralPopupItemClick);
 
-    AddSubMenuItem(MainMenuItemExtended, '-', NoClickPopupType, Enabled, Visible, WhetherChecked, GeneralPopupItemClick);
+    AddSubMenuItem(FWPMenuItem, '-', NoClickPopupType, Enabled, Visible, WhetherChecked, GeneralPopupItemClick);
 
-    AddSubMenuItem(MainMenuItemExtended, 'Set Current Railway Time', SetCurrentRailwayTimePopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-    AddSubMenuItem(MainMenuItemExtended, 'Set Current Railway Day Of The Week', SetCurrentRailwayDayOfTheWeekPopupType, Enabled, Visible, NOT Checked,
+    AddSubMenuItem(FWPMenuItem, 'Set Current Railway Time', SetCurrentRailwayTimePopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+    AddSubMenuItem(FWPMenuItem, 'Set Current Railway Day Of The Week', SetCurrentRailwayDayOfTheWeekPopupType, Enabled, Visible, NOT Checked,
                    GeneralPopupItemClick);
-    AddSubMenuItem(MainMenuItemExtended, 'Set Program Start Time', SetProgramStartTimePopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-    AddSubMenuItem(MainMenuItemExtended, 'Set Daylight Start Time', SetDaylightStartTimePopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-    AddSubMenuItem(MainMenuItemExtended, 'Set Daylight End Time', SetDaylightEndTimePopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+    AddSubMenuItem(FWPMenuItem, 'Set Program Start Time', SetProgramStartTimePopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+    AddSubMenuItem(FWPMenuItem, 'Set Daylight Start Time', SetDaylightStartTimePopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+    AddSubMenuItem(FWPMenuItem, 'Set Daylight End Time', SetDaylightEndTimePopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
 
-  MainMenuItemExtended := AddMainMenuItem(GeneralPopupMenu, 'Change Colours', NoclickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+  FWPMenuItem := AddMainMenuItem(GeneralPopupMenu, 'Change Colours', NoclickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
 
-    SubMenuItems := AddSubMenuItem(MainMenuItemExtended, 'Background Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-      AddSubMenuItem(SubMenuItems, 'Change Background Colour', ChangeBackgroundColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-      AddSubMenuItem(SubMenuItems, 'Restore Background Colour', RestoreBackgroundColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+    FWPSubMenuItems := AddSubMenuItem(FWPMenuItem, 'Background Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+      AddSubMenuItem(FWPSubMenuItems, 'Change Background Colour', ChangeBackgroundColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+      AddSubMenuItem(FWPSubMenuItems, 'Restore Background Colour', RestoreBackgroundColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
 
-    SubMenuItems := AddSubMenuItem(MainMenuItemExtended, 'Foreground Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-      AddSubMenuItem(SubMenuItems, 'Change Foreground Colour', ChangeForegroundColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-      AddSubMenuItem(SubMenuItems, 'Restore Foreground Colour', RestoreForegroundColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+    FWPSubMenuItems := AddSubMenuItem(FWPMenuItem, 'Foreground Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+      AddSubMenuItem(FWPSubMenuItems, 'Change Foreground Colour', ChangeForegroundColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+      AddSubMenuItem(FWPSubMenuItems, 'Restore Foreground Colour', RestoreForegroundColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
 
-    AddSubMenuItem(MainMenuItemExtended, '-', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+    AddSubMenuItem(FWPMenuItem, '-', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
 
-    SubMenuItems := AddSubMenuItem(MainMenuItemExtended, 'Buffer Stop Colours', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+    FWPSubMenuItems := AddSubMenuItem(FWPMenuItem, 'Buffer Stop Colours', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
 
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Buffer Stop Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change Buffer Stop Colour', ChangeBufferStopColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore Buffer Stop Colour', RestoreBufferStopColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Buffer Stop Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change Buffer Stop Colour', ChangeBufferStopColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore Buffer Stop Colour', RestoreBufferStopColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
 
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Buffer Stop Number Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change Buffer Stop Number Colour', ChangeBufferStopNumberColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore Buffer Stop Number Colour', RestoreBufferStopNumberColourPopupType, Enabled, Visible, NOT Checked,
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Buffer Stop Number Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change Buffer Stop Number Colour', ChangeBufferStopNumberColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore Buffer Stop Number Colour', RestoreBufferStopNumberColourPopupType, Enabled, Visible, NOT Checked,
                        GeneralPopupItemClick);
 
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Buffer Stop Red', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change Buffer Stop Red', ChangeBufferStopRedPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore Buffer Stop Red', RestoreBufferStopRedPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Buffer Stop Red', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change Buffer Stop Red', ChangeBufferStopRedPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore Buffer Stop Red', RestoreBufferStopRedPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
 
-      SubMenuItems := AddSubMenuItem(MainMenuItemExtended, 'Line and Track Circuit Colours', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubMenuItems, 'N.B. Default Line Colour = TCUnoccupiedColour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubMenuItems, '-', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+      FWPSubMenuItems := AddSubMenuItem(FWPMenuItem, 'Line and Track Circuit Colours', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(FWPSubMenuItems, 'N.B. Default Line Colour = TCUnoccupiedColour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(FWPSubMenuItems, '-', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
 
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Line Routed Over Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change Line Routed Over Colour', ChangeLineRoutedOverColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore Line Routed Over Colour', RestoreLineRoutedOverColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Line Routed Over Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change Line Routed Over Colour', ChangeLineRoutedOverColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore Line Routed Over Colour', RestoreLineRoutedOverColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
 
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Line Not Available Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change Line Not Available Colour', ChangeLineNotAvailableColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore Line Not Available Colour', RestoreLineNotAvailableColourPopupType, Enabled, Visible, NOT Checked,
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Line Not Available Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change Line Not Available Colour', ChangeLineNotAvailableColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore Line Not Available Colour', RestoreLineNotAvailableColourPopupType, Enabled, Visible, NOT Checked,
                        GeneralPopupItemClick);
 
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Loco Stalled Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change Loco Stalled Colour', ChangeLocoStalledColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore Loco Stalled Colour', RestoreLocoStalledColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Loco Stalled Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change Loco Stalled Colour', ChangeLocoStalledColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore Loco Stalled Colour', RestoreLocoStalledColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
 
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'TC Feedback Occupation Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change TC Feedback Occupation Colour', ChangeTCFeedbackOccupationColourPopupType, Enabled, Visible, NOT Checked,
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'TC Feedback Occupation Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change TC Feedback Occupation Colour', ChangeTCFeedbackOccupationColourPopupType, Enabled, Visible, NOT Checked,
                        GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore TC Feedback Occupation Colour', RestoreTCFeedbackOccupationColourPopupType, Enabled, Visible, NOT Checked,
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore TC Feedback Occupation Colour', RestoreTCFeedbackOccupationColourPopupType, Enabled, Visible, NOT Checked,
                        GeneralPopupItemClick);
 
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'TC Feedback Occupation But Out Of Use Colour', NoClickPopupType, Enabled, Visible, NOT Checked,
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'TC Feedback Occupation But Out Of Use Colour', NoClickPopupType, Enabled, Visible, NOT Checked,
                                         GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change TC Feedback Occupation But Out Of Use Colour', ChangeTCFeedbackOccupationButOutOfUseColourPopupType, Enabled,
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change TC Feedback Occupation But Out Of Use Colour', ChangeTCFeedbackOccupationButOutOfUseColourPopupType, Enabled,
                        Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore TC Feedback Occupation But Out Of Use Colour', RestoreTCFeedbackOccupationButOutOfUseColourPopupType, Enabled,
-                       Visible, NOT Checked, GeneralPopupItemClick);
-
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'TC Feedback Data In Use Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change TC Feedback Data In Use Colour', ChangeTCFeedbackDataInUseColourPopupType, Enabled, Visible, NOT Checked,
-                       GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore TC Feedback Data In Use Colour', RestoreTCFeedbackDataInUseColourPopupType, Enabled, Visible, NOT Checked,
-                       GeneralPopupItemClick);
-
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'TC Data Out Of Use Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change TC Feedback Data Out Of Use Colour', ChangeTCFeedbackDataOutOfUseColourPopupType, Enabled, Visible, NOT Checked,
-                       GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore TC Feedback Data Out Of Use Colour', RestoreTCFeedbackDataOutOfUseColourPopupType, Enabled, Visible, NOT Checked,
-                       GeneralPopupItemClick);
-
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'TC Missing Occupation Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change TC Missing Occupation Colour', ChangeTCMissingOccupationColourPopupType, Enabled, Visible, NOT Checked,
-                       GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore TC Missing Occupation Colour', RestoreTCMissingOccupationColourPopupType, Enabled, Visible, NOT Checked,
-                       GeneralPopupItemClick);
-
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'TC Permanent Feedback Occupation Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change TC Permanent Feedback Occupation Colour', ChangeTCPermanentFeedbackOccupationColourPopupType, Enabled, Visible,
-                       NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore TC Permanent Feedback Occupation Colour', RestoreTCPermanentFeedbackOccupationColourPopupType, Enabled, Visible,
-                       NOT Checked, GeneralPopupItemClick);
-
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'TC Permanent Occupation Set By User Colour', NoClickPopupType, Enabled, Visible, NOT Checked,
-                                        GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change TC Permanent Occupation Set By User Colour', ChangeTCPermanentOccupationSetByUserColourPopupType, Enabled, Visible,
-                       NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore TC Permanent Occupation Set By User Colour', RestoreTCPermanentOccupationSetByUserColourPopupType, Enabled, Visible,
-                       NOT Checked, GeneralPopupItemClick);
-
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'TC Permanent System Occupation Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change TC Permanent System Occupation Colour', ChangeTCPermanentSystemOccupationColourPopupType, Enabled, Visible,
-                       NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore TC Permanent System Occupation Colour', RestoreTCPermanentSystemOccupationColourPopupType, Enabled, Visible,
-                       NOT Checked, GeneralPopupItemClick);
-
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'TC Speed Restriction Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change TC Speed Restriction Colour', ChangeTCSpeedRestrictionColourPopupType, Enabled, Visible, NOT Checked,
-                       GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore TC Speed Restriction Colour', RestoreTCSpeedRestrictionColourPopupType, Enabled, Visible, NOT Checked,
-                       GeneralPopupItemClick);
-
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'TC System Occupation Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change TC System Occupation Colour', ChangeTCSystemOccupationColourPopupType, Enabled, Visible, NOT Checked,
-                       GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore TC System Occupation Colour', RestoreTCSystemOccupationColourPopupType, Enabled, Visible, NOT Checked,
-                       GeneralPopupItemClick);
-
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'TC Out Of Use Set By User Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change TC Out Of Use Set By User Colour', ChangeTCOutOfUseSetByUserColourPopupType, Enabled, Visible, NOT Checked,
-                       GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore TC Out Of Use Set By User Colour', RestoreTCOutOfUseSetByUserColourPopupType, Enabled, Visible, NOT Checked,
-                       GeneralPopupItemClick);
-
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'TC Out Of Use As No Feedback Received Colour', NoClickPopupType, Enabled, Visible, NOT Checked,
-                                        GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change TC Out Of Use As No Feedback Received Colour', ChangeTCOutOfUseAsNoFeedbackReceivedColourPopupType, Enabled, Visible,
-                       NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore TC Out Of Use As No Feedback Received Colour', RestoreTCOutOfUseAsNoFeedbackReceivedColourPopupType, Enabled,
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore TC Feedback Occupation But Out Of Use Colour', RestoreTCFeedbackOccupationButOutOfUseColourPopupType, Enabled,
                        Visible, NOT Checked, GeneralPopupItemClick);
 
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'TC Unoccupied Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change TC Unoccupied Colour', ChangeTCUnoccupiedColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore TC Unoccupied Colour', RestoreTCUnoccupiedColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-
-    SubMenuItems := AddSubMenuItem(MainMenuItemExtended, 'Platform Colours', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Platform Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change Platform Colour', ChangePlatformColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore Platform Colour', RestorePlatformColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'TRS Plunger Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change TRS Plunger Colour', ChangeTRSPlungerColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore TRS Plunger Colour', RestoreTRSPlungerColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'TRS Plunger Pressed Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change TRS Plunger Pressed Colour', ChangeTRSPlungerPressedColourPopupType, Enabled, Visible, NOT Checked,
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'TC Feedback Data In Use Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change TC Feedback Data In Use Colour', ChangeTCFeedbackDataInUseColourPopupType, Enabled, Visible, NOT Checked,
                        GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore TRS Plunger Pressed Colour', RestoreTRSPlungerPressedColourPopupType, Enabled, Visible, NOT Checked,
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore TC Feedback Data In Use Colour', RestoreTCFeedbackDataInUseColourPopupType, Enabled, Visible, NOT Checked,
                        GeneralPopupItemClick);
 
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'TRS Plunger Outline Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change TRS Plunger Outline Colour', ChangeTRSPlungerOutlineColourPopupType, Enabled, Visible, NOT Checked,
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'TC Data Out Of Use Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change TC Feedback Data Out Of Use Colour', ChangeTCFeedbackDataOutOfUseColourPopupType, Enabled, Visible, NOT Checked,
                        GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore TRS Plunger Outline Colour', RestoreTRSPlungerOutlineColourPopupType, Enabled, Visible, NOT Checked,
-                       GeneralPopupItemClick);
-
-    SubMenuItems := AddSubMenuItem(MainMenuItemExtended, 'Point Colours', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Default Point Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change Default Point Colour', ChangeDefaultPointColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore Default Point Colour', RestoreDefaultPointColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Point Default State Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change Point Default State Colour', ChangePointDefaultStateColourPopupType, Enabled, Visible, NOT Checked,
-                       GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore Point Default State Colour', RestorePointDefaultStateColourPopupType, Enabled, Visible, NOT Checked,
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore TC Feedback Data Out Of Use Colour', RestoreTCFeedbackDataOutOfUseColourPopupType, Enabled, Visible, NOT Checked,
                        GeneralPopupItemClick);
 
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Point Diverging Line Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change Point Diverging Line Colour', ChangePointDivergingLineColourPopupType, Enabled, Visible, NOT Checked,
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'TC Missing Occupation Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change TC Missing Occupation Colour', ChangeTCMissingOccupationColourPopupType, Enabled, Visible, NOT Checked,
                        GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore Point Diverging Line Colour', RestorePointDivergingLineColourPopupType, Enabled, Visible, NOT Checked,
-                       GeneralPopupItemClick);
-
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Point Down Facing Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change Point Down Facing Colour', ChangePointDownFacingColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore Point Down Facing Colour', RestorePointDownFacingColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Point Feedback Data In Use Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change Point Feedback Data In Use Colour', ChangePointFeedbackDataInUseColourPopupType, Enabled, Visible, NOT Checked,
-                       GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore Point Feedback Data In Use Colour', RestorePointFeedbackDataInUseColourPopupType, Enabled, Visible, NOT Checked,
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore TC Missing Occupation Colour', RestoreTCMissingOccupationColourPopupType, Enabled, Visible, NOT Checked,
                        GeneralPopupItemClick);
 
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Point Feedback Data Out Of Use Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change Point Feedback Data Out Of Use Colour', ChangePointFeedbackDataOutOfUseColourPopupType, Enabled, Visible, NOT Checked,
-                       GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore Point Feedback Data Out Of Use Colour', RestorePointFeedbackDataOutOfUseColourPopupType, Enabled, Visible, NOT Checked,
-                       GeneralPopupItemClick);
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'TC Permanent Feedback Occupation Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change TC Permanent Feedback Occupation Colour', ChangeTCPermanentFeedbackOccupationColourPopupType, Enabled, Visible,
+                       NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore TC Permanent Feedback Occupation Colour', RestoreTCPermanentFeedbackOccupationColourPopupType, Enabled, Visible,
+                       NOT Checked, GeneralPopupItemClick);
 
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Point Heel Line Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change Heel Line Point Colour', ChangePointHeelLineColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore Heel Line Point Colour', RestorePointHeelLineColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Point Lenz Number Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change Point Lenz Number Colour', ChangePointLenzNumberColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore Point Lenz Number Colour', RestorePointLenzNumberColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Point Locked By System Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change Point Locked By System Colour', ChangePointLockedBySystemColourPopupType, Enabled, Visible, NOT Checked,
-                       GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore Point Locked By System Colour', RestorePointLockedBySystemColourPopupType, Enabled, Visible, NOT Checked,
-                       GeneralPopupItemClick);
-
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Point Locked By User Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change Point Locked By User Colour', ChangePointLockedByUserColourPopupType, Enabled, Visible, NOT Checked,
-                       GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore Point Locked By User Colour', RestorePointLockedByUserColourPopupType, Enabled, Visible, NOT Checked,
-                       GeneralPopupItemClick);
-
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Point Manual Operation Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change Point Manual Operation Colour', ChangePointManualOperationColourPopupType, Enabled, Visible, NOT Checked,
-                       GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore Point Manual Operation Colour', RestorePointManualOperationColourPopupType, Enabled, Visible, NOT Checked,
-                       GeneralPopupItemClick);
-
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Point Out Of Use Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change Point Out Of Use Colour', ChangePointOutOfUseColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore Point Out Of Use Colour', RestorePointOutOfUseColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Point Straight Line Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change Point Straight Line Colour', ChangePointStraightLineColourPopupType, Enabled, Visible, NOT Checked,
-                       GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore Point Straight Line Colour', RestorePointStraightLineColourPopupType, Enabled, Visible, NOT Checked,
-                       GeneralPopupItemClick);
-
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Point Undraw Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change Point Undraw Colour', ChangePointUndrawColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore Point Undraw Colour', RestorePointUndrawColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Point Up Facing Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change Point Up Facing Colour', ChangePointUpFacingColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore Point Up Facing Colour', RestorePointUpFacingColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Points Without Feedback Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change Points Without Feedback Colour', ChangePointsWithoutFeedbackColourPopupType, Enabled, Visible, NOT Checked,
-                       GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore Points Without Feedback Colour', RestorePointsWithoutFeedbackColourPopupType, Enabled, Visible, NOT Checked,
-                       GeneralPopupItemClick);
-
-    SubMenuItems := AddSubMenuItem(MainMenuItemExtended, 'Signal Colours', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Signal Aspect Red', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change Signal Aspect Red', ChangeSignalAspectRedPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore Signal Aspect Red', RestoreSignalAspectRedPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Signal Aspect Green', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change Signal Aspect Green', ChangeSignalAspectGreenPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore Signal Aspect Green', RestoreSignalAspectGreenPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Signal Aspect Yellow', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change Signal Aspect Yellow', ChangeSignalAspectYellowPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore Signal Aspect Yellow', RestoreSignalAspectYellowPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Signal Aspect Unlit', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change Signal Aspect Unlit', ChangeSignalAspectUnlitPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore Signal Aspect Unlit', RestoreSignalAspectUnlitPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Signal Number Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change Signal Number Colour', ChangeSignalNumberColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore Signal Number Colour', RestoreSignalNumberColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Signal Post Base Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change Signal Post Base Colour', ChangeSignalPostBaseColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore Signal Post Base Colour', RestoreSignalPostBaseColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Signal Post Route Setting Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change Signal Post Route Setting Colour', ChangeSignalPostRouteSettingColourPopupType, Enabled, Visible, NOT Checked,
-                       GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore Signal Post Route Setting Colour', RestoreSignalPostRouteSettingColourPopupType, Enabled, Visible, NOT Checked,
-                       GeneralPopupItemClick);
-
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Signal Post Emergency Route Setting Colour', NoClickPopupType, Enabled, Visible, NOT Checked,
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'TC Permanent Occupation Set By User Colour', NoClickPopupType, Enabled, Visible, NOT Checked,
                                         GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change Signal Post Emergency Route Setting Colour', ChangeSignalPostEmergencyRouteSettingColourPopupType, Enabled,
-                       Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore Signal Post Emergency Route Setting Colour', RestoreSignalPostEmergencyRouteSettingColourPopupType, Enabled,
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change TC Permanent Occupation Set By User Colour', ChangeTCPermanentOccupationSetByUserColourPopupType, Enabled, Visible,
+                       NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore TC Permanent Occupation Set By User Colour', RestoreTCPermanentOccupationSetByUserColourPopupType, Enabled, Visible,
+                       NOT Checked, GeneralPopupItemClick);
+
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'TC Permanent System Occupation Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change TC Permanent System Occupation Colour', ChangeTCPermanentSystemOccupationColourPopupType, Enabled, Visible,
+                       NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore TC Permanent System Occupation Colour', RestoreTCPermanentSystemOccupationColourPopupType, Enabled, Visible,
+                       NOT Checked, GeneralPopupItemClick);
+
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'TC Speed Restriction Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change TC Speed Restriction Colour', ChangeTCSpeedRestrictionColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore TC Speed Restriction Colour', RestoreTCSpeedRestrictionColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'TC System Occupation Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change TC System Occupation Colour', ChangeTCSystemOccupationColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore TC System Occupation Colour', RestoreTCSystemOccupationColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'TC Out Of Use Set By User Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change TC Out Of Use Set By User Colour', ChangeTCOutOfUseSetByUserColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore TC Out Of Use Set By User Colour', RestoreTCOutOfUseSetByUserColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'TC Out Of Use As No Feedback Received Colour', NoClickPopupType, Enabled, Visible, NOT Checked,
+                                        GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change TC Out Of Use As No Feedback Received Colour', ChangeTCOutOfUseAsNoFeedbackReceivedColourPopupType, Enabled, Visible,
+                       NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore TC Out Of Use As No Feedback Received Colour', RestoreTCOutOfUseAsNoFeedbackReceivedColourPopupType, Enabled,
                        Visible, NOT Checked, GeneralPopupItemClick);
 
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Signal Post Theatre Setting Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change Signal Post Theatre Setting Colour', ChangeSignalPostTheatreSettingColourPopupType, Enabled, Visible, NOT Checked,
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'TC Unoccupied Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change TC Unoccupied Colour', ChangeTCUnoccupiedColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore TC Unoccupied Colour', RestoreTCUnoccupiedColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+    FWPSubMenuItems := AddSubMenuItem(FWPMenuItem, 'Platform Colours', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Platform Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change Platform Colour', ChangePlatformColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore Platform Colour', RestorePlatformColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'TRS Plunger Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change TRS Plunger Colour', ChangeTRSPlungerColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore TRS Plunger Colour', RestoreTRSPlungerColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'TRS Plunger Pressed Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change TRS Plunger Pressed Colour', ChangeTRSPlungerPressedColourPopupType, Enabled, Visible, NOT Checked,
                        GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore Signal Post Theatre Setting Colour', RestoreSignalPostTheatreSettingColourPopupType, Enabled, Visible, NOT Checked,
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore TRS Plunger Pressed Colour', RestoreTRSPlungerPressedColourPopupType, Enabled, Visible, NOT Checked,
                        GeneralPopupItemClick);
 
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Signals From Which User Must Drive Signal Post Colour', NoClickPopupType, Enabled, Visible, NOT Checked,
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'TRS Plunger Outline Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change TRS Plunger Outline Colour', ChangeTRSPlungerOutlineColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore TRS Plunger Outline Colour', RestoreTRSPlungerOutlineColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+
+    FWPSubMenuItems := AddSubMenuItem(FWPMenuItem, 'Point Colours', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Default Point Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change Default Point Colour', ChangeDefaultPointColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore Default Point Colour', RestoreDefaultPointColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Point Default State Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change Point Default State Colour', ChangePointDefaultStateColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore Point Default State Colour', RestorePointDefaultStateColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Point Diverging Line Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change Point Diverging Line Colour', ChangePointDivergingLineColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore Point Diverging Line Colour', RestorePointDivergingLineColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Point Down Facing Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change Point Down Facing Colour', ChangePointDownFacingColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore Point Down Facing Colour', RestorePointDownFacingColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Point Feedback Data In Use Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change Point Feedback Data In Use Colour', ChangePointFeedbackDataInUseColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore Point Feedback Data In Use Colour', RestorePointFeedbackDataInUseColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Point Feedback Data Out Of Use Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change Point Feedback Data Out Of Use Colour', ChangePointFeedbackDataOutOfUseColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore Point Feedback Data Out Of Use Colour', RestorePointFeedbackDataOutOfUseColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Point Heel Line Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change Heel Line Point Colour', ChangePointHeelLineColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore Heel Line Point Colour', RestorePointHeelLineColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Point Lenz Number Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change Point Lenz Number Colour', ChangePointLenzNumberColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore Point Lenz Number Colour', RestorePointLenzNumberColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Point Locked By System Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change Point Locked By System Colour', ChangePointLockedBySystemColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore Point Locked By System Colour', RestorePointLockedBySystemColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Point Locked By User Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change Point Locked By User Colour', ChangePointLockedByUserColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore Point Locked By User Colour', RestorePointLockedByUserColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Point Manual Operation Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change Point Manual Operation Colour', ChangePointManualOperationColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore Point Manual Operation Colour', RestorePointManualOperationColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Point Out Of Use Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change Point Out Of Use Colour', ChangePointOutOfUseColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore Point Out Of Use Colour', RestorePointOutOfUseColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Point Straight Line Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change Point Straight Line Colour', ChangePointStraightLineColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore Point Straight Line Colour', RestorePointStraightLineColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Point Undraw Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change Point Undraw Colour', ChangePointUndrawColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore Point Undraw Colour', RestorePointUndrawColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Point Up Facing Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change Point Up Facing Colour', ChangePointUpFacingColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore Point Up Facing Colour', RestorePointUpFacingColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Points Without Feedback Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change Points Without Feedback Colour', ChangePointsWithoutFeedbackColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore Points Without Feedback Colour', RestorePointsWithoutFeedbackColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+
+    FWPSubMenuItems := AddSubMenuItem(FWPMenuItem, 'Signal Colours', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Signal Aspect Red', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change Signal Aspect Red', ChangeSignalAspectRedPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore Signal Aspect Red', RestoreSignalAspectRedPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Signal Aspect Green', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change Signal Aspect Green', ChangeSignalAspectGreenPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore Signal Aspect Green', RestoreSignalAspectGreenPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Signal Aspect Yellow', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change Signal Aspect Yellow', ChangeSignalAspectYellowPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore Signal Aspect Yellow', RestoreSignalAspectYellowPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Signal Aspect Unlit', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change Signal Aspect Unlit', ChangeSignalAspectUnlitPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore Signal Aspect Unlit', RestoreSignalAspectUnlitPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Signal Number Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change Signal Number Colour', ChangeSignalNumberColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore Signal Number Colour', RestoreSignalNumberColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Signal Post Base Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change Signal Post Base Colour', ChangeSignalPostBaseColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore Signal Post Base Colour', RestoreSignalPostBaseColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Signal Post Route Setting Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change Signal Post Route Setting Colour', ChangeSignalPostRouteSettingColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore Signal Post Route Setting Colour', RestoreSignalPostRouteSettingColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Signal Post Emergency Route Setting Colour', NoClickPopupType, Enabled, Visible, NOT Checked,
                                         GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change Signals From Which User Must Drive Signal Post Colour', ChangeSignalsFromWhichUserMustDriveSignalPostColourPopupType,
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change Signal Post Emergency Route Setting Colour', ChangeSignalPostEmergencyRouteSettingColourPopupType, Enabled,
+                       Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore Signal Post Emergency Route Setting Colour', RestoreSignalPostEmergencyRouteSettingColourPopupType, Enabled,
+                       Visible, NOT Checked, GeneralPopupItemClick);
+
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Signal Post Theatre Setting Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change Signal Post Theatre Setting Colour', ChangeSignalPostTheatreSettingColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore Signal Post Theatre Setting Colour', RestoreSignalPostTheatreSettingColourPopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Signals From Which User Must Drive Signal Post Colour', NoClickPopupType, Enabled, Visible, NOT Checked,
+                                        GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change Signals From Which User Must Drive Signal Post Colour', ChangeSignalsFromWhichUserMustDriveSignalPostColourPopupType,
                        Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore Signals From Which User Must Drive Signal Post Colour',
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore Signals From Which User Must Drive Signal Post Colour',
                        RestoreSignalsFromWhichUserMustDriveSignalPostColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
 
-    SubMenuItems := AddSubMenuItem(MainMenuItemExtended, 'Train Colours', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Train Active Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change Train Active Colour', ChangeTrainActiveColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore Train Active Colour', RestoreTrainActiveColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+    FWPSubMenuItems := AddSubMenuItem(FWPMenuItem, 'Train Colours', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Train Active Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change Train Active Colour', ChangeTrainActiveColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore Train Active Colour', RestoreTrainActiveColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
 
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Train Inactive Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change Train Inactive Colour', ChangeTrainInactiveColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore Train Inactive Colour', RestoreTrainInactiveColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Train Inactive Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change Train Inactive Colour', ChangeTrainInactiveColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore Train Inactive Colour', RestoreTrainInactiveColourPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
 
-    SubMenuItems := AddSubMenuItem(MainMenuItemExtended, 'Editing Colours', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Screen Component Edited 1 Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change Screen Component Edited 1 Colour', ChangeScreenComponentEditedColour1PopupType, Enabled, Visible, NOT Checked,
+    FWPSubMenuItems := AddSubMenuItem(FWPMenuItem, 'Editing Colours', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Screen Component Edited 1 Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change Screen Component Edited 1 Colour', ChangeScreenComponentEditedColour1PopupType, Enabled, Visible, NOT Checked,
                        GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore Screen Component Edited 1 Colour', RestoreScreenComponentEditedColour1PopupType, Enabled, Visible, NOT Checked,
-                       GeneralPopupItemClick);
-
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Screen Component Edited 2 Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Change Screen Component Edited 2 Colour', ChangeScreenComponentEditedColour2PopupType, Enabled, Visible, NOT Checked,
-                       GeneralPopupItemClick);
-        AddSubMenuItem(SubSubMenuItems, 'Restore Screen Component Edited 2 Colour', RestoreScreenComponentEditedColour2PopupType, Enabled, Visible, NOT Checked,
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore Screen Component Edited 1 Colour', RestoreScreenComponentEditedColour1PopupType, Enabled, Visible, NOT Checked,
                        GeneralPopupItemClick);
 
-    AddSubMenuItem(MainMenuItemExtended, '-', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-    AddSubMenuItem(MainMenuItemExtended, 'Restore All Default Colours', RestoreAllDefaultColoursPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Screen Component Edited 2 Colour', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Change Screen Component Edited 2 Colour', ChangeScreenComponentEditedColour2PopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
+        AddSubMenuItem(SubFWPSubMenuItems, 'Restore Screen Component Edited 2 Colour', RestoreScreenComponentEditedColour2PopupType, Enabled, Visible, NOT Checked,
+                       GeneralPopupItemClick);
 
-  MainMenuItemExtended := AddMainMenuItem(GeneralPopupMenu, 'Change Pen Styles', NoclickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+    AddSubMenuItem(FWPMenuItem, '-', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+    AddSubMenuItem(FWPMenuItem, 'Restore All Default Colours', RestoreAllDefaultColoursPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
 
-    SubMenuItems := AddSubMenuItem(MainMenuItemExtended, 'Siding Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Change Siding Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddPenStylesSubMenu(SubSubMenuItems, SidingPenStylePopupType);
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Restore Siding Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddPenStylesSubMenu(SubSubMenuItems, SidingPenStylePopupType);
+  FWPMenuItem := AddMainMenuItem(GeneralPopupMenu, 'Change Pen Styles', NoclickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
 
-    SubMenuItems := AddSubMenuItem(MainMenuItemExtended, 'Signals From Which User Must Drive Signal Post Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
+    FWPSubMenuItems := AddSubMenuItem(FWPMenuItem, 'Siding Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Change Siding Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddPenStylesSubMenu(SubFWPSubMenuItems, SidingPenStylePopupType);
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Restore Siding Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddPenStylesSubMenu(SubFWPSubMenuItems, SidingPenStylePopupType);
+
+    FWPSubMenuItems := AddSubMenuItem(FWPMenuItem, 'Signals From Which User Must Drive Signal Post Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
                                    GeneralPopupItemClick);
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Change Signals From Which User Must Drive Signal Post Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Change Signals From Which User Must Drive Signal Post Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
                                         GeneralPopupItemClick);
-        AddPenStylesSubMenu(SubSubMenuItems, SignalsFromWhichUserMustDriveSignalPostPenStylePopupType);
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Restore Signals From Which User Must Drive Signal Post Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
+        AddPenStylesSubMenu(SubFWPSubMenuItems, SignalsFromWhichUserMustDriveSignalPostPenStylePopupType);
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Restore Signals From Which User Must Drive Signal Post Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
                                         GeneralPopupItemClick);
-        AddPenStylesSubMenu(SubSubMenuItems, SignalsFromWhichUserMustDriveSignalPostPenStylePopupType);
+        AddPenStylesSubMenu(SubFWPSubMenuItems, SignalsFromWhichUserMustDriveSignalPostPenStylePopupType);
 
-    SubMenuItems := AddSubMenuItem(MainMenuItemExtended, 'Fiddleyard-Line Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Change Fiddleyard-Line Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddPenStylesSubMenu(SubSubMenuItems, FiddleyardLinePenStylePopupType);
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Restore Fiddleyard-Line Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddPenStylesSubMenu(SubSubMenuItems, FiddleyardLinePenStylePopupType);
+    FWPSubMenuItems := AddSubMenuItem(FWPMenuItem, 'Fiddleyard-Line Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Change Fiddleyard-Line Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddPenStylesSubMenu(SubFWPSubMenuItems, FiddleyardLinePenStylePopupType);
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Restore Fiddleyard-Line Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddPenStylesSubMenu(SubFWPSubMenuItems, FiddleyardLinePenStylePopupType);
 
-    SubMenuItems := AddSubMenuItem(MainMenuItemExtended, 'Projected-Line Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Change Projected-Line Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddPenStylesSubMenu(SubSubMenuItems, ProjectedLinePenStylePopupType);
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Restore Projected-Line Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddPenStylesSubMenu(SubSubMenuItems, ProjectedLinePenStylePopupType);
+    FWPSubMenuItems := AddSubMenuItem(FWPMenuItem, 'Projected-Line Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Change Projected-Line Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddPenStylesSubMenu(SubFWPSubMenuItems, ProjectedLinePenStylePopupType);
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Restore Projected-Line Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddPenStylesSubMenu(SubFWPSubMenuItems, ProjectedLinePenStylePopupType);
 
-    SubMenuItems := AddSubMenuItem(MainMenuItemExtended, 'TC Out Of Use As No Feedback Received Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
+    FWPSubMenuItems := AddSubMenuItem(FWPMenuItem, 'TC Out Of Use As No Feedback Received Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
                                    GeneralPopupItemClick);
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Change TC Out Of Use As No Feedback Received Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Change TC Out Of Use As No Feedback Received Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
                                         GeneralPopupItemClick);
-        AddPenStylesSubMenu(SubSubMenuItems, TCOutOfUseAsNoFeedbackReceivedPenStylePopupType);
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Restore TC Out Of Use As No Feedback Received Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
+        AddPenStylesSubMenu(SubFWPSubMenuItems, TCOutOfUseAsNoFeedbackReceivedPenStylePopupType);
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Restore TC Out Of Use As No Feedback Received Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
                                         GeneralPopupItemClick);
-        AddPenStylesSubMenu(SubSubMenuItems, TCOutOfUseAsNoFeedbackReceivedPenStylePopupType);
+        AddPenStylesSubMenu(SubFWPSubMenuItems, TCOutOfUseAsNoFeedbackReceivedPenStylePopupType);
 
-    SubMenuItems := AddSubMenuItem(MainMenuItemExtended, 'TC Out Of Use Set By User Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Change TC Out Of Use Set By User Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
+    FWPSubMenuItems := AddSubMenuItem(FWPMenuItem, 'TC Out Of Use Set By User Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Change TC Out Of Use Set By User Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
                                         GeneralPopupItemClick);
-        AddPenStylesSubMenu(SubSubMenuItems, TCOutOfUseSetByUserPenStylePopupType);
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Restore TC Out Of Use Set By User Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
+        AddPenStylesSubMenu(SubFWPSubMenuItems, TCOutOfUseSetByUserPenStylePopupType);
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Restore TC Out Of Use Set By User Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
                                         GeneralPopupItemClick);
-        AddPenStylesSubMenu(SubSubMenuItems, TCOutOfUseSetByUserPenStylePopupType);
+        AddPenStylesSubMenu(SubFWPSubMenuItems, TCOutOfUseSetByUserPenStylePopupType);
 
-    SubMenuItems := AddSubMenuItem(MainMenuItemExtended, 'TC Permanent Feedback Occupation Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
+    FWPSubMenuItems := AddSubMenuItem(FWPMenuItem, 'TC Permanent Feedback Occupation Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
                                    GeneralPopupItemClick);
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Change TC Permanent Feedback Occupation Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Change TC Permanent Feedback Occupation Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
                                         GeneralPopupItemClick);
-        AddPenStylesSubMenu(SubSubMenuItems, TCPermanentFeedbackOccupationPenStylePopupType);
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems,'Restore TC Permanent Feedback Occupation Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
+        AddPenStylesSubMenu(SubFWPSubMenuItems, TCPermanentFeedbackOccupationPenStylePopupType);
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems,'Restore TC Permanent Feedback Occupation Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
                                         GeneralPopupItemClick);
-        AddPenStylesSubMenu(SubSubMenuItems, TCPermanentFeedbackOccupationPenStylePopupType);
+        AddPenStylesSubMenu(SubFWPSubMenuItems, TCPermanentFeedbackOccupationPenStylePopupType);
 
-    SubMenuItems := AddSubMenuItem(MainMenuItemExtended, 'TC Permanent Occupation Set By User Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
+    FWPSubMenuItems := AddSubMenuItem(FWPMenuItem, 'TC Permanent Occupation Set By User Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
                                    GeneralPopupItemClick);
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Change TC Permanent Occupation Set By User Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Change TC Permanent Occupation Set By User Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
                                         GeneralPopupItemClick);
-        AddPenStylesSubMenu(SubSubMenuItems, TCPermanentOccupationSetByUserPenStylePopupType);
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Restore TC Permanent Occupation Set By User Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
+        AddPenStylesSubMenu(SubFWPSubMenuItems, TCPermanentOccupationSetByUserPenStylePopupType);
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Restore TC Permanent Occupation Set By User Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
                                         GeneralPopupItemClick);
-        AddPenStylesSubMenu(SubSubMenuItems, TCPermanentOccupationSetByUserPenStylePopupType);
+        AddPenStylesSubMenu(SubFWPSubMenuItems, TCPermanentOccupationSetByUserPenStylePopupType);
 
-    SubMenuItems := AddSubMenuItem(MainMenuItemExtended, 'TC Permanent System Occupation Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
+    FWPSubMenuItems := AddSubMenuItem(FWPMenuItem, 'TC Permanent System Occupation Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
                                    GeneralPopupItemClick);
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Change TC Permanent System Occupation Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Change TC Permanent System Occupation Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
                                         GeneralPopupItemClick);
-        AddPenStylesSubMenu(SubSubMenuItems, TCPermanentSystemOccupationPenStylePopupType);
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Restore TC Permanent System Occupation Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
+        AddPenStylesSubMenu(SubFWPSubMenuItems, TCPermanentSystemOccupationPenStylePopupType);
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Restore TC Permanent System Occupation Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked,
                                         GeneralPopupItemClick);
-        AddPenStylesSubMenu(SubSubMenuItems, TCPermanentSystemOccupationPenStylePopupType);
+        AddPenStylesSubMenu(SubFWPSubMenuItems, TCPermanentSystemOccupationPenStylePopupType);
 
-    SubMenuItems := AddSubMenuItem(MainMenuItemExtended, 'TC Loco Out Of Place Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Change TC Loco Out Of Place Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddPenStylesSubMenu(SubSubMenuItems, TCLocoOutOfPlacePenStylePopupType);
-      SubSubMenuItems := AddSubMenuItem(SubMenuItems, 'Restore TC Loco Out Of Place Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-        AddPenStylesSubMenu(SubSubMenuItems, TCLocoOutOfPlacePenStylePopupType);
+    FWPSubMenuItems := AddSubMenuItem(FWPMenuItem, 'TC Loco Out Of Place Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Change TC Loco Out Of Place Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddPenStylesSubMenu(SubFWPSubMenuItems, TCLocoOutOfPlacePenStylePopupType);
+      SubFWPSubMenuItems := AddSubMenuItem(FWPSubMenuItems, 'Restore TC Loco Out Of Place Pen Style', NoClickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+        AddPenStylesSubMenu(SubFWPSubMenuItems, TCLocoOutOfPlacePenStylePopupType);
 
-  MainMenuItemExtended := AddMainMenuItem(GeneralPopupMenu, 'Operations', NoclickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+  FWPMenuItem := AddMainMenuItem(GeneralPopupMenu, 'Operations', NoclickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
 
-    AddSubMenuItem(MainMenuItemExtended, 'Change Point', ChangePointPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-    AddSubMenuItem(MainMenuItemExtended, 'Change Signal', ChangeSignalPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-    AddSubMenuItem(MainMenuItemExtended, 'List Locomotives', ListLocomotivesPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-    AddSubMenuItem(MainMenuItemExtended, 'Show TrackCircuit', ShowTrackCircuitPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-    AddSubMenuItem(MainMenuItemExtended, '-', NoClickPopupType, Enabled, Visible, WhetherChecked, GeneralPopupItemClick);
-    AddSubMenuItem(MainMenuItemExtended, 'Debug Options', DebugOptionsPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+    AddSubMenuItem(FWPMenuItem, 'Change Point', ChangePointPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+    AddSubMenuItem(FWPMenuItem, 'Change Signal', ChangeSignalPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+    AddSubMenuItem(FWPMenuItem, 'List Locomotives', ListLocomotivesPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+    AddSubMenuItem(FWPMenuItem, 'Show TrackCircuit', ShowTrackCircuitPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+    AddSubMenuItem(FWPMenuItem, '-', NoClickPopupType, Enabled, Visible, WhetherChecked, GeneralPopupItemClick);
+    AddSubMenuItem(FWPMenuItem, 'Debug Options', DebugOptionsPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
 
-  MainMenuItemExtended := AddMainMenuItem(GeneralPopupMenu, 'Resetting Options', NoclickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
+  FWPMenuItem := AddMainMenuItem(GeneralPopupMenu, 'Resetting Options', NoclickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
 
     WhetherEnabled := (FWPRailWindow.Top <> DefaultFWPRailWindowTop)
                        OR (FWPRailWindow.Height <> DefaultFWPRailWindowHeight)
                        OR (FWPRailWindow.Left <> DefaultFWPRailWindowLeft)
                        OR (FWPRailWindow.Top <> DefaultFWPRailWindowTop)
                        OR (FWPRailWindow.Width <> DefaultFWPRailWindowWidth);
-    AddSubMenuItem(MainMenuItemExtended, 'Reset Main Window Size And Position', ResetMainWindowSizeAndPositionPopupType, WhetherEnabled, Visible, NOT Checked,
+    AddSubMenuItem(FWPMenuItem, 'Reset Main Window Size And Position', ResetMainWindowSizeAndPositionPopupType, WhetherEnabled, Visible, NOT Checked,
                    GeneralPopupItemClick);
-    AddSubMenuItem(MainMenuItemExtended, 'Reset Size And Position Of All Windows', ResetSizeAndPositionOfAllWindowsPopupType, Enabled, Visible, NOT Checked,
+    AddSubMenuItem(FWPMenuItem, 'Reset Size And Position Of All Windows', ResetSizeAndPositionOfAllWindowsPopupType, Enabled, Visible, NOT Checked,
                    GeneralPopupItemClick);
-    AddSubMenuItem(MainMenuItemExtended, 'Restore All Screen Drawing Default Settings', RestoreAllScreenDrawingDefaultSettingsPopupType, Enabled, Visible, NOT Checked,
+    AddSubMenuItem(FWPMenuItem, 'Restore All Screen Drawing Default Settings', RestoreAllScreenDrawingDefaultSettingsPopupType, Enabled, Visible, NOT Checked,
                    GeneralPopupItemClick);
 
   PopupTimerCount := 0;
