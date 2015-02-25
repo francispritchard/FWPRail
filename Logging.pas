@@ -29,10 +29,9 @@ TYPE
     PROCEDURE LoggingWindowPopupFontSizeRestoreDefaultClick(Sender : TObject);
     PROCEDURE LoggingWindowRichEditKeyDown(Sender : TObject; VAR Key : Word; ShiftState : TShiftState);
     PROCEDURE LoggingWindowRichEditMouseDown(Sender : TObject; Button : TMouseButton; Shift : TShiftState; MouseX, MouseY : Integer);
-    PROCEDURE LoggingWindowRichEditMouseEnter(Sender: TObject);
-    PROCEDURE LoggingWindowRichEditMouseLeave(Sender: TObject);
   PRIVATE
     { Private declarations }
+
   PUBLIC
     { Public declarations }
   END;
@@ -481,7 +480,6 @@ VAR
   LineAfterJustDrawn : Boolean = False;
   LogArray : StringArrayType;
   LoggingPausedByFindDialogue : Boolean;
-  LoggingPausedByUserEnteringLoggingWindow : Boolean;
   OldDebugStr : String = '';
   PreviousLogTime : TDateTime = 0;
   SaveLogStrArray : ARRAY [1..MaxSaveLogStrs] OF String;
@@ -492,6 +490,56 @@ PROCEDURE Log(Str : String);
 BEGIN
   WriteToLogFile(Str + ' {UNIT=' + UnitRef + '}');
 END; { Log }
+
+FUNCTION IsLastRichEditLineVisible(RichEdit : TRichEdit) : Boolean;
+
+  FUNCTION GetFirstVisibleRichEditLine(RichEdit : TRichEdit) : Integer;
+  BEGIN
+    WITH LoggingWindow DO
+      Result := RichEdit.Perform(EM_GETFIRSTVISIBLELINE, 0, 0);
+  END; { GetFirstVisibleRichEditLine }
+
+  FUNCTION GetLineCountForRichEditLine(RichEdit : TRichEdit) : Integer;
+  BEGIN
+    WITH LoggingWindow DO
+      Result := RichEdit.Perform(EM_GETLINECOUNT, 0, 0);
+  END; { GetLineCountForRichEditLine }
+
+  FUNCTION GetLastVisibleRichEditLine(RichEdit: TRichEdit): Integer;
+  CONST
+    EM_EXLINEFROMCHAR = WM_USER + 54;
+
+  VAR
+    I : Integer;
+    Rect : TRect;
+
+  BEGIN
+    { The EM_GETRECT message retrieves the formatting rectangle of an edit control }
+    RichEdit.Perform(EM_GETRECT, 0, @Rect);
+    Rect.Left := Rect.Left + 1;
+    Rect.Top  := Rect.Bottom - 2;
+
+    { The EM_CHARFROMPOS message retrieves information about the character closest to a specified point in the client area of an edit control }
+    I := RichEdit.Perform(EM_CHARFROMPOS, 0, @Rect);
+
+    { The EM_EXLINEFROMCHAR message determines which line contains the specified character in a rich edit control }
+    Result := RichEdit.Perform(EM_EXLINEFROMCHAR, 0, I);
+  END; { GetLastVisibleRichEditLine }
+
+VAR
+  LastVisibleLine : Integer;
+  TotalLineCount : Integer;
+
+BEGIN { IsLastRichEditLineVisible }
+  WITH LoggingWindow DO BEGIN
+    LastVisibleLine := GetLastVisibleRichEditLine(LoggingWindowRichEdit);
+    TotalLineCount := GetLineCountForRichEditLine(LoggingWindowRichEdit);
+    IF LastVisibleLine + 1 < TotalLineCount THEN
+      Result := False
+    ELSE
+      Result := True;
+  END; {WITH}
+END; { IsLastRichEditLineVisible }
 
 PROCEDURE WriteToLogFile(LogStr : String); Overload;
 { Write the data to the log file, adding the LocoChip and UnitRef, and wrapping and indenting if required. The syntax is: LocoChip, TypeOfLog, LogString, and parameters
@@ -540,10 +588,25 @@ VAR
 
     PROCEDURE AddToGeneralLog(RichEditLogStr : String);
     { Either write to the log immediately or temporarily stores the text }
+    CONST
+      EM_EXLINEFROMCHAR = WM_USER + 54;
+
+    VAR
+      Rect : TRect;
+      VisibleStart : Integer;
+
     BEGIN
-      IF StoreRichEditLoggingText THEN
-        AppendToStringArray(StoredRichEditLoggingTextArray, RichEditLogStr)
-      ELSE
+      IF NOT IsLastRichEditLineVisible(LoggingWindow.LoggingWindowRichEdit) OR LoggingPausedByFindDialogue THEN BEGIN
+        WITH LoggingWindow DO BEGIN
+          { The EM_GETRECT message retrieves the formatting rectangle of an edit control }
+          LoggingWindowRichEdit.Perform(EM_GETRECT, 0, LongInt(@Rect));
+
+          { The EM_CHARFROMPOS message retrieves information about the character closest to a specified point in the client area of an edit control }
+          VisibleStart := LoggingWindowRichEdit.Perform(EM_CHARFROMPOS, 0, @Rect);
+          AddRichLine(LoggingWindow.LoggingWindowRichEdit, RichEditLogStr);
+          LoggingWindowRichEdit.SelStart := VisibleStart;
+        END; {WITH}
+      END ELSE
         AddRichLine(LoggingWindow.LoggingWindowRichEdit, RichEditLogStr);
     END; { AddToGeneralLog }
 
@@ -4087,29 +4150,6 @@ BEGIN
   SetLength(StoredRichEditLoggingTextArray, 0);
 END; { AddStoredRichEditLoggingTextToLoggingWindow }
 
-PROCEDURE PauseLogging;
-{ Pause the logging to screenm and inform the user }
-BEGIN
-  StoreRichEditLoggingText := True;
-
-  { And let the user know what is happening }
-  AddRichLine(LoggingWindow.LoggingWindowRichEdit, '<B>Pausing writing the log to the logging window screen until the cursor is removed from the logging window</B>');
-END; { PauseLogging }
-
-PROCEDURE ResumeLogging;
-{ Resume the logging to screen and inform the user }
-BEGIN
-  StoreRichEditLoggingText := False;
-
-  { Remove the "paused" message }
-  WITH LoggingWindow.LoggingWindowRichEdit DO
-    IF Lines[Lines.Count - 1] = 'Pausing writing the log to the logging window screen until the cursor is removed from the logging window' THEN
-      Lines.Delete(LoggingWindow.LoggingWindowRichEdit.Lines.Count - 1);
-
-  { Now add any stored rich-edit data to the logging window }
-  AddStoredRichEditLoggingTextToLoggingWindow;
-END; { ResumeLogging }
-
 PROCEDURE TLoggingWindow.LoggingWindowPopupChangeFontSizeClick(Sender : TObject);
 BEGIN
   { Show the default }
@@ -4147,10 +4187,6 @@ END; { LoggingWindowClose }
 PROCEDURE TLoggingWindow.LoggingWindowFindDialogueClose(Sender: TObject);
 BEGIN
   LoggingWindowFindDialogueActive := False;
-  IF NOT LoggingPausedByUserEnteringLoggingWindow THEN
-    ResumeLogging;
-
-  LoggingPausedByFindDialogue := False;
 END; { LoggingWindowFindDialogClose }
 
 PROCEDURE TLoggingWindow.LoggingWindowFindDialogueShow(Sender: TObject);
@@ -4162,8 +4198,6 @@ BEGIN
   LoggingWindowFindDialogueActive := True;
 
   LoggingPausedByFindDialogue := True;
-  IF NOT LoggingPausedByUserEnteringLoggingWindow THEN
-    PauseLogging;
 END; { LoggingWindowFindDialogShow }
 
 PROCEDURE TLoggingWindow.LoggingWindowFindDialogueFind(Sender: TObject);
@@ -4202,6 +4236,27 @@ BEGIN
   END; {WITH}
 END; { LoggingWindowFindDialogFind }
 
+PROCEDURE TLoggingWindow.LoggingWindowRichEditMouseDown(Sender : TObject; Button : TMouseButton; Shift : TShiftState; MouseX, MouseY : Integer);
+BEGIN
+  IF Button = mbRight THEN
+    LoggingWindowPopupMenu.Popup(LoggingWindow.Left + MouseX, LoggingWindow.Top + MouseY);
+END; { LoggingWindowRichEditMouseDown }
+
+PROCEDURE InitialiseLoggingWindow;
+{ Such routines as this allow us to initialises the units in the order we wish }
+BEGIN
+  LoggingWindow.Height := LoggingWindowHeight;
+  LoggingWindow.Width := LoggingWindowWidth;
+  LoggingWindow.Top := LoggingWindowTop;
+  LoggingWindow.Left := LoggingWindowLeft;
+
+  LoggingWindow.LoggingWindowRichEdit.Font.Name := LoggingWindowFontName;
+  LoggingWindow.LoggingWindowRichEdit.Font.Size := LoggingWindowFontSize;
+  LoggingWindow.LoggingWindowRichEdit.Font.Style := [];
+
+  LoggingPausedByFindDialogue := False;
+END; { InitialiseLoggingWindow }
+
 PROCEDURE TLoggingWindow.LoggingWindowRichEditKeyDown(Sender : TObject; VAR Key : Word; ShiftState : TShiftState);
 BEGIN
   CASE Key OF
@@ -4217,54 +4272,15 @@ BEGIN
       END;
     Ord('G'), Ord('g'):
       LoggingWindow.Visible := False;
+
+    Ord('X'):
+      IF IsLastRichEditLineVisible(LoggingWindowRichEdit) THEN
+        Debug('Not scrolled ' + TestCountStr)
+      ELSE
+        Debug('Scrolled ' + TestCountStr);
+
   END; {CASE}
 END; { LoggingWindowRichEditKeyDown }
-
-PROCEDURE TLoggingWindow.LoggingWindowRichEditMouseDown(Sender : TObject; Button : TMouseButton; Shift : TShiftState; MouseX, MouseY : Integer);
-BEGIN
-  IF Button = mbRight THEN
-    LoggingWindowPopupMenu.Popup(LoggingWindow.Left + MouseX, LoggingWindow.Top + MouseY);
-END; { LoggingWindowRichEditMouseDown }
-
-PROCEDURE TLoggingWindow.LoggingWindowRichEditMouseEnter(Sender: TObject);
-BEGIN
-  IF NOT LoggingPausedByFindDialogue THEN BEGIN
-    { Reset the cursor in case we enter the logging window with a non-default mouse cursor, e.g. having immediately previously hovered over a point }
-    ChangeCursor(crDefault);
-
-    { Prevent new additions to the log automatically scrolling the logging window if the mouse cursor is within it - otherwise the window automatically scrolls to the bottom
-      of the text even if we're examining text further up.
-    }
-    PauseLogging;
-  END;
-
-  LoggingPausedByUserEnteringLoggingWindow := True;
-END; { LoggingWindowRichEditMouseEnter }
-
-PROCEDURE TLoggingWindow.LoggingWindowRichEditMouseLeave(Sender: TObject);
-BEGIN
-  { now we can continue writing to the log window }
-  IF NOT LoggingPausedByFindDialogue THEN
-    ResumeLogging;
-
-  LoggingPausedByUserEnteringLoggingWindow := False;
-END; { LoggingWindowRichEditMouseLeave }
-
-PROCEDURE InitialiseLoggingWindow;
-{ Such routines as this allow us to initialises the units in the order we wish }
-BEGIN
-  LoggingWindow.Height := LoggingWindowHeight;
-  LoggingWindow.Width := LoggingWindowWidth;
-  LoggingWindow.Top := LoggingWindowTop;
-  LoggingWindow.Left := LoggingWindowLeft;
-
-  LoggingWindow.LoggingWindowRichEdit.Font.Name := LoggingWindowFontName;
-  LoggingWindow.LoggingWindowRichEdit.Font.Size := LoggingWindowFontSize;
-  LoggingWindow.LoggingWindowRichEdit.Font.Style := [];
-
-  LoggingPausedByFindDialogue := False;
-  LoggingPausedByUserEnteringLoggingWindow := False;
-END; { InitialiseLoggingWindow }
 
 VAR
   TempIntegerArray : IntegerArrayType;

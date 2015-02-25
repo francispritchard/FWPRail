@@ -33,8 +33,6 @@ object LoggingWindow: TLoggingWindow
     TabOrder = 0
     OnKeyDown = LoggingWindowRichEditKeyDown
     OnMouseDown = LoggingWindowRichEditMouseDown
-    OnMouseEnter = LoggingWindowRichEditMouseEnter
-    OnMouseLeave = LoggingWindowRichEditMouseLeave
   end
   object LoggingWindowPopupMenu: TPopupMenu
     Left = 168
