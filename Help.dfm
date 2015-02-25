@@ -31,7 +31,6 @@ object HelpWindow: THelpWindow
     ScrollBars = ssVertical
     TabOrder = 0
     OnKeyDown = HelpRichEditKeyDown
-    OnMouseDown = HelpRichEditMouseDown
   end
   object HelpWindowFindDialog: TFindDialog
     OnClose = HelpWindowFindDialogClose

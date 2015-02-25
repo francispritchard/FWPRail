@@ -10,7 +10,6 @@ TYPE
     HelpRichEdit: TRichEdit;
     HelpWindowFindDialog: TFindDialog;
     PROCEDURE HelpRichEditKeyDown(Sender: TObject; VAR Key: Word; ShiftState: TShiftState);
-    PROCEDURE HelpRichEditMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     PROCEDURE HelpMemoKeyDown(Sender: TObject; VAR Key: Word; ShiftState: TShiftState);
     PROCEDURE HelpWindowFindDialogClose(Sender: TObject);
     PROCEDURE HelpWindowFindDialogFind(Sender: TObject);
@@ -92,11 +91,6 @@ BEGIN
     END;
   END; {WITH}
 END; { HelpWindowFindDialogFind }
-
-PROCEDURE THelpWindow.HelpRichEditMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-BEGIN
-  Debug('x=' + InttOstr(X) + ' y=' + inttostr(Y));
-END; { HelpRichEditMouseDown }
 
 PROCEDURE THelpWindow.HelpWindowFindDialogShow(Sender: TObject);
 BEGIN
