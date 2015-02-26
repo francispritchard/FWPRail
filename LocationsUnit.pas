@@ -1947,9 +1947,8 @@ CONST
               SetLength(AvailabilityArray, Length(AvailabilityArray) + 1);
               IF MinutesOccupiedArray[I] THEN
                 AvailabilityArray[High(AvailabilityArray)].LocationOccupation_EndTime := GetTimeFromMinute(I - 1)
-              ELSE BEGIN
+              ELSE
                 AvailabilityArray[High(AvailabilityArray)].LocationOccupation_StartTime := GetTimeFromMinute(I);
-              END;
             END;
           END;
 
