@@ -1,4 +1,4 @@
-object MainWindow: TMainWindow
+object MainUnitWindow: TMainUnitWindow
   Left = 0
   Top = 0
   Caption = 'MainWindow'
@@ -12,17 +12,17 @@ object MainWindow: TMainWindow
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
-  OnCreate = MainWindowCreate
+  OnCreate = MainUnitWindowCreate
   PixelsPerInch = 96
   TextHeight = 13
-  object MainTimer: TTimer
+  object MainUnitTimer: TTimer
     Interval = 1
-    OnTimer = MainTimerTick
+    OnTimer = MainUnitTimerTick
     Left = 132
     Top = 48
   end
-  object WatchdogOneSecondTimer: TTimer
-    OnTimer = WatchdogOneSecondTimerTick
+  object MainUnitWatchdogOneSecondTimer: TTimer
+    OnTimer = MainUnitWatchdogOneSecondTimerTick
     Left = 272
     Top = 48
   end

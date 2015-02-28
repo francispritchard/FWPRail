@@ -438,11 +438,11 @@ TYPE
   StringType = (LongStringType, ShortStringType, VeryShortStringType);
 
   LenzSystemRec = RECORD
-                EmergencyStop : Boolean;
-                EmergencyOff : Boolean;
-                ProgrammingMode : Boolean;
-                StartMode : Boolean;
-              END;
+                    EmergencyStop : Boolean;
+                    EmergencyOff : Boolean;
+                    ProgrammingMode : Boolean;
+                    StartMode : Boolean;
+                  END;
 
 CONST
   NoTime = True;

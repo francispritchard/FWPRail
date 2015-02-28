@@ -1134,12 +1134,12 @@ CONST
   UserSectionStr = 'User';
 
   WindowsSectionStr = 'Windows';
-    FWPRailWindowTopStr = 'Main Window Top';
-    FWPRailWindowLeftStr = 'Main Window Left';
-    FWPRailWindowWidthStr = 'Main Window Width';
-    FWPRailWindowHeightStr = 'Main Window Height';
-    FWPRailWindowClientWidthStr = 'Main Window Client Width';
-    FWPRailWindowClientHeightStr = 'Main Window Client Height';
+    FWPRailWindowTopStr = 'FWPRail Window Top';
+    FWPRailWindowLeftStr = 'FWPRail Window Left';
+    FWPRailWindowWidthStr = 'FWPRail Window Width';
+    FWPRailWindowHeightStr = 'FWPRail Window Height';
+    FWPRailWindowClientWidthStr = 'FWPRail Window Client Width';
+    FWPRailWindowClientHeightStr = 'FWPRail Window Client Height';
 
     DisplayLineColoursWindowHeightStr = 'CreateRoute Display Line Colours Window Height';
     DisplayLineColoursWindowLeftStr = 'CreateRoute Display Line Colours Window Left';

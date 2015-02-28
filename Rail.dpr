@@ -47,7 +47,7 @@ USES
   Edit IN 'Edit.pas' {EditWindow},
   WorkingTimetable IN 'WorkingTimetable.pas' {WorkingTimetableWindow},
   Logging IN 'Logging.pas' {LoggingWindow},
-  Main IN 'Main.pas' {MainWindow},
+  Main IN 'Main.pas' {MainUnitWindow},
   Train IN 'Train.pas' {TrainForm},
   DataCheck IN 'DataCheck.pas' {DataCheckForm},
   Install IN 'Install.pas' {InstallForm},
@@ -81,7 +81,7 @@ BEGIN
   Application.ShowMainForm := False;
   Application.MainFormOnTaskbar := False;
 
-  Application.CreateForm(TMainWindow, MainWindow);
+  Application.CreateForm(TMainUnitWindow, MainUnitWindow);
   Application.CreateForm(TTrainForm, TrainForm);
   Application.CreateForm(TDataCheckForm, DataCheckForm);
   Application.CreateForm(TInstallForm, InstallForm);

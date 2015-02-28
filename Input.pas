@@ -2252,11 +2252,11 @@ BEGIN { KeyPressedDown }
               BEGIN
                 HelpMsg := '';
                 IF NOT HelpRequired THEN BEGIN
-                  IF MainWindow.Visible THEN
-                    MainWindow.Hide
+                  IF MainUnitWindow.Visible THEN
+                    MainUnitWindow.Hide
                   ELSE
-                    MainWindow.Show;
-                  Debug('Main window visible = ' + BoolToStr(MainWindow.Visible, True));
+                    MainUnitWindow.Show;
+                  Debug('Main Unit window visible = ' + BoolToStr(MainUnitWindow.Visible, True));
                 END;
               END;
             Ctrl: {M}
@@ -2901,7 +2901,7 @@ BEGIN { KeyPressedDown }
               BEGIN
                 HelpMsg := 'turn main timer off/on';
                 IF NOT HelpRequired THEN BEGIN
-                  IF MainWindow.MainTimer.Enabled THEN BEGIN
+                  IF MainUnitWindow.MainUnitTimer.Enabled THEN BEGIN
                     StopSystemTimer;
                     Log('XG Main Timer tuned off by user');
                   END ELSE BEGIN

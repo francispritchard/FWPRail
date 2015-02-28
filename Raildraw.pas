@@ -174,7 +174,7 @@ TYPE
 
                     ChangePointPopupType, ChangeSignalPopupType, ListLocomotivesPopupType, ShowTrackCircuitPopupType, DebugOptionsPopupType,
 
-                    ResetMainWindowSizeAndPositionPopupType, ResetSizeAndPositionOfAllWindowsPopupType, RestoreAllScreenDrawingDefaultSettingsPopupType,
+                    ResetMainUnitWindowSizeAndPositionPopupType, ResetSizeAndPositionOfAllWindowsPopupType, RestoreAllScreenDrawingDefaultSettingsPopupType,
                     RestoreAllProgramDefaultSettingsPopupType,
 
                     { Signals Menu }
@@ -3489,7 +3489,7 @@ PROCEDURE TFWPRailWindow.FWPRailWindowPaint(Sender: TObject);
   as well.
 }
 BEGIN
-  IF MainWindow.MainTimer.Enabled THEN
+  IF MainUnitWindow.MainUnitTimer.Enabled THEN
     DrawMap;
 
   { And copy the the bitmap image to the screen }
@@ -4682,7 +4682,7 @@ BEGIN
         DebugOptionsPopupType:
           Startup.DebuggingOptionsWindow.Show;
 
-        ResetMainWindowSizeAndPositionPopupType:
+        ResetMainUnitWindowSizeAndPositionPopupType:
           BEGIN
             ResetFWPRailWindowSizeAndPosition;
             InvalidateScreen(UnitRef, 'ResetFWPRailWindowSizeClick');
@@ -5155,7 +5155,7 @@ BEGIN
                        OR (FWPRailWindow.Left <> DefaultFWPRailWindowLeft)
                        OR (FWPRailWindow.Top <> DefaultFWPRailWindowTop)
                        OR (FWPRailWindow.Width <> DefaultFWPRailWindowWidth);
-    AddSubMenuItem(FWPMenuItem, 'Reset Main Window Size And Position', ResetMainWindowSizeAndPositionPopupType, WhetherEnabled, Visible, NOT Checked,
+    AddSubMenuItem(FWPMenuItem, 'Reset Main Window Size And Position', ResetMainUnitWindowSizeAndPositionPopupType, WhetherEnabled, Visible, NOT Checked,
                    GeneralPopupItemClick);
     AddSubMenuItem(FWPMenuItem, 'Reset Size And Position Of All Windows', ResetSizeAndPositionOfAllWindowsPopupType, Enabled, Visible, NOT Checked,
                    GeneralPopupItemClick);

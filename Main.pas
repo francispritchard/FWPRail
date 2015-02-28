@@ -12,12 +12,12 @@ USES Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.C
      TrackCircuitsUnit;
 
 TYPE
-  TMainWindow = CLASS(TForm)
-    MainTimer: TTimer;
-    WatchdogOneSecondTimer: TTimer;
-    PROCEDURE MainTimerTick(Sender: TObject);
-    PROCEDURE MainWindowCreate(Sender: TObject);
-    PROCEDURE WatchdogOneSecondTimerTick(Sender: TObject);
+  TMainUnitWindow = CLASS(TForm)
+    MainUnitTimer: TTimer;
+    MainUnitWatchdogOneSecondTimer: TTimer;
+    PROCEDURE MainUnitTimerTick(Sender: TObject);
+    PROCEDURE MainUnitWatchdogOneSecondTimerTick(Sender: TObject);
+    PROCEDURE MainUnitWindowCreate(Sender: TObject);
   PRIVATE
     { Private declarations }
     PROCEDURE SendStringToWatchdogProgram(S : String);
@@ -48,7 +48,7 @@ PROCEDURE TurnAutoModeOn;
 { Turns auto mode on }
 
 VAR
-  MainWindow: TMainWindow;
+  MainUnitWindow: TMainUnitWindow;
 
 IMPLEMENTATION
 
@@ -118,7 +118,7 @@ BEGIN
   END;
 END; { StopOrResumeAllOperations }
 
-PROCEDURE TMainWindow.MainWindowCreate(Sender: TObject);
+PROCEDURE TMainUnitWindow.MainUnitWindowCreate(Sender: TObject);
 CONST
   ReadWriteRegistry = True;
 
@@ -260,20 +260,20 @@ BEGIN
       StartRailDriver;
   EXCEPT
     ON E : Exception DO
-      Log('EG MainWindowCreate:' + E.ClassName + ' error raised, with message: ' + E.Message);
+      Log('EG MainUnitWindowCreate:' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
-END; { MainWindowCreate }
+END; { MainUnitWindowCreate }
 
 PROCEDURE StartSystemTimer;
 { Starts the system timer only }
 BEGIN
-  MainWindow.MainTimer.Enabled := True;
+  MainUnitWindow.MainUnitTimer.Enabled := True;
 END; { StartSystemTimer }
 
 PROCEDURE StopSystemTimer;
 { Stops the system timer only }
 BEGIN
-  MainWindow.MainTimer.Enabled := False;
+  MainUnitWindow.MainUnitTimer.Enabled := False;
 END; { StopSystemTimer }
 
 PROCEDURE TurnAutoModeOff(User : Boolean);
@@ -364,7 +364,7 @@ BEGIN
   END; {TRY}
 END; { TurnAutoModeOn }
 
-PROCEDURE TMainWindow.MainTimerTick(Sender: TObject);
+PROCEDURE TMainUnitWindow.MainUnitTimerTick(Sender: TObject);
 { Runs the main loop }
 CONST
   ErrorMsgRequired = True;
@@ -692,7 +692,7 @@ BEGIN
   END; {TRY}
 END; { MainTimerTick }
 
-PROCEDURE TMainWindow.WatchdogOneSecondTimerTick(Sender: TObject);
+PROCEDURE TMainUnitWindow.MainUnitWatchdogOneSecondTimerTick(Sender: TObject);
 { This sends a message to the watchdog program once a second to show we're still running. It also tells the watchdog what kind of connection we're using. }
 BEGIN
   IF LenzConnection = USBConnection THEN
@@ -705,7 +705,7 @@ BEGIN
         SendStringToWatchdogProgram('FWPRail is running ' + NotConnectedStr);
 END; { WatchdogOneSecondTimerTick }
 
-PROCEDURE TMainWindow.SendStringToWatchdogProgram(S : String);
+PROCEDURE TMainUnitWindow.SendStringToWatchdogProgram(S : String);
 VAR
   copyData: TCopyDataStruct;
   ReceiverHandle : THandle;
@@ -892,7 +892,7 @@ BEGIN
   SaveSystemStatusEmergencyOff := False;
 
   Log('A Main Unit initialised');
-END; { InitialiseGetTimeUnit }
+END; { InitialiseMainUnit }
 
 INITIALIZATION
 
