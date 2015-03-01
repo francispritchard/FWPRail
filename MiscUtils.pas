@@ -377,7 +377,7 @@ IMPLEMENTATION
 {$R *.dfm}
 
 USES GetTime, Lenz, Diagrams, RailDraw, Types, LocoUtils, Math {sic}, IDGlobal, StrUtils, RDCUnit, CreateRoute, IniFiles, DateUtils, Startup, Cuneo, Movement, LocoDialogue,
-     FWPShowMessageUnit, Options, Help, MMSystem, TCPIP, Main, StationMonitors, Edit, Locks, Route;
+     FWPShowMessageUnit, Options, Help, MMSystem, TCPIP, Main, StationMonitors, Edit, Locks, Route, ComObj;
 
 CONST
   UnitRef = 'MiscUtils';
@@ -1534,176 +1534,14 @@ BEGIN
 END; { IOError }
 
 PROCEDURE ReadOut(SoundStr : String);
-{ Uses system API SndPlaySound to read out the given text, by playing a .wav file. text is held in the system resource file, itself compiled by using "brcc32 -v rail.rc"
-  from the command prompt. The file "rail.rc" is the resource script file.
-}
-  PROCEDURE ProcessSound(SoundStr : String);
-  { Send the sound to the speaker }
-  VAR
-    hFind, hRes: THandle;
-    SoundPChar : PChar;
-    SoundPWideChar : PWideChar;
-
-  BEGIN
-    SoundPWideChar := StringToOleStr(SoundStr);
-
-    hFind := FindResource(HInstance, SoundPWideChar, 'WAV');
-    IF hFind = 0 THEN
-      Log('X Unknown wave file ''' + SoundStr + ''' passed to ReadOut')
-    ELSE BEGIN
-      hRes := LoadResource(HInstance, hFind);
-      IF hRes <> 0 THEN BEGIN
-        SoundPChar := LockResource(hRes);
-        IF Assigned(SoundPChar) THEN
-          SndPlaySound(SoundPChar, snd_NoStop OR Snd_Memory);
-        UnlockResource(hRes);
-      END;
-      FreeResource(hFind);
-    END;
-  END; { ProcessSound }
+{ Uses Microsoft built-in SAPI }
+VAR
+  Voice : OleVariant;
 
 BEGIN
   TRY
-    { just some text }
-    IF UpperCase(SoundStr) = 'SHORTCIRCUIT' THEN
-      ProcessSound(SoundStr)
-    ELSE
-      IF UpperCase(SoundStr) = 'OFF' THEN
-        ProcessSound(SoundStr)
-      ELSE
-        IF UpperCase(SoundStr) = 'ON' THEN
-          ProcessSound(SoundStr)
-        ELSE
-          IF UpperCase(SoundStr) = 'OK' THEN
-            ProcessSound(SoundStr)
-          ELSE BEGIN
-            IF Length(SoundStr) = 3 THEN BEGIN
-              CASE SoundStr[1] OF
-                '1':
-                  ProcessSound('Sound100');
-                '2':
-                  ProcessSound('Sound200');
-                '3':
-                  ProcessSound('Sound300');
-                '4':
-                  ProcessSound('Sound400');
-                '5':
-                  ProcessSound('Sound500');
-                '6':
-                  ProcessSound('Sound600');
-                '7':
-                  ProcessSound('Sound700');
-                '8':
-                  ProcessSound('Sound800');
-                '9':
-                  ProcessSound('Sound900');
-              ELSE {CASE}
-                BEGIN
-                  { an unknown word to read out }
-                  Debug('Unknown word to read out: ' + SoundStr);
-                  ProcessSound('IsThisCorrect');
-                END;
-              END; {CASE}
-              { Remove the hundreds }
-              SoundStr := Copy(SoundStr, 2);
-              IF SoundStr = '00' THEN
-                Exit;
-            END;
-
-            IF Length(SoundStr) = 2 THEN BEGIN
-              IF (SoundStr[1] = '0') AND (SoundStr[2] <> '0') THEN BEGIN
-                { avoid the problem of, e.g., "09" }
-                SoundStr := Copy(SoundStr, 2);
-              END;
-            END;
-
-            IF Length(SoundStr) = 2 THEN BEGIN
-              CASE SoundStr[1] OF
-                '1':
-                  BEGIN
-                    CASE SoundStr[2] OF
-                      '0':
-                        ProcessSound('Sound10');
-                      '1':
-                        ProcessSound('Sound11');
-                      '2':
-                        ProcessSound('Sound12');
-                      '3':
-                        ProcessSound('Sound13');
-                      '4':
-                        ProcessSound('Sound14');
-                      '5':
-                        ProcessSound('Sound15');
-                      '6':
-                        ProcessSound('Sound16');
-                      '7':
-                        ProcessSound('Sound17');
-                      '8':
-                        ProcessSound('Sound18');
-                      '9':
-                        ProcessSound('Sound19');
-                    END; {CASE}
-                    Exit;
-                  END;
-                '2':
-                  ProcessSound('Sound20');
-                '3':
-                  ProcessSound('Sound30');
-                '4':
-                  ProcessSound('Sound40');
-                '5':
-                  ProcessSound('Sound50');
-                '6':
-                  ProcessSound('Sound60');
-                '7':
-                  ProcessSound('Sound70');
-                '8':
-                  ProcessSound('Sound80');
-                '9':
-                  ProcessSound('Sound90');
-              ELSE {CASE}
-                BEGIN
-                  { an unknown word to read out }
-                  Debug('Unknown word to read out: ' + SoundStr);
-                  ProcessSound('IsThisCorrect');
-                END;
-              END; {CASE}
-              { Remove the tens }
-              SoundStr := Copy(SoundStr, 2);
-              IF SoundStr = '0' THEN
-                Exit;
-            END;
-
-            { the length is 1 }
-            CASE SoundStr[Length(SoundStr)] OF
-              '0':
-                ProcessSound('Sound0');
-              '1':
-                ProcessSound('Sound1');
-              '2':
-                ProcessSound('Sound2');
-              '3':
-                ProcessSound('Sound3');
-              '4':
-                ProcessSound('Sound4');
-              '5':
-                ProcessSound('Sound5');
-              '6':
-                ProcessSound('Sound6');
-              '7':
-                ProcessSound('Sound7');
-              '8':
-                ProcessSound('Sound8');
-              '9':
-                ProcessSound('Sound9');
-            ELSE {CASE}
-              BEGIN
-                { an unknown word to read out }
-                Debug('Unknown word to read out: ' + SoundStr);
-                ProcessSound('IsThisCorrect');
-              END;
-            END; {CASE }
-          END;
+    Voice := CreateOLEObject('SAPI.SPVoice');
+    Voice.Speak(SoundStr);
   EXCEPT
     ON E : Exception DO
       Log('EG NewReadOut: ' + E.ClassName + ' error raised, with message: ' + E.Message);
@@ -1713,8 +1551,9 @@ END; { ReadOut }
 PROCEDURE RenameLaterFiles(VAR SuppliedFileType : TextFile; SuppliedFileName, SuppliedFilenamePrefix : String);
 { This is used when a current log is thrown away: the older log file names revert to their previous names }
 VAR
-  BackupFileName, BackupFileName0, BackupFileName1, BackupFileName2, BackupFileName3, BackupFileName4, BackupFileName5, BackupFileName6, BackupFileName7, BackupFileName8,
-    BackupFileName9 : String;
+  BackupFileName, BackupFileName0, BackupFileName1, BackupFileName2, BackupFileName3, BackupFileName4, BackupFileName5, BackupFileName6, BackupFileName7,
+  BackupFileName8, BackupFileName9 : String;
+
   DirInfo : TSearchRec;
 
 BEGIN
