@@ -69,7 +69,7 @@ BEGIN
     OK := False;
   END ELSE BEGIN
     OK := True;
-    SetMode(RecordLineDrawing, False);
+    SetMode(RecordLineDrawingModeType, False);
 
     LenzWindow.LenzOneSecondTimerTick.Enabled := False;
     LenzWindow.LenzWatchdogTimer.Enabled := False;

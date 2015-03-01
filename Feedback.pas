@@ -453,7 +453,7 @@ PROCEDURE InitialiseLocoSpeedTiming(L : LocoIndex);
 { Set up the variables for timing locos to ascertain speed in MPH }
 BEGIN
   DefaultLocoSpeedSet := False;
-  SetMode(LocoSpeedTiming, True);
+  SetMode(LocoSpeedTimingModeType, True);
   LocoTimingSlowingTime := 0;
   LocoTimingLenzSpeed := GetLenzSpeed(Locos[L], ForceARead);
 END; { InitialiseLocoSpeedTiming }
@@ -558,7 +558,7 @@ VAR
   //        LocoDialogueBox.LocoDialogueSpeedButtons.Position := 0;
           LocoDialogueWindow.LocoDialogueSpeedDisplay.Color := clBtnFace;
           LocoDialogueWindow.LocoDialogueSpeedDisplay.Caption := '0';
-          SetMode(LocoSpeedTiming, False);
+          SetMode(LocoSpeedTimingModeType, False);
         END ELSE
           { To time loco down the fast straight, then circle the layout }
           IF (TC = LocoTimingSlowingTC) AND NOT LocoTimingStarted THEN BEGIN

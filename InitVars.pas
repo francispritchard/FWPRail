@@ -190,9 +190,10 @@ TYPE
   LocoControlStateType = (ControlledByProgram, ControlledByRDC, ControlledByUser, ControlledByUnknownDevice);
 
   { Various modes }
-  ModeType = (AllRouteDebugging, AnonymousOccupation, FeedbackDebugging, GeneralDebugging, LineDebugging, LockDebugging, Locking, LocoSpeedTiming, LogsCurrentlyKept,
-              PointDebugging, PreviousPointSettings, RDC, RecordingMonitorScreens, RecordLineDrawing, RouteDebugging, RouteBacktrackDebugging, RouteDrawing,
-              ShowAdjacentTrackCircuit, StationStart, Testing);
+  ModeType = (AllRouteDebuggingModeType, AnonymousOccupationModeType, FeedbackDebuggingModeType, GeneralDebuggingModeType, LineDebuggingModeType, LockDebuggingModeType,
+              LockingModeType, LocoSpeedTimingModeType, LogsCurrentlyKeptModeType, PointDebuggingModeType, PreviousPointSettingsModeType, RDCModeType,
+              RecordingMonitorScreensModeType, RecordLineDrawingModeType, RouteDebuggingModeType, RouteBacktrackDebuggingModeType, RouteDrawingModeType,
+              ShowAdjacentTrackCircuitModeType, StationStartModeType, TestingModeType);
 
   DirectionType = (Up, Down, Bidirectional, UnknownDirection);
   DirectionArrayType = ARRAY OF DirectionType;
@@ -1443,7 +1444,7 @@ BEGIN
   { Check that the path to the log files exists - if not, create it }
   IF PathToLogFiles = '' THEN BEGIN
     Log('X! Error - PathToLogFiles is empty - log files directory cannot be opened or created');
-    SetMode(LogsCurrentlyKept, False);
+    SetMode(LogsCurrentlyKeptModeType, False);
   END ELSE BEGIN
     IF NOT DirectoryExists(PathToLogFiles) THEN
       ForceDirectories(PathToLogFiles);

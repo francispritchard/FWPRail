@@ -2683,67 +2683,67 @@ PROCEDURE SetMode(TypeOfMode : ModeType; OnOrOff : Boolean);
 BEGIN
   IF OnOrOff = TurnOn THEN BEGIN
     CASE TypeOfMode OF
-      AllRouteDebugging:
+      AllRouteDebuggingModeType:
         IF NOT AllRouteDebuggingMode THEN BEGIN
-          SetMode(AllRouteDebugging, True);
+          SetMode(AllRouteDebuggingModeType, True);
           Log('A All Route Debugging Mode = ON');
           AddStringToStatusPanel('ALLROUTE');
         END;
-      AnonymousOccupation:
+      AnonymousOccupationModeType:
         IF NOT AnonymousOccupationMode THEN BEGIN
           AnonymousOccupationMode := True;
           Log('A Anonymous Occupation Mode = ON');
           AddStringToStatusPanel('ANON');
         END;
-      FeedbackDebugging:
+      FeedbackDebuggingModeType:
         IF NOT FeedbackDebuggingMode THEN BEGIN
           FeedbackDebuggingMode := True;
           Log('A Feedback Debugging Mode = ON');
           AddStringToStatusPanel('FBCK ');
         END;
-      GeneralDebugging:
+      GeneralDebuggingModeType:
         IF NOT DebuggingMode THEN BEGIN
           DebuggingMode := True;
           Log('A Debugging Mode = ON');
           AddStringToStatusPanel('DEBUG');
         END;
-      LineDebugging:
+      LineDebuggingModeType:
         IF NOT LineDebuggingMode THEN BEGIN
           LineDebuggingMode := True;
           Log('A Line Debugging Mode = ON');
           AddStringToStatusPanel('LINE');
         END;
-      LockDebugging:
+      LockDebuggingModeType:
         IF NOT LockDebuggingMode THEN BEGIN
           LockDebuggingMode := True;
           Log('A Lock Debugging Mode = ON');
           AddStringToStatusPanel('LOCK');
         END;
-      Locking:
+      LockingModeType:
         IF NOT LockingMode THEN BEGIN
           LockingMode := True;
           Log('AG Locking Mode = ON');
           AddStringToStatusPanel('LDB');
         END;
-      LocoSpeedTiming:
+      LocoSpeedTimingModeType:
         IF NOT LocoSpeedTimingMode THEN BEGIN
           LocoSpeedTimingMode := True;
           Log('AG Loco Speed Timing Mode = ON');
           AddStringToStatusPanel('LST');
         END;
-      LogsCurrentlyKept:
+      LogsCurrentlyKeptModeType:
         IF NOT LogsCurrentlyKeptMode THEN BEGIN
           LogsCurrentlyKeptMode := True;
           Log('AG Logs Currently Kept Mde = ON');
           AddStringToStatusPanel('LCK');
         END;
-      PointDebugging:
+      PointDebuggingModeType:
         IF NOT PointDebuggingMode THEN BEGIN
           PointDebuggingMode := True;
           Log('A Point Debugging Mode = ON');
           AddStringToStatusPanel('POINT');
         END;
-      PreviousPointSettings:
+      PreviousPointSettingsModeType:
         { This probably shouldn't really be a mode, as there would be no point in turning it off once the previous point settings are loaded, but it is a way of recording
           that the startup parameter is set and then implementing it when the points are subsequently loaded
         }
@@ -2752,55 +2752,55 @@ BEGIN
           Log('A Previous Point Settings Mode = ON');
           AddStringToStatusPanel('PPS');
         END;
-      RDC:
+      RDCModeType:
         IF NOT RDCMode THEN BEGIN
           RDCMode := True;
           Log('A RDC Mode = ON');
           AddStringToStatusPanel('RDC');
         END;
-      RecordingMonitorScreens:
+      RecordingMonitorScreensModeType:
         IF NOT RecordingMonitorScreensMode THEN BEGIN
           RecordingMonitorScreensMode := True;
           Log('A Recording MonitorScreens Mode = ON');
           AddStringToStatusPanel('RECORDING');
         END;
-      RecordLineDrawing:
+      RecordLineDrawingModeType:
         IF NOT RecordLineDrawingMode THEN BEGIN
           RecordLineDrawingMode := True;
           Log('A Record Line Drawing = ON');
           AddStringToStatusPanel('LINEDRAWING');
         END;
-      RouteDebugging:
+      RouteDebuggingModeType:
         IF NOT RouteDebuggingMode THEN BEGIN
           RouteDebuggingMode := True;
           Log('A Route Debugging Mode = ON');
           AddStringToStatusPanel('ROUTE');
         END;
-      RouteBacktrackDebugging:
+      RouteBacktrackDebuggingModeType:
         IF NOT RouteBacktrackDebuggingMode THEN BEGIN
           RouteBacktrackDebuggingMode := True;
           Log('A RouteBacktrack Debugging Mode = ON');
           AddStringToStatusPanel('BACKTRACK');
         END;
-      RouteDrawing:
+      RouteDrawingModeType:
         IF NOT RouteDrawingMode THEN BEGIN
           RouteDrawingMode := True;
           Log('A Route Drawing Mode = ON');
           AddStringToStatusPanel('DRAWING');
         END;
-      ShowAdjacentTrackCircuit:
+      ShowAdjacentTrackCircuitModeType:
         IF NOT ShowAdjacentTrackCircuitMode THEN BEGIN
           ShowAdjacentTrackCircuitMode := True;
           Log('A Show Adjacent Track Circuit Mode = ON');
           AddStringToStatusPanel('ADJ');
         END;
-      StationStart:
+      StationStartModeType:
         IF NOT StationStartMode THEN BEGIN
           StationStartMode := True;
           Log('A Station Start Mode = ON');
           AddStringToStatusPanel('SS');
         END;
-      Testing:
+      TestingModeType:
         IF NOT TestingMode THEN BEGIN
           TestingMode := True;
           Log('A Test Mode = ON');
@@ -2811,115 +2811,115 @@ BEGIN
     END; {CASE}
   END ELSE BEGIN
     CASE TypeOfMode OF
-      AllRouteDebugging:
+      AllRouteDebuggingModeType:
         IF AllRouteDebuggingMode THEN BEGIN
-          SetMode(AllRouteDebugging, False);
+          SetMode(AllRouteDebuggingModeType, False);
           Log('A All Route Debugging Mode = OFF');
           RemoveStringFromStatusPanel('ALLROUTE');
         END;
-      AnonymousOccupation:
+      AnonymousOccupationModeType:
         IF AnonymousOccupationMode THEN BEGIN
           AnonymousOccupationMode := False;
           Log('A Anonymous Occupation Mode = OFF');
           RemoveStringFromStatusPanel('ANON');
         END;
-      FeedbackDebugging:
+      FeedbackDebuggingModeType:
         IF FeedbackDebuggingMode THEN BEGIN
           FeedbackDebuggingMode := False;
           Log('A Feedback Debugging Mode = OFF');
           RemoveStringFromStatusPanel('FBCK');
         END;
-      GeneralDebugging:
+      GeneralDebuggingModeType:
         IF DebuggingMode THEN BEGIN
           DebuggingMode := False;
           Log('A Debugging Mode = OFF');
           RemoveStringFromStatusPanel('DEBUG');
         END;
-      LineDebugging:
+      LineDebuggingModeType:
         IF LineDebuggingMode THEN BEGIN
           LineDebuggingMode := False;
           Log('A Line Debugging Mode = OFF');
           RemoveStringFromStatusPanel('LINE');
         END;
-      LockDebugging:
+      LockDebuggingModeType:
         IF LockDebuggingMode THEN BEGIN
           LockDebuggingMode := False;
           Log('A Lock Debugging Mode = OFF');
           RemoveStringFromStatusPanel('LDB');
         END;
-      Locking:
+      LockingModeType:
         IF LockingMode THEN BEGIN
           LockingMode := False;
           Log('AG Locking Mode = OFF');
           RemoveStringFromStatusPanel('LOCK');
         END;
-      LocoSpeedTiming:
+      LocoSpeedTimingModeType:
         IF LocoSpeedTimingMode THEN BEGIN
           LocoSpeedTimingMode := False;
           Log('AG Loco Speed Timing Mode = OFF');
           RemoveStringFromStatusPanel('LST');
         END;
-      LogsCurrentlyKept:
+      LogsCurrentlyKeptModeType:
         IF LogsCurrentlyKeptMode THEN BEGIN
           LogsCurrentlyKeptMode := False;
           Log('AG Logs Currently Kept = OFF');
           RemoveStringFromStatusPanel('LCK');
         END;
-      PointDebugging:
+      PointDebuggingModeType:
         IF PointDebuggingMode THEN BEGIN
           PointDebuggingMode := False;
           Log('A Point Debugging Mode = OFF');
           RemoveStringFromStatusPanel('POINTDEBUG');
         END;
-      RDC:
+      RDCModeType:
         IF RDCMode THEN BEGIN
           RDCMode := False;
           Log('A RDC Mode = OFF');
           RemoveStringFromStatusPanel('RDC');
         END;
-      RecordingMonitorScreens:
+      RecordingMonitorScreensModeType:
         IF RecordingMonitorScreensMode THEN BEGIN
           RecordingMonitorScreensMode := False;
           Log('A Recording Monitor Screens Mode = OFF');
           RemoveStringFromStatusPanel('RECORDING');
         END;
-      RecordLineDrawing:
+      RecordLineDrawingModeType:
         IF RecordLineDrawingMode THEN BEGIN
           RecordLineDrawingMode := False;
           Log('A Record Line Drawing Mode = OFF');
           RemoveStringFromStatusPanel('LINEDRAWING');
         END;
-      RouteBacktrackDebugging:
+      RouteBacktrackDebuggingModeType:
         IF RouteBacktrackDebuggingMode THEN BEGIN
           RouteBacktrackDebuggingMode := False;
           Log('A RouteBacktrack Debugging Mode = OFF');
           RemoveStringFromStatusPanel('BACKTRACK');
         END;
-      RouteDebugging:
+      RouteDebuggingModeType:
         IF RouteDebuggingMode THEN BEGIN
           RouteDebuggingMode := False;
           Log('A Route Debugging Mode = OFF');
           RemoveStringFromStatusPanel('ROUTE');
         END;
-      RouteDrawing:
+      RouteDrawingModeType:
         IF RouteDrawingMode THEN BEGIN
           RouteDrawingMode := False;
           Log('A Route Drawing Mode = OFF');
           RemoveStringFromStatusPanel('DRAWING');
         END;
-      ShowAdjacentTrackCircuit:
+      ShowAdjacentTrackCircuitModeType:
         IF ShowAdjacentTrackCircuitMode THEN BEGIN
           ShowAdjacentTrackCircuitMode := False;
           Log('A Show Adjacent Trackj Circuit Mode Mode = OFF');
           RemoveStringFromStatusPanel('ADJ');
         END;
-      StationStart:
+      StationStartModeType:
         IF StationStartMode THEN BEGIN
           StationStartMode := False;
           Log('A Station Start Mode = OFF');
           RemoveStringFromStatusPanel('SS');
         END;
-      Testing:
+      TestingModeType:
         IF TestingMode THEN BEGIN
           TestingMode := False;
           Log('A Test Mode = OFF');
@@ -2931,34 +2931,24 @@ BEGIN
   END;
 END; { SetMode }
 
-PROCEDURE SetFeedbackDebuggingModeOn(DebugStr : String; AdjacentSignalNumber, DecoderNumber, TCInFull, TCOnce : Boolean);
+PROCEDURE SetFeedbackDebuggingModeOn;
 { Turn on feedback debugging mode, updating the fourth status panel }
 BEGIN
   FeedbackDebuggingMode := True;
-  Debug(DebugStr);
-  WriteDataToFeedbackWindow(DebugStr);
+  Debug('Feedback debugging = ON');
+  WriteStringToFeedbackWindow('Feedback debugging = ON');
   WriteToStatusBarPanel(StatusBarPanel3, SaveStatusPanel3Str + ' FEEDBACK');
-
-  ReadOutAdjacentSignalNumber := AdjacentSignalNumber;
-  ReadOutTCInFull := TCInFull;
-  ReadOutTCOnce := TCOnce;
-  ReadOutDecoderNumber := DecoderNumber;
 END; { SetFeedbackDebuggingModeOn }
 
-PROCEDURE SetFeedbackDebuggingModeOff(DebugStr : String);
+PROCEDURE SetFeedbackDebuggingModeOff;
 { Turn off feedback debugging mode, updating the fourth status panel }
 VAR
   TempStr : String;
 
 BEGIN
   FeedbackDebuggingMode := False;
-  Debug(DebugStr);
-  WriteDataToFeedbackWindow(DebugStr);
-
-  ReadOutAdjacentSignalNumber := False;
-  ReadOutTCInFull := False;
-  ReadOutTCOnce := False;
-  ReadOutDecoderNumber := False;
+  Debug('Feedback debugging = OFF');
+  WriteStringToFeedbackWindow('Feedback debugging = OFF');
 
   { The timer is used to clear the on-screen message and then switches itself off }
   FeedbackWindow.FeedbackWindowTimer.Enabled := True;

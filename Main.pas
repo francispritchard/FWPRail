@@ -482,9 +482,9 @@ VAR
     IF (StationStartModeSetUpTime <> 0) AND (Time > IncSecond(StationStartModeSetUpTime, 5)) THEN BEGIN
       StationStartModeSetUpTime := 0;
       IF InStationStartMode THEN
-        SetMode(StationStart, TurnOff)
+        SetMode(StationStartModeType, TurnOff)
       ELSE BEGIN
-        SetMode(StationStart, TurnOn);
+        SetMode(StationStartModeType, TurnOn);
         { and set all button presses to false }
 //        FOR Location := FirstMainPlatformLocation TO LastMainPlatformLocation DO
 //          MainPlatformPlungers[Location].TRSPlunger_Pressed := False;
@@ -857,7 +857,7 @@ BEGIN { ShutDownProgram }
       END;
 
       { Now reset the mode so that we don't try to write to log files after they've been closed }
-      SetMode(LogsCurrentlyKept, False);
+      SetMode(LogsCurrentlyKeptModeType, False);
     END;
 
     IF RestoreLogsToPreviousState THEN BEGIN

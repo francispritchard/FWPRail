@@ -107,14 +107,14 @@ BEGIN
         WriteLn('Test');
       'A':
         IF IndividualParameterString = 'A-' THEN
-          SetMode(AnonymousOccupation, TurnOff)
+          SetMode(AnonymousOccupationModeType, TurnOff)
         ELSE
           IF IndividualParameterString = 'ARD' THEN
           { used for development }
-            SetMode(AllRouteDebugging, TurnOn)
+            SetMode(AllRouteDebuggingModeType, TurnOn)
           ELSE
             IF IndividualParameterString = 'ATCM' THEN BEGIN
-              SetMode(ShowAdjacentTrackCircuit, TurnOn);
+              SetMode(ShowAdjacentTrackCircuitModeType, TurnOn);
               Debug('Displaying adjacent track circuit mode = ON');
             END ELSE
               OK := False;
@@ -143,21 +143,21 @@ BEGIN
           END ELSE
             IF IndividualParameterString = 'Debug' THEN
               { used for development }
-              SetMode(GeneralDebugging, TurnOn)
+              SetMode(GeneralDebuggingModeType, TurnOn)
             ELSE
               OK := False;
       'F':
         IF IndividualParameterString = 'FD' THEN
           SetFeedbackDebuggingModeOn('FeedbackDebuggingMode=ON', NOT ReadOutAdjacentSignalNumber, NOT ReadOutTCInFull, NOT ReadOutTCOnce, NOT ReadOutDecoderNumber)
+        IF IndividualParameterString = 'FSS' THEN
+          ScreenMode := FullScreenWithStatusBarMode
         ELSE
           IF IndividualParameterString = 'FDS' THEN BEGIN
             SetFeedbackDebuggingModeOn('FeedbackDebuggingMode=ON', NOT ReadOutAdjacentSignalNumber, ReadOutTCInFull, NOT ReadOutTCOnce, NOT ReadOutDecoderNumber)
           END ELSE
-            IF IndividualParameterString = 'FSS' THEN
-              ScreenMode := FullScreenWithStatusBarMode
+          IF IndividualParameterString = 'FS' THEN
+            ScreenMode := FullScreenMode
             ELSE
-              IF IndividualParameterString = 'FS' THEN
-                ScreenMode := FullScreenMode
               ELSE
                 IF IndividualParameterString = 'FTC=OFF' THEN
                   DisplayFlashingTrackCircuits := False
@@ -169,7 +169,7 @@ BEGIN
       'I':
         IF IndividualParameterString = 'I' THEN
           { used for development }
-          SetMode(LineDebugging, TurnOn)
+          SetMode(LineDebuggingModeType, TurnOn)
         ELSE
           IF IndividualParameterString = 'IL=OFF' THEN
             CheckForIdenticalLinesInLog := False
@@ -185,10 +185,10 @@ BEGIN
       'K':
         IF IndividualParameterString = 'K' THEN
           { used for development }
-          SetMode(LockDebugging, TurnOn);
+          SetMode(LockDebuggingModeType, TurnOn);
       'L':
         IF IndividualParameterString = 'L' THEN
-          SetMode(Locking, TurnOff)
+          SetMode(LockingModeType, TurnOff)
         ELSE
           { need to alter below to cope with suffixes **** }
           IF Pos('LOGFILE', IndividualParameterString) > 0 THEN BEGIN
@@ -215,7 +215,7 @@ BEGIN
         ELSE
           IF IndividualParameterString = 'NOLOG' THEN
             { Turn of logging }
-            SetMode(LogsCurrentlyKept, False)
+            SetMode(LogsCurrentlyKeptModeType, False)
           ELSE
             IF IndividualParameterString = 'NOBEEP' THEN
               { Turn of the sound made when bold text appears in the debug window }
@@ -232,7 +232,7 @@ BEGIN
             IF IndividualParameterString = 'OFFLINEWITHPREVIOUSPOINTSSET' THEN BEGIN
               SystemSetOfflineByCommandLineParameter := True;
               SetSystemOffline('by command line parameter', NOT SoundWarning);
-              SetMode(PreviousPointSettings, TurnOn);
+              SetMode(PreviousPointSettingsModeType, TurnOn);
             END;
         END;
       'P':
@@ -241,26 +241,26 @@ BEGIN
         ELSE
           IF IndividualParameterString = 'PD' THEN
             { used for development }
-            SetMode(PointDebugging, TurnOn)
+            SetMode(PointDebuggingModeType, TurnOn)
           ELSE
             OK := False;
       'R':
         IF IndividualParameterString = 'RDC=ON' THEN BEGIN
-          SetMode(RDC, TurnOn)
+          SetMode(RDCModeType, TurnOn)
           // RailDriverWindow.RailDriverWindowTimer.Enabled := True;
         END ELSE
           IF IndividualParameterString = 'RDC=OFF' THEN
             { this is not necessary, but it's easier to turn it on or off in the parameter string this way }
-            SetMode(RDC, TurnOff)
+            SetMode(RDCModeType, TurnOff)
           ELSE
             IF IndividualParameterString = 'RD' THEN
-              SetMode(RouteDebugging, TurnOn)
+              SetMode(RouteDebuggingModeType, TurnOn)
             ELSE
               IF IndividualParameterString = 'RS' THEN
-                SetMode(RouteDrawing, TurnOn)
+                SetMode(RouteDrawingModeType, TurnOn)
               ELSE
                 IF IndividualParameterString = 'RB' THEN
-                  SetMode(RouteBacktrackDebugging, TurnOn)
+                  SetMode(RouteBacktrackDebuggingModeType, TurnOn)
                 ELSE
                   IF Pos('REPLAYFILE', IndividualParameterString) > 0 THEN BEGIN
                     IF Length(IndividualParameterString) > Length('REPLAYFILE') THEN
@@ -272,7 +272,7 @@ BEGIN
                       OK := False;
       'S':
         IF IndividualParameterString = 'S' THEN
-          SetMode(StationStart, TurnOn)
+          SetMode(StationStartModeType, TurnOn)
         ELSE
           OK := False;
       'T':
@@ -284,10 +284,10 @@ BEGIN
             OK := False;
         END ELSE
           IF IndividualParameterString = 'TR' THEN
-            SetMode(RecordingMonitorScreens, TurnOn)
+            SetMode(RecordingMonitorScreensModeType, TurnOn)
           ELSE
             IF IndividualParameterString = 'TEST' THEN
-              SetMode(Testing, TurnOn)
+              SetMode(TestingModeType, TurnOn)
             ELSE
               OK := False;
       'W':
@@ -471,9 +471,9 @@ END; { HandleParameters }
 PROCEDURE TDebuggingOptionsWindow.Startup_DebuggingCheckBoxClick(Sender: TObject);
 BEGIN
   IF Startup_DebuggingCheckBox.Checked THEN
-    SetMode(GeneralDebugging, TurnOn)
+    SetMode(GeneralDebuggingModeType, TurnOn)
   ELSE
-    SetMode(GeneralDebugging, TurnOff);
+    SetMode(GeneralDebuggingModeType, TurnOff);
 END; { Startup_DebuggingCheckBoxClick }
 
 PROCEDURE TDebuggingOptionsWindow.Startup_FeedbackDebuggingCheckBoxClick(Sender: TObject);
@@ -488,15 +488,15 @@ END; { Startup_FeedbackDebuggingCheckBoxClick }
 PROCEDURE TDebuggingOptionsWindow.Startup_LineDebuggingCheckBoxClick(Sender: TObject);
 BEGIN
   IF NOT Startup_LineDebuggingCheckBox.Checked THEN
-    SetMode(LineDebugging, TurnOff)
+    SetMode(LineDebuggingModeType, TurnOff)
   ELSE BEGIN
-    SetMode(LineDebugging, TurnOn);
+    SetMode(LineDebuggingModeType, TurnOn);
 
     { mutually exclusive, as it gets v. confusing! }
-    SetMode(LockDebugging, TurnOff);
+    SetMode(LockDebuggingModeType, TurnOff);
     Startup_LockDebuggingCheckBox.State := cbUnchecked;
 
-    SetMode(PointDebugging, TurnOff);
+    SetMode(PointDebuggingModeType, TurnOff);
     Startup_PointDebuggingCheckBox.State := cbUnchecked;
   END;
 END; { Startup_LineDebuggingCheckBoxClick }
@@ -504,15 +504,15 @@ END; { Startup_LineDebuggingCheckBoxClick }
 PROCEDURE TDebuggingOptionsWindow.Startup_LockDebuggingCheckBoxClick(Sender: TObject);
 BEGIN
   IF NOT Startup_LockDebuggingCheckBox.Checked THEN
-    SetMode(LockDebugging, TurnOff)
+    SetMode(LockDebuggingModeType, TurnOff)
   ELSE BEGIN
-    SetMode(LockDebugging, TurnOn);
+    SetMode(LockDebuggingModeType, TurnOn);
 
     { mutually exclusive, as it gets v. confusing! }
-    SetMode(LineDebugging, TurnOff);
+    SetMode(LineDebuggingModeType, TurnOff);
     Startup_LineDebuggingCheckBox.State := cbUnchecked;
 
-    SetMode(PointDebugging, TurnOff);
+    SetMode(PointDebuggingModeType, TurnOff);
     Startup_PointDebuggingCheckBox.State := cbUnchecked;
   END;
 END; { Startup_LockDebuggingCheckBoxClick }
@@ -520,15 +520,15 @@ END; { Startup_LockDebuggingCheckBoxClick }
 PROCEDURE TDebuggingOptionsWindow.Startup_PointDebuggingCheckBoxClick(Sender: TObject);
 BEGIN
   IF NOT Startup_PointDebuggingCheckBox.Checked THEN
-    SetMode(PointDebugging, TurnOff)
+    SetMode(PointDebuggingModeType, TurnOff)
   ELSE BEGIN
-    SetMode(PointDebugging, TurnOn);
+    SetMode(PointDebuggingModeType, TurnOn);
 
     { mutually exclusive, as it gets v. confusing! }
-    SetMode(LineDebugging, TurnOff);
+    SetMode(LineDebuggingModeType, TurnOff);
     Startup_LineDebuggingCheckBox.State := cbUnchecked;
 
-    SetMode(LockDebugging, TurnOff);
+    SetMode(LockDebuggingModeType, TurnOff);
     Startup_LockDebuggingCheckBox.State := cbUnchecked;
   END;
 END; { Startup_PointDebuggingCheckBoxClick }
@@ -536,67 +536,67 @@ END; { Startup_PointDebuggingCheckBoxClick }
 PROCEDURE TDebuggingOptionsWindow.Startup_RouteDebuggingCheckBoxClick(Sender: TObject);
 BEGIN
   IF Startup_RouteDebuggingCheckBox.Checked THEN
-    SetMode(RouteDebugging, TurnOn)
+    SetMode(RouteDebuggingModeType, TurnOn)
   ELSE
-    SetMode(RouteDebugging, TurnOff);
+    SetMode(RouteDebuggingModeType, TurnOff);
 END; { Startup_RouteDebuggingCheckBoxClick }
 
 PROCEDURE TDebuggingOptionsWindow.Startup_RouteBacktrackDebuggingCheckBoxClick(Sender: TObject);
 BEGIN
   IF Startup_RouteBacktrackDebuggingCheckBox.Checked THEN
-    SetMode(RouteBacktrackDebugging, TurnOn)
+    SetMode(RouteBacktrackDebuggingModeType, TurnOn)
   ELSE
-    SetMode(RouteBacktrackDebugging, TurnOff);
+    SetMode(RouteBacktrackDebuggingModeType, TurnOff);
 END; { Startup_RouteBacktrackDebuggingCheckBoxClick }
 
 PROCEDURE TDebuggingOptionsWindow.Startup_AllRouteDebuggingCheckBoxClick(Sender: TObject);
 BEGIN
   IF Startup_AllRouteDebuggingCheckBox.Checked THEN
-    SetMode(AllRouteDebugging, TurnOn)
+    SetMode(AllRouteDebuggingModeType, TurnOn)
   ELSE
-    SetMode(AllRouteDebugging, TurnOff);
+    SetMode(AllRouteDebuggingModeType, TurnOff);
 END; { Startup_AllRouteDebuggingCheckBoxClick }
 
 PROCEDURE TDebuggingOptionsWindow.Startup_RouteDrawingCheckBoxClick(Sender: TObject);
 BEGIN
   IF Startup_RouteDrawingCheckBox.Checked THEN
-    SetMode(RouteDrawing, TurnOn)
+    SetMode(RouteDrawingModeType, TurnOn)
   ELSE
-    SetMode(RouteDrawing, TurnOff);
+    SetMode(RouteDrawingModeType, TurnOff);
 END; { Startup_RouteDrawingCheckBoxClick }
 
 PROCEDURE TDebuggingOptionsWindow.Startup_TestingCheckBoxClick(Sender: TObject);
 BEGIN
   IF Startup_TestingCheckBox.Checked THEN
-    SetMode(Testing, TurnOn)
+    SetMode(TestingModeType, TurnOn)
   ELSE
-    SetMode(Testing, TurnOff);
+    SetMode(TestingModeType, TurnOff);
 END; { Startup_TestingCheckBoxClick }
 
 PROCEDURE TDebuggingOptionsWindow.Startup_RecordLineDrawingCheckBoxClick(Sender: TObject);
 BEGIN
   IF Startup_RecordLineDrawingCheckBox.Checked THEN
-    SetMode(RecordLineDrawing, TurnOn)
+    SetMode(RecordLineDrawingModeType, TurnOn)
   ELSE
-    SetMode(RecordLineDrawing, TurnOff);
+    SetMode(RecordLineDrawingModeType, TurnOff);
 END; { Startup_RecordLineDrawingCheckBoxClick }
 
 PROCEDURE TDebuggingOptionsWindow.Startup_LockingCheckBoxClick(Sender: TObject);
 BEGIN
   IF Startup_LockingCheckBox.Checked THEN
-    SetMode(Locking, TurnOff)
+    SetMode(LockingModeType, TurnOff)
   ELSE
-    SetMode(Locking, TurnOn);
+    SetMode(LockingModeType, TurnOn);
 END; { Startup_LockingCheckBoxClick }
 
 PROCEDURE TDebuggingOptionsWindow.Startup_LogsKeptCheckBoxClick(Sender: TObject);
 BEGIN
   WITH Startup_LogsKeptCheckBox DO BEGIN
     IF Checked THEN BEGIN
-      SetMode(LogsCurrentlyKept, True);
+      SetMode(LogsCurrentlyKeptModeType, True);
       Log('A Logs Kept= ON');
     END ELSE BEGIN
-      SetMode(LogsCurrentlyKept, False);
+      SetMode(LogsCurrentlyKeptModeType, False);
       Log('A Logs Kept = OFF');
     END;
   END; {WITH}

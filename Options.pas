@@ -1660,7 +1660,7 @@ BEGIN
                                                                                                              DefaultStationOppositeDirectionExitMinimumWaitTimeInMinutes);
     StationSameDirectionExitMinimumWaitTimeInMinutes := FWPReadInteger(OtherOptionsSectionStr, StationSameDirectionExitMinimumWaitTimeInMinutesStr,
                                                                                                                  DefaultStationSameDirectionExitMinimumWaitTimeInMinutes);
-    SetMode(StationStart, FWPReadBool(OtherOptionsSectionStr, StationStartModeStr, DefaultStationStartMode));
+    SetMode(StationStartModeType, FWPReadBool(OtherOptionsSectionStr, StationStartModeStr, DefaultStationStartMode));
     StationStartOfDayPassengerBoardingTimeInMinutes := FWPReadInteger(OtherOptionssectionStr, StationStartOfDayPassengerBoardingTimeInMinutesStr,
                                                                                                                   DefaultStationStartOfDayPassengerBoardingTimeInMinutes);
     StopAllLocosAtShutDown := FWPReadBool(OtherOptionsSectionStr, StopAllLocosAtShutDownStr, DefaultStopAllLocosAtShutDown);

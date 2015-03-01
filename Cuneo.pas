@@ -343,7 +343,7 @@ BEGIN
     { Points }
     IF InPointDebuggingMode THEN BEGIN
       SaveRecordLineDrawingMode := InRecordLineDrawingMode;
-      SetMode(RecordLineDrawing, False);
+      SetMode(RecordLineDrawingModeType, False);
       IF SaveHeelLine <> UnknownLine THEN
         DrawLine(SaveHeelLine, SaveHeelLineColour, NOT ActiveTrain);
       IF SaveStraightLine <> UnknownLine THEN
@@ -352,7 +352,7 @@ BEGIN
         DrawLine(SaveDivergingLine, SaveDivergingLineColour, NOT ActiveTrain);
       IF SavePoint <> UnknownPoint THEN
         DrawPoint(SavePoint, BackgroundColour);
-      SetMode(RecordLineDrawing, SaveRecordLineDrawingMode);
+      SetMode(RecordLineDrawingModeType, SaveRecordLineDrawingMode);
     END;
 
     PointFoundNum := UnknownPoint;
@@ -388,7 +388,7 @@ BEGIN
           PointFoundNum := P;
           IF InPointDebuggingMode THEN BEGIN
             SaveRecordLineDrawingMode := InRecordLineDrawingMode;
-            SetMode(RecordLineDrawing, SaveRecordLineDrawingMode);
+            SetMode(RecordLineDrawingModeType, SaveRecordLineDrawingMode);
             DrawPoint(P, clAqua);
             SavePoint := P;
             SaveHeelLine := Point_HeelLine;
@@ -404,7 +404,7 @@ BEGIN
             SaveDivergingLine := Point_DivergingLine;
             SaveDivergingLineColour := Lines[Point_DivergingLine].Line_CurrentColour;
             DrawLine(Point_DivergingLine, PointDivergingLineColour, NOT ActiveTrain);
-            SetMode(RecordLineDrawing, SaveRecordLineDrawingMode);
+            SetMode(RecordLineDrawingModeType, SaveRecordLineDrawingMode);
             DebugStr := DebugStr + ' D=' + LineToStr(Point_DivergingLine);
 
             Debug(DebugStr);
@@ -433,7 +433,7 @@ BEGIN
 
     IF InLockDebuggingMode OR InLineDebuggingMode THEN BEGIN
       SaveRecordLineDrawingMode := InRecordLineDrawingMode;
-      SetMode(RecordLineDrawing, False);
+      SetMode(RecordLineDrawingModeType, False);
       IF SaveLine <> UnknownLine THEN
         DrawLine(SaveLine, SaveLineColour, NOT ActiveTrain);
       IF SaveUpBufferStop <> UnknownBufferStop THEN
@@ -444,7 +444,7 @@ BEGIN
         DrawLine(SaveNextUpLine, TCUnoccupiedColour, NOT ActiveTrain);
       IF SaveNextDownLine <> UnknownLine THEN
         DrawLine(SaveNextDownLine, TCUnoccupiedColour, NOT ActiveTrain);
-      SetMode(RecordLineDrawing, SaveRecordLineDrawingMode);
+      SetMode(RecordLineDrawingModeType, SaveRecordLineDrawingMode);
     END;
 
     { Buffer stops }
@@ -553,7 +553,7 @@ BEGIN
 
           IF InLineDebuggingMode THEN BEGIN
             SaveRecordLineDrawingMode := InRecordLineDrawingMode;
-            SetMode(RecordLineDrawing, False);
+            SetMode(RecordLineDrawingModeType, False);
             WITH Lines[Line] DO BEGIN
               CASE Lines[Line].Line_NextUpType OF
                 EndOfLineIsNext:
@@ -591,7 +591,7 @@ BEGIN
                   DrawLine(Lines[Line].Line_NextDownLine, clRed, NOT ActiveTrain);
                 END;
             END; {WITH}
-            SetMode(RecordLineDrawing, SaveRecordLineDrawingMode);
+            SetMode(RecordLineDrawingModeType, SaveRecordLineDrawingMode);
           END;
 
 //          { If the mouse has moved away from a line, this will clear the panel }
@@ -844,13 +844,13 @@ VAR
           END ELSE
             IF ssShift IN ShiftState THEN BEGIN
               { Force the signal to move even if it's locked }
-              SetMode(Locking, TurnOff);
+              SetMode(LockingModeType, TurnOff);
               Log('SG Locking mode suspended by user when changing S=' + IntToStr(S) + ' {BLANKLINEBEFORE}');
               PullSignal(UnknownLocoChipStr, S, NoIndicatorLit, NoRoute, NoSubRoute, UnknownLine, UnknownTrainType, ByUser, OK);
             END ELSE
               IF ssAlt IN ShiftState THEN BEGIN
                 { Remove route locking from a signal }
-                SetMode(Locking, TurnOff);
+                SetMode(LockingModeType, TurnOff);
                 Debug('S=' + IntToStr(S) + ': removing locking');
                 IF SignalIsLockedByAnyRoute(S, RouteLockingArray) THEN BEGIN
                   FOR I := 0 TO High(RouteLockingArray) DO BEGIN
@@ -879,7 +879,7 @@ VAR
 //                      TheatreSignalSetting := False;
                   END;
 
-    SetMode(Locking, SaveLockingMode);
+    SetMode(LockingModeType, SaveLockingMode);
   END; { ChangeSignal }
 
   PROCEDURE ChangeSignalIndicator(S : Integer; J : JunctionIndicatorType; ShiftState : TShiftState; HelpRequired : Boolean);
@@ -911,7 +911,7 @@ VAR
         WITH Signals[S] DO BEGIN
           SaveLockingMode := InLockingMode;
           IF ssShift IN ShiftState THEN BEGIN
-            SetMode(Locking, TurnOff);
+            SetMode(LockingModeType, TurnOff);
             Log('S Locking mode suspended when changing signal indicator ' + IntToStr(S) + ' {BLANKLINEBEFORE}');
           END;
 
@@ -961,7 +961,7 @@ VAR
 
         END;
       END; {WITH}
-      SetMode(Locking, SaveLockingMode);
+      SetMode(LockingModeType, SaveLockingMode);
     END;
   END; { ChangeSignalIndicator }
 
@@ -1003,11 +1003,11 @@ VAR
               IF ssCtrl IN ShiftState THEN BEGIN
                 { Force the point to move even if it's locked }
                 SaveLockingMode := InLockingMode;
-                SetMode(Locking, TurnOff);
+                SetMode(LockingModeType, TurnOff);
                 Log('P Locking mode suspended when changing point ' + IntToStr(P) + ' {BLANKLINEBEFORE}');
                 PullPoint(UnknownLocoChipStr, P, NoRoute, NoSubRoute, ForcePoint, ByUser, ErrorMessageRequired, PointResultPending,
                           DebugStr, Result);
-                SetMode(Locking, SaveLockingMode);
+                SetMode(LockingModeType, SaveLockingMode);
               END ELSE
                 { move it normally }
                 PullPoint(UnknownLocoChipStr, P, NoRoute, NoSubRoute, NOT ForcePoint, ByUser, ErrorMessageRequired, PointResultPending,

@@ -7355,7 +7355,7 @@ BEGIN { Main drawing procedure }
         IF ResizeMap THEN
           ResizeMap := False;
 
-        SetMode(RecordLineDrawing, SaveRecordLineDrawingMode);
+        SetMode(RecordLineDrawingModeType, SaveRecordLineDrawingMode);
       END; {WITH Canvas}
 
       IF MenusVisible THEN

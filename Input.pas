@@ -112,9 +112,9 @@ PROCEDURE TInputDialogueBox.InputDialogueShowAdjacentTrackCircuitsCheckBoxClick(
 BEGIN
   { Allow ShowAdjacentTrackCircuits mode to be turned on and off in the dialogue box }
   IF InputDialogueShowAdjacentTrackCircuitsCheckBox.Checked THEN
-    SetMode(ShowAdjacentTrackCircuit, True)
+    SetMode(ShowAdjacentTrackCircuitModeType, True)
   ELSE
-    SetMode(ShowAdjacentTrackCircuit, False);
+    SetMode(ShowAdjacentTrackCircuitModeType, False);
 END; { InputDialogueShowAdjacentTrackCircuitsCheckBoxClick }
 
 PROCEDURE TInputDialogueBox.InputDialogueMaskEditChange(Sender: TObject);
@@ -379,7 +379,7 @@ BEGIN
         InvalidateScreen(UnitRef, 'InputDialogueBoxHide 1');
 
         IF InShowAdjacentTrackCircuitMode THEN BEGIN
-          SetMode(ShowAdjacentTrackCircuit, False);
+          SetMode(ShowAdjacentTrackCircuitModeType, False);
           WriteToStatusBarPanel(StatusBarPanel2, 'Showing adjacent-track-circuit mode = OFF');
           InvalidateScreen(UnitRef, 'InputDialogueBoxHide 4');
         END;
@@ -2125,9 +2125,9 @@ BEGIN { KeyPressedDown }
                 IF NOT HelpRequired THEN BEGIN
                   IF InLogsCurrentlyKeptMode THEN BEGIN
                     Log('AG LogsCurrentlyKept = OFF');
-                    SetMode(LogsCurrentlyKept, False);
+                    SetMode(LogsCurrentlyKeptModeType, False);
                   END ELSE BEGIN
-                    setMode(LogsCurrentlyKept, True);
+                    setMode(LogsCurrentlyKeptModeType, True);
                     Log('AG LogsCurrentlyKept = ON');
                   END;
                 END;
@@ -2172,9 +2172,9 @@ BEGIN { KeyPressedDown }
                 HelpMsg := 'point/signal locking on/off';
                 IF NOT HelpRequired THEN BEGIN
                   IF InLockingMode THEN
-                    SetMode(Locking, TurnOff)
+                    SetMode(LockingModeType, TurnOff)
                   ELSE
-                    SetMode(Locking, TurnOn);
+                    SetMode(LockingModeType, TurnOn);
                 END;
               END;
             Ctrl: {L}
@@ -2511,7 +2511,7 @@ BEGIN { KeyPressedDown }
               BEGIN
                 HelpMsg := 'Display latest point settings';
                 IF NOT HelpRequired THEN BEGIN
-                  SetMode(PreviousPointSettings, TurnOn);
+                  SetMode(PreviousPointSettingsModeType, TurnOn);
                   DisplayPreviousPointSettings;
                   InvalidateScreen(UnitRef, 'Display latest point settings in offline mode');
                 END;
@@ -2617,7 +2617,7 @@ BEGIN { KeyPressedDown }
                       StopSystemTimer;
                       IF InAutoMode THEN
                         TurnAutoModeOff(NOT ByUser);
-                      SetMode(LogsCurrentlyKept, False);
+                      SetMode(LogsCurrentlyKeptModeType, False);
                       StartWithDiagrams := False;
                       SetSystemOffline('System set offline by selecting replay', NOT SoundWarning);
                     END;
@@ -2840,7 +2840,7 @@ BEGIN { KeyPressedDown }
               BEGIN
                 HelpMsg := 'toggle station start mode';
                 IF NOT HelpRequired THEN BEGIN
-                  SetMode(StationStart, NOT InStationStartMode);
+                  SetMode(StationStartModeType, NOT InStationStartMode);
                   IF InStationStartMode THEN
                     Log('AG Station Start Mode = ON')
                   ELSE
@@ -4845,10 +4845,10 @@ BEGIN { KeyPressedDown }
                 HelpMsg := 'toggle show adjacent-track-circuit mode';
                 IF NOT HelpRequired THEN BEGIN
                   IF InShowAdjacentTrackCircuitMode THEN BEGIN
-                    SetMode(ShowAdjacentTrackCircuit, False);
+                    SetMode(ShowAdjacentTrackCircuitModeType, False);
                     WriteToStatusBarPanel(StatusBarPanel2, 'Showing adjacent-track-circuit mode = OFF');
                   END ELSE BEGIN
-                    SetMode(ShowAdjacentTrackCircuit, True);
+                    SetMode(ShowAdjacentTrackCircuitModeType, True);
                     WriteToStatusBarPanel(StatusBarPanel2, 'Showing adjacent-track-circuit mode = ON');
                   END;
                   InvalidateScreen(UnitRef, 'key ''' + DescribeKey(KeyToTest, InputShiftState) + ''' in KeyPressed: ' + HelpMsg);
@@ -4990,9 +4990,9 @@ BEGIN { KeyPressedDown }
                 HelpMsg := 'RDC Mode on/off';
                 IF NOT HelpRequired THEN BEGIN
                   IF InRDCMode THEN
-                    SetMode(RDC, TurnOff)
+                    SetMode(RDCModeType, TurnOff)
                   ELSE BEGIN
-                    SetMode(RDC, TurnOn);
+                    SetMode(RDCModeType, TurnOn);
                     StartRailDriver;
                   END;
                 END;

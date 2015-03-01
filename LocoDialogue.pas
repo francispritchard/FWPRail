@@ -1774,7 +1774,7 @@ BEGIN
     END ELSE BEGIN
       LocoDialogueLocoTimerStartStopButton.Caption := 'Start Loco Timer';
       Log(LocoChipToStr(LocoDialogueLocoChip) + ' *G Loco speed test completed');
-      SetMode(LocoSpeedTiming, False);
+      SetMode(LocoSpeedTimingModeType, False);
       LocoDialogueSpeedDisplay.Color := clBtnFace;
     END;
 
