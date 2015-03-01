@@ -1062,7 +1062,7 @@ BEGIN
                     UnrequestedDataFound := True;
 //                    Log('T Unrequested feedback has arrived');
 //                    Log('TG -72-');
-                    WriteDataToFeedbackWindow('*72*');
+                    WriteStringToFeedbackWindow('*72*');
                   END;
                   GetFeedbackReply(ReadArray);
                 END;
@@ -1074,7 +1074,7 @@ BEGIN
                     UnrequestedDataFound := True;
 //                    Log('T Unrequested feedback has arrived');
 //                    Log('TG -74-');
-                    WriteDataToFeedbackWindow('*74*');
+                    WriteStringToFeedbackWindow('*74*');
                   END;
                   GetFeedbackReply(ReadArray);
                END;
@@ -1086,7 +1086,7 @@ BEGIN
                     UnrequestedDataFound := True;
 //                    Log('T Unrequested feedback has arrived');
 //                    Log('TG -76-');
-                    WriteDataToFeedbackWindow('*76*');
+                    WriteStringToFeedbackWindow('*76*');
                   END;
                   GetFeedbackReply(ReadArray);
                 END;
@@ -1098,7 +1098,7 @@ BEGIN
                     UnrequestedDataFound := True;
 //                    Log('T Unrequested feedback has arrived');
 //                    Log('TG -78-');
-                    WriteDataToFeedbackWindow('*78*');
+                    WriteStringToFeedbackWindow('*78*');
                   END;
                   GetFeedbackReply(ReadArray);
                 END;
@@ -1115,7 +1115,7 @@ BEGIN
                       SystemStatus.EmergencyOff := True;
                       ErrorMsg := '*** power off ***';
                       Log('EG '+ ErrorMsg + ' {BLANKLINEBEFORE}');
-                      WriteDataToFeedbackWindow(ErrorMsg);
+                      WriteStringToFeedbackWindow(ErrorMsg);
                     END;
                   1:
                     IF ExpectedReply = EverythingTurnedOnReply THEN
@@ -1126,7 +1126,7 @@ BEGIN
                       SystemStatus.EmergencyStop := False;
                       ErrorMsg := '*** power on ***';
                       Log('EG '+ ErrorMsg + ' {BLANKLINEBEFORE}');
-                      WriteDataToFeedbackWindow(ErrorMsg);
+                      WriteStringToFeedbackWindow(ErrorMsg);
                     END;
                   2:
                     BEGIN
@@ -3226,7 +3226,7 @@ BEGIN
   Application.Icon := OffLineIcon;
   IF OfflineMsg <> '' THEN BEGIN
     IF FeedbackWindow <> NIL THEN BEGIN
-      WriteDataToFeedbackWindow(OfflineMsg);
+      WriteStringToFeedbackWindow(OfflineMsg);
       FeedbackWindow.FeedbackWindowTimer.Enabled := True;
     END;
 

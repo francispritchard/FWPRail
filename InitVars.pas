@@ -670,10 +670,6 @@ VAR
   RailDriverCalibrated : Boolean = False;
   RailDriverCalibrationStarted : Boolean = False;
   RailDriverInitialised : Boolean = False;
-  ReadOutAdjacentSignalNumber : Boolean = False;
-  ReadOutDecoderNumber : Boolean = False;
-  ReadOutTCInFull : Boolean = False;
-  ReadOutTCOnce : Boolean = False;
   RedrawScreen : Boolean = False;
   ReinitialiseFWPRailWindowVariables : Boolean = False;
   ReplayMode : Boolean = False;

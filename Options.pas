@@ -156,6 +156,18 @@ VAR
   DefaultLoggingWindowWidth : Integer = 0;
   LoggingWindowWidth : Integer;
 
+  DefaultMainUnitWindowHeight : Integer;
+  MainUnitWindowHeight : Integer;
+
+  DefaultMainUnitWindowTop : Integer;
+  MainUnitWindowTop : Integer;
+
+  DefaultMainUnitWindowLeft : Integer;
+  MainUnitWindowLeft : Integer;
+
+  DefaultMainUnitWindowWidth : Integer;
+  MainUnitWindowWidth : Integer;
+
   DefaultMovementWindowHeight : Integer;
   MovementWindowHeight : Integer;
 
@@ -834,7 +846,8 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES MiscUtils, RailDraw, Locks, LocoUtils, CreateRoute, Diagrams, GetTime, Help, LocationsUnit, Edit, WorkingTimetable, LocoDialogue, Logging, IniFiles, TrackCircuitsUnit;
+USES MiscUtils, RailDraw, Locks, LocoUtils, CreateRoute, Diagrams, GetTime, Help, LocationsUnit, Edit, WorkingTimetable, LocoDialogue, Logging, IniFiles, TrackCircuitsUnit,
+     Main;
 
 CONST
   UnitRef = 'Options';
@@ -1181,6 +1194,11 @@ CONST
     LoggingWindowLeftStr = 'Logging Window Left';
     LoggingWindowTopStr = 'Logging Window Top';
     LoggingWindowWidthStr = 'Logging Window Width';
+
+    MainUnitWindowHeightStr = 'Main Window Height';
+    MainUnitWindowLeftStr = 'Main Window Left';
+    MainUnitWindowTopStr = 'Main Window Top';
+    MainUnitWindowWidthStr = 'Main Window Width';
 
     MovementWindowHeightStr = 'Movement Window Height';
     MovementWindowLeftStr = 'Movement Window Left';
@@ -1572,6 +1590,11 @@ BEGIN
     LoggingWindowLeft := FWPReadInteger(WindowsSectionStr, LoggingWindowLeftStr, DefaultLoggingWindowLeft);
     LoggingWindowWidth := FWPReadInteger(WindowsSectionStr, LoggingWindowWidthStr, DefaultLoggingWindowWidth);
     LoggingWindowHeight := FWPReadInteger(WindowsSectionStr, LoggingWindowHeightStr, DefaultLoggingWindowHeight);
+
+    MainUnitWindowTop := FWPReadInteger(WindowsSectionStr, MainUnitWindowTopStr, DefaultMainUnitWindowTop);
+    MainUnitWindowLeft := FWPReadInteger(WindowsSectionStr, MainUnitWindowLeftStr, DefaultMainUnitWindowLeft);
+    MainUnitWindowWidth := FWPReadInteger(WindowsSectionStr, MainUnitWindowWidthStr, DefaultMainUnitWindowWidth);
+    MainUnitWindowHeight := FWPReadInteger(WindowsSectionStr, MainUnitWindowHeightStr, DefaultMainUnitWindowHeight);
 
     MovementWindowTop := FWPReadInteger(WindowsSectionStr, MovementWindowTopStr, DefaultMovementWindowTop);
     MovementWindowLeft := FWPReadInteger(WindowsSectionStr, MovementWindowLeftStr, DefaultMovementWindowLeft);
@@ -2128,6 +2151,13 @@ BEGIN
       WriteIntegerTwice(WindowsSectionStr, LoggingWindowLeftStr, LoggingWindow.Left);
       WriteIntegerTwice(WindowsSectionStr, LoggingWindowTopStr, LoggingWindow.Top);
       WriteIntegerTwice(WindowsSectionStr, LoggingWindowWidthStr, LoggingWindow.Width);
+    END;
+
+    IF MainUnitWindow <> NIL THEN BEGIN
+      WriteIntegerTwice(WindowsSectionStr, MainUnitWindowHeightStr, MainUnitWindow.Height);
+      WriteIntegerTwice(WindowsSectionStr, MainUnitWindowLeftStr, MainUnitWindow.Left);
+      WriteIntegerTwice(WindowsSectionStr, MainUnitWindowTopStr, MainUnitWindow.Top);
+      WriteIntegerTwice(WindowsSectionStr, MainUnitWindowWidthStr, MainUnitWindow.Width);
     END;
 
     IF MovementWindow <> NIL THEN BEGIN

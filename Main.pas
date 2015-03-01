@@ -4,20 +4,34 @@ UNIT Main;
   Copyright © F.W. Pritchard 2015. All Rights Reserved.
 
   v0.1  10/04/14 Unit extracted from RailDraw
+  v0.2  01/03/15 Added PageControl options window with check-list boxes
 }
 
 INTERFACE
 
 USES Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, InitVars, Vcl.ExtCtrls,
-     TrackCircuitsUnit;
+     TrackCircuitsUnit, Vcl.ComCtrls, Vcl.StdCtrls, Vcl.CheckLst;
 
 TYPE
   TMainUnitWindow = CLASS(TForm)
     MainUnitTimer: TTimer;
     MainUnitWatchdogOneSecondTimer: TTimer;
+    MainUnitWindowPageControl: TPageControl;
+    MainUnitWindowPageControlFeedbackDebuggingCheckListBox: TCheckListBox;
+    MainUnitWindowPageControlFeedbackDebuggingTabSheet: TTabSheet;
+    MainUnitWindowPageControlGeneralDebuggingCheckListBox: TCheckListBox;
+    MainUnitWindowPageControlGeneralDebuggingTabSheet: TTabSheet;
     PROCEDURE MainUnitTimerTick(Sender: TObject);
     PROCEDURE MainUnitWatchdogOneSecondTimerTick(Sender: TObject);
     PROCEDURE MainUnitWindowCreate(Sender: TObject);
+    PROCEDURE MainUnitWindowPageControlFeedbackDebuggingCheckListBoxClickCheck(Sender: TObject);
+    PROCEDURE MainUnitWindowPageControlFeedbackDebuggingCheckListBoxKeyDown(Sender: TObject; VAR Key: Word; Shift: TShiftState);
+    PROCEDURE MainUnitWindowPageControlFeedbackDebuggingCheckListBoxMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    PROCEDURE MainUnitWindowPageControlGeneralDebuggingCheckListBoxClickCheck(Sender: TObject);
+    PROCEDURE MainUnitWindowPageControlGeneralDebuggingCheckListBoxKeyDown(Sender: TObject; VAR Key: Word; Shift: TShiftState);
+    PROCEDURE MainUnitWindowPageControlGeneralDebuggingCheckListBoxMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    PROCEDURE MainUnitWindowShow(Sender: TObject);
+    PROCEDURE MainUnitWindowClose(Sender: TObject; VAR Action: TCloseAction);
   PRIVATE
     { Private declarations }
     PROCEDURE SendStringToWatchdogProgram(S : String);
@@ -25,6 +39,18 @@ TYPE
   PUBLIC
     { Public declarations }
   END;
+
+  TypeOfFeedbackDebuggingData = (OnScreenFeedback, ReadOutTCOnce, ReadOutTCOnOff, ReadOutTCWithAdjacentSignalNumber, ReadOutDecoderNumberOnce, ReadOutDecoderNumberOnOff,
+                                 ReadOutPointNumber);
+
+PROCEDURE DisplayFeedbackDebuggingTabSheet;
+{ Display the feedback debugging tab of the main window page control }
+
+PROCEDURE DisplayGeneralDebuggingTabSheet;
+{ Display the general debugging tab of the main window page control }
+
+FUNCTION IsMainUnitFeedbackDebuggingDataChecked(TempFeedbackDebuggingDataType : TypeOfFeedbackDebuggingData) : Boolean;
+{ Returns whether a particular feedback debugging type is ticked }
 
 PROCEDURE InitialiseMainUnit;
 { Such routines as this allow us to initialises the units in the order we wish }
@@ -58,6 +84,18 @@ USES GetTime, RailDraw, MiscUtils, Locks, LocationsUnit, Feedback, Options, Syst
      Diagrams, Route, Replay, Startup, Cuneo, LocoUtils, StationMonitors, ProgressBar, LocoDialogue, Help, WorkingTimetable, Edit, RDCUnit, Input, Train, SyncObjs,
      Logging, SignalsUnit, PointsUnit, LinesUnit, TCPIP;
 
+TYPE
+  FeedbackDebuggingDataRec = RECORD
+                               FeedbackDebuggingData_Type : TypeOfFeedbackDebuggingData;
+                               FeedbackDebuggingData_Str : String;
+                               FeedbackDebuggingData_Checked : Boolean;
+                             END;
+
+  GeneralDebuggingDataRec = RECORD
+                               GeneralDebuggingData_ModeType : ModeType;
+                               GeneralDebuggingData_Str : String;
+                               GeneralDebuggingData_Checked : Boolean;
+                             END;
 CONST
   ConnectedViaUSBStr = 'via USB';
   ConnectedViaEthernetStr = 'via Ethernet';
@@ -65,6 +103,8 @@ CONST
   UnitRef = 'Main';
 
 VAR
+  FeedbackDebuggingData : ARRAY OF FeedbackDebuggingDataRec;
+  GeneralDebuggingData : ARRAY OF GeneralDebuggingDataRec;
   InMainLoop : Boolean = False;
   NumbersArrayCounter : Integer = -1;
   OperationsStopped : Boolean = False;
@@ -118,6 +158,418 @@ BEGIN
   END;
 END; { StopOrResumeAllOperations }
 
+PROCEDURE InitialiseMainUnitWindowPageControl;
+{ Set up the page control tab sheet check boxes }
+VAR
+  FeedbackDebuggingDataArrayLength : Integer;
+  GeneralDebuggingDataArrayLength : Integer;
+  I : Integer;
+
+BEGIN
+  GeneralDebuggingDataArrayLength := 15;
+  SetLength(GeneralDebuggingData, GeneralDebuggingDataArrayLength);
+
+  I := 0;
+  WITH GeneralDebuggingData[I] DO BEGIN
+    GeneralDebuggingData_ModeType := GeneralDebuggingModeType;
+    GeneralDebuggingData_Str := 'General Debugging';
+    GeneralDebuggingData_Checked := False;
+  END; {WITH}
+
+  Inc(I);
+  WITH GeneralDebuggingData[I] DO BEGIN
+    GeneralDebuggingData_ModeType := AnonymousOccupationModeType;
+    GeneralDebuggingData_Str := 'Anonymous Occupation';
+    GeneralDebuggingData_Checked := False;
+  END; {WITH}
+
+  Inc(I);
+  WITH GeneralDebuggingData[I] DO BEGIN
+    GeneralDebuggingData_ModeType := LineDebuggingModeType;
+    GeneralDebuggingData_Str := 'Line Debugging';
+    GeneralDebuggingData_Checked := False;
+  END; {WITH}
+
+  Inc(I);
+  WITH GeneralDebuggingData[I] DO BEGIN
+    GeneralDebuggingData_ModeType := LockDebuggingModeType;
+    GeneralDebuggingData_Str := 'Lock Debugging';
+    GeneralDebuggingData_Checked := False;
+  END; {WITH}
+
+  Inc(I);
+  WITH GeneralDebuggingData[I] DO BEGIN
+    GeneralDebuggingData_ModeType := LockingModeType;
+    GeneralDebuggingData_Str := 'Locking Off';
+    GeneralDebuggingData_Checked := False;
+  END; {WITH}
+
+  Inc(I);
+  WITH GeneralDebuggingData[I] DO BEGIN
+    GeneralDebuggingData_ModeType := LogsCurrentlyKeptModeType;
+    GeneralDebuggingData_Str := 'Logs Currently Kept';
+    GeneralDebuggingData_Checked := False;
+  END; {WITH}
+
+  Inc(I);
+  WITH GeneralDebuggingData[I] DO BEGIN
+    GeneralDebuggingData_ModeType := RecordLineDrawingModeType;
+    GeneralDebuggingData_Str := 'Record Line Drawing';
+    GeneralDebuggingData_Checked := False;
+  END; {WITH}
+
+  Inc(I);
+  WITH GeneralDebuggingData[I] DO BEGIN
+    GeneralDebuggingData_ModeType := PointDebuggingModeType;
+    GeneralDebuggingData_Str := 'Point Debugging';
+    GeneralDebuggingData_Checked := False;
+  END; {WITH}
+
+  Inc(I);
+  WITH GeneralDebuggingData[I] DO BEGIN
+    GeneralDebuggingData_ModeType := RouteDebuggingModeType;
+    GeneralDebuggingData_Str := 'Route Debugging';
+    GeneralDebuggingData_Checked := False;
+  END; {WITH}
+
+  Inc(I);
+  WITH GeneralDebuggingData[I] DO BEGIN
+    GeneralDebuggingData_ModeType := AllRouteDebuggingModeType;
+    GeneralDebuggingData_Str := 'All Route Debugging';
+    GeneralDebuggingData_Checked := False;
+  END; {WITH}
+
+  Inc(I);
+  WITH GeneralDebuggingData[I] DO BEGIN
+    GeneralDebuggingData_ModeType := RouteBacktrackDebuggingModeType;
+    GeneralDebuggingData_Str := 'Route Backtrack Debugging';
+    GeneralDebuggingData_Checked := False;
+  END; {WITH}
+
+  Inc(I);
+  WITH GeneralDebuggingData[I] DO BEGIN
+    GeneralDebuggingData_ModeType := RouteDrawingModeType;
+    GeneralDebuggingData_Str := 'Route Drawing';
+    GeneralDebuggingData_Checked := False;
+  END; {WITH}
+
+  Inc(I);
+  WITH GeneralDebuggingData[I] DO BEGIN
+    GeneralDebuggingData_ModeType := ShowAdjacentTrackCircuitModeType;
+    GeneralDebuggingData_Str := 'Show Adjacent Track Circuits';
+    GeneralDebuggingData_Checked := False;
+  END; {WITH}
+
+  Inc(I);
+  WITH GeneralDebuggingData[I] DO BEGIN
+    GeneralDebuggingData_ModeType := StationStartModeType;
+    GeneralDebuggingData_Str := 'Station Start Mode';
+    GeneralDebuggingData_Checked := False;
+  END; {WITH}
+
+  Inc(I);
+  WITH GeneralDebuggingData[I] DO BEGIN
+    GeneralDebuggingData_ModeType := TestingModeType;
+    GeneralDebuggingData_Str := 'Testing';
+    GeneralDebuggingData_Checked := False;
+  END; {WITH}
+
+  IF I <> (GeneralDebuggingDataArrayLength - 1) THEN
+    Debug('!Error in GeneralDebuggingDataArrayLength - I = ' + IntToStr(I) + ' but GeneralDebuggingDataArrayLength is ' + IntToStr(GeneralDebuggingDataArrayLength));
+
+  FeedbackDebuggingDataArrayLength := 7;
+  SetLength(FeedbackDebuggingData, FeedbackDebuggingDataArrayLength);
+
+  I := 0;
+  WITH FeedbackDebuggingData[I] DO BEGIN
+    FeedbackDebuggingData_Type := OnScreenFeedback;
+    FeedbackDebuggingData_Str := 'On-screen Feedback';
+    FeedbackDebuggingData_Checked := False;
+  END; {WITH}
+
+  Inc(I);
+  WITH FeedbackDebuggingData[I] DO BEGIN
+    FeedbackDebuggingData_Type := ReadOutTCOnce;
+    FeedbackDebuggingData_Str := 'Read Out TC Once';
+    FeedbackDebuggingData_Checked := False;
+  END; {WITH}
+
+  Inc(I);
+  WITH FeedbackDebuggingData[I] DO BEGIN
+    FeedbackDebuggingData_Type := ReadOutTCOnOff;
+    FeedbackDebuggingData_Str :=  'Read Out TC On/Off';
+    FeedbackDebuggingData_Checked := False;
+  END; {WITH}
+
+  Inc(I);
+  WITH FeedbackDebuggingData[I] DO BEGIN
+    FeedbackDebuggingData_Type := ReadOutTCWithAdjacentSignalNumber;
+    FeedbackDebuggingData_Str := 'Read Out TC With Adjacent Signal Number';
+    FeedbackDebuggingData_Checked := False;
+  END; {WITH}
+
+  Inc(I);
+  WITH FeedbackDebuggingData[I] DO BEGIN
+    FeedbackDebuggingData_Type := ReadOutDecoderNumberOnce;
+    FeedbackDebuggingData_Str := 'Read Out Decoder Number Once';
+    FeedbackDebuggingData_Checked := False;
+  END; {WITH}
+
+  Inc(I);
+  WITH FeedbackDebuggingData[I] DO BEGIN
+    FeedbackDebuggingData_Type := ReadOutDecoderNumberOnOff;
+    FeedbackDebuggingData_Str := 'Read Out Decoder Number On/Off';
+    FeedbackDebuggingData_Checked := False;
+  END; {WITH}
+
+  Inc(I);
+  WITH FeedbackDebuggingData[I] DO BEGIN
+    FeedbackDebuggingData_Type := ReadOutPointNumber;
+    FeedbackDebuggingData_Str := 'Read Out Point Number';
+    FeedbackDebuggingData_Checked := False;
+  END; {WITH}
+
+  IF I <> (FeedbackDebuggingDataArrayLength - 1) THEN
+    Debug('!Error in FeedbackDebuggingDataArrayLength - I = ' + IntToStr(I) + ' but FeedbackDebuggingDataArrayLength is ' + IntToStr(FeedbackDebuggingDataArrayLength));
+
+  WITH MainUnitWindow DO BEGIN
+    WITH MainUnitWindowPageControlGeneralDebuggingTabSheet DO BEGIN
+      WITH MainUnitWindowPageControlGeneralDebuggingCheckListBox DO BEGIN
+        Items.Clear;
+
+        FOR I := 0 TO (GeneralDebuggingDataArrayLength - 1) DO BEGIN
+          Items.Add(GeneralDebuggingData[I].GeneralDebuggingData_Str);
+          IF GeneralDebuggingData[I].GeneralDebuggingData_Checked THEN
+            Checked[I] := True;
+        END;
+      END; {WITH}
+    END; {WITH}
+
+    WITH MainUnitWindowPageControlFeedbackDebuggingTabSheet DO BEGIN
+      WITH MainUnitWindowPageControlFeedbackDebuggingCheckListBox DO BEGIN
+        Items.Clear;
+
+        FOR I := 0 TO (FeedbackDebuggingDataArrayLength - 1) DO BEGIN
+          Items.Add(FeedbackDebuggingData[I].FeedbackDebuggingData_Str);
+          IF FeedbackDebuggingData[I].FeedbackDebuggingData_Checked THEN
+            Checked[I] := True;
+        END;
+      END; {WITH}
+    END; {WITH}
+  END; {WITH}
+END; { InitialiseMainUnitWindowPageControl }
+
+PROCEDURE DisplayGeneralDebuggingTabSheet;
+{ Display the general debugging tab of the main window page control }
+VAR
+  I : Integer;
+
+BEGIN
+  WITH MainUnitWindow DO
+    MainUnitWindowPageControl.ActivePage := MainUnitWindowPageControlGeneralDebuggingTabSheet;
+
+  MainUnitWindow.Enabled := True;
+  MainUnitWindow.Show;
+END; { DisplayGeneralDebuggingTabSheet }
+
+PROCEDURE DisplayFeedbackDebuggingTabSheet;
+{ Display the feedback debugging tab of the main window page control }
+VAR
+  I : Integer;
+
+BEGIN
+  WITH MainUnitWindow DO
+    MainUnitWindowPageControl.ActivePage := MainUnitWindowPageControlFeedbackDebuggingTabSheet;
+
+  MainUnitWindow.Enabled := True;
+  MainUnitWindow.Show;
+END; { DisplayFeedbackDebuggingTabSheet }
+
+FUNCTION IsMainUnitFeedbackDebuggingDataChecked(TempFeedbackDebuggingDataType : TypeOfFeedbackDebuggingData) : Boolean;
+{ Returns whether a particular feedback debugging type is ticked }
+VAR
+  I : Integer;
+  FeedbackDebuggingDataTypeFound : Boolean;
+
+BEGIN
+  Result := False;
+
+  I := 0;
+  FeedbackDebuggingDataTypeFound := False;
+  WHILE (I <= High(FeedbackDebuggingData)) AND NOT FeedbackDebuggingDataTypeFound DO BEGIN
+    IF FeedbackDebuggingData[I].FeedbackDebuggingData_Type <> TempFeedbackDebuggingDataType THEN
+      Inc(I)
+    ELSE BEGIN
+      FeedbackDebuggingDataTypeFound := True;
+      IF FeedbackDebuggingData[I].FeedbackDebuggingData_Checked THEN
+        Result := True;
+    END;
+  END; {WHILE}
+END; { IsMainUnitFeedbackDebuggingDataChecked }
+
+PROCEDURE TMainUnitWindow.MainUnitWindowPageControlGeneralDebuggingCheckListBoxClickCheck(Sender: TObject);
+{ This catches the OnClickCheck event }
+VAR
+  CheckedItemFound : Boolean;
+  I : Integer;
+
+BEGIN
+  WITH MainUnitWindowPageControlGeneralDebuggingCheckListBox DO BEGIN
+    { First uncheck the previously ticked checkbox, except the first one which is of necessity on when any of the others are on }
+    CheckedItemFound := False;
+    I := 0;
+    WHILE (I <= (Items.Count - 1)) AND NOT CheckedItemFound DO BEGIN
+      IF GeneralDebuggingData[I].GeneralDebuggingData_Checked THEN BEGIN
+        Checked[I] := False;
+        GeneralDebuggingData[I].GeneralDebuggingData_Checked := False;
+        CheckedItemFound := True;
+      END;
+
+      Inc(I);
+    END; {FOR}
+
+    { Now record that we've ticked a box and set/reset the appropriate mode }
+    FOR I := 0 TO (Items.Count - 1) DO BEGIN
+      IF Checked[I] THEN BEGIN
+        GeneralDebuggingData[I].GeneralDebuggingData_Checked := True;
+        SetMode(GeneralDebuggingData[I].GeneralDebuggingData_ModeType, TurnOn);
+      END ELSE BEGIN
+        GeneralDebuggingData[I].GeneralDebuggingData_Checked := False;
+        SetMode(GeneralDebuggingData[I].GeneralDebuggingData_ModeType, TurnOff);
+      END;
+    END; {FOR}
+  END; {WITH}
+END; { MainUnitWindowPageControlGeneralDebuggingCheckListBoxClickCheck }
+
+PROCEDURE TMainUnitWindow.MainUnitWindowPageControlFeedbackDebuggingCheckListBoxClickCheck(Sender: TObject);
+{ This catches the OnClickCheck event }
+VAR
+  CheckedItemFound : Boolean;
+  I : Integer;
+
+BEGIN
+  WITH MainUnitWindowPageControlFeedbackDebuggingCheckListBox DO BEGIN
+    { First uncheck the previously ticked checkbox, except the first one which is of necessity on when any of the others are on }
+    CheckedItemFound := False;
+    I := 0;
+    WHILE (I <= (Items.Count - 1)) AND NOT CheckedItemFound DO BEGIN
+      IF FeedbackDebuggingData[I].FeedbackDebuggingData_Checked THEN BEGIN
+        Checked[I] := False;
+        FeedbackDebuggingData[I].FeedbackDebuggingData_Checked := False;
+        CheckedItemFound := True;
+      END;
+
+      Inc(I);
+    END; {FOR}
+
+    { Now record that we've ticked a box }
+    FOR I := 0 TO (Items.Count - 1) DO BEGIN
+      IF NOT Checked[I] THEN
+        FeedbackDebuggingData[I].FeedbackDebuggingData_Checked := False
+      ELSE BEGIN
+        FeedbackDebuggingData[I].FeedbackDebuggingData_Checked := True;
+        SetFeedbackDebuggingModeOn;
+      END;
+    END; {FOR}
+
+    { And if none of the boxes are now ticked, turn off feedback debugging mode }
+    CheckedItemFound := False;
+    I := 0;
+    WHILE (I <= (Items.Count - 1)) AND NOT CheckedItemFound DO BEGIN
+      IF Checked[I] THEN
+        CheckedItemFound := True;
+
+      Inc(I);
+    END; {WHILE}
+
+    IF NOT CheckedItemFound THEN
+      SetFeedbackDebuggingModeOff;
+  END; {WITH}
+END; { MainUnitWindowPageControlFeedbackCheckListBoxClickCheck }
+
+PROCEDURE TMainUnitWindow.MainUnitWindowPageControlGeneralDebuggingCheckListBoxKeyDown(Sender: TObject; VAR Key: Word; Shift: TShiftState);
+BEGIN
+  CASE Key OF
+    vk_Escape:
+      MainUnitWindow.Hide;
+  END; {CASE}
+END; { MainUnitWindowPageControlGeneralDebuggingCheckListBoxKeyDown }
+
+PROCEDURE TMainUnitWindow.MainUnitWindowPageControlFeedbackDebuggingCheckListBoxKeyDown(Sender: TObject; VAR Key: Word; Shift: TShiftState);
+BEGIN
+  CASE Key OF
+    vk_Escape:
+      MainUnitWindow.Hide;
+  END; {CASE}
+END; { MainUnitWindowPageControlFeedbackCheckListBoxKeyDown }
+
+TYPE
+  TCheckListBoxAccess = CLASS(TCheckListBox)
+END;
+
+PROCEDURE MakeWholeLineActAsCheckBox(Button : TMouseButton; X, Y : Integer; CheckListBox : TCheckListBox);
+{ Clicking anywhere on an item causes the check box (sic) to be checked (sic).
+  From: http://stackoverflow.com/questions/25943283/clicking-checklistbox-item-to-toggle-the-check-state-on-that-item.
+}
+  PROCEDURE DoToggle(Index : Integer);
+  VAR
+    State: TCheckBoxState;
+
+  BEGIN
+    WITH MainUnitWindow DO BEGIN
+      IF (Index >= 0)
+      AND (Index < CheckListBox.Items.Count) AND CheckListBox.ItemEnabled[Index]
+      THEN BEGIN
+        State := CheckListBox.State[Index];
+        CASE State OF
+          cbUnchecked:
+            IF CheckListBox.AllowGrayed THEN
+              State := cbGrayed
+            ELSE
+              State := cbChecked;
+          cbChecked:
+            State := cbUnchecked;
+          cbGrayed:
+            State := cbChecked;
+        END; {CASE}
+        CheckListBox.State[Index] := State;
+        TCheckListBoxAccess(CheckListBox).ClickCheck;
+      END;
+    END; {WITH}
+  END; { DoToggle }
+
+VAR
+  Index: Integer;
+
+BEGIN { MakeWholeLineActAsCheckBox }
+  WITH MainUnitWindow DO BEGIN
+    IF Button = mbLeft THEN BEGIN
+      Index := CheckListBox.ItemAtPos(Point(X, Y),True);
+      IF (Index <> -1) and CheckListBox.ItemEnabled[Index] THEN
+        IF NOT TCheckListBoxAccess(CheckListBox).UseRightToLeftAlignment THEN BEGIN
+          IF X - CheckListBox.ItemRect(Index).Left >= TCheckListBoxAccess(CheckListBox).GetCheckWidth THEN
+            DoToggle(Index);
+        END ELSE BEGIN
+          Dec(X, CheckListBox.ItemRect(Index).Right - TCheckListBoxAccess(CheckListBox).GetCheckWidth);
+          IF (X <= 0) or (X >= TCheckListBoxAccess(CheckListBox).GetCheckWidth) THEN
+            DoToggle(Index);
+        END;
+    END;
+  END; {WITH}
+END; { MakeWholeLineActAsCheckBox }
+
+PROCEDURE TMainUnitWindow.MainUnitWindowPageControlGeneralDebuggingCheckListBoxMouseDown(Sender: TObject; Button: TMouseButton;
+                                                                                         Shift: TShiftState; X, Y: Integer);
+BEGIN
+  MakeWholeLineActAsCheckBox(Button, X, Y, MainUnitWindowPageControlGeneralDebuggingCheckListBox);
+END; { MainUnitWindowPageControlGeneralDebuggingCheckListBoxMouseDown }
+
+PROCEDURE TMainUnitWindow.MainUnitWindowPageControlFeedbackDebuggingCheckListBoxMouseDown(Sender: TObject; Button: TMouseButton;
+                                                                                          Shift: TShiftState; X, Y: Integer);
+BEGIN
+  MakeWholeLineActAsCheckBox(Button, X, Y, MainUnitWindowPageControlFeedbackDebuggingCheckListBox);
+END;  { MainUnitWindowPageControlFeedbackDebuggingCheckListBoxMouseDown }
+
 PROCEDURE TMainUnitWindow.MainUnitWindowCreate(Sender: TObject);
 CONST
   ReadWriteRegistry = True;
@@ -143,10 +595,6 @@ BEGIN
     IF FeedbackWindow = NIL THEN BEGIN
       FeedbackWindow := TFeedbackWindow.Create(Application);
       FeedbackWindow.Update;
-    END;
-    IF DebuggingOptionsWindow = NIL THEN BEGIN
-      DebuggingOptionsWindow := TDebuggingOptionsWindow.Create(Application);
-      DebuggingOptionsWindow.Update;
     END;
     IF CuneoWindow = NIL THEN BEGIN
       CuneoWindow := TCuneoWindow.Create(Application);
@@ -258,6 +706,10 @@ BEGIN
     InitialiseLenzUnit;
     IF InRDCMode THEN
       StartRailDriver;
+
+    { And set up the various page-control options pages }
+
+    InitialiseMainUnitWindowPageControl;
   EXCEPT
     ON E : Exception DO
       Log('EG MainUnitWindowCreate:' + E.ClassName + ' error raised, with message: ' + E.Message);
@@ -363,6 +815,19 @@ BEGIN
       Log('EG TurnAutoModeOn:' + E.ClassName + ' error raised, with message: '+ E.Message);
   END; {TRY}
 END; { TurnAutoModeOn }
+
+PROCEDURE TMainUnitWindow.MainUnitWindowClose(Sender: TObject; VAR Action: TCloseAction);
+{ Without this, closing the window instantly closes the whole program }
+BEGIN
+  { Store where we want the window to be in case we move it, close it then want to reopen it }
+  MainUnitWindowHeight := MainUnitWindow.Height;
+  MainUnitWindowWidth := MainUnitWindow.Width;
+  MainUnitWindowTop := MainUnitWindow.Top;
+  MainUnitWindowLeft := MainUnitWindow.Left;
+
+  Action := caNone;
+  MainUnitWindow.Hide;
+END; { MainUnitWindowClose }
 
 PROCEDURE TMainUnitWindow.MainUnitTimerTick(Sender: TObject);
 { Runs the main loop }
@@ -889,6 +1354,11 @@ END; { ShutDownProgram }
 PROCEDURE InitialiseMainUnit;
 { Such routines as this allow us to initialises the units in the order we wish }
 BEGIN
+  MainUnitWindow.Height := MainUnitWindowHeight;
+  MainUnitWindow.Width := MainUnitWindowWidth;
+  MainUnitWindow.Top := MainUnitWindowTop;
+  MainUnitWindow.Left := MainUnitWindowLeft;
+
   SaveSystemStatusEmergencyOff := False;
 
   Log('A Main Unit initialised');

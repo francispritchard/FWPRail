@@ -342,10 +342,10 @@ FUNCTION SetDefaultButton(CONST Dlg: TForm; CONST ModalResult: Integer): Boolean
 { SetDefaultButton sets the default button in a Message Dialogue that has been created with the Dialogs.CreateMessageDialogue function. The result is a success indicator.
   The function only fails, if the specified button is not present in the dialogue [from uDialogsExt from Borland website]
 }
-PROCEDURE SetFeedbackDebuggingModeOn(DebugStr : String; AdjacentSignalNumber, DecoderNumber, TCInFull, TCOnce : Boolean);
+PROCEDURE SetFeedbackDebuggingModeOn;
 { Turn on feedback debugging mode, updating the fourth status panel }
 
-PROCEDURE SetFeedbackDebuggingModeOff(DebugStr : String);
+PROCEDURE SetFeedbackDebuggingModeOff;
 { Turn off feedback debugging mode, updating the fourth status panel }
 
 PROCEDURE SetMode(TypeOfMode : ModeType; OnOrOff : Boolean);
@@ -2556,13 +2556,13 @@ BEGIN
         IF NOT LockDebuggingMode THEN BEGIN
           LockDebuggingMode := True;
           Log('A Lock Debugging Mode = ON');
-          AddStringToStatusPanel('LOCK');
+          AddStringToStatusPanel('LDB');
         END;
       LockingModeType:
         IF NOT LockingMode THEN BEGIN
           LockingMode := True;
-          Log('AG Locking Mode = ON');
-          AddStringToStatusPanel('LDB');
+          Log('AG Locking Off Mode = ON');
+          AddStringToStatusPanel('LOCK');
         END;
       LocoSpeedTimingModeType:
         IF NOT LocoSpeedTimingMode THEN BEGIN
@@ -2573,7 +2573,7 @@ BEGIN
       LogsCurrentlyKeptModeType:
         IF NOT LogsCurrentlyKeptMode THEN BEGIN
           LogsCurrentlyKeptMode := True;
-          Log('AG Logs Currently Kept Mde = ON');
+          Log('AG Logs Currently Kept Mode = ON');
           AddStringToStatusPanel('LCK');
         END;
       PointDebuggingModeType:
@@ -2701,14 +2701,14 @@ BEGIN
       LogsCurrentlyKeptModeType:
         IF LogsCurrentlyKeptMode THEN BEGIN
           LogsCurrentlyKeptMode := False;
-          Log('AG Logs Currently Kept = OFF');
+          Log('AG Logs Currently Kept Mode = OFF');
           RemoveStringFromStatusPanel('LCK');
         END;
       PointDebuggingModeType:
         IF PointDebuggingMode THEN BEGIN
           PointDebuggingMode := False;
           Log('A Point Debugging Mode = OFF');
-          RemoveStringFromStatusPanel('POINTDEBUG');
+          RemoveStringFromStatusPanel('POINT');
         END;
       RDCModeType:
         IF RDCMode THEN BEGIN

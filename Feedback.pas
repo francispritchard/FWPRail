@@ -55,8 +55,8 @@ FUNCTION ValidateFeedbackInput(FeedbackInputStr : String; HasFeedback : Boolean;
 FUNCTION ValidateFeedbackUnit(FeedbackUnitStr : String; OUT HasFeedback : Boolean; OUT ErrorMsg : String) : Integer;
 { Check whether the feedback unit exists and is valid }
 
-PROCEDURE WriteDataToFeedbackWindow{1}(FeedbackString : String); Overload;
-{ Overloaded - this is version 1 (version 2 is not exported) - write text to the feedback window }
+PROCEDURE WriteStringToFeedbackWindow(Str : String);
+{ Write text to the feedback window }
 
 TYPE
   FeedbackRec = RECORD
@@ -336,118 +336,110 @@ BEGIN
   END; {TRY}
 END; { NoteOutOfUseFeedbackUnitTrackCircuitsAtStartup }
 
-PROCEDURE WriteDataToFeedbackWindow{1}(FeedbackString : String); Overload;
-{ Overloaded - this is version 1 - write sundry text to the feedback window }
+PROCEDURE WriteStringToFeedbackWindow(Str : String);
+{ Write text to the feedback window }
 BEGIN
-  IF InFeedbackDebuggingMode THEN BEGIN
+  IF Str <> '' THEN BEGIN
     FeedbackWindow.Visible := True;
     FeedbackWindow.BringToFront;
-    FeedbackWindow.FeedbackLabel.Caption := FeedbackString;
+    FeedbackWindow.FeedbackLabel.Caption := Str;
   END;
-END; { WriteDataToFeedbackWindow-1 }
+END; { WriteStringToFeedbackWindow }
 
-PROCEDURE WriteDataToFeedbackWindow{2}(FeedbackUnit, FeedbackInput : Integer); Overload;
-{ Overloaded - this is version 2 - write feedback data to the feedback window }
+PROCEDURE PromulgateFeedbackData(FeedbackUnit, FeedbackInput : Integer); Overload;
+{ Write unit data to the feedback window and also read it out if required }
 VAR
-  FeedbackString : String;
   I : Integer;
-
-BEGIN
-  IF InFeedbackDebuggingMode THEN BEGIN
-    WITH FeedbackUnitRecords[FeedbackUnit] DO BEGIN
-      CASE Feedback_InputTypeArray[FeedbackInput] OF
-        LineFeedback:
-          FeedbackString := ' Line';
-        PointFeedback:
-          FeedbackString := ' Point';
-        TrackCircuitFeedback:
-          FeedbackString := ' TC';
-        TRSPlungerFeedback:
-          FeedbackString := ' SS';
-      END; {CASE}
-
-      IF (Feedback_InputTypeArray[FeedbackInput] = TrackCircuitFeedback) AND (Feedback_InputTrackCircuit[FeedbackInput] <> UnknownTrackCircuit) THEN
-        { TCLineArray[0] is only one of a number of possible lines **** }
-        IF Length(TrackCircuits[Feedback_InputTrackCircuit[FeedbackInput]].TC_LineArray) > 0 THEN
-          FeedbackString := FeedbackString + ' (' + LineToStr(TrackCircuits[Feedback_InputTrackCircuit[FeedbackInput]].TC_LineArray[0]) + ')'
-        ELSE
-          FeedbackString := FeedbackString + ' (TCLineArray empty)';
-
-      FeedbackString := FeedbackString + ': ' + IntToStr(FeedbackUnit) + ' (' + IntToStr(FeedbackInput) + ')';
-
-      IF Feedback_InputOnArray[FeedbackInput] THEN
-        FeedbackString := FeedbackString + '+ '
-      ELSE
-        FeedbackString := FeedbackString + '- ';
-
-      FeedbackWindow.Visible := True;
-      FeedbackWindow.BringToFront;
-      FeedbackWindow.FeedbackLabel.Caption := FeedbackString;
-
-      IF ReadOutTCInFull THEN BEGIN
-        { we want to know when it's activated and deactivated }
-        ReadOut(IntToStr(Feedback_InputTrackCircuit[FeedbackInput]));
-        IF Feedback_InputOnArray[FeedbackInput] THEN
-          ReadOut('On')
-        ELSE
-          ReadOut('Off');
-      END ELSE BEGIN
-        { just read out the number }
-        ReadOut(IntToStr(Feedback_InputTrackCircuit[FeedbackInput]));
-        IF ReadOutAdjacentSignalNumber THEN BEGIN
-          IF Length(TrackCircuits[Feedback_InputTrackCircuit[FeedbackInput]].TC_AdjacentSignals) > 0 THEN BEGIN
-            ReadOut('With');
-            FOR I := 0 TO High(TrackCircuits[Feedback_InputTrackCircuit[FeedbackInput]].TC_AdjacentSignals) DO
-              IF TrackCircuits[Feedback_InputTrackCircuit[FeedbackInput]].TC_AdjacentSignals[I] <> UnknownSignal THEN
-                ReadOut(IntToStr(TrackCircuits[Feedback_InputTrackCircuit[FeedbackInput]].TC_AdjacentSignals[I]));
-          END;
-        END;
-
-        IF ReadOutDecoderNumber THEN BEGIN
-          Application.ProcessMessages;
-          { or which feedback unit is triggered }
-          IF Feedback_InputOnArray[FeedbackInput] THEN
-            ReadOut(IntToStr(FeedbackUnit));
-            ReadOut(IntToStr(FeedbackInput));
-            ReadOut('On');
-          END ELSE BEGIN
-            ReadOut(IntToStr(FeedbackUnit));
-            ReadOut(IntToStr(FeedbackInput));
-            ReadOut('Off');
-          END;
-        END;
-    END; {WITH}
-  END;
-END; { WriteDataToFeedbackWindow-2 }
-
-PROCEDURE WriteFeedbackDataToDebugWindow(FeedbackUnit, FeedbackInput : Integer);
-{ If required, write feedback data to the debug window }
-VAR
-  FeedbackString : String;
+  Str : String;
 
 BEGIN
   WITH FeedbackUnitRecords[FeedbackUnit] DO BEGIN
     CASE Feedback_InputTypeArray[FeedbackInput] OF
       LineFeedback:
-        FeedbackString := ' Line';
+        Str := ' L' + IntToStr(Feedback_InputLine[FeedbackInput]);
       PointFeedback:
-        FeedbackString := ' Point';
+        Str := ' P' + IntToStr(Feedback_InputPoint[FeedbackInput]);
       TrackCircuitFeedback:
-        FeedbackString := ' TC';
+        Str := ' TC' + IntToStr(Feedback_InputTrackCircuit[FeedbackInput]);
       TRSPlungerFeedback:
-        FeedbackString := ' SS';
+        Str := ' SS' + IntToStr(Feedback_InputTRSPlunger[FeedbackInput]);
     END; {CASE}
 
-    FeedbackString := FeedbackString + ': ' + IntToStr(FeedbackUnit) + ' (' + IntToStr(FeedbackInput) + ')';
+    IF (Feedback_InputTypeArray[FeedbackInput] = TrackCircuitFeedback) AND (Feedback_InputTrackCircuit[FeedbackInput] <> UnknownTrackCircuit) THEN BEGIN
+      { TCLineArray[0] is only one of a number of possible lines **** }
+      IF Length(TrackCircuits[Feedback_InputTrackCircuit[FeedbackInput]].TC_LineArray) > 0 THEN
+        Str := Str + ' (' + LineToStr(TrackCircuits[Feedback_InputTrackCircuit[FeedbackInput]].TC_LineArray[0]) + ')'
+      ELSE
+        Str := Str + ' (TCLineArray empty)';
+    END;
+
+    Str := Str + ': ' + IntToStr(FeedbackUnit) + ' (' + IntToStr(FeedbackInput) + ')';
 
     IF Feedback_InputOnArray[FeedbackInput] THEN
-      FeedbackString := FeedbackString + '+ '
+      Str := Str + '+ '
     ELSE
-      FeedbackString := FeedbackString + '- ';
+      Str := Str + '- ';
 
-    Debug('Feedback data = ' + FeedbackString);
+    WriteStringToFeedbackWindow(Str);
+    Application.ProcessMessages;
+
+    IF DisplayFeedbackStringsInDebugWindow THEN
+      Debug('Feedback data = ' + Str);
+
+    { Now read out the data if required }
+    IF IsMainUnitFeedbackDebuggingDataChecked(ReadOutTCOnce) AND (Feedback_InputTypeArray[FeedbackInput] = TrackCircuitFeedback) THEN BEGIN
+      { just read out the number once }
+      IF Feedback_InputOnArray[FeedbackInput] THEN
+        ReadOut('TC ' + IntToStr(Feedback_InputTrackCircuit[FeedbackInput]));
+    END ELSE
+      IF IsMainUnitFeedbackDebuggingDataChecked(ReadOutTCOnOff) AND (Feedback_InputTypeArray[FeedbackInput] = TrackCircuitFeedback) THEN BEGIN
+        { we want to know when it's activated and deactivated }
+        ReadOut('TC' + IntToStr(Feedback_InputTrackCircuit[FeedbackInput]));
+        IF Feedback_InputOnArray[FeedbackInput] THEN
+          ReadOut('On')
+        ELSE
+          ReadOut('Off');
+      END ELSE
+        IF IsMainUnitFeedbackDebuggingDataChecked(ReadOutTCWithAdjacentSignalNumber) AND (Feedback_InputTypeArray[FeedbackInput] = TrackCircuitFeedback) THEN BEGIN
+          IF Length(TrackCircuits[Feedback_InputTrackCircuit[FeedbackInput]].TC_AdjacentSignals) > 0 THEN BEGIN
+            IF Feedback_InputOnArray[FeedbackInput] THEN BEGIN
+              { only read it out once }
+              ReadOut('Track Circuit' + IntToStr(Feedback_InputTrackCircuit[FeedbackInput]));
+              ReadOut('With Signal');
+              FOR I := 0 TO High(TrackCircuits[Feedback_InputTrackCircuit[FeedbackInput]].TC_AdjacentSignals) DO
+                IF TrackCircuits[Feedback_InputTrackCircuit[FeedbackInput]].TC_AdjacentSignals[I] <> UnknownSignal THEN
+                  ReadOut(IntToStr(TrackCircuits[Feedback_InputTrackCircuit[FeedbackInput]].TC_AdjacentSignals[I]));
+            END;
+          END;
+        END ELSE
+          IF IsMainUnitFeedbackDebuggingDataChecked(ReadOutDecoderNumberOnce) THEN BEGIN
+            IF Feedback_InputOnArray[FeedbackInput] THEN BEGIN
+              { only read it out once }
+              ReadOut('Unit ' + IntToStr(FeedbackUnit));
+              ReadOut('Input ' + IntToStr(FeedbackInput));
+            END;
+          END ELSE
+            IF IsMainUnitFeedbackDebuggingDataChecked(ReadOutDecoderNumberOnOff) THEN BEGIN
+              IF Feedback_InputOnArray[FeedbackInput] THEN BEGIN
+                ReadOut('Unit ' +IntToStr(FeedbackUnit));
+                ReadOut('Input ' + IntToStr(FeedbackInput));
+                ReadOut('On');
+              END ELSE BEGIN
+                ReadOut('Unit ' +IntToStr(FeedbackUnit));
+                ReadOut(IntToStr(FeedbackInput));
+                ReadOut('Input ' + 'Off');
+              END;
+            END ELSE
+              IF IsMainUnitFeedbackDebuggingDataChecked(ReadOutPointNumber) AND (Feedback_InputTypeArray[FeedbackInput] = PointFeedback) THEN BEGIN
+                ReadOut('Point ' + IntToStr(Feedback_InputPoint[FeedbackInput]));
+                IF Feedback_InputPoint[FeedbackInput] <> UnknownPoint THEN
+                  IF Points[Feedback_InputPoint[FeedbackInput]].Point_PresentState = Straight THEN
+                    ReadOut('Straight')
+                  ELSE
+                    ReadOut('Diverging');
+              END;
   END; {WITH}
-END; { WriteFeedbackDataToDebugWindow }
+END; { WriteUnitDataToFeedbackWindowAndReadItOut }
 
 PROCEDURE InitialiseLocoSpeedTiming(L : LocoIndex);
 { Set up the variables for timing locos to ascertain speed in MPH }
@@ -857,15 +849,12 @@ BEGIN { DecodeFeedback }
   //                END; {CASE}
   //            END;
   //          END;
-  //        END;
-        END; {CASE}
+          END;
+      END; {CASE}
 
-//        IF InFeedbackDebuggingMode AND (FeedbackWindow <> NIL) AND NOT ProgramStarting THEN
-//          WriteDataToFeedbackWindow(FeedbackUnit, FeedbackInput)
-//        ELSE
-//          IF DisplayFeedbackStringsInDebugWindow THEN
-//            WriteFeedbackDataToDebugWindow(FeedbackUnit, FeedbackInput);
-      END;
+      IF (InFeedbackDebuggingMode AND (FeedbackWindow <> NIL) AND NOT ProgramStarting)
+      OR DisplayFeedbackStringsInDebugWindow THEN
+        PromulgateFeedbackData(FeedbackUnit, FeedbackInput);
     END; {WITH}
   EXCEPT
     ON E : Exception DO

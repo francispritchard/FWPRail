@@ -172,7 +172,7 @@ TYPE
                     SolidPenStylePopupType, DashPenStylePopupType, DotPenStylePopupType, DashDotPenStylePopupType, DashDotDotPenStylePopupType, ClearPenStylePopupType,
                     InsideFramePenStylePopupType,
 
-                    ChangePointPopupType, ChangeSignalPopupType, ListLocomotivesPopupType, ShowTrackCircuitPopupType, DebugOptionsPopupType,
+                    ChangePointPopupType, ChangeSignalPopupType, ListLocomotivesPopupType, ShowTrackCircuitPopupType,
 
                     ResetMainUnitWindowSizeAndPositionPopupType, ResetSizeAndPositionOfAllWindowsPopupType, RestoreAllScreenDrawingDefaultSettingsPopupType,
                     RestoreAllProgramDefaultSettingsPopupType,
@@ -3704,7 +3704,6 @@ BEGIN
     IF NOT KeyboardAndMouseLocked AND (FWPRailWindow <> NIL) THEN BEGIN
       IF NOT FWPRailWindow.Active
       AND NOT (ClockWindow.Active OR ClockWindow.Visible)
-      AND NOT (DebuggingOptionsWindow.Active OR DebuggingOptionsWindow.Visible)
       AND NOT (FeedbackWindow.Active OR FeedbackWindow.Visible)
       AND NOT (HelpWindow.Active OR HelpWindow.Visible)
       AND NOT (LocationsUnitWindow.Active OR LocationsUnitWindow.Visible)
@@ -4679,9 +4678,6 @@ BEGIN
         ShowTrackCircuitPopupType:
           SetAndShowInputDialogueBox(TrackCircuitDialogueBox);
 
-        DebugOptionsPopupType:
-          Startup.DebuggingOptionsWindow.Show;
-
         ResetMainUnitWindowSizeAndPositionPopupType:
           BEGIN
             ResetFWPRailWindowSizeAndPosition;
@@ -5145,8 +5141,6 @@ BEGIN
     AddSubMenuItem(FWPMenuItem, 'Change Signal', ChangeSignalPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
     AddSubMenuItem(FWPMenuItem, 'List Locomotives', ListLocomotivesPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
     AddSubMenuItem(FWPMenuItem, 'Show TrackCircuit', ShowTrackCircuitPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
-    AddSubMenuItem(FWPMenuItem, '-', NoClickPopupType, Enabled, Visible, WhetherChecked, GeneralPopupItemClick);
-    AddSubMenuItem(FWPMenuItem, 'Debug Options', DebugOptionsPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
 
   FWPMenuItem := AddMainMenuItem(GeneralPopupMenu, 'Resetting Options', NoclickPopupType, Enabled, Visible, NOT Checked, GeneralPopupItemClick);
 

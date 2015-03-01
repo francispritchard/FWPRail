@@ -1602,11 +1602,9 @@ BEGIN { KeyPressedDown }
           CASE ShiftKeys OF
             NoShiftKeys: {D}
               BEGIN
-                HelpMsg := 'set debugging mode on';
-                IF NOT HelpRequired THEN BEGIN
-                  Startup.DebuggingOptionsWindow.Show;
-                  Startup.DebuggingOptionsWindow.SetFocus;
-                END;
+                HelpMsg := 'show debug options';
+                IF NOT HelpRequired THEN
+                  DisplayGeneralDebuggingTabSheet;
               END;
             CtrlAltShift: {D}
               BEGIN
@@ -1742,13 +1740,9 @@ BEGIN { KeyPressedDown }
           CASE ShiftKeys OF
             NoShiftKeys: {F}
               BEGIN
-                HelpMsg := 'switch feedback debugging mode on/off';
-                IF NOT HelpRequired THEN BEGIN
-                  IF NOT InFeedbackDebuggingMode THEN
-                    SetFeedbackDebuggingModeOn('Feedback debugging ON', NOT ReadOutAdjacentSignalNumber, NOT ReadOutTCInFull, NOT ReadOutTCOnce, NOT ReadOutDecoderNumber)
-                  ELSE
-                    SetFeedbackDebuggingModeOff('Feedback debugging OFF');
-                END;
+                HelpMsg := 'show feedback options';
+                IF NOT HelpRequired THEN
+                  DisplayFeedbackDebuggingTabSheet;
               END;
             CtrlAltShift: {F}
               BEGIN
@@ -1764,46 +1758,26 @@ BEGIN { KeyPressedDown }
               END;
             CtrlAlt: {F}
                BEGIN
-                HelpMsg := 'Read out the feedback once per unit on/off with adjacent signal data';
+                HelpMsg := '';
                 IF NOT HelpRequired THEN BEGIN
-                  IF NOT ReadOutAdjacentSignalNumber THEN
-                    SetFeedbackDebuggingModeOn('Read out the feedback (with adjacent signal) once ON',
-                                               ReadOutAdjacentSignalNumber, NOT ReadOutTCInFull, ReadOutTCOnce, NOT ReadOutDecoderNumber)
-                  ELSE
-                    SetFeedbackDebuggingModeOff('Read out the feedback (with adjacent signal) once OFF');
                 END;
               END;
             CtrlShift: {F}
               BEGIN
-                HelpMsg := 'Read out all feedback from units on/off';
+                HelpMsg := '';
                 IF NOT HelpRequired THEN BEGIN
-                  IF NOT ReadOutTCInFull THEN
-                    SetFeedbackDebuggingModeOn('Read out all feedback ON',
-                                               NOT ReadOutAdjacentSignalNumber, ReadOutTCInFull, NOT ReadOutTCOnce, NOT ReadOutDecoderNumber)
-                  ELSE
-                    SetFeedbackDebuggingModeOff('Read out all feedback OFF');
                 END;
               END;
             Shift: {F}
                BEGIN
-                HelpMsg := 'Read out the feedback once per unit on/off';
+                HelpMsg := '';
                 IF NOT HelpRequired THEN BEGIN
-                  IF NOT ReadOutTCOnce THEN
-                    SetFeedbackDebuggingModeOn('Read out the feedback once ON',
-                                               NOT ReadOutAdjacentSignalNumber, NOT ReadOutTCInFull, ReadOutTCOnce, NOT ReadOutDecoderNumber)
-                  ELSE
-                    SetFeedbackDebuggingModeOff('Read out the feedback once OFF');
                 END;
               END;
            Alt: {F}
               BEGIN
-                HelpMsg := 'Read out decoder unit number on/off';
+                HelpMsg := '';
                 IF NOT HelpRequired THEN BEGIN
-                  IF NOT ReadOutDecoderNumber THEN
-                    SetFeedbackDebuggingModeOn('Read out decoder number ON',
-                                               NOT ReadOutAdjacentSignalNumber, NOT ReadOutTCInFull, NOT ReadOutTCOnce, ReadOutDecoderNumber)
-                  ELSE
-                    SetFeedbackDebuggingModeOff('Read out decoder number OFF');
                 END;
               END;
             Ctrl: {F}
