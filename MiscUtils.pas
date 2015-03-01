@@ -2524,7 +2524,7 @@ BEGIN
     CASE TypeOfMode OF
       AllRouteDebuggingModeType:
         IF NOT AllRouteDebuggingMode THEN BEGIN
-          SetMode(AllRouteDebuggingModeType, True);
+          AllRouteDebuggingMode := True;
           Log('A All Route Debugging Mode = ON');
           AddStringToStatusPanel('ALLROUTE');
         END;
@@ -2652,7 +2652,7 @@ BEGIN
     CASE TypeOfMode OF
       AllRouteDebuggingModeType:
         IF AllRouteDebuggingMode THEN BEGIN
-          SetMode(AllRouteDebuggingModeType, False);
+          AllRouteDebuggingMode := False;
           Log('A All Route Debugging Mode = OFF');
           RemoveStringFromStatusPanel('ALLROUTE');
         END;
