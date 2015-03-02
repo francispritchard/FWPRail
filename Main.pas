@@ -103,8 +103,8 @@ CONST
   UnitRef = 'Main';
 
 VAR
-  FeedbackDebuggingData : ARRAY OF FeedbackDebuggingDataRec;
-  GeneralDebuggingData : ARRAY OF GeneralDebuggingDataRec;
+  FeedbackDebuggingDataArray : ARRAY OF FeedbackDebuggingDataRec;
+  GeneralDebuggingDataArray : ARRAY OF GeneralDebuggingDataRec;
   InMainLoop : Boolean = False;
   NumbersArrayCounter : Integer = -1;
   OperationsStopped : Boolean = False;
@@ -161,185 +161,177 @@ END; { StopOrResumeAllOperations }
 PROCEDURE InitialiseMainUnitWindowPageControl;
 { Set up the page control tab sheet check boxes }
 VAR
-  FeedbackDebuggingDataArrayLength : Integer;
-  GeneralDebuggingDataArrayLength : Integer;
   I : Integer;
 
 BEGIN
-  GeneralDebuggingDataArrayLength := 15;
-  SetLength(GeneralDebuggingData, GeneralDebuggingDataArrayLength);
+  { First general debugging options }
+  SetLength(GeneralDebuggingDataArray, 0);
 
-  I := 0;
-  WITH GeneralDebuggingData[I] DO BEGIN
+  SetLength(GeneralDebuggingDataArray, Length(GeneralDebuggingDataArray) + 1);
+  WITH GeneralDebuggingDataArray[High(GeneralDebuggingDataArray)] DO BEGIN
     GeneralDebuggingData_ModeType := GeneralDebuggingModeType;
     GeneralDebuggingData_Str := 'General Debugging';
     GeneralDebuggingData_Checked := False;
   END; {WITH}
 
-  Inc(I);
-  WITH GeneralDebuggingData[I] DO BEGIN
+  SetLength(GeneralDebuggingDataArray, Length(GeneralDebuggingDataArray) + 1);
+  WITH GeneralDebuggingDataArray[High(GeneralDebuggingDataArray)] DO BEGIN
     GeneralDebuggingData_ModeType := AnonymousOccupationModeType;
     GeneralDebuggingData_Str := 'Anonymous Occupation';
     GeneralDebuggingData_Checked := False;
   END; {WITH}
 
-  Inc(I);
-  WITH GeneralDebuggingData[I] DO BEGIN
+  SetLength(GeneralDebuggingDataArray, Length(GeneralDebuggingDataArray) + 1);
+  WITH GeneralDebuggingDataArray[High(GeneralDebuggingDataArray)] DO BEGIN
     GeneralDebuggingData_ModeType := LineDebuggingModeType;
     GeneralDebuggingData_Str := 'Line Debugging';
     GeneralDebuggingData_Checked := False;
   END; {WITH}
 
-  Inc(I);
-  WITH GeneralDebuggingData[I] DO BEGIN
+  SetLength(GeneralDebuggingDataArray, Length(GeneralDebuggingDataArray) + 1);
+  WITH GeneralDebuggingDataArray[High(GeneralDebuggingDataArray)] DO BEGIN
     GeneralDebuggingData_ModeType := LockDebuggingModeType;
     GeneralDebuggingData_Str := 'Lock Debugging';
     GeneralDebuggingData_Checked := False;
   END; {WITH}
 
-  Inc(I);
-  WITH GeneralDebuggingData[I] DO BEGIN
+  SetLength(GeneralDebuggingDataArray, Length(GeneralDebuggingDataArray) + 1);
+  WITH GeneralDebuggingDataArray[High(GeneralDebuggingDataArray)] DO BEGIN
     GeneralDebuggingData_ModeType := LockingModeType;
     GeneralDebuggingData_Str := 'Locking Off';
     GeneralDebuggingData_Checked := False;
   END; {WITH}
 
-  Inc(I);
-  WITH GeneralDebuggingData[I] DO BEGIN
+  SetLength(GeneralDebuggingDataArray, Length(GeneralDebuggingDataArray) + 1);
+  WITH GeneralDebuggingDataArray[High(GeneralDebuggingDataArray)] DO BEGIN
     GeneralDebuggingData_ModeType := LogsCurrentlyKeptModeType;
     GeneralDebuggingData_Str := 'Logs Currently Kept';
     GeneralDebuggingData_Checked := False;
   END; {WITH}
 
-  Inc(I);
-  WITH GeneralDebuggingData[I] DO BEGIN
+  SetLength(GeneralDebuggingDataArray, Length(GeneralDebuggingDataArray) + 1);
+  WITH GeneralDebuggingDataArray[High(GeneralDebuggingDataArray)] DO BEGIN
     GeneralDebuggingData_ModeType := RecordLineDrawingModeType;
     GeneralDebuggingData_Str := 'Record Line Drawing';
     GeneralDebuggingData_Checked := False;
   END; {WITH}
 
-  Inc(I);
-  WITH GeneralDebuggingData[I] DO BEGIN
+  SetLength(GeneralDebuggingDataArray, Length(GeneralDebuggingDataArray) + 1);
+  WITH GeneralDebuggingDataArray[High(GeneralDebuggingDataArray)] DO BEGIN
     GeneralDebuggingData_ModeType := PointDebuggingModeType;
     GeneralDebuggingData_Str := 'Point Debugging';
     GeneralDebuggingData_Checked := False;
   END; {WITH}
 
-  Inc(I);
-  WITH GeneralDebuggingData[I] DO BEGIN
+  SetLength(GeneralDebuggingDataArray, Length(GeneralDebuggingDataArray) + 1);
+  WITH GeneralDebuggingDataArray[High(GeneralDebuggingDataArray)] DO BEGIN
     GeneralDebuggingData_ModeType := RouteDebuggingModeType;
     GeneralDebuggingData_Str := 'Route Debugging';
     GeneralDebuggingData_Checked := False;
   END; {WITH}
 
-  Inc(I);
-  WITH GeneralDebuggingData[I] DO BEGIN
+  SetLength(GeneralDebuggingDataArray, Length(GeneralDebuggingDataArray) + 1);
+  WITH GeneralDebuggingDataArray[High(GeneralDebuggingDataArray)] DO BEGIN
     GeneralDebuggingData_ModeType := AllRouteDebuggingModeType;
     GeneralDebuggingData_Str := 'All Route Debugging';
     GeneralDebuggingData_Checked := False;
   END; {WITH}
 
-  Inc(I);
-  WITH GeneralDebuggingData[I] DO BEGIN
+  SetLength(GeneralDebuggingDataArray, Length(GeneralDebuggingDataArray) + 1);
+  WITH GeneralDebuggingDataArray[High(GeneralDebuggingDataArray)] DO BEGIN
     GeneralDebuggingData_ModeType := RouteBacktrackDebuggingModeType;
     GeneralDebuggingData_Str := 'Route Backtrack Debugging';
     GeneralDebuggingData_Checked := False;
   END; {WITH}
 
-  Inc(I);
-  WITH GeneralDebuggingData[I] DO BEGIN
+  SetLength(GeneralDebuggingDataArray, Length(GeneralDebuggingDataArray) + 1);
+  WITH GeneralDebuggingDataArray[High(GeneralDebuggingDataArray)] DO BEGIN
     GeneralDebuggingData_ModeType := RouteDrawingModeType;
     GeneralDebuggingData_Str := 'Route Drawing';
     GeneralDebuggingData_Checked := False;
   END; {WITH}
 
-  Inc(I);
-  WITH GeneralDebuggingData[I] DO BEGIN
+  SetLength(GeneralDebuggingDataArray, Length(GeneralDebuggingDataArray) + 1);
+  WITH GeneralDebuggingDataArray[High(GeneralDebuggingDataArray)] DO BEGIN
     GeneralDebuggingData_ModeType := ShowAdjacentTrackCircuitModeType;
     GeneralDebuggingData_Str := 'Show Adjacent Track Circuits';
     GeneralDebuggingData_Checked := False;
   END; {WITH}
 
-  Inc(I);
-  WITH GeneralDebuggingData[I] DO BEGIN
+  SetLength(GeneralDebuggingDataArray, Length(GeneralDebuggingDataArray) + 1);
+  WITH GeneralDebuggingDataArray[High(GeneralDebuggingDataArray)] DO BEGIN
     GeneralDebuggingData_ModeType := StationStartModeType;
     GeneralDebuggingData_Str := 'Station Start Mode';
     GeneralDebuggingData_Checked := False;
   END; {WITH}
 
-  Inc(I);
-  WITH GeneralDebuggingData[I] DO BEGIN
+  SetLength(GeneralDebuggingDataArray, Length(GeneralDebuggingDataArray) + 1);
+  WITH GeneralDebuggingDataArray[High(GeneralDebuggingDataArray)] DO BEGIN
     GeneralDebuggingData_ModeType := TestingModeType;
     GeneralDebuggingData_Str := 'Testing';
     GeneralDebuggingData_Checked := False;
   END; {WITH}
 
-  IF I <> (GeneralDebuggingDataArrayLength - 1) THEN
-    Debug('!Error in GeneralDebuggingDataArrayLength - I = ' + IntToStr(I) + ' but GeneralDebuggingDataArrayLength is ' + IntToStr(GeneralDebuggingDataArrayLength));
+  { Now feedback debugging options }
+  SetLength(FeedbackDebuggingDataArray, 0);
 
-  FeedbackDebuggingDataArrayLength := 7;
-  SetLength(FeedbackDebuggingData, FeedbackDebuggingDataArrayLength);
-
-  I := 0;
-  WITH FeedbackDebuggingData[I] DO BEGIN
+  SetLength(FeedbackDebuggingDataArray, Length(FeedbackDebuggingDataArray) + 1);
+  WITH FeedbackDebuggingDataArray[High(FeedbackDebuggingDataArray)] DO BEGIN
     FeedbackDebuggingData_Type := OnScreenFeedback;
     FeedbackDebuggingData_Str := 'On-screen Feedback';
     FeedbackDebuggingData_Checked := False;
   END; {WITH}
 
-  Inc(I);
-  WITH FeedbackDebuggingData[I] DO BEGIN
+  SetLength(FeedbackDebuggingDataArray, Length(FeedbackDebuggingDataArray) + 1);
+  WITH FeedbackDebuggingDataArray[High(FeedbackDebuggingDataArray)] DO BEGIN
     FeedbackDebuggingData_Type := ReadOutTCOnce;
     FeedbackDebuggingData_Str := 'Read Out TC Once';
     FeedbackDebuggingData_Checked := False;
   END; {WITH}
 
-  Inc(I);
-  WITH FeedbackDebuggingData[I] DO BEGIN
+  SetLength(FeedbackDebuggingDataArray, Length(FeedbackDebuggingDataArray) + 1);
+  WITH FeedbackDebuggingDataArray[High(FeedbackDebuggingDataArray)] DO BEGIN
     FeedbackDebuggingData_Type := ReadOutTCOnOff;
     FeedbackDebuggingData_Str :=  'Read Out TC On/Off';
     FeedbackDebuggingData_Checked := False;
   END; {WITH}
 
-  Inc(I);
-  WITH FeedbackDebuggingData[I] DO BEGIN
+  SetLength(FeedbackDebuggingDataArray, Length(FeedbackDebuggingDataArray) + 1);
+  WITH FeedbackDebuggingDataArray[High(FeedbackDebuggingDataArray)] DO BEGIN
     FeedbackDebuggingData_Type := ReadOutTCWithAdjacentSignalNumber;
     FeedbackDebuggingData_Str := 'Read Out TC With Adjacent Signal Number';
     FeedbackDebuggingData_Checked := False;
   END; {WITH}
 
-  Inc(I);
-  WITH FeedbackDebuggingData[I] DO BEGIN
+  SetLength(FeedbackDebuggingDataArray, Length(FeedbackDebuggingDataArray) + 1);
+  WITH FeedbackDebuggingDataArray[High(FeedbackDebuggingDataArray)] DO BEGIN
     FeedbackDebuggingData_Type := ReadOutDecoderNumberOnce;
     FeedbackDebuggingData_Str := 'Read Out Decoder Number Once';
     FeedbackDebuggingData_Checked := False;
   END; {WITH}
 
-  Inc(I);
-  WITH FeedbackDebuggingData[I] DO BEGIN
+  SetLength(FeedbackDebuggingDataArray, Length(FeedbackDebuggingDataArray) + 1);
+  WITH FeedbackDebuggingDataArray[High(FeedbackDebuggingDataArray)] DO BEGIN
     FeedbackDebuggingData_Type := ReadOutDecoderNumberOnOff;
     FeedbackDebuggingData_Str := 'Read Out Decoder Number On/Off';
     FeedbackDebuggingData_Checked := False;
   END; {WITH}
 
-  Inc(I);
-  WITH FeedbackDebuggingData[I] DO BEGIN
+  SetLength(FeedbackDebuggingDataArray, Length(FeedbackDebuggingDataArray) + 1);
+  WITH FeedbackDebuggingDataArray[High(FeedbackDebuggingDataArray)] DO BEGIN
     FeedbackDebuggingData_Type := ReadOutPointNumber;
     FeedbackDebuggingData_Str := 'Read Out Point Number';
     FeedbackDebuggingData_Checked := False;
   END; {WITH}
-
-  IF I <> (FeedbackDebuggingDataArrayLength - 1) THEN
-    Debug('!Error in FeedbackDebuggingDataArrayLength - I = ' + IntToStr(I) + ' but FeedbackDebuggingDataArrayLength is ' + IntToStr(FeedbackDebuggingDataArrayLength));
 
   WITH MainUnitWindow DO BEGIN
     WITH MainUnitWindowPageControlGeneralDebuggingTabSheet DO BEGIN
       WITH MainUnitWindowPageControlGeneralDebuggingCheckListBox DO BEGIN
         Items.Clear;
 
-        FOR I := 0 TO (GeneralDebuggingDataArrayLength - 1) DO BEGIN
-          Items.Add(GeneralDebuggingData[I].GeneralDebuggingData_Str);
-          IF GeneralDebuggingData[I].GeneralDebuggingData_Checked THEN
+        FOR I := 0 TO (Length(GeneralDebuggingDataArray) - 1) DO BEGIN
+          Items.Add(GeneralDebuggingDataArray[I].GeneralDebuggingData_Str);
+          IF GeneralDebuggingDataArray[I].GeneralDebuggingData_Checked THEN
             Checked[I] := True;
         END;
       END; {WITH}
@@ -349,9 +341,9 @@ BEGIN
       WITH MainUnitWindowPageControlFeedbackDebuggingCheckListBox DO BEGIN
         Items.Clear;
 
-        FOR I := 0 TO (FeedbackDebuggingDataArrayLength - 1) DO BEGIN
-          Items.Add(FeedbackDebuggingData[I].FeedbackDebuggingData_Str);
-          IF FeedbackDebuggingData[I].FeedbackDebuggingData_Checked THEN
+        FOR I := 0 TO (Length(FeedbackDebuggingDataArray) - 1) DO BEGIN
+          Items.Add(FeedbackDebuggingDataArray[I].FeedbackDebuggingData_Str);
+          IF FeedbackDebuggingDataArray[I].FeedbackDebuggingData_Checked THEN
             Checked[I] := True;
         END;
       END; {WITH}
@@ -396,12 +388,12 @@ BEGIN
 
   I := 0;
   FeedbackDebuggingDataTypeFound := False;
-  WHILE (I <= High(FeedbackDebuggingData)) AND NOT FeedbackDebuggingDataTypeFound DO BEGIN
-    IF FeedbackDebuggingData[I].FeedbackDebuggingData_Type <> TempFeedbackDebuggingDataType THEN
+  WHILE (I <= High(FeedbackDebuggingDataArray)) AND NOT FeedbackDebuggingDataTypeFound DO BEGIN
+    IF FeedbackDebuggingDataArray[I].FeedbackDebuggingData_Type <> TempFeedbackDebuggingDataType THEN
       Inc(I)
     ELSE BEGIN
       FeedbackDebuggingDataTypeFound := True;
-      IF FeedbackDebuggingData[I].FeedbackDebuggingData_Checked THEN
+      IF FeedbackDebuggingDataArray[I].FeedbackDebuggingData_Checked THEN
         Result := True;
     END;
   END; {WHILE}
@@ -419,9 +411,9 @@ BEGIN
     CheckedItemFound := False;
     I := 0;
     WHILE (I <= (Items.Count - 1)) AND NOT CheckedItemFound DO BEGIN
-      IF GeneralDebuggingData[I].GeneralDebuggingData_Checked THEN BEGIN
+      IF GeneralDebuggingDataArray[I].GeneralDebuggingData_Checked THEN BEGIN
         Checked[I] := False;
-        GeneralDebuggingData[I].GeneralDebuggingData_Checked := False;
+        GeneralDebuggingDataArray[I].GeneralDebuggingData_Checked := False;
         CheckedItemFound := True;
       END;
 
@@ -431,11 +423,11 @@ BEGIN
     { Now record that we've ticked a box and set/reset the appropriate mode }
     FOR I := 0 TO (Items.Count - 1) DO BEGIN
       IF Checked[I] THEN BEGIN
-        GeneralDebuggingData[I].GeneralDebuggingData_Checked := True;
-        SetMode(GeneralDebuggingData[I].GeneralDebuggingData_ModeType, TurnOn);
+        GeneralDebuggingDataArray[I].GeneralDebuggingData_Checked := True;
+        SetMode(GeneralDebuggingDataArray[I].GeneralDebuggingData_ModeType, TurnOn);
       END ELSE BEGIN
-        GeneralDebuggingData[I].GeneralDebuggingData_Checked := False;
-        SetMode(GeneralDebuggingData[I].GeneralDebuggingData_ModeType, TurnOff);
+        GeneralDebuggingDataArray[I].GeneralDebuggingData_Checked := False;
+        SetMode(GeneralDebuggingDataArray[I].GeneralDebuggingData_ModeType, TurnOff);
       END;
     END; {FOR}
   END; {WITH}
@@ -453,9 +445,9 @@ BEGIN
     CheckedItemFound := False;
     I := 0;
     WHILE (I <= (Items.Count - 1)) AND NOT CheckedItemFound DO BEGIN
-      IF FeedbackDebuggingData[I].FeedbackDebuggingData_Checked THEN BEGIN
+      IF FeedbackDebuggingDataArray[I].FeedbackDebuggingData_Checked THEN BEGIN
         Checked[I] := False;
-        FeedbackDebuggingData[I].FeedbackDebuggingData_Checked := False;
+        FeedbackDebuggingDataArray[I].FeedbackDebuggingData_Checked := False;
         CheckedItemFound := True;
       END;
 
@@ -465,9 +457,9 @@ BEGIN
     { Now record that we've ticked a box }
     FOR I := 0 TO (Items.Count - 1) DO BEGIN
       IF NOT Checked[I] THEN
-        FeedbackDebuggingData[I].FeedbackDebuggingData_Checked := False
+        FeedbackDebuggingDataArray[I].FeedbackDebuggingData_Checked := False
       ELSE BEGIN
-        FeedbackDebuggingData[I].FeedbackDebuggingData_Checked := True;
+        FeedbackDebuggingDataArray[I].FeedbackDebuggingData_Checked := True;
         SetFeedbackDebuggingModeOn;
       END;
     END; {FOR}
@@ -1350,6 +1342,10 @@ BEGIN { ShutDownProgram }
       Log('EG ShutDownProgram: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { ShutDownProgram }
+
+PROCEDURE TMainUnitWindow.MainUnitWindowShow(Sender: TObject);
+BEGIN
+END; { MainUnitWindowShow }
 
 PROCEDURE InitialiseMainUnit;
 { Such routines as this allow us to initialises the units in the order we wish }
