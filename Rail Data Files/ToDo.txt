@@ -1,1 +1,3 @@
 Leg under down end of station (near multiple double slips} - DJW 14/2/15
+If Lenz switched off and on (to reset failed point unit) program loses conatct with Lenz
+Routeing from S5 to S90 allowed even if P83 is diverging
