@@ -22,7 +22,7 @@ USES
   MiscUtils IN 'MiscUtils.pas' {DebugWindow},
   Input IN 'Input.pas' {InputDialogueBox},
   Feedback IN 'Feedback.pas' {FeedbackWindow},
-  Startup IN 'Startup.pas' {DebuggingOptionsWindow},
+  Startup IN 'Startup.pas' {StartupForm},
   Cuneo IN 'Cuneo.pas' {CuneoWindow},
   Locks IN 'Locks.pas' {LockListWindow},
   TCPIP IN 'TCPIP.pas' {TCPIPForm},
@@ -87,8 +87,8 @@ BEGIN
   Application.CreateForm(TInstallForm, InstallForm);
   Application.CreateForm(TSignalUnitForm, SignalUnitForm);
   Application.CreateForm(TPointForm, PointForm);
-  Application.CreateForm(TLinesUnitForm, LinesUnitForm);
   Application.CreateForm(TTrackCircuitsUnitForm, TrackCircuitsUnitForm);
+  Application.CreateForm(TLinesUnitForm, LinesUnitForm);
   Application.Run;
 END { Rail }.
 
