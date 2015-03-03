@@ -41,7 +41,7 @@ TYPE
   END;
 
   TypeOfFeedbackDebuggingData = (OnScreenFeedback, ReadOutTCOnce, ReadOutTCOnOff, ReadOutTCWithAdjacentSignalNumber, ReadOutDecoderNumberOnce, ReadOutDecoderNumberOnOff,
-                                 ReadOutPointNumber);
+                                 ReadOutPointNumber, ReadOutDecoderAndPointNumber);
 
 PROCEDURE DisplayFeedbackDebuggingTabSheet;
 { Display the feedback debugging tab of the main window page control }
@@ -321,6 +321,13 @@ BEGIN
   WITH FeedbackDebuggingDataArray[High(FeedbackDebuggingDataArray)] DO BEGIN
     FeedbackDebuggingData_Type := ReadOutPointNumber;
     FeedbackDebuggingData_Str := 'Read Out Point Number';
+    FeedbackDebuggingData_Checked := False;
+  END; {WITH}
+
+  SetLength(FeedbackDebuggingDataArray, Length(FeedbackDebuggingDataArray) + 1);
+  WITH FeedbackDebuggingDataArray[High(FeedbackDebuggingDataArray)] DO BEGIN
+    FeedbackDebuggingData_Type := ReadOutDecoderAndPointNumber;
+    FeedbackDebuggingData_Str := 'Read Out Decoder And Point Number';
     FeedbackDebuggingData_Checked := False;
   END; {WITH}
 

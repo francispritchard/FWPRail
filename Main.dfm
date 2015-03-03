@@ -62,8 +62,6 @@ object MainUnitWindow: TMainUnitWindow
         TabOrder = 0
         OnKeyDown = MainUnitWindowPageControlGeneralDebuggingCheckListBoxKeyDown
         OnMouseDown = MainUnitWindowPageControlGeneralDebuggingCheckListBoxMouseDown
-        ExplicitTop = 104
-        ExplicitHeight = 477
       end
     end
     object MainUnitWindowPageControlFeedbackDebuggingTabSheet: TTabSheet
@@ -95,8 +93,6 @@ object MainUnitWindow: TMainUnitWindow
         TabOrder = 0
         OnKeyDown = MainUnitWindowPageControlFeedbackDebuggingCheckListBoxKeyDown
         OnMouseDown = MainUnitWindowPageControlFeedbackDebuggingCheckListBoxMouseDown
-        ExplicitTop = 104
-        ExplicitHeight = 477
       end
     end
   end

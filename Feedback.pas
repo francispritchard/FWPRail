@@ -431,13 +431,24 @@ BEGIN
               END;
             END ELSE
               IF IsMainUnitFeedbackDebuggingDataChecked(ReadOutPointNumber) AND (Feedback_InputTypeArray[FeedbackInput] = PointFeedback) THEN BEGIN
-                ReadOut('Point ' + IntToStr(Feedback_InputPoint[FeedbackInput]));
-                IF Feedback_InputPoint[FeedbackInput] <> UnknownPoint THEN
+                IF Feedback_InputPoint[FeedbackInput] = UnknownPoint THEN
+                  ReadOut('Unknown Point')
+                ELSE BEGIN
+                  ReadOut('Point ' + IntToStr(Feedback_InputPoint[FeedbackInput]));
                   IF Points[Feedback_InputPoint[FeedbackInput]].Point_PresentState = Straight THEN
                     ReadOut('Straight')
                   ELSE
                     ReadOut('Diverging');
-              END;
+                END;
+              END ELSE
+                IF IsMainUnitFeedbackDebuggingDataChecked(ReadOutDecoderAndPointNumber) AND (Feedback_InputTypeArray[FeedbackInput] = PointFeedback) THEN BEGIN
+                  IF Feedback_InputPoint[FeedbackInput] = UnknownPoint THEN
+                    ReadOut('Unknown Point')
+                  ELSE
+                    ReadOut('Point ' + IntToStr(Feedback_InputPoint[FeedbackInput]));
+                  ReadOut('Unit ' + IntToStr(FeedbackUnit));
+                  ReadOut('Input ' + IntToStr(FeedbackInput));
+                END;
   END; {WITH}
 END; { WriteUnitDataToFeedbackWindowAndReadItOut }
 
