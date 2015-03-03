@@ -360,9 +360,6 @@ END; { InitialiseMainUnitWindowPageControl }
 
 PROCEDURE DisplayGeneralDebuggingTabSheet;
 { Display the general debugging tab of the main window page control }
-VAR
-  I : Integer;
-
 BEGIN
   WITH MainUnitWindow DO
     MainUnitWindowPageControl.ActivePage := MainUnitWindowPageControlGeneralDebuggingTabSheet;
@@ -373,9 +370,6 @@ END; { DisplayGeneralDebuggingTabSheet }
 
 PROCEDURE DisplayFeedbackDebuggingTabSheet;
 { Display the feedback debugging tab of the main window page control }
-VAR
-  I : Integer;
-
 BEGIN
   WITH MainUnitWindow DO
     MainUnitWindowPageControl.ActivePage := MainUnitWindowPageControlFeedbackDebuggingTabSheet;

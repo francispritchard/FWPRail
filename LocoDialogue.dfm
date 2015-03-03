@@ -319,6 +319,12 @@ object LocoDialogueWindow: TLocoDialogueWindow
     Height = 25
     Caption = 'Start Loco Timer'
     Enabled = False
+    Font.Charset = ANSI_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    Font.Style = []
+    ParentFont = False
     TabOrder = 7
     OnMouseDown = LocoDialogueLocoTimerStartStopButtonMouseDown
   end
