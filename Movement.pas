@@ -334,7 +334,7 @@ VAR
                   Log(Loco_LocoChipStr + ' L AdjustSpeed routine: final speed increase to ' + IntToStr(Loco_CurrentLenzSpeed)
                                         + ' target=' + IntToStr(Loco_DesiredLenzSpeed) + ' acceleration time=' + FloatToStr(Loco_AccelerationTimeInterval));
                 END;
-              DrawDiagramsSpeedCell(Loco_TrainIndex);
+                DrawDiagramsSpeedCell(Loco_TrainIndex);
               END ELSE
                 IF Loco_DesiredLenzSpeed < Loco_CurrentLenzSpeed THEN BEGIN
                   Loco_CurrentLenzSpeed := AdjustLenzSpeed(Locos[L], -SpeedStep, Loco_CurrentDirection, OK);

@@ -478,8 +478,7 @@ VAR
                             IF TrainJourney_ActualDepartureTime <> 0 THEN
                               ActualTimeStr := '<b>' + DepartedStr + '</b>'
                             ELSE
-                              IF SameTimeInHoursAndMinutesOnly(TrainJourney_CurrentDepartureTime, TrainJourney_DiagrammedDepartureTime)
-                              THEN
+                              IF SameTimeInHoursAndMinutesOnly(TrainJourney_CurrentDepartureTime, TrainJourney_DiagrammedDepartureTime) THEN
                                 ActualTimeStr := OnTimeStr
                               ELSE
                                 IF CompareTime(TrainJourney_CurrentDepartureTime, TrainJourney_DiagrammedDepartureTime) < 0 THEN
