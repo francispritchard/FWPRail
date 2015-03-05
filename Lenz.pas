@@ -2533,7 +2533,6 @@ PROCEDURE TLenzWindow.OnLenzOneSecondTimerTick(Sender: TObject);
 VAR
   P : Integer;
   OK : Boolean;
-  S : Integer;
 
 BEGIN
   IF OneTimeCodeBeingExecuted THEN    { **** use semaphores - not thread safe - DJW }
@@ -2560,30 +2559,6 @@ BEGIN
                     + ' after ' + IntToStr(MilliSecondsBetween(Time, Points[P].Point_EnergisedTime)) + ' seconds');
           END ELSE
             Log('PG Point ' + IntToStr(P) + ' [Lenz=' + IntToStr(Points[P].Point_LenzNum) + ']' + ': emergency deselection failed at ' + TimeToHMSZStr(Time));
-        END;
-      END;
-    END;
-
-    FOR S := 0 TO High(Signals) DO BEGIN
-      IF Signals[S].Signal_Energised THEN BEGIN
-        IF MilliSecondsBetween(Time, Signals[S].Signal_EnergisedTime) > 2 THEN BEGIN
-          { an error - it's been energised too long }
-          Log('SG Signal ' + IntToStr(S) + ' [accessory address=' + IntToStr(Signals[S].Signal_AccessoryAddress) + ']'
-                  + ' has been energised for too long (' + IntToStr(MilliSecondsBetween(Time, Signals[S].Signal_EnergisedTime)) + 'ms)'
-                  + ' so emergency deselection attempted at ' + TimeToHMSZStr(Time));
-          IF NOT SystemOnline THEN
-            Exit;
-
-          EmergencyDeselectSignal(S, OK);
-
-          IF OK THEN BEGIN
-            Signals[S].Signal_Energised := False;
-            Log('SG Signal ' + IntToStr(S) + ' [accessory address=' + IntToStr(Signals[S].Signal_AccessoryAddress) + ']'
-                    + ': emergency deselection was successful at ' + TimeToHMSZStr(Time)
-                    + ' after ' + IntToStr(MilliSecondsBetween(Time, Signals[S].Signal_EnergisedTime)) + ' seconds');
-          END ELSE
-            Log('SG Signal ' + IntToStr(S) + ' [accessory address=' + IntToStr(Signals[S].Signal_AccessoryAddress) + ']'
-                    + ': emergency deselection failed at ' + TimeToHMSZStr(Time));
         END;
       END;
     END;
