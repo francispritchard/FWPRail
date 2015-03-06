@@ -330,13 +330,16 @@ BEGIN
                 ELSE BEGIN
                   { no, it doesn't }
                   IF Train_CurrentStatus <> Cancelled THEN BEGIN
-                    TrackCircuits[TC].TC_OccupationState := TCLocoOutOfPlaceOccupation;
-                    CancelTrain(FoundTrainIndex, NOT ByUser, TrainExists);
-                    Debug('Train ' + Trains[FoundTrainIndex].Train_Headcode
-                          + ' (loco ' + IntToStr(TrackCircuits[TC].TC_LocoChip)
-                          + ') found in the diagrams but its recorded location'
-                          + ' ' + LocationToStr(GetLocationFromTrackCircuit(TC))
-                          + ' does not match the diagrams: train entry cancelled');
+                    IF MessageDialogueWithDefault('The recorded location of loco ' + IntToStr(TrackCircuits[TC].TC_LocoChip)
+                                                  + ' (' + LocationToStr(GetLocationFromTrackCircuit(TC))
+                                                  + ') does not match the diagram location (' + LocationToStr(Trains[FoundTrainIndex].Train_CurrentSourceLocation) + ')'
+                                                  + CRLF
+                                                  + 'Do you want to ignore the recorded location or cancel the train?',
+                                                  StopTimer, mtError, [mbYes, mbNo], mbNo) = mrNo
+                    THEN BEGIN
+                      CancelTrain(FoundTrainIndex, NOT ByUser, TrainExists);
+                      TrackCircuits[TC].TC_OccupationState := TCLocoOutOfPlaceOccupation;
+                    END;
                   END;
                 END;
               END;
@@ -352,14 +355,15 @@ BEGIN
           END; {WITH}
           Inc(T);
         END; {WHILE}
-        { If a feedback occupation does not has a loco recorded as occupying it or adjacent to it, mark it as permanently occupied and as a query }
-        IF NOT MatchingLocationFound THEN BEGIN
-          TrackCircuits[TC].TC_Headcode := '?';
-          TrackCircuits[TC].TC_OccupationState := TCPermanentFeedbackOccupation;
-          Log(LocoChipToStr(TrackCircuits[TC].TC_LocoChip) + ' T TC=' + IntToStr(TC)
-                                                           + ' [' + DescribeLineNamesForTrackCircuit(TC) + ']'
-                                                           + ' set to TCPermanentFeedbackOccupation as no diagrammed train occupying it');
-        END;
+
+//        { If a feedback occupation does not has a loco recorded as occupying it or adjacent to it, mark it as permanently occupied and as a query } { $$$$ }
+//        IF NOT MatchingLocationFound THEN BEGIN
+//          TrackCircuits[TC].TC_Headcode := '?';
+//          TrackCircuits[TC].TC_OccupationState := TCPermanentFeedbackOccupation;
+//          Log(LocoChipToStr(TrackCircuits[TC].TC_LocoChip) + ' T TC=' + IntToStr(TC)
+//                                                           + ' [' + DescribeLineNamesForTrackCircuit(TC) + ']'
+//                                                           + ' set to TCPermanentFeedbackOccupation as no diagrammed train occupying it');
+//        END;
       END;
     END; {FOR}
   END;
@@ -457,12 +461,12 @@ BEGIN
                                         + ' ' + IfThen(Train_LastLocation = UnknownLocation,
                                                        '',
                                                        LocationToStr(Train_LastLocation)));
-                  Train_LastLocation := UnknownLocation;
-                  Train_SavedLocation := UnknownLocation;
-                  Train_LastTC := UnknownTrackCircuit;
-                  Train_CurrentTC := UnknownTrackCircuit;
-                  Train_CurrentDirection := UnknownDirection;
-                  Train_CurrentLengthInInches := 0;
+//                  Train_LastLocation := UnknownLocation;
+//                  Train_SavedLocation := UnknownLocation;
+//                  Train_LastTC := UnknownTrackCircuit;
+//                  Train_CurrentTC := UnknownTrackCircuit;
+//                  Train_CurrentDirection := UnknownDirection;
+//                  Train_CurrentLengthInInches := 0;
                 END;
               END;
             END;
@@ -1725,7 +1729,7 @@ BEGIN
       DrawStationMonitorsWindow(StationMonitorsCurrentArea)
     ELSE BEGIN
       IF InRecordingMonitorScreensMode THEN BEGIN
-        { ***** I'm not convenced this works now as the areas are defined in an Access database 7/5/14 }
+        { ***** I'm not convinced this works now as the areas are defined in an Access database 7/5/14 }
         DrawStationMonitorsWindow(StrToArea('IslandStationArea'));
         DrawStationMonitorsWindow(StrToArea('MainStationArea'));
       END;
@@ -1916,7 +1920,7 @@ BEGIN
   IF NOT SystemOnline THEN
     Debug('Cannot select a loco - system offline')
   ELSE BEGIN
-    IF DiagramsChosenTrain <> 0 THEN BEGIN
+    IF DiagramsChosenTrain <> UnknownTrain THEN BEGIN
       LocoDialogueWindow.Show;
       LocoDialogue.LocoDialogueWindow.LocoDialogueLocoMaskEdit.Clear;
       LocoDialogueWindow.LocoDialogueLocoMaskEdit.SelText := LocoChipToStr(Trains[DiagramsChosenTrain].Train_LocoChip);
@@ -1948,7 +1952,7 @@ END; { SuspendTrain }
 
 PROCEDURE TDiagramsWindow.PopupSuspendTrainClick(Sender: TObject);
 BEGIN
-  IF DiagramsChosenTrain <> 0 THEN BEGIN
+  IF DiagramsChosenTrain <> UnknownTrain THEN BEGIN
     WITH Trains[DiagramsChosenTrain] DO BEGIN
       IF (Train_CurrentStatus = Suspended) OR (Train_CurrentStatus = MissingAndSuspended) THEN BEGIN
         IF Train_CurrentStatus = Suspended THEN BEGIN
@@ -1964,7 +1968,7 @@ BEGIN
         SuspendTrain(DiagramsChosenTrain, ByUser, 'user suspended it');
         PopupSuspendTrain.Caption := 'Activate Suspended Train ' + LocoChipToStr(Train_LocoChip);
       END;
-      DiagramsChosenTrain := 0;
+      DiagramsChosenTrain := UnknownTrain;
     END; {WITH}
   END;
   DrawDiagrams(UnitRef, 'PopupSuspendTrainClick');
@@ -1972,7 +1976,7 @@ END; { PopupSuspendTrainClick }
 
 PROCEDURE TDiagramsWindow.PopupMarkTrainNotMissingClick(Sender: TObject);
 BEGIN
-  IF DiagramsChosenTrain <> 0 THEN BEGIN
+  IF DiagramsChosenTrain <> UnknownTrain THEN BEGIN
     WITH Trains[DiagramsChosenTrain] DO BEGIN
       IF Train_CurrentStatus = Missing THEN BEGIN
         PopupMarkTrainNotMissing.Enabled := False;
@@ -1985,7 +1989,7 @@ END; { PopupMarkTrainNotMissingClick }
 
 PROCEDURE TDiagramsWindow.PopupCancelTrainClick(Sender: TObject);
 BEGIN
-  IF DiagramsChosenTrain <> 0 THEN BEGIN
+  IF DiagramsChosenTrain <> UnknownTrain THEN BEGIN
     WITH Trains[DiagramsChosenTrain] DO BEGIN
       CancelTrain(DiagramsChosenTrain, ByUser, TrainExists);
       Log(Train_LocoChipStr + ' DG Train has been cancelled by user');
@@ -1994,7 +1998,7 @@ BEGIN
       IF SystemOnline THEN
         StopAParticularTrain(DiagramsChosenTrain);
 
-      DiagramsChosenTrain := 0;
+      DiagramsChosenTrain := UnknownTrain;
     END; {WITH}
   END;
   DrawDiagrams(UnitRef, 'PopupCancelTrainClick');
@@ -2002,7 +2006,7 @@ END; { PopupCancelTrainClick }
 
 PROCEDURE TDiagramsWindow.PopupTrainUserDrivingClick(Sender: TObject);
 BEGIN
-  IF DiagramsChosenTrain <> 0 THEN BEGIN
+  IF DiagramsChosenTrain <> UnknownTrain THEN BEGIN
     WITH Trains[DiagramsChosenTrain] DO BEGIN
       IF Train_UserDriving THEN BEGIN
         Train_UserDriving := False;
@@ -2015,7 +2019,7 @@ BEGIN
         Log(Train_LocoChipStr + ' DG Train now being driven by the user');
         PopupTrainUserDriving.Caption := 'Make Train ' + LocoChipToStr(Train_LocoChip) + ' Computer Driven';
       END;
-      DiagramsChosenTrain := 0;
+      DiagramsChosenTrain := UnknownTrain;
     END; {WITH}
   END;
   DrawDiagrams(UnitRef, 'PopupTrainUserDrivenClick');
@@ -2023,7 +2027,7 @@ END; { PopupTrainUserDrivingClick }
 
 PROCEDURE TDiagramsWindow.PopupSupplyUserTrainInstructionsClick(Sender: TObject);
 BEGIN
-  IF DiagramsChosenTrain <> 0 THEN BEGIN
+  IF DiagramsChosenTrain <> UnknownTrain THEN BEGIN
     WITH Trains[DiagramsChosenTrain] DO BEGIN
       IF Train_UserRequiresInstructions THEN BEGIN
         Train_UserRequiresInstructions := False;
@@ -2038,7 +2042,7 @@ BEGIN
           PopupSupplyUserTrainInstructions.Caption := 'Cancel Supply Of User Instructions';
         END;
       END;
-      DiagramsChosenTrain := 0;
+      DiagramsChosenTrain := UnknownTrain;
     END; {WITH}
   END;
   DrawDiagrams(UnitRef, 'PopupTrainUserDrivenClick');
@@ -2050,7 +2054,7 @@ VAR
 
 BEGIN
   DebugStr := '';
-  IF DiagramsChosenTrain <> 0 THEN BEGIN
+  IF DiagramsChosenTrain <> UnknownTrain THEN BEGIN
     WITH Trains[DiagramsChosenTrain] DO BEGIN
       IF Train_LastRouteLockedMsgStr <> '' THEN
         DebugStr := LocoChipToStr(Train_LocoChip) + ': ' +  Train_LastRouteLockedMsgStr;
@@ -5809,7 +5813,7 @@ END; { ProcessDiagrams }
 PROCEDURE InitialiseDiagramsUnit;
 { Initialises the unit }
 BEGIN
-  DiagramsChosenTrain := 0;
+  DiagramsChosenTrain := UnknownTrain;
   DrawDiagramsWindow;
 
   Log('A Diagrams unit initialised');
