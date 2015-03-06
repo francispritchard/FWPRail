@@ -148,6 +148,7 @@ CONST
   UnknownRow = 99999;
   UnknownSignal = 99999;
   UnknownTrackCircuit = 99999;
+  UnknownTrain = 99999;
   UnknownTrainIndex = 99999;
   UnknownTrainLength = 99999;
   UnknownTrainTypeNum = 99999;
