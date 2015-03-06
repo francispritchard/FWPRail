@@ -1099,8 +1099,7 @@ BEGIN
 
               { but check that something else isn't already there }
               IF IsElementInIntegerArray(TempTCs, Loco_LastTC, ElementPos) THEN
-                ErrorMsg := 'Error in database for loco ' + Loco_LocoChipStr + ': last TC=' + IntToStr(Loco_LastTC)
-                            + ' is already occupied by loco ' + LocoChipToStr(TempTCsLocoChips[ElementPos])
+                ErrorMsg := 'database states that last TC=' + IntToStr(Loco_LastTC) + ' is already occupied by loco ' + LocoChipToStr(TempTCsLocoChips[ElementPos])
               ELSE
                 IF Loco_LastTC <> UnknownTrackCircuit THEN BEGIN
                   AppendToIntegerArray(TempTCs, Loco_LastTC);
@@ -1118,9 +1117,8 @@ BEGIN
                   AppendToLocationArray(TempLocations, Loco_LastLocation);
                   AppendToIntegerArray(TempLocationsLocoChips, Loco_LocoChip);
                 END ELSE BEGIN
-                  CASE MessageDialogueWithDefault('Error in database for loco ' + Loco_LocoChipStr + ': last location - '
-                                                  + LocationToStr(Loco_LastLocation) + ' - is already occupied by loco ' + LocoChipToStr(TempLocationsLocoChips[ElementPos])
-                                                  + '.'
+                  CASE MessageDialogueWithDefault('Error in database for loco ' + Loco_LocoChipStr + ': last location - ' + LocationToStr(Loco_LastLocation)
+                                                  + ' - is already occupied by loco ' + LocoChipToStr(TempLocationsLocoChips[ElementPos]) + '.'
                                                   + CRLF
                                                   + 'Amend last location record for ' + Loco_LocoChipStr
                                                   + ' or delete last location (' + LocationToStr(Loco_LastLocation)
