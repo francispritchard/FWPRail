@@ -82,7 +82,7 @@ IMPLEMENTATION
 
 USES GetTime, RailDraw, MiscUtils, Locks, LocationsUnit, Feedback, Options, System.StrUtils, Lenz, System.DateUtils, TestUnit, Movement, FWPShowMessageUnit, CreateRoute,
      Diagrams, Route, Replay, Startup, Cuneo, LocoUtils, StationMonitors, ProgressBar, LocoDialogue, Help, WorkingTimetable, Edit, RDCUnit, Input, Train, SyncObjs,
-     Logging, SignalsUnit, PointsUnit, LinesUnit, TCPIP;
+     Logging, SignalsUnit, PointsUnit, LinesUnit, TCPIP, System.Types;
 
 TYPE
   FeedbackDebuggingDataRec = RECORD
