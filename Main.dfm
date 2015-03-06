@@ -42,10 +42,6 @@ object MainUnitWindow: TMainUnitWindow
       Font.Name = 'Tahoma'
       Font.Style = []
       ParentFont = False
-      ExplicitLeft = 8
-      ExplicitTop = 28
-      ExplicitWidth = 1144
-      ExplicitHeight = 568
       object MainUnitWindowPageControlGeneralDebuggingCheckListBox: TCheckListBox
         Left = 0
         Top = 0
@@ -73,10 +69,6 @@ object MainUnitWindow: TMainUnitWindow
       Font.Style = []
       ImageIndex = 1
       ParentFont = False
-      ExplicitLeft = 8
-      ExplicitTop = 28
-      ExplicitWidth = 1144
-      ExplicitHeight = 568
       object MainUnitWindowPageControlFeedbackDebuggingCheckListBox: TCheckListBox
         Left = 0
         Top = 0
