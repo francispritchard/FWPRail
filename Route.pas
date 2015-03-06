@@ -1515,36 +1515,32 @@ BEGIN
           journeys are cleared when the following track circuit is occupied).
         }
         IF Routes_LocoChips[Route] <> UnknownLocoChip THEN BEGIN
-          IF Routes_Trains[Route] = 0 THEN BEGIN
-            Log(LocoChipToStr(Routes_LocoChips[Route]) + ' R! Routes_Trains[Route] = NIL though Routes_LocoChips[Route] = ' + LocoChipToStr(Routes_LocoChips[Route]));
-          END ELSE BEGIN
-            WITH Trains[Routes_Trains[Route]] DO BEGIN
-              Train_JourneysArray[Routes_Journeys[Route]].TrainJourney_Cleared := True;
-              Log(Train_LocoChipStr + ' R R=' + IntToStr(Route) + ' cleared');
+          WITH Trains[Routes_Trains[Route]] DO BEGIN
+            Train_JourneysArray[Routes_Journeys[Route]].TrainJourney_Cleared := True;
+            Log(Train_LocoChipStr + ' R R=' + IntToStr(Route) + ' cleared');
 
-              { Remove any remaining route lockings - there shouldn't be any at this stage but occasionally there are some left over }
-              FOR TempP := 0 TO High(Points) DO BEGIN
-                IF PointIsLockedByASpecificRoute(TempP, Route) THEN BEGIN
-                  Log(Train_LocoChipStr + ' R P=' + IntToStr(TempP) + ' unlocked by R=' + IntToStr(Route));
-                  UnlockPointLockedBySpecificRoute(TempP, Route, NOT ErrorMsgRequired);
-                END;
-              END; {FOR}
+            { Remove any remaining route lockings - there shouldn't be any at this stage but occasionally there are some left over }
+            FOR TempP := 0 TO High(Points) DO BEGIN
+              IF PointIsLockedByASpecificRoute(TempP, Route) THEN BEGIN
+                Log(Train_LocoChipStr + ' R P=' + IntToStr(TempP) + ' unlocked by R=' + IntToStr(Route));
+                UnlockPointLockedBySpecificRoute(TempP, Route, NOT ErrorMsgRequired);
+              END;
+            END; {FOR}
 
-              FOR TempS := 0 TO High(Signals) DO BEGIN
-                IF SignalIsLockedBySpecificRoute(TempS, Route) THEN BEGIN
-                  Log(Train_LocoChipStr + ' R S=' + IntToStr(TempS) + ' unlocked by R=' + IntToStr(Route));
-                  UnlockSignalLockedBySpecificRoute(TempS, Route);
-                END;
-              END; {FOR}
+            FOR TempS := 0 TO High(Signals) DO BEGIN
+              IF SignalIsLockedBySpecificRoute(TempS, Route) THEN BEGIN
+                Log(Train_LocoChipStr + ' R S=' + IntToStr(TempS) + ' unlocked by R=' + IntToStr(Route));
+                UnlockSignalLockedBySpecificRoute(TempS, Route);
+              END;
+            END; {FOR}
 
-              FOR TempL := 0 TO High(Lines) DO BEGIN
-                IF Lines[TempL].Line_RouteLockingForDrawing = Route THEN BEGIN
-                  Log(Train_LocoChipStr + ' R L=' + LineToStr(TempL) + ' unlocked by R=' + IntToStr(Route));
-                  Lines[TempL].Line_RouteLockingForDrawing := UnknownRoute;
-                END;
-              END; {FOR}
-            END; {WITH}
-          END;
+            FOR TempL := 0 TO High(Lines) DO BEGIN
+              IF Lines[TempL].Line_RouteLockingForDrawing = Route THEN BEGIN
+                Log(Train_LocoChipStr + ' R L=' + LineToStr(TempL) + ' unlocked by R=' + IntToStr(Route));
+                Lines[TempL].Line_RouteLockingForDrawing := UnknownRoute;
+              END;
+            END; {FOR}
+          END; {WITH}
         END;
 
         { ensure that trains are still being moved }
@@ -1642,35 +1638,33 @@ BEGIN
           SetLength(Routes_SubRouteEndLines[TempRoute], 0);
           Log(LocoChipStr + ' R Cleared R=' + IntToStr(TempRoute) + ' deleted');
 
-          IF Routes_Trains[TempRoute] <> 0 THEN BEGIN
-            WITH Trains[Routes_Trains[TempRoute]] DO BEGIN
-              Train_CurrentSourceLocation := UnknownLocation;
+          WITH Trains[Routes_Trains[TempRoute]] DO BEGIN
+            Train_CurrentSourceLocation := UnknownLocation;
 
-              { Update the train's status, but not if it's been cancelled (routes are cleared automatically when trains are cancelled) }
-              IF Train_CurrentStatus <> Cancelled tHEN BEGIN
-                Train_PreviousStatus := Train_CurrentStatus;
-                IF Train_CurrentJourney = UnknownJourney THEN
-                  { not sure if this is right, but can't think what else to do **** }
-                  ChangeTrainStatus(Routes_Trains[TempRoute], NonMoving)
+            { Update the train's status, but not if it's been cancelled (routes are cleared automatically when trains are cancelled) }
+            IF Train_CurrentStatus <> Cancelled tHEN BEGIN
+              Train_PreviousStatus := Train_CurrentStatus;
+              IF Train_CurrentJourney = UnknownJourney THEN
+                { not sure if this is right, but can't think what else to do **** }
+                ChangeTrainStatus(Routes_Trains[TempRoute], NonMoving)
+              ELSE BEGIN
+                IF Train_JourneysArray[Train_CurrentJourney].TrainJourney_StoppingOnArrival THEN
+                  ChangeTrainStatus(Routes_Trains[TempRoute], RouteCompleted)
                 ELSE BEGIN
-                  IF Train_JourneysArray[Train_CurrentJourney].TrainJourney_StoppingOnArrival THEN
-                    ChangeTrainStatus(Routes_Trains[TempRoute], RouteCompleted)
-                  ELSE BEGIN
-                    ChangeTrainStatus(Routes_Trains[TempRoute], Departed);
+                  ChangeTrainStatus(Routes_Trains[TempRoute], Departed);
 
-                    { Increment the journey counter - this is done at the end of routes by the CheckTrainsHaveArrived subroutine }
-                    Train_JourneysArray[Train_CurrentJourney].TrainJourney_ActualArrivalTime := CurrentRailwayTime;
-                    RecalculateJourneyTimes(Routes_Trains[TempRoute], 
-                                            'as have arrived at ' + LocationToStr(Train_JourneysArray[Train_CurrentJourney].TrainJourney_EndLocation, LongStringType));
+                  { Increment the journey counter - this is done at the end of routes by the CheckTrainsHaveArrived subroutine }
+                  Train_JourneysArray[Train_CurrentJourney].TrainJourney_ActualArrivalTime := CurrentRailwayTime;
+                  RecalculateJourneyTimes(Routes_Trains[TempRoute],
+                                          'as have arrived at ' + LocationToStr(Train_JourneysArray[Train_CurrentJourney].TrainJourney_EndLocation, LongStringType));
 
-                    Inc(Train_CurrentJourney);
-                    Log(LocoChipStr + ' R Train_CurrentJourney incremented to ' + IntToStr(Train_CurrentJourney) + ' in ClearARoute');
-                    DrawDiagrams(UnitRef, 'ClearARoute');
-                  END;
+                  Inc(Train_CurrentJourney);
+                  Log(LocoChipStr + ' R Train_CurrentJourney incremented to ' + IntToStr(Train_CurrentJourney) + ' in ClearARoute');
+                  DrawDiagrams(UnitRef, 'ClearARoute');
                 END;
               END;
-            END; {WITH}
-          END;
+            END;
+          END; {WITH}
         END;
       END; {FOR}
       Inc(TempR);
