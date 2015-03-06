@@ -682,7 +682,7 @@ END; { ExpectedReplyToStr }
 
 {$O-}
 PROCEDURE DataIOMainProcedure(TypeOfLogChar : Char; WriteReadVar : WriteReadType; VAR WriteArray, ReadArray : ARRAY OF Byte; ExpectedReply : ReplyType;
-                              CheckTimeOut : Boolean; OUT TimedOut : Boolean; OUT ExpectedDataReceived : Boolean);
+                              OUT TimedOut : Boolean; OUT ExpectedDataReceived : Boolean);
 { Write out supplied data, then wait for a reply. Also process data that has been broadcast without being requested. NB: it is possible for unexpected data to turn up
   before the expected response so the routine has to cater for that eventuality.
 }
@@ -820,9 +820,6 @@ BEGIN
 
             IF TimedOut THEN
               Log('XG **** Timed Out');
-
-            IF CheckTimeOut THEN
-              Exit;
 
             IF TimedOut THEN
               Continue;
@@ -1172,7 +1169,7 @@ BEGIN
                       Log('EG ' + ErrorMsg);
                       ErrorFound := True;
                       RetryFlag := True;
-                      Pause(1000, False);
+                      Pause(2000, False);
                     END;
                   130: { $82 }
                     BEGIN
@@ -1385,8 +1382,6 @@ BEGIN
               END;
             END; {CASE}
 
-            CheckTimeOut := False;
-
             { loop if necessary - not needed if no reply was awaited, or if the reply received was the one that was expected }
           END;
         UNTIL (ExpectedReply = NoReplyExpected) OR ExpectedDataReceived OR TimedOut OR ErrorFound OR (RetryFlag = True);
@@ -1402,7 +1397,7 @@ BEGIN
 
     UNTIL (RetryFlag = False) OR (RetryCount > 2);
 
-    IF (RetryCount > 2) AND SystemOnline THEN
+    IF (RetryCount > 12) AND SystemOnline THEN
       SetSystemOffline('3 failed attempts to write/read data from the LAN/USB interface - system now offline', SoundWarning);
 
   EXCEPT {TRY}
@@ -1426,7 +1421,7 @@ VAR
 
 BEGIN
   WriteReadVar := ReadOnly;
-  DataIOMainProcedure('A', WriteReadVar, WriteArray, ReadArray, NoReplyExpected, NOT CheckTimeOuts, TimedOut, ExpectedDataReceived);
+  DataIOMainProcedure('A', WriteReadVar, WriteArray, ReadArray, NoReplyExpected, TimedOut, ExpectedDataReceived);
 END; { DataIO-1 }
 
 PROCEDURE DataIO{2}(WriteArray : ARRAY OF Byte); Overload
@@ -1442,7 +1437,7 @@ VAR
 
 BEGIN
   WriteReadVar := WriteOnly;
-  DataIOMainProcedure('A', WriteReadVar, WriteArray, ReadArray, NoReplyExpected, NOT CheckTimeOuts, TimedOut, ExpectedDataReceived);
+  DataIOMainProcedure('A', WriteReadVar, WriteArray, ReadArray, NoReplyExpected, TimedOut, ExpectedDataReceived);
 END; { DataIO-2 }
 
 PROCEDURE DataIO{3}(TypeOfLogChar : Char; WriteArray : ARRAY OF Byte; ExpectedReply : ReplyType; OUT ExpectedDataReceived : Boolean); Overload;
@@ -1457,7 +1452,7 @@ VAR
 
 BEGIN
   WriteReadVar := WriteThenRead;
-  DataIOMainProcedure(TypeOfLogChar, WriteReadVar, WriteArray, ReadArray, ExpectedReply, NOT CheckTimeOuts, TimedOut, ExpectedDataReceived);
+  DataIOMainProcedure(TypeOfLogChar, WriteReadVar, WriteArray, ReadArray, ExpectedReply, TimedOut, ExpectedDataReceived);
 END; { DataIO-3 }
 
 PROCEDURE DataIO{4}(TypeOfLogChar : Char; WriteArray : ARRAY OF Byte; VAR ReadArray : ARRAY OF Byte; ExpectedReply : ReplyType; OUT ExpectedDataReceived : Boolean);
@@ -1472,18 +1467,18 @@ VAR
 
 BEGIN
   WriteReadVar := WriteThenRead;
-  DataIOMainProcedure(TypeOfLogChar, WriteReadVar, WriteArray, ReadArray, ExpectedReply, NOT CheckTimeOuts, TimedOut, ExpectedDataReceived);
+  DataIOMainProcedure(TypeOfLogChar, WriteReadVar, WriteArray, ReadArray, ExpectedReply, TimedOut, ExpectedDataReceived);
 END; { DataIO-4 }
 
-PROCEDURE DataIO{5}(TypeOfLogChar : Char; WriteArray : ARRAY OF Byte; VAR ReadArray : ARRAY OF Byte; ExpectedReply : ReplyType; CheckTimeOutsVar : Boolean;
-                    OUT TimedOut : Boolean; OUT ExpectedDataReceived : Boolean); Overload;
+PROCEDURE DataIO{5}(TypeOfLogChar : Char; WriteArray : ARRAY OF Byte; VAR ReadArray : ARRAY OF Byte; ExpectedReply : ReplyType; OUT TimedOut : Boolean;
+                    OUT ExpectedDataReceived : Boolean); Overload;
 { If there's an expected reply then this must be a WriteThenRead type }
 VAR
   WriteReadVar : WriteReadType;
 
 BEGIN
   WriteReadVar := WriteThenRead;
-  DataIOMainProcedure(TypeOfLogChar, WriteReadVar, WriteArray, ReadArray, ExpectedReply, CheckTimeOutsVar, TimedOut, ExpectedDataReceived);
+  DataIOMainProcedure(TypeOfLogChar, WriteReadVar, WriteArray, ReadArray, ExpectedReply, TimedOut, ExpectedDataReceived);
 END; { DataIO-5 }
 
 PROCEDURE DoCheckForUnexpectedData(UnitRef : String; CallingStr : String);
@@ -2447,7 +2442,7 @@ BEGIN
   Log('A Requesting system status');
   WriteArray[0] := 33;
   WriteArray[1] := 36;
-  DataIO('A', WriteArray, ReadArray, SystemStatusReply, CheckTimeOuts, TimedOut, OK);
+  DataIO('A', WriteArray, ReadArray, SystemStatusReply, TimedOut, OK);
 
   WITH SystemStatus DO BEGIN
     IF (ReadArray[2] AND 8) = 8 THEN BEGIN
