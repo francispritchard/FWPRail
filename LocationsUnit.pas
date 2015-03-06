@@ -1720,9 +1720,10 @@ BEGIN
                   OR ((T <= High(Trains))
                       AND (EndTime = LocationOccupations[Location][High(LocationOccupations[Location])].LocationOccupation_EndTime)
                       AND (LocoChip = LocationOccupations[Location][High(LocationOccupations[Location])].LocationOccupation_LocoChip))
-                  THEN
+                  THEN BEGIN
+                    OK := True;
                     Exit
-                  ELSE
+                  END ELSE
                     ErrorMsg := 'start time ' + TimeToHMStr(StartTime) + ' is the same as an existing start time for '
                                 + LocoChipToStr(LocationOccupations[Location][High(LocationOccupations[Location])].LocationOccupation_LocoChip)
                                 + ' (attempting to replace '
