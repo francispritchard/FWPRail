@@ -310,10 +310,6 @@ PROCEDURE Pause(MilliSeconds : Cardinal; ProcessMessages : Boolean);
 FUNCTION PointInPolygon(CONST Polygon: ARRAY OF TPoint; Point: TPoint): Boolean;
 { Returns true if a point is in a defined region }
 
-PROCEDURE ReadOut(SoundStr : String);
-{ Uses system API SndPlaySound to read out the given text, by playing a .wav file. text is held in the system resource file, itself compiled by using "brcc32 -v rail.rc"
-  from the command prompt. The file "rail.rc" is the resource script file.
-}
 FUNCTION RemoveAllSpacesFromAString(Str : String) : String;
 { Removes all spaces from a given string }
 
@@ -1532,21 +1528,6 @@ BEGIN
     END; { CASE}
   END;
 END; { IOError }
-
-PROCEDURE ReadOut(SoundStr : String);
-{ Uses Microsoft built-in SAPI }
-VAR
-  Voice : OleVariant;
-
-BEGIN
-  TRY
-    Voice := CreateOLEObject('SAPI.SPVoice');
-    Voice.Speak(SoundStr);
-  EXCEPT
-    ON E : Exception DO
-      Log('EG NewReadOut: ' + E.ClassName + ' error raised, with message: ' + E.Message);
-  END; {TRY}
-END; { ReadOut }
 
 PROCEDURE RenameLaterFiles(VAR SuppliedFileType : TextFile; SuppliedFileName, SuppliedFilenamePrefix : String);
 { This is used when a current log is thrown away: the older log file names revert to their previous names }

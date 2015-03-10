@@ -32,6 +32,9 @@ TYPE
     PROCEDURE MainUnitWindowPageControlGeneralDebuggingCheckListBoxMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     PROCEDURE MainUnitWindowShow(Sender: TObject);
     PROCEDURE MainUnitWindowClose(Sender: TObject; VAR Action: TCloseAction);
+
+    PROCEDURE SendStringToSpeechProgram(S : String);
+
   PRIVATE
     { Private declarations }
     PROCEDURE SendStringToWatchdogProgram(S : String);
@@ -82,7 +85,7 @@ IMPLEMENTATION
 
 USES GetTime, RailDraw, MiscUtils, Locks, LocationsUnit, Feedback, Options, System.StrUtils, Lenz, System.DateUtils, TestUnit, Movement, FWPShowMessageUnit, CreateRoute,
      Diagrams, Route, Replay, Startup, Cuneo, LocoUtils, StationMonitors, ProgressBar, LocoDialogue, Help, WorkingTimetable, Edit, RDCUnit, Input, Train, SyncObjs,
-     Logging, SignalsUnit, PointsUnit, LinesUnit, TCPIP, System.Types;
+     Logging, SignalsUnit, PointsUnit, LinesUnit, TCPIP, System.Types, ShellAPI;
 
 TYPE
   FeedbackDebuggingDataRec = RECORD
@@ -105,10 +108,13 @@ CONST
 VAR
   FeedbackDebuggingDataArray : ARRAY OF FeedbackDebuggingDataRec;
   GeneralDebuggingDataArray : ARRAY OF GeneralDebuggingDataRec;
+  InitialMessageSentToSpeechprogram : Boolean = False;
   InMainLoop : Boolean = False;
   NumbersArrayCounter : Integer = -1;
   OperationsStopped : Boolean = False;
   SaveSystemStatusEmergencyOff : Boolean;
+  SpeechActiveMsgFlag : Boolean = False;
+  SpeechErrorMsgFlag : Boolean = False;
 
 PROCEDURE Log(Str : String);
 { For ease of debugging, adds the unit name }
@@ -1208,9 +1214,53 @@ BEGIN
         Log('XG FWPRail Watchdog has incorrectly responded to "FWPRail is running" message with the response number: ' + IntToStr(Res));
 END; { SendStringToWatchdogProgram }
 
+PROCEDURE TMainUnitWindow.SendStringToSpeechProgram(S : String);
+VAR
+  CopyData: TCopyDataStruct;
+  ReceiverHandle : THandle;
+  ReceiverTypeString : PWideChar;
+  Res : Integer;
+
+BEGIN
+  ReceiverTypeString := 'TFWPRailSpeechWindow';
+  ReceiverHandle := FindWindow(ReceiverTypeString, NIL);
+  IF ReceiverHandle = 0 THEN BEGIN
+    IF NOT SpeechErrorMsgFlag THEN BEGIN
+      Debug('FWPRailSpeech not found - proceeding without it');
+      SpeechActiveMsgFlag := False;
+      SpeechErrorMsgFlag := True;
+    END;
+
+    Exit;
+  END;
+
+  { We have found the watchdog program }
+  IF InDebuggingMode THEN
+    Log('X Sending "' + S + '" message to FWPRailSpeech program');
+
+  CopyData.lpData := PChar(S);
+  CopyData.cbdata := Bytelength(S);
+  CopyData.dwData := ReceiverHandle;
+
+  Res := SendMessage(ReceiverHandle, WM_COPYDATA, Application.Handle, LPARAM(@CopyData));
+  IF (Res = 0) AND NOT SpeechErrorMsgFlag THEN BEGIN
+    Log('X FWPRailSpeech has not responded correctly to "FWPRail is running" message');
+    SpeechErrorMsgFlag := True;
+    SpeechActiveMsgFlag := False;
+  END ELSE
+    IF Res = 1 THEN BEGIN
+      IF InDebuggingMode THEN
+        Log('X FWPRailSpeech has acknowledged the "FWPRail is running" message');
+      SpeechErrorMsgFlag := False;
+      IF NOT SpeechActiveMsgFlag THEN
+        SpeechActiveMsgFlag := True;
+    END ELSE
+      IF InDebuggingMode THEN
+        Log('XG FWPRailSpeech has incorrectly responded to "FWPRail is running" message with the response number: ' + IntToStr(Res));
+END; { SendStringToSpeechProgram }
+
 PROCEDURE ShutDownProgram(UnitRef : String; SubroutineStr : String);
 { Shut down the program neatly }
-
 CONST
   Init = True;
   TrainListOnly = True;

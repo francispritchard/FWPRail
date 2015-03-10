@@ -1108,7 +1108,7 @@ BEGIN
                     ELSE BEGIN
                       UnrequestedDataFound := True;
                       IF NOT SystemStatus.EmergencyOff THEN
-                        ReadOut('ShortCircuit');
+                        MainUnitWindow.SendStringToSpeechProgram('ShortCircuit');
                       SystemStatus.EmergencyOff := True;
                       ErrorMsg := '*** power off ***';
                       Log('EG '+ ErrorMsg + ' {BLANKLINEBEFORE}');

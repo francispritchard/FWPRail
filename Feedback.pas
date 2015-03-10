@@ -387,68 +387,70 @@ BEGIN
       Debug('Feedback data = ' + Str);
 
     { Now read out the data if required }
-    IF IsMainUnitFeedbackDebuggingDataChecked(ReadOutTCOnce) AND (Feedback_InputTypeArray[FeedbackInput] = TrackCircuitFeedback) THEN BEGIN
-      { just read out the number once }
-      IF Feedback_InputOnArray[FeedbackInput] THEN
-        ReadOut('TC ' + IntToStr(Feedback_InputTrackCircuit[FeedbackInput]));
-    END ELSE
-      IF IsMainUnitFeedbackDebuggingDataChecked(ReadOutTCOnOff) AND (Feedback_InputTypeArray[FeedbackInput] = TrackCircuitFeedback) THEN BEGIN
-        { we want to know when it's activated and deactivated }
-        ReadOut('TC' + IntToStr(Feedback_InputTrackCircuit[FeedbackInput]));
+    WITH MainUnitWindow DO BEGIN
+      IF IsMainUnitFeedbackDebuggingDataChecked(ReadOutTCOnce) AND (Feedback_InputTypeArray[FeedbackInput] = TrackCircuitFeedback) THEN BEGIN
+        { just read out the number once }
         IF Feedback_InputOnArray[FeedbackInput] THEN
-          ReadOut('On')
-        ELSE
-          ReadOut('Off');
+          SendStringToSpeechProgram('TC ' + IntToStr(Feedback_InputTrackCircuit[FeedbackInput]));
       END ELSE
-        IF IsMainUnitFeedbackDebuggingDataChecked(ReadOutTCWithAdjacentSignalNumber) AND (Feedback_InputTypeArray[FeedbackInput] = TrackCircuitFeedback) THEN BEGIN
-          IF Length(TrackCircuits[Feedback_InputTrackCircuit[FeedbackInput]].TC_AdjacentSignals) > 0 THEN BEGIN
-            IF Feedback_InputOnArray[FeedbackInput] THEN BEGIN
-              { only read it out once }
-              ReadOut('Track Circuit' + IntToStr(Feedback_InputTrackCircuit[FeedbackInput]));
-              ReadOut('With Signal');
-              FOR I := 0 TO High(TrackCircuits[Feedback_InputTrackCircuit[FeedbackInput]].TC_AdjacentSignals) DO
-                IF TrackCircuits[Feedback_InputTrackCircuit[FeedbackInput]].TC_AdjacentSignals[I] <> UnknownSignal THEN
-                  ReadOut(IntToStr(TrackCircuits[Feedback_InputTrackCircuit[FeedbackInput]].TC_AdjacentSignals[I]));
-            END;
-          END;
+        IF IsMainUnitFeedbackDebuggingDataChecked(ReadOutTCOnOff) AND (Feedback_InputTypeArray[FeedbackInput] = TrackCircuitFeedback) THEN BEGIN
+          { we want to know when it's activated and deactivated }
+          SendStringToSpeechProgram('TC' + IntToStr(Feedback_InputTrackCircuit[FeedbackInput]));
+          IF Feedback_InputOnArray[FeedbackInput] THEN
+            SendStringToSpeechProgram('On')
+          ELSE
+            SendStringToSpeechProgram('Off');
         END ELSE
-          IF IsMainUnitFeedbackDebuggingDataChecked(ReadOutDecoderNumberOnce) THEN BEGIN
-            IF Feedback_InputOnArray[FeedbackInput] THEN BEGIN
-              { only read it out once }
-              ReadOut('Unit ' + IntToStr(FeedbackUnit));
-              ReadOut('Input ' + IntToStr(FeedbackInput));
+          IF IsMainUnitFeedbackDebuggingDataChecked(ReadOutTCWithAdjacentSignalNumber) AND (Feedback_InputTypeArray[FeedbackInput] = TrackCircuitFeedback) THEN BEGIN
+            IF Length(TrackCircuits[Feedback_InputTrackCircuit[FeedbackInput]].TC_AdjacentSignals) > 0 THEN BEGIN
+              IF Feedback_InputOnArray[FeedbackInput] THEN BEGIN
+                { only read it out once }
+                SendStringToSpeechProgram('Track Circuit' + IntToStr(Feedback_InputTrackCircuit[FeedbackInput]));
+                SendStringToSpeechProgram('With Signal');
+                FOR I := 0 TO High(TrackCircuits[Feedback_InputTrackCircuit[FeedbackInput]].TC_AdjacentSignals) DO
+                  IF TrackCircuits[Feedback_InputTrackCircuit[FeedbackInput]].TC_AdjacentSignals[I] <> UnknownSignal THEN
+                    SendStringToSpeechProgram(IntToStr(TrackCircuits[Feedback_InputTrackCircuit[FeedbackInput]].TC_AdjacentSignals[I]));
+              END;
             END;
           END ELSE
-            IF IsMainUnitFeedbackDebuggingDataChecked(ReadOutDecoderNumberOnOff) THEN BEGIN
+            IF IsMainUnitFeedbackDebuggingDataChecked(ReadOutDecoderNumberOnce) THEN BEGIN
               IF Feedback_InputOnArray[FeedbackInput] THEN BEGIN
-                ReadOut('Unit ' +IntToStr(FeedbackUnit));
-                ReadOut('Input ' + IntToStr(FeedbackInput));
-                ReadOut('On');
-              END ELSE BEGIN
-                ReadOut('Unit ' +IntToStr(FeedbackUnit));
-                ReadOut(IntToStr(FeedbackInput));
-                ReadOut('Input ' + 'Off');
+                { only read it out once }
+                SendStringToSpeechProgram('Unit ' + IntToStr(FeedbackUnit));
+                SendStringToSpeechProgram('Input ' + IntToStr(FeedbackInput));
               END;
             END ELSE
-              IF IsMainUnitFeedbackDebuggingDataChecked(ReadOutPointNumber) AND (Feedback_InputTypeArray[FeedbackInput] = PointFeedback) THEN BEGIN
-                IF Feedback_InputPoint[FeedbackInput] = UnknownPoint THEN
-                  ReadOut('Unknown Point')
-                ELSE BEGIN
-                  ReadOut('Point ' + IntToStr(Feedback_InputPoint[FeedbackInput]));
-                  IF Points[Feedback_InputPoint[FeedbackInput]].Point_PresentState = Straight THEN
-                    ReadOut('Straight')
-                  ELSE
-                    ReadOut('Diverging');
+              IF IsMainUnitFeedbackDebuggingDataChecked(ReadOutDecoderNumberOnOff) THEN BEGIN
+                IF Feedback_InputOnArray[FeedbackInput] THEN BEGIN
+                  SendStringToSpeechProgram('Unit ' +IntToStr(FeedbackUnit));
+                  SendStringToSpeechProgram('Input ' + IntToStr(FeedbackInput));
+                  SendStringToSpeechProgram('On');
+                END ELSE BEGIN
+                  SendStringToSpeechProgram('Unit ' +IntToStr(FeedbackUnit));
+                  SendStringToSpeechProgram(IntToStr(FeedbackInput));
+                  SendStringToSpeechProgram('Input ' + 'Off');
                 END;
               END ELSE
-                IF IsMainUnitFeedbackDebuggingDataChecked(ReadOutDecoderAndPointNumber) AND (Feedback_InputTypeArray[FeedbackInput] = PointFeedback) THEN BEGIN
+                IF IsMainUnitFeedbackDebuggingDataChecked(ReadOutPointNumber) AND (Feedback_InputTypeArray[FeedbackInput] = PointFeedback) THEN BEGIN
                   IF Feedback_InputPoint[FeedbackInput] = UnknownPoint THEN
-                    ReadOut('Unknown Point')
-                  ELSE
-                    ReadOut('Point ' + IntToStr(Feedback_InputPoint[FeedbackInput]));
-                  ReadOut('Unit ' + IntToStr(FeedbackUnit));
-                  ReadOut('Input ' + IntToStr(FeedbackInput));
-                END;
+                    SendStringToSpeechProgram('Unknown Point')
+                  ELSE BEGIN
+                    SendStringToSpeechProgram('Point ' + IntToStr(Feedback_InputPoint[FeedbackInput]));
+                    IF Points[Feedback_InputPoint[FeedbackInput]].Point_PresentState = Straight THEN
+                      SendStringToSpeechProgram('Straight')
+                    ELSE
+                      SendStringToSpeechProgram('Diverging');
+                  END;
+                END ELSE
+                  IF IsMainUnitFeedbackDebuggingDataChecked(ReadOutDecoderAndPointNumber) AND (Feedback_InputTypeArray[FeedbackInput] = PointFeedback) THEN BEGIN
+                    IF Feedback_InputPoint[FeedbackInput] = UnknownPoint THEN
+                      SendStringToSpeechProgram('Unknown Point')
+                    ELSE
+                      SendStringToSpeechProgram('Point ' + IntToStr(Feedback_InputPoint[FeedbackInput]));
+                    SendStringToSpeechProgram('Unit ' + IntToStr(FeedbackUnit));
+                    SendStringToSpeechProgram('Input ' + IntToStr(FeedbackInput));
+                  END;
+    END; {WITH}
   END; {WITH}
 END; { WriteUnitDataToFeedbackWindowAndReadItOut }
 
