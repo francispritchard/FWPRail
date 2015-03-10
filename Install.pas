@@ -102,6 +102,15 @@ BEGIN
 
   IF InstallOK THEN BEGIN
 
+    { things to do:
+      place FWPRailWatchdog.exe in the RailDataFiles
+      place FWPRailSpeech.exe in the RailDataFiles
+      set up various database files
+      place PIEHid.dll if Raildriver is requested
+      set up resource file
+
+    }
+
   END;
 END; { GetInitialisationData; }
 
