@@ -24,7 +24,7 @@ IMPLEMENTATION
 
 {$R *.dfm}
 
-USES LocoUtils, MiscUtils, Input, RailDraw, RDCUnit, DateUtils, Feedback, CreateRoute, Diagrams, StrUtils, LocationsUnit, Options, Logging;
+USES LocoUtils, MiscUtils, Input, RailDraw, RDCUnit, DateUtils, Feedback, CreateRoute, Diagrams, StrUtils, LocationsUnit, Options, Logging, Main;
 
 CONST
   UnitRef = 'Startup';
@@ -420,8 +420,15 @@ BEGIN
   END;
 END; { HandleParameters }
 
-PROCEDURE LoadIcons;
-{ The icons are held in the system resource file, itself compiled by using "brcc32 -v rail.rc" from the command prompt. The file "rail.rc" is the resource script file. }
+PROCEDURE LoadResources;
+{ The icons are held in the system resource file, itself compiled by using "brcc32 -v rail.rc" from the command prompt. The file "rail.rc" is the resource script file.
+  Note 11/3/15 - downloaded two .ico files for the watchdog and speech external programs. Loaded them into MSPaint to convert them to bitmaps. Then used the (hidden)
+  code in TestUnit to convert them to icons.
+}
+VAR
+  Buffer : ARRAY[0..255] OF Char;
+  Res : Integer;
+
 BEGIN
   EditIcon := TIcon.Create;
   OnlineIcon := TIcon.Create;
@@ -430,7 +437,12 @@ BEGIN
   EditIcon.Handle := LoadIcon(hInstance, 'EditIcon');
   OnlineIcon.Handle := LoadIcon(hInstance, 'OnlineIcon');
   OfflineIcon.Handle := LoadIcon(hInstance, 'OfflineIcon');
-END; { LoadIcons }
+
+  Res := LoadString(hInstance, 1000, Buffer, SizeOf(Buffer));
+  FWPRailSpeechShuttingDownStr := Buffer;
+  Res := LoadString(hInstance, 1001, Buffer, SizeOf(Buffer));
+  FWPRailWatchdogShuttingDownStr := Buffer;
+END; { LoadResources }
 
 PROCEDURE InitialiseStartupUnit;
 { Such routines as this allow us to initialises the units in the order we wish }
@@ -448,6 +460,6 @@ END; { InitialiseStartupUnit }
 
 INITIALIZATION
 
-LoadIcons;
+LoadResources;
 
 END { StartUp }.

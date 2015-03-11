@@ -19,11 +19,12 @@ TYPE
     SpeechUnitListBox: TListBox;
     SpeechUnitRefreshListBoxButton: TButton;
     PROCEDURE ClearButtonClick(Sender: TObject);
+    PROCEDURE SpeechUnitRefreshListBoxButtonClick(Sender: TObject);
     PROCEDURE SpeechUnitTimerTick(Sender: TObject);
     PROCEDURE SpeechUnitTrayIconClick(Sender: TObject);
+    PROCEDURE SpeechUnitWindowClose(Sender: TObject; var Action: TCloseAction);
     PROCEDURE SpeechUnitWindowCreate(Sender: TObject);
     PROCEDURE SpeechUnitWindowShow(Sender: TObject);
-    procedure SpeechUnitRefreshListBoxButtonClick(Sender: TObject);
 
   PRIVATE
     PROCEDURE WMCopyData(VAR Msg : TWMCopyData); Message WM_COPYDATA;
@@ -40,6 +41,7 @@ FUNCTION ReadDataFromTCPIPList : String;
 
 VAR
   DataReadInList : TStringList;
+  FWPRailSpeechShuttingDownStr  : String;
   TCPBuf : String = '';
   FWPRailSpeechWindow : TFWPRailSpeechWindow;
 
@@ -114,7 +116,7 @@ BEGIN
 END; { EnumWindowsProc }
 
 PROCEDURE TFWPRailSpeechWindow.SendMsgToRailProgram(Msg : String);
-{ Let the Rail program know if we can't start because we're not talking to the Lenz system }
+{ Talk to the Rail program }
 VAR
   CopyData: TCopyDataStruct;
   ReceiverHandle : THandle;
@@ -191,13 +193,20 @@ VAR
 BEGIN
   SetString(S, PChar(Msg.CopyDataStruct.lpData), Msg.CopyDataStruct.cbData DIV SizeOf(Char));
   IF Pos('FWPRail is starting', S) = 0 THEN
-    ReadOut(S);
+    ReadOut(S)
+  ELSE
+    SpeechUnitTimer.Enabled := True;
 
   WriteMemoText(S);
 
   { And send an acknowledgment }
   Msg.Result := 1;
 END; { WMCopyData }
+
+PROCEDURE TFWPRailSpeechWindow.SpeechUnitWindowClose(Sender: TObject; VAR Action: TCloseAction);
+BEGIN
+  SendMsgToRailProgram(FWPRailSpeechShuttingDownStr);
+END; { SpeechUnitWindowClose }
 
 PROCEDURE TFWPRailSpeechWindow.OnMinimize(VAR Msg: TWMSysCommand);
 BEGIN
@@ -230,13 +239,20 @@ BEGIN
 END; { SpeechUnitRefreshListBoxButtonClick }
 
 PROCEDURE TFWPRailSpeechWindow.SpeechUnitWindowCreate(Sender : TObject);
+VAR
+  Buffer : ARRAY[0..255] OF Char;
+  Res : Integer;
+
 BEGIN
   { List all the current windows - this is only really needed for debugging (to set the Receiver Strings in this and FWPRail), but no harm in having it each time we run }
   EnumWindows(@EnumWindowsProc, LPARAM(SpeechUnitListBox));
 
   FWPRailSpeechWindow.SpeechUnitTrayIcon.Visible := False;
-  FWPRailSpeechWindow.SpeechUnitTrayIcon.Icon.Handle := LoadIcon(hInstance, 'OnlineIcon');
+  FWPRailSpeechWindow.SpeechUnitTrayIcon.Icon.Handle := LoadIcon(hInstance, 'LoudSpeakerIcon');
   FWPRailSpeechWindow.SpeechUnitTrayIcon.Visible := True;
+
+  Res := LoadString(hInstance, 1000, Buffer, SizeOf(Buffer));
+  FWPRailSpeechShuttingDownStr := Buffer;
 
   Application.ShowMainForm := False;
 END; { SpeechUnitWindowCreate }

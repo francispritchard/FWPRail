@@ -7373,7 +7373,10 @@ VAR
 
 BEGIN
   SetString(S, PChar(Msg.CopyDataStruct.lpData), Msg.CopyDataStruct.cbData DIV SizeOf(Char));
-  Log('XG FWPRail Watchdog message: "' + S + '"');
+  IF (S = FWPRailSpeechShuttingDownStr) OR (S = FWPRailWatchdogShuttingDownStr) THEN
+    Log('X! FWPRail incoming message: "' + S + '"')
+  ELSE
+    Log('XG FWPRail incoming message: "' + S + '"');
 
   { And send an acknowledgment }
   Msg.Result := 2;

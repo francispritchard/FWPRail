@@ -76,6 +76,8 @@ PROCEDURE TurnAutoModeOn;
 { Turns auto mode on }
 
 VAR
+  FWPRailSpeechShuttingDownStr : String = '';
+  FWPRailWatchdogShuttingDownStr : String = '';
   MainUnitWindow: TMainUnitWindow;
 
 IMPLEMENTATION

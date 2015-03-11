@@ -12,8 +12,10 @@ object FWPRailSpeechWindow: TFWPRailSpeechWindow
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Font.Style = []
+  FormStyle = fsStayOnTop
   OldCreateOrder = False
   WindowState = wsMinimized
+  OnClose = SpeechUnitWindowClose
   OnCreate = SpeechUnitWindowCreate
   OnShow = SpeechUnitWindowShow
   DesignSize = (
@@ -29,7 +31,6 @@ object FWPRailSpeechWindow: TFWPRailSpeechWindow
     Anchors = [akLeft, akTop, akRight, akBottom]
     Caption = 'Log:'
     TabOrder = 0
-    ExplicitWidth = 922
     DesignSize = (
       908
       545)
@@ -49,7 +50,6 @@ object FWPRailSpeechWindow: TFWPRailSpeechWindow
       ReadOnly = True
       ScrollBars = ssVertical
       TabOrder = 0
-      ExplicitWidth = 465
     end
     object ClearButton: TButton
       Left = 370

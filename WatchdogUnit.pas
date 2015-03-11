@@ -30,14 +30,14 @@ TYPE
     WatchdogUnitRefreshListBoxButton: TButton;
     PROCEDURE ClearButtonClick(Sender: TObject);
     PROCEDURE EthernetConnectButtonClick(Sender: TObject);
+    PROCEDURE FWPRailWatchdogWindowClose(Sender: TObject; VAR Action: TCloseAction);
+    PROCEDURE FWPRailWatchdogWindowCreate(Sender: TObject);
+    PROCEDURE FWPRailWatchdogWindowShow(Sender: TObject);
     PROCEDURE SendStatusRequestButtonClick(Sender: TObject);
     PROCEDURE SendTextButtonClick(Sender: TObject);
     PROCEDURE USBConnectButtonClick(Sender: TObject);
     PROCEDURE TCPIPTimerOnTimer(Sender: TObject);
     PROCEDURE WatchdogUnitTimerTick(Sender: TObject);
-    PROCEDURE FWPRailWatchdogWindowClose(Sender: TObject; VAR Action: TCloseAction);
-    PROCEDURE FWPRailWatchdogWindowCreate(Sender: TObject);
-    PROCEDURE FWPRailWatchdogWindowShow(Sender: TObject);
     procedure WatchdogUnitTrayIconClick(Sender: TObject);
     procedure WatchdogUnitRefreshListBoxButtonClick(Sender: TObject);
 
@@ -69,6 +69,7 @@ VAR
   BroadcastsTCPClient : TClientSocket = NIL;
   ConnectTS : Int64;
   DataReadInList : TStringList;
+  FWPRailWatchdogShuttingDownStr : String = '';
   ReceiverTypeString : PWideChar = '';
   ResponsesTCPClient : TClientSocket = NIL;
   TCPBuf : String = '';
@@ -239,6 +240,8 @@ END; { FillSpace }
 
 PROCEDURE TFWPRailWatchdogWindow.FWPRailWatchdogWindowClose(Sender: TObject; VAR Action: TCloseAction);
 BEGIN
+  SendMsgToRailProgram(FWPRailWatchdogShuttingDownStr);
+
   IF ResponsesTCPClient <> NIL THEN
     DestroyTCPClient;
 END; { FWPRailWatchdogWindowClose }
@@ -694,14 +697,20 @@ BEGIN
 END; { WatchdogUnitRefreshListBoxButtonClick }
 
 PROCEDURE TFWPRailWatchdogWindow.FWPRailWatchdogWindowCreate(Sender : TObject);
+VAR
+  Buffer : ARRAY[0..255] OF Char;
+  Res : Integer;
+
 BEGIN
   { List all the current windows - this is only really needed for debugging (to set the Receiver Strings in this and FWPRail), but no harm in having it each time we run }
   EnumWindows(@EnumWindowsProc, LPARAM(WatchdogUnitListBox));
 
   FWPRailWatchdogWindow.WatchdogUnitTrayIcon.Visible := False;
-  FWPRailWatchdogWindow.WatchdogUnitTrayIcon.Icon.Handle := LoadIcon(hInstance, 'OfflineIcon');
+  FWPRailWatchdogWindow.WatchdogUnitTrayIcon.Icon.Handle := LoadIcon(hInstance, 'WatchdogIcon');
   FWPRailWatchdogWindow.WatchdogUnitTrayIcon.Visible := True;
 
+  Res := LoadString(hInstance, 1001, Buffer, SizeOf(Buffer));
+  FWPRailWatchdogShuttingDownStr := Buffer;
   Application.ShowMainForm := False;
 END; { FWPRailWatchdogWindowCreate }
 
