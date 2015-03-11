@@ -30,7 +30,6 @@ TYPE
     PROCEDURE MainUnitWindowPageControlGeneralDebuggingCheckListBoxClickCheck(Sender: TObject);
     PROCEDURE MainUnitWindowPageControlGeneralDebuggingCheckListBoxKeyDown(Sender: TObject; VAR Key: Word; Shift: TShiftState);
     PROCEDURE MainUnitWindowPageControlGeneralDebuggingCheckListBoxMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    PROCEDURE MainUnitWindowShow(Sender: TObject);
     PROCEDURE MainUnitWindowClose(Sender: TObject; VAR Action: TCloseAction);
 
     PROCEDURE SendStringToSpeechProgram(S : String);
@@ -897,8 +896,8 @@ VAR
         END;
       END;
       IF PostEmergencyTimeSet AND (Time >= PostEmergencyTime) THEN BEGIN
-        { Restore the track-circuit data after an emergency (but wait a short time before doing so, as the feedback system will read in the feedback data again after a system
-          reset, and we need to restore our data after that). Do we need to save and restore other TC data (like PreviousTCstate)? ****
+        { Restore the track-circuit data after an emergency (but wait a short time before doing so, as the feedback system will read in the feedback data again after a
+          system reset, and we need to restore our data after that). Do we need to save and restore other TC data (like PreviousTCstate)? ****
         }
         PostEmergencyTimeSet := False;
         Log('EG Emergency over - restoring track-circuit data');
@@ -1050,8 +1049,8 @@ BEGIN
         END;
       END;
 
-      { And see if any points need to be reset (this is done here as sometimes points do not otherwise reset, because although the route can be reset, the point may still be
-        locked at that stage).
+      { And see if any points need to be reset (this is done here as sometimes points do not otherwise reset, because although the route can be reset, the point may still
+        be locked at that stage).
       }
       IF InAutoMode OR ResetAllSwitchedPoints THEN BEGIN
         IF NOT PointResettingMode THEN
@@ -1290,7 +1289,7 @@ BEGIN { ShutDownProgram }
 
     { Restore the Windows taskbar if we're in full screen mode and it's been disabled }
     IF WindowsTaskbarDisabled THEN BEGIN
-      { Find handle of TASKBAR }
+      { Find handle of taskbar }
       WindowsTaskBar := FindWindow('Shell_TrayWnd', NIL);
       { Enable the taskbar }
       EnableWindow(WindowsTaskBar, True);
@@ -1369,7 +1368,7 @@ BEGIN { ShutDownProgram }
     END;
 
     IF RestoreLogsToPreviousState THEN BEGIN
-      { Erase the newly created log file (if we're only doing a replay, not running a proper sequence, or else logging is off and rename the previous ones if they exist }
+      { Erase the newly created log file (if we're only doing a replay, not running a proper sequence, or else logging is off and rename the previous ones if they exist) }
       RenameLaterFiles(LargeLogFile, PathToLogFiles + LogFileName, LogFileNameSuffix);
       RenameLaterFiles(TestLogFile, PathToLogFiles + LogFileName + '-Test', LogFileNameSuffix);
       IF MultipleLogFilesRequired THEN BEGIN
@@ -1393,10 +1392,6 @@ BEGIN { ShutDownProgram }
       Log('EG ShutDownProgram: ' + E.ClassName + ' error raised, with message: ' + E.Message);
   END; {TRY}
 END; { ShutDownProgram }
-
-PROCEDURE TMainUnitWindow.MainUnitWindowShow(Sender: TObject);
-BEGIN
-END; { MainUnitWindowShow }
 
 PROCEDURE InitialiseMainUnit;
 { Such routines as this allow us to initialises the units in the order we wish }
