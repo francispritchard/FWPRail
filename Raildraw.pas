@@ -7367,7 +7367,7 @@ BEGIN { Main drawing procedure }
 END; { DrawMap }
 
 PROCEDURE TFWPRailWindow.WMCopyData(VAR Msg: TWMCopyData);
-{ Receives data from the Watchdog program. (This code is here as the RailDraw window is the de facto main window visible to other programs). }
+{ Receives data from the external watchdog and speech programs. (This code is here as the RailDraw window is the de facto main window visible to other programs). }
 VAR
   S : String;
 

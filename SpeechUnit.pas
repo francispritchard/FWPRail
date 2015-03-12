@@ -249,6 +249,7 @@ BEGIN
 
   FWPRailSpeechWindow.SpeechUnitTrayIcon.Visible := False;
   FWPRailSpeechWindow.SpeechUnitTrayIcon.Icon.Handle := LoadIcon(hInstance, 'LoudSpeakerIcon');
+  FWPRailSpeechWindow.SpeechUnitTrayIcon.Hint := 'FWPRailSpeech';
   FWPRailSpeechWindow.SpeechUnitTrayIcon.Visible := True;
 
   Res := LoadString(hInstance, 1000, Buffer, SizeOf(Buffer));

@@ -707,6 +707,7 @@ BEGIN
 
   FWPRailWatchdogWindow.WatchdogUnitTrayIcon.Visible := False;
   FWPRailWatchdogWindow.WatchdogUnitTrayIcon.Icon.Handle := LoadIcon(hInstance, 'WatchdogIcon');
+  FWPRailWatchdogWindow.WatchdogUnitTrayIcon.Hint := 'FWPRailWatchdog';
   FWPRailWatchdogWindow.WatchdogUnitTrayIcon.Visible := True;
 
   Res := LoadString(hInstance, 1001, Buffer, SizeOf(Buffer));
