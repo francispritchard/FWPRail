@@ -1,33 +1,34 @@
-*.dcu
-*.~*~
-*.local
-*.identcache
-__history
-*.drc
-*.map
-*.exe
-*.dll
-*.res
-*.dsk
-*.~dsk
-Rail Data Files/*.otares
-Rail Data Files/*.tds
-Rail Data Files/*.rsm
-Rail Data Files/*.ldb
-*.bak
-*.old
-*.dproj
-bin/*
-Rail Data Files/Logs/*
-*.test
 *.aqt
-profiling/*
-SaveRail/*
-Misc/*
-*.lnk
+*.bak
 *.bat
+*.dcu
+*.dll
+*.dproj
+*.drc
+*.dsk
+*.exe
+*.identcache
 *.jpg
+*.lnk
+*.local
+*.map
+*.new
+*.old
+*.res
+*.test
+*.~*~
+*.~dsk
+__history
+bin/*
+Misc/*
+profiling/*
+Rail Data Files/*.ldb
+Rail Data Files/*.otares
+Rail Data Files/*.rsm
+Rail Data Files/*.tds
 Rail Data Files/*Copy.mdb
+Rail Data Files/Logs/*
+Rail Data Files/notes.txt
+SaveRail/*
 TestUnit.dfm
 TestUnit.pas
-Rail Data Files/notes.txt
