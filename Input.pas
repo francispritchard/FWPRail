@@ -2935,7 +2935,7 @@ BEGIN { KeyPressedDown }
                 IF NOT HelpRequired THEN BEGIN
                   IF StartRepeatJourneysOnNewLineInDiagrams THEN BEGIN
                     StartRepeatJourneysOnNewLineInDiagrams:= False;
-                    Log('AG DisplayNotForPublicUseTrainsInStationMonitors = OFF');
+                    Log('AG StartRepeatJourneysOnNewLineInDiagrams = OFF');
                     DrawStationMonitorsWindow(StationMonitorsCurrentArea);
                   END ELSE BEGIN
                     StartRepeatJourneysOnNewLineInDiagrams:= True;
