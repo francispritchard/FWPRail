@@ -12,34 +12,37 @@ CONST
 TYPE
   LenzConnectionType = (EthernetConnection, USBConnection, NoConnection);
 
-  TFWPRailWatchdogWindow = CLASS(TForm)
-    ClearButton: TButton;
-    ConnectPanel: TPanel;
-    EthernetConnectButton: TButton;
-    IncomingGB: TGroupBox;
-    LabelTextEntry: TLabel;
-    SendStatusRequestButton: TSpeedButton;
-    SendTextButton: TSpeedButton;
-    TCPCommand: TMemo;
-    TCPIPTimer: TTimer;
-    USBConnectButton: TButton;
+  TWatchdogUnitWindow = CLASS(TForm)
+    WatchdogUnitClearButton: TButton;
+    WatchdogUnitCloseButton: TButton;
+    WatchdogUnitConnectPanel: TPanel;
+    WatchdogUnitEthernetConnectButton: TButton;
+    WatchdogUnitIncomingGroupBox: TGroupBox;
+    WatchdogUnitLabelTextEntry: TLabel;
     WatchdogUnitListBox: TListBox;
     WatchdogUnitMemo: TMemo;
+    WatchdogUnitRefreshListBoxButton: TButton;
+    WatchdogUnitSendStatusRequestButton: TSpeedButton;
+    WatchdogUnitSendTextButton: TSpeedButton;
+    WatchdogUnitTCPCommand: TMemo;
+    WatchdogUnitTCPIPTimer: TTimer;
     WatchdogUnitTimer: TTimer;
     WatchdogUnitTrayIcon: TTrayIcon;
-    WatchdogUnitRefreshListBoxButton: TButton;
-    PROCEDURE ClearButtonClick(Sender: TObject);
-    PROCEDURE EthernetConnectButtonClick(Sender: TObject);
-    PROCEDURE FWPRailWatchdogWindowClose(Sender: TObject; VAR Action: TCloseAction);
-    PROCEDURE FWPRailWatchdogWindowCreate(Sender: TObject);
-    PROCEDURE FWPRailWatchdogWindowShow(Sender: TObject);
-    PROCEDURE SendStatusRequestButtonClick(Sender: TObject);
-    PROCEDURE SendTextButtonClick(Sender: TObject);
-    PROCEDURE USBConnectButtonClick(Sender: TObject);
-    PROCEDURE TCPIPTimerOnTimer(Sender: TObject);
+    WatchdogUnitUSBConnectButton: TButton;
+    WatchdogUnitMinimiseButton: TButton;
+    PROCEDURE WatchdogUnitClearButtonClick(Sender: TObject);
+    PROCEDURE WatchdogUnitCloseButtonClick(Sender: TObject);
+    PROCEDURE WatchdogUnitEthernetConnectButtonClick(Sender: TObject);
+    PROCEDURE WatchdogUnitRefreshListBoxButtonClick(Sender: TObject);
+    PROCEDURE WatchdogUnitSendStatusRequestButtonClick(Sender: TObject);
+    PROCEDURE WatchdogUnitSendTextButtonClick(Sender: TObject);
+    PROCEDURE WatchdogUnitTCPIPTimerOnTick(Sender: TObject);
     PROCEDURE WatchdogUnitTimerTick(Sender: TObject);
-    procedure WatchdogUnitTrayIconClick(Sender: TObject);
-    procedure WatchdogUnitRefreshListBoxButtonClick(Sender: TObject);
+    PROCEDURE WatchdogUnitTrayIconClick(Sender: TObject);
+    PROCEDURE WatchdogUnitUSBConnectButtonClick(Sender: TObject);
+    PROCEDURE WatchdogUnitWindowCreate(Sender: TObject);
+    PROCEDURE WatchdogUnitWindowShow(Sender: TObject);
+    procedure WatchdogUnitMinimiseButtonClick(Sender: TObject);
 
   PRIVATE
     PROCEDURE WMCopyData(VAR Msg : TWMCopyData); Message WM_COPYDATA;
@@ -75,7 +78,7 @@ VAR
   TCPBuf : String = '';
   TCPIPConnected : Boolean = True;
   TCPSocket : TCustomWinSocket = NIL;
-  FWPRailWatchdogWindow : TFWPRailWatchdogWindow;
+  WatchdogUnitWindow : TWatchdogUnitWindow;
 
 IMPLEMENTATION
 
@@ -101,7 +104,7 @@ VAR
 
 PROCEDURE WriteMemoText(S : String);
 BEGIN
-  WITH FWPRailWatchdogWindow DO BEGIN
+  WITH WatchdogUnitWindow DO BEGIN
     IF S <> LastMemoText THEN BEGIN
       WatchdogUnitMemo.Text := WatchdogUnitMemo.Text + S + CRLF;
       LastMemoText := S;
@@ -238,15 +241,7 @@ BEGIN
   Result := S;
 END; { FillSpace }
 
-PROCEDURE TFWPRailWatchdogWindow.FWPRailWatchdogWindowClose(Sender: TObject; VAR Action: TCloseAction);
-BEGIN
-  SendMsgToRailProgram(FWPRailWatchdogShuttingDownStr);
-
-  IF ResponsesTCPClient <> NIL THEN
-    DestroyTCPClient;
-END; { FWPRailWatchdogWindowClose }
-
-PROCEDURE TFWPRailWatchdogWindow.USBConnectButtonClick(Sender: TObject);
+PROCEDURE TWatchdogUnitWindow.WatchdogUnitUSBConnectButtonClick(Sender: TObject);
 BEGIN
   IF TCPSocket = NIL THEN
     CreateTCPClients(USBConnection)
@@ -254,59 +249,59 @@ BEGIN
     DestroyTCPClient;
 END; { USBConnectButtonClick }
 
-PROCEDURE TFWPRailWatchdogWindow.EthernetConnectButtonClick(Sender: TObject);
+PROCEDURE TWatchdogUnitWindow.WatchdogUnitEthernetConnectButtonClick(Sender: TObject);
 BEGIN
   IF TCPSocket = NIL THEN
     CreateTCPClients(EthernetConnection)
   ELSE
     DestroyTCPClient;
-END; { EthernetConnectButtonClick }
+END; { WatchdogUnitEthernetConnectButtonClick }
 
-PROCEDURE TFWPRailWatchdogWindow.FWPRailWatchdogWindowShow(Sender: TObject);
+PROCEDURE TWatchdogUnitWindow.WatchdogUnitWindowShow(Sender: TObject);
 BEGIN
   SetBounds((Monitor.Left + Monitor.Width) - Width, Monitor.Top, Width, Height);
-END; { FWPRailWatchdogWindowShow }
+END; { WatchdogUnitWindowShow }
 
-PROCEDURE TFWPRailWatchdogWindow.SendStatusRequestButtonClick(Sender: TObject);
+PROCEDURE TWatchdogUnitWindow.WatchdogUnitSendStatusRequestButtonClick(Sender: TObject);
 BEGIN
   IF ResponsesTCPClient <> NIL THEN BEGIN
     WriteMemoText('OUT [System Status Request]');
     ResponsesTCPSendText('21-24-05' +CRLF);
-    TCPCommand.Clear;
+    WatchdogUnitTCPCommand.Clear;
   END;
-END; { SendStatusRequestButtonClick }
+END; { WatchdogUnitSendStatusRequestButtonClick }
 
-PROCEDURE TFWPRailWatchdogWindow.SendTextButtonClick(Sender: TObject);
+PROCEDURE TWatchdogUnitWindow.WatchdogUnitSendTextButtonClick(Sender: TObject);
 VAR
   I : Integer;
   S : WideString;
 
 BEGIN
   IF ResponsesTCPClient <> NIL THEN BEGIN
-    IF TCPCommand.Lines.Count = 0 THEN
+    IF WatchdogUnitTCPCommand.Lines.Count = 0 THEN
       Exit;
 
-    IF TCPCommand.Lines.Count > 1 THEN BEGIN
+    IF WatchdogUnitTCPCommand.Lines.Count > 1 THEN BEGIN
       S := '';
-      FOR I := 0 TO TCPCommand.Lines.Count-1 DO
-        S := S + '"' + TCPCommand.Lines[I] + '" ';
+      FOR I := 0 TO WatchdogUnitTCPCommand.Lines.Count-1 DO
+        S := S + '"' + WatchdogUnitTCPCommand.Lines[I] + '" ';
     END ELSE
-      S := TCPCommand.Lines[0];
+      S := WatchdogUnitTCPCommand.Lines[0];
 
     WriteMemoText('OUT ' + S);
-    ResponsesTCPSendText(TCPCommand.Text);
-    TCPCommand.Clear;
+    ResponsesTCPSendText(WatchdogUnitTCPCommand.Text);
+    WatchdogUnitTCPCommand.Clear;
   END;
-END; { SendTextButtonClick }
+END; { WatchdogUnitSendTextButtonClick }
 
-PROCEDURE TFWPRailWatchdogWindow.CreateTCPClients(Connection : LenzConnectionType);
+PROCEDURE TWatchdogUnitWindow.CreateTCPClients(Connection : LenzConnectionType);
 { Set the TCPIP clients up }
 VAR
   I : Integer;
 
 BEGIN
   IF ResponsesTCPClient = NIL THEN BEGIN
-    ResponsesTCPClient              := TClientSocket.Create(FWPRailWatchdogWindow);
+    ResponsesTCPClient              := TClientSocket.Create(WatchdogUnitWindow);
     ResponsesTCPClient.ClientType   := ctNonBlocking;
     ResponsesTCPClient.OnConnect    := ResponsesTCPClientConnect;
     ResponsesTCPClient.OnDisconnect := ResponsesTCPClientDisconnect;
@@ -335,7 +330,7 @@ BEGIN
   END;
 END; { CreateTCPClients }
 
-PROCEDURE TFWPRailWatchdogWindow.DestroyTCPClient;
+PROCEDURE TWatchdogUnitWindow.DestroyTCPClient;
 BEGIN
   IF ResponsesTCPClient <> NIL THEN BEGIN
     IF TCPSocket <> NIL THEN BEGIN
@@ -348,30 +343,30 @@ BEGIN
   END;
 END; { DestroyTCPClient }
 
-PROCEDURE TFWPRailWatchdogWindow.ResponsesTCPClientConnect(Sender: TObject; Socket : TCustomWinSocket);
+PROCEDURE TWatchdogUnitWindow.ResponsesTCPClientConnect(Sender: TObject; Socket : TCustomWinSocket);
 BEGIN
   ConnectTS := GetTickCount;
   TCPSocket := Socket;
   WriteMemoText('TCPClient 1 Connected');
   IF LenzConnection = EthernetConnection THEN BEGIN
-    EthernetConnectButton.Enabled := True;
-    EthernetConnectButton.Caption := 'TCP Disconnect';
+    WatchdogUnitEthernetConnectButton.Enabled := True;
+    WatchdogUnitEthernetConnectButton.Caption := 'TCP Disconnect';
   END ELSE BEGIN
-    USBConnectButton.Enabled := True;
-    USBConnectButton.Caption := 'TCP Disconnect';
+    WatchdogUnitUSBConnectButton.Enabled := True;
+    WatchdogUnitUSBConnectButton.Caption := 'TCP Disconnect';
   END;
 END; { ResponsesTCPClientConnect }
 
-PROCEDURE TFWPRailWatchdogWindow.ResponsesTCPClientDisconnect(Sender: TObject; Socket : TCustomWinSocket);
+PROCEDURE TWatchdogUnitWindow.ResponsesTCPClientDisconnect(Sender: TObject; Socket : TCustomWinSocket);
 BEGIN
   IF ResponsesTCPClient <> NIL THEN BEGIN
     WriteMemoText('TCPClient Disconnected');
     IF LenzConnection = EthernetConnection THEN BEGIN
-      EthernetConnectButton.Enabled := True;
-      EthernetConnectButton.Caption := 'TCP Connect';
+      WatchdogUnitEthernetConnectButton.Enabled := True;
+      WatchdogUnitEthernetConnectButton.Caption := 'TCP Connect';
     END ELSE BEGIN
-      USBConnectButton.Enabled := True;
-      USBConnectButton.Caption := 'TCP Connect';
+      WatchdogUnitUSBConnectButton.Enabled := True;
+      WatchdogUnitUSBConnectButton.Caption := 'TCP Connect';
     END;
     TCPSocket := NIL;
   END;
@@ -388,7 +383,7 @@ BEGIN
   END;
 END; { ReadDataFromTCPIPList }
 
-PROCEDURE TFWPRailWatchdogWindow.ResponsesTCPClientRead(Sender: TObject; Socket : TCustomWinSocket);
+PROCEDURE TWatchdogUnitWindow.ResponsesTCPClientRead(Sender: TObject; Socket : TCustomWinSocket);
 VAR
   AnsiStr : AnsiString;
   I : Integer;
@@ -413,14 +408,14 @@ BEGIN
   END;
 END; { ResponsesTCPClientRead }
 
-PROCEDURE TFWPRailWatchdogWindow.ResponsesTCPClientError(Sender: TObject; Socket : TCustomWinSocket; ErrorEvent: TErrorEvent; VAR ErrorCode: Integer);
+PROCEDURE TWatchdogUnitWindow.ResponsesTCPClientError(Sender: TObject; Socket : TCustomWinSocket; ErrorEvent: TErrorEvent; VAR ErrorCode: Integer);
 BEGIN
   WriteMemoText('*** Unable to Connect: ' + SysErrorMessage(ErrorCode));
   ErrorCode := 0;
   SendMsgToRailProgram(NotConnectedMsg);
 END; { ResponsesTCPClientError }
 
-PROCEDURE TFWPRailWatchdogWindow.ResponsesTCPSendText(S : String);
+PROCEDURE TWatchdogUnitWindow.ResponsesTCPSendText(S : String);
 VAR
   AnsiStr : AnsiString;
 
@@ -432,7 +427,7 @@ BEGIN
   END;
 END; { ResponsesTCPSendText }
 
-PROCEDURE TFWPRailWatchdogWindow.ResponsesTCPSendBuffer(Buffer : ARRAY OF Byte; BufferLen : Integer);
+PROCEDURE TWatchdogUnitWindow.ResponsesTCPSendBuffer(Buffer : ARRAY OF Byte; BufferLen : Integer);
 VAR
   I : Integer;
   S : String;
@@ -448,7 +443,7 @@ BEGIN
   END;
 END; { ResponsesTCPSendText }
 
-PROCEDURE TFWPRailWatchdogWindow.TCPIPTimerOnTimer(Sender: TOBJECT);
+PROCEDURE TWatchdogUnitWindow.WatchdogUnitTCPIPTimerOnTick(Sender: TOBJECT);
 { Send something every 500 miliseconds or the TCPIP ports time out }
 BEGIN
   IF TCPSocket <> NIL THEN BEGIN
@@ -457,7 +452,7 @@ BEGIN
   END;
 END; { TCPIPTimerOnTimer }
 
-PROCEDURE TFWPRailWatchdogWindow.ClearButtonClick(Sender: TObject);
+PROCEDURE TWatchdogUnitWindow.WatchdogUnitClearButtonClick(Sender: TObject);
 BEGIN
   WatchdogUnitMemo.Clear;
 END; { ClearButtonClick }
@@ -475,7 +470,7 @@ BEGIN
   Result := True;
 END; { EnumWindowsProc }
 
-PROCEDURE TFWPRailWatchdogWindow.SendMsgToRailProgram(Msg : String);
+PROCEDURE TWatchdogUnitWindow.SendMsgToRailProgram(Msg : String);
 { Let the Rail program know if we can't start because we're not talking to the Lenz system }
 VAR
   CopyData: TCopyDataStruct;
@@ -505,7 +500,7 @@ BEGIN
     WriteMemoText('FWPRail Watchdog has not acknowledged the message');
 END; { SendMsgToRailProgram }
 
-PROCEDURE TFWPRailWatchdogWindow.WatchdogUnitTimerTick(Sender: TObject);
+PROCEDURE TWatchdogUnitWindow.WatchdogUnitTimerTick(Sender: TObject);
 VAR
   ReceiverHandle : THandle;
   S : String;
@@ -520,56 +515,57 @@ BEGIN
     { At each tick we check if FWPRail is running, and if so whether the Lenz LAN/USB server is running. If they both are then we expect a message every ten seconds. If we
       do not receive one we assume that FWPRail has crashed or otherwise stopped and we put the Lenz system into power-off mode.
     }
-    ReceiverHandle := FindWindow(ReceiverTypeString, NIL);
-    IF ReceiverHandle = 0 THEN BEGIN
-      { we can't find FWPRail - if it was running it's presumably been closed down, so stop close our connection to the LAN/USB Server }
-      IF MessageReceivedFromFWPRail THEN
-        WriteMemoText('Cannot find FWPRail - if it was running it''s presumably been closed down, so close connection to the LAN/USB Server');;
+    IF FWPRailRunning THEN BEGIN
+      ReceiverHandle := FindWindow(ReceiverTypeString, NIL);
+      IF ReceiverHandle = 0 THEN BEGIN
+        { we can't find FWPRail - if it was running it's presumably been closed down, so stop close our connection to the LAN/USB Server }
+        IF MessageReceivedFromFWPRail THEN
+          WriteMemoText('Cannot find FWPRail - if it was running it''s presumably been closed down, so close connection to the LAN/USB Server');;
 
-      FWPRailRunning := False;
-      MessageReceivedFromFWPRail := False;
-      IF TCPSocket <> NIL THEN
-        FWPRailWatchdogWindow.DestroyTCPClient;
+        FWPRailRunning := False;
+        MessageReceivedFromFWPRail := False;
+        IF TCPSocket <> NIL THEN
+          WatchdogUnitWindow.DestroyTCPClient;
 
-      Application.Terminate;
-    END;
+        WatchdogUnitWindow.WatchdogUnitTrayIcon.Visible := False;
+        Application.Terminate;
+      END;
 
-    IF NOT MessageReceivedFromFWPRail THEN BEGIN
-      IF NOT FWPRailLenzOperationsStopped THEN BEGIN
-        { Panic! }
-        FWPRailLenzOperationsStopped := True;
-        IF TCPSocket = NIL THEN BEGIN
-          WriteMemoText('FWPRail has stopped running - Lenz system would have been sent a "Stop Operations" command had the Watchdog been connected to it');
-          Beep;
-          ShowMessage('FWPRail has stopped running - Lenz system would have been sent a "Stop Operations" command had the Watchdog been connected to it');
-        END ELSE BEGIN
-          WriteMemoText('Watchdog -> Lenz: Stop Operations');
-          IF LenzConnection = USBConnection THEN BEGIN
-            { Send the data as a string }
-            S := '21-80-A1' + CRLF;
-            ResponsesTCPSendText(S);
-          END ELSE
-            IF LenzConnection = EthernetConnection THEN BEGIN
-              { Add the two required header elements then send the data as an array of bytes }
-              TempWriteArray[0] := 255;
-              TempWriteArray[1] := 254;
-              TempWriteArray[2] := $21;
-              TempWriteArray[3] := $80;
-              TempWriteArray[4] := $A1;
-              ResponsesTCPSendBuffer(TempWriteArray, 5);
-            END;
+      IF NOT MessageReceivedFromFWPRail THEN BEGIN
+        IF NOT FWPRailLenzOperationsStopped THEN BEGIN
+          { Panic! }
+          FWPRailLenzOperationsStopped := True;
+          IF TCPSocket = NIL THEN BEGIN
+            WriteMemoText('FWPRail has stopped running - Lenz system would have been sent a "Stop Operations" command had the Watchdog been connected to it');
+            ShowMessage('FWPRail has stopped running - Lenz system would have been sent a "Stop Operations" command had the Watchdog been connected to it');
+          END ELSE BEGIN
+            WriteMemoText('Watchdog -> Lenz: Stop Operations');
+            IF LenzConnection = USBConnection THEN BEGIN
+              { Send the data as a string }
+              S := '21-80-A1' + CRLF;
+              ResponsesTCPSendText(S);
+            END ELSE
+              IF LenzConnection = EthernetConnection THEN BEGIN
+                { Add the two required header elements then send the data as an array of bytes }
+                TempWriteArray[0] := 255;
+                TempWriteArray[1] := 254;
+                TempWriteArray[2] := $21;
+                TempWriteArray[3] := $80;
+                TempWriteArray[4] := $A1;
+                ResponsesTCPSendBuffer(TempWriteArray, 5);
+              END;
 
-          TCPCommand.Clear;
-          WriteMemoText('FWPRail has stopped running - Lenz system has been sent a "Stop Operations" command and FWPRail will be informed');
-          Beep;
-          ShowMessage('FWPRail has stopped running - Lenz system has been sent a "Stop Operations" command');
+            WatchdogUnitTCPCommand.Clear;
+            WriteMemoText('FWPRail has stopped running - Lenz system has been sent a "Stop Operations" command and FWPRail will be informed');
+            Beep;
+            ShowMessage('FWPRail has stopped running - Lenz system has been sent a "Stop Operations" command');
 
-          { We might have to wait for a response here, because if FWPRail has stopped (for whatever reason), using SendMessage will cause the watchdog to hang, as
-            it waits for a response from FWPRail
-          }
-          SendMsgToRailProgram('Watchdog has detected that FWPRail has stopped running so has sent the Lenz system a "Stop Operations" command');
+            { We might have to wait for a response here, because if FWPRail has stopped (for whatever reason), using SendMessage will cause the watchdog to hang, as
+              it waits for a response from FWPRail
+            }
+            SendMsgToRailProgram('Watchdog has detected that FWPRail has stopped running so has sent the Lenz system a "Stop Operations" command');
+          END;
         END;
-
       END;
     END;
 
@@ -582,7 +578,7 @@ BEGIN
   END; {TRY}
 END; { WatchdogUnitTimerTick }
 
-PROCEDURE TFWPRailWatchdogWindow.WMCopyData(VAR Msg: TWMCopyData);
+PROCEDURE TWatchdogUnitWindow.WMCopyData(VAR Msg: TWMCopyData);
 { Receives data from FWPRail }
 VAR
   S : String;
@@ -613,7 +609,7 @@ BEGIN
         WriteMemoText('Connecting');
         IF TCPSocket = NIL THEN BEGIN
           WriteMemoText('Creating TCP Client via ' + LenzConnectionToStr(LenzConnection));
-          FWPRailWatchdogWindow.CreateTCPClients(LenzConnection);
+          WatchdogUnitWindow.CreateTCPClients(LenzConnection);
         END;
       END;
       SaveLenzConnection := LenzConnection;
@@ -654,7 +650,7 @@ BEGIN
 
               WriteMemoText('Reconnecting');
               WriteMemoText('Creating TCP Client via ' + LenzConnectionToStr(LenzConnection));
-              FWPRailWatchdogWindow.CreateTCPClients(LenzConnection);
+              WatchdogUnitWindow.CreateTCPClients(LenzConnection);
             END;
         END; {CASE}
         SaveLenzConnection := LenzConnection;
@@ -666,37 +662,51 @@ BEGIN
   Msg.Result := 1;
 END; { WMCopyData }
 
-PROCEDURE TFWPRailWatchdogWindow.OnMinimize(VAR Msg: TWMSysCommand);
+PROCEDURE TWatchdogUnitWindow.OnMinimize(VAR Msg: TWMSysCommand);
 BEGIN
   { This hides the application from taskbar }
-  IF Msg.CmdType = SC_MINIMIZE THEN BEGIN
-    Hide;
-    FWPRailWatchdogWindow.WatchdogUnitTrayIcon.Visible := True;
-  END ELSE
+  IF Msg.CmdType = SC_MINIMIZE THEN
+    Hide
+  ELSE
     Inherited;
 END; { OnMinimize }
 
-PROCEDURE TFWPRailWatchdogWindow.WatchdogUnitTrayIconClick(Sender : TObject);
+PROCEDURE TWatchdogUnitWindow.WatchdogUnitTrayIconClick(Sender : TObject);
 BEGIN
   IF Visible THEN BEGIN
     { minimize to TrayIcon }
     Application.Minimize;
   END ELSE BEGIN
     { restore it }
-    FWPRailWatchdogWindow.Show;
-    FWPRailWatchdogWindow.WatchdogUnitTrayIcon.Visible := False;
+    WatchdogUnitWindow.Show;
     Application.Restore;
   END;
 END; { WatchdogUnitTrayIconClick }
 
-PROCEDURE TFWPRailWatchdogWindow.WatchdogUnitRefreshListBoxButtonClick(Sender: TObject);
+PROCEDURE TWatchdogUnitWindow.WatchdogUnitRefreshListBoxButtonClick(Sender: TObject);
 BEGIN
   WatchdogUnitListBox.Clear;
 
   EnumWindows(@EnumWindowsProc, LPARAM(WatchdogUnitListBox));
 END; { WatchdogUnitRefreshListBoxButtonClick }
 
-PROCEDURE TFWPRailWatchdogWindow.FWPRailWatchdogWindowCreate(Sender : TObject);
+PROCEDURE TWatchdogUnitWindow.WatchdogUnitCloseButtonClick(Sender: TObject);
+BEGIN
+  SendMsgToRailProgram(FWPRailWatchdogShuttingDownStr);
+
+  IF ResponsesTCPClient <> NIL THEN
+    DestroyTCPClient;
+
+  WatchdogUnitWindow.Free;
+  Application.Terminate;
+END; { WatchdogUnitCloseButtonClick }
+
+PROCEDURE TWatchdogUnitWindow.WatchdogUnitMinimiseButtonClick(Sender: TObject);
+BEGIN
+  WatchdogUnitWindow.Hide;
+END; { WatchdogUnitMinimiseButtonClick }
+
+PROCEDURE TWatchdogUnitWindow.WatchdogUnitWindowCreate(Sender : TObject);
 VAR
   Buffer : ARRAY[0..255] OF Char;
   Res : Integer;
@@ -705,15 +715,15 @@ BEGIN
   { List all the current windows - this is only really needed for debugging (to set the Receiver Strings in this and FWPRail), but no harm in having it each time we run }
   EnumWindows(@EnumWindowsProc, LPARAM(WatchdogUnitListBox));
 
-  FWPRailWatchdogWindow.WatchdogUnitTrayIcon.Visible := False;
-  FWPRailWatchdogWindow.WatchdogUnitTrayIcon.Icon.Handle := LoadIcon(hInstance, 'WatchdogIcon');
-  FWPRailWatchdogWindow.WatchdogUnitTrayIcon.Hint := 'FWPRailWatchdog';
-  FWPRailWatchdogWindow.WatchdogUnitTrayIcon.Visible := True;
+  WatchdogUnitWindow.WatchdogUnitTrayIcon.Visible := False;
+  WatchdogUnitWindow.WatchdogUnitTrayIcon.Icon.Handle := LoadIcon(hInstance, 'WatchdogIcon');
+  WatchdogUnitWindow.WatchdogUnitTrayIcon.Hint := 'FWPRailWatchdog';
+  WatchdogUnitWindow.WatchdogUnitTrayIcon.Visible := True;
 
   Res := LoadString(hInstance, 1001, Buffer, SizeOf(Buffer));
   FWPRailWatchdogShuttingDownStr := Buffer;
   Application.ShowMainForm := False;
-END; { FWPRailWatchdogWindowCreate }
+END; { WatchdogUnitWindowCreate }
 
 INITIALIZATION
   DataReadInList := TStringList.Create;

@@ -11,20 +11,22 @@ CONST
 
 TYPE
   TFWPRailSpeechWindow = CLASS(TForm)
-    ClearButton: TButton;
+    SpeechUnitClearLogButton: TButton;
     IncomingGB: TGroupBox;
     SpeechUnitMemo: TMemo;
     SpeechUnitTimer: TTimer;
     SpeechUnitTrayIcon: TTrayIcon;
     SpeechUnitListBox: TListBox;
     SpeechUnitRefreshListBoxButton: TButton;
-    PROCEDURE ClearButtonClick(Sender: TObject);
+    SpeechUnitCloseButton: TButton;
+    PROCEDURE SpeechUnitClearLogButtonClick(Sender: TObject);
     PROCEDURE SpeechUnitRefreshListBoxButtonClick(Sender: TObject);
     PROCEDURE SpeechUnitTimerTick(Sender: TObject);
     PROCEDURE SpeechUnitTrayIconClick(Sender: TObject);
     PROCEDURE SpeechUnitWindowClose(Sender: TObject; var Action: TCloseAction);
     PROCEDURE SpeechUnitWindowCreate(Sender: TObject);
     PROCEDURE SpeechUnitWindowShow(Sender: TObject);
+    procedure SpeechUnitCloseButtonClick(Sender: TObject);
 
   PRIVATE
     PROCEDURE WMCopyData(VAR Msg : TWMCopyData); Message WM_COPYDATA;
@@ -97,10 +99,10 @@ BEGIN
   END;
 END; { ReadDataFromTCPIPList }
 
-PROCEDURE TFWPRailSpeechWindow.ClearButtonClick(Sender: TObject);
+PROCEDURE TFWPRailSpeechWindow.SpeechUnitClearLogButtonClick(Sender: TObject);
 BEGIN
   SpeechUnitMemo.Clear;
-END; { ClearButtonClick }
+END; { SpeechUnitClearLogButtonClick }
 
 FUNCTION EnumWindowsProc(wHandle: HWND; lb: TListBox): BOOL; STDCALL;
 { List all the open windows }
@@ -203,11 +205,6 @@ BEGIN
   Msg.Result := 1;
 END; { WMCopyData }
 
-PROCEDURE TFWPRailSpeechWindow.SpeechUnitWindowClose(Sender: TObject; VAR Action: TCloseAction);
-BEGIN
-  SendMsgToRailProgram(FWPRailSpeechShuttingDownStr);
-END; { SpeechUnitWindowClose }
-
 PROCEDURE TFWPRailSpeechWindow.OnMinimize(VAR Msg: TWMSysCommand);
 BEGIN
   { This hides the application from taskbar }
@@ -226,10 +223,27 @@ BEGIN
   END ELSE BEGIN
     { restore it }
     FWPRailSpeechWindow.Show;
-    FWPRailSpeechWindow.SpeechUnitTrayIcon.Visible := False;
     Application.Restore;
   END;
 END; { SpeechUnitTrayIconClick }
+
+PROCEDURE TFWPRailSpeechWindow.SpeechUnitWindowClose(Sender: TObject; VAR Action: TCloseAction);
+BEGIN
+  { Don't allow closing this way }
+  IF Action = caHide THEN BEGIN
+    Action := caNone;
+    Hide;
+    FWPRailSpeechWindow.SpeechUnitTrayIcon.Visible := True;
+  END;
+END; { SpeechUnitWindowClose }
+
+PROCEDURE TFWPRailSpeechWindow.SpeechUnitCloseButtonClick(Sender: TObject);
+BEGIN
+  SendMsgToRailProgram(FWPRailSpeechShuttingDownStr);
+
+  FWPRailSpeechWindow.Free;
+  Application.Terminate;
+END; { SpeechUnitCloseButtonClick }
 
 PROCEDURE TFWPRailSpeechWindow.SpeechUnitRefreshListBoxButtonClick(Sender: TObject);
 BEGIN

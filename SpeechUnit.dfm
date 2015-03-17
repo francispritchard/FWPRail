@@ -51,14 +51,14 @@ object FWPRailSpeechWindow: TFWPRailSpeechWindow
       ScrollBars = ssVertical
       TabOrder = 0
     end
-    object ClearButton: TButton
-      Left = 370
+    object SpeechUnitClearLogButton: TButton
+      Left = 356
       Top = 3
       Width = 95
       Height = 25
       Caption = 'Clear Log'
       TabOrder = 1
-      OnClick = ClearButtonClick
+      OnClick = SpeechUnitClearLogButtonClick
     end
     object SpeechUnitListBox: TListBox
       Left = 471
@@ -69,13 +69,22 @@ object FWPRailSpeechWindow: TFWPRailSpeechWindow
       TabOrder = 2
     end
     object SpeechUnitRefreshListBoxButton: TButton
-      Left = 727
-      Top = 1
+      Left = 471
+      Top = 3
       Width = 170
       Height = 25
       Caption = 'Refresh List of Current Windows'
       TabOrder = 3
       OnClick = SpeechUnitRefreshListBoxButtonClick
+    end
+    object SpeechUnitCloseButton: TButton
+      Left = 822
+      Top = 3
+      Width = 75
+      Height = 25
+      Caption = 'Close'
+      TabOrder = 4
+      OnClick = SpeechUnitCloseButtonClick
     end
   end
   object SpeechUnitTimer: TTimer

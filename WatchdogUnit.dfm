@@ -1,7 +1,8 @@
-object FWPRailWatchdogWindow: TFWPRailWatchdogWindow
+object WatchdogUnitWindow: TWatchdogUnitWindow
   Left = 433
   Top = 228
-  Caption = 'FWP Rail Watchdog Window'
+  BorderIcons = [biMinimize, biMaximize]
+  Caption = 'Watchdog Unit Window'
   ClientHeight = 593
   ClientWidth = 933
   Color = clBtnFace
@@ -15,15 +16,14 @@ object FWPRailWatchdogWindow: TFWPRailWatchdogWindow
   FormStyle = fsStayOnTop
   OldCreateOrder = False
   WindowState = wsMinimized
-  OnClose = FWPRailWatchdogWindowClose
-  OnCreate = FWPRailWatchdogWindowCreate
-  OnShow = FWPRailWatchdogWindowShow
+  OnCreate = WatchdogUnitWindowCreate
+  OnShow = WatchdogUnitWindowShow
   DesignSize = (
     933
     593)
   PixelsPerInch = 96
   TextHeight = 13
-  object IncomingGB: TGroupBox
+  object WatchdogUnitIncomingGroupBox: TGroupBox
     Left = 3
     Top = 168
     Width = 922
@@ -51,14 +51,14 @@ object FWPRailWatchdogWindow: TFWPRailWatchdogWindow
       ScrollBars = ssVertical
       TabOrder = 0
     end
-    object ClearButton: TButton
-      Left = 3
+    object WatchdogUnitClearButton: TButton
+      Left = 0
       Top = 388
       Width = 95
       Height = 25
       Caption = 'Clear'
       TabOrder = 1
-      OnClick = ClearButtonClick
+      OnClick = WatchdogUnitClearButtonClick
     end
     object WatchdogUnitListBox: TListBox
       Left = 463
@@ -69,7 +69,7 @@ object FWPRailWatchdogWindow: TFWPRailWatchdogWindow
       TabOrder = 2
     end
   end
-  object ConnectPanel: TPanel
+  object WatchdogUnitConnectPanel: TPanel
     Left = 3
     Top = 5
     Width = 922
@@ -81,41 +81,41 @@ object FWPRailWatchdogWindow: TFWPRailWatchdogWindow
     DesignSize = (
       922
       157)
-    object LabelTextEntry: TLabel
+    object WatchdogUnitLabelTextEntry: TLabel
       Left = 8
       Top = 43
       Width = 75
       Height = 13
       Caption = 'TCP Text Entry:'
     end
-    object SendTextButton: TSpeedButton
+    object WatchdogUnitSendTextButton: TSpeedButton
       Left = 8
       Top = 125
       Width = 100
       Height = 25
       Anchors = [akTop, akRight]
       Caption = 'Send Text'
-      OnClick = SendTextButtonClick
+      OnClick = WatchdogUnitSendTextButtonClick
     end
-    object SendStatusRequestButton: TSpeedButton
+    object WatchdogUnitSendStatusRequestButton: TSpeedButton
       Left = 152
       Top = 125
       Width = 121
       Height = 25
       Anchors = [akTop, akRight]
       Caption = 'Send Status Request'
-      OnClick = SendStatusRequestButtonClick
+      OnClick = WatchdogUnitSendStatusRequestButtonClick
     end
-    object USBConnectButton: TButton
+    object WatchdogUnitUSBConnectButton: TButton
       Left = 8
       Top = 12
       Width = 95
       Height = 25
       Caption = 'USB Connect'
       TabOrder = 0
-      OnClick = USBConnectButtonClick
+      OnClick = WatchdogUnitUSBConnectButtonClick
     end
-    object TCPCommand: TMemo
+    object WatchdogUnitTCPCommand: TMemo
       Left = 8
       Top = 59
       Width = 905
@@ -123,14 +123,14 @@ object FWPRailWatchdogWindow: TFWPRailWatchdogWindow
       Anchors = [akLeft, akTop, akRight]
       TabOrder = 1
     end
-    object EthernetConnectButton: TButton
+    object WatchdogUnitEthernetConnectButton: TButton
       Left = 134
       Top = 12
       Width = 95
       Height = 25
       Caption = 'Ethernet Connect'
       TabOrder = 2
-      OnClick = EthernetConnectButtonClick
+      OnClick = WatchdogUnitEthernetConnectButtonClick
     end
     object WatchdogUnitRefreshListBoxButton: TButton
       Left = 463
@@ -141,15 +141,33 @@ object FWPRailWatchdogWindow: TFWPRailWatchdogWindow
       TabOrder = 3
       OnClick = WatchdogUnitRefreshListBoxButtonClick
     end
+    object WatchdogUnitCloseButton: TButton
+      Left = 817
+      Top = 12
+      Width = 75
+      Height = 25
+      Caption = 'Close'
+      TabOrder = 4
+      OnClick = WatchdogUnitCloseButtonClick
+    end
   end
-  object TCPIPTimer: TTimer
+  object WatchdogUnitMinimiseButton: TButton
+    Left = 728
+    Top = 17
+    Width = 75
+    Height = 25
+    Caption = 'Minimise'
+    TabOrder = 2
+    OnClick = WatchdogUnitMinimiseButtonClick
+  end
+  object WatchdogUnitTCPIPTimer: TTimer
+    Enabled = False
     Interval = 30000
-    OnTimer = TCPIPTimerOnTimer
+    OnTimer = WatchdogUnitTCPIPTimerOnTick
     Left = 94
     Top = 248
   end
   object WatchdogUnitTimer: TTimer
-    Enabled = False
     Interval = 1
     OnTimer = WatchdogUnitTimerTick
     Left = 206
