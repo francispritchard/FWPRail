@@ -1142,6 +1142,10 @@ BEGIN
   END; {TRY}
 END; { CompareTwoSignalDatabases }
 
+PROCEDURE LookForEndsNotPrecededByCommas;
+BEGIN
+END; { LookForEndsNotPrecededByCommas }
+
 PROCEDURE LookForEndRoutineComments(Filename : String; VAR LinesAddedCount : Integer);
 { Look for procedure/function ends without matching procedure/function names as comments }
 VAR
