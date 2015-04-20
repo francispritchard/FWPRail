@@ -175,7 +175,7 @@ BEGIN
               OK := False;
       'N':
         IF IndividualParameterString = 'NOSPLASH' THEN
-          { do nothing - it's been dealt with at system initialisation (in rail.pas) }
+          { do nothing - it's already been dealt with at system initialisation (in rail.pas) }
         ELSE
           IF IndividualParameterString = 'NOLOG' THEN
             { Turn of logging }
