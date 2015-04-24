@@ -4,7 +4,8 @@ UNIT SpeechUnit;
 INTERFACE
 
 USES
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls, Buttons, ScktComp, ShellAPI;
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls, Buttons, ScktComp, ShellAPI,
+  Vcl.Menus;
 
 CONST
   CRLF = #13#10;
@@ -19,14 +20,17 @@ TYPE
     SpeechUnitListBox: TListBox;
     SpeechUnitRefreshListBoxButton: TButton;
     SpeechUnitCloseButton: TButton;
+    SpeechUnitPopupMenu: TPopupMenu;
+    SpeechUnitClose: TMenuItem;
     PROCEDURE SpeechUnitClearLogButtonClick(Sender: TObject);
+    PROCEDURE SpeechUnitCloseClick(Sender: TObject);
+    PROCEDURE SpeechUnitPopupMenuPopup(Sender: TObject);
     PROCEDURE SpeechUnitRefreshListBoxButtonClick(Sender: TObject);
     PROCEDURE SpeechUnitTimerTick(Sender: TObject);
-    PROCEDURE SpeechUnitTrayIconClick(Sender: TObject);
     PROCEDURE SpeechUnitWindowClose(Sender: TObject; var Action: TCloseAction);
     PROCEDURE SpeechUnitWindowCreate(Sender: TObject);
     PROCEDURE SpeechUnitWindowShow(Sender: TObject);
-    procedure SpeechUnitCloseButtonClick(Sender: TObject);
+    PROCEDURE SpeechUnitTrayIconMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 
   PRIVATE
     PROCEDURE WMCopyData(VAR Msg : TWMCopyData); Message WM_COPYDATA;
@@ -102,7 +106,12 @@ END; { ReadDataFromTCPIPList }
 PROCEDURE TFWPRailSpeechWindow.SpeechUnitClearLogButtonClick(Sender: TObject);
 BEGIN
   SpeechUnitMemo.Clear;
-END; { SpeechUnitClearLogButtonClick }
+END; procedure TFWPRailSpeechWindow.SpeechUnitPopupMenuPopup(Sender: TObject);
+begin
+
+end;
+
+{ SpeechUnitClearLogButtonClick }
 
 FUNCTION EnumWindowsProc(wHandle: HWND; lb: TListBox): BOOL; STDCALL;
 { List all the open windows }
@@ -215,17 +224,29 @@ BEGIN
     Inherited;
 END; { OnMinimize }
 
-PROCEDURE TFWPRailSpeechWindow.SpeechUnitTrayIconClick(Sender : TObject);
+PROCEDURE TFWPRailSpeechWindow.SpeechUnitTrayIconMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+VAR
+  PopupPoint : TPoint;
+
 BEGIN
-  IF Visible THEN BEGIN
-    { minimize to TrayIcon }
-    Application.Minimize;
-  END ELSE BEGIN
-    { restore it }
-    FWPRailSpeechWindow.Show;
-    Application.Restore;
-  END;
-END; { SpeechUnitTrayIconClick }
+  CASE Button OF
+    mbLeft:
+      IF Visible THEN BEGIN
+        { minimize to TrayIcon }
+        Application.Minimize;
+      END ELSE BEGIN
+        { restore it }
+        FWPRailSpeechWindow.Show;
+        Application.Restore;
+      END;
+
+    mbRight:
+      BEGIN
+        GetCursorPos(PopupPoint);
+        SpeechUnitPopupMenu.Popup(PopupPoint.X, PopupPoint.Y);
+      END;
+  END; {CASE}
+END; { SpeechUnitTrayIconMouseDown }
 
 PROCEDURE TFWPRailSpeechWindow.SpeechUnitWindowClose(Sender: TObject; VAR Action: TCloseAction);
 BEGIN
@@ -237,19 +258,27 @@ BEGIN
   END;
 END; { SpeechUnitWindowClose }
 
-PROCEDURE TFWPRailSpeechWindow.SpeechUnitCloseButtonClick(Sender: TObject);
+PROCEDURE CloseSpeechUnit;
 BEGIN
-  SendMsgToRailProgram(FWPRailSpeechShuttingDownStr);
-
   FWPRailSpeechWindow.Free;
   Application.Terminate;
+END; { CloseSpeechUnit }
+
+PROCEDURE TSpeechUnitCloseButtonClick(Sender: TObject);
+BEGIN
+  CloseSpeechUnit
 END; { SpeechUnitCloseButtonClick }
+
+PROCEDURE TFWPRailSpeechWindow.SpeechUnitCloseClick(Sender: TObject);
+BEGIN
+  CloseSpeechUnit;
+END; { SpeechUnitCloseClick }
 
 PROCEDURE TFWPRailSpeechWindow.SpeechUnitRefreshListBoxButtonClick(Sender: TObject);
 BEGIN
   SpeechUnitListBox.Clear;
 
-  EnumWindows(@EnumWindowsProc, LPARAM(SpeechUnitListBox));
+  EnumWindows(@EnumWindowsProc, LParam(SpeechUnitListBox));
 END; { SpeechUnitRefreshListBoxButtonClick }
 
 PROCEDURE TFWPRailSpeechWindow.SpeechUnitWindowCreate(Sender : TObject);

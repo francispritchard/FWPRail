@@ -84,7 +84,6 @@ object FWPRailSpeechWindow: TFWPRailSpeechWindow
       Height = 25
       Caption = 'Close'
       TabOrder = 4
-      OnClick = SpeechUnitCloseButtonClick
     end
   end
   object SpeechUnitTimer: TTimer
@@ -97,8 +96,17 @@ object FWPRailSpeechWindow: TFWPRailSpeechWindow
   object SpeechUnitTrayIcon: TTrayIcon
     BalloonTitle = 'Rail Watchdog'
     Visible = True
-    OnClick = SpeechUnitTrayIconClick
+    OnMouseDown = SpeechUnitTrayIconMouseDown
     Left = 259
     Top = 248
+  end
+  object SpeechUnitPopupMenu: TPopupMenu
+    OnPopup = SpeechUnitPopupMenuPopup
+    Left = 59
+    Top = 248
+    object SpeechUnitClose: TMenuItem
+      Caption = 'Close'
+      OnClick = SpeechUnitCloseClick
+    end
   end
 end
