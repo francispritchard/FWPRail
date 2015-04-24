@@ -1276,75 +1276,78 @@ CONST
 
 VAR
   Ch : Char;
+  CharCount : Integer;
   CRFound : Boolean;
   Line : String;
   LineCount : Integer;
+  PreviousLine : String;
+  OldPreviousLine : String;
   Reader : TStreamReader;
-//  Size : Int64;
 
 BEGIN
-  { Create a file stream and open a text writer for it }
-  Reader := TStreamReader.Create(
-    TFileStream.Create(InputFileName, fmOpenRead),
-    TEncoding.UTF8
-  );
+  TRY
+    { Create a file stream and open a text writer for it }
+    Reader := TStreamReader.Create(TFileStream.Create(InputFileName, fmOpenRead), TEncoding.ASCII);
 
-  DataCheckForm.mmText.Clear();
+    DataCheckForm.mmText.Clear();
 
-  { Check for the end of the stream and exit if necessary }
-  IF Reader.EndOfStream THEN BEGIN
-    MessageDlg('Nothing to read!', mtInformation, [mbOK], 0);
+    { Check for the end of the stream and exit if necessary }
+    IF Reader.EndOfStream THEN BEGIN
+      MessageDlg('Nothing to read!', mtInformation, [mbOK], 0);
 
-    Reader.BaseStream.Free();
+      Reader.BaseStream.Free();
+      Reader.Free();
+    END;
+
+    { Peek at each iteration to see whether there are characters to read from the reader. Peek is identical in its effect as EndOfStream property. }
+    Line := '';
+    PreviousLine := '';
+    OldPreviousLine := '';
+    CRFound := False;
+    LineCount := 1;
+    CharCount := -1;
+
+    Log('X Reading "' + InputFileName + '"');
+
+    WHILE Reader.Peek() >= 0 DO BEGIN
+      { Read the next character }
+      Ch := Char(Reader.Read());
+      Inc(CharCount);
+      IF Ch = CR THEN BEGIN
+        IF Reader.Peek() <> Integer(LF) THEN BEGIN
+          Log('X CR Found without succeeding LF in "' + InputFileName + '" at line ' + IntToStr(LineCount) + ' char ' + IntToStr(CharCount));
+          Log('X Line= "' + Line + '"');
+        END ELSE
+          Reader.Read();
+
+        Inc(LineCount);
+        OldPreviousLine := PreviousLine;
+        PreviousLine := Line;
+        Line := '';
+        CharCount := -1;
+      END ELSE
+        IF Ch = LF THEN BEGIN
+          Log('X LF Found without preceding CR in "' + InputFileName + '" at line ' + IntToStr(LineCount) + ' char ' + IntToStr(CharCount));
+          Log('X Line= "' + Line + '"');
+          Inc(LineCount);
+          OldPreviousLine := PreviousLine;
+          PreviousLine := Line;
+          Line := '';
+          CharCount := -1;
+        END ELSE
+          Line := Line + Ch;
+    END;
+
+    Application.ProcessMessages;
+
+    { Free the reader and underlying stream }
+    Reader.Close();
+    Reader.BaseStream.Free;
     Reader.Free();
-  END;
-
-  { Peek at each iteration to see whether there are characters to read from the reader. Peek is identical in its effect as EndOfStream property }
-  Line := '';
-  CRFound := False;
-  LineCount := 1;
-
-  WHILE Reader.Peek() >= 0 DO BEGIN
-    { Read the next character }
-    Ch := Char(Reader.Read());
-
-    IF Ch = CR THEN
-      CRFound := True;
-
-    IF CRFound AND (Ch <> LF) THEN
-      Log('X no line feed found at line ' + IntToStr(LineCount) + ': ' + Line);
-
-    IF (Ch = LF) AND NOT CRFound THEN
-      Log('X no carriage return found at line ' + IntToStr(LineCount) + ': ' + Line);
-
-    IF (CRFound AND (Ch = LF))
-    OR (CRFound AND (Ch <> LF))
-    THEN BEGIN
-      DataCheckForm.mmText.Lines.Add(Line);
-      Line := '';
-      CRFound := False;
-      Inc(LineCount);
-    END ELSE
-      Line := Line + Ch;
-
-
-//    { Check for line termination (Unix-style) }
-//    IF Ch = #$0A THEN BEGIN
-//      DataCheckForm.mmText.Lines.Add(Line);
-//      Line := '';
-//    END ELSE
-//      Line := Line + Ch;
-  END;
-
-//  { Obtain the size of the data }
-//  Size := Reader.BaseStream.Size;
-
-  { Free the reader and underlying stream }
-  Reader.Close();
-  Reader.BaseStream.Free;
-  Reader.Free();
-
-  // MessageDlg(Format('%d bytes read from the stream using the %s encoding!', [Size, Reader.CurrentEncoding.ClassName]), mtInformation, [mbOK], 0);
+  EXCEPT
+    ON E : Exception DO
+      Log('EG ReadFileStream: ' + E.ClassName + ' error raised, with message: ' + E.Message + ' at file "' + InputFileName + '"');
+  END; {TRY}
 END; { ReadFileStream }
 
 PROCEDURE WriteFileStream(OutputFileName : String);
@@ -1415,41 +1418,28 @@ VAR
   SearchRec: TSearchRec;
 
 BEGIN
-  Debug('Beginning line ending check...');
-  ReadFileStream(PathToRailSourceFiles + 'testunit.pas.in');
-  WriteFileStream(PathToRailSourceFiles + 'testunit.pas.out');
-  Debug('Line ending check completed');
+  TRY
+    Debug('Beginning line ending check...');
+    IF FindFirst(PathToRailSourceFiles + '*.pas', FaAnyFile, SearchRec) = 0 THEN BEGIN
+      REPEAT
+        { If SearchRec = . OR .. then skip to next iteration }
+        IF (SearchRec.Name =  '.') OR (SearchRec.Name =  '..') OR DirectoryExists(SearchRec.Name) THEN
+          Continue;
 
-  exit;
+        IF uppercase(Searchrec.name) = 'RAILDRAW.PAS' then
+        null;
 
+        ReadFileStream(PathToRailSourceFiles + SearchRec.Name);
 
-  Debug('Beginning line ending check...');
-  IF FindFirst(PathToRailSourceFiles + '*.pas', FaAnyFile, SearchRec) = 0 THEN BEGIN
-    REPEAT
-      { If SearchRec = . OR .. then skip to next iteration }
-      IF (SearchRec.Name =  '.') OR (SearchRec.Name =  '..') OR DirectoryExists(SearchRec.Name) THEN
-        Continue;
+      { Loop until no more files are found }
+      UNTIL FindNext(SearchRec) <> 0;
+    END;
 
-      IF NOT OpenInputFileOK(InputFile, PathToRailSourceFiles + SearchRec.Name, ErrorMsg) THEN
-        Debug(ErrorMsg)
-      ELSE
-        IF NOT OpenOutputFileOK(OutputFile, PathToRailSourceFiles + SearchRec.Name + '.new', ErrorMsg, NOT AppendToFile) THEN
-          Debug(ErrorMsg)
-        ELSE BEGIN
-          WHILE NOT EoF(InputFile) DO BEGIN
-            ReadLn(InputFile, Buf);
-//            Inc(LineCount);
-            WriteLn(OutputFile, Buf);
-          END; {WHILE}
-        END;
-
-      CloseInputOrOutputFile(OutputFile, DataCheckFileName);
-
-    { Loop until no more files are found }
-    UNTIL FindNext(SearchRec) <> 0;
-  END;
-
-  Debug('Line ending check completed');
+    Debug('Line ending check completed');
+  EXCEPT
+    ON E : Exception DO
+      Log('EG EnsureCorrectLineEndings: ' + E.ClassName + ' error raised, with message: ' + E.Message + ' at file "' + SearchRec.Name + '"');
+  END; {TRY}
 END; { EnsureCorrectLineEndings }
 
 END { DataCheck }.
