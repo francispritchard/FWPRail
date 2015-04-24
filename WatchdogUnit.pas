@@ -4,7 +4,8 @@ UNIT WatchdogUnit;
 INTERFACE
 
 USES
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls, Buttons, ScktComp, ShellAPI;
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls, Buttons, ScktComp, ShellAPI,
+  Vcl.Menus;
 
 CONST
   CRLF = #13#10;
@@ -30,19 +31,22 @@ TYPE
     WatchdogUnitTrayIcon: TTrayIcon;
     WatchdogUnitUSBConnectButton: TButton;
     WatchdogUnitMinimiseButton: TButton;
+    WatchdogUnitPopupMenu: TPopupMenu;
+    WatchdogUnitPopupClose: TMenuItem;
     PROCEDURE WatchdogUnitClearButtonClick(Sender: TObject);
     PROCEDURE WatchdogUnitCloseButtonClick(Sender: TObject);
     PROCEDURE WatchdogUnitEthernetConnectButtonClick(Sender: TObject);
+    PROCEDURE WatchdogUnitMinimiseButtonClick(Sender: TObject);
+    PROCEDURE WatchdogUnitPopupCloseClick(Sender: TObject);
     PROCEDURE WatchdogUnitRefreshListBoxButtonClick(Sender: TObject);
     PROCEDURE WatchdogUnitSendStatusRequestButtonClick(Sender: TObject);
     PROCEDURE WatchdogUnitSendTextButtonClick(Sender: TObject);
     PROCEDURE WatchdogUnitTCPIPTimerOnTick(Sender: TObject);
     PROCEDURE WatchdogUnitTimerTick(Sender: TObject);
-    PROCEDURE WatchdogUnitTrayIconClick(Sender: TObject);
+    PROCEDURE WatchdogUnitTrayIconMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     PROCEDURE WatchdogUnitUSBConnectButtonClick(Sender: TObject);
     PROCEDURE WatchdogUnitWindowCreate(Sender: TObject);
     PROCEDURE WatchdogUnitWindowShow(Sender: TObject);
-    procedure WatchdogUnitMinimiseButtonClick(Sender: TObject);
 
   PRIVATE
     PROCEDURE WMCopyData(VAR Msg : TWMCopyData); Message WM_COPYDATA;
@@ -671,40 +675,62 @@ BEGIN
     Inherited;
 END; { OnMinimize }
 
-PROCEDURE TWatchdogUnitWindow.WatchdogUnitTrayIconClick(Sender : TObject);
+PROCEDURE TWatchdogUnitWindow.WatchdogUnitTrayIconMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+VAR
+  PopupPoint : TPoint;
+
 BEGIN
-  IF Visible THEN BEGIN
-    { minimize to TrayIcon }
-    Application.Minimize;
-  END ELSE BEGIN
-    { restore it }
-    WatchdogUnitWindow.Show;
-    Application.Restore;
-  END;
-END; { WatchdogUnitTrayIconClick }
+  CASE Button OF
+    mbLeft:
+      IF Visible THEN BEGIN
+        { minimize to TrayIcon }
+        Application.Minimize;
+      END ELSE BEGIN
+        { restore it }
+        WatchdogUnitWindow.Show;
+        Application.Restore;
+      END;
+
+    mbRight:
+      BEGIN
+        GetCursorPos(PopupPoint);
+        WatchdogUnitPopupMenu.Popup(PopupPoint.X, PopupPoint.Y);
+      END;
+  END; {CASE}
+END; { WatchdogUnitTrayIconMouseDown }
 
 PROCEDURE TWatchdogUnitWindow.WatchdogUnitRefreshListBoxButtonClick(Sender: TObject);
 BEGIN
   WatchdogUnitListBox.Clear;
 
-  EnumWindows(@EnumWindowsProc, LPARAM(WatchdogUnitListBox));
+  EnumWindows(@EnumWindowsProc, LParam(WatchdogUnitListBox));
 END; { WatchdogUnitRefreshListBoxButtonClick }
 
-PROCEDURE TWatchdogUnitWindow.WatchdogUnitCloseButtonClick(Sender: TObject);
+PROCEDURE CloseFWPRailWatchdog;
 BEGIN
-  SendMsgToRailProgram(FWPRailWatchdogShuttingDownStr);
+  WatchdogUnitWindow.SendMsgToRailProgram(FWPRailWatchdogShuttingDownStr);
 
   IF ResponsesTCPClient <> NIL THEN
-    DestroyTCPClient;
+    WatchdogUnitWindow.DestroyTCPClient;
 
   WatchdogUnitWindow.Free;
   Application.Terminate;
+END; { CloseFWPRailWatchdog }
+
+PROCEDURE TWatchdogUnitWindow.WatchdogUnitCloseButtonClick(Sender: TObject);
+BEGIN
+  CloseFWPRailWatchdog;
 END; { WatchdogUnitCloseButtonClick }
 
 PROCEDURE TWatchdogUnitWindow.WatchdogUnitMinimiseButtonClick(Sender: TObject);
 BEGIN
   WatchdogUnitWindow.Hide;
 END; { WatchdogUnitMinimiseButtonClick }
+
+PROCEDURE TWatchdogUnitWindow.WatchdogUnitPopupCloseClick(Sender: TObject);
+BEGIN
+  CloseFWPRailWatchdog;
+END; { WatchdogUnitPopupCloseClick }
 
 PROCEDURE TWatchdogUnitWindow.WatchdogUnitWindowCreate(Sender : TObject);
 VAR

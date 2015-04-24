@@ -176,8 +176,16 @@ object WatchdogUnitWindow: TWatchdogUnitWindow
   object WatchdogUnitTrayIcon: TTrayIcon
     BalloonTitle = 'Rail Watchdog'
     Visible = True
-    OnClick = WatchdogUnitTrayIconClick
+    OnMouseDown = WatchdogUnitTrayIconMouseDown
     Left = 339
     Top = 248
+  end
+  object WatchdogUnitPopupMenu: TPopupMenu
+    Left = 99
+    Top = 360
+    object WatchdogUnitPopupClose: TMenuItem
+      Caption = 'Close'
+      OnClick = WatchdogUnitPopupCloseClick
+    end
   end
 end

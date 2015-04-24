@@ -2,7 +2,7 @@ PROGRAM FWPRailWatchdog;
 
 uses
   Vcl.Forms,
-  WatchdogUnit in 'WatchdogUnit.pas' {FWPRailWatchdogWindow};
+  WatchdogUnit in 'WatchdogUnit.pas' {WatchdogUnitWindow};
 
 {$R RailResource.res}
 {$R *.res}
@@ -10,6 +10,6 @@ uses
 BEGIN
   Application.Initialize;
   Application.MainFormOnTaskbar := True;
-  Application.CreateForm(TFWPRailWatchdogWindow, FWPRailWatchdogWindow);
+  Application.CreateForm(TWatchdogUnitWindow, WatchdogUnitWindow);
   Application.Run;
 END { RailWatchdog }.
