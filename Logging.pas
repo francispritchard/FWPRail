@@ -37,7 +37,7 @@ TYPE
   END;
 
 PROCEDURE AddRichLine(RichEdit: TRichEdit; StrToAdd: String);
-{ Taken from Delpi Pages (http://www.delphipages.com/tips/thread.cfm?ID=186) - by Slavikn, WebPage: http://www.organizermp3.com }
+{ Taken from Delphi Pages (http://www.delphipages.com/tips/thread.cfm?ID=186) - by Slavikn, WebPage: http://www.organizermp3.com }
 
 FUNCTION AddSeparatorToTimeString(Str : String) : String;
 { Add a separator to a string so that, e.g., 0630 becomes 06:30 }

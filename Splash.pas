@@ -30,7 +30,7 @@ IMPLEMENTATION
 
 PROCEDURE TSplashForm.SplashPanelCreate(Sender: TObject);
 BEGIN
-  SplashCopyrightLabel.Caption := 'Copyright © 1998-2015 F.W. Pritchard && A.M. Stokes';
+  SplashCopyrightLabel.Caption := 'Copyright © 1988-2015 F.W. Pritchard && A.M. Stokes';
 END;
 
 PROCEDURE HideSplashForm;

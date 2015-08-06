@@ -73,11 +73,12 @@ BEGIN
   FOR I := 1 TO ParamCount DO
     IF ParamStr(I) = '/nosplash' THEN
       WantSplash := False;
-    IF WantSplash THEN BEGIN
+  IF WantSplash THEN BEGIN
     SplashForm := TSplashForm.Create(Application);
     SplashForm.Show;
     SplashForm.Update;
   END;
+
   Application.ShowMainForm := False;
   Application.MainFormOnTaskbar := False;
 

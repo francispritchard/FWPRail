@@ -3110,6 +3110,7 @@ END; { SearchOptionsText }
 PROCEDURE TOptionsWindow.OptionsValueListEditorKeyDown(Sender: TObject; VAR Key: Word; Shift: TShiftState);
 VAR
   S : String;
+
 BEGIN
   IF Key = vk_Escape THEN BEGIN
     IF OptionsWindowFindDialogActive THEN

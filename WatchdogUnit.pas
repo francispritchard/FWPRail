@@ -522,7 +522,7 @@ BEGIN
     IF FWPRailRunning THEN BEGIN
       ReceiverHandle := FindWindow(ReceiverTypeString, NIL);
       IF ReceiverHandle = 0 THEN BEGIN
-        { we can't find FWPRail - if it was running it's presumably been closed down, so stop close our connection to the LAN/USB Server }
+        { we can't find FWPRail - if it was running it's presumably been closed down, so close our connection to the LAN/USB Server }
         IF MessageReceivedFromFWPRail THEN
           WriteMemoText('Cannot find FWPRail - if it was running it''s presumably been closed down, so close connection to the LAN/USB Server');;
 
