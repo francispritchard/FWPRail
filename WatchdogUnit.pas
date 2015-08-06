@@ -232,7 +232,7 @@ VAR
   TestoutputfileName : String;
 
 BEGIN
-  TestOutputFileName := 'c:\doc\DropBox\rad studio\projects\rail\watchdogoutput.txt';
+  TestOutputFileName := 'c:\doc\rad studio\projects\rail\watchdogoutput.txt';
   OpenOutputFileOK(TestOutputFile, TestOutputFileName, ErrorMsg, Append);
   WriteLn(TestOutPutFile, DebugStr);
   CloseOutputFile(TestOutputFile, TestOutputFileName);

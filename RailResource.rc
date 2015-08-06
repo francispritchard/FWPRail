@@ -1,10 +1,11 @@
-EditIcon ICON "C:\doc\Dropbox\RAD Studio\Resources\edit.ico"
-OnlineIcon ICON "C:\doc\Dropbox\RAD Studio\Resources\online.ico"
-OfflineIcon ICON "C:\doc\Dropbox\RAD Studio\Resources\offline.ico"
-ShortCircuit WAV "C:\doc\Dropbox\RAD Studio\Resources\short_circuit.wav"
-CrossHair CURSOR "C:\doc\Dropbox\RAD Studio\Resources\crosshair.cur"
-WatchdogIcon ICON "C:\doc\Dropbox\RAD Studio\Resources\watchdog.ico"
-LoudspeakerIcon ICON "C:\doc\Dropbox\RAD Studio\Resources\loudspeaker.ico"
+EditIcon ICON "C:\doc\RAD Studio\Resources\edit.ico"
+OnlineIcon ICON "C:\doc\RAD Studio\Resources\online.ico"
+OfflineIcon ICON "C:\doc\RAD Studio\Resources\offline.ico"
+ShortCircuit WAV "C:\doc\RAD Studio\Resources\short_circuit.wav"
+CrossHair CURSOR "C:\doc\RAD Studio\Resources\crosshair.cur"
+WatchdogIcon ICON "C:\doc\RAD Studio\Resources\watchdog.ico"
+LoudspeakerIcon ICON "C:\doc\RAD Studio\Resources\loudspeaker7.ico"
+//LoudspeakerIcon ICON "C:\doc\RAD Studio\Resources\clipboard01.ico"
 STRINGTABLE
 {
 1000, "FWPRailSpeech shutting down"
