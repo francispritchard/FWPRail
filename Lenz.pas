@@ -1242,7 +1242,7 @@ BEGIN
                   16:  { $10 }
                     { programming (service) mode response for Register and Page mode }
                     BEGIN
-                      ErrorMsg := 'Programming service) mode response for Register & Page mode ';
+                      ErrorMsg := 'Programming (service) mode response for Register & Page mode ';
                       Log('EG ' + ErrorMsg);
                       { Needs more code if to be used }
                       ErrorFound := True;
