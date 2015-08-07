@@ -1202,474 +1202,479 @@ VAR
   TempRoute : Integer;
 
 BEGIN
-  TempR := 0; { we want this 0, not -1, as otherwise the test will operate even if this is the first route }
-  EarlierRouteToBeClearedFound := False;
-  WHILE (TempR < Route) AND NOT EarlierRouteToBeClearedFound DO BEGIN
-    IF (Routes_LocoChips[TempR] = Routes_LocoChips[Route]) AND (Routes_LocoChips[TempR] <> UnknownLocoChip) THEN BEGIN
-      IF NOT Routes_Cleared[TempR] THEN BEGIN
-        Routes_RouteClearingsInProgress[TempR] := True;
-        EarlierRouteToBeClearedFound := True;
+  TRY
+    TempR := 0; { we want this 0, not -1, as otherwise the test will operate even if this is the first route }
+    EarlierRouteToBeClearedFound := False;
+    WHILE (TempR < Route) AND NOT EarlierRouteToBeClearedFound DO BEGIN
+      IF (Routes_LocoChips[TempR] = Routes_LocoChips[Route]) AND (Routes_LocoChips[TempR] <> UnknownLocoChip) THEN BEGIN
+        IF NOT Routes_Cleared[TempR] THEN BEGIN
+          Routes_RouteClearingsInProgress[TempR] := True;
+          EarlierRouteToBeClearedFound := True;
 
-        IF NOT Routes_ClearingFailuresMsg1WrittenArray[Route] THEN BEGIN
-          Log(LocoChipToStr(Routes_LocoChips[TempR]) + ' RG R=' + IntToStr(TempR) + ' Routes_RouteClearingInProgress set to true,'
-                                                     + ' as later route R=' + IntToStr(Route) + ' has been set to be cleared');
-          Routes_ClearingFailuresMsg1WrittenArray[Route] := True;
+          IF NOT Routes_ClearingFailuresMsg1WrittenArray[Route] THEN BEGIN
+            Log(LocoChipToStr(Routes_LocoChips[TempR]) + ' RG R=' + IntToStr(TempR) + ' Routes_RouteClearingInProgress set to true,'
+                                                       + ' as later route R=' + IntToStr(Route) + ' has been set to be cleared');
+            Routes_ClearingFailuresMsg1WrittenArray[Route] := True;
+          END;
         END;
       END;
-    END;
-    Inc(TempR);
-  END;
-
-  IF NOT EarlierRouteToBeClearedFound THEN BEGIN
-    { Now deal with the given route }
-    ActionCh := '';
-    Device := 0;
-    OK := True;
-    TempL := UnknownLine;
-    LocoChip := Routes_LocoChips[Route];
-    LocoChipStr := LocoChipToStr(LocoChip);
-
-    ClearingSubRoute := Routes_CurrentClearingSubRoute[Route];
-    ClearingSubRouteArray := Routes_SubRouteClearingStrings[Route, ClearingSubRoute];
-    IF Length(ClearingSubRouteArray) = 0 THEN BEGIN
-      { shouldn't ever get here }
-      Log(LocoChipStr + ' E+ Creating a new subroute clearing array for R=' + IntToStr(Route) + ' SR=' + IntToStr(ClearingSubRoute) + ' as the one provided was empty');
-      CreateClearingSubRouteArray(Route, ClearingSubRoute);
-      ClearingSubRouteArray := Routes_SubRouteClearingStrings[Route, ClearingSubRoute];
-
-      Routes_SubRouteStates[Route, ClearingSubRoute] := SubRouteCleared;
-      Exit;
+      Inc(TempR);
     END;
 
-    IF (Routes_SubRouteStates[Route, ClearingSubRoute] = SubRouteNotYetSetUp)
-    OR (Routes_SubRouteStates[Route, ClearingSubRoute] = SubRouteSettingUpInProgress)
-    OR (Routes_SubRouteStates[Route, ClearingSubRoute] = SubRouteSettingUpStalled)
-    THEN
-      { no point continuing }
-      Exit;
-
-    IF NOT Routes_ClearingFailuresMsg2WrittenArray[Route] AND (Routes_PointResultPendingPoint[Route] = UnknownPoint) THEN
-      Log(LocoChipStr + ' R Beginning final clearing of ' + DescribeJourneyAndRoute([Route, ClearingSubRoute]));
-      
-
-    { If there is a Routes_PointResultPendingPoint, we are re-entering the set subroute routine where we left it, so do not want to reset SubRouteClearingPos. }
-    IF Routes_PointResultPendingPoint[Route] <> UnknownPoint THEN
-      SubRouteClearingPos := Routes_CurrentSubRouteClearingPos[Route]
-    ELSE
-      SubRouteClearingPos := 0;
-
-    IF (Routes_SubRouteStates[Route, ClearingSubRoute] <> SubRouteSetUp) AND (Routes_SubRouteStates[Route, ClearingSubRoute] <> SubRouteToBeCleared) THEN BEGIN
-      { clearing, or cancelling if route not set up }
-      Routes_SubRouteStates[Route, ClearingSubRoute] := SubRouteSettingUpCancelled;
-      Routes_RouteingsCancelled[Route] := True;
-    END;
-
-    WHILE (Routes_SubRouteStates[Route, ClearingSubRoute] <> SubRouteSettingUpCancelled) AND (SubRouteClearingPos <= High(ClearingSubRouteArray)) DO BEGIN
+    IF NOT EarlierRouteToBeClearedFound THEN BEGIN
+      { Now deal with the given route }
       ActionCh := '';
       Device := 0;
-      DebugStr := '';
+      OK := True;
+      TempL := UnknownLine;
+      LocoChip := Routes_LocoChips[Route];
+      LocoChipStr := LocoChipToStr(LocoChip);
 
-      { ensure that trains are still being moved in the middle of subroute clearing }
-      DoCheckForUnexpectedData(UnitRef, 'ClearARoute 1');
-      IF InAutoMode THEN
-        MoveAllTrains;
+      ClearingSubRoute := Routes_CurrentClearingSubRoute[Route];
+      ClearingSubRouteArray := Routes_SubRouteClearingStrings[Route, ClearingSubRoute];
+      IF Length(ClearingSubRouteArray) = 0 THEN BEGIN
+        { shouldn't ever get here }
+        Log(LocoChipStr + ' E+ Creating a new subroute clearing array for R=' + IntToStr(Route) + ' SR=' + IntToStr(ClearingSubRoute) + ' as the one provided was empty');
+        CreateClearingSubRouteArray(Route, ClearingSubRoute);
+        ClearingSubRouteArray := Routes_SubRouteClearingStrings[Route, ClearingSubRoute];
 
-      { This makes it easier to work with the bit of the array we're interested in! }
-      SubRouteItemToCheck := ClearingSubRouteArray[SubRouteClearingPos];
-
-      { Check if the array element contains signal or other data }
-      IF Pos('>', SubRouteItemToCheck) > 0 THEN BEGIN
-        { a theatre indication }
-        ActionCh := '>';
-        Device := StrToInt(Copy(SubRouteItemToCheck, 4, Pos('>', SubRouteItemToCheck) - 4));
-
-        TheatreDestinationToConvert := Copy(SubRouteItemToCheck, Pos('>', SubRouteItemToCheck) + 1, 255);
-        IF Pos('FS=', TheatreDestinationToConvert) > 0 THEN
-          TempL := Signals[ExtractSignalFromString(TheatreDestinationToConvert)].Signal_AdjacentLine
-        ELSE
-          TempL := BufferStops[ExtractBufferStopFromString(TheatreDestinationToConvert)].BufferStop_AdjacentLine;
-      END ELSE
-        { Ignore items just there for subrouteing, and have no suffixes }
-        IF (Pos('J=', SubRouteItemToCheck) = 0) AND (Pos('BS=', SubRouteItemToCheck) = 0) AND (Pos('SR=', SubRouteItemToCheck) = 0) THEN BEGIN
-          ActionCh := Copy(SubRouteItemToCheck, Length(SubRouteItemToCheck), 1);
-          IF (Pos('L=', SubRouteItemToCheck) = 0) THEN
-            Device := StrToInt(Copy(SubRouteItemToCheck, 4, Length(SubRouteItemToCheck) - 4))
-          ELSE
-            TempL := StrToLine(Copy(SubRouteItemToCheck, 3, Length(SubRouteItemToCheck) - 3));
-        END;
-
-        IF ActionCh <> '' THEN BEGIN
-          { the default state }
-          OK := False;
-          CASE ActionCh[1] OF
-            '*':
-              BEGIN
-                { check if the track circuit is locked - as it may already have been unlocked in SetTrackCircuitStateMainProc }
-                IF TrackCircuits[Device].TC_LockedForRoute = Route THEN
-                  UnlockTrackCircuitRouteLocking(Device);
-
-                IF NOT Routes_ClearingFailuresMsg2WrittenArray[Route] THEN
-                  WriteRouteInfoToLog(LocoChipStr, 'R', 'Clearing ' + DescribeJourneyAndRoute([Route, ClearingSubRoute]),
-                                                        ': TC=' + IntToStr(Device) + ' now unlocked by R=' + IntToStr(Route));
-                TrackCircuits[Device].TC_LockFailureNotedInSubRouteUnit := False;
-                OK := True;
-              END;
-
-            '+':
-              { check if the line is locked }
-              IF Lines[TempL].Line_RouteLockingForDrawing = UnknownRoute THEN
-                OK := True
-              ELSE
-                IF Lines[TempL].Line_RouteLockingForDrawing = Route THEN BEGIN
-                  Lines[TempL].Line_RouteLockingForDrawing := UnknownRoute;
-                  IF NOT Routes_ClearingFailuresMsg2WrittenArray[Route] THEN
-                    WriteRouteInfoToLog(LocoChipStr, 'R', 'Clearing ' + DescribeJourneyAndRoute([Route, ClearingSubRoute]),
-                                                          ': L=' + LineToStr(TempL) + ' now unlocked by R=' + IntToStr(Route));
-                  Lines[TempL].Line_LockFailureNotedInSubRouteUnit := False;
-                  OK := True;
-                END;
-
-            '=':
-              BEGIN
-                OK := True;
-                { set a signal on: first unlock it }
-                IF SignalIsLockedBySpecificRoute(Device, Route) THEN
-                  UnlockSignalLockedBySpecificRoute(Device, Route);
-
-                { Now see if a semaphore distant needs to be put on too - this check needs to be done each time a signal on the route is put on, as the distant may
-                  cover more than one subroute
-                }
-                CheckSemaphoreDistantBeforeSemaphoreHomeCleared(Device);
-
-                { Now reset it }
-                IF NOT (GetSignalAspect(Device) = RedAspect) THEN BEGIN
-                  PullSignal(LocoChipStr, Device, NoIndicatorLit, Route, ClearingSubRoute, UnknownLine, '', NOT ByUser, OK);
-                  IF OK THEN BEGIN
-                    IF NOT Routes_ClearingFailuresMsg2WrittenArray[Route] THEN
-                      WriteRouteInfoToLog(LocoChipStr, 'R', 'Clearing ' + DescribeJourneyAndRoute([Route, ClearingSubRoute]),
-                                                            ': S=' + IntToStr(Device) + ' on' + ' and now unlocked by R=' + IntToStr(Route));
-                  END;
-                END;
-
-                IF OK THEN BEGIN
-                  Signals[Device].Signal_LockFailureNotedInRouteUnit := False;
-                  { and reset approach locking if set (though this would normally be done by the train passing it) }
-                  IF Signals[Device].Signal_ApproachLocked THEN BEGIN
-                    Signals[Device].Signal_ApproachLocked := False;
-                    UnlockPointsLockedBySignal(Device);
-                  END;
-                END;
-              END;
-
-            '.':
-              OK := True;
-
-//            '/', '-': { reset points }
-//              BEGIN
-//                OK := True;
-//                IF NOT Routes_ClearingFailuresMsg2WrittenArray[Route] THEN BEGIN
-//                  IF NOT Points[Device].Point_FeedbackPending
-//                  AND NOT Points[Device].Point_MaybeBeingSetToManual
-//                  AND NOT (Points[Device].Point_DefaultState = PointStateUnknown)
-//                  THEN
-//                    WriteRouteInfoToLog(LocoChip, 'R', 'Clearing ' + DescribeJourneyAndRoute([Route, ClearingSubRoute]),
-//                                                       ': resetting P=' + IntToStr(Device)
-//                                                       + ' to default state '
-//                                                       + PointStateToStr(Points[Device].Point_DefaultState));
-//                END;
-//                IF PointIsLockedByASpecificRoute(Device, Route) THEN BEGIN
-//                  IF Points[Device].Point_RequiredState <> PointStateUnknown THEN BEGIN
-//                    Points[Device].Point_RequiredState := Points[Device].Point_DefaultState;
-//                    { now unlock it, so it will change }
-//                    UnlockPointLockedBySpecificRoute(Device, Route, Routes_RoutesSettingUpStalledMsgWrittenArray[Route]);
-//
-//                    { First see if the point change is successful }
-//                    IF Routes_PointResultPendingPoint[Route] <> UnknownPoint THEN BEGIN
-//                      IF Points[Device].Point_FeedbackPending THEN
-//                        { it's still pending - wait until it's timed out }
-//                        Exit
-//                      ELSE BEGIN
-//                        { Has it successfully changed? }
-//                        IF Points[Device].Point_MaybeBeingSetToManual THEN
-//                          { it's still pending - there's another wait }
-//                          Exit
-//                        ELSE BEGIN
-//                          Routes_PointResultPendingPoint[Route] := UnknownPoint;
-//                          IF Points[Device].Point_PresentState <> Points[Device].Point_RequiredState THEN BEGIN
-//                            IF NOT Routes_ClearingFailuresMsg2WrittenArray[Route] THEN BEGIN
-//                              Debug('Clearing ' + DescribeJourneyAndRoute([Route, ClearingSubRoute])
-//                                    + ': P=' + IntToStr(Device)
-//                                    + ' (Lenz=' + IntToStr(Points[Device].Point_LenzNum) + ')'
-//                                    + ' result was pending: failed to change');
-//                              WriteRouteInfoToLog(LocoChip, 'R', 'Clearing ' + DescribeJourneyAndRoute([Route, ClearingSubRoute]),
-//                                                                 ': P=' + IntToStr(Device) + ' result was pending: failed to change');
-//                            END;
-//                            OK := False;
-//                          END ELSE BEGIN
-//                            IF NOT Routes_ClearingFailuresMsg2WrittenArray[Route] THEN
-//                              WriteRouteInfoToLog(LocoChip, 'R', 'Clearing ' + DescribeJourneyAndRoute([Route, ClearingSubRoute]),
-//                                                                 ': P=' + IntToStr(Device) + ' result was pending: change was successful');
-//                          END;
-//                        END;
-//                      END;
-//                    END;
-//                  END;
-//                END;
-//
-//                IF OK THEN BEGIN
-//                  IF Points[Device].Point_PresentState = Points[Device].Point_RequiredState THEN BEGIN
-//                    IF NOT Routes_ClearingFailuresMsg2WrittenArray[Route] THEN
-//                      WriteRouteInfoToLog(LocoChip, 'R', 'Clearing ' + DescribeJourneyAndRoute([Route, ClearingSubRoute]),
-//                                                         ': P=' + IntToStr(Device) + ' now unlocked by R=' + IntToStr(Route));
-//                    { now unlock it }
-//                    UnlockPointLockedBySpecificRoute(Device, Route, Routes_RoutesSettingUpStalledMsgWrittenArray[Route]);
-//                  END ELSE BEGIN
-//                    IF (Points[Device].Point_RequiredState <> PointStateUnknown) AND NOT Routes_RouteClearingsWithoutPointResetting[Route] THEN BEGIN
-//                      PullPoint(Device, LocoChip, Route, ClearingSubRoute, NOT ForcePoint, NOT ByUser,
-//                                Routes_ClearingFailuresMsg2WrittenArray[Route], PointResultPending, DebugStr, OK);
-//                      IF OK THEN BEGIN
-//                        Routes_PointResultPendingPoint[Route] := UnknownPoint;
-//                        Routes_ClearingFailuresMsg2WrittenArray[Route] := False;
-//                        { now unlock it }
-//                        UnlockPointLockedBySpecificRoute(Device, Route, Routes_RoutesSettingUpStalledMsgWrittenArray[Route]);
-//                        IF NOT Routes_ClearingFailuresMsg2WrittenArray[Route] THEN
-//                          WriteRouteInfoToLog(LocoChip, 'R', 'Clearing ' + DescribeJourneyAndRoute([Route, ClearingSubRoute]),
-//                                                             ': P=' + IntToStr(Device) + ' set to '
-//                                                             + PointStateToStr(Points[Device].Point_RequiredState)
-//                                                             + ' and now unlocked by R=' + IntToStr(Route));
-//                      END;
-//                    END;
-//                  END;
-//                END;
-//
-//                { Check if the array element contains point data }
-//                IF PointIsLockedByASpecificRoute(Device, Route) THEN BEGIN
-//                  UnlockPointLockedBySpecificRoute(Device, Route, Routes_RoutesSettingUpStalledMsgWrittenArray[Route]);
-//                  IF NOT Routes_ClearingFailuresMsg2WrittenArray[Route] THEN
-//                    WriteRouteInfoToLog(LocoChip, 'R', 'Clearing ' + DescribeJourneyAndRoute([Route, ClearingSubRoute]),
-//                                                       ': P=' + IntToStr(Device) + ' now unlocked by R=' + IntToStr(Route));
-//                  OK := True;
-//                END;
-//              END;
-            '/', '-': { reset points }
-              BEGIN
-                OK := True;
-                IF NOT Routes_ClearingFailuresMsg2WrittenArray[Route] THEN BEGIN
-                  IF NOT Points[Device].Point_FeedbackPending
-                  AND NOT Points[Device].Point_MaybeBeingSetToManual
-                  AND NOT (Points[Device].Point_DefaultState = PointStateUnknown)
-                  AND NOT Routes_RouteClearingsWithoutPointResetting[Route]
-                  THEN BEGIN
-                    WriteRouteInfoToLog(LocoChipStr, 'R', 'Clearing ' + DescribeJourneyAndRoute([Route, ClearingSubRoute]),
-                                                          ': resetting P=' + IntToStr(Device) + ' to default state ' + PointStateToStr(Points[Device].Point_DefaultState));
-                    { store the points to be reset later if and when possible }
-                    AppendToIntegerArray(PointResettingToDefaultStateArray, Device);
-                  END;
-                END;
-
-                IF PointIsLockedByASpecificRoute(Device, Route) THEN BEGIN
-                  IF Points[Device].Point_RequiredState <> PointStateUnknown THEN BEGIN
-                    Points[Device].Point_RequiredState := Points[Device].Point_DefaultState;
-                    { now unlock it, so it will change }
-                    UnlockPointLockedBySpecificRoute(Device, Route, Routes_RoutesSettingUpStalledMsgWrittenArray[Route]);
-                    WriteRouteInfoToLog(LocoChipStr, 'R', 'Clearing ' + DescribeJourneyAndRoute([Route, ClearingSubRoute]),
-                                                          ': P=' + IntToStr(Device) + ' now unlocked by R=' + IntToStr(Route));
-                  END;
-                END;
-              END;
-          END; {CASE}
-        END;
-
-      Inc(SubRouteClearingPos);
-    END; {WHILE}
-
-    IF OK THEN BEGIN
-      { Success - note how far we've got }
-      { If a subroute wasn't set, then mark it as cancelled, not cleared }
-      IF Routes_RouteingsCancelled[Route] THEN
-        Log(LocoChipStr + ' R New Cancelled ' + DescribeJourneyAndRoute(Route));
-
-      IF Routes_SubRouteStates[Route, ClearingSubRoute] = SubRouteSettingUpCancelled THEN
-        Log(LocoChipStr + ' R Old Cancelled ' + DescribeJourneyAndRoute([Route, ClearingSubRoute]))
-      ELSE BEGIN
-        Log(LocoChipStr + ' R Successfully cleared ' + DescribeJourneyAndRoute([Route, ClearingSubRoute]));
         Routes_SubRouteStates[Route, ClearingSubRoute] := SubRouteCleared;
+        Exit;
       END;
 
-      { Mark the lines as not being routed over - for undrawing the subroute }
-      FOR SubRouteClearingPos := 0 TO High(ClearingSubRouteArray) DO
-        IF Pos('L=', ClearingSubRouteArray[SubRouteClearingPos]) > 0 THEN
-          IF Lines[ExtractLineFromString(ClearingSubRouteArray[SubRouteClearingPos])].Line_RouteSet <> UnknownRoute THEN
-            Lines[ExtractLineFromString(ClearingSubRouteArray[SubRouteClearingPos])].Line_RouteSet := UnknownRoute;
+      IF (Routes_SubRouteStates[Route, ClearingSubRoute] = SubRouteNotYetSetUp)
+      OR (Routes_SubRouteStates[Route, ClearingSubRoute] = SubRouteSettingUpInProgress)
+      OR (Routes_SubRouteStates[Route, ClearingSubRoute] = SubRouteSettingUpStalled)
+      THEN
+        { no point continuing }
+        Exit;
 
-      { and also mark the line just before the start of the subroute, which isn't in the array, but would have been highlighted to make the route clearer }
-      Lines[Signals[Routes_SubRouteStartSignals[Route, 0]].Signal_AdjacentLine].Line_RouteSet := UnknownRoute;
-      InvalidateScreen(UnitRef, 'SetUpASubRoute 2');
+      IF NOT Routes_ClearingFailuresMsg2WrittenArray[Route] AND (Routes_PointResultPendingPoint[Route] = UnknownPoint) THEN
+        Log(LocoChipStr + ' R Beginning final clearing of ' + DescribeJourneyAndRoute([Route, ClearingSubRoute]));
+      
 
-      { See if we've done the last subroute }
-      IF ClearingSubRoute = (Routes_TotalSubRoutes[Route] - 1) THEN BEGIN
-        Routes_RouteClearingsInProgress[Route] := False;
-        Routes_RouteClearingsWithoutPointResetting[Route] := False;
+      { If there is a Routes_PointResultPendingPoint, we are re-entering the set subroute routine where we left it, so do not want to reset SubRouteClearingPos. }
+      IF Routes_PointResultPendingPoint[Route] <> UnknownPoint THEN
+        SubRouteClearingPos := Routes_CurrentSubRouteClearingPos[Route]
+      ELSE
+        SubRouteClearingPos := 0;
 
-        { Mark the associated journeys as to be cleared too (we can't mark them as "cleared", as routes are cleared when the final track circuit is occupied, whereas
-          journeys are cleared when the following track circuit is occupied).
-        }
-        IF Routes_LocoChips[Route] <> UnknownLocoChip THEN BEGIN
-          WITH Trains[Routes_Trains[Route]] DO BEGIN
-            Train_JourneysArray[Routes_Journeys[Route]].TrainJourney_Cleared := True;
-            Log(Train_LocoChipStr + ' R R=' + IntToStr(Route) + ' cleared');
+      IF (Routes_SubRouteStates[Route, ClearingSubRoute] <> SubRouteSetUp) AND (Routes_SubRouteStates[Route, ClearingSubRoute] <> SubRouteToBeCleared) THEN BEGIN
+        { clearing, or cancelling if route not set up }
+        Routes_SubRouteStates[Route, ClearingSubRoute] := SubRouteSettingUpCancelled;
+        Routes_RouteingsCancelled[Route] := True;
+      END;
 
-            { Remove any remaining route lockings - there shouldn't be any at this stage but occasionally there are some left over }
-            FOR TempP := 0 TO High(Points) DO BEGIN
-              IF PointIsLockedByASpecificRoute(TempP, Route) THEN BEGIN
-                Log(Train_LocoChipStr + ' R P=' + IntToStr(TempP) + ' unlocked by R=' + IntToStr(Route));
-                UnlockPointLockedBySpecificRoute(TempP, Route, NOT ErrorMsgRequired);
-              END;
-            END; {FOR}
+      WHILE (Routes_SubRouteStates[Route, ClearingSubRoute] <> SubRouteSettingUpCancelled) AND (SubRouteClearingPos <= High(ClearingSubRouteArray)) DO BEGIN
+        ActionCh := '';
+        Device := 0;
+        DebugStr := '';
 
-            FOR TempS := 0 TO High(Signals) DO BEGIN
-              IF SignalIsLockedBySpecificRoute(TempS, Route) THEN BEGIN
-                Log(Train_LocoChipStr + ' R S=' + IntToStr(TempS) + ' unlocked by R=' + IntToStr(Route));
-                UnlockSignalLockedBySpecificRoute(TempS, Route);
-              END;
-            END; {FOR}
-
-            FOR TempL := 0 TO High(Lines) DO BEGIN
-              IF Lines[TempL].Line_RouteLockingForDrawing = Route THEN BEGIN
-                Log(Train_LocoChipStr + ' R L=' + LineToStr(TempL) + ' unlocked by R=' + IntToStr(Route));
-                Lines[TempL].Line_RouteLockingForDrawing := UnknownRoute;
-              END;
-            END; {FOR}
-          END; {WITH}
-        END;
-
-        { ensure that trains are still being moved }
-        DoCheckForUnexpectedData(UnitRef, 'ClearARoute 2');
+        { ensure that trains are still being moved in the middle of subroute clearing }
+        DoCheckForUnexpectedData(UnitRef, 'ClearARoute 1');
         IF InAutoMode THEN
           MoveAllTrains;
 
-      END ELSE BEGIN
-        Inc(Routes_CurrentClearingSubRoute[Route]);
-        { see if the next subroute is ready to be cleared }
-        IF Routes_SubRouteStates[Route, ClearingSubRoute + 1] <> SubRouteToBeCleared THEN BEGIN
+        { This makes it easier to work with the bit of the array we're interested in! }
+        SubRouteItemToCheck := ClearingSubRouteArray[SubRouteClearingPos];
+
+        { Check if the array element contains signal or other data }
+        IF Pos('>', SubRouteItemToCheck) > 0 THEN BEGIN
+          { a theatre indication }
+          ActionCh := '>';
+          Device := StrToInt(Copy(SubRouteItemToCheck, 4, Pos('>', SubRouteItemToCheck) - 4));
+
+          TheatreDestinationToConvert := Copy(SubRouteItemToCheck, Pos('>', SubRouteItemToCheck) + 1, 255);
+          IF Pos('FS=', TheatreDestinationToConvert) > 0 THEN
+            TempL := Signals[ExtractSignalFromString(TheatreDestinationToConvert)].Signal_AdjacentLine
+          ELSE
+            TempL := BufferStops[ExtractBufferStopFromString(TheatreDestinationToConvert)].BufferStop_AdjacentLine;
+        END ELSE
+          { Ignore items just there for subrouteing, and have no suffixes }
+          IF (Pos('J=', SubRouteItemToCheck) = 0) AND (Pos('BS=', SubRouteItemToCheck) = 0) AND (Pos('SR=', SubRouteItemToCheck) = 0) THEN BEGIN
+            ActionCh := Copy(SubRouteItemToCheck, Length(SubRouteItemToCheck), 1);
+            IF (Pos('L=', SubRouteItemToCheck) = 0) THEN
+              Device := StrToInt(Copy(SubRouteItemToCheck, 4, Length(SubRouteItemToCheck) - 4))
+            ELSE
+              TempL := StrToLine(Copy(SubRouteItemToCheck, 3, Length(SubRouteItemToCheck) - 3));
+          END;
+
+          IF ActionCh <> '' THEN BEGIN
+            { the default state }
+            OK := False;
+            CASE ActionCh[1] OF
+              '*':
+                BEGIN
+                  { check if the track circuit is locked - as it may already have been unlocked in SetTrackCircuitStateMainProc }
+                  IF TrackCircuits[Device].TC_LockedForRoute = Route THEN
+                    UnlockTrackCircuitRouteLocking(Device);
+
+                  IF NOT Routes_ClearingFailuresMsg2WrittenArray[Route] THEN
+                    WriteRouteInfoToLog(LocoChipStr, 'R', 'Clearing ' + DescribeJourneyAndRoute([Route, ClearingSubRoute]),
+                                                          ': TC=' + IntToStr(Device) + ' now unlocked by R=' + IntToStr(Route));
+                  TrackCircuits[Device].TC_LockFailureNotedInSubRouteUnit := False;
+                  OK := True;
+                END;
+
+              '+':
+                { check if the line is locked }
+                IF Lines[TempL].Line_RouteLockingForDrawing = UnknownRoute THEN
+                  OK := True
+                ELSE
+                  IF Lines[TempL].Line_RouteLockingForDrawing = Route THEN BEGIN
+                    Lines[TempL].Line_RouteLockingForDrawing := UnknownRoute;
+                    IF NOT Routes_ClearingFailuresMsg2WrittenArray[Route] THEN
+                      WriteRouteInfoToLog(LocoChipStr, 'R', 'Clearing ' + DescribeJourneyAndRoute([Route, ClearingSubRoute]),
+                                                            ': L=' + LineToStr(TempL) + ' now unlocked by R=' + IntToStr(Route));
+                    Lines[TempL].Line_LockFailureNotedInSubRouteUnit := False;
+                    OK := True;
+                  END;
+
+              '=':
+                BEGIN
+                  OK := True;
+                  { set a signal on: first unlock it }
+                  IF SignalIsLockedBySpecificRoute(Device, Route) THEN
+                    UnlockSignalLockedBySpecificRoute(Device, Route);
+
+                  { Now see if a semaphore distant needs to be put on too - this check needs to be done each time a signal on the route is put on, as the distant may
+                    cover more than one subroute
+                  }
+                  CheckSemaphoreDistantBeforeSemaphoreHomeCleared(Device);
+
+                  { Now reset it }
+                  IF NOT (GetSignalAspect(Device) = RedAspect) THEN BEGIN
+                    PullSignal(LocoChipStr, Device, NoIndicatorLit, Route, ClearingSubRoute, UnknownLine, '', NOT ByUser, OK);
+                    IF OK THEN BEGIN
+                      IF NOT Routes_ClearingFailuresMsg2WrittenArray[Route] THEN
+                        WriteRouteInfoToLog(LocoChipStr, 'R', 'Clearing ' + DescribeJourneyAndRoute([Route, ClearingSubRoute]),
+                                                              ': S=' + IntToStr(Device) + ' on' + ' and now unlocked by R=' + IntToStr(Route));
+                    END;
+                  END;
+
+                  IF OK THEN BEGIN
+                    Signals[Device].Signal_LockFailureNotedInRouteUnit := False;
+                    { and reset approach locking if set (though this would normally be done by the train passing it) }
+                    IF Signals[Device].Signal_ApproachLocked THEN BEGIN
+                      Signals[Device].Signal_ApproachLocked := False;
+                      UnlockPointsLockedBySignal(Device);
+                    END;
+                  END;
+                END;
+
+              '.':
+                OK := True;
+
+  //            '/', '-': { reset points }
+  //              BEGIN
+  //                OK := True;
+  //                IF NOT Routes_ClearingFailuresMsg2WrittenArray[Route] THEN BEGIN
+  //                  IF NOT Points[Device].Point_FeedbackPending
+  //                  AND NOT Points[Device].Point_MaybeBeingSetToManual
+  //                  AND NOT (Points[Device].Point_DefaultState = PointStateUnknown)
+  //                  THEN
+  //                    WriteRouteInfoToLog(LocoChip, 'R', 'Clearing ' + DescribeJourneyAndRoute([Route, ClearingSubRoute]),
+  //                                                       ': resetting P=' + IntToStr(Device)
+  //                                                       + ' to default state '
+  //                                                       + PointStateToStr(Points[Device].Point_DefaultState));
+  //                END;
+  //                IF PointIsLockedByASpecificRoute(Device, Route) THEN BEGIN
+  //                  IF Points[Device].Point_RequiredState <> PointStateUnknown THEN BEGIN
+  //                    Points[Device].Point_RequiredState := Points[Device].Point_DefaultState;
+  //                    { now unlock it, so it will change }
+  //                    UnlockPointLockedBySpecificRoute(Device, Route, Routes_RoutesSettingUpStalledMsgWrittenArray[Route]);
+  //
+  //                    { First see if the point change is successful }
+  //                    IF Routes_PointResultPendingPoint[Route] <> UnknownPoint THEN BEGIN
+  //                      IF Points[Device].Point_FeedbackPending THEN
+  //                        { it's still pending - wait until it's timed out }
+  //                        Exit
+  //                      ELSE BEGIN
+  //                        { Has it successfully changed? }
+  //                        IF Points[Device].Point_MaybeBeingSetToManual THEN
+  //                          { it's still pending - there's another wait }
+  //                          Exit
+  //                        ELSE BEGIN
+  //                          Routes_PointResultPendingPoint[Route] := UnknownPoint;
+  //                          IF Points[Device].Point_PresentState <> Points[Device].Point_RequiredState THEN BEGIN
+  //                            IF NOT Routes_ClearingFailuresMsg2WrittenArray[Route] THEN BEGIN
+  //                              Debug('Clearing ' + DescribeJourneyAndRoute([Route, ClearingSubRoute])
+  //                                    + ': P=' + IntToStr(Device)
+  //                                    + ' (Lenz=' + IntToStr(Points[Device].Point_LenzNum) + ')'
+  //                                    + ' result was pending: failed to change');
+  //                              WriteRouteInfoToLog(LocoChip, 'R', 'Clearing ' + DescribeJourneyAndRoute([Route, ClearingSubRoute]),
+  //                                                                 ': P=' + IntToStr(Device) + ' result was pending: failed to change');
+  //                            END;
+  //                            OK := False;
+  //                          END ELSE BEGIN
+  //                            IF NOT Routes_ClearingFailuresMsg2WrittenArray[Route] THEN
+  //                              WriteRouteInfoToLog(LocoChip, 'R', 'Clearing ' + DescribeJourneyAndRoute([Route, ClearingSubRoute]),
+  //                                                                 ': P=' + IntToStr(Device) + ' result was pending: change was successful');
+  //                          END;
+  //                        END;
+  //                      END;
+  //                    END;
+  //                  END;
+  //                END;
+  //
+  //                IF OK THEN BEGIN
+  //                  IF Points[Device].Point_PresentState = Points[Device].Point_RequiredState THEN BEGIN
+  //                    IF NOT Routes_ClearingFailuresMsg2WrittenArray[Route] THEN
+  //                      WriteRouteInfoToLog(LocoChip, 'R', 'Clearing ' + DescribeJourneyAndRoute([Route, ClearingSubRoute]),
+  //                                                         ': P=' + IntToStr(Device) + ' now unlocked by R=' + IntToStr(Route));
+  //                    { now unlock it }
+  //                    UnlockPointLockedBySpecificRoute(Device, Route, Routes_RoutesSettingUpStalledMsgWrittenArray[Route]);
+  //                  END ELSE BEGIN
+  //                    IF (Points[Device].Point_RequiredState <> PointStateUnknown) AND NOT Routes_RouteClearingsWithoutPointResetting[Route] THEN BEGIN
+  //                      PullPoint(Device, LocoChip, Route, ClearingSubRoute, NOT ForcePoint, NOT ByUser,
+  //                                Routes_ClearingFailuresMsg2WrittenArray[Route], PointResultPending, DebugStr, OK);
+  //                      IF OK THEN BEGIN
+  //                        Routes_PointResultPendingPoint[Route] := UnknownPoint;
+  //                        Routes_ClearingFailuresMsg2WrittenArray[Route] := False;
+  //                        { now unlock it }
+  //                        UnlockPointLockedBySpecificRoute(Device, Route, Routes_RoutesSettingUpStalledMsgWrittenArray[Route]);
+  //                        IF NOT Routes_ClearingFailuresMsg2WrittenArray[Route] THEN
+  //                          WriteRouteInfoToLog(LocoChip, 'R', 'Clearing ' + DescribeJourneyAndRoute([Route, ClearingSubRoute]),
+  //                                                             ': P=' + IntToStr(Device) + ' set to '
+  //                                                             + PointStateToStr(Points[Device].Point_RequiredState)
+  //                                                             + ' and now unlocked by R=' + IntToStr(Route));
+  //                      END;
+  //                    END;
+  //                  END;
+  //                END;
+  //
+  //                { Check if the array element contains point data }
+  //                IF PointIsLockedByASpecificRoute(Device, Route) THEN BEGIN
+  //                  UnlockPointLockedBySpecificRoute(Device, Route, Routes_RoutesSettingUpStalledMsgWrittenArray[Route]);
+  //                  IF NOT Routes_ClearingFailuresMsg2WrittenArray[Route] THEN
+  //                    WriteRouteInfoToLog(LocoChip, 'R', 'Clearing ' + DescribeJourneyAndRoute([Route, ClearingSubRoute]),
+  //                                                       ': P=' + IntToStr(Device) + ' now unlocked by R=' + IntToStr(Route));
+  //                  OK := True;
+  //                END;
+  //              END;
+              '/', '-': { reset points }
+                BEGIN
+                  OK := True;
+                  IF NOT Routes_ClearingFailuresMsg2WrittenArray[Route] THEN BEGIN
+                    IF NOT Points[Device].Point_FeedbackPending
+                    AND NOT Points[Device].Point_MaybeBeingSetToManual
+                    AND NOT (Points[Device].Point_DefaultState = PointStateUnknown)
+                    AND NOT Routes_RouteClearingsWithoutPointResetting[Route]
+                    THEN BEGIN
+                      WriteRouteInfoToLog(LocoChipStr, 'R', 'Clearing ' + DescribeJourneyAndRoute([Route, ClearingSubRoute]),
+                                                            ': resetting P=' + IntToStr(Device) + ' to default state ' + PointStateToStr(Points[Device].Point_DefaultState));
+                      { store the points to be reset later if and when possible }
+                      AppendToIntegerArray(PointResettingToDefaultStateArray, Device);
+                    END;
+                  END;
+
+                  IF PointIsLockedByASpecificRoute(Device, Route) THEN BEGIN
+                    IF Points[Device].Point_RequiredState <> PointStateUnknown THEN BEGIN
+                      Points[Device].Point_RequiredState := Points[Device].Point_DefaultState;
+                      { now unlock it, so it will change }
+                      UnlockPointLockedBySpecificRoute(Device, Route, Routes_RoutesSettingUpStalledMsgWrittenArray[Route]);
+                      WriteRouteInfoToLog(LocoChipStr, 'R', 'Clearing ' + DescribeJourneyAndRoute([Route, ClearingSubRoute]),
+                                                            ': P=' + IntToStr(Device) + ' now unlocked by R=' + IntToStr(Route));
+                    END;
+                  END;
+                END;
+            END; {CASE}
+          END;
+
+        Inc(SubRouteClearingPos);
+      END; {WHILE}
+
+      IF OK THEN BEGIN
+        { Success - note how far we've got }
+        { If a subroute wasn't set, then mark it as cancelled, not cleared }
+        IF Routes_RouteingsCancelled[Route] THEN
+          Log(LocoChipStr + ' R New Cancelled ' + DescribeJourneyAndRoute(Route));
+
+        IF Routes_SubRouteStates[Route, ClearingSubRoute] = SubRouteSettingUpCancelled THEN
+          Log(LocoChipStr + ' R Old Cancelled ' + DescribeJourneyAndRoute([Route, ClearingSubRoute]))
+        ELSE BEGIN
+          Log(LocoChipStr + ' R Successfully cleared ' + DescribeJourneyAndRoute([Route, ClearingSubRoute]));
+          Routes_SubRouteStates[Route, ClearingSubRoute] := SubRouteCleared;
+        END;
+
+        { Mark the lines as not being routed over - for undrawing the subroute }
+        FOR SubRouteClearingPos := 0 TO High(ClearingSubRouteArray) DO
+          IF Pos('L=', ClearingSubRouteArray[SubRouteClearingPos]) > 0 THEN
+            IF Lines[ExtractLineFromString(ClearingSubRouteArray[SubRouteClearingPos])].Line_RouteSet <> UnknownRoute THEN
+              Lines[ExtractLineFromString(ClearingSubRouteArray[SubRouteClearingPos])].Line_RouteSet := UnknownRoute;
+
+        { and also mark the line just before the start of the subroute, which isn't in the array, but would have been highlighted to make the route clearer }
+        Lines[Signals[Routes_SubRouteStartSignals[Route, 0]].Signal_AdjacentLine].Line_RouteSet := UnknownRoute;
+        InvalidateScreen(UnitRef, 'SetUpASubRoute 2');
+
+        { See if we've done the last subroute }
+        IF ClearingSubRoute = (Routes_TotalSubRoutes[Route] - 1) THEN BEGIN
           Routes_RouteClearingsInProgress[Route] := False;
           Routes_RouteClearingsWithoutPointResetting[Route] := False;
+
+          { Mark the associated journeys as to be cleared too (we can't mark them as "cleared", as routes are cleared when the final track circuit is occupied, whereas
+            journeys are cleared when the following track circuit is occupied).
+          }
+          IF Routes_LocoChips[Route] <> UnknownLocoChip THEN BEGIN
+            WITH Trains[Routes_Trains[Route]] DO BEGIN
+              Train_JourneysArray[Routes_Journeys[Route]].TrainJourney_Cleared := True;
+              Log(Train_LocoChipStr + ' R R=' + IntToStr(Route) + ' cleared');
+
+              { Remove any remaining route lockings - there shouldn't be any at this stage but occasionally there are some left over }
+              FOR TempP := 0 TO High(Points) DO BEGIN
+                IF PointIsLockedByASpecificRoute(TempP, Route) THEN BEGIN
+                  Log(Train_LocoChipStr + ' R P=' + IntToStr(TempP) + ' unlocked by R=' + IntToStr(Route));
+                  UnlockPointLockedBySpecificRoute(TempP, Route, NOT ErrorMsgRequired);
+                END;
+              END; {FOR}
+
+              FOR TempS := 0 TO High(Signals) DO BEGIN
+                IF SignalIsLockedBySpecificRoute(TempS, Route) THEN BEGIN
+                  Log(Train_LocoChipStr + ' R S=' + IntToStr(TempS) + ' unlocked by R=' + IntToStr(Route));
+                  UnlockSignalLockedBySpecificRoute(TempS, Route);
+                END;
+              END; {FOR}
+
+              FOR TempL := 0 TO High(Lines) DO BEGIN
+                IF Lines[TempL].Line_RouteLockingForDrawing = Route THEN BEGIN
+                  Log(Train_LocoChipStr + ' R L=' + LineToStr(TempL) + ' unlocked by R=' + IntToStr(Route));
+                  Lines[TempL].Line_RouteLockingForDrawing := UnknownRoute;
+                END;
+              END; {FOR}
+            END; {WITH}
+          END;
+
+          { ensure that trains are still being moved }
+          DoCheckForUnexpectedData(UnitRef, 'ClearARoute 2');
+          IF InAutoMode THEN
+            MoveAllTrains;
+
+        END ELSE BEGIN
+          Inc(Routes_CurrentClearingSubRoute[Route]);
+          { see if the next subroute is ready to be cleared }
+          IF Routes_SubRouteStates[Route, ClearingSubRoute + 1] <> SubRouteToBeCleared THEN BEGIN
+            Routes_RouteClearingsInProgress[Route] := False;
+            Routes_RouteClearingsWithoutPointResetting[Route] := False;
+          END;
         END;
+        Routes_ClearingFailuresMsg1WrittenArray[Route] := False;
+        Routes_ClearingFailuresMsg2WrittenArray[Route] := False;
+        Routes_ClearingFailuresMsg3WrittenArray[Route] := False;
+        Routes_Cleared[Route] := True;
+
+        WITH Signals[Routes_StartSignals[Route]] DO BEGIN
+          Signal_TRSHeld := False;
+          Signal_TRSReleased := False;
+          Signal_PostColour := SignalPostColour;
+          DrawSignal(Routes_StartSignals[Route]);
+          Signal_TRSHeldMsgWritten := False;
+          Signal_TRSReleasedMsgWritten := False;
+        END; {WITH}
+      END ELSE BEGIN
+        IF NOT Routes_ClearingFailuresMsg3WrittenArray[Route] THEN BEGIN
+          Log(LocoChipStr + ' R **** Clearing ' + DescribeJourneyAndRoute([Route, ClearingSubRoute]) + ' failed: ' + DebugStr);
+          Routes_ClearingFailuresMsg3WrittenArray[Route] := True;
+        END;
+
+        { Failure - write out the first lock failure, or clear it }
+        DrawFailure(Device, ActionCh);
+        { and write it to the log file, once }
+        CASE ActionCh[1] OF
+          '*':
+            IF NOT TrackCircuits[Device].TC_LockFailureNotedInSubRouteUnit THEN BEGIN
+              DebugStr := 'TC=' + IntToStr(Device) + ' is occupied or locked';
+              TrackCircuits[Device].TC_LockFailureNotedInSubRouteUnit := True;
+            END;
+
+          '+':
+            IF NOT Lines[TempL].Line_LockFailureNotedInSubRouteUnit THEN BEGIN
+              DebugStr := 'L=' + LineToStr(TempL) + ' is occupied or locked';
+              Lines[TempL].Line_LockFailureNotedInSubRouteUnit := True;
+            END;
+
+          '/', '-':
+            IF NOT Points[Device].Point_LockFailureNotedInSubRouteUnit THEN BEGIN
+              PointIsLocked(Device, DebugStr);
+              DebugStr := 'P=' + IntToStr(Device) + ' cannot be changed: ' + DebugStr;
+              Points[Device].Point_LockFailureNotedInSubRouteUnit := True;
+            END;
+
+          '=':
+            IF NOT Signals[Device].Signal_LockFailureNotedInRouteUnit THEN BEGIN
+              SignalIsLocked(Device, DebugStr);
+              DebugStr := 'S=' + IntToStr(Device) + ' cannot be changed: ' + DebugStr;
+              Signals[Device].Signal_LockFailureNotedInRouteUnit := True;
+            END;
+          ELSE
+            Log(LocoChipStr + ' E Odd character "' + ActionCh[1] + '" in subroute clearing array');
+        END; {CASE}
+
+        IF DebugStr <> '' THEN
+          { write it out but don't clear it as it is used later too }
+          Log(LocoChipStr + ' R ' + DebugStr);
       END;
-      Routes_ClearingFailuresMsg1WrittenArray[Route] := False;
-      Routes_ClearingFailuresMsg2WrittenArray[Route] := False;
-      Routes_ClearingFailuresMsg3WrittenArray[Route] := False;
-      Routes_Cleared[Route] := True;
 
-      WITH Signals[Routes_StartSignals[Route]] DO BEGIN
-        Signal_TRSHeld := False;
-        Signal_TRSReleased := False;
-        Signal_PostColour := SignalPostColour;
-        DrawSignal(Routes_StartSignals[Route]);
-        Signal_TRSHeldMsgWritten := False;
-        Signal_TRSReleasedMsgWritten := False;
-      END; {WITH}
-    END ELSE BEGIN
-      IF NOT Routes_ClearingFailuresMsg3WrittenArray[Route] THEN BEGIN
-        Log(LocoChipStr + ' R **** Clearing ' + DescribeJourneyAndRoute([Route, ClearingSubRoute]) + ' failed: ' + DebugStr);
-        Routes_ClearingFailuresMsg3WrittenArray[Route] := True;
-      END;
+      { Make a note of current routeing }
+      DescribeRouteingStatus;
 
-      { Failure - write out the first lock failure, or clear it }
-      DrawFailure(Device, ActionCh);
-      { and write it to the log file, once }
-      CASE ActionCh[1] OF
-        '*':
-          IF NOT TrackCircuits[Device].TC_LockFailureNotedInSubRouteUnit THEN BEGIN
-            DebugStr := 'TC=' + IntToStr(Device) + ' is occupied or locked';
-            TrackCircuits[Device].TC_LockFailureNotedInSubRouteUnit := True;
-          END;
+      { Now delete any routes cleared }
+      TempR := 0;
+      WHILE TempR <= High(Routes_Routes) DO BEGIN
+        TempRoute := Routes_Routes[TempR];
+        SubRoutesClearedCount := 0;
+        FOR SubRouteCount := 0 TO High(Routes_SubRouteStates[TempRoute]) DO BEGIN
+          IF (Routes_SubRouteStates[TempRoute, SubRouteCount] = SubRouteCleared)
+             OR (Routes_SubRouteStates[TempRoute, SubRouteCount] = SubRouteSettingUpFailed)
+             OR (Routes_SubRouteStates[TempRoute, SubRouteCount] = SubRouteSettingUpCancelled)
+          THEN
+            Inc(SubRoutesClearedCount);
 
-        '+':
-          IF NOT Lines[TempL].Line_LockFailureNotedInSubRouteUnit THEN BEGIN
-            DebugStr := 'L=' + LineToStr(TempL) + ' is occupied or locked';
-            Lines[TempL].Line_LockFailureNotedInSubRouteUnit := True;
-          END;
+          IF SubRoutesClearedCount = Routes_TotalSubRoutes[TempRoute] THEN BEGIN
+            { Delete the route number so we can't see it again }
+            DeleteElementFromIntegerArray(Routes_Routes, TempR);
+            { and delete the route data stored in the multi-dimensional dynamic arrays }
+            SetLength(Routes_SubRouteClearingStrings[TempRoute], 0);
+            SetLength(Routes_SubRouteStartSignals[TempRoute], 0);
+            SetLength(Routes_SubRouteStartLines[TempRoute], 0);
+            SetLength(Routes_SubRouteEndLines[TempRoute], 0);
+            Log(LocoChipStr + ' R Cleared R=' + IntToStr(TempRoute) + ' deleted');
 
-        '/', '-':
-          IF NOT Points[Device].Point_LockFailureNotedInSubRouteUnit THEN BEGIN
-            PointIsLocked(Device, DebugStr);
-            DebugStr := 'P=' + IntToStr(Device) + ' cannot be changed: ' + DebugStr;
-            Points[Device].Point_LockFailureNotedInSubRouteUnit := True;
-          END;
+            WITH Trains[Routes_Trains[TempRoute]] DO BEGIN
+              Train_CurrentSourceLocation := UnknownLocation;
 
-        '=':
-          IF NOT Signals[Device].Signal_LockFailureNotedInRouteUnit THEN BEGIN
-            SignalIsLocked(Device, DebugStr);
-            DebugStr := 'S=' + IntToStr(Device) + ' cannot be changed: ' + DebugStr;
-            Signals[Device].Signal_LockFailureNotedInRouteUnit := True;
-          END;
-        ELSE
-          Log(LocoChipStr + ' E Odd character "' + ActionCh[1] + '" in subroute clearing array');
-      END; {CASE}
-
-      IF DebugStr <> '' THEN
-        { write it out but don't clear it as it is used later too }
-        Log(LocoChipStr + ' R ' + DebugStr);
-    END;
-
-    { Make a note of current routeing }
-    DescribeRouteingStatus;
-
-    { Now delete any routes cleared }
-    TempR := 0;
-    WHILE TempR <= High(Routes_Routes) DO BEGIN
-      TempRoute := Routes_Routes[TempR];
-      SubRoutesClearedCount := 0;
-      FOR SubRouteCount := 0 TO High(Routes_SubRouteStates[TempRoute]) DO BEGIN
-        IF (Routes_SubRouteStates[TempRoute, SubRouteCount] = SubRouteCleared)
-           OR (Routes_SubRouteStates[TempRoute, SubRouteCount] = SubRouteSettingUpFailed)
-           OR (Routes_SubRouteStates[TempRoute, SubRouteCount] = SubRouteSettingUpCancelled)
-        THEN
-          Inc(SubRoutesClearedCount);
-
-        IF SubRoutesClearedCount = Routes_TotalSubRoutes[TempRoute] THEN BEGIN
-          { Delete the route number so we can't see it again }
-          DeleteElementFromIntegerArray(Routes_Routes, TempR);
-          { and delete the route data stored in the multi-dimensional dynamic arrays }
-          SetLength(Routes_SubRouteClearingStrings[TempRoute], 0);
-          SetLength(Routes_SubRouteStartSignals[TempRoute], 0);
-          SetLength(Routes_SubRouteStartLines[TempRoute], 0);
-          SetLength(Routes_SubRouteEndLines[TempRoute], 0);
-          Log(LocoChipStr + ' R Cleared R=' + IntToStr(TempRoute) + ' deleted');
-
-          WITH Trains[Routes_Trains[TempRoute]] DO BEGIN
-            Train_CurrentSourceLocation := UnknownLocation;
-
-            { Update the train's status, but not if it's been cancelled (routes are cleared automatically when trains are cancelled) }
-            IF Train_CurrentStatus <> Cancelled tHEN BEGIN
-              Train_PreviousStatus := Train_CurrentStatus;
-              IF Train_CurrentJourney = UnknownJourney THEN
-                { not sure if this is right, but can't think what else to do **** }
-                ChangeTrainStatus(Routes_Trains[TempRoute], NonMoving)
-              ELSE BEGIN
-                IF Train_JourneysArray[Train_CurrentJourney].TrainJourney_StoppingOnArrival THEN
-                  ChangeTrainStatus(Routes_Trains[TempRoute], RouteCompleted)
+              { Update the train's status, but not if it's been cancelled (routes are cleared automatically when trains are cancelled) }
+              IF Train_CurrentStatus <> Cancelled tHEN BEGIN
+                Train_PreviousStatus := Train_CurrentStatus;
+                IF Train_CurrentJourney = UnknownJourney THEN
+                  { not sure if this is right, but can't think what else to do **** }
+                  ChangeTrainStatus(Routes_Trains[TempRoute], NonMoving)
                 ELSE BEGIN
-                  ChangeTrainStatus(Routes_Trains[TempRoute], Departed);
+                  IF Train_JourneysArray[Train_CurrentJourney].TrainJourney_StoppingOnArrival THEN
+                    ChangeTrainStatus(Routes_Trains[TempRoute], RouteCompleted)
+                  ELSE BEGIN
+                    ChangeTrainStatus(Routes_Trains[TempRoute], Departed);
 
-                  { Increment the journey counter - this is done at the end of routes by the CheckTrainsHaveArrived subroutine }
-                  Train_JourneysArray[Train_CurrentJourney].TrainJourney_ActualArrivalTime := CurrentRailwayTime;
-                  RecalculateJourneyTimes(Routes_Trains[TempRoute],
-                                          'as have arrived at ' + LocationToStr(Train_JourneysArray[Train_CurrentJourney].TrainJourney_EndLocation, LongStringType));
+                    { Increment the journey counter - this is done at the end of routes by the CheckTrainsHaveArrived subroutine }
+                    Train_JourneysArray[Train_CurrentJourney].TrainJourney_ActualArrivalTime := CurrentRailwayTime;
+                    RecalculateJourneyTimes(Routes_Trains[TempRoute],
+                                            'as have arrived at ' + LocationToStr(Train_JourneysArray[Train_CurrentJourney].TrainJourney_EndLocation, LongStringType));
 
-                  Inc(Train_CurrentJourney);
-                  Log(LocoChipStr + ' R Train_CurrentJourney incremented to ' + IntToStr(Train_CurrentJourney) + ' in ClearARoute');
-                  DrawDiagrams(UnitRef, 'ClearARoute');
+                    Inc(Train_CurrentJourney);
+                    Log(LocoChipStr + ' R Train_CurrentJourney incremented to ' + IntToStr(Train_CurrentJourney) + ' in ClearARoute');
+                    DrawDiagrams(UnitRef, 'ClearARoute');
+                  END;
                 END;
               END;
-            END;
-          END; {WITH}
-        END;
-      END; {FOR}
-      Inc(TempR);
-    END; {WHILE}
-  END;
+            END; {WITH}
+          END;
+        END; {FOR}
+        Inc(TempR);
+      END; {WHILE}
+    END;
+  EXCEPT
+    ON E : Exception DO
+      Log('EG ClearARoute: ' + E.ClassName + ' error raised, with message: ' + E.Message);
+  END; {TRY}
 END; { ClearARoute }
 
 PROCEDURE ReleaseSubRoutes;
