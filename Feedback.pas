@@ -421,15 +421,12 @@ BEGIN
               END;
             END ELSE
               IF IsMainUnitFeedbackDebuggingDataChecked(ReadOutDecoderNumberOnOff) THEN BEGIN
-                IF Feedback_InputOnArray[FeedbackInput] THEN BEGIN
-                  SendStringToSpeechProgram('Unit ' +IntToStr(FeedbackUnit));
-                  SendStringToSpeechProgram('Input ' + IntToStr(FeedbackInput));
-                  SendStringToSpeechProgram('On');
-                END ELSE BEGIN
-                  SendStringToSpeechProgram('Unit ' +IntToStr(FeedbackUnit));
-                  SendStringToSpeechProgram(IntToStr(FeedbackInput));
-                  SendStringToSpeechProgram('Input ' + 'Off');
-                END;
+                SendStringToSpeechProgram('Unit ' +IntToStr(FeedbackUnit));
+                SendStringToSpeechProgram('Input ' + IntToStr(FeedbackInput));
+                IF Feedback_InputOnArray[FeedbackInput] THEN
+                  SendStringToSpeechProgram('On')
+                ELSE
+                  SendStringToSpeechProgram('Off');
               END ELSE
                 IF IsMainUnitFeedbackDebuggingDataChecked(ReadOutPointNumber) AND (Feedback_InputTypeArray[FeedbackInput] = PointFeedback) THEN BEGIN
                   IF Feedback_InputPoint[FeedbackInput] = UnknownPoint THEN
@@ -445,11 +442,16 @@ BEGIN
                   IF IsMainUnitFeedbackDebuggingDataChecked(ReadOutDecoderAndPointNumber) AND (Feedback_InputTypeArray[FeedbackInput] = PointFeedback) THEN BEGIN
                     IF Feedback_InputPoint[FeedbackInput] = UnknownPoint THEN
                       SendStringToSpeechProgram('Unknown Point')
-                    ELSE
+                    ELSE BEGIN
                       SendStringToSpeechProgram('Point ' + IntToStr(Feedback_InputPoint[FeedbackInput]));
-                    SendStringToSpeechProgram('Unit ' + IntToStr(FeedbackUnit));
-                    SendStringToSpeechProgram('Input ' + IntToStr(FeedbackInput));
-                  END;
+                      SendStringToSpeechProgram('Unit ' + IntToStr(FeedbackUnit));
+                      SendStringToSpeechProgram('Input ' + IntToStr(FeedbackInput));
+                      IF Feedback_InputOnArray[FeedbackInput] THEN
+                        SendStringToSpeechProgram('On')
+                      ELSE
+                        SendStringToSpeechProgram('Off');
+                   END;
+                 END;
     END; {WITH}
   END; {WITH}
 END; { WriteUnitDataToFeedbackWindowAndReadItOut }
