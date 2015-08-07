@@ -867,9 +867,10 @@ VAR
           FOR TC := 0 TO High(TrackCircuits) DO BEGIN
             { Write out the track-circuit number once only }
             Line := 0;
-            TrackCircuitNumbered := False;
             WHILE Line <= High(Lines) DO BEGIN
               IF Lines[Line].Line_TC = TC THEN BEGIN
+                TrackCircuitNumbered := False;
+
                 { Draw vertical lines as separators }
                 IF (Lines[Line].Line_NextUpLine <> UnknownLine) AND (Lines[Lines[Line].Line_NextUpLine].Line_TC <> TC) THEN BEGIN
                   Pen.Color := clWhite;
