@@ -314,6 +314,7 @@ PROCEDURE FollowThatLine(CurrentLine, TC : Integer; SearchDirection : DirectionT
 VAR
   ExitFunction : Boolean;
   Next : NextLineRouteingType;
+  SaveCurrentLine : Integer;
 
 BEGIN
   TRY
@@ -393,10 +394,20 @@ BEGIN
         LineIsNext:
           BEGIN
             { where to go next }
-            IF SearchDirection = Up THEN
-              CurrentLine := Lines[CurrentLine].Line_NextUpLine
-            ELSE
+            SaveCurrentLine := CurrentLine;
+            IF SearchDirection = Up THEN BEGIN
+              CurrentLine := Lines[CurrentLine].Line_NextUpLine;
+              IF CurrentLine = UnknownLine THEN BEGIN
+                Log('XG Severe error: unknown line next up of ' + Lines[SaveCurrentLine].Line_NameStr);
+                Exit;
+              END;
+            END ELSE BEGIN
               CurrentLine := Lines[CurrentLine].Line_NextDownLine;
+              IF CurrentLine = UnknownLine THEN BEGIN
+                Log('XG Severe error: unknown line next down of ' + Lines[SaveCurrentLine].Line_NameStr);
+                Exit;
+              END;
+            END;
 
             IF NOT FindPoint THEN
               IF FindTrackCircuitOrPoint(CurrentLine, TC, AdjoiningUpTC, AdjoiningDownTC) THEN
