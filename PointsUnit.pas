@@ -1077,11 +1077,11 @@ BEGIN
                   ShutDownProgram(UnitRef, 'CreatePoint');
               END;
             END;
-          END
-          ELSE
+          END ELSE
             { shouldn't get here }
             Log('X! Failure in creating P=' + IntToStr(P)
-                    + ' (' + LineToStr(Point_HeelLine) + '/' + LineToStr(Point_StraightLine) + '/' + LineToStr(Point_DivergingLine) + ')');
+                    + ' Heel line ' + LineToStr(Point_HeelLine) + ' GridDownX= ' + IntToStr(Lines[Point_HeelLine].Line_GridDownX)
+                    + ' != Straight line ' + LineToStr(Point_StraightLine) + ' GridUpX= ' + IntToStr(Lines[Point_StraightLine].Line_GridUpX));
 
         UpY := Lines[Point_StraightLine].Line_GridUpY;
 
