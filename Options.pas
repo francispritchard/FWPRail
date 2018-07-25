@@ -887,7 +887,7 @@ CONST
     PointStraightLineColourStr = 'Point Straight Line Colour';
     PointsWithoutFeedbackColourStr = 'Points Without Feedback Colour';
     PointUndrawColourStr = 'Point Undraw Colour';
-    PointUpFacingColourStr = 'Up Facing Point Colour';
+    PointUpFacingColourStr = 'Point Up Facing Colour';
 
     { Colours for signal posts }
     SignalPostColourStr = 'Signal Post Colour';
