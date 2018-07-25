@@ -509,7 +509,7 @@ VAR
     InchesPerRealMile := 63360;
     InchesPerScaleMile := InchesPerRealMile / ScaleFactor;
     DistanceInScaleMiles := TCLengthInInches / InchesPerScaleMile;
-    
+
     MilliSeconds := MilliSecondsBetween(LocoStopTime, LocoStartTime);
     IF MilliSeconds = 0 THEN
       { if a TrackCircuitFeedbackDetector goes on and off with no movement, in zero time }
