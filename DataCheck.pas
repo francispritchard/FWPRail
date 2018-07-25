@@ -117,8 +117,6 @@ BEGIN
   Debug('Commencing track-circuit check - please wait...');
   FOR TC := 0 TO High(TrackCircuits) DO BEGIN
     TCInUse := False;
-    TCHasFeedback := False;
-
     { see if the track-circuit number is in use }
     FOR L := 0 TO High(Lines) DO BEGIN
       IF Lines[L].Line_TC = TC THEN
@@ -126,27 +124,30 @@ BEGIN
     END; {FOR}
 
     { now see if the track circuit has feedback }
-    FOR I := FirstFeedbackUnit TO LastFeedbackUnit DO BEGIN
+    TCHasFeedback := False;
+    I := FirstFeedbackUnit;
+    WHILE (I <= LastFeedbackUnit) AND NOT TCHasFeedback DO BEGIN
       FOR J := 1 TO 8 DO BEGIN
         IF FeedbackUnitRecords[I].Feedback_InputTypeArray[J] = TrackCircuitFeedback THEN BEGIN
           IF FeedbackUnitRecords[I].Feedback_InputTrackCircuit[J] = TC THEN
             TCHasFeedback := True;
         END;
       END;
+      Inc(I);
+    END; {WHILE}
 
-      IF NOT TCInUse AND NOT TCHasFeedback THEN BEGIN
+    IF NOT TCInUse AND NOT TCHasFeedback THEN BEGIN
+      Inc(ErrorCount);
+      Log('X TC=' + IntToStr(TC) + ' not in use (and has no feedback)');
+    END ELSE
+      IF NOT TCInUse THEN BEGIN
         Inc(ErrorCount);
-        Log('X TC=' + IntToStr(TC) + ' not in use (and has no feedback)');
+        Log('X TC=' + IntToStr(TC) + ' not in use');
       END ELSE
-        IF NOT TCInUse THEN BEGIN
+        IF NOT TCHasFeedback THEN BEGIN
           Inc(ErrorCount);
-          Log('X TC=' + IntToStr(TC) + ' not in use');
-        END ELSE
-          IF NOT TCHasFeedback THEN BEGIN
-            Inc(ErrorCount);
-            Log('X TC=' + IntToStr(TC) + ' has no feedback');
-          END;
-    END; {FOR}
+          Log('X TC=' + IntToStr(TC) + ' has no feedback');
+        END;
   END;
 
   IF ErrorCount > 0 THEN
