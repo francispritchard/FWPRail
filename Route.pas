@@ -1639,33 +1639,35 @@ BEGIN
             SetLength(Routes_SubRouteEndLines[TempRoute], 0);
             Log(LocoChipStr + ' R Cleared R=' + IntToStr(TempRoute) + ' deleted');
 
-            WITH Trains[Routes_Trains[TempRoute]] DO BEGIN
-              Train_CurrentSourceLocation := UnknownLocation;
+            IF Length(trains) <> 0 THEN BEGIN
+              WITH Trains[Routes_Trains[TempRoute]] DO BEGIN
+                Train_CurrentSourceLocation := UnknownLocation;
 
-              { Update the train's status, but not if it's been cancelled (routes are cleared automatically when trains are cancelled) }
-              IF Train_CurrentStatus <> Cancelled tHEN BEGIN
-                Train_PreviousStatus := Train_CurrentStatus;
-                IF Train_CurrentJourney = UnknownJourney THEN
-                  { not sure if this is right, but can't think what else to do **** }
-                  ChangeTrainStatus(Routes_Trains[TempRoute], NonMoving)
-                ELSE BEGIN
-                  IF Train_JourneysArray[Train_CurrentJourney].TrainJourney_StoppingOnArrival THEN
-                    ChangeTrainStatus(Routes_Trains[TempRoute], RouteCompleted)
+                { Update the train's status, but not if it's been cancelled (routes are cleared automatically when trains are cancelled) }
+                IF Train_CurrentStatus <> Cancelled THEN BEGIN
+                  Train_PreviousStatus := Train_CurrentStatus;
+                  IF Train_CurrentJourney = UnknownJourney THEN
+                    { not sure if this is right, but can't think what else to do **** }
+                    ChangeTrainStatus(Routes_Trains[TempRoute], NonMoving)
                   ELSE BEGIN
-                    ChangeTrainStatus(Routes_Trains[TempRoute], Departed);
+                    IF Train_JourneysArray[Train_CurrentJourney].TrainJourney_StoppingOnArrival THEN
+                      ChangeTrainStatus(Routes_Trains[TempRoute], RouteCompleted)
+                    ELSE BEGIN
+                      ChangeTrainStatus(Routes_Trains[TempRoute], Departed);
 
-                    { Increment the journey counter - this is done at the end of routes by the CheckTrainsHaveArrived subroutine }
-                    Train_JourneysArray[Train_CurrentJourney].TrainJourney_ActualArrivalTime := CurrentRailwayTime;
-                    RecalculateJourneyTimes(Routes_Trains[TempRoute],
-                                            'as have arrived at ' + LocationToStr(Train_JourneysArray[Train_CurrentJourney].TrainJourney_EndLocation, LongStringType));
+                      { Increment the journey counter - this is done at the end of routes by the CheckTrainsHaveArrived subroutine }
+                      Train_JourneysArray[Train_CurrentJourney].TrainJourney_ActualArrivalTime := CurrentRailwayTime;
+                      RecalculateJourneyTimes(Routes_Trains[TempRoute],
+                                              'as have arrived at ' + LocationToStr(Train_JourneysArray[Train_CurrentJourney].TrainJourney_EndLocation, LongStringType));
 
-                    Inc(Train_CurrentJourney);
-                    Log(LocoChipStr + ' R Train_CurrentJourney incremented to ' + IntToStr(Train_CurrentJourney) + ' in ClearARoute');
-                    DrawDiagrams(UnitRef, 'ClearARoute');
+                      Inc(Train_CurrentJourney);
+                      Log(LocoChipStr + ' R Train_CurrentJourney incremented to ' + IntToStr(Train_CurrentJourney) + ' in ClearARoute');
+                      DrawDiagrams(UnitRef, 'ClearARoute');
+                    END;
                   END;
                 END;
-              END;
-            END; {WITH}
+              END; {WITH}
+            END;
           END;
         END; {FOR}
         Inc(TempR);
