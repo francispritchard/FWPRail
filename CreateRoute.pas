@@ -1352,7 +1352,8 @@ VAR
 
           IF CurrentLine = EndLine THEN BEGIN
             { note where we are }
-            RecordLine(CurrentLine, clLime);
+            IF CurrentLine <> UnknownLine THEN
+              RecordLine(CurrentLine, clLime);
             ExitFunctionNum := 7;
             RouteFound := True;
           END;
