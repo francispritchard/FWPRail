@@ -1091,13 +1091,43 @@ VAR
           IF ShowLineDirectionDetail THEN BEGIN
             { Indicate lines that are not designated as through lines }
             IF Lines[Line].Line_Location <> UnknownLocation THEN BEGIN
-              CASE Locations[Lines[Line].Line_Location].Location_ThroughLocationState OF
-                NonThroughLocation:
-                  BEGIN
-                    Font.Color := clRed;
-                    SegmentText := 'X';
-                  END;
-                ThroughLocation:
+//              CASE Locations[Lines[Line].Line_Location].Location_ThroughLocationState OF
+//                NonThroughLocation:
+//                  BEGIN
+//                    Font.Color := clRed;
+//                    SegmentText := 'X';
+//                  END;
+//                ThroughLocation:
+//                  BEGIN
+//                    { if the line direction is one way, which way it is }
+//                    Font.Color := clAqua;
+//                    IF Lines[Line].Line_Direction = Up THEN BEGIN
+//                      IF ScreenUpY = ScreenDownY THEN
+//                        SegmentText := Char(172) { left arrow }
+//                      ELSE
+//                        IF ScreenUpY > ScreenDownY THEN
+//                          SegmentText := Char(175) { down arrow }
+//                        ELSE
+//                          SegmentText := Char(173); { up arrow }
+//                    END ELSE
+//                      IF Lines[Line].Line_Direction = Down THEN BEGIN
+//                        IF ScreenUpY = ScreenDownY THEN
+//                          SegmentText := Char(174) { right arrow }
+//                        ELSE
+//                          IF ScreenUpY > ScreenDownY THEN
+//                            SegmentText := Char(173) { up arrow }
+//                          ELSE
+//                            SegmentText := Char(175); { down arrow }
+//                      END ELSE BEGIN
+//                        Font.Color := clLime;
+//                        SegmentText := '=';
+//                      END;
+//                  END;
+//                UnknownThroughLocationState:
+//                  BEGIN
+//                    Font.Color := clYellow;
+//                    SegmentText := '?';
+//                  END;
                   BEGIN
                     { if the line direction is one way, which way it is }
                     Font.Color := clAqua;
@@ -1123,12 +1153,6 @@ VAR
                         SegmentText := '=';
                       END;
                   END;
-                UnknownThroughLocationState:
-                  BEGIN
-                    Font.Color := clYellow;
-                    SegmentText := '?';
-                  END;
-              END; {CASE}
             END;
           END;
 
@@ -6840,7 +6864,7 @@ BEGIN
         LocationLinesInitialised := True;
       END;
 
-      { Load feedback data and the diagrams datat and compare the data (these routines are here, as the various windows are created by this stage) }
+      { Load feedback data and the diagrams data and compare the data (these routines are here, as the various windows are created by this stage) }
       DiagramsCheckingInProgress := True;
 
       { but change the state of any that we know are out-of-use }
