@@ -664,7 +664,8 @@ BEGIN
 
     FOR S := 0 TO High(Signals) DO
       IF Signals[S].Signal_AdjacentLine <> UnknownLine THEN
-        AppendToIntegerArray(TrackCircuits[Lines[Signals[S].Signal_AdjacentLine].Line_TC].TC_AdjacentSignals, S);
+        IF Length(TrackCircuits[Lines[Signals[S].Signal_AdjacentLine].Line_TC].TC_AdjacentSignals) > 0 THEN
+          AppendToIntegerArray(TrackCircuits[Lines[Signals[S].Signal_AdjacentLine].Line_TC].TC_AdjacentSignals, S);
   EXCEPT {TRY}
     ON E : Exception DO
       Log('EG CalculateTCAdjacentSignals: ' + E.ClassName + ' error raised, with message: ' + E.Message);
