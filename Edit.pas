@@ -921,7 +921,7 @@ BEGIN { WriteSignalValuesToValueList }
           WriteIntegerValueExcludingZero(Signal_IndicatorDecoderNumFieldName, Signal_IndicatorDecoderNum, '9999');
           WritePickListValue(Signal_IndicatorFieldName, IndicatorToStr(Signal_Indicator, LongStringType), [NoIndicatorStr, JunctionIndicatorStr, TheatreIndicatorStr]);
           WritePickListValue(Signal_IndicatorSpeedRestrictionFieldName, MPHToStr(Signal_IndicatorSpeedRestriction),
-                                                                                ['10', '20', '30', '40', '50', '60', '70', '80', '90', '100', '110']);
+                                                                                ['', '10', '20', '30', '40', '50', '60', '70', '80', '90', '100', '110']);
           WriteSignalValue(Signal_NextSignalIfNoIndicatorFieldName, Signal_NextSignalIfNoIndicator, '999');
           WriteJunctionIndicatorValue(EditedSignal, Signal_UpperLeftIndicatorTargetFieldName, UpperLeftIndicator);
           WriteJunctionIndicatorValue(EditedSignal, Signal_MiddleLeftIndicatorTargetFieldName, MiddleLeftIndicator);
